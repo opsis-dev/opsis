@@ -2,8 +2,9 @@ use opsis_types::fonts::{FontFaceDef, FontFamilyDef, FontStyle, ProjectFonts};
 use serde_json::Value;
 
 use crate::asset_ref::{PreparedKind, PreparedRef, extension_of};
+use crate::elements::core::{Card3d, Logo3d, Model3d, Text3d};
 use crate::fonts::{FontRole, find_family, first_family, role_family_name};
-use crate::params::Values;
+use crate::params::{Values, typed_values};
 
 const HEADING_FAMILY: &str = "df-heading";
 const DEFAULT_WEIGHT: f64 = 400.0;
@@ -60,35 +61,21 @@ pub fn face_for(def: &FontFamilyDef, weight: f64, italic: bool) -> Option<&FontF
         .min_by(|a, b| weight_distance(a, weight).total_cmp(&weight_distance(b, weight)))
 }
 
-fn prepared_src(props: &mut Values, kind: impl Fn(&str) -> PreparedKind) {
-    let Some(src) = props
-        .get("src")
-        .and_then(Value::as_str)
-        .filter(|s| !s.is_empty())
-    else {
+fn prepare_src(props: &mut Values, src: &str, kind: PreparedKind) {
+    if src.is_empty() {
         return;
-    };
-    if let Some(prepared) = PreparedRef::new(kind(src), src) {
+    }
+    if let Some(prepared) = PreparedRef::new(kind, src) {
         props.insert("src".into(), Value::from(prepared.to_ref()));
     }
 }
 
-fn typeface(props: &mut Values, fonts: &ProjectFonts) {
-    let family = props
-        .get("fontFamily")
-        .and_then(Value::as_str)
-        .map(first_family)
+fn typeface(props: &mut Values, text: &Text3d, fonts: &ProjectFonts) {
+    let family = Some(first_family(&text.font_family))
         .filter(|f| !f.is_empty())
         .unwrap_or_else(|| HEADING_FAMILY.to_owned());
-    let weight = props
-        .get("fontWeight")
-        .and_then(Value::as_f64)
-        .unwrap_or(DEFAULT_WEIGHT);
-    let italic = props
-        .get("italic")
-        .and_then(Value::as_bool)
-        .unwrap_or(false);
-    let Some(face) = family_for(&family, fonts).and_then(|def| face_for(def, weight, italic))
+    let weight = text.font_weight;
+    let Some(face) = family_for(&family, fonts).and_then(|def| face_for(def, weight, text.italic))
     else {
         return;
     };
@@ -101,18 +88,36 @@ fn typeface(props: &mut Values, fonts: &ProjectFonts) {
     }
 }
 
+fn logo_kind(src: &str) -> PreparedKind {
+    if extension_of(src) == "svg" {
+        PreparedKind::Svg
+    } else {
+        PreparedKind::Texture
+    }
+}
+
 pub fn prepare_props(key: &str, props: &mut Values, fonts: &ProjectFonts) {
     match key {
-        "core/text-3d" => typeface(props, fonts),
-        "core/model-3d" => prepared_src(props, |_| PreparedKind::Model),
-        "core/card-3d" => prepared_src(props, |_| PreparedKind::Texture),
-        "core/logo-3d" => prepared_src(props, |src| {
-            if extension_of(src) == "svg" {
-                PreparedKind::Svg
-            } else {
-                PreparedKind::Texture
+        "core/text-3d" => {
+            if let Ok(text) = typed_values::<Text3d>(props) {
+                typeface(props, &text, fonts);
             }
-        }),
+        }
+        "core/model-3d" => {
+            if let Ok(model) = typed_values::<Model3d>(props) {
+                prepare_src(props, &model.src, PreparedKind::Model);
+            }
+        }
+        "core/card-3d" => {
+            if let Ok(card) = typed_values::<Card3d>(props) {
+                prepare_src(props, &card.src, PreparedKind::Texture);
+            }
+        }
+        "core/logo-3d" => {
+            if let Ok(logo) = typed_values::<Logo3d>(props) {
+                prepare_src(props, &logo.src, logo_kind(&logo.src));
+            }
+        }
         _ => {}
     }
 }

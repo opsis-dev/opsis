@@ -5,24 +5,24 @@ use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use crate::clock::wall_ms;
 use opsis_compile::asset_ref::project_rel_path;
 use opsis_compile::nodes::browser::{
     Assert, Chapter, Click, Drag, DragMethod as DragParam, DragMode, FreezeClock, HideElements,
-    Hoist, Hover, MockRoute, Navigate, Open, OverlayHtml, Press, Scroll, ScrollMode, Select,
-    SetState, SignIn, Type, Wait, WaitMode, WaitUntil, read_path,
+    Hoist, Hover, MockRoute, Navigate, OPEN_BROWSER_TYPE, Open, OverlayHtml, Press, Scroll,
+    ScrollMode, Select, SetState, SignIn, Type, Wait, WaitMode, WaitUntil, read_path,
 };
 use opsis_compile::nodes::capture::{Cursor, Record};
 use opsis_compile::registry::node_def;
 use opsis_compile::text::{non_blank_lines, wall_time_in};
 use opsis_compile::vars::PAUSE_MARK;
 use opsis_project::paths::is_inside;
-use opsis_runner::context::now_ms;
 use opsis_traces::TraceTake;
 use opsis_types::actions::{Action, ActionKind, ActionLog, CursorSample, Point};
 use opsis_types::events::LogLevel;
 use opsis_types::live::{LiveEvent, LiveStep, LiveStepStatus};
 use opsis_types::secrets::{StorageState, secret_name};
-use opsis_types::values::{BrowserSessionValue, SessionStep};
+use opsis_types::values::{BrowserAction, BrowserSessionValue, SessionStep};
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use tokio_util::sync::CancellationToken;
@@ -53,8 +53,6 @@ use crate::selectors::{
 };
 use crate::trace::{CallInfo, Trace};
 
-const START_RECORDING: &str = "browser.startRecording";
-const OPEN_BROWSER: &str = "browser.open";
 const LIVE_CURSOR_GAP_MS: f64 = 30.0;
 const FIRST_PAGE_MIN_WAIT_MS: f64 = 500.0;
 const SCROLL_TICK_MS: f64 = 16.0;
@@ -130,10 +128,10 @@ pub fn step_name(step: &SessionStep, fallback: Option<&str>) -> String {
     if let Some(fallback) = fallback {
         return fallback.to_owned();
     }
-    node_def(&step.kind)
+    node_def(step.kind.kind())
         .map(|d| d.title.clone())
         .filter(|t| !t.is_empty())
-        .unwrap_or_else(|| step.kind.clone())
+        .unwrap_or_else(|| step.kind.kind().to_owned())
 }
 
 fn custom_label(step: &SessionStep) -> Option<String> {
@@ -208,17 +206,17 @@ pub fn at_take_start(mut action: Action) -> Action {
 pub fn video_start(steps: &[SessionStep]) -> usize {
     steps
         .iter()
-        .position(|s| s.kind == START_RECORDING)
+        .position(|s| s.kind == BrowserAction::StartRecording)
         .unwrap_or(0)
 }
 
-pub fn click_kind_of(kind: &str) -> Option<ActionKind> {
-    match kind {
-        "browser.click" => Some(ActionKind::Click),
-        "browser.type" => Some(ActionKind::Type),
-        "browser.hover" => Some(ActionKind::Hover),
-        "browser.drag" => Some(ActionKind::Drag),
-        "browser.select" => Some(ActionKind::Focus),
+pub fn click_kind_of(action: BrowserAction) -> Option<ActionKind> {
+    match action {
+        BrowserAction::Click => Some(ActionKind::Click),
+        BrowserAction::Type => Some(ActionKind::Type),
+        BrowserAction::Hover => Some(ActionKind::Hover),
+        BrowserAction::Drag => Some(ActionKind::Drag),
+        BrowserAction::Select => Some(ActionKind::Focus),
         _ => None,
     }
 }
@@ -232,8 +230,8 @@ fn params<P: DeserializeOwned>(step: &SessionStep) -> StepResult<P> {
     })
 }
 
-fn ms(ms: i64) -> Duration {
-    Duration::from_millis(u64::try_from(ms).unwrap_or(0))
+fn ms(ms: u32) -> Duration {
+    Duration::from_millis(u64::from(ms))
 }
 
 #[derive(Default)]
@@ -253,7 +251,7 @@ struct Recorder {
 
 impl Recorder {
     fn elapsed(&self) -> f64 {
-        now_ms() - *self.t0.lock().expect("take start")
+        wall_ms() - *self.t0.lock().expect("take start")
     }
 
     fn recorded(&self) -> std::sync::MutexGuard<'_, Recorded> {
@@ -294,7 +292,7 @@ impl TakeSink for Recorder {
     }
 
     fn cursor(&self, sample: CursorSample) {
-        let now = now_ms();
+        let now = wall_ms();
         let (x, y) = (sample.x, sample.y);
         let send = {
             let mut recorded = self.recorded();
@@ -374,7 +372,7 @@ impl<'e> TakeRun<'e> {
             };
         (env.step)(browser_id, StepStatus::Done, None);
         let recorder = Arc::new(Recorder {
-            t0: Mutex::new(now_ms()),
+            t0: Mutex::new(wall_ms()),
             recorded: Mutex::default(),
             live: env.live.clone(),
             overlays: overlays.clone(),
@@ -497,18 +495,18 @@ impl<'e> TakeRun<'e> {
             .ok_or_else(|| failed("Mouse actions must come after Start recording."))
     }
 
-    async fn pause_if_rolling(&self, after: i64) {
+    async fn pause_if_rolling(&self, after: u32) {
         if let Some(driver) = &self.driver {
-            driver.pause(Some(after as f64)).await;
+            driver.pause(Some(f64::from(after))).await;
         }
     }
 
-    async fn settle_after_page(&self, after: i64) {
+    async fn settle_after_page(&self, after: u32) {
         match &self.driver {
-            Some(driver) => driver.pause(Some(after as f64)).await,
+            Some(driver) => driver.pause(Some(f64::from(after))).await,
             None => {
                 self.sleep(Duration::from_secs_f64(
-                    FIRST_PAGE_MIN_WAIT_MS.max(after as f64) / 1000.0,
+                    FIRST_PAGE_MIN_WAIT_MS.max(f64::from(after)) / 1000.0,
                 ))
                 .await
             }
@@ -556,7 +554,7 @@ impl<'e> TakeRun<'e> {
         selector: &str,
         beat: &opsis_compile::nodes::browser::Beat,
         frame: &str,
-        pointer: Option<(f64, i64, i64)>,
+        pointer: Option<(f64, u32, u32)>,
     ) -> StepResult<ActionOpts> {
         let frame = if frame.trim().is_empty() {
             None
@@ -567,8 +565,8 @@ impl<'e> TakeRun<'e> {
             pointer.map_or((None, None, None), |(scale, travel, hover)| {
                 (
                     (scale != 0.0).then_some(scale),
-                    (travel != 0).then_some(travel as f64),
-                    Some(hover as f64),
+                    (travel != 0).then_some(f64::from(travel)),
+                    Some(f64::from(hover)),
                 )
             });
         Ok(ActionOpts {
@@ -593,7 +591,7 @@ impl<'e> TakeRun<'e> {
             .into_iter()
             .map(at_take_start)
             .collect();
-        let t0 = now_ms();
+        let t0 = wall_ms();
         *self.recorder.t0.lock().expect("take start") = t0;
         if let Some(recording) = &self.recording {
             recording.encoder.set_origin(t0);
@@ -670,7 +668,7 @@ impl<'e> TakeRun<'e> {
                 recorded.keys[keys_before..].to_vec(),
             )
         };
-        let kind = click_kind_of(&step.kind);
+        let kind = click_kind_of(step.kind);
         for c in clicks {
             let Some(kind) = kind else {
                 continue;
@@ -709,31 +707,27 @@ impl<'e> TakeRun<'e> {
     }
 
     async fn play(&mut self, step: &SessionStep) -> StepResult {
-        match step.kind.as_str() {
-            "browser.navigate" => self.navigate(step, params(step)?).await,
-            "browser.click" => self.click(step, params(step)?).await,
-            "browser.type" => self.type_text(step, params(step)?).await,
-            "browser.hover" => self.hover(step, params(step)?).await,
-            "browser.drag" => self.drag(step, params(step)?).await,
-            "browser.scroll" => self.scroll(step, params(step)?).await,
-            "browser.select" => self.select(step, params(step)?).await,
-            "browser.upload" => self.upload(params(step)?).await,
-            "browser.press" => self.press(step, params(step)?).await,
-            "browser.wait" => self.wait(step, params(step)?).await,
-            "browser.assert" => self.assert(params(step)?).await,
-            "browser.hoist" => self.hoist(params(step)?).await,
-            "browser.setState" => self.set_state(step, params(step)?).await,
-            "browser.mockRoute" => self.mock_route(params(step)?).await,
-            "browser.freezeClock" => self.freeze_clock(params(step)?).await,
-            "browser.hideElements" => self.hide_elements(params(step)?).await,
-            "browser.chapter" => self.chapter(step, params(step)?).await,
-            "browser.overlayHtml" => self.overlay_html(params(step)?).await,
-            "browser.signIn" => self.sign_in(step, params(step)?).await,
-            START_RECORDING => Ok(()),
-            _ => Err(failed(format!(
-                "\"{}\" can't be part of a browser take.",
-                step_name(step, None)
-            ))),
+        match step.kind {
+            BrowserAction::Navigate => self.navigate(step, params(step)?).await,
+            BrowserAction::Click => self.click(step, params(step)?).await,
+            BrowserAction::Type => self.type_text(step, params(step)?).await,
+            BrowserAction::Hover => self.hover(step, params(step)?).await,
+            BrowserAction::Drag => self.drag(step, params(step)?).await,
+            BrowserAction::Scroll => self.scroll(step, params(step)?).await,
+            BrowserAction::Select => self.select(step, params(step)?).await,
+            BrowserAction::Upload => self.upload(params(step)?).await,
+            BrowserAction::Press => self.press(step, params(step)?).await,
+            BrowserAction::Wait => self.wait(step, params(step)?).await,
+            BrowserAction::Assert => self.assert(params(step)?).await,
+            BrowserAction::Hoist => self.hoist(params(step)?).await,
+            BrowserAction::SetState => self.set_state(step, params(step)?).await,
+            BrowserAction::MockRoute => self.mock_route(params(step)?).await,
+            BrowserAction::FreezeClock => self.freeze_clock(params(step)?).await,
+            BrowserAction::HideElements => self.hide_elements(params(step)?).await,
+            BrowserAction::Chapter => self.chapter(step, params(step)?).await,
+            BrowserAction::OverlayHtml => self.overlay_html(params(step)?).await,
+            BrowserAction::SignIn => self.sign_in(step, params(step)?).await,
+            BrowserAction::StartRecording => Ok(()),
         }
     }
 
@@ -773,7 +767,7 @@ impl<'e> TakeRun<'e> {
         driver
             .move_and_click(&resolved.target, Some(&label), &opts)
             .await?;
-        driver.pause(Some(p.beat.pause.after as f64)).await;
+        driver.pause(Some(f64::from(p.beat.pause.after))).await;
         Ok(())
     }
 
@@ -783,7 +777,7 @@ impl<'e> TakeRun<'e> {
         let mut opts = self
             .motion(&resolved.by, &p.beat, &p.frame.frame, None)
             .await?;
-        opts.chunk_pause_ms = p.chunk_pause_ms as f64;
+        opts.chunk_pause_ms = f64::from(p.chunk_pause_ms);
         let chunks: Vec<String> = p.text.split(PAUSE_MARK).map(str::to_owned).collect();
         let driver = self.rolling()?;
         driver
@@ -792,7 +786,7 @@ impl<'e> TakeRun<'e> {
         if p.press_enter {
             driver.press_key("Enter", Some("Enter")).await?;
         }
-        driver.pause(Some(p.beat.pause.after as f64)).await;
+        driver.pause(Some(f64::from(p.beat.pause.after))).await;
         Ok(())
     }
 
@@ -809,7 +803,7 @@ impl<'e> TakeRun<'e> {
             .await?;
         let driver = self.rolling()?;
         driver.focus(&resolved.target, Some(&label), &opts).await?;
-        driver.pause(Some(p.beat.pause.after as f64)).await;
+        driver.pause(Some(f64::from(p.beat.pause.after))).await;
         Ok(())
     }
 
@@ -819,8 +813,8 @@ impl<'e> TakeRun<'e> {
         self.rolling()?;
         let to = match p.mode {
             DragMode::By => DragTo::By(Point {
-                x: p.dx as f64,
-                y: p.dy as f64,
+                x: f64::from(p.dx),
+                y: f64::from(p.dy),
             }),
             DragMode::Path => {
                 DragTo::Path(read_path(&p.path).map_err(|problem| failed(format!("{problem}.")))?)
@@ -840,8 +834,8 @@ impl<'e> TakeRun<'e> {
             .await?;
         let opts = DragOpts {
             action,
-            hold_ms: Some(p.hold_ms as f64),
-            drag_ms: p.drag_ms as f64,
+            hold_ms: Some(f64::from(p.hold_ms)),
+            drag_ms: f64::from(p.drag_ms),
             method: if p.method == DragParam::Quick {
                 DragMethod::Quick
             } else {
@@ -850,7 +844,7 @@ impl<'e> TakeRun<'e> {
         };
         let driver = self.rolling()?;
         driver.drag(&from.target, &to, Some(&label), &opts).await?;
-        driver.pause(Some(p.beat.pause.after as f64)).await;
+        driver.pause(Some(f64::from(p.beat.pause.after))).await;
         Ok(())
     }
 
@@ -880,10 +874,10 @@ impl<'e> TakeRun<'e> {
                     .await?;
             }
             ScrollMode::By => {
-                let ticks = (p.duration_ms as f64 / SCROLL_TICK_MS).round().max(1.0);
+                let ticks = (f64::from(p.duration_ms) / SCROLL_TICK_MS).round().max(1.0);
                 for _ in 0..ticks as u64 {
                     self.input
-                        .wheel(self.tab(), 0.0, p.delta_y as f64 / ticks)
+                        .wheel(self.tab(), 0.0, f64::from(p.delta_y) / ticks)
                         .await?;
                     self.sleep(Duration::from_secs_f64(SCROLL_TICK_MS / 1000.0))
                         .await;
@@ -934,7 +928,9 @@ impl<'e> TakeRun<'e> {
         .await;
         self.tab().release(&handle).await;
         picked?;
-        self.rolling()?.pause(Some(p.beat.pause.after as f64)).await;
+        self.rolling()?
+            .pause(Some(f64::from(p.beat.pause.after)))
+            .await;
         Ok(())
     }
 
@@ -1054,7 +1050,7 @@ impl<'e> TakeRun<'e> {
 
     async fn freeze_clock(&mut self, p: FreezeClock) -> StepResult {
         let zone: String = self.tab().evaluate_main(PAGE_TIME_ZONE).await?;
-        let time = wall_time_in(&p.time, &zone).map_err(failed)?;
+        let time = wall_time_in(&p.time, &zone).map_err(|e| failed(e.to_string()))?;
         self.clock
             .freeze(&self.session, p.mode, time.as_millisecond())
             .await?;
@@ -1080,11 +1076,20 @@ impl<'e> TakeRun<'e> {
         if selectors.is_empty() {
             return Ok(());
         }
-        let invalid: Vec<String> = self
+        let invalid: Vec<String> = match self
             .tab()
             .evaluate_main(&call(INVALID_SELECTORS, &json!(own)))
             .await
-            .unwrap_or_default();
+        {
+            Ok(invalid) => invalid,
+            Err(error) => {
+                self.log(
+                    LogLevel::Warn,
+                    &format!("Couldn't check which selectors are valid: {error}"),
+                );
+                Vec::new()
+            }
+        };
         if !invalid.is_empty() {
             let list = invalid
                 .iter()
@@ -1211,7 +1216,7 @@ impl<'e> TakeRun<'e> {
     }
 
     async fn stop(mut self, failed: bool) -> Stopped {
-        let end = now_ms();
+        let end = wall_ms();
         let t0 = *self.recorder.t0.lock().expect("take start");
         let mut duration_ms = end - t0;
         if let Some(screencast) = self.screencast.take()
@@ -1302,7 +1307,7 @@ pub async fn play_take<'e, T>(
         }
     };
     if let Some(live) = &env.live {
-        let title = node_def(OPEN_BROWSER)
+        let title = node_def(OPEN_BROWSER_TYPE)
             .map(|d| d.title.clone())
             .unwrap_or_default();
         let steps = session
@@ -1373,7 +1378,7 @@ mod tests {
     fn names_what_it_couldnt_find() {
         let mut step = SessionStep {
             id: "n".into(),
-            kind: "browser.click".into(),
+            kind: BrowserAction::Click,
             label: None,
             params: serde_json::Map::new(),
         };

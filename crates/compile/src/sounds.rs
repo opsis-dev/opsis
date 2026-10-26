@@ -7,7 +7,7 @@ use serde::Deserialize;
 pub struct BuiltinSound {
     pub id: String,
     pub label: String,
-    pub duration_ms: f64,
+    pub duration_ms: u32,
 }
 
 impl BuiltinSound {

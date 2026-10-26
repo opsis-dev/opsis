@@ -403,7 +403,7 @@ fn lists_session_actions_in_chain_order_with_their_settings_filled_in() {
     let steps: Vec<(String, String, Option<String>)> = session
         .steps
         .iter()
-        .map(|s| (s.id.clone(), s.kind.clone(), s.label.clone()))
+        .map(|s| (s.id.clone(), s.kind.kind().to_owned(), s.label.clone()))
         .collect();
     assert_eq!(
         steps,

@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -6,6 +7,7 @@ use chromiumoxide::cdp::browser_protocol::page::{
 };
 use futures::StreamExt;
 use indexmap::IndexMap;
+use opsis_capture::browser::shell_in;
 use opsis_capture::cdp::{CaptureError, Result, Tab};
 use opsis_capture::executors::{Login, LoginRequest};
 use opsis_compile::nodes::browser::DoneWhen;
@@ -136,9 +138,7 @@ async fn watch(
         .page
         .event_listener::<EventNavigatedWithinDocument>()
         .await?;
-    let deadline = tokio::time::sleep(Duration::from_secs(
-        u64::try_from(request.timeout_sec).unwrap_or(0),
-    ));
+    let deadline = tokio::time::sleep(Duration::from_secs(u64::from(request.timeout_sec)));
     tokio::pin!(deadline);
     let mut poll = tokio::time::interval(SELECTOR_POLL);
     let mut origins = IndexMap::new();
@@ -196,7 +196,8 @@ pub async fn sign_in(
 }
 
 pub struct StreamLogin {
-    pub env: ViewEnv,
+    pub engine_dir: PathBuf,
+    pub temp_dir: PathBuf,
     pub host: Arc<dyn ViewHost>,
 }
 
@@ -206,8 +207,13 @@ impl Login for StreamLogin {
         request: LoginRequest,
         cancel: CancellationToken,
     ) -> BoxFuture<std::result::Result<String, ExecError>> {
-        let (env, host) = (self.env.clone(), Arc::clone(&self.host));
+        let host = Arc::clone(&self.host);
+        let env = shell_in(&self.engine_dir).map(|executable| ViewEnv {
+            executable,
+            temp_dir: self.temp_dir.clone(),
+        });
         Box::pin(async move {
+            let env = env.map_err(|e| ExecError::new(e.to_string()))?;
             match sign_in(&env, host.as_ref(), &request, &cancel).await {
                 Ok(Some(state)) => Ok(state),
                 Ok(None) => Err(ExecError::Cancelled),

@@ -261,13 +261,13 @@ pub struct ProjectSignIns {
 impl opsis_capture::executors::SignInStore for ProjectSignIns {
     fn read(&self, project_dir: &Path, name: &str) -> Result<Option<String>, String> {
         let state = self.app.state::<AppState>();
-        let keys = state.keys()?;
+        let keys = state.keys().map_err(ToString::to_string)?;
         read_secret(keys, project_dir, name).map_err(|e| e.to_string())
     }
 
     fn write(&self, project_dir: &Path, name: &str, value: &str) -> Result<(), String> {
         let state = self.app.state::<AppState>();
-        let keys = state.keys()?;
+        let keys = state.keys().map_err(ToString::to_string)?;
         write_secret(keys, project_dir, name, value).map_err(|e| e.to_string())
     }
 }

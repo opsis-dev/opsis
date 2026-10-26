@@ -67,7 +67,12 @@ fn editor_reply(reply: &Value) -> Response {
 }
 
 fn read_json(bytes: &Bytes, required: bool) -> Result<Value, Box<Response>> {
-    let text = std::str::from_utf8(bytes).unwrap_or_default().trim();
+    let Ok(text) = std::str::from_utf8(bytes).map(str::trim) else {
+        return Err(Box::new(failure(
+            StatusCode::BAD_REQUEST,
+            "The request body isn't UTF-8 text.",
+        )));
+    };
     if text.is_empty() {
         return if required {
             Err(Box::new(failure(

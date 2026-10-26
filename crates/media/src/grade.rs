@@ -2,6 +2,7 @@ use std::f64::consts::PI;
 use std::path::Path;
 
 use opsis_compile::color::{color_or, hue_and_saturation};
+use opsis_compile::errors::SettingsError;
 use opsis_compile::nodes::grade::{
     AUTO_FIX_TYPE, AutoFix, COLOUR_TYPE, Colour, DEFAULT_TINT, LENS_TYPE, LOOK_TYPE, Lens,
     LookFile, MONO_TYPE, Mono, MonoKind, TEXTURE_TYPE, Texture, ToneCurve, tone_offsets,
@@ -22,8 +23,8 @@ const SEPIA: &str = "colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.5
 
 #[derive(Debug, Clone, Copy, PartialEq, serde::Deserialize)]
 pub struct GradeSize {
-    pub width: f64,
-    pub height: f64,
+    pub width: u32,
+    pub height: u32,
     pub still: bool,
 }
 
@@ -35,8 +36,8 @@ pub enum GradeError {
     LookKind,
     #[error("\"{0}\" isn't a grade step.")]
     NotAStep(String),
-    #[error("{0}")]
-    Settings(String),
+    #[error(transparent)]
+    Settings(#[from] SettingsError),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
@@ -232,7 +233,10 @@ fn texture_filters(p: &Texture, size: GradeSize) -> Vec<String> {
                 "sigma",
                 when(
                     p.soften > 0.0,
-                    num(f64::max(0.01, p.soften * 8.0 * (size.width / DESIGN_WIDTH))),
+                    num(f64::max(
+                        0.01,
+                        p.soften * 8.0 * (f64::from(size.width) / DESIGN_WIDTH),
+                    )),
                 ),
             )],
         ),
@@ -271,7 +275,10 @@ fn texture_filters(p: &Texture, size: GradeSize) -> Vec<String> {
 }
 
 fn lens_filters(p: &Lens, size: GradeSize) -> Vec<String> {
-    let shift = f64::max(1.0, (p.fringe * 8.0 * (size.width / DESIGN_WIDTH)).round());
+    let shift = f64::max(
+        1.0,
+        (p.fringe * 8.0 * (f64::from(size.width) / DESIGN_WIDTH)).round(),
+    );
     let mut filters = [
         options(
             "rgbashift",
@@ -357,8 +364,7 @@ fn look_piece<E: From<GradeError>>(
 
 fn params<P: DeserializeOwned>(entry: &StyleEntry) -> Result<P, GradeError> {
     let def = node_def(&entry.kind).ok_or_else(|| GradeError::NotAStep(entry.kind.clone()))?;
-    def.typed_params(&entry.params)
-        .map_err(GradeError::Settings)
+    Ok(def.typed_params(&entry.params)?)
 }
 
 fn filters_only(filters: Vec<String>) -> Option<Piece> {

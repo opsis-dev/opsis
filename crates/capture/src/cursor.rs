@@ -189,8 +189,8 @@ impl CursorDriver {
         viewport: Viewport,
     ) -> Self {
         let center = Point {
-            x: viewport.width / 2.0,
-            y: viewport.height / 2.0,
+            x: f64::from(viewport.width) / 2.0,
+            y: f64::from(viewport.height) / 2.0,
         };
         let driver = Self {
             tab,
@@ -199,7 +199,7 @@ impl CursorDriver {
             sink,
             reads_shapes,
             viewport,
-            design_scale: viewport.width / DESIGN_WIDTH,
+            design_scale: f64::from(viewport.width) / DESIGN_WIDTH,
             state: Mutex::new(CursorState {
                 last: center,
                 last_depart_ms: 0.0,
@@ -463,7 +463,11 @@ impl CursorDriver {
         self.tab.release(&handle).await;
         let rect = measured?.ok_or_else(|| CaptureError::failed(NOT_ON_SCREEN))?;
         let Point { x: cx, y: cy } = rect.center();
-        if cx < 0.0 || cy < 0.0 || cx > self.viewport.width || cy > self.viewport.height {
+        let (width, height) = (
+            f64::from(self.viewport.width),
+            f64::from(self.viewport.height),
+        );
+        if cx < 0.0 || cy < 0.0 || cx > width || cy > height {
             return Err(CaptureError::failed(NOT_ON_SCREEN));
         }
         Ok(TargetBox { cx, cy, rect })

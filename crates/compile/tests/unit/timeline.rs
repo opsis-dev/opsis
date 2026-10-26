@@ -59,10 +59,7 @@ fn stacks_overlapping_layers_on_lanes_in_drawing_order() {
         .filter_map(|l| l.handles.as_ref()?.move_to.as_ref())
         .find(|m| m.node_id == "layers")
         .unwrap();
-    assert_eq!(
-        (moved.param.as_str(), moved.index),
-        ("offsetsMs", Some(1.0))
-    );
+    assert_eq!((moved.param.as_str(), moved.index), ("offsetsMs", Some(1)));
 }
 
 #[test]

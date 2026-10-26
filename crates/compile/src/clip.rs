@@ -1,3 +1,4 @@
+use opsis_types::numbers::{signed, whole, whole_signed};
 use opsis_types::recording::RecordingProps;
 use opsis_types::timeline::{
     AudioEnvelope, AudioItem, CameraPath, Design, EditHandles, GroupProps, ItemBase, Keyframe,
@@ -5,16 +6,18 @@ use opsis_types::timeline::{
 };
 use opsis_types::values::{ClipValue, CompileValue, RecordingValue, TaggedRecording};
 use opsis_types::workflow::WorkflowSettings;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 use crate::envelope::has_visual_keys;
 use crate::node::InputTake;
+use crate::params::to_values;
 use crate::remap::{RemapSide, inverse_remap};
-use crate::time::{at_least_one_frame, clamp};
 
-pub const EMPTY_CLIP_FRAMES: f64 = 30.0;
+pub const EMPTY_CLIP_FRAMES: u32 = 30;
 pub const PLACEHOLDER: &str = "core/placeholder";
+pub const STILL: &str = "core/still";
+pub const IMAGE: &str = "core/image";
 pub const VIDEO: &str = "core/video";
 
 fn yes() -> bool {
@@ -78,7 +81,7 @@ pub fn clip_of(value: Option<&CompileValue>) -> Option<&ClipValue> {
 }
 
 fn make_clip(
-    duration_in_frames: f64,
+    duration_in_frames: u32,
     tracks: Vec<TimelineTrack>,
     audio: Vec<AudioItem>,
     recording: Option<RecordingValue>,
@@ -97,7 +100,7 @@ pub fn clip_recording(clip: &ClipValue) -> Option<&RecordingValue> {
         .map(|TaggedRecording::Recording(r)| r)
 }
 
-pub fn empty_clip(duration_in_frames: f64) -> ClipValue {
+pub fn empty_clip(duration_in_frames: u32) -> ClipValue {
     make_clip(duration_in_frames, Vec::new(), Vec::new(), None)
 }
 
@@ -131,11 +134,11 @@ enum Content {
 fn content_clip(
     node_id: &str,
     content: Content,
-    duration_in_frames: f64,
+    duration_in_frames: u32,
     extra: ItemExtra,
 ) -> ClipValue {
-    let duration = at_least_one_frame(duration_in_frames);
-    let mut base = ItemBase::new(format!("{node_id}:i"), 0.0, duration);
+    let duration = duration_in_frames.max(1);
+    let mut base = ItemBase::new(format!("{node_id}:i"), 0, duration);
     base.node_id = Some(node_id.to_owned());
     base.handles = extra.handles;
     base.envelope = extra.envelope.filter(|e| has_visual_keys(Some(e)));
@@ -161,7 +164,7 @@ pub fn item_clip(
     node_id: &str,
     component: &str,
     props: Map<String, Value>,
-    duration_in_frames: f64,
+    duration_in_frames: u32,
     extra: ItemExtra,
 ) -> ClipValue {
     content_clip(
@@ -176,19 +179,32 @@ pub fn placeholder_clip(
     node_id: &str,
     title: &str,
     subtitle: &str,
-    duration_in_frames: f64,
+    duration_in_frames: u32,
     extra: ItemExtra,
 ) -> ClipValue {
-    let mut props = Map::new();
-    props.insert("title".into(), Value::from(title));
-    props.insert("subtitle".into(), Value::from(subtitle));
-    item_clip(node_id, PLACEHOLDER, props, duration_in_frames, extra)
+    let props = PlaceholderProps {
+        title: title.to_owned(),
+        subtitle: subtitle.to_owned(),
+    };
+    item_clip(
+        node_id,
+        PLACEHOLDER,
+        to_values(&props),
+        duration_in_frames,
+        extra,
+    )
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
+pub struct PlaceholderProps {
+    pub title: String,
+    pub subtitle: String,
 }
 
 pub fn recording_clip(
     node_id: &str,
     props: RecordingProps,
-    duration_in_frames: f64,
+    duration_in_frames: u32,
     extra: ItemExtra,
 ) -> ClipValue {
     content_clip(
@@ -199,33 +215,33 @@ pub fn recording_clip(
     )
 }
 
-fn cut_sound_start(a: AudioItem, by: f64) -> Option<AudioItem> {
-    if by <= 0.0 {
-        return Some(a);
-    }
+fn cut_sound_start(a: AudioItem, by: i32) -> Option<AudioItem> {
+    let by = u32::try_from(by).ok().filter(|by| *by > 0);
+    let Some(by) = by else { return Some(a) };
     if a.duration_in_frames.is_some_and(|d| d <= by) {
         return None;
     }
-    let source_cut = (by * a.rate.unwrap_or(1.0)).round();
+    let source_cut = whole(f64::from(by) * a.rate.unwrap_or(1.0));
     if a.length_frames.is_some_and(|l| l <= source_cut) {
         return None;
     }
     Some(AudioItem {
-        from: a.from + by,
-        trim_before: Some(a.trim_before.unwrap_or(0.0) + source_cut),
+        from: a.from + signed(by),
+        trim_before: Some(a.trim_before.unwrap_or(0) + source_cut),
         duration_in_frames: a.duration_in_frames.map(|d| d - by),
         length_frames: a.length_frames.map(|l| l - source_cut),
         ..a
     })
 }
 
-fn fit_within(a: AudioItem, end: f64) -> Option<AudioItem> {
+fn fit_within(a: AudioItem, end: u32) -> Option<AudioItem> {
     let by = -a.from;
     let placed = cut_sound_start(a, by)?;
-    if placed.from >= end {
+    let start = u32::try_from(placed.from).ok()?;
+    if start >= end {
         return None;
     }
-    let room = end - placed.from;
+    let room = end - start;
     Some(AudioItem {
         duration_in_frames: Some(placed.duration_in_frames.unwrap_or(room).min(room)),
         ..placed
@@ -244,19 +260,19 @@ fn scale_keys(keys: Option<Vec<Keyframe>>, by: f64) -> Option<Vec<Keyframe>> {
 }
 
 fn speed_sound(a: AudioItem, inner_per_outer: f64) -> AudioItem {
-    let outer = |frames: f64| (frames / inner_per_outer).round().max(1.0);
+    let outer = |frames: u32| whole(f64::from(frames) / inner_per_outer).max(1);
     AudioItem {
-        from: (a.from / inner_per_outer).round(),
+        from: whole_signed(f64::from(a.from) / inner_per_outer),
         rate: Some(a.rate.unwrap_or(1.0) * inner_per_outer),
         duration_in_frames: a.duration_in_frames.map(outer),
         fade_in_frames: a
             .fade_in_frames
-            .filter(|f| *f != 0.0)
+            .filter(|f| *f != 0)
             .map(outer)
             .or(a.fade_in_frames),
         fade_out_frames: a
             .fade_out_frames
-            .filter(|f| *f != 0.0)
+            .filter(|f| *f != 0)
             .map(outer)
             .or(a.fade_out_frames),
         envelope: a.envelope.map(|e| AudioEnvelope {
@@ -274,8 +290,8 @@ fn uniform_rate(remap: &[(f64, f64)]) -> Option<f64> {
     }
 }
 
-pub fn wrap_sounds(audio: &[AudioItem], props: &GroupProps, duration: f64) -> Vec<AudioItem> {
-    let start = props.start_from.unwrap_or(0.0);
+pub fn wrap_sounds(audio: &[AudioItem], props: &GroupProps, duration: u32) -> Vec<AudioItem> {
+    let start = signed(props.start_from.unwrap_or(0));
     let mut items: Vec<AudioItem> = audio
         .iter()
         .filter_map(|a| {
@@ -284,19 +300,18 @@ pub fn wrap_sounds(audio: &[AudioItem], props: &GroupProps, duration: f64) -> Ve
                     from: a.from - start,
                     ..a.clone()
                 },
-                0.0,
+                0,
             )
         })
         .collect();
-    let looped = props.loop_every.unwrap_or(0.0);
-    if looped > 0.0 {
-        let count = (duration / looped).ceil() as usize;
-        items = (0..count)
+    let looped = props.loop_every.unwrap_or(0);
+    if looped > 0 {
+        items = (0..duration.div_ceil(looped))
             .flat_map(|k| {
                 items.iter().filter_map(move |a| {
                     let in_loop = fit_within(a.clone(), looped)?;
                     let copy = AudioItem {
-                        from: in_loop.from + k as f64 * looped,
+                        from: in_loop.from + signed(k * looped),
                         ..in_loop
                     };
                     Some(if k == 0 {
@@ -317,7 +332,7 @@ pub fn wrap_sounds(audio: &[AudioItem], props: &GroupProps, duration: f64) -> Ve
             None => items
                 .into_iter()
                 .map(|a| AudioItem {
-                    from: inverse_remap(remap, a.from, RemapSide::Start).round(),
+                    from: whole_signed(inverse_remap(remap, f64::from(a.from), RemapSide::Start)),
                     ..a
                 })
                 .collect(),
@@ -334,11 +349,11 @@ pub fn wrap_clip(
     clip: &ClipValue,
     node_id: &str,
     props: GroupProps,
-    duration_in_frames: Option<f64>,
+    duration_in_frames: Option<u32>,
 ) -> ClipValue {
-    let duration = at_least_one_frame(duration_in_frames.unwrap_or(clip.duration_in_frames));
+    let duration = duration_in_frames.unwrap_or(clip.duration_in_frames).max(1);
     let audio = wrap_sounds(&clip.audio, &props, duration);
-    let mut base = ItemBase::new(format!("{node_id}:g"), 0.0, duration);
+    let mut base = ItemBase::new(format!("{node_id}:g"), 0, duration);
     base.node_id = Some(node_id.to_owned());
     let group = group_item(
         base,
@@ -392,12 +407,12 @@ pub fn with_handles(
     clip
 }
 
-fn shift_audio(audio: &[AudioItem], offset: f64, prefix: &str) -> Vec<AudioItem> {
+fn shift_audio(audio: &[AudioItem], offset: u32, prefix: &str) -> Vec<AudioItem> {
     audio
         .iter()
         .map(|a| AudioItem {
             id: format!("{prefix}/{}", a.id),
-            from: a.from + offset,
+            from: a.from + signed(offset),
             ..a.clone()
         })
         .collect()
@@ -407,11 +422,11 @@ fn overlaps(t: Option<&TransitionRef>) -> bool {
     t.is_some_and(|t| t.hold != Some(true))
 }
 
-fn share_of(clip: &ClipValue, other_side: Option<&TransitionRef>) -> f64 {
+fn share_of(clip: &ClipValue, other_side: Option<&TransitionRef>) -> u32 {
     if overlaps(other_side) {
-        (clip.duration_in_frames / 2.0).floor()
+        clip.duration_in_frames / 2
     } else {
-        clip.duration_in_frames - 1.0
+        clip.duration_in_frames.saturating_sub(1)
     }
 }
 
@@ -431,8 +446,8 @@ fn resolve_enters(
                 share_of(&clips[i - 1], if i > 1 { at(i - 1) } else { None })
                     .min(share_of(clip, at(i + 1)))
             };
-            let frames = clamp(longest, 0.0, enter.duration_in_frames);
-            (frames > 0.0).then(|| TransitionRef {
+            let frames = longest.min(enter.duration_in_frames);
+            (frames > 0).then(|| TransitionRef {
                 duration_in_frames: frames,
                 ..enter.clone()
             })
@@ -440,7 +455,7 @@ fn resolve_enters(
         .collect()
 }
 
-fn hold_last_frame(item: TimelineItem, clip_frames: f64, frames: f64) -> TimelineItem {
+fn hold_last_frame(item: TimelineItem, clip_frames: u32, frames: u32) -> TimelineItem {
     let TimelineItem::Group {
         mut base,
         mut props,
@@ -448,11 +463,11 @@ fn hold_last_frame(item: TimelineItem, clip_frames: f64, frames: f64) -> Timelin
     else {
         return item;
     };
-    let last = clip_frames - 1.0;
-    let end = base.duration_in_frames - 1.0;
+    let last = f64::from(clip_frames) - 1.0;
+    let end = f64::from(base.duration_in_frames) - 1.0;
     let mut remap = props.remap.take().unwrap_or_else(|| vec![(0.0, 0.0)]);
     remap.push((end, last));
-    remap.push((end + frames, last));
+    remap.push((end + f64::from(frames), last));
     props.remap = Some(remap);
     base.duration_in_frames += frames;
     TimelineItem::Group { base, props }
@@ -460,8 +475,8 @@ fn hold_last_frame(item: TimelineItem, clip_frames: f64, frames: f64) -> Timelin
 
 #[derive(Debug, Clone, Copy)]
 struct Placement {
-    from: f64,
-    lead: f64,
+    from: u32,
+    lead: u32,
 }
 
 fn place_clip(
@@ -474,7 +489,7 @@ fn place_clip(
     let mut base = ItemBase::new(id, at.from, clip.duration_in_frames + at.lead);
     base.enter = enter;
     base.slot = slot;
-    let remap = (at.lead != 0.0).then(|| vec![(0.0, 0.0), (at.lead, 0.0)]);
+    let remap = (at.lead != 0).then(|| vec![(0.0, 0.0), (f64::from(at.lead), 0.0)]);
     group_item(
         base,
         GroupProps {
@@ -499,14 +514,18 @@ fn with_exit(item: TimelineItem, clip: &ClipValue, exit: Option<&TransitionRef>)
 fn sequence_placements(
     clips: &[ClipValue],
     enters: &[Option<TransitionRef>],
-) -> (Vec<Placement>, f64) {
+) -> (Vec<Placement>, u32) {
     let mut at = Vec::new();
-    let mut end: f64 = 0.0;
+    let mut end: u32 = 0;
     for (clip, enter) in clips.iter().zip(enters) {
-        let frames = enter.as_ref().map_or(0.0, |e| e.duration_in_frames);
+        let frames = enter.as_ref().map_or(0, |e| e.duration_in_frames);
         let held = enter.as_ref().is_some_and(|e| e.hold == Some(true));
-        let from = if held { end } else { (end - frames).max(0.0) };
-        let lead = if held { frames } else { 0.0 };
+        let from = if held {
+            end
+        } else {
+            end.saturating_sub(frames)
+        };
+        let lead = if held { frames } else { 0 };
         at.push(Placement { from, lead });
         end = from + lead + clip.duration_in_frames;
     }
@@ -526,7 +545,7 @@ pub fn sequence_clips(
     slots: SequenceSlots<'_>,
 ) -> ClipValue {
     if clips.is_empty() {
-        return empty_clip(1.0);
+        return empty_clip(1);
     }
     let enters = resolve_enters(clips, transitions);
     let (at, end) = sequence_placements(clips, &enters);
@@ -560,7 +579,7 @@ pub fn sequence_clips(
         })
         .collect();
     make_clip(
-        end.max(1.0),
+        end.max(1),
         vec![TimelineTrack {
             id: format!("{node_id}:seq"),
             items,
@@ -580,14 +599,14 @@ pub type MoveFor<'a> = &'a dyn Fn(usize) -> Option<opsis_types::timeline::ParamR
 pub fn stack_clips(
     node_id: &str,
     clips: &[ClipValue],
-    offsets: &[f64],
+    offsets: &[u32],
     ports: Option<&[String]>,
     move_for: Option<MoveFor<'_>>,
 ) -> ClipValue {
     if clips.is_empty() {
-        return empty_clip(1.0);
+        return empty_clip(1);
     }
-    let offset = |i: usize| offsets.get(i).copied().unwrap_or(0.0);
+    let offset = |i: usize| offsets.get(i).copied().unwrap_or(0);
     let tracks = clips
         .iter()
         .enumerate()
@@ -624,7 +643,7 @@ pub fn stack_clips(
         .iter()
         .enumerate()
         .map(|(i, c)| c.duration_in_frames + offset(i))
-        .fold(f64::NEG_INFINITY, f64::max);
+        .fold(0, u32::max);
     let audio = clips
         .iter()
         .enumerate()
@@ -669,17 +688,17 @@ pub fn scene_item_count(clip: &ClipValue) -> usize {
 struct Scene {
     tracks: Vec<TimelineTrack>,
     audio: Vec<AudioItem>,
-    duration_in_frames: f64,
+    duration_in_frames: u32,
 }
 
-fn layer_start(track: &TimelineTrack) -> f64 {
-    track.items.first().map_or(0.0, |i| i.base().from)
+fn layer_start(track: &TimelineTrack) -> u32 {
+    track.items.first().map_or(0, |i| i.base().from)
 }
 
-fn start_with_scene(item: &TimelineItem, by: f64) -> TimelineItem {
+fn start_with_scene(item: &TimelineItem, by: u32) -> TimelineItem {
     let mut item = item.clone();
     let base = item.base_mut();
-    base.from -= by;
+    base.from = base.from.saturating_sub(by);
     base.handles = base
         .handles
         .take()
@@ -711,7 +730,7 @@ fn layers_start_together(clip: &ClipValue) -> Scene {
                 .find(|t| Some(&t.id) == a.layer_track.as_ref())
             {
                 Some(owner) => AudioItem {
-                    from: a.from - layer_start(owner),
+                    from: a.from - signed(layer_start(owner)),
                     ..a.clone()
                 },
                 None => a.clone(),
@@ -725,7 +744,7 @@ fn layers_start_together(clip: &ClipValue) -> Scene {
                 .iter()
                 .map(|i| i.base().from + i.base().duration_in_frames)
         })
-        .fold(f64::NEG_INFINITY, f64::max);
+        .fold(0, u32::max);
     Scene {
         tracks,
         audio,
@@ -738,7 +757,7 @@ fn scene_of(id: &str, clip: &ClipValue) -> Scene {
         return layers_start_together(clip);
     }
     let whole = group_item(
-        ItemBase::new(format!("{id}:i"), 0.0, clip.duration_in_frames),
+        ItemBase::new(format!("{id}:i"), 0, clip.duration_in_frames),
         GroupProps {
             tracks: clip.tracks.clone(),
             ..GroupProps::default()
@@ -754,7 +773,7 @@ fn scene_of(id: &str, clip: &ClipValue) -> Scene {
 pub fn scene_sequence(
     node_id: &str,
     scenes: &[(String, ClipValue)],
-    gap: f64,
+    gap: u32,
     sequencer: SequencerProps,
 ) -> ClipValue {
     let built: Vec<(String, &String, Scene)> = scenes
@@ -767,12 +786,12 @@ pub fn scene_sequence(
         })
         .collect();
     let mut starts = Vec::new();
-    let mut end = 0.0;
+    let mut end = 0;
     for (_, _, scene) in &built {
         starts.push(end);
         end += scene.duration_in_frames + gap;
     }
-    let duration = (end - gap).max(1.0);
+    let duration = end.saturating_sub(gap).max(1);
     let mut items = Vec::new();
     let mut audio = Vec::new();
     for (i, (id, port, scene)) in built.into_iter().enumerate() {
@@ -790,7 +809,7 @@ pub fn scene_sequence(
         ));
         audio.extend(shift_audio(&scene.audio, starts[i], &id));
     }
-    let mut base = ItemBase::new(format!("{node_id}:g"), 0.0, duration);
+    let mut base = ItemBase::new(format!("{node_id}:g"), 0, duration);
     base.node_id = Some(node_id.to_owned());
     let group = group_item(
         base,
@@ -872,15 +891,17 @@ pub fn clip_frame_of_recording(
     for track in tracks {
         for item in &track.items {
             match item {
-                TimelineItem::Recording { base, props } => return Some(base.from + content(props)),
+                TimelineItem::Recording { base, props } => {
+                    return Some(f64::from(base.from) + content(props));
+                }
                 TimelineItem::Group { base, props } => {
                     if let Some(inner) = clip_frame_of_recording(&props.tracks, content) {
-                        let local = inner - props.start_from.unwrap_or(0.0);
+                        let local = inner - f64::from(props.start_from.unwrap_or(0));
                         let outer = match props.remap.as_ref().filter(|r| !r.is_empty()) {
                             Some(remap) => inverse_remap(remap, local, RemapSide::Start),
                             None => local,
                         };
-                        return Some(base.from + outer);
+                        return Some(f64::from(base.from) + outer);
                     }
                 }
                 TimelineItem::Element { .. } => {}
@@ -925,7 +946,7 @@ pub fn clip_to_spec(clip: &ClipValue, settings: &WorkflowSettings) -> TimelineSp
         width: settings.width,
         height: settings.height,
         fps: settings.fps,
-        duration_in_frames: clip.duration_in_frames.max(1.0),
+        duration_in_frames: clip.duration_in_frames.max(1),
         background: Some(
             settings
                 .background

@@ -97,6 +97,13 @@ export type BlurArea = {
 	untilMs?: number,
 };
 
+export type Bounds = {
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+};
+
 export type Callout = {
 	text: string,
 	x: number,
@@ -167,6 +174,8 @@ export type Card3d = {
 export type Colour = string;
 
 export type CoreElementProps = {
+	"core/placeholder": PlaceholderProps,
+	"core/still": StillProps,
 	"core/title": Title,
 	"core/kinetic-headline": KineticHeadline,
 	"core/lower-third": LowerThird,
@@ -444,6 +453,11 @@ export type PictureLook = {
 	grain?: number,
 };
 
+export type PlaceholderProps = {
+	title: string,
+	subtitle: string,
+};
+
 export type Point = {
 	x: number,
 	y: number,
@@ -557,6 +571,22 @@ export type Starburst = {
 	color2: string,
 	rays: number,
 	rotationSpeed: number,
+};
+
+export type StillLook = "window" | "cutout" | "bleed";
+
+export type StillProps = {
+	src: string,
+	look: StillLook,
+	backdrop: string,
+	shot?: StillShot,
+};
+
+export type StillShot = {
+	width: number,
+	height: number,
+	scale: number,
+	body?: Bounds,
 };
 
 export type StudioBackdrop = {

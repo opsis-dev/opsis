@@ -50,10 +50,12 @@ fn editor_compile(editor: &Editor, workflow: &Workflow) -> EditorCompile {
     let film = preview.as_ref().zip(flat.as_ref());
     let plan = film.map(|(p, f)| build_mix_plan(&p.spec, workflow.mix.as_ref(), f));
     let levelled = film.map(|(p, f)| apply_mix_levels(&p.spec, workflow.mix.as_ref(), f));
-    let secrets = editor
-        .dir
-        .as_deref()
-        .map(|d| list_secrets(d).unwrap_or_default());
+    let secrets = editor.dir.as_deref().map(|d| {
+        list_secrets(d).unwrap_or_else(|error| {
+            log::warn!("couldn't list the saved sign-ins: {error}");
+            Vec::new()
+        })
+    });
     let dir = editor.dir.clone();
     let gone = move |file: &str| {
         dir.as_deref()

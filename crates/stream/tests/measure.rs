@@ -164,7 +164,7 @@ fn setup() -> Setup {
 async fn open_preview(
     setup: &Setup,
     size: ViewSize,
-    quality: i64,
+    quality: u32,
     spec: &TimelineSpec,
 ) -> (Preview, Arc<Meter>) {
     let (page, public) = (root().join("apps/preview/dist"), root().join("public"));
@@ -182,7 +182,7 @@ async fn open_preview(
     (preview, meter)
 }
 
-const SIZES: [(f64, f64); 2] = [(960.0, 540.0), (1920.0, 1080.0)];
+const SIZES: [(u32, u32); 2] = [(960, 540), (1920, 1080)];
 
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "a measurement: needs the dev engine, a built preview page and a recorded take"]
@@ -344,16 +344,16 @@ async fn clock_drift_over_two_minutes() {
     let (preview, _) = open_preview(
         &setup,
         ViewSize {
-            width: 960.0,
-            height: 540.0,
+            width: 960,
+            height: 540,
             dpr: 1.0,
         },
         80,
         &spec,
     )
     .await;
-    let fps = spec.fps;
-    let last = spec.duration_in_frames - 1.0;
+    let fps = f64::from(spec.fps);
+    let last = f64::from(spec.duration_in_frames - 1);
     let mut frames = preview.frames();
     let started = Instant::now();
     let (mut startups, mut after_intro, mut at_end) = (Vec::new(), Vec::new(), Vec::new());

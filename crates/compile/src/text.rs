@@ -1,3 +1,4 @@
+use crate::errors::WallTimeError;
 pub const MINUS: &str = "\u{2212}";
 
 pub fn round_to(value: f64, digits: i32) -> f64 {
@@ -116,12 +117,9 @@ pub fn percent_text(fraction: f64, max: f64) -> String {
     format!("{}%", ((fraction * 100.0).round().min(max)))
 }
 
-pub fn format_bytes(n: f64) -> String {
+pub fn format_bytes(n: u64) -> String {
     const UNITS: [&str; 4] = ["B", "KB", "MB", "GB"];
-    if !n.is_finite() || n < 0.0 {
-        return String::new();
-    }
-    let mut value = n;
+    let mut value = n as f64;
     let mut unit = 0;
     while value >= 1024.0 && unit < UNITS.len() - 1 {
         value /= 1024.0;
@@ -219,15 +217,13 @@ pub fn is_wall_time(time: &str) -> bool {
     time.trim().parse::<jiff::civil::DateTime>().is_ok()
 }
 
-pub fn wall_time_in(time: &str, zone: &str) -> Result<jiff::Timestamp, String> {
+pub fn wall_time_in(time: &str, zone: &str) -> Result<jiff::Timestamp, WallTimeError> {
     let wall = time
         .trim()
         .parse::<jiff::civil::DateTime>()
-        .map_err(|_| format!("“{time}” isn't a date and time."))?;
-    let tz = jiff::tz::TimeZone::get(zone).map_err(|_| format!("“{zone}” isn't a time zone."))?;
-    wall.to_zoned(tz)
-        .map(|z| z.timestamp())
-        .map_err(|e| e.to_string())
+        .map_err(|_| WallTimeError::NotATime(time.to_owned()))?;
+    let tz = jiff::tz::TimeZone::get(zone).map_err(|_| WallTimeError::NotAZone(zone.to_owned()))?;
+    Ok(wall.to_zoned(tz)?.timestamp())
 }
 
 pub fn is_locale(tag: &str) -> bool {

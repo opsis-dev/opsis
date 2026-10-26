@@ -4,15 +4,15 @@ use opsis_capture::take::{
 };
 use opsis_compile::registry::default_params;
 use opsis_types::actions::{Action, ActionKind};
-use opsis_types::values::SessionStep;
+use opsis_types::values::{BrowserAction, SessionStep};
 use serde_json::{Value, json};
 
-fn step(kind: &str, params: Value, id: &str) -> SessionStep {
-    let mut all = default_params(kind);
+fn step(kind: BrowserAction, params: Value, id: &str) -> SessionStep {
+    let mut all = default_params(kind.kind());
     all.extend(params.as_object().cloned().unwrap_or_default());
     SessionStep {
         id: id.to_owned(),
-        kind: kind.to_owned(),
+        kind,
         label: None,
         params: all,
     }
@@ -24,7 +24,7 @@ fn names_a_trace_group_after_what_the_action_acts_on() {
         trace_group_title(
             "Navigate",
             &step(
-                "browser.navigate",
+                BrowserAction::Navigate,
                 json!({ "url": "https://x.test/login" }),
                 "n"
             )
@@ -35,7 +35,7 @@ fn names_a_trace_group_after_what_the_action_acts_on() {
         trace_group_title(
             "Type",
             &step(
-                "browser.type",
+                BrowserAction::Type,
                 json!({ "target": "Username", "text": "tom" }),
                 "n"
             )
@@ -46,7 +46,7 @@ fn names_a_trace_group_after_what_the_action_acts_on() {
         trace_group_title(
             "Assert",
             &step(
-                "browser.assert",
+                BrowserAction::Assert,
                 json!({ "text": "Welcome", "target": "" }),
                 "n"
             )
@@ -54,7 +54,10 @@ fn names_a_trace_group_after_what_the_action_acts_on() {
         "Assert · Welcome"
     );
     assert_eq!(
-        trace_group_title("Wait", &step("browser.wait", json!({ "ms": 500 }), "n")),
+        trace_group_title(
+            "Wait",
+            &step(BrowserAction::Wait, json!({ "ms": 500 }), "n")
+        ),
         "Wait"
     );
 }
@@ -92,20 +95,20 @@ fn notices_a_take_that_lands_on_the_sign_in_page() {
 #[test]
 fn leaves_the_actions_before_start_recording_out_of_the_video() {
     let steps = [
-        step("browser.signIn", json!({}), "login"),
+        step(BrowserAction::SignIn, json!({}), "login"),
         step(
-            "browser.navigate",
+            BrowserAction::Navigate,
             json!({ "url": "https://example.com" }),
             "go",
         ),
         step(
-            "browser.wait",
+            BrowserAction::Wait,
             json!({ "mode": "element", "target": "Board" }),
             "wait",
         ),
-        step("browser.startRecording", json!({}), "start"),
-        step("browser.click", json!({ "target": "Open" }), "open"),
-        step("browser.startRecording", json!({}), "again"),
+        step(BrowserAction::StartRecording, json!({}), "start"),
+        step(BrowserAction::Click, json!({ "target": "Open" }), "open"),
+        step(BrowserAction::StartRecording, json!({}), "again"),
     ];
     let before: Vec<&str> = steps[..video_start(&steps)]
         .iter()
@@ -118,11 +121,11 @@ fn leaves_the_actions_before_start_recording_out_of_the_video() {
 fn films_from_the_first_action_without_start_recording() {
     let steps = [
         step(
-            "browser.navigate",
+            BrowserAction::Navigate,
             json!({ "url": "https://example.com" }),
             "go",
         ),
-        step("browser.click", json!({ "target": "Open" }), "open"),
+        step(BrowserAction::Click, json!({ "target": "Open" }), "open"),
     ];
     assert_eq!(video_start(&steps), 0);
 }
@@ -130,15 +133,15 @@ fn films_from_the_first_action_without_start_recording() {
 #[test]
 fn logs_each_pointer_action_as_its_kind() {
     for (kind, logged) in [
-        ("browser.click", ActionKind::Click),
-        ("browser.type", ActionKind::Type),
-        ("browser.hover", ActionKind::Hover),
-        ("browser.drag", ActionKind::Drag),
-        ("browser.select", ActionKind::Focus),
+        (BrowserAction::Click, ActionKind::Click),
+        (BrowserAction::Type, ActionKind::Type),
+        (BrowserAction::Hover, ActionKind::Hover),
+        (BrowserAction::Drag, ActionKind::Drag),
+        (BrowserAction::Select, ActionKind::Focus),
     ] {
-        assert_eq!(click_kind_of(kind), Some(logged), "{kind}");
+        assert_eq!(click_kind_of(kind), Some(logged), "{kind:?}");
     }
-    assert_eq!(click_kind_of("browser.navigate"), None);
+    assert_eq!(click_kind_of(BrowserAction::Navigate), None);
 }
 
 #[test]

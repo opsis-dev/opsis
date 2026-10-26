@@ -1,3 +1,4 @@
+use opsis_compile::nodes::capture::{RECORD_TYPE, STILL_TYPE};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -18,6 +19,7 @@ use opsis_runner::context::{
 use opsis_traces::{TakeFrame, TraceMeta, TraceTake, apply_retention, store_trace};
 use opsis_types::actions::Viewport;
 use opsis_types::events::{LogLevel, RunEvent};
+use opsis_types::numbers::whole;
 use opsis_types::secrets::secret_name;
 use opsis_types::settings::TraceRetention;
 use opsis_types::values::{
@@ -55,7 +57,7 @@ pub struct LoginRequest {
     pub url: String,
     pub done_when: DoneWhen,
     pub selector: String,
-    pub timeout_sec: i64,
+    pub timeout_sec: u32,
     pub viewport: Option<Viewport>,
 }
 
@@ -224,7 +226,7 @@ async fn save_trace(
                 node_id: &node_id,
                 label: &label,
                 ok,
-                created_at: now_ms() as i64,
+                created_at: now_ms(),
             },
             take,
         )?;
@@ -301,7 +303,7 @@ async fn preview_copy(
     ctx: &ExecutorContext,
     tools: &Tools,
     mp4: &Path,
-    fps: f64,
+    fps: u32,
 ) -> Result<Option<&'static str>, ExecError> {
     let mut args = strings(&[
         "-i",
@@ -313,7 +315,9 @@ async fn preview_copy(
     args.extend(h264_args(&H264 {
         crf: PREVIEW_CRF,
         preset: Some("veryfast"),
-        keyframe_every: Some(at_least_one_frame(fps / PREVIEW_KEYFRAMES_PER_SECOND)),
+        keyframe_every: Some(f64::from(at_least_one_frame(
+            f64::from(fps) / PREVIEW_KEYFRAMES_PER_SECOND,
+        ))),
         faststart: true,
     }));
     args.push(ctx.dir.join(PREVIEW_FILE).to_string_lossy().into_owned());
@@ -359,13 +363,13 @@ async fn record(
     ctx.progress(0.02, Some("Starting the browser"));
     let env = take_env(&ctx, &deps)?;
     let encoder = FrameEncoder::start(deps.tools.as_ref(), &mp4, p.fps).map_err(encode_error)?;
-    let fps = p.fps as f64;
+    let fps = p.fps;
     let played = record_take(&env, session, Recording { encoder, record: p }).await;
     let frames = played.encoded.as_ref().map_or(0, |e| e.frames);
     let ((), mut log, trace_id) = finished(&ctx, &deps.tools, played, Some(&mp4)).await?;
     let probe = deps.tools.probe(&mp4).await.map_err(tool_error)?;
-    if probe.duration_ms > 0.0 {
-        log.duration_ms = log.duration_ms.min(probe.duration_ms);
+    if let Some(probed) = probe.duration_ms {
+        log.duration_ms = log.duration_ms.min(f64::from(probed));
     }
     write_json(&ctx.dir.join(ACTIONS_FILE), &log)?;
     ctx.progress(0.95, Some("Making a preview copy"));
@@ -414,8 +418,8 @@ async fn still(
     let request = StillRequest {
         params: &p,
         project: Size {
-            width: settings.width,
-            height: settings.height,
+            width: f64::from(settings.width),
+            height: f64::from(settings.height),
         },
         file: &file,
     };
@@ -431,8 +435,8 @@ async fn still(
     );
     let image = ImageValue {
         src: Some(ctx.project_file_ref(STILL_FILE)),
-        width: Some(shot.width),
-        height: Some(shot.height),
+        width: Some(whole(shot.width)),
+        height: Some(whole(shot.height)),
         scale: Some(shot.scale),
         body: shot.body,
     };
@@ -471,8 +475,8 @@ async fn sign_in(
         )
         .ok()
         .map(|o| Viewport {
-            width: o.viewport_width as f64,
-            height: o.viewport_height as f64,
+            width: o.viewport_width,
+            height: o.viewport_height,
         }),
         _ => None,
     };
@@ -508,8 +512,8 @@ where
 
 pub fn capture_executors(deps: &Arc<CaptureDeps>) -> Vec<(&'static str, ExecutorFn)> {
     vec![
-        ("capture.record", with_deps(deps, record)),
-        ("capture.still", with_deps(deps, still)),
+        (RECORD_TYPE, with_deps(deps, record)),
+        (STILL_TYPE, with_deps(deps, still)),
         ("browser.signIn", with_deps(deps, sign_in)),
     ]
 }

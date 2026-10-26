@@ -23,8 +23,8 @@ pub struct Point {
     Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize, Type, schemars::JsonSchema,
 )]
 pub struct Viewport {
-    pub width: f64,
-    pub height: f64,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[derive(

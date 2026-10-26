@@ -23,7 +23,7 @@
       "fontFamily": "",
       "speed": 1
     },
-    "growth": 14.0
+    "growth": 14
   },
   {
     "key": "remocn/search-reveal",
@@ -61,7 +61,7 @@
       "fontFamily": "",
       "speed": 1
     },
-    "growth": 184.0
+    "growth": 184
   },
   {
     "key": "remocn/check-list",
@@ -131,7 +131,7 @@
       "seed": "checklist",
       "background": "white"
     },
-    "growth": 87.0
+    "growth": 87
   },
   {
     "key": "remocn/code-morph",
@@ -181,7 +181,7 @@
       ],
       "speed": 1
     },
-    "growth": 77.0
+    "growth": 77
   },
   {
     "key": "remocn/keystroke",
@@ -237,7 +237,7 @@
       ],
       "speed": 1
     },
-    "growth": 171.0
+    "growth": 171
   },
   {
     "key": "remocn/agent-run",
@@ -353,7 +353,7 @@
       "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.\n\n## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
       "speed": 1
     },
-    "growth": 122.0
+    "growth": 122
   },
   {
     "key": "remocn/command-menu",
@@ -423,7 +423,7 @@
       "autoplay": true,
       "pressedIndex": -1
     },
-    "growth": 13.0
+    "growth": 13
   },
   {
     "key": "snapcn/punch-lines",
@@ -501,6 +501,6 @@
       "fontFamily": "",
       "speed": 1
     },
-    "growth": 141.0
+    "growth": 141
   }
 ]

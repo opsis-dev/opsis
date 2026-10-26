@@ -1,6 +1,6 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::timeline::{
-    EditHandles, GroupProps, ItemBase, LinkedParam, ParamRef, ParamUnit, TimelineTrack,
+    EditHandles, GroupProps, ItemBase, LinkedParam, ParamRef, ParamUnit, Sign, TimelineTrack,
     TransitionRef,
 };
 use opsis_types::values::{ClipValue, CompileValue};
@@ -17,6 +17,7 @@ use crate::clip::{
     EMPTY_CLIP_FRAMES, SequenceSlots, empty_clip, group_item, mark_layers, sequence_clips,
     stack_clips, with_handles, wrap_clip,
 };
+use crate::errors::CompileError;
 use crate::limits::{MAX_FRAMES, MAX_REPEATS};
 use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, Inputs, NodeDef, Outputs, Phase, RowExt, missing, opt,
@@ -112,7 +113,7 @@ pub struct Cut {
     pub transition: String,
     #[default = 15]
     #[schemars(description = "Length", range(min = 1, max = 108000), extend("x-step" = 1, "x-unit" = "frames"))]
-    pub transition_duration: i64,
+    pub transition_duration: u32,
     #[schemars(
         description = "Keep both clips whole",
         extend("x-help" = "The transition plays over a still of the two clips' last and first frames.")
@@ -129,7 +130,7 @@ pub struct Sequence {
     pub transition: String,
     #[default = 15]
     #[schemars(description = "Transition length", range(min = 1, max = 108000), extend("x-step" = 1, "x-unit" = "frames"))]
-    pub transition_duration: i64,
+    pub transition_duration: u32,
     #[schemars(
         description = "Keep every clip whole",
         extend(
@@ -148,7 +149,7 @@ impl Params for Sequence {}
 
 struct CutPlan {
     transition: String,
-    transition_duration: f64,
+    transition_duration: u32,
     keep_whole: bool,
     before: String,
     after: String,
@@ -168,7 +169,7 @@ fn cuts_for(p: &Sequence, ports: &[String]) -> Vec<CutPlan> {
             };
             CutPlan {
                 transition,
-                transition_duration: duration as f64,
+                transition_duration: duration,
                 keep_whole,
                 before: handle.clone(),
                 after: ports[i - 1].clone(),
@@ -180,8 +181,8 @@ fn cuts_for(p: &Sequence, ports: &[String]) -> Vec<CutPlan> {
 
 fn worst_cover(
     cuts: &[CutPlan],
-    frames: &indexmap::IndexMap<String, f64>,
-    fps: f64,
+    frames: &indexmap::IndexMap<String, u32>,
+    fps: u32,
 ) -> Option<CardRow> {
     let worst = cuts
         .iter()
@@ -229,7 +230,7 @@ fn sequence() -> NodeDef {
         let length = ctx
             .inputs
             .clip_frames
-            .filter(|f| *f != 0.0)
+            .filter(|f| *f != 0)
             .map(|f| format!(" · {}", frame_secs(f, fps)))
             .unwrap_or_default();
         vec![
@@ -246,7 +247,7 @@ fn sequence() -> NodeDef {
                     format!(
                         "{} · {}",
                         transition_title(&p.transition),
-                        transition_length_text(p.transition_duration as f64, fps, p.keep_whole)
+                        transition_length_text(p.transition_duration, fps, p.keep_whole)
                     ),
                 )
             }),
@@ -345,7 +346,7 @@ pub fn parse_number_list(text: &str) -> Vec<f64> {
 
 fn keep_layout(node_id: &str, clip: ClipValue, settings: &WorkflowSettings) -> ClipValue {
     let group = group_item(
-        ItemBase::new(format!("{node_id}:design:g"), 0.0, clip.duration_in_frames),
+        ItemBase::new(format!("{node_id}:design:g"), 0, clip.duration_in_frames),
         GroupProps {
             tracks: clip.tracks.clone(),
             design: Some(opsis_types::actions::Viewport {
@@ -382,7 +383,7 @@ fn layers() -> NodeDef {
             Some(row(Icon::Clock, ctx.params.duration.row())),
             ctx.inputs
                 .clip_frames
-                .filter(|f| *f != 0.0)
+                .filter(|f| *f != 0)
                 .map(|f| row(Icon::Timer, frame_secs(f, ctx.fps()))),
         ]
     })
@@ -390,14 +391,14 @@ fn layers() -> NodeDef {
         let p = &ctx.params;
         with_connected_clips(ctx.inputs, |clips, ports| {
             let fps = ctx.settings.fps;
-            let offsets: Vec<f64> = parse_number_list(&p.offsets_ms)
+            let offsets: Vec<u32> = parse_number_list(&p.offsets_ms)
                 .into_iter()
-                .map(|n| ms_to_frames_from(n, fps, 0.0))
+                .map(|n| ms_to_frames_from(n, fps, 0))
                 .collect();
             let node_id = ctx.node_id;
             let move_for = |index: usize| {
                 Some(ParamRef {
-                    index: Some(index as f64),
+                    index: u32::try_from(index).ok(),
                     ..param_ref(node_id, "offsetsMs", ParamUnit::Ms)
                 })
             };
@@ -428,9 +429,9 @@ fn layers() -> NodeDef {
 #[serde(rename_all = "camelCase", default)]
 pub struct Trim {
     #[schemars(description = "Start", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub start_ms: i64,
+    pub start_ms: u32,
     #[schemars(description = "Keep", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "To the end"))]
-    pub duration_ms: i64,
+    pub duration_ms: u32,
 }
 
 impl Params for Trim {}
@@ -444,13 +445,13 @@ fn trim() -> NodeDef {
                 .inputs
                 .frames
                 .get(CLIP_PORT)
-                .filter(|f| **f != 0.0)
+                .filter(|f| **f != 0)
                 .map(|f| frames_to_ms(*f, ctx.fps()));
             let end = (p.duration_ms != 0).then(|| (p.start_ms + p.duration_ms) as f64);
             vec![
-                Some(range_row(p.start_ms as f64, end)),
+                Some(range_row(f64::from(p.start_ms), end)),
                 clip_ms
-                    .filter(|ms| *ms != 0.0 && end.unwrap_or(p.start_ms as f64) > *ms)
+                    .filter(|ms| *ms != 0.0 && end.unwrap_or(f64::from(p.start_ms)) > *ms)
                     .map(|ms| {
                         row(
                             Icon::TriangleAlert,
@@ -466,23 +467,22 @@ fn trim() -> NodeDef {
             let Some(clip) = ctx.input(CLIP_PORT).and_then(CompileValue::as_clip) else {
                 return Ok(Some(Outputs::new()));
             };
-            let start = ms_to_frames_from(p.start_ms as f64, fps, 0.0);
+            let start = ms_to_frames_from(f64::from(p.start_ms), fps, 0);
             if start >= clip.duration_in_frames {
-                return Err(format!(
-                    "Start is at or after the end of the clip, which is {} long.",
-                    format_duration(frames_to_ms(clip.duration_in_frames, fps))
-                ));
+                return Err(CompileError::StartAfterEnd {
+                    clip: format_duration(frames_to_ms(clip.duration_in_frames, fps)),
+                });
             }
             let rest = clip.duration_in_frames - start;
             let duration = if p.duration_ms != 0 {
-                rest.min(ms_to_frames(p.duration_ms as f64, fps))
+                rest.min(ms_to_frames(f64::from(p.duration_ms), fps))
             } else {
                 rest
             };
             let mut trim_start = param_ref(ctx.node_id, "startMs", ParamUnit::Ms);
             trim_start.linked = Some(vec![LinkedParam {
                 param: "durationMs".into(),
-                sign: -1.0,
+                sign: Sign::Opposite,
                 if_non_zero: Some(true),
             }]);
             let handles = EditHandles {
@@ -511,7 +511,7 @@ fn trim() -> NodeDef {
 pub struct Repeat {
     #[default = 2]
     #[schemars(description = "Times", range(min = 1, max = MAX_REPEATS), extend("x-unit" = "×"))]
-    pub times: i64,
+    pub times: u32,
 }
 
 impl Params for Repeat {}
@@ -528,15 +528,18 @@ fn repeat() -> NodeDef {
             let Some(clip) = ctx.input(CLIP_PORT).and_then(CompileValue::as_clip) else {
                 return Ok(Some(Outputs::new()));
             };
-            let total = clip.duration_in_frames * p.times as f64;
-            if total > MAX_FRAMES {
-                return Err(format!(
-                    "Repeated {} times the clip would run {}, longer than the {} a film can be.",
-                    p.times,
-                    format_duration(frames_to_ms(total, fps)),
-                    format_duration(frames_to_ms(MAX_FRAMES, fps))
-                ));
-            }
+            let Some(total) = clip
+                .duration_in_frames
+                .checked_mul(p.times)
+                .filter(|total| *total <= MAX_FRAMES)
+            else {
+                let total = f64::from(clip.duration_in_frames) * f64::from(p.times);
+                return Err(CompileError::TooLong {
+                    times: p.times,
+                    length: format_duration(frames_to_ms(total, fps)),
+                    limit: format_duration(frames_to_ms(MAX_FRAMES, fps)),
+                });
+            };
             let props = GroupProps {
                 loop_every: Some(clip.duration_in_frames),
                 ..GroupProps::default()
@@ -553,7 +556,7 @@ fn repeat() -> NodeDef {
 pub struct Delay {
     #[default = 500]
     #[schemars(description = "Delay", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub ms: i64,
+    pub ms: u32,
 }
 
 impl Params for Delay {}
@@ -564,12 +567,12 @@ fn delay() -> NodeDef {
         .card(|ctx: &CardCtx<'_, Delay>| {
             vec![Some(row(
                 Icon::Clock,
-                format!("+{}", format_duration(ctx.params.ms as f64)),
+                format!("+{}", format_duration(f64::from(ctx.params.ms))),
             ))]
         })
         .compiles(|ctx: &Ctx<'_, Delay>| {
             with_clip(ctx, |clip| {
-                let offset = ms_to_frames_from(ctx.params.ms as f64, ctx.settings.fps, 0.0);
+                let offset = ms_to_frames_from(f64::from(ctx.params.ms), ctx.settings.fps, 0);
                 let node_id = ctx.node_id;
                 let move_for = |_: usize| Some(param_ref(node_id, "ms", ParamUnit::Ms));
                 stack_clips(
@@ -611,7 +614,7 @@ fn speed() -> NodeDef {
         })
         .compiles(|ctx: &Ctx<'_, Speed>| {
             with_clip(ctx, |clip| {
-                let out = at_least_one_frame(clip.duration_in_frames / ctx.params.rate);
+                let out = at_least_one_frame(f64::from(clip.duration_in_frames) / ctx.params.rate);
                 let props = GroupProps {
                     remap: Some(speed_remap(clip.duration_in_frames, out)),
                     ..GroupProps::default()
@@ -647,24 +650,21 @@ impl FitMode {
         }
     }
 
-    fn remap(self, length: f64, target: f64) -> Option<Remap> {
+    fn remap(self, length: u32, target: u32) -> Option<Remap> {
+        let (end, last) = (f64::from(target), f64::from(length) - 1.0);
         match self {
             Self::Speed => Some(speed_remap(length, target)),
             Self::Hold if target <= length => None,
-            Self::Hold if length <= 1.0 => Some(vec![(0.0, 0.0), (target, 0.0)]),
-            Self::Hold => Some(vec![
-                (0.0, 0.0),
-                (length - 1.0, length - 1.0),
-                (target, length - 1.0),
-            ]),
+            Self::Hold if length <= 1 => Some(vec![(0.0, 0.0), (end, 0.0)]),
+            Self::Hold => Some(vec![(0.0, 0.0), (last, last), (end, last)]),
             Self::Cut => None,
         }
     }
 
-    fn warning(self, input: f64, output: f64, fps: f64) -> Option<CardRow> {
+    fn warning(self, input: u32, output: u32, fps: u32) -> Option<CardRow> {
         match self {
             Self::Speed => {
-                let speed = input / output;
+                let speed = f64::from(input) / f64::from(output);
                 ((speed - 1.0).abs() > 0.02).then(|| {
                     row(Icon::FastForward, format!("Plays at {speed:.2}×"))
                         .warn_if(!(0.67..=1.5).contains(&speed))
@@ -686,7 +686,7 @@ impl FitMode {
                     Icon::Scissors,
                     format!("Cuts {} off the end", frame_secs(input - output, fps)),
                 )
-                .warn_if(input - output > fps / 2.0),
+                .warn_if(input - output > fps / 2),
             ),
             Self::Cut => None,
         }
@@ -702,7 +702,7 @@ pub struct FitLength {
         range(min = 0, max = 600000),
         extend("x-step" = 50, "x-unit" = "ms", "x-help" = "Ignored when a sound is connected.")
     )]
-    pub target_ms: i64,
+    pub target_ms: u32,
     #[default(FitMode::Speed)]
     #[schemars(description = "How", extend("x-labels" = { "speed": "Change speed", "hold": "Hold the end", "cut": "Cut" }))]
     pub mode: FitMode,
@@ -732,15 +732,15 @@ fn fit_length() -> NodeDef {
             .frames
             .get(CLIP_PORT)
             .copied()
-            .filter(|f| *f != 0.0);
-        let output = ctx.inputs.clip_frames.filter(|f| *f != 0.0);
+            .filter(|f| *f != 0);
+        let output = ctx.inputs.clip_frames.filter(|f| *f != 0);
         vec![
             Some(row(
                 Icon::Ruler,
                 if ctx.connected("audio") {
                     "Fits the sound".to_owned()
                 } else {
-                    format_duration(p.target_ms as f64)
+                    format_duration(f64::from(p.target_ms))
                 },
             )),
             Some(row(Icon::Settings2, p.mode.row())),
@@ -756,10 +756,10 @@ fn fit_length() -> NodeDef {
                 .input("audio")
                 .and_then(CompileValue::as_audio)
                 .and_then(|a| a.duration_in_frames)
-                .filter(|f| *f > 0.0);
+                .filter(|f| *f > 0);
             let target = sound
-                .unwrap_or_else(|| ms_to_frames(p.target_ms as f64, ctx.settings.fps))
-                .max(1.0);
+                .unwrap_or_else(|| ms_to_frames(f64::from(p.target_ms), ctx.settings.fps))
+                .max(1);
             let props = GroupProps {
                 remap: p.mode.remap(clip.duration_in_frames, target),
                 ..GroupProps::default()
@@ -835,7 +835,7 @@ fn branch() -> NodeDef {
             let port = chosen(ctx.vars, &ctx.params);
             match ctx.input(port) {
                 Some(clip) => Ok(Some(outputs([(CLIP_PORT, clip.clone())]))),
-                None => Err(format!("Connect a clip to “{}”.", if port == "a" { "First" } else { "Otherwise" })),
+                None => Err(CompileError::MissingClip(if port == "a" { "First" } else { "Otherwise" })),
             }
         })
 }

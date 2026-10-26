@@ -54,8 +54,8 @@ async fn previews_the_film_frame_by_frame() {
         &env,
         &dirs,
         ViewSize {
-            width: 960.0,
-            height: 540.0,
+            width: 960,
+            height: 540,
             dpr: 1.0,
         },
         80,
@@ -97,8 +97,8 @@ async fn draws_canvas_transitions_as_renders_do() {
         project: temp.path(),
     };
     let size = ViewSize {
-        width: 320.0,
-        height: 180.0,
+        width: 320,
+        height: 180,
         dpr: 1.0,
     };
     let preview = Preview::open(&env, &dirs, size, 80).await.unwrap();

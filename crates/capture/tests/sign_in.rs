@@ -3,8 +3,9 @@ use std::sync::Arc;
 
 use opsis_capture::browser::shell_in;
 use opsis_capture::take::{SignIns, StepError, TakeEnv, play_take};
+use opsis_compile::nodes::browser::OPEN_BROWSER_TYPE;
 use opsis_compile::registry::default_params;
-use opsis_types::values::{BrowserSessionValue, SessionBrowser, SessionStep};
+use opsis_types::values::{BrowserAction, BrowserSessionValue, SessionBrowser, SessionStep};
 use serde_json::{Value, json};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_util::sync::CancellationToken;
@@ -37,12 +38,12 @@ async fn serve() -> u16 {
     port
 }
 
-fn step(kind: &str, id: &str, label: Option<&str>, params: Value) -> SessionStep {
-    let mut all = default_params(kind);
+fn step(kind: BrowserAction, id: &str, label: Option<&str>, params: Value) -> SessionStep {
+    let mut all = default_params(kind.kind());
     all.extend(params.as_object().cloned().unwrap_or_default());
     SessionStep {
         id: id.to_owned(),
-        kind: kind.to_owned(),
+        kind,
         label: label.map(str::to_owned),
         params: all,
     }
@@ -65,7 +66,7 @@ async fn play(saved: Option<String>, steps: Vec<SessionStep>) -> Result<(), Step
     let session = BrowserSessionValue {
         browser: SessionBrowser {
             node_id: "browser".into(),
-            params: default_params("browser.open"),
+            params: default_params(OPEN_BROWSER_TYPE),
         },
         steps,
     };
@@ -77,7 +78,7 @@ async fn play(saved: Option<String>, steps: Vec<SessionStep>) -> Result<(), Step
 
 fn sign_in() -> SessionStep {
     step(
-        "browser.signIn",
+        BrowserAction::SignIn,
         "login",
         Some("Sign in to the shop"),
         json!({ "url": "http://127.0.0.1:1/login", "secretName": "shop" }),
@@ -99,13 +100,13 @@ async fn signs_in_with_the_saved_cookies_and_page_storage() {
     let steps = vec![
         sign_in(),
         step(
-            "browser.navigate",
+            BrowserAction::Navigate,
             "go",
             None,
             json!({ "url": format!("http://127.0.0.1:{port}/"), "after": 0 }),
         ),
         step(
-            "browser.assert",
+            BrowserAction::Assert,
             "check",
             None,
             json!({ "text": "sid=1 t", "timeoutMs": 2000 }),
@@ -131,25 +132,25 @@ async fn runs_a_script_set_before_the_first_page_once_per_site() {
     let url = format!("http://127.0.0.1:{port}/");
     let steps = vec![
         step(
-            "browser.setState",
+            BrowserAction::SetState,
             "seed",
             None,
             json!({ "script": "localStorage.setItem('runs', String(Number(localStorage.getItem('runs') ?? 0) + 1));" }),
         ),
         step(
-            "browser.navigate",
+            BrowserAction::Navigate,
             "go",
             None,
             json!({ "url": url, "after": 0 }),
         ),
         step(
-            "browser.navigate",
+            BrowserAction::Navigate,
             "again",
             None,
             json!({ "url": url, "after": 0 }),
         ),
         step(
-            "browser.assert",
+            BrowserAction::Assert,
             "check",
             None,
             json!({ "text": "runs 1", "timeoutMs": 2000 }),

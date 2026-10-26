@@ -9,6 +9,7 @@ use opsis_project::paths::{
     ProjectPaths, WebAddress, is_inside, project_paths, ref_to_path, to_project_ref,
 };
 use opsis_types::analysis::{Filmstrip, Waveform, WaveformLevel};
+use opsis_types::numbers::whole;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -20,9 +21,9 @@ use crate::ffmpeg::{MediaTools, RunOptions, ToolError};
 const ANALYSIS_VERSION: &str = "opsis-analysis/1";
 const HASH_LENGTH: usize = 24;
 const DECODE_RATE: f64 = 8000.0;
-const MAX_TILES: f64 = 100.0;
-const MIN_TILE_MS: f64 = 500.0;
-const TILE_HEIGHT: f64 = 72.0;
+const MAX_TILES: u32 = 100;
+const MIN_TILE_MS: u32 = 500;
+const TILE_HEIGHT: u32 = 72;
 const FLOAT_BYTES: usize = 4;
 
 const LEVEL_RATES: [f64; 3] = [200.0, 50.0, 10.0];
@@ -156,7 +157,7 @@ pub fn detect_beats(samples: &[f32], rate: f64) -> Beats {
     if onset.len() < MIN_BEAT_FRAMES {
         return none;
     }
-    let mean = onset.iter().map(|&o| f64::from(o)).sum::<f64>() / onset.len() as f64;
+    let mean = onset.iter().map(|&o| o as f64).sum::<f64>() / onset.len() as f64;
     if mean <= EPSILON {
         return none;
     }
@@ -215,7 +216,7 @@ impl AnalysisDeps<'_> {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct SavedWaveform {
-    duration_ms: f64,
+    duration_ms: u32,
     levels: Vec<WaveformLevel>,
     beats: Vec<f64>,
     #[serde(deserialize_with = "Option::deserialize")]
@@ -226,11 +227,11 @@ struct SavedWaveform {
 #[serde(rename_all = "camelCase")]
 struct SavedFilmstrip {
     image: String,
-    count: f64,
-    interval_ms: f64,
-    tile_width: f64,
-    tile_height: f64,
-    duration_ms: f64,
+    count: u32,
+    interval_ms: u32,
+    tile_width: u32,
+    tile_height: u32,
+    duration_ms: u32,
 }
 
 fn id_for(file: &Path) -> std::io::Result<String> {
@@ -301,7 +302,7 @@ async fn decode_waveform(raw: &Path) -> Result<SavedWaveform, AnalysisError> {
         let samples = float_samples(&bytes);
         let Beats { beats, bpm } = detect_beats(&samples, DECODE_RATE);
         SavedWaveform {
-            duration_ms: (samples.len() as f64 / DECODE_RATE * 1000.0).round(),
+            duration_ms: whole(samples.len() as f64 / DECODE_RATE * 1000.0),
             levels: waveform_levels(&samples, DECODE_RATE),
             beats,
             bpm,
@@ -382,14 +383,15 @@ pub async fn analyze_filmstrip(
         |id| async move {
             let probe = deps.tools.probe(file).await?;
             let video = probe.video.ok_or(AnalysisError::NoPicture)?;
-            let duration_ms = probe.duration_ms.max(1.0);
-            let interval_ms = MIN_TILE_MS.max((duration_ms / MAX_TILES).ceil());
-            let count = (duration_ms / interval_ms).ceil().max(1.0);
-            let tile_width = even_px(video.width / video.height * TILE_HEIGHT).max(2.0);
+            let duration_ms = probe.duration_ms.unwrap_or(1).max(1);
+            let interval_ms = MIN_TILE_MS.max(duration_ms.div_ceil(MAX_TILES));
+            let count = duration_ms.div_ceil(interval_ms).max(1);
+            let shape = f64::from(video.width) / f64::from(video.height);
+            let tile_width = whole(even_px(shape * f64::from(TILE_HEIGHT))).max(2);
             let image = image_of(&id);
             let filter = format!(
                 "fps=fps={}:start_time=0,scale={}:{},tile={}x1",
-                (1000.0 / interval_ms),
+                1000.0 / f64::from(interval_ms),
                 tile_width,
                 TILE_HEIGHT,
                 count

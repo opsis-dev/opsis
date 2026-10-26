@@ -2450,8 +2450,8 @@
     "src": "project:rec.mp4",
     "log": {
      "viewport": {
-      "width": 1920.0,
-      "height": 1080.0
+      "width": 1920,
+      "height": 1080
      },
      "dpr": 1.0,
      "t0": 0.0,
@@ -2467,8 +2467,8 @@
     },
     "durationMs": 2300.0,
     "viewport": {
-     "width": 1920.0,
-     "height": 1080.0
+     "width": 1920,
+     "height": 1080
     },
     "nodeId": "out-recording",
     "style": []
@@ -2580,8 +2580,8 @@
     "src": "project:rec.mp4",
     "log": {
      "viewport": {
-      "width": 1920.0,
-      "height": 1080.0
+      "width": 1920,
+      "height": 1080
      },
      "dpr": 1.0,
      "t0": 0.0,
@@ -2597,8 +2597,8 @@
     },
     "durationMs": 2300.0,
     "viewport": {
-     "width": 1920.0,
-     "height": 1080.0
+     "width": 1920,
+     "height": 1080
     },
     "nodeId": "out-recording",
     "style": []
@@ -2692,13 +2692,13 @@
    "image": {
     "type": "image",
     "src": "project:shots/out-image.png",
-    "width": 1920.0,
-    "height": 1080.0,
+    "width": 1920,
+    "height": 1080,
     "scale": 2.0
    },
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -2706,8 +2706,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -2722,8 +2722,8 @@
          "look": "window",
          "backdrop": "glaze",
          "shot": {
-          "width": 1920.0,
-          "height": 1080.0,
+          "width": 1920,
+          "height": 1080,
           "scale": 2.0
          }
         }
@@ -2859,13 +2859,13 @@
    "image": {
     "type": "image",
     "src": "project:shots/out-image.png",
-    "width": 1920.0,
-    "height": 1080.0,
+    "width": 1920,
+    "height": 1080,
     "scale": 2.0
    },
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -2873,8 +2873,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -2889,8 +2889,8 @@
          "look": "window",
          "backdrop": "glaze",
          "shot": {
-          "width": 1920.0,
-          "height": 1080.0,
+          "width": 1920,
+          "height": 1080,
           "scale": 2.0
          }
         }
@@ -2932,7 +2932,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 144.0,
+    "durationInFrames": 144,
     "tracks": [
      {
       "id": "n:t",
@@ -2940,8 +2940,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 144.0,
+        "from": 0,
+        "durationInFrames": 144,
         "nodeId": "n",
         "component": "core/placeholder",
         "props": {
@@ -3026,7 +3026,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 55.0,
+    "durationInFrames": 55,
     "tracks": [
      {
       "id": "n:t",
@@ -3034,15 +3034,15 @@
        {
         "kind": "recording",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 55.0,
+        "from": 0,
+        "durationInFrames": 55,
         "nodeId": "n",
         "props": {
          "src": "project:rec.mp4",
          "log": {
           "viewport": {
-           "width": 1920.0,
-           "height": 1080.0
+           "width": 1920,
+           "height": 1080
           },
           "dpr": 1.0,
           "t0": 0.0,
@@ -3092,8 +3092,8 @@
      "src": "project:rec.mp4",
      "log": {
       "viewport": {
-       "width": 1920.0,
-       "height": 1080.0
+       "width": 1920,
+       "height": 1080
       },
       "dpr": 1.0,
       "t0": 0.0,
@@ -3109,8 +3109,8 @@
      },
      "durationMs": 2300.0,
      "viewport": {
-      "width": 1920.0,
-      "height": 1080.0
+      "width": 1920,
+      "height": 1080
      },
      "nodeId": "recording",
      "style": []
@@ -3226,7 +3226,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -3234,8 +3234,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -3350,8 +3350,8 @@
     "src": "project:rec.mp4",
     "log": {
      "viewport": {
-      "width": 1920.0,
-      "height": 1080.0
+      "width": 1920,
+      "height": 1080
      },
      "dpr": 1.0,
      "t0": 0.0,
@@ -3367,8 +3367,8 @@
     },
     "durationMs": 2300.0,
     "viewport": {
-     "width": 1920.0,
-     "height": 1080.0
+     "width": 1920,
+     "height": 1080
     },
     "nodeId": "recording",
     "style": [
@@ -3472,8 +3472,8 @@
     "src": "project:rec.mp4",
     "log": {
      "viewport": {
-      "width": 1920.0,
-      "height": 1080.0
+      "width": 1920,
+      "height": 1080
      },
      "dpr": 1.0,
      "t0": 0.0,
@@ -3489,8 +3489,8 @@
     },
     "durationMs": 2300.0,
     "viewport": {
-     "width": 1920.0,
-     "height": 1080.0
+     "width": 1920,
+     "height": 1080
     },
     "nodeId": "recording",
     "style": [
@@ -3748,8 +3748,8 @@
     "src": "project:rec.mp4",
     "log": {
      "viewport": {
-      "width": 1920.0,
-      "height": 1080.0
+      "width": 1920,
+      "height": 1080
      },
      "dpr": 1.0,
      "t0": 0.0,
@@ -3765,8 +3765,8 @@
     },
     "durationMs": 2300.0,
     "viewport": {
-     "width": 1920.0,
-     "height": 1080.0
+     "width": 1920,
+     "height": 1080
     },
     "nodeId": "recording",
     "style": [
@@ -3877,7 +3877,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -3885,8 +3885,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "props": {
          "tracks": [
@@ -3896,8 +3896,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -4035,7 +4035,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -4043,8 +4043,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "props": {
          "tracks": [
@@ -4054,8 +4054,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -5186,7 +5186,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 30.0,
+    "durationInFrames": 30,
     "tracks": [],
     "audio": []
    }
@@ -5277,7 +5277,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:l0",
@@ -5285,8 +5285,8 @@
        {
         "kind": "group",
         "id": "n:l0:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "props": {
          "tracks": [
           {
@@ -5295,8 +5295,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -5335,8 +5335,8 @@
        {
         "kind": "group",
         "id": "n:l1:g",
-        "from": 0.0,
-        "durationInFrames": 93.0,
+        "from": 0,
+        "durationInFrames": 93,
         "props": {
          "tracks": [
           {
@@ -5345,8 +5345,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 93.0,
+             "from": 0,
+             "durationInFrames": 93,
              "nodeId": "n",
              "component": "core/captions",
              "props": {
@@ -5460,8 +5460,8 @@
     "src": "project:rec.mp4",
     "log": {
      "viewport": {
-      "width": 1920.0,
-      "height": 1080.0
+      "width": 1920,
+      "height": 1080
      },
      "dpr": 1.0,
      "t0": 0.0,
@@ -5477,8 +5477,8 @@
     },
     "durationMs": 2300.0,
     "viewport": {
-     "width": 1920.0,
-     "height": 1080.0
+     "width": 1920,
+     "height": 1080
     },
     "nodeId": "recording",
     "style": [
@@ -5595,7 +5595,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -5603,8 +5603,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6176,7 +6176,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -6184,8 +6184,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6244,7 +6244,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -6252,8 +6252,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6312,7 +6312,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -6320,8 +6320,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6373,7 +6373,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -6381,8 +6381,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6434,7 +6434,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -6442,8 +6442,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6495,7 +6495,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -6503,8 +6503,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6556,7 +6556,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -6564,8 +6564,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6617,7 +6617,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -6625,8 +6625,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6678,7 +6678,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -6686,8 +6686,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6733,7 +6733,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -6741,8 +6741,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6788,7 +6788,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -6796,8 +6796,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6897,7 +6897,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -6905,8 +6905,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -6923,8 +6923,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -7000,7 +7000,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -7008,8 +7008,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7057,7 +7057,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -7065,8 +7065,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7114,7 +7114,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7122,8 +7122,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7172,7 +7172,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7180,8 +7180,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7230,7 +7230,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -7238,8 +7238,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7282,7 +7282,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -7290,8 +7290,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7334,7 +7334,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -7342,8 +7342,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7389,7 +7389,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -7397,8 +7397,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7444,7 +7444,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7452,8 +7452,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7499,7 +7499,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7507,8 +7507,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7554,7 +7554,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7562,8 +7562,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7609,7 +7609,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7617,8 +7617,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7664,7 +7664,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7672,8 +7672,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7717,7 +7717,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7725,8 +7725,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7770,7 +7770,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7778,8 +7778,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7826,7 +7826,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7834,8 +7834,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7882,7 +7882,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7890,8 +7890,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7935,7 +7935,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -7943,8 +7943,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -7988,7 +7988,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 45.0,
+    "durationInFrames": 45,
     "tracks": [
      {
       "id": "n:t",
@@ -7996,8 +7996,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 45.0,
+        "from": 0,
+        "durationInFrames": 45,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8041,7 +8041,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 45.0,
+    "durationInFrames": 45,
     "tracks": [
      {
       "id": "n:t",
@@ -8049,8 +8049,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 45.0,
+        "from": 0,
+        "durationInFrames": 45,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8094,7 +8094,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -8102,8 +8102,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8154,7 +8154,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -8162,8 +8162,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8214,7 +8214,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -8222,8 +8222,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8275,7 +8275,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -8283,8 +8283,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8336,7 +8336,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -8344,8 +8344,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8409,7 +8409,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -8417,8 +8417,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8482,7 +8482,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -8490,8 +8490,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8546,7 +8546,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -8554,8 +8554,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8610,7 +8610,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -8618,8 +8618,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8718,7 +8718,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -8726,8 +8726,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8744,8 +8744,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -8820,7 +8820,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -8828,8 +8828,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8896,7 +8896,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -8904,8 +8904,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -8972,7 +8972,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 60.0,
+    "durationInFrames": 60,
     "tracks": [
      {
       "id": "n:t",
@@ -8980,8 +8980,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 60.0,
+        "from": 0,
+        "durationInFrames": 60,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9034,7 +9034,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 60.0,
+    "durationInFrames": 60,
     "tracks": [
      {
       "id": "n:t",
@@ -9042,8 +9042,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 60.0,
+        "from": 0,
+        "durationInFrames": 60,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9096,7 +9096,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -9104,8 +9104,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9160,7 +9160,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -9168,8 +9168,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9224,7 +9224,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -9232,8 +9232,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9286,7 +9286,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -9294,8 +9294,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9348,7 +9348,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -9356,8 +9356,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9411,7 +9411,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -9419,8 +9419,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9474,7 +9474,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -9482,8 +9482,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9532,7 +9532,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -9540,8 +9540,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9590,7 +9590,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -9598,8 +9598,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9653,7 +9653,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -9661,8 +9661,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9716,7 +9716,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 60.0,
+    "durationInFrames": 60,
     "tracks": [
      {
       "id": "n:t",
@@ -9724,8 +9724,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 60.0,
+        "from": 0,
+        "durationInFrames": 60,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9735,8 +9735,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/kinetic-center-build",
         "props": {
@@ -9782,7 +9782,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 60.0,
+    "durationInFrames": 60,
     "tracks": [
      {
       "id": "n:t",
@@ -9790,8 +9790,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 60.0,
+        "from": 0,
+        "durationInFrames": 60,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9801,8 +9801,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/kinetic-center-build",
         "props": {
@@ -9848,7 +9848,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -9856,8 +9856,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9910,7 +9910,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -9918,8 +9918,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9972,7 +9972,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -9980,8 +9980,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -9991,8 +9991,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/tracking-in",
         "props": {
@@ -10039,7 +10039,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10047,8 +10047,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10058,8 +10058,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/tracking-in",
         "props": {
@@ -10106,7 +10106,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10114,8 +10114,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10125,8 +10125,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/word-push",
         "props": {
@@ -10173,7 +10173,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10181,8 +10181,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10192,8 +10192,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/word-push",
         "props": {
@@ -10240,7 +10240,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10248,8 +10248,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10321,7 +10321,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10329,8 +10329,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10402,7 +10402,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 36.0,
+    "durationInFrames": 36,
     "tracks": [
      {
       "id": "n:t",
@@ -10410,8 +10410,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 36.0,
+        "from": 0,
+        "durationInFrames": 36,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10421,8 +10421,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/gradient-scale-cut-text",
         "props": {
@@ -10476,7 +10476,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 36.0,
+    "durationInFrames": 36,
     "tracks": [
      {
       "id": "n:t",
@@ -10484,8 +10484,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 36.0,
+        "from": 0,
+        "durationInFrames": 36,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10495,8 +10495,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/gradient-scale-cut-text",
         "props": {
@@ -10550,7 +10550,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -10558,8 +10558,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10569,8 +10569,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/strikethrough-replace",
         "props": {
@@ -10613,7 +10613,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -10621,8 +10621,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10632,8 +10632,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/strikethrough-replace",
         "props": {
@@ -10676,7 +10676,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10684,8 +10684,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10738,7 +10738,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10746,8 +10746,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10800,7 +10800,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10808,8 +10808,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10861,7 +10861,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10869,8 +10869,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10922,7 +10922,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10930,8 +10930,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -10982,7 +10982,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -10990,8 +10990,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11042,7 +11042,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -11050,8 +11050,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11061,8 +11061,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/ink-underline",
         "props": {
@@ -11108,7 +11108,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -11116,8 +11116,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11127,8 +11127,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/ink-underline",
         "props": {
@@ -11174,7 +11174,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -11182,8 +11182,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11193,8 +11193,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/scribble-circle",
         "props": {
@@ -11242,7 +11242,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -11250,8 +11250,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11261,8 +11261,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/scribble-circle",
         "props": {
@@ -11310,7 +11310,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -11318,8 +11318,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11329,8 +11329,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/ink-arrow",
         "props": {
@@ -11380,7 +11380,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -11388,8 +11388,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11399,8 +11399,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/ink-arrow",
         "props": {
@@ -11450,7 +11450,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 180.0,
+    "durationInFrames": 180,
     "tracks": [
      {
       "id": "n:t",
@@ -11458,8 +11458,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 180.0,
+        "from": 0,
+        "durationInFrames": 180,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11523,7 +11523,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 180.0,
+    "durationInFrames": 180,
     "tracks": [
      {
       "id": "n:t",
@@ -11531,8 +11531,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 180.0,
+        "from": 0,
+        "durationInFrames": 180,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11596,7 +11596,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -11604,8 +11604,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11615,8 +11615,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/confetti",
         "props": {
@@ -11680,7 +11680,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -11688,8 +11688,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11699,8 +11699,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/confetti",
         "props": {
@@ -11764,7 +11764,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -11772,8 +11772,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11827,7 +11827,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -11835,8 +11835,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11890,7 +11890,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -11898,8 +11898,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -11961,7 +11961,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -11969,8 +11969,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12032,7 +12032,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12040,8 +12040,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12103,7 +12103,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12111,8 +12111,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12174,7 +12174,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12182,8 +12182,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12247,7 +12247,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12255,8 +12255,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12320,7 +12320,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12328,8 +12328,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12391,7 +12391,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12399,8 +12399,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12462,7 +12462,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12470,8 +12470,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12536,7 +12536,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12544,8 +12544,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12610,7 +12610,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12618,8 +12618,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12666,7 +12666,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12674,8 +12674,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12722,7 +12722,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12730,8 +12730,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12779,7 +12779,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -12787,8 +12787,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12836,7 +12836,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -12844,8 +12844,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12939,7 +12939,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -12947,8 +12947,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -12965,8 +12965,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -13036,7 +13036,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -13044,8 +13044,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -13139,7 +13139,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -13147,8 +13147,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -13165,8 +13165,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -13236,7 +13236,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -13244,8 +13244,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -13339,7 +13339,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -13347,8 +13347,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -13365,8 +13365,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -13436,7 +13436,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -13444,8 +13444,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -13540,7 +13540,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -13548,8 +13548,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -13566,8 +13566,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -13638,7 +13638,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -13646,8 +13646,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -13743,7 +13743,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -13751,8 +13751,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -13769,8 +13769,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -13842,7 +13842,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 62.0,
+    "durationInFrames": 62,
     "tracks": [
      {
       "id": "n:t",
@@ -13850,8 +13850,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 62.0,
+        "from": 0,
+        "durationInFrames": 62,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -13945,7 +13945,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -13953,8 +13953,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -13971,8 +13971,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -14042,7 +14042,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 55.0,
+    "durationInFrames": 55,
     "tracks": [
      {
       "id": "n:t",
@@ -14050,8 +14050,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 55.0,
+        "from": 0,
+        "durationInFrames": 55,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -14106,7 +14106,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 55.0,
+    "durationInFrames": 55,
     "tracks": [
      {
       "id": "n:t",
@@ -14114,8 +14114,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 55.0,
+        "from": 0,
+        "durationInFrames": 55,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -14170,7 +14170,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 30.0,
+    "durationInFrames": 30,
     "tracks": [],
     "audio": []
    }
@@ -14470,7 +14470,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 455.0,
+    "durationInFrames": 455,
     "tracks": [
      {
       "id": "n:t",
@@ -14478,8 +14478,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 455.0,
+        "from": 0,
+        "durationInFrames": 455,
         "nodeId": "n",
         "handles": {},
         "props": {
@@ -14490,8 +14490,8 @@
             {
              "kind": "group",
              "id": "n:s0",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "slot": {
               "nodeId": "n",
               "port": "in1"
@@ -14504,8 +14504,8 @@
                  {
                   "kind": "group",
                   "id": "n:s0:i",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "props": {
                    "tracks": [
                     {
@@ -14514,8 +14514,8 @@
                       {
                        "kind": "element",
                        "id": "n:i",
-                       "from": 0.0,
-                       "durationInFrames": 75.0,
+                       "from": 0,
+                       "durationInFrames": 75,
                        "nodeId": "n",
                        "handles": {
                         "trimEnd": {
@@ -14554,8 +14554,8 @@
             {
              "kind": "group",
              "id": "n:s1",
-             "from": 76.0,
-             "durationInFrames": 75.0,
+             "from": 76,
+             "durationInFrames": 75,
              "slot": {
               "nodeId": "n",
               "port": "in2"
@@ -14568,8 +14568,8 @@
                  {
                   "kind": "group",
                   "id": "n:s1:i",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "props": {
                    "tracks": [
                     {
@@ -14578,8 +14578,8 @@
                       {
                        "kind": "element",
                        "id": "n:i",
-                       "from": 0.0,
-                       "durationInFrames": 75.0,
+                       "from": 0,
+                       "durationInFrames": 75,
                        "nodeId": "n",
                        "handles": {
                         "trimEnd": {
@@ -14618,8 +14618,8 @@
             {
              "kind": "group",
              "id": "n:s2",
-             "from": 152.0,
-             "durationInFrames": 75.0,
+             "from": 152,
+             "durationInFrames": 75,
              "slot": {
               "nodeId": "n",
               "port": "in3"
@@ -14632,8 +14632,8 @@
                  {
                   "kind": "group",
                   "id": "n:s2:i",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "props": {
                    "tracks": [
                     {
@@ -14642,8 +14642,8 @@
                       {
                        "kind": "element",
                        "id": "n:i",
-                       "from": 0.0,
-                       "durationInFrames": 75.0,
+                       "from": 0,
+                       "durationInFrames": 75,
                        "nodeId": "n",
                        "handles": {
                         "trimEnd": {
@@ -14682,8 +14682,8 @@
             {
              "kind": "group",
              "id": "n:s3",
-             "from": 228.0,
-             "durationInFrames": 75.0,
+             "from": 228,
+             "durationInFrames": 75,
              "slot": {
               "nodeId": "n",
               "port": "in4"
@@ -14696,8 +14696,8 @@
                  {
                   "kind": "group",
                   "id": "n:s3:i",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "props": {
                    "tracks": [
                     {
@@ -14706,8 +14706,8 @@
                       {
                        "kind": "element",
                        "id": "n:i",
-                       "from": 0.0,
-                       "durationInFrames": 75.0,
+                       "from": 0,
+                       "durationInFrames": 75,
                        "nodeId": "n",
                        "handles": {
                         "trimEnd": {
@@ -14746,8 +14746,8 @@
             {
              "kind": "group",
              "id": "n:s4",
-             "from": 304.0,
-             "durationInFrames": 75.0,
+             "from": 304,
+             "durationInFrames": 75,
              "slot": {
               "nodeId": "n",
               "port": "in5"
@@ -14760,8 +14760,8 @@
                  {
                   "kind": "group",
                   "id": "n:s4:i",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "props": {
                    "tracks": [
                     {
@@ -14770,8 +14770,8 @@
                       {
                        "kind": "element",
                        "id": "n:i",
-                       "from": 0.0,
-                       "durationInFrames": 75.0,
+                       "from": 0,
+                       "durationInFrames": 75,
                        "nodeId": "n",
                        "handles": {
                         "trimEnd": {
@@ -14810,8 +14810,8 @@
             {
              "kind": "group",
              "id": "n:s5",
-             "from": 380.0,
-             "durationInFrames": 75.0,
+             "from": 380,
+             "durationInFrames": 75,
              "slot": {
               "nodeId": "n",
               "port": "in6"
@@ -14824,8 +14824,8 @@
                  {
                   "kind": "group",
                   "id": "n:s5:i",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "props": {
                    "tracks": [
                     {
@@ -14834,8 +14834,8 @@
                       {
                        "kind": "element",
                        "id": "n:i",
-                       "from": 0.0,
-                       "durationInFrames": 75.0,
+                       "from": 0,
+                       "durationInFrames": 75,
                        "nodeId": "n",
                        "handles": {
                         "trimEnd": {
@@ -14886,7 +14886,7 @@
            "springStiffness": 320,
            "bgFadeFrames": 4,
            "loop": false,
-           "gapFrames": 1.0
+           "gapFrames": 1
           },
           "backgrounds": [
            null,
@@ -14932,7 +14932,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 267.0,
+    "durationInFrames": 267,
     "tracks": [
      {
       "id": "n:t",
@@ -14940,8 +14940,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 267.0,
+        "from": 0,
+        "durationInFrames": 267,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15032,7 +15032,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 267.0,
+    "durationInFrames": 267,
     "tracks": [
      {
       "id": "n:t",
@@ -15040,8 +15040,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 267.0,
+        "from": 0,
+        "durationInFrames": 267,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15132,7 +15132,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 180.0,
+    "durationInFrames": 180,
     "tracks": [
      {
       "id": "n:t",
@@ -15140,8 +15140,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 180.0,
+        "from": 0,
+        "durationInFrames": 180,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15197,7 +15197,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 180.0,
+    "durationInFrames": 180,
     "tracks": [
      {
       "id": "n:t",
@@ -15205,8 +15205,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 180.0,
+        "from": 0,
+        "durationInFrames": 180,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15262,7 +15262,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 138.0,
+    "durationInFrames": 138,
     "tracks": [
      {
       "id": "n:t",
@@ -15270,8 +15270,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 138.0,
+        "from": 0,
+        "durationInFrames": 138,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15332,7 +15332,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 138.0,
+    "durationInFrames": 138,
     "tracks": [
      {
       "id": "n:t",
@@ -15340,8 +15340,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 138.0,
+        "from": 0,
+        "durationInFrames": 138,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15402,7 +15402,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -15410,8 +15410,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15421,8 +15421,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/logo-enter",
         "props": {
@@ -15481,7 +15481,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -15489,8 +15489,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15500,8 +15500,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/logo-enter",
         "props": {
@@ -15560,7 +15560,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 360.0,
+    "durationInFrames": 360,
     "tracks": [
      {
       "id": "n:t",
@@ -15568,8 +15568,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 360.0,
+        "from": 0,
+        "durationInFrames": 360,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15638,7 +15638,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 360.0,
+    "durationInFrames": 360,
     "tracks": [
      {
       "id": "n:t",
@@ -15646,8 +15646,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 360.0,
+        "from": 0,
+        "durationInFrames": 360,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15716,7 +15716,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 108.0,
+    "durationInFrames": 108,
     "tracks": [
      {
       "id": "n:t",
@@ -15724,8 +15724,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 108.0,
+        "from": 0,
+        "durationInFrames": 108,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15785,7 +15785,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 108.0,
+    "durationInFrames": 108,
     "tracks": [
      {
       "id": "n:t",
@@ -15793,8 +15793,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 108.0,
+        "from": 0,
+        "durationInFrames": 108,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15854,7 +15854,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 355.0,
+    "durationInFrames": 355,
     "tracks": [
      {
       "id": "n:t",
@@ -15862,8 +15862,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 355.0,
+        "from": 0,
+        "durationInFrames": 355,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -15957,7 +15957,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 355.0,
+    "durationInFrames": 355,
     "tracks": [
      {
       "id": "n:t",
@@ -15965,8 +15965,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 355.0,
+        "from": 0,
+        "durationInFrames": 355,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16060,7 +16060,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -16068,8 +16068,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16079,8 +16079,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/animated-bar-chart",
         "props": {
@@ -16157,7 +16157,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -16165,8 +16165,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16176,8 +16176,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/animated-bar-chart",
         "props": {
@@ -16254,7 +16254,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -16262,8 +16262,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16323,7 +16323,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -16331,8 +16331,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16392,7 +16392,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -16400,8 +16400,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16411,8 +16411,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/rolling-number",
         "props": {
@@ -16453,7 +16453,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -16461,8 +16461,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16472,8 +16472,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remocn/rolling-number",
         "props": {
@@ -16514,7 +16514,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 363.0,
+    "durationInFrames": 363,
     "tracks": [
      {
       "id": "n:t",
@@ -16522,8 +16522,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 363.0,
+        "from": 0,
+        "durationInFrames": 363,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16533,8 +16533,8 @@
          }
         },
         "design": {
-         "width": 1280.0,
-         "height": 720.0,
+         "width": 1280,
+         "height": 720,
          "exact": true
         },
         "component": "remocn/signup-flow",
@@ -16589,7 +16589,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 363.0,
+    "durationInFrames": 363,
     "tracks": [
      {
       "id": "n:t",
@@ -16597,8 +16597,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 363.0,
+        "from": 0,
+        "durationInFrames": 363,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16608,8 +16608,8 @@
          }
         },
         "design": {
-         "width": 1280.0,
-         "height": 720.0,
+         "width": 1280,
+         "height": 720,
          "exact": true
         },
         "component": "remocn/signup-flow",
@@ -16664,7 +16664,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 240.0,
+    "durationInFrames": 240,
     "tracks": [
      {
       "id": "n:t",
@@ -16672,8 +16672,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 240.0,
+        "from": 0,
+        "durationInFrames": 240,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16683,8 +16683,8 @@
          }
         },
         "design": {
-         "width": 1280.0,
-         "height": 720.0,
+         "width": 1280,
+         "height": 720,
          "exact": true
         },
         "component": "remocn/ai-prompt-flow",
@@ -16736,7 +16736,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 240.0,
+    "durationInFrames": 240,
     "tracks": [
      {
       "id": "n:t",
@@ -16744,8 +16744,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 240.0,
+        "from": 0,
+        "durationInFrames": 240,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16755,8 +16755,8 @@
          }
         },
         "design": {
-         "width": 1280.0,
-         "height": 720.0,
+         "width": 1280,
+         "height": 720,
          "exact": true
         },
         "component": "remocn/ai-prompt-flow",
@@ -16808,7 +16808,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 240.0,
+    "durationInFrames": 240,
     "tracks": [
      {
       "id": "n:t",
@@ -16816,8 +16816,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 240.0,
+        "from": 0,
+        "durationInFrames": 240,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16827,8 +16827,8 @@
          }
         },
         "design": {
-         "width": 1280.0,
-         "height": 720.0,
+         "width": 1280,
+         "height": 720,
          "exact": true
         },
         "component": "remocn/command-menu",
@@ -16899,7 +16899,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 240.0,
+    "durationInFrames": 240,
     "tracks": [
      {
       "id": "n:t",
@@ -16907,8 +16907,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 240.0,
+        "from": 0,
+        "durationInFrames": 240,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -16918,8 +16918,8 @@
          }
         },
         "design": {
-         "width": 1280.0,
-         "height": 720.0,
+         "width": 1280,
+         "height": 720,
          "exact": true
         },
         "component": "remocn/command-menu",
@@ -16990,7 +16990,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 496.0,
+    "durationInFrames": 496,
     "tracks": [
      {
       "id": "n:t",
@@ -16998,8 +16998,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 496.0,
+        "from": 0,
+        "durationInFrames": 496,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17054,7 +17054,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 496.0,
+    "durationInFrames": 496,
     "tracks": [
      {
       "id": "n:t",
@@ -17062,8 +17062,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 496.0,
+        "from": 0,
+        "durationInFrames": 496,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17118,7 +17118,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 815.0,
+    "durationInFrames": 815,
     "tracks": [
      {
       "id": "n:t",
@@ -17126,8 +17126,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 815.0,
+        "from": 0,
+        "durationInFrames": 815,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17198,7 +17198,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 815.0,
+    "durationInFrames": 815,
     "tracks": [
      {
       "id": "n:t",
@@ -17206,8 +17206,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 815.0,
+        "from": 0,
+        "durationInFrames": 815,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17278,7 +17278,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 240.0,
+    "durationInFrames": 240,
     "tracks": [
      {
       "id": "n:t",
@@ -17286,8 +17286,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 240.0,
+        "from": 0,
+        "durationInFrames": 240,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17297,8 +17297,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "snapcn/laptop-frame",
         "props": {
@@ -17362,7 +17362,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 240.0,
+    "durationInFrames": 240,
     "tracks": [
      {
       "id": "n:t",
@@ -17370,8 +17370,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 240.0,
+        "from": 0,
+        "durationInFrames": 240,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17381,8 +17381,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "snapcn/laptop-frame",
         "props": {
@@ -17446,7 +17446,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 240.0,
+    "durationInFrames": 240,
     "tracks": [
      {
       "id": "n:t",
@@ -17454,8 +17454,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 240.0,
+        "from": 0,
+        "durationInFrames": 240,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17465,8 +17465,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "snapcn/phone-frame",
         "props": {
@@ -17528,7 +17528,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 240.0,
+    "durationInFrames": 240,
     "tracks": [
      {
       "id": "n:t",
@@ -17536,8 +17536,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 240.0,
+        "from": 0,
+        "durationInFrames": 240,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17547,8 +17547,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "snapcn/phone-frame",
         "props": {
@@ -17610,7 +17610,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 240.0,
+    "durationInFrames": 240,
     "tracks": [
      {
       "id": "n:t",
@@ -17618,8 +17618,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 240.0,
+        "from": 0,
+        "durationInFrames": 240,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17701,7 +17701,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 240.0,
+    "durationInFrames": 240,
     "tracks": [
      {
       "id": "n:t",
@@ -17709,8 +17709,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 240.0,
+        "from": 0,
+        "durationInFrames": 240,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17792,7 +17792,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 170.0,
+    "durationInFrames": 170,
     "tracks": [
      {
       "id": "n:t",
@@ -17800,8 +17800,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 170.0,
+        "from": 0,
+        "durationInFrames": 170,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17863,7 +17863,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 170.0,
+    "durationInFrames": 170,
     "tracks": [
      {
       "id": "n:t",
@@ -17871,8 +17871,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 170.0,
+        "from": 0,
+        "durationInFrames": 170,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -17934,7 +17934,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 144.0,
+    "durationInFrames": 144,
     "tracks": [
      {
       "id": "n:t",
@@ -17942,8 +17942,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 144.0,
+        "from": 0,
+        "durationInFrames": 144,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18021,7 +18021,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 144.0,
+    "durationInFrames": 144,
     "tracks": [
      {
       "id": "n:t",
@@ -18029,8 +18029,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 144.0,
+        "from": 0,
+        "durationInFrames": 144,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18108,7 +18108,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 56.0,
+    "durationInFrames": 56,
     "tracks": [
      {
       "id": "n:t",
@@ -18116,8 +18116,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 56.0,
+        "from": 0,
+        "durationInFrames": 56,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18194,7 +18194,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 56.0,
+    "durationInFrames": 56,
     "tracks": [
      {
       "id": "n:t",
@@ -18202,8 +18202,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 56.0,
+        "from": 0,
+        "durationInFrames": 56,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18280,7 +18280,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 198.0,
+    "durationInFrames": 198,
     "tracks": [
      {
       "id": "n:t",
@@ -18288,8 +18288,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 198.0,
+        "from": 0,
+        "durationInFrames": 198,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18354,7 +18354,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 198.0,
+    "durationInFrames": 198,
     "tracks": [
      {
       "id": "n:t",
@@ -18362,8 +18362,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 198.0,
+        "from": 0,
+        "durationInFrames": 198,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18428,7 +18428,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 180.0,
+    "durationInFrames": 180,
     "tracks": [
      {
       "id": "n:t",
@@ -18436,8 +18436,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 180.0,
+        "from": 0,
+        "durationInFrames": 180,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18523,7 +18523,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 180.0,
+    "durationInFrames": 180,
     "tracks": [
      {
       "id": "n:t",
@@ -18531,8 +18531,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 180.0,
+        "from": 0,
+        "durationInFrames": 180,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18618,7 +18618,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 180.0,
+    "durationInFrames": 180,
     "tracks": [
      {
       "id": "n:t",
@@ -18626,8 +18626,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 180.0,
+        "from": 0,
+        "durationInFrames": 180,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18761,7 +18761,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 180.0,
+    "durationInFrames": 180,
     "tracks": [
      {
       "id": "n:t",
@@ -18769,8 +18769,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 180.0,
+        "from": 0,
+        "durationInFrames": 180,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18904,7 +18904,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 180.0,
+    "durationInFrames": 180,
     "tracks": [
      {
       "id": "n:t",
@@ -18912,8 +18912,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 180.0,
+        "from": 0,
+        "durationInFrames": 180,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -18975,7 +18975,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 180.0,
+    "durationInFrames": 180,
     "tracks": [
      {
       "id": "n:t",
@@ -18983,8 +18983,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 180.0,
+        "from": 0,
+        "durationInFrames": 180,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19046,7 +19046,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 123.0,
+    "durationInFrames": 123,
     "tracks": [
      {
       "id": "n:t",
@@ -19054,8 +19054,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 123.0,
+        "from": 0,
+        "durationInFrames": 123,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19113,7 +19113,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 123.0,
+    "durationInFrames": 123,
     "tracks": [
      {
       "id": "n:t",
@@ -19121,8 +19121,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 123.0,
+        "from": 0,
+        "durationInFrames": 123,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19180,7 +19180,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -19188,8 +19188,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19284,7 +19284,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -19292,8 +19292,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19388,7 +19388,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -19396,8 +19396,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19407,8 +19407,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remotion-ui/funnel-chart",
         "props": {
@@ -19477,7 +19477,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -19485,8 +19485,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19496,8 +19496,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remotion-ui/funnel-chart",
         "props": {
@@ -19566,7 +19566,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -19574,8 +19574,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19585,8 +19585,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remotion-ui/donut-chart",
         "props": {
@@ -19668,7 +19668,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -19676,8 +19676,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19687,8 +19687,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remotion-ui/donut-chart",
         "props": {
@@ -19770,7 +19770,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -19778,8 +19778,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19789,8 +19789,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remotion-ui/comparison-bars",
         "props": {
@@ -19864,7 +19864,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -19872,8 +19872,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19883,8 +19883,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remotion-ui/comparison-bars",
         "props": {
@@ -19958,7 +19958,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -19966,8 +19966,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -19977,8 +19977,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remotion-ui/bar-chart-race",
         "props": {
@@ -20120,7 +20120,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -20128,8 +20128,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -20139,8 +20139,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remotion-ui/bar-chart-race",
         "props": {
@@ -20282,7 +20282,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -20290,8 +20290,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -20351,7 +20351,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -20359,8 +20359,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -20420,7 +20420,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 420.0,
+    "durationInFrames": 420,
     "tracks": [
      {
       "id": "n:t",
@@ -20428,8 +20428,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 420.0,
+        "from": 0,
+        "durationInFrames": 420,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -20569,7 +20569,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 420.0,
+    "durationInFrames": 420,
     "tracks": [
      {
       "id": "n:t",
@@ -20577,8 +20577,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 420.0,
+        "from": 0,
+        "durationInFrames": 420,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -20718,7 +20718,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -20726,8 +20726,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -20775,7 +20775,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -20783,8 +20783,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -20832,7 +20832,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -20840,8 +20840,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -20904,7 +20904,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -20912,8 +20912,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -20976,7 +20976,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -20984,8 +20984,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21094,7 +21094,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -21102,8 +21102,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21212,7 +21212,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -21220,8 +21220,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21292,7 +21292,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -21300,8 +21300,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21372,7 +21372,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -21380,8 +21380,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21471,7 +21471,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -21479,8 +21479,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21570,7 +21570,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -21578,8 +21578,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21638,7 +21638,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -21646,8 +21646,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21706,7 +21706,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 165.0,
+    "durationInFrames": 165,
     "tracks": [
      {
       "id": "n:t",
@@ -21714,8 +21714,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 165.0,
+        "from": 0,
+        "durationInFrames": 165,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21772,7 +21772,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 165.0,
+    "durationInFrames": 165,
     "tracks": [
      {
       "id": "n:t",
@@ -21780,8 +21780,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 165.0,
+        "from": 0,
+        "durationInFrames": 165,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21838,7 +21838,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 135.0,
+    "durationInFrames": 135,
     "tracks": [
      {
       "id": "n:t",
@@ -21846,8 +21846,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 135.0,
+        "from": 0,
+        "durationInFrames": 135,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21900,7 +21900,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 135.0,
+    "durationInFrames": 135,
     "tracks": [
      {
       "id": "n:t",
@@ -21908,8 +21908,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 135.0,
+        "from": 0,
+        "durationInFrames": 135,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -21962,7 +21962,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -21970,8 +21970,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22065,7 +22065,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -22073,8 +22073,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22168,7 +22168,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -22176,8 +22176,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22238,7 +22238,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -22246,8 +22246,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22308,7 +22308,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -22316,8 +22316,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22378,7 +22378,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -22386,8 +22386,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22448,7 +22448,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -22456,8 +22456,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22557,7 +22557,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -22565,8 +22565,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22666,7 +22666,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 158.0,
+    "durationInFrames": 158,
     "tracks": [
      {
       "id": "n:t",
@@ -22674,8 +22674,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 158.0,
+        "from": 0,
+        "durationInFrames": 158,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22751,7 +22751,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 158.0,
+    "durationInFrames": 158,
     "tracks": [
      {
       "id": "n:t",
@@ -22759,8 +22759,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 158.0,
+        "from": 0,
+        "durationInFrames": 158,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22836,7 +22836,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -22844,8 +22844,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22941,7 +22941,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -22949,8 +22949,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -22967,8 +22967,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -23041,7 +23041,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23049,8 +23049,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23060,8 +23060,8 @@
          }
         },
         "design": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "component": "remotion-ui/multi-device-lineup",
         "props": {
@@ -23152,7 +23152,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -23160,8 +23160,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23178,8 +23178,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -23222,8 +23222,8 @@
           }
          },
          "design": {
-          "width": 1920.0,
-          "height": 1080.0
+          "width": 1920,
+          "height": 1080
          }
         }
        }
@@ -23257,7 +23257,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23265,8 +23265,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23321,7 +23321,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23329,8 +23329,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23385,7 +23385,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23393,8 +23393,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23452,7 +23452,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23460,8 +23460,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23519,7 +23519,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23527,8 +23527,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23593,7 +23593,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23601,8 +23601,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23667,7 +23667,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23675,8 +23675,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23745,7 +23745,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23753,8 +23753,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23823,7 +23823,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23831,8 +23831,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -23886,7 +23886,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -23894,8 +23894,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -24061,7 +24061,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 135.0,
+    "durationInFrames": 135,
     "tracks": [
      {
       "id": "n:seq",
@@ -24069,11 +24069,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "core/fade",
-         "durationInFrames": 15.0,
+         "durationInFrames": 15,
          "params": {}
         },
         "slot": {
@@ -24088,8 +24088,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -24123,11 +24123,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 60.0,
-        "durationInFrames": 75.0,
+        "from": 60,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/fade",
-         "durationInFrames": 15.0,
+         "durationInFrames": 15,
          "params": {}
         },
         "slot": {
@@ -24142,8 +24142,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -24315,7 +24315,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 130.0,
+    "durationInFrames": 130,
     "tracks": [
      {
       "id": "n:seq",
@@ -24323,11 +24323,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "core/slide",
-         "durationInFrames": 20.0,
+         "durationInFrames": 20,
          "params": {
           "direction": "from-right"
          }
@@ -24344,8 +24344,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -24379,11 +24379,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 55.0,
-        "durationInFrames": 75.0,
+        "from": 55,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/slide",
-         "durationInFrames": 20.0,
+         "durationInFrames": 20,
          "params": {
           "direction": "from-right"
          }
@@ -24400,8 +24400,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -24573,7 +24573,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 130.0,
+    "durationInFrames": 130,
     "tracks": [
      {
       "id": "n:seq",
@@ -24581,11 +24581,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "core/wipe",
-         "durationInFrames": 20.0,
+         "durationInFrames": 20,
          "params": {
           "direction": "from-left"
          }
@@ -24602,8 +24602,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -24637,11 +24637,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 55.0,
-        "durationInFrames": 75.0,
+        "from": 55,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/wipe",
-         "durationInFrames": 20.0,
+         "durationInFrames": 20,
          "params": {
           "direction": "from-left"
          }
@@ -24658,8 +24658,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -24831,7 +24831,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 126.0,
+    "durationInFrames": 126,
     "tracks": [
      {
       "id": "n:seq",
@@ -24839,11 +24839,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "core/flip",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {
           "direction": "from-right"
          }
@@ -24860,8 +24860,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -24895,11 +24895,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 51.0,
-        "durationInFrames": 75.0,
+        "from": 51,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/flip",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {
           "direction": "from-right"
          }
@@ -24916,8 +24916,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -25089,7 +25089,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 126.0,
+    "durationInFrames": 126,
     "tracks": [
      {
       "id": "n:seq",
@@ -25097,11 +25097,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "core/clock-wipe",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {}
         },
         "slot": {
@@ -25116,8 +25116,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -25151,11 +25151,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 51.0,
-        "durationInFrames": 75.0,
+        "from": 51,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/clock-wipe",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {}
         },
         "slot": {
@@ -25170,8 +25170,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -25343,7 +25343,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 126.0,
+    "durationInFrames": 126,
     "tracks": [
      {
       "id": "n:seq",
@@ -25351,11 +25351,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "core/iris",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {}
         },
         "slot": {
@@ -25370,8 +25370,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -25405,11 +25405,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 51.0,
-        "durationInFrames": 75.0,
+        "from": 51,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/iris",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {}
         },
         "slot": {
@@ -25424,8 +25424,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -25597,7 +25597,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -25605,11 +25605,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/whip-pan",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "direction": "left",
           "blur": 24
@@ -25627,8 +25627,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -25662,11 +25662,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/whip-pan",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "direction": "left",
           "blur": 24
@@ -25684,8 +25684,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -25863,7 +25863,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -25871,11 +25871,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/push-through",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "zoom": 2.4,
           "blur": 14
@@ -25893,8 +25893,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -25928,11 +25928,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/push-through",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "zoom": 2.4,
           "blur": 14
@@ -25950,8 +25950,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -26129,7 +26129,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -26137,11 +26137,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/zoom-blur",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "blur": 16,
           "rise": 0
@@ -26159,8 +26159,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -26194,11 +26194,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/zoom-blur",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "blur": 16,
           "rise": 0
@@ -26216,8 +26216,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -26395,7 +26395,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -26403,11 +26403,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/focus-pull",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "blur": 16
          }
@@ -26424,8 +26424,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -26459,11 +26459,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/focus-pull",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "blur": 16
          }
@@ -26480,8 +26480,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -26659,7 +26659,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -26667,11 +26667,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/lens-zoom",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "lensSteps": 9,
           "blurSamples": 7,
@@ -26692,8 +26692,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -26727,11 +26727,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/lens-zoom",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "lensSteps": 9,
           "blurSamples": 7,
@@ -26752,8 +26752,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -26931,7 +26931,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -26939,11 +26939,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/ripple-zoom",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "zoom": 4,
           "intensity": 0.5,
@@ -26970,8 +26970,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -27005,11 +27005,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/ripple-zoom",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "zoom": 4,
           "intensity": 0.5,
@@ -27036,8 +27036,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -27215,7 +27215,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -27223,11 +27223,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/wave-wipe",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "intensity": 0.2,
           "softness": 0.7,
@@ -27254,8 +27254,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -27289,11 +27289,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/wave-wipe",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "intensity": 0.2,
           "softness": 0.7,
@@ -27320,8 +27320,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -27499,7 +27499,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -27507,11 +27507,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/smoke-dissolve",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "ringColor": "#8f88ae",
           "colorBack": "#141318",
@@ -27533,8 +27533,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -27568,11 +27568,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/smoke-dissolve",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "ringColor": "#8f88ae",
           "colorBack": "#141318",
@@ -27594,8 +27594,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -27773,7 +27773,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -27781,11 +27781,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/glitch-cut",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "intensity": 1,
           "slices": 24,
@@ -27805,8 +27805,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -27840,11 +27840,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/glitch-cut",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "intensity": 1,
           "slices": 24,
@@ -27864,8 +27864,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -28043,7 +28043,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -28051,11 +28051,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/page-turn",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "angle": -7,
           "poses": 8
@@ -28073,8 +28073,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -28108,11 +28108,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/page-turn",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "angle": -7,
           "poses": 8
@@ -28130,8 +28130,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -28309,7 +28309,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -28317,11 +28317,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/grain-dissolve",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "shape": "blob",
           "noise": 0.3,
@@ -28347,8 +28347,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -28382,11 +28382,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/grain-dissolve",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "shape": "blob",
           "noise": 0.3,
@@ -28412,8 +28412,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -28591,7 +28591,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -28599,11 +28599,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/dither-dissolve",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "shape": "simplex",
           "colorBack": "#141318",
@@ -28623,8 +28623,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -28658,11 +28658,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/dither-dissolve",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "shape": "simplex",
           "colorBack": "#141318",
@@ -28682,8 +28682,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -28861,7 +28861,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -28869,11 +28869,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/swirl-dissolve",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "bandCount": 10,
           "softness": 0.35,
@@ -28898,8 +28898,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -28933,11 +28933,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/swirl-dissolve",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "bandCount": 10,
           "softness": 0.35,
@@ -28962,8 +28962,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -29141,7 +29141,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 76.0,
+    "durationInFrames": 76,
     "tracks": [
      {
       "id": "n:seq",
@@ -29149,11 +29149,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remocn/particle-dissolve",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "particleSize": 4,
           "scatter": 0.08,
@@ -29175,8 +29175,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -29210,11 +29210,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 1.0,
-        "durationInFrames": 75.0,
+        "from": 1,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/particle-dissolve",
-         "durationInFrames": 74.0,
+         "durationInFrames": 74,
          "params": {
           "particleSize": 4,
           "scatter": 0.08,
@@ -29236,8 +29236,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -29415,7 +29415,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 124.0,
+    "durationInFrames": 124,
     "tracks": [
      {
       "id": "n:seq",
@@ -29423,11 +29423,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remotion-ui/grid-pixelate-wipe",
-         "durationInFrames": 26.0,
+         "durationInFrames": 26,
          "params": {
           "cols": 12,
           "rows": 8,
@@ -29448,8 +29448,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -29483,11 +29483,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 49.0,
-        "durationInFrames": 75.0,
+        "from": 49,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remotion-ui/grid-pixelate-wipe",
-         "durationInFrames": 26.0,
+         "durationInFrames": 26,
          "params": {
           "cols": 12,
           "rows": 8,
@@ -29508,8 +29508,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -29681,7 +29681,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 126.0,
+    "durationInFrames": 126,
     "tracks": [
      {
       "id": "n:seq",
@@ -29689,11 +29689,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remotion-ui/frosted-glass-wipe",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {
           "blur": 20,
           "panelWidth": 0.14,
@@ -29713,8 +29713,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -29748,11 +29748,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 51.0,
-        "durationInFrames": 75.0,
+        "from": 51,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remotion-ui/frosted-glass-wipe",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {
           "blur": 20,
           "panelWidth": 0.14,
@@ -29772,8 +29772,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -29945,7 +29945,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 136.0,
+    "durationInFrames": 136,
     "tracks": [
      {
       "id": "n:seq",
@@ -29953,11 +29953,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remotion-ui/chromatic-aberration-wipe",
-         "durationInFrames": 14.0,
+         "durationInFrames": 14,
          "params": {
           "intensity": 12,
           "axis": "horizontal",
@@ -29976,8 +29976,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -30011,11 +30011,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 61.0,
-        "durationInFrames": 75.0,
+        "from": 61,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remotion-ui/chromatic-aberration-wipe",
-         "durationInFrames": 14.0,
+         "durationInFrames": 14,
          "params": {
           "intensity": 12,
           "axis": "horizontal",
@@ -30034,8 +30034,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -30207,7 +30207,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 126.0,
+    "durationInFrames": 126,
     "tracks": [
      {
       "id": "n:seq",
@@ -30215,11 +30215,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remotion-ui/transition-blinds",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {
           "orientation": "horizontal",
           "slats": 12,
@@ -30240,8 +30240,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -30275,11 +30275,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 51.0,
-        "durationInFrames": 75.0,
+        "from": 51,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remotion-ui/transition-blinds",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {
           "orientation": "horizontal",
           "slats": 12,
@@ -30300,8 +30300,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -30473,7 +30473,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 126.0,
+    "durationInFrames": 126,
     "tracks": [
      {
       "id": "n:seq",
@@ -30481,11 +30481,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "remotion-ui/transition-morph-shape",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {
           "from": "circle",
           "to": "squircle",
@@ -30506,8 +30506,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -30541,11 +30541,11 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 51.0,
-        "durationInFrames": 75.0,
+        "from": 51,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remotion-ui/transition-morph-shape",
-         "durationInFrames": 24.0,
+         "durationInFrames": 24,
          "params": {
           "from": "circle",
           "to": "squircle",
@@ -30566,8 +30566,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -30739,7 +30739,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:l0",
@@ -30747,8 +30747,8 @@
        {
         "kind": "group",
         "id": "n:l0:g",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "props": {
          "tracks": [
           {
@@ -30757,8 +30757,8 @@
             {
              "kind": "group",
              "id": "n:cut:s0",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "slot": {
               "nodeId": "n",
               "port": "a"
@@ -30771,8 +30771,8 @@
                  {
                   "kind": "element",
                   "id": "n:i",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "nodeId": "n",
                   "handles": {
                    "trimEnd": {
@@ -30806,8 +30806,8 @@
             {
              "kind": "group",
              "id": "n:cut:s1",
-             "from": 75.0,
-             "durationInFrames": 75.0,
+             "from": 75,
+             "durationInFrames": 75,
              "slot": {
               "nodeId": "n",
               "port": "b"
@@ -30820,8 +30820,8 @@
                  {
                   "kind": "element",
                   "id": "n:i",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "nodeId": "n",
                   "handles": {
                    "trimEnd": {
@@ -30865,8 +30865,8 @@
        {
         "kind": "group",
         "id": "n:l1:g",
-        "from": 60.0,
-        "durationInFrames": 30.0,
+        "from": 60,
+        "durationInFrames": 30,
         "props": {
          "tracks": [
           {
@@ -30875,8 +30875,8 @@
             {
              "kind": "element",
              "id": "n:leak:i",
-             "from": 0.0,
-             "durationInFrames": 30.0,
+             "from": 0,
+             "durationInFrames": 30,
              "nodeId": "n:leak",
              "component": "core/light-leak",
              "props": {
@@ -30969,11 +30969,11 @@
      {
       "id": "n",
       "src": "project:.opsis/out/media.mp4",
-      "from": 0.0,
+      "from": 0,
       "volume": 0.5,
       "loop": true,
-      "fadeInFrames": 24.0,
-      "fadeOutFrames": 45.0,
+      "fadeInFrames": 24,
+      "fadeOutFrames": 45,
       "nodeId": "n",
       "channel": "n",
       "role": "music",
@@ -30990,11 +30990,11 @@
         "linked": [
          {
           "param": "startMs",
-          "sign": 1.0
+          "sign": 1
          },
          {
           "param": "lengthMs",
-          "sign": -1.0,
+          "sign": -1,
           "ifNonZero": true
          }
         ]
@@ -31012,7 +31012,7 @@
       }
      }
     ],
-    "durationInFrames": 120.0
+    "durationInFrames": 120
    }
   },
   "error": null,
@@ -31093,12 +31093,12 @@
      {
       "id": "n",
       "src": "project:.opsis/out/media.mp4",
-      "from": 0.0,
+      "from": 0,
       "volume": 1.0,
       "nodeId": "n",
       "channel": "n",
       "role": "effect",
-      "lengthFrames": 120.0,
+      "lengthFrames": 120,
       "handles": {
        "move": {
         "nodeId": "n",
@@ -31224,7 +31224,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -31232,8 +31232,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -31266,8 +31266,8 @@
      {
       "id": "sounds:sound",
       "src": "project:sound.mp3",
-      "from": 0.0,
-      "durationInFrames": 75.0
+      "from": 0,
+      "durationInFrames": 75
      }
     ]
    }
@@ -31295,7 +31295,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 30.0,
+    "durationInFrames": 30,
     "tracks": [],
     "audio": []
    }
@@ -31595,7 +31595,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 375.0,
+    "durationInFrames": 375,
     "tracks": [
      {
       "id": "n:seq",
@@ -31603,11 +31603,11 @@
        {
         "kind": "group",
         "id": "n:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "core/fade",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "n",
@@ -31621,8 +31621,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -31656,15 +31656,15 @@
        {
         "kind": "group",
         "id": "n:s1",
-        "from": 60.0,
-        "durationInFrames": 75.0,
+        "from": 60,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/fade",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "exit": {
          "kind": "core/fade",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "n",
@@ -31678,8 +31678,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -31713,15 +31713,15 @@
        {
         "kind": "group",
         "id": "n:s2",
-        "from": 120.0,
-        "durationInFrames": 75.0,
+        "from": 120,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/fade",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "exit": {
          "kind": "core/fade",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "n",
@@ -31735,8 +31735,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -31770,15 +31770,15 @@
        {
         "kind": "group",
         "id": "n:s3",
-        "from": 180.0,
-        "durationInFrames": 75.0,
+        "from": 180,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/fade",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "exit": {
          "kind": "core/fade",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "n",
@@ -31792,8 +31792,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -31827,15 +31827,15 @@
        {
         "kind": "group",
         "id": "n:s4",
-        "from": 240.0,
-        "durationInFrames": 75.0,
+        "from": 240,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/fade",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "exit": {
          "kind": "core/fade",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "n",
@@ -31849,8 +31849,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -31884,11 +31884,11 @@
        {
         "kind": "group",
         "id": "n:s5",
-        "from": 300.0,
-        "durationInFrames": 75.0,
+        "from": 300,
+        "durationInFrames": 75,
         "enter": {
          "kind": "core/fade",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "n",
@@ -31902,8 +31902,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -31967,7 +31967,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 30.0,
+    "durationInFrames": 30,
     "tracks": [],
     "audio": []
    }
@@ -32267,7 +32267,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:l0",
@@ -32275,14 +32275,14 @@
        {
         "kind": "group",
         "id": "n:l0:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "handles": {
          "move": {
           "nodeId": "n",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0.0
+          "index": 0
          }
         },
         "slot": {
@@ -32297,8 +32297,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -32338,14 +32338,14 @@
        {
         "kind": "group",
         "id": "n:l1:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "handles": {
          "move": {
           "nodeId": "n",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 1.0
+          "index": 1
          }
         },
         "slot": {
@@ -32360,8 +32360,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -32401,14 +32401,14 @@
        {
         "kind": "group",
         "id": "n:l2:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "handles": {
          "move": {
           "nodeId": "n",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 2.0
+          "index": 2
          }
         },
         "slot": {
@@ -32423,8 +32423,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -32464,14 +32464,14 @@
        {
         "kind": "group",
         "id": "n:l3:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "handles": {
          "move": {
           "nodeId": "n",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 3.0
+          "index": 3
          }
         },
         "slot": {
@@ -32486,8 +32486,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -32527,14 +32527,14 @@
        {
         "kind": "group",
         "id": "n:l4:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "handles": {
          "move": {
           "nodeId": "n",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 4.0
+          "index": 4
          }
         },
         "slot": {
@@ -32549,8 +32549,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -32590,14 +32590,14 @@
        {
         "kind": "group",
         "id": "n:l5:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "handles": {
          "move": {
           "nodeId": "n",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 5.0
+          "index": 5
          }
         },
         "slot": {
@@ -32612,8 +32612,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -32746,7 +32746,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -32754,8 +32754,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimStart": {
@@ -32765,7 +32765,7 @@
           "linked": [
            {
             "param": "durationMs",
-            "sign": -1.0,
+            "sign": -1,
             "ifNonZero": true
            }
           ]
@@ -32784,8 +32784,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -32814,7 +32814,7 @@
            ]
           }
          ],
-         "startFrom": 0.0
+         "startFrom": 0
         }
        }
       ]
@@ -32914,7 +32914,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -32922,8 +32922,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "props": {
          "tracks": [
@@ -32933,8 +32933,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -32963,7 +32963,7 @@
            ]
           }
          ],
-         "loopEvery": 75.0
+         "loopEvery": 75
         }
        }
       ]
@@ -33063,7 +33063,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:l0",
@@ -33071,8 +33071,8 @@
        {
         "kind": "group",
         "id": "n:l0:g",
-        "from": 15.0,
-        "durationInFrames": 75.0,
+        "from": 15,
+        "durationInFrames": 75,
         "handles": {
          "move": {
           "nodeId": "n",
@@ -33088,8 +33088,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -33217,7 +33217,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 50.0,
+    "durationInFrames": 50,
     "tracks": [
      {
       "id": "n:t",
@@ -33225,8 +33225,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 50.0,
+        "from": 0,
+        "durationInFrames": 50,
         "nodeId": "n",
         "handles": {
          "speed": {
@@ -33243,8 +33243,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -33399,7 +33399,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 90.0,
+    "durationInFrames": 90,
     "tracks": [
      {
       "id": "n:t",
@@ -33407,8 +33407,8 @@
        {
         "kind": "group",
         "id": "n:g",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "nodeId": "n",
         "props": {
          "tracks": [
@@ -33418,8 +33418,8 @@
             {
              "kind": "element",
              "id": "n:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "n",
              "handles": {
               "trimEnd": {
@@ -33605,7 +33605,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 75.0,
+    "durationInFrames": 75,
     "tracks": [
      {
       "id": "n:t",
@@ -33613,8 +33613,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "nodeId": "n",
         "handles": {
          "trimEnd": {
@@ -33729,14 +33729,14 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    },
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -33744,8 +33744,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "component": "core/video",
         "props": {
@@ -33848,14 +33848,14 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    },
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -33863,8 +33863,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "component": "core/video",
         "props": {
@@ -33907,7 +33907,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 150.0,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -33915,8 +33915,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 150.0,
+        "from": 0,
+        "durationInFrames": 150,
         "nodeId": "n",
         "component": "core/placeholder",
         "props": {
@@ -33965,7 +33965,7 @@
   "outputs": {
    "clip": {
     "type": "clip",
-    "durationInFrames": 120.0,
+    "durationInFrames": 120,
     "tracks": [
      {
       "id": "n:t",
@@ -33973,8 +33973,8 @@
        {
         "kind": "element",
         "id": "n:i",
-        "from": 0.0,
-        "durationInFrames": 120.0,
+        "from": 0,
+        "durationInFrames": 120,
         "nodeId": "n",
         "component": "core/video",
         "props": {
@@ -34030,9 +34030,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34093,9 +34093,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34144,9 +34144,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34238,9 +34238,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34289,9 +34289,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34352,9 +34352,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34403,9 +34403,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34466,9 +34466,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34517,9 +34517,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34580,9 +34580,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34631,9 +34631,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34690,9 +34690,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34737,9 +34737,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34810,9 +34810,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34866,9 +34866,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34929,9 +34929,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -34980,9 +34980,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -35039,9 +35039,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -35086,9 +35086,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -35145,9 +35145,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -35189,8 +35189,8 @@
    "image": {
     "type": "image",
     "src": "project:shots/out-image.png",
-    "width": 1920.0,
-    "height": 1080.0,
+    "width": 1920,
+    "height": 1080,
     "scale": 2.0
    }
   },
@@ -35244,8 +35244,8 @@
    "image": {
     "type": "image",
     "src": "project:shots/out-image.png",
-    "width": 1920.0,
-    "height": 1080.0,
+    "width": 1920,
+    "height": 1080,
     "scale": 2.0
    }
   },
@@ -35290,9 +35290,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -35353,9 +35353,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -35412,9 +35412,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -35479,9 +35479,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -35526,9 +35526,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -35628,9 +35628,9 @@
     "type": "media",
     "src": "project:.opsis/out/out-media.mp4",
     "kind": "video",
-    "durationMs": 4000.0,
-    "width": 1920.0,
-    "height": 1080.0,
+    "durationMs": 4000,
+    "width": 1920,
+    "height": 1080,
     "hasAudio": true
    }
   },
@@ -35680,8 +35680,8 @@
    "image": {
     "type": "image",
     "src": "project:shots/out-image.png",
-    "width": 1920.0,
-    "height": 1080.0,
+    "width": 1920,
+    "height": 1080,
     "scale": 2.0
    }
   },
@@ -35774,8 +35774,8 @@
    "image": {
     "type": "image",
     "src": "project:shots/out-image.png",
-    "width": 1920.0,
-    "height": 1080.0,
+    "width": 1920,
+    "height": 1080,
     "scale": 2.0
    }
   },

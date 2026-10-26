@@ -54,9 +54,9 @@ pub struct RunOptions<'a> {
 #[serde(rename_all = "camelCase")]
 pub struct VideoInfo {
     pub codec: String,
-    pub width: f64,
-    pub height: f64,
-    pub fps: f64,
+    pub width: u32,
+    pub height: u32,
+    pub fps: Option<f64>,
     pub pix_fmt: String,
 }
 
@@ -64,14 +64,14 @@ pub struct VideoInfo {
 #[serde(rename_all = "camelCase")]
 pub struct AudioInfo {
     pub codec: String,
-    pub sample_rate: f64,
-    pub channels: f64,
+    pub sample_rate: Option<u32>,
+    pub channels: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProbeResult {
-    pub duration_ms: f64,
+    pub duration_ms: Option<u32>,
     pub format: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub video: Option<VideoInfo>,
@@ -83,20 +83,20 @@ pub struct ProbeResult {
 
 #[derive(Default, Deserialize)]
 struct Disposition {
-    attached_pic: Option<f64>,
+    attached_pic: Option<u8>,
 }
 
 #[derive(Default, Deserialize)]
 struct RawStream {
     codec_type: Option<String>,
     codec_name: Option<String>,
-    width: Option<f64>,
-    height: Option<f64>,
+    width: Option<u32>,
+    height: Option<u32>,
     r_frame_rate: Option<String>,
     avg_frame_rate: Option<String>,
     pix_fmt: Option<String>,
     sample_rate: Option<String>,
-    channels: Option<f64>,
+    channels: Option<u32>,
     duration: Option<String>,
     disposition: Option<Disposition>,
 }
@@ -113,27 +113,17 @@ struct RawProbe {
     streams: Option<Vec<RawStream>>,
 }
 
-fn js_number(text: &str) -> f64 {
-    let text = text.trim();
-    if text.is_empty() {
-        0.0
-    } else {
-        text.parse().unwrap_or(f64::NAN)
-    }
+fn seconds_to_ms(text: &str) -> Option<u32> {
+    let seconds: f64 = text.trim().parse().ok()?;
+    let ms = (seconds * 1000.0).round();
+    (ms.is_finite() && ms > 0.0 && ms <= f64::from(u32::MAX)).then_some(ms as u32)
 }
 
-fn frame_rate(rate: Option<&str>) -> f64 {
-    let Some(rate) = rate else { return 0.0 };
-    let mut parts = rate.split('/').map(js_number);
-    let n = parts.next().unwrap_or(0.0);
-    match parts.next() {
-        Some(d) if d != 0.0 && !d.is_nan() => n / d,
-        _ => n,
-    }
-}
-
-fn or_zero(value: f64) -> f64 {
-    if value.is_nan() { 0.0 } else { value }
+fn frame_rate(rate: &str) -> Option<f64> {
+    let (count, per) = rate.split_once('/').unwrap_or((rate, "1"));
+    let (count, per): (f64, f64) = (count.trim().parse().ok()?, per.trim().parse().ok()?);
+    let fps = count / per;
+    (fps.is_finite() && fps > 0.0).then_some(fps)
 }
 
 pub fn parse_probe(json: Value) -> Result<ProbeResult, ToolError> {
@@ -143,44 +133,40 @@ pub fn parse_probe(json: Value) -> Result<ProbeResult, ToolError> {
     let streams = raw.streams.unwrap_or_default();
     let is_picture = |s: &&RawStream| {
         s.codec_type.as_deref() == Some("video")
-            && s.disposition.as_ref().and_then(|d| d.attached_pic) != Some(1.0)
+            && s.disposition.as_ref().and_then(|d| d.attached_pic) != Some(1)
     };
     let v = streams.iter().find(is_picture);
     let a = streams
         .iter()
         .find(|s| s.codec_type.as_deref() == Some("audio"));
     let format = raw.format.unwrap_or_default();
-    let duration_text = format
-        .duration
-        .as_deref()
-        .or(v.and_then(|v| v.duration.as_deref()))
-        .or(a.and_then(|a| a.duration.as_deref()));
-    let duration = duration_text.map_or(0.0, js_number);
+    let duration_ms = [
+        format.duration.as_deref(),
+        v.and_then(|v| v.duration.as_deref()),
+        a.and_then(|a| a.duration.as_deref()),
+    ]
+    .into_iter()
+    .flatten()
+    .next()
+    .and_then(seconds_to_ms);
     Ok(ProbeResult {
-        duration_ms: if duration.is_finite() {
-            (duration * 1000.0).round()
-        } else {
-            0.0
-        },
+        duration_ms,
         format: format.format_name.unwrap_or_default(),
-        video: v.map(|v| {
-            let avg = frame_rate(v.avg_frame_rate.as_deref());
-            VideoInfo {
-                codec: v.codec_name.clone().unwrap_or_default(),
-                width: v.width.unwrap_or(0.0),
-                height: v.height.unwrap_or(0.0),
-                fps: if avg != 0.0 && !avg.is_nan() {
-                    avg
-                } else {
-                    or_zero(frame_rate(v.r_frame_rate.as_deref()))
-                },
-                pix_fmt: v.pix_fmt.clone().unwrap_or_default(),
-            }
+        video: v.map(|v| VideoInfo {
+            codec: v.codec_name.clone().unwrap_or_default(),
+            width: v.width.unwrap_or_default(),
+            height: v.height.unwrap_or_default(),
+            fps: v
+                .avg_frame_rate
+                .as_deref()
+                .and_then(frame_rate)
+                .or_else(|| v.r_frame_rate.as_deref().and_then(frame_rate)),
+            pix_fmt: v.pix_fmt.clone().unwrap_or_default(),
         }),
         audio: a.map(|a| AudioInfo {
             codec: a.codec_name.clone().unwrap_or_default(),
-            sample_rate: a.sample_rate.as_deref().map_or(0.0, js_number),
-            channels: a.channels.unwrap_or(0.0),
+            sample_rate: a.sample_rate.as_deref().and_then(|r| r.trim().parse().ok()),
+            channels: a.channels,
         }),
         raw: json,
     })
@@ -190,15 +176,17 @@ pub fn can_stream_copy(a: &ProbeResult, b: &ProbeResult) -> bool {
     let (Some(av), Some(bv)) = (&a.video, &b.video) else {
         return false;
     };
-    let codec = |p: &ProbeResult| p.audio.as_ref().map_or(String::new(), |x| x.codec.clone());
-    let rate = |p: &ProbeResult| p.audio.as_ref().map_or(0.0, |x| x.sample_rate);
+    let sound = |p: &ProbeResult| p.audio.as_ref().map(|x| (x.codec.clone(), x.sample_rate));
+    let same_rate = match (av.fps, bv.fps) {
+        (Some(x), Some(y)) => (x - y).abs() < 0.01,
+        (x, y) => x == y,
+    };
     av.codec == bv.codec
         && av.width == bv.width
         && av.height == bv.height
         && av.pix_fmt == bv.pix_fmt
-        && (av.fps - bv.fps).abs() < 0.01
-        && codec(a) == codec(b)
-        && rate(a) == rate(b)
+        && same_rate
+        && sound(a) == sound(b)
 }
 
 fn progress_in(line: &str, opts: &RunOptions<'_>) {

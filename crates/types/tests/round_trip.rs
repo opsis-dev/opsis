@@ -1,4 +1,3 @@
-
 use opsis_golden::differences;
 use opsis_types::timeline::TimelineSpec;
 use opsis_types::values::{CompileValue, NodeResult};

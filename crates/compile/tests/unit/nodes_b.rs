@@ -14,18 +14,18 @@ use crate::helpers::{
     CLIP, card_texts, clip_value, compile_clip, node_card, node_result, parse_params, typed, zoomed,
 };
 
-fn size(variant: &str) -> (f64, f64) {
+fn size(variant: &str) -> (u32, u32) {
     let settings = WorkflowSettings {
-        width: 1920.0,
-        height: 1080.0,
+        width: 1920,
+        height: 1080,
         ..WorkflowSettings::default()
     };
     let s = variant_size(typed(json!(variant)), &settings);
     (s.width, s.height)
 }
 
-fn canvas(variant: &str) -> (f64, f64) {
-    let s = variant_canvas(typed(json!(variant)), 1080.0);
+fn canvas(variant: &str) -> (u32, u32) {
+    let s = variant_canvas(typed(json!(variant)), 1080);
     (s.width, s.height)
 }
 
@@ -33,21 +33,11 @@ fn canvas(variant: &str) -> (f64, f64) {
 fn sizes_export_shapes_by_their_long_or_short_edge() {
     assert_eq!(
         [size("16:9"), size("9:16"), size("1:1"), size("4:5")],
-        [
-            (1920.0, 1080.0),
-            (1080.0, 1920.0),
-            (1920.0, 1920.0),
-            (1536.0, 1920.0)
-        ]
+        [(1920, 1080), (1080, 1920), (1920, 1920), (1536, 1920)]
     );
     assert_eq!(
         [canvas("16:9"), canvas("1:1"), canvas("4:5"), canvas("9:16")],
-        [
-            (1920.0, 1080.0),
-            (1080.0, 1080.0),
-            (1080.0, 1350.0),
-            (1080.0, 1920.0)
-        ]
+        [(1920, 1080), (1080, 1080), (1080, 1350), (1080, 1920)]
     );
 }
 
@@ -136,7 +126,7 @@ fn names_export_files_stably_and_refuses_repeated_shapes() {
     assert!(parse_params("output.render", json!({ "variants": ["16:9", "16:9"] })).is_err());
     assert!(parse_params("output.still", json!({ "presets": ["og", "og"] })).is_err());
     let frames = CardInputs {
-        frames: [("clip".to_owned(), 60.0)].into_iter().collect(),
+        frames: [("clip".to_owned(), 60)].into_iter().collect(),
         ..CardInputs::default()
     };
     assert!(
@@ -293,7 +283,10 @@ fn keeps_zooms_and_marks_made_before_a_laptop_frame_on_its_screen() {
 }
 
 fn problem(schema: &ParamSchema, values: Value) -> Option<String> {
-    schema.parse(values.as_object().unwrap(), None).err()
+    schema
+        .parse(values.as_object().unwrap(), None)
+        .err()
+        .map(|e| e.to_string())
 }
 
 #[test]

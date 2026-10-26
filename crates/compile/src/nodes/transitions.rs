@@ -17,7 +17,7 @@ use crate::node::{
     port, row,
 };
 use crate::nodes::elements::extended_schema;
-use crate::params::{Params, Values, schema_of};
+use crate::params::{Params, Values, schema_of, whole_number};
 
 pub const NO_TRANSITION: &str = "none";
 pub const DEFAULT_TRANSITION: &str = "core/fade";
@@ -43,7 +43,7 @@ pub fn transition_kinds() -> Vec<String> {
 
 pub fn transition_ref(
     kind: &str,
-    duration_in_frames: f64,
+    duration_in_frames: u32,
     keep_whole: bool,
     params: Option<Map<String, Value>>,
 ) -> TransitionRef {
@@ -81,7 +81,8 @@ fn join_clips(inputs: &Inputs, join: impl FnOnce(&ClipValue, &ClipValue) -> Clip
     }
 }
 
-fn speed_row(length: f64, designed: f64, fps: f64) -> Option<CardRow> {
+fn speed_row(length: u32, designed: u32, fps: u32) -> Option<CardRow> {
+    let (length, designed) = (f64::from(length), f64::from(designed));
     if length <= 0.0 || !squeezed_too_much(length, designed) {
         return None;
     }
@@ -110,7 +111,7 @@ struct KeepWholeField {
     keep_whole: bool,
 }
 
-fn length_field(default: f64) -> Value {
+fn length_field(default: u32) -> Value {
     serde_json::json!({
         "description": "Length",
         "type": "integer",
@@ -141,7 +142,7 @@ fn presentation_node(meta: &'static ElementMeta) -> NodeDef {
         .inputs(inputs)
         .outputs(outs)
         .card(move |ctx: &CardCtx<'_, Values>| {
-            let length = ctx.values.get("durationInFrames").and_then(Value::as_f64).unwrap_or(0.0);
+            let length = whole_number(ctx.values.get("durationInFrames")).unwrap_or(0);
             let keep_whole = ctx.values.get("keepWhole").and_then(Value::as_bool).unwrap_or(false);
             let fps = ctx.fps();
             let frames = |p: &str| ctx.inputs.frames.get(p).copied();
@@ -153,7 +154,7 @@ fn presentation_node(meta: &'static ElementMeta) -> NodeDef {
         })
         .compiles(move |ctx: &Ctx<'_, Values>| {
             let mut rest = ctx.values.clone();
-            let length = rest.remove("durationInFrames").and_then(|v| v.as_f64()).unwrap_or(meta.default_duration_in_frames);
+            let length = whole_number(rest.remove("durationInFrames").as_ref()).unwrap_or(meta.default_duration_in_frames);
             let keep_whole = rest.remove("keepWhole").and_then(|v| v.as_bool()).unwrap_or(false);
             let mut params = meta.fixed_props.clone();
             params.extend(rest);
@@ -170,10 +171,10 @@ fn presentation_node(meta: &'static ElementMeta) -> NodeDef {
 pub struct LightLeakCut {
     #[default = 30]
     #[schemars(description = "Length", range(min = 1, max = 108000), extend("x-step" = 1, "x-unit" = "frames"))]
-    pub duration_in_frames: i64,
+    pub duration_in_frames: u32,
     #[default = 3]
     #[schemars(description = "Variation", range(min = 0, max = 100))]
-    pub seed: i64,
+    pub seed: u32,
     #[schemars(description = "Colour shift", range(min = 0, max = 360), extend("x-unit" = "°"))]
     pub hue_shift: f64,
 }
@@ -193,15 +194,12 @@ fn light_leak() -> NodeDef {
     .outputs(outs)
     .card(|ctx: &CardCtx<'_, LightLeakCut>| {
         let p = &ctx.params;
-        let a = ctx.inputs.frames.get("a").copied().unwrap_or(0.0);
-        let b = ctx.inputs.frames.get("b").copied().unwrap_or(0.0);
+        let a = ctx.inputs.frames.get("a").copied().unwrap_or(0);
+        let b = ctx.inputs.frames.get("b").copied().unwrap_or(0);
         let film = a + b;
-        let squeezed = a != 0.0 && b != 0.0 && p.duration_in_frames as f64 > film;
+        let squeezed = a != 0 && b != 0 && p.duration_in_frames > film;
         vec![
-            Some(row(
-                Icon::Sun,
-                frame_secs(p.duration_in_frames as f64, ctx.fps()),
-            )),
+            Some(row(Icon::Sun, frame_secs(p.duration_in_frames, ctx.fps()))),
             squeezed.then(|| {
                 row(
                     Icon::TriangleAlert,
@@ -228,7 +226,7 @@ fn light_leak() -> NodeDef {
                     slot_node: Some(ctx.node_id),
                 },
             );
-            let length = (p.duration_in_frames as f64).min(cut.duration_in_frames);
+            let length = p.duration_in_frames.min(cut.duration_in_frames);
             let mut props = Map::new();
             props.insert("seed".into(), Value::from(p.seed));
             props.insert("hueShift".into(), Value::from(p.hue_shift));
@@ -239,9 +237,9 @@ fn light_leak() -> NodeDef {
                 length,
                 ItemExtra::default(),
             );
-            let centred_on_cut = a.duration_in_frames - (length / 2.0).round();
-            let start = crate::time::clamp(centred_on_cut, 0.0, cut.duration_in_frames - length);
-            stack_clips(ctx.node_id, &[cut, leak], &[0.0, start], None, None)
+            let centred_on_cut = a.duration_in_frames.saturating_sub(length.div_ceil(2));
+            let start = centred_on_cut.min(cut.duration_in_frames - length);
+            stack_clips(ctx.node_id, &[cut, leak], &[0, start], None, None)
         })
     })
 }

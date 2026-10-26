@@ -13,8 +13,12 @@ use serde_json::Value;
 
 use crate::asset_ref::is_project_ref;
 use crate::audio::{audio_kind, channel_of, sound_length};
+use crate::clip::{IMAGE, STILL};
 use crate::clip::{item_has_sound, video_of, video_props};
+use crate::elements::core::Image;
 use crate::limits::MAX_REPEATS;
+use crate::nodes::capture::StillProps;
+use crate::params::typed_values;
 use crate::recording::recording_speed;
 use crate::remap::{Remap, RemapSide, inverse_remap, remap_frame};
 use crate::time::{EPSILON, clamp, ms_to_exact_frames, recording_ms_to_frames};
@@ -262,8 +266,8 @@ pub struct CameraKeyMark {
 #[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct FlatTimeline {
-    pub fps: f64,
-    pub duration_in_frames: f64,
+    pub fps: u32,
+    pub duration_in_frames: u32,
     pub bars: Vec<VideoBar>,
     pub lanes: u32,
     pub audio: Vec<AudioBar>,
@@ -331,13 +335,15 @@ fn thumbnail_of(item: &TimelineItem) -> Option<BarThumbnail> {
                     trim_ms: video.trim_before_ms,
                 });
             }
-            let still = component == "core/image" || component == "core/still";
-            match props.get("src").and_then(Value::as_str) {
-                Some(src) if still && is_project_ref(src) => Some(BarThumbnail::Still {
-                    src: src.to_owned(),
-                }),
+            let src = match component.as_str() {
+                IMAGE => typed_values::<Image>(props).ok().map(|image| image.src),
+                STILL => typed_values::<StillProps>(props)
+                    .ok()
+                    .map(|still| still.src),
                 _ => None,
-            }
+            };
+            src.filter(|src| is_project_ref(src))
+                .map(|src| BarThumbnail::Still { src })
         }
         TimelineItem::Group { .. } => None,
     }
@@ -355,15 +361,16 @@ fn group_instances(
     abs_to: f64,
 ) -> Vec<Instance> {
     let base = item.base();
-    let start_from = group.start_from.unwrap_or(0.0);
+    let item_from = f64::from(base.from);
+    let start_from = f64::from(group.start_from.unwrap_or(0));
     let remap = non_empty_remap(group).map(|r| Arc::new(r.clone()));
-    let looped = group.loop_every.filter(|l| *l > 0.0).unwrap_or(0.0);
+    let looped = f64::from(group.loop_every.unwrap_or(0));
     let lo = parent.lo.max(abs_from);
     let hi = parent.hi.min(abs_to);
     let inv = |r: f64, side: RemapSide| remap.as_ref().map_or(r, |m| inverse_remap(m, r, side));
-    let to_outer = |o: f64, side: RemapSide| parent.to_abs(base.from + o, side);
+    let to_outer = |o: f64, side: RemapSide| parent.to_abs(item_from + o, side);
     let step = |k: f64| Step {
-        from: base.from,
+        from: item_from,
         start_from,
         loop_offset: k * looped,
         remap: remap.clone(),
@@ -371,10 +378,11 @@ fn group_instances(
     if looped == 0.0 {
         return vec![parent.inside(step(0.0), lo, hi)];
     }
-    let max_r = remap.as_ref().map_or(base.duration_in_frames, |m| {
-        remap_frame(m, base.duration_in_frames)
-    });
-    let count = clamp((max_r / looped).ceil(), 1.0, MAX_REPEATS) as usize;
+    let duration = f64::from(base.duration_in_frames);
+    let max_r = remap
+        .as_ref()
+        .map_or(duration, |m| remap_frame(m, duration));
+    let count = clamp((max_r / looped).ceil(), 1.0, f64::from(MAX_REPEATS)) as usize;
     (0..count)
         .map(|k| {
             let k = k as f64;
@@ -456,8 +464,9 @@ struct Placed<'a> {
 
 fn place<'a>(item: &'a TimelineItem, walk: &'a Walk, track: usize) -> Placed<'a> {
     let base = item.base();
-    let content_end = base.from + base.duration_in_frames;
-    let abs_start = walk.inst.to_abs(base.from, RemapSide::Start);
+    let item_from = f64::from(base.from);
+    let content_end = item_from + f64::from(base.duration_in_frames);
+    let abs_start = walk.inst.to_abs(item_from, RemapSide::Start);
     let abs_end = walk.inst.to_abs(content_end, RemapSide::End);
     Placed {
         item,
@@ -467,7 +476,7 @@ fn place<'a>(item: &'a TimelineItem, walk: &'a Walk, track: usize) -> Placed<'a>
         abs_end,
         from: abs_start.max(walk.inst.lo),
         to: abs_end.min(walk.inst.hi),
-        item_from: base.from,
+        item_from,
         content_end,
     }
 }
@@ -509,7 +518,7 @@ fn make_link(p: &Placed<'_>) -> ChainLink {
         end: if p.to < p.abs_end - EPSILON {
             content_at(p, p.to) - p.item_from
         } else {
-            base.duration_in_frames
+            f64::from(base.duration_in_frames)
         },
         from: p.from,
         to: p.to,
@@ -518,12 +527,11 @@ fn make_link(p: &Placed<'_>) -> ChainLink {
 
 fn transition_mark(p: &Placed<'_>, previous_length: f64) -> Option<TransitionMark> {
     let base = p.item.base();
-    let enter = base.enter.as_ref().filter(|e| e.duration_in_frames > 0.0)?;
-    let to = p.to.min(
-        p.walk
-            .inst
-            .to_abs(p.item_from + enter.duration_in_frames, RemapSide::End),
-    );
+    let enter = base.enter.as_ref().filter(|e| e.duration_in_frames > 0)?;
+    let to = p.to.min(p.walk.inst.to_abs(
+        p.item_from + f64::from(enter.duration_in_frames),
+        RemapSide::End,
+    ));
     let shorter = (p.abs_end - p.abs_start).min(previous_length);
     Some(TransitionMark {
         key: format!("{}:enter", p.key),
@@ -608,7 +616,7 @@ fn leaf_bar(p: &Placed<'_>, link: ChainLink, order: u32) -> VideoBar {
     }
 }
 
-fn recording_marks(p: &Placed<'_>, props: &RecordingProps, fps: f64) -> Vec<ActionMark> {
+fn recording_marks(p: &Placed<'_>, props: &RecordingProps, fps: u32) -> Vec<ActionMark> {
     let speed = recording_speed(props);
     props
         .log
@@ -652,7 +660,7 @@ fn camera_key_marks(p: &Placed<'_>) -> Vec<CameraKeyMark> {
 }
 
 struct Collected {
-    fps: f64,
+    fps: u32,
     bars: Vec<VideoBar>,
     transitions: Vec<TransitionMark>,
     marks: Vec<ActionMark>,
@@ -776,9 +784,10 @@ fn pack_audio(audio: Vec<AudioBar>) -> (Vec<AudioBar>, u32) {
     (placed, lanes)
 }
 
-fn sound_bar(a: &AudioItem, duration: f64) -> Option<AudioBar> {
-    let from = a.from.max(0.0);
-    let to = duration.min(a.from + sound_length(a, duration));
+fn sound_bar(a: &AudioItem, duration: u32) -> Option<AudioBar> {
+    let start = f64::from(a.from);
+    let from = start.max(0.0);
+    let to = f64::from(duration).min(start + sound_length(a, duration));
     (to > from).then(|| AudioBar {
         tag: AudioTag::Audio,
         key: format!("audio:{}", a.id),
@@ -790,7 +799,7 @@ fn sound_bar(a: &AudioItem, duration: f64) -> Option<AudioBar> {
         from,
         to,
         lane: 0,
-        trim_before: a.trim_before.unwrap_or(0.0) + (-a.from).max(0.0),
+        trim_before: f64::from(a.trim_before.unwrap_or(0)) + (-start).max(0.0),
         looped: a.looped == Some(true),
         volume: a.volume.filter(|v| v.is_finite()).unwrap_or(1.0),
         handles: a.handles.clone(),
@@ -799,7 +808,7 @@ fn sound_bar(a: &AudioItem, duration: f64) -> Option<AudioBar> {
     })
 }
 
-fn clip_sound_bar(bar: &VideoBar, fps: f64) -> Option<AudioBar> {
+fn clip_sound_bar(bar: &VideoBar, fps: u32) -> Option<AudioBar> {
     let Value::Object(props) = &bar.props else {
         return None;
     };
@@ -877,7 +886,7 @@ pub fn flatten_spec(spec: &TimelineSpec) -> FlatTimeline {
         camera_keys: Vec::new(),
     };
     let root = Walk {
-        inst: Instance::root(spec.duration_in_frames),
+        inst: Instance::root(f64::from(spec.duration_in_frames)),
         path: String::new(),
         chain: Vec::new(),
         repeat: 0,

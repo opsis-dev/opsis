@@ -13,7 +13,7 @@ use crate::url_match::url_matches;
 #[derive(Debug, Clone)]
 pub struct MockResponse {
     pub url: String,
-    pub status: i64,
+    pub status: u32,
     pub content_type: String,
     pub body: String,
 }

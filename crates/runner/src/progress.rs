@@ -140,7 +140,7 @@ pub fn exported_artifacts<'a>(
         .filter(|(_, kind)| is_output_type(kind))
         .filter_map(|(id, _)| results.get(id))
         .collect();
-    exports.sort_by(|a, b| b.finished_at.total_cmp(&a.finished_at));
+    exports.sort_by_key(|r| std::cmp::Reverse(r.finished_at));
     let mut seen = HashSet::new();
     exports
         .into_iter()
@@ -156,7 +156,7 @@ mod tests {
 
     use super::*;
 
-    fn result(finished_at: f64, paths: &[&str]) -> NodeResult {
+    fn result(finished_at: i64, paths: &[&str]) -> NodeResult {
         let artifacts: Vec<_> = paths
             .iter()
             .map(|p| json!({ "kind": "video", "path": p }))
@@ -186,7 +186,7 @@ mod tests {
             run_id: "r".into(),
             node_id: "a".into(),
             cached: true,
-            result: Some(Box::new(result(1.0, &["a.mp4"]))),
+            result: Some(Box::new(result(1, &["a.mp4"]))),
         };
         let p = run(vec![
             event(
@@ -232,7 +232,7 @@ mod tests {
                 run_id: "r1".into(),
                 node_id: "a".into(),
                 cached: false,
-                result: Some(Box::new(result(1.0, &[]))),
+                result: Some(Box::new(result(1, &[]))),
             },
             event(json!({ "type": "node:error", "runId": "r1", "nodeId": "b", "message": "boom" })),
         ]);
@@ -265,7 +265,7 @@ mod tests {
                 run_id: "r2".into(),
                 node_id: "a".into(),
                 cached: false,
-                result: Some(Box::new(result(2.0, &[]))),
+                result: Some(Box::new(result(2, &[]))),
             },
         );
         assert_eq!(
@@ -278,14 +278,14 @@ mod tests {
     fn resumes_over_a_freshly_opened_project() {
         let mut opened = RunProgress::default();
         opened.errors.insert("old".into(), "earlier".into());
-        opened.results.insert("x".into(), result(1.0, &[]));
+        opened.results.insert("x".into(), result(1, &[]));
         let saved = run(vec![
             event(json!({ "type": "run:start", "runId": "r", "nodeIds": ["a", "b"], "at": 0 })),
             RunEvent::NodeDone {
                 run_id: "r".into(),
                 node_id: "a".into(),
                 cached: true,
-                result: Some(Box::new(result(2.0, &["a.mp4"]))),
+                result: Some(Box::new(result(2, &["a.mp4"]))),
             },
             event(json!({ "type": "node:progress", "runId": "r", "nodeId": "b", "progress": 0.5 })),
         ]);
@@ -324,9 +324,9 @@ mod tests {
     #[test]
     fn lists_every_exports_files_newest_first_and_once() {
         let results: IndexMap<String, NodeResult> = [
-            ("film", result(1.0, &["film.mp4"])),
-            ("code", result(5.0, &["code"])),
-            ("rec", result(9.0, &["rec.mp4"])),
+            ("film", result(1, &["film.mp4"])),
+            ("code", result(5, &["code"])),
+            ("rec", result(9, &["rec.mp4"])),
         ]
         .into_iter()
         .map(|(k, r)| (k.to_owned(), r))
@@ -344,10 +344,10 @@ mod tests {
             ["code", "film.mp4"]
         );
         let results: IndexMap<String, NodeResult> = [
-            ("a", result(1.0, &["out/project-og.png"])),
+            ("a", result(1, &["out/project-og.png"])),
             (
                 "b",
-                result(4.0, &["out/project-og.png", "out/project-square.png"]),
+                result(4, &["out/project-og.png", "out/project-square.png"]),
             ),
         ]
         .into_iter()

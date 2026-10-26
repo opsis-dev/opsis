@@ -1,3 +1,4 @@
+use opsis_types::numbers::whole;
 use opsis_types::values::{ClipValue, CompileValue, MediaKind, MediaValue};
 use opsis_types::workflow::PortType;
 
@@ -25,7 +26,7 @@ fn recording_as_media(value: &CompileValue) -> Option<CompileValue> {
     Some(CompileValue::Media(MediaValue {
         src: recording.src.clone(),
         kind: MediaKind::Video,
-        duration_ms: Some(recording.duration_ms),
+        duration_ms: Some(whole(recording.duration_ms)),
         width: Some(recording.viewport.width),
         height: Some(recording.viewport.height),
         has_audio: Some(false),

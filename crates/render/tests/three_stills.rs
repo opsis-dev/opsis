@@ -19,7 +19,7 @@ use serde_json::{Value, json};
 use tokio_util::sync::CancellationToken;
 
 const STILLS: &str = "prepare/stills";
-const FRAME: f64 = 45.0;
+const FRAME: u32 = 45;
 const CHANNEL_SLACK: u8 = 24;
 const MOSTLY_SAME: f64 = 0.995;
 

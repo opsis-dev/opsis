@@ -7,10 +7,10 @@ use tokio_util::sync::CancellationToken;
 use crate::view::{StreamView, ViewSize};
 
 pub const WINDOW_SIZE: Viewport = Viewport {
-    width: 1280.0,
-    height: 860.0,
+    width: 1280,
+    height: 860,
 };
-pub const VIEW_QUALITY: i64 = 80;
+pub const VIEW_QUALITY: u32 = 80;
 
 pub trait ViewHost: Send + Sync {
     fn show(&self, title: &str, view: Arc<StreamView>, closed: CancellationToken);

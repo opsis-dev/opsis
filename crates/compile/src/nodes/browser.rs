@@ -2,7 +2,9 @@ use std::sync::LazyLock;
 
 use opsis_types::actions::Point;
 use opsis_types::cards::{CardRow, Icon, Tone};
-use opsis_types::values::{BrowserSessionValue, CompileValue, SessionBrowser, SessionStep};
+use opsis_types::values::{
+    BrowserAction, BrowserSessionValue, CompileValue, SessionBrowser, SessionStep,
+};
 use opsis_types::workflow::PortType;
 use regex::Regex;
 use schemars::JsonSchema;
@@ -15,6 +17,7 @@ use crate::card::{
     CODE_TEXT_MAX, LABELLED_TEXT_MAX, TAG_TEXT_MAX, element_row, element_row_or, file_row,
     join_parts, quote, quoted, quoted_row, quoted_row_with,
 };
+use crate::errors::{PathError, SettingsError};
 use crate::node::{
     CardCtx, Category, Ctx, NodeDef, Outputs, Phase, PortSpec, RowExt, Rows, SESSION_PORT, missing,
     outputs, port, row,
@@ -51,7 +54,7 @@ pub struct PauseAfter {
         range(min = 0, max = 600000),
         extend("x-step" = 50, "x-unit" = "ms", "x-help" = "How long the video lingers after this action.")
     )]
-    pub after: i64,
+    pub after: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -102,7 +105,7 @@ pub struct Pointer {
         range(min = 0, max = 10000),
         extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "Auto", "x-advanced" = true)
     )]
-    pub travel_ms: i64,
+    pub travel_ms: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
@@ -126,10 +129,10 @@ pub struct Open {
             { "label": "1920 × 1080", "values": { "viewportWidth": 1920, "viewportHeight": 1080 } }
         ])
     )]
-    pub viewport_width: i64,
+    pub viewport_width: u32,
     #[default = 1080]
     #[schemars(description = "Window height", range(min = 240, max = 2160), extend("x-step" = 10, "x-unit" = "px"))]
-    pub viewport_height: i64,
+    pub viewport_height: u32,
     #[default = 2.0]
     #[schemars(
         description = "Screenshot sharpness",
@@ -215,13 +218,15 @@ pub struct SignIn {
     pub selector: String,
     #[default = 300]
     #[schemars(description = "Give up after", range(min = 10, max = 3600), extend("x-unit" = "s"))]
-    pub timeout_sec: i64,
+    pub timeout_sec: u32,
 }
 
 impl Params for SignIn {
-    fn check(&self) -> Result<(), String> {
+    fn check(&self) -> Result<(), SettingsError> {
         if self.done_when == DoneWhen::Selector && self.selector.trim().is_empty() {
-            return Err("Add the element that appears after signing in".to_owned());
+            return Err(SettingsError::rule(
+                "Add the element that appears after signing in",
+            ));
         }
         Ok(())
     }
@@ -264,7 +269,7 @@ pub struct Navigate {
         range(min = 0, max = 600000),
         extend("x-step" = 50, "x-unit" = "ms", "x-help" = "How long the video lingers on the new page.")
     )]
-    pub after: i64,
+    pub after: u32,
 }
 
 impl Params for Navigate {}
@@ -280,7 +285,7 @@ pub struct Click {
     pub pointer: Pointer,
     #[default = 220]
     #[schemars(description = "Hover before clicking", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub hover_ms: i64,
+    pub hover_ms: u32,
 }
 
 impl Params for Click {}
@@ -301,7 +306,7 @@ pub struct Type {
     )]
     pub text: String,
     #[schemars(description = "Pause length", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub chunk_pause_ms: i64,
+    pub chunk_pause_ms: u32,
     #[schemars(description = "Press Enter after typing")]
     pub press_enter: bool,
     #[serde(flatten)]
@@ -323,7 +328,7 @@ pub struct Hover {
     pub pointer: Pointer,
     #[default = 600]
     #[schemars(description = "Hover for", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub hover_ms: i64,
+    pub hover_ms: u32,
 }
 
 impl Params for Hover {}
@@ -375,13 +380,13 @@ pub struct Drag {
         range(min = -10000, max = 10000),
         extend("x-step" = 10, "x-unit" = "px", "x-show-if" = { "mode": ["by"] })
     )]
-    pub dx: i64,
+    pub dx: i32,
     #[schemars(
         description = "Down",
         range(min = -10000, max = 10000),
         extend("x-step" = 10, "x-unit" = "px", "x-show-if" = { "mode": ["by"] })
     )]
-    pub dy: i64,
+    pub dy: i32,
     #[schemars(
         description = "Path",
         extend(
@@ -403,13 +408,13 @@ pub struct Drag {
         range(min = 0, max = 5000),
         extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "method": ["smooth"] })
     )]
-    pub hold_ms: i64,
+    pub hold_ms: u32,
     #[schemars(
         description = "Drag time",
         range(min = 0, max = 10000),
         extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "Auto", "x-show-if" = { "method": ["smooth"] })
     )]
-    pub drag_ms: i64,
+    pub drag_ms: u32,
     #[default(DragMethod::Smooth)]
     #[schemars(
         description = "How",
@@ -425,16 +430,17 @@ pub struct Drag {
     pub pointer: Pointer,
     #[default = 220]
     #[schemars(description = "Hover before picking it up", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub hover_ms: i64,
+    pub hover_ms: u32,
 }
 
 impl Params for Drag {
-    fn check(&self) -> Result<(), String> {
+    fn check(&self) -> Result<(), SettingsError> {
         if self.mode == DragMode::Path {
-            read_path(&self.path)?;
+            read_path(&self.path)
+                .map_err(|problem| SettingsError::Rule(problem.to_string().into()))?;
         }
         if self.mode == DragMode::Element && self.to.trim().is_empty() {
-            return Err("Pick where to drop it".to_owned());
+            return Err(SettingsError::rule("Pick where to drop it"));
         }
         Ok(())
     }
@@ -464,21 +470,21 @@ pub struct Scroll {
         range(min = -20000, max = 20000),
         extend("x-help" = "Negative scrolls up.", "x-step" = 50, "x-unit" = "px", "x-show-if" = { "mode": ["by"] })
     )]
-    pub delta_y: i64,
+    pub delta_y: i32,
     #[default = true]
     #[schemars(description = "Smooth")]
     pub smooth: bool,
     #[default = 900]
     #[schemars(description = "Scroll time", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub duration_ms: i64,
+    pub duration_ms: u32,
     #[serde(flatten)]
     pub pause: PauseAfter,
 }
 
 impl Params for Scroll {
-    fn check(&self) -> Result<(), String> {
+    fn check(&self) -> Result<(), SettingsError> {
         if self.mode == ScrollMode::Element && self.target.trim().is_empty() {
-            return Err("Pick an element".to_owned());
+            return Err(SettingsError::rule("Pick an element"));
         }
         Ok(())
     }
@@ -581,23 +587,25 @@ pub struct Wait {
         range(min = 0, max = 600000),
         extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "mode": ["ms"] })
     )]
-    pub ms: i64,
+    pub ms: u32,
     #[default = 20000]
     #[schemars(
         description = "Give up after",
         range(min = 500, max = 600000),
         extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "mode": ["element", "network-idle", "url"] })
     )]
-    pub timeout_ms: i64,
+    pub timeout_ms: u32,
 }
 
 impl Params for Wait {
-    fn check(&self) -> Result<(), String> {
+    fn check(&self) -> Result<(), SettingsError> {
         match self.mode {
             WaitMode::Element if self.target.trim().is_empty() => {
-                Err("Pick what to wait for".to_owned())
+                Err(SettingsError::rule("Pick what to wait for"))
             }
-            WaitMode::Url if self.url.trim().is_empty() => Err("Add an address pattern".to_owned()),
+            WaitMode::Url if self.url.trim().is_empty() => {
+                Err(SettingsError::rule("Add an address pattern"))
+            }
             _ => Ok(()),
         }
     }
@@ -615,7 +623,7 @@ pub struct Assert {
     pub target_role: Option<String>,
     #[default = 10000]
     #[schemars(description = "Give up after", range(min = 500, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub timeout_ms: i64,
+    pub timeout_ms: u32,
 }
 
 impl Params for Assert {}
@@ -652,7 +660,7 @@ pub struct MockRoute {
     pub url: String,
     #[default = 200]
     #[schemars(description = "Status code", range(min = 100, max = 599))]
-    pub status: i64,
+    pub status: u32,
     #[default = "application/json"]
     #[schemars(description = "Type")]
     pub content_type: String,
@@ -733,7 +741,7 @@ pub struct Chapter {
         range(min = 0, max = 600000),
         extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "showInVideo": ["true"] })
     )]
-    pub duration_ms: i64,
+    pub duration_ms: u32,
 }
 
 impl Params for Chapter {}
@@ -755,7 +763,7 @@ pub struct OverlayHtml {
             "x-zero-label" = "Until the end"
         )
     )]
-    pub duration_ms: i64,
+    pub duration_ms: u32,
 }
 
 impl Params for OverlayHtml {}
@@ -772,22 +780,19 @@ pub fn parse_point(text: &str) -> Option<Point> {
     })
 }
 
-pub fn read_path(text: &str) -> Result<Vec<Point>, String> {
+pub fn read_path(text: &str) -> Result<Vec<Point>, PathError> {
     let mut points = Vec::new();
     for (i, line) in text.split('\n').enumerate() {
         if line.trim().is_empty() {
             continue;
         }
-        points.push(
-            parse_point(line)
-                .ok_or_else(|| format!("Line {} of the path isn't two numbers", i + 1))?,
-        );
+        points.push(parse_point(line).ok_or(PathError::Unreadable(i + 1))?);
     }
     if points.is_empty() {
-        return Err("Add points to the path".to_owned());
+        return Err(PathError::Empty);
     }
     if points.iter().all(|p| p.x == 0.0 && p.y == 0.0) {
-        return Err("Add a point away from where the drag starts".to_owned());
+        return Err(PathError::Still);
     }
     Ok(points)
 }
@@ -810,54 +815,56 @@ pub fn chord_keys(chord: &str) -> Vec<String> {
     keys
 }
 
+pub const OPEN_BROWSER_TYPE: &str = "browser.open";
+
 fn session_port() -> PortSpec {
     port(PortType::BrowserSession, "Browser")
 }
 
-fn append_step<P>(ctx: &Ctx<'_, P>) -> Outputs {
+fn append_step<P>(ctx: &Ctx<'_, P>, action: BrowserAction) -> Outputs {
     let Some(CompileValue::BrowserSession(session)) = ctx.input(SESSION_PORT) else {
         return Outputs::new();
     };
     let mut session = session.clone();
     session.steps.push(SessionStep {
         id: ctx.node_id.to_owned(),
-        kind: ctx.kind.to_owned(),
+        kind: action,
         label: ctx.label.map(str::to_owned),
         params: ctx.values.clone(),
     });
     outputs([(SESSION_PORT, CompileValue::BrowserSession(session))])
 }
 
-fn chain<P: Params>(kind: &'static str, title: &str, description: &str) -> NodeDef {
-    NodeDef::of::<P>(kind, title, Category::Browser, Phase::Capture)
+fn chain<P: Params>(action: BrowserAction, title: &str, description: &str) -> NodeDef {
+    NodeDef::of::<P>(action.kind(), title, Category::Browser, Phase::Capture)
         .describe(description)
         .virtual_node()
         .inputs(vec![(SESSION_PORT, session_port())])
         .outputs(vec![(SESSION_PORT, session_port())])
-        .compiles(append_step::<P>)
+        .compiles(move |ctx: &Ctx<'_, P>| append_step(ctx, action))
 }
 
-fn action<P: Params>(kind: &'static str, title: &str, description: &str) -> NodeDef {
-    chain::<P>(kind, title, description).action()
+fn action<P: Params>(action: BrowserAction, title: &str, description: &str) -> NodeDef {
+    chain::<P>(action, title, description).action()
 }
 
 fn card<P: DeserializeOwned + 'static>(def: NodeDef, f: fn(&P) -> Rows) -> NodeDef {
     def.card(move |ctx: &CardCtx<'_, P>| f(&ctx.params))
 }
 
-fn pause(after: i64) -> Option<CardRow> {
+fn pause(after: u32) -> Option<CardRow> {
     (after > 0).then(|| {
         row(
             Icon::Timer,
-            format!("Pause {}", format_duration(after as f64)),
+            format!("Pause {}", format_duration(f64::from(after))),
         )
     })
 }
 
-fn give_up_row(timeout_ms: i64) -> CardRow {
+fn give_up_row(timeout_ms: u32) -> CardRow {
     row(
         Icon::TimerOff,
-        format!("Give up after {}", format_duration(timeout_ms as f64)),
+        format!("Give up after {}", format_duration(f64::from(timeout_ms))),
     )
     .tone(Tone::Muted)
 }
@@ -912,7 +919,7 @@ fn drop_row(p: &Drag) -> CardRow {
                 Icon::Spline,
                 format!("Along {}", plural(points.len() as f64, "point")),
             ),
-            Err(problem) => missing(Icon::Spline, problem),
+            Err(problem) => missing(Icon::Spline, problem.to_string()),
         },
     }
 }
@@ -931,7 +938,7 @@ fn wait_row(p: &Wait) -> CardRow {
             Icon::Link,
             format!("Until {}", display_address(&p.url, true)),
         ),
-        WaitMode::Ms => row(Icon::Hourglass, format_duration(p.ms as f64)),
+        WaitMode::Ms => row(Icon::Hourglass, format_duration(f64::from(p.ms))),
     }
 }
 
@@ -939,7 +946,7 @@ static TAG: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"<[^>]+>").expect("pa
 
 fn open() -> NodeDef {
     NodeDef::of::<Open>(
-        "browser.open",
+        OPEN_BROWSER_TYPE,
         "Open browser",
         Category::Browser,
         Phase::Capture,
@@ -979,13 +986,13 @@ fn open() -> NodeDef {
 }
 
 fn sign_in() -> NodeDef {
-    NodeDef::of::<SignIn>("browser.signIn", "Sign in", Category::Browser, Phase::Capture)
+    NodeDef::of::<SignIn>(BrowserAction::SignIn.kind(), "Sign in", Category::Browser, Phase::Capture)
         .describe(
             "Opens a window where you sign in yourself, once. Opsis keeps the sign-in, encrypted, and the actions after this one use it.",
         )
         .inputs(vec![(SESSION_PORT, session_port())])
         .outputs(vec![(SESSION_PORT, session_port())])
-        .compiles(append_step::<SignIn>)
+        .compiles(|ctx: &Ctx<'_, SignIn>| append_step(ctx, BrowserAction::SignIn))
         .executes()
         .secrets(&["secretName"])
         .card(|ctx: &CardCtx<'_, SignIn>| {
@@ -1023,7 +1030,7 @@ fn hover_rows(p: &Hover) -> Rows {
     let hover = if p.hover_ms > 0 {
         row(
             Icon::Hourglass,
-            format!("Hover {}", format_duration(p.hover_ms as f64)),
+            format!("Hover {}", format_duration(f64::from(p.hover_ms))),
         )
     } else {
         row(Icon::Hourglass, "Passes over it").tone(Tone::Muted)
@@ -1051,7 +1058,7 @@ fn scroll_rows(p: &Scroll) -> Rows {
         p.smooth.then(|| {
             row(
                 Icon::Timer,
-                format!("Smooth, {}", format_duration(p.duration_ms as f64)),
+                format!("Smooth, {}", format_duration(f64::from(p.duration_ms))),
             )
         }),
         pause(p.pause.after),
@@ -1115,7 +1122,7 @@ fn hide_rows(p: &HideElements) -> Rows {
 fn overlay_rows(p: &OverlayHtml) -> Rows {
     let shown = truncate(&TAG.replace_all(&p.html, " "), CODE_TEXT_MAX);
     let length = if p.duration_ms != 0 {
-        format_duration(p.duration_ms as f64)
+        format_duration(f64::from(p.duration_ms))
     } else {
         "Until the end".to_owned()
     };
@@ -1141,14 +1148,18 @@ pub fn nodes() -> Vec<NodeDef> {
         sign_in(),
         card(
             chain::<StartRecording>(
-                "browser.startRecording",
+                BrowserAction::StartRecording,
                 "Start recording",
                 "The video starts here. The actions before it run off camera, like signing in and the first page load.",
             ),
             |_: &StartRecording| vec![Some(row(Icon::Video, "Video starts here"))],
         ),
         card(
-            chain::<Navigate>("browser.navigate", "Go to page", "Opens a page address."),
+            chain::<Navigate>(
+                BrowserAction::Navigate,
+                "Go to page",
+                "Opens a page address.",
+            ),
             |p: &Navigate| {
                 let url = if p.url.trim().is_empty() {
                     missing(Icon::Link, "Add an address")
@@ -1160,7 +1171,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             action::<Click>(
-                "browser.click",
+                BrowserAction::Click,
                 "Click",
                 "Moves the cursor to an element and clicks it.",
             ),
@@ -1173,7 +1184,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             action::<Type>(
-                "browser.type",
+                BrowserAction::Type,
                 "Type text",
                 "Types into a field, key by key.",
             ),
@@ -1181,7 +1192,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             action::<Hover>(
-                "browser.hover",
+                BrowserAction::Hover,
                 "Hover",
                 "Moves the cursor over an element without clicking, so a menu or tooltip can appear.",
             ),
@@ -1189,7 +1200,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             action::<Drag>(
-                "browser.drag",
+                BrowserAction::Drag,
                 "Drag",
                 "Drags an element onto another one, by a distance, or along a path, like moving a card or drawing a shape.",
             ),
@@ -1205,7 +1216,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             action::<Scroll>(
-                "browser.scroll",
+                BrowserAction::Scroll,
                 "Scroll",
                 "Scrolls to an element or by a distance.",
             ),
@@ -1213,7 +1224,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             action::<Select>(
-                "browser.select",
+                BrowserAction::Select,
                 "Choose option",
                 "Picks an option in a dropdown.",
             ),
@@ -1227,7 +1238,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             action::<Upload>(
-                "browser.upload",
+                BrowserAction::Upload,
                 "Upload file",
                 "Attaches a file from your project to a file field.",
             ),
@@ -1250,7 +1261,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             action::<Press>(
-                "browser.press",
+                BrowserAction::Press,
                 "Press keys",
                 "Presses a key or shortcut, like Ctrl+K. Shows in keystroke chips.",
             ),
@@ -1258,7 +1269,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             chain::<Wait>(
-                "browser.wait",
+                BrowserAction::Wait,
                 "Wait",
                 "Waits for an element, a quiet page, an address, or a fixed time. Waiting for something is more reliable than a fixed time.",
             ),
@@ -1271,7 +1282,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             chain::<Assert>(
-                "browser.assert",
+                BrowserAction::Assert,
                 "Check text",
                 "Stops the recording early if some text is not on the page, so you don't export a broken take.",
             ),
@@ -1288,7 +1299,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             chain::<Hoist>(
-                "browser.hoist",
+                BrowserAction::Hoist,
                 "Find element early",
                 "Looks an element up ahead of time so a later action doesn't pause on screen while searching.",
             ),
@@ -1296,7 +1307,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             chain::<SetState>(
-                "browser.setState",
+                BrowserAction::SetState,
                 "Run page script",
                 "Runs a small script in the page, e.g. to skip onboarding or turn on a feature. Put it before Go to page to run it as the site first opens.",
             ),
@@ -1304,7 +1315,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             chain::<MockRoute>(
-                "browser.mockRoute",
+                BrowserAction::MockRoute,
                 "Fake a response",
                 "Makes the site show fixed data for matching requests made after it, so every take looks the same. Put it before Go to page to cover the first load.",
             ),
@@ -1312,7 +1323,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             chain::<FreezeClock>(
-                "browser.freezeClock",
+                BrowserAction::FreezeClock,
                 "Freeze time",
                 "Pins the date and time the page sees, so clocks and \"x minutes ago\" never change between takes.",
             ),
@@ -1325,7 +1336,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             chain::<HideElements>(
-                "browser.hideElements",
+                BrowserAction::HideElements,
                 "Hide clutter",
                 "Hides cookie banners, chat bubbles and anything else you list.",
             ),
@@ -1333,7 +1344,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             chain::<Chapter>(
-                "browser.chapter",
+                BrowserAction::Chapter,
                 "Chapter",
                 "Starts a new chapter. Can show a chapter card in the video.",
             ),
@@ -1343,7 +1354,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     p.show_in_video.then(|| {
                         row(
                             Icon::Presentation,
-                            format!("Card for {}", format_duration(p.duration_ms as f64)),
+                            format!("Card for {}", format_duration(f64::from(p.duration_ms))),
                         )
                     }),
                 ]
@@ -1351,7 +1362,7 @@ pub fn nodes() -> Vec<NodeDef> {
         ),
         card(
             chain::<OverlayHtml>(
-                "browser.overlayHtml",
+                BrowserAction::OverlayHtml,
                 "HTML overlay",
                 "Shows your own HTML on top of the page while recording.",
             ),

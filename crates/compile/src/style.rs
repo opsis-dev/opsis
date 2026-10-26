@@ -1,12 +1,13 @@
 use opsis_types::recording::RecordingProps;
 use opsis_types::values::{ClipValue, StyleEntry};
 
+use crate::errors::SettingsError;
 use crate::registry::node_def;
 
 pub fn restyle_with(
     props: RecordingProps,
     entries: &[StyleEntry],
-) -> Result<RecordingProps, String> {
+) -> Result<RecordingProps, SettingsError> {
     entries
         .iter()
         .try_fold(props, |p, e| match node_def(&e.kind) {
@@ -15,7 +16,11 @@ pub fn restyle_with(
         })
 }
 
-pub fn retime_with(clip: ClipValue, entries: &[StyleEntry], fps: f64) -> Result<ClipValue, String> {
+pub fn retime_with(
+    clip: ClipValue,
+    entries: &[StyleEntry],
+    fps: u32,
+) -> Result<ClipValue, SettingsError> {
     entries
         .iter()
         .try_fold(clip, |c, e| match node_def(&e.kind) {

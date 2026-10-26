@@ -7,6 +7,7 @@ pub mod fonts;
 pub mod json;
 pub mod live;
 pub mod mix;
+pub mod numbers;
 pub mod project;
 pub mod recording;
 pub mod secrets;

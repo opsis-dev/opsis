@@ -276,7 +276,7 @@ fn reads_a_wall_time_as_a_clock_in_that_zone_shows_it() {
         assert!(!is_wall_time(bad), "{bad}");
     }
     assert_eq!(
-        wall_time_in("soon", "UTC").unwrap_err(),
+        wall_time_in("soon", "UTC").unwrap_err().to_string(),
         "“soon” isn't a date and time."
     );
 }

@@ -52,7 +52,7 @@ async fn reports_a_render_that_fails_with_its_message_and_keeps_answering() {
     };
     let job = StillJob {
         target,
-        frame: 0.0,
+        frame: 0,
         output: "/nowhere/out.png".into(),
         format: serde_json::from_value(json!("png")).unwrap(),
         scale: None,

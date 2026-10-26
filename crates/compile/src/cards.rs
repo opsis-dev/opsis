@@ -82,7 +82,7 @@ pub fn card_inputs(
             CompileValue::BrowserSession(s) => {
                 inputs
                     .steps
-                    .insert(port, s.steps.iter().map(|s| s.kind.clone()).collect());
+                    .insert(port, s.steps.iter().map(|s| s.kind).collect());
             }
             CompileValue::RecordingStyle(s) => {
                 inputs
@@ -99,9 +99,7 @@ pub fn card_inputs(
             }
             CompileValue::Clip(c) => {
                 inputs.frames.insert(port.clone(), c.duration_in_frames);
-                inputs
-                    .items
-                    .insert(port.clone(), scene_item_count(c) as f64);
+                inputs.items.insert(port.clone(), scene_item_count(c));
                 if let Some(take) = input_take(c) {
                     inputs.takes.insert(port, take);
                 }

@@ -10,6 +10,7 @@ pub mod color;
 pub mod compile;
 pub mod elements;
 pub mod envelope;
+pub mod errors;
 pub mod fonts;
 pub mod gradient;
 pub mod graph;

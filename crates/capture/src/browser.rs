@@ -8,6 +8,7 @@ use futures::StreamExt;
 use indexmap::IndexMap;
 use opsis_compile::nodes::browser::{ColorScheme, Open};
 use opsis_types::actions::Viewport;
+use opsis_types::numbers::whole;
 use serde_json::{Value, json};
 use tokio::task::JoinHandle;
 
@@ -70,13 +71,11 @@ pub fn effective_switches<'a>(lists: impl IntoIterator<Item = &'a str>) -> Vec<S
 fn playwright_switches() -> Vec<String> {
     tables()["switches"]
         .as_array()
-        .map(|list| {
-            list.iter()
-                .filter_map(Value::as_str)
-                .map(str::to_owned)
-                .collect()
-        })
-        .unwrap_or_default()
+        .expect("the launch switches are a list")
+        .iter()
+        .filter_map(Value::as_str)
+        .map(str::to_owned)
+        .collect()
 }
 
 pub struct Launched {
@@ -228,8 +227,8 @@ impl Session {
         };
         let physical = scaled_viewport(
             Size {
-                width: params.viewport_width as f64,
-                height: params.viewport_height as f64,
+                width: f64::from(params.viewport_width),
+                height: f64::from(params.viewport_height),
             },
             params.capture_scale,
         );
@@ -247,8 +246,8 @@ impl Session {
         let session = Self {
             tab: Arc::new(Tab::new(page)),
             viewport: Viewport {
-                width: physical.width,
-                height: physical.height,
+                width: whole(physical.width),
+                height: whole(physical.height),
             },
             dpr: params.dpr,
             user_agent,

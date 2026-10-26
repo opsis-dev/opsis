@@ -1,3 +1,5 @@
+use opsis_types::numbers::{whole, whole_signed};
+
 pub const EPSILON: f64 = 1e-6;
 
 pub fn lerp(from: f64, to: f64, t: f64) -> f64 {
@@ -16,40 +18,40 @@ pub fn ms_to_seconds(ms: f64) -> f64 {
     ms / 1000.0
 }
 
-pub fn ms_to_exact_frames(ms: f64, fps: f64) -> f64 {
-    ms_to_seconds(ms) * fps
+pub fn ms_to_exact_frames(ms: f64, fps: u32) -> f64 {
+    ms_to_seconds(ms) * f64::from(fps)
 }
 
-pub fn ms_to_signed_frames(ms: f64, fps: f64) -> f64 {
-    ms_to_exact_frames(ms, fps).round()
+pub fn ms_to_signed_frames(ms: f64, fps: u32) -> i32 {
+    whole_signed(ms_to_exact_frames(ms, fps))
 }
 
-pub fn whole_frames(frames: f64, min: f64) -> f64 {
-    min.max(frames.round())
+pub fn whole_frames(frames: f64, min: u32) -> u32 {
+    whole(frames).max(min)
 }
 
-pub fn at_least_one_frame(frames: f64) -> f64 {
-    whole_frames(frames, 1.0)
+pub fn at_least_one_frame(frames: f64) -> u32 {
+    whole_frames(frames, 1)
 }
 
-pub fn ms_to_frames(ms: f64, fps: f64) -> f64 {
-    whole_frames(ms_to_exact_frames(ms, fps), 1.0)
+pub fn ms_to_frames(ms: f64, fps: u32) -> u32 {
+    whole_frames(ms_to_exact_frames(ms, fps), 1)
 }
 
-pub fn ms_to_frames_from(ms: f64, fps: f64, min: f64) -> f64 {
+pub fn ms_to_frames_from(ms: f64, fps: u32, min: u32) -> u32 {
     whole_frames(ms_to_exact_frames(ms, fps), min)
 }
 
-pub fn frames_to_ms(frames: f64, fps: f64) -> f64 {
-    (frames * 1000.0 / fps).round()
+pub fn frames_to_ms(frames: impl Into<f64>, fps: u32) -> f64 {
+    (frames.into() * 1000.0 / f64::from(fps)).round()
 }
 
-pub fn recording_ms_to_frames(ms: f64, speed: f64, fps: f64) -> f64 {
-    ms / 1000.0 / speed * fps
+pub fn recording_ms_to_frames(ms: f64, speed: f64, fps: u32) -> f64 {
+    ms / 1000.0 / speed * f64::from(fps)
 }
 
-pub fn frames_to_recording_ms(frames: f64, speed: f64, fps: f64) -> f64 {
-    frames / fps * speed * 1000.0
+pub fn frames_to_recording_ms(frames: f64, speed: f64, fps: u32) -> f64 {
+    frames / f64::from(fps) * speed * 1000.0
 }
 
 fn clock(total_seconds: u64) -> (u64, u64, u64) {

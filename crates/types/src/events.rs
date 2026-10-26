@@ -35,13 +35,13 @@ pub enum RunEvent {
     RunStart {
         run_id: String,
         node_ids: Vec<String>,
-        at: f64,
+        at: i64,
     },
     #[serde(rename = "node:start")]
     NodeStart {
         run_id: String,
         node_id: String,
-        at: f64,
+        at: i64,
     },
     #[serde(rename = "node:progress")]
     NodeProgress {
@@ -58,7 +58,7 @@ pub enum RunEvent {
         node_id: Option<String>,
         level: LogLevel,
         message: String,
-        at: f64,
+        at: i64,
     },
     #[serde(rename = "node:done")]
     NodeDone {
@@ -96,7 +96,7 @@ pub enum RunEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         skipped_node_ids: Option<Vec<String>>,
         outputs: Vec<String>,
-        at: f64,
+        at: i64,
     },
 }
 

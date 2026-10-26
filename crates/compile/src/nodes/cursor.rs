@@ -164,13 +164,13 @@ pub struct AnnotationFields<'a> {
     pub match_text: &'a str,
     pub text: &'a str,
     pub color: &'a str,
-    pub padding: i64,
-    pub lead_ms: i64,
-    pub hold_ms: i64,
+    pub padding: u32,
+    pub lead_ms: u32,
+    pub hold_ms: u32,
     pub look: HighlightLook,
     pub roughness: f64,
     pub text_color: Option<&'a str>,
-    pub font_size: Option<i64>,
+    pub font_size: Option<u32>,
     pub font: Option<&'a str>,
 }
 
@@ -204,13 +204,13 @@ macro_rules! annotation_params {
             pub color: String,
             #[default = 10]
             #[schemars(description = "Space around", range(min = 0, max = 80), extend("x-unit" = "px"))]
-            pub padding: i64,
+            pub padding: u32,
             #[default = 250]
             #[schemars(description = "Appear early by", range(min = 0, max = 5000), extend("x-step" = 50, "x-unit" = "ms"))]
-            pub lead_ms: i64,
+            pub lead_ms: u32,
             #[default = 1400]
             #[schemars(description = "Stay for", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
-            pub hold_ms: i64,
+            pub hold_ms: u32,
             #[default(HighlightLook::Clean)]
             #[schemars(
                 description = "Look",
@@ -247,7 +247,7 @@ fn plain_fields<'a>(
     match_text: &'a str,
     text: &'a str,
     color: &'a str,
-    (padding, lead_ms, hold_ms): (i64, i64, i64),
+    (padding, lead_ms, hold_ms): (u32, u32, u32),
     (look, roughness): (HighlightLook, f64),
 ) -> AnnotationFields<'a> {
     AnnotationFields {
@@ -322,15 +322,15 @@ fn annotation_spec<A: Annotation>(p: &A) -> AnnotationSpec {
         match_text: f.match_text.to_owned(),
         text: f.text.to_owned(),
         color: color_or(f.color, A::COLOR),
-        padding: f.padding as f64,
-        lead_ms: f.lead_ms as f64,
-        hold_ms: f.hold_ms as f64,
+        padding: f64::from(f.padding),
+        lead_ms: f64::from(f.lead_ms),
+        hold_ms: f64::from(f.hold_ms),
         text_color: match (A::TEXT_COLOR, f.text_color) {
             (Some(fallback), Some(color)) => Some(color_or(color, fallback)),
             (None, Some(color)) => Some(color.to_owned()),
             _ => None,
         },
-        font_size: f.font_size.map(|s| s as f64),
+        font_size: f.font_size.map(f64::from),
         font: f.font.and_then(font_prop),
     }
 }

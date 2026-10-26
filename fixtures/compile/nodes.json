@@ -2425,7 +2425,7 @@
    "fontSize": 112.0,
    "fontWeight": 760.0,
    "fontFamily": "",
-   "clipDuration": 75.0,
+   "clipDuration": 75,
    "envelope": {}
   }
  },
@@ -2466,7 +2466,7 @@
    "fontSize": 104.0,
    "wordStagger": 4.0,
    "fontFamily": "",
-   "clipDuration": 90.0,
+   "clipDuration": 90,
    "envelope": {}
   }
  },
@@ -2507,7 +2507,7 @@
    "color": "#fafafa",
    "panel": "rgba(10,10,12,0.72)",
    "fontFamily": "",
-   "clipDuration": 120.0,
+   "clipDuration": 120,
    "envelope": {}
   }
  },
@@ -2548,7 +2548,7 @@
    "color": "#fafafa",
    "accent": "#f43f5e",
    "fontFamily": "",
-   "clipDuration": 75.0,
+   "clipDuration": 75,
    "envelope": {}
   }
  },
@@ -2586,7 +2586,7 @@
    "fit": "contain",
    "background": "transparent",
    "kenBurns": false,
-   "clipDuration": 90.0,
+   "clipDuration": 90,
    "envelope": {}
   }
  },
@@ -2638,7 +2638,7 @@
    ],
    "frameMs": 0.0,
    "blockSize": 24.0,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -2678,7 +2678,7 @@
    "backwards": false,
    "fit": "contain",
    "background": "transparent",
-   "clipDuration": 90.0,
+   "clipDuration": 90,
    "envelope": {}
   }
  },
@@ -2719,7 +2719,7 @@
    "volume": 1.0,
    "playbackRate": 1.0,
    "trimBeforeMs": 0.0,
-   "clipDuration": 150.0,
+   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -2754,7 +2754,7 @@
   "hostDefaults": null,
   "defaults": {
    "color": "#09090b",
-   "clipDuration": 90.0,
+   "clipDuration": 90,
    "envelope": {}
   }
  },
@@ -2792,7 +2792,7 @@
    "to": "#0f172a",
    "angle": 135.0,
    "grain": 0.08,
-   "clipDuration": 90.0,
+   "clipDuration": 90,
    "envelope": {}
   }
  },
@@ -2830,7 +2830,7 @@
    "color2": "#4f46e5",
    "scale": 0.004,
    "speed": 0.004,
-   "clipDuration": 150.0,
+   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -2868,7 +2868,7 @@
    "color2": "#27272a",
    "rays": 24.0,
    "rotationSpeed": 0.15,
-   "clipDuration": 150.0,
+   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -2904,7 +2904,7 @@
   "defaults": {
    "color": "#f5f1e8",
    "grain": 0.18,
-   "clipDuration": 150.0,
+   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -2939,7 +2939,7 @@
   "hostDefaults": null,
   "defaults": {
    "name": "glaze",
-   "clipDuration": 150.0,
+   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -2975,7 +2975,7 @@
   "defaults": {
    "src": "",
    "dim": 0.3,
-   "clipDuration": 150.0,
+   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -3011,7 +3011,7 @@
   "defaults": {
    "seed": 3.0,
    "hueShift": 0.0,
-   "clipDuration": 45.0,
+   "clipDuration": 45,
    "envelope": {}
   }
  },
@@ -3056,7 +3056,7 @@
    "speed": 1.0,
    "lighting": "studio",
    "background": "transparent",
-   "clipDuration": 150.0,
+   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -3101,7 +3101,7 @@
    "speed": 1.0,
    "lighting": "soft",
    "background": "transparent",
-   "clipDuration": 120.0,
+   "clipDuration": 120,
    "envelope": {}
   }
  },
@@ -3152,7 +3152,7 @@
    "speed": 1.0,
    "lighting": "studio",
    "background": "transparent",
-   "clipDuration": 120.0,
+   "clipDuration": 120,
    "envelope": {}
   }
  },
@@ -3199,7 +3199,7 @@
    "lighting": "studio",
    "shadow": true,
    "background": "transparent",
-   "clipDuration": 150.0,
+   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -3250,7 +3250,7 @@
    "endFaceOn": true,
    "lighting": "studio",
    "background": "#0b0b10",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3298,7 +3298,7 @@
    },
    "lighting": "studio",
    "background": "#0b1020",
-   "clipDuration": 150.0,
+   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -3340,7 +3340,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3384,7 +3384,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3426,7 +3426,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3469,7 +3469,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3511,7 +3511,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3554,7 +3554,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3596,7 +3596,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3638,7 +3638,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3681,7 +3681,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3724,7 +3724,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3775,7 +3775,7 @@
    "background": "#fafafa",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3825,7 +3825,7 @@
    "fontWeight": "700",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3868,7 +3868,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3910,7 +3910,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3955,7 +3955,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -3999,7 +3999,7 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4044,7 +4044,7 @@
    "step": 0.1,
    "x": 0.5,
    "y": 0.62,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4091,7 +4091,7 @@
    "width": 420,
    "height": 220,
    "release": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4140,7 +4140,7 @@
    "fromY": 0.72,
    "toX": 0.48,
    "toY": 0.5,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4196,7 +4196,7 @@
     }
    ],
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4246,7 +4246,7 @@
    "originX": 0.5,
    "originY": 0.5,
    "lifetime": 3,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4292,7 +4292,7 @@
    "backgroundColor": "#a800b7",
    "loop": false,
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4335,7 +4335,7 @@
     "#3a3a5c",
     "#52527a"
    ],
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4379,7 +4379,7 @@
     "#4a4a68",
     "#5a5a7e"
    ],
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4424,7 +4424,7 @@
     "#12121a",
     "#52527a"
    ],
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4468,7 +4468,7 @@
     "#3a3a5c",
     "#232338"
    ],
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4514,7 +4514,7 @@
     "#3a3a5c"
    ],
    "colorBloom": "#3a3a5c",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4553,7 +4553,7 @@
    "softness": 0.1,
    "colorBack": "#12121a",
    "colorFront": "#6a6a85",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4593,7 +4593,7 @@
    "colorFront": "#6a6a85",
    "shape": "wave",
    "type": "4x4",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4639,7 +4639,7 @@
    "scanlines": 1,
    "maskScale": 2,
    "vignette": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4685,7 +4685,7 @@
    "wobble": 1,
    "noise": 1,
    "intensity": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4731,7 +4731,7 @@
    "angle": 0,
    "misregistration": 1.2,
    "paperTint": "#f4efe4",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4778,7 +4778,7 @@
    "aberration": 0.5,
    "vignette": 0.5,
    "distortion": 0.05,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4826,7 +4826,7 @@
    "step": 0.1,
    "frameColor": "#fdfcf8",
    "captionColor": "#26242c",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4872,7 +4872,7 @@
    "gain": 1,
    "afterglow": 1,
    "phosphor": "#d8ecff",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -4918,7 +4918,7 @@
    "color": "#ffffff",
    "seed": 1,
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5084,7 +5084,7 @@
     }
    ],
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5128,7 +5128,7 @@
    "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
    "aura": false,
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5181,7 +5181,7 @@
     }
    ],
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5239,7 +5239,7 @@
     }
    ],
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5300,7 +5300,7 @@
    "weight": "600",
    "seed": "checklist",
    "background": "white",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5349,7 +5349,7 @@
    "reducedMotion": false,
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5435,7 +5435,7 @@
    ],
    "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5511,7 +5511,7 @@
    "baselineColor": "#27272a",
    "labelColor": "#a1a1aa",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5563,7 +5563,7 @@
    "width": 1000,
    "height": 500,
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5603,7 +5603,7 @@
    "color": "#171717",
    "background": "white",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5648,7 +5648,7 @@
    "password": "••••••••",
    "createLabel": "Create account",
    "toastTitle": "Account created",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5694,7 +5694,7 @@
     "infra is unblocked before the team scales next quarter."
    ],
    "toastTitle": "Response ready",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5759,7 +5759,7 @@
    ],
    "autoplay": true,
    "pressedIndex": -1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5813,7 +5813,7 @@
    "lightIntensity": 1,
    "music": "",
    "musicVolume": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5890,7 +5890,7 @@
    "logoSrc": "",
    "music": "",
    "musicVolume": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5945,7 +5945,7 @@
    "indicatorColor": "#30D158",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5998,7 +5998,7 @@
    },
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6064,7 +6064,7 @@
     }
    ],
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6115,7 +6115,7 @@
    "inkColor": "#ffffff",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6184,7 +6184,7 @@
    },
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6248,7 +6248,7 @@
    "background": "",
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6308,7 +6308,7 @@
    },
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6379,7 +6379,7 @@
    ],
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6500,7 +6500,7 @@
    ],
    "fontFamily": "",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6542,7 +6542,7 @@
     "colors": {}
    },
    "fontFamily": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6589,7 +6589,7 @@
    "speed": 1,
    "showDelta": true,
    "backgroundColor": "",
-   "clipDuration": 123.0,
+   "clipDuration": 123,
    "envelope": {}
   }
  },
@@ -6674,7 +6674,7 @@
    "accentColor": "",
    "backgroundColor": "",
    "theme": "dark",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6742,7 +6742,7 @@
    "inkColor": "#fafafa",
    "labelColor": "rgba(250,250,250,0.55)",
    "dropoffColor": "#f472b6",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6812,7 +6812,7 @@
    "inkColor": "#fafafa",
    "upColor": "#2dd4bf",
    "downColor": "#f87171",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -6885,7 +6885,7 @@
    "pairOffsetInFrames": 6,
    "barInkColor": "#0b0b10",
    "labelColor": "rgba(250,250,250,0.55)",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7013,7 +7013,7 @@
    "inkColor": "#fafafa",
    "barInkColor": "#0b0b10",
    "labelColor": "rgba(250,250,250,0.55)",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7061,7 +7061,7 @@
    "trackColor": "rgba(250,250,250,0.10)",
    "inkColor": "#fafafa",
    "labelColor": "rgba(250,250,250,0.58)",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7190,7 +7190,7 @@
    "dataColor": "#2dd4bf",
    "timelineColor": "#f59e0b",
    "backgroundColor": "",
-   "clipDuration": 420.0,
+   "clipDuration": 420,
    "envelope": {}
   }
  },
@@ -7232,7 +7232,7 @@
    "textColor": "#f4f4f5",
    "viewBox": "",
    "fill": "",
-   "clipDuration": 120.0,
+   "clipDuration": 120,
    "envelope": {}
   }
  },
@@ -7288,7 +7288,7 @@
    "theme": "dark",
    "speed": 1,
    "backgroundColor": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7386,7 +7386,7 @@
    "theme": "dark",
    "speed": 1,
    "backgroundColor": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7454,7 +7454,7 @@
    "kindFixed": "",
    "kindChanged": "",
    "kindRemoved": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7533,7 +7533,7 @@
    "theme": "dark",
    "speed": 1,
    "backgroundColor": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7581,7 +7581,7 @@
    "theme": "dark",
    "speed": 1,
    "backgroundColor": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7627,7 +7627,7 @@
    "theme": "dark",
    "speed": 1,
    "backgroundColor": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7669,7 +7669,7 @@
    "theme": "dark",
    "speed": 1,
    "backgroundColor": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7756,7 +7756,7 @@
    "theme": "dark",
    "speed": 1,
    "backgroundColor": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7806,7 +7806,7 @@
    "theme": "dark",
    "speed": 1,
    "backgroundColor": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -7856,7 +7856,7 @@
    "speed": 1,
    "uploadingLabel": "Uploading",
    "backgroundColor": "",
-   "clipDuration": 150.0,
+   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -7938,7 +7938,7 @@
    "theme": "dark",
    "speed": 1,
    "backgroundColor": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -8006,7 +8006,7 @@
    "accentColor": "#E8B86D",
    "theme": "dark",
    "speed": 1,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -8056,7 +8056,7 @@
    "backgroundColor": "#080810",
    "accentColor": "#e8b86d",
    "textColor": "#f8fafc",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -8106,7 +8106,7 @@
    "phoneLabel": "Phone",
    "tabletLabel": "Tablet",
    "laptopLabel": "Laptop",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -8150,7 +8150,7 @@
    "seed": "handwriting",
    "color": "#f4f4f5",
    "fontWeight": "600",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -8197,7 +8197,7 @@
    "color": "#fdf2f8",
    "fontWeight": "600",
    "offColor": "",
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -8242,7 +8242,7 @@
    "fontWeight": 800,
    "letterSpacing": 0,
    "lineHeight": 0.98,
-   "clipDuration": 0.0,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -8293,7 +8293,7 @@
    "horizonGlow": 0.5,
    "striation": 0.55,
    "seed": 1,
-   "clipDuration": 120.0,
+   "clipDuration": 120,
    "envelope": {}
   }
  },
@@ -8339,7 +8339,7 @@
    "intensity": 1,
    "glow": 1.6,
    "seed": 1,
-   "clipDuration": 120.0,
+   "clipDuration": 120,
    "envelope": {}
   }
  },
@@ -8388,7 +8388,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "durationInFrames": 15.0,
+   "durationInFrames": 15,
    "keepWhole": false
   }
  },
@@ -8438,7 +8438,7 @@
   "hostDefaults": null,
   "defaults": {
    "direction": "from-right",
-   "durationInFrames": 20.0,
+   "durationInFrames": 20,
    "keepWhole": false
   }
  },
@@ -8488,7 +8488,7 @@
   "hostDefaults": null,
   "defaults": {
    "direction": "from-left",
-   "durationInFrames": 20.0,
+   "durationInFrames": 20,
    "keepWhole": false
   }
  },
@@ -8538,7 +8538,7 @@
   "hostDefaults": null,
   "defaults": {
    "direction": "from-right",
-   "durationInFrames": 24.0,
+   "durationInFrames": 24,
    "keepWhole": false
   }
  },
@@ -8587,7 +8587,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "durationInFrames": 24.0,
+   "durationInFrames": 24,
    "keepWhole": false
   }
  },
@@ -8636,7 +8636,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "durationInFrames": 24.0,
+   "durationInFrames": 24,
    "keepWhole": false
   }
  },
@@ -8687,7 +8687,7 @@
   "defaults": {
    "direction": "left",
    "blur": 24,
-   "durationInFrames": 114.0,
+   "durationInFrames": 114,
    "keepWhole": false
   }
  },
@@ -8738,7 +8738,7 @@
   "defaults": {
    "zoom": 2.4,
    "blur": 14,
-   "durationInFrames": 112.0,
+   "durationInFrames": 112,
    "keepWhole": false
   }
  },
@@ -8789,7 +8789,7 @@
   "defaults": {
    "blur": 16,
    "rise": 0,
-   "durationInFrames": 114.0,
+   "durationInFrames": 114,
    "keepWhole": false
   }
  },
@@ -8839,7 +8839,7 @@
   "hostDefaults": null,
   "defaults": {
    "blur": 16,
-   "durationInFrames": 114.0,
+   "durationInFrames": 114,
    "keepWhole": false
   }
  },
@@ -8893,7 +8893,7 @@
    "shakeAmount": 50,
    "shakeTranslatePx": 73,
    "colorSplit": true,
-   "durationInFrames": 112.0,
+   "durationInFrames": 112,
    "keepWhole": false
   }
  },
@@ -8953,7 +8953,7 @@
    ],
    "speed": 1,
    "noise": 0.5,
-   "durationInFrames": 116.0,
+   "durationInFrames": 116,
    "keepWhole": false
   }
  },
@@ -9013,7 +9013,7 @@
    ],
    "speed": 1,
    "zoom": 1.16,
-   "durationInFrames": 116.0,
+   "durationInFrames": 116,
    "keepWhole": false
   }
  },
@@ -9068,7 +9068,7 @@
     "#8f88ae"
    ],
    "speed": 1,
-   "durationInFrames": 116.0,
+   "durationInFrames": 116,
    "keepWhole": false
   }
  },
@@ -9121,7 +9121,7 @@
    "slices": 24,
    "rgbSplit": 1,
    "blockNoise": 0.6,
-   "durationInFrames": 78.0,
+   "durationInFrames": 78,
    "keepWhole": false
   }
  },
@@ -9172,7 +9172,7 @@
   "defaults": {
    "angle": -7,
    "poses": 8,
-   "durationInFrames": 128.0,
+   "durationInFrames": 128,
    "keepWhole": false
   }
  },
@@ -9231,7 +9231,7 @@
     "#8f88ae"
    ],
    "speed": 1,
-   "durationInFrames": 116.0,
+   "durationInFrames": 116,
    "keepWhole": false
   }
  },
@@ -9284,7 +9284,7 @@
    "colorBack": "#141318",
    "colorFront": "#8f88ae",
    "speed": 1.5,
-   "durationInFrames": 100.0,
+   "durationInFrames": 100,
    "keepWhole": false
   }
  },
@@ -9342,7 +9342,7 @@
     "#8f88ae"
    ],
    "speed": 1,
-   "durationInFrames": 116.0,
+   "durationInFrames": 116,
    "keepWhole": false
   }
  },
@@ -9397,7 +9397,7 @@
    "aberration": 0.5,
    "direction": "reveal",
    "stagger": 0.55,
-   "durationInFrames": 84.0,
+   "durationInFrames": 84,
    "keepWhole": false
   }
  },
@@ -9451,7 +9451,7 @@
    "order": "from-left",
    "shape": "square",
    "stagger": 0.82,
-   "durationInFrames": 26.0,
+   "durationInFrames": 26,
    "keepWhole": false
   }
  },
@@ -9504,7 +9504,7 @@
    "panelWidth": 0.14,
    "direction": "from-left",
    "frostColor": "rgba(255,255,255,0.12)",
-   "durationInFrames": 24.0,
+   "durationInFrames": 24,
    "keepWhole": false
   }
  },
@@ -9556,7 +9556,7 @@
    "intensity": 12,
    "axis": "horizontal",
    "slide": 1,
-   "durationInFrames": 14.0,
+   "durationInFrames": 14,
    "keepWhole": false
   }
  },
@@ -9610,7 +9610,7 @@
    "stagger": 0.45,
    "alternate": false,
    "edgeSoftness": 0.06,
-   "durationInFrames": 24.0,
+   "durationInFrames": 24,
    "keepWhole": false
   }
  },
@@ -9664,7 +9664,7 @@
    "originX": 0.5,
    "originY": 0.5,
    "warp": 0,
-   "durationInFrames": 24.0,
+   "durationInFrames": 24,
    "keepWhole": false
   }
  },

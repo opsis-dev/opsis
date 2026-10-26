@@ -135,7 +135,7 @@ fn reduction_from_taps(pre: &StemLevels, post: &StemLevels, makeup: f64) -> Vec<
 }
 
 fn frames_of(plan: &MixPlan) -> usize {
-    plan.duration_in_frames.max(0.0) as usize
+    usize::try_from(plan.duration_in_frames).expect("a frame count fits in memory")
 }
 
 fn shape(plan: &MixPlan) -> Plan {
@@ -200,7 +200,7 @@ async fn render_stem(deps: &MixDeps<'_>, plan: &MixPlan, stem: StemJob) -> Resul
         post: post.to_string_lossy().into_owned(),
     });
     let frames = frames_of(plan);
-    let limit = plan.duration_in_frames / plan.fps + 1.0;
+    let limit = f64::from(plan.duration_in_frames) / f64::from(plan.fps) + 1.0;
     let meta = write_via_temp(&file, |temp| async move {
         let args = job_args(
             &stem.job,
@@ -213,11 +213,11 @@ async fn render_stem(deps: &MixDeps<'_>, plan: &MixPlan, stem: StemJob) -> Resul
             .run(&args, deps.options())
             .await
             .map_err(tool_error)?;
-        let levels = levels_of(&temp, plan.fps, frames).await?;
+        let levels = levels_of(&temp, f64::from(plan.fps), frames).await?;
         let reduction = match &taps {
             Some((pre, post)) => {
-                let pre = levels_of(pre, plan.fps, frames).await?;
-                let post = levels_of(post, plan.fps, frames).await?;
+                let pre = levels_of(pre, f64::from(plan.fps), frames).await?;
+                let post = levels_of(post, f64::from(plan.fps), frames).await?;
                 Some(reduction_from_taps(&pre, &post, stem.makeup))
             }
             None => None,
@@ -442,7 +442,7 @@ async fn loudness_of(
     if let Some(cached) = read_json::<Loudness>(&file)? {
         return Ok(cached);
     }
-    let (stem, fps, frames) = (master.file.clone(), plan.fps, frames_of(plan));
+    let (stem, fps, frames) = (master.file.clone(), f64::from(plan.fps), frames_of(plan));
     let loudness = measured(move || wav_loudness(&stem, fps, frames)).await?;
     atomic_write(
         &file,
@@ -516,7 +516,9 @@ pub async fn render_mix(plan: &MixPlan, deps: &MixDeps<'_>) -> Result<MixResult,
         .file
         .strip_prefix(deps.project_dir)
         .map(|p| p.to_string_lossy().replace('\\', "/"))
-        .unwrap_or_default();
+        .map_err(|_| {
+            std::io::Error::other(format!("{} is outside the project", master.file.display()))
+        })?;
     Ok(MixResult {
         key: plan.key.clone(),
         master: Some(MasterStem {

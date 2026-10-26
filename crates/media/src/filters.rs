@@ -51,8 +51,8 @@ pub struct JoinPart {
 
 #[derive(Debug, Clone, Copy, PartialEq, serde::Deserialize)]
 pub struct JoinSize {
-    pub width: f64,
-    pub height: f64,
+    pub width: u32,
+    pub height: u32,
     pub fps: f64,
 }
 
@@ -65,7 +65,10 @@ pub struct Join {
 
 pub fn join_filter(parts: &[JoinPart], to: JoinSize) -> Join {
     let rate = (round_to(to.fps, 3)).to_string();
-    let (width, height) = (even_down(to.width), even_down(to.height));
+    let (width, height) = (
+        even_down(f64::from(to.width)),
+        even_down(f64::from(to.height)),
+    );
     let video = parts.iter().any(|p| p.video);
     let audio = parts.iter().any(|p| p.audio);
     let mut chains = Vec::new();

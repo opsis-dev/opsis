@@ -4832,7 +4832,7 @@
      "viewportWidth": {
       "description": "Window width",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 320,
       "maximum": 3840,
       "default": 1920,
@@ -4866,7 +4866,7 @@
      "viewportHeight": {
       "description": "Window height",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 240,
       "maximum": 2160,
       "default": 1080,
@@ -5017,7 +5017,7 @@
      "timeoutSec": {
       "description": "Give up after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 10,
       "maximum": 3600,
       "default": 300,
@@ -5104,7 +5104,7 @@
      "after": {
       "description": "Pause after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 700,
@@ -5163,7 +5163,7 @@
      "after": {
       "description": "Pause after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 600,
@@ -5213,7 +5213,7 @@
      "travelMs": {
       "description": "Cursor travel time",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 0,
@@ -5225,7 +5225,7 @@
      "hoverMs": {
       "description": "Hover before clicking",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 220,
@@ -5295,7 +5295,7 @@
      "chunkPauseMs": {
       "description": "Pause length",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 0,
@@ -5310,7 +5310,7 @@
      "after": {
       "description": "Pause after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 600,
@@ -5396,7 +5396,7 @@
      "after": {
       "description": "Pause after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 600,
@@ -5446,7 +5446,7 @@
      "travelMs": {
       "description": "Cursor travel time",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 0,
@@ -5458,7 +5458,7 @@
      "hoverMs": {
       "description": "Hover for",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 600,
@@ -5550,7 +5550,7 @@
      "dx": {
       "description": "Across",
       "type": "integer",
-      "format": "int64",
+      "format": "int32",
       "minimum": -10000,
       "maximum": 10000,
       "default": 300,
@@ -5565,7 +5565,7 @@
      "dy": {
       "description": "Down",
       "type": "integer",
-      "format": "int64",
+      "format": "int32",
       "minimum": -10000,
       "maximum": 10000,
       "default": 0,
@@ -5618,7 +5618,7 @@
      "holdMs": {
       "description": "Hold before moving",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 5000,
       "default": 150,
@@ -5633,7 +5633,7 @@
      "dragMs": {
       "description": "Drag time",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 0,
@@ -5663,7 +5663,7 @@
      "after": {
       "description": "Pause after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 600,
@@ -5713,7 +5713,7 @@
      "travelMs": {
       "description": "Cursor travel time",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 0,
@@ -5725,7 +5725,7 @@
      "hoverMs": {
       "description": "Hover before picking it up",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 220,
@@ -5796,7 +5796,7 @@
      "deltaY": {
       "description": "Distance",
       "type": "integer",
-      "format": "int64",
+      "format": "int32",
       "minimum": -20000,
       "maximum": 20000,
       "default": 600,
@@ -5817,7 +5817,7 @@
      "durationMs": {
       "description": "Scroll time",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 900,
@@ -5827,7 +5827,7 @@
      "after": {
       "description": "Pause after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 600,
@@ -5895,7 +5895,7 @@
      "after": {
       "description": "Pause after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 600,
@@ -5982,7 +5982,7 @@
      "after": {
       "description": "Pause after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 600,
@@ -6040,7 +6040,7 @@
      "after": {
       "description": "Pause after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 600,
@@ -6127,7 +6127,7 @@
      "ms": {
       "description": "Time",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 1000,
@@ -6142,7 +6142,7 @@
      "timeoutMs": {
       "description": "Give up after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 500,
       "maximum": 600000,
       "default": 20000,
@@ -6211,7 +6211,7 @@
      "timeoutMs": {
       "description": "Give up after",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 500,
       "maximum": 600000,
       "default": 10000,
@@ -6348,7 +6348,7 @@
      "status": {
       "description": "Status code",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 599,
       "default": 200
@@ -6511,7 +6511,7 @@
      "durationMs": {
       "description": "Card shown for",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 2000,
@@ -6561,7 +6561,7 @@
      "durationMs": {
       "description": "Shown for",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 2000,
@@ -6602,7 +6602,8 @@
      "fps": {
       "description": "Frame rate",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
+      "minimum": 0,
       "default": 30,
       "enum": [
        25,
@@ -6614,7 +6615,7 @@
      "quality": {
       "description": "Recording quality",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 10,
       "maximum": 100,
       "default": 90,
@@ -6625,7 +6626,7 @@
      "establishMs": {
       "description": "Pause before the first action",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 700,
@@ -6635,7 +6636,7 @@
      "endTailMs": {
       "description": "Keep recording after the last action",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 2500,
@@ -6742,7 +6743,7 @@
      "padding": {
       "description": "Space around",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 400,
       "default": 24,
@@ -6777,7 +6778,7 @@
      "durationMs": {
       "description": "Length",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 600000,
       "default": 3000,
@@ -6987,7 +6988,7 @@
      "hold": {
       "description": "Hold each zoom at least",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 1300,
@@ -7159,7 +7160,7 @@
      "atMs": {
       "description": "At",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 1000,
@@ -7169,7 +7170,7 @@
      "holdMs": {
       "description": "Hold",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 600000,
       "default": 1500,
@@ -7240,7 +7241,7 @@
      "atMs": {
       "description": "Start at",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 1000,
@@ -7250,7 +7251,7 @@
      "durationMs": {
       "description": "Pan for",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 600000,
       "default": 1500,
@@ -7353,7 +7354,7 @@
      "everyMs": {
       "description": "Re-aim every",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 200,
       "maximum": 5000,
       "default": 700,
@@ -7392,7 +7393,7 @@
      "thresholdMs": {
       "description": "Quiet for longer than",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 20000,
       "default": 1500,
@@ -7402,7 +7403,7 @@
      "padMs": {
       "description": "Keep around each action",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 5000,
       "default": 400,
@@ -7457,9 +7458,8 @@
         "fromMs": {
          "description": "From",
          "type": "integer",
-         "format": "int64",
+         "format": "uint32",
          "minimum": 0,
-         "maximum": 9007199254740991,
          "default": 0,
          "x-step": 50,
          "x-unit": "ms"
@@ -7467,9 +7467,8 @@
         "toMs": {
          "description": "To",
          "type": "integer",
-         "format": "int64",
+         "format": "uint32",
          "minimum": 0,
-         "maximum": 9007199254740991,
          "default": 1000,
          "x-step": 50,
          "x-unit": "ms"
@@ -8117,7 +8116,7 @@
      "padding": {
       "description": "Space around",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 80,
       "default": 10,
@@ -8126,7 +8125,7 @@
      "leadMs": {
       "description": "Appear early by",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 5000,
       "default": 250,
@@ -8136,7 +8135,7 @@
      "holdMs": {
       "description": "Stay for",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 1400,
@@ -8238,7 +8237,7 @@
      "padding": {
       "description": "Space around",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 80,
       "default": 10,
@@ -8247,7 +8246,7 @@
      "leadMs": {
       "description": "Appear early by",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 5000,
       "default": 250,
@@ -8257,7 +8256,7 @@
      "holdMs": {
       "description": "Stay for",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 1400,
@@ -8362,7 +8361,7 @@
      "padding": {
       "description": "Space around",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 80,
       "default": 10,
@@ -8371,7 +8370,7 @@
      "leadMs": {
       "description": "Appear early by",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 5000,
       "default": 250,
@@ -8381,7 +8380,7 @@
      "holdMs": {
       "description": "Stay for",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 1400,
@@ -8402,7 +8401,7 @@
      "fontSize": {
       "description": "Font size",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 8,
       "maximum": 160,
       "default": 18,
@@ -8513,7 +8512,7 @@
      "padding": {
       "description": "Space around",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 80,
       "default": 10,
@@ -8522,7 +8521,7 @@
      "leadMs": {
       "description": "Appear early by",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 5000,
       "default": 250,
@@ -8532,7 +8531,7 @@
      "holdMs": {
       "description": "Stay for",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 10000,
       "default": 1400,
@@ -8542,7 +8541,7 @@
      "fontSize": {
       "description": "Font size",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 8,
       "maximum": 160,
       "default": 30,
@@ -8630,7 +8629,7 @@
      "wordsPerMinute": {
       "description": "Speaking pace",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 60,
       "maximum": 400,
       "default": 165,
@@ -8639,7 +8638,7 @@
      "startMs": {
       "description": "Start at",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 0,
@@ -8649,7 +8648,7 @@
      "linePauseMs": {
       "description": "Pause between sentences",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 5000,
       "default": 350,
@@ -8887,7 +8886,7 @@
        "integer",
        "null"
       ],
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 3600000,
       "x-unit": "ms",
@@ -8899,7 +8898,7 @@
        "integer",
        "null"
       ],
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 3600000,
       "x-unit": "ms",
@@ -9639,7 +9638,7 @@
      "levelsSmoothing": {
       "description": "Levels smoothing",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 300,
       "default": 24,
@@ -9800,8 +9799,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 75.0,
+      "maximum": 108000,
+      "default": 75,
       "x-unit": "frames"
      },
      "envelope": {
@@ -10033,8 +10032,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 90.0,
+      "maximum": 108000,
+      "default": 90,
       "x-unit": "frames"
      },
      "envelope": {
@@ -10267,8 +10266,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 120.0,
+      "maximum": 108000,
+      "default": 120,
       "x-unit": "frames"
      },
      "envelope": {
@@ -10505,8 +10504,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 75.0,
+      "maximum": 108000,
+      "default": 75,
       "x-unit": "frames"
      },
      "envelope": {
@@ -10711,8 +10710,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 90.0,
+      "maximum": 108000,
+      "default": 90,
       "x-unit": "frames"
      },
      "envelope": {
@@ -10968,8 +10967,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Match the clip"
      },
@@ -11192,8 +11191,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 90.0,
+      "maximum": 108000,
+      "default": 90,
       "x-unit": "frames"
      },
      "envelope": {
@@ -11426,8 +11425,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 150.0,
+      "maximum": 108000,
+      "default": 150,
       "x-unit": "frames"
      },
      "envelope": {
@@ -11614,8 +11613,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 90.0,
+      "maximum": 108000,
+      "default": 90,
       "x-unit": "frames"
      },
      "envelope": {
@@ -11829,8 +11828,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 90.0,
+      "maximum": 108000,
+      "default": 90,
       "x-unit": "frames"
      },
      "envelope": {
@@ -12044,8 +12043,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 150.0,
+      "maximum": 108000,
+      "default": 150,
       "x-unit": "frames"
      },
      "envelope": {
@@ -12260,8 +12259,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 150.0,
+      "maximum": 108000,
+      "default": 150,
       "x-unit": "frames"
      },
      "envelope": {
@@ -12457,8 +12456,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 150.0,
+      "maximum": 108000,
+      "default": 150,
       "x-unit": "frames"
      },
      "envelope": {
@@ -12659,8 +12658,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 150.0,
+      "maximum": 108000,
+      "default": 150,
       "x-unit": "frames"
      },
      "envelope": {
@@ -12854,8 +12853,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 150.0,
+      "maximum": 108000,
+      "default": 150,
       "x-unit": "frames"
      },
      "envelope": {
@@ -13051,8 +13050,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 45.0,
+      "maximum": 108000,
+      "default": 45,
       "x-unit": "frames"
      },
      "envelope": {
@@ -13388,8 +13387,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 150.0,
+      "maximum": 108000,
+      "default": 150,
       "x-unit": "frames"
      },
      "envelope": {
@@ -13728,8 +13727,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 120.0,
+      "maximum": 108000,
+      "default": 120,
       "x-unit": "frames"
      },
      "envelope": {
@@ -14115,8 +14114,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 120.0,
+      "maximum": 108000,
+      "default": 120,
       "x-unit": "frames"
      },
      "envelope": {
@@ -14458,8 +14457,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 150.0,
+      "maximum": 108000,
+      "default": 150,
       "x-unit": "frames"
      },
      "envelope": {
@@ -14791,8 +14790,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Match the clip"
      },
@@ -15108,8 +15107,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 150.0,
+      "maximum": 108000,
+      "default": 150,
       "x-unit": "frames"
      },
      "envelope": {
@@ -15353,8 +15352,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -15613,8 +15612,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -15859,8 +15858,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -16113,8 +16112,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -16355,8 +16354,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -16610,8 +16609,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -16855,8 +16854,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -17101,8 +17100,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -17354,8 +17353,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -17607,8 +17606,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -17912,8 +17911,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -18224,8 +18223,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -18475,8 +18474,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -18721,8 +18720,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -18986,8 +18985,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -19242,8 +19241,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -19512,8 +19511,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -19800,8 +19799,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -20109,8 +20108,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -20409,8 +20408,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -20677,8 +20676,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -20952,8 +20951,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -21174,8 +21173,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -21412,8 +21411,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -21650,8 +21649,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -21888,8 +21887,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -22136,8 +22135,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -22357,8 +22356,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -22603,8 +22602,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -22821,8 +22820,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Match the clip"
      },
@@ -23039,8 +23038,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Match the clip"
      },
@@ -23258,8 +23257,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Match the clip"
      },
@@ -23484,8 +23483,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Match the clip"
      },
@@ -23729,8 +23728,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Match the clip"
      },
@@ -23948,8 +23947,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Match the clip"
      },
@@ -24224,8 +24223,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -24520,7 +24519,7 @@
      "gapFrames": {
       "description": "Pause between scenes",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 120,
       "default": 1,
@@ -24874,8 +24873,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -25125,8 +25124,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -25404,8 +25403,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -25681,8 +25680,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -26021,8 +26020,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -26315,8 +26314,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -26651,8 +26650,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -26960,8 +26959,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -27216,8 +27215,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -27446,8 +27445,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -27735,8 +27734,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -28017,8 +28016,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -28404,8 +28403,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -28690,8 +28689,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -29171,8 +29170,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -29550,8 +29549,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -29914,8 +29913,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -30331,8 +30330,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -30648,8 +30647,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -31146,8 +31145,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -31628,8 +31627,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -32094,8 +32093,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -32437,8 +32436,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -33004,8 +33003,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -33282,8 +33281,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -33577,8 +33576,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 123.0,
+      "maximum": 108000,
+      "default": 123,
       "x-unit": "frames"
      },
      "envelope": {
@@ -33893,8 +33892,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -34227,8 +34226,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -34565,8 +34564,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -34916,8 +34915,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -35308,8 +35307,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -35596,8 +35595,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -36044,8 +36043,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 420.0,
+      "maximum": 108000,
+      "default": 420,
       "x-unit": "frames"
      },
      "envelope": {
@@ -36304,8 +36303,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 120.0,
+      "maximum": 108000,
+      "default": 120,
       "x-unit": "frames"
      },
      "envelope": {
@@ -36619,8 +36618,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -36960,8 +36959,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -37276,8 +37275,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -37612,8 +37611,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -37886,8 +37885,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -38146,8 +38145,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -38392,8 +38391,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -38719,8 +38718,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -38972,8 +38971,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -39248,8 +39247,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 150.0,
+      "maximum": 108000,
+      "default": 150,
       "x-unit": "frames"
      },
      "envelope": {
@@ -39576,8 +39575,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -39892,8 +39891,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -40143,8 +40142,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Match the clip",
       "x-unconnected-zero-label": "Usual length"
@@ -40392,8 +40391,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Match the clip"
      },
@@ -40662,8 +40661,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -40958,8 +40957,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -41235,8 +41234,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 0,
-      "maximum": 108000.0,
-      "default": 0.0,
+      "maximum": 108000,
+      "default": 0,
       "x-unit": "frames",
       "x-zero-label": "Fit the animation"
      },
@@ -41518,8 +41517,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 120.0,
+      "maximum": 108000,
+      "default": 120,
       "x-unit": "frames"
      },
      "envelope": {
@@ -41784,8 +41783,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 120.0,
+      "maximum": 108000,
+      "default": 120,
       "x-unit": "frames"
      },
      "envelope": {
@@ -41976,8 +41975,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 15.0,
+      "maximum": 108000,
+      "default": 15,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42036,8 +42035,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 20.0,
+      "maximum": 108000,
+      "default": 20,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42101,8 +42100,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 20.0,
+      "maximum": 108000,
+      "default": 20,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42162,8 +42161,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 24.0,
+      "maximum": 108000,
+      "default": 24,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42213,8 +42212,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 24.0,
+      "maximum": 108000,
+      "default": 24,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42263,8 +42262,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 24.0,
+      "maximum": 108000,
+      "default": 24,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42331,8 +42330,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 114.0,
+      "maximum": 108000,
+      "default": 114,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42396,8 +42395,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 112.0,
+      "maximum": 108000,
+      "default": 112,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42461,8 +42460,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 114.0,
+      "maximum": 108000,
+      "default": 114,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42518,8 +42517,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 114.0,
+      "maximum": 108000,
+      "default": 114,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42606,8 +42605,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 112.0,
+      "maximum": 108000,
+      "default": 112,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42725,8 +42724,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 116.0,
+      "maximum": 108000,
+      "default": 116,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42843,8 +42842,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 116.0,
+      "maximum": 108000,
+      "default": 116,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -42935,8 +42934,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 116.0,
+      "maximum": 108000,
+      "default": 116,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43016,8 +43015,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 78.0,
+      "maximum": 108000,
+      "default": 78,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43081,8 +43080,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 128.0,
+      "maximum": 108000,
+      "default": 128,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43196,8 +43195,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 116.0,
+      "maximum": 108000,
+      "default": 116,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43286,8 +43285,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 100.0,
+      "maximum": 108000,
+      "default": 100,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43387,8 +43386,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 116.0,
+      "maximum": 108000,
+      "default": 116,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43488,8 +43487,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 84.0,
+      "maximum": 108000,
+      "default": 84,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43587,8 +43586,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 26.0,
+      "maximum": 108000,
+      "default": 26,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43672,8 +43671,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 24.0,
+      "maximum": 108000,
+      "default": 24,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43743,8 +43742,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 14.0,
+      "maximum": 108000,
+      "default": 14,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43830,8 +43829,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 24.0,
+      "maximum": 108000,
+      "default": 24,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43940,8 +43939,8 @@
       "description": "Length",
       "type": "integer",
       "minimum": 1,
-      "maximum": 108000.0,
-      "default": 24.0,
+      "maximum": 108000,
+      "default": 24,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -43988,7 +43987,7 @@
      "durationInFrames": {
       "description": "Length",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 108000,
       "default": 30,
@@ -43998,7 +43997,7 @@
      "seed": {
       "description": "Variation",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 100,
       "default": 3
@@ -44065,7 +44064,7 @@
      "startMs": {
       "description": "Starts at",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 0,
@@ -44075,7 +44074,7 @@
      "trimMs": {
       "description": "Start the song from",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 0,
@@ -44086,7 +44085,7 @@
      "lengthMs": {
       "description": "Play for",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 3600000,
       "default": 0,
@@ -44098,7 +44097,7 @@
      "fadeInMs": {
       "description": "Fade in",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 20000,
       "default": 800,
@@ -44108,7 +44107,7 @@
      "fadeOutMs": {
       "description": "Fade out",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 20000,
       "default": 1500,
@@ -44251,7 +44250,7 @@
      "atMs": {
       "description": "At",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 0,
@@ -44266,7 +44265,7 @@
      "offsetMs": {
       "description": "From the action",
       "type": "integer",
-      "format": "int64",
+      "format": "int32",
       "minimum": -10000,
       "maximum": 10000,
       "default": 0,
@@ -44503,7 +44502,7 @@
      "transitionDuration": {
       "description": "Transition length",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 108000,
       "default": 15,
@@ -44607,7 +44606,7 @@
         "transitionDuration": {
          "description": "Length",
          "type": "integer",
-         "format": "int64",
+         "format": "uint32",
          "minimum": 1,
          "maximum": 108000,
          "default": 15,
@@ -44772,7 +44771,7 @@
      "startMs": {
       "description": "Start",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 0,
@@ -44782,7 +44781,7 @@
      "durationMs": {
       "description": "Keep",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 0,
@@ -44822,9 +44821,9 @@
      "times": {
       "description": "Times",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 1,
-      "maximum": 100.0,
+      "maximum": 100,
       "default": 2,
       "x-unit": "×"
      }
@@ -44860,7 +44859,7 @@
      "ms": {
       "description": "Delay",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 500,
@@ -44944,7 +44943,7 @@
      "targetMs": {
       "description": "Length",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 10000,
@@ -45066,7 +45065,7 @@
      "stillMs": {
       "description": "Length",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 3600000,
       "default": 3000,
@@ -45456,7 +45455,7 @@
      "startMs": {
       "description": "Start",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 36000000,
       "default": 0,
@@ -45466,7 +45465,7 @@
      "endMs": {
       "description": "End",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 36000000,
       "default": 0,
@@ -45630,7 +45629,7 @@
      "width": {
       "description": "Width",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 16,
       "maximum": 7680,
       "default": 1920,
@@ -45641,7 +45640,7 @@
      "height": {
       "description": "Height",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 16,
       "maximum": 7680,
       "default": 1080,
@@ -45729,7 +45728,7 @@
      "crf": {
       "description": "Quality",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 51,
       "default": 18,
@@ -45823,7 +45822,7 @@
      "crf": {
       "description": "Quality",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 51,
       "default": 18,
@@ -45894,7 +45893,7 @@
      "fps": {
       "description": "Frame rate",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 5,
       "maximum": 50,
       "default": 15,
@@ -45903,7 +45902,7 @@
      "width": {
       "description": "Width",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 64,
       "maximum": 3840,
       "default": 960,
@@ -46066,7 +46065,7 @@
      "atMs": {
       "description": "At",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 1000,
@@ -46076,7 +46075,7 @@
      "width": {
       "description": "Width",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 64,
       "maximum": 3840,
       "default": 1280,
@@ -46174,7 +46173,7 @@
      "width": {
       "description": "Width",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 16384,
       "default": 1920,
@@ -46184,7 +46183,7 @@
      "height": {
       "description": "Height",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 16384,
       "default": 0,
@@ -46324,7 +46323,7 @@
      "top": {
       "description": "Top",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 16384,
       "default": 0,
@@ -46338,7 +46337,7 @@
      "right": {
       "description": "Right",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 16384,
       "default": 0,
@@ -46352,7 +46351,7 @@
      "bottom": {
       "description": "Bottom",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 16384,
       "default": 0,
@@ -46366,7 +46365,7 @@
      "left": {
       "description": "Left",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 16384,
       "default": 0,
@@ -46583,7 +46582,7 @@
      "threshold": {
       "description": "Sharpen threshold",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 255,
       "default": 4,
@@ -46715,7 +46714,7 @@
      "quality": {
       "description": "Quality",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 100,
       "default": 85,
@@ -46730,7 +46729,7 @@
      "speed": {
       "description": "Speed",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 10,
       "default": 6,
@@ -46816,7 +46815,7 @@
      "crf": {
       "description": "Quality",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 51,
       "default": 18,
@@ -46962,7 +46961,7 @@
      "atMs": {
       "description": "Frame at",
       "type": "integer",
-      "format": "int64",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 600000,
       "default": 1000,

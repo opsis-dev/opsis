@@ -55,7 +55,7 @@ pub struct ElementMeta {
     pub schema: ParamSchema,
     pub default_props: Values,
     pub fixed_props: Values,
-    pub default_duration_in_frames: f64,
+    pub default_duration_in_frames: u32,
     pub design: Option<Design>,
     pub optional_clip: bool,
     pub thumbnail: Option<String>,
@@ -74,7 +74,7 @@ struct ElementEntry {
     schema: Value,
     default_props: Values,
     fixed_props: Values,
-    default_duration_in_frames: f64,
+    default_duration_in_frames: u32,
     #[serde(default)]
     design: Option<Design>,
     #[serde(default)]

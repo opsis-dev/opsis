@@ -17,6 +17,7 @@ use crate::clip::{
     wrap_clip,
 };
 use crate::color::is_color;
+use crate::errors::SettingsError;
 use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, InputTake, NodeDef, Phase, Platform, RECORDING_PORT, RowExt,
     STYLE_PORT, missing, opt, outputs, port, row, with_clip,
@@ -71,7 +72,7 @@ pub struct AutoZoom {
     pub max_scale: f64,
     #[default = 1300]
     #[schemars(description = "Hold each zoom at least", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub hold: i64,
+    pub hold: u32,
     #[default = 1.25]
     #[schemars(description = "Playback speed", range(min = 0.25, max = 4), extend("x-step" = 0.05, "x-unit" = "×"))]
     pub speed: f64,
@@ -108,10 +109,10 @@ impl Params for AutoZoom {}
 pub struct ManualZoom {
     #[default = 1000]
     #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub at_ms: i64,
+    pub at_ms: u32,
     #[default = 1500]
     #[schemars(description = "Hold", range(min = 100, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub hold_ms: i64,
+    pub hold_ms: u32,
     #[default = 0.5]
     #[schemars(
         description = "Spot",
@@ -134,10 +135,10 @@ impl Params for ManualZoom {}
 pub struct Pan {
     #[default = 1000]
     #[schemars(description = "Start at", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub at_ms: i64,
+    pub at_ms: u32,
     #[default = 1500]
     #[schemars(description = "Pan for", range(min = 100, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub duration_ms: i64,
+    pub duration_ms: u32,
     #[default = 0.3]
     #[schemars(
         description = "From",
@@ -173,7 +174,7 @@ pub struct FollowCursor {
     pub scale: f64,
     #[default = 700]
     #[schemars(description = "Re-aim every", range(min = 200, max = 5000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub every_ms: i64,
+    pub every_ms: u32,
 }
 
 impl Params for FollowCursor {}
@@ -183,10 +184,10 @@ impl Params for FollowCursor {}
 pub struct IdleSpeedup {
     #[default = 1500]
     #[schemars(description = "Quiet for longer than", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub threshold_ms: i64,
+    pub threshold_ms: u32,
     #[default = 400]
     #[schemars(description = "Keep around each action", range(min = 0, max = 5000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub pad_ms: i64,
+    pub pad_ms: u32,
     #[default = 4.0]
     #[schemars(description = "Speed while quiet", range(min = 1.5, max = 64), extend("x-step" = 0.5, "x-unit" = "×"))]
     pub rate: f64,
@@ -197,11 +198,11 @@ impl Params for IdleSpeedup {}
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SpeedSegment {
-    #[schemars(description = "From", range(min = 0, max = 9007199254740991_i64), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub from_ms: i64,
+    #[schemars(description = "From", extend("x-step" = 50, "x-unit" = "ms"))]
+    pub from_ms: u32,
     #[default = 1000]
-    #[schemars(description = "To", range(min = 0, max = 9007199254740991_i64), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub to_ms: i64,
+    #[schemars(description = "To", extend("x-step" = 50, "x-unit" = "ms"))]
+    pub to_ms: u32,
     #[default = 2.0]
     #[schemars(description = "Speed", range(min = 0.1, max = 64), extend("x-step" = 0.1, "x-unit" = "×"))]
     pub rate: f64,
@@ -235,12 +236,12 @@ pub struct Crop {
 }
 
 impl Params for Crop {
-    fn check(&self) -> Result<(), String> {
+    fn check(&self) -> Result<(), SettingsError> {
         if self.x + self.w > 1.0 + EPSILON {
-            return Err("The area runs past the right edge".to_owned());
+            return Err(SettingsError::rule("The area runs past the right edge"));
         }
         if self.y + self.h > 1.0 + EPSILON {
-            return Err("The area runs past the bottom edge".to_owned());
+            return Err(SettingsError::rule("The area runs past the bottom edge"));
         }
         Ok(())
     }
@@ -342,14 +343,16 @@ pub struct BackdropStyle {
 }
 
 impl Params for BackdropStyle {
-    fn check(&self) -> Result<(), String> {
+    fn check(&self) -> Result<(), SettingsError> {
         match self.kind {
-            BackdropKind::Solid if !is_color(&self.color) => Err("Pick a colour".to_owned()),
+            BackdropKind::Solid if !is_color(&self.color) => {
+                Err(SettingsError::rule("Pick a colour"))
+            }
             BackdropKind::Gradient if self.gradient.trim().is_empty() => {
-                Err("Pick a gradient".to_owned())
+                Err(SettingsError::rule("Pick a gradient"))
             }
             BackdropKind::Asset if self.asset.trim().is_empty() => {
-                Err("Choose an image".to_owned())
+                Err(SettingsError::rule("Choose an image"))
             }
             _ => Ok(()),
         }
@@ -430,9 +433,9 @@ fn frame_theme_name(theme: FrameTheme) -> &'static str {
     }
 }
 
-fn take_row(take: Option<InputTake>, at_ms: i64) -> Option<CardRow> {
+fn take_row(take: Option<InputTake>, at_ms: u32) -> Option<CardRow> {
     let take = take?;
-    (at_ms as f64 >= take.duration_ms).then(|| {
+    (f64::from(at_ms) >= take.duration_ms).then(|| {
         row(
             Icon::TriangleAlert,
             format!(
@@ -462,8 +465,8 @@ fn focus_beats(
     let vp = props.log.viewport;
     for spot in spots {
         let point = Point {
-            x: spot.x * vp.width,
-            y: spot.y * vp.height,
+            x: spot.x * f64::from(vp.width),
+            y: spot.y * f64::from(vp.height),
         };
         let mut beat = Action::new(format!("{node_id}:{}", spot.id), ActionKind::Focus, spot.t);
         beat.t_depart = spot.t_depart;
@@ -477,7 +480,7 @@ fn focus_beats(
     props
 }
 
-fn remap_clip(clip: ClipValue, node_id: &str, fps: f64, segments: &[(f64, f64, f64)]) -> ClipValue {
+fn remap_clip(clip: ClipValue, node_id: &str, fps: u32, segments: &[(f64, f64, f64)]) -> ClipValue {
     let to_frames = |recording_ms: f64| {
         clip_frame_of_recording(&clip.tracks, &|rec| {
             recording_ms_to_frames(recording_ms, recording_speed(rec), fps)
@@ -492,8 +495,8 @@ fn remap_clip(clip: ClipValue, node_id: &str, fps: f64, segments: &[(f64, f64, f
             rate: *rate,
         })
         .collect();
-    let remap = remap_from_segments(clip.duration_in_frames, &parts);
-    let duration = whole_frames(remap_duration(&remap), 1.0);
+    let remap = remap_from_segments(f64::from(clip.duration_in_frames), &parts);
+    let duration = whole_frames(remap_duration(&remap), 1);
     wrap_clip(
         &clip,
         node_id,
@@ -537,7 +540,7 @@ fn auto_zoom() -> NodeDef {
                 } else {
                     row(Icon::ZoomOut, "No zoom").tone(Tone::Muted)
                 }),
-                p.zoom.then(|| row(Icon::Hourglass, format!("Hold {}", format_duration(p.hold as f64)))),
+                p.zoom.then(|| row(Icon::Hourglass, format!("Hold {}", format_duration(f64::from(p.hold))))),
                 (p.style == CameraStyle::Classic).then(|| row(Icon::Image, format!("{} backdrop", humanize(p.backdrop.id())))),
                 (p.speed != 1.0).then(|| row(Icon::Gauge, format!("{}× speed", p.speed))),
             ]
@@ -563,7 +566,7 @@ fn auto_zoom() -> NodeDef {
             own.proxy_src = rec.proxy_src.clone().filter(|s| !s.is_empty());
             own.speed = p.speed;
             own.zoom = p.zoom;
-            own.tuning = CameraTuning { s_max: Some(p.max_scale), hold_min_s: Some(p.hold as f64 / 1000.0) };
+            own.tuning = CameraTuning { s_max: Some(p.max_scale), hold_min_s: Some(f64::from(p.hold) / 1000.0) };
             own.motion_blur = p.motion_blur;
             own.style = p.style;
             own = match p.frame.style() {
@@ -619,7 +622,7 @@ fn apply_style() -> NodeDef {
             }
         });
         if let Some(e) = failed.into_inner() {
-            return Err(e);
+            return Err(e.into());
         }
         Ok(Some(outputs([(
             CLIP_PORT,
@@ -636,11 +639,11 @@ fn manual_zoom() -> NodeDef {
             vec![
                 Some(row(
                     Icon::ZoomIn,
-                    format!("{}× at {}", p.scale, format_duration(p.at_ms as f64)),
+                    format!("{}× at {}", p.scale, format_duration(f64::from(p.at_ms))),
                 )),
                 Some(row(
                     Icon::Hourglass,
-                    format!("Hold {}", format_duration(p.hold_ms as f64)),
+                    format!("Hold {}", format_duration(f64::from(p.hold_ms))),
                 )),
                 take_row(
                     ctx.inputs.takes.get(RECORDING_PORT).copied().flatten(),
@@ -649,7 +652,7 @@ fn manual_zoom() -> NodeDef {
             ]
         })
         .restyle(|props: RecordingProps, p: &ManualZoom, node_id| {
-            let (at, hold) = (p.at_ms as f64, p.hold_ms as f64);
+            let (at, hold) = (f64::from(p.at_ms), f64::from(p.hold_ms));
             focus_beats(
                 props,
                 node_id,
@@ -685,7 +688,7 @@ fn pan() -> NodeDef {
                     Icon::Move,
                     format!(
                         "{} → {}",
-                        format_duration(p.at_ms as f64),
+                        format_duration(f64::from(p.at_ms)),
                         format_duration((p.at_ms + p.duration_ms) as f64)
                     ),
                 )),
@@ -697,7 +700,7 @@ fn pan() -> NodeDef {
             ]
         })
         .restyle(|props: RecordingProps, p: &Pan, node_id| {
-            let at = p.at_ms as f64;
+            let at = f64::from(p.at_ms);
             focus_beats(
                 props,
                 node_id,
@@ -713,7 +716,7 @@ fn pan() -> NodeDef {
                     },
                     FocusSpot {
                         id: "b",
-                        t: at + p.duration_ms as f64,
+                        t: at + f64::from(p.duration_ms),
                         x: p.to_x,
                         y: p.to_y,
                         t_depart: None,
@@ -733,12 +736,12 @@ fn follow_cursor() -> NodeDef {
                 format!(
                     "{}× · re-aim every {}",
                     p.scale,
-                    format_duration(p.every_ms as f64)
+                    format_duration(f64::from(p.every_ms))
                 ),
             ))]
         })
         .restyle(|mut props: RecordingProps, p: &FollowCursor, node_id| {
-            let beats = follow_cursor_beats(&props.log, p.scale, p.every_ms as f64, node_id);
+            let beats = follow_cursor_beats(&props.log, p.scale, f64::from(p.every_ms), node_id);
             props.extra_beats.extend(beats);
             props
         })
@@ -764,7 +767,7 @@ fn idle_speedup() -> NodeDef {
             format!(
                 "{}× when quiet over {}",
                 p.rate,
-                format_duration(p.threshold_ms as f64)
+                format_duration(f64::from(p.threshold_ms))
             ),
         ))]
     })
@@ -772,7 +775,7 @@ fn idle_speedup() -> NodeDef {
         let Some(log) = recording_log(&clip) else {
             return clip;
         };
-        let spans = idle_spans(log, p.threshold_ms as f64, p.pad_ms as f64);
+        let spans = idle_spans(log, f64::from(p.threshold_ms), f64::from(p.pad_ms));
         if spans.is_empty() {
             return clip;
         }
@@ -797,7 +800,7 @@ fn speed_ramp() -> NodeDef {
             let mut segments: Vec<(f64, f64, f64)> = p
                 .segments
                 .iter()
-                .map(|s| (s.from_ms as f64, s.to_ms as f64, s.rate))
+                .map(|s| (f64::from(s.from_ms), f64::from(s.to_ms), s.rate))
                 .collect();
             segments.sort_by(|a, b| a.0.total_cmp(&b.0));
             remap_clip(clip, at.node_id, at.fps, &segments)

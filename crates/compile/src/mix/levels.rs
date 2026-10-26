@@ -62,7 +62,7 @@ fn played_frames(a: &AudioItem) -> f64 {
     } else {
         a.length_frames
             .or(a.duration_in_frames)
-            .unwrap_or(f64::INFINITY)
+            .map_or(f64::INFINITY, f64::from)
     }
 }
 
@@ -100,7 +100,7 @@ pub fn channels_in(spec: &TimelineSpec, flat: &FlatTimeline) -> Vec<ChannelInfo>
     out.into_values().collect()
 }
 
-pub fn duck_keys_for(mix: &Mix, bus: &Bus, channels: &[ChannelInfo], fps: f64) -> Vec<String> {
+pub fn duck_keys_for(mix: &Mix, bus: &Bus, channels: &[ChannelInfo], fps: u32) -> Vec<String> {
     if !bus.duck.on {
         return Vec::new();
     }

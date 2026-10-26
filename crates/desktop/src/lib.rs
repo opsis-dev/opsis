@@ -20,6 +20,7 @@ mod projects;
 mod relay;
 mod run;
 mod settings;
+mod startup;
 mod state;
 mod views;
 mod windows;

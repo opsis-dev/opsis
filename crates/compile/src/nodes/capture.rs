@@ -1,22 +1,27 @@
 use opsis_types::actions::Bounds;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
-use opsis_types::values::{CompileValue, ImageValue, RecordingValue};
+use opsis_types::values::{BrowserAction, CompileValue, ImageValue, RecordingValue};
 use opsis_types::workflow::{DEFAULT_TAKE_MS, DEFAULT_VIEWPORT, PortType};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value, json};
 use smart_default::SmartDefault;
 
 use crate::card::element_row;
-use crate::clip::{ItemExtra, item_clip, placeholder_clip};
+use crate::clip::{ItemExtra, STILL, item_clip, placeholder_clip};
+use crate::errors::SettingsError;
 use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Phase, RECORDING_PORT, RowExt, SESSION_PORT,
     outputs, port, row,
 };
 use crate::params::Params;
+use crate::params::to_values;
 use crate::text::{format_duration, plural};
 use crate::time::ms_to_frames;
+
+pub const STILL_TYPE: &str = "capture.still";
+
+pub const RECORD_TYPE: &str = "capture.record";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "lowercase")]
@@ -41,24 +46,24 @@ impl Cursor {
 pub struct Record {
     #[default = 30]
     #[schemars(description = "Frame rate", extend("enum" = [25, 30, 60], "x-unit" = "fps"))]
-    pub fps: i64,
+    pub fps: u32,
     #[default = 90]
     #[schemars(
         description = "Recording quality",
         range(min = 10, max = 100),
         extend("x-step" = 5, "x-unit" = "%", "x-advanced" = true)
     )]
-    pub quality: i64,
+    pub quality: u32,
     #[default = 700]
     #[schemars(description = "Pause before the first action", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub establish_ms: i64,
+    pub establish_ms: u32,
     #[default = 2500]
     #[schemars(
         description = "Keep recording after the last action",
         range(min = 0, max = 600000),
         extend("x-step" = 50, "x-unit" = "ms", "x-help" = "Gives the camera time to settle at the end.")
     )]
-    pub end_tail_ms: i64,
+    pub end_tail_ms: u32,
     #[default(Cursor::Synthetic)]
     #[schemars(description = "Cursor", extend("x-labels" = { "synthetic": "Smooth", "baked": "As on screen", "none": "None" }))]
     pub cursor: Cursor,
@@ -94,7 +99,9 @@ impl Region {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum StillLook {
     Window,
@@ -122,7 +129,7 @@ pub struct Still {
         range(min = 0, max = 400),
         extend("x-unit" = "px", "x-show-if" = { "region": ["element"] })
     )]
-    pub padding: i64,
+    pub padding: u32,
     #[default(StillLook::Window)]
     #[schemars(description = "Style", extend("x-labels" = { "window": "Window", "cutout": "Cut-out", "bleed": "Full bleed" }))]
     pub look: StillLook,
@@ -131,7 +138,7 @@ pub struct Still {
     pub backdrop: String,
     #[default = 3000]
     #[schemars(description = "Length", range(min = 100, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub duration_ms: i64,
+    pub duration_ms: u32,
     #[schemars(
         description = "Keyframes",
         extend(
@@ -143,9 +150,9 @@ pub struct Still {
 }
 
 impl Params for Still {
-    fn check(&self) -> Result<(), String> {
+    fn check(&self) -> Result<(), SettingsError> {
         if self.region == Region::Element && self.target.trim().is_empty() {
-            return Err("Pick an element".to_owned());
+            return Err(SettingsError::rule("Pick an element"));
         }
         Ok(())
     }
@@ -163,19 +170,30 @@ fn image_of(result: Option<&opsis_types::values::NodeResult>) -> Option<&ImageVa
         .and_then(CompileValue::as_image)
 }
 
-struct Shot {
-    width: f64,
-    height: f64,
-    scale: f64,
-    body: Option<Bounds>,
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
+pub struct StillShot {
+    pub width: u32,
+    pub height: u32,
+    pub scale: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body: Option<Bounds>,
 }
 
-fn shot_of(image: &ImageValue) -> Option<Shot> {
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
+pub struct StillProps {
+    pub src: String,
+    pub look: StillLook,
+    pub backdrop: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shot: Option<StillShot>,
+}
+
+fn shot_of(image: &ImageValue) -> Option<StillShot> {
     let (width, height) = (
-        image.width.filter(|w| *w != 0.0)?,
-        image.height.filter(|h| *h != 0.0)?,
+        image.width.filter(|w| *w != 0)?,
+        image.height.filter(|h| *h != 0)?,
     );
-    Some(Shot {
+    Some(StillShot {
         width,
         height,
         scale: image.scale.unwrap_or(1.0),
@@ -183,23 +201,13 @@ fn shot_of(image: &ImageValue) -> Option<Shot> {
     })
 }
 
-fn shot_value(shot: &Shot) -> Value {
-    let mut value = json!({ "width": shot.width, "height": shot.height, "scale": shot.scale });
-    if let Some(body) = &shot.body {
-        value["body"] = serde_json::to_value(body).expect("bounds serialize");
-    }
-    value
-}
-
 fn session_port() -> crate::node::PortSpec {
     port(PortType::BrowserSession, "Browser")
 }
 
-const START_RECORDING: &str = "browser.startRecording";
-
 fn record() -> NodeDef {
     NodeDef::of::<Record>(
-        "capture.record",
+        RECORD_TYPE,
         "Record take",
         Category::Capture,
         Phase::Capture,
@@ -220,7 +228,7 @@ fn record() -> NodeDef {
             Some(row(Icon::Video, format!("{} fps", p.fps))),
             Some(row(Icon::MousePointer, p.cursor.row())),
             steps
-                .filter(|s| !s.iter().any(|t| t == START_RECORDING))
+                .filter(|s| !s.contains(&BrowserAction::StartRecording))
                 .map(|_| row(Icon::Clapperboard, "Starts with the first action").tone(Tone::Muted)),
             rec.filter(|r| r.src.is_some())
                 .and_then(|r| r.log.as_ref().map(|log| (r, log)))
@@ -254,7 +262,7 @@ fn record() -> NodeDef {
 
 fn still() -> NodeDef {
     NodeDef::of::<Still>(
-        "capture.still",
+        STILL_TYPE,
         "Screenshot",
         Category::Capture,
         Phase::Capture,
@@ -277,15 +285,10 @@ fn still() -> NodeDef {
                 Region::Element => element_row(Icon::Scan, &p.target, p.target_role.as_deref()),
                 region => row(Icon::Scan, region.label()),
             }),
-            shot.map(|s| {
-                row(
-                    Icon::Image,
-                    format!("{} × {}", s.width.round(), s.height.round()),
-                )
-            }),
+            shot.map(|s| row(Icon::Image, format!("{} × {}", s.width, s.height))),
             Some(row(
                 Icon::Clock,
-                format_duration(ctx.params.duration_ms as f64),
+                format_duration(f64::from(ctx.params.duration_ms)),
             )),
         ]
     })
@@ -298,7 +301,7 @@ fn still() -> NodeDef {
             scale: None,
             body: None,
         });
-        let frames = ms_to_frames(p.duration_ms as f64, ctx.settings.fps);
+        let frames = ms_to_frames(f64::from(p.duration_ms), ctx.settings.fps);
         let extra = ItemExtra {
             handles: Some(EditHandles {
                 trim_end: Some(ParamRef {
@@ -316,17 +319,13 @@ fn still() -> NodeDef {
         };
         let clip = match &image.src {
             Some(src) => {
-                let mut props = Map::new();
-                props.insert("src".into(), Value::from(src.clone()));
-                props.insert(
-                    "look".into(),
-                    serde_json::to_value(p.look).expect("look serializes"),
-                );
-                props.insert("backdrop".into(), Value::from(p.backdrop.clone()));
-                if let Some(shot) = shot_of(&image) {
-                    props.insert("shot".into(), shot_value(&shot));
-                }
-                item_clip(ctx.node_id, "core/still", props, frames, extra)
+                let props = to_values(&StillProps {
+                    src: src.clone(),
+                    look: p.look,
+                    backdrop: p.backdrop.clone(),
+                    shot: shot_of(&image),
+                });
+                item_clip(ctx.node_id, STILL, props, frames, extra)
             }
             None => placeholder_clip(
                 ctx.node_id,

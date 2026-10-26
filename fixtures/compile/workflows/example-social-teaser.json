@@ -328,7 +328,7 @@
    "hook": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 60.0,
+     "durationInFrames": 60,
      "tracks": [
       {
        "id": "hook:t",
@@ -336,8 +336,8 @@
         {
          "kind": "element",
          "id": "hook:i",
-         "from": 0.0,
-         "durationInFrames": 60.0,
+         "from": 0,
+         "durationInFrames": 60,
          "nodeId": "hook",
          "handles": {
           "trimEnd": {
@@ -347,8 +347,8 @@
           }
          },
          "design": {
-          "width": 1920.0,
-          "height": 1080.0
+          "width": 1920,
+          "height": 1080
          },
          "component": "remocn/kinetic-center-build",
          "props": {
@@ -458,8 +458,8 @@
      "log": null,
      "durationMs": 6000.0,
      "viewport": {
-      "width": 1920.0,
-      "height": 1080.0
+      "width": 1920,
+      "height": 1080
      },
      "nodeId": "record",
      "style": []
@@ -468,7 +468,7 @@
    "camera": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 120.0,
+     "durationInFrames": 120,
      "tracks": [
       {
        "id": "camera:t",
@@ -476,8 +476,8 @@
         {
          "kind": "element",
          "id": "camera:i",
-         "from": 0.0,
-         "durationInFrames": 120.0,
+         "from": 0,
+         "durationInFrames": 120,
          "nodeId": "camera",
          "component": "core/placeholder",
          "props": {
@@ -494,7 +494,7 @@
    "sequence": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 165.0,
+     "durationInFrames": 165,
      "tracks": [
       {
        "id": "sequence:seq",
@@ -502,11 +502,11 @@
         {
          "kind": "group",
          "id": "sequence:s0",
-         "from": 0.0,
-         "durationInFrames": 60.0,
+         "from": 0,
+         "durationInFrames": 60,
          "exit": {
           "kind": "remocn/push-through",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -520,8 +520,8 @@
              {
               "kind": "element",
               "id": "hook:i",
-              "from": 0.0,
-              "durationInFrames": 60.0,
+              "from": 0,
+              "durationInFrames": 60,
               "nodeId": "hook",
               "handles": {
                "trimEnd": {
@@ -531,8 +531,8 @@
                }
               },
               "design": {
-               "width": 1920.0,
-               "height": 1080.0
+               "width": 1920,
+               "height": 1080
               },
               "component": "remocn/kinetic-center-build",
               "props": {
@@ -553,11 +553,11 @@
         {
          "kind": "group",
          "id": "sequence:s1",
-         "from": 45.0,
-         "durationInFrames": 120.0,
+         "from": 45,
+         "durationInFrames": 120,
          "enter": {
           "kind": "remocn/push-through",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -571,8 +571,8 @@
              {
               "kind": "element",
               "id": "camera:i",
-              "from": 0.0,
-              "durationInFrames": 120.0,
+              "from": 0,
+              "durationInFrames": 120,
               "nodeId": "camera",
               "component": "core/placeholder",
               "props": {
@@ -600,7 +600,7 @@
    "mix": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 165.0,
+     "durationInFrames": 165,
      "tracks": [
       {
        "id": "sequence:seq",
@@ -608,11 +608,11 @@
         {
          "kind": "group",
          "id": "sequence:s0",
-         "from": 0.0,
-         "durationInFrames": 60.0,
+         "from": 0,
+         "durationInFrames": 60,
          "exit": {
           "kind": "remocn/push-through",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -626,8 +626,8 @@
              {
               "kind": "element",
               "id": "hook:i",
-              "from": 0.0,
-              "durationInFrames": 60.0,
+              "from": 0,
+              "durationInFrames": 60,
               "nodeId": "hook",
               "handles": {
                "trimEnd": {
@@ -637,8 +637,8 @@
                }
               },
               "design": {
-               "width": 1920.0,
-               "height": 1080.0
+               "width": 1920,
+               "height": 1080
               },
               "component": "remocn/kinetic-center-build",
               "props": {
@@ -659,11 +659,11 @@
         {
          "kind": "group",
          "id": "sequence:s1",
-         "from": 45.0,
-         "durationInFrames": 120.0,
+         "from": 45,
+         "durationInFrames": 120,
          "enter": {
           "kind": "remocn/push-through",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -677,8 +677,8 @@
              {
               "kind": "element",
               "id": "camera:i",
-              "from": 0.0,
-              "durationInFrames": 120.0,
+              "from": 0,
+              "durationInFrames": 120,
               "nodeId": "camera",
               "component": "core/placeholder",
               "props": {
@@ -702,10 +702,10 @@
   "errors": {},
   "specs": {
    "render": {
-    "width": 1080.0,
-    "height": 1920.0,
-    "fps": 30.0,
-    "durationInFrames": 165.0,
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "durationInFrames": 165,
     "background": "#09090b",
     "tracks": [
      {
@@ -714,11 +714,11 @@
        {
         "kind": "group",
         "id": "sequence:s0",
-        "from": 0.0,
-        "durationInFrames": 60.0,
+        "from": 0,
+        "durationInFrames": 60,
         "exit": {
          "kind": "remocn/push-through",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -732,8 +732,8 @@
             {
              "kind": "element",
              "id": "hook:i",
-             "from": 0.0,
-             "durationInFrames": 60.0,
+             "from": 0,
+             "durationInFrames": 60,
              "nodeId": "hook",
              "handles": {
               "trimEnd": {
@@ -743,8 +743,8 @@
               }
              },
              "design": {
-              "width": 1920.0,
-              "height": 1080.0
+              "width": 1920,
+              "height": 1080
              },
              "component": "remocn/kinetic-center-build",
              "props": {
@@ -765,11 +765,11 @@
        {
         "kind": "group",
         "id": "sequence:s1",
-        "from": 45.0,
-        "durationInFrames": 120.0,
+        "from": 45,
+        "durationInFrames": 120,
         "enter": {
          "kind": "remocn/push-through",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -783,8 +783,8 @@
             {
              "kind": "element",
              "id": "camera:i",
-             "from": 0.0,
-             "durationInFrames": 120.0,
+             "from": 0,
+             "durationInFrames": 120,
              "nodeId": "camera",
              "component": "core/placeholder",
              "props": {
@@ -968,10 +968,10 @@
  },
  "preview": {
   "spec": {
-   "width": 1080.0,
-   "height": 1920.0,
-   "fps": 30.0,
-   "durationInFrames": 165.0,
+   "width": 1080,
+   "height": 1920,
+   "fps": 30,
+   "durationInFrames": 165,
    "background": "#09090b",
    "tracks": [
     {
@@ -980,11 +980,11 @@
       {
        "kind": "group",
        "id": "sequence:s0",
-       "from": 0.0,
-       "durationInFrames": 60.0,
+       "from": 0,
+       "durationInFrames": 60,
        "exit": {
         "kind": "remocn/push-through",
-        "durationInFrames": 15.0
+        "durationInFrames": 15
        },
        "slot": {
         "nodeId": "sequence",
@@ -998,8 +998,8 @@
            {
             "kind": "element",
             "id": "hook:i",
-            "from": 0.0,
-            "durationInFrames": 60.0,
+            "from": 0,
+            "durationInFrames": 60,
             "nodeId": "hook",
             "handles": {
              "trimEnd": {
@@ -1009,8 +1009,8 @@
              }
             },
             "design": {
-             "width": 1920.0,
-             "height": 1080.0
+             "width": 1920,
+             "height": 1080
             },
             "component": "remocn/kinetic-center-build",
             "props": {
@@ -1031,11 +1031,11 @@
       {
        "kind": "group",
        "id": "sequence:s1",
-       "from": 45.0,
-       "durationInFrames": 120.0,
+       "from": 45,
+       "durationInFrames": 120,
        "enter": {
         "kind": "remocn/push-through",
-        "durationInFrames": 15.0
+        "durationInFrames": 15
        },
        "slot": {
         "nodeId": "sequence",
@@ -1049,8 +1049,8 @@
            {
             "kind": "element",
             "id": "camera:i",
-            "from": 0.0,
-            "durationInFrames": 120.0,
+            "from": 0,
+            "durationInFrames": 120,
             "nodeId": "camera",
             "component": "core/placeholder",
             "props": {
@@ -1089,8 +1089,8 @@
  "timelines": {
   "render": {
    "flat": {
-    "fps": 30.0,
-    "durationInFrames": 165.0,
+    "fps": 30,
+    "durationInFrames": 165,
     "bars": [
      {
       "type": "video",
@@ -1222,8 +1222,8 @@
     "cameraKeys": []
    },
    "mix": {
-    "fps": 30.0,
-    "durationInFrames": 165.0,
+    "fps": 30,
+    "durationInFrames": 165,
     "channels": [],
     "buses": [
      {
@@ -1575,7 +1575,7 @@
     "hook": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 60.0,
+      "durationInFrames": 60,
       "tracks": [
        {
         "id": "hook:t",
@@ -1583,8 +1583,8 @@
          {
           "kind": "element",
           "id": "hook:i",
-          "from": 0.0,
-          "durationInFrames": 60.0,
+          "from": 0,
+          "durationInFrames": 60,
           "nodeId": "hook",
           "handles": {
            "trimEnd": {
@@ -1594,8 +1594,8 @@
            }
           },
           "design": {
-           "width": 1920.0,
-           "height": 1080.0
+           "width": 1920,
+           "height": 1080
           },
           "component": "remocn/kinetic-center-build",
           "props": {
@@ -1705,8 +1705,8 @@
       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
       "log": {
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "dpr": 1.0,
        "t0": 0.0,
@@ -1759,8 +1759,8 @@
       },
       "durationMs": 4100.0,
       "viewport": {
-       "width": 1920.0,
-       "height": 1080.0
+       "width": 1920,
+       "height": 1080
       },
       "nodeId": "record",
       "style": []
@@ -1769,7 +1769,7 @@
     "camera": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 82.0,
+      "durationInFrames": 82,
       "tracks": [
        {
         "id": "camera:t",
@@ -1777,16 +1777,16 @@
          {
           "kind": "recording",
           "id": "camera:i",
-          "from": 0.0,
-          "durationInFrames": 82.0,
+          "from": 0,
+          "durationInFrames": 82,
           "nodeId": "camera",
           "props": {
            "src": "project:.opsis/cache/record/recording.mp4",
            "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
            "log": {
             "viewport": {
-             "width": 1920.0,
-             "height": 1080.0
+             "width": 1920,
+             "height": 1080
             },
             "dpr": 1.0,
             "t0": 0.0,
@@ -1874,8 +1874,8 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "dpr": 1.0,
         "t0": 0.0,
@@ -1928,8 +1928,8 @@
        },
        "durationMs": 4100.0,
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "nodeId": "record",
        "style": []
@@ -1939,7 +1939,7 @@
     "sequence": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 127.0,
+      "durationInFrames": 127,
       "tracks": [
        {
         "id": "sequence:seq",
@@ -1947,11 +1947,11 @@
          {
           "kind": "group",
           "id": "sequence:s0",
-          "from": 0.0,
-          "durationInFrames": 60.0,
+          "from": 0,
+          "durationInFrames": 60,
           "exit": {
            "kind": "remocn/push-through",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "slot": {
            "nodeId": "sequence",
@@ -1965,8 +1965,8 @@
               {
                "kind": "element",
                "id": "hook:i",
-               "from": 0.0,
-               "durationInFrames": 60.0,
+               "from": 0,
+               "durationInFrames": 60,
                "nodeId": "hook",
                "handles": {
                 "trimEnd": {
@@ -1976,8 +1976,8 @@
                 }
                },
                "design": {
-                "width": 1920.0,
-                "height": 1080.0
+                "width": 1920,
+                "height": 1080
                },
                "component": "remocn/kinetic-center-build",
                "props": {
@@ -1998,11 +1998,11 @@
          {
           "kind": "group",
           "id": "sequence:s1",
-          "from": 45.0,
-          "durationInFrames": 82.0,
+          "from": 45,
+          "durationInFrames": 82,
           "enter": {
            "kind": "remocn/push-through",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "slot": {
            "nodeId": "sequence",
@@ -2016,16 +2016,16 @@
               {
                "kind": "recording",
                "id": "camera:i",
-               "from": 0.0,
-               "durationInFrames": 82.0,
+               "from": 0,
+               "durationInFrames": 82,
                "nodeId": "camera",
                "props": {
                 "src": "project:.opsis/cache/record/recording.mp4",
                 "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
                 "log": {
                  "viewport": {
-                  "width": 1920.0,
-                  "height": 1080.0
+                  "width": 1920,
+                  "height": 1080
                  },
                  "dpr": 1.0,
                  "t0": 0.0,
@@ -2118,8 +2118,8 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "dpr": 1.0,
         "t0": 0.0,
@@ -2172,8 +2172,8 @@
        },
        "durationMs": 4100.0,
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "nodeId": "record",
        "style": []
@@ -2189,7 +2189,7 @@
     "mix": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 127.0,
+      "durationInFrames": 127,
       "tracks": [
        {
         "id": "sequence:seq",
@@ -2197,11 +2197,11 @@
          {
           "kind": "group",
           "id": "sequence:s0",
-          "from": 0.0,
-          "durationInFrames": 60.0,
+          "from": 0,
+          "durationInFrames": 60,
           "exit": {
            "kind": "remocn/push-through",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "slot": {
            "nodeId": "sequence",
@@ -2215,8 +2215,8 @@
               {
                "kind": "element",
                "id": "hook:i",
-               "from": 0.0,
-               "durationInFrames": 60.0,
+               "from": 0,
+               "durationInFrames": 60,
                "nodeId": "hook",
                "handles": {
                 "trimEnd": {
@@ -2226,8 +2226,8 @@
                 }
                },
                "design": {
-                "width": 1920.0,
-                "height": 1080.0
+                "width": 1920,
+                "height": 1080
                },
                "component": "remocn/kinetic-center-build",
                "props": {
@@ -2248,11 +2248,11 @@
          {
           "kind": "group",
           "id": "sequence:s1",
-          "from": 45.0,
-          "durationInFrames": 82.0,
+          "from": 45,
+          "durationInFrames": 82,
           "enter": {
            "kind": "remocn/push-through",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "slot": {
            "nodeId": "sequence",
@@ -2266,16 +2266,16 @@
               {
                "kind": "recording",
                "id": "camera:i",
-               "from": 0.0,
-               "durationInFrames": 82.0,
+               "from": 0,
+               "durationInFrames": 82,
                "nodeId": "camera",
                "props": {
                 "src": "project:.opsis/cache/record/recording.mp4",
                 "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
                 "log": {
                  "viewport": {
-                  "width": 1920.0,
-                  "height": 1080.0
+                  "width": 1920,
+                  "height": 1080
                  },
                  "dpr": 1.0,
                  "t0": 0.0,
@@ -2368,8 +2368,8 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "dpr": 1.0,
         "t0": 0.0,
@@ -2422,8 +2422,8 @@
        },
        "durationMs": 4100.0,
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "nodeId": "record",
        "style": []
@@ -2435,9 +2435,9 @@
       "type": "media",
       "src": "project:.opsis/out/render.mp4",
       "kind": "video",
-      "durationMs": 4000.0,
-      "width": 1920.0,
-      "height": 1080.0,
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
       "hasAudio": true
      }
     }
@@ -2445,10 +2445,10 @@
    "errors": {},
    "specs": {
     "render": {
-     "width": 1080.0,
-     "height": 1920.0,
-     "fps": 30.0,
-     "durationInFrames": 127.0,
+     "width": 1080,
+     "height": 1920,
+     "fps": 30,
+     "durationInFrames": 127,
      "background": "#09090b",
      "tracks": [
       {
@@ -2457,11 +2457,11 @@
         {
          "kind": "group",
          "id": "sequence:s0",
-         "from": 0.0,
-         "durationInFrames": 60.0,
+         "from": 0,
+         "durationInFrames": 60,
          "exit": {
           "kind": "remocn/push-through",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -2475,8 +2475,8 @@
              {
               "kind": "element",
               "id": "hook:i",
-              "from": 0.0,
-              "durationInFrames": 60.0,
+              "from": 0,
+              "durationInFrames": 60,
               "nodeId": "hook",
               "handles": {
                "trimEnd": {
@@ -2486,8 +2486,8 @@
                }
               },
               "design": {
-               "width": 1920.0,
-               "height": 1080.0
+               "width": 1920,
+               "height": 1080
               },
               "component": "remocn/kinetic-center-build",
               "props": {
@@ -2508,11 +2508,11 @@
         {
          "kind": "group",
          "id": "sequence:s1",
-         "from": 45.0,
-         "durationInFrames": 82.0,
+         "from": 45,
+         "durationInFrames": 82,
          "enter": {
           "kind": "remocn/push-through",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -2526,16 +2526,16 @@
              {
               "kind": "recording",
               "id": "camera:i",
-              "from": 0.0,
-              "durationInFrames": 82.0,
+              "from": 0,
+              "durationInFrames": 82,
               "nodeId": "camera",
               "props": {
                "src": "project:.opsis/cache/record/recording.mp4",
                "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
                "log": {
                 "viewport": {
-                 "width": 1920.0,
-                 "height": 1080.0
+                 "width": 1920,
+                 "height": 1080
                 },
                 "dpr": 1.0,
                 "t0": 0.0,
@@ -2797,10 +2797,10 @@
   },
   "preview": {
    "spec": {
-    "width": 1080.0,
-    "height": 1920.0,
-    "fps": 30.0,
-    "durationInFrames": 127.0,
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "durationInFrames": 127,
     "background": "#09090b",
     "tracks": [
      {
@@ -2809,11 +2809,11 @@
        {
         "kind": "group",
         "id": "sequence:s0",
-        "from": 0.0,
-        "durationInFrames": 60.0,
+        "from": 0,
+        "durationInFrames": 60,
         "exit": {
          "kind": "remocn/push-through",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -2827,8 +2827,8 @@
             {
              "kind": "element",
              "id": "hook:i",
-             "from": 0.0,
-             "durationInFrames": 60.0,
+             "from": 0,
+             "durationInFrames": 60,
              "nodeId": "hook",
              "handles": {
               "trimEnd": {
@@ -2838,8 +2838,8 @@
               }
              },
              "design": {
-              "width": 1920.0,
-              "height": 1080.0
+              "width": 1920,
+              "height": 1080
              },
              "component": "remocn/kinetic-center-build",
              "props": {
@@ -2860,11 +2860,11 @@
        {
         "kind": "group",
         "id": "sequence:s1",
-        "from": 45.0,
-        "durationInFrames": 82.0,
+        "from": 45,
+        "durationInFrames": 82,
         "enter": {
          "kind": "remocn/push-through",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -2878,16 +2878,16 @@
             {
              "kind": "recording",
              "id": "camera:i",
-             "from": 0.0,
-             "durationInFrames": 82.0,
+             "from": 0,
+             "durationInFrames": 82,
              "nodeId": "camera",
              "props": {
               "src": "project:.opsis/cache/record/recording.mp4",
               "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
               "log": {
                "viewport": {
-                "width": 1920.0,
-                "height": 1080.0
+                "width": 1920,
+                "height": 1080
                },
                "dpr": 1.0,
                "t0": 0.0,
@@ -2996,8 +2996,8 @@
   "timelines": {
    "render": {
     "flat": {
-     "fps": 30.0,
-     "durationInFrames": 127.0,
+     "fps": 30,
+     "durationInFrames": 127,
      "bars": [
       {
        "type": "video",
@@ -3068,8 +3068,8 @@
         "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
         "log": {
          "viewport": {
-          "width": 1920.0,
-          "height": 1080.0
+          "width": 1920,
+          "height": 1080
          },
          "dpr": 1.0,
          "t0": 0.0,
@@ -3229,8 +3229,8 @@
      "cameraKeys": []
     },
     "mix": {
-     "fps": 30.0,
-     "durationInFrames": 127.0,
+     "fps": 30,
+     "durationInFrames": 127,
      "channels": [],
      "buses": [
       {

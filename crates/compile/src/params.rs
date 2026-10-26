@@ -11,6 +11,7 @@ use serde_json::{Map, Value, json};
 
 use crate::asset_ref::stays_in_project;
 use crate::color::is_color;
+use crate::errors::SettingsError;
 use crate::text::{
     format_duration, grouped, humanize, is_locale, is_time_zone, is_wall_time, sign_of,
 };
@@ -218,7 +219,11 @@ impl ParamSchema {
             .collect()
     }
 
-    pub fn parse(&self, values: &Values, written: Option<&Values>) -> Result<Values, String> {
+    pub fn parse(
+        &self,
+        values: &Values,
+        written: Option<&Values>,
+    ) -> Result<Values, SettingsError> {
         let filled = match fill(
             &self.schema,
             Value::Object(self.known(&self.with_defaults(values))),
@@ -244,13 +249,15 @@ impl ParamSchema {
             .unwrap_or(self.order.len())
     }
 
-    fn wording(&self, error: &ValidationError, written: Option<&Values>) -> String {
+    fn wording(&self, error: &ValidationError, written: Option<&Values>) -> SettingsError {
         let key = error_key(error);
         let field = key.as_deref().and_then(|k| self.field(k));
         let nested = top_key(error.instance_path()).is_some();
         let unit = field.and_then(|f| f.get("x-unit")).and_then(Value::as_str);
         let said = match error.kind() {
-            ValidationErrorKind::Custom { message, .. } => return message.clone(),
+            ValidationErrorKind::Custom { message, .. } => {
+                return SettingsError::Rule(message.clone().into());
+            }
             ValidationErrorKind::Required { .. } if nested => "isn't valid".to_owned(),
             ValidationErrorKind::Required { .. } => "is missing".to_owned(),
             ValidationErrorKind::Type { kind } => {
@@ -293,7 +300,10 @@ impl ParamSchema {
             .map(str::to_owned)
             .or_else(|| key.as_deref().map(humanize))
             .unwrap_or_else(|| "A setting".to_owned());
-        format!("{label} {said}")
+        SettingsError::Field {
+            label,
+            problem: said,
+        }
     }
 
     pub fn card_values(&self, params: &Values, vars: &Vars) -> Values {
@@ -333,7 +343,7 @@ impl ParamSchema {
         values
     }
 
-    pub fn typed<T: DeserializeOwned>(&self, values: &Values) -> Result<T, String> {
+    pub fn typed<T: DeserializeOwned>(&self, values: &Values) -> Result<T, SettingsError> {
         typed_values(values)
     }
 }
@@ -341,7 +351,7 @@ impl ParamSchema {
 fn whole_numbers(value: Value) -> Value {
     match value {
         Value::Number(n) => match n.as_f64() {
-            Some(f) if n.is_f64() && f.fract() == 0.0 && f.abs() < 9.007_199_254_740_992e15 => {
+            Some(f) if n.is_f64() && f.fract() == 0.0 && f.abs() <= f64::from(u32::MAX) => {
                 Value::from(f as i64)
             }
             _ => Value::Number(n),
@@ -356,8 +366,9 @@ fn whole_numbers(value: Value) -> Value {
     }
 }
 
-pub fn typed_values<T: DeserializeOwned>(values: &Values) -> Result<T, String> {
-    serde_json::from_value(whole_numbers(Value::Object(values.clone()))).map_err(|e| e.to_string())
+pub fn typed_values<T: DeserializeOwned>(values: &Values) -> Result<T, SettingsError> {
+    serde_json::from_value(whole_numbers(Value::Object(values.clone())))
+        .map_err(|e| SettingsError::Unreadable(e.to_string()))
 }
 
 fn object_branch(schema: &Value) -> &Value {
@@ -470,7 +481,7 @@ fn bound(limit: &Value, unit: Option<&str>, low: bool, inclusive: bool) -> Strin
 pub trait Params:
     JsonSchema + Serialize + DeserializeOwned + Default + Send + Sync + 'static
 {
-    fn check(&self) -> Result<(), String> {
+    fn check(&self) -> Result<(), SettingsError> {
         Ok(())
     }
 }
@@ -480,4 +491,10 @@ pub fn to_values<T: Serialize>(params: &T) -> Values {
         Ok(Value::Object(map)) => map,
         _ => Values::new(),
     }
+}
+
+pub fn whole_number(value: Option<&Value>) -> Option<u32> {
+    value
+        .and_then(Value::as_u64)
+        .and_then(|n| u32::try_from(n).ok())
 }

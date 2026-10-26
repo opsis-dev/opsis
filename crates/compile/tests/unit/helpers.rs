@@ -184,7 +184,9 @@ pub fn compile_node_in(
     vars: &Vars,
 ) -> Result<PortValues, String> {
     let def = node_def(kind).unwrap_or_else(|| panic!("no node {kind}"));
-    let values = def.parse(defaults_with(kind, params).as_object().unwrap(), None)?;
+    let values = def
+        .parse(defaults_with(kind, params).as_object().unwrap(), None)
+        .map_err(|e| e.to_string())?;
     let inputs: PortValues = typed(inputs);
     let wf: Workflow =
         typed(json!({ "version": 1, "id": "wf", "name": "Test", "nodes": [], "edges": [] }));
@@ -201,7 +203,10 @@ pub fn compile_node_in(
         vars,
         workflow: &wf,
     };
-    Ok(def.run_compile(&ctx)?.unwrap_or_default())
+    Ok(def
+        .run_compile(&ctx)
+        .map_err(|e| e.to_string())?
+        .unwrap_or_default())
 }
 
 pub fn compile_node(kind: &str, params: Value, inputs: Value) -> PortValues {
@@ -246,6 +251,7 @@ pub fn parse_params(kind: &str, params: Value) -> Result<serde_json::Map<String,
     node_def(kind)
         .unwrap()
         .parse(defaults_with(kind, params).as_object().unwrap(), None)
+        .map_err(|e| e.to_string())
 }
 
 pub fn clip_value(clip: &ClipValue) -> Value {

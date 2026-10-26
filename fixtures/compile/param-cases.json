@@ -28564,7 +28564,7 @@
      "fontSize": 112.0,
      "fontWeight": 760.0,
      "fontFamily": "",
-     "clipDuration": 75.0,
+     "clipDuration": 75,
      "envelope": {}
     }
    }
@@ -28591,7 +28591,7 @@
      "fontSize": 112.0,
      "fontWeight": 760.0,
      "fontFamily": "",
-     "clipDuration": 75.0,
+     "clipDuration": 75,
      "envelope": {}
     }
    }
@@ -29787,7 +29787,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 75.0,
+    "value": 75,
     "keys": 16
    }
   },
@@ -29966,7 +29966,7 @@
      "fontSize": 104.0,
      "wordStagger": 4.0,
      "fontFamily": "",
-     "clipDuration": 90.0,
+     "clipDuration": 90,
      "envelope": {}
     }
    }
@@ -29986,7 +29986,7 @@
      "fontSize": 104.0,
      "wordStagger": 4.0,
      "fontFamily": "",
-     "clipDuration": 90.0,
+     "clipDuration": 90,
      "envelope": {}
     }
    }
@@ -30683,7 +30683,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 90.0,
+    "value": 90,
     "keys": 9
    }
   },
@@ -30862,7 +30862,7 @@
      "color": "#fafafa",
      "panel": "rgba(10,10,12,0.72)",
      "fontFamily": "",
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -30882,7 +30882,7 @@
      "color": "#fafafa",
      "panel": "rgba(10,10,12,0.72)",
      "fontFamily": "",
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -31467,7 +31467,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 120.0,
+    "value": 120,
     "keys": 9
    }
   },
@@ -31646,7 +31646,7 @@
      "color": "#fafafa",
      "accent": "#f43f5e",
      "fontFamily": "",
-     "clipDuration": 75.0,
+     "clipDuration": 75,
      "envelope": {}
     }
    }
@@ -31666,7 +31666,7 @@
      "color": "#fafafa",
      "accent": "#f43f5e",
      "fontFamily": "",
-     "clipDuration": 75.0,
+     "clipDuration": 75,
      "envelope": {}
     }
    }
@@ -32325,7 +32325,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 75.0,
+    "value": 75,
     "keys": 9
    }
   },
@@ -32501,7 +32501,7 @@
      "fit": "contain",
      "background": "transparent",
      "kenBurns": false,
-     "clipDuration": 90.0,
+     "clipDuration": 90,
      "envelope": {}
     }
    }
@@ -32518,7 +32518,7 @@
      "fit": "contain",
      "background": "transparent",
      "kenBurns": false,
-     "clipDuration": 90.0,
+     "clipDuration": 90,
      "envelope": {}
     }
    }
@@ -32796,7 +32796,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 90.0,
+    "value": 90,
     "keys": 6
    }
   },
@@ -32978,7 +32978,7 @@
      ],
      "frameMs": 0.0,
      "blockSize": 24.0,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -33001,7 +33001,7 @@
      ],
      "frameMs": 0.0,
      "blockSize": 24.0,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -33372,7 +33372,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 5
    }
   },
@@ -33550,7 +33550,7 @@
      "backwards": false,
      "fit": "contain",
      "background": "transparent",
-     "clipDuration": 90.0,
+     "clipDuration": 90,
      "envelope": {}
     }
    }
@@ -33569,7 +33569,7 @@
      "backwards": false,
      "fit": "contain",
      "background": "transparent",
-     "clipDuration": 90.0,
+     "clipDuration": 90,
      "envelope": {}
     }
    }
@@ -34008,7 +34008,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 90.0,
+    "value": 90,
     "keys": 8
    }
   },
@@ -34187,7 +34187,7 @@
      "volume": 1.0,
      "playbackRate": 1.0,
      "trimBeforeMs": 0.0,
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -34207,7 +34207,7 @@
      "volume": 1.0,
      "playbackRate": 1.0,
      "trimBeforeMs": 0.0,
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -34805,7 +34805,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150.0,
+    "value": 150,
     "keys": 9
    }
   },
@@ -34978,7 +34978,7 @@
     "ok": true,
     "data": {
      "color": "#09090b",
-     "clipDuration": 90.0,
+     "clipDuration": 90,
      "envelope": {}
     }
    }
@@ -34992,7 +34992,7 @@
     "ok": true,
     "data": {
      "color": "#09090b",
-     "clipDuration": 90.0,
+     "clipDuration": 90,
      "envelope": {}
     }
    }
@@ -35091,7 +35091,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 90.0,
+    "value": 90,
     "keys": 3
    }
   },
@@ -35267,7 +35267,7 @@
      "to": "#0f172a",
      "angle": 135.0,
      "grain": 0.08,
-     "clipDuration": 90.0,
+     "clipDuration": 90,
      "envelope": {}
     }
    }
@@ -35284,7 +35284,7 @@
      "to": "#0f172a",
      "angle": 135.0,
      "grain": 0.08,
-     "clipDuration": 90.0,
+     "clipDuration": 90,
      "envelope": {}
     }
    }
@@ -35715,7 +35715,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 90.0,
+    "value": 90,
     "keys": 6
    }
   },
@@ -35891,7 +35891,7 @@
      "color2": "#4f46e5",
      "scale": 0.004,
      "speed": 0.004,
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -35908,7 +35908,7 @@
      "color2": "#4f46e5",
      "scale": 0.004,
      "speed": 0.004,
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -36338,7 +36338,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150.0,
+    "value": 150,
     "keys": 6
    }
   },
@@ -36514,7 +36514,7 @@
      "color2": "#27272a",
      "rays": 24.0,
      "rotationSpeed": 0.15,
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -36531,7 +36531,7 @@
      "color2": "#27272a",
      "rays": 24.0,
      "rotationSpeed": 0.15,
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -36962,7 +36962,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150.0,
+    "value": 150,
     "keys": 6
    }
   },
@@ -37136,7 +37136,7 @@
     "data": {
      "color": "#f5f1e8",
      "grain": 0.18,
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -37151,7 +37151,7 @@
     "data": {
      "color": "#f5f1e8",
      "grain": 0.18,
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -37374,7 +37374,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150.0,
+    "value": 150,
     "keys": 4
    }
   },
@@ -37547,7 +37547,7 @@
     "ok": true,
     "data": {
      "name": "glaze",
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -37561,7 +37561,7 @@
     "ok": true,
     "data": {
      "name": "glaze",
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -37624,7 +37624,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150.0,
+    "value": 150,
     "keys": 3
    }
   },
@@ -37798,7 +37798,7 @@
     "data": {
      "src": "",
      "dim": 0.3,
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -37813,7 +37813,7 @@
     "data": {
      "src": "",
      "dim": 0.3,
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -38040,7 +38040,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150.0,
+    "value": 150,
     "keys": 4
    }
   },
@@ -38214,7 +38214,7 @@
     "data": {
      "seed": 3.0,
      "hueShift": 0.0,
-     "clipDuration": 45.0,
+     "clipDuration": 45,
      "envelope": {}
     }
    }
@@ -38229,7 +38229,7 @@
     "data": {
      "seed": 3.0,
      "hueShift": 0.0,
-     "clipDuration": 45.0,
+     "clipDuration": 45,
      "envelope": {}
     }
    }
@@ -38491,7 +38491,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 45.0,
+    "value": 45,
     "keys": 4
    }
   },
@@ -38674,7 +38674,7 @@
      "speed": 1.0,
      "lighting": "studio",
      "background": "transparent",
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -38698,7 +38698,7 @@
      "speed": 1.0,
      "lighting": "studio",
      "background": "transparent",
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -39503,7 +39503,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150.0,
+    "value": 150,
     "keys": 11
    }
   },
@@ -39686,7 +39686,7 @@
      "speed": 1.0,
      "lighting": "soft",
      "background": "transparent",
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -39710,7 +39710,7 @@
      "speed": 1.0,
      "lighting": "soft",
      "background": "transparent",
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -40548,7 +40548,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 120.0,
+    "value": 120,
     "keys": 11
    }
   },
@@ -40737,7 +40737,7 @@
      "speed": 1.0,
      "lighting": "studio",
      "background": "transparent",
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -40767,7 +40767,7 @@
      "speed": 1.0,
      "lighting": "studio",
      "background": "transparent",
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -42113,7 +42113,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 120.0,
+    "value": 120,
     "keys": 17
    }
   },
@@ -42298,7 +42298,7 @@
      "lighting": "studio",
      "shadow": true,
      "background": "transparent",
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -42324,7 +42324,7 @@
      "lighting": "studio",
      "shadow": true,
      "background": "transparent",
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -43203,7 +43203,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150.0,
+    "value": 150,
     "keys": 13
    }
   },
@@ -43384,7 +43384,7 @@
      "endFaceOn": true,
      "lighting": "studio",
      "background": "#0b0b10",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -43406,7 +43406,7 @@
      "endFaceOn": true,
      "lighting": "studio",
      "background": "#0b0b10",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -43828,7 +43828,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 9
    }
   },
@@ -44014,7 +44014,7 @@
      },
      "lighting": "studio",
      "background": "#0b1020",
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -44041,7 +44041,7 @@
      },
      "lighting": "studio",
      "background": "#0b1020",
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -44720,7 +44720,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150.0,
+    "value": 150,
     "keys": 9
    }
   },
@@ -44900,7 +44900,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -44921,7 +44921,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -45702,7 +45702,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -45884,7 +45884,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -45907,7 +45907,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -46810,7 +46810,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 12
    }
   },
@@ -46990,7 +46990,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -47011,7 +47011,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -47754,7 +47754,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -47935,7 +47935,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -47957,7 +47957,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -48828,7 +48828,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -49008,7 +49008,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -49029,7 +49029,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -49776,7 +49776,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -49957,7 +49957,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -49979,7 +49979,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -50885,7 +50885,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -51065,7 +51065,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -51086,7 +51086,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -51867,7 +51867,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -52047,7 +52047,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -52068,7 +52068,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -52850,7 +52850,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -53031,7 +53031,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -53053,7 +53053,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -53959,7 +53959,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -54140,7 +54140,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -54162,7 +54162,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -55067,7 +55067,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -55256,7 +55256,7 @@
      "background": "#fafafa",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -55286,7 +55286,7 @@
      "background": "#fafafa",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -56560,7 +56560,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 15
    }
   },
@@ -56748,7 +56748,7 @@
      "fontWeight": "700",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -56777,7 +56777,7 @@
      "fontWeight": "700",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -58472,7 +58472,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 18
    }
   },
@@ -58653,7 +58653,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -58675,7 +58675,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -59507,7 +59507,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -59687,7 +59687,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -59708,7 +59708,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -60490,7 +60490,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -60673,7 +60673,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -60697,7 +60697,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -61703,7 +61703,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 13
    }
   },
@@ -61885,7 +61885,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -61908,7 +61908,7 @@
      "background": "white",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -62829,7 +62829,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 12
    }
   },
@@ -63012,7 +63012,7 @@
      "step": 0.1,
      "x": 0.5,
      "y": 0.62,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -63036,7 +63036,7 @@
      "step": 0.1,
      "x": 0.5,
      "y": 0.62,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -64336,7 +64336,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 13
    }
   },
@@ -64521,7 +64521,7 @@
      "width": 420,
      "height": 220,
      "release": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -64547,7 +64547,7 @@
      "width": 420,
      "height": 220,
      "release": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -66094,7 +66094,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 15
    }
   },
@@ -66281,7 +66281,7 @@
      "fromY": 0.72,
      "toX": 0.48,
      "toY": 0.5,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -66309,7 +66309,7 @@
      "fromY": 0.72,
      "toX": 0.48,
      "toY": 0.5,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -68106,7 +68106,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 17
    }
   },
@@ -68300,7 +68300,7 @@
       }
      ],
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -68335,7 +68335,7 @@
       }
      ],
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -69429,7 +69429,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -69617,7 +69617,7 @@
      "originX": 0.5,
      "originY": 0.5,
      "lifetime": 3,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -69646,7 +69646,7 @@
      "originX": 0.5,
      "originY": 0.5,
      "lifetime": 3,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -70733,7 +70733,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -70917,7 +70917,7 @@
      "backgroundColor": "#a800b7",
      "loop": false,
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -70942,7 +70942,7 @@
      "backgroundColor": "#a800b7",
      "loop": false,
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -72237,7 +72237,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 14
    }
   },
@@ -72418,7 +72418,7 @@
       "#3a3a5c",
       "#52527a"
      ],
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -72440,7 +72440,7 @@
       "#3a3a5c",
       "#52527a"
      ],
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -72933,7 +72933,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 6
    }
   },
@@ -73115,7 +73115,7 @@
       "#4a4a68",
       "#5a5a7e"
      ],
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -73138,7 +73138,7 @@
       "#4a4a68",
       "#5a5a7e"
      ],
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -73839,7 +73839,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 8
    }
   },
@@ -74022,7 +74022,7 @@
       "#12121a",
       "#52527a"
      ],
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -74046,7 +74046,7 @@
       "#12121a",
       "#52527a"
      ],
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -74787,7 +74787,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 8
    }
   },
@@ -74969,7 +74969,7 @@
       "#3a3a5c",
       "#232338"
      ],
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -74992,7 +74992,7 @@
       "#3a3a5c",
       "#232338"
      ],
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -75692,7 +75692,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 8
    }
   },
@@ -75876,7 +75876,7 @@
       "#3a3a5c"
      ],
      "colorBloom": "#3a3a5c",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -75901,7 +75901,7 @@
       "#3a3a5c"
      ],
      "colorBloom": "#3a3a5c",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -76688,7 +76688,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 9
    }
   },
@@ -76865,7 +76865,7 @@
      "softness": 0.1,
      "colorBack": "#12121a",
      "colorFront": "#6a6a85",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -76883,7 +76883,7 @@
      "softness": 0.1,
      "colorBack": "#12121a",
      "colorFront": "#6a6a85",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -77439,7 +77439,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 7
    }
   },
@@ -77617,7 +77617,7 @@
      "colorFront": "#6a6a85",
      "shape": "wave",
      "type": "4x4",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -77636,7 +77636,7 @@
      "colorFront": "#6a6a85",
      "shape": "wave",
      "type": "4x4",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -78165,7 +78165,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 8
    }
   },
@@ -78341,7 +78341,7 @@
      "scanlines": 1,
      "maskScale": 2,
      "vignette": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -78358,7 +78358,7 @@
      "scanlines": 1,
      "maskScale": 2,
      "vignette": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -78867,7 +78867,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 6
    }
   },
@@ -79043,7 +79043,7 @@
      "wobble": 1,
      "noise": 1,
      "intensity": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -79060,7 +79060,7 @@
      "wobble": 1,
      "noise": 1,
      "intensity": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -79570,7 +79570,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 6
    }
   },
@@ -79746,7 +79746,7 @@
      "angle": 0,
      "misregistration": 1.2,
      "paperTint": "#f4efe4",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -79763,7 +79763,7 @@
      "angle": 0,
      "misregistration": 1.2,
      "paperTint": "#f4efe4",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -80233,7 +80233,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 6
    }
   },
@@ -80410,7 +80410,7 @@
      "aberration": 0.5,
      "vignette": 0.5,
      "distortion": 0.05,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -80428,7 +80428,7 @@
      "aberration": 0.5,
      "vignette": 0.5,
      "distortion": 0.05,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -81062,7 +81062,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 7
    }
   },
@@ -81240,7 +81240,7 @@
      "step": 0.1,
      "frameColor": "#fdfcf8",
      "captionColor": "#26242c",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -81259,7 +81259,7 @@
      "step": 0.1,
      "frameColor": "#fdfcf8",
      "captionColor": "#26242c",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -82025,7 +82025,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 8
    }
   },
@@ -82201,7 +82201,7 @@
      "gain": 1,
      "afterglow": 1,
      "phosphor": "#d8ecff",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -82218,7 +82218,7 @@
      "gain": 1,
      "afterglow": 1,
      "phosphor": "#d8ecff",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -82688,7 +82688,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 6
    }
   },
@@ -82872,7 +82872,7 @@
      "color": "#ffffff",
      "seed": 1,
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -82897,7 +82897,7 @@
      "color": "#ffffff",
      "seed": 1,
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -84256,7 +84256,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 14
    }
   },
@@ -85982,7 +85982,7 @@
       }
      ],
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -86040,7 +86040,7 @@
       }
      ],
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -87237,7 +87237,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -87419,7 +87419,7 @@
      "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
      "aura": false,
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -87442,7 +87442,7 @@
      "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
      "aura": false,
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -88410,7 +88410,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 12
    }
   },
@@ -88601,7 +88601,7 @@
       }
      ],
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -88633,7 +88633,7 @@
       }
      ],
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -89626,7 +89626,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 12
    }
   },
@@ -89822,7 +89822,7 @@
       }
      ],
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -89859,7 +89859,7 @@
       }
      ],
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -90597,7 +90597,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 9
    }
   },
@@ -90796,7 +90796,7 @@
      "weight": "600",
      "seed": "checklist",
      "background": "white",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -90836,7 +90836,7 @@
      "weight": "600",
      "seed": "checklist",
      "background": "white",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -92593,7 +92593,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 16
    }
   },
@@ -92780,7 +92780,7 @@
      "reducedMotion": false,
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -92808,7 +92808,7 @@
      "reducedMotion": false,
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -94114,7 +94114,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 17
    }
   },
@@ -94338,7 +94338,7 @@
      ],
      "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -94403,7 +94403,7 @@
      ],
      "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -95598,7 +95598,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 12
    }
   },
@@ -95812,7 +95812,7 @@
      "baselineColor": "#27272a",
      "labelColor": "#a1a1aa",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -95867,7 +95867,7 @@
      "baselineColor": "#27272a",
      "labelColor": "#a1a1aa",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -97051,7 +97051,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -97241,7 +97241,7 @@
      "width": 1000,
      "height": 500,
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -97272,7 +97272,7 @@
      "width": 1000,
      "height": 500,
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -98098,7 +98098,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -98276,7 +98276,7 @@
      "color": "#171717",
      "background": "white",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -98295,7 +98295,7 @@
      "color": "#171717",
      "background": "white",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -98974,7 +98974,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 8
    }
   },
@@ -99157,7 +99157,7 @@
      "password": "••••••••",
      "createLabel": "Create account",
      "toastTitle": "Account created",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -99181,7 +99181,7 @@
      "password": "••••••••",
      "createLabel": "Create account",
      "toastTitle": "Account created",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -99870,7 +99870,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -100054,7 +100054,7 @@
       "infra is unblocked before the team scales next quarter."
      ],
      "toastTitle": "Response ready",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -100079,7 +100079,7 @@
       "infra is unblocked before the team scales next quarter."
      ],
      "toastTitle": "Response ready",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -100519,7 +100519,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 7
    }
   },
@@ -100722,7 +100722,7 @@
      ],
      "autoplay": true,
      "pressedIndex": -1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -100766,7 +100766,7 @@
      ],
      "autoplay": true,
      "pressedIndex": -1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -101748,7 +101748,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -101940,7 +101940,7 @@
      "lightIntensity": 1,
      "music": "",
      "musicVolume": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -101973,7 +101973,7 @@
      "lightIntensity": 1,
      "music": "",
      "musicVolume": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -103266,7 +103266,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 16
    }
   },
@@ -103481,7 +103481,7 @@
      "logoSrc": "",
      "music": "",
      "musicVolume": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -103537,7 +103537,7 @@
      "logoSrc": "",
      "music": "",
      "musicVolume": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -107207,7 +107207,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 41
    }
   },
@@ -107400,7 +107400,7 @@
      "indicatorColor": "#30D158",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -107434,7 +107434,7 @@
      "indicatorColor": "#30D158",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -109030,7 +109030,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 20
    }
   },
@@ -109221,7 +109221,7 @@
      },
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -109253,7 +109253,7 @@
      },
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -110678,7 +110678,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 18
    }
   },
@@ -110882,7 +110882,7 @@
       }
      ],
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -110927,7 +110927,7 @@
       }
      ],
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -112570,7 +112570,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 16
    }
   },
@@ -112759,7 +112759,7 @@
      "inkColor": "#ffffff",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -112789,7 +112789,7 @@
      "inkColor": "#ffffff",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -114402,7 +114402,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 19
    }
   },
@@ -114609,7 +114609,7 @@
      },
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -114657,7 +114657,7 @@
      },
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -118134,7 +118134,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 34
    }
   },
@@ -118336,7 +118336,7 @@
      "background": "",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -118379,7 +118379,7 @@
      "background": "",
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -121087,7 +121087,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 29
    }
   },
@@ -121285,7 +121285,7 @@
      },
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -121324,7 +121324,7 @@
      },
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -123928,7 +123928,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 25
    }
   },
@@ -124137,7 +124137,7 @@
      ],
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -124187,7 +124187,7 @@
      ],
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -125194,7 +125194,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -125453,7 +125453,7 @@
      ],
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -125553,7 +125553,7 @@
      ],
      "fontFamily": "",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -128525,7 +128525,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 25
    }
   },
@@ -128705,7 +128705,7 @@
       "colors": {}
      },
      "fontFamily": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -128726,7 +128726,7 @@
       "colors": {}
      },
      "fontFamily": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -129148,7 +129148,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 7
    }
   },
@@ -129333,7 +129333,7 @@
      "speed": 1,
      "showDelta": true,
      "backgroundColor": "",
-     "clipDuration": 123.0,
+     "clipDuration": 123,
      "envelope": {}
     }
    }
@@ -129359,7 +129359,7 @@
      "speed": 1,
      "showDelta": true,
      "backgroundColor": "",
-     "clipDuration": 123.0,
+     "clipDuration": 123,
      "envelope": {}
     }
    }
@@ -130649,7 +130649,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 123.0,
+    "value": 123,
     "keys": 15
    }
   },
@@ -130872,7 +130872,7 @@
      "accentColor": "",
      "backgroundColor": "",
      "theme": "dark",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -130936,7 +130936,7 @@
      "accentColor": "",
      "backgroundColor": "",
      "theme": "dark",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -131739,7 +131739,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 9
    }
   },
@@ -131945,7 +131945,7 @@
      "inkColor": "#fafafa",
      "labelColor": "rgba(250,250,250,0.55)",
      "dropoffColor": "#f472b6",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -131992,7 +131992,7 @@
      "inkColor": "#fafafa",
      "labelColor": "rgba(250,250,250,0.55)",
      "dropoffColor": "#f472b6",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -133327,7 +133327,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 15
    }
   },
@@ -133535,7 +133535,7 @@
      "inkColor": "#fafafa",
      "upColor": "#2dd4bf",
      "downColor": "#f87171",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -133584,7 +133584,7 @@
      "inkColor": "#fafafa",
      "upColor": "#2dd4bf",
      "downColor": "#f87171",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -134923,7 +134923,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 16
    }
   },
@@ -135134,7 +135134,7 @@
      "pairOffsetInFrames": 6,
      "barInkColor": "#0b0b10",
      "labelColor": "rgba(250,250,250,0.55)",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -135186,7 +135186,7 @@
      "pairOffsetInFrames": 6,
      "barInkColor": "#0b0b10",
      "labelColor": "rgba(250,250,250,0.55)",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -136667,7 +136667,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 17
    }
   },
@@ -136933,7 +136933,7 @@
      "inkColor": "#fafafa",
      "barInkColor": "#0b0b10",
      "labelColor": "rgba(250,250,250,0.55)",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -137040,7 +137040,7 @@
      "inkColor": "#fafafa",
      "barInkColor": "#0b0b10",
      "labelColor": "rgba(250,250,250,0.55)",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -138443,7 +138443,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 15
    }
   },
@@ -138629,7 +138629,7 @@
      "trackColor": "rgba(250,250,250,0.10)",
      "inkColor": "#fafafa",
      "labelColor": "rgba(250,250,250,0.58)",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -138656,7 +138656,7 @@
      "trackColor": "rgba(250,250,250,0.10)",
      "inkColor": "#fafafa",
      "labelColor": "rgba(250,250,250,0.58)",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -139933,7 +139933,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 16
    }
   },
@@ -140200,7 +140200,7 @@
      "dataColor": "#2dd4bf",
      "timelineColor": "#f59e0b",
      "backgroundColor": "",
-     "clipDuration": 420.0,
+     "clipDuration": 420,
      "envelope": {}
     }
    }
@@ -140308,7 +140308,7 @@
      "dataColor": "#2dd4bf",
      "timelineColor": "#f59e0b",
      "backgroundColor": "",
-     "clipDuration": 420.0,
+     "clipDuration": 420,
      "envelope": {}
     }
    }
@@ -142469,7 +142469,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 420.0,
+    "value": 420,
     "keys": 19
    }
   },
@@ -142649,7 +142649,7 @@
      "textColor": "#f4f4f5",
      "viewBox": "",
      "fill": "",
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -142670,7 +142670,7 @@
      "textColor": "#f4f4f5",
      "viewBox": "",
      "fill": "",
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -143630,7 +143630,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 120.0,
+    "value": 120,
     "keys": 10
    }
   },
@@ -143824,7 +143824,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -143859,7 +143859,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -145411,7 +145411,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 18
    }
   },
@@ -145647,7 +145647,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -145724,7 +145724,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -147068,7 +147068,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 13
    }
   },
@@ -147274,7 +147274,7 @@
      "kindFixed": "",
      "kindChanged": "",
      "kindRemoved": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -147321,7 +147321,7 @@
      "kindFixed": "",
      "kindChanged": "",
      "kindRemoved": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -148656,7 +148656,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 15
    }
   },
@@ -148873,7 +148873,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -148931,7 +148931,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -150176,7 +150176,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 14
    }
   },
@@ -150362,7 +150362,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -150389,7 +150389,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -151513,7 +151513,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 13
    }
   },
@@ -151697,7 +151697,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -151722,7 +151722,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -152567,7 +152567,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 12
    }
   },
@@ -152747,7 +152747,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -152768,7 +152768,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -153520,7 +153520,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -153745,7 +153745,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -153811,7 +153811,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -154784,7 +154784,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -154972,7 +154972,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -155001,7 +155001,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -155726,7 +155726,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -155914,7 +155914,7 @@
      "speed": 1,
      "uploadingLabel": "Uploading",
      "backgroundColor": "",
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -155943,7 +155943,7 @@
      "speed": 1,
      "uploadingLabel": "Uploading",
      "backgroundColor": "",
-     "clipDuration": 150.0,
+     "clipDuration": 150,
      "envelope": {}
     }
    }
@@ -157122,7 +157122,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150.0,
+    "value": 150,
     "keys": 15
    }
   },
@@ -157342,7 +157342,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -157403,7 +157403,7 @@
      "theme": "dark",
      "speed": 1,
      "backgroundColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -158458,7 +158458,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -158664,7 +158664,7 @@
      "accentColor": "#E8B86D",
      "theme": "dark",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -158711,7 +158711,7 @@
      "accentColor": "#E8B86D",
      "theme": "dark",
      "speed": 1,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -159544,7 +159544,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 11
    }
   },
@@ -159724,7 +159724,7 @@
      "backgroundColor": "#080810",
      "accentColor": "#e8b86d",
      "textColor": "#f8fafc",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -159745,7 +159745,7 @@
      "backgroundColor": "#080810",
      "accentColor": "#e8b86d",
      "textColor": "#f8fafc",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -160419,7 +160419,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -160599,7 +160599,7 @@
      "phoneLabel": "Phone",
      "tabletLabel": "Tablet",
      "laptopLabel": "Laptop",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -160620,7 +160620,7 @@
      "phoneLabel": "Phone",
      "tabletLabel": "Tablet",
      "laptopLabel": "Laptop",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -161355,7 +161355,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 10
    }
   },
@@ -161537,7 +161537,7 @@
      "seed": "handwriting",
      "color": "#f4f4f5",
      "fontWeight": "600",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -161560,7 +161560,7 @@
      "seed": "handwriting",
      "color": "#f4f4f5",
      "fontWeight": "600",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -162483,7 +162483,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 12
    }
   },
@@ -162668,7 +162668,7 @@
      "color": "#fdf2f8",
      "fontWeight": "600",
      "offColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -162694,7 +162694,7 @@
      "color": "#fdf2f8",
      "fontWeight": "600",
      "offColor": "",
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -163764,7 +163764,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 15
    }
   },
@@ -163947,7 +163947,7 @@
      "fontWeight": 800,
      "letterSpacing": 0,
      "lineHeight": 0.98,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -163971,7 +163971,7 @@
      "fontWeight": 800,
      "letterSpacing": 0,
      "lineHeight": 0.98,
-     "clipDuration": 0.0,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -165011,7 +165011,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 13
    }
   },
@@ -165200,7 +165200,7 @@
      "horizonGlow": 0.5,
      "striation": 0.55,
      "seed": 1,
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -165230,7 +165230,7 @@
      "horizonGlow": 0.5,
      "striation": 0.55,
      "seed": 1,
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -166357,7 +166357,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 120.0,
+    "value": 120,
     "keys": 15
    }
   },
@@ -166541,7 +166541,7 @@
      "intensity": 1,
      "glow": 1.6,
      "seed": 1,
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -166566,7 +166566,7 @@
      "intensity": 1,
      "glow": 1.6,
      "seed": 1,
-     "clipDuration": 120.0,
+     "clipDuration": 120,
      "envelope": {}
     }
    }
@@ -167597,7 +167597,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 120.0,
+    "value": 120,
     "keys": 14
    }
   },
@@ -167769,7 +167769,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "durationInFrames": 15.0,
+     "durationInFrames": 15,
      "keepWhole": false
     }
    }
@@ -167782,7 +167782,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "durationInFrames": 15.0,
+     "durationInFrames": 15,
      "keepWhole": false
     }
    }
@@ -167796,7 +167796,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 15.0,
+    "value": 15,
     "keys": 2
    }
   },
@@ -167956,7 +167956,7 @@
     "ok": true,
     "data": {
      "direction": "from-right",
-     "durationInFrames": 20.0,
+     "durationInFrames": 20,
      "keepWhole": false
     }
    }
@@ -167970,7 +167970,7 @@
     "ok": true,
     "data": {
      "direction": "from-right",
-     "durationInFrames": 20.0,
+     "durationInFrames": 20,
      "keepWhole": false
     }
    }
@@ -168033,7 +168033,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 20.0,
+    "value": 20,
     "keys": 3
    }
   },
@@ -168193,7 +168193,7 @@
     "ok": true,
     "data": {
      "direction": "from-left",
-     "durationInFrames": 20.0,
+     "durationInFrames": 20,
      "keepWhole": false
     }
    }
@@ -168207,7 +168207,7 @@
     "ok": true,
     "data": {
      "direction": "from-left",
-     "durationInFrames": 20.0,
+     "durationInFrames": 20,
      "keepWhole": false
     }
    }
@@ -168270,7 +168270,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 20.0,
+    "value": 20,
     "keys": 3
    }
   },
@@ -168430,7 +168430,7 @@
     "ok": true,
     "data": {
      "direction": "from-right",
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -168444,7 +168444,7 @@
     "ok": true,
     "data": {
      "direction": "from-right",
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -168507,7 +168507,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 3
    }
   },
@@ -168666,7 +168666,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -168679,7 +168679,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -168693,7 +168693,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 2
    }
   },
@@ -168852,7 +168852,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -168865,7 +168865,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -168879,7 +168879,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 2
    }
   },
@@ -169040,7 +169040,7 @@
     "data": {
      "direction": "left",
      "blur": 24,
-     "durationInFrames": 114.0,
+     "durationInFrames": 114,
      "keepWhole": false
     }
    }
@@ -169055,7 +169055,7 @@
     "data": {
      "direction": "left",
      "blur": 24,
-     "durationInFrames": 114.0,
+     "durationInFrames": 114,
      "keepWhole": false
     }
    }
@@ -169242,7 +169242,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 114.0,
+    "value": 114,
     "keys": 4
    }
   },
@@ -169403,7 +169403,7 @@
     "data": {
      "zoom": 2.4,
      "blur": 14,
-     "durationInFrames": 112.0,
+     "durationInFrames": 112,
      "keepWhole": false
     }
    }
@@ -169418,7 +169418,7 @@
     "data": {
      "zoom": 2.4,
      "blur": 14,
-     "durationInFrames": 112.0,
+     "durationInFrames": 112,
      "keepWhole": false
     }
    }
@@ -169679,7 +169679,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 112.0,
+    "value": 112,
     "keys": 4
    }
   },
@@ -169840,7 +169840,7 @@
     "data": {
      "blur": 16,
      "rise": 0,
-     "durationInFrames": 114.0,
+     "durationInFrames": 114,
      "keepWhole": false
     }
    }
@@ -169855,7 +169855,7 @@
     "data": {
      "blur": 16,
      "rise": 0,
-     "durationInFrames": 114.0,
+     "durationInFrames": 114,
      "keepWhole": false
     }
    }
@@ -170117,7 +170117,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 114.0,
+    "value": 114,
     "keys": 4
    }
   },
@@ -170277,7 +170277,7 @@
     "ok": true,
     "data": {
      "blur": 16,
-     "durationInFrames": 114.0,
+     "durationInFrames": 114,
      "keepWhole": false
     }
    }
@@ -170291,7 +170291,7 @@
     "ok": true,
     "data": {
      "blur": 16,
-     "durationInFrames": 114.0,
+     "durationInFrames": 114,
      "keepWhole": false
     }
    }
@@ -170428,7 +170428,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 114.0,
+    "value": 114,
     "keys": 3
    }
   },
@@ -170592,7 +170592,7 @@
      "shakeAmount": 50,
      "shakeTranslatePx": 73,
      "colorSplit": true,
-     "durationInFrames": 112.0,
+     "durationInFrames": 112,
      "keepWhole": false
     }
    }
@@ -170610,7 +170610,7 @@
      "shakeAmount": 50,
      "shakeTranslatePx": 73,
      "colorSplit": true,
-     "durationInFrames": 112.0,
+     "durationInFrames": 112,
      "keepWhole": false
     }
    }
@@ -171155,7 +171155,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 112.0,
+    "value": 112,
     "keys": 7
    }
   },
@@ -171325,7 +171325,7 @@
      ],
      "speed": 1,
      "noise": 0.5,
-     "durationInFrames": 116.0,
+     "durationInFrames": 116,
      "keepWhole": false
     }
    }
@@ -171349,7 +171349,7 @@
      ],
      "speed": 1,
      "noise": 0.5,
-     "durationInFrames": 116.0,
+     "durationInFrames": 116,
      "keepWhole": false
     }
    }
@@ -172173,7 +172173,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 116.0,
+    "value": 116,
     "keys": 9
    }
   },
@@ -172343,7 +172343,7 @@
      ],
      "speed": 1,
      "zoom": 1.16,
-     "durationInFrames": 116.0,
+     "durationInFrames": 116,
      "keepWhole": false
     }
    }
@@ -172367,7 +172367,7 @@
      ],
      "speed": 1,
      "zoom": 1.16,
-     "durationInFrames": 116.0,
+     "durationInFrames": 116,
      "keepWhole": false
     }
    }
@@ -173192,7 +173192,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 116.0,
+    "value": 116,
     "keys": 9
    }
   },
@@ -173357,7 +173357,7 @@
       "#8f88ae"
      ],
      "speed": 1,
-     "durationInFrames": 116.0,
+     "durationInFrames": 116,
      "keepWhole": false
     }
    }
@@ -173376,7 +173376,7 @@
       "#8f88ae"
      ],
      "speed": 1,
-     "durationInFrames": 116.0,
+     "durationInFrames": 116,
      "keepWhole": false
     }
    }
@@ -173788,7 +173788,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 116.0,
+    "value": 116,
     "keys": 6
    }
   },
@@ -173951,7 +173951,7 @@
      "slices": 24,
      "rgbSplit": 1,
      "blockNoise": 0.6,
-     "durationInFrames": 78.0,
+     "durationInFrames": 78,
      "keepWhole": false
     }
    }
@@ -173968,7 +173968,7 @@
      "slices": 24,
      "rgbSplit": 1,
      "blockNoise": 0.6,
-     "durationInFrames": 78.0,
+     "durationInFrames": 78,
      "keepWhole": false
     }
    }
@@ -174477,7 +174477,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 78.0,
+    "value": 78,
     "keys": 6
    }
   },
@@ -174638,7 +174638,7 @@
     "data": {
      "angle": -7,
      "poses": 8,
-     "durationInFrames": 128.0,
+     "durationInFrames": 128,
      "keepWhole": false
     }
    }
@@ -174653,7 +174653,7 @@
     "data": {
      "angle": -7,
      "poses": 8,
-     "durationInFrames": 128.0,
+     "durationInFrames": 128,
      "keepWhole": false
     }
    }
@@ -174914,7 +174914,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 128.0,
+    "value": 128,
     "keys": 4
    }
   },
@@ -175083,7 +175083,7 @@
       "#8f88ae"
      ],
      "speed": 1,
-     "durationInFrames": 116.0,
+     "durationInFrames": 116,
      "keepWhole": false
     }
    }
@@ -175106,7 +175106,7 @@
       "#8f88ae"
      ],
      "speed": 1,
-     "durationInFrames": 116.0,
+     "durationInFrames": 116,
      "keepWhole": false
     }
    }
@@ -175732,7 +175732,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 116.0,
+    "value": 116,
     "keys": 8
    }
   },
@@ -175895,7 +175895,7 @@
      "colorBack": "#141318",
      "colorFront": "#8f88ae",
      "speed": 1.5,
-     "durationInFrames": 100.0,
+     "durationInFrames": 100,
      "keepWhole": false
     }
    }
@@ -175912,7 +175912,7 @@
      "colorBack": "#141318",
      "colorFront": "#8f88ae",
      "speed": 1.5,
-     "durationInFrames": 100.0,
+     "durationInFrames": 100,
      "keepWhole": false
     }
    }
@@ -176269,7 +176269,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 100.0,
+    "value": 100,
     "keys": 6
    }
   },
@@ -176437,7 +176437,7 @@
       "#8f88ae"
      ],
      "speed": 1,
-     "durationInFrames": 116.0,
+     "durationInFrames": 116,
      "keepWhole": false
     }
    }
@@ -176459,7 +176459,7 @@
       "#8f88ae"
      ],
      "speed": 1,
-     "durationInFrames": 116.0,
+     "durationInFrames": 116,
      "keepWhole": false
     }
    }
@@ -177035,7 +177035,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 116.0,
+    "value": 116,
     "keys": 7
    }
   },
@@ -177200,7 +177200,7 @@
      "aberration": 0.5,
      "direction": "reveal",
      "stagger": 0.55,
-     "durationInFrames": 84.0,
+     "durationInFrames": 84,
      "keepWhole": false
     }
    }
@@ -177219,7 +177219,7 @@
      "aberration": 0.5,
      "direction": "reveal",
      "stagger": 0.55,
-     "durationInFrames": 84.0,
+     "durationInFrames": 84,
      "keepWhole": false
     }
    }
@@ -177900,7 +177900,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 84.0,
+    "value": 84,
     "keys": 8
    }
   },
@@ -178064,7 +178064,7 @@
      "order": "from-left",
      "shape": "square",
      "stagger": 0.82,
-     "durationInFrames": 26.0,
+     "durationInFrames": 26,
      "keepWhole": false
     }
    }
@@ -178082,7 +178082,7 @@
      "order": "from-left",
      "shape": "square",
      "stagger": 0.82,
-     "durationInFrames": 26.0,
+     "durationInFrames": 26,
      "keepWhole": false
     }
    }
@@ -178564,7 +178564,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 26.0,
+    "value": 26,
     "keys": 7
    }
   },
@@ -178727,7 +178727,7 @@
      "panelWidth": 0.14,
      "direction": "from-left",
      "frostColor": "rgba(255,255,255,0.12)",
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -178744,7 +178744,7 @@
      "panelWidth": 0.14,
      "direction": "from-left",
      "frostColor": "rgba(255,255,255,0.12)",
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -179042,7 +179042,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 6
    }
   },
@@ -179204,7 +179204,7 @@
      "intensity": 12,
      "axis": "horizontal",
      "slide": 1,
-     "durationInFrames": 14.0,
+     "durationInFrames": 14,
      "keepWhole": false
     }
    }
@@ -179220,7 +179220,7 @@
      "intensity": 12,
      "axis": "horizontal",
      "slide": 1,
-     "durationInFrames": 14.0,
+     "durationInFrames": 14,
      "keepWhole": false
     }
    }
@@ -179433,7 +179433,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 14.0,
+    "value": 14,
     "keys": 5
    }
   },
@@ -179597,7 +179597,7 @@
      "stagger": 0.45,
      "alternate": false,
      "edgeSoftness": 0.06,
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -179615,7 +179615,7 @@
      "stagger": 0.45,
      "alternate": false,
      "edgeSoftness": 0.06,
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -179940,7 +179940,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 7
    }
   },
@@ -180104,7 +180104,7 @@
      "originX": 0.5,
      "originY": 0.5,
      "warp": 0,
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -180122,7 +180122,7 @@
      "originX": 0.5,
      "originY": 0.5,
      "warp": 0,
-     "durationInFrames": 24.0,
+     "durationInFrames": 24,
      "keepWhole": false
     }
    }
@@ -180582,7 +180582,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 7
    }
   },

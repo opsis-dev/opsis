@@ -1,6 +1,8 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::numbers::{signed, whole_signed};
 use opsis_types::timeline::{
     Anchor, AudioEnvelope, AudioItem, AudioRole, EditHandles, LinkedParam, ParamRef, ParamUnit,
+    Sign,
 };
 use opsis_types::values::{AudioValue, ClipValue, CompileValue, MediaKind, MediaValue};
 use opsis_types::workflow::{PortType, WorkflowSettings};
@@ -68,14 +70,14 @@ fn with_source<P>(
 }
 
 struct Timing {
-    from: f64,
-    duration_in_frames: Option<f64>,
+    from: i32,
+    duration_in_frames: Option<u32>,
     looped: Option<bool>,
-    trim_before: Option<f64>,
-    fade_in_frames: Option<f64>,
-    fade_out_frames: Option<f64>,
+    trim_before: Option<u32>,
+    fade_in_frames: Option<u32>,
+    fade_out_frames: Option<u32>,
     anchor: Option<Anchor>,
-    length_frames: Option<f64>,
+    length_frames: Option<u32>,
     keep_music: Option<bool>,
 }
 
@@ -109,18 +111,18 @@ fn sound_item(
     item
 }
 
-fn frames_if_set(duration_ms: f64, fps: f64) -> Option<f64> {
+fn frames_if_set(duration_ms: f64, fps: u32) -> Option<u32> {
     (duration_ms != 0.0).then(|| ms_to_frames(duration_ms, fps))
 }
 
-fn offset_label(offset_ms: i64) -> String {
+fn offset_label(offset_ms: i32) -> String {
     if offset_ms == 0 {
         return String::new();
     }
     format!(
         " {}{}",
-        sign_of(offset_ms as f64, true),
-        format_duration(offset_ms.abs() as f64)
+        sign_of(f64::from(offset_ms), true),
+        format_duration(f64::from(offset_ms.abs()))
     )
 }
 
@@ -160,25 +162,25 @@ pub struct Music {
     #[schemars(description = "Loop")]
     pub r#loop: bool,
     #[schemars(description = "Starts at", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub start_ms: i64,
+    pub start_ms: u32,
     #[schemars(
         description = "Start the song from",
         range(min = 0, max = 600000),
         extend("x-step" = 50, "x-unit" = "ms", "x-help" = "Skips the start of the song.")
     )]
-    pub trim_ms: i64,
+    pub trim_ms: u32,
     #[schemars(
         description = "Play for",
         range(min = 0, max = 3600000),
         extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "To the end", "x-advanced" = true)
     )]
-    pub length_ms: i64,
+    pub length_ms: u32,
     #[default = 800]
     #[schemars(description = "Fade in", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub fade_in_ms: i64,
+    pub fade_in_ms: u32,
     #[default = 1500]
     #[schemars(description = "Fade out", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub fade_out_ms: i64,
+    pub fade_out_ms: u32,
     #[schemars(
         description = "Keyframes",
         extend(
@@ -196,12 +198,12 @@ fn music_handles(node_id: &str) -> EditHandles {
     trim_start.linked = Some(vec![
         LinkedParam {
             param: "startMs".into(),
-            sign: 1.0,
+            sign: Sign::Same,
             if_non_zero: None,
         },
         LinkedParam {
             param: "lengthMs".into(),
-            sign: -1.0,
+            sign: Sign::Opposite,
             if_non_zero: Some(true),
         },
     ]);
@@ -227,7 +229,7 @@ fn music() -> NodeDef {
                 (p.length_ms > 0).then(|| {
                     row(
                         Icon::Clock,
-                        format!("Plays for {}", format_duration(p.length_ms as f64)),
+                        format!("Plays for {}", format_duration(f64::from(p.length_ms))),
                     )
                 }),
             ]
@@ -237,12 +239,12 @@ fn music() -> NodeDef {
             let fps = ctx.settings.fps;
             with_source(ctx, &p.src, |src, media| {
                 let timing = Timing {
-                    from: ms_to_frames_from(p.start_ms as f64, fps, 0.0),
-                    duration_in_frames: frames_if_set(p.length_ms as f64, fps),
+                    from: signed(ms_to_frames_from(f64::from(p.start_ms), fps, 0)),
+                    duration_in_frames: frames_if_set(f64::from(p.length_ms), fps),
                     looped: Some(p.r#loop),
-                    trim_before: frames_if_set(p.trim_ms as f64, fps),
-                    fade_in_frames: frames_if_set(p.fade_in_ms as f64, fps),
-                    fade_out_frames: frames_if_set(p.fade_out_ms as f64, fps),
+                    trim_before: frames_if_set(f64::from(p.trim_ms), fps),
+                    fade_in_frames: frames_if_set(f64::from(p.fade_in_ms), fps),
+                    fade_out_frames: frames_if_set(f64::from(p.fade_out_ms), fps),
                     anchor: None,
                     length_frames: None,
                     keep_music: None,
@@ -256,7 +258,9 @@ fn music() -> NodeDef {
                     timing,
                     music_handles(ctx.node_id),
                 );
-                let duration = frames_if_set(media.and_then(|m| m.duration_ms).unwrap_or(0.0), fps);
+                let duration = media
+                    .and_then(|m| m.duration_ms)
+                    .and_then(|ms| frames_if_set(f64::from(ms), fps));
                 outputs([(
                     AUDIO_PORT,
                     CompileValue::Audio(AudioValue {
@@ -285,7 +289,7 @@ pub struct SoundEffect {
     )]
     pub at_action: String,
     #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "atAction": [""] }))]
-    pub at_ms: i64,
+    pub at_ms: u32,
     #[schemars(
         description = "From the action",
         range(min = -10000, max = 10000),
@@ -296,7 +300,7 @@ pub struct SoundEffect {
             "x-show-if" = { "atAction": ["*"] }
         )
     )]
-    pub offset_ms: i64,
+    pub offset_ms: i32,
     #[default = 1.0]
     #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
     pub volume: f64,
@@ -334,7 +338,7 @@ fn sound_effect() -> NodeDef {
                 Some(if p.at_action.is_empty() {
                     row(
                         Icon::Clock,
-                        format!("At {}", format_duration(p.at_ms as f64)),
+                        format!("At {}", format_duration(f64::from(p.at_ms))),
                     )
                 } else {
                     row(
@@ -349,22 +353,17 @@ fn sound_effect() -> NodeDef {
             let p = &ctx.params;
             let fps = ctx.settings.fps;
             with_source(ctx, &p.src, |src, media| {
+                let builtin_ms = builtin_sound(&src).map(|s| f64::from(s.duration_ms));
                 let length_ms = match media {
-                    Some(m) => m
-                        .duration_ms
-                        .or_else(|| builtin_sound(&src).map(|s| s.duration_ms))
-                        .unwrap_or(0.0),
-                    None => builtin_sound(&src)
-                        .map(|s| s.duration_ms)
-                        .or(p.src_ms)
-                        .unwrap_or(0.0),
+                    Some(m) => m.duration_ms.map(f64::from).or(builtin_ms),
+                    None => builtin_ms.or(p.src_ms),
                 };
                 let on_action = !p.at_action.is_empty();
                 let timing = Timing {
                     from: if on_action {
-                        ms_to_signed_frames(p.offset_ms as f64, fps)
+                        ms_to_signed_frames(f64::from(p.offset_ms), fps)
                     } else {
-                        ms_to_frames_from(p.at_ms as f64, fps, 0.0)
+                        signed(ms_to_frames_from(f64::from(p.at_ms), fps, 0))
                     },
                     duration_in_frames: None,
                     looped: None,
@@ -374,7 +373,7 @@ fn sound_effect() -> NodeDef {
                     anchor: on_action.then(|| Anchor {
                         node_id: p.at_action.clone(),
                     }),
-                    length_frames: frames_if_set(length_ms, fps),
+                    length_frames: length_ms.and_then(|ms| frames_if_set(ms, fps)),
                     keep_music: p.keep_music.then_some(true),
                 };
                 let handles = EditHandles {
@@ -425,7 +424,7 @@ fn anchor_sounds(
                     && m.kind != opsis_types::actions::ActionKind::Chapter
             })?;
             Some(AudioItem {
-                from: (mark.frame.round() + a.from).max(0.0),
+                from: (whole_signed(mark.frame) + a.from).max(0),
                 ..a
             })
         })
@@ -450,12 +449,10 @@ fn add_sound() -> NodeDef {
             with_clip(ctx, |clip| {
                 let items = ctx.input(SOUNDS_PORT).and_then(CompileValue::as_audio).map(|a| a.items.clone()).unwrap_or_default();
                 let placed = anchor_sounds(items, clip, ctx.settings).into_iter().filter_map(|a| {
-                    let remaining = clip.duration_in_frames - a.from;
-                    if remaining < 1.0 {
-                        return None;
-                    }
+                    let remaining = i64::from(clip.duration_in_frames) - i64::from(a.from);
+                    let remaining = u32::try_from(remaining).ok().filter(|r| *r >= 1)?;
                     let length = a.duration_in_frames.map_or(remaining, |d| d.min(remaining));
-                    Some(AudioItem { duration_in_frames: Some(length.max(1.0)), ..a })
+                    Some(AudioItem { duration_in_frames: Some(length.max(1)), ..a })
                 });
                 let mut clip = clip.clone();
                 clip.audio.extend(placed);

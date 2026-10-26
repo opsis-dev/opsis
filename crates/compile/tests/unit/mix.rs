@@ -270,7 +270,7 @@ fn lists_channels_in_connection_order_routed_to_the_default_buses() {
     let fx = &plan.channels.iter().find(|c| c.id == "fx").unwrap().sounds[0];
     assert_eq!(
         (fx.src.as_str(), fx.at, fx.offset, fx.looped),
-        ("app:sfx/whoosh.wav", 60.0, 0.0, false)
+        ("app:sfx/whoosh.wav", 60, 0, false)
     );
 }
 

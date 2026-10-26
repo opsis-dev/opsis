@@ -28,7 +28,7 @@ use crate::limits::MAX_FRAMES;
 use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Outputs, Phase, RowExt, outputs, port, row,
 };
-use crate::params::{ParamSchema, Values, schema_of};
+use crate::params::{ParamSchema, Values, schema_of, whole_number};
 use crate::ports::{IN_PORTS, clip_ports, connected_clips, scene_label};
 use crate::text::plural;
 
@@ -90,7 +90,7 @@ struct SequencerFields {
             "x-help" = "How long the stage stays empty between one scene leaving and the next landing."
         )
     )]
-    gap_frames: i64,
+    gap_frames: u32,
     #[schemars(
         description = "Scene backgrounds",
         extend("x-help" = "A colour behind a scene. It fades into the next scene's colour.", "x-advanced" = true)
@@ -146,7 +146,7 @@ fn clip_duration_field(meta: &ElementMeta) -> Value {
         "type": "integer",
         "minimum": if open { 0 } else { 1 },
         "maximum": MAX_FRAMES,
-        "default": if open { 0.0 } else { meta.default_duration_in_frames },
+        "default": if open { 0 } else { meta.default_duration_in_frames },
         "x-unit": "frames"
     });
     if wrapper {
@@ -208,7 +208,7 @@ fn element_sounds(
     meta: &ElementMeta,
     node_id: &str,
     props: &mut Values,
-    frames: f64,
+    frames: u32,
 ) -> Vec<AudioItem> {
     widget_keys(&meta.schema, "sound")
         .into_iter()
@@ -220,7 +220,7 @@ fn element_sounds(
                 .as_ref()
                 .and_then(Value::as_str)
                 .filter(|s| !s.is_empty())?;
-            let mut item = AudioItem::new(format!("{node_id}:{key}"), project_ref(src), 0.0);
+            let mut item = AudioItem::new(format!("{node_id}:{key}"), project_ref(src), 0);
             item.duration_in_frames = Some(frames);
             item.volume = Some(volume.unwrap_or(1.0));
             item.node_id = Some(node_id.to_owned());
@@ -255,12 +255,9 @@ fn active_camera(params: &Values) -> Option<CameraPath> {
     }
 }
 
-fn split_timing(values: &Values) -> (f64, VisualEnvelope, Values) {
+fn split_timing(values: &Values) -> (u32, VisualEnvelope, Values) {
     let mut params = values.clone();
-    let clip_duration = params
-        .remove(CLIP_DURATION)
-        .and_then(|v| v.as_f64())
-        .unwrap_or(0.0);
+    let clip_duration = whole_number(params.remove(CLIP_DURATION).as_ref()).unwrap_or(0);
     let envelope = params
         .remove(ENVELOPE)
         .and_then(|v| serde_json::from_value(v).ok())
@@ -297,7 +294,7 @@ fn compile_element(
     let camera = active_camera(&params);
     match input.filter(|_| meta.kind == ElementKind::Wrapper) {
         None => {
-            let frames = if clip_duration != 0.0 {
+            let frames = if clip_duration != 0 {
                 clip_duration
             } else {
                 animation_length(meta, &params, fps)
@@ -328,7 +325,7 @@ fn compile_element(
                     }),
                 ..GroupProps::default()
             };
-            let duration = if clip_duration != 0.0 {
+            let duration = if clip_duration != 0 {
                 clip_duration
             } else {
                 input.duration_in_frames
@@ -436,20 +433,17 @@ fn look_row(meta: &ElementMeta, params: &Values) -> Option<CardRow> {
     })
 }
 
-fn duration_row(meta: &ElementMeta, params: &Values, fps: f64, clip_connected: bool) -> CardRow {
-    let duration = params
-        .get(CLIP_DURATION)
-        .and_then(Value::as_f64)
-        .unwrap_or(0.0);
+fn duration_row(meta: &ElementMeta, params: &Values, fps: u32, clip_connected: bool) -> CardRow {
+    let duration = whole_number(params.get(CLIP_DURATION)).unwrap_or(0);
     if meta.kind == ElementKind::Wrapper && (clip_connected || !meta.optional_clip) {
-        return if duration != 0.0 {
+        return if duration != 0 {
             row(Icon::Clock, frame_secs(duration, fps))
         } else {
             row(Icon::Clock, "Matches the clip").tone(Tone::Muted)
         };
     }
     let usual = animation_length(meta, params, fps);
-    if duration > 0.0 && duration < SHORT_ELEMENT_RATIO * usual {
+    if duration > 0 && f64::from(duration) < SHORT_ELEMENT_RATIO * f64::from(usual) {
         return row(
             Icon::Clock,
             format!(
@@ -463,14 +457,14 @@ fn duration_row(meta: &ElementMeta, params: &Values, fps: f64, clip_connected: b
     }
     row(
         Icon::Clock,
-        frame_secs(if duration != 0.0 { duration } else { usual }, fps),
+        frame_secs(if duration != 0 { duration } else { usual }, fps),
     )
 }
 
 fn element_card(
     meta: &ElementMeta,
     params: &Values,
-    fps: f64,
+    fps: u32,
     clip_connected: bool,
 ) -> Vec<CardRow> {
     let text_of = |k: &str| {
@@ -562,27 +556,27 @@ fn sequencer_card(ctx: &CardCtx<'_, Values>) -> Vec<Option<CardRow>> {
         .copied()
         .filter(|p| ctx.connected(p))
         .collect();
-    let items: Vec<f64> = ports
+    let items: Vec<usize> = ports
         .iter()
-        .map(|p| ctx.inputs.items.get(*p).copied().unwrap_or(1.0))
+        .map(|p| ctx.inputs.items.get(*p).copied().unwrap_or(1))
         .collect();
     let gap = ctx
         .values
         .get("gapFrames")
-        .and_then(Value::as_f64)
-        .unwrap_or(0.0);
+        .and_then(|gap| whole_number(Some(gap)))
+        .unwrap_or(0);
     vec![
         Some(
             row(Icon::Clapperboard, plural(ports.len() as f64, "scene")).warn_if(ports.is_empty()),
         ),
-        items.iter().any(|n| *n > 1.0).then(|| {
+        items.iter().any(|n| *n > 1).then(|| {
             let shown: Vec<String> = items.iter().map(|n| (*n).to_string()).collect();
             row(
                 Icon::Layers,
                 format!("Items per scene: {}", shown.join(" · ")),
             )
         }),
-        (gap > 0.0).then(|| {
+        (gap > 0).then(|| {
             row(
                 Icon::Timer,
                 format!("{} between scenes", frame_secs(gap, ctx.fps())),
@@ -590,7 +584,7 @@ fn sequencer_card(ctx: &CardCtx<'_, Values>) -> Vec<Option<CardRow>> {
         }),
         ctx.inputs
             .clip_frames
-            .filter(|f| *f != 0.0)
+            .filter(|f| *f != 0)
             .map(|f| row(Icon::Clock, frame_secs(f, ctx.fps()))),
     ]
 }
@@ -602,10 +596,7 @@ fn compile_sequencer(
     ctx_inputs: &crate::node::Inputs,
 ) -> ClipValue {
     let mut params = values.clone();
-    let gap = params
-        .remove("gapFrames")
-        .and_then(|v| v.as_f64())
-        .unwrap_or(0.0);
+    let gap = whole_number(params.remove("gapFrames").as_ref()).unwrap_or(0);
     let backgrounds: Vec<SceneBackground> = params
         .remove("backgrounds")
         .and_then(|v| serde_json::from_value(v).ok())

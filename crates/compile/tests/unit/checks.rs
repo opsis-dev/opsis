@@ -12,17 +12,16 @@ use serde_json::{Value, json};
 use crate::helpers::template;
 
 #[test]
-fn writes_sizes_in_binary_units_and_nothing_for_unknown_ones() {
+fn writes_sizes_in_binary_units() {
     assert_eq!(
         [
-            format_bytes(512.0),
-            format_bytes(2048.0),
-            format_bytes(5_242_880.0),
-            format_bytes(3.0 * 1024f64.powi(3))
+            format_bytes(512),
+            format_bytes(2048),
+            format_bytes(5_242_880),
+            format_bytes(3 * 1024u64.pow(3))
         ],
         ["512 B", "2.0 KB", "5.0 MB", "3.0 GB"]
     );
-    assert_eq!([format_bytes(-1.0), format_bytes(f64::NAN)], ["", ""]);
 }
 
 #[test]
@@ -135,8 +134,8 @@ fn accepts(item: Value) -> bool {
 fn recording_props() -> Value {
     let log = ActionLog {
         viewport: Viewport {
-            width: 1280.0,
-            height: 720.0,
+            width: 1280,
+            height: 720,
         },
         dpr: 1.0,
         t0: 0.0,

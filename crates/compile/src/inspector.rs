@@ -1,6 +1,8 @@
 use indexmap::IndexMap;
 use opsis_types::actions::Viewport;
-use opsis_types::values::{BrowserSessionValue, CompileValue, MediaKind, NodeResult};
+use opsis_types::values::{
+    BrowserAction, BrowserSessionValue, CompileValue, MediaKind, NodeResult,
+};
 use opsis_types::workflow::Workflow;
 use serde::Serialize;
 use serde_json::Value;
@@ -9,13 +11,12 @@ use crate::color::project_swatches;
 use crate::compile::CompileResult;
 use crate::graph::{downstream_of, session_into, upstream_of};
 use crate::node::{Category, SESSION_PORT};
+use crate::nodes::media::APPLY_GRADE_TYPE;
 use crate::ports::{IN_PORTS, convert_input};
 use crate::registry::{node_def, node_name};
 use crate::vars::{PROJECT_NAME_VAR, SITE_ADDRESS_VAR, interpolate_text, workflow_vars};
 
 const NO_PAGE: &str = "Add a Go to page action before this one, so there's a page to pick from.";
-const NAVIGATE: &str = "browser.navigate";
-const APPLY_GRADE: &str = "media.applyGrade";
 const MAX_SWATCHES: usize = 16;
 
 #[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
@@ -100,7 +101,7 @@ fn recording_before(
 
 fn graded_file(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Option<SpotBackground> {
     let later = downstream_of(wf, node_id);
-    let media_port = node_def(APPLY_GRADE).and_then(|d| {
+    let media_port = node_def(APPLY_GRADE_TYPE).and_then(|d| {
         d.inputs
             .iter()
             .find(|(name, _)| *name == "media")
@@ -108,7 +109,7 @@ fn graded_file(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Option
     });
     wf.nodes
         .iter()
-        .filter(|n| n.kind == APPLY_GRADE && later.contains(&n.id))
+        .filter(|n| n.kind == APPLY_GRADE_TYPE && later.contains(&n.id))
         .find_map(|apply| {
             let edge = wf
                 .edges
@@ -123,7 +124,7 @@ fn graded_file(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Option
                     media.src.map(|src| SpotBackground {
                         src,
                         time_ms: 0.0,
-                        duration_ms: media.duration_ms.unwrap_or(0.0),
+                        duration_ms: media.duration_ms.map_or(0.0, f64::from),
                         still: media.kind == MediaKind::Image,
                     })
                 }
@@ -169,14 +170,22 @@ fn session_at<'a>(
     }
 }
 
-fn number(params: &serde_json::Map<String, Value>, key: &str) -> Option<f64> {
-    params.get(key).and_then(Value::as_f64)
+fn pixels(params: &serde_json::Map<String, Value>, key: &str) -> Option<u32> {
+    params
+        .get(key)
+        .and_then(Value::as_u64)
+        .and_then(|n| u32::try_from(n).ok())
 }
 
 fn picker_target(wf: &Workflow, compiled: &CompileResult, node_id: &str) -> PickerTarget {
     let session = session_at(wf, compiled, node_id);
     let navigated = session
-        .and_then(|s| s.steps.iter().rev().find(|step| step.kind == NAVIGATE))
+        .and_then(|s| {
+            s.steps
+                .iter()
+                .rev()
+                .find(|step| step.kind == BrowserAction::Navigate)
+        })
         .and_then(|step| {
             step.params
                 .get("url")
@@ -190,8 +199,8 @@ fn picker_target(wf: &Workflow, compiled: &CompileResult, node_id: &str) -> Pick
     };
     let viewport = session.and_then(|s| {
         Some(Viewport {
-            width: number(&s.browser.params, "viewportWidth")?,
-            height: number(&s.browser.params, "viewportHeight")?,
+            width: pixels(&s.browser.params, "viewportWidth")?,
+            height: pixels(&s.browser.params, "viewportHeight")?,
         })
     });
     PickerTarget::Page(PickerPage {

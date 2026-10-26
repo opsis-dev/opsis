@@ -98,13 +98,8 @@ impl RunState {
         });
     }
 
-    fn hash_of(&self, id: &str) -> String {
-        self.hashes
-            .lock()
-            .expect("hashes")
-            .get(id)
-            .cloned()
-            .unwrap_or_default()
+    fn hash_of(&self, id: &str) -> Option<String> {
+        self.hashes.lock().expect("hashes").get(id).cloned()
     }
 
     fn rekey(&self) {
@@ -172,7 +167,9 @@ impl RunState {
     }
 
     fn reuse_cached(&self, job: &Job) -> bool {
-        let hash = self.hash_of(&job.node.id);
+        let Some(hash) = self.hash_of(&job.node.id) else {
+            return false;
+        };
         let cached = match read_cached(&self.cache_dir, &hash, &self.project_dir) {
             Ok(Some(cached)) => cached,
             Ok(None) => return false,
@@ -268,16 +265,24 @@ impl RunState {
             node_id: job.node.id.clone(),
             at: started,
         });
-        let hash = self.hash_of(&job.node.id);
+        let hash = self.hash_of(&job.node.id).ok_or_else(|| {
+            ExecError::new(format!(
+                "“{}” has no key to save its result under.",
+                job.node.id
+            ))
+        })?;
         let dir = self.cache_dir.join(&hash);
         std::fs::create_dir_all(&dir)?;
+        let rel_dir = to_posix_rel(&self.project_dir, &dir).ok_or_else(|| {
+            ExecError::new(format!("{} isn't inside the project.", dir.display()))
+        })?;
         let ctx = Arc::new(ExecutorContext {
             run_id: self.run_id.clone(),
             node: job.node.clone(),
             workflow: Arc::clone(&self.workflow),
             env: Arc::clone(&self.deps.env),
             project_dir: self.project_dir.clone(),
-            rel_dir: to_posix_rel(&self.project_dir, &dir).unwrap_or_default(),
+            rel_dir,
             dir,
             out_dir: self.out_dir.clone(),
             hash: hash.clone(),
@@ -292,7 +297,7 @@ impl RunState {
         let mut artifacts = out.artifacts;
         for artifact in &mut artifacts {
             match std::fs::metadata(self.project_dir.join(&artifact.path)) {
-                Ok(meta) => artifact.bytes = Some(meta.len() as f64),
+                Ok(meta) => artifact.bytes = Some(meta.len()),
                 Err(error) => self.log(
                     LogLevel::Warn,
                     format!("Couldn't read {}: {error}", artifact.name()),
@@ -306,13 +311,14 @@ impl RunState {
             outputs: out.outputs,
             artifacts,
             finished_at: finished,
-            duration_ms: finished - started,
+            duration_ms: u64::try_from(finished - started).unwrap_or(0),
             trace_id: out.trace_id,
         };
         if !job.def.secret_params.is_empty() {
             self.rekey();
-            let fresh = self.hash_of(&job.node.id);
-            if fresh != result.hash {
+            if let Some(fresh) = self.hash_of(&job.node.id)
+                && fresh != result.hash
+            {
                 if let Err(error) = std::fs::remove_dir(self.cache_dir.join(&result.hash)) {
                     log::debug!("kept {}: {error}", result.hash);
                 }
@@ -505,7 +511,7 @@ pub async fn run_workflow(run_id: &str, req: RunRequest, deps: RunDeps) {
     let vars = Arc::new(workflow_vars(&workflow.name, &workflow.variables));
     let previous = match read_last_run(&project_dir) {
         Ok(read) => read.unwrap_or(LastRun {
-            updated_at: 0.0,
+            updated_at: 0,
             nodes: IndexMap::new(),
             failures: None,
         }),
@@ -534,7 +540,7 @@ pub async fn run_workflow(run_id: &str, req: RunRequest, deps: RunDeps) {
     });
     state.rekey();
     for (id, result) in &previous.nodes {
-        if state.hash_of(id) == result.hash {
+        if state.hash_of(id).as_deref() == Some(result.hash.as_str()) {
             state.store.set(id, result.clone());
         }
     }

@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
+use crate::clock::wall_ms;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 use chromiumoxide::cdp::browser_protocol::page::EventScreencastFrame;
 use futures::StreamExt;
-use opsis_runner::context::now_ms;
 use opsis_types::actions::Viewport;
 use serde_json::json;
 use tokio::task::JoinHandle;
@@ -14,7 +14,7 @@ use crate::encoder::FrameFeed;
 use crate::live::FrameSink;
 use crate::trace::Trace;
 
-pub const DEFAULT_FRAME_QUALITY: i64 = 80;
+pub const DEFAULT_FRAME_QUALITY: u32 = 80;
 
 #[derive(Default)]
 pub struct FrameSinks {
@@ -27,15 +27,15 @@ pub struct Screencast {
     task: JoinHandle<()>,
 }
 
-fn even(px: f64) -> i64 {
-    (px as i64) & !1
+fn even(px: u32) -> u32 {
+    px & !1
 }
 
 impl Screencast {
     pub async fn start(
         tab: &Arc<Tab>,
         size: Viewport,
-        quality: i64,
+        quality: u32,
         sinks: FrameSinks,
     ) -> Result<Self> {
         let mut frames = tab.page.event_listener::<EventScreencastFrame>().await?;
@@ -59,7 +59,7 @@ impl Screencast {
                     .metadata
                     .timestamp
                     .as_ref()
-                    .map_or_else(now_ms, |s| *s.inner() * 1000.0);
+                    .map_or_else(wall_ms, |s| *s.inner() * 1000.0);
                 if let Some(view) = &sinks.view {
                     view.frame(
                         &jpeg,

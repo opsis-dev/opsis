@@ -72,7 +72,7 @@ fn compiles_the_sample_to_one_spec_per_export_with_a_placeholder_before_the_firs
     let out = compile_workflow(&todo_mvc(), None);
     assert!(out.errors.is_empty(), "{:?}", out.errors);
     let spec = &out.specs["render"];
-    assert_eq!(spec.width, 1920.0);
+    assert_eq!(spec.width, 1920);
     let components: Vec<String> = items_of(spec)
         .iter()
         .map(|i| match i {
@@ -193,7 +193,7 @@ fn trims_speeds_and_bypasses_through_groups() {
             trimmed.duration_in_frames,
             group_value(&trimmed.tracks[0].items[0])["startFrom"].clone()
         ),
-        (30.0, json!(30.0))
+        (30, json!(30))
     );
     let (wf, last) = title_workflow(|g| {
         g.node("speed", "timeline.speed", json!({ "rate": 2 }));
@@ -206,7 +206,7 @@ fn trims_speeds_and_bypasses_through_groups() {
             sped.duration_in_frames,
             group_value(&sped.tracks[0].items[0])["remap"].clone()
         ),
-        (45.0, json!([[0.0, 0.0], [45.0, 90.0]]))
+        (45, json!([[0.0, 0.0], [45.0, 90.0]]))
     );
     let (mut wf, last) = title_workflow(|g| {
         g.node("loop", "timeline.loop", json!({ "times": 3 }));
@@ -220,7 +220,7 @@ fn trims_speeds_and_bypasses_through_groups() {
         .disabled = Some(true);
     assert_eq!(
         clip(&compile_workflow(&wf, None), &last).duration_in_frames,
-        90.0
+        90
     );
 }
 
@@ -239,13 +239,13 @@ fn reports_invalid_params_per_node_and_previews_the_selected_nodes_clip() {
     });
     let out = compile_workflow(&wf, None);
     let selected = preview_spec(&wf.settings, &out, Some("title")).unwrap();
-    assert_eq!(selected.spec.duration_in_frames, 90.0);
+    assert_eq!(selected.spec.duration_in_frames, 90);
     assert_eq!(
         preview_spec(&wf.settings, &out, None)
             .unwrap()
             .spec
             .duration_in_frames,
-        180.0
+        180
     );
     assert_eq!(
         (selected.spans["title"].from, selected.spans["title"].to),
@@ -268,10 +268,7 @@ fn wraps_layers_that_keep_their_layout_in_a_box_at_the_projects_size() {
         .shift_remove("out")
         .unwrap();
     let props = group_value(&spec.tracks[0].items[0]);
-    assert_eq!(
-        props["design"],
-        json!({ "width": 1920.0, "height": 1080.0 })
-    );
+    assert_eq!(props["design"], json!({ "width": 1920, "height": 1080 }));
     assert_eq!(props["tracks"].as_array().unwrap().len(), 2);
     let mut ids: Vec<String> = flatten_spec(&spec)
         .bars
@@ -338,7 +335,7 @@ fn takes_any_number_of_sounds_and_plays_a_pinned_one_on_its_action() {
         .iter()
         .find(|a| a.node_id.as_deref() == Some("pinned"))
         .unwrap();
-    assert_eq!(sound.from, mark.frame.round() - 6.0);
+    assert_eq!(f64::from(sound.from), mark.frame.round() - 6.0);
 }
 
 fn sequence(cuts: Value, ports: &[&str]) -> Vec<TimelineItem> {
@@ -359,7 +356,7 @@ fn sequence(cuts: Value, ports: &[&str]) -> Vec<TimelineItem> {
         .clone()
 }
 
-fn enters(items: &[TimelineItem]) -> Vec<Option<(String, f64, bool)>> {
+fn enters(items: &[TimelineItem]) -> Vec<Option<(String, u32, bool)>> {
     items
         .iter()
         .map(|i| {
@@ -371,7 +368,7 @@ fn enters(items: &[TimelineItem]) -> Vec<Option<(String, f64, bool)>> {
         .collect()
 }
 
-fn cut(kind: &str, frames: f64, hold: bool) -> Option<(String, f64, bool)> {
+fn cut(kind: &str, frames: u32, hold: bool) -> Option<(String, u32, bool)> {
     Some((kind.to_owned(), frames, hold))
 }
 
@@ -386,8 +383,8 @@ fn uses_each_cuts_own_transition_a_plain_cut_for_none_and_the_last_entry_for_a_p
         enters(&items),
         [
             None,
-            cut("core/fade", 10.0, false),
-            cut("core/wipe", 20.0, true)
+            cut("core/fade", 10, false),
+            cut("core/wipe", 20, true)
         ]
     );
     assert_eq!(items[1].base().exit.as_ref().unwrap().kind, "core/wipe");
@@ -395,7 +392,7 @@ fn uses_each_cuts_own_transition_a_plain_cut_for_none_and_the_last_entry_for_a_p
         json!([{ "before": "in2", "transition": "none", "transitionDuration": 15 }]),
         &three,
     );
-    assert_eq!(enters(&items), [None, None, cut("core/fade", 10.0, false)]);
+    assert_eq!(enters(&items), [None, None, cut("core/fade", 10, false)]);
     let items = sequence(
         json!([
             { "before": "in5", "transition": "core/wipe", "transitionDuration": 20 },
@@ -404,7 +401,7 @@ fn uses_each_cuts_own_transition_a_plain_cut_for_none_and_the_last_entry_for_a_p
         ]),
         &["in1", "in2"],
     );
-    assert_eq!(enters(&items), [None, cut("core/iris", 8.0, false)]);
+    assert_eq!(enters(&items), [None, cut("core/iris", 8, false)]);
 }
 
 #[test]
@@ -433,8 +430,8 @@ fn joins_sound_effects_on_one_port_and_wont_take_a_file_as_a_sound() {
             .map(|a| (a.src.as_str(), a.from))
             .collect::<Vec<_>>(),
         [
-            ("project:assets/click.wav", 0.0),
-            ("project:assets/whoosh.wav", 15.0)
+            ("project:assets/click.wav", 0),
+            ("project:assets/whoosh.wav", 15)
         ]
     );
     let mut g = Graph::default();
@@ -476,7 +473,7 @@ fn hands_a_screenshot_and_a_recording_to_the_file_tools_as_files() {
     let value = |id: &str| serde_json::to_value(&out.values[id]["media"]).unwrap();
     assert_eq!(
         value("trim"),
-        json!({ "type": "media", "kind": "image", "src": "project:shot.png", "width": 800.0, "height": 600.0 })
+        json!({ "type": "media", "kind": "image", "src": "project:shot.png", "width": 800, "height": 600 })
     );
     let converted = value("convert");
     assert_eq!(
@@ -488,7 +485,7 @@ fn hands_a_screenshot_and_a_recording_to_the_file_tools_as_files() {
         (
             json!("video"),
             json!("project:.opsis/cache/h/recording.mp4"),
-            json!(4000.0)
+            json!(4000)
         )
     );
 }
@@ -501,7 +498,7 @@ fn an_export_takes_its_film_from_the_connected_clip_and_a_skipped_node_passes_it
     g.node("loose", "output.render", json!({ "fileName": "loose" }));
     g.link("title", "film");
     let out = compile_workflow(&g.build(), None);
-    assert_eq!(out.specs["film"].duration_in_frames, 45.0);
+    assert_eq!(out.specs["film"].duration_in_frames, 45);
     assert!(!out.specs.contains_key("loose"));
     assert!(out.values["film"].is_empty());
     let mut g = Graph::default();

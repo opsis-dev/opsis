@@ -31,7 +31,7 @@ fn changed(defaults: &Values, case: &Value) -> Values {
 
 fn outcome(def: &NodeDef, values: &Values, key: Option<&str>) -> Value {
     match (def.parse(values, Some(values)), key) {
-        (Err(problem), _) => json!({ "ok": false, "problem": problem }),
+        (Err(problem), _) => json!({ "ok": false, "problem": problem.to_string() }),
         (Ok(data), None) => json!({ "ok": true, "data": data }),
         (Ok(data), Some(key)) => {
             json!({ "ok": true, "value": data.get(key).cloned().unwrap_or(Value::Null), "keys": data.len() })
@@ -73,7 +73,7 @@ fn compiled(def: &NodeDef, case: &Value) -> (Value, Value) {
         serde_json::from_value(case["result"].clone()).expect("result");
     let values = match def.parse(&def.defaults(), None) {
         Ok(values) => values,
-        Err(problem) => return (Value::Null, Value::from(problem)),
+        Err(problem) => return (Value::Null, Value::from(problem.to_string())),
     };
     let ctx = Ctx {
         node_id: "n",
@@ -88,7 +88,7 @@ fn compiled(def: &NodeDef, case: &Value) -> (Value, Value) {
         workflow: &workflow,
     };
     match def.run_compile(&ctx) {
-        Err(error) => (Value::Null, Value::from(error)),
+        Err(error) => (Value::Null, Value::from(error.to_string())),
         Ok(outputs) => {
             let outputs = outputs.unwrap_or_else(|| {
                 result

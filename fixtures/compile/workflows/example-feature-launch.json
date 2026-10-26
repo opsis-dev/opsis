@@ -345,7 +345,7 @@
    "headline": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 90.0,
+     "durationInFrames": 90,
      "tracks": [
       {
        "id": "headline:t",
@@ -353,8 +353,8 @@
         {
          "kind": "element",
          "id": "headline:i",
-         "from": 0.0,
-         "durationInFrames": 90.0,
+         "from": 0,
+         "durationInFrames": 90,
          "nodeId": "headline",
          "handles": {
           "trimEnd": {
@@ -417,7 +417,7 @@
    "outro": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75.0,
+     "durationInFrames": 75,
      "tracks": [
       {
        "id": "outro:t",
@@ -425,8 +425,8 @@
         {
          "kind": "element",
          "id": "outro:i",
-         "from": 0.0,
-         "durationInFrames": 75.0,
+         "from": 0,
+         "durationInFrames": 75,
          "nodeId": "outro",
          "handles": {
           "trimEnd": {
@@ -536,8 +536,8 @@
      "log": null,
      "durationMs": 6000.0,
      "viewport": {
-      "width": 1920.0,
-      "height": 1080.0
+      "width": 1920,
+      "height": 1080
      },
      "nodeId": "record",
      "style": []
@@ -546,7 +546,7 @@
    "camera": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 144.0,
+     "durationInFrames": 144,
      "tracks": [
       {
        "id": "camera:t",
@@ -554,8 +554,8 @@
         {
          "kind": "element",
          "id": "camera:i",
-         "from": 0.0,
-         "durationInFrames": 144.0,
+         "from": 0,
+         "durationInFrames": 144,
          "nodeId": "camera",
          "component": "core/placeholder",
          "props": {
@@ -572,7 +572,7 @@
    "sequence": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 279.0,
+     "durationInFrames": 279,
      "tracks": [
       {
        "id": "sequence:seq",
@@ -580,11 +580,11 @@
         {
          "kind": "group",
          "id": "sequence:s0",
-         "from": 0.0,
-         "durationInFrames": 90.0,
+         "from": 0,
+         "durationInFrames": 90,
          "exit": {
           "kind": "remocn/zoom-blur",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -598,8 +598,8 @@
              {
               "kind": "element",
               "id": "headline:i",
-              "from": 0.0,
-              "durationInFrames": 90.0,
+              "from": 0,
+              "durationInFrames": 90,
               "nodeId": "headline",
               "handles": {
                "trimEnd": {
@@ -626,15 +626,15 @@
         {
          "kind": "group",
          "id": "sequence:s1",
-         "from": 75.0,
-         "durationInFrames": 144.0,
+         "from": 75,
+         "durationInFrames": 144,
          "enter": {
           "kind": "remocn/zoom-blur",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "exit": {
           "kind": "remocn/zoom-blur",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -648,8 +648,8 @@
              {
               "kind": "element",
               "id": "camera:i",
-              "from": 0.0,
-              "durationInFrames": 144.0,
+              "from": 0,
+              "durationInFrames": 144,
               "nodeId": "camera",
               "component": "core/placeholder",
               "props": {
@@ -665,11 +665,11 @@
         {
          "kind": "group",
          "id": "sequence:s2",
-         "from": 204.0,
-         "durationInFrames": 75.0,
+         "from": 204,
+         "durationInFrames": 75,
          "enter": {
           "kind": "remocn/zoom-blur",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -683,8 +683,8 @@
              {
               "kind": "element",
               "id": "outro:i",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "nodeId": "outro",
               "handles": {
                "trimEnd": {
@@ -726,10 +726,10 @@
   "errors": {},
   "specs": {
    "render": {
-    "width": 1920.0,
-    "height": 1080.0,
-    "fps": 30.0,
-    "durationInFrames": 279.0,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 279,
     "background": "#09090b",
     "tracks": [
      {
@@ -738,11 +738,11 @@
        {
         "kind": "group",
         "id": "sequence:s0",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "exit": {
          "kind": "remocn/zoom-blur",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -756,8 +756,8 @@
             {
              "kind": "element",
              "id": "headline:i",
-             "from": 0.0,
-             "durationInFrames": 90.0,
+             "from": 0,
+             "durationInFrames": 90,
              "nodeId": "headline",
              "handles": {
               "trimEnd": {
@@ -784,15 +784,15 @@
        {
         "kind": "group",
         "id": "sequence:s1",
-        "from": 75.0,
-        "durationInFrames": 144.0,
+        "from": 75,
+        "durationInFrames": 144,
         "enter": {
          "kind": "remocn/zoom-blur",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "exit": {
          "kind": "remocn/zoom-blur",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -806,8 +806,8 @@
             {
              "kind": "element",
              "id": "camera:i",
-             "from": 0.0,
-             "durationInFrames": 144.0,
+             "from": 0,
+             "durationInFrames": 144,
              "nodeId": "camera",
              "component": "core/placeholder",
              "props": {
@@ -823,11 +823,11 @@
        {
         "kind": "group",
         "id": "sequence:s2",
-        "from": 204.0,
-        "durationInFrames": 75.0,
+        "from": 204,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/zoom-blur",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -841,8 +841,8 @@
             {
              "kind": "element",
              "id": "outro:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "outro",
              "handles": {
               "trimEnd": {
@@ -1034,10 +1034,10 @@
  },
  "preview": {
   "spec": {
-   "width": 1920.0,
-   "height": 1080.0,
-   "fps": 30.0,
-   "durationInFrames": 279.0,
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "durationInFrames": 279,
    "background": "#09090b",
    "tracks": [
     {
@@ -1046,11 +1046,11 @@
       {
        "kind": "group",
        "id": "sequence:s0",
-       "from": 0.0,
-       "durationInFrames": 90.0,
+       "from": 0,
+       "durationInFrames": 90,
        "exit": {
         "kind": "remocn/zoom-blur",
-        "durationInFrames": 15.0
+        "durationInFrames": 15
        },
        "slot": {
         "nodeId": "sequence",
@@ -1064,8 +1064,8 @@
            {
             "kind": "element",
             "id": "headline:i",
-            "from": 0.0,
-            "durationInFrames": 90.0,
+            "from": 0,
+            "durationInFrames": 90,
             "nodeId": "headline",
             "handles": {
              "trimEnd": {
@@ -1092,15 +1092,15 @@
       {
        "kind": "group",
        "id": "sequence:s1",
-       "from": 75.0,
-       "durationInFrames": 144.0,
+       "from": 75,
+       "durationInFrames": 144,
        "enter": {
         "kind": "remocn/zoom-blur",
-        "durationInFrames": 15.0
+        "durationInFrames": 15
        },
        "exit": {
         "kind": "remocn/zoom-blur",
-        "durationInFrames": 15.0
+        "durationInFrames": 15
        },
        "slot": {
         "nodeId": "sequence",
@@ -1114,8 +1114,8 @@
            {
             "kind": "element",
             "id": "camera:i",
-            "from": 0.0,
-            "durationInFrames": 144.0,
+            "from": 0,
+            "durationInFrames": 144,
             "nodeId": "camera",
             "component": "core/placeholder",
             "props": {
@@ -1131,11 +1131,11 @@
       {
        "kind": "group",
        "id": "sequence:s2",
-       "from": 204.0,
-       "durationInFrames": 75.0,
+       "from": 204,
+       "durationInFrames": 75,
        "enter": {
         "kind": "remocn/zoom-blur",
-        "durationInFrames": 15.0
+        "durationInFrames": 15
        },
        "slot": {
         "nodeId": "sequence",
@@ -1149,8 +1149,8 @@
            {
             "kind": "element",
             "id": "outro:i",
-            "from": 0.0,
-            "durationInFrames": 75.0,
+            "from": 0,
+            "durationInFrames": 75,
             "nodeId": "outro",
             "handles": {
              "trimEnd": {
@@ -1211,8 +1211,8 @@
  "timelines": {
   "render": {
    "flat": {
-    "fps": 30.0,
-    "durationInFrames": 279.0,
+    "fps": 30,
+    "durationInFrames": 279,
     "bars": [
      {
       "type": "video",
@@ -1423,8 +1423,8 @@
     "cameraKeys": []
    },
    "mix": {
-    "fps": 30.0,
-    "durationInFrames": 279.0,
+    "fps": 30,
+    "durationInFrames": 279,
     "channels": [],
     "buses": [
      {
@@ -1776,7 +1776,7 @@
     "headline": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 90.0,
+      "durationInFrames": 90,
       "tracks": [
        {
         "id": "headline:t",
@@ -1784,8 +1784,8 @@
          {
           "kind": "element",
           "id": "headline:i",
-          "from": 0.0,
-          "durationInFrames": 90.0,
+          "from": 0,
+          "durationInFrames": 90,
           "nodeId": "headline",
           "handles": {
            "trimEnd": {
@@ -1848,7 +1848,7 @@
     "outro": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75.0,
+      "durationInFrames": 75,
       "tracks": [
        {
         "id": "outro:t",
@@ -1856,8 +1856,8 @@
          {
           "kind": "element",
           "id": "outro:i",
-          "from": 0.0,
-          "durationInFrames": 75.0,
+          "from": 0,
+          "durationInFrames": 75,
           "nodeId": "outro",
           "handles": {
            "trimEnd": {
@@ -1967,8 +1967,8 @@
       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
       "log": {
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "dpr": 1.0,
        "t0": 0.0,
@@ -2021,8 +2021,8 @@
       },
       "durationMs": 4100.0,
       "viewport": {
-       "width": 1920.0,
-       "height": 1080.0
+       "width": 1920,
+       "height": 1080
       },
       "nodeId": "record",
       "style": []
@@ -2031,7 +2031,7 @@
     "camera": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 98.0,
+      "durationInFrames": 98,
       "tracks": [
        {
         "id": "camera:t",
@@ -2039,16 +2039,16 @@
          {
           "kind": "recording",
           "id": "camera:i",
-          "from": 0.0,
-          "durationInFrames": 98.0,
+          "from": 0,
+          "durationInFrames": 98,
           "nodeId": "camera",
           "props": {
            "src": "project:.opsis/cache/record/recording.mp4",
            "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
            "log": {
             "viewport": {
-             "width": 1920.0,
-             "height": 1080.0
+             "width": 1920,
+             "height": 1080
             },
             "dpr": 1.0,
             "t0": 0.0,
@@ -2148,8 +2148,8 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "dpr": 1.0,
         "t0": 0.0,
@@ -2202,8 +2202,8 @@
        },
        "durationMs": 4100.0,
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "nodeId": "record",
        "style": []
@@ -2213,7 +2213,7 @@
     "sequence": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 233.0,
+      "durationInFrames": 233,
       "tracks": [
        {
         "id": "sequence:seq",
@@ -2221,11 +2221,11 @@
          {
           "kind": "group",
           "id": "sequence:s0",
-          "from": 0.0,
-          "durationInFrames": 90.0,
+          "from": 0,
+          "durationInFrames": 90,
           "exit": {
            "kind": "remocn/zoom-blur",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "slot": {
            "nodeId": "sequence",
@@ -2239,8 +2239,8 @@
               {
                "kind": "element",
                "id": "headline:i",
-               "from": 0.0,
-               "durationInFrames": 90.0,
+               "from": 0,
+               "durationInFrames": 90,
                "nodeId": "headline",
                "handles": {
                 "trimEnd": {
@@ -2267,15 +2267,15 @@
          {
           "kind": "group",
           "id": "sequence:s1",
-          "from": 75.0,
-          "durationInFrames": 98.0,
+          "from": 75,
+          "durationInFrames": 98,
           "enter": {
            "kind": "remocn/zoom-blur",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "exit": {
            "kind": "remocn/zoom-blur",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "slot": {
            "nodeId": "sequence",
@@ -2289,16 +2289,16 @@
               {
                "kind": "recording",
                "id": "camera:i",
-               "from": 0.0,
-               "durationInFrames": 98.0,
+               "from": 0,
+               "durationInFrames": 98,
                "nodeId": "camera",
                "props": {
                 "src": "project:.opsis/cache/record/recording.mp4",
                 "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
                 "log": {
                  "viewport": {
-                  "width": 1920.0,
-                  "height": 1080.0
+                  "width": 1920,
+                  "height": 1080
                  },
                  "dpr": 1.0,
                  "t0": 0.0,
@@ -2396,11 +2396,11 @@
          {
           "kind": "group",
           "id": "sequence:s2",
-          "from": 158.0,
-          "durationInFrames": 75.0,
+          "from": 158,
+          "durationInFrames": 75,
           "enter": {
            "kind": "remocn/zoom-blur",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "slot": {
            "nodeId": "sequence",
@@ -2414,8 +2414,8 @@
               {
                "kind": "element",
                "id": "outro:i",
-               "from": 0.0,
-               "durationInFrames": 75.0,
+               "from": 0,
+               "durationInFrames": 75,
                "nodeId": "outro",
                "handles": {
                 "trimEnd": {
@@ -2456,8 +2456,8 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "dpr": 1.0,
         "t0": 0.0,
@@ -2510,8 +2510,8 @@
        },
        "durationMs": 4100.0,
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "nodeId": "record",
        "style": []
@@ -2523,9 +2523,9 @@
       "type": "media",
       "src": "project:.opsis/out/render.mp4",
       "kind": "video",
-      "durationMs": 4000.0,
-      "width": 1920.0,
-      "height": 1080.0,
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
       "hasAudio": true
      }
     }
@@ -2533,10 +2533,10 @@
    "errors": {},
    "specs": {
     "render": {
-     "width": 1920.0,
-     "height": 1080.0,
-     "fps": 30.0,
-     "durationInFrames": 233.0,
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "durationInFrames": 233,
      "background": "#09090b",
      "tracks": [
       {
@@ -2545,11 +2545,11 @@
         {
          "kind": "group",
          "id": "sequence:s0",
-         "from": 0.0,
-         "durationInFrames": 90.0,
+         "from": 0,
+         "durationInFrames": 90,
          "exit": {
           "kind": "remocn/zoom-blur",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -2563,8 +2563,8 @@
              {
               "kind": "element",
               "id": "headline:i",
-              "from": 0.0,
-              "durationInFrames": 90.0,
+              "from": 0,
+              "durationInFrames": 90,
               "nodeId": "headline",
               "handles": {
                "trimEnd": {
@@ -2591,15 +2591,15 @@
         {
          "kind": "group",
          "id": "sequence:s1",
-         "from": 75.0,
-         "durationInFrames": 98.0,
+         "from": 75,
+         "durationInFrames": 98,
          "enter": {
           "kind": "remocn/zoom-blur",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "exit": {
           "kind": "remocn/zoom-blur",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -2613,16 +2613,16 @@
              {
               "kind": "recording",
               "id": "camera:i",
-              "from": 0.0,
-              "durationInFrames": 98.0,
+              "from": 0,
+              "durationInFrames": 98,
               "nodeId": "camera",
               "props": {
                "src": "project:.opsis/cache/record/recording.mp4",
                "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
                "log": {
                 "viewport": {
-                 "width": 1920.0,
-                 "height": 1080.0
+                 "width": 1920,
+                 "height": 1080
                 },
                 "dpr": 1.0,
                 "t0": 0.0,
@@ -2720,11 +2720,11 @@
         {
          "kind": "group",
          "id": "sequence:s2",
-         "from": 158.0,
-         "durationInFrames": 75.0,
+         "from": 158,
+         "durationInFrames": 75,
          "enter": {
           "kind": "remocn/zoom-blur",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -2738,8 +2738,8 @@
              {
               "kind": "element",
               "id": "outro:i",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "nodeId": "outro",
               "handles": {
                "trimEnd": {
@@ -2939,10 +2939,10 @@
   },
   "preview": {
    "spec": {
-    "width": 1920.0,
-    "height": 1080.0,
-    "fps": 30.0,
-    "durationInFrames": 233.0,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 233,
     "background": "#09090b",
     "tracks": [
      {
@@ -2951,11 +2951,11 @@
        {
         "kind": "group",
         "id": "sequence:s0",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "exit": {
          "kind": "remocn/zoom-blur",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -2969,8 +2969,8 @@
             {
              "kind": "element",
              "id": "headline:i",
-             "from": 0.0,
-             "durationInFrames": 90.0,
+             "from": 0,
+             "durationInFrames": 90,
              "nodeId": "headline",
              "handles": {
               "trimEnd": {
@@ -2997,15 +2997,15 @@
        {
         "kind": "group",
         "id": "sequence:s1",
-        "from": 75.0,
-        "durationInFrames": 98.0,
+        "from": 75,
+        "durationInFrames": 98,
         "enter": {
          "kind": "remocn/zoom-blur",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "exit": {
          "kind": "remocn/zoom-blur",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -3019,16 +3019,16 @@
             {
              "kind": "recording",
              "id": "camera:i",
-             "from": 0.0,
-             "durationInFrames": 98.0,
+             "from": 0,
+             "durationInFrames": 98,
              "nodeId": "camera",
              "props": {
               "src": "project:.opsis/cache/record/recording.mp4",
               "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
               "log": {
                "viewport": {
-                "width": 1920.0,
-                "height": 1080.0
+                "width": 1920,
+                "height": 1080
                },
                "dpr": 1.0,
                "t0": 0.0,
@@ -3126,11 +3126,11 @@
        {
         "kind": "group",
         "id": "sequence:s2",
-        "from": 158.0,
-        "durationInFrames": 75.0,
+        "from": 158,
+        "durationInFrames": 75,
         "enter": {
          "kind": "remocn/zoom-blur",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -3144,8 +3144,8 @@
             {
              "kind": "element",
              "id": "outro:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "outro",
              "handles": {
               "trimEnd": {
@@ -3206,8 +3206,8 @@
   "timelines": {
    "render": {
     "flat": {
-     "fps": 30.0,
-     "durationInFrames": 233.0,
+     "fps": 30,
+     "durationInFrames": 233,
      "bars": [
       {
        "type": "video",
@@ -3277,8 +3277,8 @@
         "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
         "log": {
          "viewport": {
-          "width": 1920.0,
-          "height": 1080.0
+          "width": 1920,
+          "height": 1080
          },
          "dpr": 1.0,
          "t0": 0.0,
@@ -3530,8 +3530,8 @@
      "cameraKeys": []
     },
     "mix": {
-     "fps": 30.0,
-     "durationInFrames": 233.0,
+     "fps": 30,
+     "durationInFrames": 233,
      "channels": [],
      "buses": [
       {

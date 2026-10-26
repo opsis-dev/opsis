@@ -62,13 +62,7 @@ fn existing(path: PathBuf, what: &str) -> PathBuf {
 
 fn solid(id: &str, color: &str) -> CompileValue {
     let props = Map::from_iter([("color".to_owned(), json!(color))]);
-    CompileValue::Clip(item_clip(
-        id,
-        "core/solid",
-        props,
-        90.0,
-        ItemExtra::default(),
-    ))
+    CompileValue::Clip(item_clip(id, "core/solid", props, 90, ItemExtra::default()))
 }
 
 fn compile_clip(kind: &str, inputs: PortValues) -> ClipValue {
@@ -103,7 +97,7 @@ fn compile_clip(kind: &str, inputs: PortValues) -> ClipValue {
     }
 }
 
-fn spec_for(key: &str) -> (TimelineSpec, f64) {
+fn spec_for(key: &str) -> (TimelineSpec, u32) {
     let meta = element_meta(key).unwrap();
     let (kind, inputs) = if meta.kind == ElementKind::Presentation {
         (
@@ -222,7 +216,7 @@ async fn renders_the_same_bytes_as_recorded() {
         let file = file_name(key, "png");
         let job = StillJob {
             target: setup.target(spec),
-            frame: (frames / 2.0).floor(),
+            frame: frames / 2,
             output: setup.out.join(&file).to_string_lossy().into_owned(),
             format: serde_json::from_value(json!("png")).unwrap(),
             scale: None,

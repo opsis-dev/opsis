@@ -97,7 +97,7 @@ fn opened(state: &AppState, dir: &Path) -> CommandResult<OpenProject> {
     let project = state.projects.open(dir)?;
     let shown_dir = shown(dir);
     let db = state.db();
-    db.touch_recent(&shown_dir, &project.workflow.name, now_ms() as i64)?;
+    db.touch_recent(&shown_dir, &project.workflow.name, now_ms())?;
     let view = db.read_view_state(&shown_dir)?;
     drop(db);
     let mut editor = state.editor();
@@ -176,7 +176,7 @@ pub async fn create_project(
     {
         let mut db = state.db();
         db.forget_view_state(&shown_dir)?;
-        db.touch_recent(&shown_dir, &created.workflow.name, now_ms() as i64)?;
+        db.touch_recent(&shown_dir, &created.workflow.name, now_ms())?;
         let (settings, _) = db.patch_settings(&serde_json::from_value(
             json!({ "projects": { "lastDir": shown(&parent) } }),
         )?)?;
@@ -208,9 +208,7 @@ pub fn save_workflow(
         .projects
         .save(Path::new(&dir), &workflow, base.as_deref())?;
     if matches!(result, SaveResult::Saved { .. }) {
-        state
-            .db()
-            .touch_recent(&dir, &workflow.name, now_ms() as i64)?;
+        state.db().touch_recent(&dir, &workflow.name, now_ms())?;
     }
     Ok(result)
 }

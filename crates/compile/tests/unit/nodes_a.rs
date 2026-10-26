@@ -114,7 +114,7 @@ fn connects_the_same_resource_and_converts_images_and_recordings_to_files() {
     .unwrap();
     assert_eq!(
         converted,
-        json!({ "type": "media", "kind": "video", "src": "project:take.mp4", "durationMs": 4000.0, "width": 1280.0, "height": 720.0, "hasAudio": false })
+        json!({ "type": "media", "kind": "video", "src": "project:take.mp4", "durationMs": 4000, "width": 1280, "height": 720, "hasAudio": false })
     );
     let image: CompileValue =
         typed(json!({ "type": "image", "src": "project:s.png", "width": 3, "height": 2 }));
@@ -124,7 +124,7 @@ fn connects_the_same_resource_and_converts_images_and_recordings_to_files() {
     .unwrap();
     assert_eq!(
         converted,
-        json!({ "type": "media", "kind": "image", "src": "project:s.png", "width": 3.0, "height": 2.0 })
+        json!({ "type": "media", "kind": "image", "src": "project:s.png", "width": 3, "height": 2 })
     );
     assert_eq!(
         convert_input(Some(&recording()), Some(&spec(PortType::Recording, None))),
@@ -144,14 +144,14 @@ fn connects_the_same_resource_and_converts_images_and_recordings_to_files() {
     );
 }
 
-fn frames(pairs: &[(&str, f64)]) -> CardInputs {
+fn frames(pairs: &[(&str, u32)]) -> CardInputs {
     CardInputs {
         frames: pairs.iter().map(|(k, v)| ((*k).to_owned(), *v)).collect(),
         ..CardInputs::default()
     }
 }
 
-fn leak_in(a: f64, b: f64, length: f64) -> (f64, f64, f64) {
+fn leak_in(a: u32, b: u32, length: u32) -> (u32, u32, u32) {
     let film = compile_clip(
         "transition.lightLeak",
         json!({ "durationInFrames": length }),
@@ -163,14 +163,14 @@ fn leak_in(a: f64, b: f64, length: f64) -> (f64, f64, f64) {
 
 #[test]
 fn centres_a_light_leak_on_the_cut_and_keeps_a_long_one_inside_the_film() {
-    assert_eq!(leak_in(90.0, 90.0, 30.0), (180.0, 75.0, 30.0));
-    assert_eq!(leak_in(30.0, 30.0, 90.0), (60.0, 0.0, 60.0));
-    assert_eq!(leak_in(10.0, 90.0, 40.0), (100.0, 0.0, 40.0));
+    assert_eq!(leak_in(90, 90, 30), (180, 75, 30));
+    assert_eq!(leak_in(30, 30, 90), (60, 0, 60));
+    assert_eq!(leak_in(10, 90, 40), (100, 0, 40));
     assert_eq!(
         card_texts(
             "transition.lightLeak",
             json!({ "durationInFrames": 90 }),
-            frames(&[("a", 30.0), ("b", 30.0)])
+            frames(&[("a", 30), ("b", 30)])
         ),
         ["3 s", "Longer than both clips, so it plays for 2 s"]
     );
@@ -178,7 +178,7 @@ fn centres_a_light_leak_on_the_cut_and_keeps_a_long_one_inside_the_film() {
         card_texts(
             "transition.lightLeak",
             json!({ "durationInFrames": 90 }),
-            frames(&[("a", 60.0), ("b", 60.0)])
+            frames(&[("a", 60), ("b", 60)])
         ),
         ["3 s"]
     );
@@ -190,7 +190,7 @@ fn every_transition_passes_a_lone_clip_through_unchanged() {
         .map(|m| format!("transition.{}", m.key.replacen('/', ".", 1)))
         .collect();
     assert!(kinds.len() > 10);
-    let (first, then) = (empty_clip(40.0), empty_clip(70.0));
+    let (first, then) = (empty_clip(40), empty_clip(70));
     for kind in kinds {
         assert_eq!(
             compile_clip(&kind, json!({}), json!({ "a": clip_value(&first) })),
@@ -216,18 +216,18 @@ fn sfx_item(params: Value) -> opsis_types::timeline::AudioItem {
 fn knows_how_long_a_sound_effect_plays() {
     assert_eq!(
         sfx_item(json!({ "src": "assets/tone.wav", "srcMs": 3000 })).length_frames,
-        Some(90.0)
+        Some(90)
     );
     let unknown = sfx_item(json!({ "src": "assets/tone.wav" }));
     assert_eq!(
-        (unknown.length_frames, sound_length(&unknown, 150.0)),
+        (unknown.length_frames, sound_length(&unknown, 150)),
         (None, 150.0)
     );
     assert!(
         sfx_item(json!({ "src": builtin_sounds()[0].reference() }))
             .length_frames
             .unwrap()
-            > 0.0
+            > 0
     );
 }
 
@@ -244,7 +244,7 @@ fn leaves_out_a_sound_that_starts_at_or_after_the_clips_end() {
         compile_clip(
             "audio.mix",
             json!({}),
-            json!({ CLIP: clip_value(&empty_clip(90.0)), "sounds": audio }),
+            json!({ CLIP: clip_value(&empty_clip(90)), "sounds": audio }),
         )
         .audio
         .len()
@@ -401,7 +401,7 @@ fn gives_a_picture_look_only_to_recordings_videos_and_images_and_names_it() {
             id,
             component,
             json!({ "src": src }).as_object().unwrap().clone(),
-            30.0,
+            30,
             ItemExtra::default(),
         );
         let looked = compile_clip(
@@ -415,7 +415,7 @@ fn gives_a_picture_look_only_to_recordings_videos_and_images_and_names_it() {
         "t",
         "core/title",
         json!({ "title": "Hi" }).as_object().unwrap().clone(),
-        30.0,
+        30,
         ItemExtra::default(),
     );
     assert!(
@@ -501,20 +501,20 @@ fn shows_captions_until_read_or_for_the_clip_and_warns_when_they_run_past_it() {
     assert_eq!(
         compile_clip("text.captions", json!({}), json!({ "captions": captions }))
             .duration_in_frames,
-        90.0
+        90
     );
     assert_eq!(
         compile_clip(
             "text.captions",
             json!({}),
-            json!({ "captions": captions, CLIP: clip_value(&empty_clip(30.0)) })
+            json!({ "captions": captions, CLIP: clip_value(&empty_clip(30)) })
         )
         .duration_in_frames,
-        30.0
+        30
     );
     let inputs = CardInputs {
         captions_ms: [("captions".to_owned(), 2500.0)].into_iter().collect(),
-        ..frames(&[("clip", 30.0)])
+        ..frames(&[("clip", 30)])
     };
     assert!(
         card_texts("text.captions", json!({}), inputs)

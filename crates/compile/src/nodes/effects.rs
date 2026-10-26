@@ -6,7 +6,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::clip::map_items;
+use crate::clip::{IMAGE, VIDEO, map_items};
+use crate::errors::SettingsError;
 use crate::node::{
     CardCtx, Category, Ctx, InputTake, NodeDef, RECORDING_PORT, RowExt, missing, row, with_clip,
 };
@@ -64,17 +65,17 @@ pub struct BlurAreas {
     pub roundness: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(description = "From", range(min = 0, max = 3600000), extend("x-unit" = "ms", "x-zero-label" = "Start of the take"))]
-    pub from_ms: Option<i64>,
+    pub from_ms: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(description = "Until", range(min = 0, max = 3600000), extend("x-unit" = "ms", "x-zero-label" = "End of the take"))]
-    pub until_ms: Option<i64>,
+    pub until_ms: Option<u32>,
 }
 
 impl Params for BlurAreas {
-    fn check(&self) -> Result<(), String> {
+    fn check(&self) -> Result<(), SettingsError> {
         match (self.from_ms, self.until_ms) {
             (Some(from), Some(until)) if until <= from => {
-                Err("Until must come after From".to_owned())
+                Err(SettingsError::rule("Until must come after From"))
             }
             _ => Ok(()),
         }
@@ -92,31 +93,31 @@ pub fn blur_areas_of(p: &BlurAreas) -> Vec<BlurArea> {
             strength: p.strength * MAX_BLUR_OF_WIDTH,
             softness: p.softness * MAX_SOFTNESS_OF_WIDTH,
             roundness: p.roundness,
-            from_ms: p.from_ms.map(|v| v as f64),
-            until_ms: p.until_ms.map(|v| v as f64),
+            from_ms: p.from_ms.map(f64::from),
+            until_ms: p.until_ms.map(f64::from),
         })
         .collect()
 }
 
-fn times_text(from_ms: Option<i64>, until_ms: Option<i64>) -> Option<String> {
+fn times_text(from_ms: Option<u32>, until_ms: Option<u32>) -> Option<String> {
     match (from_ms, until_ms) {
         (None, None) => None,
         (from, None) => Some(format!(
             "From {}",
             format_duration(from.unwrap_or(0) as f64)
         )),
-        (None, Some(until)) => Some(format!("Until {}", format_duration(until as f64))),
+        (None, Some(until)) => Some(format!("Until {}", format_duration(f64::from(until)))),
         (Some(from), Some(until)) => Some(format!(
             "{} → {}",
-            format_duration(from as f64),
-            format_duration(until as f64)
+            format_duration(f64::from(from)),
+            format_duration(f64::from(until))
         )),
     }
 }
 
-fn after_take_row(take: Option<InputTake>, from_ms: Option<i64>) -> Option<CardRow> {
+fn after_take_row(take: Option<InputTake>, from_ms: Option<u32>) -> Option<CardRow> {
     let (take, from) = (take?, from_ms?);
-    (from as f64 >= take.duration_ms).then(|| {
+    (f64::from(from) >= take.duration_ms).then(|| {
         row(
             Icon::TriangleAlert,
             format!(
@@ -226,7 +227,7 @@ fn changed_look(p: &Look) -> PictureLook {
     }
 }
 
-const LOOK_COMPONENTS: [&str; 2] = ["core/video", "core/image"];
+const LOOK_COMPONENTS: [&str; 2] = [VIDEO, IMAGE];
 
 fn with_look(clip: &ClipValue, look: &PictureLook) -> ClipValue {
     let shown = serde_json::to_value(look).expect("look serializes");

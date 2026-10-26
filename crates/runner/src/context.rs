@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 use indexmap::IndexMap;
 use opsis_compile::asset_ref::project_ref;
 use opsis_compile::compile::{CompileResult, compile_workflow, gather_inputs, parse_node_params};
+use opsis_compile::errors::SettingsError;
 use opsis_compile::node::NodeDef;
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
@@ -32,6 +33,8 @@ pub enum ExecError {
     Cancelled,
     #[error("{message}")]
     Tool { message: String, output: String },
+    #[error(transparent)]
+    Settings(#[from] SettingsError),
 }
 
 impl ExecError {
@@ -203,8 +206,8 @@ pub struct ExecutorContext {
     pub store: Arc<ResultStore>,
 }
 
-pub fn now_ms() -> f64 {
-    jiff::Timestamp::now().as_millisecond() as f64
+pub fn now_ms() -> i64 {
+    jiff::Timestamp::now().as_millisecond()
 }
 
 impl ExecutorContext {
@@ -238,8 +241,8 @@ impl ExecutorContext {
     pub fn params<P: DeserializeOwned>(&self) -> Result<P, ExecError> {
         let def = node_def(&self.node.kind)
             .ok_or_else(|| ExecError::new("This kind of node can't run."))?;
-        let values = parse_node_params(def, &self.node, &self.vars).map_err(ExecError::new)?;
-        def.typed_params(&values).map_err(ExecError::new)
+        let values = parse_node_params(def, &self.node, &self.vars)?;
+        Ok(def.typed_params(&values)?)
     }
 
     pub fn rel(&self, file: &str) -> String {

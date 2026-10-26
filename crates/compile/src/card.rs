@@ -19,18 +19,18 @@ const TRANSITION_WARN_RATIO: f64 = 0.4;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Cover {
     pub ratio: f64,
-    pub shortest: f64,
+    pub shortest: u32,
 }
 
-pub fn cover(transition_frames: f64, clip_frames: &[Option<f64>]) -> Option<Cover> {
+pub fn cover(transition_frames: u32, clip_frames: &[Option<u32>]) -> Option<Cover> {
     let shortest = clip_frames
         .iter()
         .flatten()
         .copied()
-        .filter(|f| *f > 0.0)
-        .reduce(f64::min)?;
+        .filter(|f| *f > 0)
+        .min()?;
     Some(Cover {
-        ratio: transition_frames / shortest,
+        ratio: f64::from(transition_frames) / f64::from(shortest),
         shortest,
     })
 }
@@ -43,11 +43,11 @@ pub fn squeezed_too_much(length: f64, designed: f64) -> bool {
     length < TRANSITION_WARN_RATIO * designed
 }
 
-pub fn frame_secs(frames: f64, fps: f64) -> String {
+pub fn frame_secs(frames: impl Into<f64>, fps: u32) -> String {
     format_duration(frames_to_ms(frames, fps))
 }
 
-pub fn cover_row(covered: Option<Cover>, fps: f64) -> Option<CardRow> {
+pub fn cover_row(covered: Option<Cover>, fps: u32) -> Option<CardRow> {
     let covered = covered.filter(|c| covers_too_much(c.ratio))?;
     let share = percent_text(covered.ratio, 100.0);
     Some(
@@ -85,7 +85,7 @@ pub fn range_row(start_ms: f64, end_ms: Option<f64>) -> CardRow {
     )
 }
 
-pub fn transition_length_text(frames: f64, fps: f64, held: bool) -> String {
+pub fn transition_length_text(frames: u32, fps: u32, held: bool) -> String {
     format!(
         "{}{}",
         frame_secs(frames, fps),

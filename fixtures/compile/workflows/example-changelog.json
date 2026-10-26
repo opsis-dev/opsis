@@ -300,7 +300,7 @@
    "title": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75.0,
+     "durationInFrames": 75,
      "tracks": [
       {
        "id": "title:t",
@@ -308,8 +308,8 @@
         {
          "kind": "element",
          "id": "title:i",
-         "from": 0.0,
-         "durationInFrames": 75.0,
+         "from": 0,
+         "durationInFrames": 75,
          "nodeId": "title",
          "handles": {
           "trimEnd": {
@@ -344,7 +344,7 @@
    "terminal": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 150.0,
+     "durationInFrames": 150,
      "tracks": [
       {
        "id": "terminal:t",
@@ -352,8 +352,8 @@
         {
          "kind": "element",
          "id": "terminal:i",
-         "from": 0.0,
-         "durationInFrames": 150.0,
+         "from": 0,
+         "durationInFrames": 150,
          "nodeId": "terminal",
          "handles": {
           "trimEnd": {
@@ -420,7 +420,7 @@
    "chart": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 120.0,
+     "durationInFrames": 120,
      "tracks": [
       {
        "id": "chart:t",
@@ -428,8 +428,8 @@
         {
          "kind": "element",
          "id": "chart:i",
-         "from": 0.0,
-         "durationInFrames": 120.0,
+         "from": 0,
+         "durationInFrames": 120,
          "nodeId": "chart",
          "handles": {
           "trimEnd": {
@@ -439,8 +439,8 @@
           }
          },
          "design": {
-          "width": 1920.0,
-          "height": 1080.0
+          "width": 1920,
+          "height": 1080
          },
          "component": "remocn/animated-bar-chart",
          "props": {
@@ -497,7 +497,7 @@
    "bg": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 90.0,
+     "durationInFrames": 90,
      "tracks": [
       {
        "id": "bg:t",
@@ -505,8 +505,8 @@
         {
          "kind": "element",
          "id": "bg:i",
-         "from": 0.0,
-         "durationInFrames": 90.0,
+         "from": 0,
+         "durationInFrames": 90,
          "nodeId": "bg",
          "handles": {
           "trimEnd": {
@@ -532,7 +532,7 @@
    "credit": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 120.0,
+     "durationInFrames": 120,
      "tracks": [
       {
        "id": "credit:t",
@@ -540,8 +540,8 @@
         {
          "kind": "element",
          "id": "credit:i",
-         "from": 0.0,
-         "durationInFrames": 120.0,
+         "from": 0,
+         "durationInFrames": 120,
          "nodeId": "credit",
          "handles": {
           "trimEnd": {
@@ -569,7 +569,7 @@
    "chart-scene": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 120.0,
+     "durationInFrames": 120,
      "tracks": [
       {
        "id": "chart-scene:l0",
@@ -577,14 +577,14 @@
         {
          "kind": "group",
          "id": "chart-scene:l0:g",
-         "from": 0.0,
-         "durationInFrames": 90.0,
+         "from": 0,
+         "durationInFrames": 90,
          "handles": {
           "move": {
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -599,8 +599,8 @@
              {
               "kind": "element",
               "id": "bg:i",
-              "from": 0.0,
-              "durationInFrames": 90.0,
+              "from": 0,
+              "durationInFrames": 90,
               "nodeId": "bg",
               "handles": {
                "trimEnd": {
@@ -631,14 +631,14 @@
         {
          "kind": "group",
          "id": "chart-scene:l1:g",
-         "from": 0.0,
-         "durationInFrames": 120.0,
+         "from": 0,
+         "durationInFrames": 120,
          "handles": {
           "move": {
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1.0
+           "index": 1
           }
          },
          "slot": {
@@ -653,8 +653,8 @@
              {
               "kind": "element",
               "id": "chart:i",
-              "from": 0.0,
-              "durationInFrames": 120.0,
+              "from": 0,
+              "durationInFrames": 120,
               "nodeId": "chart",
               "handles": {
                "trimEnd": {
@@ -664,8 +664,8 @@
                }
               },
               "design": {
-               "width": 1920.0,
-               "height": 1080.0
+               "width": 1920,
+               "height": 1080
               },
               "component": "remocn/animated-bar-chart",
               "props": {
@@ -727,14 +727,14 @@
         {
          "kind": "group",
          "id": "chart-scene:l2:g",
-         "from": 0.0,
-         "durationInFrames": 120.0,
+         "from": 0,
+         "durationInFrames": 120,
          "handles": {
           "move": {
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 2.0
+           "index": 2
           }
          },
          "slot": {
@@ -749,8 +749,8 @@
              {
               "kind": "element",
               "id": "credit:i",
-              "from": 0.0,
-              "durationInFrames": 120.0,
+              "from": 0,
+              "durationInFrames": 120,
               "nodeId": "credit",
               "handles": {
                "trimEnd": {
@@ -784,7 +784,7 @@
    "sequence": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 315.0,
+     "durationInFrames": 315,
      "tracks": [
       {
        "id": "sequence:seq",
@@ -792,11 +792,11 @@
         {
          "kind": "group",
          "id": "sequence:s0",
-         "from": 0.0,
-         "durationInFrames": 75.0,
+         "from": 0,
+         "durationInFrames": 75,
          "exit": {
           "kind": "core/slide",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -810,8 +810,8 @@
              {
               "kind": "element",
               "id": "title:i",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "nodeId": "title",
               "handles": {
                "trimEnd": {
@@ -845,15 +845,15 @@
         {
          "kind": "group",
          "id": "sequence:s1",
-         "from": 60.0,
-         "durationInFrames": 150.0,
+         "from": 60,
+         "durationInFrames": 150,
          "enter": {
           "kind": "core/slide",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "exit": {
           "kind": "core/slide",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -867,8 +867,8 @@
              {
               "kind": "element",
               "id": "terminal:i",
-              "from": 0.0,
-              "durationInFrames": 150.0,
+              "from": 0,
+              "durationInFrames": 150,
               "nodeId": "terminal",
               "handles": {
                "trimEnd": {
@@ -934,11 +934,11 @@
         {
          "kind": "group",
          "id": "sequence:s2",
-         "from": 195.0,
-         "durationInFrames": 120.0,
+         "from": 195,
+         "durationInFrames": 120,
          "enter": {
           "kind": "core/slide",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -952,14 +952,14 @@
              {
               "kind": "group",
               "id": "chart-scene:l0:g",
-              "from": 0.0,
-              "durationInFrames": 90.0,
+              "from": 0,
+              "durationInFrames": 90,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 0.0
+                "index": 0
                }
               },
               "slot": {
@@ -974,8 +974,8 @@
                   {
                    "kind": "element",
                    "id": "bg:i",
-                   "from": 0.0,
-                   "durationInFrames": 90.0,
+                   "from": 0,
+                   "durationInFrames": 90,
                    "nodeId": "bg",
                    "handles": {
                     "trimEnd": {
@@ -1006,14 +1006,14 @@
              {
               "kind": "group",
               "id": "chart-scene:l1:g",
-              "from": 0.0,
-              "durationInFrames": 120.0,
+              "from": 0,
+              "durationInFrames": 120,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 1.0
+                "index": 1
                }
               },
               "slot": {
@@ -1028,8 +1028,8 @@
                   {
                    "kind": "element",
                    "id": "chart:i",
-                   "from": 0.0,
-                   "durationInFrames": 120.0,
+                   "from": 0,
+                   "durationInFrames": 120,
                    "nodeId": "chart",
                    "handles": {
                     "trimEnd": {
@@ -1039,8 +1039,8 @@
                     }
                    },
                    "design": {
-                    "width": 1920.0,
-                    "height": 1080.0
+                    "width": 1920,
+                    "height": 1080
                    },
                    "component": "remocn/animated-bar-chart",
                    "props": {
@@ -1102,14 +1102,14 @@
              {
               "kind": "group",
               "id": "chart-scene:l2:g",
-              "from": 0.0,
-              "durationInFrames": 120.0,
+              "from": 0,
+              "durationInFrames": 120,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 2.0
+                "index": 2
                }
               },
               "slot": {
@@ -1124,8 +1124,8 @@
                   {
                    "kind": "element",
                    "id": "credit:i",
-                   "from": 0.0,
-                   "durationInFrames": 120.0,
+                   "from": 0,
+                   "durationInFrames": 120,
                    "nodeId": "credit",
                    "handles": {
                     "trimEnd": {
@@ -1166,10 +1166,10 @@
   "errors": {},
   "specs": {
    "render": {
-    "width": 1920.0,
-    "height": 1080.0,
-    "fps": 30.0,
-    "durationInFrames": 315.0,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 315,
     "background": "#09090b",
     "tracks": [
      {
@@ -1178,11 +1178,11 @@
        {
         "kind": "group",
         "id": "sequence:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "core/slide",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -1196,8 +1196,8 @@
             {
              "kind": "element",
              "id": "title:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "title",
              "handles": {
               "trimEnd": {
@@ -1231,15 +1231,15 @@
        {
         "kind": "group",
         "id": "sequence:s1",
-        "from": 60.0,
-        "durationInFrames": 150.0,
+        "from": 60,
+        "durationInFrames": 150,
         "enter": {
          "kind": "core/slide",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "exit": {
          "kind": "core/slide",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -1253,8 +1253,8 @@
             {
              "kind": "element",
              "id": "terminal:i",
-             "from": 0.0,
-             "durationInFrames": 150.0,
+             "from": 0,
+             "durationInFrames": 150,
              "nodeId": "terminal",
              "handles": {
               "trimEnd": {
@@ -1320,11 +1320,11 @@
        {
         "kind": "group",
         "id": "sequence:s2",
-        "from": 195.0,
-        "durationInFrames": 120.0,
+        "from": 195,
+        "durationInFrames": 120,
         "enter": {
          "kind": "core/slide",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -1338,14 +1338,14 @@
             {
              "kind": "group",
              "id": "chart-scene:l0:g",
-             "from": 0.0,
-             "durationInFrames": 90.0,
+             "from": 0,
+             "durationInFrames": 90,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 0.0
+               "index": 0
               }
              },
              "slot": {
@@ -1360,8 +1360,8 @@
                  {
                   "kind": "element",
                   "id": "bg:i",
-                  "from": 0.0,
-                  "durationInFrames": 90.0,
+                  "from": 0,
+                  "durationInFrames": 90,
                   "nodeId": "bg",
                   "handles": {
                    "trimEnd": {
@@ -1392,14 +1392,14 @@
             {
              "kind": "group",
              "id": "chart-scene:l1:g",
-             "from": 0.0,
-             "durationInFrames": 120.0,
+             "from": 0,
+             "durationInFrames": 120,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 1.0
+               "index": 1
               }
              },
              "slot": {
@@ -1414,8 +1414,8 @@
                  {
                   "kind": "element",
                   "id": "chart:i",
-                  "from": 0.0,
-                  "durationInFrames": 120.0,
+                  "from": 0,
+                  "durationInFrames": 120,
                   "nodeId": "chart",
                   "handles": {
                    "trimEnd": {
@@ -1425,8 +1425,8 @@
                    }
                   },
                   "design": {
-                   "width": 1920.0,
-                   "height": 1080.0
+                   "width": 1920,
+                   "height": 1080
                   },
                   "component": "remocn/animated-bar-chart",
                   "props": {
@@ -1488,14 +1488,14 @@
             {
              "kind": "group",
              "id": "chart-scene:l2:g",
-             "from": 0.0,
-             "durationInFrames": 120.0,
+             "from": 0,
+             "durationInFrames": 120,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 2.0
+               "index": 2
               }
              },
              "slot": {
@@ -1510,8 +1510,8 @@
                  {
                   "kind": "element",
                   "id": "credit:i",
-                  "from": 0.0,
-                  "durationInFrames": 120.0,
+                  "from": 0,
+                  "durationInFrames": 120,
                   "nodeId": "credit",
                   "handles": {
                    "trimEnd": {
@@ -1663,10 +1663,10 @@
  },
  "preview": {
   "spec": {
-   "width": 1920.0,
-   "height": 1080.0,
-   "fps": 30.0,
-   "durationInFrames": 315.0,
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "durationInFrames": 315,
    "background": "#09090b",
    "tracks": [
     {
@@ -1675,11 +1675,11 @@
       {
        "kind": "group",
        "id": "sequence:s0",
-       "from": 0.0,
-       "durationInFrames": 75.0,
+       "from": 0,
+       "durationInFrames": 75,
        "exit": {
         "kind": "core/slide",
-        "durationInFrames": 15.0
+        "durationInFrames": 15
        },
        "slot": {
         "nodeId": "sequence",
@@ -1693,8 +1693,8 @@
            {
             "kind": "element",
             "id": "title:i",
-            "from": 0.0,
-            "durationInFrames": 75.0,
+            "from": 0,
+            "durationInFrames": 75,
             "nodeId": "title",
             "handles": {
              "trimEnd": {
@@ -1728,15 +1728,15 @@
       {
        "kind": "group",
        "id": "sequence:s1",
-       "from": 60.0,
-       "durationInFrames": 150.0,
+       "from": 60,
+       "durationInFrames": 150,
        "enter": {
         "kind": "core/slide",
-        "durationInFrames": 15.0
+        "durationInFrames": 15
        },
        "exit": {
         "kind": "core/slide",
-        "durationInFrames": 15.0
+        "durationInFrames": 15
        },
        "slot": {
         "nodeId": "sequence",
@@ -1750,8 +1750,8 @@
            {
             "kind": "element",
             "id": "terminal:i",
-            "from": 0.0,
-            "durationInFrames": 150.0,
+            "from": 0,
+            "durationInFrames": 150,
             "nodeId": "terminal",
             "handles": {
              "trimEnd": {
@@ -1817,11 +1817,11 @@
       {
        "kind": "group",
        "id": "sequence:s2",
-       "from": 195.0,
-       "durationInFrames": 120.0,
+       "from": 195,
+       "durationInFrames": 120,
        "enter": {
         "kind": "core/slide",
-        "durationInFrames": 15.0
+        "durationInFrames": 15
        },
        "slot": {
         "nodeId": "sequence",
@@ -1835,14 +1835,14 @@
            {
             "kind": "group",
             "id": "chart-scene:l0:g",
-            "from": 0.0,
-            "durationInFrames": 90.0,
+            "from": 0,
+            "durationInFrames": 90,
             "handles": {
              "move": {
               "nodeId": "chart-scene",
               "param": "offsetsMs",
               "unit": "ms",
-              "index": 0.0
+              "index": 0
              }
             },
             "slot": {
@@ -1857,8 +1857,8 @@
                 {
                  "kind": "element",
                  "id": "bg:i",
-                 "from": 0.0,
-                 "durationInFrames": 90.0,
+                 "from": 0,
+                 "durationInFrames": 90,
                  "nodeId": "bg",
                  "handles": {
                   "trimEnd": {
@@ -1889,14 +1889,14 @@
            {
             "kind": "group",
             "id": "chart-scene:l1:g",
-            "from": 0.0,
-            "durationInFrames": 120.0,
+            "from": 0,
+            "durationInFrames": 120,
             "handles": {
              "move": {
               "nodeId": "chart-scene",
               "param": "offsetsMs",
               "unit": "ms",
-              "index": 1.0
+              "index": 1
              }
             },
             "slot": {
@@ -1911,8 +1911,8 @@
                 {
                  "kind": "element",
                  "id": "chart:i",
-                 "from": 0.0,
-                 "durationInFrames": 120.0,
+                 "from": 0,
+                 "durationInFrames": 120,
                  "nodeId": "chart",
                  "handles": {
                   "trimEnd": {
@@ -1922,8 +1922,8 @@
                   }
                  },
                  "design": {
-                  "width": 1920.0,
-                  "height": 1080.0
+                  "width": 1920,
+                  "height": 1080
                  },
                  "component": "remocn/animated-bar-chart",
                  "props": {
@@ -1985,14 +1985,14 @@
            {
             "kind": "group",
             "id": "chart-scene:l2:g",
-            "from": 0.0,
-            "durationInFrames": 120.0,
+            "from": 0,
+            "durationInFrames": 120,
             "handles": {
              "move": {
               "nodeId": "chart-scene",
               "param": "offsetsMs",
               "unit": "ms",
-              "index": 2.0
+              "index": 2
              }
             },
             "slot": {
@@ -2007,8 +2007,8 @@
                 {
                  "kind": "element",
                  "id": "credit:i",
-                 "from": 0.0,
-                 "durationInFrames": 120.0,
+                 "from": 0,
+                 "durationInFrames": 120,
                  "nodeId": "credit",
                  "handles": {
                   "trimEnd": {
@@ -2076,8 +2076,8 @@
  "timelines": {
   "render": {
    "flat": {
-    "fps": 30.0,
-    "durationInFrames": 315.0,
+    "fps": 30,
+    "durationInFrames": 315,
     "bars": [
      {
       "type": "video",
@@ -2281,7 +2281,7 @@
           "nodeId": "chart-scene",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0.0
+          "index": 0
          }
         },
         "slot": {
@@ -2394,7 +2394,7 @@
           "nodeId": "chart-scene",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 1.0
+          "index": 1
          }
         },
         "slot": {
@@ -2471,7 +2471,7 @@
           "nodeId": "chart-scene",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 2.0
+          "index": 2
          }
         },
         "slot": {
@@ -2548,8 +2548,8 @@
     "cameraKeys": []
    },
    "mix": {
-    "fps": 30.0,
-    "durationInFrames": 315.0,
+    "fps": 30,
+    "durationInFrames": 315,
     "channels": [],
     "buses": [
      {
@@ -2777,7 +2777,7 @@
     "title": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75.0,
+      "durationInFrames": 75,
       "tracks": [
        {
         "id": "title:t",
@@ -2785,8 +2785,8 @@
          {
           "kind": "element",
           "id": "title:i",
-          "from": 0.0,
-          "durationInFrames": 75.0,
+          "from": 0,
+          "durationInFrames": 75,
           "nodeId": "title",
           "handles": {
            "trimEnd": {
@@ -2821,7 +2821,7 @@
     "terminal": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 150.0,
+      "durationInFrames": 150,
       "tracks": [
        {
         "id": "terminal:t",
@@ -2829,8 +2829,8 @@
          {
           "kind": "element",
           "id": "terminal:i",
-          "from": 0.0,
-          "durationInFrames": 150.0,
+          "from": 0,
+          "durationInFrames": 150,
           "nodeId": "terminal",
           "handles": {
            "trimEnd": {
@@ -2897,7 +2897,7 @@
     "chart": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 120.0,
+      "durationInFrames": 120,
       "tracks": [
        {
         "id": "chart:t",
@@ -2905,8 +2905,8 @@
          {
           "kind": "element",
           "id": "chart:i",
-          "from": 0.0,
-          "durationInFrames": 120.0,
+          "from": 0,
+          "durationInFrames": 120,
           "nodeId": "chart",
           "handles": {
            "trimEnd": {
@@ -2916,8 +2916,8 @@
            }
           },
           "design": {
-           "width": 1920.0,
-           "height": 1080.0
+           "width": 1920,
+           "height": 1080
           },
           "component": "remocn/animated-bar-chart",
           "props": {
@@ -2974,7 +2974,7 @@
     "bg": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 90.0,
+      "durationInFrames": 90,
       "tracks": [
        {
         "id": "bg:t",
@@ -2982,8 +2982,8 @@
          {
           "kind": "element",
           "id": "bg:i",
-          "from": 0.0,
-          "durationInFrames": 90.0,
+          "from": 0,
+          "durationInFrames": 90,
           "nodeId": "bg",
           "handles": {
            "trimEnd": {
@@ -3009,7 +3009,7 @@
     "credit": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 120.0,
+      "durationInFrames": 120,
       "tracks": [
        {
         "id": "credit:t",
@@ -3017,8 +3017,8 @@
          {
           "kind": "element",
           "id": "credit:i",
-          "from": 0.0,
-          "durationInFrames": 120.0,
+          "from": 0,
+          "durationInFrames": 120,
           "nodeId": "credit",
           "handles": {
            "trimEnd": {
@@ -3046,7 +3046,7 @@
     "chart-scene": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 120.0,
+      "durationInFrames": 120,
       "tracks": [
        {
         "id": "chart-scene:l0",
@@ -3054,14 +3054,14 @@
          {
           "kind": "group",
           "id": "chart-scene:l0:g",
-          "from": 0.0,
-          "durationInFrames": 90.0,
+          "from": 0,
+          "durationInFrames": 90,
           "handles": {
            "move": {
             "nodeId": "chart-scene",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 0.0
+            "index": 0
            }
           },
           "slot": {
@@ -3076,8 +3076,8 @@
               {
                "kind": "element",
                "id": "bg:i",
-               "from": 0.0,
-               "durationInFrames": 90.0,
+               "from": 0,
+               "durationInFrames": 90,
                "nodeId": "bg",
                "handles": {
                 "trimEnd": {
@@ -3108,14 +3108,14 @@
          {
           "kind": "group",
           "id": "chart-scene:l1:g",
-          "from": 0.0,
-          "durationInFrames": 120.0,
+          "from": 0,
+          "durationInFrames": 120,
           "handles": {
            "move": {
             "nodeId": "chart-scene",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 1.0
+            "index": 1
            }
           },
           "slot": {
@@ -3130,8 +3130,8 @@
               {
                "kind": "element",
                "id": "chart:i",
-               "from": 0.0,
-               "durationInFrames": 120.0,
+               "from": 0,
+               "durationInFrames": 120,
                "nodeId": "chart",
                "handles": {
                 "trimEnd": {
@@ -3141,8 +3141,8 @@
                 }
                },
                "design": {
-                "width": 1920.0,
-                "height": 1080.0
+                "width": 1920,
+                "height": 1080
                },
                "component": "remocn/animated-bar-chart",
                "props": {
@@ -3204,14 +3204,14 @@
          {
           "kind": "group",
           "id": "chart-scene:l2:g",
-          "from": 0.0,
-          "durationInFrames": 120.0,
+          "from": 0,
+          "durationInFrames": 120,
           "handles": {
            "move": {
             "nodeId": "chart-scene",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 2.0
+            "index": 2
            }
           },
           "slot": {
@@ -3226,8 +3226,8 @@
               {
                "kind": "element",
                "id": "credit:i",
-               "from": 0.0,
-               "durationInFrames": 120.0,
+               "from": 0,
+               "durationInFrames": 120,
                "nodeId": "credit",
                "handles": {
                 "trimEnd": {
@@ -3261,7 +3261,7 @@
     "sequence": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 315.0,
+      "durationInFrames": 315,
       "tracks": [
        {
         "id": "sequence:seq",
@@ -3269,11 +3269,11 @@
          {
           "kind": "group",
           "id": "sequence:s0",
-          "from": 0.0,
-          "durationInFrames": 75.0,
+          "from": 0,
+          "durationInFrames": 75,
           "exit": {
            "kind": "core/slide",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "slot": {
            "nodeId": "sequence",
@@ -3287,8 +3287,8 @@
               {
                "kind": "element",
                "id": "title:i",
-               "from": 0.0,
-               "durationInFrames": 75.0,
+               "from": 0,
+               "durationInFrames": 75,
                "nodeId": "title",
                "handles": {
                 "trimEnd": {
@@ -3322,15 +3322,15 @@
          {
           "kind": "group",
           "id": "sequence:s1",
-          "from": 60.0,
-          "durationInFrames": 150.0,
+          "from": 60,
+          "durationInFrames": 150,
           "enter": {
            "kind": "core/slide",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "exit": {
            "kind": "core/slide",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "slot": {
            "nodeId": "sequence",
@@ -3344,8 +3344,8 @@
               {
                "kind": "element",
                "id": "terminal:i",
-               "from": 0.0,
-               "durationInFrames": 150.0,
+               "from": 0,
+               "durationInFrames": 150,
                "nodeId": "terminal",
                "handles": {
                 "trimEnd": {
@@ -3411,11 +3411,11 @@
          {
           "kind": "group",
           "id": "sequence:s2",
-          "from": 195.0,
-          "durationInFrames": 120.0,
+          "from": 195,
+          "durationInFrames": 120,
           "enter": {
            "kind": "core/slide",
-           "durationInFrames": 15.0
+           "durationInFrames": 15
           },
           "slot": {
            "nodeId": "sequence",
@@ -3429,14 +3429,14 @@
               {
                "kind": "group",
                "id": "chart-scene:l0:g",
-               "from": 0.0,
-               "durationInFrames": 90.0,
+               "from": 0,
+               "durationInFrames": 90,
                "handles": {
                 "move": {
                  "nodeId": "chart-scene",
                  "param": "offsetsMs",
                  "unit": "ms",
-                 "index": 0.0
+                 "index": 0
                 }
                },
                "slot": {
@@ -3451,8 +3451,8 @@
                    {
                     "kind": "element",
                     "id": "bg:i",
-                    "from": 0.0,
-                    "durationInFrames": 90.0,
+                    "from": 0,
+                    "durationInFrames": 90,
                     "nodeId": "bg",
                     "handles": {
                      "trimEnd": {
@@ -3483,14 +3483,14 @@
               {
                "kind": "group",
                "id": "chart-scene:l1:g",
-               "from": 0.0,
-               "durationInFrames": 120.0,
+               "from": 0,
+               "durationInFrames": 120,
                "handles": {
                 "move": {
                  "nodeId": "chart-scene",
                  "param": "offsetsMs",
                  "unit": "ms",
-                 "index": 1.0
+                 "index": 1
                 }
                },
                "slot": {
@@ -3505,8 +3505,8 @@
                    {
                     "kind": "element",
                     "id": "chart:i",
-                    "from": 0.0,
-                    "durationInFrames": 120.0,
+                    "from": 0,
+                    "durationInFrames": 120,
                     "nodeId": "chart",
                     "handles": {
                      "trimEnd": {
@@ -3516,8 +3516,8 @@
                      }
                     },
                     "design": {
-                     "width": 1920.0,
-                     "height": 1080.0
+                     "width": 1920,
+                     "height": 1080
                     },
                     "component": "remocn/animated-bar-chart",
                     "props": {
@@ -3579,14 +3579,14 @@
               {
                "kind": "group",
                "id": "chart-scene:l2:g",
-               "from": 0.0,
-               "durationInFrames": 120.0,
+               "from": 0,
+               "durationInFrames": 120,
                "handles": {
                 "move": {
                  "nodeId": "chart-scene",
                  "param": "offsetsMs",
                  "unit": "ms",
-                 "index": 2.0
+                 "index": 2
                 }
                },
                "slot": {
@@ -3601,8 +3601,8 @@
                    {
                     "kind": "element",
                     "id": "credit:i",
-                    "from": 0.0,
-                    "durationInFrames": 120.0,
+                    "from": 0,
+                    "durationInFrames": 120,
                     "nodeId": "credit",
                     "handles": {
                      "trimEnd": {
@@ -3643,9 +3643,9 @@
       "type": "media",
       "src": "project:.opsis/out/render.mp4",
       "kind": "video",
-      "durationMs": 4000.0,
-      "width": 1920.0,
-      "height": 1080.0,
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
       "hasAudio": true
      }
     }
@@ -3653,10 +3653,10 @@
    "errors": {},
    "specs": {
     "render": {
-     "width": 1920.0,
-     "height": 1080.0,
-     "fps": 30.0,
-     "durationInFrames": 315.0,
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "durationInFrames": 315,
      "background": "#09090b",
      "tracks": [
       {
@@ -3665,11 +3665,11 @@
         {
          "kind": "group",
          "id": "sequence:s0",
-         "from": 0.0,
-         "durationInFrames": 75.0,
+         "from": 0,
+         "durationInFrames": 75,
          "exit": {
           "kind": "core/slide",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -3683,8 +3683,8 @@
              {
               "kind": "element",
               "id": "title:i",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "nodeId": "title",
               "handles": {
                "trimEnd": {
@@ -3718,15 +3718,15 @@
         {
          "kind": "group",
          "id": "sequence:s1",
-         "from": 60.0,
-         "durationInFrames": 150.0,
+         "from": 60,
+         "durationInFrames": 150,
          "enter": {
           "kind": "core/slide",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "exit": {
           "kind": "core/slide",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -3740,8 +3740,8 @@
              {
               "kind": "element",
               "id": "terminal:i",
-              "from": 0.0,
-              "durationInFrames": 150.0,
+              "from": 0,
+              "durationInFrames": 150,
               "nodeId": "terminal",
               "handles": {
                "trimEnd": {
@@ -3807,11 +3807,11 @@
         {
          "kind": "group",
          "id": "sequence:s2",
-         "from": 195.0,
-         "durationInFrames": 120.0,
+         "from": 195,
+         "durationInFrames": 120,
          "enter": {
           "kind": "core/slide",
-          "durationInFrames": 15.0
+          "durationInFrames": 15
          },
          "slot": {
           "nodeId": "sequence",
@@ -3825,14 +3825,14 @@
              {
               "kind": "group",
               "id": "chart-scene:l0:g",
-              "from": 0.0,
-              "durationInFrames": 90.0,
+              "from": 0,
+              "durationInFrames": 90,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 0.0
+                "index": 0
                }
               },
               "slot": {
@@ -3847,8 +3847,8 @@
                   {
                    "kind": "element",
                    "id": "bg:i",
-                   "from": 0.0,
-                   "durationInFrames": 90.0,
+                   "from": 0,
+                   "durationInFrames": 90,
                    "nodeId": "bg",
                    "handles": {
                     "trimEnd": {
@@ -3879,14 +3879,14 @@
              {
               "kind": "group",
               "id": "chart-scene:l1:g",
-              "from": 0.0,
-              "durationInFrames": 120.0,
+              "from": 0,
+              "durationInFrames": 120,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 1.0
+                "index": 1
                }
               },
               "slot": {
@@ -3901,8 +3901,8 @@
                   {
                    "kind": "element",
                    "id": "chart:i",
-                   "from": 0.0,
-                   "durationInFrames": 120.0,
+                   "from": 0,
+                   "durationInFrames": 120,
                    "nodeId": "chart",
                    "handles": {
                     "trimEnd": {
@@ -3912,8 +3912,8 @@
                     }
                    },
                    "design": {
-                    "width": 1920.0,
-                    "height": 1080.0
+                    "width": 1920,
+                    "height": 1080
                    },
                    "component": "remocn/animated-bar-chart",
                    "props": {
@@ -3975,14 +3975,14 @@
              {
               "kind": "group",
               "id": "chart-scene:l2:g",
-              "from": 0.0,
-              "durationInFrames": 120.0,
+              "from": 0,
+              "durationInFrames": 120,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 2.0
+                "index": 2
                }
               },
               "slot": {
@@ -3997,8 +3997,8 @@
                   {
                    "kind": "element",
                    "id": "credit:i",
-                   "from": 0.0,
-                   "durationInFrames": 120.0,
+                   "from": 0,
+                   "durationInFrames": 120,
                    "nodeId": "credit",
                    "handles": {
                     "trimEnd": {
@@ -4154,10 +4154,10 @@
   },
   "preview": {
    "spec": {
-    "width": 1920.0,
-    "height": 1080.0,
-    "fps": 30.0,
-    "durationInFrames": 315.0,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 315,
     "background": "#09090b",
     "tracks": [
      {
@@ -4166,11 +4166,11 @@
        {
         "kind": "group",
         "id": "sequence:s0",
-        "from": 0.0,
-        "durationInFrames": 75.0,
+        "from": 0,
+        "durationInFrames": 75,
         "exit": {
          "kind": "core/slide",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -4184,8 +4184,8 @@
             {
              "kind": "element",
              "id": "title:i",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "nodeId": "title",
              "handles": {
               "trimEnd": {
@@ -4219,15 +4219,15 @@
        {
         "kind": "group",
         "id": "sequence:s1",
-        "from": 60.0,
-        "durationInFrames": 150.0,
+        "from": 60,
+        "durationInFrames": 150,
         "enter": {
          "kind": "core/slide",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "exit": {
          "kind": "core/slide",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -4241,8 +4241,8 @@
             {
              "kind": "element",
              "id": "terminal:i",
-             "from": 0.0,
-             "durationInFrames": 150.0,
+             "from": 0,
+             "durationInFrames": 150,
              "nodeId": "terminal",
              "handles": {
               "trimEnd": {
@@ -4308,11 +4308,11 @@
        {
         "kind": "group",
         "id": "sequence:s2",
-        "from": 195.0,
-        "durationInFrames": 120.0,
+        "from": 195,
+        "durationInFrames": 120,
         "enter": {
          "kind": "core/slide",
-         "durationInFrames": 15.0
+         "durationInFrames": 15
         },
         "slot": {
          "nodeId": "sequence",
@@ -4326,14 +4326,14 @@
             {
              "kind": "group",
              "id": "chart-scene:l0:g",
-             "from": 0.0,
-             "durationInFrames": 90.0,
+             "from": 0,
+             "durationInFrames": 90,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 0.0
+               "index": 0
               }
              },
              "slot": {
@@ -4348,8 +4348,8 @@
                  {
                   "kind": "element",
                   "id": "bg:i",
-                  "from": 0.0,
-                  "durationInFrames": 90.0,
+                  "from": 0,
+                  "durationInFrames": 90,
                   "nodeId": "bg",
                   "handles": {
                    "trimEnd": {
@@ -4380,14 +4380,14 @@
             {
              "kind": "group",
              "id": "chart-scene:l1:g",
-             "from": 0.0,
-             "durationInFrames": 120.0,
+             "from": 0,
+             "durationInFrames": 120,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 1.0
+               "index": 1
               }
              },
              "slot": {
@@ -4402,8 +4402,8 @@
                  {
                   "kind": "element",
                   "id": "chart:i",
-                  "from": 0.0,
-                  "durationInFrames": 120.0,
+                  "from": 0,
+                  "durationInFrames": 120,
                   "nodeId": "chart",
                   "handles": {
                    "trimEnd": {
@@ -4413,8 +4413,8 @@
                    }
                   },
                   "design": {
-                   "width": 1920.0,
-                   "height": 1080.0
+                   "width": 1920,
+                   "height": 1080
                   },
                   "component": "remocn/animated-bar-chart",
                   "props": {
@@ -4476,14 +4476,14 @@
             {
              "kind": "group",
              "id": "chart-scene:l2:g",
-             "from": 0.0,
-             "durationInFrames": 120.0,
+             "from": 0,
+             "durationInFrames": 120,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 2.0
+               "index": 2
               }
              },
              "slot": {
@@ -4498,8 +4498,8 @@
                  {
                   "kind": "element",
                   "id": "credit:i",
-                  "from": 0.0,
-                  "durationInFrames": 120.0,
+                  "from": 0,
+                  "durationInFrames": 120,
                   "nodeId": "credit",
                   "handles": {
                    "trimEnd": {
@@ -4567,8 +4567,8 @@
   "timelines": {
    "render": {
     "flat": {
-     "fps": 30.0,
-     "durationInFrames": 315.0,
+     "fps": 30,
+     "durationInFrames": 315,
      "bars": [
       {
        "type": "video",
@@ -4772,7 +4772,7 @@
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -4885,7 +4885,7 @@
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1.0
+           "index": 1
           }
          },
          "slot": {
@@ -4962,7 +4962,7 @@
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 2.0
+           "index": 2
           }
          },
          "slot": {
@@ -5039,8 +5039,8 @@
      "cameraKeys": []
     },
     "mix": {
-     "fps": 30.0,
-     "durationInFrames": 315.0,
+     "fps": 30,
+     "durationInFrames": 315,
      "channels": [],
      "buses": [
       {

@@ -1,3 +1,6 @@
+use opsis_compile::nodes::image::{
+    ADJUST_TYPE, BLUR_TYPE, CROP_TYPE, FORMAT_TYPE, PLACE_TYPE, RESIZE_TYPE, ROTATE_TYPE,
+};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -46,8 +49,8 @@ fn saved(
     write(&ctx.dir.join(&file), &bytes)?;
     let value = ImageValue {
         src: Some(ctx.project_file_ref(&file)),
-        width: Some(f64::from(image.width())),
-        height: Some(f64::from(image.height())),
+        width: Some(image.width()),
+        height: Some(image.height()),
         scale: None,
         body: None,
     };
@@ -154,12 +157,12 @@ async fn format(
 
 pub fn image_executors() -> Vec<(&'static str, ExecutorFn)> {
     vec![
-        ("image.resize", executor(resize)),
-        ("image.crop", executor(crop)),
-        ("image.rotate", executor(rotate)),
-        ("image.adjust", executor(adjust)),
-        ("image.blur", executor(blur)),
-        ("image.place", executor(place)),
-        ("image.format", executor(format)),
+        (RESIZE_TYPE, executor(resize)),
+        (CROP_TYPE, executor(crop)),
+        (ROTATE_TYPE, executor(rotate)),
+        (ADJUST_TYPE, executor(adjust)),
+        (BLUR_TYPE, executor(blur)),
+        (PLACE_TYPE, executor(place)),
+        (FORMAT_TYPE, executor(format)),
     ]
 }

@@ -44,19 +44,19 @@ impl MediaTools for FakeTools {
 
 fn film_probe(sound: Option<&str>) -> ProbeResult {
     ProbeResult {
-        duration_ms: 4000.0,
+        duration_ms: Some(4000),
         format: "mov,mp4".into(),
         video: Some(VideoInfo {
             codec: "h264".into(),
-            width: 1920.0,
-            height: 1080.0,
-            fps: 30.0,
+            width: 1920,
+            height: 1080,
+            fps: Some(30.0),
             pix_fmt: "yuv420p".into(),
         }),
         audio: sound.map(|codec| AudioInfo {
             codec: codec.into(),
-            sample_rate: 48000.0,
-            channels: 2.0,
+            sample_rate: Some(48000),
+            channels: Some(2),
         }),
         raw: json!({}),
     }
@@ -64,13 +64,13 @@ fn film_probe(sound: Option<&str>) -> ProbeResult {
 
 fn sound_probe() -> ProbeResult {
     ProbeResult {
-        duration_ms: 4000.0,
+        duration_ms: Some(4000),
         format: "wav".into(),
         video: None,
         audio: Some(AudioInfo {
             codec: "pcm_s16le".into(),
-            sample_rate: 48000.0,
-            channels: 2.0,
+            sample_rate: Some(48000),
+            channels: Some(2),
         }),
         raw: json!({}),
     }

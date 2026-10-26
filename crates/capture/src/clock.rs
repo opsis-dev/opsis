@@ -34,7 +34,7 @@ impl Clock {
         session
             .add_init_script(&format!(
                 "globalThis.__pwClock.controller.log('{method}', {}, {time_ms})",
-                now_ms() as i64
+                now_ms()
             ))
             .await?;
         session
@@ -55,4 +55,10 @@ impl Clock {
             }
         }
     }
+}
+
+pub fn wall_ms() -> f64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0.0, |since| since.as_secs_f64() * 1000.0)
 }

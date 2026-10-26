@@ -27,7 +27,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         assert_eq!(read_last_run(dir.path()).unwrap(), None);
         let run = LastRun {
-            updated_at: 12.0,
+            updated_at: 12,
             nodes: IndexMap::new(),
             failures: None,
         };

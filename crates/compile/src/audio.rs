@@ -8,13 +8,15 @@ pub fn channel_of(a: &AudioItem) -> String {
         .unwrap_or_else(|| a.id.clone())
 }
 
-pub fn sound_length(a: &AudioItem, total: f64) -> f64 {
-    let rest = (total - a.from).max(0.0);
+pub fn sound_length(a: &AudioItem, total: u32) -> f64 {
+    let rest = (f64::from(total) - f64::from(a.from)).max(0.0);
     if a.role == Some(AudioRole::Effect) {
-        let natural = a.length_frames.map_or(rest, |l| l / a.rate.unwrap_or(1.0));
-        return natural.min(a.duration_in_frames.unwrap_or(natural));
+        let natural = a
+            .length_frames
+            .map_or(rest, |l| f64::from(l) / a.rate.unwrap_or(1.0));
+        return natural.min(a.duration_in_frames.map_or(natural, f64::from));
     }
-    a.duration_in_frames.unwrap_or(rest)
+    a.duration_in_frames.map_or(rest, f64::from)
 }
 
 pub fn audio_kind(a: &AudioItem) -> ChannelKind {

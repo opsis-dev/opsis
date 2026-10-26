@@ -5,6 +5,7 @@ use opsis_types::workflow::{Workflow, WorkflowEdge, WorkflowSettings};
 use serde::{Deserialize, Serialize};
 
 use crate::clip::{clip_of, clip_to_spec};
+use crate::errors::{CompileError, SettingsError};
 use crate::graph::topo_sort;
 use crate::node::{CLIP_PORT, Ctx, NodeDef};
 use crate::params::Values;
@@ -78,7 +79,7 @@ pub fn parse_node_params(
     def: &NodeDef,
     node: &opsis_types::workflow::WorkflowNode,
     vars: &Vars,
-) -> Result<Values, String> {
+) -> Result<Values, SettingsError> {
     def.parse(
         &interpolated_params(Some(def), &node.params, vars),
         Some(&node.params),
@@ -96,7 +97,7 @@ fn run_compile(
     def: &NodeDef,
     inputs: &PortValues,
     run: RunContext<'_>,
-) -> Result<PortValues, String> {
+) -> Result<PortValues, CompileError> {
     let values = def.parse(
         &interpolated_params(Some(def), &node.params, run.vars),
         Some(&node.params),
@@ -160,7 +161,7 @@ pub fn compile_workflow(
             }
             Err(error) => {
                 out.values.insert(id.clone(), PortValues::new());
-                out.errors.insert(id.clone(), error);
+                out.errors.insert(id.clone(), error.to_string());
             }
         }
     }

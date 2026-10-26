@@ -6,20 +6,48 @@ use opsis_types::values::{ClipValue, CompileValue, MediaKind, MediaValue, NodeRe
 use opsis_types::workflow::{DEFAULT_STILL_MS, PortType};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
 use smart_default::SmartDefault;
 
 use crate::asset_ref::{kind_from_path, project_ref};
 use crate::card::{file_row, range_row, truncate_card};
-use crate::clip::{ItemExtra, item_clip, placeholder_clip};
+use crate::clip::{IMAGE, ItemExtra, VIDEO, item_clip, placeholder_clip};
+use crate::errors::SettingsError;
 use crate::node::{
     CardCtx, Category, Ctx, GRADE_PORT, Inputs, NodeDef, Outputs, Phase, Ports, RowExt, missing,
     opt, port, row,
 };
 use crate::nodes::grade::{grade_changes_nothing, grade_needs_video, grade_step_title};
-use crate::params::Params;
+use crate::params::{Params, to_values};
 use crate::text::{format_duration, plural, signed_text};
 use crate::time::ms_to_frames;
+
+pub const PROBE_TYPE: &str = "media.probe";
+
+pub const FASTSTART_TYPE: &str = "media.faststart";
+
+pub const THUMBNAIL_TYPE: &str = "media.thumbnail";
+
+pub const LOUDNORM_TYPE: &str = "media.loudnorm";
+
+pub const EXTRACT_AUDIO_TYPE: &str = "media.extractAudio";
+
+pub const GIF_TYPE: &str = "media.gif";
+
+pub const APPLY_GRADE_TYPE: &str = "media.applyGrade";
+
+pub const CONVERT_TYPE: &str = "media.convert";
+
+pub const SCALE_PAD_TYPE: &str = "media.scalePad";
+
+pub const REVERSE_TYPE: &str = "media.reverse";
+
+pub const SPEED_TYPE: &str = "media.speed";
+
+pub const CONCAT_TYPE: &str = "media.concat";
+
+pub const TRIM_TYPE: &str = "media.trim";
+
+pub const IMPORT_TYPE: &str = "media.import";
 
 const MEDIA_PORT: &str = "media";
 const NEW_FILE: &str = " Makes a new file.";
@@ -51,14 +79,14 @@ impl Codec {
     }
 }
 
-pub const QUALITY_PRESETS: [(&str, i64); 4] =
+pub const QUALITY_PRESETS: [(&str, u32); 4] =
     [("Low", 28), ("Medium", 23), ("High", 18), ("Max", 12)];
 
-pub fn quality_name(crf: i64) -> &'static str {
+pub fn quality_name(crf: u32) -> &'static str {
     let mut best = QUALITY_PRESETS[0];
     for preset in &QUALITY_PRESETS[1..] {
-        let distance = (preset.1 - crf).abs();
-        let best_distance = (best.1 - crf).abs();
+        let distance = preset.1.abs_diff(crf);
+        let best_distance = best.1.abs_diff(crf);
         if distance < best_distance || (distance == best_distance && preset.1 < best.1) {
             best = *preset;
         }
@@ -124,7 +152,7 @@ pub struct Encoding {
         range(min = 0, max = 51),
         extend("x-widget" = "quality", "x-show-if" = { "codec": ["h264", "h265", "vp9"] })
     )]
-    pub crf: i64,
+    pub crf: u32,
     #[default(EncodePreset::Medium)]
     #[schemars(
         description = "Speed vs file size",
@@ -145,7 +173,7 @@ pub struct Encoding {
 
 impl Params for Encoding {}
 
-fn format_row(codec: ConvertCodec, crf: i64) -> CardRow {
+fn format_row(codec: ConvertCodec, crf: u32) -> CardRow {
     let parts: Vec<String> = [
         Some(codec.codec().name().to_owned()),
         matches!(
@@ -172,8 +200,8 @@ fn media_of(result: Option<&NodeResult>, port: &str) -> Option<MediaValue> {
 fn length_row(result: Option<&NodeResult>, icon: Icon) -> Option<CardRow> {
     let duration = media_of(result, MEDIA_PORT)?
         .duration_ms
-        .filter(|d| *d != 0.0)?;
-    Some(row(icon, format_duration(duration)))
+        .filter(|d| *d != 0)?;
+    Some(row(icon, format_duration(f64::from(duration))))
 }
 
 fn pass_media(result: Option<&NodeResult>, inputs: &Inputs, fallback_port: &str) -> Outputs {
@@ -203,20 +231,20 @@ impl Fit {
             Self::Contain => "Show all",
         }
     }
+}
 
-    fn id(self) -> &'static str {
-        match self {
-            Self::Cover => "cover",
-            Self::Contain => "contain",
-        }
-    }
+#[derive(Serialize)]
+struct FileClipProps<'a> {
+    src: &'a str,
+    fit: Fit,
+    muted: bool,
 }
 
 struct ClipLook<'a> {
     fit: Fit,
     muted: bool,
     envelope: &'a VisualEnvelope,
-    fps: f64,
+    fps: u32,
     unlinked: (&'a str, &'a str),
     sound_label: &'a str,
     still: Option<(f64, EditHandles)>,
@@ -224,10 +252,12 @@ struct ClipLook<'a> {
 
 fn clip_ms(media: Option<&MediaValue>, still: Option<f64>) -> f64 {
     match media {
-        Some(m) if m.kind == MediaKind::Image => {
-            still.or(m.duration_ms).unwrap_or(DEFAULT_STILL_MS)
-        }
-        _ => media.and_then(|m| m.duration_ms).unwrap_or(MEDIA_MS),
+        Some(m) if m.kind == MediaKind::Image => still
+            .or(m.duration_ms.map(f64::from))
+            .unwrap_or(DEFAULT_STILL_MS),
+        _ => media
+            .and_then(|m| m.duration_ms)
+            .map_or(MEDIA_MS, f64::from),
     }
 }
 
@@ -240,29 +270,27 @@ fn media_to_clip(node_id: &str, media: Option<&MediaValue>, look: ClipLook<'_>) 
     let Some((media, src)) = media.and_then(|m| m.src.as_ref().map(|s| (m, s))) else {
         return placeholder_clip(node_id, look.unlinked.0, look.unlinked.1, frames, extra);
     };
-    let mut props = Map::new();
+    let props = |muted: bool| {
+        to_values(&FileClipProps {
+            src,
+            fit: look.fit,
+            muted,
+        })
+    };
     match media.kind {
         MediaKind::Audio => {
             placeholder_clip(node_id, "Sound file", look.sound_label, frames, extra)
         }
         MediaKind::Image => {
-            props.insert("src".into(), Value::from(src.clone()));
-            props.insert("fit".into(), Value::from(look.fit.id()));
-            props.insert("muted".into(), Value::from(look.muted));
             let extra = ItemExtra {
                 handles: look.still.map(|s| s.1),
                 ..extra
             };
-            item_clip(node_id, "core/image", props, frames, extra)
+            item_clip(node_id, IMAGE, props(look.muted), frames, extra)
         }
         MediaKind::Video => {
-            props.insert("src".into(), Value::from(src.clone()));
-            props.insert("fit".into(), Value::from(look.fit.id()));
-            props.insert(
-                "muted".into(),
-                Value::from(look.muted || media.has_audio == Some(false)),
-            );
-            item_clip(node_id, "core/video", props, frames, extra)
+            let muted = look.muted || media.has_audio == Some(false);
+            item_clip(node_id, VIDEO, props(muted), frames, extra)
         }
     }
 }
@@ -307,7 +335,7 @@ pub struct MediaFile {
             "x-show-if-file" = { "path": ["image"] }
         )
     )]
-    pub still_ms: i64,
+    pub still_ms: u32,
     #[schemars(
         description = "Keyframes",
         extend(
@@ -322,7 +350,7 @@ impl Params for MediaFile {}
 
 fn import() -> NodeDef {
     file_op::<MediaFile>(
-        "media.import",
+        IMPORT_TYPE,
         "Media file",
         "A video, image or sound from your project. Drop files on the canvas to add one.",
     )
@@ -339,7 +367,7 @@ fn import() -> NodeDef {
                 file_row(Icon::FileVideo, &p.path)
             }),
             if !p.path.is_empty() && kind_from_path(&p.path) == MediaKind::Image {
-                Some(row(Icon::Clock, format_duration(p.still_ms as f64)))
+                Some(row(Icon::Clock, format_duration(f64::from(p.still_ms))))
             } else {
                 length_row(ctx.result, Icon::Clock)
             },
@@ -373,7 +401,7 @@ fn import() -> NodeDef {
             fps: ctx.settings.fps,
             unlinked: ("No file chosen", &p.path),
             sound_label: &p.path,
-            still: Some((p.still_ms as f64, handles)),
+            still: Some((f64::from(p.still_ms), handles)),
         };
         let clip = media_to_clip(ctx.node_id, Some(&media), look);
         crate::node::outputs([
@@ -443,15 +471,15 @@ fn use_as_clip() -> NodeDef {
 #[serde(rename_all = "camelCase", default)]
 pub struct TrimFile {
     #[schemars(description = "Start", range(min = 0, max = 36000000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub start_ms: i64,
+    pub start_ms: u32,
     #[schemars(description = "End", range(min = 0, max = 36000000), extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "To the end"))]
-    pub end_ms: i64,
+    pub end_ms: u32,
 }
 
 impl Params for TrimFile {
-    fn check(&self) -> Result<(), String> {
+    fn check(&self) -> Result<(), SettingsError> {
         if self.end_ms != 0 && self.end_ms <= self.start_ms {
-            return Err("End must come after Start".to_owned());
+            return Err(SettingsError::rule("End must come after Start"));
         }
         Ok(())
     }
@@ -469,7 +497,7 @@ impl Params for JoinFiles {}
 pub const CONCAT_PORTS: [&str; 4] = ["in1", "in2", "in3", "in4"];
 
 fn join_files() -> NodeDef {
-    NodeDef::of::<JoinFiles>("media.concat", "Join files", Category::Media, Phase::Media)
+    NodeDef::of::<JoinFiles>(CONCAT_TYPE, "Join files", Category::Media, Phase::Media)
         .describe(format!(
             "Joins files end to end. Fast when they match, otherwise converts them.{NEW_FILE}"
         ))
@@ -541,14 +569,14 @@ pub struct Resize {
         range(min = 16, max = 7680),
         extend("x-step" = 2, "x-unit" = "px", "x-help" = "A video takes even sizes; an odd one loses a pixel.")
     )]
-    pub width: i64,
+    pub width: u32,
     #[default = 1080]
     #[schemars(
         description = "Height",
         range(min = 16, max = 7680),
         extend("x-step" = 2, "x-unit" = "px", "x-help" = "A video takes even sizes; an odd one loses a pixel.")
     )]
-    pub height: i64,
+    pub height: u32,
     #[default(ScaleMode::Pad)]
     #[schemars(description = "Fit", extend("x-labels" = { "pad": "Add bars", "crop": "Crop to fill", "stretch": "Stretch" }))]
     pub mode: ScaleMode,
@@ -582,10 +610,10 @@ pub enum Dither {
 pub struct MakeGif {
     #[default = 15]
     #[schemars(description = "Frame rate", range(min = 5, max = 50), extend("x-unit" = "fps"))]
-    pub fps: i64,
+    pub fps: u32,
     #[default = 960]
     #[schemars(description = "Width", range(min = 64, max = 3840), extend("x-unit" = "px"))]
-    pub width: i64,
+    pub width: u32,
     #[default = true]
     #[schemars(description = "Loop forever")]
     pub r#loop: bool,
@@ -638,17 +666,17 @@ impl Params for EvenOutVolume {}
 pub struct GrabFrame {
     #[default = 1000]
     #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub at_ms: i64,
+    pub at_ms: u32,
     #[default = 1280]
     #[schemars(description = "Width", range(min = 64, max = 3840), extend("x-unit" = "px"))]
-    pub width: i64,
+    pub width: u32,
 }
 
 impl Params for GrabFrame {}
 
 fn apply_grade() -> NodeDef {
     file_op::<Encoding>(
-        "media.applyGrade",
+        APPLY_GRADE_TYPE,
         "Apply grade",
         format!(
             "Applies a colour grade to a whole video or image file: everything in the picture, window and backdrop included.{NEW_FILE}"
@@ -683,7 +711,7 @@ fn apply_grade() -> NodeDef {
 
 fn probe() -> NodeDef {
     file_op::<NoSettings>(
-        "media.probe",
+        PROBE_TYPE,
         "File info",
         "Shows a file's length, size, frame rate and format.",
     )
@@ -713,7 +741,7 @@ fn probe() -> NodeDef {
 
 fn thumbnail() -> NodeDef {
     file_op::<GrabFrame>(
-        "media.thumbnail",
+        THUMBNAIL_TYPE,
         "Grab frame",
         format!("Saves one frame of a video as an image.{NEW_FILE}"),
     )
@@ -723,7 +751,11 @@ fn thumbnail() -> NodeDef {
         let p = &ctx.params;
         vec![Some(row(
             Icon::Image,
-            format!("At {} · {} px", format_duration(p.at_ms as f64), p.width),
+            format!(
+                "At {} · {} px",
+                format_duration(f64::from(p.at_ms)),
+                p.width
+            ),
         ))]
     })
     .compile(|ctx: &Ctx<'_, GrabFrame>| {
@@ -745,7 +777,7 @@ pub fn nodes() -> Vec<NodeDef> {
         import(),
         use_as_clip(),
         one_file_op::<TrimFile>(
-            "media.trim",
+            TRIM_TYPE,
             "Trim file",
             "Cuts a file down to a start and end.",
         )
@@ -753,15 +785,15 @@ pub fn nodes() -> Vec<NodeDef> {
             let p = &ctx.params;
             vec![
                 Some(range_row(
-                    p.start_ms as f64,
-                    (p.end_ms != 0).then_some(p.end_ms as f64),
+                    f64::from(p.start_ms),
+                    (p.end_ms != 0).then_some(f64::from(p.end_ms)),
                 )),
                 length_row(ctx.result, Icon::Clock),
             ]
         }),
         join_files(),
         one_file_op::<ChangeSpeed>(
-            "media.speed",
+            SPEED_TYPE,
             "Change speed",
             "Speeds a file up or slows it down.",
         )
@@ -777,7 +809,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 }),
             ]
         }),
-        one_file_op::<NoSettings>("media.reverse", "Reverse", "Plays a file backwards.")
+        one_file_op::<NoSettings>(REVERSE_TYPE, "Reverse", "Plays a file backwards.")
             .uses_project_size()
             .card(|ctx: &CardCtx<'_, NoSettings>| {
                 vec![
@@ -786,7 +818,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 ]
             }),
         one_file_op::<Resize>(
-            "media.scalePad",
+            SCALE_PAD_TYPE,
             "Resize",
             "Resizes a file, adding bars or cropping to fit.",
         )
@@ -798,7 +830,7 @@ pub fn nodes() -> Vec<NodeDef> {
             ]
         }),
         one_file_op::<Encoding>(
-            "media.convert",
+            CONVERT_TYPE,
             "Convert",
             "Saves a file in another format or quality.",
         )
@@ -807,7 +839,7 @@ pub fn nodes() -> Vec<NodeDef> {
         }),
         apply_grade(),
         one_file_op::<MakeGif>(
-            "media.gif",
+            GIF_TYPE,
             "Make GIF",
             "Turns a video into a GIF with clean colours.",
         )
@@ -822,7 +854,7 @@ pub fn nodes() -> Vec<NodeDef> {
             ]
         }),
         one_file_op::<ExtractSound>(
-            "media.extractAudio",
+            EXTRACT_AUDIO_TYPE,
             "Extract sound",
             "Saves the sound of a video as its own file.",
         )
@@ -834,7 +866,7 @@ pub fn nodes() -> Vec<NodeDef> {
             vec![Some(row(Icon::AudioLines, format))]
         }),
         one_file_op::<EvenOutVolume>(
-            "media.loudnorm",
+            LOUDNORM_TYPE,
             "Even out volume",
             "Makes the sound as loud as most online videos.",
         )
@@ -846,7 +878,7 @@ pub fn nodes() -> Vec<NodeDef> {
         }),
         thumbnail(),
         one_file_op::<NoSettings>(
-            "media.faststart",
+            FASTSTART_TYPE,
             "Web-ready",
             "Prepares a video to start playing instantly on the web.",
         )

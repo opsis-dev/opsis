@@ -1001,7 +1001,7 @@
     },
     "clip": {
      "type": "clip",
-     "durationInFrames": 150.0,
+     "durationInFrames": 150,
      "tracks": [
       {
        "id": "talk:t",
@@ -1009,8 +1009,8 @@
         {
          "kind": "element",
          "id": "talk:i",
-         "from": 0.0,
-         "durationInFrames": 150.0,
+         "from": 0,
+         "durationInFrames": 150,
          "nodeId": "talk",
          "component": "core/video",
          "props": {
@@ -1028,7 +1028,7 @@
    "talk-clip": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 150.0,
+     "durationInFrames": 150,
      "tracks": [
       {
        "id": "talk-clip:t",
@@ -1036,8 +1036,8 @@
         {
          "kind": "element",
          "id": "talk-clip:i",
-         "from": 0.0,
-         "durationInFrames": 150.0,
+         "from": 0,
+         "durationInFrames": 150,
          "nodeId": "talk-clip",
          "component": "core/video",
          "props": {
@@ -1089,12 +1089,12 @@
       {
        "id": "song",
        "src": "project:music/song.mp3",
-       "from": 15.0,
+       "from": 15,
        "volume": 0.5,
-       "trimBefore": 6.0,
+       "trimBefore": 6,
        "loop": true,
-       "fadeInFrames": 12.0,
-       "fadeOutFrames": 45.0,
+       "fadeInFrames": 12,
+       "fadeOutFrames": 45,
        "nodeId": "song",
        "channel": "song",
        "role": "music",
@@ -1111,11 +1111,11 @@
          "linked": [
           {
            "param": "startMs",
-           "sign": 1.0
+           "sign": 1
           },
           {
            "param": "lengthMs",
-           "sign": -1.0,
+           "sign": -1,
            "ifNonZero": true
           }
          ]
@@ -1142,12 +1142,12 @@
       {
        "id": "whoosh",
        "src": "app:sfx/whoosh.wav",
-       "from": -6.0,
+       "from": -6,
        "volume": 1.0,
        "nodeId": "whoosh",
        "channel": "whoosh",
        "role": "effect",
-       "lengthFrames": 5.0,
+       "lengthFrames": 5,
        "handles": {
         "move": {
          "nodeId": "whoosh",
@@ -1174,12 +1174,12 @@
       {
        "id": "whip",
        "src": "app:sfx/whip.wav",
-       "from": 30.0,
+       "from": 30,
        "volume": 1.0,
        "nodeId": "whip",
        "channel": "whip",
        "role": "effect",
-       "lengthFrames": 5.0,
+       "lengthFrames": 5,
        "keepMusic": true,
        "handles": {
         "move": {
@@ -1239,12 +1239,12 @@
       {
        "id": "loop",
        "src": "project:music/bed.mp3",
-       "from": 0.0,
-       "durationInFrames": 90.0,
+       "from": 0,
+       "durationInFrames": 90,
        "volume": 0.3,
        "loop": true,
-       "fadeInFrames": 24.0,
-       "fadeOutFrames": 45.0,
+       "fadeInFrames": 24,
+       "fadeOutFrames": 45,
        "nodeId": "loop",
        "channel": "loop",
        "role": "music",
@@ -1261,11 +1261,11 @@
          "linked": [
           {
            "param": "startMs",
-           "sign": 1.0
+           "sign": 1
           },
           {
            "param": "lengthMs",
-           "sign": -1.0,
+           "sign": -1,
            "ifNonZero": true
           }
          ]
@@ -1403,7 +1403,7 @@
    "intro-bg": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75.0,
+     "durationInFrames": 75,
      "tracks": [
       {
        "id": "intro-bg:t",
@@ -1411,8 +1411,8 @@
         {
          "kind": "element",
          "id": "intro-bg:i",
-         "from": 0.0,
-         "durationInFrames": 75.0,
+         "from": 0,
+         "durationInFrames": 75,
          "nodeId": "intro-bg",
          "handles": {
           "trimEnd": {
@@ -1443,7 +1443,7 @@
    "intro-title": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75.0,
+     "durationInFrames": 75,
      "tracks": [
       {
        "id": "intro-title:t",
@@ -1451,8 +1451,8 @@
         {
          "kind": "element",
          "id": "intro-title:i",
-         "from": 0.0,
-         "durationInFrames": 75.0,
+         "from": 0,
+         "durationInFrames": 75,
          "nodeId": "intro-title",
          "handles": {
           "trimEnd": {
@@ -1561,7 +1561,7 @@
    "intro": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75.0,
+     "durationInFrames": 75,
      "tracks": [
       {
        "id": "intro:l0",
@@ -1569,14 +1569,14 @@
         {
          "kind": "group",
          "id": "intro:l0:g",
-         "from": 0.0,
-         "durationInFrames": 75.0,
+         "from": 0,
+         "durationInFrames": 75,
          "handles": {
           "move": {
            "nodeId": "intro",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -1591,8 +1591,8 @@
              {
               "kind": "element",
               "id": "intro-bg:i",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "nodeId": "intro-bg",
               "handles": {
                "trimEnd": {
@@ -1628,14 +1628,14 @@
         {
          "kind": "group",
          "id": "intro:l1:g",
-         "from": 0.0,
-         "durationInFrames": 75.0,
+         "from": 0,
+         "durationInFrames": 75,
          "handles": {
           "move": {
            "nodeId": "intro",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1.0
+           "index": 1
           }
          },
          "slot": {
@@ -1650,8 +1650,8 @@
              {
               "kind": "element",
               "id": "intro-title:i",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "nodeId": "intro-title",
               "handles": {
                "trimEnd": {
@@ -1686,7 +1686,7 @@
    "outro": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75.0,
+     "durationInFrames": 75,
      "tracks": [
       {
        "id": "outro:t",
@@ -1694,8 +1694,8 @@
         {
          "kind": "element",
          "id": "outro:i",
-         "from": 0.0,
-         "durationInFrames": 75.0,
+         "from": 0,
+         "durationInFrames": 75,
          "nodeId": "outro",
          "handles": {
           "trimEnd": {
@@ -1961,8 +1961,8 @@
      "log": null,
      "durationMs": 6000.0,
      "viewport": {
-      "width": 1920.0,
-      "height": 1080.0
+      "width": 1920,
+      "height": 1080
      },
      "nodeId": "record",
      "style": []
@@ -1971,7 +1971,7 @@
    "camera": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 144.0,
+     "durationInFrames": 144,
      "tracks": [
       {
        "id": "camera:t",
@@ -1979,8 +1979,8 @@
         {
          "kind": "element",
          "id": "camera:i",
-         "from": 0.0,
-         "durationInFrames": 144.0,
+         "from": 0,
+         "durationInFrames": 144,
          "nodeId": "camera",
          "component": "core/placeholder",
          "props": {
@@ -1997,7 +1997,7 @@
    "sequence": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 258.0,
+     "durationInFrames": 258,
      "tracks": [
       {
        "id": "sequence:seq",
@@ -2005,11 +2005,11 @@
         {
          "kind": "group",
          "id": "sequence:s0",
-         "from": 0.0,
-         "durationInFrames": 75.0,
+         "from": 0,
+         "durationInFrames": 75,
          "exit": {
           "kind": "remocn/whip-pan",
-          "durationInFrames": 18.0
+          "durationInFrames": 18
          },
          "slot": {
           "nodeId": "sequence",
@@ -2023,14 +2023,14 @@
              {
               "kind": "group",
               "id": "intro:l0:g",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "handles": {
                "move": {
                 "nodeId": "intro",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 0.0
+                "index": 0
                }
               },
               "slot": {
@@ -2045,8 +2045,8 @@
                   {
                    "kind": "element",
                    "id": "intro-bg:i",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "nodeId": "intro-bg",
                    "handles": {
                     "trimEnd": {
@@ -2082,14 +2082,14 @@
              {
               "kind": "group",
               "id": "intro:l1:g",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "handles": {
                "move": {
                 "nodeId": "intro",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 1.0
+                "index": 1
                }
               },
               "slot": {
@@ -2104,8 +2104,8 @@
                   {
                    "kind": "element",
                    "id": "intro-title:i",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "nodeId": "intro-title",
                    "handles": {
                     "trimEnd": {
@@ -2139,15 +2139,15 @@
         {
          "kind": "group",
          "id": "sequence:s1",
-         "from": 57.0,
-         "durationInFrames": 144.0,
+         "from": 57,
+         "durationInFrames": 144,
          "enter": {
           "kind": "remocn/whip-pan",
-          "durationInFrames": 18.0
+          "durationInFrames": 18
          },
          "exit": {
           "kind": "remocn/whip-pan",
-          "durationInFrames": 18.0
+          "durationInFrames": 18
          },
          "slot": {
           "nodeId": "sequence",
@@ -2161,8 +2161,8 @@
              {
               "kind": "element",
               "id": "camera:i",
-              "from": 0.0,
-              "durationInFrames": 144.0,
+              "from": 0,
+              "durationInFrames": 144,
               "nodeId": "camera",
               "component": "core/placeholder",
               "props": {
@@ -2178,11 +2178,11 @@
         {
          "kind": "group",
          "id": "sequence:s2",
-         "from": 183.0,
-         "durationInFrames": 75.0,
+         "from": 183,
+         "durationInFrames": 75,
          "enter": {
           "kind": "remocn/whip-pan",
-          "durationInFrames": 18.0
+          "durationInFrames": 18
          },
          "slot": {
           "nodeId": "sequence",
@@ -2196,8 +2196,8 @@
              {
               "kind": "element",
               "id": "outro:i",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "nodeId": "outro",
               "handles": {
                "trimEnd": {
@@ -2237,7 +2237,7 @@
    "layers": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 258.0,
+     "durationInFrames": 258,
      "tracks": [
       {
        "id": "layers:l0",
@@ -2245,14 +2245,14 @@
         {
          "kind": "group",
          "id": "layers:l0:g",
-         "from": 0.0,
-         "durationInFrames": 258.0,
+         "from": 0,
+         "durationInFrames": 258,
          "handles": {
           "move": {
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -2267,11 +2267,11 @@
              {
               "kind": "group",
               "id": "sequence:s0",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "exit": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "slot": {
                "nodeId": "sequence",
@@ -2285,14 +2285,14 @@
                   {
                    "kind": "group",
                    "id": "intro:l0:g",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "handles": {
                     "move": {
                      "nodeId": "intro",
                      "param": "offsetsMs",
                      "unit": "ms",
-                     "index": 0.0
+                     "index": 0
                     }
                    },
                    "slot": {
@@ -2307,8 +2307,8 @@
                        {
                         "kind": "element",
                         "id": "intro-bg:i",
-                        "from": 0.0,
-                        "durationInFrames": 75.0,
+                        "from": 0,
+                        "durationInFrames": 75,
                         "nodeId": "intro-bg",
                         "handles": {
                          "trimEnd": {
@@ -2344,14 +2344,14 @@
                   {
                    "kind": "group",
                    "id": "intro:l1:g",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "handles": {
                     "move": {
                      "nodeId": "intro",
                      "param": "offsetsMs",
                      "unit": "ms",
-                     "index": 1.0
+                     "index": 1
                     }
                    },
                    "slot": {
@@ -2366,8 +2366,8 @@
                        {
                         "kind": "element",
                         "id": "intro-title:i",
-                        "from": 0.0,
-                        "durationInFrames": 75.0,
+                        "from": 0,
+                        "durationInFrames": 75,
                         "nodeId": "intro-title",
                         "handles": {
                          "trimEnd": {
@@ -2401,15 +2401,15 @@
              {
               "kind": "group",
               "id": "sequence:s1",
-              "from": 57.0,
-              "durationInFrames": 144.0,
+              "from": 57,
+              "durationInFrames": 144,
               "enter": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "exit": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "slot": {
                "nodeId": "sequence",
@@ -2423,8 +2423,8 @@
                   {
                    "kind": "element",
                    "id": "camera:i",
-                   "from": 0.0,
-                   "durationInFrames": 144.0,
+                   "from": 0,
+                   "durationInFrames": 144,
                    "nodeId": "camera",
                    "component": "core/placeholder",
                    "props": {
@@ -2440,11 +2440,11 @@
              {
               "kind": "group",
               "id": "sequence:s2",
-              "from": 183.0,
-              "durationInFrames": 75.0,
+              "from": 183,
+              "durationInFrames": 75,
               "enter": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "slot": {
                "nodeId": "sequence",
@@ -2458,8 +2458,8 @@
                   {
                    "kind": "element",
                    "id": "outro:i",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "nodeId": "outro",
                    "handles": {
                     "trimEnd": {
@@ -2504,14 +2504,14 @@
         {
          "kind": "group",
          "id": "layers:l1:g",
-         "from": 12.0,
-         "durationInFrames": 150.0,
+         "from": 12,
+         "durationInFrames": 150,
          "handles": {
           "move": {
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1.0
+           "index": 1
           }
          },
          "slot": {
@@ -2526,8 +2526,8 @@
              {
               "kind": "element",
               "id": "talk-clip:i",
-              "from": 0.0,
-              "durationInFrames": 150.0,
+              "from": 0,
+              "durationInFrames": 150,
               "nodeId": "talk-clip",
               "component": "core/video",
               "props": {
@@ -2551,7 +2551,7 @@
    "mix": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 258.0,
+     "durationInFrames": 258,
      "tracks": [
       {
        "id": "layers:l0",
@@ -2559,14 +2559,14 @@
         {
          "kind": "group",
          "id": "layers:l0:g",
-         "from": 0.0,
-         "durationInFrames": 258.0,
+         "from": 0,
+         "durationInFrames": 258,
          "handles": {
           "move": {
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -2581,11 +2581,11 @@
              {
               "kind": "group",
               "id": "sequence:s0",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "exit": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "slot": {
                "nodeId": "sequence",
@@ -2599,14 +2599,14 @@
                   {
                    "kind": "group",
                    "id": "intro:l0:g",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "handles": {
                     "move": {
                      "nodeId": "intro",
                      "param": "offsetsMs",
                      "unit": "ms",
-                     "index": 0.0
+                     "index": 0
                     }
                    },
                    "slot": {
@@ -2621,8 +2621,8 @@
                        {
                         "kind": "element",
                         "id": "intro-bg:i",
-                        "from": 0.0,
-                        "durationInFrames": 75.0,
+                        "from": 0,
+                        "durationInFrames": 75,
                         "nodeId": "intro-bg",
                         "handles": {
                          "trimEnd": {
@@ -2658,14 +2658,14 @@
                   {
                    "kind": "group",
                    "id": "intro:l1:g",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "handles": {
                     "move": {
                      "nodeId": "intro",
                      "param": "offsetsMs",
                      "unit": "ms",
-                     "index": 1.0
+                     "index": 1
                     }
                    },
                    "slot": {
@@ -2680,8 +2680,8 @@
                        {
                         "kind": "element",
                         "id": "intro-title:i",
-                        "from": 0.0,
-                        "durationInFrames": 75.0,
+                        "from": 0,
+                        "durationInFrames": 75,
                         "nodeId": "intro-title",
                         "handles": {
                          "trimEnd": {
@@ -2715,15 +2715,15 @@
              {
               "kind": "group",
               "id": "sequence:s1",
-              "from": 57.0,
-              "durationInFrames": 144.0,
+              "from": 57,
+              "durationInFrames": 144,
               "enter": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "exit": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "slot": {
                "nodeId": "sequence",
@@ -2737,8 +2737,8 @@
                   {
                    "kind": "element",
                    "id": "camera:i",
-                   "from": 0.0,
-                   "durationInFrames": 144.0,
+                   "from": 0,
+                   "durationInFrames": 144,
                    "nodeId": "camera",
                    "component": "core/placeholder",
                    "props": {
@@ -2754,11 +2754,11 @@
              {
               "kind": "group",
               "id": "sequence:s2",
-              "from": 183.0,
-              "durationInFrames": 75.0,
+              "from": 183,
+              "durationInFrames": 75,
               "enter": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "slot": {
                "nodeId": "sequence",
@@ -2772,8 +2772,8 @@
                   {
                    "kind": "element",
                    "id": "outro:i",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "nodeId": "outro",
                    "handles": {
                     "trimEnd": {
@@ -2818,14 +2818,14 @@
         {
          "kind": "group",
          "id": "layers:l1:g",
-         "from": 12.0,
-         "durationInFrames": 150.0,
+         "from": 12,
+         "durationInFrames": 150,
          "handles": {
           "move": {
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1.0
+           "index": 1
           }
          },
          "slot": {
@@ -2840,8 +2840,8 @@
              {
               "kind": "element",
               "id": "talk-clip:i",
-              "from": 0.0,
-              "durationInFrames": 150.0,
+              "from": 0,
+              "durationInFrames": 150,
               "nodeId": "talk-clip",
               "component": "core/video",
               "props": {
@@ -2863,13 +2863,13 @@
       {
        "id": "song",
        "src": "project:music/song.mp3",
-       "from": 15.0,
-       "durationInFrames": 243.0,
+       "from": 15,
+       "durationInFrames": 243,
        "volume": 0.5,
-       "trimBefore": 6.0,
+       "trimBefore": 6,
        "loop": true,
-       "fadeInFrames": 12.0,
-       "fadeOutFrames": 45.0,
+       "fadeInFrames": 12,
+       "fadeOutFrames": 45,
        "nodeId": "song",
        "channel": "song",
        "role": "music",
@@ -2886,11 +2886,11 @@
          "linked": [
           {
            "param": "startMs",
-           "sign": 1.0
+           "sign": 1
           },
           {
            "param": "lengthMs",
-           "sign": -1.0,
+           "sign": -1,
            "ifNonZero": true
           }
          ]
@@ -2910,13 +2910,13 @@
       {
        "id": "whip",
        "src": "app:sfx/whip.wav",
-       "from": 30.0,
-       "durationInFrames": 228.0,
+       "from": 30,
+       "durationInFrames": 228,
        "volume": 1.0,
        "nodeId": "whip",
        "channel": "whip",
        "role": "effect",
-       "lengthFrames": 5.0,
+       "lengthFrames": 5,
        "keepMusic": true,
        "handles": {
         "move": {
@@ -2934,12 +2934,12 @@
       {
        "id": "loop",
        "src": "project:music/bed.mp3",
-       "from": 0.0,
-       "durationInFrames": 90.0,
+       "from": 0,
+       "durationInFrames": 90,
        "volume": 0.3,
        "loop": true,
-       "fadeInFrames": 24.0,
-       "fadeOutFrames": 45.0,
+       "fadeInFrames": 24,
+       "fadeOutFrames": 45,
        "nodeId": "loop",
        "channel": "loop",
        "role": "music",
@@ -2956,11 +2956,11 @@
          "linked": [
           {
            "param": "startMs",
-           "sign": 1.0
+           "sign": 1
           },
           {
            "param": "lengthMs",
-           "sign": -1.0,
+           "sign": -1,
            "ifNonZero": true
           }
          ]
@@ -2985,10 +2985,10 @@
   "errors": {},
   "specs": {
    "render": {
-    "width": 1920.0,
-    "height": 1080.0,
-    "fps": 30.0,
-    "durationInFrames": 258.0,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 258,
     "background": "#09090b",
     "tracks": [
      {
@@ -2997,14 +2997,14 @@
        {
         "kind": "group",
         "id": "layers:l0:g",
-        "from": 0.0,
-        "durationInFrames": 258.0,
+        "from": 0,
+        "durationInFrames": 258,
         "handles": {
          "move": {
           "nodeId": "layers",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0.0
+          "index": 0
          }
         },
         "slot": {
@@ -3019,11 +3019,11 @@
             {
              "kind": "group",
              "id": "sequence:s0",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "exit": {
               "kind": "remocn/whip-pan",
-              "durationInFrames": 18.0
+              "durationInFrames": 18
              },
              "slot": {
               "nodeId": "sequence",
@@ -3037,14 +3037,14 @@
                  {
                   "kind": "group",
                   "id": "intro:l0:g",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "handles": {
                    "move": {
                     "nodeId": "intro",
                     "param": "offsetsMs",
                     "unit": "ms",
-                    "index": 0.0
+                    "index": 0
                    }
                   },
                   "slot": {
@@ -3059,8 +3059,8 @@
                       {
                        "kind": "element",
                        "id": "intro-bg:i",
-                       "from": 0.0,
-                       "durationInFrames": 75.0,
+                       "from": 0,
+                       "durationInFrames": 75,
                        "nodeId": "intro-bg",
                        "handles": {
                         "trimEnd": {
@@ -3096,14 +3096,14 @@
                  {
                   "kind": "group",
                   "id": "intro:l1:g",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "handles": {
                    "move": {
                     "nodeId": "intro",
                     "param": "offsetsMs",
                     "unit": "ms",
-                    "index": 1.0
+                    "index": 1
                    }
                   },
                   "slot": {
@@ -3118,8 +3118,8 @@
                       {
                        "kind": "element",
                        "id": "intro-title:i",
-                       "from": 0.0,
-                       "durationInFrames": 75.0,
+                       "from": 0,
+                       "durationInFrames": 75,
                        "nodeId": "intro-title",
                        "handles": {
                         "trimEnd": {
@@ -3153,15 +3153,15 @@
             {
              "kind": "group",
              "id": "sequence:s1",
-             "from": 57.0,
-             "durationInFrames": 144.0,
+             "from": 57,
+             "durationInFrames": 144,
              "enter": {
               "kind": "remocn/whip-pan",
-              "durationInFrames": 18.0
+              "durationInFrames": 18
              },
              "exit": {
               "kind": "remocn/whip-pan",
-              "durationInFrames": 18.0
+              "durationInFrames": 18
              },
              "slot": {
               "nodeId": "sequence",
@@ -3175,8 +3175,8 @@
                  {
                   "kind": "element",
                   "id": "camera:i",
-                  "from": 0.0,
-                  "durationInFrames": 144.0,
+                  "from": 0,
+                  "durationInFrames": 144,
                   "nodeId": "camera",
                   "component": "core/placeholder",
                   "props": {
@@ -3192,11 +3192,11 @@
             {
              "kind": "group",
              "id": "sequence:s2",
-             "from": 183.0,
-             "durationInFrames": 75.0,
+             "from": 183,
+             "durationInFrames": 75,
              "enter": {
               "kind": "remocn/whip-pan",
-              "durationInFrames": 18.0
+              "durationInFrames": 18
              },
              "slot": {
               "nodeId": "sequence",
@@ -3210,8 +3210,8 @@
                  {
                   "kind": "element",
                   "id": "outro:i",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "nodeId": "outro",
                   "handles": {
                    "trimEnd": {
@@ -3256,14 +3256,14 @@
        {
         "kind": "group",
         "id": "layers:l1:g",
-        "from": 12.0,
-        "durationInFrames": 150.0,
+        "from": 12,
+        "durationInFrames": 150,
         "handles": {
          "move": {
           "nodeId": "layers",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 1.0
+          "index": 1
          }
         },
         "slot": {
@@ -3278,8 +3278,8 @@
             {
              "kind": "element",
              "id": "talk-clip:i",
-             "from": 0.0,
-             "durationInFrames": 150.0,
+             "from": 0,
+             "durationInFrames": 150,
              "nodeId": "talk-clip",
              "component": "core/video",
              "props": {
@@ -3301,13 +3301,13 @@
      {
       "id": "song",
       "src": "project:music/song.mp3",
-      "from": 15.0,
-      "durationInFrames": 243.0,
+      "from": 15,
+      "durationInFrames": 243,
       "volume": 0.5,
-      "trimBefore": 6.0,
+      "trimBefore": 6,
       "loop": true,
-      "fadeInFrames": 12.0,
-      "fadeOutFrames": 45.0,
+      "fadeInFrames": 12,
+      "fadeOutFrames": 45,
       "nodeId": "song",
       "channel": "song",
       "role": "music",
@@ -3324,11 +3324,11 @@
         "linked": [
          {
           "param": "startMs",
-          "sign": 1.0
+          "sign": 1
          },
          {
           "param": "lengthMs",
-          "sign": -1.0,
+          "sign": -1,
           "ifNonZero": true
          }
         ]
@@ -3348,13 +3348,13 @@
      {
       "id": "whip",
       "src": "app:sfx/whip.wav",
-      "from": 30.0,
-      "durationInFrames": 228.0,
+      "from": 30,
+      "durationInFrames": 228,
       "volume": 1.0,
       "nodeId": "whip",
       "channel": "whip",
       "role": "effect",
-      "lengthFrames": 5.0,
+      "lengthFrames": 5,
       "keepMusic": true,
       "handles": {
        "move": {
@@ -3372,12 +3372,12 @@
      {
       "id": "loop",
       "src": "project:music/bed.mp3",
-      "from": 0.0,
-      "durationInFrames": 90.0,
+      "from": 0,
+      "durationInFrames": 90,
       "volume": 0.3,
       "loop": true,
-      "fadeInFrames": 24.0,
-      "fadeOutFrames": 45.0,
+      "fadeInFrames": 24,
+      "fadeOutFrames": 45,
       "nodeId": "loop",
       "channel": "loop",
       "role": "music",
@@ -3394,11 +3394,11 @@
         "linked": [
          {
           "param": "startMs",
-          "sign": 1.0
+          "sign": 1
          },
          {
           "param": "lengthMs",
-          "sign": -1.0,
+          "sign": -1,
           "ifNonZero": true
          }
         ]
@@ -3828,10 +3828,10 @@
  },
  "preview": {
   "spec": {
-   "width": 1920.0,
-   "height": 1080.0,
-   "fps": 30.0,
-   "durationInFrames": 258.0,
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "durationInFrames": 258,
    "background": "#09090b",
    "tracks": [
     {
@@ -3840,14 +3840,14 @@
       {
        "kind": "group",
        "id": "layers:l0:g",
-       "from": 0.0,
-       "durationInFrames": 258.0,
+       "from": 0,
+       "durationInFrames": 258,
        "handles": {
         "move": {
          "nodeId": "layers",
          "param": "offsetsMs",
          "unit": "ms",
-         "index": 0.0
+         "index": 0
         }
        },
        "slot": {
@@ -3862,11 +3862,11 @@
            {
             "kind": "group",
             "id": "sequence:s0",
-            "from": 0.0,
-            "durationInFrames": 75.0,
+            "from": 0,
+            "durationInFrames": 75,
             "exit": {
              "kind": "remocn/whip-pan",
-             "durationInFrames": 18.0
+             "durationInFrames": 18
             },
             "slot": {
              "nodeId": "sequence",
@@ -3880,14 +3880,14 @@
                 {
                  "kind": "group",
                  "id": "intro:l0:g",
-                 "from": 0.0,
-                 "durationInFrames": 75.0,
+                 "from": 0,
+                 "durationInFrames": 75,
                  "handles": {
                   "move": {
                    "nodeId": "intro",
                    "param": "offsetsMs",
                    "unit": "ms",
-                   "index": 0.0
+                   "index": 0
                   }
                  },
                  "slot": {
@@ -3902,8 +3902,8 @@
                      {
                       "kind": "element",
                       "id": "intro-bg:i",
-                      "from": 0.0,
-                      "durationInFrames": 75.0,
+                      "from": 0,
+                      "durationInFrames": 75,
                       "nodeId": "intro-bg",
                       "handles": {
                        "trimEnd": {
@@ -3939,14 +3939,14 @@
                 {
                  "kind": "group",
                  "id": "intro:l1:g",
-                 "from": 0.0,
-                 "durationInFrames": 75.0,
+                 "from": 0,
+                 "durationInFrames": 75,
                  "handles": {
                   "move": {
                    "nodeId": "intro",
                    "param": "offsetsMs",
                    "unit": "ms",
-                   "index": 1.0
+                   "index": 1
                   }
                  },
                  "slot": {
@@ -3961,8 +3961,8 @@
                      {
                       "kind": "element",
                       "id": "intro-title:i",
-                      "from": 0.0,
-                      "durationInFrames": 75.0,
+                      "from": 0,
+                      "durationInFrames": 75,
                       "nodeId": "intro-title",
                       "handles": {
                        "trimEnd": {
@@ -3996,15 +3996,15 @@
            {
             "kind": "group",
             "id": "sequence:s1",
-            "from": 57.0,
-            "durationInFrames": 144.0,
+            "from": 57,
+            "durationInFrames": 144,
             "enter": {
              "kind": "remocn/whip-pan",
-             "durationInFrames": 18.0
+             "durationInFrames": 18
             },
             "exit": {
              "kind": "remocn/whip-pan",
-             "durationInFrames": 18.0
+             "durationInFrames": 18
             },
             "slot": {
              "nodeId": "sequence",
@@ -4018,8 +4018,8 @@
                 {
                  "kind": "element",
                  "id": "camera:i",
-                 "from": 0.0,
-                 "durationInFrames": 144.0,
+                 "from": 0,
+                 "durationInFrames": 144,
                  "nodeId": "camera",
                  "component": "core/placeholder",
                  "props": {
@@ -4035,11 +4035,11 @@
            {
             "kind": "group",
             "id": "sequence:s2",
-            "from": 183.0,
-            "durationInFrames": 75.0,
+            "from": 183,
+            "durationInFrames": 75,
             "enter": {
              "kind": "remocn/whip-pan",
-             "durationInFrames": 18.0
+             "durationInFrames": 18
             },
             "slot": {
              "nodeId": "sequence",
@@ -4053,8 +4053,8 @@
                 {
                  "kind": "element",
                  "id": "outro:i",
-                 "from": 0.0,
-                 "durationInFrames": 75.0,
+                 "from": 0,
+                 "durationInFrames": 75,
                  "nodeId": "outro",
                  "handles": {
                   "trimEnd": {
@@ -4099,14 +4099,14 @@
       {
        "kind": "group",
        "id": "layers:l1:g",
-       "from": 12.0,
-       "durationInFrames": 150.0,
+       "from": 12,
+       "durationInFrames": 150,
        "handles": {
         "move": {
          "nodeId": "layers",
          "param": "offsetsMs",
          "unit": "ms",
-         "index": 1.0
+         "index": 1
         }
        },
        "slot": {
@@ -4121,8 +4121,8 @@
            {
             "kind": "element",
             "id": "talk-clip:i",
-            "from": 0.0,
-            "durationInFrames": 150.0,
+            "from": 0,
+            "durationInFrames": 150,
             "nodeId": "talk-clip",
             "component": "core/video",
             "props": {
@@ -4144,13 +4144,13 @@
     {
      "id": "song",
      "src": "project:music/song.mp3",
-     "from": 15.0,
-     "durationInFrames": 243.0,
+     "from": 15,
+     "durationInFrames": 243,
      "volume": 0.5,
-     "trimBefore": 6.0,
+     "trimBefore": 6,
      "loop": true,
-     "fadeInFrames": 12.0,
-     "fadeOutFrames": 45.0,
+     "fadeInFrames": 12,
+     "fadeOutFrames": 45,
      "nodeId": "song",
      "channel": "song",
      "role": "music",
@@ -4167,11 +4167,11 @@
        "linked": [
         {
          "param": "startMs",
-         "sign": 1.0
+         "sign": 1
         },
         {
          "param": "lengthMs",
-         "sign": -1.0,
+         "sign": -1,
          "ifNonZero": true
         }
        ]
@@ -4191,13 +4191,13 @@
     {
      "id": "whip",
      "src": "app:sfx/whip.wav",
-     "from": 30.0,
-     "durationInFrames": 228.0,
+     "from": 30,
+     "durationInFrames": 228,
      "volume": 1.0,
      "nodeId": "whip",
      "channel": "whip",
      "role": "effect",
-     "lengthFrames": 5.0,
+     "lengthFrames": 5,
      "keepMusic": true,
      "handles": {
       "move": {
@@ -4215,12 +4215,12 @@
     {
      "id": "loop",
      "src": "project:music/bed.mp3",
-     "from": 0.0,
-     "durationInFrames": 90.0,
+     "from": 0,
+     "durationInFrames": 90,
      "volume": 0.3,
      "loop": true,
-     "fadeInFrames": 24.0,
-     "fadeOutFrames": 45.0,
+     "fadeInFrames": 24,
+     "fadeOutFrames": 45,
      "nodeId": "loop",
      "channel": "loop",
      "role": "music",
@@ -4237,11 +4237,11 @@
        "linked": [
         {
          "param": "startMs",
-         "sign": 1.0
+         "sign": 1
         },
         {
          "param": "lengthMs",
-         "sign": -1.0,
+         "sign": -1,
          "ifNonZero": true
         }
        ]
@@ -4293,8 +4293,8 @@
  "timelines": {
   "render": {
    "flat": {
-    "fps": 30.0,
-    "durationInFrames": 258.0,
+    "fps": 30,
+    "durationInFrames": 258,
     "bars": [
      {
       "type": "video",
@@ -4343,7 +4343,7 @@
           "nodeId": "intro",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0.0
+          "index": 0
          }
         },
         "slot": {
@@ -4375,7 +4375,7 @@
           "nodeId": "layers",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0.0
+          "index": 0
          }
         },
         "slot": {
@@ -4441,7 +4441,7 @@
           "nodeId": "intro",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 1.0
+          "index": 1
          }
         },
         "slot": {
@@ -4473,7 +4473,7 @@
           "nodeId": "layers",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0.0
+          "index": 0
          }
         },
         "slot": {
@@ -4539,7 +4539,7 @@
           "nodeId": "layers",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0.0
+          "index": 0
          }
         },
         "slot": {
@@ -4623,7 +4623,7 @@
           "nodeId": "layers",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0.0
+          "index": 0
          }
         },
         "slot": {
@@ -4683,7 +4683,7 @@
           "nodeId": "layers",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 1.0
+          "index": 1
          }
         },
         "slot": {
@@ -4738,11 +4738,11 @@
         "linked": [
          {
           "param": "startMs",
-          "sign": 1.0
+          "sign": 1
          },
          {
           "param": "lengthMs",
-          "sign": -1.0,
+          "sign": -1,
           "ifNonZero": true
          }
         ]
@@ -4761,12 +4761,12 @@
       "item": {
        "id": "loop",
        "src": "project:music/bed.mp3",
-       "from": 0.0,
-       "durationInFrames": 90.0,
+       "from": 0,
+       "durationInFrames": 90,
        "volume": 0.3,
        "loop": true,
-       "fadeInFrames": 24.0,
-       "fadeOutFrames": 45.0,
+       "fadeInFrames": 24,
+       "fadeOutFrames": 45,
        "nodeId": "loop",
        "channel": "loop",
        "role": "music",
@@ -4783,11 +4783,11 @@
          "linked": [
           {
            "param": "startMs",
-           "sign": 1.0
+           "sign": 1
           },
           {
            "param": "lengthMs",
-           "sign": -1.0,
+           "sign": -1,
            "ifNonZero": true
           }
          ]
@@ -4832,11 +4832,11 @@
         "linked": [
          {
           "param": "startMs",
-          "sign": 1.0
+          "sign": 1
          },
          {
           "param": "lengthMs",
-          "sign": -1.0,
+          "sign": -1,
           "ifNonZero": true
          }
         ]
@@ -4855,13 +4855,13 @@
       "item": {
        "id": "song",
        "src": "project:music/song.mp3",
-       "from": 15.0,
-       "durationInFrames": 243.0,
+       "from": 15,
+       "durationInFrames": 243,
        "volume": 0.5,
-       "trimBefore": 6.0,
+       "trimBefore": 6,
        "loop": true,
-       "fadeInFrames": 12.0,
-       "fadeOutFrames": 45.0,
+       "fadeInFrames": 12,
+       "fadeOutFrames": 45,
        "nodeId": "song",
        "channel": "song",
        "role": "music",
@@ -4878,11 +4878,11 @@
          "linked": [
           {
            "param": "startMs",
-           "sign": 1.0
+           "sign": 1
           },
           {
            "param": "lengthMs",
-           "sign": -1.0,
+           "sign": -1,
            "ifNonZero": true
           }
          ]
@@ -4929,13 +4929,13 @@
       "item": {
        "id": "whip",
        "src": "app:sfx/whip.wav",
-       "from": 30.0,
-       "durationInFrames": 228.0,
+       "from": 30,
+       "durationInFrames": 228,
        "volume": 1.0,
        "nodeId": "whip",
        "channel": "whip",
        "role": "effect",
-       "lengthFrames": 5.0,
+       "lengthFrames": 5,
        "keepMusic": true,
        "handles": {
         "move": {
@@ -5004,7 +5004,7 @@
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1.0
+           "index": 1
           }
          },
          "slot": {
@@ -5072,8 +5072,8 @@
     "cameraKeys": []
    },
    "mix": {
-    "fps": 30.0,
-    "durationInFrames": 258.0,
+    "fps": 30,
+    "durationInFrames": 258,
     "channels": [
      {
       "id": "song",
@@ -5130,14 +5130,14 @@
       "sounds": [
        {
         "src": "project:music/song.mp3",
-        "at": 15.0,
-        "offset": 6.0,
-        "length": 243.0,
+        "at": 15,
+        "offset": 6,
+        "length": 243,
         "loop": true,
         "rate": 1.0,
         "volume": 0.5,
-        "fadeIn": 12.0,
-        "fadeOut": 45.0
+        "fadeIn": 12,
+        "fadeOut": 45
        }
       ],
       "audible": true
@@ -5198,14 +5198,14 @@
       "sounds": [
        {
         "src": "app:sfx/whip.wav",
-        "at": 30.0,
-        "offset": 0.0,
-        "length": 5.0,
+        "at": 30,
+        "offset": 0,
+        "length": 5,
         "loop": false,
         "rate": 1.0,
         "volume": 1.0,
-        "fadeIn": 0.0,
-        "fadeOut": 0.0
+        "fadeIn": 0,
+        "fadeOut": 0
        }
       ],
       "audible": true
@@ -5265,14 +5265,14 @@
       "sounds": [
        {
         "src": "project:music/bed.mp3",
-        "at": 0.0,
-        "offset": 0.0,
-        "length": 90.0,
+        "at": 0,
+        "offset": 0,
+        "length": 90,
         "loop": true,
         "rate": 1.0,
         "volume": 0.3,
-        "fadeIn": 24.0,
-        "fadeOut": 45.0
+        "fadeIn": 24,
+        "fadeOut": 45
        }
       ],
       "audible": false
@@ -5332,14 +5332,14 @@
       "sounds": [
        {
         "src": "project:clips/talk.mp4",
-        "at": 12.0,
-        "offset": 0.0,
-        "length": 150.0,
+        "at": 12,
+        "offset": 0,
+        "length": 150,
         "loop": false,
         "rate": 1.0,
         "volume": 1.0,
-        "fadeIn": 0.0,
-        "fadeOut": 0.0
+        "fadeIn": 0,
+        "fadeOut": 0
        }
       ],
       "audible": true
@@ -5810,14 +5810,14 @@
       "type": "media",
       "src": "project:.opsis/out/talk.mp4",
       "kind": "video",
-      "durationMs": 4000.0,
-      "width": 1920.0,
-      "height": 1080.0,
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
       "hasAudio": true
      },
      "clip": {
       "type": "clip",
-      "durationInFrames": 120.0,
+      "durationInFrames": 120,
       "tracks": [
        {
         "id": "talk:t",
@@ -5825,8 +5825,8 @@
          {
           "kind": "element",
           "id": "talk:i",
-          "from": 0.0,
-          "durationInFrames": 120.0,
+          "from": 0,
+          "durationInFrames": 120,
           "nodeId": "talk",
           "component": "core/video",
           "props": {
@@ -5844,7 +5844,7 @@
     "talk-clip": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 120.0,
+      "durationInFrames": 120,
       "tracks": [
        {
         "id": "talk-clip:t",
@@ -5852,8 +5852,8 @@
          {
           "kind": "element",
           "id": "talk-clip:i",
-          "from": 0.0,
-          "durationInFrames": 120.0,
+          "from": 0,
+          "durationInFrames": 120,
           "nodeId": "talk-clip",
           "component": "core/video",
           "props": {
@@ -5905,12 +5905,12 @@
        {
         "id": "song",
         "src": "project:music/song.mp3",
-        "from": 15.0,
+        "from": 15,
         "volume": 0.5,
-        "trimBefore": 6.0,
+        "trimBefore": 6,
         "loop": true,
-        "fadeInFrames": 12.0,
-        "fadeOutFrames": 45.0,
+        "fadeInFrames": 12,
+        "fadeOutFrames": 45,
         "nodeId": "song",
         "channel": "song",
         "role": "music",
@@ -5927,11 +5927,11 @@
           "linked": [
            {
             "param": "startMs",
-            "sign": 1.0
+            "sign": 1
            },
            {
             "param": "lengthMs",
-            "sign": -1.0,
+            "sign": -1,
             "ifNonZero": true
            }
           ]
@@ -5958,12 +5958,12 @@
        {
         "id": "whoosh",
         "src": "app:sfx/whoosh.wav",
-        "from": -6.0,
+        "from": -6,
         "volume": 1.0,
         "nodeId": "whoosh",
         "channel": "whoosh",
         "role": "effect",
-        "lengthFrames": 5.0,
+        "lengthFrames": 5,
         "handles": {
          "move": {
           "nodeId": "whoosh",
@@ -5990,12 +5990,12 @@
        {
         "id": "whip",
         "src": "app:sfx/whip.wav",
-        "from": 30.0,
+        "from": 30,
         "volume": 1.0,
         "nodeId": "whip",
         "channel": "whip",
         "role": "effect",
-        "lengthFrames": 5.0,
+        "lengthFrames": 5,
         "keepMusic": true,
         "handles": {
          "move": {
@@ -6055,12 +6055,12 @@
        {
         "id": "loop",
         "src": "project:music/bed.mp3",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "volume": 0.3,
         "loop": true,
-        "fadeInFrames": 24.0,
-        "fadeOutFrames": 45.0,
+        "fadeInFrames": 24,
+        "fadeOutFrames": 45,
         "nodeId": "loop",
         "channel": "loop",
         "role": "music",
@@ -6077,11 +6077,11 @@
           "linked": [
            {
             "param": "startMs",
-            "sign": 1.0
+            "sign": 1
            },
            {
             "param": "lengthMs",
-            "sign": -1.0,
+            "sign": -1,
             "ifNonZero": true
            }
           ]
@@ -6219,7 +6219,7 @@
     "intro-bg": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75.0,
+      "durationInFrames": 75,
       "tracks": [
        {
         "id": "intro-bg:t",
@@ -6227,8 +6227,8 @@
          {
           "kind": "element",
           "id": "intro-bg:i",
-          "from": 0.0,
-          "durationInFrames": 75.0,
+          "from": 0,
+          "durationInFrames": 75,
           "nodeId": "intro-bg",
           "handles": {
            "trimEnd": {
@@ -6259,7 +6259,7 @@
     "intro-title": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75.0,
+      "durationInFrames": 75,
       "tracks": [
        {
         "id": "intro-title:t",
@@ -6267,8 +6267,8 @@
          {
           "kind": "element",
           "id": "intro-title:i",
-          "from": 0.0,
-          "durationInFrames": 75.0,
+          "from": 0,
+          "durationInFrames": 75,
           "nodeId": "intro-title",
           "handles": {
            "trimEnd": {
@@ -6377,7 +6377,7 @@
     "intro": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75.0,
+      "durationInFrames": 75,
       "tracks": [
        {
         "id": "intro:l0",
@@ -6385,14 +6385,14 @@
          {
           "kind": "group",
           "id": "intro:l0:g",
-          "from": 0.0,
-          "durationInFrames": 75.0,
+          "from": 0,
+          "durationInFrames": 75,
           "handles": {
            "move": {
             "nodeId": "intro",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 0.0
+            "index": 0
            }
           },
           "slot": {
@@ -6407,8 +6407,8 @@
               {
                "kind": "element",
                "id": "intro-bg:i",
-               "from": 0.0,
-               "durationInFrames": 75.0,
+               "from": 0,
+               "durationInFrames": 75,
                "nodeId": "intro-bg",
                "handles": {
                 "trimEnd": {
@@ -6444,14 +6444,14 @@
          {
           "kind": "group",
           "id": "intro:l1:g",
-          "from": 0.0,
-          "durationInFrames": 75.0,
+          "from": 0,
+          "durationInFrames": 75,
           "handles": {
            "move": {
             "nodeId": "intro",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 1.0
+            "index": 1
            }
           },
           "slot": {
@@ -6466,8 +6466,8 @@
               {
                "kind": "element",
                "id": "intro-title:i",
-               "from": 0.0,
-               "durationInFrames": 75.0,
+               "from": 0,
+               "durationInFrames": 75,
                "nodeId": "intro-title",
                "handles": {
                 "trimEnd": {
@@ -6502,7 +6502,7 @@
     "outro": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75.0,
+      "durationInFrames": 75,
       "tracks": [
        {
         "id": "outro:t",
@@ -6510,8 +6510,8 @@
          {
           "kind": "element",
           "id": "outro:i",
-          "from": 0.0,
-          "durationInFrames": 75.0,
+          "from": 0,
+          "durationInFrames": 75,
           "nodeId": "outro",
           "handles": {
            "trimEnd": {
@@ -6777,8 +6777,8 @@
       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
       "log": {
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "dpr": 1.0,
        "t0": 0.0,
@@ -6903,8 +6903,8 @@
       },
       "durationMs": 7700.0,
       "viewport": {
-       "width": 1920.0,
-       "height": 1080.0
+       "width": 1920,
+       "height": 1080
       },
       "nodeId": "record",
       "style": []
@@ -6913,7 +6913,7 @@
     "camera": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 185.0,
+      "durationInFrames": 185,
       "tracks": [
        {
         "id": "camera:t",
@@ -6921,16 +6921,16 @@
          {
           "kind": "recording",
           "id": "camera:i",
-          "from": 0.0,
-          "durationInFrames": 185.0,
+          "from": 0,
+          "durationInFrames": 185,
           "nodeId": "camera",
           "props": {
            "src": "project:.opsis/cache/record/recording.mp4",
            "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
            "log": {
             "viewport": {
-             "width": 1920.0,
-             "height": 1080.0
+             "width": 1920,
+             "height": 1080
             },
             "dpr": 1.0,
             "t0": 0.0,
@@ -7098,8 +7098,8 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "dpr": 1.0,
         "t0": 0.0,
@@ -7224,8 +7224,8 @@
        },
        "durationMs": 7700.0,
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "nodeId": "record",
        "style": []
@@ -7235,7 +7235,7 @@
     "sequence": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 299.0,
+      "durationInFrames": 299,
       "tracks": [
        {
         "id": "sequence:seq",
@@ -7243,11 +7243,11 @@
          {
           "kind": "group",
           "id": "sequence:s0",
-          "from": 0.0,
-          "durationInFrames": 75.0,
+          "from": 0,
+          "durationInFrames": 75,
           "exit": {
            "kind": "remocn/whip-pan",
-           "durationInFrames": 18.0
+           "durationInFrames": 18
           },
           "slot": {
            "nodeId": "sequence",
@@ -7261,14 +7261,14 @@
               {
                "kind": "group",
                "id": "intro:l0:g",
-               "from": 0.0,
-               "durationInFrames": 75.0,
+               "from": 0,
+               "durationInFrames": 75,
                "handles": {
                 "move": {
                  "nodeId": "intro",
                  "param": "offsetsMs",
                  "unit": "ms",
-                 "index": 0.0
+                 "index": 0
                 }
                },
                "slot": {
@@ -7283,8 +7283,8 @@
                    {
                     "kind": "element",
                     "id": "intro-bg:i",
-                    "from": 0.0,
-                    "durationInFrames": 75.0,
+                    "from": 0,
+                    "durationInFrames": 75,
                     "nodeId": "intro-bg",
                     "handles": {
                      "trimEnd": {
@@ -7320,14 +7320,14 @@
               {
                "kind": "group",
                "id": "intro:l1:g",
-               "from": 0.0,
-               "durationInFrames": 75.0,
+               "from": 0,
+               "durationInFrames": 75,
                "handles": {
                 "move": {
                  "nodeId": "intro",
                  "param": "offsetsMs",
                  "unit": "ms",
-                 "index": 1.0
+                 "index": 1
                 }
                },
                "slot": {
@@ -7342,8 +7342,8 @@
                    {
                     "kind": "element",
                     "id": "intro-title:i",
-                    "from": 0.0,
-                    "durationInFrames": 75.0,
+                    "from": 0,
+                    "durationInFrames": 75,
                     "nodeId": "intro-title",
                     "handles": {
                      "trimEnd": {
@@ -7377,15 +7377,15 @@
          {
           "kind": "group",
           "id": "sequence:s1",
-          "from": 57.0,
-          "durationInFrames": 185.0,
+          "from": 57,
+          "durationInFrames": 185,
           "enter": {
            "kind": "remocn/whip-pan",
-           "durationInFrames": 18.0
+           "durationInFrames": 18
           },
           "exit": {
            "kind": "remocn/whip-pan",
-           "durationInFrames": 18.0
+           "durationInFrames": 18
           },
           "slot": {
            "nodeId": "sequence",
@@ -7399,16 +7399,16 @@
               {
                "kind": "recording",
                "id": "camera:i",
-               "from": 0.0,
-               "durationInFrames": 185.0,
+               "from": 0,
+               "durationInFrames": 185,
                "nodeId": "camera",
                "props": {
                 "src": "project:.opsis/cache/record/recording.mp4",
                 "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
                 "log": {
                  "viewport": {
-                  "width": 1920.0,
-                  "height": 1080.0
+                  "width": 1920,
+                  "height": 1080
                  },
                  "dpr": 1.0,
                  "t0": 0.0,
@@ -7574,11 +7574,11 @@
          {
           "kind": "group",
           "id": "sequence:s2",
-          "from": 224.0,
-          "durationInFrames": 75.0,
+          "from": 224,
+          "durationInFrames": 75,
           "enter": {
            "kind": "remocn/whip-pan",
-           "durationInFrames": 18.0
+           "durationInFrames": 18
           },
           "slot": {
            "nodeId": "sequence",
@@ -7592,8 +7592,8 @@
               {
                "kind": "element",
                "id": "outro:i",
-               "from": 0.0,
-               "durationInFrames": 75.0,
+               "from": 0,
+               "durationInFrames": 75,
                "nodeId": "outro",
                "handles": {
                 "trimEnd": {
@@ -7634,8 +7634,8 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "dpr": 1.0,
         "t0": 0.0,
@@ -7760,8 +7760,8 @@
        },
        "durationMs": 7700.0,
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "nodeId": "record",
        "style": []
@@ -7771,7 +7771,7 @@
     "layers": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 299.0,
+      "durationInFrames": 299,
       "tracks": [
        {
         "id": "layers:l0",
@@ -7779,14 +7779,14 @@
          {
           "kind": "group",
           "id": "layers:l0:g",
-          "from": 0.0,
-          "durationInFrames": 299.0,
+          "from": 0,
+          "durationInFrames": 299,
           "handles": {
            "move": {
             "nodeId": "layers",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 0.0
+            "index": 0
            }
           },
           "slot": {
@@ -7801,11 +7801,11 @@
               {
                "kind": "group",
                "id": "sequence:s0",
-               "from": 0.0,
-               "durationInFrames": 75.0,
+               "from": 0,
+               "durationInFrames": 75,
                "exit": {
                 "kind": "remocn/whip-pan",
-                "durationInFrames": 18.0
+                "durationInFrames": 18
                },
                "slot": {
                 "nodeId": "sequence",
@@ -7819,14 +7819,14 @@
                    {
                     "kind": "group",
                     "id": "intro:l0:g",
-                    "from": 0.0,
-                    "durationInFrames": 75.0,
+                    "from": 0,
+                    "durationInFrames": 75,
                     "handles": {
                      "move": {
                       "nodeId": "intro",
                       "param": "offsetsMs",
                       "unit": "ms",
-                      "index": 0.0
+                      "index": 0
                      }
                     },
                     "slot": {
@@ -7841,8 +7841,8 @@
                         {
                          "kind": "element",
                          "id": "intro-bg:i",
-                         "from": 0.0,
-                         "durationInFrames": 75.0,
+                         "from": 0,
+                         "durationInFrames": 75,
                          "nodeId": "intro-bg",
                          "handles": {
                           "trimEnd": {
@@ -7878,14 +7878,14 @@
                    {
                     "kind": "group",
                     "id": "intro:l1:g",
-                    "from": 0.0,
-                    "durationInFrames": 75.0,
+                    "from": 0,
+                    "durationInFrames": 75,
                     "handles": {
                      "move": {
                       "nodeId": "intro",
                       "param": "offsetsMs",
                       "unit": "ms",
-                      "index": 1.0
+                      "index": 1
                      }
                     },
                     "slot": {
@@ -7900,8 +7900,8 @@
                         {
                          "kind": "element",
                          "id": "intro-title:i",
-                         "from": 0.0,
-                         "durationInFrames": 75.0,
+                         "from": 0,
+                         "durationInFrames": 75,
                          "nodeId": "intro-title",
                          "handles": {
                           "trimEnd": {
@@ -7935,15 +7935,15 @@
               {
                "kind": "group",
                "id": "sequence:s1",
-               "from": 57.0,
-               "durationInFrames": 185.0,
+               "from": 57,
+               "durationInFrames": 185,
                "enter": {
                 "kind": "remocn/whip-pan",
-                "durationInFrames": 18.0
+                "durationInFrames": 18
                },
                "exit": {
                 "kind": "remocn/whip-pan",
-                "durationInFrames": 18.0
+                "durationInFrames": 18
                },
                "slot": {
                 "nodeId": "sequence",
@@ -7957,16 +7957,16 @@
                    {
                     "kind": "recording",
                     "id": "camera:i",
-                    "from": 0.0,
-                    "durationInFrames": 185.0,
+                    "from": 0,
+                    "durationInFrames": 185,
                     "nodeId": "camera",
                     "props": {
                      "src": "project:.opsis/cache/record/recording.mp4",
                      "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
                      "log": {
                       "viewport": {
-                       "width": 1920.0,
-                       "height": 1080.0
+                       "width": 1920,
+                       "height": 1080
                       },
                       "dpr": 1.0,
                       "t0": 0.0,
@@ -8132,11 +8132,11 @@
               {
                "kind": "group",
                "id": "sequence:s2",
-               "from": 224.0,
-               "durationInFrames": 75.0,
+               "from": 224,
+               "durationInFrames": 75,
                "enter": {
                 "kind": "remocn/whip-pan",
-                "durationInFrames": 18.0
+                "durationInFrames": 18
                },
                "slot": {
                 "nodeId": "sequence",
@@ -8150,8 +8150,8 @@
                    {
                     "kind": "element",
                     "id": "outro:i",
-                    "from": 0.0,
-                    "durationInFrames": 75.0,
+                    "from": 0,
+                    "durationInFrames": 75,
                     "nodeId": "outro",
                     "handles": {
                      "trimEnd": {
@@ -8196,14 +8196,14 @@
          {
           "kind": "group",
           "id": "layers:l1:g",
-          "from": 12.0,
-          "durationInFrames": 120.0,
+          "from": 12,
+          "durationInFrames": 120,
           "handles": {
            "move": {
             "nodeId": "layers",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 1.0
+            "index": 1
            }
           },
           "slot": {
@@ -8218,8 +8218,8 @@
               {
                "kind": "element",
                "id": "talk-clip:i",
-               "from": 0.0,
-               "durationInFrames": 120.0,
+               "from": 0,
+               "durationInFrames": 120,
                "nodeId": "talk-clip",
                "component": "core/video",
                "props": {
@@ -8244,8 +8244,8 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "dpr": 1.0,
         "t0": 0.0,
@@ -8370,8 +8370,8 @@
        },
        "durationMs": 7700.0,
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "nodeId": "record",
        "style": []
@@ -8381,7 +8381,7 @@
     "mix": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 299.0,
+      "durationInFrames": 299,
       "tracks": [
        {
         "id": "layers:l0",
@@ -8389,14 +8389,14 @@
          {
           "kind": "group",
           "id": "layers:l0:g",
-          "from": 0.0,
-          "durationInFrames": 299.0,
+          "from": 0,
+          "durationInFrames": 299,
           "handles": {
            "move": {
             "nodeId": "layers",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 0.0
+            "index": 0
            }
           },
           "slot": {
@@ -8411,11 +8411,11 @@
               {
                "kind": "group",
                "id": "sequence:s0",
-               "from": 0.0,
-               "durationInFrames": 75.0,
+               "from": 0,
+               "durationInFrames": 75,
                "exit": {
                 "kind": "remocn/whip-pan",
-                "durationInFrames": 18.0
+                "durationInFrames": 18
                },
                "slot": {
                 "nodeId": "sequence",
@@ -8429,14 +8429,14 @@
                    {
                     "kind": "group",
                     "id": "intro:l0:g",
-                    "from": 0.0,
-                    "durationInFrames": 75.0,
+                    "from": 0,
+                    "durationInFrames": 75,
                     "handles": {
                      "move": {
                       "nodeId": "intro",
                       "param": "offsetsMs",
                       "unit": "ms",
-                      "index": 0.0
+                      "index": 0
                      }
                     },
                     "slot": {
@@ -8451,8 +8451,8 @@
                         {
                          "kind": "element",
                          "id": "intro-bg:i",
-                         "from": 0.0,
-                         "durationInFrames": 75.0,
+                         "from": 0,
+                         "durationInFrames": 75,
                          "nodeId": "intro-bg",
                          "handles": {
                           "trimEnd": {
@@ -8488,14 +8488,14 @@
                    {
                     "kind": "group",
                     "id": "intro:l1:g",
-                    "from": 0.0,
-                    "durationInFrames": 75.0,
+                    "from": 0,
+                    "durationInFrames": 75,
                     "handles": {
                      "move": {
                       "nodeId": "intro",
                       "param": "offsetsMs",
                       "unit": "ms",
-                      "index": 1.0
+                      "index": 1
                      }
                     },
                     "slot": {
@@ -8510,8 +8510,8 @@
                         {
                          "kind": "element",
                          "id": "intro-title:i",
-                         "from": 0.0,
-                         "durationInFrames": 75.0,
+                         "from": 0,
+                         "durationInFrames": 75,
                          "nodeId": "intro-title",
                          "handles": {
                           "trimEnd": {
@@ -8545,15 +8545,15 @@
               {
                "kind": "group",
                "id": "sequence:s1",
-               "from": 57.0,
-               "durationInFrames": 185.0,
+               "from": 57,
+               "durationInFrames": 185,
                "enter": {
                 "kind": "remocn/whip-pan",
-                "durationInFrames": 18.0
+                "durationInFrames": 18
                },
                "exit": {
                 "kind": "remocn/whip-pan",
-                "durationInFrames": 18.0
+                "durationInFrames": 18
                },
                "slot": {
                 "nodeId": "sequence",
@@ -8567,16 +8567,16 @@
                    {
                     "kind": "recording",
                     "id": "camera:i",
-                    "from": 0.0,
-                    "durationInFrames": 185.0,
+                    "from": 0,
+                    "durationInFrames": 185,
                     "nodeId": "camera",
                     "props": {
                      "src": "project:.opsis/cache/record/recording.mp4",
                      "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
                      "log": {
                       "viewport": {
-                       "width": 1920.0,
-                       "height": 1080.0
+                       "width": 1920,
+                       "height": 1080
                       },
                       "dpr": 1.0,
                       "t0": 0.0,
@@ -8742,11 +8742,11 @@
               {
                "kind": "group",
                "id": "sequence:s2",
-               "from": 224.0,
-               "durationInFrames": 75.0,
+               "from": 224,
+               "durationInFrames": 75,
                "enter": {
                 "kind": "remocn/whip-pan",
-                "durationInFrames": 18.0
+                "durationInFrames": 18
                },
                "slot": {
                 "nodeId": "sequence",
@@ -8760,8 +8760,8 @@
                    {
                     "kind": "element",
                     "id": "outro:i",
-                    "from": 0.0,
-                    "durationInFrames": 75.0,
+                    "from": 0,
+                    "durationInFrames": 75,
                     "nodeId": "outro",
                     "handles": {
                      "trimEnd": {
@@ -8806,14 +8806,14 @@
          {
           "kind": "group",
           "id": "layers:l1:g",
-          "from": 12.0,
-          "durationInFrames": 120.0,
+          "from": 12,
+          "durationInFrames": 120,
           "handles": {
            "move": {
             "nodeId": "layers",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 1.0
+            "index": 1
            }
           },
           "slot": {
@@ -8828,8 +8828,8 @@
               {
                "kind": "element",
                "id": "talk-clip:i",
-               "from": 0.0,
-               "durationInFrames": 120.0,
+               "from": 0,
+               "durationInFrames": 120,
                "nodeId": "talk-clip",
                "component": "core/video",
                "props": {
@@ -8851,13 +8851,13 @@
        {
         "id": "song",
         "src": "project:music/song.mp3",
-        "from": 15.0,
-        "durationInFrames": 284.0,
+        "from": 15,
+        "durationInFrames": 284,
         "volume": 0.5,
-        "trimBefore": 6.0,
+        "trimBefore": 6,
         "loop": true,
-        "fadeInFrames": 12.0,
-        "fadeOutFrames": 45.0,
+        "fadeInFrames": 12,
+        "fadeOutFrames": 45,
         "nodeId": "song",
         "channel": "song",
         "role": "music",
@@ -8874,11 +8874,11 @@
           "linked": [
            {
             "param": "startMs",
-            "sign": 1.0
+            "sign": 1
            },
            {
             "param": "lengthMs",
-            "sign": -1.0,
+            "sign": -1,
             "ifNonZero": true
            }
           ]
@@ -8898,13 +8898,13 @@
        {
         "id": "whoosh",
         "src": "app:sfx/whoosh.wav",
-        "from": 173.0,
-        "durationInFrames": 126.0,
+        "from": 173,
+        "durationInFrames": 126,
         "volume": 1.0,
         "nodeId": "whoosh",
         "channel": "whoosh",
         "role": "effect",
-        "lengthFrames": 5.0,
+        "lengthFrames": 5,
         "handles": {
          "move": {
           "nodeId": "whoosh",
@@ -8924,13 +8924,13 @@
        {
         "id": "whip",
         "src": "app:sfx/whip.wav",
-        "from": 30.0,
-        "durationInFrames": 269.0,
+        "from": 30,
+        "durationInFrames": 269,
         "volume": 1.0,
         "nodeId": "whip",
         "channel": "whip",
         "role": "effect",
-        "lengthFrames": 5.0,
+        "lengthFrames": 5,
         "keepMusic": true,
         "handles": {
          "move": {
@@ -8948,12 +8948,12 @@
        {
         "id": "loop",
         "src": "project:music/bed.mp3",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "volume": 0.3,
         "loop": true,
-        "fadeInFrames": 24.0,
-        "fadeOutFrames": 45.0,
+        "fadeInFrames": 24,
+        "fadeOutFrames": 45,
         "nodeId": "loop",
         "channel": "loop",
         "role": "music",
@@ -8970,11 +8970,11 @@
           "linked": [
            {
             "param": "startMs",
-            "sign": 1.0
+            "sign": 1
            },
            {
             "param": "lengthMs",
-            "sign": -1.0,
+            "sign": -1,
             "ifNonZero": true
            }
           ]
@@ -8998,8 +8998,8 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920.0,
-         "height": 1080.0
+         "width": 1920,
+         "height": 1080
         },
         "dpr": 1.0,
         "t0": 0.0,
@@ -9124,8 +9124,8 @@
        },
        "durationMs": 7700.0,
        "viewport": {
-        "width": 1920.0,
-        "height": 1080.0
+        "width": 1920,
+        "height": 1080
        },
        "nodeId": "record",
        "style": []
@@ -9137,9 +9137,9 @@
       "type": "media",
       "src": "project:.opsis/out/render.mp4",
       "kind": "video",
-      "durationMs": 4000.0,
-      "width": 1920.0,
-      "height": 1080.0,
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
       "hasAudio": true
      }
     }
@@ -9147,10 +9147,10 @@
    "errors": {},
    "specs": {
     "render": {
-     "width": 1920.0,
-     "height": 1080.0,
-     "fps": 30.0,
-     "durationInFrames": 299.0,
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "durationInFrames": 299,
      "background": "#09090b",
      "tracks": [
       {
@@ -9159,14 +9159,14 @@
         {
          "kind": "group",
          "id": "layers:l0:g",
-         "from": 0.0,
-         "durationInFrames": 299.0,
+         "from": 0,
+         "durationInFrames": 299,
          "handles": {
           "move": {
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -9181,11 +9181,11 @@
              {
               "kind": "group",
               "id": "sequence:s0",
-              "from": 0.0,
-              "durationInFrames": 75.0,
+              "from": 0,
+              "durationInFrames": 75,
               "exit": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "slot": {
                "nodeId": "sequence",
@@ -9199,14 +9199,14 @@
                   {
                    "kind": "group",
                    "id": "intro:l0:g",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "handles": {
                     "move": {
                      "nodeId": "intro",
                      "param": "offsetsMs",
                      "unit": "ms",
-                     "index": 0.0
+                     "index": 0
                     }
                    },
                    "slot": {
@@ -9221,8 +9221,8 @@
                        {
                         "kind": "element",
                         "id": "intro-bg:i",
-                        "from": 0.0,
-                        "durationInFrames": 75.0,
+                        "from": 0,
+                        "durationInFrames": 75,
                         "nodeId": "intro-bg",
                         "handles": {
                          "trimEnd": {
@@ -9258,14 +9258,14 @@
                   {
                    "kind": "group",
                    "id": "intro:l1:g",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "handles": {
                     "move": {
                      "nodeId": "intro",
                      "param": "offsetsMs",
                      "unit": "ms",
-                     "index": 1.0
+                     "index": 1
                     }
                    },
                    "slot": {
@@ -9280,8 +9280,8 @@
                        {
                         "kind": "element",
                         "id": "intro-title:i",
-                        "from": 0.0,
-                        "durationInFrames": 75.0,
+                        "from": 0,
+                        "durationInFrames": 75,
                         "nodeId": "intro-title",
                         "handles": {
                          "trimEnd": {
@@ -9315,15 +9315,15 @@
              {
               "kind": "group",
               "id": "sequence:s1",
-              "from": 57.0,
-              "durationInFrames": 185.0,
+              "from": 57,
+              "durationInFrames": 185,
               "enter": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "exit": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "slot": {
                "nodeId": "sequence",
@@ -9337,16 +9337,16 @@
                   {
                    "kind": "recording",
                    "id": "camera:i",
-                   "from": 0.0,
-                   "durationInFrames": 185.0,
+                   "from": 0,
+                   "durationInFrames": 185,
                    "nodeId": "camera",
                    "props": {
                     "src": "project:.opsis/cache/record/recording.mp4",
                     "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
                     "log": {
                      "viewport": {
-                      "width": 1920.0,
-                      "height": 1080.0
+                      "width": 1920,
+                      "height": 1080
                      },
                      "dpr": 1.0,
                      "t0": 0.0,
@@ -9512,11 +9512,11 @@
              {
               "kind": "group",
               "id": "sequence:s2",
-              "from": 224.0,
-              "durationInFrames": 75.0,
+              "from": 224,
+              "durationInFrames": 75,
               "enter": {
                "kind": "remocn/whip-pan",
-               "durationInFrames": 18.0
+               "durationInFrames": 18
               },
               "slot": {
                "nodeId": "sequence",
@@ -9530,8 +9530,8 @@
                   {
                    "kind": "element",
                    "id": "outro:i",
-                   "from": 0.0,
-                   "durationInFrames": 75.0,
+                   "from": 0,
+                   "durationInFrames": 75,
                    "nodeId": "outro",
                    "handles": {
                     "trimEnd": {
@@ -9576,14 +9576,14 @@
         {
          "kind": "group",
          "id": "layers:l1:g",
-         "from": 12.0,
-         "durationInFrames": 120.0,
+         "from": 12,
+         "durationInFrames": 120,
          "handles": {
           "move": {
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1.0
+           "index": 1
           }
          },
          "slot": {
@@ -9598,8 +9598,8 @@
              {
               "kind": "element",
               "id": "talk-clip:i",
-              "from": 0.0,
-              "durationInFrames": 120.0,
+              "from": 0,
+              "durationInFrames": 120,
               "nodeId": "talk-clip",
               "component": "core/video",
               "props": {
@@ -9621,13 +9621,13 @@
       {
        "id": "song",
        "src": "project:music/song.mp3",
-       "from": 15.0,
-       "durationInFrames": 284.0,
+       "from": 15,
+       "durationInFrames": 284,
        "volume": 0.5,
-       "trimBefore": 6.0,
+       "trimBefore": 6,
        "loop": true,
-       "fadeInFrames": 12.0,
-       "fadeOutFrames": 45.0,
+       "fadeInFrames": 12,
+       "fadeOutFrames": 45,
        "nodeId": "song",
        "channel": "song",
        "role": "music",
@@ -9644,11 +9644,11 @@
          "linked": [
           {
            "param": "startMs",
-           "sign": 1.0
+           "sign": 1
           },
           {
            "param": "lengthMs",
-           "sign": -1.0,
+           "sign": -1,
            "ifNonZero": true
           }
          ]
@@ -9668,13 +9668,13 @@
       {
        "id": "whoosh",
        "src": "app:sfx/whoosh.wav",
-       "from": 173.0,
-       "durationInFrames": 126.0,
+       "from": 173,
+       "durationInFrames": 126,
        "volume": 1.0,
        "nodeId": "whoosh",
        "channel": "whoosh",
        "role": "effect",
-       "lengthFrames": 5.0,
+       "lengthFrames": 5,
        "handles": {
         "move": {
          "nodeId": "whoosh",
@@ -9694,13 +9694,13 @@
       {
        "id": "whip",
        "src": "app:sfx/whip.wav",
-       "from": 30.0,
-       "durationInFrames": 269.0,
+       "from": 30,
+       "durationInFrames": 269,
        "volume": 1.0,
        "nodeId": "whip",
        "channel": "whip",
        "role": "effect",
-       "lengthFrames": 5.0,
+       "lengthFrames": 5,
        "keepMusic": true,
        "handles": {
         "move": {
@@ -9718,12 +9718,12 @@
       {
        "id": "loop",
        "src": "project:music/bed.mp3",
-       "from": 0.0,
-       "durationInFrames": 90.0,
+       "from": 0,
+       "durationInFrames": 90,
        "volume": 0.3,
        "loop": true,
-       "fadeInFrames": 24.0,
-       "fadeOutFrames": 45.0,
+       "fadeInFrames": 24,
+       "fadeOutFrames": 45,
        "nodeId": "loop",
        "channel": "loop",
        "role": "music",
@@ -9740,11 +9740,11 @@
          "linked": [
           {
            "param": "startMs",
-           "sign": 1.0
+           "sign": 1
           },
           {
            "param": "lengthMs",
-           "sign": -1.0,
+           "sign": -1,
            "ifNonZero": true
           }
          ]
@@ -10186,10 +10186,10 @@
   },
   "preview": {
    "spec": {
-    "width": 1920.0,
-    "height": 1080.0,
-    "fps": 30.0,
-    "durationInFrames": 299.0,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 299,
     "background": "#09090b",
     "tracks": [
      {
@@ -10198,14 +10198,14 @@
        {
         "kind": "group",
         "id": "layers:l0:g",
-        "from": 0.0,
-        "durationInFrames": 299.0,
+        "from": 0,
+        "durationInFrames": 299,
         "handles": {
          "move": {
           "nodeId": "layers",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0.0
+          "index": 0
          }
         },
         "slot": {
@@ -10220,11 +10220,11 @@
             {
              "kind": "group",
              "id": "sequence:s0",
-             "from": 0.0,
-             "durationInFrames": 75.0,
+             "from": 0,
+             "durationInFrames": 75,
              "exit": {
               "kind": "remocn/whip-pan",
-              "durationInFrames": 18.0
+              "durationInFrames": 18
              },
              "slot": {
               "nodeId": "sequence",
@@ -10238,14 +10238,14 @@
                  {
                   "kind": "group",
                   "id": "intro:l0:g",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "handles": {
                    "move": {
                     "nodeId": "intro",
                     "param": "offsetsMs",
                     "unit": "ms",
-                    "index": 0.0
+                    "index": 0
                    }
                   },
                   "slot": {
@@ -10260,8 +10260,8 @@
                       {
                        "kind": "element",
                        "id": "intro-bg:i",
-                       "from": 0.0,
-                       "durationInFrames": 75.0,
+                       "from": 0,
+                       "durationInFrames": 75,
                        "nodeId": "intro-bg",
                        "handles": {
                         "trimEnd": {
@@ -10297,14 +10297,14 @@
                  {
                   "kind": "group",
                   "id": "intro:l1:g",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "handles": {
                    "move": {
                     "nodeId": "intro",
                     "param": "offsetsMs",
                     "unit": "ms",
-                    "index": 1.0
+                    "index": 1
                    }
                   },
                   "slot": {
@@ -10319,8 +10319,8 @@
                       {
                        "kind": "element",
                        "id": "intro-title:i",
-                       "from": 0.0,
-                       "durationInFrames": 75.0,
+                       "from": 0,
+                       "durationInFrames": 75,
                        "nodeId": "intro-title",
                        "handles": {
                         "trimEnd": {
@@ -10354,15 +10354,15 @@
             {
              "kind": "group",
              "id": "sequence:s1",
-             "from": 57.0,
-             "durationInFrames": 185.0,
+             "from": 57,
+             "durationInFrames": 185,
              "enter": {
               "kind": "remocn/whip-pan",
-              "durationInFrames": 18.0
+              "durationInFrames": 18
              },
              "exit": {
               "kind": "remocn/whip-pan",
-              "durationInFrames": 18.0
+              "durationInFrames": 18
              },
              "slot": {
               "nodeId": "sequence",
@@ -10376,16 +10376,16 @@
                  {
                   "kind": "recording",
                   "id": "camera:i",
-                  "from": 0.0,
-                  "durationInFrames": 185.0,
+                  "from": 0,
+                  "durationInFrames": 185,
                   "nodeId": "camera",
                   "props": {
                    "src": "project:.opsis/cache/record/recording.mp4",
                    "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
                    "log": {
                     "viewport": {
-                     "width": 1920.0,
-                     "height": 1080.0
+                     "width": 1920,
+                     "height": 1080
                     },
                     "dpr": 1.0,
                     "t0": 0.0,
@@ -10551,11 +10551,11 @@
             {
              "kind": "group",
              "id": "sequence:s2",
-             "from": 224.0,
-             "durationInFrames": 75.0,
+             "from": 224,
+             "durationInFrames": 75,
              "enter": {
               "kind": "remocn/whip-pan",
-              "durationInFrames": 18.0
+              "durationInFrames": 18
              },
              "slot": {
               "nodeId": "sequence",
@@ -10569,8 +10569,8 @@
                  {
                   "kind": "element",
                   "id": "outro:i",
-                  "from": 0.0,
-                  "durationInFrames": 75.0,
+                  "from": 0,
+                  "durationInFrames": 75,
                   "nodeId": "outro",
                   "handles": {
                    "trimEnd": {
@@ -10615,14 +10615,14 @@
        {
         "kind": "group",
         "id": "layers:l1:g",
-        "from": 12.0,
-        "durationInFrames": 120.0,
+        "from": 12,
+        "durationInFrames": 120,
         "handles": {
          "move": {
           "nodeId": "layers",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 1.0
+          "index": 1
          }
         },
         "slot": {
@@ -10637,8 +10637,8 @@
             {
              "kind": "element",
              "id": "talk-clip:i",
-             "from": 0.0,
-             "durationInFrames": 120.0,
+             "from": 0,
+             "durationInFrames": 120,
              "nodeId": "talk-clip",
              "component": "core/video",
              "props": {
@@ -10660,13 +10660,13 @@
      {
       "id": "song",
       "src": "project:music/song.mp3",
-      "from": 15.0,
-      "durationInFrames": 284.0,
+      "from": 15,
+      "durationInFrames": 284,
       "volume": 0.5,
-      "trimBefore": 6.0,
+      "trimBefore": 6,
       "loop": true,
-      "fadeInFrames": 12.0,
-      "fadeOutFrames": 45.0,
+      "fadeInFrames": 12,
+      "fadeOutFrames": 45,
       "nodeId": "song",
       "channel": "song",
       "role": "music",
@@ -10683,11 +10683,11 @@
         "linked": [
          {
           "param": "startMs",
-          "sign": 1.0
+          "sign": 1
          },
          {
           "param": "lengthMs",
-          "sign": -1.0,
+          "sign": -1,
           "ifNonZero": true
          }
         ]
@@ -10707,13 +10707,13 @@
      {
       "id": "whoosh",
       "src": "app:sfx/whoosh.wav",
-      "from": 173.0,
-      "durationInFrames": 126.0,
+      "from": 173,
+      "durationInFrames": 126,
       "volume": 1.0,
       "nodeId": "whoosh",
       "channel": "whoosh",
       "role": "effect",
-      "lengthFrames": 5.0,
+      "lengthFrames": 5,
       "handles": {
        "move": {
         "nodeId": "whoosh",
@@ -10733,13 +10733,13 @@
      {
       "id": "whip",
       "src": "app:sfx/whip.wav",
-      "from": 30.0,
-      "durationInFrames": 269.0,
+      "from": 30,
+      "durationInFrames": 269,
       "volume": 1.0,
       "nodeId": "whip",
       "channel": "whip",
       "role": "effect",
-      "lengthFrames": 5.0,
+      "lengthFrames": 5,
       "keepMusic": true,
       "handles": {
        "move": {
@@ -10757,12 +10757,12 @@
      {
       "id": "loop",
       "src": "project:music/bed.mp3",
-      "from": 0.0,
-      "durationInFrames": 90.0,
+      "from": 0,
+      "durationInFrames": 90,
       "volume": 0.3,
       "loop": true,
-      "fadeInFrames": 24.0,
-      "fadeOutFrames": 45.0,
+      "fadeInFrames": 24,
+      "fadeOutFrames": 45,
       "nodeId": "loop",
       "channel": "loop",
       "role": "music",
@@ -10779,11 +10779,11 @@
         "linked": [
          {
           "param": "startMs",
-          "sign": 1.0
+          "sign": 1
          },
          {
           "param": "lengthMs",
-          "sign": -1.0,
+          "sign": -1,
           "ifNonZero": true
          }
         ]
@@ -10835,8 +10835,8 @@
   "timelines": {
    "render": {
     "flat": {
-     "fps": 30.0,
-     "durationInFrames": 299.0,
+     "fps": 30,
+     "durationInFrames": 299,
      "bars": [
       {
        "type": "video",
@@ -10885,7 +10885,7 @@
            "nodeId": "intro",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -10917,7 +10917,7 @@
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -10983,7 +10983,7 @@
            "nodeId": "intro",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1.0
+           "index": 1
           }
          },
          "slot": {
@@ -11015,7 +11015,7 @@
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -11047,8 +11047,8 @@
         "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
         "log": {
          "viewport": {
-          "width": 1920.0,
-          "height": 1080.0
+          "width": 1920,
+          "height": 1080
          },
          "dpr": 1.0,
          "t0": 0.0,
@@ -11244,7 +11244,7 @@
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -11328,7 +11328,7 @@
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0.0
+           "index": 0
           }
          },
          "slot": {
@@ -11388,7 +11388,7 @@
            "nodeId": "layers",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1.0
+           "index": 1
           }
          },
          "slot": {
@@ -11443,11 +11443,11 @@
          "linked": [
           {
            "param": "startMs",
-           "sign": 1.0
+           "sign": 1
           },
           {
            "param": "lengthMs",
-           "sign": -1.0,
+           "sign": -1,
            "ifNonZero": true
           }
          ]
@@ -11466,12 +11466,12 @@
        "item": {
         "id": "loop",
         "src": "project:music/bed.mp3",
-        "from": 0.0,
-        "durationInFrames": 90.0,
+        "from": 0,
+        "durationInFrames": 90,
         "volume": 0.3,
         "loop": true,
-        "fadeInFrames": 24.0,
-        "fadeOutFrames": 45.0,
+        "fadeInFrames": 24,
+        "fadeOutFrames": 45,
         "nodeId": "loop",
         "channel": "loop",
         "role": "music",
@@ -11488,11 +11488,11 @@
           "linked": [
            {
             "param": "startMs",
-            "sign": 1.0
+            "sign": 1
            },
            {
             "param": "lengthMs",
-            "sign": -1.0,
+            "sign": -1,
             "ifNonZero": true
            }
           ]
@@ -11537,11 +11537,11 @@
          "linked": [
           {
            "param": "startMs",
-           "sign": 1.0
+           "sign": 1
           },
           {
            "param": "lengthMs",
-           "sign": -1.0,
+           "sign": -1,
            "ifNonZero": true
           }
          ]
@@ -11560,13 +11560,13 @@
        "item": {
         "id": "song",
         "src": "project:music/song.mp3",
-        "from": 15.0,
-        "durationInFrames": 284.0,
+        "from": 15,
+        "durationInFrames": 284,
         "volume": 0.5,
-        "trimBefore": 6.0,
+        "trimBefore": 6,
         "loop": true,
-        "fadeInFrames": 12.0,
-        "fadeOutFrames": 45.0,
+        "fadeInFrames": 12,
+        "fadeOutFrames": 45,
         "nodeId": "song",
         "channel": "song",
         "role": "music",
@@ -11583,11 +11583,11 @@
           "linked": [
            {
             "param": "startMs",
-            "sign": 1.0
+            "sign": 1
            },
            {
             "param": "lengthMs",
-            "sign": -1.0,
+            "sign": -1,
             "ifNonZero": true
            }
           ]
@@ -11634,13 +11634,13 @@
        "item": {
         "id": "whip",
         "src": "app:sfx/whip.wav",
-        "from": 30.0,
-        "durationInFrames": 269.0,
+        "from": 30,
+        "durationInFrames": 269,
         "volume": 1.0,
         "nodeId": "whip",
         "channel": "whip",
         "role": "effect",
-        "lengthFrames": 5.0,
+        "lengthFrames": 5,
         "keepMusic": true,
         "handles": {
          "move": {
@@ -11685,13 +11685,13 @@
        "item": {
         "id": "whoosh",
         "src": "app:sfx/whoosh.wav",
-        "from": 173.0,
-        "durationInFrames": 126.0,
+        "from": 173,
+        "durationInFrames": 126,
         "volume": 1.0,
         "nodeId": "whoosh",
         "channel": "whoosh",
         "role": "effect",
-        "lengthFrames": 5.0,
+        "lengthFrames": 5,
         "handles": {
          "move": {
           "nodeId": "whoosh",
@@ -11762,7 +11762,7 @@
             "nodeId": "layers",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 1.0
+            "index": 1
            }
           },
           "slot": {
@@ -11879,8 +11879,8 @@
      "cameraKeys": []
     },
     "mix": {
-     "fps": 30.0,
-     "durationInFrames": 299.0,
+     "fps": 30,
+     "durationInFrames": 299,
      "channels": [
       {
        "id": "song",
@@ -11937,14 +11937,14 @@
        "sounds": [
         {
          "src": "project:music/song.mp3",
-         "at": 15.0,
-         "offset": 6.0,
-         "length": 284.0,
+         "at": 15,
+         "offset": 6,
+         "length": 284,
          "loop": true,
          "rate": 1.0,
          "volume": 0.5,
-         "fadeIn": 12.0,
-         "fadeOut": 45.0
+         "fadeIn": 12,
+         "fadeOut": 45
         }
        ],
        "audible": true
@@ -12004,14 +12004,14 @@
        "sounds": [
         {
          "src": "app:sfx/whoosh.wav",
-         "at": 173.0,
-         "offset": 0.0,
-         "length": 5.0,
+         "at": 173,
+         "offset": 0,
+         "length": 5,
          "loop": false,
          "rate": 1.0,
          "volume": 1.0,
-         "fadeIn": 0.0,
-         "fadeOut": 0.0
+         "fadeIn": 0,
+         "fadeOut": 0
         }
        ],
        "audible": true
@@ -12072,14 +12072,14 @@
        "sounds": [
         {
          "src": "app:sfx/whip.wav",
-         "at": 30.0,
-         "offset": 0.0,
-         "length": 5.0,
+         "at": 30,
+         "offset": 0,
+         "length": 5,
          "loop": false,
          "rate": 1.0,
          "volume": 1.0,
-         "fadeIn": 0.0,
-         "fadeOut": 0.0
+         "fadeIn": 0,
+         "fadeOut": 0
         }
        ],
        "audible": true
@@ -12139,14 +12139,14 @@
        "sounds": [
         {
          "src": "project:music/bed.mp3",
-         "at": 0.0,
-         "offset": 0.0,
-         "length": 90.0,
+         "at": 0,
+         "offset": 0,
+         "length": 90,
          "loop": true,
          "rate": 1.0,
          "volume": 0.3,
-         "fadeIn": 24.0,
-         "fadeOut": 45.0
+         "fadeIn": 24,
+         "fadeOut": 45
         }
        ],
        "audible": false
@@ -12206,14 +12206,14 @@
        "sounds": [
         {
          "src": "project:.opsis/out/talk.mp4",
-         "at": 12.0,
-         "offset": 0.0,
-         "length": 120.0,
+         "at": 12,
+         "offset": 0,
+         "length": 120,
          "loop": false,
          "rate": 1.0,
          "volume": 1.0,
-         "fadeIn": 0.0,
-         "fadeOut": 0.0
+         "fadeIn": 0,
+         "fadeOut": 0
         }
        ],
        "audible": true

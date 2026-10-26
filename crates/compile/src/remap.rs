@@ -7,8 +7,11 @@ fn lerp_segment((x0, y0): (f64, f64), (x1, y1): (f64, f64), x: f64) -> f64 {
     y0 + (x - x0) / (x1 - x0) * (y1 - y0)
 }
 
-pub fn speed_remap(inner_duration: f64, out_duration: f64) -> Remap {
-    vec![(0.0, 0.0), (out_duration, inner_duration)]
+pub fn speed_remap(inner_duration: u32, out_duration: u32) -> Remap {
+    vec![
+        (0.0, 0.0),
+        (f64::from(out_duration), f64::from(inner_duration)),
+    ]
 }
 
 pub fn remap_duration(remap: &[(f64, f64)]) -> f64 {

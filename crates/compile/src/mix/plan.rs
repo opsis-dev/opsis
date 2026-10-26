@@ -3,6 +3,7 @@ use opsis_types::json::sorted_keys;
 use opsis_types::mix::{
     Bus, ChannelKind, Comp, Eq, Highpass, Master, Mix, Strip, StripSettings, strip_settings,
 };
+use opsis_types::numbers::whole;
 use opsis_types::timeline::{AudioEnvelope, TimelineSpec};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -15,15 +16,15 @@ use crate::timeline::flatten::FlatTimeline;
 #[serde(rename_all = "camelCase")]
 pub struct SoundPlacement {
     pub src: String,
-    pub at: f64,
-    pub offset: f64,
-    pub length: f64,
+    pub at: u32,
+    pub offset: u32,
+    pub length: u32,
     #[serde(rename = "loop")]
     pub looped: bool,
     pub rate: f64,
     pub volume: f64,
-    pub fade_in: f64,
-    pub fade_out: f64,
+    pub fade_in: u32,
+    pub fade_out: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub envelope: Option<AudioEnvelope>,
 }
@@ -67,8 +68,8 @@ pub struct BusPlan {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct MixPlan {
-    pub fps: f64,
-    pub duration_in_frames: f64,
+    pub fps: u32,
+    pub duration_in_frames: u32,
     pub channels: Vec<ChannelPlan>,
     pub buses: Vec<BusPlan>,
     pub master: Master,
@@ -84,14 +85,14 @@ fn sound_placements(flat: &FlatTimeline) -> IndexMap<String, Vec<SoundPlacement>
             .or_default()
             .push(SoundPlacement {
                 src: a.src.clone(),
-                at: a.from.round(),
-                offset: a.trim_before.round().max(0.0),
+                at: whole(a.from),
+                offset: whole(a.trim_before),
                 length: at_least_one_frame(a.to - a.from),
                 looped: a.looped,
                 rate: item.and_then(|i| i.rate).unwrap_or(1.0),
                 volume: a.volume,
-                fade_in: item.and_then(|i| i.fade_in_frames).unwrap_or(0.0),
-                fade_out: item.and_then(|i| i.fade_out_frames).unwrap_or(0.0),
+                fade_in: item.and_then(|i| i.fade_in_frames).unwrap_or(0),
+                fade_out: item.and_then(|i| i.fade_out_frames).unwrap_or(0),
                 envelope: item.and_then(|i| i.envelope.clone()),
             });
     }
@@ -102,7 +103,7 @@ fn bus_plans(
     mix: &Mix,
     channels: &[ChannelPlan],
     placed: &[ChannelInfo],
-    fps: f64,
+    fps: u32,
 ) -> Vec<BusPlan> {
     mix.buses
         .iter()
@@ -177,8 +178,8 @@ pub fn build_mix_plan(spec: &TimelineSpec, mix: Option<&Mix>, flat: &FlatTimelin
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ChannelIdentity<'a> {
-    pub fps: f64,
-    pub duration_in_frames: f64,
+    pub fps: u32,
+    pub duration_in_frames: u32,
     pub sounds: &'a [SoundPlacement],
     pub strip: StripSettings,
 }

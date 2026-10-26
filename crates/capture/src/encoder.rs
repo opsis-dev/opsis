@@ -28,7 +28,7 @@ impl From<ToolError> for EncodeError {
     }
 }
 
-pub fn encoder_args(fps: i64, output: &Path) -> Vec<String> {
+pub fn encoder_args(fps: u32, output: &Path) -> Vec<String> {
     let mut args = strings(&[
         "-f",
         "image2pipe",
@@ -163,13 +163,13 @@ impl Writer {
 }
 
 impl FrameEncoder {
-    pub fn start(tools: &dyn MediaTools, output: &Path, fps: i64) -> Result<Self, EncodeError> {
+    pub fn start(tools: &dyn MediaTools, output: &Path, fps: u32) -> Result<Self, EncodeError> {
         let cancel = CancellationToken::new();
         let pipe = tools.pipe(&encoder_args(fps, output), Some(cancel.clone()))?;
         let (sender, receiver) = mpsc::unbounded_channel();
         let writer = Writer {
             pipe,
-            frame_ms: 1000.0 / fps as f64,
+            frame_ms: 1000.0 / f64::from(fps),
             origin: None,
             tick: 0,
             last: None,

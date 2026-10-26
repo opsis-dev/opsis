@@ -15,6 +15,7 @@ use opsis_capture::live::FrameSink;
 use opsis_capture::screencast::{FrameSinks, Screencast};
 use opsis_compile::nodes::browser::Open;
 use opsis_types::actions::Viewport;
+use opsis_types::numbers::whole;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use tokio::task::JoinHandle;
@@ -26,8 +27,8 @@ const UNBRANDED: (&str, &str) = ("Not.A/Brand", "99");
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewSize {
-    pub width: f64,
-    pub height: f64,
+    pub width: u32,
+    pub height: u32,
     pub dpr: f64,
 }
 
@@ -320,7 +321,7 @@ pub struct StreamView {
     session: Session,
     slot: Arc<SinkSlot>,
     tabs: tokio::sync::Mutex<Tabs>,
-    quality: i64,
+    quality: u32,
     user_agent: Value,
     watcher: Mutex<Option<JoinHandle<()>>>,
 }
@@ -375,12 +376,12 @@ impl StreamView {
         temp_dir: &Path,
         url: &str,
         size: ViewSize,
-        quality: i64,
+        quality: u32,
         switches: &[&str],
     ) -> Result<Arc<Self>> {
         let params = Open {
-            viewport_width: size.width as i64,
-            viewport_height: size.height as i64,
+            viewport_width: size.width,
+            viewport_height: size.height,
             dpr: size.dpr,
             ..Open::default()
         };
@@ -633,8 +634,8 @@ impl StreamView {
         }
         let tab = &tabs.list[tabs.active].tab;
         let size = Viewport {
-            width: tabs.size.width * tabs.size.dpr,
-            height: tabs.size.height * tabs.size.dpr,
+            width: whole(f64::from(tabs.size.width) * tabs.size.dpr),
+            height: whole(f64::from(tabs.size.height) * tabs.size.dpr),
         };
         let sink: Arc<dyn FrameSink> = self.slot.clone();
         tabs.screencast = Some((

@@ -28,22 +28,8 @@ fn rounded(value: f64) -> f64 {
     if n == 0.0 { 0.0 } else { n }
 }
 
-fn js_number(value: f64) -> Value {
-    let n = rounded(value);
-    if n.fract() == 0.0 && n.abs() < 1e15 {
-        Value::from(n as i64)
-    } else {
-        Value::from(n)
-    }
-}
-
 fn number(value: f64) -> String {
-    let n = rounded(value);
-    if n.fract() == 0.0 && n.abs() < 1e15 {
-        format!("{}", n as i64)
-    } else {
-        format!("{n}")
-    }
+    rounded(value).to_string()
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -272,7 +258,7 @@ pub fn glyphs(font: &FontRef<'_>, weight: f64) -> Map<String, Value> {
             pen.flush_line();
             let bound = |x: f64| {
                 if pen.bounds.any {
-                    js_number(x)
+                    Value::from(rounded(x))
                 } else {
                     Value::Null
                 }
@@ -280,7 +266,7 @@ pub fn glyphs(font: &FontRef<'_>, weight: f64) -> Map<String, Value> {
             glyphs.insert(
                 ch.to_string(),
                 json!({
-                    "ha": js_number(advance.unwrap_or_default()),
+                    "ha": rounded(advance.unwrap_or_default()),
                     "x_min": bound(pen.bounds.min_x),
                     "x_max": bound(pen.bounds.max_x),
                     "o": pen.parts.join(" "),

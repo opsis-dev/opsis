@@ -1,5 +1,6 @@
 use std::collections::BTreeSet;
 
+use opsis_types::numbers::whole;
 use serde_json::{Map, Value};
 
 use crate::elements::introspect::settings_in_frames;
@@ -21,8 +22,8 @@ struct Timing {
     keeps_length: bool,
 }
 
-pub const AUTHORED_FPS: f64 = 30.0;
-const CUT_OFF_HOLD: f64 = AUTHORED_FPS / 2.0;
+pub const AUTHORED_FPS: u32 = 30;
+const CUT_OFF_SECONDS: f64 = 0.5;
 const RELEASE_TEASER_SECONDS: f64 = 960.0 * 1001.0 / 60000.0;
 const LAUNCH_ANYTHING_SECONDS: f64 = 1600.0 / 60.0;
 
@@ -196,7 +197,7 @@ const AGENT_ANSWER_PER_WORD: f64 = 1.0;
 const AGENT_ANSWER_PER_LINE: f64 = 1.0;
 
 fn agent_run_end(s: &Settings) -> f64 {
-    let per_frame = num(s, "compression", 3.0).clamp(0.25, 20.0) / AUTHORED_FPS;
+    let per_frame = num(s, "compression", 3.0).clamp(0.25, 20.0) / f64::from(AUTHORED_FPS);
     let plan: Vec<&str> = list(s, "runPlan")
         .iter()
         .map(|v| v.as_str().unwrap_or(""))
@@ -351,7 +352,7 @@ fn element_timing(key: &str) -> Option<Timing> {
         "remocn/soft-blur-in" => authored(|s| last_index(characters(text(s, "text"))) + 27.0),
         "remocn/typewriter" => authored(|s| {
             characters(text(s, "text")) as f64 / num(s, "charsPerSecond", 22.0).max(0.1)
-                * AUTHORED_FPS
+                * f64::from(AUTHORED_FPS)
         }),
         "remocn/matrix-decode" => authored(|s| num(s, "revealDuration", 60.0)),
         "remocn/slot-machine-roll" => authored(|s| {
@@ -555,11 +556,12 @@ pub fn fits_its_animation(meta: &ElementMeta) -> bool {
     timing_of(meta).is_some()
 }
 
-fn end_frames(timing: Timing, settings: &Settings, fps: f64) -> f64 {
+fn end_frames(timing: Timing, settings: &Settings, fps: u32) -> f64 {
     let end = (timing.end)(settings);
+    let fps = f64::from(fps);
     match timing.unit {
         Unit::Seconds => end * fps,
-        Unit::Authored => end * fps / AUTHORED_FPS,
+        Unit::Authored => end * fps / f64::from(AUTHORED_FPS),
         Unit::Frames => end,
     }
 }
@@ -572,7 +574,7 @@ fn merged(base: &Settings, over: &Settings) -> Settings {
     out
 }
 
-pub fn animation_length(meta: &ElementMeta, params: &Settings, fps: f64) -> f64 {
+pub fn animation_length(meta: &ElementMeta, params: &Settings, fps: u32) -> u32 {
     let Some(timing) = timing_of(meta) else {
         return meta.default_duration_in_frames;
     };
@@ -584,26 +586,25 @@ pub fn animation_length(meta: &ElementMeta, params: &Settings, fps: f64) -> f64 
         &settings_in_frames(&meta.schema, &merged(&meta.default_props, params)),
         &meta.fixed_props,
     );
-    let designed_hold = meta.default_duration_in_frames
+    let authored = f64::from(AUTHORED_FPS);
+    let designed_hold = f64::from(meta.default_duration_in_frames)
         - end_frames(timing, &defaults, AUTHORED_FPS) / num(&defaults, "speed", 1.0);
     let hold = if designed_hold < 0.0 {
-        CUT_OFF_HOLD
+        CUT_OFF_SECONDS * authored
     } else {
         designed_hold
     };
     let scaled_hold = if timing.unit == Unit::Frames {
         hold
     } else {
-        hold * fps / AUTHORED_FPS
+        hold * f64::from(fps) / authored
     };
     let speed = num(&settings, "speed", 1.0);
     if speed <= 0.0 {
-        return 1.0;
+        return 1;
     }
     if timing.keeps_length {
-        return (scaled_hold / speed).ceil().max(1.0);
+        return whole((scaled_hold / speed).ceil()).max(1);
     }
-    (end_frames(timing, &settings, fps) / speed + scaled_hold)
-        .ceil()
-        .max(1.0)
+    whole((end_frames(timing, &settings, fps) / speed + scaled_hold).ceil()).max(1)
 }

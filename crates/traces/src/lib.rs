@@ -340,8 +340,8 @@ mod tests {
     fn take(marker: u8) -> TraceTake {
         TraceTake {
             viewport: Some(Viewport {
-                width: 1280.0,
-                height: 720.0,
+                width: 1280,
+                height: 720,
             }),
             actions: vec![
                 action("navigate", None, 110.0, 400.0),

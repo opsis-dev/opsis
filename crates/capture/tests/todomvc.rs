@@ -216,6 +216,6 @@ async fn screenshots_one_element_with_space_around_it() {
     let size = imagesize::size(file).unwrap();
     assert_eq!(
         size.width as f64,
-        (image.width.unwrap() * image.scale.unwrap()).round()
+        (f64::from(image.width.unwrap()) * image.scale.unwrap()).round()
     );
 }

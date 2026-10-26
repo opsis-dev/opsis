@@ -99,7 +99,7 @@ fn places_a_second_speed_ramp_at_its_own_recording_time() {
         Some(make_log(Vec::new(), 10_000.0)),
         json!({ "speed": 1 }),
     );
-    assert_eq!(both.duration_in_frames, 270.0);
+    assert_eq!(both.duration_in_frames, 270);
     let frame = |ms: f64| clip_frame_of_recording(&both.tracks, &|_| ms / 1000.0 * 30.0).unwrap();
     for (ms, expected) in [(3000.0, 75.0), (4000.0, 90.0), (6000.0, 150.0)] {
         assert!((frame(ms) - expected).abs() < 0.01, "{ms}: {}", frame(ms));
@@ -126,7 +126,7 @@ fn frames_any_clip_in_a_device_and_draws_window_title_bars() {
         let framed = compile_clip(
             "camera.deviceFrame",
             json!({ "device": device }),
-            json!({ CLIP: clip_value(&empty_clip(60.0)) }),
+            json!({ CLIP: clip_value(&empty_clip(60)) }),
         );
         assert_eq!(
             group_value(&framed)["wrapper"]["component"],
@@ -303,9 +303,9 @@ fn plays_connected_clips_as_spring_settle_scenes_and_counts_them_on_its_card() {
     let clip = compile_clip(
         SPRING_SETTLE,
         json!({ "gapFrames": 4, "enterScale": 1.3, "backgrounds": [{ "scene": "in3", "color": "#112233" }] }),
-        json!({ "in1": clip_value(&empty_clip(30.0)), "in3": clip_value(&empty_clip(20.0)) }),
+        json!({ "in1": clip_value(&empty_clip(30)), "in3": clip_value(&empty_clip(20)) }),
     );
-    assert_eq!(clip.duration_in_frames, 54.0);
+    assert_eq!(clip.duration_in_frames, 54);
     let sequencer = group_value(&clip)["sequencer"].clone();
     assert_eq!(sequencer["component"], "remocn/spring-settle");
     assert_eq!(
@@ -318,10 +318,10 @@ fn plays_connected_clips_as_spring_settle_scenes_and_counts_them_on_its_card() {
     assert_eq!(sequencer["backgrounds"], json!([null, "#112233"]));
     let inputs = CardInputs {
         connected: vec!["in1".into(), "in2".into()],
-        items: [("in1".to_owned(), 1.0), ("in2".to_owned(), 3.0)]
+        items: [("in1".to_owned(), 1), ("in2".to_owned(), 3)]
             .into_iter()
             .collect(),
-        clip_frames: Some(90.0),
+        clip_frames: Some(90),
         ..CardInputs::default()
     };
     let rows = card_texts(SPRING_SETTLE, json!({ "gapFrames": 15 }), inputs);
@@ -497,8 +497,8 @@ fn plays_element_music_through_the_mix_as_the_nodes_own_channel() {
         )
     );
     assert_eq!(
-        sound["durationInFrames"].as_f64(),
-        Some(clip.duration_in_frames)
+        sound["durationInFrames"].as_u64(),
+        Some(u64::from(clip.duration_in_frames))
     );
     if let TimelineItem::Element { props, .. } = &clip.tracks[0].items[0] {
         assert!(!props.contains_key("music") && !props.contains_key("musicVolume"));
@@ -536,7 +536,7 @@ fn passes_element_times_in_frames_of_thirty_a_second_and_lays_out_fixed_size_ele
     );
     assert_eq!(
         first_item("fx.remotion-ui.funnel-chart", json!({})).2,
-        Some(json!({ "width": 1920.0, "height": 1080.0 }))
+        Some(json!({ "width": 1920, "height": 1080 }))
     );
     assert_eq!(
         first_item("fx.remocn.soft-blur-in", json!({ "text": "Hi" })).2,
@@ -601,9 +601,9 @@ fn runs_a_device_mockup_with_or_without_a_clip() {
     let clip = compile_clip(
         DEVICE_MOCKUP,
         json!({}),
-        json!({ CLIP: clip_value(&empty_clip(45.0)) }),
+        json!({ CLIP: clip_value(&empty_clip(45)) }),
     );
-    assert_eq!(clip.duration_in_frames, 45.0);
+    assert_eq!(clip.duration_in_frames, 45);
     assert_eq!(
         group_value(&clip)["wrapper"]["component"],
         "remotion-ui/device-mockup-zoom"

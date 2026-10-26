@@ -11,7 +11,6 @@ use opsis_render::export_project::ExportSources;
 use opsis_runner::context::{Executors, RunEnv};
 use opsis_runner::progress::apply_run_event;
 use opsis_runner::runner::{RunDeps, run_workflow as run_runner};
-use opsis_stream::host::ViewEnv;
 use opsis_stream::sign_in::StreamLogin;
 use opsis_types::events::{RunEvent, RunProgress, RunRequest};
 use serde::{Deserialize, Serialize};
@@ -151,15 +150,12 @@ fn executors(app: &AppHandle) -> Executors {
             packaged: state.paths.packaged,
         },
     });
-    let view_env = ViewEnv {
-        executable: opsis_capture::browser::shell_in(&state.paths.engine_dir()).unwrap_or_default(),
-        temp_dir: state.paths.views_temp.clone(),
-    };
     let capture = Arc::new(CaptureDeps {
         tools: Arc::clone(&tools),
         sign_ins: Arc::new(ProjectSignIns { app: app.clone() }),
         login: Arc::new(StreamLogin {
-            env: view_env,
+            engine_dir: state.paths.engine_dir(),
+            temp_dir: state.paths.views_temp.clone(),
             host: Arc::new(AppViewHost { app: app.clone() }),
         }),
         live: Some(Arc::new(AppLive { app: app.clone() })),

@@ -11,19 +11,19 @@ use serde_json::json;
 
 #[test]
 fn rounds_times_to_whole_frames_and_milliseconds() {
-    assert_eq!(ms_to_frames(1000.0, 30.0), 30.0);
-    assert_eq!(ms_to_frames(0.0, 30.0), 1.0);
-    assert_eq!(ms_to_frames_from(0.0, 30.0, 0.0), 0.0);
+    assert_eq!(ms_to_frames(1000.0, 30), 30);
+    assert_eq!(ms_to_frames(0.0, 30), 1);
+    assert_eq!(ms_to_frames_from(0.0, 30, 0), 0);
     assert_eq!(
         [
-            whole_frames(2.6, 0.0),
-            whole_frames(-4.0, 0.0),
-            whole_frames(0.2, 1.0)
+            whole_frames(2.6, 0),
+            whole_frames(-4.0, 0),
+            whole_frames(0.2, 1)
         ],
-        [3.0, 0.0, 1.0]
+        [3, 0, 1]
     );
     assert_eq!(
-        [frames_to_ms(30.0, 30.0), frames_to_ms(1.0, 30.0)],
+        [frames_to_ms(30.0, 30), frames_to_ms(1.0, 30)],
         [1000.0, 33.0]
     );
     assert_eq!(
@@ -34,9 +34,9 @@ fn rounds_times_to_whole_frames_and_milliseconds() {
 
 #[test]
 fn places_a_recording_moment_on_the_timeline_at_the_playback_speed_and_back() {
-    assert_eq!(recording_ms_to_frames(2000.0, 2.0, 30.0), 30.0);
-    assert_eq!(recording_ms_to_frames(1000.0, 0.5, 30.0), 60.0);
-    assert_eq!(frames_to_recording_ms(30.0, 2.0, 30.0), 2000.0);
+    assert_eq!(recording_ms_to_frames(2000.0, 2.0, 30), 30.0);
+    assert_eq!(recording_ms_to_frames(1000.0, 0.5, 30), 60.0);
+    assert_eq!(frames_to_recording_ms(30.0, 2.0, 30), 2000.0);
 }
 
 fn path() -> CameraPath {

@@ -58,7 +58,7 @@ fn jobs(plan: &MixPlan, stored: &Value) -> Value {
     let master = cases(&stored["master"], |expected| {
         let measured: Option<LoudnessMeasure> = typed(&expected["measured"]);
         let job = master_job(shape, &plan.master, &bus_files, measured.as_ref());
-        let limit = plan.duration_in_frames / plan.fps + 1.0;
+        let limit = f64::from(plan.duration_in_frames) / f64::from(plan.fps) + 1.0;
         let args = job_args(
             &job,
             "/stems/master.wav",

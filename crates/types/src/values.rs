@@ -45,9 +45,9 @@ pub struct ImageValue {
     #[specta(type = Option<String>)]
     pub src: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub width: Option<f64>,
+    pub width: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub height: Option<f64>,
+    pub height: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scale: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -72,11 +72,11 @@ pub struct MediaValue {
     pub src: Option<String>,
     pub kind: MediaKind,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub duration_ms: Option<f64>,
+    pub duration_ms: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub width: Option<f64>,
+    pub width: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub height: Option<f64>,
+    pub height: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub has_audio: Option<bool>,
 }
@@ -91,7 +91,7 @@ pub struct SrcValue {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ClipValue {
-    pub duration_in_frames: f64,
+    pub duration_in_frames: u32,
     pub tracks: Vec<TimelineTrack>,
     pub audio: Vec<AudioItem>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -103,7 +103,7 @@ pub struct ClipValue {
 pub struct AudioValue {
     pub items: Vec<AudioItem>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub duration_in_frames: Option<f64>,
+    pub duration_in_frames: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
@@ -119,11 +119,61 @@ pub struct CaptionsValue {
     pub captions: Vec<Caption>,
 }
 
+macro_rules! browser_actions {
+    ($($action:ident = $kind:literal),+ $(,)?) => {
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
+        )]
+        pub enum BrowserAction {
+            $(#[serde(rename = $kind)] $action),+
+        }
+
+        impl BrowserAction {
+            pub const ALL: &'static [Self] = &[$(Self::$action),+];
+
+            pub const fn kind(self) -> &'static str {
+                match self {
+                    $(Self::$action => $kind),+
+                }
+            }
+        }
+    };
+}
+
+browser_actions! {
+    StartRecording = "browser.startRecording",
+    Navigate = "browser.navigate",
+    Click = "browser.click",
+    Type = "browser.type",
+    Hover = "browser.hover",
+    Drag = "browser.drag",
+    Scroll = "browser.scroll",
+    Select = "browser.select",
+    Upload = "browser.upload",
+    Press = "browser.press",
+    Wait = "browser.wait",
+    Assert = "browser.assert",
+    Hoist = "browser.hoist",
+    SetState = "browser.setState",
+    MockRoute = "browser.mockRoute",
+    FreezeClock = "browser.freezeClock",
+    HideElements = "browser.hideElements",
+    Chapter = "browser.chapter",
+    OverlayHtml = "browser.overlayHtml",
+    SignIn = "browser.signIn",
+}
+
+impl BrowserAction {
+    pub fn of_kind(kind: &str) -> Option<Self> {
+        Self::ALL.iter().copied().find(|a| a.kind() == kind)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct SessionStep {
     pub id: String,
     #[serde(rename = "type")]
-    pub kind: String,
+    pub kind: BrowserAction,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     #[specta(type = crate::JsonObject)]
@@ -282,7 +332,7 @@ pub struct Artifact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub bytes: Option<f64>,
+    pub bytes: Option<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stamp: Option<String>,
 }
@@ -301,8 +351,8 @@ pub struct NodeResult {
     pub hash: String,
     pub outputs: PortValues,
     pub artifacts: Vec<Artifact>,
-    pub finished_at: f64,
-    pub duration_ms: f64,
+    pub finished_at: i64,
+    pub duration_ms: u64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub trace_id: Option<String>,
 }
@@ -311,7 +361,7 @@ pub struct NodeResult {
 #[serde(rename_all = "camelCase")]
 pub struct NodeFailure {
     pub message: String,
-    pub at: f64,
+    pub at: i64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub trace_id: Option<String>,
 }
@@ -319,7 +369,7 @@ pub struct NodeFailure {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LastRun {
-    pub updated_at: f64,
+    pub updated_at: i64,
     pub nodes: IndexMap<String, NodeResult>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub failures: Option<IndexMap<String, NodeFailure>>,
@@ -328,7 +378,7 @@ pub struct LastRun {
 impl LastRun {
     pub fn parse(value: &Value) -> Option<LastRun> {
         let object = value.as_object()?;
-        let updated_at = object.get("updatedAt")?.as_f64()?;
+        let updated_at = object.get("updatedAt")?.as_i64()?;
         let entries = |key: &str| -> Option<IndexMap<String, Value>> {
             object
                 .get(key)

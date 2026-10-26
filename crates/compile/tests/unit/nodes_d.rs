@@ -5,7 +5,7 @@ use opsis_compile::nodes::timeline::branch_port;
 use opsis_compile::vars::Vars;
 use opsis_types::cards::Tone;
 use opsis_types::timeline::TimelineItem;
-use opsis_types::values::{ClipValue, CompileValue};
+use opsis_types::values::{BrowserAction, ClipValue, CompileValue};
 use serde_json::{Map, Value, json};
 
 use crate::helpers::{
@@ -36,7 +36,10 @@ fn adds_the_takes_length_and_actions_and_says_where_the_video_starts() {
         let inputs = CardInputs {
             steps: [(
                 "session".to_owned(),
-                steps.iter().map(|s| (*s).to_owned()).collect(),
+                steps
+                    .iter()
+                    .map(|s| BrowserAction::of_kind(s).expect("a browser action"))
+                    .collect(),
             )]
             .into_iter()
             .collect(),
@@ -169,7 +172,7 @@ fn checks_screenshot_and_sign_in_settings() {
     assert_eq!(interpolated["url"], "https://app.example.com/login");
 }
 
-fn still(params: Value, image: Option<Value>) -> (Value, String, Map<String, Value>, f64) {
+fn still(params: Value, image: Option<Value>) -> (Value, String, Map<String, Value>, u32) {
     let result = image.map(|i| {
         let mut img = json!({ "type": "image" });
         img.as_object_mut()
@@ -203,7 +206,7 @@ fn shows_a_placeholder_until_the_screenshot_is_taken_then_the_screenshot() {
         (
             json!({ "type": "image", "src": null }),
             "core/placeholder",
-            90.0
+            90
         )
     );
     let (_, component, props, _) = still(
@@ -220,7 +223,7 @@ fn shows_a_placeholder_until_the_screenshot_is_taken_then_the_screenshot() {
         (
             json!("project:shot.png"),
             json!("cutout"),
-            json!({ "width": 400.0, "height": 300.0, "scale": 2.0 })
+            json!({ "width": 400, "height": 300, "scale": 2.0 })
         )
     );
     let (_, component, props, _) = still(json!({}), Some(json!({ "src": "project:shot.png" })));
@@ -235,7 +238,7 @@ fn shows_a_placeholder_until_the_screenshot_is_taken_then_the_screenshot() {
 }
 
 fn over(kind: &str, params: Value) -> ClipValue {
-    compile_clip(kind, params, json!({ CLIP: clip_value(&empty_clip(90.0)) }))
+    compile_clip(kind, params, json!({ CLIP: clip_value(&empty_clip(90)) }))
 }
 
 fn group_value(clip: &ClipValue) -> Value {
@@ -247,16 +250,16 @@ fn group_value(clip: &ClipValue) -> Value {
 
 #[test]
 fn rounds_delays_and_trim_starts_to_whole_frames() {
-    let start = |ms: f64| {
+    let start = |ms: u32| {
         over("timeline.delay", json!({ "ms": ms })).tracks[0].items[0]
             .base()
             .from
     };
-    assert_eq!([start(10.0), start(0.0), start(500.0)], [0.0, 0.0, 15.0]);
-    let from = |ms: f64| {
+    assert_eq!([start(10), start(0), start(500)], [0, 0, 15]);
+    let from = |ms: u32| {
         group_value(&over("timeline.trim", json!({ "startMs": ms })))["startFrom"].as_f64()
     };
-    assert_eq!([from(10.0), from(1000.0)], [Some(0.0), Some(30.0)]);
+    assert_eq!([from(10), from(1000)], [Some(0.0), Some(30.0)]);
 }
 
 #[test]
@@ -279,13 +282,13 @@ fn notes_fast_speeds_and_counts_sequence_cuts() {
     let context = || CardInputs {
         connected: vec!["in1".into(), "in2".into(), "in3".into()],
         frames: [
-            ("in1".to_owned(), 300.0),
-            ("in2".to_owned(), 100.0),
-            ("in3".to_owned(), 300.0),
+            ("in1".to_owned(), 300),
+            ("in2".to_owned(), 100),
+            ("in3".to_owned(), 300),
         ]
         .into_iter()
         .collect(),
-        clip_frames: Some(690.0),
+        clip_frames: Some(690),
         ..CardInputs::default()
     };
     assert_eq!(
@@ -320,7 +323,7 @@ fn marks_layers_for_a_sequencer_unless_they_keep_their_layout() {
         compile_clip(
             "timeline.stack",
             params,
-            json!({ "in1": clip_value(&empty_clip(30.0)), "in2": clip_value(&empty_clip(30.0)) }),
+            json!({ "in1": clip_value(&empty_clip(30)), "in2": clip_value(&empty_clip(30)) }),
         )
     };
     assert_eq!(scene_item_count(&stacked(json!({}))), 2);
@@ -329,20 +332,20 @@ fn marks_layers_for_a_sequencer_unless_they_keep_their_layout() {
 
 #[test]
 fn refuses_a_repeat_longer_than_the_frame_limit() {
-    let repeat = |times: f64| {
+    let repeat = |times: u32| {
         compile_node_with(
             "timeline.loop",
             json!({ "times": times }),
-            json!({ CLIP: clip_value(&empty_clip(MAX_FRAMES / 50.0)) }),
+            json!({ CLIP: clip_value(&empty_clip(MAX_FRAMES / 50)) }),
             None,
         )
     };
     assert!(
-        repeat(100.0)
+        repeat(100)
             .unwrap_err()
             .contains("Repeated 100 times the clip would run")
     );
-    match repeat(50.0).unwrap().shift_remove("clip") {
+    match repeat(50).unwrap().shift_remove("clip") {
         Some(CompileValue::Clip(c)) => assert_eq!(c.duration_in_frames, MAX_FRAMES),
         other => panic!("{other:?}"),
     }
@@ -368,16 +371,16 @@ fn chooses_by_variable() {
     let picked = compile_node_in(
         "timeline.branch",
         json!({ "variable": " Version ", "equals": "A" }),
-        json!({ "a": clip_value(&empty_clip(10.0)), "b": clip_value(&empty_clip(20.0)) }),
+        json!({ "a": clip_value(&empty_clip(10)), "b": clip_value(&empty_clip(20)) }),
         None,
         &vars,
     )
     .unwrap();
-    assert!(matches!(&picked["clip"], CompileValue::Clip(c) if c.duration_in_frames == 10.0));
+    assert!(matches!(&picked["clip"], CompileValue::Clip(c) if c.duration_in_frames == 10));
     let missing = compile_node_with(
         "timeline.branch",
         json!({ "variable": "Version", "equals": "" }),
-        json!({ "a": clip_value(&empty_clip(10.0)) }),
+        json!({ "a": clip_value(&empty_clip(10)) }),
         None,
     );
     assert_eq!(missing.unwrap_err(), "Connect a clip to “Otherwise”.");
@@ -405,7 +408,7 @@ fn refuses_a_trim_past_the_end_and_warns_when_it_keeps_more_than_the_clip_has() 
         compile_node_with(
             "timeline.trim",
             json!({ "startMs": ms }),
-            json!({ CLIP: clip_value(&empty_clip(60.0)) }),
+            json!({ CLIP: clip_value(&empty_clip(60)) }),
             None,
         )
     };
@@ -414,14 +417,14 @@ fn refuses_a_trim_past_the_end_and_warns_when_it_keeps_more_than_the_clip_has() 
         "Start is at or after the end of the clip, which is 2 s long."
     );
     assert!(
-        matches!(&trimmed(1000.0).unwrap()["clip"], CompileValue::Clip(c) if c.duration_in_frames == 30.0)
+        matches!(&trimmed(1000.0).unwrap()["clip"], CompileValue::Clip(c) if c.duration_in_frames == 30)
     );
     let texts = |p: Value| {
         card_texts(
             "timeline.trim",
             p,
             CardInputs {
-                frames: [("clip".to_owned(), 60.0)].into_iter().collect(),
+                frames: [("clip".to_owned(), 60)].into_iter().collect(),
                 ..CardInputs::default()
             },
         )
@@ -438,7 +441,7 @@ fn refuses_a_trim_past_the_end_and_warns_when_it_keeps_more_than_the_clip_has() 
 
 #[test]
 fn fits_lengths_by_holding_cutting_or_speeding() {
-    let fit = |params: Value, frames: f64, audio: Option<Value>| {
+    let fit = |params: Value, frames: u32, audio: Option<Value>| {
         let mut inputs = json!({ CLIP: clip_value(&empty_clip(frames)) });
         if let Some(a) = audio {
             inputs["audio"] = a;
@@ -446,15 +449,15 @@ fn fits_lengths_by_holding_cutting_or_speeding() {
         compile_clip("timeline.durationFit", params, inputs)
     };
     assert_eq!(
-        group_value(&fit(json!({ "targetMs": 3000, "mode": "hold" }), 1.0, None))["remap"],
+        group_value(&fit(json!({ "targetMs": 3000, "mode": "hold" }), 1, None))["remap"],
         json!([[0.0, 0.0], [90.0, 0.0]])
     );
     let texts = card_texts(
         "timeline.durationFit",
         json!({ "targetMs": 3000, "mode": "cut" }),
         CardInputs {
-            frames: [("clip".to_owned(), 30.0)].into_iter().collect(),
-            clip_frames: Some(90.0),
+            frames: [("clip".to_owned(), 30)].into_iter().collect(),
+            clip_frames: Some(90),
             ..CardInputs::default()
         },
     );
@@ -464,10 +467,10 @@ fn fits_lengths_by_holding_cutting_or_speeding() {
     );
     let clip = fit(
         json!({ "targetMs": 2000, "mode": "speed" }),
-        30.0,
+        30,
         Some(json!({ "type": "audio", "items": [], "durationInFrames": 0 })),
     );
-    assert_eq!(clip.duration_in_frames, 60.0);
+    assert_eq!(clip.duration_in_frames, 60);
     let trim_end = clip.tracks[0].items[0]
         .base()
         .handles

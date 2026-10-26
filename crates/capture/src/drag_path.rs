@@ -46,8 +46,8 @@ pub fn glide_plan(
     };
     let aim = if overshooting {
         Point {
-            x: past(from.x, to.x, viewport.map(|v| v.width)),
-            y: past(from.y, to.y, viewport.map(|v| v.height)),
+            x: past(from.x, to.x, viewport.map(|v| f64::from(v.width))),
+            y: past(from.y, to.y, viewport.map(|v| f64::from(v.height))),
         }
     } else {
         to

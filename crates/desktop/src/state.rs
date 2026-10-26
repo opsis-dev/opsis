@@ -11,11 +11,12 @@ use opsis_project::files::ProjectFiles;
 use opsis_project::watch::{LoadedFilesWatch, ProjectWatch};
 use opsis_render::sidecar::Sidecar;
 use opsis_store::db::Database;
-use opsis_store::keys::Keyring;
+use opsis_store::keys::{KeyError, Keyring};
 use opsis_types::values::NodeResult;
 use opsis_types::workflow::Workflow;
 
 use crate::paths::AppPaths;
+use crate::startup::StartupError;
 
 #[derive(Default)]
 pub struct Editor {
@@ -65,7 +66,7 @@ impl Tasks {
 pub struct AppState {
     pub paths: AppPaths,
     pub(crate) db: Mutex<Database>,
-    pub keys: Result<Keyring, String>,
+    pub keys: Result<Keyring, KeyError>,
     pub projects: ProjectFiles,
     pub fonts: FontLibrary,
     pub fonts_online: FontsOnline,
@@ -80,15 +81,15 @@ impl AppState {
     pub fn new(
         paths: AppPaths,
         sidecar_log: Arc<dyn Fn(&str) + Send + Sync>,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, StartupError> {
         for dir in [&paths.user_data, &paths.views_temp, &paths.sidecar_temp] {
-            std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+            std::fs::create_dir_all(dir)?;
         }
-        let db = Database::open(&paths.database()).map_err(|e| e.to_string())?;
+        let db = Database::open(&paths.database())?;
         let engine = opsis_engine::paths::engine_paths(&paths.engine_dir(), paths.platform);
         Ok(Self {
             db: Mutex::new(db),
-            keys: Keyring::platform().map_err(|e| e.to_string()),
+            keys: Keyring::platform(),
             projects: ProjectFiles::default(),
             fonts: FontLibrary::new(&paths.user_data),
             fonts_online: FontsOnline::default(),
@@ -109,7 +110,7 @@ impl AppState {
         self.editor.lock().expect("editor state")
     }
 
-    pub fn keys(&self) -> Result<&Keyring, String> {
-        self.keys.as_ref().map_err(Clone::clone)
+    pub fn keys(&self) -> Result<&Keyring, &KeyError> {
+        self.keys.as_ref()
     }
 }

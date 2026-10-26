@@ -18,7 +18,7 @@ import { LowerThird } from "#video/core/lower-third.tsx";
 import { ImageElement, StillElement, VideoElement, VideoLoop } from "#video/core/media.tsx";
 import { Mosaic } from "#video/core/mosaic.tsx";
 import { Placeholder } from "#video/core/placeholder.tsx";
-import type { Shot, Size, StillLook } from "#video/core/still-layout.ts";
+import type { Size } from "#video/core/still-layout.ts";
 import { Title } from "#video/core/title.tsx";
 import { coreTransitions } from "#video/core/transitions.ts";
 import type { CoreElementProps, CaptionsValue } from "#video/generated/spec.ts";
@@ -34,8 +34,6 @@ import {
 } from "#video/registry/types.ts";
 
 type CoreProps = CoreElementProps & {
-  "core/placeholder": { title: string; subtitle: string };
-  "core/still": { src: string; look: StillLook; backdrop: string; shot?: Shot };
   "core/captions": { captions: CaptionsValue["captions"] };
   "core/mosaic": { children?: React.ReactNode };
 };

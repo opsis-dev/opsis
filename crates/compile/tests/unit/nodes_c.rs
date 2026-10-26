@@ -13,7 +13,7 @@ use crate::helpers::{
     action, card_texts, compile_clip, make_log, node_result, parse_params, record_result,
 };
 
-fn element_of(kind: &str, params: Value, inputs: Value) -> (String, Map<String, Value>, f64) {
+fn element_of(kind: &str, params: Value, inputs: Value) -> (String, Map<String, Value>, u32) {
     let clip = compile_clip(kind, params, inputs);
     match &clip.tracks[0].items[0] {
         TimelineItem::Element {
@@ -329,7 +329,8 @@ fn longest_card(def: &NodeDef) -> usize {
         return 0;
     }
     let ports = all_ports(def);
-    let each = |n: f64| ports.iter().map(|p| (p.clone(), n)).collect();
+    let frames = |n: u32| ports.iter().map(|p| (p.clone(), n)).collect();
+    let items = |n: usize| ports.iter().map(|p| (p.clone(), n)).collect();
     let log = make_log(
         vec![
             action(json!({ "id": "a", "kind": "click", "t": 1000 })),
@@ -347,9 +348,9 @@ fn longest_card(def: &NodeDef) -> usize {
         (
             CardInputs {
                 connected: ports.clone(),
-                clip_frames: Some(90.0),
-                frames: each(60.0),
-                items: each(3.0),
+                clip_frames: Some(90),
+                frames: frames(60),
+                items: items(3),
                 secrets: Some(vec!["work".into()]),
                 ..CardInputs::default()
             },
@@ -358,9 +359,9 @@ fn longest_card(def: &NodeDef) -> usize {
         (
             CardInputs {
                 connected: ports.clone(),
-                clip_frames: Some(12.0),
-                frames: each(8.0),
-                items: each(1.0),
+                clip_frames: Some(12),
+                frames: frames(8),
+                items: items(1),
                 ..CardInputs::default()
             },
             None,

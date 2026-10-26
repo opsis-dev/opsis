@@ -123,13 +123,13 @@ macro_rules! labelled_annotation {
             pub color: String,
             #[default = 10]
             #[schemars(description = "Space around", range(min = 0, max = 80), extend("x-unit" = "px"))]
-            pub padding: i64,
+            pub padding: u32,
             #[default = 250]
             #[schemars(description = "Appear early by", range(min = 0, max = 5000), extend("x-step" = 50, "x-unit" = "ms"))]
-            pub lead_ms: i64,
+            pub lead_ms: u32,
             #[default = 1400]
             #[schemars(description = "Stay for", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
-            pub hold_ms: i64,
+            pub hold_ms: u32,
             $(
                 #[default = $text_color]
                 #[schemars(
@@ -140,7 +140,7 @@ macro_rules! labelled_annotation {
             )?
             #[default = $size]
             #[schemars(description = "Font size", range(min = 8, max = 160), extend("x-unit" = "px"))]
-            pub font_size: i64,
+            pub font_size: u32,
             #[schemars(description = "Font", extend("x-widget" = "font", "x-help" = "Project font follows the fonts set for the whole project."))]
             pub font: String,
             #[default(HighlightLook::Clean)]
@@ -233,12 +233,12 @@ pub struct CaptionsFromScript {
     pub script: String,
     #[default = 165]
     #[schemars(description = "Speaking pace", range(min = 60, max = 400), extend("x-unit" = "words/min"))]
-    pub words_per_minute: i64,
+    pub words_per_minute: u32,
     #[schemars(description = "Start at", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub start_ms: i64,
+    pub start_ms: u32,
     #[default = 350]
     #[schemars(description = "Pause between sentences", range(min = 0, max = 5000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub line_pause_ms: i64,
+    pub line_pause_ms: u32,
 }
 
 impl Params for CaptionsFromScript {}
@@ -265,9 +265,9 @@ fn captions_from_script() -> NodeDef {
     .compiles(|ctx: &Ctx<'_, CaptionsFromScript>| {
         let p = &ctx.params;
         let pace = ScriptPace {
-            words_per_minute: p.words_per_minute as f64,
-            start_ms: p.start_ms as f64,
-            line_pause_ms: p.line_pause_ms as f64,
+            words_per_minute: f64::from(p.words_per_minute),
+            start_ms: f64::from(p.start_ms),
+            line_pause_ms: f64::from(p.line_pause_ms),
         };
         outputs([(
             CAPTIONS_PORT,
@@ -310,7 +310,7 @@ fn show_captions() -> NodeDef {
             .inputs
             .frames
             .get(CLIP_PORT)
-            .filter(|f| **f != 0.0)
+            .filter(|f| **f != 0)
             .map(|f| frames_to_ms(*f, ctx.fps()));
         vec![
             Some(row(Icon::Captions, truncate_card(&look.join(" · ")))),

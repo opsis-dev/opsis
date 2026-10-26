@@ -42,7 +42,7 @@ pub struct MediaJob {
 pub struct StillJob {
     #[serde(flatten)]
     pub target: RenderTarget,
-    pub frame: f64,
+    pub frame: u32,
     pub output: String,
     pub format: StillFormat,
     #[serde(default, skip_serializing_if = "Option::is_none")]

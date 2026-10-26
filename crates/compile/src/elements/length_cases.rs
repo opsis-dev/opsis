@@ -6,7 +6,7 @@ use crate::elements::lengths::animation_length;
 
 pub const LENGTH_CASES_FILE: &str = "packages/video/src/registry/length-cases.generated.json";
 
-const FPS: f64 = 30.0;
+const FPS: u32 = 30;
 
 fn appended(defaults: &Map<String, Value>, key: &str, item: Value) -> Value {
     let mut list = defaults
@@ -91,7 +91,7 @@ pub fn length_cases() -> String {
             if let Value::Object(changed) = changes(key, &usual) {
                 settings.extend(changed);
             }
-            let growth = animation_length(meta, &settings, FPS) - animation_length(meta, &usual, FPS);
+            let growth = i64::from(animation_length(meta, &settings, FPS)) - i64::from(animation_length(meta, &usual, FPS));
             json!({ "key": key, "usual": framed(meta, &usual), "settings": framed(meta, &settings), "growth": growth })
         })
         .collect();

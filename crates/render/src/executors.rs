@@ -1,3 +1,4 @@
+use opsis_compile::nodes::output::{EXPORT_PROJECT_TYPE, RENDER_TYPE, STILL_TYPE};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -21,6 +22,7 @@ use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_project::paths::to_posix_rel;
 use opsis_runner::context::{ExecError, ExecutorContext, ExecutorFn, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
+use opsis_types::numbers::whole;
 use opsis_types::timeline::{ReframeMode, SpecAssets, TimelineSpec};
 use opsis_types::values::{
     Artifact, ArtifactKind, CompileValue, ImageValue, MediaKind, MediaValue, PortValues,
@@ -110,8 +112,8 @@ fn artifact_kind(codec: Codec) -> ArtifactKind {
 
 fn sized(
     spec: &TimelineSpec,
-    width: f64,
-    height: f64,
+    width: u32,
+    height: u32,
     reframe: ReframeMode,
     project_base: &str,
 ) -> TimelineSpec {
@@ -141,7 +143,7 @@ async fn render_to(job: &VariantJob<'_>, output: &Path, muted: bool) -> Result<(
         target: render_target(job.ctx, job.engine, job.spec.clone(), p.gl)?,
         output: output.to_string_lossy().into_owned(),
         codec: p.codec,
-        crf: codec_info(p.codec).crf.then_some(p.crf as f64),
+        crf: codec_info(p.codec).crf.then_some(f64::from(p.crf)),
         scale: p.scale,
         muted,
     };
@@ -160,7 +162,7 @@ async fn picture_for(job: &VariantJob<'_>) -> Result<PathBuf, ExecError> {
     let p = job.p;
     let opts = PictureOptions {
         codec: p.codec,
-        crf: p.crf as f64,
+        crf: f64::from(p.crf),
         scale: p.scale,
         gl: p.gl,
     };
@@ -358,7 +360,7 @@ async fn export_video(
     let media = MediaValue {
         src: Some(project_ref(&exported)),
         kind: kind_of_codec(p.codec),
-        duration_ms: Some(frames_to_ms(spec.duration_in_frames, spec.fps)),
+        duration_ms: Some(whole(frames_to_ms(spec.duration_in_frames, spec.fps))),
         width: None,
         height: None,
         has_audio: Some(probe.audio.is_some()),
@@ -404,7 +406,7 @@ async fn export_images(
                 ),
                 p.gl,
             )?,
-            frame: ms_to_frames_from(p.at_ms as f64, spec.fps, 0.0),
+            frame: ms_to_frames_from(f64::from(p.at_ms), spec.fps, 0),
             output: out.to_string_lossy().into_owned(),
             format: p.format,
             scale: None,
@@ -451,8 +453,8 @@ where
 
 pub fn output_executors(engine: &Arc<RenderEngine>) -> Vec<(&'static str, ExecutorFn)> {
     vec![
-        ("output.render", bind(engine, export_video)),
-        ("output.still", bind(engine, export_images)),
-        ("output.exportProject", bind(engine, export_code)),
+        (RENDER_TYPE, bind(engine, export_video)),
+        (STILL_TYPE, bind(engine, export_images)),
+        (EXPORT_PROJECT_TYPE, bind(engine, export_code)),
     ]
 }

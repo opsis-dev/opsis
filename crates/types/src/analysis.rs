@@ -12,7 +12,7 @@ pub struct WaveformLevel {
 #[serde(rename_all = "camelCase")]
 pub struct Waveform {
     pub src: String,
-    pub duration_ms: f64,
+    pub duration_ms: u32,
     pub levels: Vec<WaveformLevel>,
     pub beats: Vec<f64>,
     #[serde(deserialize_with = "Option::deserialize")]
@@ -25,9 +25,9 @@ pub struct Waveform {
 pub struct Filmstrip {
     pub src: String,
     pub image: String,
-    pub count: f64,
-    pub interval_ms: f64,
-    pub tile_width: f64,
-    pub tile_height: f64,
-    pub duration_ms: f64,
+    pub count: u32,
+    pub interval_ms: u32,
+    pub tile_width: u32,
+    pub tile_height: u32,
+    pub duration_ms: u32,
 }

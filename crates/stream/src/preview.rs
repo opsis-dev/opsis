@@ -103,7 +103,7 @@ impl Preview {
         env: &ViewEnv,
         dirs: &PreviewDirs<'_>,
         size: ViewSize,
-        quality: i64,
+        quality: u32,
     ) -> Result<Self> {
         let page = PageServer::start(dirs.page, dirs.public).await?;
         let prepared = PreparedDirs {

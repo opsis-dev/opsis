@@ -61,8 +61,14 @@ pub struct LoudnessMeasure {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Plan {
-    pub fps: f64,
-    pub duration_in_frames: f64,
+    pub fps: u32,
+    pub duration_in_frames: u32,
+}
+
+impl Plan {
+    fn length(self) -> String {
+        secs(f64::from(self.duration_in_frames), f64::from(self.fps))
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -177,9 +183,9 @@ fn placement_steps(sound: &SoundPlacement, fps: f64) -> Vec<String> {
         format!("aresample={SAMPLE_RATE}"),
         "aformat=sample_fmts=fltp:channel_layouts=stereo".to_owned(),
     ];
-    if sound.offset > 0.0 {
+    if sound.offset > 0 {
         steps.extend([
-            format!("atrim=start={}", secs(sound.offset, fps)),
+            format!("atrim=start={}", secs(f64::from(sound.offset), fps)),
             "asetpts=PTS-STARTPTS".to_owned(),
         ]);
     }
@@ -190,24 +196,24 @@ fn placement_steps(sound: &SoundPlacement, fps: f64) -> Vec<String> {
         steps.extend([atempo_chain(sound.rate), "asetpts=PTS-STARTPTS".to_owned()]);
     }
     steps.extend([
-        format!("atrim=end={}", secs(sound.length, fps)),
+        format!("atrim=end={}", secs(f64::from(sound.length), fps)),
         "asetpts=PTS-STARTPTS".to_owned(),
     ]);
     if sound.volume != 1.0 {
         steps.push(format!("volume={}", n6(sound.volume)));
     }
-    if sound.fade_in > 0.0 {
+    if sound.fade_in > 0 {
         steps.push(format!(
             "afade=t=in:st=0:d={}",
-            secs(f64::min(sound.fade_in, sound.length), fps)
+            secs(f64::from(sound.fade_in.min(sound.length)), fps)
         ));
     }
-    if sound.fade_out > 0.0 {
-        let d = f64::min(sound.fade_out, sound.length);
+    if sound.fade_out > 0 {
+        let d = sound.fade_out.min(sound.length);
         steps.push(format!(
             "afade=t=out:st={}:d={}",
-            secs(sound.length - d, fps),
-            secs(d, fps)
+            secs(f64::from(sound.length - d), fps),
+            secs(f64::from(d), fps)
         ));
     }
     if let Some(keys) = sound
@@ -226,7 +232,7 @@ fn placement_steps(sound: &SoundPlacement, fps: f64) -> Vec<String> {
 
 fn sound_chain(sound: &SoundPlacement, input: usize, label: &str, fps: f64) -> String {
     let steps = placement_steps(sound, fps);
-    let delay = (sound.at * 1000.0 / fps).round();
+    let delay = (f64::from(sound.at) * 1000.0 / fps).round();
     let after: Vec<String> = if delay > 0.0 {
         vec![format!("adelay=delays={}:all=1", delay.to_string())]
     } else {
@@ -396,7 +402,7 @@ fn silence_job(plan: Plan) -> Job {
         inputs: Vec::new(),
         filter: format!(
             "anullsrc=r={SAMPLE_RATE}:cl=stereo,atrim=end={}[{OUT}]",
-            secs(plan.duration_in_frames, plan.fps)
+            plan.length()
         ),
         output: OUT.to_owned(),
         taps: None,
@@ -404,10 +410,7 @@ fn silence_job(plan: Plan) -> Job {
 }
 
 fn fit(plan: Plan) -> String {
-    format!(
-        "apad,atrim=end={},asetpts=PTS-STARTPTS",
-        secs(plan.duration_in_frames, plan.fps)
-    )
+    format!("apad,atrim=end={},asetpts=PTS-STARTPTS", plan.length())
 }
 
 fn mix_of(labels: &[String], out: &str, then: &[String]) -> String {
@@ -479,7 +482,7 @@ pub fn channel_job(plan: Plan, channel: &ChannelPlan, inputs: Vec<String>) -> Jo
         .sounds
         .iter()
         .enumerate()
-        .map(|(i, s)| sound_chain(s, i, &labels[i], plan.fps))
+        .map(|(i, s)| sound_chain(s, i, &labels[i], f64::from(plan.fps)))
         .collect();
     strip_job(plan, inputs, chains, &labels, strip_stages(channel))
 }
@@ -652,8 +655,8 @@ mod tests {
     use super::*;
 
     const FILM: Plan = Plan {
-        fps: 30.0,
-        duration_in_frames: 300.0,
+        fps: 30,
+        duration_in_frames: 300,
     };
     const PADDED: &str = "[s0]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS[out]";
 
@@ -829,8 +832,8 @@ mod tests {
     fn uses_silence_for_an_empty_bus_and_runs_bus_processing_before_its_fader() {
         let empty = bus_job(
             Plan {
-                fps: 30.0,
-                duration_in_frames: 60.0,
+                fps: 30,
+                duration_in_frames: 60,
             },
             &bus(&[], None, 0.0, no_processing()),
             &|_| String::new(),

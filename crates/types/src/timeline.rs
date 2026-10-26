@@ -11,7 +11,7 @@ use crate::recording::RecordingProps;
 #[serde(rename_all = "camelCase")]
 pub struct TransitionRef {
     pub kind: String,
-    pub duration_in_frames: f64,
+    pub duration_in_frames: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[specta(type = Option<crate::JsonObject>)]
     pub params: Option<Map<String, Value>>,
@@ -120,11 +120,41 @@ pub enum ParamUnit {
     Number,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(into = "i8", try_from = "i8")]
+pub enum Sign {
+    Same,
+    Opposite,
+}
+
+impl From<Sign> for i8 {
+    fn from(sign: Sign) -> Self {
+        match sign {
+            Sign::Same => 1,
+            Sign::Opposite => -1,
+        }
+    }
+}
+
+impl TryFrom<i8> for Sign {
+    type Error = String;
+
+    fn try_from(value: i8) -> Result<Self, Self::Error> {
+        match value {
+            1 => Ok(Self::Same),
+            -1 => Ok(Self::Opposite),
+            other => Err(format!("a sign is 1 or -1, not {other}")),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LinkedParam {
     pub param: String,
-    pub sign: f64,
+    #[specta(type = i8)]
+    #[schemars(with = "i8")]
+    pub sign: Sign,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub if_non_zero: Option<bool>,
 }
@@ -138,7 +168,7 @@ pub struct ParamRef {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scale: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub index: Option<f64>,
+    pub index: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub linked: Option<Vec<LinkedParam>>,
 }
@@ -185,11 +215,11 @@ pub struct SequencerProps {
 pub struct GroupProps {
     pub tracks: Vec<TimelineTrack>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub start_from: Option<f64>,
+    pub start_from: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub remap: Option<Vec<(f64, f64)>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub loop_every: Option<f64>,
+    pub loop_every: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub crop: Option<Rect>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -204,8 +234,8 @@ pub struct GroupProps {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct Design {
-    pub width: f64,
-    pub height: f64,
+    pub width: u32,
+    pub height: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exact: Option<bool>,
 }
@@ -214,8 +244,8 @@ pub struct Design {
 #[serde(rename_all = "camelCase")]
 pub struct ItemBase {
     pub id: String,
-    pub from: f64,
-    pub duration_in_frames: f64,
+    pub from: u32,
+    pub duration_in_frames: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub enter: Option<TransitionRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -235,7 +265,7 @@ pub struct ItemBase {
 }
 
 impl ItemBase {
-    pub fn new(id: impl Into<String>, from: f64, duration_in_frames: f64) -> Self {
+    pub fn new(id: impl Into<String>, from: u32, duration_in_frames: u32) -> Self {
         Self {
             id: id.into(),
             from,
@@ -318,7 +348,7 @@ pub struct TimelineTrack {
 #[serde(rename_all = "camelCase")]
 pub struct Duck {
     pub level: f64,
-    pub fade_frames: f64,
+    pub fade_frames: u32,
     pub keys: Vec<String>,
 }
 
@@ -342,21 +372,21 @@ pub struct Anchor {
 pub struct AudioItem {
     pub id: String,
     pub src: String,
-    pub from: f64,
+    pub from: i32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub duration_in_frames: Option<f64>,
+    pub duration_in_frames: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub volume: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub trim_before: Option<f64>,
+    pub trim_before: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "loop")]
     pub looped: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rate: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub fade_in_frames: Option<f64>,
+    pub fade_in_frames: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub fade_out_frames: Option<f64>,
+    pub fade_out_frames: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub node_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -366,7 +396,7 @@ pub struct AudioItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub role: Option<AudioRole>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub length_frames: Option<f64>,
+    pub length_frames: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub keep_music: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -382,7 +412,7 @@ pub struct AudioItem {
 }
 
 impl AudioItem {
-    pub fn new(id: impl Into<String>, src: impl Into<String>, from: f64) -> Self {
+    pub fn new(id: impl Into<String>, src: impl Into<String>, from: i32) -> Self {
         Self {
             id: id.into(),
             src: src.into(),
@@ -459,10 +489,10 @@ pub enum PreviewQuality {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TimelineSpec {
-    pub width: f64,
-    pub height: f64,
-    pub fps: f64,
-    pub duration_in_frames: f64,
+    pub width: u32,
+    pub height: u32,
+    pub fps: u32,
+    pub duration_in_frames: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub background: Option<String>,
     pub tracks: Vec<TimelineTrack>,

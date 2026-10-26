@@ -6,6 +6,8 @@ use opsis_engine::temp::{ChildKind, child_temp_name, temp_env};
 use opsis_render::sidecar::SidecarCommand;
 use tauri::{AppHandle, Manager};
 
+use crate::startup::StartupError;
+
 const APP_FOLDER: &str = "Opsis";
 const USER_DATA_ENV: &str = "OPSIS_USER_DATA";
 const VIDEO_BUNDLE_DIR: &str = "remotion-bundle";
@@ -26,6 +28,7 @@ pub struct AppPaths {
     pub temp_root: PathBuf,
     pub views_temp: PathBuf,
     pub sidecar_temp: PathBuf,
+    pub program_dir: PathBuf,
     pub platform: ShellPlatform,
 }
 
@@ -34,22 +37,23 @@ fn repo_root() -> PathBuf {
 }
 
 impl AppPaths {
-    pub fn new(app: &AppHandle) -> Result<Self, String> {
+    pub fn new(app: &AppHandle) -> Result<Self, StartupError> {
         let user_data = match std::env::var_os(USER_DATA_ENV) {
             Some(dir) => PathBuf::from(dir),
-            None => app
-                .path()
-                .config_dir()
-                .map_err(|e| e.to_string())?
-                .join(APP_FOLDER),
+            None => app.path().config_dir()?.join(APP_FOLDER),
         };
         let packaged = !cfg!(debug_assertions);
         let resources = if packaged {
-            app.path().resource_dir().map_err(|e| e.to_string())?
+            app.path().resource_dir()?
         } else {
             repo_root()
         };
-        let platform = ShellPlatform::current().map_err(|e| e.to_string())?;
+        let platform = ShellPlatform::current()?;
+        let program = std::env::current_exe().map_err(|_| StartupError::ProgramFolder)?;
+        let program_dir = program
+            .parent()
+            .ok_or(StartupError::ProgramFolder)?
+            .to_path_buf();
         Ok(Self {
             public_dir: resources.join("public"),
             preview_page: resources.join(PREVIEW_PAGE_DIR),
@@ -68,6 +72,7 @@ impl AppPaths {
             user_data,
             resources,
             packaged,
+            program_dir,
             platform,
         })
     }
@@ -112,12 +117,10 @@ impl AppPaths {
 
     pub fn sidecar(&self) -> SidecarCommand {
         if self.packaged {
-            let folder = std::env::current_exe()
-                .ok()
-                .and_then(|exe| exe.parent().map(Path::to_path_buf))
-                .unwrap_or_default();
             return SidecarCommand {
-                program: folder.join(format!("{SIDECAR_PROGRAM}{}", std::env::consts::EXE_SUFFIX)),
+                program: self
+                    .program_dir
+                    .join(format!("{SIDECAR_PROGRAM}{}", std::env::consts::EXE_SUFFIX)),
                 args: Vec::new(),
                 env: self.sidecar_env(),
                 cwd: Some(self.resources.clone()),

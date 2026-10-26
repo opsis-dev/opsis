@@ -101,26 +101,26 @@ impl Theme {
     }
 }
 
-fn default_width() -> f64 {
-    1920.0
+fn default_width() -> u32 {
+    1920
 }
 
-fn default_height() -> f64 {
-    1080.0
+fn default_height() -> u32 {
+    1080
 }
 
-fn default_fps() -> f64 {
-    30.0
+fn default_fps() -> u32 {
+    30
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct WorkflowSettings {
     #[serde(default = "default_width")]
-    pub width: f64,
+    pub width: u32,
     #[serde(default = "default_height")]
-    pub height: f64,
+    pub height: u32,
     #[serde(default = "default_fps")]
-    pub fps: f64,
+    pub fps: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub background: Option<String>,
     #[serde(default)]
@@ -143,8 +143,8 @@ impl Default for WorkflowSettings {
 }
 
 pub const DEFAULT_VIEWPORT: Viewport = Viewport {
-    width: 1920.0,
-    height: 1080.0,
+    width: 1920,
+    height: 1080,
 };
 pub const DEFAULT_TAKE_MS: f64 = 6000.0;
 pub const DEFAULT_STILL_MS: f64 = 3000.0;

@@ -9,9 +9,23 @@ use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, RowExt, missing, port,
 use crate::nodes::effects::Area;
 use crate::params::Params;
 
+pub const FORMAT_TYPE: &str = "image.format";
+
+pub const PLACE_TYPE: &str = "image.place";
+
+pub const BLUR_TYPE: &str = "image.blur";
+
+pub const ADJUST_TYPE: &str = "image.adjust";
+
+pub const ROTATE_TYPE: &str = "image.rotate";
+
+pub const CROP_TYPE: &str = "image.crop";
+
+pub const RESIZE_TYPE: &str = "image.resize";
+
 pub const IMAGE_PORT: &str = "image";
 pub const OVERLAY_PORT: &str = "overlay";
-pub const MAX_SIDE: i64 = 16384;
+pub const MAX_SIDE: u32 = 16384;
 pub const SOFT_UPSCALE: f64 = 2.0;
 pub const SMALL_CROP: f64 = 64.0;
 
@@ -50,13 +64,13 @@ pub struct ResizeImage {
         range(min = 0, max = 16384),
         extend("x-unit" = "px", "x-help" = "0 follows the height and keeps the proportion.")
     )]
-    pub width: i64,
+    pub width: u32,
     #[schemars(
         description = "Height",
         range(min = 0, max = 16384),
         extend("x-unit" = "px", "x-help" = "0 follows the width and keeps the proportion.")
     )]
-    pub height: i64,
+    pub height: u32,
     #[schemars(
         description = "Fit",
         extend(
@@ -108,13 +122,13 @@ pub struct CropImage {
     )]
     pub area: Vec<Area>,
     #[schemars(description = "Top", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
-    pub top: i64,
+    pub top: u32,
     #[schemars(description = "Right", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
-    pub right: i64,
+    pub right: u32,
     #[schemars(description = "Bottom", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
-    pub bottom: i64,
+    pub bottom: u32,
     #[schemars(description = "Left", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
-    pub left: i64,
+    pub left: u32,
 }
 
 impl Params for CropImage {}
@@ -191,7 +205,7 @@ pub struct BlurImage {
         range(min = 0, max = 255),
         extend("x-advanced" = true, "x-help" = "Differences smaller than this stay as they are, so flat areas don't get grainy.")
     )]
-    pub threshold: i64,
+    pub threshold: u32,
 }
 
 impl Params for BlurImage {}
@@ -268,14 +282,14 @@ pub struct ImageFormat {
         range(min = 1, max = 100),
         extend("x-show-if" = { "format": ["jpeg", "avif"] }, "x-help" = "Higher looks better and makes a larger file.")
     )]
-    pub quality: i64,
+    pub quality: u32,
     #[default = 6]
     #[schemars(
         description = "Speed",
         range(min = 1, max = 10),
         extend("x-show-if" = { "format": ["avif"] }, "x-advanced" = true, "x-help" = "Higher saves faster and makes a larger file.")
     )]
-    pub speed: i64,
+    pub speed: u32,
     #[default = "#ffffff"]
     #[schemars(
         description = "Background",
@@ -297,7 +311,7 @@ fn even(value: f64) -> f64 {
 
 pub fn resized_size(source: (f64, f64), p: &ResizeImage) -> (f64, f64) {
     let (sw, sh) = source;
-    let (w, h) = (p.width as f64, p.height as f64);
+    let (w, h) = (f64::from(p.width), f64::from(p.height));
     match (w > 0.0, h > 0.0) {
         (false, false) => (sw, sh),
         (true, false) => (w, even(sh * w / sw)),
@@ -334,8 +348,8 @@ pub fn crop_rect(source: (f64, f64), p: &CropImage) -> Rect {
             }
         }
         CropMode::Margins => Rect {
-            x: p.left as f64,
-            y: p.top as f64,
+            x: f64::from(p.left),
+            y: f64::from(p.top),
             width: sw - (p.left + p.right) as f64,
             height: sh - (p.top + p.bottom) as f64,
         },
@@ -371,13 +385,14 @@ fn pixels(width: f64, height: f64) -> String {
 
 fn result_size<P>(ctx: &CardCtx<'_, P>) -> Option<(f64, f64)> {
     match ctx.result?.output(IMAGE_PORT)? {
-        CompileValue::Image(image) => Some((image.width?, image.height?)),
+        CompileValue::Image(image) => Some((f64::from(image.width?), f64::from(image.height?))),
         _ => None,
     }
 }
 
 fn input_size<P>(ctx: &CardCtx<'_, P>, port_name: &str) -> Option<(f64, f64)> {
-    ctx.inputs.pixels.get(port_name).copied()
+    let (width, height) = ctx.inputs.pixels.get(port_name).copied()?;
+    Some((f64::from(width), f64::from(height)))
 }
 
 fn size_row<P>(
@@ -410,13 +425,13 @@ fn image_node<P: Params>(kind: &'static str, title: &str, description: &str) -> 
 
 fn resize() -> NodeDef {
     image_node::<ResizeImage>(
-        "image.resize",
+        RESIZE_TYPE,
         "Resize image",
         "Makes an image a chosen width, height or both.",
     )
     .card(|ctx: &CardCtx<'_, ResizeImage>| {
         let p = &ctx.params;
-        let side = |v: i64| {
+        let side = |v: u32| {
             if v > 0 {
                 v.to_string()
             } else {
@@ -444,7 +459,7 @@ fn resize() -> NodeDef {
 
 fn crop() -> NodeDef {
     image_node::<CropImage>(
-        "image.crop",
+        CROP_TYPE,
         "Crop image",
         "Keeps one part of an image: an area you draw on it, or what's inside margins.",
     )
@@ -482,7 +497,7 @@ fn crop() -> NodeDef {
 
 fn rotate() -> NodeDef {
     image_node::<RotateImage>(
-        "image.rotate",
+        ROTATE_TYPE,
         "Rotate and flip",
         "Turns an image in quarter turns, flips it, or straightens it by a small angle.",
     )
@@ -515,7 +530,7 @@ fn rotate() -> NodeDef {
 
 fn adjust() -> NodeDef {
     image_node::<AdjustImage>(
-        "image.adjust",
+        ADJUST_TYPE,
         "Adjust image",
         "Changes an image's brightness, contrast, colour and hue.",
     )
@@ -558,7 +573,7 @@ fn adjust() -> NodeDef {
 
 fn blur() -> NodeDef {
     image_node::<BlurImage>(
-        "image.blur",
+        BLUR_TYPE,
         "Blur and sharpen",
         "Softens an image or makes its edges crisper.",
     )
@@ -582,7 +597,7 @@ fn blur() -> NodeDef {
 
 fn place() -> NodeDef {
     image_node::<PlaceImage>(
-        "image.place",
+        PLACE_TYPE,
         "Place image",
         "Puts a second image, such as a logo or a watermark, on top of an image.",
     )
@@ -616,7 +631,7 @@ fn place() -> NodeDef {
 
 fn format() -> NodeDef {
     image_node::<ImageFormat>(
-        "image.format",
+        FORMAT_TYPE,
         "Image format",
         "Saves an image as PNG, JPEG, WebP or AVIF.",
     )

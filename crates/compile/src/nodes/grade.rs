@@ -335,7 +335,7 @@ pub struct AutoFix {
         range(min = 0, max = 300),
         extend("x-unit" = "frames", "x-advanced" = true, "x-show-if" = { "levels": ["true"] })
     )]
-    pub levels_smoothing: i64,
+    pub levels_smoothing: u32,
     #[schemars(description = "Remove banding")]
     pub deband: bool,
 }

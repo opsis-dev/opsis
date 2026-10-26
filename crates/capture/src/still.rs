@@ -111,7 +111,7 @@ async fn element_region(take: &TakeRun<'_>, p: &Still) -> Result<(Area, Option<A
         },
         scroll.x,
         scroll.y,
-        p.padding as f64,
+        f64::from(p.padding),
     );
     Ok((region, Some(body)))
 }

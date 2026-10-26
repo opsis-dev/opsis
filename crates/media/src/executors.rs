@@ -1,3 +1,8 @@
+use opsis_compile::nodes::media::{
+    APPLY_GRADE_TYPE, CONCAT_TYPE, CONVERT_TYPE, EXTRACT_AUDIO_TYPE, FASTSTART_TYPE, GIF_TYPE,
+    IMPORT_TYPE, LOUDNORM_TYPE, PROBE_TYPE, REVERSE_TYPE, SCALE_PAD_TYPE, SPEED_TYPE,
+    THUMBNAIL_TYPE, TRIM_TYPE,
+};
 use std::future::Future;
 use std::path::Path;
 use std::sync::Arc;
@@ -118,6 +123,10 @@ fn ext_of(src: &str) -> String {
     )
 }
 
+fn duration_ms(probe: &ProbeResult) -> f64 {
+    probe.duration_ms.map_or(0.0, f64::from)
+}
+
 fn media_kind(probe: &ProbeResult, file: &str) -> MediaKind {
     match kind_from_path(file) {
         MediaKind::Video if probe.video.is_none() => MediaKind::Audio,
@@ -129,7 +138,7 @@ fn media_value_from(probe: &ProbeResult, src: &str, kind: MediaKind) -> MediaVal
     MediaValue {
         src: Some(src.to_owned()),
         kind,
-        duration_ms: (probe.duration_ms != 0.0).then_some(probe.duration_ms),
+        duration_ms: probe.duration_ms,
         width: probe.video.as_ref().map(|v| v.width),
         height: probe.video.as_ref().map(|v| v.height),
         has_audio: Some(probe.audio.is_some()),
@@ -199,7 +208,7 @@ async fn transcode(
             &args,
             run_options(
                 ctx,
-                job.duration_ms.or(input.value.duration_ms),
+                job.duration_ms.or(input.value.duration_ms.map(f64::from)),
                 Some(&progress),
             ),
         )
@@ -236,16 +245,27 @@ fn concat_list(paths: &[String]) -> String {
 fn probe_summary(probe: &ProbeResult) -> String {
     let picture = probe.video.as_ref().map_or_else(
         || "no video".to_owned(),
-        |v| format!("{} {}×{} @ {:.2}fps", v.codec, v.width, v.height, v.fps),
+        |v| {
+            let rate = v
+                .fps
+                .map_or_else(|| "unknown".to_owned(), |f| format!("{f:.2}"));
+            format!("{} {}×{} @ {rate}fps", v.codec, v.width, v.height)
+        },
     );
     let sound = probe.audio.as_ref().map_or_else(
         || "no audio".to_owned(),
-        |a| format!("{} {}Hz", a.codec, a.sample_rate),
+        |a| match a.sample_rate {
+            Some(rate) => format!("{} {rate}Hz", a.codec),
+            None => a.codec.clone(),
+        },
     );
     format!(
         "{} · {} · {picture} · {sound}",
         probe.format,
-        format_precise_duration(probe.duration_ms)
+        probe.duration_ms.map_or_else(
+            || "unknown length".to_owned(),
+            |ms| format_precise_duration(f64::from(ms))
+        )
     )
 }
 
@@ -284,15 +304,15 @@ async fn trim(
         .probe(&ctx.ref_to_path(&input.src)?)
         .await
         .map_err(tool_error)?;
-    let moving = probe.video.is_some() && probe.duration_ms > 0.0;
+    let moving = probe.video.is_some() && probe.duration_ms.is_some();
     let out = edited_file(&ext_of(&input.src), moving, probe.audio.is_some()).ok_or_else(|| {
         ExecError::new("Trim works on video and sound. A still image has nothing to trim.")
     })?;
-    let (start, end) = (p.start_ms as f64, p.end_ms as f64);
-    let duration_ms = if end != 0.0 {
+    let (start, end) = (f64::from(p.start_ms), f64::from(p.end_ms));
+    let duration_ms = if p.end_ms != 0 {
         Some(end - start)
     } else {
-        input.value.duration_ms
+        input.value.duration_ms.map(f64::from)
     };
     let job = Transcode {
         file: format!("trimmed{}", out.ext),
@@ -301,7 +321,7 @@ async fn trim(
     };
     transcode(&ctx, &*tools, &input, job, |i, o| {
         let mut args = vec!["-ss".to_owned(), ffmpeg_seconds(start)];
-        if end != 0.0 {
+        if p.end_ms != 0 {
             args.extend(["-to".to_owned(), ffmpeg_seconds(end)]);
         }
         args.extend(["-i".to_owned(), i.to_owned()]);
@@ -319,9 +339,9 @@ fn concat_parts(items: &[LinkedMedia], probes: &[ProbeResult]) -> Vec<(bool, Joi
         .map(|(m, probe)| {
             let still = m.value.kind == MediaKind::Image;
             let duration_ms = if still {
-                m.value.duration_ms.unwrap_or(DEFAULT_STILL_MS)
+                m.value.duration_ms.map_or(DEFAULT_STILL_MS, f64::from)
             } else {
-                probe.duration_ms
+                probe.duration_ms.map_or(0.0, f64::from)
             };
             (
                 still,
@@ -347,10 +367,7 @@ fn reencode_args(
     let to = JoinSize {
         width: first.map_or(settings.width, |v| v.width),
         height: first.map_or(settings.height, |v| v.height),
-        fps: first
-            .map(|v| v.fps)
-            .filter(|f| *f != 0.0)
-            .unwrap_or(settings.fps),
+        fps: first.and_then(|v| v.fps).unwrap_or(f64::from(settings.fps)),
     };
     let join = join_filter(&parts.iter().map(|(_, p)| *p).collect::<Vec<_>>(), to);
     let mut args = Vec::new();
@@ -458,11 +475,7 @@ async fn speed(
         .await
         .map_err(tool_error)?;
     let label = format!("Speed {}×", p.rate);
-    let duration_ms = input
-        .value
-        .duration_ms
-        .filter(|d| *d != 0.0)
-        .map(|d| d / p.rate);
+    let duration_ms = input.value.duration_ms.map(|d| f64::from(d) / p.rate);
     let Some(video) = &probe.video else {
         let out = sound_only_file(&probe, &input.src, "Change speed")?;
         if !p.keep_audio {
@@ -480,11 +493,7 @@ async fn speed(
         })
         .await;
     };
-    let fps = if video.fps != 0.0 {
-        video.fps
-    } else {
-        ctx.workflow.settings.fps
-    };
+    let fps = video.fps.unwrap_or(f64::from(ctx.workflow.settings.fps));
     let sound = p.keep_audio && media_has_sound(&ctx, &*tools, &input).await?;
     let job = Transcode {
         file: "speed.mp4".into(),
@@ -604,13 +613,13 @@ async fn reverse(
     };
     let sound = media_has_sound(&ctx, &*tools, &input).await?;
     let pieces = reverse_pieces(PieceBudget {
-        duration_ms: probe.duration_ms,
-        fps: if video.fps != 0.0 {
-            video.fps
-        } else {
-            ctx.workflow.settings.fps
-        },
-        frame_bytes: frame_bytes(video.width, video.height, &video.pix_fmt),
+        duration_ms: duration_ms(&probe),
+        fps: video.fps.unwrap_or(f64::from(ctx.workflow.settings.fps)),
+        frame_bytes: frame_bytes(
+            f64::from(video.width),
+            f64::from(video.height),
+            &video.pix_fmt,
+        ),
         budget_bytes: REVERSE_BUDGET_BYTES,
     });
     let file = "reversed.mp4";
@@ -638,7 +647,7 @@ async fn reverse(
         ReverseParts {
             pieces: &pieces,
             sound,
-            duration_ms: probe.duration_ms,
+            duration_ms: duration_ms(&probe),
         },
     )
     .await?;
@@ -662,7 +671,7 @@ async fn scale_pad(
         ));
     }
     let image = input.value.kind == MediaKind::Image;
-    let (w, h) = (p.width as f64, p.height as f64);
+    let (w, h) = (f64::from(p.width), f64::from(p.height));
     let filter = if image {
         fit_filter(p.mode, w, h, &p.background)
     } else {
@@ -701,7 +710,7 @@ async fn convert(
     };
     transcode(&ctx, &*tools, &input, job, |i, o| {
         let mut args = vec!["-i".to_owned(), i.to_owned()];
-        args.extend(convert_args(p.codec, p.crf as f64, p.preset));
+        args.extend(convert_args(p.codec, f64::from(p.crf), p.preset));
         args.push(o.to_owned());
         args
     })
@@ -711,9 +720,7 @@ async fn convert(
 fn check_look_files(ctx: &ExecutorContext, entries: &[StyleEntry]) -> Result<(), ExecError> {
     let look_def = node_def(LOOK_TYPE).ok_or_else(|| GradeError::NotAStep(LOOK_TYPE.to_owned()))?;
     for entry in entries.iter().filter(|e| e.kind == LOOK_TYPE) {
-        let look: LookFile = look_def
-            .typed_params(&entry.params)
-            .map_err(ExecError::new)?;
+        let look: LookFile = look_def.typed_params(&entry.params)?;
         if look.strength == 0.0 {
             continue;
         }
@@ -805,7 +812,7 @@ async fn apply_grade(
             if sound.is_some() {
                 args.extend(strings(&["-map", "0:a?"]));
             }
-            args.extend(grade_video_args(p.codec, p.crf as f64, p.preset));
+            args.extend(grade_video_args(p.codec, f64::from(p.crf), p.preset));
             args.extend(grade_sound_args(p.codec, sound));
             if codec.faststart {
                 args.extend(strings(&FASTSTART));
@@ -824,7 +831,7 @@ async fn gif(
 ) -> Result<ExecutorOutput, ExecError> {
     let p: MakeGif = ctx.params()?;
     let input = require_media(inputs.get(MEDIA_PORT))?;
-    let filter = gif_filter(p.fps as f64, p.width as f64, p.dither);
+    let filter = gif_filter(f64::from(p.fps), f64::from(p.width), p.dither);
     let looped = if p.r#loop { "0" } else { "-1" };
     let job = Transcode {
         file: "animation.gif".into(),
@@ -898,9 +905,10 @@ async fn loudnorm(
             i.to_owned(),
             "-af".to_owned(),
             loudnorm_filter(p.integrated, p.true_peak, p.lra),
-            "-ar".to_owned(),
-            audio.sample_rate.to_string(),
         ];
+        if let Some(rate) = audio.sample_rate {
+            args.extend(["-ar".to_owned(), rate.to_string()]);
+        }
         match format {
             Some(f) => args.extend(audio_format_args(f)),
             None => {
@@ -928,13 +936,13 @@ async fn thumbnail(
             "This file has no picture to take a thumbnail from.",
         ));
     }
-    let at_ms = thumbnail_time(p.at_ms as f64, source.duration_ms);
-    if at_ms < p.at_ms as f64 && input.value.kind != MediaKind::Image {
+    let at_ms = thumbnail_time(f64::from(p.at_ms), duration_ms(&source));
+    if at_ms < f64::from(p.at_ms) && input.value.kind != MediaKind::Image {
         ctx.log(
             LogLevel::Warn,
             format!(
                 "The file is only {} long, so the thumbnail is from {}.",
-                format_duration(source.duration_ms),
+                format_duration(duration_ms(&source)),
                 format_duration(at_ms)
             ),
         );
@@ -946,7 +954,7 @@ async fn thumbnail(
         &target.to_string_lossy(),
         &FrameGrab {
             at_ms,
-            width: p.width as f64,
+            width: f64::from(p.width),
             ..FrameGrab::default()
         },
     );
@@ -1031,19 +1039,19 @@ where
 
 pub fn media_executors(tools: &Tools) -> Vec<(&'static str, ExecutorFn)> {
     vec![
-        ("media.import", bind(tools, import_media)),
-        ("media.trim", bind(tools, trim)),
-        ("media.concat", bind(tools, concat)),
-        ("media.speed", bind(tools, speed)),
-        ("media.reverse", bind(tools, reverse)),
-        ("media.scalePad", bind(tools, scale_pad)),
-        ("media.convert", bind(tools, convert)),
-        ("media.applyGrade", bind(tools, apply_grade)),
-        ("media.gif", bind(tools, gif)),
-        ("media.extractAudio", bind(tools, extract_audio)),
-        ("media.loudnorm", bind(tools, loudnorm)),
-        ("media.thumbnail", bind(tools, thumbnail)),
-        ("media.faststart", bind(tools, faststart)),
-        ("media.probe", bind(tools, probe)),
+        (IMPORT_TYPE, bind(tools, import_media)),
+        (TRIM_TYPE, bind(tools, trim)),
+        (CONCAT_TYPE, bind(tools, concat)),
+        (SPEED_TYPE, bind(tools, speed)),
+        (REVERSE_TYPE, bind(tools, reverse)),
+        (SCALE_PAD_TYPE, bind(tools, scale_pad)),
+        (CONVERT_TYPE, bind(tools, convert)),
+        (APPLY_GRADE_TYPE, bind(tools, apply_grade)),
+        (GIF_TYPE, bind(tools, gif)),
+        (EXTRACT_AUDIO_TYPE, bind(tools, extract_audio)),
+        (LOUDNORM_TYPE, bind(tools, loudnorm)),
+        (THUMBNAIL_TYPE, bind(tools, thumbnail)),
+        (FASTSTART_TYPE, bind(tools, faststart)),
+        (PROBE_TYPE, bind(tools, probe)),
     ]
 }

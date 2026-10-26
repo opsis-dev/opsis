@@ -338,6 +338,8 @@ export type Bounds = {
 	height: number,
 };
 
+export type BrowserAction = "browser.startRecording" | "browser.navigate" | "browser.click" | "browser.type" | "browser.hover" | "browser.drag" | "browser.scroll" | "browser.select" | "browser.upload" | "browser.press" | "browser.wait" | "browser.assert" | "browser.hoist" | "browser.setState" | "browser.mockRoute" | "browser.freezeClock" | "browser.hideElements" | "browser.chapter" | "browser.overlayHtml" | "browser.signIn";
+
 export type BrowserSessionValue = {
 	browser: SessionBrowser,
 	steps: SessionStep[],
@@ -1304,7 +1306,7 @@ export type SessionBrowser = {
 
 export type SessionStep = {
 	id: string,
-	type: string,
+	type: BrowserAction,
 	label?: string,
 	params: { [key in string]: unknown },
 };

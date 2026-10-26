@@ -16,23 +16,24 @@ fn with(meta: &ElementMeta, changes: Value) -> Map<String, Value> {
 
 #[test]
 fn keeps_the_usual_length_for_the_usual_settings_unless_that_cuts_the_animation_off() {
-    let changes: Vec<(&str, f64)> = elements()
+    let changes: Vec<(&str, i64)> = elements()
         .iter()
         .map(|e| {
             (
                 e.key.as_str(),
-                animation_length(e, &e.default_props, 30.0) - e.default_duration_in_frames,
+                i64::from(animation_length(e, &e.default_props, 30))
+                    - i64::from(e.default_duration_in_frames),
             )
         })
         .collect();
     assert_eq!(
-        changes.iter().filter(|(_, c)| *c < 0.0).count(),
+        changes.iter().filter(|(_, c)| *c < 0).count(),
         0,
         "{changes:?}"
     );
     let longer: Vec<&str> = changes
         .iter()
-        .filter(|(_, c)| *c > 0.0)
+        .filter(|(_, c)| *c > 0)
         .map(|(k, _)| *k)
         .collect();
     assert_eq!(
@@ -51,8 +52,8 @@ fn keeps_the_usual_length_for_the_usual_settings_unless_that_cuts_the_animation_
 fn measures_timing_in_seconds_at_the_projects_frame_rate() {
     let element = meta("remotion-ui/changelog-entry");
     assert_eq!(
-        animation_length(element, &element.default_props, 60.0),
-        2.0 * element.default_duration_in_frames
+        animation_length(element, &element.default_props, 60),
+        2 * element.default_duration_in_frames
     );
 }
 
@@ -65,9 +66,8 @@ fn keeps_elements_made_for_30_frames_a_second_as_long_in_seconds_at_60() {
     ] {
         let element = meta(key);
         assert_eq!(
-            animation_length(element, &element.default_props, 60.0)
-                / element.default_duration_in_frames,
-            2.0,
+            animation_length(element, &element.default_props, 60),
+            2 * element.default_duration_in_frames,
             "{key}"
         );
     }
@@ -77,14 +77,14 @@ fn keeps_elements_made_for_30_frames_a_second_as_long_in_seconds_at_60() {
 fn runs_an_element_with_no_timing_of_its_own_for_its_usual_length_at_its_speed() {
     let element = meta("remocn/strikethrough-replace");
     assert_eq!(
-        animation_length(element, &with(element, json!({ "speed": 0.5 })), 30.0),
-        2.0 * element.default_duration_in_frames
+        animation_length(element, &with(element, json!({ "speed": 0.5 })), 30),
+        2 * element.default_duration_in_frames
     );
 }
 
 #[test]
 fn plays_faster_at_a_higher_speed() {
     let element = meta("remocn/soft-blur-in");
-    let usual = animation_length(element, &element.default_props, 30.0);
-    assert!(animation_length(element, &with(element, json!({ "speed": 2 })), 30.0) < usual);
+    let usual = animation_length(element, &element.default_props, 30);
+    assert!(animation_length(element, &with(element, json!({ "speed": 2 })), 30) < usual);
 }

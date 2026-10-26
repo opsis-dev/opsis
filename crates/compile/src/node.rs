@@ -5,12 +5,14 @@ use indexmap::IndexMap;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::recording::RecordingProps;
 use opsis_types::values::{
-    ClipValue, CompileValue, EntriesValue, MediaKind, NodeResult, PortValues, StyleEntry,
+    BrowserAction, ClipValue, CompileValue, EntriesValue, MediaKind, NodeResult, PortValues,
+    StyleEntry,
 };
 use opsis_types::workflow::{PortType, Workflow, WorkflowSettings};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
+use crate::errors::{CompileError, SettingsError};
 use crate::params::{ParamSchema, Params, Values};
 use crate::vars::Vars;
 
@@ -211,14 +213,14 @@ pub struct InputMedia {
 pub struct CardInputs {
     pub secrets: Option<Vec<String>>,
     pub connected: Vec<String>,
-    pub clip_frames: Option<f64>,
-    pub frames: IndexMap<String, f64>,
-    pub items: IndexMap<String, f64>,
+    pub clip_frames: Option<u32>,
+    pub frames: IndexMap<String, u32>,
+    pub items: IndexMap<String, usize>,
     pub takes: IndexMap<String, Option<InputTake>>,
     pub media: IndexMap<String, InputMedia>,
-    pub pixels: IndexMap<String, (f64, f64)>,
+    pub pixels: IndexMap<String, (u32, u32)>,
     pub captions_ms: IndexMap<String, f64>,
-    pub steps: IndexMap<String, Vec<String>>,
+    pub steps: IndexMap<String, Vec<BrowserAction>>,
     pub style: IndexMap<String, Vec<String>>,
     pub grade: IndexMap<String, Vec<StyleEntry>>,
     pub missing_files: Vec<String>,
@@ -239,7 +241,7 @@ pub struct CardCtx<'a, P> {
 }
 
 impl<P> CardCtx<'_, P> {
-    pub fn fps(&self) -> f64 {
+    pub fn fps(&self) -> u32 {
         self.settings.fps
     }
 
@@ -251,20 +253,21 @@ impl<P> CardCtx<'_, P> {
 pub type Rows = Vec<Option<CardRow>>;
 pub const MAX_CARD_ROWS: usize = 4;
 
-type CompileFn = Arc<dyn Fn(&Ctx<'_, ()>) -> Result<Option<Outputs>, String> + Send + Sync>;
+type CompileFn = Arc<dyn Fn(&Ctx<'_, ()>) -> Result<Option<Outputs>, CompileError> + Send + Sync>;
 type CardFn = Arc<dyn Fn(&CardCtx<'_, ()>) -> Rows + Send + Sync>;
 type MutatesFn = Arc<dyn Fn(&Values) -> Option<String> + Send + Sync>;
 type HostDefaultsFn = fn(Platform) -> Values;
-type CheckFn = Arc<dyn Fn(&Values) -> Result<(), String> + Send + Sync>;
+type CheckFn = Arc<dyn Fn(&Values) -> Result<(), SettingsError> + Send + Sync>;
 type RestyleFn =
-    Arc<dyn Fn(RecordingProps, &StyleEntry) -> Result<RecordingProps, String> + Send + Sync>;
+    Arc<dyn Fn(RecordingProps, &StyleEntry) -> Result<RecordingProps, SettingsError> + Send + Sync>;
 type NeutralFn = Arc<dyn Fn(&Values) -> bool + Send + Sync>;
-type RetimeFn = Arc<dyn Fn(ClipValue, &StyleEntry, f64) -> Result<ClipValue, String> + Send + Sync>;
+type RetimeFn =
+    Arc<dyn Fn(ClipValue, &StyleEntry, u32) -> Result<ClipValue, SettingsError> + Send + Sync>;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Retiming<'a> {
     pub node_id: &'a str,
-    pub fps: f64,
+    pub fps: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -310,7 +313,7 @@ impl std::fmt::Debug for NodeDef {
     }
 }
 
-fn typed<P: DeserializeOwned>(values: &Values) -> Result<P, String> {
+fn typed<P: DeserializeOwned>(values: &Values) -> Result<P, SettingsError> {
     crate::params::typed_values(values)
 }
 
@@ -439,7 +442,7 @@ impl NodeDef {
     pub fn compile<P, F>(mut self, f: F) -> Self
     where
         P: DeserializeOwned + 'static,
-        F: Fn(&Ctx<'_, P>) -> Result<Option<Outputs>, String> + Send + Sync + 'static,
+        F: Fn(&Ctx<'_, P>) -> Result<Option<Outputs>, CompileError> + Send + Sync + 'static,
     {
         self.compile = Some(Arc::new(move |ctx| {
             f(&retyped(ctx, typed::<P>(ctx.values)?))
@@ -533,7 +536,7 @@ impl NodeDef {
         self.neutral.as_ref().map(|f| f(values))
     }
 
-    pub fn typed_params<P: DeserializeOwned>(&self, values: &Values) -> Result<P, String> {
+    pub fn typed_params<P: DeserializeOwned>(&self, values: &Values) -> Result<P, SettingsError> {
         typed(&self.params.with_defaults(values))
     }
 
@@ -541,7 +544,7 @@ impl NodeDef {
         &self,
         props: RecordingProps,
         entry: &StyleEntry,
-    ) -> Result<RecordingProps, String> {
+    ) -> Result<RecordingProps, SettingsError> {
         match &self.restyle {
             Some(f) => f(props, entry),
             None => Ok(props),
@@ -552,8 +555,8 @@ impl NodeDef {
         &self,
         clip: ClipValue,
         entry: &StyleEntry,
-        fps: f64,
-    ) -> Result<ClipValue, String> {
+        fps: u32,
+    ) -> Result<ClipValue, SettingsError> {
         match &self.retime {
             Some(f) => f(clip, entry, fps),
             None => Ok(clip),
@@ -580,7 +583,11 @@ impl NodeDef {
         self.params.defaults()
     }
 
-    pub fn parse(&self, values: &Values, written: Option<&Values>) -> Result<Values, String> {
+    pub fn parse(
+        &self,
+        values: &Values,
+        written: Option<&Values>,
+    ) -> Result<Values, SettingsError> {
         let parsed = self.params.parse(values, written)?;
         if let Some(check) = &self.check {
             check(&parsed)?;
@@ -588,7 +595,7 @@ impl NodeDef {
         Ok(parsed)
     }
 
-    pub fn run_compile(&self, ctx: &Ctx<'_, ()>) -> Result<Option<Outputs>, String> {
+    pub fn run_compile(&self, ctx: &Ctx<'_, ()>) -> Result<Option<Outputs>, CompileError> {
         match &self.compile {
             Some(f) => f(ctx),
             None => Ok(None),

@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex, MutexGuard};
 
+use crate::clock::wall_ms;
 use chromiumoxide::cdp::browser_protocol::network::{
     EventLoadingFailed, EventLoadingFinished, EventRequestWillBeSent, EventResponseReceived,
     Response,
@@ -9,7 +10,6 @@ use chromiumoxide::cdp::js_protocol::runtime::{
 };
 use futures::StreamExt;
 use indexmap::IndexMap;
-use opsis_runner::context::now_ms;
 use opsis_traces::{TakeFrame, TraceTake};
 use opsis_types::actions::{Bounds, Point, Viewport};
 use opsis_types::trace::{ConsoleLevel, TraceAction, TraceConsole, TraceError, TraceRequest};
@@ -296,7 +296,7 @@ impl Trace {
     pub fn group(&self, node_id: &str, title: &str) {
         let mut state = self.state();
         let id = format!("group@{}", state.calls.len());
-        let now = now_ms();
+        let now = wall_ms();
         let action = TraceAction {
             id,
             parent_id: None,
@@ -319,14 +319,14 @@ impl Trace {
         let mut state = self.state();
         if let Some(index) = state.group.take() {
             let action = &mut state.calls[index].action;
-            action.end = now_ms();
+            action.end = wall_ms();
             action.error = error.map(str::to_owned);
         }
     }
 
     pub fn begin(&self, info: CallInfo) -> usize {
         let mut state = self.state();
-        let now = now_ms();
+        let now = wall_ms();
         let action = TraceAction {
             id: format!("call@{}", state.calls.len()),
             parent_id: state.group_id(),
@@ -347,7 +347,7 @@ impl Trace {
     pub fn end(&self, call: usize, error: Option<String>, bounds: Option<Bounds>) {
         let mut state = self.state();
         if let Some(Call { action, .. }) = state.calls.get_mut(call) {
-            action.end = now_ms();
+            action.end = wall_ms();
             action.error = error;
             if bounds.is_some() {
                 action.bounds = bounds;

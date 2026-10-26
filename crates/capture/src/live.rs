@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use opsis_runner::context::now_ms;
+use crate::clock::wall_ms;
 use opsis_types::live::LiveEvent;
 
 pub trait FrameSink: Send + Sync {
@@ -99,7 +99,7 @@ impl LiveSink for NodeLive {
         self.feed.send(LiveMessage::Event(LiveNote {
             capture_id: self.capture_id.clone(),
             node_id: self.node_id.clone(),
-            t: now_ms(),
+            t: wall_ms(),
             event,
         }));
     }

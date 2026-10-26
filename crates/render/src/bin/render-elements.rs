@@ -9,6 +9,7 @@ use opsis_compile::nodes::output::{Gl, StillFormat};
 use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
 use opsis_render::protocol::{COMPOSITION_ID, RenderTarget, SidecarCall, StillJob};
 use opsis_render::sidecar::{Sidecar, SidecarCommand};
+use opsis_types::numbers::whole;
 use opsis_types::values::CompileValue;
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use serde_json::{Value, json};
@@ -16,7 +17,7 @@ use tokio_util::sync::CancellationToken;
 
 const STILL_WIDTH: f64 = 480.0;
 const JPEG_QUALITY: f64 = 82.0;
-const SOLID_FRAMES: f64 = 90.0;
+const SOLID_FRAMES: u32 = 90;
 const ELEMENT_NODE: &str = "element";
 
 fn home() -> PathBuf {
@@ -116,13 +117,13 @@ fn still_for(
             spec,
             gl: Gl::Angle,
         },
-        frame: ((clip.duration_in_frames - 1.0) * at).floor(),
+        frame: whole((f64::from(clip.duration_in_frames - 1) * at).floor()),
         output: out
             .join(format!("{}.jpg", meta.key.replacen('/', "--", 1)))
             .to_string_lossy()
             .into_owned(),
         format: StillFormat::Jpeg,
-        scale: Some((STILL_WIDTH / width).min(1.0)),
+        scale: Some((STILL_WIDTH / f64::from(width)).min(1.0)),
         jpeg_quality: Some(JPEG_QUALITY),
     }))
 }

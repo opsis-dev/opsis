@@ -21,7 +21,7 @@ use crate::state::AppState;
 
 const VIEW_PREFIX: &str = "view-";
 const PREVIEW_VIEW: &str = "preview";
-const PREVIEW_QUALITY: i64 = 80;
+const PREVIEW_QUALITY: u32 = 80;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, tauri_specta::Event)]
 #[serde(rename_all = "camelCase")]

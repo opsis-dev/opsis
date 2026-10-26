@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use indexmap::IndexSet;
-use opsis_types::values::BrowserSessionValue;
+use opsis_types::values::{BrowserAction, BrowserSessionValue};
 use opsis_types::workflow::{PortType, Workflow, WorkflowEdge, WorkflowNode};
 use serde::{Deserialize, Serialize};
 
@@ -364,7 +364,7 @@ fn definition_issues(wf: &Workflow, node: &WorkflowNode) -> Vec<GraphIssue> {
     }
     let mut issues = Vec::new();
     if let Err(problem) = def.parse(&node.params, None) {
-        issues.push(error(&node.id, problem));
+        issues.push(error(&node.id, problem.to_string()));
     }
     let vars = workflow_vars(&wf.name, &wf.variables);
     if let Some(name) = unknown_variables(&serde_json::Value::Object(node.params.clone()), &vars)
@@ -508,7 +508,7 @@ fn sign_in_clashes(wf: &Workflow) -> Vec<GraphIssue> {
     for node in wf
         .nodes
         .iter()
-        .filter(|n| n.kind == "browser.signIn" && !n.is_disabled())
+        .filter(|n| n.kind == BrowserAction::SignIn.kind() && !n.is_disabled())
     {
         let raw = node
             .params
@@ -594,8 +594,8 @@ fn skipped_source_issues(wf: &Workflow) -> Vec<GraphIssue> {
 fn reload_issues(wf: &Workflow, compiled: &CompileResult) -> Vec<GraphIssue> {
     wf.nodes
         .iter()
-        .filter(|n| n.kind == "browser.setState" && !n.is_disabled() && n.params.get("reload") == Some(&serde_json::Value::Bool(true)))
-        .filter(|n| session_into(wf, compiled, &n.id).is_some_and(|s| !s.steps.iter().any(|step| step.kind == "browser.navigate")))
+        .filter(|n| n.kind == BrowserAction::SetState.kind() && !n.is_disabled() && n.params.get("reload") == Some(&serde_json::Value::Bool(true)))
+        .filter(|n| session_into(wf, compiled, &n.id).is_some_and(|s| !s.steps.iter().any(|step| step.kind == BrowserAction::Navigate)))
         .map(|n| {
             warning(
                 &n.id,

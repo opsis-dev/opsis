@@ -1,4 +1,5 @@
 use opsis_types::cards::{Icon, Tone};
+use opsis_types::numbers::whole;
 use opsis_types::timeline::ReframeMode;
 use opsis_types::values::{Artifact, CompileValue};
 use opsis_types::workflow::{PortType, WorkflowNode, WorkflowSettings};
@@ -11,6 +12,8 @@ use crate::nodes::media::Codec;
 use crate::params::Params;
 use crate::text::{format_bytes, format_duration, slug_name};
 use crate::time::{even_px, frames_to_ms};
+
+pub const EXPORT_PROJECT_TYPE: &str = "output.exportProject";
 
 pub const EXPORT_FOLDER_FALLBACK: &str = "output";
 pub const RENDER_TYPE: &str = "output.render";
@@ -73,8 +76,8 @@ impl Variant {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Size {
-    pub width: f64,
-    pub height: f64,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -83,7 +86,8 @@ pub enum Edge {
     Short,
 }
 
-fn size_for(variant: Variant, edge: f64, anchor: Edge) -> Size {
+fn size_for(variant: Variant, edge: u32, anchor: Edge) -> Size {
+    let edge = f64::from(edge);
     let (w, h) = variant.ratio();
     let landscape = w >= h;
     let edge_is_width = if anchor == Edge::Long {
@@ -93,13 +97,13 @@ fn size_for(variant: Variant, edge: f64, anchor: Edge) -> Size {
     };
     if edge_is_width {
         Size {
-            width: even_px(edge),
-            height: even_px(edge * h / w),
+            width: whole(even_px(edge)),
+            height: whole(even_px(edge * h / w)),
         }
     } else {
         Size {
-            width: even_px(edge * w / h),
-            height: even_px(edge),
+            width: whole(even_px(edge * w / h)),
+            height: whole(even_px(edge)),
         }
     }
 }
@@ -108,13 +112,13 @@ pub fn variant_size(variant: Variant, settings: &WorkflowSettings) -> Size {
     size_for(variant, settings.width.max(settings.height), Edge::Long)
 }
 
-pub fn variant_canvas(variant: Variant, short: f64) -> Size {
+pub fn variant_canvas(variant: Variant, short: u32) -> Size {
     size_for(variant, short, Edge::Short)
 }
 
-fn exported_short_side(variant: Variant, settings: &WorkflowSettings, scale: f64) -> f64 {
+fn exported_short_side(variant: Variant, settings: &WorkflowSettings, scale: f64) -> u32 {
     let size = variant_size(variant, settings);
-    (size.width.min(size.height) * scale).round()
+    whole(f64::from(size.width.min(size.height)) * scale)
 }
 
 pub fn video_file_names(base: &str, codec: Codec, variants: &[Variant]) -> Vec<String> {
@@ -155,11 +159,11 @@ impl StillPreset {
 
     pub fn size(self) -> Size {
         let (width, height) = match self {
-            Self::Wide => (3840.0, 2160.0),
-            Self::Og => (2400.0, 1260.0),
-            Self::Square => (2160.0, 2160.0),
-            Self::Portrait => (1728.0, 2160.0),
-            Self::Story => (1080.0, 1920.0),
+            Self::Wide => (3840, 2160),
+            Self::Og => (2400, 1260),
+            Self::Square => (2160, 2160),
+            Self::Portrait => (1728, 2160),
+            Self::Story => (1080, 1920),
         };
         Size { width, height }
     }
@@ -200,8 +204,8 @@ pub fn export_base_name(file_name: &str) -> String {
     slug_name(file_name, EXPORT_FOLDER_FALLBACK)
 }
 
-fn file_bytes(artifacts: &[Artifact]) -> f64 {
-    artifacts.iter().map(|a| a.bytes.unwrap_or(0.0)).sum()
+fn file_bytes(artifacts: &[Artifact]) -> u64 {
+    artifacts.iter().filter_map(|a| a.bytes).sum()
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -218,7 +222,7 @@ pub struct ExportVideo {
     pub codec: Codec,
     #[default = 18]
     #[schemars(description = "Quality", range(min = 0, max = 51), extend("x-widget" = "quality"))]
-    pub crf: i64,
+    pub crf: u32,
     #[default(vec![Variant::Wide])]
     #[schemars(
         description = "Shapes",
@@ -281,7 +285,7 @@ pub struct ExportImages {
     pub file_name: String,
     #[default = 1000]
     #[schemars(description = "Frame at", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub at_ms: i64,
+    pub at_ms: u32,
     #[default(vec![StillPreset::Og])]
     #[schemars(
         description = "Sizes",
@@ -370,7 +374,7 @@ fn export_video() -> NodeDef {
             .result
             .and_then(|r| r.output("media"))
             .and_then(CompileValue::as_media);
-        let bytes = ctx.result.map_or(0.0, |r| file_bytes(&r.artifacts));
+        let bytes = ctx.result.map_or(0, |r| file_bytes(&r.artifacts));
         let mut sides: Vec<String> = Vec::new();
         for v in &p.variants {
             let side = format!("{}p", (exported_short_side(*v, ctx.settings, p.scale)));
@@ -392,9 +396,9 @@ fn export_video() -> NodeDef {
             )),
             media
                 .and_then(|m| m.duration_ms)
-                .filter(|d| *d != 0.0)
-                .map(|d| row(Icon::Clock, format_duration(d))),
-            (bytes > 0.0).then(|| row(Icon::HardDrive, format_bytes(bytes))),
+                .filter(|d| *d != 0)
+                .map(|d| row(Icon::Clock, format_duration(f64::from(d)))),
+            (bytes > 0).then(|| row(Icon::HardDrive, format_bytes(bytes))),
         ]
     })
 }
@@ -415,7 +419,7 @@ fn export_images() -> NodeDef {
             .inputs
             .frames
             .get(CLIP_PORT)
-            .filter(|f| **f != 0.0)
+            .filter(|f| **f != 0)
             .map(|f| frames_to_ms(*f, ctx.fps()));
         let names: Vec<&str> = p.presets.iter().map(|k| k.name()).collect();
         let format = if p.format == StillFormat::Jpeg {
@@ -427,10 +431,10 @@ fn export_images() -> NodeDef {
             Some(row(Icon::Image, names.join(" · "))),
             Some(row(
                 Icon::Clock,
-                format!("At {} · {format}", format_duration(p.at_ms as f64)),
+                format!("At {} · {format}", format_duration(f64::from(p.at_ms))),
             )),
             film_ms
-                .filter(|ms| *ms != 0.0 && p.at_ms as f64 >= *ms)
+                .filter(|ms| *ms != 0.0 && f64::from(p.at_ms) >= *ms)
                 .map(|ms| {
                     row(
                         Icon::TriangleAlert,
@@ -447,7 +451,7 @@ fn export_images() -> NodeDef {
 
 fn export_code() -> NodeDef {
     output_node::<ExportCode>(
-        "output.exportProject",
+        EXPORT_PROJECT_TYPE,
         "Export as code",
         Phase::Post,
         "Saves this video as an editable code project for developers.",
