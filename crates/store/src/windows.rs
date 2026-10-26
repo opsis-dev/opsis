@@ -1,4 +1,3 @@
-use rusqlite::OptionalExtension;
 use serde::{Deserialize, Serialize};
 
 use crate::db::{Database, Result};
@@ -12,29 +11,27 @@ pub struct Bounds {
 }
 
 impl Database {
-    pub fn saved_bounds(&self, window: &str) -> Result<Option<Bounds>> {
-        Ok(self
-            .conn
-            .query_row(
-                "SELECT x, y, width, height FROM window_bounds WHERE window = ?1",
-                [window],
-                |r| {
-                    Ok(Bounds {
-                        x: r.get(0)?,
-                        y: r.get(1)?,
-                        width: r.get(2)?,
-                        height: r.get(3)?,
-                    })
-                },
-            )
-            .optional()?)
+    pub async fn saved_bounds(&self, window: &str) -> Result<Option<Bounds>> {
+        Ok(sqlx::query_as!(
+            Bounds,
+            r#"SELECT x AS "x: i32", y AS "y: i32", width AS "width: i32", height AS "height: i32" FROM window_bounds WHERE window = ?"#,
+            window
+        )
+        .fetch_optional(&self.pool)
+        .await?)
     }
 
-    pub fn save_bounds(&self, window: &str, b: Bounds) -> Result<()> {
-        self.conn.execute(
-            "INSERT INTO window_bounds (window, x, y, width, height) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT(window) DO UPDATE SET x = excluded.x, y = excluded.y, width = excluded.width, height = excluded.height",
-            rusqlite::params![window, b.x, b.y, b.width, b.height],
-        )?;
+    pub async fn save_bounds(&self, window: &str, b: Bounds) -> Result<()> {
+        sqlx::query!(
+            "INSERT INTO window_bounds (window, x, y, width, height) VALUES (?, ?, ?, ?, ?) ON CONFLICT (window) DO UPDATE SET x = excluded.x, y = excluded.y, width = excluded.width, height = excluded.height",
+            window,
+            b.x,
+            b.y,
+            b.width,
+            b.height
+        )
+        .execute(&self.pool)
+        .await?;
         Ok(())
     }
 }
@@ -43,10 +40,10 @@ impl Database {
 mod tests {
     use super::*;
 
-    #[test]
-    fn remembers_the_last_bounds_of_each_window() {
-        let db = Database::in_memory().unwrap();
-        assert_eq!(db.saved_bounds("settings").unwrap(), None);
+    #[tokio::test]
+    async fn remembers_the_last_bounds_of_each_window() {
+        let db = Database::in_memory().await.unwrap();
+        assert_eq!(db.saved_bounds("settings").await.unwrap(), None);
         db.save_bounds(
             "settings",
             Bounds {
@@ -56,6 +53,7 @@ mod tests {
                 height: 400,
             },
         )
+        .await
         .unwrap();
         db.save_bounds(
             "settings",
@@ -66,9 +64,10 @@ mod tests {
                 height: 800,
             },
         )
+        .await
         .unwrap();
         assert_eq!(
-            db.saved_bounds("settings").unwrap(),
+            db.saved_bounds("settings").await.unwrap(),
             Some(Bounds {
                 x: 5,
                 y: 6,

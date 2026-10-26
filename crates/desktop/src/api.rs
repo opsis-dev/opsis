@@ -133,12 +133,7 @@ fn announce(app: &AppHandle, status: ApiServerStatus) {
 }
 
 pub fn follow_setting(app: &AppHandle) {
-    let enabled = app
-        .state::<AppState>()
-        .db()
-        .read_settings()
-        .map(|s| s.api.enabled)
-        .unwrap_or(false);
+    let enabled = app.state::<AppState>().settings().api.enabled;
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
         let api = app.state::<Api>();

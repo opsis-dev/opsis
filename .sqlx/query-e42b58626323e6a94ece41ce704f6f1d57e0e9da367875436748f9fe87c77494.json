@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT font_id, def FROM fonts ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "font_id",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "fonts",
+            "name": "font_id"
+          }
+        }
+      },
+      {
+        "name": "def",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "fonts",
+            "name": "def"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "e42b58626323e6a94ece41ce704f6f1d57e0e9da367875436748f9fe87c77494"
+}

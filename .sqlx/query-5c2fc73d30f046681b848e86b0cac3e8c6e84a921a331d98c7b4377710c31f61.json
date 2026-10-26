@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO window_bounds (window, x, y, width, height) VALUES (?, ?, ?, ?, ?) ON CONFLICT (window) DO UPDATE SET x = excluded.x, y = excluded.y, width = excluded.width, height = excluded.height",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "5c2fc73d30f046681b848e86b0cac3e8c6e84a921a331d98c7b4377710c31f61"
+}

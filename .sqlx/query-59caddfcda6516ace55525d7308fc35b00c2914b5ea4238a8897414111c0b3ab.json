@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT section, value FROM settings",
+  "describe": {
+    "columns": [
+      {
+        "name": "section",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "settings",
+            "name": "section"
+          }
+        }
+      },
+      {
+        "name": "value",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "settings",
+            "name": "value"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "59caddfcda6516ace55525d7308fc35b00c2914b5ea4238a8897414111c0b3ab"
+}

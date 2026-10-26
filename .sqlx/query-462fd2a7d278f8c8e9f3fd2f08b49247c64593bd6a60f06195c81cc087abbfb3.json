@@ -1,0 +1,21 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT 1 AS present FROM sqlite_schema LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "present",
+        "ordinal": 0,
+        "type_info": "Integer",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "462fd2a7d278f8c8e9f3fd2f08b49247c64593bd6a60f06195c81cc087abbfb3"
+}

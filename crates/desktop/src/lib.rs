@@ -28,7 +28,8 @@ mod windows;
 
 use std::sync::Arc;
 
-use tauri::{Manager, RunEvent};
+use opsis_store::keys::{KeyError, Keyring};
+use tauri::{AppHandle, Manager, RunEvent};
 
 use crate::analysis::Mixes;
 use crate::exit::Exit;
@@ -50,23 +51,41 @@ fn start(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             cleared.len()
         );
     }
-    let state = AppState::new(paths, Arc::new(|line: &str| log::info!("sidecar: {line}")))?;
-    app.manage(state);
-    app.manage(file_server::start(app.handle())?);
-    app.manage(RunHost::default());
-    app.manage(Exit::default());
-    app.manage(Views::default());
-    app.manage(Mixes::default());
-    app.manage(WindowRuntime::default());
-    app.manage(api::Api::new(app.handle()));
-    api::follow_setting(app.handle());
-    engine::verify_on_start(app.handle());
     #[cfg(target_os = "macos")]
     {
         app.set_menu(native_menu::build(app.handle())?)?;
         app.on_menu_event(native_menu::on_event);
     }
-    windows::open_main(app.handle()).map_err(|e| e.0)?;
+    let keys = Keyring::platform();
+    let handle = app.handle().clone();
+    tauri::async_runtime::spawn(async move {
+        if let Err(error) = open(&handle, paths, keys).await {
+            log::error!("Opsis couldn't start: {error}");
+            handle.exit(1);
+        }
+    });
+    Ok(())
+}
+
+async fn open(
+    app: &AppHandle,
+    paths: AppPaths,
+    keys: Result<Keyring, KeyError>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let sidecar_log = Arc::new(|line: &str| log::info!("sidecar: {line}"));
+    let state = AppState::new(paths, keys, sidecar_log).await?;
+    let files = file_server::start(app)?;
+    app.manage(state);
+    app.manage(files);
+    app.manage(RunHost::default());
+    app.manage(Exit::default());
+    app.manage(Views::default());
+    app.manage(Mixes::default());
+    app.manage(WindowRuntime::default());
+    app.manage(api::Api::new(app));
+    api::follow_setting(app);
+    engine::verify_on_start(app);
+    windows::open_main(app).map_err(|e| e.0)?;
     Ok(())
 }
 
@@ -97,12 +116,13 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("the app starts")
         .run(|app, event| {
-            if let RunEvent::Exit = event {
+            if let RunEvent::Exit = event
+                && let Some(state) = app.try_state::<AppState>()
+            {
                 app.state::<RunHost>().cancel();
                 api::stop(app);
-                let paths = &app.state::<AppState>().paths;
-                opsis_engine::temp::remove_child_temp(&paths.views_temp);
-                opsis_engine::temp::remove_child_temp(&paths.sidecar_temp);
+                opsis_engine::temp::remove_child_temp(&state.paths.views_temp);
+                opsis_engine::temp::remove_child_temp(&state.paths.sidecar_temp);
             }
         });
 }

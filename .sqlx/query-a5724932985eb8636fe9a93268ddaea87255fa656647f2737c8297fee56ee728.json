@@ -1,0 +1,50 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT dir, name, opened_at FROM projects ORDER BY opened_at DESC",
+  "describe": {
+    "columns": [
+      {
+        "name": "dir",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "projects",
+            "name": "dir"
+          }
+        }
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "projects",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "name": "opened_at",
+        "ordinal": 2,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "projects",
+            "name": "opened_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "a5724932985eb8636fe9a93268ddaea87255fa656647f2737c8297fee56ee728"
+}

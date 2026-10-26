@@ -53,7 +53,7 @@
     "types:export": "cargo run -q -p opsis-desktop --features export-bindings --bin export-bindings && cargo run -q -p opsis-render --bin export-protocol && cargo run -q -p opsis-compile --bin export-spec",
     "elements:render": "cargo run -q --release -p opsis-render --bin render-elements --",
     "glyphs:bundle": "tsx scripts/node-glyphs.ts",
-    "db:schema": "drizzle-kit export --config drizzle.config.ts > crates/store/db/schema.generated.sql",
+    "db:prepare": "tsx scripts/sqlx-prepare.ts",
     "video:bundle": "tsx scripts/video-bundle.ts",
     "source:layout": "tsx scripts/source-layout.ts",
     "e2e:app": "cd crates/desktop && CARGO_TARGET_DIR=../../target/e2e tauri build --debug --no-bundle --features e2e",
@@ -81,7 +81,6 @@
     "@opsis/sidecar": "workspace:*",
     "@opsis/ui": "workspace:*",
     "@opsis/video": "workspace:*",
-    "drizzle-orm": "1.0.0-rc.4",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -104,7 +103,6 @@
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.2",
     "diff": "^9.0.0",
-    "drizzle-kit": "1.0.0-rc.4",
     "happy-dom": "^21.0.4",
     "lucide": "^1.61.0",
     "oxfmt": "^0.74.0",

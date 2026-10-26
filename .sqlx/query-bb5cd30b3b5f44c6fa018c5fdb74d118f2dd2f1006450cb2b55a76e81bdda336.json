@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE meta SET schema_hash = 'older'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "bb5cd30b3b5f44c6fa018c5fdb74d118f2dd2f1006450cb2b55a76e81bdda336"
+}

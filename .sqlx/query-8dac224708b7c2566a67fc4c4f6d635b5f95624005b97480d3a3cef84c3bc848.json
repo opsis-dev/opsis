@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO fonts (font_id, def) VALUES (?, ?) ON CONFLICT (font_id) DO UPDATE SET def = excluded.def",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "8dac224708b7c2566a67fc4c4f6d635b5f95624005b97480d3a3cef84c3bc848"
+}

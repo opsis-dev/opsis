@@ -280,7 +280,7 @@ pub async fn run_workflow(
         &state.paths.temp_root,
         &child_temp_name(ChildKind::Run, &run_id, std::process::id()),
     )?;
-    let settings = state.db().read_settings()?;
+    let settings = state.settings();
     let env = Arc::new(RunEnv {
         app_version: app.package_info().version.to_string(),
         engine: engine_files(&state),

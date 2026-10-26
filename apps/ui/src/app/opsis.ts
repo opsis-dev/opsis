@@ -177,7 +177,7 @@ export function createOpsis() {
       unwrap(commands.chooseEngineTool(tool)),
     onEngineChanged: (listener: (status: EngineStatus) => void) =>
       on(events.engineChanged(here()), listener),
-    getSettings: (): Promise<AppSettings> => unwrap(commands.getSettings()),
+    getSettings: (): Promise<AppSettings> => commands.getSettings(),
     patchSettings: (patch: { [key: string]: Value }): Promise<AppSettings> =>
       unwrap(commands.patchSettings(patch)),
     onSettingsChanged: (listener: (settings: AppSettings) => void) =>

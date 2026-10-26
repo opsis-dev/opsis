@@ -1,7 +1,6 @@
 use std::path::Path;
 
 use opsis_types::workflow::WORKFLOW_FILE;
-use rusqlite::OptionalExtension;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -20,87 +19,84 @@ pub struct RecentProject {
 pub type ViewPrefs = Map<String, Value>;
 
 impl Database {
-    pub fn list_recent(&self) -> Result<Vec<RecentProject>> {
-        let mut stmt = self
-            .conn
-            .prepare("SELECT dir, name, openedAt FROM projects ORDER BY openedAt DESC")?;
-        let rows = stmt.query_map([], |r| {
-            Ok(RecentProject {
-                dir: r.get(0)?,
-                name: r.get(1)?,
-                opened_at: r.get(2)?,
-            })
-        })?;
-        let mut out = Vec::new();
-        for row in rows {
-            let project = row?;
-            if Path::new(&project.dir).join(WORKFLOW_FILE).exists() {
-                out.push(project);
-            }
-            if out.len() == MAX_RECENT {
-                break;
-            }
-        }
-        Ok(out)
+    pub async fn list_recent(&self) -> Result<Vec<RecentProject>> {
+        let rows = sqlx::query_as!(
+            RecentProject,
+            "SELECT dir, name, opened_at FROM projects ORDER BY opened_at DESC"
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows
+            .into_iter()
+            .filter(|p| Path::new(&p.dir).join(WORKFLOW_FILE).exists())
+            .take(MAX_RECENT)
+            .collect())
     }
 
-    pub fn touch_recent(&self, dir: &str, name: &str, opened_at: i64) -> Result<()> {
-        self.conn.execute(
-            "INSERT INTO projects (dir, name, openedAt) VALUES (?1, ?2, ?3) ON CONFLICT(dir) DO UPDATE SET name = excluded.name, openedAt = excluded.openedAt",
-            rusqlite::params![dir, name, opened_at],
-        )?;
+    pub async fn touch_recent(&self, dir: &str, name: &str, opened_at: i64) -> Result<()> {
+        sqlx::query!(
+            "INSERT INTO projects (dir, name, opened_at) VALUES (?, ?, ?) ON CONFLICT (dir) DO UPDATE SET name = excluded.name, opened_at = excluded.opened_at",
+            dir,
+            name,
+            opened_at
+        )
+        .execute(&self.pool)
+        .await?;
         Ok(())
     }
 
-    pub fn project_count(&self) -> Result<usize> {
-        Ok(self
-            .conn
-            .query_row("SELECT count(*) FROM projects", [], |r| r.get::<_, i64>(0))?
-            as usize)
+    pub async fn project_count(&self) -> Result<i64> {
+        Ok(sqlx::query_scalar!("SELECT count(*) FROM projects")
+            .fetch_one(&self.pool)
+            .await?)
     }
 
-    fn project_id(&self, dir: &str) -> Result<Option<i64>> {
-        Ok(self
-            .conn
-            .query_row("SELECT id FROM projects WHERE dir = ?1", [dir], |r| {
-                r.get(0)
-            })
-            .optional()?)
+    async fn project_id(&self, dir: &str) -> Result<Option<i64>> {
+        Ok(
+            sqlx::query_scalar!("SELECT id FROM projects WHERE dir = ?", dir)
+                .fetch_optional(&self.pool)
+                .await?,
+        )
     }
 
-    pub fn read_view_state(&self, dir: &str) -> Result<ViewPrefs> {
-        let Some(id) = self.project_id(dir)? else {
+    pub async fn read_view_state(&self, dir: &str) -> Result<ViewPrefs> {
+        let Some(id) = self.project_id(dir).await? else {
             return Ok(ViewPrefs::new());
         };
-        let mut stmt = self
-            .conn
-            .prepare("SELECT key, value FROM view_state WHERE projectId = ?1 ORDER BY id")?;
-        let rows = stmt.query_map([id], |r| {
-            Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
-        })?;
+        let rows = sqlx::query!(
+            "SELECT key, value FROM view_state WHERE project_id = ? ORDER BY id",
+            id
+        )
+        .fetch_all(&self.pool)
+        .await?;
         let mut prefs = ViewPrefs::new();
         for row in rows {
-            let (key, value) = row?;
-            prefs.insert(key, serde_json::from_str(&value)?);
+            prefs.insert(row.key, serde_json::from_str(&row.value)?);
         }
         Ok(prefs)
     }
 
-    pub fn write_view_state(&self, dir: &str, key: &str, value: &Value) -> Result<bool> {
-        let Some(id) = self.project_id(dir)? else {
+    pub async fn write_view_state(&self, dir: &str, key: &str, value: &Value) -> Result<bool> {
+        let Some(id) = self.project_id(dir).await? else {
             return Ok(false);
         };
-        self.conn.execute(
-            "INSERT INTO view_state (projectId, key, value) VALUES (?1, ?2, ?3) ON CONFLICT(projectId, key) DO UPDATE SET value = excluded.value",
-            rusqlite::params![id, key, value.to_string()],
-        )?;
+        let text = value.to_string();
+        sqlx::query!(
+            "INSERT INTO view_state (project_id, key, value) VALUES (?, ?, ?) ON CONFLICT (project_id, key) DO UPDATE SET value = excluded.value",
+            id,
+            key,
+            text
+        )
+        .execute(&self.pool)
+        .await?;
         Ok(true)
     }
 
-    pub fn forget_view_state(&self, dir: &str) -> Result<()> {
-        if let Some(id) = self.project_id(dir)? {
-            self.conn
-                .execute("DELETE FROM view_state WHERE projectId = ?1", [id])?;
+    pub async fn forget_view_state(&self, dir: &str) -> Result<()> {
+        if let Some(id) = self.project_id(dir).await? {
+            sqlx::query!("DELETE FROM view_state WHERE project_id = ?", id)
+                .execute(&self.pool)
+                .await?;
         }
         Ok(())
     }
@@ -119,22 +115,23 @@ mod tests {
         dir.to_string_lossy().into_owned()
     }
 
-    #[test]
-    fn lists_the_last_opened_first_and_skips_folders_without_a_project() {
+    #[tokio::test]
+    async fn lists_the_last_opened_first_and_skips_folders_without_a_project() {
         let root = tempfile::tempdir().unwrap();
-        let db = Database::in_memory().unwrap();
+        let db = Database::in_memory().await.unwrap();
         let (first, second, gone) = (
             project(root.path(), "first"),
             project(root.path(), "second"),
             project(root.path(), "gone"),
         );
-        db.touch_recent(&first, "First", 1).unwrap();
-        db.touch_recent(&second, "Second", 2).unwrap();
-        db.touch_recent(&gone, "Gone", 3).unwrap();
+        db.touch_recent(&first, "First", 1).await.unwrap();
+        db.touch_recent(&second, "Second", 2).await.unwrap();
+        db.touch_recent(&gone, "Gone", 3).await.unwrap();
         std::fs::remove_dir_all(&gone).unwrap();
-        db.touch_recent(&first, "First", 4).unwrap();
+        db.touch_recent(&first, "First", 4).await.unwrap();
         let dirs: Vec<String> = db
             .list_recent()
+            .await
             .unwrap()
             .into_iter()
             .map(|p| p.dir)
@@ -142,57 +139,63 @@ mod tests {
         assert_eq!(dirs, [first, second]);
     }
 
-    #[test]
-    fn keeps_every_project_it_has_seen_beyond_the_recent_list() {
+    #[tokio::test]
+    async fn keeps_every_project_it_has_seen_beyond_the_recent_list() {
         let root = tempfile::tempdir().unwrap();
-        let db = Database::in_memory().unwrap();
+        let db = Database::in_memory().await.unwrap();
         for i in 0..21 {
             db.touch_recent(&project(root.path(), &format!("p{i}")), &format!("P{i}"), i)
+                .await
                 .unwrap();
         }
-        assert_eq!(db.list_recent().unwrap().len(), MAX_RECENT);
-        assert_eq!(db.project_count().unwrap(), 21);
+        assert_eq!(db.list_recent().await.unwrap().len(), MAX_RECENT);
+        assert_eq!(db.project_count().await.unwrap(), 21);
     }
 
-    #[test]
-    fn returns_what_was_saved_for_the_project() {
+    #[tokio::test]
+    async fn returns_what_was_saved_for_the_project() {
         let root = tempfile::tempdir().unwrap();
-        let db = Database::in_memory().unwrap();
+        let db = Database::in_memory().await.unwrap();
         let dir = project(root.path(), "views");
-        db.touch_recent(&dir, "Views", 1).unwrap();
+        db.touch_recent(&dir, "Views", 1).await.unwrap();
         assert!(
             db.write_view_state(&dir, "dockTab", &json!("mixer"))
+                .await
                 .unwrap()
         );
         db.write_view_state(&dir, "dockTab", &json!("timeline"))
+            .await
             .unwrap();
         db.write_view_state(&dir, "mixerCollapsed", &json!(["music"]))
+            .await
             .unwrap();
         assert_eq!(
-            Value::Object(db.read_view_state(&dir).unwrap()),
+            Value::Object(db.read_view_state(&dir).await.unwrap()),
             json!({ "dockTab": "timeline", "mixerCollapsed": ["music"] })
         );
     }
 
-    #[test]
-    fn saves_nothing_for_a_folder_that_was_never_opened() {
-        let db = Database::in_memory().unwrap();
+    #[tokio::test]
+    async fn saves_nothing_for_a_folder_that_was_never_opened() {
+        let db = Database::in_memory().await.unwrap();
         assert!(
             !db.write_view_state("/nowhere", "dockTab", &json!("mixer"))
+                .await
                 .unwrap()
         );
-        assert!(db.read_view_state("/nowhere").unwrap().is_empty());
+        assert!(db.read_view_state("/nowhere").await.unwrap().is_empty());
     }
 
-    #[test]
-    fn forgets_a_projects_view() {
+    #[tokio::test]
+    async fn forgets_a_projects_view() {
         let root = tempfile::tempdir().unwrap();
-        let db = Database::in_memory().unwrap();
+        let db = Database::in_memory().await.unwrap();
         let dir = project(root.path(), "again");
-        db.touch_recent(&dir, "Again", 1).unwrap();
+        db.touch_recent(&dir, "Again", 1).await.unwrap();
         db.write_view_state(&dir, "dockTab", &json!("mixer"))
+            .await
             .unwrap();
-        db.forget_view_state(&dir).unwrap();
-        assert!(db.read_view_state(&dir).unwrap().is_empty());
+        db.forget_view_state(&dir).await.unwrap();
+        assert!(db.read_view_state(&dir).await.unwrap().is_empty());
     }
 }

@@ -95,17 +95,17 @@ struct Library {
     ids: Vec<String>,
 }
 
-fn read_library(db: &Database) -> Result<Library, FontError> {
+async fn read_library(db: &Database) -> Result<Library, FontError> {
     let mut library = Library {
         families: Vec::new(),
         ids: Vec::new(),
     };
-    for (id, def) in db.font_rows()? {
-        match serde_json::from_str(&def) {
+    for row in db.font_rows().await? {
+        match serde_json::from_str(&row.def) {
             Ok(family) => library.families.push(family),
-            Err(_) => log::warn!("{id} couldn't be read and was kept as it is"),
+            Err(_) => log::warn!("{} couldn't be read and was kept as it is", row.font_id),
         }
-        library.ids.push(id);
+        library.ids.push(row.font_id);
     }
     Ok(library)
 }
@@ -161,8 +161,8 @@ impl FontLibrary {
         &self.dir
     }
 
-    pub fn list(&self, db: &Database) -> Result<Vec<FontFamilyDef>, FontError> {
-        Ok(read_library(db)?.families)
+    pub async fn list(&self, db: &Database) -> Result<Vec<FontFamilyDef>, FontError> {
+        Ok(read_library(db).await?.families)
     }
 
     fn hold_for_review(&self, entries: Vec<FontBytes>, source: FontSource) -> InspectedFonts {
@@ -250,7 +250,7 @@ impl FontLibrary {
         self.hold_for_review(entries, FontSource::Installed)
     }
 
-    pub fn add_inspected(
+    pub async fn add_inspected(
         &self,
         db: &Database,
         token: &str,
@@ -290,7 +290,7 @@ impl FontLibrary {
                 license_type: None,
             })
             .collect();
-        self.add_families(db, chosen)
+        self.add_families(db, chosen).await
     }
 
     pub fn release_inspected(&self, token: &str) {
@@ -339,26 +339,24 @@ impl FontLibrary {
         })
     }
 
-    pub fn add_families(
+    pub async fn add_families(
         &self,
         db: &Database,
         families: Vec<NewFamily>,
     ) -> Result<Vec<FontFamilyDef>, FontError> {
         let mut added = Vec::new();
         for fam in families {
-            let def = self.write_family(&read_library(db)?, fam)?;
-            db.save_font_row(
-                &def.id,
-                &serde_json::to_string(&def).map_err(std::io::Error::other)?,
-            )?;
+            let def = self.write_family(&read_library(db).await?, fam)?;
+            let row = serde_json::to_string(&def).map_err(std::io::Error::other)?;
+            db.save_font_row(&def.id, &row).await?;
             added.push(def);
         }
         Ok(added)
     }
 
-    pub fn remove(&self, db: &Database, id: &str) -> Result<(), FontError> {
+    pub async fn remove(&self, db: &Database, id: &str) -> Result<(), FontError> {
         none_if_missing(std::fs::remove_dir_all(self.dir.join(id)))?;
-        db.remove_font_row(id)?;
+        db.remove_font_row(id).await?;
         Ok(())
     }
 
@@ -439,15 +437,15 @@ mod tests {
         }
     }
 
-    fn setup() -> (tempfile::TempDir, FontLibrary, Database) {
+    async fn setup() -> (tempfile::TempDir, FontLibrary, Database) {
         let user_data = tempfile::tempdir().unwrap();
         let library = FontLibrary::new(user_data.path());
-        (user_data, library, Database::in_memory().unwrap())
+        (user_data, library, Database::in_memory().await.unwrap())
     }
 
-    #[test]
-    fn reads_the_family_weight_range_and_style_of_each_face_and_finds_the_licence() {
-        let (_dir, library, _db) = setup();
+    #[tokio::test]
+    async fn reads_the_family_weight_range_and_style_of_each_face_and_finds_the_licence() {
+        let (_dir, library, _db) = setup().await;
         let inspected = library
             .inspect_files(&[
                 bundled("dm-sans/dm-sans-latin-wght-normal.woff2"),
@@ -487,9 +485,9 @@ mod tests {
         );
     }
 
-    #[test]
-    fn reads_fonts_inside_a_zip_and_counts_files_it_cant_read() {
-        let (dir, library, _db) = setup();
+    #[tokio::test]
+    async fn reads_fonts_inside_a_zip_and_counts_files_it_cant_read() {
+        let (dir, library, _db) = setup().await;
         let zip_file = dir.path().join("fonts.zip");
         let mut zip = zip::ZipWriter::new(std::fs::File::create(&zip_file).unwrap());
         let options = zip::write::SimpleFileOptions::default();
@@ -517,9 +515,9 @@ mod tests {
         );
     }
 
-    #[test]
-    fn adds_the_chosen_families_with_their_licence_and_copies_them_into_a_project() {
-        let (_dir, library, db) = setup();
+    #[tokio::test]
+    async fn adds_the_chosen_families_with_their_licence_and_copies_them_into_a_project() {
+        let (_dir, library, db) = setup().await;
         let inspected = library
             .inspect_files(&[
                 bundled("dm-sans/dm-sans-latin-wght-normal.woff2"),
@@ -528,6 +526,7 @@ mod tests {
             .unwrap();
         let [added] = library
             .add_inspected(&db, &inspected.token, &["DM Sans 9pt".into()])
+            .await
             .unwrap()
             .try_into()
             .unwrap();
@@ -555,38 +554,40 @@ mod tests {
         );
     }
 
-    #[test]
-    fn lets_go_of_fonts_the_review_closed_without_adding_and_keeps_only_the_latest() {
-        let (_dir, library, db) = setup();
+    #[tokio::test]
+    async fn lets_go_of_fonts_the_review_closed_without_adding_and_keeps_only_the_latest() {
+        let (_dir, library, db) = setup().await;
         let files = [bundled("dm-sans/dm-sans-latin-wght-normal.woff2")];
         let family = ["DM Sans 9pt".to_owned()];
         let released = library.inspect_files(&files).unwrap();
         library.release_inspected(&released.token);
         assert!(matches!(
-            library.add_inspected(&db, &released.token, &family),
+            library.add_inspected(&db, &released.token, &family).await,
             Err(FontError::NotReady)
         ));
         let first = library.inspect_files(&files).unwrap();
         library.inspect_files(&files).unwrap();
         assert!(matches!(
-            library.add_inspected(&db, &first.token, &family),
+            library.add_inspected(&db, &first.token, &family).await,
             Err(FontError::NotReady)
         ));
     }
 
-    #[test]
-    fn keeps_entries_it_cant_read_when_the_library_changes() {
-        let (_dir, library, db) = setup();
+    #[tokio::test]
+    async fn keeps_entries_it_cant_read_when_the_library_changes() {
+        let (_dir, library, db) = setup().await;
         let unreadable = r#"{"id":"old","family":"Old"}"#;
-        db.save_font_row("old", unreadable).unwrap();
-        library.add_families(&db, vec![old_font()]).unwrap();
+        db.save_font_row("old", unreadable).await.unwrap();
+        library.add_families(&db, vec![old_font()]).await.unwrap();
+        let rows = db.font_rows().await.unwrap();
         assert_eq!(
-            db.font_rows().unwrap()[0],
-            ("old".to_owned(), unreadable.to_owned())
+            (rows[0].font_id.as_str(), rows[0].def.as_str()),
+            ("old", unreadable)
         );
         assert_eq!(
             library
                 .list(&db)
+                .await
                 .unwrap()
                 .iter()
                 .map(|f| f.id.as_str())
@@ -595,26 +596,28 @@ mod tests {
         );
     }
 
-    #[test]
-    fn replaces_a_family_added_again_and_removes_it_by_id() {
-        let (_dir, library, db) = setup();
+    #[tokio::test]
+    async fn replaces_a_family_added_again_and_removes_it_by_id() {
+        let (_dir, library, db) = setup().await;
         let [first] = library
             .add_families(&db, vec![old_font()])
+            .await
             .unwrap()
             .try_into()
             .unwrap();
-        library.add_families(&db, vec![old_font()]).unwrap();
+        library.add_families(&db, vec![old_font()]).await.unwrap();
         assert_eq!(
             library
                 .list(&db)
+                .await
                 .unwrap()
                 .iter()
                 .map(|f| f.id.as_str())
                 .collect::<Vec<_>>(),
             [first.id.as_str()]
         );
-        library.remove(&db, &first.id).unwrap();
-        assert!(library.list(&db).unwrap().is_empty());
+        library.remove(&db, &first.id).await.unwrap();
+        assert!(library.list(&db).await.unwrap().is_empty());
         assert!(!library.dir().join(&first.id).exists());
     }
 }

@@ -1,0 +1,40 @@
+CREATE TABLE meta (
+  id INTEGER PRIMARY KEY,
+  schema_hash TEXT NOT NULL
+);
+
+CREATE TABLE settings (
+  id INTEGER PRIMARY KEY,
+  section TEXT NOT NULL UNIQUE,
+  value TEXT NOT NULL
+);
+
+CREATE TABLE projects (
+  id INTEGER PRIMARY KEY,
+  dir TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  opened_at INTEGER NOT NULL
+);
+
+CREATE TABLE view_state (
+  id INTEGER PRIMARY KEY,
+  project_id INTEGER NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+  key TEXT NOT NULL,
+  value TEXT NOT NULL,
+  UNIQUE (project_id, key)
+);
+
+CREATE TABLE window_bounds (
+  id INTEGER PRIMARY KEY,
+  window TEXT NOT NULL UNIQUE,
+  x INTEGER NOT NULL,
+  y INTEGER NOT NULL,
+  width INTEGER NOT NULL,
+  height INTEGER NOT NULL
+);
+
+CREATE TABLE fonts (
+  id INTEGER PRIMARY KEY,
+  font_id TEXT NOT NULL UNIQUE,
+  def TEXT NOT NULL
+);

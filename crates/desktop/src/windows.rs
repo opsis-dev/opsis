@@ -114,7 +114,10 @@ fn show(window: &WebviewWindow) {
     }
 }
 
-fn open_remembered(app: &AppHandle, spec: &WindowSpec) -> CommandResult<Option<WebviewWindow>> {
+async fn open_remembered(
+    app: &AppHandle,
+    spec: &WindowSpec,
+) -> CommandResult<Option<WebviewWindow>> {
     if let Some(existing) = app.get_webview_window(&spec.label) {
         if existing.is_minimized().unwrap_or(false)
             && let Err(error) = existing.unminimize()
@@ -124,11 +127,12 @@ fn open_remembered(app: &AppHandle, spec: &WindowSpec) -> CommandResult<Option<W
         show(&existing);
         return Ok(None);
     }
-    let window = base_builder(app, spec).build()?;
     let saved = app
         .state::<AppState>()
         .db()
-        .saved_bounds(&bounds_key(&spec.label))?;
+        .saved_bounds(&bounds_key(&spec.label))
+        .await?;
+    let window = base_builder(app, spec).build()?;
     if let Some(bounds) = saved.and_then(|b| visible_bounds(app, b)) {
         place(&window, bounds);
     }
@@ -237,7 +241,7 @@ fn send_state(window: &Window) {
     }
 }
 
-fn save_bounds_now(window: &Window) {
+async fn save_bounds_now(window: &Window) {
     let app = window.app_handle();
     let state = app.state::<AppState>();
     if window.is_minimized().unwrap_or(false) || window.is_fullscreen().unwrap_or(false) {
@@ -251,10 +255,10 @@ fn save_bounds_now(window: &Window) {
         let dir = state.editor().dir.clone();
         if let Some(dir) = dir {
             let value = json!({ "x": bounds.x, "y": bounds.y, "width": bounds.width, "height": bounds.height, "maximized": maximized });
-            if let Err(error) =
-                state
-                    .db()
-                    .write_view_state(&dir.to_string_lossy(), MAIN_WINDOW_KEY, &value)
+            if let Err(error) = state
+                .db()
+                .write_view_state(&dir.to_string_lossy(), MAIN_WINDOW_KEY, &value)
+                .await
             {
                 log::warn!("saving the window's size: {error}");
             }
@@ -264,7 +268,11 @@ fn save_bounds_now(window: &Window) {
     if maximized {
         return;
     }
-    if let Err(error) = state.db().save_bounds(&bounds_key(window.label()), bounds) {
+    if let Err(error) = state
+        .db()
+        .save_bounds(&bounds_key(window.label()), bounds)
+        .await
+    {
         log::warn!("saving the window's size: {error}");
     }
 }
@@ -275,7 +283,7 @@ fn save_bounds_soon(window: &Window) {
     let delayed = window.clone();
     let task = tauri::async_runtime::spawn(async move {
         tokio::time::sleep(SAVE_BOUNDS_AFTER).await;
-        save_bounds_now(&delayed);
+        save_bounds_now(&delayed).await;
     });
     let mut saving = runtime.saving.lock().expect("bounds savers");
     if let Some(previous) = saving.insert(label, task) {
@@ -294,7 +302,8 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
             crate::exit::close_requested(window, api)
         }
         WindowEvent::Destroyed => {
-            save_bounds_now(window);
+            let destroyed = window.clone();
+            tauri::async_runtime::spawn(async move { save_bounds_now(&destroyed).await });
             let app = window.app_handle();
             if window.label() == MAIN_WINDOW {
                 app.state::<crate::api::Api>().editor_closed();
@@ -320,7 +329,7 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
 
 #[tauri::command]
 #[specta::specta]
-pub fn open_settings(app: AppHandle, page: Option<SettingsPage>) -> CommandResult<()> {
+pub async fn open_settings(app: AppHandle, page: Option<SettingsPage>) -> CommandResult<()> {
     let route = match page {
         Some(page) => format!(
             "/settings?page={}",
@@ -335,7 +344,7 @@ pub fn open_settings(app: AppHandle, page: Option<SettingsPage>) -> CommandResul
         size: (980.0, 720.0),
         min: (720.0, 480.0),
     };
-    if open_remembered(&app, &spec)?.is_none()
+    if open_remembered(&app, &spec).await?.is_none()
         && let Some(page) = page
         && let Err(error) = SettingsPageShown(page).emit_to(&app, SETTINGS_WINDOW)
     {
@@ -346,7 +355,7 @@ pub fn open_settings(app: AppHandle, page: Option<SettingsPage>) -> CommandResul
 
 #[tauri::command]
 #[specta::specta]
-pub fn open_panel_window(app: AppHandle, panel: DockPanelName) -> CommandResult<()> {
+pub async fn open_panel_window(app: AppHandle, panel: DockPanelName) -> CommandResult<()> {
     let spec = WindowSpec {
         label: panel_label(panel),
         route: format!("/panel/{}", panel.id()),
@@ -354,7 +363,7 @@ pub fn open_panel_window(app: AppHandle, panel: DockPanelName) -> CommandResult<
         size: panel_size(panel),
         min: (420.0, 260.0),
     };
-    if open_remembered(&app, &spec)?.is_some() {
+    if open_remembered(&app, &spec).await?.is_some() {
         announce_panels(&app);
     }
     Ok(())
@@ -362,7 +371,7 @@ pub fn open_panel_window(app: AppHandle, panel: DockPanelName) -> CommandResult<
 
 #[tauri::command]
 #[specta::specta]
-pub fn open_preview_window(app: AppHandle) -> CommandResult<()> {
+pub async fn open_preview_window(app: AppHandle) -> CommandResult<()> {
     let spec = WindowSpec {
         label: PREVIEW_WINDOW.to_owned(),
         route: "/preview".to_owned(),
@@ -370,7 +379,7 @@ pub fn open_preview_window(app: AppHandle) -> CommandResult<()> {
         size: (960.0, 640.0),
         min: (420.0, 260.0),
     };
-    open_remembered(&app, &spec)?;
+    open_remembered(&app, &spec).await?;
     Ok(())
 }
 

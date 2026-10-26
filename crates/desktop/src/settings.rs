@@ -30,13 +30,13 @@ pub fn announce(app: &AppHandle, settings: AppSettings) {
 
 #[tauri::command]
 #[specta::specta]
-pub fn get_settings(state: State<'_, AppState>) -> CommandResult<AppSettings> {
-    Ok(state.db().read_settings()?)
+pub fn get_settings(state: State<'_, AppState>) -> AppSettings {
+    state.settings()
 }
 
 #[tauri::command]
 #[specta::specta]
-pub fn patch_settings(
+pub async fn patch_settings(
     app: AppHandle,
     state: State<'_, AppState>,
     patch: SettingsPatch,
@@ -46,21 +46,21 @@ pub fn patch_settings(
             "The {section} settings are only changed by Opsis itself."
         )));
     }
-    let (settings, _) = state.db().patch_settings(&patch)?;
+    let settings = state.patch_settings(&patch).await?;
     announce(&app, settings.clone());
     Ok(settings)
 }
 
 #[tauri::command]
 #[specta::specta]
-pub fn set_view_pref(
+pub async fn set_view_pref(
     app: AppHandle,
     state: State<'_, AppState>,
     dir: String,
     key: String,
     value: Value,
 ) -> CommandResult<()> {
-    if state.db().write_view_state(&dir, &key, &value)?
+    if state.db().write_view_state(&dir, &key, &value).await?
         && let Err(error) = ViewPrefChanged(ViewPrefChange { dir, key, value }).emit(&app)
     {
         log::warn!("sending a view setting to the windows: {error}");

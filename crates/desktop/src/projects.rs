@@ -25,7 +25,7 @@ fn shown(path: &Path) -> String {
 }
 
 fn locations(app: &AppHandle, state: &AppState) -> CommandResult<ProjectLocations> {
-    let settings = state.db().read_settings()?;
+    let settings = state.settings();
     let home = app.path().home_dir()?;
     Ok(locations_for(&settings.projects, &home))
 }
@@ -54,8 +54,8 @@ pub async fn choose_folder_in(
 
 #[tauri::command]
 #[specta::specta]
-pub fn list_recent_projects(state: State<'_, AppState>) -> CommandResult<Vec<RecentProject>> {
-    Ok(state.db().list_recent()?)
+pub async fn list_recent_projects(state: State<'_, AppState>) -> CommandResult<Vec<RecentProject>> {
+    Ok(state.db().list_recent().await?)
 }
 
 #[tauri::command]
@@ -93,13 +93,13 @@ pub async fn pick_project_dir(
     )
 }
 
-fn opened(state: &AppState, dir: &Path) -> CommandResult<OpenProject> {
+async fn opened(state: &AppState, dir: &Path) -> CommandResult<OpenProject> {
     let project = state.projects.open(dir)?;
     let shown_dir = shown(dir);
     let db = state.db();
-    db.touch_recent(&shown_dir, &project.workflow.name, now_ms())?;
-    let view = db.read_view_state(&shown_dir)?;
-    drop(db);
+    db.touch_recent(&shown_dir, &project.workflow.name, now_ms())
+        .await?;
+    let view = db.read_view_state(&shown_dir).await?;
     let mut editor = state.editor();
     editor.dir = Some(dir.to_path_buf());
     editor.results = project
@@ -119,12 +119,12 @@ fn opened(state: &AppState, dir: &Path) -> CommandResult<OpenProject> {
 
 #[tauri::command]
 #[specta::specta]
-pub fn open_project(
+pub async fn open_project(
     window: WebviewWindow,
     state: State<'_, AppState>,
     dir: String,
 ) -> CommandResult<OpenProject> {
-    let project = opened(&state, Path::new(&dir))?;
+    let project = opened(&state, Path::new(&dir)).await?;
     if window.label() == MAIN_WINDOW {
         apply_project_window(&window, &project.view);
     }
@@ -173,16 +173,14 @@ pub async fn create_project(
     };
     let created = state.projects.create(&parent, &name, &template)?;
     let shown_dir = shown(&created.dir);
-    {
-        let mut db = state.db();
-        db.forget_view_state(&shown_dir)?;
-        db.touch_recent(&shown_dir, &created.workflow.name, now_ms())?;
-        let (settings, _) = db.patch_settings(&serde_json::from_value(
-            json!({ "projects": { "lastDir": shown(&parent) } }),
-        )?)?;
-        drop(db);
-        crate::settings::announce(&app, settings);
-    }
+    state.db().forget_view_state(&shown_dir).await?;
+    state
+        .db()
+        .touch_recent(&shown_dir, &created.workflow.name, now_ms())
+        .await?;
+    let last_dir = serde_json::from_value(json!({ "projects": { "lastDir": shown(&parent) } }))?;
+    let settings = state.patch_settings(&last_dir).await?;
+    crate::settings::announce(&app, settings);
     let mut editor = state.editor();
     editor.dir = Some(created.dir.clone());
     editor.results.clear();
@@ -198,7 +196,7 @@ pub async fn create_project(
 
 #[tauri::command]
 #[specta::specta]
-pub fn save_workflow(
+pub async fn save_workflow(
     state: State<'_, AppState>,
     dir: String,
     workflow: Workflow,
@@ -208,7 +206,10 @@ pub fn save_workflow(
         .projects
         .save(Path::new(&dir), &workflow, base.as_deref())?;
     if matches!(result, SaveResult::Saved { .. }) {
-        state.db().touch_recent(&dir, &workflow.name, now_ms())?;
+        state
+            .db()
+            .touch_recent(&dir, &workflow.name, now_ms())
+            .await?;
     }
     Ok(result)
 }

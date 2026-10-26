@@ -1,25 +1,34 @@
 use crate::db::{Database, Result};
 
+pub struct FontRow {
+    pub font_id: String,
+    pub def: String,
+}
+
 impl Database {
-    pub fn font_rows(&self) -> Result<Vec<(String, String)>> {
-        let mut stmt = self
-            .conn
-            .prepare("SELECT fontId, def FROM fonts ORDER BY id")?;
-        let rows = stmt.query_map([], |r| Ok((r.get(0)?, r.get(1)?)))?;
-        Ok(rows.collect::<std::result::Result<_, _>>()?)
+    pub async fn font_rows(&self) -> Result<Vec<FontRow>> {
+        Ok(
+            sqlx::query_as!(FontRow, "SELECT font_id, def FROM fonts ORDER BY id")
+                .fetch_all(&self.pool)
+                .await?,
+        )
     }
 
-    pub fn save_font_row(&self, font_id: &str, def: &str) -> Result<()> {
-        self.conn.execute(
-            "INSERT INTO fonts (fontId, def) VALUES (?1, ?2) ON CONFLICT(fontId) DO UPDATE SET def = excluded.def",
-            rusqlite::params![font_id, def],
-        )?;
+    pub async fn save_font_row(&self, font_id: &str, def: &str) -> Result<()> {
+        sqlx::query!(
+            "INSERT INTO fonts (font_id, def) VALUES (?, ?) ON CONFLICT (font_id) DO UPDATE SET def = excluded.def",
+            font_id,
+            def
+        )
+        .execute(&self.pool)
+        .await?;
         Ok(())
     }
 
-    pub fn remove_font_row(&self, font_id: &str) -> Result<()> {
-        self.conn
-            .execute("DELETE FROM fonts WHERE fontId = ?1", [font_id])?;
+    pub async fn remove_font_row(&self, font_id: &str) -> Result<()> {
+        sqlx::query!("DELETE FROM fonts WHERE font_id = ?", font_id)
+            .execute(&self.pool)
+            .await?;
         Ok(())
     }
 }

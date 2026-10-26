@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT schema_hash FROM meta WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "schema_hash",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meta",
+            "name": "schema_hash"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "2a9b3eeddb99ec0b886dfced345de4bc875afa4644f0ae075e69d606dde7d69f"
+}

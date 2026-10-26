@@ -37,10 +37,6 @@ Timeline edits (`apps/ui/src/timeline/edits.ts`, 696 lines), `apps/ui/src/workfl
 
 `apps/ui/src/core` echoes the removed `packages/core`. Name folders for what they hold once items 5–9 have emptied most of it.
 
-### 17. The database schema written in drizzle
-
-`crates/store/db/schema.ts` is a drizzle schema whose only use is `drizzle-kit export` into `schema.generated.sql`, which Rust embeds; `drizzle-kit` and `drizzle-orm` are pinned to a release candidate for it. Keep the schema as a plain SQL file owned by `opsis-store` and drop drizzle.
-
 ### 18. Engine logic in TS scripts
 
 `scripts/engine-downloads.ts`, `scripts/lib/engine/*` (download, atomic writes, paths) and `scripts/lib/app-data.ts` repeat what `opsis-engine` and the desktop paths already do. Move them into Rust binaries (as `install-engine` already is), keeping TS only where a TS package is the input (`@remotion/renderer`'s `TESTED_VERSION`).

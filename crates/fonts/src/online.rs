@@ -298,7 +298,7 @@ impl FontsOnline {
     pub async fn download(
         &self,
         library: &FontLibrary,
-        db: &Mutex<Database>,
+        db: &Database,
         id: &str,
     ) -> Result<FontFamilyDef, OnlineError> {
         let detail: Detail = self
@@ -321,8 +321,7 @@ impl FontsOnline {
             license: self.license(id).await,
             license_type: detail.license.as_str().map(str::to_owned),
         };
-        let db = db.lock().expect("database");
-        let added = library.add_families(&db, vec![family])?;
+        let added = library.add_families(db, vec![family]).await?;
         added.into_iter().next().ok_or(OnlineError::Unreadable)
     }
 }
@@ -340,10 +339,10 @@ mod tests {
 
     const CLOSED: &str = "http://127.0.0.1:9";
 
-    fn library() -> (tempfile::TempDir, FontLibrary, Mutex<Database>) {
+    async fn library() -> (tempfile::TempDir, FontLibrary, Database) {
         let dir = tempfile::tempdir().unwrap();
         let library = FontLibrary::new(dir.path());
-        (dir, library, Mutex::new(Database::in_memory().unwrap()))
+        (dir, library, Database::in_memory().await.unwrap())
     }
 
     #[tokio::test]
@@ -353,7 +352,7 @@ mod tests {
             online.catalog().await.unwrap_err().to_string(),
             "Couldn't load the font list. Check your internet connection."
         );
-        let (_dir, library, db) = library();
+        let (_dir, library, db) = library().await;
         assert_eq!(
             online
                 .download(&library, &db, "lato")
@@ -372,7 +371,7 @@ mod tests {
             .mount(&server)
             .await;
         let online = FontsOnline::with_hosts(&server.uri(), &server.uri());
-        let (_dir, library, db) = library();
+        let (_dir, library, db) = library().await;
         assert_eq!(
             online
                 .download(&library, &db, "nope")

@@ -15,8 +15,8 @@ const FONT_FILES: [&str; 6] = ["ttf", "otf", "woff", "woff2", "ttc", "zip"];
 
 #[tauri::command]
 #[specta::specta]
-pub fn list_fonts(state: State<'_, AppState>) -> CommandResult<Vec<FontFamilyDef>> {
-    Ok(state.fonts.list(&state.db())?)
+pub async fn list_fonts(state: State<'_, AppState>) -> CommandResult<Vec<FontFamilyDef>> {
+    Ok(state.fonts.list(state.db()).await?)
 }
 
 #[tauri::command]
@@ -73,12 +73,15 @@ pub async fn inspect_installed_fonts(
 
 #[tauri::command]
 #[specta::specta]
-pub fn add_inspected_fonts(
+pub async fn add_inspected_fonts(
     state: State<'_, AppState>,
     token: String,
     families: Vec<String>,
 ) -> CommandResult<Vec<FontFamilyDef>> {
-    Ok(state.fonts.add_inspected(&state.db(), &token, &families)?)
+    Ok(state
+        .fonts
+        .add_inspected(state.db(), &token, &families)
+        .await?)
 }
 
 #[tauri::command]
@@ -89,8 +92,8 @@ pub fn release_inspected_fonts(state: State<'_, AppState>, token: String) {
 
 #[tauri::command]
 #[specta::specta]
-pub fn remove_font(state: State<'_, AppState>, id: String) -> CommandResult<()> {
-    Ok(state.fonts.remove(&state.db(), &id)?)
+pub async fn remove_font(state: State<'_, AppState>, id: String) -> CommandResult<()> {
+    Ok(state.fonts.remove(state.db(), &id).await?)
 }
 
 #[tauri::command]
@@ -105,7 +108,7 @@ pub async fn download_font(state: State<'_, AppState>, id: String) -> CommandRes
     state.tasks.begin(DOWNLOAD_TASK);
     let downloaded = state
         .fonts_online
-        .download(&state.fonts, &state.db, &id)
+        .download(&state.fonts, state.db(), &id)
         .await;
     state.tasks.end(DOWNLOAD_TASK);
     Ok(downloaded?)
@@ -113,12 +116,12 @@ pub async fn download_font(state: State<'_, AppState>, id: String) -> CommandRes
 
 #[tauri::command]
 #[specta::specta]
-pub fn use_font_in_project(
+pub async fn use_font_in_project(
     state: State<'_, AppState>,
     dir: String,
     font_id: String,
 ) -> CommandResult<FontFamilyDef> {
-    let library = state.fonts.list(&state.db())?;
+    let library = state.fonts.list(state.db()).await?;
     let def = library
         .into_iter()
         .find(|f| f.id == font_id)

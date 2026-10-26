@@ -59,11 +59,7 @@ fn tool_status(checks: &EngineChecks, saved: Option<&CheckedTool>, tool: EngineT
 }
 
 fn saved_engine(state: &AppState) -> EngineSection {
-    state
-        .db()
-        .read_settings()
-        .map(|s| s.engine)
-        .unwrap_or_default()
+    state.settings().engine
 }
 
 pub fn engine_status(state: &AppState) -> EngineStatus {
@@ -103,7 +99,11 @@ fn send_status(app: &AppHandle) {
     }
 }
 
-fn save(app: &AppHandle, tool: EngineTool, checked: Option<CheckedTool>) -> CommandResult<()> {
+async fn save(
+    app: &AppHandle,
+    tool: EngineTool,
+    checked: Option<CheckedTool>,
+) -> CommandResult<()> {
     let state = app.state::<AppState>();
     let value = serde_json::to_value(&checked)?;
     let mut fields = Map::new();
@@ -115,7 +115,7 @@ fn save(app: &AppHandle, tool: EngineTool, checked: Option<CheckedTool>) -> Comm
         value,
     );
     let patch = Map::from_iter([("engine".to_owned(), Value::Object(fields))]);
-    let (settings, _) = state.db().patch_settings(&patch)?;
+    let settings = state.patch_settings(&patch).await?;
     announce(app, settings);
     Ok(())
 }
@@ -167,7 +167,9 @@ async fn check_and_save(app: &AppHandle, tool: EngineTool, path: &Path) -> Resul
     let result = match checked {
         Ok(checked) => {
             set_check(app, tool, false, None);
-            save(app, tool, Some(checked)).map_err(|e| ToolProblem::Failed(e.0))
+            save(app, tool, Some(checked))
+                .await
+                .map_err(|e| ToolProblem::Failed(e.0))
         }
         Err(problem) => {
             set_check(app, tool, false, previous);
@@ -189,7 +191,7 @@ async fn verify_changed(app: &AppHandle, tool: EngineTool, saved: CheckedTool) {
             ..saved
         };
         set_check(app, tool, false, None);
-        if let Err(error) = save(app, tool, Some(refreshed)) {
+        if let Err(error) = save(app, tool, Some(refreshed)).await {
             log::warn!("saving the {}'s file stamp: {}", tool.label(), error.0);
         }
         return;

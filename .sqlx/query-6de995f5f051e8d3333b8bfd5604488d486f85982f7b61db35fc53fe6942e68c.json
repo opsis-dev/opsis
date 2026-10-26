@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO projects (dir, name, opened_at) VALUES (?, ?, ?) ON CONFLICT (dir) DO UPDATE SET name = excluded.name, opened_at = excluded.opened_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "6de995f5f051e8d3333b8bfd5604488d486f85982f7b61db35fc53fe6942e68c"
+}

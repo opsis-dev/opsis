@@ -85,12 +85,7 @@ async fn flush_save(app: &AppHandle) {
 }
 
 async fn confirm(app: &AppHandle, window: &Window) -> bool {
-    let ask_first = app
-        .state::<AppState>()
-        .db()
-        .read_settings()
-        .map(|s| s.app.confirm_exit)
-        .unwrap_or(true);
+    let ask_first = app.state::<AppState>().settings().app.confirm_exit;
     let busy = ongoing(app);
     if !ask_first && busy.is_empty() {
         return true;
@@ -112,9 +107,9 @@ async fn confirm(app: &AppHandle, window: &Window) -> bool {
     if ask_first && decision.dont_ask {
         let patch = serde_json::from_value(json!({ "app": { "confirmExit": false } }))
             .expect("a settings patch");
-        let patched = app.state::<AppState>().db().patch_settings(&patch);
+        let patched = app.state::<AppState>().patch_settings(&patch).await;
         match patched {
-            Ok((settings, _)) => crate::settings::announce(app, settings),
+            Ok(settings) => crate::settings::announce(app, settings),
             Err(error) => log::warn!("remembering not to ask: {error}"),
         }
     }
