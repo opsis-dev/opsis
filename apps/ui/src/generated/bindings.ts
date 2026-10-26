@@ -448,7 +448,7 @@ export type CatalogPort = {
 	many: boolean,
 };
 
-export type Category = "Browser" | "Capture" | "Camera" | "Cursor" | "Text & overlays" | "Transitions" | "Backgrounds" | "Effects" | "Grade" | "Elements" | "Audio" | "Timeline" | "Media" | "Output" | "Utility";
+export type Category = "Browser" | "Capture" | "Camera" | "Cursor" | "Text & overlays" | "Transitions" | "Backgrounds" | "Effects" | "Grade" | "Elements" | "Audio" | "Timeline" | "Media" | "Image" | "Output" | "Utility";
 
 export type ChainLink = {
 	itemId: string,

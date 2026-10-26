@@ -1,6 +1,3 @@
-import { staticFile } from "remotion";
-import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
-import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { z } from "zod";
 import { parseJsonWith } from "#video/common/guards.ts";
@@ -30,13 +27,6 @@ export function modelExtensions(buffer: ArrayBuffer): string[] {
   return [...(parsed.data.extensionsUsed ?? []), ...(parsed.data.extensionsRequired ?? [])];
 }
 
-let draco: DRACOLoader | null = null;
-
-function loader(): GLTFLoader {
-  draco ??= new DRACOLoader().setDecoderPath(staticFile("three/draco/"));
-  return new GLTFLoader().setDRACOLoader(draco).setMeshoptDecoder(MeshoptDecoder);
-}
-
 const folderOf = (url: string) => url.slice(0, url.lastIndexOf("/") + 1);
 
 async function fetchModel(url: string): Promise<GLTF> {
@@ -51,7 +41,7 @@ async function fetchModel(url: string): Promise<GLTF> {
   }
   if (extensions.some((e) => UNSUPPORTED_TEXTURES.includes(e)))
     throw new Error(TEXTURES_UNSUPPORTED);
-  return loader().parseAsync(buffer, folderOf(url));
+  return new GLTFLoader().parseAsync(buffer, folderOf(url));
 }
 
 const models = new Map<string, Promise<GLTF>>();

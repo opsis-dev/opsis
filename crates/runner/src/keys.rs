@@ -6,7 +6,7 @@ use opsis_compile::node::Phase;
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
 use opsis_engine::hash::versioned_hash;
-use opsis_engine::versions::PICTURE_VERSION;
+use opsis_engine::versions::{PICTURE_VERSION, PREPARED_VERSION};
 use opsis_project::stamps::{file_stamps, sign_in_stamp};
 use opsis_types::secrets::secret_name;
 use opsis_types::workflow::{Workflow, WorkflowNode};
@@ -98,6 +98,7 @@ pub fn hash_nodes(order: &[&WorkflowNode], inputs: &KeyInputs<'_>) -> HashMap<St
                 "settings": wf.settings,
                 "mix": wf.mix,
                 "picture": PICTURE_VERSION,
+                "prepared": PREPARED_VERSION,
                 "vars": inputs.vars,
                 "files": files,
             }),

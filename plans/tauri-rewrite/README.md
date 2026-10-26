@@ -2,7 +2,7 @@
 
 Opsis moves from Electron to Tauri. Rust owns the app: windows, the project, compile, runs, capture, the Local API and everything the worker does today. The editor stays React, running in the system webview. Remotion renders run in a Bun sidecar. One Chrome Headless Shell does capture, renders and the streamed views (preview, sign-in, element picker).
 
-Status: phases 1 to 6 are done on branch `feat/tauri` (1 `b11b013`, 1.5 `6181b36`, 2 `2b457a8`, 3 `3e8562c`, 4 `bd4181e` and `8932925`, 5 `cfd70d5`, 6 the commit after it): the app is the Tauri app and Electron is gone. Measurements before phase 6 are from the tree at `df01ff0` (card stills already removed) on Linux x64, taken 2026-10-25.
+Status: phases 1 to 7 are done on branch `feat/tauri` (1 `b11b013`, 1.5 `6181b36`, 2 `2b457a8`, 3 `3e8562c`, 4 `bd4181e` and `8932925`, 5 `cfd70d5`, 6 `2946e50`, 7 the commit after it): the app is the Tauri app and Electron is gone. Measurements before phase 6 are from the tree at `df01ff0` (card stills already removed) on Linux x64, taken 2026-10-25.
 
 ## How to read this plan
 
@@ -81,7 +81,7 @@ Each phase is checked before the next starts. Line counts are from `code-split.m
 - **Phase 4: runs, media and renders** (`opsis-runner`, `opsis-media`, `opsis-render`, `apps/sidecar` on Bun). The runner, cache keys and run events; the media and mix executors; the sidecar protocol, the asset server, the picture mux and export as code. About 7,300 lines. Check: FFmpeg argument strings equal the TS ones; renders through the sidecar byte-identical to the Node renders (`runner-and-executors.md`, `sidecar.md`).
 - **Phase 5: capture and streamed views** (`opsis-capture`, `opsis-stream`, `apps/preview`; done, `cfd70d5`). CDP client, sessions, selectors, actions, screencast encoder, sign-in steps; the stream transport and the view for preview, sign-in, picker and live frames. Check: the TodoMVC take's action log and frame count against a take from before the move (`capture-cdp.md`, `streamed-views.md`).
 - **Phase 6: the switch** (`opsis-desktop`, `opsis-api`; done, `desktop-shell.md` **Phase 6 as built**). The Tauri app: windows, title bar, menus, IPC commands and channels, protocols, exit; the Local API in Rust; the editor on the `window.opsis` facade, the Inspector on JSON Schema, the preview, sign-in and picker as streamed views, pop-out windows over Rust events. Electron, Forge, `src/`, `packages/core` and every TS duplicate of a Rust port are deleted, and `playwright-core` becomes a dev dependency (only `playwright:scripts` reads it). Check: the examples open, run and export on Linux with the same output as before (`desktop-shell.md`, `local-api.md`).
-- **Phase 7: asset preparation and image nodes** (`opsis-prepare`, `opsis-image`; `asset-preparation.md`, `image-nodes.md`).
+- **Phase 7: asset preparation and image nodes** (`opsis-prepare`, `opsis-image`; done, `asset-preparation.md` and `image-nodes.md` **Phase 7 as built**).
 - **Phase 8: packaging** (`packaging.md`), then `AGENTS.md` (`agents-md.md`). Until here there is no packaged build: Forge can't package the Tauri app, so phases 6 and 7 are checked in development.
 
 ## Conventions

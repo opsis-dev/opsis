@@ -3,16 +3,13 @@ import { useCurrentFrame, useVideoConfig } from "remotion";
 import { Box3, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { Font, type FontData } from "three/addons/loaders/FontLoader.js";
-import { firstFamily } from "#video/common/fonts.ts";
 import { useHeldLoad } from "#video/core/loading.ts";
-import { fontFileFor } from "#video/fonts/registry.ts";
-import type { CoreElementProps } from "#video/generated/spec.ts";
+import type { CoreElementProps, PreparedTypeface } from "#video/generated/spec.ts";
 import { elementPose } from "#video/three/motion.ts";
 import { FONT_UNREADABLE, loadOutlines, wrapLines } from "#video/three/outlines.ts";
 import { fitToSize } from "#video/three/shapes.ts";
 import { Posed, Stage3D } from "#video/three/stage.tsx";
 
-const HEADING_FONT = "df-heading";
 const TEXT_SIZE = 2.6;
 const LETTER_EM = 0.6;
 const LINE_HEIGHT_EM = 1.15;
@@ -22,7 +19,6 @@ const CURVE_SEGMENTS = 10;
 const ITALIC_SHEAR = 0.2;
 const ROUGHNESS = 0.3;
 const SEED = 1;
-const KEY_GAP = "\u0000";
 
 type TextLook = {
   text: string;
@@ -95,16 +91,14 @@ function dispose(model: Group): void {
   });
 }
 
-const outlinesFor = (key: string) => {
-  const [url = "", weight = ""] = key.split(KEY_GAP);
-  if (!url) return Promise.reject(new Error(FONT_UNREADABLE));
-  return loadOutlines(url, Number(weight));
-};
+const outlinesFor = (url: string) =>
+  url ? loadOutlines(url) : Promise.reject(new Error(FONT_UNREADABLE));
 
-export const Text3D: React.FC<CoreElementProps["core/text-3d"]> = ({
+export const Text3D: React.FC<CoreElementProps["core/text-3d"] & Partial<PreparedTypeface>> = ({
   text,
   fontFamily,
-  fontWeight,
+  typeface = "",
+  typefaceItalic = false,
   italic,
   depth,
   bevel,
@@ -120,12 +114,13 @@ export const Text3D: React.FC<CoreElementProps["core/text-3d"]> = ({
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const family = (fontFamily && firstFamily(fontFamily)) || HEADING_FONT;
-  const file = fontFileFor(family, fontWeight, italic);
-  const key = [file?.url ?? "", fontWeight].join(KEY_GAP);
-  const loaded = useHeldLoad(`Preparing 3D text in ${family}`, key, outlinesFor);
-  const outlines = loaded?.key === key ? loaded.value : null;
-  const slant = italic && !file?.italic;
+  const loaded = useHeldLoad(
+    `Preparing 3D text in ${fontFamily || "the heading font"}`,
+    typeface,
+    outlinesFor,
+  );
+  const outlines = loaded?.key === typeface ? loaded.value : null;
+  const slant = italic && !typefaceItalic;
   const model = useMemo(
     () =>
       outlines

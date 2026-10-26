@@ -692,6 +692,13 @@ pub struct Card3d {
     pub background: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct PreparedTypeface {
+    pub typeface: String,
+    pub typeface_italic: bool,
+}
+
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]

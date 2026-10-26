@@ -1,0 +1,195 @@
+{
+  "plain.glb": {
+    "extensionsUsed": [],
+    "animations": 1,
+    "textures": 1,
+    "primitives": [
+      {
+        "mesh": "ball-0",
+        "vertices": 825,
+        "indices": 4608,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "min": [
+          -1,
+          -1.2999999523162842,
+          -1
+        ],
+        "max": [
+          1,
+          1.2999999523162842,
+          1
+        ]
+      },
+      {
+        "mesh": "ball-1",
+        "vertices": 77,
+        "indices": 360,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "min": [
+          -0.4000000059604645,
+          -0.5199999809265137,
+          -0.38042259216308594
+        ],
+        "max": [
+          0.4000000059604645,
+          0.5199999809265137,
+          0.38042259216308594
+        ]
+      }
+    ]
+  },
+  "external/external.gltf": {
+    "extensionsUsed": [],
+    "animations": 1,
+    "textures": 1,
+    "primitives": [
+      {
+        "mesh": "ball-0",
+        "vertices": 825,
+        "indices": 4608,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "min": [
+          -1,
+          -1.2999999523162842,
+          -1
+        ],
+        "max": [
+          1,
+          1.2999999523162842,
+          1
+        ]
+      },
+      {
+        "mesh": "ball-1",
+        "vertices": 77,
+        "indices": 360,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "min": [
+          -0.4000000059604645,
+          -0.5199999809265137,
+          -0.38042259216308594
+        ],
+        "max": [
+          0.4000000059604645,
+          0.5199999809265137,
+          0.38042259216308594
+        ]
+      }
+    ]
+  },
+  "draco.glb": {
+    "extensionsUsed": [
+      "KHR_draco_mesh_compression"
+    ],
+    "animations": 1,
+    "textures": 1,
+    "primitives": [
+      {
+        "mesh": "ball-0",
+        "vertices": 824,
+        "indices": 4521,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "min": [
+          -1,
+          -1.2999999523162842,
+          -1
+        ],
+        "max": [
+          0.9999511241912842,
+          1.2999999523162842,
+          0.9999511241912842
+        ]
+      },
+      {
+        "mesh": "ball-1",
+        "vertices": 76,
+        "indices": 339,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "min": [
+          -0.4000000059604645,
+          -0.5199999809265137,
+          -0.38042259216308594
+        ],
+        "max": [
+          0.39998045563697815,
+          0.5199999809265137,
+          0.3804539442062378
+        ]
+      }
+    ]
+  },
+  "meshopt.glb": {
+    "extensionsUsed": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization"
+    ],
+    "animations": 1,
+    "textures": 1,
+    "primitives": [
+      {
+        "mesh": "ball-0",
+        "vertices": 825,
+        "indices": 4608,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "min": [
+          -0.7692800683614612,
+          -1,
+          -0.7692800683614612
+        ],
+        "max": [
+          0.7692800683614612,
+          1,
+          0.7692800683614612
+        ]
+      },
+      {
+        "mesh": "ball-1",
+        "vertices": 77,
+        "indices": 360,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "min": [
+          -0.7692800683614612,
+          -1,
+          -0.7315286721396527
+        ],
+        "max": [
+          0.7692800683614612,
+          1,
+          0.7315286721396527
+        ]
+      }
+    ]
+  }
+}

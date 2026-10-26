@@ -132,6 +132,28 @@ fn graded_file(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Option
         })
 }
 
+fn input_picture(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Option<SpotBackground> {
+    let edge = wf
+        .edges
+        .iter()
+        .find(|e| e.target == node_id && e.target_handle == crate::nodes::image::IMAGE_PORT)?;
+    match compiled
+        .values
+        .get(&edge.source)?
+        .get(&edge.source_handle)?
+    {
+        CompileValue::Image(image) => image.src.clone(),
+        CompileValue::Media(media) if media.kind == MediaKind::Image => media.src.clone(),
+        _ => None,
+    }
+    .map(|src| SpotBackground {
+        src,
+        time_ms: 0.0,
+        duration_ms: 0.0,
+        still: true,
+    })
+}
+
 fn session_at<'a>(
     wf: &Workflow,
     compiled: &'a CompileResult,
@@ -205,6 +227,7 @@ pub fn inspector_context(
         .max(1);
     let spot_background = match def.category {
         Category::Grade => graded_file(wf, node_id, compiled),
+        Category::Image => input_picture(wf, node_id, compiled),
         Category::Camera => recording_before(wf, node_id, results),
         _ if has_boxes(def.params.json()) => recording_before(wf, node_id, results),
         _ => None,

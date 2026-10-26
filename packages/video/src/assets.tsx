@@ -1,8 +1,11 @@
 import { createContext, useContext } from "react";
 import { staticFile } from "remotion";
 import {
+  PREPARED_FOLDER,
   STATIC_PROJECT_BASE,
   isAssetRef,
+  preparedPath,
+  preparedSource,
   joinUrl,
   refTarget,
   versionedUrl,
@@ -19,7 +22,17 @@ export const AssetProvider = AssetContext.Provider;
 
 export const useAssetBase = (): AssetBase => useContext(AssetContext);
 
+function resolvePrepared(path: string, base: AssetBase): string {
+  if (base.projectBase === undefined) return `prepared:${path}`;
+  if (base.projectBase === STATIC_PROJECT_BASE)
+    return staticFile(`project/${PREPARED_FOLDER}/${path}`);
+  const url = joinUrl(base.projectBase, `${PREPARED_FOLDER}/${path}`);
+  return versionedUrl(url, preparedSource(path) ?? "", base.versions);
+}
+
 export function resolveAssetRef(ref: string, base: AssetBase): string {
+  const prepared = preparedPath(ref);
+  if (prepared !== null) return resolvePrepared(prepared, base);
   const target = refTarget(ref);
   if (target.kind === "app") return staticFile(target.rel);
   if (target.kind !== "project") return ref;

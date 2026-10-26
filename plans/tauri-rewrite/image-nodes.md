@@ -47,6 +47,18 @@ Missing:
 5. **Copy.** Titles and descriptions in words, no library or format names beyond the file formats users choose.
 6. **Tests.** Fixed inputs with EXIF orientations 1–8 and a Display P3 JPEG; compare outputs by hash, and colour samples against a reference conversion.
 
+## Phase 7 as built
+
+Phase 7 (2026-10-26, branch `feat/tauri`) built `opsis-image` and the seven nodes in a new **Image** category (`crates/compile/src/nodes/image.rs`).
+
+- **Ports.** The inputs are file ports, not image ports: nothing converts a file into an image, so image inputs would have refused Import file. An image still converts to a file, so Screenshot and Grab frame connect too. The output is an image.
+- **Loading.** `load_image` applies the EXIF orientation and converts an embedded ICC profile to sRGB with `moxcms` (no profile failed, so `lcms2` wasn't added), keeping 16 bits and transparency. AVIF and HEIC can't be read (AVIF reading needs the `dav1d` C library); AVIF can be written.
+- **Between nodes** the image is a PNG; Image format writes PNG, JPEG (with a background for see-through parts), lossless WebP or AVIF.
+- **Crop and Place** draw on the input itself: the Inspector's picture for an Image node is its connected input.
+- **Cards** show the size the node makes, from the run's result or worked out from the input's size (`CardInputs.pixels`), with the 2× upscale and 64 px crop warnings.
+- **Tests.** Orientations 1–8 in JPEGs come out upright; a Display P3 image matches an independent matrix conversion to sRGB within 2 levels; each operation is checked by size and pixels, every format opens again; an ignored run test takes an imported picture through all seven nodes with the runner.
+- **Not done.** Hash comparison of outputs: the encoders' bytes change between crate releases, so the tests compare sizes and pixels instead.
+
 ## Risks
 
 - **ICC coverage.** `moxcms` may not handle every profile type; the fallback is Little CMS through `lcms2`.

@@ -25,7 +25,6 @@ export const IGNORED_PATHS = [
   "remotion-bundle/**",
   "scripts/.ingest/**",
   "resources/**",
-  "public/three/**",
   "packages/*/dist/**",
   "apps/ui/src/routeTree.gen.ts",
   "apps/ui/src/components/ui/**",

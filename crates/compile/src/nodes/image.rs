@@ -1,0 +1,645 @@
+use opsis_types::cards::Icon;
+use opsis_types::values::CompileValue;
+use opsis_types::workflow::PortType;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
+
+use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, RowExt, missing, port, row};
+use crate::nodes::effects::Area;
+use crate::params::Params;
+
+pub const IMAGE_PORT: &str = "image";
+pub const OVERLAY_PORT: &str = "overlay";
+pub const MAX_SIDE: i64 = 16384;
+pub const SOFT_UPSCALE: f64 = 2.0;
+pub const SMALL_CROP: f64 = 64.0;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Rect {
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum ResizeFit {
+    #[default]
+    Inside,
+    Cover,
+    Exact,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum Resample {
+    Fast,
+    Smooth,
+    #[default]
+    Sharp,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ResizeImage {
+    #[default = 1920]
+    #[schemars(
+        description = "Width",
+        range(min = 0, max = 16384),
+        extend("x-unit" = "px", "x-help" = "0 follows the height and keeps the proportion.")
+    )]
+    pub width: i64,
+    #[schemars(
+        description = "Height",
+        range(min = 0, max = 16384),
+        extend("x-unit" = "px", "x-help" = "0 follows the width and keeps the proportion.")
+    )]
+    pub height: i64,
+    #[schemars(
+        description = "Fit",
+        extend(
+            "x-labels" = { "inside": "Fit inside", "cover": "Fill and crop", "exact": "Stretch" },
+            "x-help" = "When both sides are set: fit the whole image inside them, fill them and crop the rest, or stretch to exactly that size."
+        )
+    )]
+    pub fit: ResizeFit,
+    #[schemars(
+        description = "Quality",
+        extend("x-labels" = { "fast": "Fast", "smooth": "Smooth", "sharp": "Sharp" }, "x-advanced" = true)
+    )]
+    pub quality: Resample,
+}
+
+impl Params for ResizeImage {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum CropMode {
+    #[default]
+    Area,
+    Margins,
+}
+
+fn whole_area() -> Vec<Area> {
+    vec![Area {
+        x: 0.1,
+        y: 0.1,
+        width: 0.8,
+        height: 0.8,
+    }]
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct CropImage {
+    #[schemars(description = "Crop by", extend("x-labels" = { "area": "Area", "margins": "Margins" }))]
+    pub mode: CropMode,
+    #[default(whole_area())]
+    #[schemars(
+        description = "Area to keep",
+        length(min = 1, max = 1),
+        extend(
+            "x-widget" = "boxes",
+            "x-show-if" = { "mode": ["area"] },
+            "x-help" = "Drag on the picture to choose the part to keep."
+        )
+    )]
+    pub area: Vec<Area>,
+    #[schemars(description = "Top", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
+    pub top: i64,
+    #[schemars(description = "Right", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
+    pub right: i64,
+    #[schemars(description = "Bottom", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
+    pub bottom: i64,
+    #[schemars(description = "Left", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
+    pub left: i64,
+}
+
+impl Params for CropImage {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum Turn {
+    #[default]
+    None,
+    Right,
+    Half,
+    Left,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct RotateImage {
+    #[default(Turn::Right)]
+    #[schemars(
+        description = "Turn",
+        extend("x-labels" = { "none": "None", "right": "90° right", "half": "180°", "left": "90° left" })
+    )]
+    pub turn: Turn,
+    #[schemars(description = "Flip left to right")]
+    pub flip_horizontal: bool,
+    #[schemars(description = "Flip upside down")]
+    pub flip_vertical: bool,
+    #[schemars(
+        description = "Straighten",
+        range(min = -45, max = 45),
+        extend("x-step" = 0.5, "x-unit" = "°", "x-help" = "Tilts the picture by a small angle. The corners fill with the background colour.")
+    )]
+    pub angle: f64,
+    #[default = "#00000000"]
+    #[schemars(
+        description = "Background",
+        extend("x-widget" = "color", "x-check" = { "rule": "colour", "message": "Pick a colour" }, "x-help" = "Fills the corners a tilt opens up.")
+    )]
+    pub background: String,
+}
+
+impl Params for RotateImage {}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct AdjustImage {
+    #[schemars(description = "Brightness", range(min = -1, max = 1), extend("x-step" = 0.05))]
+    pub brightness: f64,
+    #[schemars(description = "Contrast", range(min = -1, max = 1), extend("x-step" = 0.05))]
+    pub contrast: f64,
+    #[schemars(description = "Saturation", range(min = -1, max = 1), extend("x-step" = 0.05, "x-help" = "-1 takes all the colour out."))]
+    pub saturation: f64,
+    #[schemars(description = "Hue", range(min = -180, max = 180), extend("x-step" = 1, "x-unit" = "°"))]
+    pub hue: f64,
+    #[schemars(description = "Black and white")]
+    pub grayscale: bool,
+    #[schemars(description = "Invert colours")]
+    pub invert: bool,
+}
+
+impl Params for AdjustImage {}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct BlurImage {
+    #[schemars(description = "Blur", range(min = 0, max = 100), extend("x-step" = 0.5, "x-unit" = "px"))]
+    pub blur: f64,
+    #[default = 1.0]
+    #[schemars(description = "Sharpen", range(min = 0, max = 5), extend("x-step" = 0.1))]
+    pub sharpen: f64,
+    #[default = 4]
+    #[schemars(
+        description = "Sharpen threshold",
+        range(min = 0, max = 255),
+        extend("x-advanced" = true, "x-help" = "Differences smaller than this stay as they are, so flat areas don't get grainy.")
+    )]
+    pub threshold: i64,
+}
+
+impl Params for BlurImage {}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct PlaceImage {
+    #[default = 0.85]
+    #[schemars(
+        description = "Place at",
+        range(min = 0, max = 1),
+        extend("x-step" = 0.01, "x-widget" = "spot", "x-help" = "Click the picture to choose where the middle of the placed image goes.")
+    )]
+    pub x: f64,
+    #[default = 0.85]
+    #[schemars(description = "Place at vertical", range(min = 0, max = 1), extend("x-step" = 0.01, "x-hidden" = true))]
+    pub y: f64,
+    #[default = 20.0]
+    #[schemars(
+        description = "Size",
+        range(min = 1, max = 100),
+        extend("x-step" = 1, "x-unit" = "%", "x-help" = "The placed image's width, as a share of the picture's width.")
+    )]
+    pub size: f64,
+    #[default = 1.0]
+    #[schemars(description = "Opacity", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    pub opacity: f64,
+}
+
+impl Params for PlaceImage {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum StillFileFormat {
+    #[default]
+    Png,
+    Jpeg,
+    Webp,
+    Avif,
+}
+
+impl StillFileFormat {
+    pub fn extension(self) -> &'static str {
+        match self {
+            Self::Png => "png",
+            Self::Jpeg => "jpg",
+            Self::Webp => "webp",
+            Self::Avif => "avif",
+        }
+    }
+
+    pub fn word(self) -> &'static str {
+        match self {
+            Self::Png => "PNG",
+            Self::Jpeg => "JPEG",
+            Self::Webp => "WebP",
+            Self::Avif => "AVIF",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ImageFormat {
+    #[default(StillFileFormat::Jpeg)]
+    #[schemars(
+        description = "Format",
+        extend("x-labels" = { "png": "PNG", "jpeg": "JPEG", "webp": "WebP (lossless)", "avif": "AVIF" })
+    )]
+    pub format: StillFileFormat,
+    #[default = 85]
+    #[schemars(
+        description = "Quality",
+        range(min = 1, max = 100),
+        extend("x-show-if" = { "format": ["jpeg", "avif"] }, "x-help" = "Higher looks better and makes a larger file.")
+    )]
+    pub quality: i64,
+    #[default = 6]
+    #[schemars(
+        description = "Speed",
+        range(min = 1, max = 10),
+        extend("x-show-if" = { "format": ["avif"] }, "x-advanced" = true, "x-help" = "Higher saves faster and makes a larger file.")
+    )]
+    pub speed: i64,
+    #[default = "#ffffff"]
+    #[schemars(
+        description = "Background",
+        extend(
+            "x-widget" = "color",
+            "x-check" = { "rule": "colour", "message": "Pick a colour" },
+            "x-show-if" = { "format": ["jpeg"] },
+            "x-help" = "JPEG has no see-through parts, so they're filled with this colour."
+        )
+    )]
+    pub background: String,
+}
+
+impl Params for ImageFormat {}
+
+fn even(value: f64) -> f64 {
+    value.round().max(1.0)
+}
+
+pub fn resized_size(source: (f64, f64), p: &ResizeImage) -> (f64, f64) {
+    let (sw, sh) = source;
+    let (w, h) = (p.width as f64, p.height as f64);
+    match (w > 0.0, h > 0.0) {
+        (false, false) => (sw, sh),
+        (true, false) => (w, even(sh * w / sw)),
+        (false, true) => (even(sw * h / sh), h),
+        (true, true) => match p.fit {
+            ResizeFit::Inside => {
+                let scale = (w / sw).min(h / sh);
+                (even(sw * scale), even(sh * scale))
+            }
+            ResizeFit::Cover | ResizeFit::Exact => (w, h),
+        },
+    }
+}
+
+pub fn upscale(source: (f64, f64), out: (f64, f64)) -> f64 {
+    (out.0 / source.0).max(out.1 / source.1)
+}
+
+pub fn crop_rect(source: (f64, f64), p: &CropImage) -> Rect {
+    let (sw, sh) = source;
+    let rect = match p.mode {
+        CropMode::Area => {
+            let area = p.area.first().cloned().unwrap_or(Area {
+                x: 0.0,
+                y: 0.0,
+                width: 1.0,
+                height: 1.0,
+            });
+            Rect {
+                x: (area.x * sw).round(),
+                y: (area.y * sh).round(),
+                width: (area.width * sw).round(),
+                height: (area.height * sh).round(),
+            }
+        }
+        CropMode::Margins => Rect {
+            x: p.left as f64,
+            y: p.top as f64,
+            width: sw - (p.left + p.right) as f64,
+            height: sh - (p.top + p.bottom) as f64,
+        },
+    };
+    let x = rect.x.clamp(0.0, sw - 1.0);
+    let y = rect.y.clamp(0.0, sh - 1.0);
+    Rect {
+        x,
+        y,
+        width: rect.width.clamp(1.0, sw - x),
+        height: rect.height.clamp(1.0, sh - y),
+    }
+}
+
+pub fn rotated_size(source: (f64, f64), p: &RotateImage) -> (f64, f64) {
+    let (w, h) = match p.turn {
+        Turn::Right | Turn::Left => (source.1, source.0),
+        Turn::None | Turn::Half => source,
+    };
+    if p.angle == 0.0 {
+        return (w, h);
+    }
+    let (sin, cos) = p.angle.to_radians().sin_cos();
+    (
+        (w * cos.abs() + h * sin.abs()).ceil(),
+        (w * sin.abs() + h * cos.abs()).ceil(),
+    )
+}
+
+fn pixels(width: f64, height: f64) -> String {
+    format!("{} × {} px", width as i64, height as i64)
+}
+
+fn result_size<P>(ctx: &CardCtx<'_, P>) -> Option<(f64, f64)> {
+    match ctx.result?.output(IMAGE_PORT)? {
+        CompileValue::Image(image) => Some((image.width?, image.height?)),
+        _ => None,
+    }
+}
+
+fn input_size<P>(ctx: &CardCtx<'_, P>, port_name: &str) -> Option<(f64, f64)> {
+    ctx.inputs.pixels.get(port_name).copied()
+}
+
+fn size_row<P>(
+    ctx: &CardCtx<'_, P>,
+    planned: impl Fn((f64, f64)) -> (f64, f64),
+) -> Option<opsis_types::cards::CardRow> {
+    let size = result_size(ctx).or_else(|| input_size(ctx, IMAGE_PORT).map(planned))?;
+    Some(row(Icon::Ruler, pixels(size.0, size.1)))
+}
+
+fn image_node<P: Params>(kind: &'static str, title: &str, description: &str) -> NodeDef {
+    NodeDef::of::<P>(kind, title, Category::Image, Phase::Media)
+        .describe(format!("{description} Makes a new file."))
+        .executes()
+        .inputs(vec![(IMAGE_PORT, port(PortType::Media, "Image"))])
+        .outputs(vec![(IMAGE_PORT, port(PortType::Image, "Image"))])
+        .compile(|ctx: &Ctx<'_, P>| {
+            let image = ctx
+                .result
+                .and_then(|r| r.output(IMAGE_PORT))
+                .filter(|v| matches!(v, CompileValue::Image(_)));
+            Ok(Some(
+                image
+                    .map(|v| (IMAGE_PORT.to_owned(), v.clone()))
+                    .into_iter()
+                    .collect(),
+            ))
+        })
+}
+
+fn resize() -> NodeDef {
+    image_node::<ResizeImage>(
+        "image.resize",
+        "Resize image",
+        "Makes an image a chosen width, height or both.",
+    )
+    .card(|ctx: &CardCtx<'_, ResizeImage>| {
+        let p = &ctx.params;
+        let side = |v: i64| {
+            if v > 0 {
+                v.to_string()
+            } else {
+                "auto".to_owned()
+            }
+        };
+        let mut rows = vec![size_row(ctx, |s| resized_size(s, p)).or_else(|| {
+            Some(row(
+                Icon::Ruler,
+                format!("{} × {} px", side(p.width), side(p.height)),
+            ))
+        })];
+        if let Some(source) = input_size(ctx, IMAGE_PORT) {
+            let factor = upscale(source, resized_size(source, p));
+            if factor > SOFT_UPSCALE {
+                rows.push(Some(missing(
+                    Icon::TriangleAlert,
+                    format!("Enlarges {:.1}×, so it may look soft", factor),
+                )));
+            }
+        }
+        rows
+    })
+}
+
+fn crop() -> NodeDef {
+    image_node::<CropImage>(
+        "image.crop",
+        "Crop image",
+        "Keeps one part of an image: an area you draw on it, or what's inside margins.",
+    )
+    .card(|ctx: &CardCtx<'_, CropImage>| {
+        let p = &ctx.params;
+        let mut rows = vec![
+            size_row(ctx, |s| {
+                let r = crop_rect(s, p);
+                (r.width, r.height)
+            })
+            .or_else(|| {
+                Some(row(
+                    Icon::Crop,
+                    match p.mode {
+                        CropMode::Area => "An area you draw".to_owned(),
+                        CropMode::Margins => {
+                            format!("Margins {} {} {} {} px", p.top, p.right, p.bottom, p.left)
+                        }
+                    },
+                ))
+            }),
+        ];
+        if let Some(source) = input_size(ctx, IMAGE_PORT) {
+            let r = crop_rect(source, p);
+            if r.width.min(r.height) < SMALL_CROP {
+                rows.push(Some(missing(
+                    Icon::TriangleAlert,
+                    format!("Only {} px is left", r.width.min(r.height) as i64),
+                )));
+            }
+        }
+        rows
+    })
+}
+
+fn rotate() -> NodeDef {
+    image_node::<RotateImage>(
+        "image.rotate",
+        "Rotate and flip",
+        "Turns an image in quarter turns, flips it, or straightens it by a small angle.",
+    )
+    .card(|ctx: &CardCtx<'_, RotateImage>| {
+        let p = &ctx.params;
+        let mut parts: Vec<String> = Vec::new();
+        match p.turn {
+            Turn::Right => parts.push("90° right".into()),
+            Turn::Half => parts.push("180°".into()),
+            Turn::Left => parts.push("90° left".into()),
+            Turn::None => {}
+        }
+        if p.flip_horizontal {
+            parts.push("flipped left to right".into());
+        }
+        if p.flip_vertical {
+            parts.push("flipped upside down".into());
+        }
+        if p.angle != 0.0 {
+            parts.push(format!("tilted {}°", p.angle));
+        }
+        let what = if parts.is_empty() {
+            row(Icon::RefreshCw, "No change").muted_if(true)
+        } else {
+            row(Icon::RefreshCw, crate::card::sentence(&parts.join(", ")))
+        };
+        vec![Some(what), size_row(ctx, |s| rotated_size(s, p))]
+    })
+}
+
+fn adjust() -> NodeDef {
+    image_node::<AdjustImage>(
+        "image.adjust",
+        "Adjust image",
+        "Changes an image's brightness, contrast, colour and hue.",
+    )
+    .card(|ctx: &CardCtx<'_, AdjustImage>| {
+        let p = &ctx.params;
+        let signed = |v: f64| {
+            format!(
+                "{}{}",
+                if v > 0.0 { "+" } else { "" },
+                (v * 100.0).round() as i64
+            )
+        };
+        let mut parts = Vec::new();
+        if p.brightness != 0.0 {
+            parts.push(format!("brightness {}", signed(p.brightness)));
+        }
+        if p.contrast != 0.0 {
+            parts.push(format!("contrast {}", signed(p.contrast)));
+        }
+        if p.saturation != 0.0 {
+            parts.push(format!("colour {}", signed(p.saturation)));
+        }
+        if p.hue != 0.0 {
+            parts.push(format!("hue {}°", p.hue));
+        }
+        if p.grayscale {
+            parts.push("black and white".into());
+        }
+        if p.invert {
+            parts.push("inverted".into());
+        }
+        let what = if parts.is_empty() {
+            row(Icon::Sun, "No change").muted_if(true)
+        } else {
+            row(Icon::Sun, crate::card::sentence(&parts.join(", ")))
+        };
+        vec![Some(what), size_row(ctx, |s| s)]
+    })
+}
+
+fn blur() -> NodeDef {
+    image_node::<BlurImage>(
+        "image.blur",
+        "Blur and sharpen",
+        "Softens an image or makes its edges crisper.",
+    )
+    .card(|ctx: &CardCtx<'_, BlurImage>| {
+        let p = &ctx.params;
+        let mut parts = Vec::new();
+        if p.blur > 0.0 {
+            parts.push(format!("blur {} px", p.blur));
+        }
+        if p.sharpen > 0.0 {
+            parts.push(format!("sharpen {}", p.sharpen));
+        }
+        let what = if parts.is_empty() {
+            row(Icon::Wind, "No change").muted_if(true)
+        } else {
+            row(Icon::Wind, crate::card::sentence(&parts.join(", ")))
+        };
+        vec![Some(what), size_row(ctx, |s| s)]
+    })
+}
+
+fn place() -> NodeDef {
+    image_node::<PlaceImage>(
+        "image.place",
+        "Place image",
+        "Puts a second image, such as a logo or a watermark, on top of an image.",
+    )
+    .inputs(vec![
+        (IMAGE_PORT, port(PortType::Media, "Image")),
+        (OVERLAY_PORT, port(PortType::Media, "On top")),
+    ])
+    .card(|ctx: &CardCtx<'_, PlaceImage>| {
+        let p = &ctx.params;
+        let mut rows = vec![Some(row(
+            Icon::Layers,
+            format!(
+                "{} % wide at {} %, {} %{}",
+                p.size.round() as i64,
+                (p.x * 100.0).round() as i64,
+                (p.y * 100.0).round() as i64,
+                if p.opacity < 1.0 {
+                    format!(" · {} % opaque", (p.opacity * 100.0).round() as i64)
+                } else {
+                    String::new()
+                }
+            ),
+        ))];
+        if !ctx.connected(OVERLAY_PORT) {
+            rows.push(Some(missing(Icon::Image, "Connect an image to place")));
+        }
+        rows.push(size_row(ctx, |s| s));
+        rows
+    })
+}
+
+fn format() -> NodeDef {
+    image_node::<ImageFormat>(
+        "image.format",
+        "Image format",
+        "Saves an image as PNG, JPEG, WebP or AVIF.",
+    )
+    .card(|ctx: &CardCtx<'_, ImageFormat>| {
+        let p = &ctx.params;
+        let text = match p.format {
+            StillFileFormat::Jpeg | StillFileFormat::Avif => {
+                format!("{} · quality {}", p.format.word(), p.quality)
+            }
+            StillFileFormat::Png | StillFileFormat::Webp => p.format.word().to_owned(),
+        };
+        vec![Some(row(Icon::Image, text)), size_row(ctx, |s| s)]
+    })
+}
+
+pub fn nodes() -> Vec<NodeDef> {
+    vec![
+        resize(),
+        crop(),
+        rotate(),
+        adjust(),
+        blur(),
+        place(),
+        format(),
+    ]
+}

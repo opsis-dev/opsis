@@ -146,3 +146,86 @@ pub fn kind_from_path(path: &str) -> opsis_types::values::MediaKind {
         MediaKind::Video
     }
 }
+
+pub const PREPARED_SCHEME: &str = "prepared:";
+pub const PREPARED_FOLDER: &str = ".opsis/prepared";
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum PreparedKind {
+    Typeface { weight: f64 },
+    Model,
+    Svg,
+    Texture,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PreparedRef {
+    pub kind: PreparedKind,
+    pub source: RefTarget,
+}
+
+fn weight_text(weight: f64) -> String {
+    if weight.fract() == 0.0 {
+        format!("{}", weight as i64)
+    } else {
+        format!("{weight}")
+    }
+}
+
+impl PreparedRef {
+    pub fn new(kind: PreparedKind, source: &str) -> Option<Self> {
+        let source = match ref_target(source) {
+            RefTarget::Project(rel) if is_project_ref(source) && stays_in_project(source) => {
+                RefTarget::Project(rel)
+            }
+            RefTarget::App(rel) if !rel.split('/').any(|p| p == "..") => RefTarget::App(rel),
+            _ => return None,
+        };
+        Some(Self { kind, source })
+    }
+
+    pub fn path(&self) -> String {
+        let kind = match self.kind {
+            PreparedKind::Typeface { weight } => format!("typeface/{}", weight_text(weight)),
+            PreparedKind::Model => "model".to_owned(),
+            PreparedKind::Svg => "svg".to_owned(),
+            PreparedKind::Texture => "texture".to_owned(),
+        };
+        let source = match &self.source {
+            RefTarget::App(rel) => format!("app/{rel}"),
+            RefTarget::Project(rel) => format!("project/{rel}"),
+            RefTarget::External(r) | RefTarget::Absolute(r) => r.clone(),
+        };
+        format!("{kind}/{source}")
+    }
+
+    pub fn to_ref(&self) -> String {
+        format!("{PREPARED_SCHEME}{}", self.path())
+    }
+
+    pub fn parse(r: &str) -> Option<Self> {
+        Self::from_path(r.strip_prefix(PREPARED_SCHEME)?)
+    }
+
+    pub fn from_path(path: &str) -> Option<Self> {
+        let (kind, rest) = path.split_once('/')?;
+        let (kind, rest) = match kind {
+            "typeface" => {
+                let (weight, rest) = rest.split_once('/')?;
+                let weight = weight.parse().ok().filter(|w: &f64| w.is_finite())?;
+                (PreparedKind::Typeface { weight }, rest)
+            }
+            "model" => (PreparedKind::Model, rest),
+            "svg" => (PreparedKind::Svg, rest),
+            "texture" => (PreparedKind::Texture, rest),
+            _ => return None,
+        };
+        let (scheme, rel) = rest.split_once('/')?;
+        let source = match scheme {
+            "project" => format!("{PROJECT_SCHEME}{rel}"),
+            "app" => format!("{APP_SCHEME}{rel}"),
+            _ => return None,
+        };
+        Self::new(kind, &source)
+    }
+}

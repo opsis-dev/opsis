@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 use opsis_capture::executors::{CaptureDeps, capture_executors};
 use opsis_capture::live::{LiveFeed, LiveMessage};
 use opsis_engine::temp::{ChildKind, child_temp_name, make_child_temp, remove_child_temp};
+use opsis_image::executors::image_executors;
 use opsis_media::executors::media_executors;
 use opsis_render::executors::{RenderEngine, output_executors};
 use opsis_render::export_project::ExportSources;
@@ -163,6 +164,7 @@ fn executors(app: &AppHandle) -> Executors {
     let mut all = Executors::default();
     let lists = [
         media_executors(&tools),
+        image_executors(),
         output_executors(&engine),
         capture_executors(&capture),
     ];

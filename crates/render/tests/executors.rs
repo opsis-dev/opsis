@@ -59,6 +59,7 @@ fn all_executors() -> Vec<(&'static str, ExecutorFn)> {
     });
     let mut all = media_executors(&tools);
     all.extend(output_executors(&engine));
+    all.extend(opsis_image::executors::image_executors());
     all.extend(capture_executors(&capture));
     all
 }

@@ -172,6 +172,37 @@ fn param_cases_match() {
     );
 }
 
+fn prepared_files_replace_parsing_in_the_page(value: &mut Value) {
+    match value {
+        Value::Object(map) => {
+            if map
+                .get("typeface")
+                .and_then(Value::as_str)
+                .is_some_and(|t| t.starts_with("prepared:"))
+            {
+                map.remove("typeface");
+                map.remove("typefaceItalic");
+            }
+            if let Some(src) = map.get("src").and_then(Value::as_str)
+                && let Some(prepared) = opsis_compile::asset_ref::PreparedRef::parse(src)
+            {
+                let source = match prepared.source {
+                    opsis_compile::asset_ref::RefTarget::Project(rel) => format!("project:{rel}"),
+                    opsis_compile::asset_ref::RefTarget::App(rel) => format!("app:{rel}"),
+                    _ => unreachable!(),
+                };
+                map.insert("src".into(), Value::from(source));
+            }
+            map.values_mut()
+                .for_each(prepared_files_replace_parsing_in_the_page);
+        }
+        Value::Array(items) => items
+            .iter_mut()
+            .for_each(prepared_files_replace_parsing_in_the_page),
+        _ => {}
+    }
+}
+
 fn empty_workflow() -> Workflow {
     serde_json::from_value(
         json!({ "version": 1, "id": "case", "name": "Case", "nodes": [], "edges": [] }),
@@ -227,7 +258,8 @@ fn node_cases_match() {
                                 .map(|r| r.outputs.clone())
                                 .unwrap_or_default()
                         });
-                        let actual = serde_json::to_value(&out).unwrap();
+                        let mut actual = serde_json::to_value(&out).unwrap();
+                        prepared_files_replace_parsing_in_the_page(&mut actual);
                         if let Some(d) = first_difference(&case["outputs"], &actual) {
                             problems.push(format!("{at} outputs{d}"));
                         }

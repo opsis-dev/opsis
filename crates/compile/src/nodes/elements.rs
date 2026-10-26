@@ -4,7 +4,7 @@ use opsis_types::timeline::{
     SequencerProps, VisualEnvelope,
 };
 use opsis_types::values::{ClipValue, CompileValue};
-use opsis_types::workflow::PortType;
+use opsis_types::workflow::{PortType, WorkflowSettings};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
@@ -20,6 +20,7 @@ use crate::elements::introspect::{
     frames_from_seconds, is_color_schema, map_leaves, widget_keys, widget_of,
 };
 use crate::elements::lengths::{animation_length, fits_its_animation};
+use crate::elements::prepared::prepare_props;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta, element_node_type, elements};
 use crate::fonts::font_prop;
 use crate::gradient::{GradientKind, parse_gradient};
@@ -286,10 +287,12 @@ fn compile_element(
     node_id: &str,
     values: &Values,
     input: Option<&ClipValue>,
-    fps: f64,
+    settings: &WorkflowSettings,
 ) -> ClipValue {
+    let fps = settings.fps;
     let (clip_duration, envelope, params) = split_timing(values);
     let mut props = element_props(meta, &params);
+    prepare_props(&meta.key, &mut props, &settings.fonts);
     let handles = trim_end_handles(node_id);
     let camera = active_camera(&params);
     match input.filter(|_| meta.kind == ElementKind::Wrapper) {
@@ -543,7 +546,7 @@ fn element_node(meta: &'static ElementMeta) -> NodeDef {
                 ctx.node_id,
                 ctx.values,
                 input,
-                ctx.settings.fps,
+                ctx.settings,
             )),
         )])
     });

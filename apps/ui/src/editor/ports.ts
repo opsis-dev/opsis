@@ -21,6 +21,7 @@ export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: NodeIc
   Audio: { color: "#34d399", icon: "music" },
   Timeline: { color: "#f472b6", icon: "layers" },
   Media: { color: "#60a5fa", icon: "file-play" },
+  Image: { color: "#2dd4bf", icon: "image" },
   Output: { color: "#f43f5e", icon: "clapperboard" },
   Utility: { color: NEUTRAL_COLOR, icon: "sticky-note" },
 };

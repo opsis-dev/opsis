@@ -37,6 +37,7 @@ pub fn spec_types() -> String {
             .register::<CaptionsValue>()
             .register::<ActionLog>()
             .register::<ProjectFonts>()
-            .register::<CoreElementProps>(),
+            .register::<CoreElementProps>()
+            .register::<crate::elements::core::PreparedTypeface>(),
     )
 }

@@ -6,6 +6,7 @@ pub mod cursor;
 pub mod effects;
 pub mod elements;
 pub mod grade;
+pub mod image;
 pub mod media;
 pub mod output;
 pub mod text;
@@ -29,6 +30,7 @@ pub fn all() -> Vec<NodeDef> {
         audio::nodes(),
         timeline::nodes(),
         media::nodes(),
+        image::nodes(),
         output::nodes(),
         utility::nodes(),
     ]

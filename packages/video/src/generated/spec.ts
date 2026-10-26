@@ -449,6 +449,11 @@ export type Point = {
 	y: number,
 };
 
+export type PreparedTypeface = {
+	typeface: string,
+	typefaceItalic: boolean,
+};
+
 export type PreviewQuality = "fast" | "exact";
 
 export type ProjectFonts = {

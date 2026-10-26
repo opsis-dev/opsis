@@ -369,3 +369,78 @@ fn lists_visible_node_types_and_describes_one_with_its_ports_and_settings() {
     }
     assert!(catalog_entry("nope.nothing").is_none());
 }
+
+#[test]
+fn prepared_refs_name_their_kind_settings_and_source_and_come_back_whole() {
+    use opsis_compile::asset_ref::{PreparedKind, PreparedRef};
+    let typeface = PreparedRef::new(
+        PreparedKind::Typeface { weight: 700.0 },
+        "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+    )
+    .unwrap();
+    assert_eq!(
+        typeface.to_ref(),
+        "prepared:typeface/700/app/fonts/bundled/inter/inter-latin-wght-normal.woff2"
+    );
+    assert_eq!(PreparedRef::parse(&typeface.to_ref()), Some(typeface));
+    let model = PreparedRef::new(PreparedKind::Model, "project:assets/models/robot.glb").unwrap();
+    assert_eq!(model.path(), "model/project/assets/models/robot.glb");
+    assert_eq!(PreparedRef::from_path(&model.path()), Some(model));
+    assert_eq!(
+        PreparedRef::new(PreparedKind::Svg, "project:../secrets/a.svg"),
+        None
+    );
+    assert_eq!(
+        PreparedRef::new(PreparedKind::Svg, "https://example.com/a.svg"),
+        None
+    );
+    assert_eq!(PreparedRef::from_path("model/app/../../etc/passwd"), None);
+    assert_eq!(PreparedRef::from_path("video/project/a.mp4"), None);
+}
+
+#[test]
+fn three_d_elements_name_prepared_files_and_text_picks_the_face_the_page_would() {
+    use opsis_compile::elements::prepared::prepare_props;
+    use opsis_types::fonts::ProjectFonts;
+    use serde_json::{Map, json};
+    let fonts: ProjectFonts =
+        serde_json::from_value(json!({ "main": "Inter", "heading": "Playfair Display", "code": "JetBrains Mono", "families": [] })).unwrap();
+    let props = |value: serde_json::Value| -> Map<String, serde_json::Value> {
+        value.as_object().unwrap().clone()
+    };
+    let mut heading = props(json!({ "fontWeight": 700, "italic": true }));
+    prepare_props("core/text-3d", &mut heading, &fonts);
+    assert_eq!(
+        heading["typeface"],
+        "prepared:typeface/700/app/fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2"
+    );
+    assert_eq!(heading["typefaceItalic"], true);
+    let mut serif = props(
+        json!({ "fontFamily": "\"Instrument Serif\", serif", "fontWeight": 400, "italic": true }),
+    );
+    prepare_props("core/text-3d", &mut serif, &fonts);
+    assert_eq!(
+        serif["typefaceItalic"],
+        serif["typeface"].as_str().unwrap().contains("italic")
+    );
+    let mut code = props(
+        json!({ "fontFamily": "\"JetBrains Mono\", monospace", "fontWeight": 900, "italic": false }),
+    );
+    prepare_props("core/text-3d", &mut code, &fonts);
+    assert_eq!(
+        code["typeface"],
+        "prepared:typeface/900/app/fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2"
+    );
+    let mut model = props(json!({ "src": "project:assets/robot.glb" }));
+    prepare_props("core/model-3d", &mut model, &fonts);
+    assert_eq!(model["src"], "prepared:model/project/assets/robot.glb");
+    let mut logo = props(json!({ "src": "project:brand/logo.svg" }));
+    prepare_props("core/logo-3d", &mut logo, &fonts);
+    assert_eq!(logo["src"], "prepared:svg/project/brand/logo.svg");
+    let mut photo = props(json!({ "src": "project:brand/photo.jpg" }));
+    prepare_props("core/card-3d", &mut photo, &fonts);
+    assert_eq!(photo["src"], "prepared:texture/project/brand/photo.jpg");
+    let mut empty = props(json!({ "src": "" }));
+    prepare_props("core/logo-3d", &mut empty, &fonts);
+    assert_eq!(empty["src"], "");
+}

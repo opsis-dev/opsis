@@ -2,12 +2,16 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock};
 
 use indexmap::{IndexMap, IndexSet};
-use opsis_compile::asset_ref::{STATIC_PROJECT_BASE, is_project_ref, project_rel_path};
+use opsis_compile::asset_ref::{
+    PREPARED_FOLDER, PREPARED_SCHEME, PreparedRef, STATIC_PROJECT_BASE, is_project_ref,
+    project_rel_path,
+};
 use opsis_compile::clip::walk_items;
 use opsis_compile::nodes::output::{EXPORT_FOLDER_FALLBACK, ExportCode};
 use opsis_compile::text::slug_name;
 use opsis_compile::vars::strings_in;
 use opsis_engine::files::{read_json, write_json};
+use opsis_prepare::serve::{PreparedDirs, prepare};
 use opsis_project::paths::{to_posix_rel, to_project_ref};
 use opsis_runner::context::{ExecError, ExecutorContext, ExecutorOutput};
 use opsis_types::timeline::{SpecAssets, TimelineItem, TimelineSpec};
@@ -285,17 +289,61 @@ fn item_props(item: &TimelineItem) -> Value {
     .expect("props serialize")
 }
 
-fn project_files(spec: &TimelineSpec) -> IndexSet<String> {
+fn spec_values(spec: &TimelineSpec) -> Vec<Value> {
     let mut values = vec![
         json!(spec.audio.iter().map(|a| a.src.clone()).collect::<Vec<_>>()),
         json!(spec.mix.as_ref().map(|m| m.src.clone())),
     ];
     walk_items(&spec.tracks, &mut |item| values.push(item_props(item)));
+    values
+}
+
+fn project_files(spec: &TimelineSpec) -> IndexSet<String> {
+    let values = spec_values(spec);
     let mut refs = Vec::new();
     for value in &values {
         strings_in(value, &is_project_ref, &mut refs);
     }
     refs.into_iter().filter_map(project_rel_path).collect()
+}
+
+fn prepared_refs(spec: &TimelineSpec) -> Vec<PreparedRef> {
+    let values = spec_values(spec);
+    let mut refs = Vec::new();
+    for value in &values {
+        strings_in(value, &|s: &str| s.starts_with(PREPARED_SCHEME), &mut refs);
+    }
+    let unique: IndexSet<&str> = refs.into_iter().collect();
+    unique.into_iter().filter_map(PreparedRef::parse).collect()
+}
+
+fn write_prepared_files(
+    ctx: &ExecutorContext,
+    refs: &[PreparedRef],
+    dir: &Path,
+) -> Result<(), ExecError> {
+    let dirs = PreparedDirs {
+        project: ctx.project_dir.clone(),
+        public: ctx.env.public_dir.clone(),
+    };
+    for prepared in refs {
+        let made = prepare(&dirs, prepared).map_err(|error| {
+            ExecError::new(format!(
+                "Couldn't prepare “{}” for the code: {error}",
+                prepared.path()
+            ))
+        })?;
+        let target = dir
+            .join("public")
+            .join("project")
+            .join(PREPARED_FOLDER)
+            .join(prepared.path());
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(target, made.bytes)?;
+    }
+    Ok(())
 }
 
 fn check_project_files(ctx: &ExecutorContext, files: &IndexSet<String>) -> Result<(), ExecError> {
@@ -396,6 +444,7 @@ pub async fn export_code(
     remove_dir(&dir).await?;
     copy_sources(&ctx, &engine.sources, &dir)?;
     copy_project_files(&ctx, &files, &dir)?;
+    write_prepared_files(&ctx, &prepared_refs(&spec), &dir)?;
     write_json(
         &dir.join("package.json"),
         &package_json_for(&engine.sources, &name, &dir)?,

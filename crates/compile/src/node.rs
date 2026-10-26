@@ -41,12 +41,13 @@ pub enum Category {
     Audio,
     Timeline,
     Media,
+    Image,
     Output,
     Utility,
 }
 
 impl Category {
-    pub const ALL: [Category; 15] = [
+    pub const ALL: [Category; 16] = [
         Self::Browser,
         Self::Capture,
         Self::Camera,
@@ -60,6 +61,7 @@ impl Category {
         Self::Audio,
         Self::Timeline,
         Self::Media,
+        Self::Image,
         Self::Output,
         Self::Utility,
     ];
@@ -79,6 +81,7 @@ impl Category {
             Self::Audio => "Sound",
             Self::Timeline => "Timeline",
             Self::Media => "Media",
+            Self::Image => "Image",
             Self::Output => "Export",
             Self::Utility => "Organise",
         }
@@ -213,6 +216,7 @@ pub struct CardInputs {
     pub items: IndexMap<String, f64>,
     pub takes: IndexMap<String, Option<InputTake>>,
     pub media: IndexMap<String, InputMedia>,
+    pub pixels: IndexMap<String, (f64, f64)>,
     pub captions_ms: IndexMap<String, f64>,
     pub steps: IndexMap<String, Vec<String>>,
     pub style: IndexMap<String, Vec<String>>,

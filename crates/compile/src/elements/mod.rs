@@ -2,6 +2,7 @@ pub mod core;
 pub mod introspect;
 pub mod length_cases;
 pub mod lengths;
+pub mod prepared;
 
 use std::collections::HashMap;
 use std::sync::LazyLock;

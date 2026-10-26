@@ -35,6 +35,17 @@ Missing:
 7. **Version.** `PREPARED_VERSION` in Rust keys every prepared file; bump it whenever a preparer's output changes (like `PICTURE_VERSION`).
 8. **Packages.** `bun remove fontkit woff2-encoder` from `packages/video` once nothing imports them.
 
+## Phase 7 as built
+
+Phase 7 (2026-10-26, branch `feat/tauri`) built `opsis-prepare`.
+
+- **Refs, not query strings.** Compile writes `prepared:<kind>/[weight/]<project|app>/<path>` into the element's props (`PreparedRef`, `prepare_props`: 3D text, model, logo and card), and the page resolves it like any asset ref to `.opsis/prepared/<path>` on the project base. One address form serves the render tabs, the streamed preview (both through `FileServer::start_with` and `prepared_routes`) and Export as code, which writes every prepared ref into its `public/project/.opsis/prepared/` because it has no server. The 3D text face is chosen in Rust like `fontFileFor` chose it (roles, families, style, weight distance).
+- **Typefaces.** `wuff` and `skrifa` match fontkit on all 54 bundled faces at weights 400 and 700 (`fixtures/prepare/typefaces.json`, frozen from fontkit before it was removed): the same glyphs, outline commands and font fields, the outline strings exact at the default instance, and advances within 0.02 units (skrifa keeps normalized coordinates as 2.14 fixed point, as OpenType does; fontkit kept floats). Advances come from HVAR, or gvar's phantom points, without rounding. Glyph bounds differ slightly but three.js never reads them.
+- **Models.** `draco-gltf` alone covers Draco and meshopt (it ports meshoptimizer's decoders), so the `meshopt` and `gltf` crates weren't needed. Draco primitives are read and written back as plain accessors, the meshopt extensions are dropped after decoding, and images a `.gltf` names are packed into the GLB. Test models (plain, `.gltf` with side files, Draco, meshopt) were made with gltf-transform and Google's encoders; the expected counts and bounds are what Google's decoder reads from them (`fixtures/prepare/models`), and the Rust output matches them (Draco keeps the 824 vertices and 4,521 indices its decoder reports).
+- **Stills.** `crates/render/tests/three_stills.rs` renders 13 3D element cases (three fonts and the heading font, the four models, three logos, an image logo, the card) and compares them with stills rendered by the TS loaders before the switch (`fixtures/prepare/stills`): ten are identical, the Draco model differs on 0.75% of pixels by at most 22 of 255, bold Inter on 0.004% and the flattened SVG logo on 0.075%.
+- **Removed.** `fontkit`, `woff2-encoder`, `@types/fontkit`, `DRACOLoader`, three's meshopt decoder, `public/three/draco` and `bun run three:decoders`. The video bundle went from 67 MB to 63.2 MB and `public/` from 7.0 MB to 6.2 MB.
+- **Kept with the editor.** The editor watches a prepared file's project source like any loaded file, so replacing a model reloads it.
+
 ## Risks
 
 - **Young Draco crates.** `draco-gltf` is new (0.7.0 released 2026-10-10, 3,953 recent downloads on crates.io); compare against three.js's decoder on many files before deleting the wasm. `draco_decoder` (0.0.31) calls itself work in progress.

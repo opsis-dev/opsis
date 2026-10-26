@@ -10,6 +10,7 @@ use chromiumoxide::cdp::js_protocol::runtime::EventBindingCalled;
 use futures::StreamExt;
 use opsis_capture::cdp::{CaptureError, Result};
 use opsis_engine::http_files::FileServer;
+use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -105,7 +106,11 @@ impl Preview {
         quality: i64,
     ) -> Result<Self> {
         let page = PageServer::start(dirs.page, dirs.public).await?;
-        let project = FileServer::start(dirs.project).await?;
+        let prepared = PreparedDirs {
+            project: dirs.project.to_path_buf(),
+            public: dirs.public.to_path_buf(),
+        };
+        let project = FileServer::start_with(dirs.project, prepared_routes(prepared)).await?;
         let view = StreamView::open(
             &env.executable,
             &env.temp_dir,

@@ -17,6 +17,7 @@ use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell, requ
 use opsis_media::codecs::{codec_info, finish_args, has_sound_track, is_image_codec, mux_args};
 use opsis_media::executors::{Tools, tool_error};
 use opsis_media::ffmpeg::RunOptions;
+use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_project::paths::to_posix_rel;
 use opsis_runner::context::{ExecError, ExecutorContext, ExecutorFn, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
@@ -298,6 +299,14 @@ async fn render_variant(
     Ok(artifacts)
 }
 
+async fn asset_server(ctx: &ExecutorContext) -> std::io::Result<FileServer> {
+    let dirs = PreparedDirs {
+        project: ctx.project_dir.clone(),
+        public: ctx.env.public_dir.clone(),
+    };
+    FileServer::start_with(&ctx.project_dir, prepared_routes(dirs)).await
+}
+
 async fn export_video(
     ctx: Arc<ExecutorContext>,
     _: PortValues,
@@ -307,7 +316,7 @@ async fn export_video(
     let spec = mixed(&ctx, &*engine.tools, spec_for(&ctx)?, MIX_STAGE).await?;
     let names = video_file_names(&export_base_name(&p.file_name), p.codec, &p.variants);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let server = FileServer::start(&ctx.project_dir).await?;
+    let server = asset_server(&ctx).await?;
     let chapters = chapters_for(&ctx, &spec, &p).await?;
     let count = p.variants.len() as f64;
     let mut artifacts = Vec::new();
@@ -372,7 +381,7 @@ async fn export_images(
     let spec = spec_for(&ctx)?;
     let names = still_file_names(&export_base_name(&p.file_name), &p.presets, p.format);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let server = FileServer::start(&ctx.project_dir).await?;
+    let server = asset_server(&ctx).await?;
     let count = p.presets.len() as f64;
     let mut artifacts = Vec::new();
     for (i, (preset, name)) in p.presets.iter().zip(&names).enumerate() {

@@ -6,6 +6,10 @@ const APP_SCHEME = "app:";
 
 const LIBRARY_SCHEME = "library:";
 
+const PREPARED_SCHEME = "prepared:";
+
+export const PREPARED_FOLDER = ".opsis/prepared";
+
 const EXTERNAL_SCHEMES = ["http:", "https:", "data:", "blob:"];
 
 const startsWithAny = (ref: string, schemes: readonly string[]): boolean =>
@@ -23,7 +27,17 @@ const withoutLeadingSlashes = (path: string): string => path.replace(/^\/+/, "")
 const isProjectRef = (ref: string): boolean => ref.startsWith(PROJECT_SCHEME);
 
 export const isAssetRef = (value: unknown): value is string =>
-  isString(value) && startsWithAny(value, [PROJECT_SCHEME, APP_SCHEME]);
+  isString(value) && startsWithAny(value, [PROJECT_SCHEME, APP_SCHEME, PREPARED_SCHEME]);
+
+export const preparedPath = (ref: string): string | null =>
+  ref.startsWith(PREPARED_SCHEME) ? ref.slice(PREPARED_SCHEME.length) : null;
+
+const PREPARED_SOURCE = /^(?:typeface\/[^/]+|model|svg|texture)\/(project|app)\/(.+)$/;
+
+export function preparedSource(path: string): string | null {
+  const match = PREPARED_SOURCE.exec(path);
+  return match ? `${match[1]}:${match[2]}` : null;
+}
 
 export const isExternalRef = (ref: string): boolean => startsWithAny(ref, EXTERNAL_SCHEMES);
 

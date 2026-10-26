@@ -318,18 +318,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## 3D, letter outlines and hand-drawn marks — the three, @react-three/fiber, @remotion/three, fontkit, woff2-encoder, @remotion/rough-notation and roughjs packages
+## 3D and hand-drawn marks — the three, @react-three/fiber, @remotion/three, @remotion/rough-notation and roughjs packages
 
-Draw the 3D elements (3D logo, card, text, model, screen and floating shapes), read font files for 3D text, and draw the hand-drawn marks of Highlight box and Title card. Installed from npm and bundled into the video code that loads only when one of these is used. All are under the MIT License:
+Draw the 3D elements (3D logo, card, text, model, screen and floating shapes) and draw the hand-drawn marks of Highlight box and Title card. Installed from npm and bundled into the video code that loads only when one of these is used. All are under the MIT License:
 
 - three.js: Copyright © 2010-2026 three.js authors, https://threejs.org
 - React Three Fiber (@react-three/fiber): by Paul Henschel, https://github.com/pmndrs/react-three-fiber (the package ships no licence file; its package.json names MIT)
 - @remotion/three: by Björn Zeutzheim, https://www.remotion.dev/docs/three (the package ships no licence file; its package.json names MIT)
-- fontkit and brotli: by Devon Govett, https://github.com/foliojs/fontkit (the packages ship no licence file; their package.json names MIT)
-- woff2-encoder: Copyright (c) 2023-PRESENT Kyedo, https://github.com/itskyedo/woff2-encoder, a WebAssembly build of Google's woff2 decoder
 - @remotion/rough-notation: by Jonny Burger, https://www.remotion.dev/docs/rough-notation (the package ships no licence file; its package.json names MIT)
 - Rough.js (roughjs): Copyright (c) 2019 Preet Shihn, https://roughjs.com
-- meshoptimizer decoder (three/addons/libs/meshopt_decoder.module.js): Copyright (C) 2016-2026 Arseny Kapoulkine, https://github.com/zeux/meshoptimizer
+- meshoptimizer's decoders, ported to Rust in the draco-gltf crate (below): Copyright (c) 2016-2025 Arseny Kapoulkine, https://github.com/zeux/meshoptimizer
 
 ```
 MIT License
@@ -353,9 +351,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Draco decoder — public/three/draco
+## Compressed 3D models — the draco-gltf crate
 
-Google's Draco 3D mesh decoder, copied from three.js (`three/examples/jsm/libs/draco/gltf`) by `bun run three:decoders`, so 3D models with compressed meshes open offline. By Google, https://github.com/google/draco. Licensed under the Apache License, Version 2.0, the same licence as Opsis; its full text is in `LICENSE`.
+Decodes 3D models with compressed meshes (Draco and meshoptimizer) into plain ones before they're drawn, in `crates/prepare`. https://github.com/Filyus/draco-rust, a Rust implementation of Google's Draco format (https://github.com/google/draco). Licensed under the Apache License, Version 2.0, the same licence as Opsis; its full text is in `LICENSE`.
 
 ## Drizzle ORM — the drizzle-orm package
 

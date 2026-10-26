@@ -20,11 +20,17 @@ pub struct FileServer {
 
 impl FileServer {
     pub async fn start(root: &Path) -> std::io::Result<Self> {
+        Self::start_with(root, Router::new()).await
+    }
+
+    pub async fn start_with(root: &Path, routes: Router) -> std::io::Result<Self> {
         let listener = TcpListener::bind(SocketAddr::from((Ipv4Addr::LOCALHOST, 0))).await?;
         let url = format!("http://{}/", listener.local_addr()?);
         let stop = CancellationToken::new();
         let stopped = stop.clone();
-        let routes = file_routes(root);
+        let routes = routes
+            .layer(CorsLayer::new().allow_origin(Any))
+            .merge(file_routes(root));
         tokio::spawn(async move {
             let serving =
                 axum::serve(listener, routes).with_graceful_shutdown(stopped.cancelled_owned());

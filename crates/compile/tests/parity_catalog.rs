@@ -28,13 +28,21 @@ fn platform_name(p: Platform) -> &'static str {
     }
 }
 
+fn added_after_the_switch(kind: &str) -> bool {
+    kind.starts_with("image.")
+}
+
 #[test]
 fn node_metadata_matches() {
     let expected = fixture("nodes.json");
     let expected = expected.as_array().unwrap();
     let defs = registry().all();
     let mut problems = Vec::new();
-    let kinds: Vec<&str> = defs.iter().map(|d| d.kind.as_ref()).collect();
+    let kinds: Vec<&str> = defs
+        .iter()
+        .map(|d| d.kind.as_ref())
+        .filter(|k| !added_after_the_switch(k))
+        .collect();
     let wanted: Vec<&str> = expected
         .iter()
         .map(|n| n["type"].as_str().unwrap())
@@ -123,7 +131,10 @@ fn property_defaults(schema: &Value) -> Vec<(String, Value)> {
 fn catalogue_matches() {
     let expected = fixture("catalog.json");
     let mut problems = Vec::new();
-    let list = serde_json::to_value(opsis_compile::catalog::node_catalog()).unwrap();
+    let mut list = serde_json::to_value(opsis_compile::catalog::node_catalog()).unwrap();
+    if let Some(items) = list.as_array_mut() {
+        items.retain(|n| !n["type"].as_str().is_some_and(added_after_the_switch));
+    }
     if let Some(d) = first_difference(&expected["list"], &list) {
         problems.push(format!("list{d}"));
     }

@@ -18,6 +18,7 @@ opsis-capture = { version = "0.1.0", path = "../capture" }
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }
 opsis-fonts = { version = "0.1.0", path = "../fonts" }
+opsis-image = { version = "0.1.0", path = "../image" }
 opsis-media = { version = "0.1.0", path = "../media" }
 opsis-project = { version = "0.1.0", path = "../project" }
 opsis-render = { version = "0.1.0", path = "../render" }

@@ -1,0 +1,28 @@
+[package]
+name = "opsis-prepare"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+axum = "0.8.9"
+draco-gltf = "0.7.0"
+image = "0.25.10"
+log = "0.4.34"
+opsis-compile = { version = "0.1.0", path = "../compile" }
+opsis-engine = { version = "0.1.0", path = "../engine" }
+percent-encoding = "2.3.2"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+skrifa = "0.49.0"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["rt"] }
+usvg = "0.49.0"
+wuff = "0.2.9"
+
+[dev-dependencies]
+http-body-util = "0.1.5"
+tempfile = "3.27.0"
+tokio = { version = "1.54.1", features = ["rt", "macros"] }
+tower = { version = "0.5.3", features = ["util"] }

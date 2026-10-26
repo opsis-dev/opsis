@@ -1,0 +1,30 @@
+[package]
+name = "opsis-image"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+csscolorparser = "0.9.0"
+fast_image_resize = { version = "6.1.0", features = ["image"] }
+image = "0.25.10"
+imageproc = "0.27.0"
+log = "0.4.34"
+moxcms = "0.9.1"
+opsis-compile = { version = "0.1.0", path = "../compile" }
+opsis-engine = { version = "0.1.0", path = "../engine" }
+opsis-media = { version = "0.1.0", path = "../media" }
+opsis-runner = { version = "0.1.0", path = "../runner" }
+opsis-types = { version = "0.1.0", path = "../types" }
+serde_json = "1.0.154"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["rt"] }
+
+[dev-dependencies]
+moxcms = "0.9.1"
+opsis-engine = { path = "../engine" }
+serde_json = "1.0.154"
+tempfile = "3.27.0"
+tokio = { version = "1.54.1", features = ["rt", "macros", "rt-multi-thread"] }
+tokio-util = "0.7.20"

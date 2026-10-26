@@ -58,6 +58,9 @@ pub fn card_inputs(
         };
         match v {
             CompileValue::Media(m) => {
+                if let (Some(w), Some(h)) = (m.width, m.height) {
+                    inputs.pixels.insert(port.clone(), (w, h));
+                }
                 inputs.media.insert(
                     port,
                     InputMedia {
@@ -65,6 +68,11 @@ pub fn card_inputs(
                         has_audio: m.has_audio,
                     },
                 );
+            }
+            CompileValue::Image(image) => {
+                if let (Some(w), Some(h)) = (image.width, image.height) {
+                    inputs.pixels.insert(port, (w, h));
+                }
             }
             CompileValue::Captions(c) => {
                 inputs
