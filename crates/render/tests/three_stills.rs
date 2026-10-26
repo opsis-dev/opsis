@@ -18,6 +18,7 @@ use opsis_types::workflow::{Workflow, WorkflowSettings};
 use serde_json::{Value, json};
 use tokio_util::sync::CancellationToken;
 
+const STILLS: &str = "prepare/stills";
 const FRAME: f64 = 45.0;
 const CHANNEL_SLACK: u8 = 24;
 const MOSTLY_SAME: f64 = 0.995;
@@ -182,15 +183,14 @@ fn share_alike(made: &Path, baseline: &Path) -> Result<(), String> {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[ignore = "needs the dev engine and the video bundle; OPSIS_STILLS_OUT names where stills go, OPSIS_STILLS_BASELINE the stills to compare with"]
-async fn draws_3d_elements_like_the_baseline() {
+#[ignore = "needs the dev engine and the video bundle; OPSIS_STILLS_OUT names where stills go"]
+async fn draws_3d_elements_as_recorded() {
     let out = std::env::var_os("OPSIS_STILLS_OUT")
         .map_or_else(|| home().join(".cache/opsis-three-stills"), PathBuf::from);
-    let baseline = std::env::var_os("OPSIS_STILLS_BASELINE").map(PathBuf::from);
     let temp = out.join("tmp");
     let project = temp.join("project");
     copy_dir(
-        &repo().join("fixtures/prepare/models"),
+        &opsis_golden::path("prepare/models"),
         &project.join("assets/models"),
     );
     let dirs = PreparedDirs {
@@ -252,9 +252,10 @@ async fn draws_3d_elements_like_the_baseline() {
             failures.push(format!("{name}: {error}"));
             continue;
         }
-        if let Some(baseline) = &baseline
-            && let Err(error) = share_alike(&file, &baseline.join(format!("{name}.png")))
-        {
+        let recorded = opsis_golden::path(&format!("{STILLS}/{name}.png"));
+        if opsis_golden::writing() {
+            std::fs::copy(&file, &recorded).unwrap_or_else(|e| panic!("{name}: {e}"));
+        } else if let Err(error) = share_alike(&file, &recorded) {
             failures.push(format!("{name}: {error}"));
         }
     }

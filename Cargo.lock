@@ -4565,6 +4565,7 @@ dependencies = [
  "log",
  "opsis-compile",
  "opsis-engine",
+ "opsis-golden",
  "opsis-media",
  "opsis-project",
  "opsis-runner",
@@ -4593,6 +4594,7 @@ dependencies = [
  "jsonschema",
  "language-tags",
  "num-format",
+ "opsis-golden",
  "opsis-types",
  "percent-encoding",
  "regex",
@@ -4708,6 +4710,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "opsis-golden"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "opsis-image"
 version = "0.1.0"
 dependencies = [
@@ -4740,6 +4750,7 @@ dependencies = [
  "log",
  "opsis-compile",
  "opsis-engine",
+ "opsis-golden",
  "opsis-project",
  "opsis-runner",
  "opsis-types",
@@ -4764,6 +4775,7 @@ dependencies = [
  "log",
  "opsis-compile",
  "opsis-engine",
+ "opsis-golden",
  "percent-encoding",
  "serde",
  "serde_json",
@@ -4812,6 +4824,7 @@ dependencies = [
  "opsis-capture",
  "opsis-compile",
  "opsis-engine",
+ "opsis-golden",
  "opsis-image",
  "opsis-media",
  "opsis-prepare",
@@ -4922,6 +4935,7 @@ version = "0.1.0"
 dependencies = [
  "garde",
  "indexmap 2.14.2",
+ "opsis-golden",
  "regex",
  "schemars 1.2.3",
  "serde",

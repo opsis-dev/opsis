@@ -300,16 +300,24 @@
    "title": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75,
+     "durationInFrames": 75.0,
      "tracks": [
       {
        "id": "title:t",
        "items": [
         {
-         "id": "title:i",
-         "from": 0,
-         "durationInFrames": 75,
          "kind": "element",
+         "id": "title:i",
+         "from": 0.0,
+         "durationInFrames": 75.0,
+         "nodeId": "title",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "title",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
          "component": "core/title",
          "props": {
           "eyebrow": "Changelog",
@@ -325,14 +333,6 @@
           "background": "transparent",
           "fontSize": 112,
           "fontWeight": 760
-         },
-         "nodeId": "title",
-         "handles": {
-          "trimEnd": {
-           "nodeId": "title",
-           "param": "clipDuration",
-           "unit": "frames"
-          }
          }
         }
        ]
@@ -344,16 +344,24 @@
    "terminal": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 150,
+     "durationInFrames": 150.0,
      "tracks": [
       {
        "id": "terminal:t",
        "items": [
         {
-         "id": "terminal:i",
-         "from": 0,
-         "durationInFrames": 150,
          "kind": "element",
+         "id": "terminal:i",
+         "from": 0.0,
+         "durationInFrames": 150.0,
+         "nodeId": "terminal",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "terminal",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
          "component": "remocn/terminal-simulator",
          "props": {
           "prompt": "$",
@@ -367,48 +375,40 @@
            {
             "text": "deploy --production",
             "type": "command",
-            "delay": 0
+            "delay": 0.0
            },
            {
             "text": "Running tests...",
             "type": "log",
-            "delay": 6
+            "delay": 6.0
            },
            {
             "text": "128 tests passed",
             "type": "success",
-            "delay": 10
+            "delay": 10.0
            },
            {
             "text": "Building the image...",
             "type": "log",
-            "delay": 8
+            "delay": 8.0
            },
            {
             "text": "Image ready in 41s",
             "type": "success",
-            "delay": 10
+            "delay": 10.0
            },
            {
             "text": "Rolling out to everyone...",
             "type": "log",
-            "delay": 8
+            "delay": 8.0
            },
            {
             "text": "Live in production",
             "type": "success",
-            "delay": 12
+            "delay": 12.0
            }
           ],
           "speed": 1
-         },
-         "nodeId": "terminal",
-         "handles": {
-          "trimEnd": {
-           "nodeId": "terminal",
-           "param": "clipDuration",
-           "unit": "frames"
-          }
          }
         }
        ]
@@ -420,21 +420,33 @@
    "chart": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 120,
+     "durationInFrames": 120.0,
      "tracks": [
       {
        "id": "chart:t",
        "items": [
         {
-         "id": "chart:i",
-         "from": 0,
-         "durationInFrames": 120,
          "kind": "element",
+         "id": "chart:i",
+         "from": 0.0,
+         "durationInFrames": 120.0,
+         "nodeId": "chart",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "chart",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "design": {
+          "width": 1920.0,
+          "height": 1080.0
+         },
          "component": "remocn/animated-bar-chart",
          "props": {
           "barColor": "#0ea5e9",
           "gap": 16,
-          "staggerFrames": 6,
+          "staggerFrames": 6.0,
           "bars": [
            {
             "label": "",
@@ -474,18 +486,6 @@
           "baselineColor": "#27272a",
           "labelColor": "#a1a1aa",
           "speed": 1
-         },
-         "nodeId": "chart",
-         "handles": {
-          "trimEnd": {
-           "nodeId": "chart",
-           "param": "clipDuration",
-           "unit": "frames"
-          }
-         },
-         "design": {
-          "width": 1920,
-          "height": 1080
          }
         }
        ]
@@ -497,23 +497,16 @@
    "bg": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 90,
+     "durationInFrames": 90.0,
      "tracks": [
       {
        "id": "bg:t",
        "items": [
         {
-         "id": "bg:i",
-         "from": 0,
-         "durationInFrames": 90,
          "kind": "element",
-         "component": "core/gradient",
-         "props": {
-          "from": "#1e1b4b",
-          "to": "#0f172a",
-          "angle": 135,
-          "grain": 0.08
-         },
+         "id": "bg:i",
+         "from": 0.0,
+         "durationInFrames": 90.0,
          "nodeId": "bg",
          "handles": {
           "trimEnd": {
@@ -521,6 +514,13 @@
            "param": "clipDuration",
            "unit": "frames"
           }
+         },
+         "component": "core/gradient",
+         "props": {
+          "from": "#1e1b4b",
+          "to": "#0f172a",
+          "angle": 135,
+          "grain": 0.08
          }
         }
        ]
@@ -532,16 +532,24 @@
    "credit": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 120,
+     "durationInFrames": 120.0,
      "tracks": [
       {
        "id": "credit:t",
        "items": [
         {
-         "id": "credit:i",
-         "from": 0,
-         "durationInFrames": 120,
          "kind": "element",
+         "id": "credit:i",
+         "from": 0.0,
+         "durationInFrames": 120.0,
+         "nodeId": "credit",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "credit",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
          "component": "core/lower-third",
          "props": {
           "title": "Acme v2.4",
@@ -550,14 +558,6 @@
           "accent": "#a78bfa",
           "color": "#fafafa",
           "panel": "rgba(10,10,12,0.72)"
-         },
-         "nodeId": "credit",
-         "handles": {
-          "trimEnd": {
-           "nodeId": "credit",
-           "param": "clipDuration",
-           "unit": "frames"
-          }
          }
         }
        ]
@@ -569,45 +569,38 @@
    "chart-scene": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 120,
+     "durationInFrames": 120.0,
      "tracks": [
       {
        "id": "chart-scene:l0",
        "items": [
         {
+         "kind": "group",
          "id": "chart-scene:l0:g",
-         "from": 0,
-         "durationInFrames": 90,
+         "from": 0.0,
+         "durationInFrames": 90.0,
          "handles": {
           "move": {
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0
+           "index": 0.0
           }
          },
          "slot": {
           "nodeId": "chart-scene",
           "port": "in1"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "bg:t",
             "items": [
              {
-              "id": "bg:i",
-              "from": 0,
-              "durationInFrames": 90,
               "kind": "element",
-              "component": "core/gradient",
-              "props": {
-               "from": "#1e1b4b",
-               "to": "#0f172a",
-               "angle": 135,
-               "grain": 0.08
-              },
+              "id": "bg:i",
+              "from": 0.0,
+              "durationInFrames": 90.0,
               "nodeId": "bg",
               "handles": {
                "trimEnd": {
@@ -615,6 +608,13 @@
                 "param": "clipDuration",
                 "unit": "frames"
                }
+              },
+              "component": "core/gradient",
+              "props": {
+               "from": "#1e1b4b",
+               "to": "#0f172a",
+               "angle": 135,
+               "grain": 0.08
               }
              }
             ]
@@ -629,37 +629,49 @@
        "id": "chart-scene:l1",
        "items": [
         {
+         "kind": "group",
          "id": "chart-scene:l1:g",
-         "from": 0,
-         "durationInFrames": 120,
+         "from": 0.0,
+         "durationInFrames": 120.0,
          "handles": {
           "move": {
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1
+           "index": 1.0
           }
          },
          "slot": {
           "nodeId": "chart-scene",
           "port": "in2"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "chart:t",
             "items": [
              {
-              "id": "chart:i",
-              "from": 0,
-              "durationInFrames": 120,
               "kind": "element",
+              "id": "chart:i",
+              "from": 0.0,
+              "durationInFrames": 120.0,
+              "nodeId": "chart",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "chart",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "design": {
+               "width": 1920.0,
+               "height": 1080.0
+              },
               "component": "remocn/animated-bar-chart",
               "props": {
                "barColor": "#0ea5e9",
                "gap": 16,
-               "staggerFrames": 6,
+               "staggerFrames": 6.0,
                "bars": [
                 {
                  "label": "",
@@ -699,18 +711,6 @@
                "baselineColor": "#27272a",
                "labelColor": "#a1a1aa",
                "speed": 1
-              },
-              "nodeId": "chart",
-              "handles": {
-               "trimEnd": {
-                "nodeId": "chart",
-                "param": "clipDuration",
-                "unit": "frames"
-               }
-              },
-              "design": {
-               "width": 1920,
-               "height": 1080
               }
              }
             ]
@@ -725,32 +725,40 @@
        "id": "chart-scene:l2",
        "items": [
         {
+         "kind": "group",
          "id": "chart-scene:l2:g",
-         "from": 0,
-         "durationInFrames": 120,
+         "from": 0.0,
+         "durationInFrames": 120.0,
          "handles": {
           "move": {
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 2
+           "index": 2.0
           }
          },
          "slot": {
           "nodeId": "chart-scene",
           "port": "in3"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "credit:t",
             "items": [
              {
-              "id": "credit:i",
-              "from": 0,
-              "durationInFrames": 120,
               "kind": "element",
+              "id": "credit:i",
+              "from": 0.0,
+              "durationInFrames": 120.0,
+              "nodeId": "credit",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "credit",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
               "component": "core/lower-third",
               "props": {
                "title": "Acme v2.4",
@@ -759,14 +767,6 @@
                "accent": "#a78bfa",
                "color": "#fafafa",
                "panel": "rgba(10,10,12,0.72)"
-              },
-              "nodeId": "credit",
-              "handles": {
-               "trimEnd": {
-                "nodeId": "credit",
-                "param": "clipDuration",
-                "unit": "frames"
-               }
               }
              }
             ]
@@ -784,30 +784,42 @@
    "sequence": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 315,
+     "durationInFrames": 315.0,
      "tracks": [
       {
        "id": "sequence:seq",
        "items": [
         {
+         "kind": "group",
          "id": "sequence:s0",
-         "from": 0,
-         "durationInFrames": 75,
+         "from": 0.0,
+         "durationInFrames": 75.0,
+         "exit": {
+          "kind": "core/slide",
+          "durationInFrames": 15.0
+         },
          "slot": {
           "nodeId": "sequence",
           "port": "in1"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "title:t",
             "items": [
              {
-              "id": "title:i",
-              "from": 0,
-              "durationInFrames": 75,
               "kind": "element",
+              "id": "title:i",
+              "from": 0.0,
+              "durationInFrames": 75.0,
+              "nodeId": "title",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "title",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
               "component": "core/title",
               "props": {
                "eyebrow": "Changelog",
@@ -823,48 +835,48 @@
                "background": "transparent",
                "fontSize": 112,
                "fontWeight": 760
-              },
-              "nodeId": "title",
-              "handles": {
-               "trimEnd": {
-                "nodeId": "title",
-                "param": "clipDuration",
-                "unit": "frames"
-               }
               }
              }
             ]
            }
           ]
-         },
-         "exit": {
-          "kind": "core/slide",
-          "durationInFrames": 15
          }
         },
         {
+         "kind": "group",
          "id": "sequence:s1",
-         "from": 60,
-         "durationInFrames": 150,
+         "from": 60.0,
+         "durationInFrames": 150.0,
          "enter": {
           "kind": "core/slide",
-          "durationInFrames": 15
+          "durationInFrames": 15.0
+         },
+         "exit": {
+          "kind": "core/slide",
+          "durationInFrames": 15.0
          },
          "slot": {
           "nodeId": "sequence",
           "port": "in2"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "terminal:t",
             "items": [
              {
-              "id": "terminal:i",
-              "from": 0,
-              "durationInFrames": 150,
               "kind": "element",
+              "id": "terminal:i",
+              "from": 0.0,
+              "durationInFrames": 150.0,
+              "nodeId": "terminal",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "terminal",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
               "component": "remocn/terminal-simulator",
               "props": {
                "prompt": "$",
@@ -878,111 +890,92 @@
                 {
                  "text": "deploy --production",
                  "type": "command",
-                 "delay": 0
+                 "delay": 0.0
                 },
                 {
                  "text": "Running tests...",
                  "type": "log",
-                 "delay": 6
+                 "delay": 6.0
                 },
                 {
                  "text": "128 tests passed",
                  "type": "success",
-                 "delay": 10
+                 "delay": 10.0
                 },
                 {
                  "text": "Building the image...",
                  "type": "log",
-                 "delay": 8
+                 "delay": 8.0
                 },
                 {
                  "text": "Image ready in 41s",
                  "type": "success",
-                 "delay": 10
+                 "delay": 10.0
                 },
                 {
                  "text": "Rolling out to everyone...",
                  "type": "log",
-                 "delay": 8
+                 "delay": 8.0
                 },
                 {
                  "text": "Live in production",
                  "type": "success",
-                 "delay": 12
+                 "delay": 12.0
                 }
                ],
                "speed": 1
-              },
-              "nodeId": "terminal",
-              "handles": {
-               "trimEnd": {
-                "nodeId": "terminal",
-                "param": "clipDuration",
-                "unit": "frames"
-               }
               }
              }
             ]
            }
           ]
-         },
-         "exit": {
-          "kind": "core/slide",
-          "durationInFrames": 15
          }
         },
         {
+         "kind": "group",
          "id": "sequence:s2",
-         "from": 195,
-         "durationInFrames": 120,
+         "from": 195.0,
+         "durationInFrames": 120.0,
          "enter": {
           "kind": "core/slide",
-          "durationInFrames": 15
+          "durationInFrames": 15.0
          },
          "slot": {
           "nodeId": "sequence",
           "port": "in3"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "chart-scene:l0",
             "items": [
              {
+              "kind": "group",
               "id": "chart-scene:l0:g",
-              "from": 0,
-              "durationInFrames": 90,
+              "from": 0.0,
+              "durationInFrames": 90.0,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 0
+                "index": 0.0
                }
               },
               "slot": {
                "nodeId": "chart-scene",
                "port": "in1"
               },
-              "kind": "group",
               "props": {
                "tracks": [
                 {
                  "id": "bg:t",
                  "items": [
                   {
-                   "id": "bg:i",
-                   "from": 0,
-                   "durationInFrames": 90,
                    "kind": "element",
-                   "component": "core/gradient",
-                   "props": {
-                    "from": "#1e1b4b",
-                    "to": "#0f172a",
-                    "angle": 135,
-                    "grain": 0.08
-                   },
+                   "id": "bg:i",
+                   "from": 0.0,
+                   "durationInFrames": 90.0,
                    "nodeId": "bg",
                    "handles": {
                     "trimEnd": {
@@ -990,6 +983,13 @@
                      "param": "clipDuration",
                      "unit": "frames"
                     }
+                   },
+                   "component": "core/gradient",
+                   "props": {
+                    "from": "#1e1b4b",
+                    "to": "#0f172a",
+                    "angle": 135,
+                    "grain": 0.08
                    }
                   }
                  ]
@@ -1004,37 +1004,49 @@
             "id": "chart-scene:l1",
             "items": [
              {
+              "kind": "group",
               "id": "chart-scene:l1:g",
-              "from": 0,
-              "durationInFrames": 120,
+              "from": 0.0,
+              "durationInFrames": 120.0,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 1
+                "index": 1.0
                }
               },
               "slot": {
                "nodeId": "chart-scene",
                "port": "in2"
               },
-              "kind": "group",
               "props": {
                "tracks": [
                 {
                  "id": "chart:t",
                  "items": [
                   {
-                   "id": "chart:i",
-                   "from": 0,
-                   "durationInFrames": 120,
                    "kind": "element",
+                   "id": "chart:i",
+                   "from": 0.0,
+                   "durationInFrames": 120.0,
+                   "nodeId": "chart",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "chart",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   },
+                   "design": {
+                    "width": 1920.0,
+                    "height": 1080.0
+                   },
                    "component": "remocn/animated-bar-chart",
                    "props": {
                     "barColor": "#0ea5e9",
                     "gap": 16,
-                    "staggerFrames": 6,
+                    "staggerFrames": 6.0,
                     "bars": [
                      {
                       "label": "",
@@ -1074,18 +1086,6 @@
                     "baselineColor": "#27272a",
                     "labelColor": "#a1a1aa",
                     "speed": 1
-                   },
-                   "nodeId": "chart",
-                   "handles": {
-                    "trimEnd": {
-                     "nodeId": "chart",
-                     "param": "clipDuration",
-                     "unit": "frames"
-                    }
-                   },
-                   "design": {
-                    "width": 1920,
-                    "height": 1080
                    }
                   }
                  ]
@@ -1100,32 +1100,40 @@
             "id": "chart-scene:l2",
             "items": [
              {
+              "kind": "group",
               "id": "chart-scene:l2:g",
-              "from": 0,
-              "durationInFrames": 120,
+              "from": 0.0,
+              "durationInFrames": 120.0,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 2
+                "index": 2.0
                }
               },
               "slot": {
                "nodeId": "chart-scene",
                "port": "in3"
               },
-              "kind": "group",
               "props": {
                "tracks": [
                 {
                  "id": "credit:t",
                  "items": [
                   {
-                   "id": "credit:i",
-                   "from": 0,
-                   "durationInFrames": 120,
                    "kind": "element",
+                   "id": "credit:i",
+                   "from": 0.0,
+                   "durationInFrames": 120.0,
+                   "nodeId": "credit",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "credit",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   },
                    "component": "core/lower-third",
                    "props": {
                     "title": "Acme v2.4",
@@ -1134,14 +1142,6 @@
                     "accent": "#a78bfa",
                     "color": "#fafafa",
                     "panel": "rgba(10,10,12,0.72)"
-                   },
-                   "nodeId": "credit",
-                   "handles": {
-                    "trimEnd": {
-                     "nodeId": "credit",
-                     "param": "clipDuration",
-                     "unit": "frames"
-                    }
                    }
                   }
                  ]
@@ -1166,34 +1166,46 @@
   "errors": {},
   "specs": {
    "render": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
-    "durationInFrames": 315,
+    "width": 1920.0,
+    "height": 1080.0,
+    "fps": 30.0,
+    "durationInFrames": 315.0,
     "background": "#09090b",
     "tracks": [
      {
       "id": "sequence:seq",
       "items": [
        {
+        "kind": "group",
         "id": "sequence:s0",
-        "from": 0,
-        "durationInFrames": 75,
+        "from": 0.0,
+        "durationInFrames": 75.0,
+        "exit": {
+         "kind": "core/slide",
+         "durationInFrames": 15.0
+        },
         "slot": {
          "nodeId": "sequence",
          "port": "in1"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "title:t",
            "items": [
             {
-             "id": "title:i",
-             "from": 0,
-             "durationInFrames": 75,
              "kind": "element",
+             "id": "title:i",
+             "from": 0.0,
+             "durationInFrames": 75.0,
+             "nodeId": "title",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "title",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
              "component": "core/title",
              "props": {
               "eyebrow": "Changelog",
@@ -1209,48 +1221,48 @@
               "background": "transparent",
               "fontSize": 112,
               "fontWeight": 760
-             },
-             "nodeId": "title",
-             "handles": {
-              "trimEnd": {
-               "nodeId": "title",
-               "param": "clipDuration",
-               "unit": "frames"
-              }
              }
             }
            ]
           }
          ]
-        },
-        "exit": {
-         "kind": "core/slide",
-         "durationInFrames": 15
         }
        },
        {
+        "kind": "group",
         "id": "sequence:s1",
-        "from": 60,
-        "durationInFrames": 150,
+        "from": 60.0,
+        "durationInFrames": 150.0,
         "enter": {
          "kind": "core/slide",
-         "durationInFrames": 15
+         "durationInFrames": 15.0
+        },
+        "exit": {
+         "kind": "core/slide",
+         "durationInFrames": 15.0
         },
         "slot": {
          "nodeId": "sequence",
          "port": "in2"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "terminal:t",
            "items": [
             {
-             "id": "terminal:i",
-             "from": 0,
-             "durationInFrames": 150,
              "kind": "element",
+             "id": "terminal:i",
+             "from": 0.0,
+             "durationInFrames": 150.0,
+             "nodeId": "terminal",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "terminal",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
              "component": "remocn/terminal-simulator",
              "props": {
               "prompt": "$",
@@ -1264,111 +1276,92 @@
                {
                 "text": "deploy --production",
                 "type": "command",
-                "delay": 0
+                "delay": 0.0
                },
                {
                 "text": "Running tests...",
                 "type": "log",
-                "delay": 6
+                "delay": 6.0
                },
                {
                 "text": "128 tests passed",
                 "type": "success",
-                "delay": 10
+                "delay": 10.0
                },
                {
                 "text": "Building the image...",
                 "type": "log",
-                "delay": 8
+                "delay": 8.0
                },
                {
                 "text": "Image ready in 41s",
                 "type": "success",
-                "delay": 10
+                "delay": 10.0
                },
                {
                 "text": "Rolling out to everyone...",
                 "type": "log",
-                "delay": 8
+                "delay": 8.0
                },
                {
                 "text": "Live in production",
                 "type": "success",
-                "delay": 12
+                "delay": 12.0
                }
               ],
               "speed": 1
-             },
-             "nodeId": "terminal",
-             "handles": {
-              "trimEnd": {
-               "nodeId": "terminal",
-               "param": "clipDuration",
-               "unit": "frames"
-              }
              }
             }
            ]
           }
          ]
-        },
-        "exit": {
-         "kind": "core/slide",
-         "durationInFrames": 15
         }
        },
        {
+        "kind": "group",
         "id": "sequence:s2",
-        "from": 195,
-        "durationInFrames": 120,
+        "from": 195.0,
+        "durationInFrames": 120.0,
         "enter": {
          "kind": "core/slide",
-         "durationInFrames": 15
+         "durationInFrames": 15.0
         },
         "slot": {
          "nodeId": "sequence",
          "port": "in3"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "chart-scene:l0",
            "items": [
             {
+             "kind": "group",
              "id": "chart-scene:l0:g",
-             "from": 0,
-             "durationInFrames": 90,
+             "from": 0.0,
+             "durationInFrames": 90.0,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 0
+               "index": 0.0
               }
              },
              "slot": {
               "nodeId": "chart-scene",
               "port": "in1"
              },
-             "kind": "group",
              "props": {
               "tracks": [
                {
                 "id": "bg:t",
                 "items": [
                  {
-                  "id": "bg:i",
-                  "from": 0,
-                  "durationInFrames": 90,
                   "kind": "element",
-                  "component": "core/gradient",
-                  "props": {
-                   "from": "#1e1b4b",
-                   "to": "#0f172a",
-                   "angle": 135,
-                   "grain": 0.08
-                  },
+                  "id": "bg:i",
+                  "from": 0.0,
+                  "durationInFrames": 90.0,
                   "nodeId": "bg",
                   "handles": {
                    "trimEnd": {
@@ -1376,6 +1369,13 @@
                     "param": "clipDuration",
                     "unit": "frames"
                    }
+                  },
+                  "component": "core/gradient",
+                  "props": {
+                   "from": "#1e1b4b",
+                   "to": "#0f172a",
+                   "angle": 135,
+                   "grain": 0.08
                   }
                  }
                 ]
@@ -1390,37 +1390,49 @@
            "id": "chart-scene:l1",
            "items": [
             {
+             "kind": "group",
              "id": "chart-scene:l1:g",
-             "from": 0,
-             "durationInFrames": 120,
+             "from": 0.0,
+             "durationInFrames": 120.0,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 1
+               "index": 1.0
               }
              },
              "slot": {
               "nodeId": "chart-scene",
               "port": "in2"
              },
-             "kind": "group",
              "props": {
               "tracks": [
                {
                 "id": "chart:t",
                 "items": [
                  {
-                  "id": "chart:i",
-                  "from": 0,
-                  "durationInFrames": 120,
                   "kind": "element",
+                  "id": "chart:i",
+                  "from": 0.0,
+                  "durationInFrames": 120.0,
+                  "nodeId": "chart",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "chart",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
+                  "design": {
+                   "width": 1920.0,
+                   "height": 1080.0
+                  },
                   "component": "remocn/animated-bar-chart",
                   "props": {
                    "barColor": "#0ea5e9",
                    "gap": 16,
-                   "staggerFrames": 6,
+                   "staggerFrames": 6.0,
                    "bars": [
                     {
                      "label": "",
@@ -1460,18 +1472,6 @@
                    "baselineColor": "#27272a",
                    "labelColor": "#a1a1aa",
                    "speed": 1
-                  },
-                  "nodeId": "chart",
-                  "handles": {
-                   "trimEnd": {
-                    "nodeId": "chart",
-                    "param": "clipDuration",
-                    "unit": "frames"
-                   }
-                  },
-                  "design": {
-                   "width": 1920,
-                   "height": 1080
                   }
                  }
                 ]
@@ -1486,32 +1486,40 @@
            "id": "chart-scene:l2",
            "items": [
             {
+             "kind": "group",
              "id": "chart-scene:l2:g",
-             "from": 0,
-             "durationInFrames": 120,
+             "from": 0.0,
+             "durationInFrames": 120.0,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 2
+               "index": 2.0
               }
              },
              "slot": {
               "nodeId": "chart-scene",
               "port": "in3"
              },
-             "kind": "group",
              "props": {
               "tracks": [
                {
                 "id": "credit:t",
                 "items": [
                  {
-                  "id": "credit:i",
-                  "from": 0,
-                  "durationInFrames": 120,
                   "kind": "element",
+                  "id": "credit:i",
+                  "from": 0.0,
+                  "durationInFrames": 120.0,
+                  "nodeId": "credit",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "credit",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
                   "component": "core/lower-third",
                   "props": {
                    "title": "Acme v2.4",
@@ -1520,14 +1528,6 @@
                    "accent": "#a78bfa",
                    "color": "#fafafa",
                    "panel": "rgba(10,10,12,0.72)"
-                  },
-                  "nodeId": "credit",
-                  "handles": {
-                   "trimEnd": {
-                    "nodeId": "credit",
-                    "param": "clipDuration",
-                    "unit": "frames"
-                   }
                   }
                  }
                 ]
@@ -1587,8 +1587,8 @@
     {
      "icon": "clock",
      "text": "5 s · usually 8.9 s",
-     "tone": "warn",
-     "title": "Shorter than this element usually runs, so its animation may be cut off."
+     "title": "Shorter than this element usually runs, so its animation may be cut off.",
+     "tone": "warn"
     }
    ]
   },
@@ -1663,34 +1663,46 @@
  },
  "preview": {
   "spec": {
-   "width": 1920,
-   "height": 1080,
-   "fps": 30,
-   "durationInFrames": 315,
+   "width": 1920.0,
+   "height": 1080.0,
+   "fps": 30.0,
+   "durationInFrames": 315.0,
    "background": "#09090b",
    "tracks": [
     {
      "id": "sequence:seq",
      "items": [
       {
+       "kind": "group",
        "id": "sequence:s0",
-       "from": 0,
-       "durationInFrames": 75,
+       "from": 0.0,
+       "durationInFrames": 75.0,
+       "exit": {
+        "kind": "core/slide",
+        "durationInFrames": 15.0
+       },
        "slot": {
         "nodeId": "sequence",
         "port": "in1"
        },
-       "kind": "group",
        "props": {
         "tracks": [
          {
           "id": "title:t",
           "items": [
            {
-            "id": "title:i",
-            "from": 0,
-            "durationInFrames": 75,
             "kind": "element",
+            "id": "title:i",
+            "from": 0.0,
+            "durationInFrames": 75.0,
+            "nodeId": "title",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "title",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
             "component": "core/title",
             "props": {
              "eyebrow": "Changelog",
@@ -1706,48 +1718,48 @@
              "background": "transparent",
              "fontSize": 112,
              "fontWeight": 760
-            },
-            "nodeId": "title",
-            "handles": {
-             "trimEnd": {
-              "nodeId": "title",
-              "param": "clipDuration",
-              "unit": "frames"
-             }
             }
            }
           ]
          }
         ]
-       },
-       "exit": {
-        "kind": "core/slide",
-        "durationInFrames": 15
        }
       },
       {
+       "kind": "group",
        "id": "sequence:s1",
-       "from": 60,
-       "durationInFrames": 150,
+       "from": 60.0,
+       "durationInFrames": 150.0,
        "enter": {
         "kind": "core/slide",
-        "durationInFrames": 15
+        "durationInFrames": 15.0
+       },
+       "exit": {
+        "kind": "core/slide",
+        "durationInFrames": 15.0
        },
        "slot": {
         "nodeId": "sequence",
         "port": "in2"
        },
-       "kind": "group",
        "props": {
         "tracks": [
          {
           "id": "terminal:t",
           "items": [
            {
-            "id": "terminal:i",
-            "from": 0,
-            "durationInFrames": 150,
             "kind": "element",
+            "id": "terminal:i",
+            "from": 0.0,
+            "durationInFrames": 150.0,
+            "nodeId": "terminal",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "terminal",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
             "component": "remocn/terminal-simulator",
             "props": {
              "prompt": "$",
@@ -1761,111 +1773,92 @@
               {
                "text": "deploy --production",
                "type": "command",
-               "delay": 0
+               "delay": 0.0
               },
               {
                "text": "Running tests...",
                "type": "log",
-               "delay": 6
+               "delay": 6.0
               },
               {
                "text": "128 tests passed",
                "type": "success",
-               "delay": 10
+               "delay": 10.0
               },
               {
                "text": "Building the image...",
                "type": "log",
-               "delay": 8
+               "delay": 8.0
               },
               {
                "text": "Image ready in 41s",
                "type": "success",
-               "delay": 10
+               "delay": 10.0
               },
               {
                "text": "Rolling out to everyone...",
                "type": "log",
-               "delay": 8
+               "delay": 8.0
               },
               {
                "text": "Live in production",
                "type": "success",
-               "delay": 12
+               "delay": 12.0
               }
              ],
              "speed": 1
-            },
-            "nodeId": "terminal",
-            "handles": {
-             "trimEnd": {
-              "nodeId": "terminal",
-              "param": "clipDuration",
-              "unit": "frames"
-             }
             }
            }
           ]
          }
         ]
-       },
-       "exit": {
-        "kind": "core/slide",
-        "durationInFrames": 15
        }
       },
       {
+       "kind": "group",
        "id": "sequence:s2",
-       "from": 195,
-       "durationInFrames": 120,
+       "from": 195.0,
+       "durationInFrames": 120.0,
        "enter": {
         "kind": "core/slide",
-        "durationInFrames": 15
+        "durationInFrames": 15.0
        },
        "slot": {
         "nodeId": "sequence",
         "port": "in3"
        },
-       "kind": "group",
        "props": {
         "tracks": [
          {
           "id": "chart-scene:l0",
           "items": [
            {
+            "kind": "group",
             "id": "chart-scene:l0:g",
-            "from": 0,
-            "durationInFrames": 90,
+            "from": 0.0,
+            "durationInFrames": 90.0,
             "handles": {
              "move": {
               "nodeId": "chart-scene",
               "param": "offsetsMs",
               "unit": "ms",
-              "index": 0
+              "index": 0.0
              }
             },
             "slot": {
              "nodeId": "chart-scene",
              "port": "in1"
             },
-            "kind": "group",
             "props": {
              "tracks": [
               {
                "id": "bg:t",
                "items": [
                 {
-                 "id": "bg:i",
-                 "from": 0,
-                 "durationInFrames": 90,
                  "kind": "element",
-                 "component": "core/gradient",
-                 "props": {
-                  "from": "#1e1b4b",
-                  "to": "#0f172a",
-                  "angle": 135,
-                  "grain": 0.08
-                 },
+                 "id": "bg:i",
+                 "from": 0.0,
+                 "durationInFrames": 90.0,
                  "nodeId": "bg",
                  "handles": {
                   "trimEnd": {
@@ -1873,6 +1866,13 @@
                    "param": "clipDuration",
                    "unit": "frames"
                   }
+                 },
+                 "component": "core/gradient",
+                 "props": {
+                  "from": "#1e1b4b",
+                  "to": "#0f172a",
+                  "angle": 135,
+                  "grain": 0.08
                  }
                 }
                ]
@@ -1887,37 +1887,49 @@
           "id": "chart-scene:l1",
           "items": [
            {
+            "kind": "group",
             "id": "chart-scene:l1:g",
-            "from": 0,
-            "durationInFrames": 120,
+            "from": 0.0,
+            "durationInFrames": 120.0,
             "handles": {
              "move": {
               "nodeId": "chart-scene",
               "param": "offsetsMs",
               "unit": "ms",
-              "index": 1
+              "index": 1.0
              }
             },
             "slot": {
              "nodeId": "chart-scene",
              "port": "in2"
             },
-            "kind": "group",
             "props": {
              "tracks": [
               {
                "id": "chart:t",
                "items": [
                 {
-                 "id": "chart:i",
-                 "from": 0,
-                 "durationInFrames": 120,
                  "kind": "element",
+                 "id": "chart:i",
+                 "from": 0.0,
+                 "durationInFrames": 120.0,
+                 "nodeId": "chart",
+                 "handles": {
+                  "trimEnd": {
+                   "nodeId": "chart",
+                   "param": "clipDuration",
+                   "unit": "frames"
+                  }
+                 },
+                 "design": {
+                  "width": 1920.0,
+                  "height": 1080.0
+                 },
                  "component": "remocn/animated-bar-chart",
                  "props": {
                   "barColor": "#0ea5e9",
                   "gap": 16,
-                  "staggerFrames": 6,
+                  "staggerFrames": 6.0,
                   "bars": [
                    {
                     "label": "",
@@ -1957,18 +1969,6 @@
                   "baselineColor": "#27272a",
                   "labelColor": "#a1a1aa",
                   "speed": 1
-                 },
-                 "nodeId": "chart",
-                 "handles": {
-                  "trimEnd": {
-                   "nodeId": "chart",
-                   "param": "clipDuration",
-                   "unit": "frames"
-                  }
-                 },
-                 "design": {
-                  "width": 1920,
-                  "height": 1080
                  }
                 }
                ]
@@ -1983,32 +1983,40 @@
           "id": "chart-scene:l2",
           "items": [
            {
+            "kind": "group",
             "id": "chart-scene:l2:g",
-            "from": 0,
-            "durationInFrames": 120,
+            "from": 0.0,
+            "durationInFrames": 120.0,
             "handles": {
              "move": {
               "nodeId": "chart-scene",
               "param": "offsetsMs",
               "unit": "ms",
-              "index": 2
+              "index": 2.0
              }
             },
             "slot": {
              "nodeId": "chart-scene",
              "port": "in3"
             },
-            "kind": "group",
             "props": {
              "tracks": [
               {
                "id": "credit:t",
                "items": [
                 {
-                 "id": "credit:i",
-                 "from": 0,
-                 "durationInFrames": 120,
                  "kind": "element",
+                 "id": "credit:i",
+                 "from": 0.0,
+                 "durationInFrames": 120.0,
+                 "nodeId": "credit",
+                 "handles": {
+                  "trimEnd": {
+                   "nodeId": "credit",
+                   "param": "clipDuration",
+                   "unit": "frames"
+                  }
+                 },
                  "component": "core/lower-third",
                  "props": {
                   "title": "Acme v2.4",
@@ -2017,14 +2025,6 @@
                   "accent": "#a78bfa",
                   "color": "#fafafa",
                   "panel": "rgba(10,10,12,0.72)"
-                 },
-                 "nodeId": "credit",
-                 "handles": {
-                  "trimEnd": {
-                   "nodeId": "credit",
-                   "param": "clipDuration",
-                   "unit": "frames"
-                  }
                  }
                 }
                ]
@@ -2051,24 +2051,24 @@
   },
   "spans": {
    "title": {
-    "from": 0,
-    "to": 75
+    "from": 0.0,
+    "to": 75.0
    },
    "terminal": {
-    "from": 60,
-    "to": 210
+    "from": 60.0,
+    "to": 210.0
    },
    "bg": {
-    "from": 195,
-    "to": 285
+    "from": 195.0,
+    "to": 285.0
    },
    "chart": {
-    "from": 195,
-    "to": 315
+    "from": 195.0,
+    "to": 315.0
    },
    "credit": {
-    "from": 195,
-    "to": 315
+    "from": 195.0,
+    "to": 315.0
    }
   },
   "sourceNodeId": "render"
@@ -2076,8 +2076,8 @@
  "timelines": {
   "render": {
    "flat": {
-    "fps": 30,
-    "durationInFrames": 315,
+    "fps": 30.0,
+    "durationInFrames": 315.0,
     "bars": [
      {
       "type": "video",
@@ -2102,8 +2102,8 @@
        "fontWeight": 760
       },
       "thumbnail": null,
-      "from": 0,
-      "to": 75,
+      "from": 0.0,
+      "to": 75.0,
       "lane": 0,
       "order": 0,
       "chain": [
@@ -2117,11 +2117,11 @@
           "unit": "frames"
          }
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 75,
-        "from": 0,
-        "to": 75
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 0.0,
+        "to": 75.0
        },
        {
         "itemId": "sequence:s0",
@@ -2129,16 +2129,16 @@
          "nodeId": "sequence",
          "port": "in1"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 75,
-        "from": 0,
-        "to": 75
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 0.0,
+        "to": 75.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
-      "contentEnd": 75,
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 75.0,
       "loop": 0,
       "hasSound": false,
       "sound": null
@@ -2162,44 +2162,44 @@
         {
          "text": "deploy --production",
          "type": "command",
-         "delay": 0
+         "delay": 0.0
         },
         {
          "text": "Running tests...",
          "type": "log",
-         "delay": 6
+         "delay": 6.0
         },
         {
          "text": "128 tests passed",
          "type": "success",
-         "delay": 10
+         "delay": 10.0
         },
         {
          "text": "Building the image...",
          "type": "log",
-         "delay": 8
+         "delay": 8.0
         },
         {
          "text": "Image ready in 41s",
          "type": "success",
-         "delay": 10
+         "delay": 10.0
         },
         {
          "text": "Rolling out to everyone...",
          "type": "log",
-         "delay": 8
+         "delay": 8.0
         },
         {
          "text": "Live in production",
          "type": "success",
-         "delay": 12
+         "delay": 12.0
         }
        ],
        "speed": 1
       },
       "thumbnail": null,
-      "from": 60,
-      "to": 210,
+      "from": 60.0,
+      "to": 210.0,
       "lane": 1,
       "order": 1,
       "chain": [
@@ -2213,11 +2213,11 @@
           "unit": "frames"
          }
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 150,
-        "from": 60,
-        "to": 210
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 150.0,
+        "from": 60.0,
+        "to": 210.0
        },
        {
         "itemId": "sequence:s1",
@@ -2225,16 +2225,16 @@
          "nodeId": "sequence",
          "port": "in2"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 150,
-        "from": 60,
-        "to": 210
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 150.0,
+        "from": 60.0,
+        "to": 210.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
-      "contentEnd": 150,
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 150.0,
       "loop": 0,
       "hasSound": false,
       "sound": null
@@ -2253,8 +2253,8 @@
        "grain": 0.08
       },
       "thumbnail": null,
-      "from": 195,
-      "to": 285,
+      "from": 195.0,
+      "to": 285.0,
       "lane": 0,
       "order": 2,
       "chain": [
@@ -2268,11 +2268,11 @@
           "unit": "frames"
          }
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 90,
-        "from": 195,
-        "to": 285
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 90.0,
+        "from": 195.0,
+        "to": 285.0
        },
        {
         "itemId": "chart-scene:l0:g",
@@ -2281,18 +2281,18 @@
           "nodeId": "chart-scene",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0
+          "index": 0.0
          }
         },
         "slot": {
          "nodeId": "chart-scene",
          "port": "in1"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 90,
-        "from": 195,
-        "to": 285
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 90.0,
+        "from": 195.0,
+        "to": 285.0
        },
        {
         "itemId": "sequence:s2",
@@ -2300,16 +2300,16 @@
          "nodeId": "sequence",
          "port": "in3"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 120,
-        "from": 195,
-        "to": 315
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 120.0,
+        "from": 195.0,
+        "to": 315.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
-      "contentEnd": 90,
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 90.0,
       "loop": 0,
       "hasSound": false,
       "sound": null
@@ -2324,7 +2324,7 @@
       "props": {
        "barColor": "#0ea5e9",
        "gap": 16,
-       "staggerFrames": 6,
+       "staggerFrames": 6.0,
        "bars": [
         {
          "label": "",
@@ -2366,8 +2366,8 @@
        "speed": 1
       },
       "thumbnail": null,
-      "from": 195,
-      "to": 315,
+      "from": 195.0,
+      "to": 315.0,
       "lane": 2,
       "order": 3,
       "chain": [
@@ -2381,11 +2381,11 @@
           "unit": "frames"
          }
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 120,
-        "from": 195,
-        "to": 315
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 120.0,
+        "from": 195.0,
+        "to": 315.0
        },
        {
         "itemId": "chart-scene:l1:g",
@@ -2394,18 +2394,18 @@
           "nodeId": "chart-scene",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 1
+          "index": 1.0
          }
         },
         "slot": {
          "nodeId": "chart-scene",
          "port": "in2"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 120,
-        "from": 195,
-        "to": 315
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 120.0,
+        "from": 195.0,
+        "to": 315.0
        },
        {
         "itemId": "sequence:s2",
@@ -2413,16 +2413,16 @@
          "nodeId": "sequence",
          "port": "in3"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 120,
-        "from": 195,
-        "to": 315
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 120.0,
+        "from": 195.0,
+        "to": 315.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
-      "contentEnd": 120,
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 120.0,
       "loop": 0,
       "hasSound": false,
       "sound": null
@@ -2443,8 +2443,8 @@
        "panel": "rgba(10,10,12,0.72)"
       },
       "thumbnail": null,
-      "from": 195,
-      "to": 315,
+      "from": 195.0,
+      "to": 315.0,
       "lane": 3,
       "order": 4,
       "chain": [
@@ -2458,11 +2458,11 @@
           "unit": "frames"
          }
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 120,
-        "from": 195,
-        "to": 315
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 120.0,
+        "from": 195.0,
+        "to": 315.0
        },
        {
         "itemId": "chart-scene:l2:g",
@@ -2471,18 +2471,18 @@
           "nodeId": "chart-scene",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 2
+          "index": 2.0
          }
         },
         "slot": {
          "nodeId": "chart-scene",
          "port": "in3"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 120,
-        "from": 195,
-        "to": 315
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 120.0,
+        "from": 195.0,
+        "to": 315.0
        },
        {
         "itemId": "sequence:s2",
@@ -2490,16 +2490,16 @@
          "nodeId": "sequence",
          "port": "in3"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 120,
-        "from": 195,
-        "to": 315
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 120.0,
+        "from": 195.0,
+        "to": 315.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
-      "contentEnd": 120,
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 120.0,
       "loop": 0,
       "hasSound": false,
       "sound": null
@@ -2512,13 +2512,13 @@
      {
       "key": "/0:sequence:s1:enter",
       "itemKey": "/0:sequence:s1",
+      "from": 60.0,
+      "to": 75.0,
+      "kind": "core/slide",
       "lanes": [
        0,
        1
       ],
-      "from": 60,
-      "to": 75,
-      "kind": "core/slide",
       "covers": 0.2,
       "slot": {
        "nodeId": "sequence",
@@ -2528,15 +2528,15 @@
      {
       "key": "/0:sequence:s2:enter",
       "itemKey": "/0:sequence:s2",
+      "from": 195.0,
+      "to": 210.0,
+      "kind": "core/slide",
       "lanes": [
        0,
        1,
        2,
        3
       ],
-      "from": 195,
-      "to": 210,
-      "kind": "core/slide",
       "covers": 0.125,
       "slot": {
        "nodeId": "sequence",
@@ -2547,10 +2547,9 @@
     "marks": [],
     "cameraKeys": []
    },
-   "chapters": [],
    "mix": {
-    "fps": 30,
-    "durationInFrames": 315,
+    "fps": 30.0,
+    "durationInFrames": 315.0,
     "channels": [],
     "buses": [
      {
@@ -2559,47 +2558,47 @@
       "processing": {
        "highpass": {
         "on": false,
-        "freq": 80
+        "freq": 80.0
        },
        "eq": {
         "on": false,
         "bands": [
          {
           "type": "lowshelf",
-          "freq": 120,
-          "gain": 0,
+          "freq": 120.0,
+          "gain": 0.0,
           "q": 0.7
          },
          {
           "type": "peak",
-          "freq": 500,
-          "gain": 0,
-          "q": 1
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "peak",
-          "freq": 2500,
-          "gain": 0,
-          "q": 1
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "highshelf",
-          "freq": 8000,
-          "gain": 0,
+          "freq": 8000.0,
+          "gain": 0.0,
           "q": 0.7
          }
         ]
        },
        "comp": {
         "on": false,
-        "threshold": -18,
-        "ratio": 3,
-        "attack": 10,
-        "release": 150,
-        "makeup": 0
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
        }
       },
-      "fader": 0,
+      "fader": 0.0,
       "channels": [],
       "duck": null
      },
@@ -2609,47 +2608,47 @@
       "processing": {
        "highpass": {
         "on": false,
-        "freq": 80
+        "freq": 80.0
        },
        "eq": {
         "on": false,
         "bands": [
          {
           "type": "lowshelf",
-          "freq": 120,
-          "gain": 0,
+          "freq": 120.0,
+          "gain": 0.0,
           "q": 0.7
          },
          {
           "type": "peak",
-          "freq": 500,
-          "gain": 0,
-          "q": 1
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "peak",
-          "freq": 2500,
-          "gain": 0,
-          "q": 1
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "highshelf",
-          "freq": 8000,
-          "gain": 0,
+          "freq": 8000.0,
+          "gain": 0.0,
           "q": 0.7
          }
         ]
        },
        "comp": {
         "on": false,
-        "threshold": -18,
-        "ratio": 3,
-        "attack": 10,
-        "release": 150,
-        "makeup": 0
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
        }
       },
-      "fader": 0,
+      "fader": 0.0,
       "channels": [],
       "duck": null
      },
@@ -2659,98 +2658,98 @@
       "processing": {
        "highpass": {
         "on": false,
-        "freq": 80
+        "freq": 80.0
        },
        "eq": {
         "on": false,
         "bands": [
          {
           "type": "lowshelf",
-          "freq": 120,
-          "gain": 0,
+          "freq": 120.0,
+          "gain": 0.0,
           "q": 0.7
          },
          {
           "type": "peak",
-          "freq": 500,
-          "gain": 0,
-          "q": 1
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "peak",
-          "freq": 2500,
-          "gain": 0,
-          "q": 1
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "highshelf",
-          "freq": 8000,
-          "gain": 0,
+          "freq": 8000.0,
+          "gain": 0.0,
           "q": 0.7
          }
         ]
        },
        "comp": {
         "on": false,
-        "threshold": -18,
-        "ratio": 3,
-        "attack": 10,
-        "release": 150,
-        "makeup": 0
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
        }
       },
-      "fader": 0,
+      "fader": 0.0,
       "channels": [],
       "duck": null
      }
     ],
     "master": {
-     "fader": 0,
+     "fader": 0.0,
      "eq": {
       "on": false,
       "bands": [
        {
         "type": "lowshelf",
-        "freq": 120,
-        "gain": 0,
+        "freq": 120.0,
+        "gain": 0.0,
         "q": 0.7
        },
        {
         "type": "peak",
-        "freq": 500,
-        "gain": 0,
-        "q": 1
+        "freq": 500.0,
+        "gain": 0.0,
+        "q": 1.0
        },
        {
         "type": "peak",
-        "freq": 2500,
-        "gain": 0,
-        "q": 1
+        "freq": 2500.0,
+        "gain": 0.0,
+        "q": 1.0
        },
        {
         "type": "highshelf",
-        "freq": 8000,
-        "gain": 0,
+        "freq": 8000.0,
+        "gain": 0.0,
         "q": 0.7
        }
       ]
      },
      "comp": {
       "on": false,
-      "threshold": -12,
-      "ratio": 2,
-      "attack": 20,
-      "release": 250,
-      "makeup": 0
+      "threshold": -12.0,
+      "ratio": 2.0,
+      "attack": 20.0,
+      "release": 250.0,
+      "makeup": 0.0
      },
      "limiter": {
       "on": false,
-      "ceiling": -1
+      "ceiling": -1.0
      },
      "loudness": "off"
-    },
-    "key": "4f2cff50abd11199"
-   }
+    }
+   },
+   "chapters": []
   }
  },
  "run": {
@@ -2778,16 +2777,24 @@
     "title": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75,
+      "durationInFrames": 75.0,
       "tracks": [
        {
         "id": "title:t",
         "items": [
          {
-          "id": "title:i",
-          "from": 0,
-          "durationInFrames": 75,
           "kind": "element",
+          "id": "title:i",
+          "from": 0.0,
+          "durationInFrames": 75.0,
+          "nodeId": "title",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "title",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
           "component": "core/title",
           "props": {
            "eyebrow": "Changelog",
@@ -2803,14 +2810,6 @@
            "background": "transparent",
            "fontSize": 112,
            "fontWeight": 760
-          },
-          "nodeId": "title",
-          "handles": {
-           "trimEnd": {
-            "nodeId": "title",
-            "param": "clipDuration",
-            "unit": "frames"
-           }
           }
          }
         ]
@@ -2822,16 +2821,24 @@
     "terminal": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 150,
+      "durationInFrames": 150.0,
       "tracks": [
        {
         "id": "terminal:t",
         "items": [
          {
-          "id": "terminal:i",
-          "from": 0,
-          "durationInFrames": 150,
           "kind": "element",
+          "id": "terminal:i",
+          "from": 0.0,
+          "durationInFrames": 150.0,
+          "nodeId": "terminal",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "terminal",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
           "component": "remocn/terminal-simulator",
           "props": {
            "prompt": "$",
@@ -2845,48 +2852,40 @@
             {
              "text": "deploy --production",
              "type": "command",
-             "delay": 0
+             "delay": 0.0
             },
             {
              "text": "Running tests...",
              "type": "log",
-             "delay": 6
+             "delay": 6.0
             },
             {
              "text": "128 tests passed",
              "type": "success",
-             "delay": 10
+             "delay": 10.0
             },
             {
              "text": "Building the image...",
              "type": "log",
-             "delay": 8
+             "delay": 8.0
             },
             {
              "text": "Image ready in 41s",
              "type": "success",
-             "delay": 10
+             "delay": 10.0
             },
             {
              "text": "Rolling out to everyone...",
              "type": "log",
-             "delay": 8
+             "delay": 8.0
             },
             {
              "text": "Live in production",
              "type": "success",
-             "delay": 12
+             "delay": 12.0
             }
            ],
            "speed": 1
-          },
-          "nodeId": "terminal",
-          "handles": {
-           "trimEnd": {
-            "nodeId": "terminal",
-            "param": "clipDuration",
-            "unit": "frames"
-           }
           }
          }
         ]
@@ -2898,21 +2897,33 @@
     "chart": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 120,
+      "durationInFrames": 120.0,
       "tracks": [
        {
         "id": "chart:t",
         "items": [
          {
-          "id": "chart:i",
-          "from": 0,
-          "durationInFrames": 120,
           "kind": "element",
+          "id": "chart:i",
+          "from": 0.0,
+          "durationInFrames": 120.0,
+          "nodeId": "chart",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "chart",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
+          "design": {
+           "width": 1920.0,
+           "height": 1080.0
+          },
           "component": "remocn/animated-bar-chart",
           "props": {
            "barColor": "#0ea5e9",
            "gap": 16,
-           "staggerFrames": 6,
+           "staggerFrames": 6.0,
            "bars": [
             {
              "label": "",
@@ -2952,18 +2963,6 @@
            "baselineColor": "#27272a",
            "labelColor": "#a1a1aa",
            "speed": 1
-          },
-          "nodeId": "chart",
-          "handles": {
-           "trimEnd": {
-            "nodeId": "chart",
-            "param": "clipDuration",
-            "unit": "frames"
-           }
-          },
-          "design": {
-           "width": 1920,
-           "height": 1080
           }
          }
         ]
@@ -2975,23 +2974,16 @@
     "bg": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 90,
+      "durationInFrames": 90.0,
       "tracks": [
        {
         "id": "bg:t",
         "items": [
          {
-          "id": "bg:i",
-          "from": 0,
-          "durationInFrames": 90,
           "kind": "element",
-          "component": "core/gradient",
-          "props": {
-           "from": "#1e1b4b",
-           "to": "#0f172a",
-           "angle": 135,
-           "grain": 0.08
-          },
+          "id": "bg:i",
+          "from": 0.0,
+          "durationInFrames": 90.0,
           "nodeId": "bg",
           "handles": {
            "trimEnd": {
@@ -2999,6 +2991,13 @@
             "param": "clipDuration",
             "unit": "frames"
            }
+          },
+          "component": "core/gradient",
+          "props": {
+           "from": "#1e1b4b",
+           "to": "#0f172a",
+           "angle": 135,
+           "grain": 0.08
           }
          }
         ]
@@ -3010,16 +3009,24 @@
     "credit": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 120,
+      "durationInFrames": 120.0,
       "tracks": [
        {
         "id": "credit:t",
         "items": [
          {
-          "id": "credit:i",
-          "from": 0,
-          "durationInFrames": 120,
           "kind": "element",
+          "id": "credit:i",
+          "from": 0.0,
+          "durationInFrames": 120.0,
+          "nodeId": "credit",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "credit",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
           "component": "core/lower-third",
           "props": {
            "title": "Acme v2.4",
@@ -3028,14 +3035,6 @@
            "accent": "#a78bfa",
            "color": "#fafafa",
            "panel": "rgba(10,10,12,0.72)"
-          },
-          "nodeId": "credit",
-          "handles": {
-           "trimEnd": {
-            "nodeId": "credit",
-            "param": "clipDuration",
-            "unit": "frames"
-           }
           }
          }
         ]
@@ -3047,45 +3046,38 @@
     "chart-scene": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 120,
+      "durationInFrames": 120.0,
       "tracks": [
        {
         "id": "chart-scene:l0",
         "items": [
          {
+          "kind": "group",
           "id": "chart-scene:l0:g",
-          "from": 0,
-          "durationInFrames": 90,
+          "from": 0.0,
+          "durationInFrames": 90.0,
           "handles": {
            "move": {
             "nodeId": "chart-scene",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 0
+            "index": 0.0
            }
           },
           "slot": {
            "nodeId": "chart-scene",
            "port": "in1"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "bg:t",
              "items": [
               {
-               "id": "bg:i",
-               "from": 0,
-               "durationInFrames": 90,
                "kind": "element",
-               "component": "core/gradient",
-               "props": {
-                "from": "#1e1b4b",
-                "to": "#0f172a",
-                "angle": 135,
-                "grain": 0.08
-               },
+               "id": "bg:i",
+               "from": 0.0,
+               "durationInFrames": 90.0,
                "nodeId": "bg",
                "handles": {
                 "trimEnd": {
@@ -3093,6 +3085,13 @@
                  "param": "clipDuration",
                  "unit": "frames"
                 }
+               },
+               "component": "core/gradient",
+               "props": {
+                "from": "#1e1b4b",
+                "to": "#0f172a",
+                "angle": 135,
+                "grain": 0.08
                }
               }
              ]
@@ -3107,37 +3106,49 @@
         "id": "chart-scene:l1",
         "items": [
          {
+          "kind": "group",
           "id": "chart-scene:l1:g",
-          "from": 0,
-          "durationInFrames": 120,
+          "from": 0.0,
+          "durationInFrames": 120.0,
           "handles": {
            "move": {
             "nodeId": "chart-scene",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 1
+            "index": 1.0
            }
           },
           "slot": {
            "nodeId": "chart-scene",
            "port": "in2"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "chart:t",
              "items": [
               {
-               "id": "chart:i",
-               "from": 0,
-               "durationInFrames": 120,
                "kind": "element",
+               "id": "chart:i",
+               "from": 0.0,
+               "durationInFrames": 120.0,
+               "nodeId": "chart",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "chart",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "design": {
+                "width": 1920.0,
+                "height": 1080.0
+               },
                "component": "remocn/animated-bar-chart",
                "props": {
                 "barColor": "#0ea5e9",
                 "gap": 16,
-                "staggerFrames": 6,
+                "staggerFrames": 6.0,
                 "bars": [
                  {
                   "label": "",
@@ -3177,18 +3188,6 @@
                 "baselineColor": "#27272a",
                 "labelColor": "#a1a1aa",
                 "speed": 1
-               },
-               "nodeId": "chart",
-               "handles": {
-                "trimEnd": {
-                 "nodeId": "chart",
-                 "param": "clipDuration",
-                 "unit": "frames"
-                }
-               },
-               "design": {
-                "width": 1920,
-                "height": 1080
                }
               }
              ]
@@ -3203,32 +3202,40 @@
         "id": "chart-scene:l2",
         "items": [
          {
+          "kind": "group",
           "id": "chart-scene:l2:g",
-          "from": 0,
-          "durationInFrames": 120,
+          "from": 0.0,
+          "durationInFrames": 120.0,
           "handles": {
            "move": {
             "nodeId": "chart-scene",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 2
+            "index": 2.0
            }
           },
           "slot": {
            "nodeId": "chart-scene",
            "port": "in3"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "credit:t",
              "items": [
               {
-               "id": "credit:i",
-               "from": 0,
-               "durationInFrames": 120,
                "kind": "element",
+               "id": "credit:i",
+               "from": 0.0,
+               "durationInFrames": 120.0,
+               "nodeId": "credit",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "credit",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
                "component": "core/lower-third",
                "props": {
                 "title": "Acme v2.4",
@@ -3237,14 +3244,6 @@
                 "accent": "#a78bfa",
                 "color": "#fafafa",
                 "panel": "rgba(10,10,12,0.72)"
-               },
-               "nodeId": "credit",
-               "handles": {
-                "trimEnd": {
-                 "nodeId": "credit",
-                 "param": "clipDuration",
-                 "unit": "frames"
-                }
                }
               }
              ]
@@ -3262,30 +3261,42 @@
     "sequence": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 315,
+      "durationInFrames": 315.0,
       "tracks": [
        {
         "id": "sequence:seq",
         "items": [
          {
+          "kind": "group",
           "id": "sequence:s0",
-          "from": 0,
-          "durationInFrames": 75,
+          "from": 0.0,
+          "durationInFrames": 75.0,
+          "exit": {
+           "kind": "core/slide",
+           "durationInFrames": 15.0
+          },
           "slot": {
            "nodeId": "sequence",
            "port": "in1"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "title:t",
              "items": [
               {
-               "id": "title:i",
-               "from": 0,
-               "durationInFrames": 75,
                "kind": "element",
+               "id": "title:i",
+               "from": 0.0,
+               "durationInFrames": 75.0,
+               "nodeId": "title",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "title",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
                "component": "core/title",
                "props": {
                 "eyebrow": "Changelog",
@@ -3301,48 +3312,48 @@
                 "background": "transparent",
                 "fontSize": 112,
                 "fontWeight": 760
-               },
-               "nodeId": "title",
-               "handles": {
-                "trimEnd": {
-                 "nodeId": "title",
-                 "param": "clipDuration",
-                 "unit": "frames"
-                }
                }
               }
              ]
             }
            ]
-          },
-          "exit": {
-           "kind": "core/slide",
-           "durationInFrames": 15
           }
          },
          {
+          "kind": "group",
           "id": "sequence:s1",
-          "from": 60,
-          "durationInFrames": 150,
+          "from": 60.0,
+          "durationInFrames": 150.0,
           "enter": {
            "kind": "core/slide",
-           "durationInFrames": 15
+           "durationInFrames": 15.0
+          },
+          "exit": {
+           "kind": "core/slide",
+           "durationInFrames": 15.0
           },
           "slot": {
            "nodeId": "sequence",
            "port": "in2"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "terminal:t",
              "items": [
               {
-               "id": "terminal:i",
-               "from": 0,
-               "durationInFrames": 150,
                "kind": "element",
+               "id": "terminal:i",
+               "from": 0.0,
+               "durationInFrames": 150.0,
+               "nodeId": "terminal",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "terminal",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
                "component": "remocn/terminal-simulator",
                "props": {
                 "prompt": "$",
@@ -3356,111 +3367,92 @@
                  {
                   "text": "deploy --production",
                   "type": "command",
-                  "delay": 0
+                  "delay": 0.0
                  },
                  {
                   "text": "Running tests...",
                   "type": "log",
-                  "delay": 6
+                  "delay": 6.0
                  },
                  {
                   "text": "128 tests passed",
                   "type": "success",
-                  "delay": 10
+                  "delay": 10.0
                  },
                  {
                   "text": "Building the image...",
                   "type": "log",
-                  "delay": 8
+                  "delay": 8.0
                  },
                  {
                   "text": "Image ready in 41s",
                   "type": "success",
-                  "delay": 10
+                  "delay": 10.0
                  },
                  {
                   "text": "Rolling out to everyone...",
                   "type": "log",
-                  "delay": 8
+                  "delay": 8.0
                  },
                  {
                   "text": "Live in production",
                   "type": "success",
-                  "delay": 12
+                  "delay": 12.0
                  }
                 ],
                 "speed": 1
-               },
-               "nodeId": "terminal",
-               "handles": {
-                "trimEnd": {
-                 "nodeId": "terminal",
-                 "param": "clipDuration",
-                 "unit": "frames"
-                }
                }
               }
              ]
             }
            ]
-          },
-          "exit": {
-           "kind": "core/slide",
-           "durationInFrames": 15
           }
          },
          {
+          "kind": "group",
           "id": "sequence:s2",
-          "from": 195,
-          "durationInFrames": 120,
+          "from": 195.0,
+          "durationInFrames": 120.0,
           "enter": {
            "kind": "core/slide",
-           "durationInFrames": 15
+           "durationInFrames": 15.0
           },
           "slot": {
            "nodeId": "sequence",
            "port": "in3"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "chart-scene:l0",
              "items": [
               {
+               "kind": "group",
                "id": "chart-scene:l0:g",
-               "from": 0,
-               "durationInFrames": 90,
+               "from": 0.0,
+               "durationInFrames": 90.0,
                "handles": {
                 "move": {
                  "nodeId": "chart-scene",
                  "param": "offsetsMs",
                  "unit": "ms",
-                 "index": 0
+                 "index": 0.0
                 }
                },
                "slot": {
                 "nodeId": "chart-scene",
                 "port": "in1"
                },
-               "kind": "group",
                "props": {
                 "tracks": [
                  {
                   "id": "bg:t",
                   "items": [
                    {
-                    "id": "bg:i",
-                    "from": 0,
-                    "durationInFrames": 90,
                     "kind": "element",
-                    "component": "core/gradient",
-                    "props": {
-                     "from": "#1e1b4b",
-                     "to": "#0f172a",
-                     "angle": 135,
-                     "grain": 0.08
-                    },
+                    "id": "bg:i",
+                    "from": 0.0,
+                    "durationInFrames": 90.0,
                     "nodeId": "bg",
                     "handles": {
                      "trimEnd": {
@@ -3468,6 +3460,13 @@
                       "param": "clipDuration",
                       "unit": "frames"
                      }
+                    },
+                    "component": "core/gradient",
+                    "props": {
+                     "from": "#1e1b4b",
+                     "to": "#0f172a",
+                     "angle": 135,
+                     "grain": 0.08
                     }
                    }
                   ]
@@ -3482,37 +3481,49 @@
              "id": "chart-scene:l1",
              "items": [
               {
+               "kind": "group",
                "id": "chart-scene:l1:g",
-               "from": 0,
-               "durationInFrames": 120,
+               "from": 0.0,
+               "durationInFrames": 120.0,
                "handles": {
                 "move": {
                  "nodeId": "chart-scene",
                  "param": "offsetsMs",
                  "unit": "ms",
-                 "index": 1
+                 "index": 1.0
                 }
                },
                "slot": {
                 "nodeId": "chart-scene",
                 "port": "in2"
                },
-               "kind": "group",
                "props": {
                 "tracks": [
                  {
                   "id": "chart:t",
                   "items": [
                    {
-                    "id": "chart:i",
-                    "from": 0,
-                    "durationInFrames": 120,
                     "kind": "element",
+                    "id": "chart:i",
+                    "from": 0.0,
+                    "durationInFrames": 120.0,
+                    "nodeId": "chart",
+                    "handles": {
+                     "trimEnd": {
+                      "nodeId": "chart",
+                      "param": "clipDuration",
+                      "unit": "frames"
+                     }
+                    },
+                    "design": {
+                     "width": 1920.0,
+                     "height": 1080.0
+                    },
                     "component": "remocn/animated-bar-chart",
                     "props": {
                      "barColor": "#0ea5e9",
                      "gap": 16,
-                     "staggerFrames": 6,
+                     "staggerFrames": 6.0,
                      "bars": [
                       {
                        "label": "",
@@ -3552,18 +3563,6 @@
                      "baselineColor": "#27272a",
                      "labelColor": "#a1a1aa",
                      "speed": 1
-                    },
-                    "nodeId": "chart",
-                    "handles": {
-                     "trimEnd": {
-                      "nodeId": "chart",
-                      "param": "clipDuration",
-                      "unit": "frames"
-                     }
-                    },
-                    "design": {
-                     "width": 1920,
-                     "height": 1080
                     }
                    }
                   ]
@@ -3578,32 +3577,40 @@
              "id": "chart-scene:l2",
              "items": [
               {
+               "kind": "group",
                "id": "chart-scene:l2:g",
-               "from": 0,
-               "durationInFrames": 120,
+               "from": 0.0,
+               "durationInFrames": 120.0,
                "handles": {
                 "move": {
                  "nodeId": "chart-scene",
                  "param": "offsetsMs",
                  "unit": "ms",
-                 "index": 2
+                 "index": 2.0
                 }
                },
                "slot": {
                 "nodeId": "chart-scene",
                 "port": "in3"
                },
-               "kind": "group",
                "props": {
                 "tracks": [
                  {
                   "id": "credit:t",
                   "items": [
                    {
-                    "id": "credit:i",
-                    "from": 0,
-                    "durationInFrames": 120,
                     "kind": "element",
+                    "id": "credit:i",
+                    "from": 0.0,
+                    "durationInFrames": 120.0,
+                    "nodeId": "credit",
+                    "handles": {
+                     "trimEnd": {
+                      "nodeId": "credit",
+                      "param": "clipDuration",
+                      "unit": "frames"
+                     }
+                    },
                     "component": "core/lower-third",
                     "props": {
                      "title": "Acme v2.4",
@@ -3612,14 +3619,6 @@
                      "accent": "#a78bfa",
                      "color": "#fafafa",
                      "panel": "rgba(10,10,12,0.72)"
-                    },
-                    "nodeId": "credit",
-                    "handles": {
-                     "trimEnd": {
-                      "nodeId": "credit",
-                      "param": "clipDuration",
-                      "unit": "frames"
-                     }
                     }
                    }
                   ]
@@ -3644,9 +3643,9 @@
       "type": "media",
       "src": "project:.opsis/out/render.mp4",
       "kind": "video",
-      "durationMs": 4000,
-      "width": 1920,
-      "height": 1080,
+      "durationMs": 4000.0,
+      "width": 1920.0,
+      "height": 1080.0,
       "hasAudio": true
      }
     }
@@ -3654,34 +3653,46 @@
    "errors": {},
    "specs": {
     "render": {
-     "width": 1920,
-     "height": 1080,
-     "fps": 30,
-     "durationInFrames": 315,
+     "width": 1920.0,
+     "height": 1080.0,
+     "fps": 30.0,
+     "durationInFrames": 315.0,
      "background": "#09090b",
      "tracks": [
       {
        "id": "sequence:seq",
        "items": [
         {
+         "kind": "group",
          "id": "sequence:s0",
-         "from": 0,
-         "durationInFrames": 75,
+         "from": 0.0,
+         "durationInFrames": 75.0,
+         "exit": {
+          "kind": "core/slide",
+          "durationInFrames": 15.0
+         },
          "slot": {
           "nodeId": "sequence",
           "port": "in1"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "title:t",
             "items": [
              {
-              "id": "title:i",
-              "from": 0,
-              "durationInFrames": 75,
               "kind": "element",
+              "id": "title:i",
+              "from": 0.0,
+              "durationInFrames": 75.0,
+              "nodeId": "title",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "title",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
               "component": "core/title",
               "props": {
                "eyebrow": "Changelog",
@@ -3697,48 +3708,48 @@
                "background": "transparent",
                "fontSize": 112,
                "fontWeight": 760
-              },
-              "nodeId": "title",
-              "handles": {
-               "trimEnd": {
-                "nodeId": "title",
-                "param": "clipDuration",
-                "unit": "frames"
-               }
               }
              }
             ]
            }
           ]
-         },
-         "exit": {
-          "kind": "core/slide",
-          "durationInFrames": 15
          }
         },
         {
+         "kind": "group",
          "id": "sequence:s1",
-         "from": 60,
-         "durationInFrames": 150,
+         "from": 60.0,
+         "durationInFrames": 150.0,
          "enter": {
           "kind": "core/slide",
-          "durationInFrames": 15
+          "durationInFrames": 15.0
+         },
+         "exit": {
+          "kind": "core/slide",
+          "durationInFrames": 15.0
          },
          "slot": {
           "nodeId": "sequence",
           "port": "in2"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "terminal:t",
             "items": [
              {
-              "id": "terminal:i",
-              "from": 0,
-              "durationInFrames": 150,
               "kind": "element",
+              "id": "terminal:i",
+              "from": 0.0,
+              "durationInFrames": 150.0,
+              "nodeId": "terminal",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "terminal",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
               "component": "remocn/terminal-simulator",
               "props": {
                "prompt": "$",
@@ -3752,111 +3763,92 @@
                 {
                  "text": "deploy --production",
                  "type": "command",
-                 "delay": 0
+                 "delay": 0.0
                 },
                 {
                  "text": "Running tests...",
                  "type": "log",
-                 "delay": 6
+                 "delay": 6.0
                 },
                 {
                  "text": "128 tests passed",
                  "type": "success",
-                 "delay": 10
+                 "delay": 10.0
                 },
                 {
                  "text": "Building the image...",
                  "type": "log",
-                 "delay": 8
+                 "delay": 8.0
                 },
                 {
                  "text": "Image ready in 41s",
                  "type": "success",
-                 "delay": 10
+                 "delay": 10.0
                 },
                 {
                  "text": "Rolling out to everyone...",
                  "type": "log",
-                 "delay": 8
+                 "delay": 8.0
                 },
                 {
                  "text": "Live in production",
                  "type": "success",
-                 "delay": 12
+                 "delay": 12.0
                 }
                ],
                "speed": 1
-              },
-              "nodeId": "terminal",
-              "handles": {
-               "trimEnd": {
-                "nodeId": "terminal",
-                "param": "clipDuration",
-                "unit": "frames"
-               }
               }
              }
             ]
            }
           ]
-         },
-         "exit": {
-          "kind": "core/slide",
-          "durationInFrames": 15
          }
         },
         {
+         "kind": "group",
          "id": "sequence:s2",
-         "from": 195,
-         "durationInFrames": 120,
+         "from": 195.0,
+         "durationInFrames": 120.0,
          "enter": {
           "kind": "core/slide",
-          "durationInFrames": 15
+          "durationInFrames": 15.0
          },
          "slot": {
           "nodeId": "sequence",
           "port": "in3"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "chart-scene:l0",
             "items": [
              {
+              "kind": "group",
               "id": "chart-scene:l0:g",
-              "from": 0,
-              "durationInFrames": 90,
+              "from": 0.0,
+              "durationInFrames": 90.0,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 0
+                "index": 0.0
                }
               },
               "slot": {
                "nodeId": "chart-scene",
                "port": "in1"
               },
-              "kind": "group",
               "props": {
                "tracks": [
                 {
                  "id": "bg:t",
                  "items": [
                   {
-                   "id": "bg:i",
-                   "from": 0,
-                   "durationInFrames": 90,
                    "kind": "element",
-                   "component": "core/gradient",
-                   "props": {
-                    "from": "#1e1b4b",
-                    "to": "#0f172a",
-                    "angle": 135,
-                    "grain": 0.08
-                   },
+                   "id": "bg:i",
+                   "from": 0.0,
+                   "durationInFrames": 90.0,
                    "nodeId": "bg",
                    "handles": {
                     "trimEnd": {
@@ -3864,6 +3856,13 @@
                      "param": "clipDuration",
                      "unit": "frames"
                     }
+                   },
+                   "component": "core/gradient",
+                   "props": {
+                    "from": "#1e1b4b",
+                    "to": "#0f172a",
+                    "angle": 135,
+                    "grain": 0.08
                    }
                   }
                  ]
@@ -3878,37 +3877,49 @@
             "id": "chart-scene:l1",
             "items": [
              {
+              "kind": "group",
               "id": "chart-scene:l1:g",
-              "from": 0,
-              "durationInFrames": 120,
+              "from": 0.0,
+              "durationInFrames": 120.0,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 1
+                "index": 1.0
                }
               },
               "slot": {
                "nodeId": "chart-scene",
                "port": "in2"
               },
-              "kind": "group",
               "props": {
                "tracks": [
                 {
                  "id": "chart:t",
                  "items": [
                   {
-                   "id": "chart:i",
-                   "from": 0,
-                   "durationInFrames": 120,
                    "kind": "element",
+                   "id": "chart:i",
+                   "from": 0.0,
+                   "durationInFrames": 120.0,
+                   "nodeId": "chart",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "chart",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   },
+                   "design": {
+                    "width": 1920.0,
+                    "height": 1080.0
+                   },
                    "component": "remocn/animated-bar-chart",
                    "props": {
                     "barColor": "#0ea5e9",
                     "gap": 16,
-                    "staggerFrames": 6,
+                    "staggerFrames": 6.0,
                     "bars": [
                      {
                       "label": "",
@@ -3948,18 +3959,6 @@
                     "baselineColor": "#27272a",
                     "labelColor": "#a1a1aa",
                     "speed": 1
-                   },
-                   "nodeId": "chart",
-                   "handles": {
-                    "trimEnd": {
-                     "nodeId": "chart",
-                     "param": "clipDuration",
-                     "unit": "frames"
-                    }
-                   },
-                   "design": {
-                    "width": 1920,
-                    "height": 1080
                    }
                   }
                  ]
@@ -3974,32 +3973,40 @@
             "id": "chart-scene:l2",
             "items": [
              {
+              "kind": "group",
               "id": "chart-scene:l2:g",
-              "from": 0,
-              "durationInFrames": 120,
+              "from": 0.0,
+              "durationInFrames": 120.0,
               "handles": {
                "move": {
                 "nodeId": "chart-scene",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 2
+                "index": 2.0
                }
               },
               "slot": {
                "nodeId": "chart-scene",
                "port": "in3"
               },
-              "kind": "group",
               "props": {
                "tracks": [
                 {
                  "id": "credit:t",
                  "items": [
                   {
-                   "id": "credit:i",
-                   "from": 0,
-                   "durationInFrames": 120,
                    "kind": "element",
+                   "id": "credit:i",
+                   "from": 0.0,
+                   "durationInFrames": 120.0,
+                   "nodeId": "credit",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "credit",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   },
                    "component": "core/lower-third",
                    "props": {
                     "title": "Acme v2.4",
@@ -4008,14 +4015,6 @@
                     "accent": "#a78bfa",
                     "color": "#fafafa",
                     "panel": "rgba(10,10,12,0.72)"
-                   },
-                   "nodeId": "credit",
-                   "handles": {
-                    "trimEnd": {
-                     "nodeId": "credit",
-                     "param": "clipDuration",
-                     "unit": "frames"
-                    }
                    }
                   }
                  ]
@@ -4075,8 +4074,8 @@
      {
       "icon": "clock",
       "text": "5 s · usually 8.9 s",
-      "tone": "warn",
-      "title": "Shorter than this element usually runs, so its animation may be cut off."
+      "title": "Shorter than this element usually runs, so its animation may be cut off.",
+      "tone": "warn"
      }
     ]
    },
@@ -4155,34 +4154,46 @@
   },
   "preview": {
    "spec": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
-    "durationInFrames": 315,
+    "width": 1920.0,
+    "height": 1080.0,
+    "fps": 30.0,
+    "durationInFrames": 315.0,
     "background": "#09090b",
     "tracks": [
      {
       "id": "sequence:seq",
       "items": [
        {
+        "kind": "group",
         "id": "sequence:s0",
-        "from": 0,
-        "durationInFrames": 75,
+        "from": 0.0,
+        "durationInFrames": 75.0,
+        "exit": {
+         "kind": "core/slide",
+         "durationInFrames": 15.0
+        },
         "slot": {
          "nodeId": "sequence",
          "port": "in1"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "title:t",
            "items": [
             {
-             "id": "title:i",
-             "from": 0,
-             "durationInFrames": 75,
              "kind": "element",
+             "id": "title:i",
+             "from": 0.0,
+             "durationInFrames": 75.0,
+             "nodeId": "title",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "title",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
              "component": "core/title",
              "props": {
               "eyebrow": "Changelog",
@@ -4198,48 +4209,48 @@
               "background": "transparent",
               "fontSize": 112,
               "fontWeight": 760
-             },
-             "nodeId": "title",
-             "handles": {
-              "trimEnd": {
-               "nodeId": "title",
-               "param": "clipDuration",
-               "unit": "frames"
-              }
              }
             }
            ]
           }
          ]
-        },
-        "exit": {
-         "kind": "core/slide",
-         "durationInFrames": 15
         }
        },
        {
+        "kind": "group",
         "id": "sequence:s1",
-        "from": 60,
-        "durationInFrames": 150,
+        "from": 60.0,
+        "durationInFrames": 150.0,
         "enter": {
          "kind": "core/slide",
-         "durationInFrames": 15
+         "durationInFrames": 15.0
+        },
+        "exit": {
+         "kind": "core/slide",
+         "durationInFrames": 15.0
         },
         "slot": {
          "nodeId": "sequence",
          "port": "in2"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "terminal:t",
            "items": [
             {
-             "id": "terminal:i",
-             "from": 0,
-             "durationInFrames": 150,
              "kind": "element",
+             "id": "terminal:i",
+             "from": 0.0,
+             "durationInFrames": 150.0,
+             "nodeId": "terminal",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "terminal",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
              "component": "remocn/terminal-simulator",
              "props": {
               "prompt": "$",
@@ -4253,111 +4264,92 @@
                {
                 "text": "deploy --production",
                 "type": "command",
-                "delay": 0
+                "delay": 0.0
                },
                {
                 "text": "Running tests...",
                 "type": "log",
-                "delay": 6
+                "delay": 6.0
                },
                {
                 "text": "128 tests passed",
                 "type": "success",
-                "delay": 10
+                "delay": 10.0
                },
                {
                 "text": "Building the image...",
                 "type": "log",
-                "delay": 8
+                "delay": 8.0
                },
                {
                 "text": "Image ready in 41s",
                 "type": "success",
-                "delay": 10
+                "delay": 10.0
                },
                {
                 "text": "Rolling out to everyone...",
                 "type": "log",
-                "delay": 8
+                "delay": 8.0
                },
                {
                 "text": "Live in production",
                 "type": "success",
-                "delay": 12
+                "delay": 12.0
                }
               ],
               "speed": 1
-             },
-             "nodeId": "terminal",
-             "handles": {
-              "trimEnd": {
-               "nodeId": "terminal",
-               "param": "clipDuration",
-               "unit": "frames"
-              }
              }
             }
            ]
           }
          ]
-        },
-        "exit": {
-         "kind": "core/slide",
-         "durationInFrames": 15
         }
        },
        {
+        "kind": "group",
         "id": "sequence:s2",
-        "from": 195,
-        "durationInFrames": 120,
+        "from": 195.0,
+        "durationInFrames": 120.0,
         "enter": {
          "kind": "core/slide",
-         "durationInFrames": 15
+         "durationInFrames": 15.0
         },
         "slot": {
          "nodeId": "sequence",
          "port": "in3"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "chart-scene:l0",
            "items": [
             {
+             "kind": "group",
              "id": "chart-scene:l0:g",
-             "from": 0,
-             "durationInFrames": 90,
+             "from": 0.0,
+             "durationInFrames": 90.0,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 0
+               "index": 0.0
               }
              },
              "slot": {
               "nodeId": "chart-scene",
               "port": "in1"
              },
-             "kind": "group",
              "props": {
               "tracks": [
                {
                 "id": "bg:t",
                 "items": [
                  {
-                  "id": "bg:i",
-                  "from": 0,
-                  "durationInFrames": 90,
                   "kind": "element",
-                  "component": "core/gradient",
-                  "props": {
-                   "from": "#1e1b4b",
-                   "to": "#0f172a",
-                   "angle": 135,
-                   "grain": 0.08
-                  },
+                  "id": "bg:i",
+                  "from": 0.0,
+                  "durationInFrames": 90.0,
                   "nodeId": "bg",
                   "handles": {
                    "trimEnd": {
@@ -4365,6 +4357,13 @@
                     "param": "clipDuration",
                     "unit": "frames"
                    }
+                  },
+                  "component": "core/gradient",
+                  "props": {
+                   "from": "#1e1b4b",
+                   "to": "#0f172a",
+                   "angle": 135,
+                   "grain": 0.08
                   }
                  }
                 ]
@@ -4379,37 +4378,49 @@
            "id": "chart-scene:l1",
            "items": [
             {
+             "kind": "group",
              "id": "chart-scene:l1:g",
-             "from": 0,
-             "durationInFrames": 120,
+             "from": 0.0,
+             "durationInFrames": 120.0,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 1
+               "index": 1.0
               }
              },
              "slot": {
               "nodeId": "chart-scene",
               "port": "in2"
              },
-             "kind": "group",
              "props": {
               "tracks": [
                {
                 "id": "chart:t",
                 "items": [
                  {
-                  "id": "chart:i",
-                  "from": 0,
-                  "durationInFrames": 120,
                   "kind": "element",
+                  "id": "chart:i",
+                  "from": 0.0,
+                  "durationInFrames": 120.0,
+                  "nodeId": "chart",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "chart",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
+                  "design": {
+                   "width": 1920.0,
+                   "height": 1080.0
+                  },
                   "component": "remocn/animated-bar-chart",
                   "props": {
                    "barColor": "#0ea5e9",
                    "gap": 16,
-                   "staggerFrames": 6,
+                   "staggerFrames": 6.0,
                    "bars": [
                     {
                      "label": "",
@@ -4449,18 +4460,6 @@
                    "baselineColor": "#27272a",
                    "labelColor": "#a1a1aa",
                    "speed": 1
-                  },
-                  "nodeId": "chart",
-                  "handles": {
-                   "trimEnd": {
-                    "nodeId": "chart",
-                    "param": "clipDuration",
-                    "unit": "frames"
-                   }
-                  },
-                  "design": {
-                   "width": 1920,
-                   "height": 1080
                   }
                  }
                 ]
@@ -4475,32 +4474,40 @@
            "id": "chart-scene:l2",
            "items": [
             {
+             "kind": "group",
              "id": "chart-scene:l2:g",
-             "from": 0,
-             "durationInFrames": 120,
+             "from": 0.0,
+             "durationInFrames": 120.0,
              "handles": {
               "move": {
                "nodeId": "chart-scene",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 2
+               "index": 2.0
               }
              },
              "slot": {
               "nodeId": "chart-scene",
               "port": "in3"
              },
-             "kind": "group",
              "props": {
               "tracks": [
                {
                 "id": "credit:t",
                 "items": [
                  {
-                  "id": "credit:i",
-                  "from": 0,
-                  "durationInFrames": 120,
                   "kind": "element",
+                  "id": "credit:i",
+                  "from": 0.0,
+                  "durationInFrames": 120.0,
+                  "nodeId": "credit",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "credit",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
                   "component": "core/lower-third",
                   "props": {
                    "title": "Acme v2.4",
@@ -4509,14 +4516,6 @@
                    "accent": "#a78bfa",
                    "color": "#fafafa",
                    "panel": "rgba(10,10,12,0.72)"
-                  },
-                  "nodeId": "credit",
-                  "handles": {
-                   "trimEnd": {
-                    "nodeId": "credit",
-                    "param": "clipDuration",
-                    "unit": "frames"
-                   }
                   }
                  }
                 ]
@@ -4543,24 +4542,24 @@
    },
    "spans": {
     "title": {
-     "from": 0,
-     "to": 75
+     "from": 0.0,
+     "to": 75.0
     },
     "terminal": {
-     "from": 60,
-     "to": 210
+     "from": 60.0,
+     "to": 210.0
     },
     "bg": {
-     "from": 195,
-     "to": 285
+     "from": 195.0,
+     "to": 285.0
     },
     "chart": {
-     "from": 195,
-     "to": 315
+     "from": 195.0,
+     "to": 315.0
     },
     "credit": {
-     "from": 195,
-     "to": 315
+     "from": 195.0,
+     "to": 315.0
     }
    },
    "sourceNodeId": "render"
@@ -4568,8 +4567,8 @@
   "timelines": {
    "render": {
     "flat": {
-     "fps": 30,
-     "durationInFrames": 315,
+     "fps": 30.0,
+     "durationInFrames": 315.0,
      "bars": [
       {
        "type": "video",
@@ -4594,8 +4593,8 @@
         "fontWeight": 760
        },
        "thumbnail": null,
-       "from": 0,
-       "to": 75,
+       "from": 0.0,
+       "to": 75.0,
        "lane": 0,
        "order": 0,
        "chain": [
@@ -4609,11 +4608,11 @@
            "unit": "frames"
           }
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 75,
-         "from": 0,
-         "to": 75
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 0.0,
+         "to": 75.0
         },
         {
          "itemId": "sequence:s0",
@@ -4621,16 +4620,16 @@
           "nodeId": "sequence",
           "port": "in1"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 75,
-         "from": 0,
-         "to": 75
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 0.0,
+         "to": 75.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
-       "contentEnd": 75,
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 75.0,
        "loop": 0,
        "hasSound": false,
        "sound": null
@@ -4654,44 +4653,44 @@
          {
           "text": "deploy --production",
           "type": "command",
-          "delay": 0
+          "delay": 0.0
          },
          {
           "text": "Running tests...",
           "type": "log",
-          "delay": 6
+          "delay": 6.0
          },
          {
           "text": "128 tests passed",
           "type": "success",
-          "delay": 10
+          "delay": 10.0
          },
          {
           "text": "Building the image...",
           "type": "log",
-          "delay": 8
+          "delay": 8.0
          },
          {
           "text": "Image ready in 41s",
           "type": "success",
-          "delay": 10
+          "delay": 10.0
          },
          {
           "text": "Rolling out to everyone...",
           "type": "log",
-          "delay": 8
+          "delay": 8.0
          },
          {
           "text": "Live in production",
           "type": "success",
-          "delay": 12
+          "delay": 12.0
          }
         ],
         "speed": 1
        },
        "thumbnail": null,
-       "from": 60,
-       "to": 210,
+       "from": 60.0,
+       "to": 210.0,
        "lane": 1,
        "order": 1,
        "chain": [
@@ -4705,11 +4704,11 @@
            "unit": "frames"
           }
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 150,
-         "from": 60,
-         "to": 210
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 150.0,
+         "from": 60.0,
+         "to": 210.0
         },
         {
          "itemId": "sequence:s1",
@@ -4717,16 +4716,16 @@
           "nodeId": "sequence",
           "port": "in2"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 150,
-         "from": 60,
-         "to": 210
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 150.0,
+         "from": 60.0,
+         "to": 210.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
-       "contentEnd": 150,
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 150.0,
        "loop": 0,
        "hasSound": false,
        "sound": null
@@ -4745,8 +4744,8 @@
         "grain": 0.08
        },
        "thumbnail": null,
-       "from": 195,
-       "to": 285,
+       "from": 195.0,
+       "to": 285.0,
        "lane": 0,
        "order": 2,
        "chain": [
@@ -4760,11 +4759,11 @@
            "unit": "frames"
           }
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 90,
-         "from": 195,
-         "to": 285
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 90.0,
+         "from": 195.0,
+         "to": 285.0
         },
         {
          "itemId": "chart-scene:l0:g",
@@ -4773,18 +4772,18 @@
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0
+           "index": 0.0
           }
          },
          "slot": {
           "nodeId": "chart-scene",
           "port": "in1"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 90,
-         "from": 195,
-         "to": 285
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 90.0,
+         "from": 195.0,
+         "to": 285.0
         },
         {
          "itemId": "sequence:s2",
@@ -4792,16 +4791,16 @@
           "nodeId": "sequence",
           "port": "in3"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 120,
-         "from": 195,
-         "to": 315
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 120.0,
+         "from": 195.0,
+         "to": 315.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
-       "contentEnd": 90,
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 90.0,
        "loop": 0,
        "hasSound": false,
        "sound": null
@@ -4816,7 +4815,7 @@
        "props": {
         "barColor": "#0ea5e9",
         "gap": 16,
-        "staggerFrames": 6,
+        "staggerFrames": 6.0,
         "bars": [
          {
           "label": "",
@@ -4858,8 +4857,8 @@
         "speed": 1
        },
        "thumbnail": null,
-       "from": 195,
-       "to": 315,
+       "from": 195.0,
+       "to": 315.0,
        "lane": 2,
        "order": 3,
        "chain": [
@@ -4873,11 +4872,11 @@
            "unit": "frames"
           }
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 120,
-         "from": 195,
-         "to": 315
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 120.0,
+         "from": 195.0,
+         "to": 315.0
         },
         {
          "itemId": "chart-scene:l1:g",
@@ -4886,18 +4885,18 @@
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1
+           "index": 1.0
           }
          },
          "slot": {
           "nodeId": "chart-scene",
           "port": "in2"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 120,
-         "from": 195,
-         "to": 315
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 120.0,
+         "from": 195.0,
+         "to": 315.0
         },
         {
          "itemId": "sequence:s2",
@@ -4905,16 +4904,16 @@
           "nodeId": "sequence",
           "port": "in3"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 120,
-         "from": 195,
-         "to": 315
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 120.0,
+         "from": 195.0,
+         "to": 315.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
-       "contentEnd": 120,
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 120.0,
        "loop": 0,
        "hasSound": false,
        "sound": null
@@ -4935,8 +4934,8 @@
         "panel": "rgba(10,10,12,0.72)"
        },
        "thumbnail": null,
-       "from": 195,
-       "to": 315,
+       "from": 195.0,
+       "to": 315.0,
        "lane": 3,
        "order": 4,
        "chain": [
@@ -4950,11 +4949,11 @@
            "unit": "frames"
           }
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 120,
-         "from": 195,
-         "to": 315
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 120.0,
+         "from": 195.0,
+         "to": 315.0
         },
         {
          "itemId": "chart-scene:l2:g",
@@ -4963,18 +4962,18 @@
            "nodeId": "chart-scene",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 2
+           "index": 2.0
           }
          },
          "slot": {
           "nodeId": "chart-scene",
           "port": "in3"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 120,
-         "from": 195,
-         "to": 315
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 120.0,
+         "from": 195.0,
+         "to": 315.0
         },
         {
          "itemId": "sequence:s2",
@@ -4982,16 +4981,16 @@
           "nodeId": "sequence",
           "port": "in3"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 120,
-         "from": 195,
-         "to": 315
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 120.0,
+         "from": 195.0,
+         "to": 315.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
-       "contentEnd": 120,
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 120.0,
        "loop": 0,
        "hasSound": false,
        "sound": null
@@ -5004,13 +5003,13 @@
       {
        "key": "/0:sequence:s1:enter",
        "itemKey": "/0:sequence:s1",
+       "from": 60.0,
+       "to": 75.0,
+       "kind": "core/slide",
        "lanes": [
         0,
         1
        ],
-       "from": 60,
-       "to": 75,
-       "kind": "core/slide",
        "covers": 0.2,
        "slot": {
         "nodeId": "sequence",
@@ -5020,15 +5019,15 @@
       {
        "key": "/0:sequence:s2:enter",
        "itemKey": "/0:sequence:s2",
+       "from": 195.0,
+       "to": 210.0,
+       "kind": "core/slide",
        "lanes": [
         0,
         1,
         2,
         3
        ],
-       "from": 195,
-       "to": 210,
-       "kind": "core/slide",
        "covers": 0.125,
        "slot": {
         "nodeId": "sequence",
@@ -5039,10 +5038,9 @@
      "marks": [],
      "cameraKeys": []
     },
-    "chapters": [],
     "mix": {
-     "fps": 30,
-     "durationInFrames": 315,
+     "fps": 30.0,
+     "durationInFrames": 315.0,
      "channels": [],
      "buses": [
       {
@@ -5051,47 +5049,47 @@
        "processing": {
         "highpass": {
          "on": false,
-         "freq": 80
+         "freq": 80.0
         },
         "eq": {
          "on": false,
          "bands": [
           {
            "type": "lowshelf",
-           "freq": 120,
-           "gain": 0,
+           "freq": 120.0,
+           "gain": 0.0,
            "q": 0.7
           },
           {
            "type": "peak",
-           "freq": 500,
-           "gain": 0,
-           "q": 1
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "peak",
-           "freq": 2500,
-           "gain": 0,
-           "q": 1
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "highshelf",
-           "freq": 8000,
-           "gain": 0,
+           "freq": 8000.0,
+           "gain": 0.0,
            "q": 0.7
           }
          ]
         },
         "comp": {
          "on": false,
-         "threshold": -18,
-         "ratio": 3,
-         "attack": 10,
-         "release": 150,
-         "makeup": 0
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
         }
        },
-       "fader": 0,
+       "fader": 0.0,
        "channels": [],
        "duck": null
       },
@@ -5101,47 +5099,47 @@
        "processing": {
         "highpass": {
          "on": false,
-         "freq": 80
+         "freq": 80.0
         },
         "eq": {
          "on": false,
          "bands": [
           {
            "type": "lowshelf",
-           "freq": 120,
-           "gain": 0,
+           "freq": 120.0,
+           "gain": 0.0,
            "q": 0.7
           },
           {
            "type": "peak",
-           "freq": 500,
-           "gain": 0,
-           "q": 1
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "peak",
-           "freq": 2500,
-           "gain": 0,
-           "q": 1
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "highshelf",
-           "freq": 8000,
-           "gain": 0,
+           "freq": 8000.0,
+           "gain": 0.0,
            "q": 0.7
           }
          ]
         },
         "comp": {
          "on": false,
-         "threshold": -18,
-         "ratio": 3,
-         "attack": 10,
-         "release": 150,
-         "makeup": 0
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
         }
        },
-       "fader": 0,
+       "fader": 0.0,
        "channels": [],
        "duck": null
       },
@@ -5151,98 +5149,98 @@
        "processing": {
         "highpass": {
          "on": false,
-         "freq": 80
+         "freq": 80.0
         },
         "eq": {
          "on": false,
          "bands": [
           {
            "type": "lowshelf",
-           "freq": 120,
-           "gain": 0,
+           "freq": 120.0,
+           "gain": 0.0,
            "q": 0.7
           },
           {
            "type": "peak",
-           "freq": 500,
-           "gain": 0,
-           "q": 1
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "peak",
-           "freq": 2500,
-           "gain": 0,
-           "q": 1
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "highshelf",
-           "freq": 8000,
-           "gain": 0,
+           "freq": 8000.0,
+           "gain": 0.0,
            "q": 0.7
           }
          ]
         },
         "comp": {
          "on": false,
-         "threshold": -18,
-         "ratio": 3,
-         "attack": 10,
-         "release": 150,
-         "makeup": 0
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
         }
        },
-       "fader": 0,
+       "fader": 0.0,
        "channels": [],
        "duck": null
       }
      ],
      "master": {
-      "fader": 0,
+      "fader": 0.0,
       "eq": {
        "on": false,
        "bands": [
         {
          "type": "lowshelf",
-         "freq": 120,
-         "gain": 0,
+         "freq": 120.0,
+         "gain": 0.0,
          "q": 0.7
         },
         {
          "type": "peak",
-         "freq": 500,
-         "gain": 0,
-         "q": 1
+         "freq": 500.0,
+         "gain": 0.0,
+         "q": 1.0
         },
         {
          "type": "peak",
-         "freq": 2500,
-         "gain": 0,
-         "q": 1
+         "freq": 2500.0,
+         "gain": 0.0,
+         "q": 1.0
         },
         {
          "type": "highshelf",
-         "freq": 8000,
-         "gain": 0,
+         "freq": 8000.0,
+         "gain": 0.0,
          "q": 0.7
         }
        ]
       },
       "comp": {
        "on": false,
-       "threshold": -12,
-       "ratio": 2,
-       "attack": 20,
-       "release": 250,
-       "makeup": 0
+       "threshold": -12.0,
+       "ratio": 2.0,
+       "attack": 20.0,
+       "release": 250.0,
+       "makeup": 0.0
       },
       "limiter": {
        "on": false,
-       "ceiling": -1
+       "ceiling": -1.0
       },
       "loudness": "off"
-     },
-     "key": "4f2cff50abd11199"
-    }
+     }
+    },
+    "chapters": []
    }
   }
  }

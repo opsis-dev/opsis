@@ -549,7 +549,7 @@
      "captions": [
       {
        "text": "Create",
-       "startMs": 1500,
+       "startMs": 1500.0,
        "endMs": 1863.6363636363635
       },
       {
@@ -814,10 +814,10 @@
      "type": "recording",
      "src": null,
      "log": null,
-     "durationMs": 6000,
+     "durationMs": 6000.0,
      "viewport": {
-      "width": 1920,
-      "height": 1080
+      "width": 1920.0,
+      "height": 1080.0
      },
      "nodeId": "record",
      "style": []
@@ -826,22 +826,22 @@
    "camera": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 144,
+     "durationInFrames": 144.0,
      "tracks": [
       {
        "id": "camera:t",
        "items": [
         {
-         "id": "camera:i",
-         "from": 0,
-         "durationInFrames": 144,
          "kind": "element",
+         "id": "camera:i",
+         "from": 0.0,
+         "durationInFrames": 144.0,
+         "nodeId": "camera",
          "component": "core/placeholder",
          "props": {
           "title": "Not recorded yet",
           "subtitle": "Run to record the take. The camera moves appear here afterwards."
-         },
-         "nodeId": "camera"
+         }
         }
        ]
       }
@@ -852,32 +852,32 @@
    "captions": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 144,
+     "durationInFrames": 144.0,
      "tracks": [
       {
        "id": "captions:l0",
        "items": [
         {
-         "id": "captions:l0:g",
-         "from": 0,
-         "durationInFrames": 144,
          "kind": "group",
+         "id": "captions:l0:g",
+         "from": 0.0,
+         "durationInFrames": 144.0,
          "props": {
           "tracks": [
            {
             "id": "camera:t",
             "items": [
              {
-              "id": "camera:i",
-              "from": 0,
-              "durationInFrames": 144,
               "kind": "element",
+              "id": "camera:i",
+              "from": 0.0,
+              "durationInFrames": 144.0,
+              "nodeId": "camera",
               "component": "core/placeholder",
               "props": {
                "title": "Not recorded yet",
                "subtitle": "Run to record the take. The camera moves appear here afterwards."
-              },
-              "nodeId": "camera"
+              }
              }
             ]
            }
@@ -890,33 +890,34 @@
        "id": "captions:l1",
        "items": [
         {
-         "id": "captions:l1:g",
-         "from": 0,
-         "durationInFrames": 179,
          "kind": "group",
+         "id": "captions:l1:g",
+         "from": 0.0,
+         "durationInFrames": 179.0,
          "props": {
           "tracks": [
            {
             "id": "captions:t",
             "items": [
              {
-              "id": "captions:i",
-              "from": 0,
-              "durationInFrames": 179,
               "kind": "element",
+              "id": "captions:i",
+              "from": 0.0,
+              "durationInFrames": 179.0,
+              "nodeId": "captions",
               "component": "core/captions",
               "props": {
                "style": "word-by-word",
                "position": "bottom",
-               "fontSize": 56,
+               "fontSize": 56.0,
                "color": "#ffffff",
                "highlightColor": "#facc15",
                "panel": "rgba(0,0,0,0.35)",
-               "fontWeight": 800,
+               "fontWeight": 800.0,
                "captions": [
                 {
                  "text": "Create",
-                 "startMs": 1500,
+                 "startMs": 1500.0,
                  "endMs": 1863.6363636363635
                 },
                 {
@@ -960,8 +961,7 @@
                  "endMs": 5472.727272727273
                 }
                ]
-              },
-              "nodeId": "captions"
+              }
              }
             ]
            }
@@ -979,36 +979,36 @@
   "errors": {},
   "specs": {
    "render": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
-    "durationInFrames": 144,
+    "width": 1920.0,
+    "height": 1080.0,
+    "fps": 30.0,
+    "durationInFrames": 144.0,
     "background": "#09090b",
     "tracks": [
      {
       "id": "captions:l0",
       "items": [
        {
-        "id": "captions:l0:g",
-        "from": 0,
-        "durationInFrames": 144,
         "kind": "group",
+        "id": "captions:l0:g",
+        "from": 0.0,
+        "durationInFrames": 144.0,
         "props": {
          "tracks": [
           {
            "id": "camera:t",
            "items": [
             {
-             "id": "camera:i",
-             "from": 0,
-             "durationInFrames": 144,
              "kind": "element",
+             "id": "camera:i",
+             "from": 0.0,
+             "durationInFrames": 144.0,
+             "nodeId": "camera",
              "component": "core/placeholder",
              "props": {
               "title": "Not recorded yet",
               "subtitle": "Run to record the take. The camera moves appear here afterwards."
-             },
-             "nodeId": "camera"
+             }
             }
            ]
           }
@@ -1021,33 +1021,34 @@
       "id": "captions:l1",
       "items": [
        {
-        "id": "captions:l1:g",
-        "from": 0,
-        "durationInFrames": 179,
         "kind": "group",
+        "id": "captions:l1:g",
+        "from": 0.0,
+        "durationInFrames": 179.0,
         "props": {
          "tracks": [
           {
            "id": "captions:t",
            "items": [
             {
-             "id": "captions:i",
-             "from": 0,
-             "durationInFrames": 179,
              "kind": "element",
+             "id": "captions:i",
+             "from": 0.0,
+             "durationInFrames": 179.0,
+             "nodeId": "captions",
              "component": "core/captions",
              "props": {
               "style": "word-by-word",
               "position": "bottom",
-              "fontSize": 56,
+              "fontSize": 56.0,
               "color": "#ffffff",
               "highlightColor": "#facc15",
               "panel": "rgba(0,0,0,0.35)",
-              "fontWeight": 800,
+              "fontWeight": 800.0,
               "captions": [
                {
                 "text": "Create",
-                "startMs": 1500,
+                "startMs": 1500.0,
                 "endMs": 1863.6363636363635
                },
                {
@@ -1091,8 +1092,7 @@
                 "endMs": 5472.727272727273
                }
               ]
-             },
-             "nodeId": "captions"
+             }
             }
            ]
           }
@@ -1298,36 +1298,36 @@
  },
  "preview": {
   "spec": {
-   "width": 1920,
-   "height": 1080,
-   "fps": 30,
-   "durationInFrames": 144,
+   "width": 1920.0,
+   "height": 1080.0,
+   "fps": 30.0,
+   "durationInFrames": 144.0,
    "background": "#09090b",
    "tracks": [
     {
      "id": "captions:l0",
      "items": [
       {
-       "id": "captions:l0:g",
-       "from": 0,
-       "durationInFrames": 144,
        "kind": "group",
+       "id": "captions:l0:g",
+       "from": 0.0,
+       "durationInFrames": 144.0,
        "props": {
         "tracks": [
          {
           "id": "camera:t",
           "items": [
            {
-            "id": "camera:i",
-            "from": 0,
-            "durationInFrames": 144,
             "kind": "element",
+            "id": "camera:i",
+            "from": 0.0,
+            "durationInFrames": 144.0,
+            "nodeId": "camera",
             "component": "core/placeholder",
             "props": {
              "title": "Not recorded yet",
              "subtitle": "Run to record the take. The camera moves appear here afterwards."
-            },
-            "nodeId": "camera"
+            }
            }
           ]
          }
@@ -1340,33 +1340,34 @@
      "id": "captions:l1",
      "items": [
       {
-       "id": "captions:l1:g",
-       "from": 0,
-       "durationInFrames": 179,
        "kind": "group",
+       "id": "captions:l1:g",
+       "from": 0.0,
+       "durationInFrames": 179.0,
        "props": {
         "tracks": [
          {
           "id": "captions:t",
           "items": [
            {
-            "id": "captions:i",
-            "from": 0,
-            "durationInFrames": 179,
             "kind": "element",
+            "id": "captions:i",
+            "from": 0.0,
+            "durationInFrames": 179.0,
+            "nodeId": "captions",
             "component": "core/captions",
             "props": {
              "style": "word-by-word",
              "position": "bottom",
-             "fontSize": 56,
+             "fontSize": 56.0,
              "color": "#ffffff",
              "highlightColor": "#facc15",
              "panel": "rgba(0,0,0,0.35)",
-             "fontWeight": 800,
+             "fontWeight": 800.0,
              "captions": [
               {
                "text": "Create",
-               "startMs": 1500,
+               "startMs": 1500.0,
                "endMs": 1863.6363636363635
               },
               {
@@ -1410,8 +1411,7 @@
                "endMs": 5472.727272727273
               }
              ]
-            },
-            "nodeId": "captions"
+            }
            }
           ]
          }
@@ -1431,12 +1431,12 @@
   },
   "spans": {
    "camera": {
-    "from": 0,
-    "to": 144
+    "from": 0.0,
+    "to": 144.0
    },
    "captions": {
-    "from": 0,
-    "to": 144
+    "from": 0.0,
+    "to": 144.0
    }
   },
   "sourceNodeId": "render"
@@ -1444,8 +1444,8 @@
  "timelines": {
   "render": {
    "flat": {
-    "fps": 30,
-    "durationInFrames": 144,
+    "fps": 30.0,
+    "durationInFrames": 144.0,
     "bars": [
      {
       "type": "video",
@@ -1459,24 +1459,24 @@
        "subtitle": "Run to record the take. The camera moves appear here afterwards."
       },
       "thumbnail": null,
-      "from": 0,
-      "to": 144,
+      "from": 0.0,
+      "to": 144.0,
       "lane": 0,
       "order": 0,
       "chain": [
        {
         "itemId": "camera:i",
         "nodeId": "camera",
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 144,
-        "from": 0,
-        "to": 144
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 144.0,
+        "from": 0.0,
+        "to": 144.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
-      "contentEnd": 144,
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 144.0,
       "loop": 0,
       "hasSound": false,
       "sound": null
@@ -1491,15 +1491,15 @@
       "props": {
        "style": "word-by-word",
        "position": "bottom",
-       "fontSize": 56,
+       "fontSize": 56.0,
        "color": "#ffffff",
        "highlightColor": "#facc15",
        "panel": "rgba(0,0,0,0.35)",
-       "fontWeight": 800,
+       "fontWeight": 800.0,
        "captions": [
         {
          "text": "Create",
-         "startMs": 1500,
+         "startMs": 1500.0,
          "endMs": 1863.6363636363635
         },
         {
@@ -1545,23 +1545,23 @@
        ]
       },
       "thumbnail": null,
-      "from": 0,
-      "to": 144,
+      "from": 0.0,
+      "to": 144.0,
       "lane": 1,
       "order": 1,
       "chain": [
        {
         "itemId": "captions:i",
         "nodeId": "captions",
-        "rate": 1,
-        "rateEnd": 1,
+        "rate": 1.0,
+        "rateEnd": 1.0,
         "end": 143.99999710917473,
-        "from": 0,
-        "to": 144
+        "from": 0.0,
+        "to": 144.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
+      "rate": 1.0,
+      "contentStart": 0.0,
       "contentEnd": 143.99999710917473,
       "loop": 0,
       "hasSound": false,
@@ -1575,10 +1575,9 @@
     "marks": [],
     "cameraKeys": []
    },
-   "chapters": [],
    "mix": {
-    "fps": 30,
-    "durationInFrames": 144,
+    "fps": 30.0,
+    "durationInFrames": 144.0,
     "channels": [],
     "buses": [
      {
@@ -1587,47 +1586,47 @@
       "processing": {
        "highpass": {
         "on": false,
-        "freq": 80
+        "freq": 80.0
        },
        "eq": {
         "on": false,
         "bands": [
          {
           "type": "lowshelf",
-          "freq": 120,
-          "gain": 0,
+          "freq": 120.0,
+          "gain": 0.0,
           "q": 0.7
          },
          {
           "type": "peak",
-          "freq": 500,
-          "gain": 0,
-          "q": 1
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "peak",
-          "freq": 2500,
-          "gain": 0,
-          "q": 1
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "highshelf",
-          "freq": 8000,
-          "gain": 0,
+          "freq": 8000.0,
+          "gain": 0.0,
           "q": 0.7
          }
         ]
        },
        "comp": {
         "on": false,
-        "threshold": -18,
-        "ratio": 3,
-        "attack": 10,
-        "release": 150,
-        "makeup": 0
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
        }
       },
-      "fader": 0,
+      "fader": 0.0,
       "channels": [],
       "duck": null
      },
@@ -1637,47 +1636,47 @@
       "processing": {
        "highpass": {
         "on": false,
-        "freq": 80
+        "freq": 80.0
        },
        "eq": {
         "on": false,
         "bands": [
          {
           "type": "lowshelf",
-          "freq": 120,
-          "gain": 0,
+          "freq": 120.0,
+          "gain": 0.0,
           "q": 0.7
          },
          {
           "type": "peak",
-          "freq": 500,
-          "gain": 0,
-          "q": 1
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "peak",
-          "freq": 2500,
-          "gain": 0,
-          "q": 1
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "highshelf",
-          "freq": 8000,
-          "gain": 0,
+          "freq": 8000.0,
+          "gain": 0.0,
           "q": 0.7
          }
         ]
        },
        "comp": {
         "on": false,
-        "threshold": -18,
-        "ratio": 3,
-        "attack": 10,
-        "release": 150,
-        "makeup": 0
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
        }
       },
-      "fader": 0,
+      "fader": 0.0,
       "channels": [],
       "duck": null
      },
@@ -1687,98 +1686,98 @@
       "processing": {
        "highpass": {
         "on": false,
-        "freq": 80
+        "freq": 80.0
        },
        "eq": {
         "on": false,
         "bands": [
          {
           "type": "lowshelf",
-          "freq": 120,
-          "gain": 0,
+          "freq": 120.0,
+          "gain": 0.0,
           "q": 0.7
          },
          {
           "type": "peak",
-          "freq": 500,
-          "gain": 0,
-          "q": 1
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "peak",
-          "freq": 2500,
-          "gain": 0,
-          "q": 1
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "highshelf",
-          "freq": 8000,
-          "gain": 0,
+          "freq": 8000.0,
+          "gain": 0.0,
           "q": 0.7
          }
         ]
        },
        "comp": {
         "on": false,
-        "threshold": -18,
-        "ratio": 3,
-        "attack": 10,
-        "release": 150,
-        "makeup": 0
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
        }
       },
-      "fader": 0,
+      "fader": 0.0,
       "channels": [],
       "duck": null
      }
     ],
     "master": {
-     "fader": 0,
+     "fader": 0.0,
      "eq": {
       "on": false,
       "bands": [
        {
         "type": "lowshelf",
-        "freq": 120,
-        "gain": 0,
+        "freq": 120.0,
+        "gain": 0.0,
         "q": 0.7
        },
        {
         "type": "peak",
-        "freq": 500,
-        "gain": 0,
-        "q": 1
+        "freq": 500.0,
+        "gain": 0.0,
+        "q": 1.0
        },
        {
         "type": "peak",
-        "freq": 2500,
-        "gain": 0,
-        "q": 1
+        "freq": 2500.0,
+        "gain": 0.0,
+        "q": 1.0
        },
        {
         "type": "highshelf",
-        "freq": 8000,
-        "gain": 0,
+        "freq": 8000.0,
+        "gain": 0.0,
         "q": 0.7
        }
       ]
      },
      "comp": {
       "on": false,
-      "threshold": -12,
-      "ratio": 2,
-      "attack": 20,
-      "release": 250,
-      "makeup": 0
+      "threshold": -12.0,
+      "ratio": 2.0,
+      "attack": 20.0,
+      "release": 250.0,
+      "makeup": 0.0
      },
      "limiter": {
       "on": false,
-      "ceiling": -1
+      "ceiling": -1.0
      },
      "loudness": "off"
-    },
-    "key": "98ff917026c6b314"
-   }
+    }
+   },
+   "chapters": []
   }
  },
  "run": {
@@ -2127,7 +2126,7 @@
       "captions": [
        {
         "text": "Create",
-        "startMs": 1500,
+        "startMs": 1500.0,
         "endMs": 1863.6363636363635
        },
        {
@@ -2394,27 +2393,27 @@
       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
       "log": {
        "viewport": {
-        "width": 1920,
-        "height": 1080
+        "width": 1920.0,
+        "height": 1080.0
        },
-       "dpr": 1,
-       "t0": 0,
-       "durationMs": 6800,
+       "dpr": 1.0,
+       "t0": 0.0,
+       "durationMs": 6800.0,
        "actions": [
         {
          "id": "open:navigate",
          "kind": "navigate",
-         "t": 600,
-         "tEnd": 1000,
+         "t": 600.0,
+         "tEnd": 1000.0,
          "point": {
-          "x": 200,
-          "y": 150
+          "x": 200.0,
+          "y": 150.0
          },
          "rect": {
-          "x": 140,
-          "y": 130,
-          "w": 120,
-          "h": 40
+          "x": 140.0,
+          "y": 130.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "browser.navigate",
          "nodeId": "open"
@@ -2422,17 +2421,17 @@
         {
          "id": "chapter1:chapter",
          "kind": "chapter",
-         "t": 2400,
-         "tEnd": 2800,
+         "t": 2400.0,
+         "tEnd": 2800.0,
          "point": {
-          "x": 546,
-          "y": 344
+          "x": 546.0,
+          "y": 344.0
          },
          "rect": {
-          "x": 486,
-          "y": 324,
-          "w": 120,
-          "h": 40
+          "x": 486.0,
+          "y": 324.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "browser.chapter",
          "nodeId": "chapter1"
@@ -2440,17 +2439,17 @@
         {
          "id": "type:type",
          "kind": "type",
-         "t": 3300,
-         "tEnd": 3700,
+         "t": 3300.0,
+         "tEnd": 3700.0,
          "point": {
-          "x": 719,
-          "y": 441
+          "x": 719.0,
+          "y": 441.0
          },
          "rect": {
-          "x": 659,
-          "y": 421,
-          "w": 120,
-          "h": 40
+          "x": 659.0,
+          "y": 421.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "New item",
          "nodeId": "type"
@@ -2458,17 +2457,17 @@
         {
          "id": "chapter2:chapter",
          "kind": "chapter",
-         "t": 4200,
-         "tEnd": 4600,
+         "t": 4200.0,
+         "tEnd": 4600.0,
          "point": {
-          "x": 892,
-          "y": 538
+          "x": 892.0,
+          "y": 538.0
          },
          "rect": {
-          "x": 832,
-          "y": 518,
-          "w": 120,
-          "h": 40
+          "x": 832.0,
+          "y": 518.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "browser.chapter",
          "nodeId": "chapter2"
@@ -2476,17 +2475,17 @@
         {
          "id": "done:click",
          "kind": "click",
-         "t": 5100,
-         "tEnd": 5500,
+         "t": 5100.0,
+         "tEnd": 5500.0,
          "point": {
-          "x": 1065,
-          "y": 635
+          "x": 1065.0,
+          "y": 635.0
          },
          "rect": {
-          "x": 1005,
-          "y": 615,
-          "w": 120,
-          "h": 40
+          "x": 1005.0,
+          "y": 615.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "Done",
          "nodeId": "done"
@@ -2494,16 +2493,16 @@
        ],
        "cursorTrack": [
         {
-         "t": 0,
-         "x": 960,
-         "y": 540
+         "t": 0.0,
+         "x": 960.0,
+         "y": 540.0
         }
        ]
       },
-      "durationMs": 6800,
+      "durationMs": 6800.0,
       "viewport": {
-       "width": 1920,
-       "height": 1080
+       "width": 1920.0,
+       "height": 1080.0
       },
       "nodeId": "record",
       "style": []
@@ -2512,17 +2511,129 @@
     "camera": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 163,
+      "durationInFrames": 163.0,
       "tracks": [
        {
         "id": "camera:t",
         "items": [
          {
-          "id": "camera:i",
-          "from": 0,
-          "durationInFrames": 163,
           "kind": "recording",
+          "id": "camera:i",
+          "from": 0.0,
+          "durationInFrames": 163.0,
+          "nodeId": "camera",
           "props": {
+           "src": "project:.opsis/cache/record/recording.mp4",
+           "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+           "log": {
+            "viewport": {
+             "width": 1920.0,
+             "height": 1080.0
+            },
+            "dpr": 1.0,
+            "t0": 0.0,
+            "durationMs": 6800.0,
+            "actions": [
+             {
+              "id": "open:navigate",
+              "kind": "navigate",
+              "t": 600.0,
+              "tEnd": 1000.0,
+              "point": {
+               "x": 200.0,
+               "y": 150.0
+              },
+              "rect": {
+               "x": 140.0,
+               "y": 130.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "browser.navigate",
+              "nodeId": "open"
+             },
+             {
+              "id": "chapter1:chapter",
+              "kind": "chapter",
+              "t": 2400.0,
+              "tEnd": 2800.0,
+              "point": {
+               "x": 546.0,
+               "y": 344.0
+              },
+              "rect": {
+               "x": 486.0,
+               "y": 324.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "browser.chapter",
+              "nodeId": "chapter1"
+             },
+             {
+              "id": "type:type",
+              "kind": "type",
+              "t": 3300.0,
+              "tEnd": 3700.0,
+              "point": {
+               "x": 719.0,
+               "y": 441.0
+              },
+              "rect": {
+               "x": 659.0,
+               "y": 421.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "New item",
+              "nodeId": "type"
+             },
+             {
+              "id": "chapter2:chapter",
+              "kind": "chapter",
+              "t": 4200.0,
+              "tEnd": 4600.0,
+              "point": {
+               "x": 892.0,
+               "y": 538.0
+              },
+              "rect": {
+               "x": 832.0,
+               "y": 518.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "browser.chapter",
+              "nodeId": "chapter2"
+             },
+             {
+              "id": "done:click",
+              "kind": "click",
+              "t": 5100.0,
+              "tEnd": 5500.0,
+              "point": {
+               "x": 1065.0,
+               "y": 635.0
+              },
+              "rect": {
+               "x": 1005.0,
+               "y": 615.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "Done",
+              "nodeId": "done"
+             }
+            ],
+            "cursorTrack": [
+             {
+              "t": 0.0,
+              "x": 960.0,
+              "y": 540.0
+             }
+            ]
+           },
+           "name": "record",
            "speed": 1.25,
            "zoom": true,
            "tuning": {
@@ -2534,7 +2645,7 @@
            "chrome": false,
            "backdrop": "glaze",
            "cursor": true,
-           "cursorScale": 1,
+           "cursorScale": 1.0,
            "cursorLook": {
             "shape": "arrow",
             "fill": "#111418",
@@ -2542,149 +2653,37 @@
            },
            "ripple": {
             "color": "#0f172a",
-            "size": 1,
-            "width": 2
+            "size": 1.0,
+            "width": 2.0
            },
            "extraBeats": [],
            "annotations": [
             {
              "kind": "highlight",
+             "look": "clean",
+             "roughness": 1.0,
              "match": "",
              "text": "",
              "color": "#a78bfa",
-             "padding": 10,
-             "leadMs": 250,
-             "holdMs": 1400,
-             "look": "clean",
-             "roughness": 1
+             "padding": 10.0,
+             "leadMs": 250.0,
+             "holdMs": 1400.0
             },
             {
              "kind": "tooltip",
+             "look": "clean",
+             "roughness": 1.0,
              "match": "Done",
              "text": "Tick it off",
              "color": "#18181b",
-             "padding": 10,
-             "leadMs": 250,
-             "holdMs": 1400,
+             "padding": 10.0,
+             "leadMs": 250.0,
+             "holdMs": 1400.0,
              "textColor": "#fafafa",
-             "fontSize": 18,
-             "look": "clean",
-             "roughness": 1
+             "fontSize": 18.0
             }
-           ],
-           "src": "project:.opsis/cache/record/recording.mp4",
-           "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-           "log": {
-            "viewport": {
-             "width": 1920,
-             "height": 1080
-            },
-            "dpr": 1,
-            "t0": 0,
-            "durationMs": 6800,
-            "actions": [
-             {
-              "id": "open:navigate",
-              "kind": "navigate",
-              "t": 600,
-              "tEnd": 1000,
-              "point": {
-               "x": 200,
-               "y": 150
-              },
-              "rect": {
-               "x": 140,
-               "y": 130,
-               "w": 120,
-               "h": 40
-              },
-              "label": "browser.navigate",
-              "nodeId": "open"
-             },
-             {
-              "id": "chapter1:chapter",
-              "kind": "chapter",
-              "t": 2400,
-              "tEnd": 2800,
-              "point": {
-               "x": 546,
-               "y": 344
-              },
-              "rect": {
-               "x": 486,
-               "y": 324,
-               "w": 120,
-               "h": 40
-              },
-              "label": "browser.chapter",
-              "nodeId": "chapter1"
-             },
-             {
-              "id": "type:type",
-              "kind": "type",
-              "t": 3300,
-              "tEnd": 3700,
-              "point": {
-               "x": 719,
-               "y": 441
-              },
-              "rect": {
-               "x": 659,
-               "y": 421,
-               "w": 120,
-               "h": 40
-              },
-              "label": "New item",
-              "nodeId": "type"
-             },
-             {
-              "id": "chapter2:chapter",
-              "kind": "chapter",
-              "t": 4200,
-              "tEnd": 4600,
-              "point": {
-               "x": 892,
-               "y": 538
-              },
-              "rect": {
-               "x": 832,
-               "y": 518,
-               "w": 120,
-               "h": 40
-              },
-              "label": "browser.chapter",
-              "nodeId": "chapter2"
-             },
-             {
-              "id": "done:click",
-              "kind": "click",
-              "t": 5100,
-              "tEnd": 5500,
-              "point": {
-               "x": 1065,
-               "y": 635
-              },
-              "rect": {
-               "x": 1005,
-               "y": 615,
-               "w": 120,
-               "h": 40
-              },
-              "label": "Done",
-              "nodeId": "done"
-             }
-            ],
-            "cursorTrack": [
-             {
-              "t": 0,
-              "x": 960,
-              "y": 540
-             }
-            ]
-           },
-           "name": "record"
-          },
-          "nodeId": "camera"
+           ]
+          }
          }
         ]
        }
@@ -2696,27 +2695,27 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920,
-         "height": 1080
+         "width": 1920.0,
+         "height": 1080.0
         },
-        "dpr": 1,
-        "t0": 0,
-        "durationMs": 6800,
+        "dpr": 1.0,
+        "t0": 0.0,
+        "durationMs": 6800.0,
         "actions": [
          {
           "id": "open:navigate",
           "kind": "navigate",
-          "t": 600,
-          "tEnd": 1000,
+          "t": 600.0,
+          "tEnd": 1000.0,
           "point": {
-           "x": 200,
-           "y": 150
+           "x": 200.0,
+           "y": 150.0
           },
           "rect": {
-           "x": 140,
-           "y": 130,
-           "w": 120,
-           "h": 40
+           "x": 140.0,
+           "y": 130.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "browser.navigate",
           "nodeId": "open"
@@ -2724,17 +2723,17 @@
          {
           "id": "chapter1:chapter",
           "kind": "chapter",
-          "t": 2400,
-          "tEnd": 2800,
+          "t": 2400.0,
+          "tEnd": 2800.0,
           "point": {
-           "x": 546,
-           "y": 344
+           "x": 546.0,
+           "y": 344.0
           },
           "rect": {
-           "x": 486,
-           "y": 324,
-           "w": 120,
-           "h": 40
+           "x": 486.0,
+           "y": 324.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "browser.chapter",
           "nodeId": "chapter1"
@@ -2742,17 +2741,17 @@
          {
           "id": "type:type",
           "kind": "type",
-          "t": 3300,
-          "tEnd": 3700,
+          "t": 3300.0,
+          "tEnd": 3700.0,
           "point": {
-           "x": 719,
-           "y": 441
+           "x": 719.0,
+           "y": 441.0
           },
           "rect": {
-           "x": 659,
-           "y": 421,
-           "w": 120,
-           "h": 40
+           "x": 659.0,
+           "y": 421.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "New item",
           "nodeId": "type"
@@ -2760,17 +2759,17 @@
          {
           "id": "chapter2:chapter",
           "kind": "chapter",
-          "t": 4200,
-          "tEnd": 4600,
+          "t": 4200.0,
+          "tEnd": 4600.0,
           "point": {
-           "x": 892,
-           "y": 538
+           "x": 892.0,
+           "y": 538.0
           },
           "rect": {
-           "x": 832,
-           "y": 518,
-           "w": 120,
-           "h": 40
+           "x": 832.0,
+           "y": 518.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "browser.chapter",
           "nodeId": "chapter2"
@@ -2778,17 +2777,17 @@
          {
           "id": "done:click",
           "kind": "click",
-          "t": 5100,
-          "tEnd": 5500,
+          "t": 5100.0,
+          "tEnd": 5500.0,
           "point": {
-           "x": 1065,
-           "y": 635
+           "x": 1065.0,
+           "y": 635.0
           },
           "rect": {
-           "x": 1005,
-           "y": 615,
-           "w": 120,
-           "h": 40
+           "x": 1005.0,
+           "y": 615.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "Done",
           "nodeId": "done"
@@ -2796,16 +2795,16 @@
         ],
         "cursorTrack": [
          {
-          "t": 0,
-          "x": 960,
-          "y": 540
+          "t": 0.0,
+          "x": 960.0,
+          "y": 540.0
          }
         ]
        },
-       "durationMs": 6800,
+       "durationMs": 6800.0,
        "viewport": {
-        "width": 1920,
-        "height": 1080
+        "width": 1920.0,
+        "height": 1080.0
        },
        "nodeId": "record",
        "style": []
@@ -2815,27 +2814,139 @@
     "captions": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 163,
+      "durationInFrames": 163.0,
       "tracks": [
        {
         "id": "captions:l0",
         "items": [
          {
-          "id": "captions:l0:g",
-          "from": 0,
-          "durationInFrames": 163,
           "kind": "group",
+          "id": "captions:l0:g",
+          "from": 0.0,
+          "durationInFrames": 163.0,
           "props": {
            "tracks": [
             {
              "id": "camera:t",
              "items": [
               {
-               "id": "camera:i",
-               "from": 0,
-               "durationInFrames": 163,
                "kind": "recording",
+               "id": "camera:i",
+               "from": 0.0,
+               "durationInFrames": 163.0,
+               "nodeId": "camera",
                "props": {
+                "src": "project:.opsis/cache/record/recording.mp4",
+                "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+                "log": {
+                 "viewport": {
+                  "width": 1920.0,
+                  "height": 1080.0
+                 },
+                 "dpr": 1.0,
+                 "t0": 0.0,
+                 "durationMs": 6800.0,
+                 "actions": [
+                  {
+                   "id": "open:navigate",
+                   "kind": "navigate",
+                   "t": 600.0,
+                   "tEnd": 1000.0,
+                   "point": {
+                    "x": 200.0,
+                    "y": 150.0
+                   },
+                   "rect": {
+                    "x": 140.0,
+                    "y": 130.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "browser.navigate",
+                   "nodeId": "open"
+                  },
+                  {
+                   "id": "chapter1:chapter",
+                   "kind": "chapter",
+                   "t": 2400.0,
+                   "tEnd": 2800.0,
+                   "point": {
+                    "x": 546.0,
+                    "y": 344.0
+                   },
+                   "rect": {
+                    "x": 486.0,
+                    "y": 324.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "browser.chapter",
+                   "nodeId": "chapter1"
+                  },
+                  {
+                   "id": "type:type",
+                   "kind": "type",
+                   "t": 3300.0,
+                   "tEnd": 3700.0,
+                   "point": {
+                    "x": 719.0,
+                    "y": 441.0
+                   },
+                   "rect": {
+                    "x": 659.0,
+                    "y": 421.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "New item",
+                   "nodeId": "type"
+                  },
+                  {
+                   "id": "chapter2:chapter",
+                   "kind": "chapter",
+                   "t": 4200.0,
+                   "tEnd": 4600.0,
+                   "point": {
+                    "x": 892.0,
+                    "y": 538.0
+                   },
+                   "rect": {
+                    "x": 832.0,
+                    "y": 518.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "browser.chapter",
+                   "nodeId": "chapter2"
+                  },
+                  {
+                   "id": "done:click",
+                   "kind": "click",
+                   "t": 5100.0,
+                   "tEnd": 5500.0,
+                   "point": {
+                    "x": 1065.0,
+                    "y": 635.0
+                   },
+                   "rect": {
+                    "x": 1005.0,
+                    "y": 615.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "Done",
+                   "nodeId": "done"
+                  }
+                 ],
+                 "cursorTrack": [
+                  {
+                   "t": 0.0,
+                   "x": 960.0,
+                   "y": 540.0
+                  }
+                 ]
+                },
+                "name": "record",
                 "speed": 1.25,
                 "zoom": true,
                 "tuning": {
@@ -2847,7 +2958,7 @@
                 "chrome": false,
                 "backdrop": "glaze",
                 "cursor": true,
-                "cursorScale": 1,
+                "cursorScale": 1.0,
                 "cursorLook": {
                  "shape": "arrow",
                  "fill": "#111418",
@@ -2855,149 +2966,37 @@
                 },
                 "ripple": {
                  "color": "#0f172a",
-                 "size": 1,
-                 "width": 2
+                 "size": 1.0,
+                 "width": 2.0
                 },
                 "extraBeats": [],
                 "annotations": [
                  {
                   "kind": "highlight",
+                  "look": "clean",
+                  "roughness": 1.0,
                   "match": "",
                   "text": "",
                   "color": "#a78bfa",
-                  "padding": 10,
-                  "leadMs": 250,
-                  "holdMs": 1400,
-                  "look": "clean",
-                  "roughness": 1
+                  "padding": 10.0,
+                  "leadMs": 250.0,
+                  "holdMs": 1400.0
                  },
                  {
                   "kind": "tooltip",
+                  "look": "clean",
+                  "roughness": 1.0,
                   "match": "Done",
                   "text": "Tick it off",
                   "color": "#18181b",
-                  "padding": 10,
-                  "leadMs": 250,
-                  "holdMs": 1400,
+                  "padding": 10.0,
+                  "leadMs": 250.0,
+                  "holdMs": 1400.0,
                   "textColor": "#fafafa",
-                  "fontSize": 18,
-                  "look": "clean",
-                  "roughness": 1
+                  "fontSize": 18.0
                  }
-                ],
-                "src": "project:.opsis/cache/record/recording.mp4",
-                "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-                "log": {
-                 "viewport": {
-                  "width": 1920,
-                  "height": 1080
-                 },
-                 "dpr": 1,
-                 "t0": 0,
-                 "durationMs": 6800,
-                 "actions": [
-                  {
-                   "id": "open:navigate",
-                   "kind": "navigate",
-                   "t": 600,
-                   "tEnd": 1000,
-                   "point": {
-                    "x": 200,
-                    "y": 150
-                   },
-                   "rect": {
-                    "x": 140,
-                    "y": 130,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "browser.navigate",
-                   "nodeId": "open"
-                  },
-                  {
-                   "id": "chapter1:chapter",
-                   "kind": "chapter",
-                   "t": 2400,
-                   "tEnd": 2800,
-                   "point": {
-                    "x": 546,
-                    "y": 344
-                   },
-                   "rect": {
-                    "x": 486,
-                    "y": 324,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "browser.chapter",
-                   "nodeId": "chapter1"
-                  },
-                  {
-                   "id": "type:type",
-                   "kind": "type",
-                   "t": 3300,
-                   "tEnd": 3700,
-                   "point": {
-                    "x": 719,
-                    "y": 441
-                   },
-                   "rect": {
-                    "x": 659,
-                    "y": 421,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "New item",
-                   "nodeId": "type"
-                  },
-                  {
-                   "id": "chapter2:chapter",
-                   "kind": "chapter",
-                   "t": 4200,
-                   "tEnd": 4600,
-                   "point": {
-                    "x": 892,
-                    "y": 538
-                   },
-                   "rect": {
-                    "x": 832,
-                    "y": 518,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "browser.chapter",
-                   "nodeId": "chapter2"
-                  },
-                  {
-                   "id": "done:click",
-                   "kind": "click",
-                   "t": 5100,
-                   "tEnd": 5500,
-                   "point": {
-                    "x": 1065,
-                    "y": 635
-                   },
-                   "rect": {
-                    "x": 1005,
-                    "y": 615,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "Done",
-                   "nodeId": "done"
-                  }
-                 ],
-                 "cursorTrack": [
-                  {
-                   "t": 0,
-                   "x": 960,
-                   "y": 540
-                  }
-                 ]
-                },
-                "name": "record"
-               },
-               "nodeId": "camera"
+                ]
+               }
               }
              ]
             }
@@ -3010,33 +3009,34 @@
         "id": "captions:l1",
         "items": [
          {
-          "id": "captions:l1:g",
-          "from": 0,
-          "durationInFrames": 179,
           "kind": "group",
+          "id": "captions:l1:g",
+          "from": 0.0,
+          "durationInFrames": 179.0,
           "props": {
            "tracks": [
             {
              "id": "captions:t",
              "items": [
               {
-               "id": "captions:i",
-               "from": 0,
-               "durationInFrames": 179,
                "kind": "element",
+               "id": "captions:i",
+               "from": 0.0,
+               "durationInFrames": 179.0,
+               "nodeId": "captions",
                "component": "core/captions",
                "props": {
                 "style": "word-by-word",
                 "position": "bottom",
-                "fontSize": 56,
+                "fontSize": 56.0,
                 "color": "#ffffff",
                 "highlightColor": "#facc15",
                 "panel": "rgba(0,0,0,0.35)",
-                "fontWeight": 800,
+                "fontWeight": 800.0,
                 "captions": [
                  {
                   "text": "Create",
-                  "startMs": 1500,
+                  "startMs": 1500.0,
                   "endMs": 1863.6363636363635
                  },
                  {
@@ -3080,8 +3080,7 @@
                   "endMs": 5472.727272727273
                  }
                 ]
-               },
-               "nodeId": "captions"
+               }
               }
              ]
             }
@@ -3098,27 +3097,27 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920,
-         "height": 1080
+         "width": 1920.0,
+         "height": 1080.0
         },
-        "dpr": 1,
-        "t0": 0,
-        "durationMs": 6800,
+        "dpr": 1.0,
+        "t0": 0.0,
+        "durationMs": 6800.0,
         "actions": [
          {
           "id": "open:navigate",
           "kind": "navigate",
-          "t": 600,
-          "tEnd": 1000,
+          "t": 600.0,
+          "tEnd": 1000.0,
           "point": {
-           "x": 200,
-           "y": 150
+           "x": 200.0,
+           "y": 150.0
           },
           "rect": {
-           "x": 140,
-           "y": 130,
-           "w": 120,
-           "h": 40
+           "x": 140.0,
+           "y": 130.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "browser.navigate",
           "nodeId": "open"
@@ -3126,17 +3125,17 @@
          {
           "id": "chapter1:chapter",
           "kind": "chapter",
-          "t": 2400,
-          "tEnd": 2800,
+          "t": 2400.0,
+          "tEnd": 2800.0,
           "point": {
-           "x": 546,
-           "y": 344
+           "x": 546.0,
+           "y": 344.0
           },
           "rect": {
-           "x": 486,
-           "y": 324,
-           "w": 120,
-           "h": 40
+           "x": 486.0,
+           "y": 324.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "browser.chapter",
           "nodeId": "chapter1"
@@ -3144,17 +3143,17 @@
          {
           "id": "type:type",
           "kind": "type",
-          "t": 3300,
-          "tEnd": 3700,
+          "t": 3300.0,
+          "tEnd": 3700.0,
           "point": {
-           "x": 719,
-           "y": 441
+           "x": 719.0,
+           "y": 441.0
           },
           "rect": {
-           "x": 659,
-           "y": 421,
-           "w": 120,
-           "h": 40
+           "x": 659.0,
+           "y": 421.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "New item",
           "nodeId": "type"
@@ -3162,17 +3161,17 @@
          {
           "id": "chapter2:chapter",
           "kind": "chapter",
-          "t": 4200,
-          "tEnd": 4600,
+          "t": 4200.0,
+          "tEnd": 4600.0,
           "point": {
-           "x": 892,
-           "y": 538
+           "x": 892.0,
+           "y": 538.0
           },
           "rect": {
-           "x": 832,
-           "y": 518,
-           "w": 120,
-           "h": 40
+           "x": 832.0,
+           "y": 518.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "browser.chapter",
           "nodeId": "chapter2"
@@ -3180,17 +3179,17 @@
          {
           "id": "done:click",
           "kind": "click",
-          "t": 5100,
-          "tEnd": 5500,
+          "t": 5100.0,
+          "tEnd": 5500.0,
           "point": {
-           "x": 1065,
-           "y": 635
+           "x": 1065.0,
+           "y": 635.0
           },
           "rect": {
-           "x": 1005,
-           "y": 615,
-           "w": 120,
-           "h": 40
+           "x": 1005.0,
+           "y": 615.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "Done",
           "nodeId": "done"
@@ -3198,16 +3197,16 @@
         ],
         "cursorTrack": [
          {
-          "t": 0,
-          "x": 960,
-          "y": 540
+          "t": 0.0,
+          "x": 960.0,
+          "y": 540.0
          }
         ]
        },
-       "durationMs": 6800,
+       "durationMs": 6800.0,
        "viewport": {
-        "width": 1920,
-        "height": 1080
+        "width": 1920.0,
+        "height": 1080.0
        },
        "nodeId": "record",
        "style": []
@@ -3219,9 +3218,9 @@
       "type": "media",
       "src": "project:.opsis/out/render.mp4",
       "kind": "video",
-      "durationMs": 4000,
-      "width": 1920,
-      "height": 1080,
+      "durationMs": 4000.0,
+      "width": 1920.0,
+      "height": 1080.0,
       "hasAudio": true
      }
     }
@@ -3229,31 +3228,143 @@
    "errors": {},
    "specs": {
     "render": {
-     "width": 1920,
-     "height": 1080,
-     "fps": 30,
-     "durationInFrames": 163,
+     "width": 1920.0,
+     "height": 1080.0,
+     "fps": 30.0,
+     "durationInFrames": 163.0,
      "background": "#09090b",
      "tracks": [
       {
        "id": "captions:l0",
        "items": [
         {
-         "id": "captions:l0:g",
-         "from": 0,
-         "durationInFrames": 163,
          "kind": "group",
+         "id": "captions:l0:g",
+         "from": 0.0,
+         "durationInFrames": 163.0,
          "props": {
           "tracks": [
            {
             "id": "camera:t",
             "items": [
              {
-              "id": "camera:i",
-              "from": 0,
-              "durationInFrames": 163,
               "kind": "recording",
+              "id": "camera:i",
+              "from": 0.0,
+              "durationInFrames": 163.0,
+              "nodeId": "camera",
               "props": {
+               "src": "project:.opsis/cache/record/recording.mp4",
+               "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+               "log": {
+                "viewport": {
+                 "width": 1920.0,
+                 "height": 1080.0
+                },
+                "dpr": 1.0,
+                "t0": 0.0,
+                "durationMs": 6800.0,
+                "actions": [
+                 {
+                  "id": "open:navigate",
+                  "kind": "navigate",
+                  "t": 600.0,
+                  "tEnd": 1000.0,
+                  "point": {
+                   "x": 200.0,
+                   "y": 150.0
+                  },
+                  "rect": {
+                   "x": 140.0,
+                   "y": 130.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "browser.navigate",
+                  "nodeId": "open"
+                 },
+                 {
+                  "id": "chapter1:chapter",
+                  "kind": "chapter",
+                  "t": 2400.0,
+                  "tEnd": 2800.0,
+                  "point": {
+                   "x": 546.0,
+                   "y": 344.0
+                  },
+                  "rect": {
+                   "x": 486.0,
+                   "y": 324.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "browser.chapter",
+                  "nodeId": "chapter1"
+                 },
+                 {
+                  "id": "type:type",
+                  "kind": "type",
+                  "t": 3300.0,
+                  "tEnd": 3700.0,
+                  "point": {
+                   "x": 719.0,
+                   "y": 441.0
+                  },
+                  "rect": {
+                   "x": 659.0,
+                   "y": 421.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "New item",
+                  "nodeId": "type"
+                 },
+                 {
+                  "id": "chapter2:chapter",
+                  "kind": "chapter",
+                  "t": 4200.0,
+                  "tEnd": 4600.0,
+                  "point": {
+                   "x": 892.0,
+                   "y": 538.0
+                  },
+                  "rect": {
+                   "x": 832.0,
+                   "y": 518.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "browser.chapter",
+                  "nodeId": "chapter2"
+                 },
+                 {
+                  "id": "done:click",
+                  "kind": "click",
+                  "t": 5100.0,
+                  "tEnd": 5500.0,
+                  "point": {
+                   "x": 1065.0,
+                   "y": 635.0
+                  },
+                  "rect": {
+                   "x": 1005.0,
+                   "y": 615.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "Done",
+                  "nodeId": "done"
+                 }
+                ],
+                "cursorTrack": [
+                 {
+                  "t": 0.0,
+                  "x": 960.0,
+                  "y": 540.0
+                 }
+                ]
+               },
+               "name": "record",
                "speed": 1.25,
                "zoom": true,
                "tuning": {
@@ -3265,7 +3376,7 @@
                "chrome": false,
                "backdrop": "glaze",
                "cursor": true,
-               "cursorScale": 1,
+               "cursorScale": 1.0,
                "cursorLook": {
                 "shape": "arrow",
                 "fill": "#111418",
@@ -3273,149 +3384,37 @@
                },
                "ripple": {
                 "color": "#0f172a",
-                "size": 1,
-                "width": 2
+                "size": 1.0,
+                "width": 2.0
                },
                "extraBeats": [],
                "annotations": [
                 {
                  "kind": "highlight",
+                 "look": "clean",
+                 "roughness": 1.0,
                  "match": "",
                  "text": "",
                  "color": "#a78bfa",
-                 "padding": 10,
-                 "leadMs": 250,
-                 "holdMs": 1400,
-                 "look": "clean",
-                 "roughness": 1
+                 "padding": 10.0,
+                 "leadMs": 250.0,
+                 "holdMs": 1400.0
                 },
                 {
                  "kind": "tooltip",
+                 "look": "clean",
+                 "roughness": 1.0,
                  "match": "Done",
                  "text": "Tick it off",
                  "color": "#18181b",
-                 "padding": 10,
-                 "leadMs": 250,
-                 "holdMs": 1400,
+                 "padding": 10.0,
+                 "leadMs": 250.0,
+                 "holdMs": 1400.0,
                  "textColor": "#fafafa",
-                 "fontSize": 18,
-                 "look": "clean",
-                 "roughness": 1
+                 "fontSize": 18.0
                 }
-               ],
-               "src": "project:.opsis/cache/record/recording.mp4",
-               "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-               "log": {
-                "viewport": {
-                 "width": 1920,
-                 "height": 1080
-                },
-                "dpr": 1,
-                "t0": 0,
-                "durationMs": 6800,
-                "actions": [
-                 {
-                  "id": "open:navigate",
-                  "kind": "navigate",
-                  "t": 600,
-                  "tEnd": 1000,
-                  "point": {
-                   "x": 200,
-                   "y": 150
-                  },
-                  "rect": {
-                   "x": 140,
-                   "y": 130,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "browser.navigate",
-                  "nodeId": "open"
-                 },
-                 {
-                  "id": "chapter1:chapter",
-                  "kind": "chapter",
-                  "t": 2400,
-                  "tEnd": 2800,
-                  "point": {
-                   "x": 546,
-                   "y": 344
-                  },
-                  "rect": {
-                   "x": 486,
-                   "y": 324,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "browser.chapter",
-                  "nodeId": "chapter1"
-                 },
-                 {
-                  "id": "type:type",
-                  "kind": "type",
-                  "t": 3300,
-                  "tEnd": 3700,
-                  "point": {
-                   "x": 719,
-                   "y": 441
-                  },
-                  "rect": {
-                   "x": 659,
-                   "y": 421,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "New item",
-                  "nodeId": "type"
-                 },
-                 {
-                  "id": "chapter2:chapter",
-                  "kind": "chapter",
-                  "t": 4200,
-                  "tEnd": 4600,
-                  "point": {
-                   "x": 892,
-                   "y": 538
-                  },
-                  "rect": {
-                   "x": 832,
-                   "y": 518,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "browser.chapter",
-                  "nodeId": "chapter2"
-                 },
-                 {
-                  "id": "done:click",
-                  "kind": "click",
-                  "t": 5100,
-                  "tEnd": 5500,
-                  "point": {
-                   "x": 1065,
-                   "y": 635
-                  },
-                  "rect": {
-                   "x": 1005,
-                   "y": 615,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "Done",
-                  "nodeId": "done"
-                 }
-                ],
-                "cursorTrack": [
-                 {
-                  "t": 0,
-                  "x": 960,
-                  "y": 540
-                 }
-                ]
-               },
-               "name": "record"
-              },
-              "nodeId": "camera"
+               ]
+              }
              }
             ]
            }
@@ -3428,33 +3427,34 @@
        "id": "captions:l1",
        "items": [
         {
-         "id": "captions:l1:g",
-         "from": 0,
-         "durationInFrames": 179,
          "kind": "group",
+         "id": "captions:l1:g",
+         "from": 0.0,
+         "durationInFrames": 179.0,
          "props": {
           "tracks": [
            {
             "id": "captions:t",
             "items": [
              {
-              "id": "captions:i",
-              "from": 0,
-              "durationInFrames": 179,
               "kind": "element",
+              "id": "captions:i",
+              "from": 0.0,
+              "durationInFrames": 179.0,
+              "nodeId": "captions",
               "component": "core/captions",
               "props": {
                "style": "word-by-word",
                "position": "bottom",
-               "fontSize": 56,
+               "fontSize": 56.0,
                "color": "#ffffff",
                "highlightColor": "#facc15",
                "panel": "rgba(0,0,0,0.35)",
-               "fontWeight": 800,
+               "fontWeight": 800.0,
                "captions": [
                 {
                  "text": "Create",
-                 "startMs": 1500,
+                 "startMs": 1500.0,
                  "endMs": 1863.6363636363635
                 },
                 {
@@ -3498,8 +3498,7 @@
                  "endMs": 5472.727272727273
                 }
                ]
-              },
-              "nodeId": "captions"
+              }
              }
             ]
            }
@@ -3713,31 +3712,143 @@
   },
   "preview": {
    "spec": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
-    "durationInFrames": 163,
+    "width": 1920.0,
+    "height": 1080.0,
+    "fps": 30.0,
+    "durationInFrames": 163.0,
     "background": "#09090b",
     "tracks": [
      {
       "id": "captions:l0",
       "items": [
        {
-        "id": "captions:l0:g",
-        "from": 0,
-        "durationInFrames": 163,
         "kind": "group",
+        "id": "captions:l0:g",
+        "from": 0.0,
+        "durationInFrames": 163.0,
         "props": {
          "tracks": [
           {
            "id": "camera:t",
            "items": [
             {
-             "id": "camera:i",
-             "from": 0,
-             "durationInFrames": 163,
              "kind": "recording",
+             "id": "camera:i",
+             "from": 0.0,
+             "durationInFrames": 163.0,
+             "nodeId": "camera",
              "props": {
+              "src": "project:.opsis/cache/record/recording.mp4",
+              "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+              "log": {
+               "viewport": {
+                "width": 1920.0,
+                "height": 1080.0
+               },
+               "dpr": 1.0,
+               "t0": 0.0,
+               "durationMs": 6800.0,
+               "actions": [
+                {
+                 "id": "open:navigate",
+                 "kind": "navigate",
+                 "t": 600.0,
+                 "tEnd": 1000.0,
+                 "point": {
+                  "x": 200.0,
+                  "y": 150.0
+                 },
+                 "rect": {
+                  "x": 140.0,
+                  "y": 130.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "browser.navigate",
+                 "nodeId": "open"
+                },
+                {
+                 "id": "chapter1:chapter",
+                 "kind": "chapter",
+                 "t": 2400.0,
+                 "tEnd": 2800.0,
+                 "point": {
+                  "x": 546.0,
+                  "y": 344.0
+                 },
+                 "rect": {
+                  "x": 486.0,
+                  "y": 324.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "browser.chapter",
+                 "nodeId": "chapter1"
+                },
+                {
+                 "id": "type:type",
+                 "kind": "type",
+                 "t": 3300.0,
+                 "tEnd": 3700.0,
+                 "point": {
+                  "x": 719.0,
+                  "y": 441.0
+                 },
+                 "rect": {
+                  "x": 659.0,
+                  "y": 421.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "New item",
+                 "nodeId": "type"
+                },
+                {
+                 "id": "chapter2:chapter",
+                 "kind": "chapter",
+                 "t": 4200.0,
+                 "tEnd": 4600.0,
+                 "point": {
+                  "x": 892.0,
+                  "y": 538.0
+                 },
+                 "rect": {
+                  "x": 832.0,
+                  "y": 518.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "browser.chapter",
+                 "nodeId": "chapter2"
+                },
+                {
+                 "id": "done:click",
+                 "kind": "click",
+                 "t": 5100.0,
+                 "tEnd": 5500.0,
+                 "point": {
+                  "x": 1065.0,
+                  "y": 635.0
+                 },
+                 "rect": {
+                  "x": 1005.0,
+                  "y": 615.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "Done",
+                 "nodeId": "done"
+                }
+               ],
+               "cursorTrack": [
+                {
+                 "t": 0.0,
+                 "x": 960.0,
+                 "y": 540.0
+                }
+               ]
+              },
+              "name": "record",
               "speed": 1.25,
               "zoom": true,
               "tuning": {
@@ -3749,7 +3860,7 @@
               "chrome": false,
               "backdrop": "glaze",
               "cursor": true,
-              "cursorScale": 1,
+              "cursorScale": 1.0,
               "cursorLook": {
                "shape": "arrow",
                "fill": "#111418",
@@ -3757,149 +3868,37 @@
               },
               "ripple": {
                "color": "#0f172a",
-               "size": 1,
-               "width": 2
+               "size": 1.0,
+               "width": 2.0
               },
               "extraBeats": [],
               "annotations": [
                {
                 "kind": "highlight",
+                "look": "clean",
+                "roughness": 1.0,
                 "match": "",
                 "text": "",
                 "color": "#a78bfa",
-                "padding": 10,
-                "leadMs": 250,
-                "holdMs": 1400,
-                "look": "clean",
-                "roughness": 1
+                "padding": 10.0,
+                "leadMs": 250.0,
+                "holdMs": 1400.0
                },
                {
                 "kind": "tooltip",
+                "look": "clean",
+                "roughness": 1.0,
                 "match": "Done",
                 "text": "Tick it off",
                 "color": "#18181b",
-                "padding": 10,
-                "leadMs": 250,
-                "holdMs": 1400,
+                "padding": 10.0,
+                "leadMs": 250.0,
+                "holdMs": 1400.0,
                 "textColor": "#fafafa",
-                "fontSize": 18,
-                "look": "clean",
-                "roughness": 1
+                "fontSize": 18.0
                }
-              ],
-              "src": "project:.opsis/cache/record/recording.mp4",
-              "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-              "log": {
-               "viewport": {
-                "width": 1920,
-                "height": 1080
-               },
-               "dpr": 1,
-               "t0": 0,
-               "durationMs": 6800,
-               "actions": [
-                {
-                 "id": "open:navigate",
-                 "kind": "navigate",
-                 "t": 600,
-                 "tEnd": 1000,
-                 "point": {
-                  "x": 200,
-                  "y": 150
-                 },
-                 "rect": {
-                  "x": 140,
-                  "y": 130,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "browser.navigate",
-                 "nodeId": "open"
-                },
-                {
-                 "id": "chapter1:chapter",
-                 "kind": "chapter",
-                 "t": 2400,
-                 "tEnd": 2800,
-                 "point": {
-                  "x": 546,
-                  "y": 344
-                 },
-                 "rect": {
-                  "x": 486,
-                  "y": 324,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "browser.chapter",
-                 "nodeId": "chapter1"
-                },
-                {
-                 "id": "type:type",
-                 "kind": "type",
-                 "t": 3300,
-                 "tEnd": 3700,
-                 "point": {
-                  "x": 719,
-                  "y": 441
-                 },
-                 "rect": {
-                  "x": 659,
-                  "y": 421,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "New item",
-                 "nodeId": "type"
-                },
-                {
-                 "id": "chapter2:chapter",
-                 "kind": "chapter",
-                 "t": 4200,
-                 "tEnd": 4600,
-                 "point": {
-                  "x": 892,
-                  "y": 538
-                 },
-                 "rect": {
-                  "x": 832,
-                  "y": 518,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "browser.chapter",
-                 "nodeId": "chapter2"
-                },
-                {
-                 "id": "done:click",
-                 "kind": "click",
-                 "t": 5100,
-                 "tEnd": 5500,
-                 "point": {
-                  "x": 1065,
-                  "y": 635
-                 },
-                 "rect": {
-                  "x": 1005,
-                  "y": 615,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "Done",
-                 "nodeId": "done"
-                }
-               ],
-               "cursorTrack": [
-                {
-                 "t": 0,
-                 "x": 960,
-                 "y": 540
-                }
-               ]
-              },
-              "name": "record"
-             },
-             "nodeId": "camera"
+              ]
+             }
             }
            ]
           }
@@ -3912,33 +3911,34 @@
       "id": "captions:l1",
       "items": [
        {
-        "id": "captions:l1:g",
-        "from": 0,
-        "durationInFrames": 179,
         "kind": "group",
+        "id": "captions:l1:g",
+        "from": 0.0,
+        "durationInFrames": 179.0,
         "props": {
          "tracks": [
           {
            "id": "captions:t",
            "items": [
             {
-             "id": "captions:i",
-             "from": 0,
-             "durationInFrames": 179,
              "kind": "element",
+             "id": "captions:i",
+             "from": 0.0,
+             "durationInFrames": 179.0,
+             "nodeId": "captions",
              "component": "core/captions",
              "props": {
               "style": "word-by-word",
               "position": "bottom",
-              "fontSize": 56,
+              "fontSize": 56.0,
               "color": "#ffffff",
               "highlightColor": "#facc15",
               "panel": "rgba(0,0,0,0.35)",
-              "fontWeight": 800,
+              "fontWeight": 800.0,
               "captions": [
                {
                 "text": "Create",
-                "startMs": 1500,
+                "startMs": 1500.0,
                 "endMs": 1863.6363636363635
                },
                {
@@ -3982,8 +3982,7 @@
                 "endMs": 5472.727272727273
                }
               ]
-             },
-             "nodeId": "captions"
+             }
             }
            ]
           }
@@ -4003,12 +4002,12 @@
    },
    "spans": {
     "camera": {
-     "from": 0,
-     "to": 163
+     "from": 0.0,
+     "to": 163.0
     },
     "captions": {
-     "from": 0,
-     "to": 163
+     "from": 0.0,
+     "to": 163.0
     }
    },
    "sourceNodeId": "render"
@@ -4016,8 +4015,8 @@
   "timelines": {
    "render": {
     "flat": {
-     "fps": 30,
-     "durationInFrames": 163,
+     "fps": 30.0,
+     "durationInFrames": 163.0,
      "bars": [
       {
        "type": "video",
@@ -4026,6 +4025,117 @@
        "nodeId": "camera",
        "kind": "recording",
        "props": {
+        "src": "project:.opsis/cache/record/recording.mp4",
+        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+        "log": {
+         "viewport": {
+          "width": 1920.0,
+          "height": 1080.0
+         },
+         "dpr": 1.0,
+         "t0": 0.0,
+         "durationMs": 6800.0,
+         "actions": [
+          {
+           "id": "open:navigate",
+           "kind": "navigate",
+           "t": 600.0,
+           "tEnd": 1000.0,
+           "point": {
+            "x": 200.0,
+            "y": 150.0
+           },
+           "rect": {
+            "x": 140.0,
+            "y": 130.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "browser.navigate",
+           "nodeId": "open"
+          },
+          {
+           "id": "chapter1:chapter",
+           "kind": "chapter",
+           "t": 2400.0,
+           "tEnd": 2800.0,
+           "point": {
+            "x": 546.0,
+            "y": 344.0
+           },
+           "rect": {
+            "x": 486.0,
+            "y": 324.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "browser.chapter",
+           "nodeId": "chapter1"
+          },
+          {
+           "id": "type:type",
+           "kind": "type",
+           "t": 3300.0,
+           "tEnd": 3700.0,
+           "point": {
+            "x": 719.0,
+            "y": 441.0
+           },
+           "rect": {
+            "x": 659.0,
+            "y": 421.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "New item",
+           "nodeId": "type"
+          },
+          {
+           "id": "chapter2:chapter",
+           "kind": "chapter",
+           "t": 4200.0,
+           "tEnd": 4600.0,
+           "point": {
+            "x": 892.0,
+            "y": 538.0
+           },
+           "rect": {
+            "x": 832.0,
+            "y": 518.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "browser.chapter",
+           "nodeId": "chapter2"
+          },
+          {
+           "id": "done:click",
+           "kind": "click",
+           "t": 5100.0,
+           "tEnd": 5500.0,
+           "point": {
+            "x": 1065.0,
+            "y": 635.0
+           },
+           "rect": {
+            "x": 1005.0,
+            "y": 615.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "Done",
+           "nodeId": "done"
+          }
+         ],
+         "cursorTrack": [
+          {
+           "t": 0.0,
+           "x": 960.0,
+           "y": 540.0
+          }
+         ]
+        },
+        "name": "record",
         "speed": 1.25,
         "zoom": true,
         "tuning": {
@@ -4037,7 +4147,7 @@
         "chrome": false,
         "backdrop": "glaze",
         "cursor": true,
-        "cursorScale": 1,
+        "cursorScale": 1.0,
         "cursorLook": {
          "shape": "arrow",
          "fill": "#111418",
@@ -4045,172 +4155,61 @@
         },
         "ripple": {
          "color": "#0f172a",
-         "size": 1,
-         "width": 2
+         "size": 1.0,
+         "width": 2.0
         },
         "extraBeats": [],
         "annotations": [
          {
           "kind": "highlight",
+          "look": "clean",
+          "roughness": 1.0,
           "match": "",
           "text": "",
           "color": "#a78bfa",
-          "padding": 10,
-          "leadMs": 250,
-          "holdMs": 1400,
-          "look": "clean",
-          "roughness": 1
+          "padding": 10.0,
+          "leadMs": 250.0,
+          "holdMs": 1400.0
          },
          {
           "kind": "tooltip",
+          "look": "clean",
+          "roughness": 1.0,
           "match": "Done",
           "text": "Tick it off",
           "color": "#18181b",
-          "padding": 10,
-          "leadMs": 250,
-          "holdMs": 1400,
+          "padding": 10.0,
+          "leadMs": 250.0,
+          "holdMs": 1400.0,
           "textColor": "#fafafa",
-          "fontSize": 18,
-          "look": "clean",
-          "roughness": 1
+          "fontSize": 18.0
          }
-        ],
-        "src": "project:.opsis/cache/record/recording.mp4",
-        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-        "log": {
-         "viewport": {
-          "width": 1920,
-          "height": 1080
-         },
-         "dpr": 1,
-         "t0": 0,
-         "durationMs": 6800,
-         "actions": [
-          {
-           "id": "open:navigate",
-           "kind": "navigate",
-           "t": 600,
-           "tEnd": 1000,
-           "point": {
-            "x": 200,
-            "y": 150
-           },
-           "rect": {
-            "x": 140,
-            "y": 130,
-            "w": 120,
-            "h": 40
-           },
-           "label": "browser.navigate",
-           "nodeId": "open"
-          },
-          {
-           "id": "chapter1:chapter",
-           "kind": "chapter",
-           "t": 2400,
-           "tEnd": 2800,
-           "point": {
-            "x": 546,
-            "y": 344
-           },
-           "rect": {
-            "x": 486,
-            "y": 324,
-            "w": 120,
-            "h": 40
-           },
-           "label": "browser.chapter",
-           "nodeId": "chapter1"
-          },
-          {
-           "id": "type:type",
-           "kind": "type",
-           "t": 3300,
-           "tEnd": 3700,
-           "point": {
-            "x": 719,
-            "y": 441
-           },
-           "rect": {
-            "x": 659,
-            "y": 421,
-            "w": 120,
-            "h": 40
-           },
-           "label": "New item",
-           "nodeId": "type"
-          },
-          {
-           "id": "chapter2:chapter",
-           "kind": "chapter",
-           "t": 4200,
-           "tEnd": 4600,
-           "point": {
-            "x": 892,
-            "y": 538
-           },
-           "rect": {
-            "x": 832,
-            "y": 518,
-            "w": 120,
-            "h": 40
-           },
-           "label": "browser.chapter",
-           "nodeId": "chapter2"
-          },
-          {
-           "id": "done:click",
-           "kind": "click",
-           "t": 5100,
-           "tEnd": 5500,
-           "point": {
-            "x": 1065,
-            "y": 635
-           },
-           "rect": {
-            "x": 1005,
-            "y": 615,
-            "w": 120,
-            "h": 40
-           },
-           "label": "Done",
-           "nodeId": "done"
-          }
-         ],
-         "cursorTrack": [
-          {
-           "t": 0,
-           "x": 960,
-           "y": 540
-          }
-         ]
-        },
-        "name": "record"
+        ]
        },
        "thumbnail": {
         "kind": "filmstrip",
         "src": "project:.opsis/cache/record/recording.preview.mp4",
         "speed": 1.25,
-        "trimMs": 0
+        "trimMs": 0.0
        },
-       "from": 0,
-       "to": 163,
+       "from": 0.0,
+       "to": 163.0,
        "lane": 0,
        "order": 0,
        "chain": [
         {
          "itemId": "camera:i",
          "nodeId": "camera",
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 163,
-         "from": 0,
-         "to": 163
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 163.0,
+         "from": 0.0,
+         "to": 163.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
-       "contentEnd": 163,
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 163.0,
        "loop": 0,
        "hasSound": false,
        "sound": null
@@ -4225,15 +4224,15 @@
        "props": {
         "style": "word-by-word",
         "position": "bottom",
-        "fontSize": 56,
+        "fontSize": 56.0,
         "color": "#ffffff",
         "highlightColor": "#facc15",
         "panel": "rgba(0,0,0,0.35)",
-        "fontWeight": 800,
+        "fontWeight": 800.0,
         "captions": [
          {
           "text": "Create",
-          "startMs": 1500,
+          "startMs": 1500.0,
           "endMs": 1863.6363636363635
          },
          {
@@ -4279,23 +4278,23 @@
         ]
        },
        "thumbnail": null,
-       "from": 0,
-       "to": 163,
+       "from": 0.0,
+       "to": 163.0,
        "lane": 1,
        "order": 1,
        "chain": [
         {
          "itemId": "captions:i",
          "nodeId": "captions",
-         "rate": 1,
-         "rateEnd": 1,
+         "rate": 1.0,
+         "rateEnd": 1.0,
          "end": 162.99999913573265,
-         "from": 0,
-         "to": 163
+         "from": 0.0,
+         "to": 163.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
+       "rate": 1.0,
+       "contentStart": 0.0,
        "contentEnd": 162.99999913573265,
        "loop": 0,
        "hasSound": false,
@@ -4350,16 +4349,9 @@
      ],
      "cameraKeys": []
     },
-    "chapters": [
-     {
-      "title": "browser.chapter",
-      "startMs": 0,
-      "endMs": 5433
-     }
-    ],
     "mix": {
-     "fps": 30,
-     "durationInFrames": 163,
+     "fps": 30.0,
+     "durationInFrames": 163.0,
      "channels": [],
      "buses": [
       {
@@ -4368,47 +4360,47 @@
        "processing": {
         "highpass": {
          "on": false,
-         "freq": 80
+         "freq": 80.0
         },
         "eq": {
          "on": false,
          "bands": [
           {
            "type": "lowshelf",
-           "freq": 120,
-           "gain": 0,
+           "freq": 120.0,
+           "gain": 0.0,
            "q": 0.7
           },
           {
            "type": "peak",
-           "freq": 500,
-           "gain": 0,
-           "q": 1
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "peak",
-           "freq": 2500,
-           "gain": 0,
-           "q": 1
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "highshelf",
-           "freq": 8000,
-           "gain": 0,
+           "freq": 8000.0,
+           "gain": 0.0,
            "q": 0.7
           }
          ]
         },
         "comp": {
          "on": false,
-         "threshold": -18,
-         "ratio": 3,
-         "attack": 10,
-         "release": 150,
-         "makeup": 0
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
         }
        },
-       "fader": 0,
+       "fader": 0.0,
        "channels": [],
        "duck": null
       },
@@ -4418,47 +4410,47 @@
        "processing": {
         "highpass": {
          "on": false,
-         "freq": 80
+         "freq": 80.0
         },
         "eq": {
          "on": false,
          "bands": [
           {
            "type": "lowshelf",
-           "freq": 120,
-           "gain": 0,
+           "freq": 120.0,
+           "gain": 0.0,
            "q": 0.7
           },
           {
            "type": "peak",
-           "freq": 500,
-           "gain": 0,
-           "q": 1
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "peak",
-           "freq": 2500,
-           "gain": 0,
-           "q": 1
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "highshelf",
-           "freq": 8000,
-           "gain": 0,
+           "freq": 8000.0,
+           "gain": 0.0,
            "q": 0.7
           }
          ]
         },
         "comp": {
          "on": false,
-         "threshold": -18,
-         "ratio": 3,
-         "attack": 10,
-         "release": 150,
-         "makeup": 0
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
         }
        },
-       "fader": 0,
+       "fader": 0.0,
        "channels": [],
        "duck": null
       },
@@ -4468,98 +4460,104 @@
        "processing": {
         "highpass": {
          "on": false,
-         "freq": 80
+         "freq": 80.0
         },
         "eq": {
          "on": false,
          "bands": [
           {
            "type": "lowshelf",
-           "freq": 120,
-           "gain": 0,
+           "freq": 120.0,
+           "gain": 0.0,
            "q": 0.7
           },
           {
            "type": "peak",
-           "freq": 500,
-           "gain": 0,
-           "q": 1
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "peak",
-           "freq": 2500,
-           "gain": 0,
-           "q": 1
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "highshelf",
-           "freq": 8000,
-           "gain": 0,
+           "freq": 8000.0,
+           "gain": 0.0,
            "q": 0.7
           }
          ]
         },
         "comp": {
          "on": false,
-         "threshold": -18,
-         "ratio": 3,
-         "attack": 10,
-         "release": 150,
-         "makeup": 0
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
         }
        },
-       "fader": 0,
+       "fader": 0.0,
        "channels": [],
        "duck": null
       }
      ],
      "master": {
-      "fader": 0,
+      "fader": 0.0,
       "eq": {
        "on": false,
        "bands": [
         {
          "type": "lowshelf",
-         "freq": 120,
-         "gain": 0,
+         "freq": 120.0,
+         "gain": 0.0,
          "q": 0.7
         },
         {
          "type": "peak",
-         "freq": 500,
-         "gain": 0,
-         "q": 1
+         "freq": 500.0,
+         "gain": 0.0,
+         "q": 1.0
         },
         {
          "type": "peak",
-         "freq": 2500,
-         "gain": 0,
-         "q": 1
+         "freq": 2500.0,
+         "gain": 0.0,
+         "q": 1.0
         },
         {
          "type": "highshelf",
-         "freq": 8000,
-         "gain": 0,
+         "freq": 8000.0,
+         "gain": 0.0,
          "q": 0.7
         }
        ]
       },
       "comp": {
        "on": false,
-       "threshold": -12,
-       "ratio": 2,
-       "attack": 20,
-       "release": 250,
-       "makeup": 0
+       "threshold": -12.0,
+       "ratio": 2.0,
+       "attack": 20.0,
+       "release": 250.0,
+       "makeup": 0.0
       },
       "limiter": {
        "on": false,
-       "ceiling": -1
+       "ceiling": -1.0
       },
       "loudness": "off"
-     },
-     "key": "01155e19525fc1bc"
-    }
+     }
+    },
+    "chapters": [
+     {
+      "title": "browser.chapter",
+      "startMs": 0.0,
+      "endMs": 5433.0
+     }
+    ]
    }
   }
  }

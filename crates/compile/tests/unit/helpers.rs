@@ -1,13 +1,7 @@
 use serde_json::Value;
 
 pub fn fixture(name: &str) -> Value {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../fixtures/compile")
-        .join(name);
-    serde_json::from_str(
-        &std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display())),
-    )
-    .unwrap()
+    opsis_golden::read(&format!("compile/{name}"))
 }
 
 pub fn template(id: &str) -> Value {

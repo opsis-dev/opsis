@@ -2420,15 +2420,6 @@
      }
     ],
     "measure": {
-     "job": {
-      "inputs": [
-       "/stems/music.wav",
-       "/stems/effects.wav",
-       "/stems/clips.wav"
-      ],
-      "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:print_format=json[out]",
-      "output": "out"
-     },
      "args": [
       "-i",
       "/stems/music.wav",
@@ -2443,7 +2434,16 @@
       "-f",
       "null",
       "-"
-     ]
+     ],
+     "job": {
+      "inputs": [
+       "/stems/music.wav",
+       "/stems/effects.wav",
+       "/stems/clips.wav"
+      ],
+      "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:print_format=json[out]",
+      "output": "out"
+     }
     }
    }
   },
@@ -3359,15 +3359,6 @@
      }
     ],
     "measure": {
-     "job": {
-      "inputs": [
-       "/stems/music.wav",
-       "/stems/effects.wav",
-       "/stems/clips.wav"
-      ],
-      "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:print_format=json[out]",
-      "output": "out"
-     },
      "args": [
       "-i",
       "/stems/music.wav",
@@ -3382,7 +3373,16 @@
       "-f",
       "null",
       "-"
-     ]
+     ],
+     "job": {
+      "inputs": [
+       "/stems/music.wav",
+       "/stems/effects.wav",
+       "/stems/clips.wav"
+      ],
+      "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:print_format=json[out]",
+      "output": "out"
+     }
     }
    }
   }
@@ -3409,20 +3409,6 @@
   {
    "stderr": "{ \"input_i\": \"\", \"input_tp\": \"1\", \"input_lra\": \"1\", \"input_thresh\": \"1\", \"target_offset\": \"0\" }",
    "measured": null
-  }
- ],
- "errors": [
-  {
-   "output": "ffmpeg exited with 254: [in#0 @ 0x1] Error opening input: No such file or directory\nError opening input file /home/me/project/assets/my song.mp3.\nError opening input files: No such file or directory",
-   "message": "The sound couldn't be mixed. Check that every sound file still opens."
-  },
-  {
-   "output": "ffmpeg exited with 254: Error opening input: No such file or directory\n/home/me/project/assets/song.mp3: No such file or directory",
-   "message": "The sound couldn't be mixed. Check that every sound file still opens."
-  },
-  {
-   "output": "bad",
-   "message": "The sound couldn't be mixed. Check that every sound file still opens."
   }
  ]
 }

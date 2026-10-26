@@ -11,8 +11,11 @@ use opsis_types::actions::ActionLog;
 use opsis_types::events::{RunEvent, RunRequest};
 use opsis_types::settings::AppSettings;
 use opsis_types::workflow::Workflow;
-use serde_json::Value;
+use serde_json::{Value, json};
 use tokio_util::sync::CancellationToken;
+
+const TAKE: &str = "capture/todomvc-take.json";
+const FRAME_SLACK: f64 = 0.05;
 
 struct NoSignIns;
 
@@ -50,17 +53,6 @@ fn without_times(log: &ActionLog) -> Vec<Value> {
             value
         })
         .collect()
-}
-
-fn as_floats(value: Value) -> Value {
-    match value {
-        Value::Number(n) => serde_json::json!(n.as_f64().unwrap()),
-        Value::Array(list) => Value::Array(list.into_iter().map(as_floats).collect()),
-        Value::Object(map) => {
-            Value::Object(map.into_iter().map(|(k, v)| (k, as_floats(v))).collect())
-        }
-        other => other,
-    }
 }
 
 fn recorded_log(project: &Path) -> ActionLog {
@@ -144,33 +136,29 @@ async fn run_example(edit: impl FnOnce(&mut Value), target: &str) -> Ran {
 
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs the dev engine and the internet"]
-async fn todomvc_take_matches_the_take_recorded_before_the_move() {
+async fn todomvc_take_plays_the_recorded_actions_at_the_recorded_length() {
     let ran = run_example(|_| {}, "record").await;
-    let before: Value = serde_json::from_str(include_str!("todomvc-before.json")).unwrap();
     let log = recorded_log(&ran.project);
-    assert_eq!(
-        as_floats(serde_json::to_value(without_times(&log)).unwrap()),
-        as_floats(before["actions"].clone())
-    );
-    let takes = before["takes"].as_array().unwrap();
     let frames = (log.duration_ms * 30.0 / 1000.0).round();
-    let range = takes.iter().map(|t| t["frames"].as_f64().unwrap());
-    let (low, high) = range
-        .clone()
-        .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), f| {
-            (lo.min(f), hi.max(f))
-        });
-    eprintln!(
-        "frames {frames}, before {low}–{high}; cursor samples {}",
-        log.cursor_track.as_ref().map_or(0, Vec::len)
-    );
-    assert_eq!(
-        (log.viewport.width, log.viewport.height, log.dpr),
-        (1920.0, 1080.0, 2.0)
-    );
+    let made = json!({
+        "viewport": log.viewport,
+        "dpr": log.dpr,
+        "frames": frames,
+        "actions": without_times(&log),
+    });
+    if opsis_golden::writing() {
+        opsis_golden::write(TAKE, &made);
+        return;
+    }
+    let stored = opsis_golden::read(TAKE);
+    let recorded = stored["frames"].as_f64().expect("recorded frames");
+    let mut same_length = made.clone();
+    same_length["frames"] = stored["frames"].clone();
+    let found = opsis_golden::differences(&stored, &same_length);
+    assert!(found.is_empty(), "{}", found.join("\n"));
     assert!(
-        frames >= low * 0.95 && frames <= high * 1.05,
-        "{frames} frames against {low}–{high}"
+        (frames - recorded).abs() <= recorded * FRAME_SLACK,
+        "{frames} frames against {recorded} recorded"
     );
 }
 

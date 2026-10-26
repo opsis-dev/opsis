@@ -1,0 +1,130 @@
+{
+ "viewport": {
+  "width": 1920.0,
+  "height": 1080.0
+ },
+ "dpr": 2.0,
+ "frames": 431.0,
+ "actions": [
+  {
+   "id": "open:nav",
+   "kind": "navigate",
+   "nodeId": "open",
+   "label": "https://demo.playwright.dev/todomvc/#/"
+  },
+  {
+   "id": "todo1:1",
+   "kind": "type",
+   "nodeId": "todo1",
+   "text": "Record a real product flow",
+   "selectorUsed": "role=textbox name=\"What needs to be done?\"",
+   "label": "New todo",
+   "point": {
+    "x": 960.0,
+    "y": 207.0
+   },
+   "rect": {
+    "x": 685.0,
+    "y": 175.0,
+    "w": 550.0,
+    "h": 66.0
+   },
+   "cluster": "add"
+  },
+  {
+   "id": "todo1:k2",
+   "kind": "key",
+   "nodeId": "todo1",
+   "label": "Enter",
+   "text": "Enter"
+  },
+  {
+   "id": "todo2:3",
+   "kind": "type",
+   "nodeId": "todo2",
+   "text": "Auto-zoom on every click",
+   "selectorUsed": "role=textbox name=\"What needs to be done?\"",
+   "label": "New todo",
+   "point": {
+    "x": 960.0,
+    "y": 207.0
+   },
+   "rect": {
+    "x": 685.0,
+    "y": 175.0,
+    "w": 550.0,
+    "h": 66.0
+   },
+   "cluster": "add"
+  },
+  {
+   "id": "todo2:k4",
+   "kind": "key",
+   "nodeId": "todo2",
+   "label": "Enter",
+   "text": "Enter"
+  },
+  {
+   "id": "todo3:5",
+   "kind": "type",
+   "nodeId": "todo3",
+   "text": "Render 16:9 and 9:16",
+   "selectorUsed": "role=textbox name=\"What needs to be done?\"",
+   "label": "New todo",
+   "point": {
+    "x": 960.0,
+    "y": 207.0
+   },
+   "rect": {
+    "x": 685.0,
+    "y": 175.0,
+    "w": 550.0,
+    "h": 66.0
+   },
+   "cluster": "add"
+  },
+  {
+   "id": "todo3:k6",
+   "kind": "key",
+   "nodeId": "todo3",
+   "label": "Enter",
+   "text": "Enter"
+  },
+  {
+   "id": "complete:7",
+   "kind": "click",
+   "nodeId": "complete",
+   "selectorUsed": "label=\"Toggle Todo\"",
+   "label": "Complete",
+   "point": {
+    "x": 705.0,
+    "y": 271.0
+   },
+   "rect": {
+    "x": 661.0,
+    "y": 227.0,
+    "w": 88.0,
+    "h": 72.0
+   },
+   "cluster": "done"
+  },
+  {
+   "id": "filter:8",
+   "kind": "click",
+   "nodeId": "filter",
+   "selectorUsed": "role=link name=\"Completed\"",
+   "label": "Completed filter",
+   "point": {
+    "x": 1013.0,
+    "y": 440.0
+   },
+   "rect": {
+    "x": 947.0,
+    "y": 396.0,
+    "w": 132.0,
+    "h": 72.0
+   },
+   "cluster": "filter"
+  }
+ ]
+}

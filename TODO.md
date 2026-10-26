@@ -2,14 +2,6 @@
 
 Everything in the codebase that doesn't read as if Opsis had been written for Tauri and Rust from the start, in the order to fix it. Each item is removed when it is done. Release work (size, builds, signing, updates) is in `plans/release.md`.
 
-## 3. Fixtures and parity tests
-
-`fixtures/` (11 MB) holds outputs recorded from the old TS code: compile results, node and param cases, catalogue, element metadata, workflows (`fixtures/compile`), FFmpeg arguments, filter graphs, mix graphs, analysis and probe results (`fixtures/media`), capture tables (`fixtures/capture`). Tests compare against it as "parity": `crates/compile/tests/parity_{catalog,nodes,timeline,workflows}.rs`, `crates/media/tests/parity/`, `crates/capture/tests/parity.rs`, with helpers named for the port (`ts_defaults`, `added_after_the_switch`, `prepared_files_replace_parsing_in_the_page`). Turn them into tests owned by the Rust code: golden files the tests can write again on request, named for the behaviour they check, with no "parity", "TS" or "switch" left, and no accepted-difference helpers.
-
-## 4. Prepared-file fixtures framed as fontkit parity
-
-`fixtures/prepare/typefaces.json` is "fontkit's output", checked by `crates/prepare/tests/typefaces.rs` with helpers named for the differences from fontkit (`same_advance_with_fixed_point_coordinates`, `without_bounds_three_never_reads`); `fixtures/prepare/stills` are described as "before the Rust preparers". Make them golden files of the preparers' own output.
-
 ## 5. The `window.opsis` facade
 
 `apps/ui/src/app/opsis.ts` (327 lines, `OpsisApi`, `createOpsis`) wraps every generated command and event in a preload-style object so call sites written for Electron keep working; 110 call sites use it. Call the generated `commands` and `events` from `@/generated/bindings` directly, with small typed helpers only where a channel or a frame decoder is involved.

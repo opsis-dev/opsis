@@ -8,6 +8,7 @@ use opsis_compile::elements::{ElementKind, element_meta, element_node_type};
 use opsis_compile::node::{CLIP_PORT, Ctx};
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
+use opsis_engine::hash::sha256_hex;
 use opsis_engine::http_files::FileServer;
 use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
@@ -16,7 +17,7 @@ use opsis_render::sidecar::{Sidecar, SidecarCommand, SidecarError};
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::{ClipValue, CompileValue, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
-use serde_json::{Map, json};
+use serde_json::{Map, Value, json};
 use tokio_util::sync::CancellationToken;
 
 const STILLS: [&str; 5] = [
@@ -27,6 +28,8 @@ const STILLS: [&str; 5] = [
     "remocn/grain-dissolve",
 ];
 const VIDEOS: [&str; 2] = ["core/kinetic-headline", "remocn/shader-grain-gradient"];
+const RENDERS: &str = "render/renders.json";
+const WHOLE_HASH: usize = 64;
 
 fn from_env(name: &str) -> PathBuf {
     std::env::var_os(name)
@@ -124,7 +127,6 @@ struct Setup {
     sidecar: Sidecar,
     shell: PathBuf,
     bundle: PathBuf,
-    baseline: PathBuf,
     out: PathBuf,
     assets: FileServer,
 }
@@ -165,7 +167,6 @@ impl Setup {
             sidecar: Sidecar::new(command, Arc::new(|line| eprintln!("sidecar: {line}"))),
             shell,
             bundle: existing(from_env("OPSIS_VIDEO_BUNDLE"), "the video bundle"),
-            baseline: existing(from_env("OPSIS_RENDER_BASELINE"), "the Node renders"),
             out,
             assets,
         }
@@ -200,10 +201,9 @@ impl Setup {
         })
     }
 
-    fn same_as_node(&self, file: &str) {
-        let made = std::fs::read(self.out.join(file)).unwrap();
-        let node = std::fs::read(existing(self.baseline.join(file), "a Node render")).unwrap();
-        assert!(made == node, "{file} differs from the Node render");
+    fn hash(&self, file: &str) -> Value {
+        let made = std::fs::read(self.out.join(file)).unwrap_or_else(|e| panic!("{file}: {e}"));
+        Value::from(sha256_hex(&made, WHOLE_HASH))
     }
 }
 
@@ -212,10 +212,11 @@ fn file_name(key: &str, ext: &str) -> String {
 }
 
 #[tokio::test]
-#[ignore = "needs the dev engine, OPSIS_VIDEO_BUNDLE and the Node renders in OPSIS_RENDER_BASELINE"]
-async fn renders_through_the_sidecar_byte_identical_to_node() {
+#[ignore = "needs the dev engine and a video bundle named by OPSIS_VIDEO_BUNDLE"]
+async fn renders_the_same_bytes_as_recorded() {
     let setup = Setup::new().await;
     let never = CancellationToken::new();
+    let mut hashes = Map::new();
     for key in STILLS {
         let (spec, frames) = spec_for(key);
         let file = file_name(key, "png");
@@ -232,7 +233,7 @@ async fn renders_through_the_sidecar_byte_identical_to_node() {
             .call(SidecarCall::RenderStill(job), &never, None)
             .await
             .unwrap();
-        setup.same_as_node(&file);
+        hashes.insert(file.clone(), setup.hash(&file));
     }
     for key in VIDEOS {
         let file = file_name(key, "mp4");
@@ -248,8 +249,9 @@ async fn renders_through_the_sidecar_byte_identical_to_node() {
             .await
             .unwrap();
         assert_eq!(*progressed.lock().unwrap(), 1.0);
-        setup.same_as_node(&file);
+        hashes.insert(file.clone(), setup.hash(&file));
     }
+    opsis_golden::check(RENDERS, &Value::Object(hashes));
 }
 
 #[tokio::test]

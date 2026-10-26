@@ -659,16 +659,24 @@
    "intro-bg": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75,
+     "durationInFrames": 75.0,
      "tracks": [
       {
        "id": "intro-bg:t",
        "items": [
         {
-         "id": "intro-bg:i",
-         "from": 0,
-         "durationInFrames": 75,
          "kind": "element",
+         "id": "intro-bg:i",
+         "from": 0.0,
+         "durationInFrames": 75.0,
+         "nodeId": "intro-bg",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "intro-bg",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
          "component": "remocn/shader-mesh-gradient",
          "props": {
           "speed": 1,
@@ -680,14 +688,6 @@
            "#3a3a5c",
            "#52527a"
           ]
-         },
-         "nodeId": "intro-bg",
-         "handles": {
-          "trimEnd": {
-           "nodeId": "intro-bg",
-           "param": "clipDuration",
-           "unit": "frames"
-          }
          }
         }
        ]
@@ -699,16 +699,24 @@
    "intro-title": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75,
+     "durationInFrames": 75.0,
      "tracks": [
       {
        "id": "intro-title:t",
        "items": [
         {
-         "id": "intro-title:i",
-         "from": 0,
-         "durationInFrames": 75,
          "kind": "element",
+         "id": "intro-title:i",
+         "from": 0.0,
+         "durationInFrames": 75.0,
+         "nodeId": "intro-title",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "intro-title",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
          "component": "remocn/soft-blur-in",
          "props": {
           "text": "TodoMVC in 20 seconds",
@@ -718,14 +726,6 @@
           "fontWeight": "600",
           "background": "white",
           "speed": 1
-         },
-         "nodeId": "intro-title",
-         "handles": {
-          "trimEnd": {
-           "nodeId": "intro-title",
-           "param": "clipDuration",
-           "unit": "frames"
-          }
          }
         }
        ]
@@ -817,38 +817,46 @@
    "intro": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75,
+     "durationInFrames": 75.0,
      "tracks": [
       {
        "id": "intro:l0",
        "items": [
         {
+         "kind": "group",
          "id": "intro:l0:g",
-         "from": 0,
-         "durationInFrames": 75,
+         "from": 0.0,
+         "durationInFrames": 75.0,
          "handles": {
           "move": {
            "nodeId": "intro",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0
+           "index": 0.0
           }
          },
          "slot": {
           "nodeId": "intro",
           "port": "in1"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "intro-bg:t",
             "items": [
              {
-              "id": "intro-bg:i",
-              "from": 0,
-              "durationInFrames": 75,
               "kind": "element",
+              "id": "intro-bg:i",
+              "from": 0.0,
+              "durationInFrames": 75.0,
+              "nodeId": "intro-bg",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "intro-bg",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
               "component": "remocn/shader-mesh-gradient",
               "props": {
                "speed": 1,
@@ -860,14 +868,6 @@
                 "#3a3a5c",
                 "#52527a"
                ]
-              },
-              "nodeId": "intro-bg",
-              "handles": {
-               "trimEnd": {
-                "nodeId": "intro-bg",
-                "param": "clipDuration",
-                "unit": "frames"
-               }
               }
              }
             ]
@@ -882,32 +882,40 @@
        "id": "intro:l1",
        "items": [
         {
+         "kind": "group",
          "id": "intro:l1:g",
-         "from": 0,
-         "durationInFrames": 75,
+         "from": 0.0,
+         "durationInFrames": 75.0,
          "handles": {
           "move": {
            "nodeId": "intro",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1
+           "index": 1.0
           }
          },
          "slot": {
           "nodeId": "intro",
           "port": "in2"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "intro-title:t",
             "items": [
              {
-              "id": "intro-title:i",
-              "from": 0,
-              "durationInFrames": 75,
               "kind": "element",
+              "id": "intro-title:i",
+              "from": 0.0,
+              "durationInFrames": 75.0,
+              "nodeId": "intro-title",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "intro-title",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
               "component": "remocn/soft-blur-in",
               "props": {
                "text": "TodoMVC in 20 seconds",
@@ -917,14 +925,6 @@
                "fontWeight": "600",
                "background": "white",
                "speed": 1
-              },
-              "nodeId": "intro-title",
-              "handles": {
-               "trimEnd": {
-                "nodeId": "intro-title",
-                "param": "clipDuration",
-                "unit": "frames"
-               }
               }
              }
             ]
@@ -942,16 +942,24 @@
    "outro": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 75,
+     "durationInFrames": 75.0,
      "tracks": [
       {
        "id": "outro:t",
        "items": [
         {
-         "id": "outro:i",
-         "from": 0,
-         "durationInFrames": 75,
          "kind": "element",
+         "id": "outro:i",
+         "from": 0.0,
+         "durationInFrames": 75.0,
+         "nodeId": "outro",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "outro",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
          "component": "core/title",
          "props": {
           "eyebrow": "Made with",
@@ -967,14 +975,6 @@
           "background": "transparent",
           "fontSize": 112,
           "fontWeight": 760
-         },
-         "nodeId": "outro",
-         "handles": {
-          "trimEnd": {
-           "nodeId": "outro",
-           "param": "clipDuration",
-           "unit": "frames"
-          }
          }
         }
        ]
@@ -1215,10 +1215,10 @@
      "type": "recording",
      "src": null,
      "log": null,
-     "durationMs": 6000,
+     "durationMs": 6000.0,
      "viewport": {
-      "width": 1920,
-      "height": 1080
+      "width": 1920.0,
+      "height": 1080.0
      },
      "nodeId": "record",
      "style": []
@@ -1227,22 +1227,22 @@
    "camera": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 144,
+     "durationInFrames": 144.0,
      "tracks": [
       {
        "id": "camera:t",
        "items": [
         {
-         "id": "camera:i",
-         "from": 0,
-         "durationInFrames": 144,
          "kind": "element",
+         "id": "camera:i",
+         "from": 0.0,
+         "durationInFrames": 144.0,
+         "nodeId": "camera",
          "component": "core/placeholder",
          "props": {
           "title": "Not recorded yet",
           "subtitle": "Run to record the take. The camera moves appear here afterwards."
-         },
-         "nodeId": "camera"
+         }
         }
        ]
       }
@@ -1253,52 +1253,64 @@
    "sequence": {
     "clip": {
      "type": "clip",
-     "durationInFrames": 258,
+     "durationInFrames": 258.0,
      "tracks": [
       {
        "id": "sequence:seq",
        "items": [
         {
+         "kind": "group",
          "id": "sequence:s0",
-         "from": 0,
-         "durationInFrames": 75,
+         "from": 0.0,
+         "durationInFrames": 75.0,
+         "exit": {
+          "kind": "remocn/whip-pan",
+          "durationInFrames": 18.0
+         },
          "slot": {
           "nodeId": "sequence",
           "port": "in1"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "intro:l0",
             "items": [
              {
+              "kind": "group",
               "id": "intro:l0:g",
-              "from": 0,
-              "durationInFrames": 75,
+              "from": 0.0,
+              "durationInFrames": 75.0,
               "handles": {
                "move": {
                 "nodeId": "intro",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 0
+                "index": 0.0
                }
               },
               "slot": {
                "nodeId": "intro",
                "port": "in1"
               },
-              "kind": "group",
               "props": {
                "tracks": [
                 {
                  "id": "intro-bg:t",
                  "items": [
                   {
-                   "id": "intro-bg:i",
-                   "from": 0,
-                   "durationInFrames": 75,
                    "kind": "element",
+                   "id": "intro-bg:i",
+                   "from": 0.0,
+                   "durationInFrames": 75.0,
+                   "nodeId": "intro-bg",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "intro-bg",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   },
                    "component": "remocn/shader-mesh-gradient",
                    "props": {
                     "speed": 1,
@@ -1310,14 +1322,6 @@
                      "#3a3a5c",
                      "#52527a"
                     ]
-                   },
-                   "nodeId": "intro-bg",
-                   "handles": {
-                    "trimEnd": {
-                     "nodeId": "intro-bg",
-                     "param": "clipDuration",
-                     "unit": "frames"
-                    }
                    }
                   }
                  ]
@@ -1332,32 +1336,40 @@
             "id": "intro:l1",
             "items": [
              {
+              "kind": "group",
               "id": "intro:l1:g",
-              "from": 0,
-              "durationInFrames": 75,
+              "from": 0.0,
+              "durationInFrames": 75.0,
               "handles": {
                "move": {
                 "nodeId": "intro",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 1
+                "index": 1.0
                }
               },
               "slot": {
                "nodeId": "intro",
                "port": "in2"
               },
-              "kind": "group",
               "props": {
                "tracks": [
                 {
                  "id": "intro-title:t",
                  "items": [
                   {
-                   "id": "intro-title:i",
-                   "from": 0,
-                   "durationInFrames": 75,
                    "kind": "element",
+                   "id": "intro-title:i",
+                   "from": 0.0,
+                   "durationInFrames": 75.0,
+                   "nodeId": "intro-title",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "intro-title",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   },
                    "component": "remocn/soft-blur-in",
                    "props": {
                     "text": "TodoMVC in 20 seconds",
@@ -1367,14 +1379,6 @@
                     "fontWeight": "600",
                     "background": "white",
                     "speed": 1
-                   },
-                   "nodeId": "intro-title",
-                   "handles": {
-                    "trimEnd": {
-                     "nodeId": "intro-title",
-                     "param": "clipDuration",
-                     "unit": "frames"
-                    }
                    }
                   }
                  ]
@@ -1386,74 +1390,78 @@
             "layer": true
            }
           ]
-         },
-         "exit": {
-          "kind": "remocn/whip-pan",
-          "durationInFrames": 18
          }
         },
         {
+         "kind": "group",
          "id": "sequence:s1",
-         "from": 57,
-         "durationInFrames": 144,
+         "from": 57.0,
+         "durationInFrames": 144.0,
          "enter": {
           "kind": "remocn/whip-pan",
-          "durationInFrames": 18
+          "durationInFrames": 18.0
+         },
+         "exit": {
+          "kind": "remocn/whip-pan",
+          "durationInFrames": 18.0
          },
          "slot": {
           "nodeId": "sequence",
           "port": "in2"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "camera:t",
             "items": [
              {
-              "id": "camera:i",
-              "from": 0,
-              "durationInFrames": 144,
               "kind": "element",
+              "id": "camera:i",
+              "from": 0.0,
+              "durationInFrames": 144.0,
+              "nodeId": "camera",
               "component": "core/placeholder",
               "props": {
                "title": "Not recorded yet",
                "subtitle": "Run to record the take. The camera moves appear here afterwards."
-              },
-              "nodeId": "camera"
+              }
              }
             ]
            }
           ]
-         },
-         "exit": {
-          "kind": "remocn/whip-pan",
-          "durationInFrames": 18
          }
         },
         {
+         "kind": "group",
          "id": "sequence:s2",
-         "from": 183,
-         "durationInFrames": 75,
+         "from": 183.0,
+         "durationInFrames": 75.0,
          "enter": {
           "kind": "remocn/whip-pan",
-          "durationInFrames": 18
+          "durationInFrames": 18.0
          },
          "slot": {
           "nodeId": "sequence",
           "port": "in3"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "outro:t",
             "items": [
              {
-              "id": "outro:i",
-              "from": 0,
-              "durationInFrames": 75,
               "kind": "element",
+              "id": "outro:i",
+              "from": 0.0,
+              "durationInFrames": 75.0,
+              "nodeId": "outro",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "outro",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
               "component": "core/title",
               "props": {
                "eyebrow": "Made with",
@@ -1469,14 +1477,6 @@
                "background": "transparent",
                "fontSize": 112,
                "fontWeight": 760
-              },
-              "nodeId": "outro",
-              "handles": {
-               "trimEnd": {
-                "nodeId": "outro",
-                "param": "clipDuration",
-                "unit": "frames"
-               }
               }
              }
             ]
@@ -1495,56 +1495,68 @@
   "errors": {},
   "specs": {
    "render": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
-    "durationInFrames": 258,
+    "width": 1920.0,
+    "height": 1080.0,
+    "fps": 30.0,
+    "durationInFrames": 258.0,
     "background": "#09090b",
     "tracks": [
      {
       "id": "sequence:seq",
       "items": [
        {
+        "kind": "group",
         "id": "sequence:s0",
-        "from": 0,
-        "durationInFrames": 75,
+        "from": 0.0,
+        "durationInFrames": 75.0,
+        "exit": {
+         "kind": "remocn/whip-pan",
+         "durationInFrames": 18.0
+        },
         "slot": {
          "nodeId": "sequence",
          "port": "in1"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "intro:l0",
            "items": [
             {
+             "kind": "group",
              "id": "intro:l0:g",
-             "from": 0,
-             "durationInFrames": 75,
+             "from": 0.0,
+             "durationInFrames": 75.0,
              "handles": {
               "move": {
                "nodeId": "intro",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 0
+               "index": 0.0
               }
              },
              "slot": {
               "nodeId": "intro",
               "port": "in1"
              },
-             "kind": "group",
              "props": {
               "tracks": [
                {
                 "id": "intro-bg:t",
                 "items": [
                  {
-                  "id": "intro-bg:i",
-                  "from": 0,
-                  "durationInFrames": 75,
                   "kind": "element",
+                  "id": "intro-bg:i",
+                  "from": 0.0,
+                  "durationInFrames": 75.0,
+                  "nodeId": "intro-bg",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "intro-bg",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
                   "component": "remocn/shader-mesh-gradient",
                   "props": {
                    "speed": 1,
@@ -1556,14 +1568,6 @@
                     "#3a3a5c",
                     "#52527a"
                    ]
-                  },
-                  "nodeId": "intro-bg",
-                  "handles": {
-                   "trimEnd": {
-                    "nodeId": "intro-bg",
-                    "param": "clipDuration",
-                    "unit": "frames"
-                   }
                   }
                  }
                 ]
@@ -1578,32 +1582,40 @@
            "id": "intro:l1",
            "items": [
             {
+             "kind": "group",
              "id": "intro:l1:g",
-             "from": 0,
-             "durationInFrames": 75,
+             "from": 0.0,
+             "durationInFrames": 75.0,
              "handles": {
               "move": {
                "nodeId": "intro",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 1
+               "index": 1.0
               }
              },
              "slot": {
               "nodeId": "intro",
               "port": "in2"
              },
-             "kind": "group",
              "props": {
               "tracks": [
                {
                 "id": "intro-title:t",
                 "items": [
                  {
-                  "id": "intro-title:i",
-                  "from": 0,
-                  "durationInFrames": 75,
                   "kind": "element",
+                  "id": "intro-title:i",
+                  "from": 0.0,
+                  "durationInFrames": 75.0,
+                  "nodeId": "intro-title",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "intro-title",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
                   "component": "remocn/soft-blur-in",
                   "props": {
                    "text": "TodoMVC in 20 seconds",
@@ -1613,14 +1625,6 @@
                    "fontWeight": "600",
                    "background": "white",
                    "speed": 1
-                  },
-                  "nodeId": "intro-title",
-                  "handles": {
-                   "trimEnd": {
-                    "nodeId": "intro-title",
-                    "param": "clipDuration",
-                    "unit": "frames"
-                   }
                   }
                  }
                 ]
@@ -1632,74 +1636,78 @@
            "layer": true
           }
          ]
-        },
-        "exit": {
-         "kind": "remocn/whip-pan",
-         "durationInFrames": 18
         }
        },
        {
+        "kind": "group",
         "id": "sequence:s1",
-        "from": 57,
-        "durationInFrames": 144,
+        "from": 57.0,
+        "durationInFrames": 144.0,
         "enter": {
          "kind": "remocn/whip-pan",
-         "durationInFrames": 18
+         "durationInFrames": 18.0
+        },
+        "exit": {
+         "kind": "remocn/whip-pan",
+         "durationInFrames": 18.0
         },
         "slot": {
          "nodeId": "sequence",
          "port": "in2"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "camera:t",
            "items": [
             {
-             "id": "camera:i",
-             "from": 0,
-             "durationInFrames": 144,
              "kind": "element",
+             "id": "camera:i",
+             "from": 0.0,
+             "durationInFrames": 144.0,
+             "nodeId": "camera",
              "component": "core/placeholder",
              "props": {
               "title": "Not recorded yet",
               "subtitle": "Run to record the take. The camera moves appear here afterwards."
-             },
-             "nodeId": "camera"
+             }
             }
            ]
           }
          ]
-        },
-        "exit": {
-         "kind": "remocn/whip-pan",
-         "durationInFrames": 18
         }
        },
        {
+        "kind": "group",
         "id": "sequence:s2",
-        "from": 183,
-        "durationInFrames": 75,
+        "from": 183.0,
+        "durationInFrames": 75.0,
         "enter": {
          "kind": "remocn/whip-pan",
-         "durationInFrames": 18
+         "durationInFrames": 18.0
         },
         "slot": {
          "nodeId": "sequence",
          "port": "in3"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "outro:t",
            "items": [
             {
-             "id": "outro:i",
-             "from": 0,
-             "durationInFrames": 75,
              "kind": "element",
+             "id": "outro:i",
+             "from": 0.0,
+             "durationInFrames": 75.0,
+             "nodeId": "outro",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "outro",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
              "component": "core/title",
              "props": {
               "eyebrow": "Made with",
@@ -1715,14 +1723,6 @@
               "background": "transparent",
               "fontSize": 112,
               "fontWeight": 760
-             },
-             "nodeId": "outro",
-             "handles": {
-              "trimEnd": {
-               "nodeId": "outro",
-               "param": "clipDuration",
-               "unit": "frames"
-              }
              }
             }
            ]
@@ -1949,8 +1949,8 @@
     {
      "icon": "clock",
      "text": "2.5 s · usually 5 s",
-     "tone": "warn",
-     "title": "Shorter than this element usually runs, so its animation may be cut off."
+     "title": "Shorter than this element usually runs, so its animation may be cut off.",
+     "tone": "warn"
     }
    ]
   },
@@ -2029,56 +2029,68 @@
  },
  "preview": {
   "spec": {
-   "width": 1920,
-   "height": 1080,
-   "fps": 30,
-   "durationInFrames": 258,
+   "width": 1920.0,
+   "height": 1080.0,
+   "fps": 30.0,
+   "durationInFrames": 258.0,
    "background": "#09090b",
    "tracks": [
     {
      "id": "sequence:seq",
      "items": [
       {
+       "kind": "group",
        "id": "sequence:s0",
-       "from": 0,
-       "durationInFrames": 75,
+       "from": 0.0,
+       "durationInFrames": 75.0,
+       "exit": {
+        "kind": "remocn/whip-pan",
+        "durationInFrames": 18.0
+       },
        "slot": {
         "nodeId": "sequence",
         "port": "in1"
        },
-       "kind": "group",
        "props": {
         "tracks": [
          {
           "id": "intro:l0",
           "items": [
            {
+            "kind": "group",
             "id": "intro:l0:g",
-            "from": 0,
-            "durationInFrames": 75,
+            "from": 0.0,
+            "durationInFrames": 75.0,
             "handles": {
              "move": {
               "nodeId": "intro",
               "param": "offsetsMs",
               "unit": "ms",
-              "index": 0
+              "index": 0.0
              }
             },
             "slot": {
              "nodeId": "intro",
              "port": "in1"
             },
-            "kind": "group",
             "props": {
              "tracks": [
               {
                "id": "intro-bg:t",
                "items": [
                 {
-                 "id": "intro-bg:i",
-                 "from": 0,
-                 "durationInFrames": 75,
                  "kind": "element",
+                 "id": "intro-bg:i",
+                 "from": 0.0,
+                 "durationInFrames": 75.0,
+                 "nodeId": "intro-bg",
+                 "handles": {
+                  "trimEnd": {
+                   "nodeId": "intro-bg",
+                   "param": "clipDuration",
+                   "unit": "frames"
+                  }
+                 },
                  "component": "remocn/shader-mesh-gradient",
                  "props": {
                   "speed": 1,
@@ -2090,14 +2102,6 @@
                    "#3a3a5c",
                    "#52527a"
                   ]
-                 },
-                 "nodeId": "intro-bg",
-                 "handles": {
-                  "trimEnd": {
-                   "nodeId": "intro-bg",
-                   "param": "clipDuration",
-                   "unit": "frames"
-                  }
                  }
                 }
                ]
@@ -2112,32 +2116,40 @@
           "id": "intro:l1",
           "items": [
            {
+            "kind": "group",
             "id": "intro:l1:g",
-            "from": 0,
-            "durationInFrames": 75,
+            "from": 0.0,
+            "durationInFrames": 75.0,
             "handles": {
              "move": {
               "nodeId": "intro",
               "param": "offsetsMs",
               "unit": "ms",
-              "index": 1
+              "index": 1.0
              }
             },
             "slot": {
              "nodeId": "intro",
              "port": "in2"
             },
-            "kind": "group",
             "props": {
              "tracks": [
               {
                "id": "intro-title:t",
                "items": [
                 {
-                 "id": "intro-title:i",
-                 "from": 0,
-                 "durationInFrames": 75,
                  "kind": "element",
+                 "id": "intro-title:i",
+                 "from": 0.0,
+                 "durationInFrames": 75.0,
+                 "nodeId": "intro-title",
+                 "handles": {
+                  "trimEnd": {
+                   "nodeId": "intro-title",
+                   "param": "clipDuration",
+                   "unit": "frames"
+                  }
+                 },
                  "component": "remocn/soft-blur-in",
                  "props": {
                   "text": "TodoMVC in 20 seconds",
@@ -2147,14 +2159,6 @@
                   "fontWeight": "600",
                   "background": "white",
                   "speed": 1
-                 },
-                 "nodeId": "intro-title",
-                 "handles": {
-                  "trimEnd": {
-                   "nodeId": "intro-title",
-                   "param": "clipDuration",
-                   "unit": "frames"
-                  }
                  }
                 }
                ]
@@ -2166,74 +2170,78 @@
           "layer": true
          }
         ]
-       },
-       "exit": {
-        "kind": "remocn/whip-pan",
-        "durationInFrames": 18
        }
       },
       {
+       "kind": "group",
        "id": "sequence:s1",
-       "from": 57,
-       "durationInFrames": 144,
+       "from": 57.0,
+       "durationInFrames": 144.0,
        "enter": {
         "kind": "remocn/whip-pan",
-        "durationInFrames": 18
+        "durationInFrames": 18.0
+       },
+       "exit": {
+        "kind": "remocn/whip-pan",
+        "durationInFrames": 18.0
        },
        "slot": {
         "nodeId": "sequence",
         "port": "in2"
        },
-       "kind": "group",
        "props": {
         "tracks": [
          {
           "id": "camera:t",
           "items": [
            {
-            "id": "camera:i",
-            "from": 0,
-            "durationInFrames": 144,
             "kind": "element",
+            "id": "camera:i",
+            "from": 0.0,
+            "durationInFrames": 144.0,
+            "nodeId": "camera",
             "component": "core/placeholder",
             "props": {
              "title": "Not recorded yet",
              "subtitle": "Run to record the take. The camera moves appear here afterwards."
-            },
-            "nodeId": "camera"
+            }
            }
           ]
          }
         ]
-       },
-       "exit": {
-        "kind": "remocn/whip-pan",
-        "durationInFrames": 18
        }
       },
       {
+       "kind": "group",
        "id": "sequence:s2",
-       "from": 183,
-       "durationInFrames": 75,
+       "from": 183.0,
+       "durationInFrames": 75.0,
        "enter": {
         "kind": "remocn/whip-pan",
-        "durationInFrames": 18
+        "durationInFrames": 18.0
        },
        "slot": {
         "nodeId": "sequence",
         "port": "in3"
        },
-       "kind": "group",
        "props": {
         "tracks": [
          {
           "id": "outro:t",
           "items": [
            {
-            "id": "outro:i",
-            "from": 0,
-            "durationInFrames": 75,
             "kind": "element",
+            "id": "outro:i",
+            "from": 0.0,
+            "durationInFrames": 75.0,
+            "nodeId": "outro",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "outro",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
             "component": "core/title",
             "props": {
              "eyebrow": "Made with",
@@ -2249,14 +2257,6 @@
              "background": "transparent",
              "fontSize": 112,
              "fontWeight": 760
-            },
-            "nodeId": "outro",
-            "handles": {
-             "trimEnd": {
-              "nodeId": "outro",
-              "param": "clipDuration",
-              "unit": "frames"
-             }
             }
            }
           ]
@@ -2277,20 +2277,20 @@
   },
   "spans": {
    "intro-bg": {
-    "from": 0,
-    "to": 75
+    "from": 0.0,
+    "to": 75.0
    },
    "intro-title": {
-    "from": 0,
-    "to": 75
+    "from": 0.0,
+    "to": 75.0
    },
    "camera": {
-    "from": 57,
-    "to": 201
+    "from": 57.0,
+    "to": 201.0
    },
    "outro": {
-    "from": 183,
-    "to": 258
+    "from": 183.0,
+    "to": 258.0
    }
   },
   "sourceNodeId": "render"
@@ -2298,8 +2298,8 @@
  "timelines": {
   "render": {
    "flat": {
-    "fps": 30,
-    "durationInFrames": 258,
+    "fps": 30.0,
+    "durationInFrames": 258.0,
     "bars": [
      {
       "type": "video",
@@ -2320,8 +2320,8 @@
        ]
       },
       "thumbnail": null,
-      "from": 0,
-      "to": 75,
+      "from": 0.0,
+      "to": 75.0,
       "lane": 0,
       "order": 0,
       "chain": [
@@ -2335,11 +2335,11 @@
           "unit": "frames"
          }
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 75,
-        "from": 0,
-        "to": 75
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 0.0,
+        "to": 75.0
        },
        {
         "itemId": "intro:l0:g",
@@ -2348,18 +2348,18 @@
           "nodeId": "intro",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 0
+          "index": 0.0
          }
         },
         "slot": {
          "nodeId": "intro",
          "port": "in1"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 75,
-        "from": 0,
-        "to": 75
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 0.0,
+        "to": 75.0
        },
        {
         "itemId": "sequence:s0",
@@ -2367,16 +2367,16 @@
          "nodeId": "sequence",
          "port": "in1"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 75,
-        "from": 0,
-        "to": 75
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 0.0,
+        "to": 75.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
-      "contentEnd": 75,
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 75.0,
       "loop": 0,
       "hasSound": false,
       "sound": null
@@ -2398,8 +2398,8 @@
        "speed": 1
       },
       "thumbnail": null,
-      "from": 0,
-      "to": 75,
+      "from": 0.0,
+      "to": 75.0,
       "lane": 1,
       "order": 1,
       "chain": [
@@ -2413,11 +2413,11 @@
           "unit": "frames"
          }
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 75,
-        "from": 0,
-        "to": 75
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 0.0,
+        "to": 75.0
        },
        {
         "itemId": "intro:l1:g",
@@ -2426,18 +2426,18 @@
           "nodeId": "intro",
           "param": "offsetsMs",
           "unit": "ms",
-          "index": 1
+          "index": 1.0
          }
         },
         "slot": {
          "nodeId": "intro",
          "port": "in2"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 75,
-        "from": 0,
-        "to": 75
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 0.0,
+        "to": 75.0
        },
        {
         "itemId": "sequence:s0",
@@ -2445,16 +2445,16 @@
          "nodeId": "sequence",
          "port": "in1"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 75,
-        "from": 0,
-        "to": 75
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 0.0,
+        "to": 75.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
-      "contentEnd": 75,
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 75.0,
       "loop": 0,
       "hasSound": false,
       "sound": null
@@ -2471,19 +2471,19 @@
        "subtitle": "Run to record the take. The camera moves appear here afterwards."
       },
       "thumbnail": null,
-      "from": 57,
-      "to": 201,
+      "from": 57.0,
+      "to": 201.0,
       "lane": 2,
       "order": 2,
       "chain": [
        {
         "itemId": "camera:i",
         "nodeId": "camera",
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 144,
-        "from": 57,
-        "to": 201
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 144.0,
+        "from": 57.0,
+        "to": 201.0
        },
        {
         "itemId": "sequence:s1",
@@ -2491,16 +2491,16 @@
          "nodeId": "sequence",
          "port": "in2"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 144,
-        "from": 57,
-        "to": 201
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 144.0,
+        "from": 57.0,
+        "to": 201.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
-      "contentEnd": 144,
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 144.0,
       "loop": 0,
       "hasSound": false,
       "sound": null
@@ -2528,8 +2528,8 @@
        "fontWeight": 760
       },
       "thumbnail": null,
-      "from": 183,
-      "to": 258,
+      "from": 183.0,
+      "to": 258.0,
       "lane": 0,
       "order": 3,
       "chain": [
@@ -2543,11 +2543,11 @@
           "unit": "frames"
          }
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 75,
-        "from": 183,
-        "to": 258
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 183.0,
+        "to": 258.0
        },
        {
         "itemId": "sequence:s2",
@@ -2555,16 +2555,16 @@
          "nodeId": "sequence",
          "port": "in3"
         },
-        "rate": 1,
-        "rateEnd": 1,
-        "end": 75,
-        "from": 183,
-        "to": 258
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 183.0,
+        "to": 258.0
        }
       ],
-      "rate": 1,
-      "contentStart": 0,
-      "contentEnd": 75,
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 75.0,
       "loop": 0,
       "hasSound": false,
       "sound": null
@@ -2577,14 +2577,14 @@
      {
       "key": "/0:sequence:s1:enter",
       "itemKey": "/0:sequence:s1",
+      "from": 57.0,
+      "to": 75.0,
+      "kind": "remocn/whip-pan",
       "lanes": [
        0,
        1,
        2
       ],
-      "from": 57,
-      "to": 75,
-      "kind": "remocn/whip-pan",
       "covers": 0.24,
       "slot": {
        "nodeId": "sequence",
@@ -2594,13 +2594,13 @@
      {
       "key": "/0:sequence:s2:enter",
       "itemKey": "/0:sequence:s2",
+      "from": 183.0,
+      "to": 201.0,
+      "kind": "remocn/whip-pan",
       "lanes": [
        0,
        2
       ],
-      "from": 183,
-      "to": 201,
-      "kind": "remocn/whip-pan",
       "covers": 0.24,
       "slot": {
        "nodeId": "sequence",
@@ -2611,10 +2611,9 @@
     "marks": [],
     "cameraKeys": []
    },
-   "chapters": [],
    "mix": {
-    "fps": 30,
-    "durationInFrames": 258,
+    "fps": 30.0,
+    "durationInFrames": 258.0,
     "channels": [],
     "buses": [
      {
@@ -2623,47 +2622,47 @@
       "processing": {
        "highpass": {
         "on": false,
-        "freq": 80
+        "freq": 80.0
        },
        "eq": {
         "on": false,
         "bands": [
          {
           "type": "lowshelf",
-          "freq": 120,
-          "gain": 0,
+          "freq": 120.0,
+          "gain": 0.0,
           "q": 0.7
          },
          {
           "type": "peak",
-          "freq": 500,
-          "gain": 0,
-          "q": 1
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "peak",
-          "freq": 2500,
-          "gain": 0,
-          "q": 1
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "highshelf",
-          "freq": 8000,
-          "gain": 0,
+          "freq": 8000.0,
+          "gain": 0.0,
           "q": 0.7
          }
         ]
        },
        "comp": {
         "on": false,
-        "threshold": -18,
-        "ratio": 3,
-        "attack": 10,
-        "release": 150,
-        "makeup": 0
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
        }
       },
-      "fader": 0,
+      "fader": 0.0,
       "channels": [],
       "duck": null
      },
@@ -2673,47 +2672,47 @@
       "processing": {
        "highpass": {
         "on": false,
-        "freq": 80
+        "freq": 80.0
        },
        "eq": {
         "on": false,
         "bands": [
          {
           "type": "lowshelf",
-          "freq": 120,
-          "gain": 0,
+          "freq": 120.0,
+          "gain": 0.0,
           "q": 0.7
          },
          {
           "type": "peak",
-          "freq": 500,
-          "gain": 0,
-          "q": 1
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "peak",
-          "freq": 2500,
-          "gain": 0,
-          "q": 1
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "highshelf",
-          "freq": 8000,
-          "gain": 0,
+          "freq": 8000.0,
+          "gain": 0.0,
           "q": 0.7
          }
         ]
        },
        "comp": {
         "on": false,
-        "threshold": -18,
-        "ratio": 3,
-        "attack": 10,
-        "release": 150,
-        "makeup": 0
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
        }
       },
-      "fader": 0,
+      "fader": 0.0,
       "channels": [],
       "duck": null
      },
@@ -2723,98 +2722,98 @@
       "processing": {
        "highpass": {
         "on": false,
-        "freq": 80
+        "freq": 80.0
        },
        "eq": {
         "on": false,
         "bands": [
          {
           "type": "lowshelf",
-          "freq": 120,
-          "gain": 0,
+          "freq": 120.0,
+          "gain": 0.0,
           "q": 0.7
          },
          {
           "type": "peak",
-          "freq": 500,
-          "gain": 0,
-          "q": 1
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "peak",
-          "freq": 2500,
-          "gain": 0,
-          "q": 1
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
          },
          {
           "type": "highshelf",
-          "freq": 8000,
-          "gain": 0,
+          "freq": 8000.0,
+          "gain": 0.0,
           "q": 0.7
          }
         ]
        },
        "comp": {
         "on": false,
-        "threshold": -18,
-        "ratio": 3,
-        "attack": 10,
-        "release": 150,
-        "makeup": 0
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
        }
       },
-      "fader": 0,
+      "fader": 0.0,
       "channels": [],
       "duck": null
      }
     ],
     "master": {
-     "fader": 0,
+     "fader": 0.0,
      "eq": {
       "on": false,
       "bands": [
        {
         "type": "lowshelf",
-        "freq": 120,
-        "gain": 0,
+        "freq": 120.0,
+        "gain": 0.0,
         "q": 0.7
        },
        {
         "type": "peak",
-        "freq": 500,
-        "gain": 0,
-        "q": 1
+        "freq": 500.0,
+        "gain": 0.0,
+        "q": 1.0
        },
        {
         "type": "peak",
-        "freq": 2500,
-        "gain": 0,
-        "q": 1
+        "freq": 2500.0,
+        "gain": 0.0,
+        "q": 1.0
        },
        {
         "type": "highshelf",
-        "freq": 8000,
-        "gain": 0,
+        "freq": 8000.0,
+        "gain": 0.0,
         "q": 0.7
        }
       ]
      },
      "comp": {
       "on": false,
-      "threshold": -12,
-      "ratio": 2,
-      "attack": 20,
-      "release": 250,
-      "makeup": 0
+      "threshold": -12.0,
+      "ratio": 2.0,
+      "attack": 20.0,
+      "release": 250.0,
+      "makeup": 0.0
      },
      "limiter": {
       "on": false,
-      "ceiling": -1
+      "ceiling": -1.0
      },
      "loudness": "off"
-    },
-    "key": "630065f287e72973"
-   }
+    }
+   },
+   "chapters": []
   }
  },
  "run": {
@@ -3188,16 +3187,24 @@
     "intro-bg": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75,
+      "durationInFrames": 75.0,
       "tracks": [
        {
         "id": "intro-bg:t",
         "items": [
          {
-          "id": "intro-bg:i",
-          "from": 0,
-          "durationInFrames": 75,
           "kind": "element",
+          "id": "intro-bg:i",
+          "from": 0.0,
+          "durationInFrames": 75.0,
+          "nodeId": "intro-bg",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "intro-bg",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
           "component": "remocn/shader-mesh-gradient",
           "props": {
            "speed": 1,
@@ -3209,14 +3216,6 @@
             "#3a3a5c",
             "#52527a"
            ]
-          },
-          "nodeId": "intro-bg",
-          "handles": {
-           "trimEnd": {
-            "nodeId": "intro-bg",
-            "param": "clipDuration",
-            "unit": "frames"
-           }
           }
          }
         ]
@@ -3228,16 +3227,24 @@
     "intro-title": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75,
+      "durationInFrames": 75.0,
       "tracks": [
        {
         "id": "intro-title:t",
         "items": [
          {
-          "id": "intro-title:i",
-          "from": 0,
-          "durationInFrames": 75,
           "kind": "element",
+          "id": "intro-title:i",
+          "from": 0.0,
+          "durationInFrames": 75.0,
+          "nodeId": "intro-title",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "intro-title",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
           "component": "remocn/soft-blur-in",
           "props": {
            "text": "TodoMVC in 20 seconds",
@@ -3247,14 +3254,6 @@
            "fontWeight": "600",
            "background": "white",
            "speed": 1
-          },
-          "nodeId": "intro-title",
-          "handles": {
-           "trimEnd": {
-            "nodeId": "intro-title",
-            "param": "clipDuration",
-            "unit": "frames"
-           }
           }
          }
         ]
@@ -3346,38 +3345,46 @@
     "intro": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75,
+      "durationInFrames": 75.0,
       "tracks": [
        {
         "id": "intro:l0",
         "items": [
          {
+          "kind": "group",
           "id": "intro:l0:g",
-          "from": 0,
-          "durationInFrames": 75,
+          "from": 0.0,
+          "durationInFrames": 75.0,
           "handles": {
            "move": {
             "nodeId": "intro",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 0
+            "index": 0.0
            }
           },
           "slot": {
            "nodeId": "intro",
            "port": "in1"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "intro-bg:t",
              "items": [
               {
-               "id": "intro-bg:i",
-               "from": 0,
-               "durationInFrames": 75,
                "kind": "element",
+               "id": "intro-bg:i",
+               "from": 0.0,
+               "durationInFrames": 75.0,
+               "nodeId": "intro-bg",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "intro-bg",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
                "component": "remocn/shader-mesh-gradient",
                "props": {
                 "speed": 1,
@@ -3389,14 +3396,6 @@
                  "#3a3a5c",
                  "#52527a"
                 ]
-               },
-               "nodeId": "intro-bg",
-               "handles": {
-                "trimEnd": {
-                 "nodeId": "intro-bg",
-                 "param": "clipDuration",
-                 "unit": "frames"
-                }
                }
               }
              ]
@@ -3411,32 +3410,40 @@
         "id": "intro:l1",
         "items": [
          {
+          "kind": "group",
           "id": "intro:l1:g",
-          "from": 0,
-          "durationInFrames": 75,
+          "from": 0.0,
+          "durationInFrames": 75.0,
           "handles": {
            "move": {
             "nodeId": "intro",
             "param": "offsetsMs",
             "unit": "ms",
-            "index": 1
+            "index": 1.0
            }
           },
           "slot": {
            "nodeId": "intro",
            "port": "in2"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "intro-title:t",
              "items": [
               {
-               "id": "intro-title:i",
-               "from": 0,
-               "durationInFrames": 75,
                "kind": "element",
+               "id": "intro-title:i",
+               "from": 0.0,
+               "durationInFrames": 75.0,
+               "nodeId": "intro-title",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "intro-title",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
                "component": "remocn/soft-blur-in",
                "props": {
                 "text": "TodoMVC in 20 seconds",
@@ -3446,14 +3453,6 @@
                 "fontWeight": "600",
                 "background": "white",
                 "speed": 1
-               },
-               "nodeId": "intro-title",
-               "handles": {
-                "trimEnd": {
-                 "nodeId": "intro-title",
-                 "param": "clipDuration",
-                 "unit": "frames"
-                }
                }
               }
              ]
@@ -3471,16 +3470,24 @@
     "outro": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 75,
+      "durationInFrames": 75.0,
       "tracks": [
        {
         "id": "outro:t",
         "items": [
          {
-          "id": "outro:i",
-          "from": 0,
-          "durationInFrames": 75,
           "kind": "element",
+          "id": "outro:i",
+          "from": 0.0,
+          "durationInFrames": 75.0,
+          "nodeId": "outro",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "outro",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
           "component": "core/title",
           "props": {
            "eyebrow": "Made with",
@@ -3496,14 +3503,6 @@
            "background": "transparent",
            "fontSize": 112,
            "fontWeight": 760
-          },
-          "nodeId": "outro",
-          "handles": {
-           "trimEnd": {
-            "nodeId": "outro",
-            "param": "clipDuration",
-            "unit": "frames"
-           }
           }
          }
         ]
@@ -3746,27 +3745,27 @@
       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
       "log": {
        "viewport": {
-        "width": 1920,
-        "height": 1080
+        "width": 1920.0,
+        "height": 1080.0
        },
-       "dpr": 1,
-       "t0": 0,
-       "durationMs": 7700,
+       "dpr": 1.0,
+       "t0": 0.0,
+       "durationMs": 7700.0,
        "actions": [
         {
          "id": "open:navigate",
          "kind": "navigate",
-         "t": 600,
-         "tEnd": 1000,
+         "t": 600.0,
+         "tEnd": 1000.0,
          "point": {
-          "x": 200,
-          "y": 150
+          "x": 200.0,
+          "y": 150.0
          },
          "rect": {
-          "x": 140,
-          "y": 130,
-          "w": 120,
-          "h": 40
+          "x": 140.0,
+          "y": 130.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "browser.navigate",
          "nodeId": "open"
@@ -3774,17 +3773,17 @@
         {
          "id": "todo1:type",
          "kind": "type",
-         "t": 2400,
-         "tEnd": 2800,
+         "t": 2400.0,
+         "tEnd": 2800.0,
          "point": {
-          "x": 546,
-          "y": 344
+          "x": 546.0,
+          "y": 344.0
          },
          "rect": {
-          "x": 486,
-          "y": 324,
-          "w": 120,
-          "h": 40
+          "x": 486.0,
+          "y": 324.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "New todo",
          "nodeId": "todo1"
@@ -3792,17 +3791,17 @@
         {
          "id": "todo2:type",
          "kind": "type",
-         "t": 3300,
-         "tEnd": 3700,
+         "t": 3300.0,
+         "tEnd": 3700.0,
          "point": {
-          "x": 719,
-          "y": 441
+          "x": 719.0,
+          "y": 441.0
          },
          "rect": {
-          "x": 659,
-          "y": 421,
-          "w": 120,
-          "h": 40
+          "x": 659.0,
+          "y": 421.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "New todo",
          "nodeId": "todo2"
@@ -3810,17 +3809,17 @@
         {
          "id": "todo3:type",
          "kind": "type",
-         "t": 4200,
-         "tEnd": 4600,
+         "t": 4200.0,
+         "tEnd": 4600.0,
          "point": {
-          "x": 892,
-          "y": 538
+          "x": 892.0,
+          "y": 538.0
          },
          "rect": {
-          "x": 832,
-          "y": 518,
-          "w": 120,
-          "h": 40
+          "x": 832.0,
+          "y": 518.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "New todo",
          "nodeId": "todo3"
@@ -3828,17 +3827,17 @@
         {
          "id": "complete:click",
          "kind": "click",
-         "t": 5100,
-         "tEnd": 5500,
+         "t": 5100.0,
+         "tEnd": 5500.0,
          "point": {
-          "x": 1065,
-          "y": 635
+          "x": 1065.0,
+          "y": 635.0
          },
          "rect": {
-          "x": 1005,
-          "y": 615,
-          "w": 120,
-          "h": 40
+          "x": 1005.0,
+          "y": 615.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "Complete",
          "nodeId": "complete"
@@ -3846,17 +3845,17 @@
         {
          "id": "filter:click",
          "kind": "click",
-         "t": 6000,
-         "tEnd": 6400,
+         "t": 6000.0,
+         "tEnd": 6400.0,
          "point": {
-          "x": 1238,
-          "y": 732
+          "x": 1238.0,
+          "y": 732.0
          },
          "rect": {
-          "x": 1178,
-          "y": 712,
-          "w": 120,
-          "h": 40
+          "x": 1178.0,
+          "y": 712.0,
+          "w": 120.0,
+          "h": 40.0
          },
          "label": "Completed filter",
          "nodeId": "filter"
@@ -3864,16 +3863,16 @@
        ],
        "cursorTrack": [
         {
-         "t": 0,
-         "x": 960,
-         "y": 540
+         "t": 0.0,
+         "x": 960.0,
+         "y": 540.0
         }
        ]
       },
-      "durationMs": 7700,
+      "durationMs": 7700.0,
       "viewport": {
-       "width": 1920,
-       "height": 1080
+       "width": 1920.0,
+       "height": 1080.0
       },
       "nodeId": "record",
       "style": []
@@ -3882,17 +3881,147 @@
     "camera": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 185,
+      "durationInFrames": 185.0,
       "tracks": [
        {
         "id": "camera:t",
         "items": [
          {
-          "id": "camera:i",
-          "from": 0,
-          "durationInFrames": 185,
           "kind": "recording",
+          "id": "camera:i",
+          "from": 0.0,
+          "durationInFrames": 185.0,
+          "nodeId": "camera",
           "props": {
+           "src": "project:.opsis/cache/record/recording.mp4",
+           "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+           "log": {
+            "viewport": {
+             "width": 1920.0,
+             "height": 1080.0
+            },
+            "dpr": 1.0,
+            "t0": 0.0,
+            "durationMs": 7700.0,
+            "actions": [
+             {
+              "id": "open:navigate",
+              "kind": "navigate",
+              "t": 600.0,
+              "tEnd": 1000.0,
+              "point": {
+               "x": 200.0,
+               "y": 150.0
+              },
+              "rect": {
+               "x": 140.0,
+               "y": 130.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "browser.navigate",
+              "nodeId": "open"
+             },
+             {
+              "id": "todo1:type",
+              "kind": "type",
+              "t": 2400.0,
+              "tEnd": 2800.0,
+              "point": {
+               "x": 546.0,
+               "y": 344.0
+              },
+              "rect": {
+               "x": 486.0,
+               "y": 324.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "New todo",
+              "nodeId": "todo1"
+             },
+             {
+              "id": "todo2:type",
+              "kind": "type",
+              "t": 3300.0,
+              "tEnd": 3700.0,
+              "point": {
+               "x": 719.0,
+               "y": 441.0
+              },
+              "rect": {
+               "x": 659.0,
+               "y": 421.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "New todo",
+              "nodeId": "todo2"
+             },
+             {
+              "id": "todo3:type",
+              "kind": "type",
+              "t": 4200.0,
+              "tEnd": 4600.0,
+              "point": {
+               "x": 892.0,
+               "y": 538.0
+              },
+              "rect": {
+               "x": 832.0,
+               "y": 518.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "New todo",
+              "nodeId": "todo3"
+             },
+             {
+              "id": "complete:click",
+              "kind": "click",
+              "t": 5100.0,
+              "tEnd": 5500.0,
+              "point": {
+               "x": 1065.0,
+               "y": 635.0
+              },
+              "rect": {
+               "x": 1005.0,
+               "y": 615.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "Complete",
+              "nodeId": "complete"
+             },
+             {
+              "id": "filter:click",
+              "kind": "click",
+              "t": 6000.0,
+              "tEnd": 6400.0,
+              "point": {
+               "x": 1238.0,
+               "y": 732.0
+              },
+              "rect": {
+               "x": 1178.0,
+               "y": 712.0,
+               "w": 120.0,
+               "h": 40.0
+              },
+              "label": "Completed filter",
+              "nodeId": "filter"
+             }
+            ],
+            "cursorTrack": [
+             {
+              "t": 0.0,
+              "x": 960.0,
+              "y": 540.0
+             }
+            ]
+           },
+           "name": "record",
            "speed": 1.25,
            "zoom": true,
            "tuning": {
@@ -3904,7 +4033,7 @@
            "chrome": false,
            "backdrop": "glaze",
            "cursor": true,
-           "cursorScale": 1,
+           "cursorScale": 1.0,
            "cursorLook": {
             "shape": "arrow",
             "fill": "#111418",
@@ -3912,150 +4041,20 @@
            },
            "ripple": {
             "color": "#0f172a",
-            "size": 1,
-            "width": 2
+            "size": 1.0,
+            "width": 2.0
            },
            "extraBeats": [],
-           "annotations": [],
-           "src": "project:.opsis/cache/record/recording.mp4",
-           "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-           "log": {
-            "viewport": {
-             "width": 1920,
-             "height": 1080
-            },
-            "dpr": 1,
-            "t0": 0,
-            "durationMs": 7700,
-            "actions": [
-             {
-              "id": "open:navigate",
-              "kind": "navigate",
-              "t": 600,
-              "tEnd": 1000,
-              "point": {
-               "x": 200,
-               "y": 150
-              },
-              "rect": {
-               "x": 140,
-               "y": 130,
-               "w": 120,
-               "h": 40
-              },
-              "label": "browser.navigate",
-              "nodeId": "open"
-             },
-             {
-              "id": "todo1:type",
-              "kind": "type",
-              "t": 2400,
-              "tEnd": 2800,
-              "point": {
-               "x": 546,
-               "y": 344
-              },
-              "rect": {
-               "x": 486,
-               "y": 324,
-               "w": 120,
-               "h": 40
-              },
-              "label": "New todo",
-              "nodeId": "todo1"
-             },
-             {
-              "id": "todo2:type",
-              "kind": "type",
-              "t": 3300,
-              "tEnd": 3700,
-              "point": {
-               "x": 719,
-               "y": 441
-              },
-              "rect": {
-               "x": 659,
-               "y": 421,
-               "w": 120,
-               "h": 40
-              },
-              "label": "New todo",
-              "nodeId": "todo2"
-             },
-             {
-              "id": "todo3:type",
-              "kind": "type",
-              "t": 4200,
-              "tEnd": 4600,
-              "point": {
-               "x": 892,
-               "y": 538
-              },
-              "rect": {
-               "x": 832,
-               "y": 518,
-               "w": 120,
-               "h": 40
-              },
-              "label": "New todo",
-              "nodeId": "todo3"
-             },
-             {
-              "id": "complete:click",
-              "kind": "click",
-              "t": 5100,
-              "tEnd": 5500,
-              "point": {
-               "x": 1065,
-               "y": 635
-              },
-              "rect": {
-               "x": 1005,
-               "y": 615,
-               "w": 120,
-               "h": 40
-              },
-              "label": "Complete",
-              "nodeId": "complete"
-             },
-             {
-              "id": "filter:click",
-              "kind": "click",
-              "t": 6000,
-              "tEnd": 6400,
-              "point": {
-               "x": 1238,
-               "y": 732
-              },
-              "rect": {
-               "x": 1178,
-               "y": 712,
-               "w": 120,
-               "h": 40
-              },
-              "label": "Completed filter",
-              "nodeId": "filter"
-             }
-            ],
-            "cursorTrack": [
-             {
-              "t": 0,
-              "x": 960,
-              "y": 540
-             }
-            ]
-           },
-           "name": "record",
            "keystrokes": {
             "position": "bottom",
             "typed": true,
             "chords": true,
             "keycap": "#0a0a0a",
             "ink": "#ffffff",
-            "size": 1
-           }
-          },
-          "nodeId": "camera"
+            "size": 1.0
+           },
+           "annotations": []
+          }
          }
         ]
        }
@@ -4067,27 +4066,27 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920,
-         "height": 1080
+         "width": 1920.0,
+         "height": 1080.0
         },
-        "dpr": 1,
-        "t0": 0,
-        "durationMs": 7700,
+        "dpr": 1.0,
+        "t0": 0.0,
+        "durationMs": 7700.0,
         "actions": [
          {
           "id": "open:navigate",
           "kind": "navigate",
-          "t": 600,
-          "tEnd": 1000,
+          "t": 600.0,
+          "tEnd": 1000.0,
           "point": {
-           "x": 200,
-           "y": 150
+           "x": 200.0,
+           "y": 150.0
           },
           "rect": {
-           "x": 140,
-           "y": 130,
-           "w": 120,
-           "h": 40
+           "x": 140.0,
+           "y": 130.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "browser.navigate",
           "nodeId": "open"
@@ -4095,17 +4094,17 @@
          {
           "id": "todo1:type",
           "kind": "type",
-          "t": 2400,
-          "tEnd": 2800,
+          "t": 2400.0,
+          "tEnd": 2800.0,
           "point": {
-           "x": 546,
-           "y": 344
+           "x": 546.0,
+           "y": 344.0
           },
           "rect": {
-           "x": 486,
-           "y": 324,
-           "w": 120,
-           "h": 40
+           "x": 486.0,
+           "y": 324.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "New todo",
           "nodeId": "todo1"
@@ -4113,17 +4112,17 @@
          {
           "id": "todo2:type",
           "kind": "type",
-          "t": 3300,
-          "tEnd": 3700,
+          "t": 3300.0,
+          "tEnd": 3700.0,
           "point": {
-           "x": 719,
-           "y": 441
+           "x": 719.0,
+           "y": 441.0
           },
           "rect": {
-           "x": 659,
-           "y": 421,
-           "w": 120,
-           "h": 40
+           "x": 659.0,
+           "y": 421.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "New todo",
           "nodeId": "todo2"
@@ -4131,17 +4130,17 @@
          {
           "id": "todo3:type",
           "kind": "type",
-          "t": 4200,
-          "tEnd": 4600,
+          "t": 4200.0,
+          "tEnd": 4600.0,
           "point": {
-           "x": 892,
-           "y": 538
+           "x": 892.0,
+           "y": 538.0
           },
           "rect": {
-           "x": 832,
-           "y": 518,
-           "w": 120,
-           "h": 40
+           "x": 832.0,
+           "y": 518.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "New todo",
           "nodeId": "todo3"
@@ -4149,17 +4148,17 @@
          {
           "id": "complete:click",
           "kind": "click",
-          "t": 5100,
-          "tEnd": 5500,
+          "t": 5100.0,
+          "tEnd": 5500.0,
           "point": {
-           "x": 1065,
-           "y": 635
+           "x": 1065.0,
+           "y": 635.0
           },
           "rect": {
-           "x": 1005,
-           "y": 615,
-           "w": 120,
-           "h": 40
+           "x": 1005.0,
+           "y": 615.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "Complete",
           "nodeId": "complete"
@@ -4167,17 +4166,17 @@
          {
           "id": "filter:click",
           "kind": "click",
-          "t": 6000,
-          "tEnd": 6400,
+          "t": 6000.0,
+          "tEnd": 6400.0,
           "point": {
-           "x": 1238,
-           "y": 732
+           "x": 1238.0,
+           "y": 732.0
           },
           "rect": {
-           "x": 1178,
-           "y": 712,
-           "w": 120,
-           "h": 40
+           "x": 1178.0,
+           "y": 712.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "Completed filter",
           "nodeId": "filter"
@@ -4185,16 +4184,16 @@
         ],
         "cursorTrack": [
          {
-          "t": 0,
-          "x": 960,
-          "y": 540
+          "t": 0.0,
+          "x": 960.0,
+          "y": 540.0
          }
         ]
        },
-       "durationMs": 7700,
+       "durationMs": 7700.0,
        "viewport": {
-        "width": 1920,
-        "height": 1080
+        "width": 1920.0,
+        "height": 1080.0
        },
        "nodeId": "record",
        "style": []
@@ -4204,52 +4203,64 @@
     "sequence": {
      "clip": {
       "type": "clip",
-      "durationInFrames": 299,
+      "durationInFrames": 299.0,
       "tracks": [
        {
         "id": "sequence:seq",
         "items": [
          {
+          "kind": "group",
           "id": "sequence:s0",
-          "from": 0,
-          "durationInFrames": 75,
+          "from": 0.0,
+          "durationInFrames": 75.0,
+          "exit": {
+           "kind": "remocn/whip-pan",
+           "durationInFrames": 18.0
+          },
           "slot": {
            "nodeId": "sequence",
            "port": "in1"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "intro:l0",
              "items": [
               {
+               "kind": "group",
                "id": "intro:l0:g",
-               "from": 0,
-               "durationInFrames": 75,
+               "from": 0.0,
+               "durationInFrames": 75.0,
                "handles": {
                 "move": {
                  "nodeId": "intro",
                  "param": "offsetsMs",
                  "unit": "ms",
-                 "index": 0
+                 "index": 0.0
                 }
                },
                "slot": {
                 "nodeId": "intro",
                 "port": "in1"
                },
-               "kind": "group",
                "props": {
                 "tracks": [
                  {
                   "id": "intro-bg:t",
                   "items": [
                    {
-                    "id": "intro-bg:i",
-                    "from": 0,
-                    "durationInFrames": 75,
                     "kind": "element",
+                    "id": "intro-bg:i",
+                    "from": 0.0,
+                    "durationInFrames": 75.0,
+                    "nodeId": "intro-bg",
+                    "handles": {
+                     "trimEnd": {
+                      "nodeId": "intro-bg",
+                      "param": "clipDuration",
+                      "unit": "frames"
+                     }
+                    },
                     "component": "remocn/shader-mesh-gradient",
                     "props": {
                      "speed": 1,
@@ -4261,14 +4272,6 @@
                       "#3a3a5c",
                       "#52527a"
                      ]
-                    },
-                    "nodeId": "intro-bg",
-                    "handles": {
-                     "trimEnd": {
-                      "nodeId": "intro-bg",
-                      "param": "clipDuration",
-                      "unit": "frames"
-                     }
                     }
                    }
                   ]
@@ -4283,32 +4286,40 @@
              "id": "intro:l1",
              "items": [
               {
+               "kind": "group",
                "id": "intro:l1:g",
-               "from": 0,
-               "durationInFrames": 75,
+               "from": 0.0,
+               "durationInFrames": 75.0,
                "handles": {
                 "move": {
                  "nodeId": "intro",
                  "param": "offsetsMs",
                  "unit": "ms",
-                 "index": 1
+                 "index": 1.0
                 }
                },
                "slot": {
                 "nodeId": "intro",
                 "port": "in2"
                },
-               "kind": "group",
                "props": {
                 "tracks": [
                  {
                   "id": "intro-title:t",
                   "items": [
                    {
-                    "id": "intro-title:i",
-                    "from": 0,
-                    "durationInFrames": 75,
                     "kind": "element",
+                    "id": "intro-title:i",
+                    "from": 0.0,
+                    "durationInFrames": 75.0,
+                    "nodeId": "intro-title",
+                    "handles": {
+                     "trimEnd": {
+                      "nodeId": "intro-title",
+                      "param": "clipDuration",
+                      "unit": "frames"
+                     }
+                    },
                     "component": "remocn/soft-blur-in",
                     "props": {
                      "text": "TodoMVC in 20 seconds",
@@ -4318,14 +4329,6 @@
                      "fontWeight": "600",
                      "background": "white",
                      "speed": 1
-                    },
-                    "nodeId": "intro-title",
-                    "handles": {
-                     "trimEnd": {
-                      "nodeId": "intro-title",
-                      "param": "clipDuration",
-                      "unit": "frames"
-                     }
                     }
                    }
                   ]
@@ -4337,36 +4340,166 @@
              "layer": true
             }
            ]
-          },
-          "exit": {
-           "kind": "remocn/whip-pan",
-           "durationInFrames": 18
           }
          },
          {
+          "kind": "group",
           "id": "sequence:s1",
-          "from": 57,
-          "durationInFrames": 185,
+          "from": 57.0,
+          "durationInFrames": 185.0,
           "enter": {
            "kind": "remocn/whip-pan",
-           "durationInFrames": 18
+           "durationInFrames": 18.0
+          },
+          "exit": {
+           "kind": "remocn/whip-pan",
+           "durationInFrames": 18.0
           },
           "slot": {
            "nodeId": "sequence",
            "port": "in2"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "camera:t",
              "items": [
               {
-               "id": "camera:i",
-               "from": 0,
-               "durationInFrames": 185,
                "kind": "recording",
+               "id": "camera:i",
+               "from": 0.0,
+               "durationInFrames": 185.0,
+               "nodeId": "camera",
                "props": {
+                "src": "project:.opsis/cache/record/recording.mp4",
+                "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+                "log": {
+                 "viewport": {
+                  "width": 1920.0,
+                  "height": 1080.0
+                 },
+                 "dpr": 1.0,
+                 "t0": 0.0,
+                 "durationMs": 7700.0,
+                 "actions": [
+                  {
+                   "id": "open:navigate",
+                   "kind": "navigate",
+                   "t": 600.0,
+                   "tEnd": 1000.0,
+                   "point": {
+                    "x": 200.0,
+                    "y": 150.0
+                   },
+                   "rect": {
+                    "x": 140.0,
+                    "y": 130.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "browser.navigate",
+                   "nodeId": "open"
+                  },
+                  {
+                   "id": "todo1:type",
+                   "kind": "type",
+                   "t": 2400.0,
+                   "tEnd": 2800.0,
+                   "point": {
+                    "x": 546.0,
+                    "y": 344.0
+                   },
+                   "rect": {
+                    "x": 486.0,
+                    "y": 324.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "New todo",
+                   "nodeId": "todo1"
+                  },
+                  {
+                   "id": "todo2:type",
+                   "kind": "type",
+                   "t": 3300.0,
+                   "tEnd": 3700.0,
+                   "point": {
+                    "x": 719.0,
+                    "y": 441.0
+                   },
+                   "rect": {
+                    "x": 659.0,
+                    "y": 421.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "New todo",
+                   "nodeId": "todo2"
+                  },
+                  {
+                   "id": "todo3:type",
+                   "kind": "type",
+                   "t": 4200.0,
+                   "tEnd": 4600.0,
+                   "point": {
+                    "x": 892.0,
+                    "y": 538.0
+                   },
+                   "rect": {
+                    "x": 832.0,
+                    "y": 518.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "New todo",
+                   "nodeId": "todo3"
+                  },
+                  {
+                   "id": "complete:click",
+                   "kind": "click",
+                   "t": 5100.0,
+                   "tEnd": 5500.0,
+                   "point": {
+                    "x": 1065.0,
+                    "y": 635.0
+                   },
+                   "rect": {
+                    "x": 1005.0,
+                    "y": 615.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "Complete",
+                   "nodeId": "complete"
+                  },
+                  {
+                   "id": "filter:click",
+                   "kind": "click",
+                   "t": 6000.0,
+                   "tEnd": 6400.0,
+                   "point": {
+                    "x": 1238.0,
+                    "y": 732.0
+                   },
+                   "rect": {
+                    "x": 1178.0,
+                    "y": 712.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "Completed filter",
+                   "nodeId": "filter"
+                  }
+                 ],
+                 "cursorTrack": [
+                  {
+                   "t": 0.0,
+                   "x": 960.0,
+                   "y": 540.0
+                  }
+                 ]
+                },
+                "name": "record",
                 "speed": 1.25,
                 "zoom": true,
                 "tuning": {
@@ -4378,7 +4511,7 @@
                 "chrome": false,
                 "backdrop": "glaze",
                 "cursor": true,
-                "cursorScale": 1,
+                "cursorScale": 1.0,
                 "cursorLook": {
                  "shape": "arrow",
                  "fill": "#111418",
@@ -4386,183 +4519,57 @@
                 },
                 "ripple": {
                  "color": "#0f172a",
-                 "size": 1,
-                 "width": 2
+                 "size": 1.0,
+                 "width": 2.0
                 },
                 "extraBeats": [],
-                "annotations": [],
-                "src": "project:.opsis/cache/record/recording.mp4",
-                "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-                "log": {
-                 "viewport": {
-                  "width": 1920,
-                  "height": 1080
-                 },
-                 "dpr": 1,
-                 "t0": 0,
-                 "durationMs": 7700,
-                 "actions": [
-                  {
-                   "id": "open:navigate",
-                   "kind": "navigate",
-                   "t": 600,
-                   "tEnd": 1000,
-                   "point": {
-                    "x": 200,
-                    "y": 150
-                   },
-                   "rect": {
-                    "x": 140,
-                    "y": 130,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "browser.navigate",
-                   "nodeId": "open"
-                  },
-                  {
-                   "id": "todo1:type",
-                   "kind": "type",
-                   "t": 2400,
-                   "tEnd": 2800,
-                   "point": {
-                    "x": 546,
-                    "y": 344
-                   },
-                   "rect": {
-                    "x": 486,
-                    "y": 324,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "New todo",
-                   "nodeId": "todo1"
-                  },
-                  {
-                   "id": "todo2:type",
-                   "kind": "type",
-                   "t": 3300,
-                   "tEnd": 3700,
-                   "point": {
-                    "x": 719,
-                    "y": 441
-                   },
-                   "rect": {
-                    "x": 659,
-                    "y": 421,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "New todo",
-                   "nodeId": "todo2"
-                  },
-                  {
-                   "id": "todo3:type",
-                   "kind": "type",
-                   "t": 4200,
-                   "tEnd": 4600,
-                   "point": {
-                    "x": 892,
-                    "y": 538
-                   },
-                   "rect": {
-                    "x": 832,
-                    "y": 518,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "New todo",
-                   "nodeId": "todo3"
-                  },
-                  {
-                   "id": "complete:click",
-                   "kind": "click",
-                   "t": 5100,
-                   "tEnd": 5500,
-                   "point": {
-                    "x": 1065,
-                    "y": 635
-                   },
-                   "rect": {
-                    "x": 1005,
-                    "y": 615,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "Complete",
-                   "nodeId": "complete"
-                  },
-                  {
-                   "id": "filter:click",
-                   "kind": "click",
-                   "t": 6000,
-                   "tEnd": 6400,
-                   "point": {
-                    "x": 1238,
-                    "y": 732
-                   },
-                   "rect": {
-                    "x": 1178,
-                    "y": 712,
-                    "w": 120,
-                    "h": 40
-                   },
-                   "label": "Completed filter",
-                   "nodeId": "filter"
-                  }
-                 ],
-                 "cursorTrack": [
-                  {
-                   "t": 0,
-                   "x": 960,
-                   "y": 540
-                  }
-                 ]
-                },
-                "name": "record",
                 "keystrokes": {
                  "position": "bottom",
                  "typed": true,
                  "chords": true,
                  "keycap": "#0a0a0a",
                  "ink": "#ffffff",
-                 "size": 1
-                }
-               },
-               "nodeId": "camera"
+                 "size": 1.0
+                },
+                "annotations": []
+               }
               }
              ]
             }
            ]
-          },
-          "exit": {
-           "kind": "remocn/whip-pan",
-           "durationInFrames": 18
           }
          },
          {
+          "kind": "group",
           "id": "sequence:s2",
-          "from": 224,
-          "durationInFrames": 75,
+          "from": 224.0,
+          "durationInFrames": 75.0,
           "enter": {
            "kind": "remocn/whip-pan",
-           "durationInFrames": 18
+           "durationInFrames": 18.0
           },
           "slot": {
            "nodeId": "sequence",
            "port": "in3"
           },
-          "kind": "group",
           "props": {
            "tracks": [
             {
              "id": "outro:t",
              "items": [
               {
-               "id": "outro:i",
-               "from": 0,
-               "durationInFrames": 75,
                "kind": "element",
+               "id": "outro:i",
+               "from": 0.0,
+               "durationInFrames": 75.0,
+               "nodeId": "outro",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "outro",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
                "component": "core/title",
                "props": {
                 "eyebrow": "Made with",
@@ -4578,14 +4585,6 @@
                 "background": "transparent",
                 "fontSize": 112,
                 "fontWeight": 760
-               },
-               "nodeId": "outro",
-               "handles": {
-                "trimEnd": {
-                 "nodeId": "outro",
-                 "param": "clipDuration",
-                 "unit": "frames"
-                }
                }
               }
              ]
@@ -4603,27 +4602,27 @@
        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
        "log": {
         "viewport": {
-         "width": 1920,
-         "height": 1080
+         "width": 1920.0,
+         "height": 1080.0
         },
-        "dpr": 1,
-        "t0": 0,
-        "durationMs": 7700,
+        "dpr": 1.0,
+        "t0": 0.0,
+        "durationMs": 7700.0,
         "actions": [
          {
           "id": "open:navigate",
           "kind": "navigate",
-          "t": 600,
-          "tEnd": 1000,
+          "t": 600.0,
+          "tEnd": 1000.0,
           "point": {
-           "x": 200,
-           "y": 150
+           "x": 200.0,
+           "y": 150.0
           },
           "rect": {
-           "x": 140,
-           "y": 130,
-           "w": 120,
-           "h": 40
+           "x": 140.0,
+           "y": 130.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "browser.navigate",
           "nodeId": "open"
@@ -4631,17 +4630,17 @@
          {
           "id": "todo1:type",
           "kind": "type",
-          "t": 2400,
-          "tEnd": 2800,
+          "t": 2400.0,
+          "tEnd": 2800.0,
           "point": {
-           "x": 546,
-           "y": 344
+           "x": 546.0,
+           "y": 344.0
           },
           "rect": {
-           "x": 486,
-           "y": 324,
-           "w": 120,
-           "h": 40
+           "x": 486.0,
+           "y": 324.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "New todo",
           "nodeId": "todo1"
@@ -4649,17 +4648,17 @@
          {
           "id": "todo2:type",
           "kind": "type",
-          "t": 3300,
-          "tEnd": 3700,
+          "t": 3300.0,
+          "tEnd": 3700.0,
           "point": {
-           "x": 719,
-           "y": 441
+           "x": 719.0,
+           "y": 441.0
           },
           "rect": {
-           "x": 659,
-           "y": 421,
-           "w": 120,
-           "h": 40
+           "x": 659.0,
+           "y": 421.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "New todo",
           "nodeId": "todo2"
@@ -4667,17 +4666,17 @@
          {
           "id": "todo3:type",
           "kind": "type",
-          "t": 4200,
-          "tEnd": 4600,
+          "t": 4200.0,
+          "tEnd": 4600.0,
           "point": {
-           "x": 892,
-           "y": 538
+           "x": 892.0,
+           "y": 538.0
           },
           "rect": {
-           "x": 832,
-           "y": 518,
-           "w": 120,
-           "h": 40
+           "x": 832.0,
+           "y": 518.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "New todo",
           "nodeId": "todo3"
@@ -4685,17 +4684,17 @@
          {
           "id": "complete:click",
           "kind": "click",
-          "t": 5100,
-          "tEnd": 5500,
+          "t": 5100.0,
+          "tEnd": 5500.0,
           "point": {
-           "x": 1065,
-           "y": 635
+           "x": 1065.0,
+           "y": 635.0
           },
           "rect": {
-           "x": 1005,
-           "y": 615,
-           "w": 120,
-           "h": 40
+           "x": 1005.0,
+           "y": 615.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "Complete",
           "nodeId": "complete"
@@ -4703,17 +4702,17 @@
          {
           "id": "filter:click",
           "kind": "click",
-          "t": 6000,
-          "tEnd": 6400,
+          "t": 6000.0,
+          "tEnd": 6400.0,
           "point": {
-           "x": 1238,
-           "y": 732
+           "x": 1238.0,
+           "y": 732.0
           },
           "rect": {
-           "x": 1178,
-           "y": 712,
-           "w": 120,
-           "h": 40
+           "x": 1178.0,
+           "y": 712.0,
+           "w": 120.0,
+           "h": 40.0
           },
           "label": "Completed filter",
           "nodeId": "filter"
@@ -4721,16 +4720,16 @@
         ],
         "cursorTrack": [
          {
-          "t": 0,
-          "x": 960,
-          "y": 540
+          "t": 0.0,
+          "x": 960.0,
+          "y": 540.0
          }
         ]
        },
-       "durationMs": 7700,
+       "durationMs": 7700.0,
        "viewport": {
-        "width": 1920,
-        "height": 1080
+        "width": 1920.0,
+        "height": 1080.0
        },
        "nodeId": "record",
        "style": []
@@ -4742,9 +4741,9 @@
       "type": "media",
       "src": "project:.opsis/out/render.mp4",
       "kind": "video",
-      "durationMs": 4000,
-      "width": 1920,
-      "height": 1080,
+      "durationMs": 4000.0,
+      "width": 1920.0,
+      "height": 1080.0,
       "hasAudio": true
      }
     }
@@ -4752,56 +4751,68 @@
    "errors": {},
    "specs": {
     "render": {
-     "width": 1920,
-     "height": 1080,
-     "fps": 30,
-     "durationInFrames": 299,
+     "width": 1920.0,
+     "height": 1080.0,
+     "fps": 30.0,
+     "durationInFrames": 299.0,
      "background": "#09090b",
      "tracks": [
       {
        "id": "sequence:seq",
        "items": [
         {
+         "kind": "group",
          "id": "sequence:s0",
-         "from": 0,
-         "durationInFrames": 75,
+         "from": 0.0,
+         "durationInFrames": 75.0,
+         "exit": {
+          "kind": "remocn/whip-pan",
+          "durationInFrames": 18.0
+         },
          "slot": {
           "nodeId": "sequence",
           "port": "in1"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "intro:l0",
             "items": [
              {
+              "kind": "group",
               "id": "intro:l0:g",
-              "from": 0,
-              "durationInFrames": 75,
+              "from": 0.0,
+              "durationInFrames": 75.0,
               "handles": {
                "move": {
                 "nodeId": "intro",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 0
+                "index": 0.0
                }
               },
               "slot": {
                "nodeId": "intro",
                "port": "in1"
               },
-              "kind": "group",
               "props": {
                "tracks": [
                 {
                  "id": "intro-bg:t",
                  "items": [
                   {
-                   "id": "intro-bg:i",
-                   "from": 0,
-                   "durationInFrames": 75,
                    "kind": "element",
+                   "id": "intro-bg:i",
+                   "from": 0.0,
+                   "durationInFrames": 75.0,
+                   "nodeId": "intro-bg",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "intro-bg",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   },
                    "component": "remocn/shader-mesh-gradient",
                    "props": {
                     "speed": 1,
@@ -4813,14 +4824,6 @@
                      "#3a3a5c",
                      "#52527a"
                     ]
-                   },
-                   "nodeId": "intro-bg",
-                   "handles": {
-                    "trimEnd": {
-                     "nodeId": "intro-bg",
-                     "param": "clipDuration",
-                     "unit": "frames"
-                    }
                    }
                   }
                  ]
@@ -4835,32 +4838,40 @@
             "id": "intro:l1",
             "items": [
              {
+              "kind": "group",
               "id": "intro:l1:g",
-              "from": 0,
-              "durationInFrames": 75,
+              "from": 0.0,
+              "durationInFrames": 75.0,
               "handles": {
                "move": {
                 "nodeId": "intro",
                 "param": "offsetsMs",
                 "unit": "ms",
-                "index": 1
+                "index": 1.0
                }
               },
               "slot": {
                "nodeId": "intro",
                "port": "in2"
               },
-              "kind": "group",
               "props": {
                "tracks": [
                 {
                  "id": "intro-title:t",
                  "items": [
                   {
-                   "id": "intro-title:i",
-                   "from": 0,
-                   "durationInFrames": 75,
                    "kind": "element",
+                   "id": "intro-title:i",
+                   "from": 0.0,
+                   "durationInFrames": 75.0,
+                   "nodeId": "intro-title",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "intro-title",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   },
                    "component": "remocn/soft-blur-in",
                    "props": {
                     "text": "TodoMVC in 20 seconds",
@@ -4870,14 +4881,6 @@
                     "fontWeight": "600",
                     "background": "white",
                     "speed": 1
-                   },
-                   "nodeId": "intro-title",
-                   "handles": {
-                    "trimEnd": {
-                     "nodeId": "intro-title",
-                     "param": "clipDuration",
-                     "unit": "frames"
-                    }
                    }
                   }
                  ]
@@ -4889,36 +4892,166 @@
             "layer": true
            }
           ]
-         },
-         "exit": {
-          "kind": "remocn/whip-pan",
-          "durationInFrames": 18
          }
         },
         {
+         "kind": "group",
          "id": "sequence:s1",
-         "from": 57,
-         "durationInFrames": 185,
+         "from": 57.0,
+         "durationInFrames": 185.0,
          "enter": {
           "kind": "remocn/whip-pan",
-          "durationInFrames": 18
+          "durationInFrames": 18.0
+         },
+         "exit": {
+          "kind": "remocn/whip-pan",
+          "durationInFrames": 18.0
          },
          "slot": {
           "nodeId": "sequence",
           "port": "in2"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "camera:t",
             "items": [
              {
-              "id": "camera:i",
-              "from": 0,
-              "durationInFrames": 185,
               "kind": "recording",
+              "id": "camera:i",
+              "from": 0.0,
+              "durationInFrames": 185.0,
+              "nodeId": "camera",
               "props": {
+               "src": "project:.opsis/cache/record/recording.mp4",
+               "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+               "log": {
+                "viewport": {
+                 "width": 1920.0,
+                 "height": 1080.0
+                },
+                "dpr": 1.0,
+                "t0": 0.0,
+                "durationMs": 7700.0,
+                "actions": [
+                 {
+                  "id": "open:navigate",
+                  "kind": "navigate",
+                  "t": 600.0,
+                  "tEnd": 1000.0,
+                  "point": {
+                   "x": 200.0,
+                   "y": 150.0
+                  },
+                  "rect": {
+                   "x": 140.0,
+                   "y": 130.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "browser.navigate",
+                  "nodeId": "open"
+                 },
+                 {
+                  "id": "todo1:type",
+                  "kind": "type",
+                  "t": 2400.0,
+                  "tEnd": 2800.0,
+                  "point": {
+                   "x": 546.0,
+                   "y": 344.0
+                  },
+                  "rect": {
+                   "x": 486.0,
+                   "y": 324.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "New todo",
+                  "nodeId": "todo1"
+                 },
+                 {
+                  "id": "todo2:type",
+                  "kind": "type",
+                  "t": 3300.0,
+                  "tEnd": 3700.0,
+                  "point": {
+                   "x": 719.0,
+                   "y": 441.0
+                  },
+                  "rect": {
+                   "x": 659.0,
+                   "y": 421.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "New todo",
+                  "nodeId": "todo2"
+                 },
+                 {
+                  "id": "todo3:type",
+                  "kind": "type",
+                  "t": 4200.0,
+                  "tEnd": 4600.0,
+                  "point": {
+                   "x": 892.0,
+                   "y": 538.0
+                  },
+                  "rect": {
+                   "x": 832.0,
+                   "y": 518.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "New todo",
+                  "nodeId": "todo3"
+                 },
+                 {
+                  "id": "complete:click",
+                  "kind": "click",
+                  "t": 5100.0,
+                  "tEnd": 5500.0,
+                  "point": {
+                   "x": 1065.0,
+                   "y": 635.0
+                  },
+                  "rect": {
+                   "x": 1005.0,
+                   "y": 615.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "Complete",
+                  "nodeId": "complete"
+                 },
+                 {
+                  "id": "filter:click",
+                  "kind": "click",
+                  "t": 6000.0,
+                  "tEnd": 6400.0,
+                  "point": {
+                   "x": 1238.0,
+                   "y": 732.0
+                  },
+                  "rect": {
+                   "x": 1178.0,
+                   "y": 712.0,
+                   "w": 120.0,
+                   "h": 40.0
+                  },
+                  "label": "Completed filter",
+                  "nodeId": "filter"
+                 }
+                ],
+                "cursorTrack": [
+                 {
+                  "t": 0.0,
+                  "x": 960.0,
+                  "y": 540.0
+                 }
+                ]
+               },
+               "name": "record",
                "speed": 1.25,
                "zoom": true,
                "tuning": {
@@ -4930,7 +5063,7 @@
                "chrome": false,
                "backdrop": "glaze",
                "cursor": true,
-               "cursorScale": 1,
+               "cursorScale": 1.0,
                "cursorLook": {
                 "shape": "arrow",
                 "fill": "#111418",
@@ -4938,183 +5071,57 @@
                },
                "ripple": {
                 "color": "#0f172a",
-                "size": 1,
-                "width": 2
+                "size": 1.0,
+                "width": 2.0
                },
                "extraBeats": [],
-               "annotations": [],
-               "src": "project:.opsis/cache/record/recording.mp4",
-               "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-               "log": {
-                "viewport": {
-                 "width": 1920,
-                 "height": 1080
-                },
-                "dpr": 1,
-                "t0": 0,
-                "durationMs": 7700,
-                "actions": [
-                 {
-                  "id": "open:navigate",
-                  "kind": "navigate",
-                  "t": 600,
-                  "tEnd": 1000,
-                  "point": {
-                   "x": 200,
-                   "y": 150
-                  },
-                  "rect": {
-                   "x": 140,
-                   "y": 130,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "browser.navigate",
-                  "nodeId": "open"
-                 },
-                 {
-                  "id": "todo1:type",
-                  "kind": "type",
-                  "t": 2400,
-                  "tEnd": 2800,
-                  "point": {
-                   "x": 546,
-                   "y": 344
-                  },
-                  "rect": {
-                   "x": 486,
-                   "y": 324,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "New todo",
-                  "nodeId": "todo1"
-                 },
-                 {
-                  "id": "todo2:type",
-                  "kind": "type",
-                  "t": 3300,
-                  "tEnd": 3700,
-                  "point": {
-                   "x": 719,
-                   "y": 441
-                  },
-                  "rect": {
-                   "x": 659,
-                   "y": 421,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "New todo",
-                  "nodeId": "todo2"
-                 },
-                 {
-                  "id": "todo3:type",
-                  "kind": "type",
-                  "t": 4200,
-                  "tEnd": 4600,
-                  "point": {
-                   "x": 892,
-                   "y": 538
-                  },
-                  "rect": {
-                   "x": 832,
-                   "y": 518,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "New todo",
-                  "nodeId": "todo3"
-                 },
-                 {
-                  "id": "complete:click",
-                  "kind": "click",
-                  "t": 5100,
-                  "tEnd": 5500,
-                  "point": {
-                   "x": 1065,
-                   "y": 635
-                  },
-                  "rect": {
-                   "x": 1005,
-                   "y": 615,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "Complete",
-                  "nodeId": "complete"
-                 },
-                 {
-                  "id": "filter:click",
-                  "kind": "click",
-                  "t": 6000,
-                  "tEnd": 6400,
-                  "point": {
-                   "x": 1238,
-                   "y": 732
-                  },
-                  "rect": {
-                   "x": 1178,
-                   "y": 712,
-                   "w": 120,
-                   "h": 40
-                  },
-                  "label": "Completed filter",
-                  "nodeId": "filter"
-                 }
-                ],
-                "cursorTrack": [
-                 {
-                  "t": 0,
-                  "x": 960,
-                  "y": 540
-                 }
-                ]
-               },
-               "name": "record",
                "keystrokes": {
                 "position": "bottom",
                 "typed": true,
                 "chords": true,
                 "keycap": "#0a0a0a",
                 "ink": "#ffffff",
-                "size": 1
-               }
-              },
-              "nodeId": "camera"
+                "size": 1.0
+               },
+               "annotations": []
+              }
              }
             ]
            }
           ]
-         },
-         "exit": {
-          "kind": "remocn/whip-pan",
-          "durationInFrames": 18
          }
         },
         {
+         "kind": "group",
          "id": "sequence:s2",
-         "from": 224,
-         "durationInFrames": 75,
+         "from": 224.0,
+         "durationInFrames": 75.0,
          "enter": {
           "kind": "remocn/whip-pan",
-          "durationInFrames": 18
+          "durationInFrames": 18.0
          },
          "slot": {
           "nodeId": "sequence",
           "port": "in3"
          },
-         "kind": "group",
          "props": {
           "tracks": [
            {
             "id": "outro:t",
             "items": [
              {
-              "id": "outro:i",
-              "from": 0,
-              "durationInFrames": 75,
               "kind": "element",
+              "id": "outro:i",
+              "from": 0.0,
+              "durationInFrames": 75.0,
+              "nodeId": "outro",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "outro",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
               "component": "core/title",
               "props": {
                "eyebrow": "Made with",
@@ -5130,14 +5137,6 @@
                "background": "transparent",
                "fontSize": 112,
                "fontWeight": 760
-              },
-              "nodeId": "outro",
-              "handles": {
-               "trimEnd": {
-                "nodeId": "outro",
-                "param": "clipDuration",
-                "unit": "frames"
-               }
               }
              }
             ]
@@ -5368,8 +5367,8 @@
      {
       "icon": "clock",
       "text": "2.5 s · usually 5 s",
-      "tone": "warn",
-      "title": "Shorter than this element usually runs, so its animation may be cut off."
+      "title": "Shorter than this element usually runs, so its animation may be cut off.",
+      "tone": "warn"
      }
     ]
    },
@@ -5452,56 +5451,68 @@
   },
   "preview": {
    "spec": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
-    "durationInFrames": 299,
+    "width": 1920.0,
+    "height": 1080.0,
+    "fps": 30.0,
+    "durationInFrames": 299.0,
     "background": "#09090b",
     "tracks": [
      {
       "id": "sequence:seq",
       "items": [
        {
+        "kind": "group",
         "id": "sequence:s0",
-        "from": 0,
-        "durationInFrames": 75,
+        "from": 0.0,
+        "durationInFrames": 75.0,
+        "exit": {
+         "kind": "remocn/whip-pan",
+         "durationInFrames": 18.0
+        },
         "slot": {
          "nodeId": "sequence",
          "port": "in1"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "intro:l0",
            "items": [
             {
+             "kind": "group",
              "id": "intro:l0:g",
-             "from": 0,
-             "durationInFrames": 75,
+             "from": 0.0,
+             "durationInFrames": 75.0,
              "handles": {
               "move": {
                "nodeId": "intro",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 0
+               "index": 0.0
               }
              },
              "slot": {
               "nodeId": "intro",
               "port": "in1"
              },
-             "kind": "group",
              "props": {
               "tracks": [
                {
                 "id": "intro-bg:t",
                 "items": [
                  {
-                  "id": "intro-bg:i",
-                  "from": 0,
-                  "durationInFrames": 75,
                   "kind": "element",
+                  "id": "intro-bg:i",
+                  "from": 0.0,
+                  "durationInFrames": 75.0,
+                  "nodeId": "intro-bg",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "intro-bg",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
                   "component": "remocn/shader-mesh-gradient",
                   "props": {
                    "speed": 1,
@@ -5513,14 +5524,6 @@
                     "#3a3a5c",
                     "#52527a"
                    ]
-                  },
-                  "nodeId": "intro-bg",
-                  "handles": {
-                   "trimEnd": {
-                    "nodeId": "intro-bg",
-                    "param": "clipDuration",
-                    "unit": "frames"
-                   }
                   }
                  }
                 ]
@@ -5535,32 +5538,40 @@
            "id": "intro:l1",
            "items": [
             {
+             "kind": "group",
              "id": "intro:l1:g",
-             "from": 0,
-             "durationInFrames": 75,
+             "from": 0.0,
+             "durationInFrames": 75.0,
              "handles": {
               "move": {
                "nodeId": "intro",
                "param": "offsetsMs",
                "unit": "ms",
-               "index": 1
+               "index": 1.0
               }
              },
              "slot": {
               "nodeId": "intro",
               "port": "in2"
              },
-             "kind": "group",
              "props": {
               "tracks": [
                {
                 "id": "intro-title:t",
                 "items": [
                  {
-                  "id": "intro-title:i",
-                  "from": 0,
-                  "durationInFrames": 75,
                   "kind": "element",
+                  "id": "intro-title:i",
+                  "from": 0.0,
+                  "durationInFrames": 75.0,
+                  "nodeId": "intro-title",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "intro-title",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
                   "component": "remocn/soft-blur-in",
                   "props": {
                    "text": "TodoMVC in 20 seconds",
@@ -5570,14 +5581,6 @@
                    "fontWeight": "600",
                    "background": "white",
                    "speed": 1
-                  },
-                  "nodeId": "intro-title",
-                  "handles": {
-                   "trimEnd": {
-                    "nodeId": "intro-title",
-                    "param": "clipDuration",
-                    "unit": "frames"
-                   }
                   }
                  }
                 ]
@@ -5589,36 +5592,166 @@
            "layer": true
           }
          ]
-        },
-        "exit": {
-         "kind": "remocn/whip-pan",
-         "durationInFrames": 18
         }
        },
        {
+        "kind": "group",
         "id": "sequence:s1",
-        "from": 57,
-        "durationInFrames": 185,
+        "from": 57.0,
+        "durationInFrames": 185.0,
         "enter": {
          "kind": "remocn/whip-pan",
-         "durationInFrames": 18
+         "durationInFrames": 18.0
+        },
+        "exit": {
+         "kind": "remocn/whip-pan",
+         "durationInFrames": 18.0
         },
         "slot": {
          "nodeId": "sequence",
          "port": "in2"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "camera:t",
            "items": [
             {
-             "id": "camera:i",
-             "from": 0,
-             "durationInFrames": 185,
              "kind": "recording",
+             "id": "camera:i",
+             "from": 0.0,
+             "durationInFrames": 185.0,
+             "nodeId": "camera",
              "props": {
+              "src": "project:.opsis/cache/record/recording.mp4",
+              "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+              "log": {
+               "viewport": {
+                "width": 1920.0,
+                "height": 1080.0
+               },
+               "dpr": 1.0,
+               "t0": 0.0,
+               "durationMs": 7700.0,
+               "actions": [
+                {
+                 "id": "open:navigate",
+                 "kind": "navigate",
+                 "t": 600.0,
+                 "tEnd": 1000.0,
+                 "point": {
+                  "x": 200.0,
+                  "y": 150.0
+                 },
+                 "rect": {
+                  "x": 140.0,
+                  "y": 130.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "browser.navigate",
+                 "nodeId": "open"
+                },
+                {
+                 "id": "todo1:type",
+                 "kind": "type",
+                 "t": 2400.0,
+                 "tEnd": 2800.0,
+                 "point": {
+                  "x": 546.0,
+                  "y": 344.0
+                 },
+                 "rect": {
+                  "x": 486.0,
+                  "y": 324.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "New todo",
+                 "nodeId": "todo1"
+                },
+                {
+                 "id": "todo2:type",
+                 "kind": "type",
+                 "t": 3300.0,
+                 "tEnd": 3700.0,
+                 "point": {
+                  "x": 719.0,
+                  "y": 441.0
+                 },
+                 "rect": {
+                  "x": 659.0,
+                  "y": 421.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "New todo",
+                 "nodeId": "todo2"
+                },
+                {
+                 "id": "todo3:type",
+                 "kind": "type",
+                 "t": 4200.0,
+                 "tEnd": 4600.0,
+                 "point": {
+                  "x": 892.0,
+                  "y": 538.0
+                 },
+                 "rect": {
+                  "x": 832.0,
+                  "y": 518.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "New todo",
+                 "nodeId": "todo3"
+                },
+                {
+                 "id": "complete:click",
+                 "kind": "click",
+                 "t": 5100.0,
+                 "tEnd": 5500.0,
+                 "point": {
+                  "x": 1065.0,
+                  "y": 635.0
+                 },
+                 "rect": {
+                  "x": 1005.0,
+                  "y": 615.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "Complete",
+                 "nodeId": "complete"
+                },
+                {
+                 "id": "filter:click",
+                 "kind": "click",
+                 "t": 6000.0,
+                 "tEnd": 6400.0,
+                 "point": {
+                  "x": 1238.0,
+                  "y": 732.0
+                 },
+                 "rect": {
+                  "x": 1178.0,
+                  "y": 712.0,
+                  "w": 120.0,
+                  "h": 40.0
+                 },
+                 "label": "Completed filter",
+                 "nodeId": "filter"
+                }
+               ],
+               "cursorTrack": [
+                {
+                 "t": 0.0,
+                 "x": 960.0,
+                 "y": 540.0
+                }
+               ]
+              },
+              "name": "record",
               "speed": 1.25,
               "zoom": true,
               "tuning": {
@@ -5630,7 +5763,7 @@
               "chrome": false,
               "backdrop": "glaze",
               "cursor": true,
-              "cursorScale": 1,
+              "cursorScale": 1.0,
               "cursorLook": {
                "shape": "arrow",
                "fill": "#111418",
@@ -5638,183 +5771,57 @@
               },
               "ripple": {
                "color": "#0f172a",
-               "size": 1,
-               "width": 2
+               "size": 1.0,
+               "width": 2.0
               },
               "extraBeats": [],
-              "annotations": [],
-              "src": "project:.opsis/cache/record/recording.mp4",
-              "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-              "log": {
-               "viewport": {
-                "width": 1920,
-                "height": 1080
-               },
-               "dpr": 1,
-               "t0": 0,
-               "durationMs": 7700,
-               "actions": [
-                {
-                 "id": "open:navigate",
-                 "kind": "navigate",
-                 "t": 600,
-                 "tEnd": 1000,
-                 "point": {
-                  "x": 200,
-                  "y": 150
-                 },
-                 "rect": {
-                  "x": 140,
-                  "y": 130,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "browser.navigate",
-                 "nodeId": "open"
-                },
-                {
-                 "id": "todo1:type",
-                 "kind": "type",
-                 "t": 2400,
-                 "tEnd": 2800,
-                 "point": {
-                  "x": 546,
-                  "y": 344
-                 },
-                 "rect": {
-                  "x": 486,
-                  "y": 324,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "New todo",
-                 "nodeId": "todo1"
-                },
-                {
-                 "id": "todo2:type",
-                 "kind": "type",
-                 "t": 3300,
-                 "tEnd": 3700,
-                 "point": {
-                  "x": 719,
-                  "y": 441
-                 },
-                 "rect": {
-                  "x": 659,
-                  "y": 421,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "New todo",
-                 "nodeId": "todo2"
-                },
-                {
-                 "id": "todo3:type",
-                 "kind": "type",
-                 "t": 4200,
-                 "tEnd": 4600,
-                 "point": {
-                  "x": 892,
-                  "y": 538
-                 },
-                 "rect": {
-                  "x": 832,
-                  "y": 518,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "New todo",
-                 "nodeId": "todo3"
-                },
-                {
-                 "id": "complete:click",
-                 "kind": "click",
-                 "t": 5100,
-                 "tEnd": 5500,
-                 "point": {
-                  "x": 1065,
-                  "y": 635
-                 },
-                 "rect": {
-                  "x": 1005,
-                  "y": 615,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "Complete",
-                 "nodeId": "complete"
-                },
-                {
-                 "id": "filter:click",
-                 "kind": "click",
-                 "t": 6000,
-                 "tEnd": 6400,
-                 "point": {
-                  "x": 1238,
-                  "y": 732
-                 },
-                 "rect": {
-                  "x": 1178,
-                  "y": 712,
-                  "w": 120,
-                  "h": 40
-                 },
-                 "label": "Completed filter",
-                 "nodeId": "filter"
-                }
-               ],
-               "cursorTrack": [
-                {
-                 "t": 0,
-                 "x": 960,
-                 "y": 540
-                }
-               ]
-              },
-              "name": "record",
               "keystrokes": {
                "position": "bottom",
                "typed": true,
                "chords": true,
                "keycap": "#0a0a0a",
                "ink": "#ffffff",
-               "size": 1
-              }
-             },
-             "nodeId": "camera"
+               "size": 1.0
+              },
+              "annotations": []
+             }
             }
            ]
           }
          ]
-        },
-        "exit": {
-         "kind": "remocn/whip-pan",
-         "durationInFrames": 18
         }
        },
        {
+        "kind": "group",
         "id": "sequence:s2",
-        "from": 224,
-        "durationInFrames": 75,
+        "from": 224.0,
+        "durationInFrames": 75.0,
         "enter": {
          "kind": "remocn/whip-pan",
-         "durationInFrames": 18
+         "durationInFrames": 18.0
         },
         "slot": {
          "nodeId": "sequence",
          "port": "in3"
         },
-        "kind": "group",
         "props": {
          "tracks": [
           {
            "id": "outro:t",
            "items": [
             {
-             "id": "outro:i",
-             "from": 0,
-             "durationInFrames": 75,
              "kind": "element",
+             "id": "outro:i",
+             "from": 0.0,
+             "durationInFrames": 75.0,
+             "nodeId": "outro",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "outro",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
              "component": "core/title",
              "props": {
               "eyebrow": "Made with",
@@ -5830,14 +5837,6 @@
               "background": "transparent",
               "fontSize": 112,
               "fontWeight": 760
-             },
-             "nodeId": "outro",
-             "handles": {
-              "trimEnd": {
-               "nodeId": "outro",
-               "param": "clipDuration",
-               "unit": "frames"
-              }
              }
             }
            ]
@@ -5858,20 +5857,20 @@
    },
    "spans": {
     "intro-bg": {
-     "from": 0,
-     "to": 75
+     "from": 0.0,
+     "to": 75.0
     },
     "intro-title": {
-     "from": 0,
-     "to": 75
+     "from": 0.0,
+     "to": 75.0
     },
     "camera": {
-     "from": 57,
-     "to": 242
+     "from": 57.0,
+     "to": 242.0
     },
     "outro": {
-     "from": 224,
-     "to": 299
+     "from": 224.0,
+     "to": 299.0
     }
    },
    "sourceNodeId": "render"
@@ -5879,8 +5878,8 @@
   "timelines": {
    "render": {
     "flat": {
-     "fps": 30,
-     "durationInFrames": 299,
+     "fps": 30.0,
+     "durationInFrames": 299.0,
      "bars": [
       {
        "type": "video",
@@ -5901,8 +5900,8 @@
         ]
        },
        "thumbnail": null,
-       "from": 0,
-       "to": 75,
+       "from": 0.0,
+       "to": 75.0,
        "lane": 0,
        "order": 0,
        "chain": [
@@ -5916,11 +5915,11 @@
            "unit": "frames"
           }
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 75,
-         "from": 0,
-         "to": 75
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 0.0,
+         "to": 75.0
         },
         {
          "itemId": "intro:l0:g",
@@ -5929,18 +5928,18 @@
            "nodeId": "intro",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 0
+           "index": 0.0
           }
          },
          "slot": {
           "nodeId": "intro",
           "port": "in1"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 75,
-         "from": 0,
-         "to": 75
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 0.0,
+         "to": 75.0
         },
         {
          "itemId": "sequence:s0",
@@ -5948,16 +5947,16 @@
           "nodeId": "sequence",
           "port": "in1"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 75,
-         "from": 0,
-         "to": 75
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 0.0,
+         "to": 75.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
-       "contentEnd": 75,
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 75.0,
        "loop": 0,
        "hasSound": false,
        "sound": null
@@ -5979,8 +5978,8 @@
         "speed": 1
        },
        "thumbnail": null,
-       "from": 0,
-       "to": 75,
+       "from": 0.0,
+       "to": 75.0,
        "lane": 1,
        "order": 1,
        "chain": [
@@ -5994,11 +5993,11 @@
            "unit": "frames"
           }
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 75,
-         "from": 0,
-         "to": 75
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 0.0,
+         "to": 75.0
         },
         {
          "itemId": "intro:l1:g",
@@ -6007,18 +6006,18 @@
            "nodeId": "intro",
            "param": "offsetsMs",
            "unit": "ms",
-           "index": 1
+           "index": 1.0
           }
          },
          "slot": {
           "nodeId": "intro",
           "port": "in2"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 75,
-         "from": 0,
-         "to": 75
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 0.0,
+         "to": 75.0
         },
         {
          "itemId": "sequence:s0",
@@ -6026,16 +6025,16 @@
           "nodeId": "sequence",
           "port": "in1"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 75,
-         "from": 0,
-         "to": 75
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 0.0,
+         "to": 75.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
-       "contentEnd": 75,
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 75.0,
        "loop": 0,
        "hasSound": false,
        "sound": null
@@ -6047,6 +6046,135 @@
        "nodeId": "camera",
        "kind": "recording",
        "props": {
+        "src": "project:.opsis/cache/record/recording.mp4",
+        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+        "log": {
+         "viewport": {
+          "width": 1920.0,
+          "height": 1080.0
+         },
+         "dpr": 1.0,
+         "t0": 0.0,
+         "durationMs": 7700.0,
+         "actions": [
+          {
+           "id": "open:navigate",
+           "kind": "navigate",
+           "t": 600.0,
+           "tEnd": 1000.0,
+           "point": {
+            "x": 200.0,
+            "y": 150.0
+           },
+           "rect": {
+            "x": 140.0,
+            "y": 130.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "browser.navigate",
+           "nodeId": "open"
+          },
+          {
+           "id": "todo1:type",
+           "kind": "type",
+           "t": 2400.0,
+           "tEnd": 2800.0,
+           "point": {
+            "x": 546.0,
+            "y": 344.0
+           },
+           "rect": {
+            "x": 486.0,
+            "y": 324.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "New todo",
+           "nodeId": "todo1"
+          },
+          {
+           "id": "todo2:type",
+           "kind": "type",
+           "t": 3300.0,
+           "tEnd": 3700.0,
+           "point": {
+            "x": 719.0,
+            "y": 441.0
+           },
+           "rect": {
+            "x": 659.0,
+            "y": 421.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "New todo",
+           "nodeId": "todo2"
+          },
+          {
+           "id": "todo3:type",
+           "kind": "type",
+           "t": 4200.0,
+           "tEnd": 4600.0,
+           "point": {
+            "x": 892.0,
+            "y": 538.0
+           },
+           "rect": {
+            "x": 832.0,
+            "y": 518.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "New todo",
+           "nodeId": "todo3"
+          },
+          {
+           "id": "complete:click",
+           "kind": "click",
+           "t": 5100.0,
+           "tEnd": 5500.0,
+           "point": {
+            "x": 1065.0,
+            "y": 635.0
+           },
+           "rect": {
+            "x": 1005.0,
+            "y": 615.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "Complete",
+           "nodeId": "complete"
+          },
+          {
+           "id": "filter:click",
+           "kind": "click",
+           "t": 6000.0,
+           "tEnd": 6400.0,
+           "point": {
+            "x": 1238.0,
+            "y": 732.0
+           },
+           "rect": {
+            "x": 1178.0,
+            "y": 712.0,
+            "w": 120.0,
+            "h": 40.0
+           },
+           "label": "Completed filter",
+           "nodeId": "filter"
+          }
+         ],
+         "cursorTrack": [
+          {
+           "t": 0.0,
+           "x": 960.0,
+           "y": 540.0
+          }
+         ]
+        },
+        "name": "record",
         "speed": 1.25,
         "zoom": true,
         "tuning": {
@@ -6058,7 +6186,7 @@
         "chrome": false,
         "backdrop": "glaze",
         "cursor": true,
-        "cursorScale": 1,
+        "cursorScale": 1.0,
         "cursorLook": {
          "shape": "arrow",
          "fill": "#111418",
@@ -6066,168 +6194,39 @@
         },
         "ripple": {
          "color": "#0f172a",
-         "size": 1,
-         "width": 2
+         "size": 1.0,
+         "width": 2.0
         },
         "extraBeats": [],
-        "annotations": [],
-        "src": "project:.opsis/cache/record/recording.mp4",
-        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-        "log": {
-         "viewport": {
-          "width": 1920,
-          "height": 1080
-         },
-         "dpr": 1,
-         "t0": 0,
-         "durationMs": 7700,
-         "actions": [
-          {
-           "id": "open:navigate",
-           "kind": "navigate",
-           "t": 600,
-           "tEnd": 1000,
-           "point": {
-            "x": 200,
-            "y": 150
-           },
-           "rect": {
-            "x": 140,
-            "y": 130,
-            "w": 120,
-            "h": 40
-           },
-           "label": "browser.navigate",
-           "nodeId": "open"
-          },
-          {
-           "id": "todo1:type",
-           "kind": "type",
-           "t": 2400,
-           "tEnd": 2800,
-           "point": {
-            "x": 546,
-            "y": 344
-           },
-           "rect": {
-            "x": 486,
-            "y": 324,
-            "w": 120,
-            "h": 40
-           },
-           "label": "New todo",
-           "nodeId": "todo1"
-          },
-          {
-           "id": "todo2:type",
-           "kind": "type",
-           "t": 3300,
-           "tEnd": 3700,
-           "point": {
-            "x": 719,
-            "y": 441
-           },
-           "rect": {
-            "x": 659,
-            "y": 421,
-            "w": 120,
-            "h": 40
-           },
-           "label": "New todo",
-           "nodeId": "todo2"
-          },
-          {
-           "id": "todo3:type",
-           "kind": "type",
-           "t": 4200,
-           "tEnd": 4600,
-           "point": {
-            "x": 892,
-            "y": 538
-           },
-           "rect": {
-            "x": 832,
-            "y": 518,
-            "w": 120,
-            "h": 40
-           },
-           "label": "New todo",
-           "nodeId": "todo3"
-          },
-          {
-           "id": "complete:click",
-           "kind": "click",
-           "t": 5100,
-           "tEnd": 5500,
-           "point": {
-            "x": 1065,
-            "y": 635
-           },
-           "rect": {
-            "x": 1005,
-            "y": 615,
-            "w": 120,
-            "h": 40
-           },
-           "label": "Complete",
-           "nodeId": "complete"
-          },
-          {
-           "id": "filter:click",
-           "kind": "click",
-           "t": 6000,
-           "tEnd": 6400,
-           "point": {
-            "x": 1238,
-            "y": 732
-           },
-           "rect": {
-            "x": 1178,
-            "y": 712,
-            "w": 120,
-            "h": 40
-           },
-           "label": "Completed filter",
-           "nodeId": "filter"
-          }
-         ],
-         "cursorTrack": [
-          {
-           "t": 0,
-           "x": 960,
-           "y": 540
-          }
-         ]
-        },
-        "name": "record",
         "keystrokes": {
          "position": "bottom",
          "typed": true,
          "chords": true,
          "keycap": "#0a0a0a",
          "ink": "#ffffff",
-         "size": 1
-        }
+         "size": 1.0
+        },
+        "annotations": []
        },
        "thumbnail": {
         "kind": "filmstrip",
         "src": "project:.opsis/cache/record/recording.preview.mp4",
         "speed": 1.25,
-        "trimMs": 0
+        "trimMs": 0.0
        },
-       "from": 57,
-       "to": 242,
+       "from": 57.0,
+       "to": 242.0,
        "lane": 2,
        "order": 2,
        "chain": [
         {
          "itemId": "camera:i",
          "nodeId": "camera",
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 185,
-         "from": 57,
-         "to": 242
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 185.0,
+         "from": 57.0,
+         "to": 242.0
         },
         {
          "itemId": "sequence:s1",
@@ -6235,16 +6234,16 @@
           "nodeId": "sequence",
           "port": "in2"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 185,
-         "from": 57,
-         "to": 242
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 185.0,
+         "from": 57.0,
+         "to": 242.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
-       "contentEnd": 185,
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 185.0,
        "loop": 0,
        "hasSound": false,
        "sound": null
@@ -6272,8 +6271,8 @@
         "fontWeight": 760
        },
        "thumbnail": null,
-       "from": 224,
-       "to": 299,
+       "from": 224.0,
+       "to": 299.0,
        "lane": 0,
        "order": 3,
        "chain": [
@@ -6287,11 +6286,11 @@
            "unit": "frames"
           }
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 75,
-         "from": 224,
-         "to": 299
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 224.0,
+         "to": 299.0
         },
         {
          "itemId": "sequence:s2",
@@ -6299,16 +6298,16 @@
           "nodeId": "sequence",
           "port": "in3"
          },
-         "rate": 1,
-         "rateEnd": 1,
-         "end": 75,
-         "from": 224,
-         "to": 299
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 224.0,
+         "to": 299.0
         }
        ],
-       "rate": 1,
-       "contentStart": 0,
-       "contentEnd": 75,
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 75.0,
        "loop": 0,
        "hasSound": false,
        "sound": null
@@ -6321,14 +6320,14 @@
       {
        "key": "/0:sequence:s1:enter",
        "itemKey": "/0:sequence:s1",
+       "from": 57.0,
+       "to": 75.0,
+       "kind": "remocn/whip-pan",
        "lanes": [
         0,
         1,
         2
        ],
-       "from": 57,
-       "to": 75,
-       "kind": "remocn/whip-pan",
        "covers": 0.24,
        "slot": {
         "nodeId": "sequence",
@@ -6338,13 +6337,13 @@
       {
        "key": "/0:sequence:s2:enter",
        "itemKey": "/0:sequence:s2",
+       "from": 224.0,
+       "to": 242.0,
+       "kind": "remocn/whip-pan",
        "lanes": [
         0,
         2
        ],
-       "from": 224,
-       "to": 242,
-       "kind": "remocn/whip-pan",
        "covers": 0.24,
        "slot": {
         "nodeId": "sequence",
@@ -6395,7 +6394,7 @@
       },
       {
        "key": "/0:sequence:s1/0:camera:i:filter:click",
-       "frame": 201,
+       "frame": 201.0,
        "kind": "click",
        "label": "Click Completed filter",
        "nodeId": "filter",
@@ -6404,10 +6403,9 @@
      ],
      "cameraKeys": []
     },
-    "chapters": [],
     "mix": {
-     "fps": 30,
-     "durationInFrames": 299,
+     "fps": 30.0,
+     "durationInFrames": 299.0,
      "channels": [],
      "buses": [
       {
@@ -6416,47 +6414,47 @@
        "processing": {
         "highpass": {
          "on": false,
-         "freq": 80
+         "freq": 80.0
         },
         "eq": {
          "on": false,
          "bands": [
           {
            "type": "lowshelf",
-           "freq": 120,
-           "gain": 0,
+           "freq": 120.0,
+           "gain": 0.0,
            "q": 0.7
           },
           {
            "type": "peak",
-           "freq": 500,
-           "gain": 0,
-           "q": 1
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "peak",
-           "freq": 2500,
-           "gain": 0,
-           "q": 1
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "highshelf",
-           "freq": 8000,
-           "gain": 0,
+           "freq": 8000.0,
+           "gain": 0.0,
            "q": 0.7
           }
          ]
         },
         "comp": {
          "on": false,
-         "threshold": -18,
-         "ratio": 3,
-         "attack": 10,
-         "release": 150,
-         "makeup": 0
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
         }
        },
-       "fader": 0,
+       "fader": 0.0,
        "channels": [],
        "duck": null
       },
@@ -6466,47 +6464,47 @@
        "processing": {
         "highpass": {
          "on": false,
-         "freq": 80
+         "freq": 80.0
         },
         "eq": {
          "on": false,
          "bands": [
           {
            "type": "lowshelf",
-           "freq": 120,
-           "gain": 0,
+           "freq": 120.0,
+           "gain": 0.0,
            "q": 0.7
           },
           {
            "type": "peak",
-           "freq": 500,
-           "gain": 0,
-           "q": 1
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "peak",
-           "freq": 2500,
-           "gain": 0,
-           "q": 1
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "highshelf",
-           "freq": 8000,
-           "gain": 0,
+           "freq": 8000.0,
+           "gain": 0.0,
            "q": 0.7
           }
          ]
         },
         "comp": {
          "on": false,
-         "threshold": -18,
-         "ratio": 3,
-         "attack": 10,
-         "release": 150,
-         "makeup": 0
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
         }
        },
-       "fader": 0,
+       "fader": 0.0,
        "channels": [],
        "duck": null
       },
@@ -6516,98 +6514,98 @@
        "processing": {
         "highpass": {
          "on": false,
-         "freq": 80
+         "freq": 80.0
         },
         "eq": {
          "on": false,
          "bands": [
           {
            "type": "lowshelf",
-           "freq": 120,
-           "gain": 0,
+           "freq": 120.0,
+           "gain": 0.0,
            "q": 0.7
           },
           {
            "type": "peak",
-           "freq": 500,
-           "gain": 0,
-           "q": 1
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "peak",
-           "freq": 2500,
-           "gain": 0,
-           "q": 1
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
           },
           {
            "type": "highshelf",
-           "freq": 8000,
-           "gain": 0,
+           "freq": 8000.0,
+           "gain": 0.0,
            "q": 0.7
           }
          ]
         },
         "comp": {
          "on": false,
-         "threshold": -18,
-         "ratio": 3,
-         "attack": 10,
-         "release": 150,
-         "makeup": 0
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
         }
        },
-       "fader": 0,
+       "fader": 0.0,
        "channels": [],
        "duck": null
       }
      ],
      "master": {
-      "fader": 0,
+      "fader": 0.0,
       "eq": {
        "on": false,
        "bands": [
         {
          "type": "lowshelf",
-         "freq": 120,
-         "gain": 0,
+         "freq": 120.0,
+         "gain": 0.0,
          "q": 0.7
         },
         {
          "type": "peak",
-         "freq": 500,
-         "gain": 0,
-         "q": 1
+         "freq": 500.0,
+         "gain": 0.0,
+         "q": 1.0
         },
         {
          "type": "peak",
-         "freq": 2500,
-         "gain": 0,
-         "q": 1
+         "freq": 2500.0,
+         "gain": 0.0,
+         "q": 1.0
         },
         {
          "type": "highshelf",
-         "freq": 8000,
-         "gain": 0,
+         "freq": 8000.0,
+         "gain": 0.0,
          "q": 0.7
         }
        ]
       },
       "comp": {
        "on": false,
-       "threshold": -12,
-       "ratio": 2,
-       "attack": 20,
-       "release": 250,
-       "makeup": 0
+       "threshold": -12.0,
+       "ratio": 2.0,
+       "attack": 20.0,
+       "release": 250.0,
+       "makeup": 0.0
       },
       "limiter": {
        "on": false,
-       "ceiling": -1
+       "ceiling": -1.0
       },
       "loudness": "off"
-     },
-     "key": "63fbbb7a3183eedc"
-    }
+     }
+    },
+    "chapters": []
    }
   }
  }

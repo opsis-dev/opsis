@@ -56,7 +56,7 @@ pub struct JoinSize {
     pub fps: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct Join {
     pub filter: String,
     pub video: bool,

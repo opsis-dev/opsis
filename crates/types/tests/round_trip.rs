@@ -1,6 +1,5 @@
-use std::path::PathBuf;
 
-use opsis_types::json::first_difference;
+use opsis_golden::differences;
 use opsis_types::timeline::TimelineSpec;
 use opsis_types::values::{CompileValue, NodeResult};
 use opsis_types::workflow::Workflow;
@@ -9,7 +8,7 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 fn workflow_fixtures() -> Vec<(String, Value)> {
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/compile/workflows");
+    let dir = opsis_golden::path("compile/workflows");
     let mut out: Vec<(String, Value)> = std::fs::read_dir(&dir)
         .expect("fixtures/compile/workflows exists")
         .map(|entry| {
@@ -30,9 +29,9 @@ fn round_trip<T: DeserializeOwned + Serialize>(what: &str, value: &Value) -> Vec
         Err(error) => vec![format!("{what}: {error}")],
         Ok(parsed) => {
             let back = serde_json::to_value(&parsed).expect("serializes");
-            first_difference(value, &back)
-                .map(|d| format!("{what}{d}"))
+            differences(value, &back)
                 .into_iter()
+                .map(|d| format!("{what}{d}"))
                 .collect()
         }
     }

@@ -137,7 +137,7 @@ The named pipe is created with the default security descriptor, which grants rea
 7. **Stopping a run** at every stage, and killing the sidecar or the headless shell mid-run: the run reports it and the next one starts fresh.
 8. **Pop-out windows** editing at once: edits and undo from each, closing one mid-drag.
 9. **Keyboard only:** create, connect, edit, run and export without a mouse.
-10. **Render parity:** `crates/render/tests/renders.rs` and `three_stills.rs` against stored baselines, and the byte check rerun on every Bun or Remotion bump.
+10. **Renders as recorded:** `crates/render/tests/renders.rs` (the same bytes) and `three_stills.rs` against their golden files, rerun on every Bun or Remotion bump.
 
 ## 9. Profiling (development only)
 

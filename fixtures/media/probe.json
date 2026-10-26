@@ -27,19 +27,19 @@
     ]
    },
    "probe": {
-    "durationMs": 12480,
+    "durationMs": 12480.0,
     "format": "mov,mp4,m4a,3gp,3g2,mj2",
     "video": {
      "codec": "h264",
-     "width": 1920,
-     "height": 1080,
+     "width": 1920.0,
+     "height": 1080.0,
      "fps": 29.97002997002997,
      "pixFmt": "yuv420p"
     },
     "audio": {
      "codec": "aac",
-     "sampleRate": 48000,
-     "channels": 2
+     "sampleRate": 48000.0,
+     "channels": 2.0
     }
    }
   },
@@ -55,13 +55,13 @@
     ]
    },
    "probe": {
-    "durationMs": 2000,
+    "durationMs": 2000.0,
     "format": "",
     "video": {
      "codec": "",
-     "width": 0,
-     "height": 0,
-     "fps": 25,
+     "width": 0.0,
+     "height": 0.0,
+     "fps": 25.0,
      "pixFmt": ""
     }
    }
@@ -81,13 +81,13 @@
     ]
    },
    "probe": {
-    "durationMs": 0,
+    "durationMs": 0.0,
     "format": "png_pipe",
     "video": {
      "codec": "png",
-     "width": 10,
-     "height": 10,
-     "fps": 0,
+     "width": 10.0,
+     "height": 10.0,
+     "fps": 0.0,
      "pixFmt": ""
     }
    }
@@ -117,12 +117,12 @@
     ]
    },
    "probe": {
-    "durationMs": 3000,
+    "durationMs": 3000.0,
     "format": "mp3",
     "audio": {
      "codec": "mp3",
-     "sampleRate": 44100,
-     "channels": 2
+     "sampleRate": 44100.0,
+     "channels": 2.0
     }
    }
   },
@@ -134,14 +134,14 @@
     "streams": []
    },
    "probe": {
-    "durationMs": 0,
+    "durationMs": 0.0,
     "format": ""
    }
   },
   {
    "raw": {},
    "probe": {
-    "durationMs": 0,
+    "durationMs": 0.0,
     "format": ""
    }
   },
@@ -172,19 +172,19 @@
     ]
    },
    "probe": {
-    "durationMs": 12480,
+    "durationMs": 12480.0,
     "format": "mov,mp4,m4a,3gp,3g2,mj2",
     "video": {
      "codec": "h264",
-     "width": 1280,
-     "height": 1080,
+     "width": 1280.0,
+     "height": 1080.0,
      "fps": 29.97002997002997,
      "pixFmt": "yuv420p"
     },
     "audio": {
      "codec": "aac",
-     "sampleRate": 48000,
-     "channels": 2
+     "sampleRate": 48000.0,
+     "channels": 2.0
     }
    }
   },
@@ -208,12 +208,12 @@
     ]
    },
    "probe": {
-    "durationMs": 12480,
+    "durationMs": 12480.0,
     "format": "mov,mp4,m4a,3gp,3g2,mj2",
     "video": {
      "codec": "h264",
-     "width": 1920,
-     "height": 1080,
+     "width": 1920.0,
+     "height": 1080.0,
      "fps": 29.97002997002997,
      "pixFmt": "yuv420p"
     }

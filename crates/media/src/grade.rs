@@ -39,7 +39,7 @@ pub enum GradeError {
     Settings(String),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GradeChain {
     pub chain: String,
@@ -80,7 +80,7 @@ pub fn filter_path(file: &str) -> String {
     graph_text(&option_value(file))
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum LookKind {
     Table,

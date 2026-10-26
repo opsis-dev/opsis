@@ -35,15 +35,15 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "x",
-     "message": "This node type isn't available"
+     "message": "This node type isn't available",
+     "nodeId": "x"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "x",
-     "message": "This node type isn't available"
+     "message": "This node type isn't available",
+     "nodeId": "x"
     }
    ],
    "runTargets": []
@@ -92,15 +92,15 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "a",
-     "message": "Two nodes share this id"
+     "message": "Two nodes share this id",
+     "nodeId": "a"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "a",
-     "message": "Two nodes share this id"
+     "message": "Two nodes share this id",
+     "nodeId": "a"
     }
    ],
    "runTargets": []
@@ -142,15 +142,15 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "a",
-     "message": "Window width must be at least 320 px"
+     "message": "Window width must be at least 320 px",
+     "nodeId": "a"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "a",
-     "message": "Window width must be at least 320 px"
+     "message": "Window width must be at least 320 px",
+     "nodeId": "a"
     }
    ],
    "runTargets": []
@@ -194,15 +194,15 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "a",
-     "message": "Screenshot sharpness takes a number. Variables work only in text settings"
+     "message": "Screenshot sharpness takes a number. Variables work only in text settings",
+     "nodeId": "a"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "a",
-     "message": "Screenshot sharpness takes a number. Variables work only in text settings"
+     "message": "Screenshot sharpness takes a number. Variables work only in text settings",
+     "nodeId": "a"
     }
    ],
    "runTargets": []
@@ -244,15 +244,15 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "a",
-     "message": "“Agent” isn't one of the project's variables. Add it under Variables in the project settings, or change this setting."
+     "message": "“Agent” isn't one of the project's variables. Add it under Variables in the project settings, or change this setting.",
+     "nodeId": "a"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "a",
-     "message": "“Agent” isn't one of the project's variables. Add it under Variables in the project settings, or change this setting."
+     "message": "“Agent” isn't one of the project's variables. Add it under Variables in the project settings, or change this setting.",
+     "nodeId": "a"
     }
    ],
    "runTargets": []
@@ -292,15 +292,15 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "r",
-     "message": "Connect something to “Browser”"
+     "message": "Connect something to “Browser”",
+     "nodeId": "r"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "r",
-     "message": "Connect something to “Browser”"
+     "message": "Connect something to “Browser”",
+     "nodeId": "r"
     }
    ],
    "runTargets": [
@@ -375,15 +375,15 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "r",
-     "message": "“Browser” can only take one connection"
+     "message": "“Browser” can only take one connection",
+     "nodeId": "r"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "r",
-     "message": "“Browser” can only take one connection"
+     "message": "“Browser” can only take one connection",
+     "nodeId": "r"
     }
    ],
    "runTargets": [
@@ -433,25 +433,25 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "r",
-     "message": "Connect something to “Browser”"
+     "message": "Connect something to “Browser”",
+     "nodeId": "r"
     },
     {
      "level": "error",
-     "edgeId": "e0",
-     "message": "A connection points at a deleted node"
+     "message": "A connection points at a deleted node",
+     "edgeId": "e0"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "r",
-     "message": "Connect something to “Browser”"
+     "message": "Connect something to “Browser”",
+     "nodeId": "r"
     },
     {
      "level": "error",
-     "edgeId": "e0",
-     "message": "A connection points at a deleted node"
+     "message": "A connection points at a deleted node",
+     "edgeId": "e0"
     }
    ],
    "runTargets": [
@@ -510,27 +510,27 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "r",
-     "message": "Connect something to “Browser”"
+     "message": "Connect something to “Browser”",
+     "nodeId": "r"
     },
     {
      "level": "error",
-     "edgeId": "e0",
+     "message": "A connection uses a point that no longer exists",
      "nodeId": "r",
-     "message": "A connection uses a point that no longer exists"
+     "edgeId": "e0"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "r",
-     "message": "Connect something to “Browser”"
+     "message": "Connect something to “Browser”",
+     "nodeId": "r"
     },
     {
      "level": "error",
-     "edgeId": "e0",
+     "message": "A connection uses a point that no longer exists",
      "nodeId": "r",
-     "message": "A connection uses a point that no longer exists"
+     "edgeId": "e0"
     }
    ],
    "runTargets": [
@@ -589,27 +589,27 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "z",
-     "message": "Connect something to “Recording”"
+     "message": "Connect something to “Recording”",
+     "nodeId": "z"
     },
     {
      "level": "error",
-     "edgeId": "e0",
+     "message": "A browser session can't connect to a recording input",
      "nodeId": "z",
-     "message": "A browser session can't connect to a recording input"
+     "edgeId": "e0"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "z",
-     "message": "Connect something to “Recording”"
+     "message": "Connect something to “Recording”",
+     "nodeId": "z"
     },
     {
      "level": "error",
-     "edgeId": "e0",
+     "message": "A browser session can't connect to a recording input",
      "nodeId": "z",
-     "message": "A browser session can't connect to a recording input"
+     "edgeId": "e0"
     }
    ],
    "runTargets": []
@@ -673,25 +673,25 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "d1",
-     "message": "This node loops back into itself"
+     "message": "This node loops back into itself",
+     "nodeId": "d1"
     },
     {
      "level": "error",
-     "nodeId": "d2",
-     "message": "This node loops back into itself"
+     "message": "This node loops back into itself",
+     "nodeId": "d2"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "d1",
-     "message": "This node loops back into itself"
+     "message": "This node loops back into itself",
+     "nodeId": "d1"
     },
     {
      "level": "error",
-     "nodeId": "d2",
-     "message": "This node loops back into itself"
+     "message": "This node loops back into itself",
+     "nodeId": "d2"
     }
    ],
    "runTargets": []
@@ -766,15 +766,15 @@
    "problems": [
     {
      "level": "warning",
-     "nodeId": "s",
-     "message": "Before Go to page the script runs as the site first opens, so there's nothing to reload. Turn off Reload, or move this after Go to page."
+     "message": "Before Go to page the script runs as the site first opens, so there's nothing to reload. Turn off Reload, or move this after Go to page.",
+     "nodeId": "s"
     }
    ],
    "checked": [
     {
      "level": "warning",
-     "nodeId": "s",
-     "message": "Before Go to page the script runs as the site first opens, so there's nothing to reload. Turn off Reload, or move this after Go to page."
+     "message": "Before Go to page the script runs as the site first opens, so there's nothing to reload. Turn off Reload, or move this after Go to page.",
+     "nodeId": "s"
     }
    ],
    "runTargets": [
@@ -819,15 +819,15 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "fx",
-     "message": "The action this sound plays on is gone. Pick another, or play it at a time."
+     "message": "The action this sound plays on is gone. Pick another, or play it at a time.",
+     "nodeId": "fx"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "fx",
-     "message": "The action this sound plays on is gone. Pick another, or play it at a time."
+     "message": "The action this sound plays on is gone. Pick another, or play it at a time.",
+     "nodeId": "fx"
     }
    ],
    "runTargets": []
@@ -936,15 +936,15 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "v2",
-     "message": "“Export video” also saves “film.mp4”. Give one of them another file name."
+     "message": "“Export video” also saves “film.mp4”. Give one of them another file name.",
+     "nodeId": "v2"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "v2",
-     "message": "“Export video” also saves “film.mp4”. Give one of them another file name."
+     "message": "“Export video” also saves “film.mp4”. Give one of them another file name.",
+     "nodeId": "v2"
     }
    ],
    "runTargets": [
@@ -1021,15 +1021,15 @@
    "problems": [
     {
      "level": "error",
-     "nodeId": "s2",
-     "message": "“Sign in” also saves the sign-in “default”. Give one of them another name."
+     "message": "“Sign in” also saves the sign-in “default”. Give one of them another name.",
+     "nodeId": "s2"
     }
    ],
    "checked": [
     {
      "level": "error",
-     "nodeId": "s2",
-     "message": "“Sign in” also saves the sign-in “default”. Give one of them another name."
+     "message": "“Sign in” also saves the sign-in “default”. Give one of them another name.",
+     "nodeId": "s2"
     }
    ],
    "runTargets": [
@@ -1090,15 +1090,15 @@
    "problems": [
     {
      "level": "warning",
-     "nodeId": "r",
-     "message": "“Open browser” is skipped and has nothing to pass on, so this gets nothing from it."
+     "message": "“Open browser” is skipped and has nothing to pass on, so this gets nothing from it.",
+     "nodeId": "r"
     }
    ],
    "checked": [
     {
      "level": "warning",
-     "nodeId": "r",
-     "message": "“Open browser” is skipped and has nothing to pass on, so this gets nothing from it."
+     "message": "“Open browser” is skipped and has nothing to pass on, so this gets nothing from it.",
+     "nodeId": "r"
     }
    ],
    "runTargets": [
