@@ -8,12 +8,6 @@ What's left outside the release plan: the places in the codebase that don't read
 
 `apps/ui/src/app/opsis.ts` (327 lines, `OpsisApi`, `createOpsis`) wraps every generated command and event in a preload-style object so call sites written for Electron keep working; 110 call sites use it. Call the generated `commands` and `events` from `@/generated/bindings` directly, with small typed helpers only where a channel or a frame decoder is involved.
 
-### 8. Logic written twice, in TS and in Rust
-
-- asset refs and font faces: `packages/video/src/common/asset-ref.ts` and `fonts.ts`, and `crates/compile/src/asset_ref.rs`, `fonts`, `elements/prepared.rs`;
-
-Keep one implementation in Rust and send the UI what it needs.
-
 ### 10. Folder names from the old packages
 
 `apps/ui/src/core` echoes the removed `packages/core`. Name folders for what they hold once items 5–9 have emptied most of it.

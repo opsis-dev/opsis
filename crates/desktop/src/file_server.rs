@@ -5,7 +5,9 @@ use axum::Router;
 use axum::extract::{Request, State};
 use axum::http::{StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
+use opsis_compile::asset_ref::{RefTarget, join_url, library_rel_path, ref_target};
 use opsis_engine::http_files::file_routes;
+use percent_encoding::percent_decode_str;
 use tauri::{AppHandle, Manager};
 use tower::ServiceExt;
 
@@ -13,32 +15,35 @@ use crate::state::AppState;
 
 pub struct FileRoot(String);
 
-fn root_dir(app: &AppHandle, root: &str) -> Option<PathBuf> {
+fn requested_ref(path: &str, token: &str) -> Option<String> {
+    let encoded = path
+        .strip_prefix('/')?
+        .strip_prefix(token)?
+        .strip_prefix('/')?;
+    let decoded = percent_decode_str(encoded).decode_utf8().ok()?;
+    (!decoded.is_empty()).then(|| decoded.into_owned())
+}
+
+fn location(app: &AppHandle, file: &str) -> Option<(PathBuf, String)> {
     let state = app.state::<AppState>();
-    match root {
-        "project" => state.editor().dir(),
-        "fonts" => Some(state.paths.fonts_dir()),
-        "app" => Some(state.paths.public_dir.clone()),
-        _ => None,
+    if let Some(rel) = library_rel_path(file) {
+        return Some((state.paths.fonts_dir(), rel.to_owned()));
+    }
+    match ref_target(file) {
+        RefTarget::Project(rel) => Some((state.editor().dir()?, rel)),
+        RefTarget::App(rel) => Some((state.paths.public_dir.clone(), rel)),
+        RefTarget::External(_) | RefTarget::Absolute(_) => None,
     }
 }
 
-fn split_path<'a>(path: &'a str, token: &str) -> Option<(&'a str, &'a str)> {
-    path.strip_prefix('/')?
-        .strip_prefix(token)?
-        .strip_prefix('/')?
-        .split_once('/')
-}
-
 async fn serve(State((app, token)): State<(AppHandle, String)>, mut request: Request) -> Response {
-    let path = request.uri().path().to_owned();
-    let Some((root, file)) = split_path(&path, &token) else {
+    let Some(file) = requested_ref(request.uri().path(), &token) else {
         return StatusCode::NOT_FOUND.into_response();
     };
-    let Some(dir) = root_dir(&app, root) else {
-        return (StatusCode::NOT_FOUND, "No project open").into_response();
+    let Some((dir, rel)) = location(&app, &file) else {
+        return (StatusCode::NOT_FOUND, "Not a file Opsis serves").into_response();
     };
-    let Ok(uri) = format!("/{file}").parse::<Uri>() else {
+    let Ok(uri) = join_url("/", &rel).parse::<Uri>() else {
         return StatusCode::BAD_REQUEST.into_response();
     };
     *request.uri_mut() = uri;
@@ -74,17 +79,17 @@ pub fn file_root(root: tauri::State<'_, FileRoot>) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::split_path;
+    use super::requested_ref;
 
     #[test]
-    fn serves_only_paths_under_its_token() {
+    fn serves_only_refs_under_its_token() {
         assert_eq!(
-            split_path("/abc/project/assets/clip%20one.mp4", "abc"),
-            Some(("project", "assets/clip%20one.mp4"))
+            requested_ref("/abc/project%3Aassets%2Fclip%20one.mp4", "abc"),
+            Some("project:assets/clip one.mp4".into())
         );
-        assert_eq!(split_path("/abd/project/a.mp4", "abc"), None);
-        assert_eq!(split_path("/abcd/project/a.mp4", "abc"), None);
-        assert_eq!(split_path("/project/a.mp4", "abc"), None);
-        assert_eq!(split_path("/abc/project", "abc"), None);
+        assert_eq!(requested_ref("/abd/project%3Aa.mp4", "abc"), None);
+        assert_eq!(requested_ref("/abcd/project%3Aa.mp4", "abc"), None);
+        assert_eq!(requested_ref("/project%3Aa.mp4", "abc"), None);
+        assert_eq!(requested_ref("/abc/", "abc"), None);
     }
 }

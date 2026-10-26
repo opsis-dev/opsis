@@ -59,6 +59,8 @@ pub struct FontCatalogEntry {
     pub license: String,
     #[serde(rename = "type")]
     pub kind: String,
+    #[serde(default)]
+    pub added: bool,
 }
 
 #[derive(Deserialize)]

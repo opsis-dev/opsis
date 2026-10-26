@@ -1,9 +1,10 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use opsis_compile::fonts::{font_choice, font_choices as choices_for, is_known_family};
 use opsis_fonts::library::{InspectedFonts, InstalledFamily, installed_families, system_fonts};
 use opsis_fonts::online::FontCatalogEntry;
-use opsis_types::fonts::FontFamilyDef;
+use opsis_types::fonts::{FontChoice, FontChoices, FontFamilyDef};
 use tauri::{AppHandle, State};
 use tauri_plugin_dialog::DialogExt;
 
@@ -15,8 +16,20 @@ const FONT_FILES: [&str; 6] = ["ttf", "otf", "woff", "woff2", "ttc", "zip"];
 
 #[tauri::command]
 #[specta::specta]
-pub async fn list_fonts(state: State<'_, AppState>) -> CommandResult<Vec<FontFamilyDef>> {
-    Ok(state.fonts.list(state.db()).await?)
+pub async fn list_fonts(state: State<'_, AppState>) -> CommandResult<Vec<FontChoice>> {
+    let library = state.fonts.list(state.db()).await?;
+    Ok(library.iter().map(|def| font_choice(def, "")).collect())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn font_choices(
+    state: State<'_, AppState>,
+    value: String,
+    project: Vec<FontFamilyDef>,
+) -> CommandResult<FontChoices> {
+    let library = state.fonts.list(state.db()).await?;
+    Ok(choices_for(&value, &project, &library))
 }
 
 #[tauri::command]
@@ -99,7 +112,12 @@ pub async fn remove_font(state: State<'_, AppState>, id: String) -> CommandResul
 #[tauri::command]
 #[specta::specta]
 pub async fn font_catalog(state: State<'_, AppState>) -> CommandResult<Vec<FontCatalogEntry>> {
-    Ok(Arc::unwrap_or_clone(state.fonts_online.catalog().await?))
+    let library = state.fonts.list(state.db()).await?;
+    let mut entries = Arc::unwrap_or_clone(state.fonts_online.catalog().await?);
+    for entry in &mut entries {
+        entry.added = is_known_family(&entry.family, &library);
+    }
+    Ok(entries)
 }
 
 #[tauri::command]

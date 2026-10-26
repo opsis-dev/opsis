@@ -75,7 +75,7 @@ In place:
 
 - `ElementMeta` (`crates/compile/src/elements/mod.rs`) has `source: ElementSource { registry, url, license }`; registry elements fill it from the ingest, core ones use `registry: "Opsis"`.
 - `elements()` chains `core::core_elements()` and the registry list into one catalogue; every entry becomes a node (`element_node_type`: `fx.<group>.<name>`) with its card, length handle and envelope. A third list is all these elements need on the Rust side.
-- Settings structs: core elements are structs with `schemars` attributes collected in `CoreElementProps`, exported to `packages/video/src/generated/spec.ts`, so components get typed props. The `font` widget (`x-widget = "font"`) and `fontStack` (`packages/video/src/common/fonts.ts`) turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
+- Settings structs: core elements are structs with `schemars` attributes collected in `CoreElementProps`, exported to `packages/video/src/generated/spec.ts`, so components get typed props. The `font` widget (`x-widget = "font"`) and `font_stack` (`crates/compile/src/fonts/mod.rs`) turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
 - Lazy loading: `loadElement` in `packages/video/src/registry/index.ts` finds a module through `lazyLoaderOf`, which looks in `generatedElementLoaders` (`components.generated.ts`) and `LAZY_CORE_ELEMENTS` (the 3D elements), and loads it under `delayRender`.
 - Framing helpers in `packages/video/src/registry/framing.tsx`: `centered`, `fitScreen`, `placedAt` (spot placement for the `spot` widget), `pointsFromSpots`, `painted`, `playsAtEnd`.
 - Guardrails already cover any new folder in `packages/video`: `no-restricted-imports` bans `framer-motion`, `motion`, `gsap` and `useFrame` (`scripts/lib/oxlint-base.ts`), `opsis/no-animate-class` bans Tailwind `animate-*` and `opsis/no-three-clock` bans three.js clocks (`packages/video/oxlint.config.ts`, `scripts/oxlint-plugin-opsis.ts`).
@@ -224,7 +224,7 @@ A **Rive animation** element that plays a `.riv` file from the project: pick the
 
 In place:
 
-- `LottieElement` (`packages/video/src/core/lottie.tsx`) is the pattern: an `asset` setting resolved by `resolveAssetRef` to the host's project address, `fetch()` under `delayRender`, `cancelRender` on failure; its settings accept `.json,.lottie` through `x-accept`.
+- `LottieElement` (`packages/video/src/core/lottie.tsx`) is the pattern: an `asset` setting given the host's project address by `hosted`, `fetch()` under `delayRender`, `cancelRender` on failure; its settings accept `.json,.lottie` through `x-accept`.
 - `import_assets` (`crates/project/src/import.rs`) copies any file into `assets/`; the file servers are `tower-http`'s `ServeDir` (`crates/engine/src/http_files.rs`), whose MIME table already maps `.wasm` to `application/wasm` and serves unknown types such as `.riv` as `application/octet-stream`.
 - Video code runs only in the headless shell (the preview page, `apps/preview`, and the render bundle), never in the editor's webview, so the editor's CSP doesn't apply; the preview page sets none.
 - Both video bundlers already swap one import for Opsis's own module: the font redirect (`localFonts` in `scripts/lib/vite-local-fonts.ts` for `apps/preview`, the Rspack hook in `apps/sidecar/src/bundler-override.ts`). Rive's runtime uses the same mechanism.

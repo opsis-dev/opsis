@@ -1,4 +1,3 @@
-import { BUNDLED_FONTS } from "@opsis/video/common/bundled-fonts.generated";
 import { ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +7,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { errorMessage } from "@/core/errors";
 import type { FontFamilyDef, LicenceEntry } from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
-import { fontFileUrl } from "../../editor/file-url";
+import { bundledFonts } from "@/store/catalog";
+import { fileUrl } from "../../editor/file-url";
 import { useFontLibrary } from "../../fonts/library";
 import { useLoaded } from "../use-loaded";
 import { SettingsCard } from "./settings-card";
@@ -23,7 +23,7 @@ function LicenceText({ text }: { text: string }) {
 
 async function readFontLicence(def: FontFamilyDef): Promise<string> {
   if (!def.licenseFile) return "No licence file came with this font.";
-  const res = await fetch(fontFileUrl(def.licenseFile));
+  const res = await fetch(fileUrl(def.licenseFile));
   if (!res.ok) throw new Error(`Error ${res.status}.`);
   return res.text();
 }
@@ -130,7 +130,7 @@ export function LicencesPage() {
         description="Fonts that come with Opsis."
         contentClassName="divide-y"
       >
-        <FontLicenceRows fonts={BUNDLED_FONTS} />
+        <FontLicenceRows fonts={bundledFonts()} />
       </SettingsCard>
       {library.length ? (
         <SettingsCard
@@ -138,7 +138,7 @@ export function LicencesPage() {
           description="Fonts in your library, with the licence they came with."
           contentClassName="divide-y"
         >
-          <FontLicenceRows fonts={library} />
+          <FontLicenceRows fonts={library.map((choice) => choice.def)} />
         </SettingsCard>
       ) : null}
     </>

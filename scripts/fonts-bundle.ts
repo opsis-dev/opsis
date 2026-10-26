@@ -20,7 +20,6 @@ import { ROOT, VIDEO_DIR } from "./lib/tool-config";
 import { walkFiles } from "./lib/walk";
 
 const OUT = path.join(ROOT, "public", "fonts", "bundled");
-const META_OUT = path.join(VIDEO_DIR, "common", "bundled-fonts.generated.ts");
 const RUST_META_OUT = path.join(
   ROOT,
   "crates",
@@ -132,17 +131,6 @@ function writeBundle(): void {
   rmSync(OUT, { recursive: true, force: true });
   mkdirSync(OUT, { recursive: true });
   const defs = FONTS.map(copyFontFiles);
-  writeFileSync(
-    META_OUT,
-    [
-      'import type { FontFamilyDef } from "#video/generated/spec.ts";',
-      "",
-      "export const BUNDLED_FONTS: FontFamilyDef[] = [",
-      ...defs.map((def) => `  ${JSON.stringify(def)},`),
-      "];",
-      "",
-    ].join("\n"),
-  );
   mkdirSync(path.dirname(RUST_META_OUT), { recursive: true });
   writeFileSync(RUST_META_OUT, `${JSON.stringify(defs, null, 2)}\n`);
 }

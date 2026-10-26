@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+use opsis_compile::asset_ref::{RefTarget, ref_target};
 use opsis_engine::licences::{
     LicenceKind, LicenceSource, is_licence_file, list_licences as licence_entries, shipped_credits,
 };
@@ -176,15 +177,18 @@ pub fn open_licence_file(
 
 #[tauri::command]
 #[specta::specta]
-pub fn reveal_in_folder(
-    app: AppHandle,
-    dir: String,
-    relative_path: Option<String>,
-) -> CommandResult<()> {
-    match relative_path {
-        Some(rel) => Ok(app.opener().reveal_item_in_dir(Path::new(&dir).join(rel))?),
-        None => Ok(app.opener().open_path(dir, None::<&str>)?),
-    }
+pub fn reveal_in_folder(app: AppHandle, dir: String, file: Option<String>) -> CommandResult<()> {
+    let Some(file) = file else {
+        return Ok(app.opener().open_path(dir, None::<&str>)?);
+    };
+    let path = match ref_target(&file) {
+        RefTarget::Project(rel) => Path::new(&dir).join(rel),
+        RefTarget::Absolute(path) => PathBuf::from(path),
+        RefTarget::App(_) | RefTarget::External(_) => {
+            return Err(CommandError("That file isn't on this computer.".into()));
+        }
+    };
+    Ok(app.opener().reveal_item_in_dir(path)?)
 }
 
 #[tauri::command]

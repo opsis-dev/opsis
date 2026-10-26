@@ -1735,10 +1735,419 @@
     ],
     "audio": [],
     "fonts": {
-     "main": "Inter",
-     "heading": "",
-     "code": "JetBrains Mono",
-     "families": []
+     "families": {
+      "df-main": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "df-heading": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "df-code": {
+       "id": "jetbrains-mono",
+       "family": "JetBrains Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+         "weight": "100 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+         "weight": "100 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "inter": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "jetbrains mono": {
+       "id": "jetbrains-mono",
+       "family": "JetBrains Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+         "weight": "100 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+         "weight": "100 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "google sans": {
+       "id": "google-sans-flex",
+       "family": "Google Sans Flex",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "geist": {
+       "id": "geist",
+       "family": "Geist",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/geist/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "geist mono": {
+       "id": "geist-mono",
+       "family": "Geist Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "manrope": {
+       "id": "manrope",
+       "family": "Manrope",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/manrope/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
+         "weight": "200 800",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "dm sans": {
+       "id": "dm-sans",
+       "family": "DM Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "space grotesk": {
+       "id": "space-grotesk",
+       "family": "Space Grotesk",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
+         "weight": "300 700",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "outfit": {
+       "id": "outfit",
+       "family": "Outfit",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/outfit/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "montserrat": {
+       "id": "montserrat",
+       "family": "Montserrat",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "plus jakarta sans": {
+       "id": "plus-jakarta-sans",
+       "family": "Plus Jakarta Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
+         "weight": "200 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
+         "weight": "200 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "ibm plex sans": {
+       "id": "ibm-plex-sans",
+       "family": "IBM Plex Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+         "weight": "100 700",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
+         "weight": "100 700",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "playfair display": {
+       "id": "playfair-display",
+       "family": "Playfair Display",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
+         "weight": "400 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
+         "weight": "400 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "fraunces": {
+       "id": "fraunces",
+       "family": "Fraunces",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "caveat": {
+       "id": "caveat",
+       "family": "Caveat",
+       "category": "handwriting",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/caveat/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
+         "weight": "400 700",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "google sans flex": {
+       "id": "google-sans-flex",
+       "family": "Google Sans Flex",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "instrument serif": {
+       "id": "instrument-serif",
+       "family": "Instrument Serif",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
+         "weight": "400",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
+         "weight": "400",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      }
+     },
+     "preload": [
+      "df-main",
+      "df-heading",
+      "df-code",
+      "Inter",
+      "JetBrains Mono"
+     ]
     }
    }
   },
@@ -2269,10 +2678,419 @@
    ],
    "audio": [],
    "fonts": {
-    "main": "Inter",
-    "heading": "",
-    "code": "JetBrains Mono",
-    "families": []
+    "families": {
+     "df-main": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "df-heading": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "df-code": {
+      "id": "jetbrains-mono",
+      "family": "JetBrains Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+        "weight": "100 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+        "weight": "100 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "inter": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "jetbrains mono": {
+      "id": "jetbrains-mono",
+      "family": "JetBrains Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+        "weight": "100 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+        "weight": "100 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "google sans": {
+      "id": "google-sans-flex",
+      "family": "Google Sans Flex",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "geist": {
+      "id": "geist",
+      "family": "Geist",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/geist/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "geist mono": {
+      "id": "geist-mono",
+      "family": "Geist Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "manrope": {
+      "id": "manrope",
+      "family": "Manrope",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/manrope/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
+        "weight": "200 800",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "dm sans": {
+      "id": "dm-sans",
+      "family": "DM Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "space grotesk": {
+      "id": "space-grotesk",
+      "family": "Space Grotesk",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
+        "weight": "300 700",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "outfit": {
+      "id": "outfit",
+      "family": "Outfit",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/outfit/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "montserrat": {
+      "id": "montserrat",
+      "family": "Montserrat",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "plus jakarta sans": {
+      "id": "plus-jakarta-sans",
+      "family": "Plus Jakarta Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
+        "weight": "200 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
+        "weight": "200 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "ibm plex sans": {
+      "id": "ibm-plex-sans",
+      "family": "IBM Plex Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+        "weight": "100 700",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
+        "weight": "100 700",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "playfair display": {
+      "id": "playfair-display",
+      "family": "Playfair Display",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
+        "weight": "400 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
+        "weight": "400 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "fraunces": {
+      "id": "fraunces",
+      "family": "Fraunces",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "caveat": {
+      "id": "caveat",
+      "family": "Caveat",
+      "category": "handwriting",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/caveat/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
+        "weight": "400 700",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "google sans flex": {
+      "id": "google-sans-flex",
+      "family": "Google Sans Flex",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "instrument serif": {
+      "id": "instrument-serif",
+      "family": "Instrument Serif",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
+        "weight": "400",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
+        "weight": "400",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     }
+    },
+    "preload": [
+     "df-main",
+     "df-heading",
+     "df-code",
+     "Inter",
+     "JetBrains Mono"
+    ]
    }
   },
   "spans": {
@@ -5149,10 +5967,419 @@
      ],
      "audio": [],
      "fonts": {
-      "main": "Inter",
-      "heading": "",
-      "code": "JetBrains Mono",
-      "families": []
+      "families": {
+       "df-main": {
+        "id": "inter",
+        "family": "Inter",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/inter/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+          "weight": "100 900",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "df-heading": {
+        "id": "inter",
+        "family": "Inter",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/inter/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+          "weight": "100 900",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "df-code": {
+        "id": "jetbrains-mono",
+        "family": "JetBrains Mono",
+        "category": "monospace",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+          "weight": "100 800",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+          "weight": "100 800",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "inter": {
+        "id": "inter",
+        "family": "Inter",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/inter/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+          "weight": "100 900",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "jetbrains mono": {
+        "id": "jetbrains-mono",
+        "family": "JetBrains Mono",
+        "category": "monospace",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+          "weight": "100 800",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+          "weight": "100 800",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "google sans": {
+        "id": "google-sans-flex",
+        "family": "Google Sans Flex",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         }
+        ]
+       },
+       "geist": {
+        "id": "geist",
+        "family": "Geist",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/geist/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
+          "weight": "100 900",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "geist mono": {
+        "id": "geist-mono",
+        "family": "Geist Mono",
+        "category": "monospace",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
+          "weight": "100 900",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "manrope": {
+        "id": "manrope",
+        "family": "Manrope",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/manrope/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
+          "weight": "200 800",
+          "style": "normal",
+          "format": "woff2"
+         }
+        ]
+       },
+       "dm sans": {
+        "id": "dm-sans",
+        "family": "DM Sans",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
+          "weight": "100 900",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "space grotesk": {
+        "id": "space-grotesk",
+        "family": "Space Grotesk",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
+          "weight": "300 700",
+          "style": "normal",
+          "format": "woff2"
+         }
+        ]
+       },
+       "outfit": {
+        "id": "outfit",
+        "family": "Outfit",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/outfit/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         }
+        ]
+       },
+       "montserrat": {
+        "id": "montserrat",
+        "family": "Montserrat",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
+          "weight": "100 900",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "plus jakarta sans": {
+        "id": "plus-jakarta-sans",
+        "family": "Plus Jakarta Sans",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
+          "weight": "200 800",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
+          "weight": "200 800",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "ibm plex sans": {
+        "id": "ibm-plex-sans",
+        "family": "IBM Plex Sans",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+          "weight": "100 700",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
+          "weight": "100 700",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "playfair display": {
+        "id": "playfair-display",
+        "family": "Playfair Display",
+        "category": "serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
+          "weight": "400 900",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
+          "weight": "400 900",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "fraunces": {
+        "id": "fraunces",
+        "family": "Fraunces",
+        "category": "serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
+          "weight": "100 900",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       },
+       "caveat": {
+        "id": "caveat",
+        "family": "Caveat",
+        "category": "handwriting",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/caveat/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
+          "weight": "400 700",
+          "style": "normal",
+          "format": "woff2"
+         }
+        ]
+       },
+       "google sans flex": {
+        "id": "google-sans-flex",
+        "family": "Google Sans Flex",
+        "category": "sans-serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "format": "woff2"
+         }
+        ]
+       },
+       "instrument serif": {
+        "id": "instrument-serif",
+        "family": "Instrument Serif",
+        "category": "serif",
+        "source": "bundled",
+        "license": "OFL-1.1",
+        "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
+        "faces": [
+         {
+          "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
+          "weight": "400",
+          "style": "normal",
+          "format": "woff2"
+         },
+         {
+          "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
+          "weight": "400",
+          "style": "italic",
+          "format": "woff2"
+         }
+        ]
+       }
+      },
+      "preload": [
+       "df-main",
+       "df-heading",
+       "df-code",
+       "Inter",
+       "JetBrains Mono"
+      ]
      }
     }
    },
@@ -5849,10 +7076,419 @@
     ],
     "audio": [],
     "fonts": {
-     "main": "Inter",
-     "heading": "",
-     "code": "JetBrains Mono",
-     "families": []
+     "families": {
+      "df-main": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "df-heading": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "df-code": {
+       "id": "jetbrains-mono",
+       "family": "JetBrains Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+         "weight": "100 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+         "weight": "100 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "inter": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "jetbrains mono": {
+       "id": "jetbrains-mono",
+       "family": "JetBrains Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+         "weight": "100 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+         "weight": "100 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "google sans": {
+       "id": "google-sans-flex",
+       "family": "Google Sans Flex",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "geist": {
+       "id": "geist",
+       "family": "Geist",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/geist/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "geist mono": {
+       "id": "geist-mono",
+       "family": "Geist Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "manrope": {
+       "id": "manrope",
+       "family": "Manrope",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/manrope/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
+         "weight": "200 800",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "dm sans": {
+       "id": "dm-sans",
+       "family": "DM Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "space grotesk": {
+       "id": "space-grotesk",
+       "family": "Space Grotesk",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
+         "weight": "300 700",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "outfit": {
+       "id": "outfit",
+       "family": "Outfit",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/outfit/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "montserrat": {
+       "id": "montserrat",
+       "family": "Montserrat",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "plus jakarta sans": {
+       "id": "plus-jakarta-sans",
+       "family": "Plus Jakarta Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
+         "weight": "200 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
+         "weight": "200 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "ibm plex sans": {
+       "id": "ibm-plex-sans",
+       "family": "IBM Plex Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+         "weight": "100 700",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
+         "weight": "100 700",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "playfair display": {
+       "id": "playfair-display",
+       "family": "Playfair Display",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
+         "weight": "400 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
+         "weight": "400 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "fraunces": {
+       "id": "fraunces",
+       "family": "Fraunces",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "caveat": {
+       "id": "caveat",
+       "family": "Caveat",
+       "category": "handwriting",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/caveat/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
+         "weight": "400 700",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "google sans flex": {
+       "id": "google-sans-flex",
+       "family": "Google Sans Flex",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "instrument serif": {
+       "id": "instrument-serif",
+       "family": "Instrument Serif",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
+         "weight": "400",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
+         "weight": "400",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      }
+     },
+     "preload": [
+      "df-main",
+      "df-heading",
+      "df-code",
+      "Inter",
+      "JetBrains Mono"
+     ]
     }
    },
    "spans": {

@@ -1,4 +1,3 @@
-import { fileVersionKey, versionedUrl, type FileVersions } from "@opsis/video/common/asset-ref";
 import { create } from "zustand";
 import { fileUrl } from "../editor/file-url";
 
@@ -7,6 +6,8 @@ const isThere = (ref: string): Promise<boolean> =>
     (reply) => reply.ok,
     () => false,
   );
+
+export type FileVersions = Record<string, string>;
 
 const NO_VERSIONS: FileVersions = {};
 
@@ -34,18 +35,17 @@ export const useProjectFiles = create<{
 }));
 
 export const versionsOf = (refs: readonly string[], versions: FileVersions): FileVersions =>
-  Object.fromEntries(
-    refs.flatMap((ref) => {
-      const key = fileVersionKey(ref);
-      const version = key ? versions[key] : undefined;
-      return key && version ? [[key, version]] : [];
-    }),
-  );
+  Object.fromEntries(refs.flatMap((ref) => (versions[ref] ? [[ref, versions[ref]]] : [])));
+
+function versionedUrl(ref: string, versions: FileVersions): string {
+  const version = versions[ref];
+  return version ? `${fileUrl(ref)}?v=${encodeURIComponent(version)}` : fileUrl(ref);
+}
 
 export const currentFileUrl = (ref: string): string =>
-  versionedUrl(fileUrl(ref), ref, useProjectFiles.getState().versions);
+  versionedUrl(ref, useProjectFiles.getState().versions);
 
 export function useFileUrl(ref: string | null): string | null {
   const versions = useProjectFiles((s) => s.versions);
-  return ref ? versionedUrl(fileUrl(ref), ref, versions) : null;
+  return ref ? versionedUrl(ref, versions) : null;
 }

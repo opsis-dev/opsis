@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 use crate::envelope::has_visual_keys;
+use crate::fonts::film_fonts;
 use crate::node::InputTake;
 use crate::params::to_values;
 use crate::remap::{RemapSide, inverse_remap};
@@ -958,7 +959,7 @@ pub fn clip_to_spec(clip: &ClipValue, settings: &WorkflowSettings) -> TimelineSp
         assets: None,
         reframe: None,
         quality: None,
-        fonts: Some(settings.fonts.clone()),
+        fonts: Some(film_fonts(&settings.fonts, &clip.tracks)),
         mix: None,
     }
 }

@@ -10,14 +10,12 @@ import {
   useVideoConfig,
 } from "remotion";
 import {
-  AssetProvider,
+  assetUrl,
   DEFAULT_QUALITY,
   DEFAULT_REFRAME,
   QualityProvider,
   ReframeProvider,
-  resolveAssetRef,
-  resolveProps,
-  useAssetBase,
+  withAppFiles,
 } from "#video/assets.tsx";
 import { groupOf } from "#video/common/clip.ts";
 import { ERROR_COLOR, STAGE_COLOR } from "#video/common/element-colors.ts";
@@ -61,25 +59,23 @@ const ELEMENT_FONTS: React.CSSProperties &
 const PREMOUNT_FRAMES = 30;
 
 export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
-  <AssetProvider value={spec.assets ?? {}}>
-    <ReframeProvider value={spec.reframe ?? DEFAULT_REFRAME}>
-      <QualityProvider value={spec.quality ?? DEFAULT_QUALITY}>
-        <AbsoluteFill
-          style={{
-            ...ELEMENT_FONTS,
-            background: spec.background ?? STAGE_COLOR,
-            overflow: "hidden",
-          }}
-        >
-          <PaintRule />
-          <FontProvider fonts={spec.fonts} tracks={spec.tracks}>
-            <Tracks tracks={spec.tracks} />
-          </FontProvider>
-          {spec.mix ? <MasterStem src={spec.mix.src} /> : null}
-        </AbsoluteFill>
-      </QualityProvider>
-    </ReframeProvider>
-  </AssetProvider>
+  <ReframeProvider value={spec.reframe ?? DEFAULT_REFRAME}>
+    <QualityProvider value={spec.quality ?? DEFAULT_QUALITY}>
+      <AbsoluteFill
+        style={{
+          ...ELEMENT_FONTS,
+          background: spec.background ?? STAGE_COLOR,
+          overflow: "hidden",
+        }}
+      >
+        <PaintRule />
+        <FontProvider fonts={spec.fonts}>
+          <Tracks tracks={spec.tracks} />
+        </FontProvider>
+        {spec.mix ? <Audio src={assetUrl(spec.mix.src)} /> : null}
+      </AbsoluteFill>
+    </QualityProvider>
+  </ReframeProvider>
 );
 
 const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
@@ -132,11 +128,6 @@ const EnvelopeWrap: React.FC<{ envelope: VisualEnvelope; children: React.ReactNo
   );
 };
 
-const MasterStem: React.FC<{ src: string }> = ({ src }) => {
-  const base = useAssetBase();
-  return <Audio src={resolveAssetRef(src, base)} />;
-};
-
 const ItemContent: React.FC<{ item: TimelineItem }> = ({ item }) => {
   if (item.kind === "group") return <Group {...item.props} />;
   if (item.kind === "recording") return <RecordingClip {...item.props} />;
@@ -144,12 +135,11 @@ const ItemContent: React.FC<{ item: TimelineItem }> = ({ item }) => {
 };
 
 const Element: React.FC<{ item: ElementItem }> = ({ item }) => {
-  const base = useAssetBase();
   const element = useResolvedElement(item.component, getComponent);
   if (element?.status === "unknown") return <MissingElement name={item.component} />;
   return element?.status === "ready" ? (
     <DesignBox design={item.design} fill={!item.design?.exact}>
-      {createElement(element.impl, resolveProps(item.props, base))}
+      {createElement(element.impl, withAppFiles(item.props))}
     </DesignBox>
   ) : null;
 };
@@ -162,7 +152,6 @@ const SceneSequence: React.FC<{ sequencer: SequencerProps; tracks: TimelineTrack
   sequencer,
   tracks,
 }) => {
-  const base = useAssetBase();
   const element = useResolvedElement(sequencer.component, getSequencer);
   if (element?.status === "unknown") return <MissingElement name={sequencer.component} />;
   if (element?.status !== "ready") return null;
@@ -182,7 +171,7 @@ const SceneSequence: React.FC<{ sequencer: SequencerProps; tracks: TimelineTrack
         </Sequence>
       ),
     }));
-  return <Scenes scenes={scenes} config={resolveProps(sequencer.props, base)} />;
+  return <Scenes scenes={scenes} config={withAppFiles(sequencer.props)} />;
 };
 
 const Group: React.FC<GroupProps> = ({
@@ -261,7 +250,6 @@ const CropBox: Wrap<{ crop: Rect }> = ({ crop, children }) => {
 };
 
 const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children }) => {
-  const base = useAssetBase();
   const element = useResolvedElement(wrapper?.component, getComponent);
   if (!wrapper || element?.status === "loading") return <>{children}</>;
   if (element?.status !== "ready")
@@ -273,7 +261,7 @@ const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children 
     );
   return createElement(
     element.impl,
-    resolveProps(wrapper.props, base),
+    withAppFiles(wrapper.props),
     <AbsoluteFill>{children}</AbsoluteFill>,
   );
 };

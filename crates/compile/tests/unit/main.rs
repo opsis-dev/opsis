@@ -4,6 +4,7 @@ mod compile;
 mod edits;
 mod graph;
 mod helpers;
+mod hosted;
 mod lengths;
 mod mix;
 mod nodes_a;

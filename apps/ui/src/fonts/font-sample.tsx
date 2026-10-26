@@ -1,26 +1,23 @@
-import { fontStack } from "@opsis/video/common/fonts";
 import type { ReactNode } from "react";
-import type { FontFamilyDef } from "@/generated/bindings";
+import type { FontChoice } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
-import { usePreviewFamily } from "./library";
+import { usePreviewFont } from "./library";
 
 export function FontSample({
-  def,
-  family,
+  choice,
+  stack,
   className,
   children,
 }: {
-  def?: FontFamilyDef;
-  family?: string;
+  choice?: FontChoice;
+  stack?: string;
   className?: string;
   children: ReactNode;
 }) {
-  const shown = usePreviewFamily(def) ?? family;
+  usePreviewFont(choice);
+  const shown = choice?.stack ?? stack;
   return (
-    <span
-      className={cn("truncate", className)}
-      style={shown ? { fontFamily: fontStack(shown) } : undefined}
-    >
+    <span className={cn("truncate", className)} style={shown ? { fontFamily: shown } : undefined}>
       {children}
     </span>
   );

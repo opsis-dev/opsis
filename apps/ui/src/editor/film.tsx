@@ -1,4 +1,3 @@
-import type { FileVersions } from "@opsis/video/common/asset-ref";
 import { lookupKey } from "@opsis/video/common/hash";
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
 import type {
@@ -10,7 +9,7 @@ import type {
   TimelineSpec,
 } from "@/generated/bindings";
 import { mixFailure, useMedia } from "../store/media";
-import { useProjectFiles, versionsOf } from "../store/project-files";
+import { type FileVersions, useProjectFiles, versionsOf } from "../store/project-files";
 import { useWorkflowStore } from "../store/workflow";
 import { useCompiledContext } from "./use-compiled";
 

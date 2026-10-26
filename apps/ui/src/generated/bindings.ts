@@ -35,7 +35,7 @@ export const commands = {
 	getEngineStatus: () => __TAURI_INVOKE<EngineStatus>("get_engine_status"),
 	listLicences: () => typedError<LicenceEntry[], CommandError>(__TAURI_INVOKE("list_licences")),
 	openLicenceFile: (file: string) => typedError<null, CommandError>(__TAURI_INVOKE("open_licence_file", { file })),
-	revealInFolder: (dir: string, relativePath: string | null) => typedError<null, CommandError>(__TAURI_INVOKE("reveal_in_folder", { dir, relativePath })),
+	revealInFolder: (dir: string, file: string | null) => typedError<null, CommandError>(__TAURI_INVOKE("reveal_in_folder", { dir, file })),
 	readTrace: (dir: string, traceId: string) => typedError<TraceModel, CommandError>(__TAURI_INVOKE("read_trace", { dir, traceId })),
 	listSecrets: (dir: string) => typedError<string[], CommandError>(__TAURI_INVOKE("list_secrets", { dir })),
 	openSettings: (page: SettingsPage | null) => typedError<null, CommandError>(__TAURI_INVOKE("open_settings", { page })),
@@ -61,7 +61,8 @@ export const commands = {
 	runState: () => __TAURI_INVOKE<RunState>("run_state"),
 	clearRunLog: () => __TAURI_INVOKE<void>("clear_run_log"),
 	watchLive: (frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<void>("watch_live", { frames }),
-	listFonts: () => typedError<FontFamilyDef[], CommandError>(__TAURI_INVOKE("list_fonts")),
+	listFonts: () => typedError<FontChoice[], CommandError>(__TAURI_INVOKE("list_fonts")),
+	fontChoices: (value: string, project: FontFamilyDef[]) => typedError<FontChoices, CommandError>(__TAURI_INVOKE("font_choices", { value, project })),
 	inspectFontFiles: (paths: string[] | null) => typedError<InspectedFonts | null, CommandError>(__TAURI_INVOKE("inspect_font_files", { paths })),
 	installedFontFamilies: () => typedError<InstalledFamily[], CommandError>(__TAURI_INVOKE("installed_font_families")),
 	inspectInstalledFonts: (families: string[]) => typedError<InspectedFonts, CommandError>(__TAURI_INVOKE("inspect_installed_fonts", { families })),
@@ -670,6 +671,7 @@ export type EditorCatalog = {
 	connects: PortLink[],
 	text: TextRules,
 	mixer: MixerBook,
+	bundledFonts: FontFamilyDef[],
 };
 
 export type EditorCompile = {
@@ -793,6 +795,11 @@ export type FilmChapter = {
 	endMs: number,
 };
 
+export type FilmFonts = {
+	families: { [key in string]: FontFamilyDef },
+	preload: string[],
+};
+
 export type Filmstrip = {
 	src: string,
 	image: string,
@@ -836,9 +843,24 @@ export type FontCatalogEntry = {
 	weights: number[],
 	license: string,
 	type: string,
+	added: boolean,
 };
 
 export type FontCategory = "sans-serif" | "serif" | "monospace" | "display" | "handwriting";
+
+export type FontChoice = {
+	def: FontFamilyDef,
+	preview: string,
+	stack: string,
+	selected: boolean,
+};
+
+export type FontChoices = {
+	project: FontChoice[],
+	builtIn: FontChoice[],
+	library: FontChoice[],
+	current?: FontChoice,
+};
 
 export type FontFaceDef = {
 	file: string,
@@ -930,6 +952,7 @@ export type InspectorContext = {
 export type InstalledFamily = {
 	family: string,
 	faces: number,
+	stack: string,
 };
 
 export type IssueLevel = "error" | "warning";
@@ -1656,7 +1679,7 @@ export type TimelineSpec = {
 	assets?: SpecAssets,
 	reframe?: ReframeMode,
 	quality?: PreviewQuality,
-	fonts?: ProjectFonts,
+	fonts?: FilmFonts,
 	mix?: MasterStem,
 };
 

@@ -5,6 +5,7 @@ import {
   type Category,
   type EditorCatalog,
   type EditorNode,
+  type FontFamilyDef,
   type MenuSection,
   type PortType,
   type TemplateInfo,
@@ -24,6 +25,7 @@ const loaded: {
   connects: Set<string>;
   text: TextRules;
   mixer: MixerBook | null;
+  bundledFonts: FontFamilyDef[];
   templates: TemplateInfo[];
 } = {
   nodes: [],
@@ -33,6 +35,7 @@ const loaded: {
   connects: new Set(),
   text: { variablePattern: "(?!)", pauseMark: "" },
   mixer: null,
+  bundledFonts: [],
   templates: [],
 };
 
@@ -49,9 +52,10 @@ export async function loadCatalog(): Promise<void> {
 
 export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
   loaded.templates = templates;
-  const { nodes, transitions, connects, text, mixer } = catalog;
+  const { nodes, transitions, connects, text, mixer, bundledFonts } = catalog;
   loaded.text = text;
   loaded.mixer = mixer;
+  loaded.bundledFonts = bundledFonts;
   loaded.nodes = nodes;
   loaded.transitions = transitions;
   loaded.connects = new Set(connects.map((link) => `${link.from}>${link.to}`));
@@ -60,6 +64,8 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
 }
 
 export const textRules = (): TextRules => loaded.text;
+
+export const bundledFonts = (): FontFamilyDef[] => loaded.bundledFonts;
 
 export function mixerBook(): MixerBook {
   if (!loaded.mixer) throw new Error("The node catalogue hasn't loaded yet.");

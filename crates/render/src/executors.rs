@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use opsis_compile::asset_ref::project_ref;
+use opsis_compile::hosted::hosted;
 use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::output::{
     ExportImages, ExportVideo, Gl, Variant, export_base_name, still_file_names, variant_size,
@@ -78,7 +79,7 @@ fn render_target(
         binaries_directory: engine.binaries_directory.clone(),
         license_key: license_key(ctx),
         composition: COMPOSITION_ID.to_owned(),
-        spec,
+        spec: hosted(&spec),
         gl,
     })
 }

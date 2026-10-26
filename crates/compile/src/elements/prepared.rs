@@ -3,26 +3,10 @@ use serde_json::Value;
 
 use crate::asset_ref::{PreparedKind, PreparedRef, extension_of};
 use crate::elements::core::{Card3d, Logo3d, Model3d, Text3d};
-use crate::fonts::{find_family, first_family, role_family_name};
+use crate::fonts::{family_for, first_family};
 use crate::params::{Values, typed_values};
 
-const HEADING_FAMILY: &str = "df-heading";
 const DEFAULT_WEIGHT: f64 = 400.0;
-
-fn role_of(name: &str) -> Option<FontRole> {
-    match name {
-        "df-main" | "Inter" => Some(FontRole::Main),
-        "df-heading" => Some(FontRole::Heading),
-        "df-code" | "JetBrains Mono" => Some(FontRole::Code),
-        _ => None,
-    }
-}
-
-fn family_for<'a>(name: &str, fonts: &'a ProjectFonts) -> Option<&'a FontFamilyDef> {
-    role_of(name)
-        .and_then(|role| find_family(role_family_name(role, fonts), &fonts.families))
-        .or_else(|| find_family(name, &fonts.families))
-}
 
 fn weight_range(weight: &str) -> (f64, f64) {
     let numbers: Vec<f64> = weight
@@ -73,7 +57,7 @@ fn prepare_src(props: &mut Values, src: &str, kind: PreparedKind) {
 fn typeface(props: &mut Values, text: &Text3d, fonts: &ProjectFonts) {
     let family = Some(first_family(&text.font_family))
         .filter(|f| !f.is_empty())
-        .unwrap_or_else(|| HEADING_FAMILY.to_owned());
+        .unwrap_or_else(|| FontRole::Heading.family().to_owned());
     let weight = text.font_weight;
     let Some(face) = family_for(&family, fonts).and_then(|def| face_for(def, weight, text.italic))
     else {

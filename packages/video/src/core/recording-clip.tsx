@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { useAsset, useQuality, useReframe } from "#video/assets.tsx";
+import { assetUrl, useQuality, useReframe } from "#video/assets.tsx";
 import {
   resolveAnnotations,
   toClickLog,
@@ -66,8 +66,9 @@ const CLIP_KEYS = [
 export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const fast = useQuality() === "fast";
   const proxy = fast && !!props.proxySrc;
-  const src = useAsset(proxy && props.proxySrc ? props.proxySrc : props.src);
-  const backdrop = useAsset(props.backdrop) ?? props.backdrop;
+  const shown = proxy && props.proxySrc ? props.proxySrc : props.src;
+  const src = shown ? assetUrl(shown) : null;
+  const backdrop = props.backdrop ? assetUrl(props.backdrop) : props.backdrop;
   const { width, height, fps } = useVideoConfig();
   const frame = useCurrentFrame();
   const reframe = useReframe();

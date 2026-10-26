@@ -76,8 +76,8 @@ function useSharedState(): void {
       watchChanges(useUiStore, selection, applying, (next) => window.opsis.shareSelection(next)),
       watchChanges(useViewOptions, syncedView, applying, (next) => window.opsis.shareView(next)),
       sharePlayhead(applying),
-      window.opsis.onSelectionShared(({ from, selection }) => {
-        if (from !== own) whileApplying(applying, () => useUiStore.setState(selection));
+      window.opsis.onSelectionShared(({ from, selection: shared }) => {
+        if (from !== own) whileApplying(applying, () => useUiStore.setState(shared));
       }),
       window.opsis.onViewShared(({ from, view }) => {
         if (from !== own) whileApplying(applying, () => showView(view));

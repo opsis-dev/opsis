@@ -1,4 +1,3 @@
-import { baseName } from "@opsis/video/common/asset-ref";
 import { humanize } from "@opsis/video/common/format";
 import { isNumber } from "@opsis/video/common/guards";
 import { kindFromPath } from "@opsis/video/common/mime";
@@ -21,6 +20,7 @@ import {
   type FieldWidget,
   type JsonSchema,
 } from "@/core/schema";
+import { fileName } from "@/lib/file-name";
 import { whenOneOf } from "@/lib/one-of";
 import { useItemKeys } from "@/lib/use-item-keys";
 import { transitionTitle } from "@/store/catalog";
@@ -349,7 +349,7 @@ function rowSummary(item: JsonSchema, entry: ParamValues, index: number): string
     .map(([k]) => textOf(k))
     .find(Boolean);
   const number = fields.map(([k]) => entry[k]).find(isNumber);
-  const shown = text ?? (file ? baseName(file) : number === undefined ? undefined : String(number));
+  const shown = text ?? (file ? fileName(file) : number === undefined ? undefined : String(number));
   return shown ? shown.slice(0, 60) : `Item ${index + 1}`;
 }
 

@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -85,18 +85,20 @@ fn folder_of(key: &str) -> String {
         .map_or(String::new(), |(folder, _)| folder.to_owned())
 }
 
-fn watched_keys(refs: &[String]) -> HashSet<String> {
-    refs.iter()
-        .filter(|r| stays_in_project(r))
-        .filter_map(|r| file_version_key(r))
-        .filter(|key| !is_app_made(key))
-        .collect()
+fn watched_refs(refs: &[String]) -> HashMap<String, Vec<String>> {
+    let mut by_key: HashMap<String, Vec<String>> = HashMap::new();
+    for r in refs.iter().filter(|r| stays_in_project(r)) {
+        if let Some(key) = file_version_key(r).filter(|key| !is_app_made(key)) {
+            by_key.entry(key).or_default().push(r.clone());
+        }
+    }
+    by_key
 }
 
 pub struct LoadedFilesWatch {
     debouncer: Debouncer<RecommendedWatcher>,
     dir: PathBuf,
-    loaded: Arc<Mutex<HashSet<String>>>,
+    loaded: Arc<Mutex<HashMap<String, Vec<String>>>>,
     folders: HashSet<String>,
 }
 
@@ -105,7 +107,7 @@ impl LoadedFilesWatch {
         dir: &Path,
         on_change: impl Fn(ProjectFilesChange) + Send + 'static,
     ) -> notify::Result<Self> {
-        let loaded = Arc::new(Mutex::new(HashSet::new()));
+        let loaded: Arc<Mutex<HashMap<String, Vec<String>>>> = Arc::new(Mutex::new(HashMap::new()));
         let keys = Arc::clone(&loaded);
         let folder = dir.to_path_buf();
         let real_dir = real(dir);
@@ -114,17 +116,20 @@ impl LoadedFilesWatch {
             let changed: HashSet<String> = changed_paths(&folder, result)
                 .iter()
                 .filter_map(|p| to_posix_rel(&real_dir, p))
-                .filter(|key| loaded.contains(key))
+                .filter(|key| loaded.contains_key(key))
                 .collect();
             if changed.is_empty() {
                 return;
             }
             let files: FileVersions = changed
                 .into_iter()
-                .map(|key| {
+                .flat_map(|key| {
                     let stamp =
                         file_stamp(&folder.join(&key)).unwrap_or_else(|| MISSING_FILE.to_owned());
-                    (key, stamp)
+                    loaded[&key]
+                        .iter()
+                        .map(move |r| (r.clone(), stamp.clone()))
+                        .collect::<Vec<_>>()
                 })
                 .collect();
             on_change(ProjectFilesChange {
@@ -141,9 +146,9 @@ impl LoadedFilesWatch {
     }
 
     pub fn follow(&mut self, refs: &[String]) {
-        let keys = watched_keys(refs);
-        let folders: HashSet<String> = keys.iter().map(|k| folder_of(k)).collect();
-        *self.loaded.lock().expect("loaded files") = keys;
+        let refs = watched_refs(refs);
+        let folders: HashSet<String> = refs.keys().map(|k| folder_of(k)).collect();
+        *self.loaded.lock().expect("loaded files") = refs;
         for gone in self.folders.difference(&folders) {
             if let Err(error) = self.debouncer.watcher().unwatch(&self.dir.join(gone)) {
                 log::warn!("watching {}: {error}", self.dir.join(gone).display());
@@ -198,15 +203,19 @@ mod tests {
     #[test]
     fn reports_a_loaded_file_replaced_in_place_with_its_new_stamp() {
         let (dir, mut watch, changes) = watching(&["assets/anim.lottie", "assets/other.png"]);
-        watch.follow(&["project:assets/anim.lottie".into()]);
+        watch.follow(&[
+            "project:assets/anim.lottie".into(),
+            "project:./assets/anim.lottie".into(),
+        ]);
         std::fs::write(dir.path().join("assets/other.png"), "two").unwrap();
         std::fs::write(dir.path().join("assets/anim.lottie"), "three!").unwrap();
         let change = changes.recv_timeout(WAIT).unwrap();
         assert_eq!(
             change.files.keys().collect::<Vec<_>>(),
-            ["assets/anim.lottie"]
+            ["project:./assets/anim.lottie", "project:assets/anim.lottie"]
         );
-        assert!(change.files["assets/anim.lottie"].starts_with("6:"));
+        assert!(change.files["project:assets/anim.lottie"].starts_with("6:"));
+        assert!(change.files["project:./assets/anim.lottie"].starts_with("6:"));
     }
 
     #[test]
@@ -217,7 +226,7 @@ mod tests {
         let change = changes.recv_timeout(WAIT).unwrap();
         assert_eq!(
             change.files,
-            FileVersions::from([("assets/a.wav".into(), MISSING_FILE.into())])
+            FileVersions::from([("project:assets/a.wav".into(), MISSING_FILE.into())])
         );
         watch.follow(&[]);
         std::fs::write(dir.path().join("assets/a.wav"), "back").unwrap();

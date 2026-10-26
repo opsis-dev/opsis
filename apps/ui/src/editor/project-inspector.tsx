@@ -1,4 +1,3 @@
-import type { FontRole } from "@opsis/video/common/fonts";
 import { firstFree, uniqueKeys } from "@opsis/video/common/lists";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { VARIANTS, variantCanvas } from "@/core/nodes";
 import { THEME_BACKGROUNDS } from "@/core/workflow";
+import type { FontRole } from "@/generated/bindings";
 import type { Workflow, WorkflowSettings } from "@/generated/bindings";
 import { whenFirstOneOf } from "@/lib/one-of";
 import { attempt } from "@/lib/toast";

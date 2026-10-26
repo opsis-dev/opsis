@@ -1,4 +1,4 @@
-import { resolveAssetRef } from "#video/assets.tsx";
+import { assetUrl } from "#video/assets.tsx";
 import {
   canRegister,
   loadedSignature,
@@ -6,78 +6,36 @@ import {
   registeredNames,
   signatureOf,
   urlsOf,
-  type Resolve,
 } from "#video/common/font-faces.ts";
-import {
-  findFamily,
-  ROLE_ALIASES,
-  roleFamilyName,
-  DEFAULT_PROJECT_FONTS,
-} from "#video/common/fonts.ts";
 import { holdRender } from "#video/core/loading.ts";
-import type { FontFamilyDef, ProjectFonts } from "#video/generated/spec.ts";
+import type { FilmFonts, FontFamilyDef } from "#video/generated/spec.ts";
 
-type FontContext = { fonts: ProjectFonts; resolve: Resolve };
+export const NO_FONTS: FilmFonts = { families: {}, preload: [] };
 
-let current: FontContext = {
-  fonts: DEFAULT_PROJECT_FONTS,
-  resolve: (ref) => resolveAssetRef(ref, {}),
-};
+let current: FilmFonts = NO_FONTS;
 
-function targetFor(name: string, ctx: FontContext): FontFamilyDef | undefined {
-  const role = ROLE_ALIASES[name];
-  const fromRole = role ? findFamily(roleFamilyName(role, ctx.fonts), ctx.fonts) : undefined;
-  return fromRole ?? findFamily(name, ctx.fonts);
+const familyNamed = (name: string, fonts: FilmFonts): FontFamilyDef | undefined =>
+  fonts.families[name.toLowerCase()];
+
+function ensureFont(name: string, fonts: FilmFonts): Promise<void> {
+  const def = familyNamed(name, fonts);
+  return def ? registerFaces(name, def, assetUrl) : Promise.resolve();
 }
 
-function ensureFont(name: string, ctx: FontContext): Promise<void> {
-  const def = targetFor(name, ctx);
-  return def ? registerFaces(name, def, ctx.resolve) : Promise.resolve();
-}
-
-function isLoaded(name: string, ctx: FontContext): boolean {
-  const def = targetFor(name, ctx);
-  const signature = loadedSignature(name);
-  return !!def && signature === signatureOf(def, urlsOf(def, ctx.resolve));
+function isLoaded(name: string, fonts: FilmFonts): boolean {
+  const def = familyNamed(name, fonts);
+  return !!def && loadedSignature(name) === signatureOf(def, urlsOf(def, assetUrl));
 }
 
 export function ensureFontNow(name: string): void {
-  const ctx = current;
-  if (!canRegister() || isLoaded(name, ctx)) return;
+  const fonts = current;
+  if (!canRegister() || isLoaded(name, fonts)) return;
   const release = holdRender(`Loading font ${name}`);
-  void ensureFont(name, ctx).finally(release);
+  void ensureFont(name, fonts).finally(release);
 }
 
-export function applyProjectFonts(
-  fonts: ProjectFonts,
-  resolve: Resolve,
-  used: string[],
-): Promise<void> {
-  const ctx = { fonts, resolve };
-  current = ctx;
-  const names = new Set([...Object.keys(ROLE_ALIASES), ...registeredNames(), ...used]);
-  return Promise.all([...names].map((name) => ensureFont(name, ctx))).then(() => undefined);
-}
-
-export type FontFile = { url: string; italic: boolean };
-
-const weightRange = (weight: string): [number, number] => {
-  const [low = 400, high = low] = weight.split(/\s+/).map(Number).filter(Number.isFinite);
-  return [low, high];
-};
-
-const weightDistance = (weight: string, wanted: number): number => {
-  const [low, high] = weightRange(weight);
-  return wanted < low ? low - wanted : wanted > high ? wanted - high : 0;
-};
-
-export function fontFileFor(name: string, weight: number, italic: boolean): FontFile | null {
-  const def = targetFor(name, current);
-  if (!def?.faces.length) return null;
-  const styled = def.faces.filter((f) => (f.style === "italic") === italic);
-  const faces = styled.length ? styled : def.faces;
-  const face = faces.toSorted(
-    (a, b) => weightDistance(a.weight, weight) - weightDistance(b.weight, weight),
-  )[0];
-  return face ? { url: current.resolve(face.file), italic: face.style === "italic" } : null;
+export function applyFilmFonts(fonts: FilmFonts): Promise<void> {
+  current = fonts;
+  const names = new Set([...fonts.preload, ...registeredNames()]);
+  return Promise.all([...names].map((name) => ensureFont(name, fonts))).then(() => undefined);
 }

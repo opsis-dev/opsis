@@ -7,6 +7,7 @@ use opsis_compile::asset_ref::{
     project_rel_path,
 };
 use opsis_compile::clip::walk_items;
+use opsis_compile::hosted::hosted;
 use opsis_compile::nodes::output::{EXPORT_FOLDER_FALLBACK, ExportCode};
 use opsis_compile::text::slug_name;
 use opsis_compile::vars::strings_in;
@@ -449,13 +450,13 @@ pub async fn export_code(
         &dir.join("package.json"),
         &package_json_for(&engine.sources, &name, &dir)?,
     )?;
-    let timeline = TimelineSpec {
+    let timeline = hosted(&TimelineSpec {
         assets: Some(SpecAssets {
             project_base: Some(STATIC_PROJECT_BASE.to_owned()),
             versions: None,
         }),
         ..spec
-    };
+    });
     write_json(&dir.join("src").join("timeline.json"), &timeline)?;
     std::fs::write(dir.join("src").join("index.ts"), INDEX_TS)?;
     std::fs::write(dir.join("src").join("export-root.tsx"), EXPORT_ROOT_TSX)?;

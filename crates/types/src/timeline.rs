@@ -4,7 +4,7 @@ use serde_json::{Map, Value};
 use specta::Type;
 
 use crate::actions::{Rect, Viewport};
-use crate::fonts::ProjectFonts;
+use crate::fonts::FilmFonts;
 use crate::recording::RecordingProps;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
@@ -506,7 +506,7 @@ pub struct TimelineSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub quality: Option<PreviewQuality>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub fonts: Option<ProjectFonts>,
+    pub fonts: Option<FilmFonts>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mix: Option<MasterStem>,
 }

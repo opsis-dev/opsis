@@ -9,6 +9,7 @@ use base64::engine::general_purpose::STANDARD;
 use chromiumoxide::cdp::js_protocol::runtime::EventBindingCalled;
 use futures::StreamExt;
 use opsis_capture::cdp::{CaptureError, Result};
+use opsis_compile::hosted::hosted;
 use opsis_engine::http_files::FileServer;
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
@@ -206,13 +207,13 @@ impl Preview {
 
     pub async fn load(&self, spec: &TimelineSpec) -> Result<()> {
         let versions = spec.assets.as_ref().and_then(|a| a.versions.clone());
-        let spec = TimelineSpec {
+        let spec = hosted(&TimelineSpec {
             assets: Some(SpecAssets {
                 project_base: Some(self.project.url.clone()),
                 versions,
             }),
             ..spec.clone()
-        };
+        });
         let json = serde_json::to_string(&spec).map_err(|e| CaptureError::Failed(e.to_string()))?;
         self.call(&format!("load({json})")).await?;
         self.until(|s| s != PlayerState::Waiting).await

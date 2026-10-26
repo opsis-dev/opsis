@@ -1,4 +1,3 @@
-import { BUNDLED_FONTS } from "@opsis/video/common/bundled-fonts.generated";
 import { FileArchive, Globe, HardDrive, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -13,8 +12,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { FontFamilyDef, InstalledFamily } from "@/generated/bindings";
+import type { FontChoice, FontFamilyDef, InstalledFamily } from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
+import { bundledFonts } from "@/store/catalog";
 import { SettingsCard } from "../app/settings/settings-card";
 import { describeFaces } from "./font-labels";
 import { FontRow } from "./font-row";
@@ -33,11 +33,12 @@ const SOURCE_LABEL: Record<FontFamilyDef["source"], string> = {
 
 const refreshLibrary = () => useFontLibrary.getState().refresh();
 
-function LibraryRow({ def, onRemove }: { def: FontFamilyDef; onRemove: () => void }) {
+function LibraryRow({ choice, onRemove }: { choice: FontChoice; onRemove: () => void }) {
+  const { def } = choice;
   return (
     <FontRow>
       <div className="flex min-w-0 flex-1 flex-col">
-        <FontSample def={def} className="text-base">
+        <FontSample choice={choice} className="text-base">
           {def.family}
         </FontSample>
         <span className="text-muted-foreground truncate text-xs">{describeFaces(def.faces)}</span>
@@ -80,9 +81,10 @@ function OnlineConsentDialog({
   );
 }
 
-function RemoveFontDialog({ font, onClose }: { font: FontFamilyDef; onClose: () => void }) {
+function RemoveFontDialog({ font, onClose }: { font: FontChoice; onClose: () => void }) {
+  const { family } = font.def;
   const remove = async () => {
-    await attempt(() => useFontLibrary.getState().remove(font), `Couldn't remove ${font.family}`);
+    await attempt(() => useFontLibrary.getState().remove(font), `Couldn't remove ${family}`);
     onClose();
   };
 
@@ -90,7 +92,7 @@ function RemoveFontDialog({ font, onClose }: { font: FontFamilyDef; onClose: () 
     <AlertDialog open onOpenChange={(o) => !o && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Remove {font.family}?</AlertDialogTitle>
+          <AlertDialogTitle>Remove {family}?</AlertDialogTitle>
           <AlertDialogDescription>
             It's removed from your library. Projects that already use it keep their own copy.
           </AlertDialogDescription>
@@ -111,7 +113,7 @@ type PanelDialog =
   | { kind: "installed"; fonts: InstalledFamily[] }
   | { kind: "ask-online" }
   | { kind: "online" }
-  | { kind: "remove"; font: FontFamilyDef };
+  | { kind: "remove"; font: FontChoice };
 
 export function FontsPanel() {
   const library = useFontLibrary((s) => s.library);
@@ -139,7 +141,7 @@ export function FontsPanel() {
   return (
     <SettingsCard
       title="Your library"
-      description={`${BUNDLED_FONTS.length} fonts come with Opsis. Fonts you add here work in every project; a project keeps its own copy of the fonts it uses.`}
+      description={`${bundledFonts().length} fonts come with Opsis. Fonts you add here work in every project; a project keeps its own copy of the fonts it uses.`}
       contentClassName="flex flex-col gap-1"
       footer={
         <>
@@ -165,11 +167,11 @@ export function FontsPanel() {
       {library.length === 0 ? (
         <p className="text-muted-foreground text-sm">No fonts added yet.</p>
       ) : (
-        library.map((def) => (
+        library.map((choice) => (
           <LibraryRow
-            key={def.id}
-            def={def}
-            onRemove={() => setDialog({ kind: "remove", font: def })}
+            key={choice.def.id}
+            choice={choice}
+            onRemove={() => setDialog({ kind: "remove", font: choice })}
           />
         ))
       )}

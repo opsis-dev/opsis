@@ -48,7 +48,7 @@ describe("media requests", () => {
       analyses: { waveform: { "project:assets/a.wav": WAVE, "b.wav": WAVE }, filmstrip: {} },
     });
     failingAnalyze.mockClear();
-    useMedia.getState().reloadChanged(["assets/a.wav"]);
+    useMedia.getState().reloadChanged(["project:assets/a.wav"]);
     expect(failingAnalyze).toHaveBeenCalledOnce();
     expect(useMedia.getState().analyses.waveform["project:assets/a.wav"]).toBe(WAVE);
     await vi.waitFor(() =>

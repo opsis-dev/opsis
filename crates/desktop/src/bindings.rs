@@ -71,6 +71,7 @@ pub fn builder() -> Builder<tauri::Wry> {
             run::clear_run_log,
             run::watch_live,
             fonts::list_fonts,
+            fonts::font_choices,
             fonts::inspect_font_files,
             fonts::installed_font_families,
             fonts::inspect_installed_fonts,

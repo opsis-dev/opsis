@@ -1,4 +1,3 @@
-import { isExternalRef } from "#video/common/asset-ref.ts";
 import { BACKDROP_TONES, DEFAULT_BACKDROP, type BackdropName } from "#video/common/backdrops.ts";
 import { opaqueHex, parseColor } from "#video/common/color.ts";
 import { isKeyOf, nonBlankString } from "#video/common/guards.ts";
@@ -7,6 +6,7 @@ const LIGHT_LUMA = 0.6;
 const HEX_COLOUR = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 const RGB_COLOUR = /^rgba?\(\s*(\d+(?:\.\d+)?)[\s,]+(\d+(?:\.\d+)?)[\s,]+(\d+(?:\.\d+)?)[\s,/)]/i;
 const CSS_PAINT = /^(#|rgb|hsl|oklch|linear-gradient|radial-gradient|conic-gradient)/;
+const ADDRESS = /^(https?:|data:|blob:|\/)/;
 
 function colourChannels(colour: string): number[] | null {
   const hex = HEX_COLOUR.exec(colour)?.[1];
@@ -52,6 +52,6 @@ export function backdropSource(backdrop?: string): BackdropSource {
   const value = nonBlankString(backdrop) ?? "";
   if (CSS_PAINT.test(value) || (!isBackdropName(value) && parseColor(value)))
     return { kind: "paint", css: value };
-  if (isExternalRef(value)) return { kind: "image", url: value };
+  if (ADDRESS.test(value)) return { kind: "image", url: value };
   return { kind: "file", path: backdropFile(value) };
 }

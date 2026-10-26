@@ -37,7 +37,6 @@ export const IGNORED_PATHS = [
   "packages/video/src/hooks/**",
   "packages/video/src/fonts/google/**",
   "packages/video/src/registry/components.generated.ts",
-  "packages/video/src/common/bundled-fonts.generated.ts",
   "packages/video/src/generated/**",
   "packages/video/src/registry/length-cases.generated.json",
 ];

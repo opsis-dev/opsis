@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use opsis_compile::asset_ref::{
     base_name, extension_of, library_ref, library_rel_path, project_ref,
 };
-use opsis_compile::fonts::same_family;
+use opsis_compile::fonts::{font_stack, same_family};
 use opsis_compile::text::slug_name;
 use opsis_engine::files::none_if_missing;
 use opsis_store::db::Database;
@@ -52,6 +52,7 @@ pub struct InspectedFonts {
 pub struct InstalledFamily {
     pub family: String,
     pub faces: u32,
+    pub stack: String,
 }
 
 pub struct NewFace {
@@ -400,7 +401,11 @@ pub fn installed_families(system: &fontdb::Database) -> Vec<InstalledFamily> {
     }
     counts
         .into_iter()
-        .map(|(family, faces)| InstalledFamily { family, faces })
+        .map(|(family, faces)| InstalledFamily {
+            stack: font_stack(&family, &[]),
+            family,
+            faces,
+        })
         .collect()
 }
 

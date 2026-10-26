@@ -46,14 +46,14 @@ export function InstalledDialog({
       onQuery={setQuery}
       items={shown}
     >
-      {({ family, faces }) => (
+      {({ family, faces, stack }) => (
         <ListRow
           key={family}
           className="justify-between"
           disabled={isBusy}
           onClick={() => void pick(family)}
         >
-          <FontSample family={family}>{family}</FontSample>
+          <FontSample stack={stack}>{family}</FontSample>
           <BusyCount busy={busy === family}>{plural(faces, "style")}</BusyCount>
         </ListRow>
       )}

@@ -1,5 +1,4 @@
 use opsis_types::actions::ActionLog;
-use opsis_types::fonts::ProjectFonts;
 use opsis_types::timeline::TimelineSpec;
 use opsis_types::ts_export::{boundary_types, render_plain};
 use opsis_types::values::CaptionsValue;
@@ -36,7 +35,6 @@ pub fn spec_types() -> String {
             .register::<TimelineSpec>()
             .register::<CaptionsValue>()
             .register::<ActionLog>()
-            .register::<ProjectFonts>()
             .register::<CoreElementProps>()
             .register::<crate::elements::core::PreparedTypeface>(),
     )

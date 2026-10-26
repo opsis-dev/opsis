@@ -242,6 +242,11 @@ export type ElementRef = {
 
 export type Entrance = "rise" | "fade" | "blur" | "scale" | "none";
 
+export type FilmFonts = {
+	families: { [key in string]: FontFamilyDef },
+	preload: string[],
+};
+
 export type Fit = "contain" | "cover" | "fill";
 
 export type FontCategory = "sans-serif" | "serif" | "monospace" | "display" | "handwriting";
@@ -471,13 +476,6 @@ export type PreparedTypeface = {
 
 export type PreviewQuality = "fast" | "exact";
 
-export type ProjectFonts = {
-	main: string,
-	heading: string,
-	code: string,
-	families: FontFamilyDef[],
-};
-
 export type RecordingProps = {
 	src: string,
 	proxySrc?: string,
@@ -640,7 +638,7 @@ export type TimelineSpec = {
 	assets?: SpecAssets,
 	reframe?: ReframeMode,
 	quality?: PreviewQuality,
-	fonts?: ProjectFonts,
+	fonts?: FilmFonts,
 	mix?: MasterStem,
 };
 

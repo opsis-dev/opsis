@@ -1,12 +1,5 @@
-import { BUNDLED_FONTS } from "@opsis/video/common/bundled-fonts.generated";
-import {
-  familyKey,
-  familyKeysOf,
-  familyKeysWithBundled,
-  sameFamily,
-} from "@opsis/video/common/fonts";
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -18,44 +11,51 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { FontFamilyDef } from "@/generated/bindings";
+import type { FontChoice, FontChoices, FontFamilyDef } from "@/generated/bindings";
+import { reportError } from "@/lib/toast";
 import { useBusy } from "@/lib/use-busy";
 import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { FontSample } from "./font-sample";
-import { useFontLibrary } from "./library";
-
-const NO_FAMILIES: FontFamilyDef[] = [];
 
 function SelectedMark({ selected }: { selected: boolean }) {
   return selected ? <Check data-icon="inline-end" className="ml-auto" /> : null;
 }
 
 function FontCommandItem({
-  def,
-  selected,
+  choice,
   onPick,
 }: {
-  def: FontFamilyDef;
-  selected: boolean;
-  onPick: (def: FontFamilyDef) => void;
+  choice: FontChoice;
+  onPick: (choice: FontChoice) => void;
 }) {
   return (
-    <CommandItem value={def.family} onSelect={() => onPick(def)}>
-      <FontSample def={def}>{def.family}</FontSample>
-      <SelectedMark selected={selected} />
+    <CommandItem value={choice.def.family} onSelect={() => onPick(choice)}>
+      <FontSample choice={choice}>{choice.def.family}</FontSample>
+      <SelectedMark selected={choice.selected} />
     </CommandItem>
   );
 }
 
-const without = (defs: FontFamilyDef[], keys: ReadonlySet<string>): FontFamilyDef[] =>
-  defs.filter((d) => !keys.has(familyKey(d.family)));
+const NO_CHOICES: FontChoices = { project: [], builtIn: [], library: [] };
 
-function fontGroups(project: FontFamilyDef[], library: FontFamilyDef[], value: string) {
-  return {
-    builtIn: without(BUNDLED_FONTS, familyKeysOf(project)),
-    extra: without(library, familyKeysWithBundled(project)),
-    current: [...project, ...BUNDLED_FONTS, ...library].find((f) => sameFamily(f.family, value)),
-  };
+const NO_FAMILIES: FontFamilyDef[] = [];
+
+const fetchChoices = (value: string, project: FontFamilyDef[], show: (c: FontChoices) => void) =>
+  window.opsis
+    .fontChoices(value, project)
+    .then(show, (e: unknown) => reportError("Couldn't list the fonts", e));
+
+function useFontChoices(value: string): [FontChoices, () => void] {
+  const project = useWorkflowStore((s) => s.workflow?.settings.fonts.families) ?? NO_FAMILIES;
+  const [choices, setChoices] = useState(NO_CHOICES);
+  useEffect(() => {
+    let current = true;
+    void fetchChoices(value, project, (found) => current && setChoices(found));
+    return () => {
+      current = false;
+    };
+  }, [value, project]);
+  return [choices, () => void fetchChoices(value, project, setChoices)];
 }
 
 async function copyIntoProject(def: FontFamilyDef): Promise<FontFamilyDef> {
@@ -79,31 +79,24 @@ export function FontPicker({
 }) {
   const [open, setOpen] = useState(false);
   const { isBusy, run } = useBusy();
-  const project = useWorkflowStore((s) => s.workflow?.settings.fonts.families) ?? NO_FAMILIES;
-  const library = useFontLibrary((s) => s.library);
+  const [{ project, builtIn, library, current }, refresh] = useFontChoices(value);
 
   const toggle = (next: boolean) => {
     setOpen(next);
-    if (next) useFontLibrary.getState().ensureLoaded();
+    if (next) refresh();
   };
 
-  const { builtIn, extra, current } = fontGroups(project, library, value);
-
-  const choose = (def: FontFamilyDef | null) => {
+  const choose = (choice: FontChoice | null) => {
     setOpen(false);
-    if (def && extra.includes(def))
+    const def = choice?.def;
+    if (def && library.includes(choice))
       void run(def.id, async () => onChange((await copyIntoProject(def)).family));
     else onChange(def?.family ?? "");
   };
 
-  const items = (defs: FontFamilyDef[]) =>
-    defs.map((def) => (
-      <FontCommandItem
-        key={`${def.source}-${def.id}`}
-        def={def}
-        selected={sameFamily(value, def.family)}
-        onPick={choose}
-      />
+  const items = (choices: FontChoice[]) =>
+    choices.map((choice) => (
+      <FontCommandItem key={choice.preview} choice={choice} onPick={choose} />
     ));
 
   return (
@@ -117,7 +110,7 @@ export function FontPicker({
             disabled={isBusy}
           >
             {value ? (
-              <FontSample def={current}>{value}</FontSample>
+              <FontSample choice={current}>{value}</FontSample>
             ) : (
               <span className="text-muted-foreground truncate">
                 {emptyLabel ?? "Choose a font"}
@@ -144,8 +137,8 @@ export function FontPicker({
               <CommandGroup heading="In this project">{items(project)}</CommandGroup>
             ) : null}
             <CommandGroup heading="Built in">{items(builtIn)}</CommandGroup>
-            {extra.length ? (
-              <CommandGroup heading="Your library">{items(extra)}</CommandGroup>
+            {library.length ? (
+              <CommandGroup heading="Your library">{items(library)}</CommandGroup>
             ) : null}
             <CommandSeparator />
             <CommandGroup>

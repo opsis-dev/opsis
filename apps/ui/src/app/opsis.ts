@@ -23,6 +23,8 @@ import {
   type EngineTool,
   type EnvStatus,
   type FontCatalogEntry,
+  type FontChoice,
+  type FontChoices,
   type FontFamilyDef,
   type InspectedFonts,
   type InstalledFamily,
@@ -186,8 +188,8 @@ export function createOpsis() {
     importAssets: (dir: string, paths?: string[]): Promise<string[]> =>
       unwrap(commands.importAssets(dir, paths ?? null)),
     pathForFile: (file: File): string => droppedPaths.get(file.name) ?? "",
-    revealInFolder: (dir: string, relativePath?: string) =>
-      unwrap(commands.revealInFolder(dir, relativePath ?? null)),
+    revealInFolder: (dir: string, file?: string) =>
+      unwrap(commands.revealInFolder(dir, file ?? null)),
     runWorkflow: (targets: RunTargets): Promise<{ runId: string }> =>
       unwrap(commands.runWorkflow(targets)),
     cancelRun: () => commands.cancelRun(),
@@ -281,7 +283,9 @@ export function createOpsis() {
       on(events.windowStateChanged(here()), listener),
     onSettingsPage: (listener: (page: SettingsPage) => void) =>
       on(events.settingsPageShown(here()), listener),
-    listFonts: (): Promise<FontFamilyDef[]> => unwrap(commands.listFonts()),
+    listFonts: (): Promise<FontChoice[]> => unwrap(commands.listFonts()),
+    fontChoices: (value: string, project: FontFamilyDef[]): Promise<FontChoices> =>
+      unwrap(commands.fontChoices(value, project)),
     inspectFontFiles: (paths?: string[]): Promise<InspectedFonts | null> =>
       unwrap(commands.inspectFontFiles(paths ?? null)),
     installedFontFamilies: (): Promise<InstalledFamily[]> =>

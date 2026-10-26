@@ -1,7 +1,6 @@
-import { familyKey, familyKeysWithBundled } from "@opsis/video/common/fonts";
 import { plural } from "@opsis/video/common/format";
 import { Download } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -10,7 +9,6 @@ import type { FontFamilyDef, FontCatalogEntry } from "@/generated/bindings";
 import { useBusy } from "@/lib/use-busy";
 import { categoryLabel } from "./font-labels";
 import { FontRow } from "./font-row";
-import { useFontLibrary } from "./library";
 import { matchesQuery, SearchListDialog } from "./search-list-dialog";
 
 type Catalog =
@@ -18,7 +16,7 @@ type Catalog =
   | { status: "error"; error: string }
   | { status: "ready"; entries: FontCatalogEntry[] };
 
-function useCatalog(): { catalog: Catalog; retry: () => void } {
+function useCatalog(): { catalog: Catalog; retry: () => void; reload: () => void } {
   const [catalog, setCatalog] = useState<Catalog>({ status: "loading" });
   const fetchCatalog = useCallback(() => {
     window.opsis.fontCatalog().then(
@@ -31,7 +29,7 @@ function useCatalog(): { catalog: Catalog; retry: () => void } {
     setCatalog({ status: "loading" });
     fetchCatalog();
   };
-  return { catalog, retry };
+  return { catalog, retry, reload: fetchCatalog };
 }
 
 function CatalogStatus({ catalog, onRetry }: { catalog: Catalog; onRetry: () => void }) {
@@ -114,12 +112,9 @@ export function OnlineDialog({
   onClose: () => void;
   onAdded: () => Promise<void>;
 }) {
-  const { catalog, retry } = useCatalog();
+  const { catalog, retry, reload } = useCatalog();
   const [query, setQuery] = useState("");
   const { busy, isBusy, run } = useBusy();
-  const library = useFontLibrary((s) => s.library);
-
-  const have = useMemo(() => familyKeysWithBundled(library), [library]);
   const entries = catalog.status === "ready" ? catalog.entries : null;
   const shown = (entries ?? []).filter((f) =>
     matchesQuery(query, f.family, categoryLabel(f.category)),
@@ -129,6 +124,7 @@ export function OnlineDialog({
     run(entry.id, async () => {
       announceDownload(await window.opsis.downloadFont(entry.id));
       await onAdded();
+      reload();
     });
 
   return (
@@ -151,7 +147,7 @@ export function OnlineDialog({
         <CatalogRow
           key={f.id}
           entry={f}
-          added={have.has(familyKey(f.family))}
+          added={f.added}
           busy={busy === f.id}
           disabled={isBusy}
           onDownload={() => void download(f)}

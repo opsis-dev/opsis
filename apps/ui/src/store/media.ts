@@ -1,4 +1,3 @@
-import { fileVersionKey } from "@opsis/video/common/asset-ref";
 import { keepLast } from "@opsis/video/common/lists";
 import { create } from "zustand";
 import { errorMessage } from "@/core/errors";
@@ -46,7 +45,7 @@ type MediaState = {
   waveform: (src: string) => void;
   filmstrip: (src: string) => void;
   requestMix: (source: string, plan: MixPlan) => void;
-  reloadChanged: (keys: readonly string[]) => void;
+  reloadChanged: (refs: readonly string[]) => void;
 };
 
 const MEDIA_KINDS: readonly MediaKind[] = ["waveform", "filmstrip"];
@@ -155,9 +154,9 @@ export const useMedia = create<MediaState>()((set, get) => ({
     mixSoon(projectDir, source, plan);
   },
 
-  reloadChanged: (keys) => {
-    const changed = new Set(keys);
-    const isChanged = (src: string) => changed.has(fileVersionKey(src) ?? "");
+  reloadChanged: (refs) => {
+    const changed = new Set(refs);
+    const isChanged = (src: string) => changed.has(src);
     for (const kind of MEDIA_KINDS) {
       for (const src of Object.keys(get().analyses[kind]).filter(isChanged))
         loadAnalysis(kind, src, true);

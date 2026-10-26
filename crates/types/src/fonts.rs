@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
@@ -129,4 +130,28 @@ impl FontRole {
             Self::Code => "df-code",
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type, schemars::JsonSchema)]
+pub struct FilmFonts {
+    pub families: IndexMap<String, FontFamilyDef>,
+    pub preload: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+pub struct FontChoice {
+    pub def: FontFamilyDef,
+    pub preview: String,
+    pub stack: String,
+    pub selected: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct FontChoices {
+    pub project: Vec<FontChoice>,
+    pub built_in: Vec<FontChoice>,
+    pub library: Vec<FontChoice>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current: Option<FontChoice>,
 }

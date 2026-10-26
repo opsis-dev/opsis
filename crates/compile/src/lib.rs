@@ -15,6 +15,7 @@ pub mod errors;
 pub mod fonts;
 pub mod gradient;
 pub mod graph;
+pub mod hosted;
 pub mod ids;
 pub mod inspector;
 pub mod limits;

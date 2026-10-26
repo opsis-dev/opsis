@@ -1,9 +1,11 @@
 use indexmap::IndexMap;
+use opsis_types::fonts::FontFamilyDef;
 use opsis_types::mix::{MixerBook, mixer_book};
 use opsis_types::workflow::PortType;
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::fonts::bundled_fonts;
 use crate::node::{Category, NodeDef, Phase, Platform, Ports};
 use crate::nodes::transitions::{transition_kinds, transition_title};
 use crate::params::Values;
@@ -167,12 +169,14 @@ pub struct TextRules {
 }
 
 #[derive(Debug, Clone, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
 pub struct EditorCatalog {
     pub nodes: Vec<EditorNode>,
     pub transitions: IndexMap<String, String>,
     pub connects: Vec<PortLink>,
     pub text: TextRules,
     pub mixer: MixerBook,
+    pub bundled_fonts: Vec<FontFamilyDef>,
 }
 
 pub fn editor_bundle(platform: Platform) -> EditorCatalog {
@@ -201,5 +205,6 @@ pub fn editor_bundle(platform: Platform) -> EditorCatalog {
             pause_mark: PAUSE_MARK.to_string(),
         },
         mixer: mixer_book(),
+        bundled_fonts: bundled_fonts().to_vec(),
     }
 }

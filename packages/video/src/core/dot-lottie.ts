@@ -1,9 +1,8 @@
 import type { LottieAnimationData } from "@remotion/lottie";
 import { strFromU8, unzipSync, type Unzipped } from "fflate";
 import { z } from "zod";
-import { extensionOf } from "#video/common/asset-ref.ts";
 import { isRecord, isString } from "#video/common/guards.ts";
-import { IMAGE_MIME } from "#video/common/mime.ts";
+import { extensionOf, IMAGE_MIME } from "#video/common/mime.ts";
 
 const toBase64 = (bytes: Uint8Array) => {
   let out = "";
