@@ -282,7 +282,6 @@ function SavedResults() {
       const dir = useWorkflowStore.getState().projectDir;
       if (!dir) return;
       await window.opsis.clearCache(dir);
-      useRunStore.getState().seed(null);
       useMedia.getState().reset(dir);
       toast.success("Cleared. The next run records and exports everything again.");
     }, "Couldn't clear the saved results");

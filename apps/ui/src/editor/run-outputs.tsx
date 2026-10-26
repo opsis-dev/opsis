@@ -1,8 +1,6 @@
 import { FolderOpen } from "lucide-react";
-import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { exportedArtifacts } from "@/core/run-progress";
 import { artifactName } from "@/core/values";
 import type { Artifact, WorkflowNode } from "@/generated/bindings";
 import { useRunStore } from "../store/run";
@@ -31,16 +29,14 @@ function ArtifactPreview({ artifact }: { artifact: Artifact }) {
 }
 
 export function RunOutputs({
-  nodes,
   filterNode,
   projectDir,
 }: {
-  nodes: WorkflowNode[];
   filterNode: WorkflowNode | undefined;
   projectDir: string;
 }) {
   const results = useRunStore((s) => s.results);
-  const exported = useMemo(() => exportedArtifacts(nodes, results), [nodes, results]);
+  const exported = useRunStore((s) => s.exports);
   const artifacts = filterNode ? (results[filterNode.id]?.artifacts ?? []) : exported;
 
   return (

@@ -2,15 +2,15 @@ import { clamp } from "@opsis/video/common/math";
 import { pick } from "@opsis/video/common/objects";
 import { clampFrame } from "@opsis/video/common/time";
 import { create } from "zustand";
+import type { PlaybackCall } from "@/generated/bindings";
 import { createForwarder } from "@/lib/forwarder";
 
-type PlayerCalls = { seek: [frame: number]; play: []; pause: []; rate: [rate: number] };
-
-type Player = { [K in keyof PlayerCalls]: (...args: PlayerCalls[K]) => void };
-
-export type PlaybackCommand = {
-  [K in keyof PlayerCalls]: { call: K; args: PlayerCalls[K] };
-}[keyof PlayerCalls];
+type Player = {
+  seek: (frame: number) => void;
+  play: () => void;
+  pause: () => void;
+  rate: (rate: number) => void;
+};
 
 type PlaybackState = {
   frame: number;
@@ -33,7 +33,7 @@ type PlaybackState = {
 };
 
 let local: Player | null = null;
-const remote = createForwarder<PlaybackCommand>();
+const remote = createForwarder<PlaybackCall>();
 
 export function registerPlayer(controller: Omit<Player, "rate"> | null): void {
   local = controller && {
@@ -47,15 +47,24 @@ export function registerPlayer(controller: Omit<Player, "rate"> | null): void {
 
 export const forwardPlaybackTo = remote.to;
 
-function callPlayer<K extends keyof PlayerCalls>(player: Player, call: K, args: PlayerCalls[K]) {
-  player[call](...args);
+function callPlayer(player: Player, command: PlaybackCall): void {
+  switch (command.call) {
+    case "seek":
+      return player.seek(command.frame);
+    case "play":
+      return player.play();
+    case "pause":
+      return player.pause();
+    case "rate":
+      return player.rate(command.rate);
+  }
 }
 
-export function runPlaybackCommand({ call, args }: PlaybackCommand): void {
-  if (local) callPlayer(local, call, args);
+export function runPlaybackCommand(command: PlaybackCall): void {
+  if (local) callPlayer(local, command);
 }
 
-const dispatch = (command: PlaybackCommand) => {
+const dispatch = (command: PlaybackCall) => {
   if (local) runPlaybackCommand(command);
   else remote.send(command);
 };
@@ -66,7 +75,7 @@ const SHUTTLE_RATE_STEP = 2;
 export const usePlayback = create<PlaybackState>()((set, get) => {
   const setRate = (rate: number) => {
     set({ rate });
-    dispatch({ call: "rate", args: [rate] });
+    dispatch({ call: "rate", rate });
   };
   return {
     frame: 0,
@@ -80,13 +89,13 @@ export const usePlayback = create<PlaybackState>()((set, get) => {
     seek: (frame) => {
       const f = clampFrame(frame, get().durationInFrames);
       set({ frame: f });
-      dispatch({ call: "seek", args: [f] });
+      dispatch({ call: "seek", frame: f });
     },
     play: () => {
       if (get().rate !== 1) setRate(1);
-      dispatch({ call: "play", args: [] });
+      dispatch({ call: "play" });
     },
-    pause: () => dispatch({ call: "pause", args: [] }),
+    pause: () => dispatch({ call: "pause" }),
     toggle: () => (get().playing ? get().pause() : get().play()),
     step: (frames) => {
       get().pause();
@@ -104,7 +113,7 @@ export const usePlayback = create<PlaybackState>()((set, get) => {
         ? clamp(rate * SHUTTLE_RATE_STEP, -MAX_SHUTTLE_RATE, MAX_SHUTTLE_RATE)
         : direction;
       setRate(next);
-      if (!playing) dispatch({ call: "play", args: [] });
+      if (!playing) dispatch({ call: "play" });
     },
     setIn: (inPoint) =>
       set((s) => ({

@@ -8,13 +8,8 @@ What's left outside the release plan: the places in the codebase that don't read
 
 `apps/ui/src/app/opsis.ts` (327 lines, `OpsisApi`, `createOpsis`) wraps every generated command and event in a preload-style object so call sites written for Electron keep working; 110 call sites use it. Call the generated `commands` and `events` from `@/generated/bindings` directly, with small typed helpers only where a channel or a frame decoder is involved.
 
-### 7. Pop-out window sync
-
-The document already lives in Rust and every window follows `DocumentChanged`. `apps/ui/src/app/sync.ts` (246 lines) and `relay` still mirror the selection, view options, run state and playhead between windows with `hello`/`state` messages, the design of a `BroadcastChannel`. Keep that state in Rust too, so windows follow Rust's events instead.
-
 ### 8. Logic written twice, in TS and in Rust
 
-- the run-progress reducer: `apps/ui/src/core/run-progress.ts` and `crates/runner/src/progress.rs`;
 - graph walks: `apps/ui/src/core/graph.ts` and `crates/compile/src/graph.rs`;
 - bar clocks: `apps/ui/src/core/clock.ts` and `BarClock` in `crates/compile/src/timeline/flatten.rs`;
 - ducking spans: `apps/ui/src/core/duck.ts` and the mix plan;

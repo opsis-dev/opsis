@@ -10,7 +10,7 @@ const isPreviewQuality = (v: unknown): v is PreviewQuality => isOneOf(PREVIEW_QU
 
 export const PREVIEW_SHAPES = ["project", ...VARIANTS] as const;
 type PreviewShape = (typeof PREVIEW_SHAPES)[number];
-const isPreviewShape = (v: unknown): v is PreviewShape => isOneOf(PREVIEW_SHAPES, v);
+export const isPreviewShape = (v: unknown): v is PreviewShape => isOneOf(PREVIEW_SHAPES, v);
 
 type ViewOptions = {
   previewQuality: PreviewQuality;

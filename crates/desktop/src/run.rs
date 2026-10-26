@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 use opsis_capture::executors::{CaptureDeps, capture_executors};
@@ -8,11 +9,16 @@ use opsis_image::executors::image_executors;
 use opsis_media::executors::media_executors;
 use opsis_render::executors::{RenderEngine, output_executors};
 use opsis_render::export_project::ExportSources;
+use opsis_runner::context::now_ms;
 use opsis_runner::context::{Executors, RunEnv};
-use opsis_runner::progress::apply_run_event;
+use opsis_runner::progress::{
+    RunLog, apply_to_view, begin_run, exported_artifacts, forget_errors as forget_run_errors,
+    seeded_view,
+};
 use opsis_runner::runner::{RunDeps, run_workflow as run_runner};
 use opsis_stream::sign_in::StreamLogin;
-use opsis_types::events::{RunEvent, RunProgress, RunRequest, RunTargets};
+use opsis_types::events::{RunEvent, RunRequest, RunState, RunTargets, RunView};
+use opsis_types::values::LastRun;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::{AppHandle, Manager, State};
@@ -22,7 +28,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::engine::{engine_files, engine_tools};
 use crate::error::{CommandError, CommandResult};
-use crate::events::{LiveNoted, RunEventFired};
+use crate::events::{LiveNoted, RunEventFired, RunLogged, RunStateReset, RunViewChanged};
 use crate::frames::{FrameChannel, send};
 use crate::settings::ProjectSignIns;
 use crate::state::AppState;
@@ -38,7 +44,9 @@ struct ActiveRun {
 #[derive(Default)]
 pub struct RunHost {
     active: Mutex<Option<ActiveRun>>,
-    progress: Mutex<Option<RunProgress>>,
+    view: Mutex<RunView>,
+    log: Mutex<RunLog>,
+    changes: AtomicU64,
     live: Mutex<HashMap<String, FrameChannel>>,
 }
 
@@ -53,33 +61,76 @@ impl RunHost {
         }
     }
 
-    fn record(&self, event: &RunEvent) {
-        let mut progress = self.progress.lock().expect("run progress");
-        match event {
-            RunEvent::RunDone { .. } => *progress = None,
-            RunEvent::RunStart { run_id, .. } => {
-                let mut next = RunProgress {
-                    run_id: Some(run_id.clone()),
-                    ..RunProgress::default()
-                };
-                apply_run_event(&mut next, event);
-                *progress = Some(next);
-            }
-            _ => {
-                if let Some(current) = progress.as_mut() {
-                    apply_run_event(current, event);
-                }
-            }
+    fn view(&self) -> std::sync::MutexGuard<'_, RunView> {
+        self.view.lock().expect("run view")
+    }
+
+    fn log(&self) -> std::sync::MutexGuard<'_, RunLog> {
+        self.log.lock().expect("run log")
+    }
+
+    fn changed(&self) {
+        self.changes.fetch_add(1, Ordering::Relaxed);
+    }
+
+    fn state(&self) -> RunState {
+        RunState {
+            view: self.view().clone(),
+            logs: self.log().lines(),
         }
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
-#[serde(rename_all = "camelCase")]
-pub struct RunStatus {
-    pub run_id: Option<String>,
-    pub project_dir: Option<String>,
-    pub progress: RunProgress,
+fn with_exports(app: &AppHandle, mut view: RunView) -> RunView {
+    view.seq = app.state::<RunHost>().changes.load(Ordering::Relaxed);
+    let nodes: Vec<(String, String)> = crate::document::document_workflow(&app.state::<AppState>())
+        .map(|(_, wf)| wf.nodes.into_iter().map(|n| (n.id, n.kind)).collect())
+        .unwrap_or_default();
+    view.exports = exported_artifacts(
+        nodes.iter().map(|(id, kind)| (id.as_str(), kind.as_str())),
+        &view.progress.results,
+    );
+    view
+}
+
+fn emit_view(app: &AppHandle) {
+    let view = app.state::<RunHost>().view().clone();
+    if let Err(error) = RunViewChanged(with_exports(app, view)).emit(app) {
+        log::warn!("sending the run state: {error}");
+    }
+}
+
+fn emit_reset(app: &AppHandle) {
+    let mut state = app.state::<RunHost>().state();
+    state.view = with_exports(app, state.view);
+    if let Err(error) = RunStateReset(state).emit(app) {
+        log::warn!("sending the run state: {error}");
+    }
+}
+
+pub fn reseed(app: &AppHandle, dir: &str, last_run: Option<&LastRun>) {
+    let host = app.state::<RunHost>();
+    let running_here = host
+        .active
+        .lock()
+        .expect("active run")
+        .as_ref()
+        .is_some_and(|r| r.project_dir == dir);
+    if running_here {
+        return;
+    }
+    *host.view() = seeded_view(last_run);
+    host.log().clear();
+    host.changed();
+    emit_reset(app);
+}
+
+pub fn forget_errors(app: &AppHandle, ids: &[String]) {
+    let host = app.state::<RunHost>();
+    if forget_run_errors(&mut host.view(), ids) {
+        host.changed();
+        emit_view(app);
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -227,7 +278,17 @@ fn notify_finished(app: &AppHandle, event: &RunEvent) {
 }
 
 fn on_event(app: &AppHandle, run_id: &str, event: RunEvent) {
-    app.state::<RunHost>().record(&event);
+    let host = app.state::<RunHost>();
+    let line = apply_to_view(&mut host.view(), &mut host.log(), &event, now_ms());
+    host.changed();
+    if let Some(line) = line
+        && let Err(error) = RunLogged(line).emit(app)
+    {
+        log::warn!("sending a run log line: {error}");
+    }
+    if !matches!(event, RunEvent::NodeLog { .. }) {
+        emit_view(app);
+    }
     if let RunEvent::NodeDone {
         node_id,
         result: Some(result),
@@ -295,6 +356,9 @@ pub async fn start(app: &AppHandle, targets: RunTargets) -> Result<StartedRun, S
             cancel: cancel.clone(),
         });
     }
+    begin_run(&mut host.view(), &run_id);
+    host.changed();
+    emit_view(app);
     let temp_dir = make_child_temp(
         &state.paths.temp_root,
         &child_temp_name(ChildKind::Run, &run_id, std::process::id()),
@@ -347,26 +411,19 @@ pub fn cancel_run(host: State<'_, RunHost>) {
 
 #[tauri::command]
 #[specta::specta]
-pub fn run_status(host: State<'_, RunHost>) -> RunStatus {
-    let active = host.active.lock().expect("active run");
-    let run_id = active.as_ref().map(|r| r.run_id.clone());
-    let project_dir = active.as_ref().map(|r| r.project_dir.clone());
-    drop(active);
-    let progress = host
-        .progress
-        .lock()
-        .expect("run progress")
-        .clone()
-        .filter(|p| p.run_id == run_id)
-        .unwrap_or_else(|| RunProgress {
-            run_id: run_id.clone(),
-            ..RunProgress::default()
-        });
-    RunStatus {
-        run_id,
-        project_dir,
-        progress,
-    }
+pub fn run_state(app: AppHandle) -> RunState {
+    let mut state = app.state::<RunHost>().state();
+    state.view = with_exports(&app, state.view);
+    state
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn clear_run_log(app: AppHandle) {
+    let host = app.state::<RunHost>();
+    host.log().clear();
+    host.changed();
+    emit_reset(&app);
 }
 
 #[tauri::command]

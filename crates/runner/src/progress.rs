@@ -1,9 +1,11 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 
 use indexmap::IndexMap;
 use opsis_compile::registry::is_output_type;
-use opsis_types::events::{CANCELLED, NodeProgress, NodeRunStatus, RunEvent, RunProgress};
-use opsis_types::values::{Artifact, NodeResult};
+use opsis_types::events::{
+    CANCELLED, LogLevel, LogLine, NodeProgress, NodeRunStatus, RunEvent, RunProgress, RunView,
+};
+use opsis_types::values::{Artifact, LastRun, NodeFailure, NodeResult};
 
 fn forget(progress: &mut RunProgress, ids: &[String]) {
     for id in ids {
@@ -101,18 +103,6 @@ pub fn apply_run_event(state: &mut RunProgress, event: &RunEvent) {
     }
 }
 
-pub fn resume_run_progress(state: &mut RunProgress, saved: &RunProgress) {
-    let ids: Vec<String> = saved.statuses.keys().cloned().collect();
-    forget(state, &ids);
-    state.run_id.clone_from(&saved.run_id);
-    state.statuses.extend(saved.statuses.clone());
-    state.progress.extend(saved.progress.clone());
-    state.cached.extend(saved.cached.clone());
-    state.errors.extend(saved.errors.clone());
-    state.traces.extend(saved.traces.clone());
-    state.results.extend(saved.results.clone());
-}
-
 pub fn failure_message(failed_names: &[String], skipped: usize) -> String {
     let skipped_text = if skipped > 0 {
         format!(", {skipped} skipped")
@@ -148,6 +138,152 @@ pub fn exported_artifacts<'a>(
         .filter(|a| seen.insert(a.path.clone()))
         .cloned()
         .collect()
+}
+
+pub const MAX_LOG_LINES: usize = 2000;
+const RUN_FAILED: &str = "Failed";
+
+#[derive(Debug, Default)]
+pub struct RunLog {
+    next: u64,
+    lines: VecDeque<LogLine>,
+}
+
+impl RunLog {
+    pub fn push(
+        &mut self,
+        at: i64,
+        level: LogLevel,
+        node_id: Option<String>,
+        message: String,
+    ) -> LogLine {
+        self.next += 1;
+        let line = LogLine {
+            id: self.next,
+            at,
+            level,
+            node_id,
+            message,
+        };
+        self.lines.push_back(line.clone());
+        while self.lines.len() > MAX_LOG_LINES {
+            self.lines.pop_front();
+        }
+        line
+    }
+
+    pub fn clear(&mut self) {
+        self.lines.clear();
+    }
+
+    pub fn lines(&self) -> Vec<LogLine> {
+        self.lines.iter().cloned().collect()
+    }
+}
+
+fn newer_failures(last_run: &LastRun) -> impl Iterator<Item = (&String, &NodeFailure)> {
+    last_run
+        .failures
+        .iter()
+        .flatten()
+        .filter(|(id, f)| f.at > last_run.nodes.get(*id).map_or(0, |r| r.finished_at))
+}
+
+pub fn seeded_view(last_run: Option<&LastRun>) -> RunView {
+    let mut view = RunView::default();
+    let Some(last_run) = last_run else {
+        return view;
+    };
+    let progress = &mut view.progress;
+    progress.results = last_run.nodes.clone();
+    for (id, result) in &last_run.nodes {
+        if let Some(trace) = &result.trace_id {
+            progress.traces.insert(id.clone(), trace.clone());
+        }
+    }
+    for (id, failure) in newer_failures(last_run) {
+        if let Some(trace) = &failure.trace_id {
+            progress.traces.insert(id.clone(), trace.clone());
+        }
+        progress.errors.insert(id.clone(), failure.message.clone());
+    }
+    view
+}
+
+fn fresh_run(view: &mut RunView, running: bool) {
+    view.running = running;
+    view.outputs.clear();
+    view.last_error = None;
+    view.failed_node_ids.clear();
+    view.skipped_node_ids.clear();
+}
+
+pub fn begin_run(view: &mut RunView, run_id: &str) {
+    if view.progress.run_id.as_deref() == Some(run_id) {
+        return;
+    }
+    fresh_run(view, true);
+    view.progress.run_id = Some(run_id.to_owned());
+}
+
+pub fn apply_to_view(
+    view: &mut RunView,
+    log: &mut RunLog,
+    event: &RunEvent,
+    now: i64,
+) -> Option<LogLine> {
+    match event {
+        RunEvent::RunStart { .. } => {
+            apply_run_event(&mut view.progress, event);
+            fresh_run(view, true);
+            None
+        }
+        RunEvent::NodeLog {
+            node_id,
+            level,
+            message,
+            at,
+            ..
+        } => Some(log.push(*at, *level, node_id.clone(), message.clone())),
+        RunEvent::NodeError {
+            node_id, message, ..
+        } => {
+            apply_run_event(&mut view.progress, event);
+            Some(log.push(now, LogLevel::Error, Some(node_id.clone()), message.clone()))
+        }
+        RunEvent::RunDone {
+            run_id,
+            ok,
+            cancelled,
+            error,
+            failed_node_ids,
+            skipped_node_ids,
+            outputs,
+            ..
+        } => {
+            view.progress.run_id = Some(run_id.clone());
+            view.running = false;
+            view.outputs.clone_from(outputs);
+            view.failed_node_ids = failed_node_ids.clone().unwrap_or_default();
+            view.skipped_node_ids = skipped_node_ids.clone().unwrap_or_default();
+            view.last_error = (!ok).then(|| {
+                error
+                    .clone()
+                    .unwrap_or_else(|| if *cancelled { CANCELLED } else { RUN_FAILED }.to_owned())
+            });
+            None
+        }
+        _ => {
+            apply_run_event(&mut view.progress, event);
+            None
+        }
+    }
+}
+
+pub fn forget_errors(view: &mut RunView, ids: &[String]) -> bool {
+    let before = view.progress.errors.len();
+    view.progress.errors.retain(|id, _| !ids.contains(id));
+    view.progress.errors.len() != before
 }
 
 #[cfg(test)]
@@ -275,40 +411,6 @@ mod tests {
     }
 
     #[test]
-    fn resumes_over_a_freshly_opened_project() {
-        let mut opened = RunProgress::default();
-        opened.errors.insert("old".into(), "earlier".into());
-        opened.results.insert("x".into(), result(1, &[]));
-        let saved = run(vec![
-            event(json!({ "type": "run:start", "runId": "r", "nodeIds": ["a", "b"], "at": 0 })),
-            RunEvent::NodeDone {
-                run_id: "r".into(),
-                node_id: "a".into(),
-                cached: true,
-                result: Some(Box::new(result(2, &["a.mp4"]))),
-            },
-            event(json!({ "type": "node:progress", "runId": "r", "nodeId": "b", "progress": 0.5 })),
-        ]);
-        resume_run_progress(&mut opened, &saved);
-        assert_eq!(opened.run_id.as_deref(), Some("r"));
-        assert_eq!(statuses(&opened), json!({ "a": "cached", "b": "queued" }));
-        assert_eq!(
-            opened.progress["b"],
-            NodeProgress {
-                value: 0.5,
-                message: None
-            }
-        );
-        assert_eq!(
-            serde_json::to_value(&opened.errors).unwrap(),
-            json!({ "old": "earlier" })
-        );
-        let mut keys: Vec<&String> = opened.results.keys().collect();
-        keys.sort();
-        assert_eq!(keys, ["a", "x"]);
-    }
-
-    #[test]
     fn names_the_failed_nodes_and_counts_skips_apart() {
         assert_eq!(
             failure_message(&["Export film".into()], 0),
@@ -391,5 +493,137 @@ mod tests {
             ),
         );
         assert!(running.statuses.get("rec").is_none() && running.errors.is_empty());
+    }
+
+    fn traced(finished_at: i64, trace: &str) -> NodeResult {
+        serde_json::from_value(json!({ "hash": "h", "outputs": {}, "artifacts": [], "finishedAt": finished_at, "durationMs": 0, "traceId": trace })).unwrap()
+    }
+
+    fn apply_all(view: &mut RunView, log: &mut RunLog, events: Vec<serde_json::Value>) {
+        for e in events {
+            apply_to_view(view, log, &event(e), 0);
+        }
+    }
+
+    #[test]
+    fn opens_the_newest_trace_of_each_node_failed_or_not() {
+        let last: LastRun = serde_json::from_value(json!({
+            "updatedAt": 300,
+            "nodes": { "rec": traced(100, "ok-old"), "still": traced(250, "ok-new") },
+            "failures": {
+                "rec": { "message": "Assertion failed", "at": 200, "traceId": "failed-new" },
+                "still": { "message": "Timeout", "at": 150, "traceId": "failed-old" },
+                "login": { "message": "Closed", "at": 120 },
+            },
+        }))
+        .unwrap();
+        let view = seeded_view(Some(&last));
+        assert_eq!(
+            serde_json::to_value(&view.progress.traces).unwrap(),
+            json!({ "rec": "failed-new", "still": "ok-new" })
+        );
+        assert_eq!(
+            serde_json::to_value(&view.progress.errors).unwrap(),
+            json!({ "rec": "Assertion failed", "login": "Closed" })
+        );
+    }
+
+    #[test]
+    fn points_the_trace_at_the_failed_take_when_a_node_fails_during_a_run() {
+        let last: LastRun =
+            serde_json::from_value(json!({ "updatedAt": 1, "nodes": { "rec": traced(1, "ok") } }))
+                .unwrap();
+        let mut view = seeded_view(Some(&last));
+        let mut log = RunLog::default();
+        apply_all(
+            &mut view,
+            &mut log,
+            vec![
+                json!({ "type": "node:error", "runId": "r", "nodeId": "rec", "message": "boom", "traceId": "failed" }),
+            ],
+        );
+        assert_eq!(view.progress.traces["rec"], "failed");
+    }
+
+    #[test]
+    fn keeps_an_earlier_failure_when_a_later_run_leaves_that_node_out() {
+        let mut view = seeded_view(None);
+        let mut log = RunLog::default();
+        apply_all(
+            &mut view,
+            &mut log,
+            vec![
+                json!({ "type": "run:start", "runId": "r1", "nodeIds": ["a", "b", "c"], "at": 0 }),
+                json!({ "type": "node:done", "runId": "r1", "nodeId": "a", "cached": false, "result": traced(1, "x") }),
+                json!({ "type": "node:error", "runId": "r1", "nodeId": "b", "message": "boom" }),
+                json!({ "type": "node:skipped", "runId": "r1", "nodeId": "c", "reason": "Something before it failed" }),
+                json!({ "type": "run:done", "runId": "r1", "ok": false, "cancelled": false, "error": "B failed, 1 skipped", "failedNodeIds": ["b"], "skippedNodeIds": ["c"], "outputs": [], "at": 2 }),
+            ],
+        );
+        assert_eq!(view.failed_node_ids, ["b"]);
+        assert_eq!(view.last_error.as_deref(), Some("B failed, 1 skipped"));
+        begin_run(&mut view, "r2");
+        apply_all(
+            &mut view,
+            &mut log,
+            vec![
+                json!({ "type": "run:start", "runId": "r2", "nodeIds": ["c"], "at": 3 }),
+                json!({ "type": "node:done", "runId": "r2", "nodeId": "c", "cached": false, "result": traced(4, "y") }),
+                json!({ "type": "run:done", "runId": "r2", "ok": true, "cancelled": false, "outputs": [], "at": 5 }),
+            ],
+        );
+        assert_eq!(view.progress.errors["b"], "boom");
+        assert_eq!(view.progress.statuses["b"], NodeRunStatus::Error);
+        assert_eq!(view.progress.statuses["c"], NodeRunStatus::Done);
+        assert!(!view.running);
+        assert!(view.failed_node_ids.is_empty());
+    }
+
+    #[test]
+    fn keeps_a_started_run_running_until_it_is_done() {
+        let mut view = seeded_view(None);
+        let mut log = RunLog::default();
+        begin_run(&mut view, "fast");
+        assert!(view.running);
+        apply_all(
+            &mut view,
+            &mut log,
+            vec![
+                json!({ "type": "run:start", "runId": "fast", "nodeIds": ["a"], "at": 0 }),
+                json!({ "type": "run:done", "runId": "fast", "ok": true, "cancelled": false, "outputs": [], "at": 1 }),
+            ],
+        );
+        begin_run(&mut view, "fast");
+        assert!(!view.running);
+    }
+
+    #[test]
+    fn keeps_the_log_at_its_limit_however_lines_arrive() {
+        let mut view = seeded_view(None);
+        let mut log = RunLog::default();
+        for i in 0..MAX_LOG_LINES {
+            apply_all(
+                &mut view,
+                &mut log,
+                vec![
+                    json!({ "type": "node:log", "runId": "r", "nodeId": "a", "level": "info", "message": format!("log {i}"), "at": i }),
+                    json!({ "type": "node:error", "runId": "r", "nodeId": "a", "message": format!("error {i}") }),
+                ],
+            );
+        }
+        let lines = log.lines();
+        assert_eq!(lines.len(), MAX_LOG_LINES);
+        assert_eq!(
+            lines.last().map(|l| l.message.as_str()),
+            Some(format!("error {}", MAX_LOG_LINES - 1).as_str())
+        );
+    }
+
+    #[test]
+    fn forgets_the_errors_of_edited_nodes() {
+        let mut view = seeded_view(None);
+        view.progress.errors.insert("a".into(), "boom".into());
+        assert!(forget_errors(&mut view, &["a".to_owned()]));
+        assert!(!forget_errors(&mut view, &["a".to_owned()]));
     }
 }

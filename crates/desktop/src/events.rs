@@ -1,12 +1,12 @@
 use opsis_types::edits::DocumentState;
 use opsis_types::engine::{EngineInstallEvent, EngineStatus};
-use opsis_types::events::RunEvent;
+use opsis_types::events::{LogLine, RunEvent, RunState, RunView};
 use opsis_types::live::LiveEvent;
 use opsis_types::project::ProjectFilesChange;
 use opsis_types::settings::AppSettings;
 use opsis_types::shell::{
-    ApiServerStatus, CloseRequest, DockPanelName, MenuCommand, SettingsPage, ViewPrefChange,
-    WindowState,
+    ApiServerStatus, CloseRequest, DockPanelName, MenuCommand, PlaybackCall, Playhead, ReplayTab,
+    Selection, SettingsPage, SharedView, ViewPrefChange, WindowState,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -86,9 +86,38 @@ pub struct LiveNoted {
 pub struct Compiled(#[specta(type = EditorCompile)] pub Value);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
-#[serde(rename_all = "camelCase")]
-pub struct Relayed {
+pub struct SelectionShared {
     pub from: String,
-    #[specta(type = specta_typescript::Unknown)]
-    pub message: Value,
+    pub selection: Selection,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct ViewShared {
+    pub from: String,
+    pub view: SharedView,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct PlayheadShared {
+    pub from: String,
+    pub playhead: Playhead,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct PlaybackCalled(pub PlaybackCall);
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+#[serde(rename_all = "camelCase")]
+pub struct ReplayRequested {
+    pub node_id: Option<String>,
+    pub tab: ReplayTab,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct RunViewChanged(pub RunView);
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct RunLogged(pub LogLine);
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct RunStateReset(pub RunState);

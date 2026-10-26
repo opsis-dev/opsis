@@ -1,7 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useLiveStore } from "../store/live";
-import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";
 import { onMenuCommand, projectActionOf, usePendingProjectAction } from "./menu-commands";
@@ -32,9 +31,8 @@ function useRunEvents(): void {
   useEffect(
     () =>
       window.opsis.onRunEvent((e) => {
-        useRunStore.getState().apply(e);
-        if (e.type !== "run:done") return;
-        void useSecretsStore.getState().refresh(useWorkflowStore.getState().projectDir);
+        if (e.type === "run:done")
+          void useSecretsStore.getState().refresh(useWorkflowStore.getState().projectDir);
       }),
     [],
   );

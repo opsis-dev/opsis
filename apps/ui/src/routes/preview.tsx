@@ -10,8 +10,6 @@ import { CompiledContext, useCompiled } from "../editor/use-compiled";
 import { useFileChanges } from "../editor/use-file-changes";
 import { useWorkflowStore } from "../store/workflow";
 
-const close = () => void window.opsis.windowRole("close");
-
 function PreviewBody() {
   const compiled = useCompiled({ drive: false });
   return (
@@ -27,7 +25,7 @@ function PreviewBody() {
 
 function PreviewRoute() {
   const projectName = useWorkflowStore((s) => s.workflow?.name ?? null);
-  useWindowSync(close);
+  useWindowSync();
   useFileChanges();
 
   useEffect(() => {

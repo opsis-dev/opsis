@@ -19,9 +19,9 @@ mod native_menu;
 mod page_log;
 mod paths;
 mod projects;
-mod relay;
 mod run;
 mod settings;
+mod shared;
 mod startup;
 mod state;
 mod views;
@@ -79,6 +79,7 @@ async fn open(
     app.manage(state);
     app.manage(files);
     app.manage(RunHost::default());
+    app.manage(shared::Shared::default());
     app.manage(Exit::default());
     app.manage(Views::default());
     app.manage(Mixes::default());

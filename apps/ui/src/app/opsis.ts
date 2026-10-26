@@ -28,22 +28,31 @@ import {
   type InstalledFamily,
   type LastRun,
   type LicenceEntry,
+  type LogLine,
   type LiveEvent,
   type MenuCommand,
   type MenuSection,
   type OpenProject,
   type PickRequest,
   type PickResult,
+  type PlaybackCall,
+  type Playhead,
+  type PlayheadShared,
   type PreviewReported,
   type ProjectFilesChange,
   type ProjectLocations,
   type RecentProject,
+  type ReplayRequested,
+  type ReplayTab,
   type Removal,
-  type Relayed,
-  type RelayTarget,
   type RunEvent,
+  type RunState,
+  type RunView,
+  type Selection,
+  type SelectionShared,
+  type SharedState,
+  type SharedView,
   type RunTargets,
-  type RunStatus,
   type SettingsPage,
   type TimelineEdit,
   type TimelineReply,
@@ -53,6 +62,7 @@ import {
   type ViewEvent,
   type ViewInput,
   type ViewPrefChange,
+  type ViewShared,
   type ViewSize,
   type WindowRole,
   type WindowState,
@@ -183,7 +193,13 @@ export function createOpsis() {
     runWorkflow: (targets: RunTargets): Promise<{ runId: string }> =>
       unwrap(commands.runWorkflow(targets)),
     cancelRun: () => commands.cancelRun(),
-    runStatus: (): Promise<RunStatus> => commands.runStatus(),
+    runState: (): Promise<RunState> => commands.runState(),
+    clearRunLog: (): void => void commands.clearRunLog(),
+    onRunViewChanged: (listener: (view: RunView) => void) =>
+      on(events.runViewChanged(here()), listener),
+    onRunLogged: (listener: (line: LogLine) => void) => on(events.runLogged(here()), listener),
+    onRunStateReset: (listener: (state: RunState) => void) =>
+      on(events.runStateReset(here()), listener),
     onRunEvent: (listener: (event: RunEvent) => void) => on(events.runEventFired(here()), listener),
     pickElement: (request: PickRequest): Promise<PickResult | null> =>
       unwrap(commands.pickElement(request)),
@@ -287,8 +303,26 @@ export function createOpsis() {
     latestCompile: (): Promise<EditorCompile | null> => unwrap(commands.latestCompile()),
     onCompiled: (listener: (compiled: EditorCompile) => void) =>
       on(events.compiled(here()), listener),
-    relay: (to: RelayTarget, message: unknown) => unwrap(commands.relay(to, message as Value)),
-    onRelayed: (listener: (relayed: Relayed) => void) => on(events.relayed(here()), listener),
+    windowLabel: here().label,
+    sharedState: (): Promise<SharedState> => commands.sharedState(),
+    shareSelection: (selection: Selection): void => void commands.shareSelection(selection),
+    shareView: (view: SharedView): void => void commands.shareView(view),
+    sharePlayhead: (playhead: Playhead): void => void commands.sharePlayhead(playhead),
+    onSelectionShared: (listener: (shared: SelectionShared) => void) =>
+      on(events.selectionShared(here()), listener),
+    onViewShared: (listener: (shared: ViewShared) => void) =>
+      on(events.viewShared(here()), listener),
+    onPlayheadShared: (listener: (shared: PlayheadShared) => void) =>
+      on(events.playheadShared(here()), listener),
+    controlPlayback: (call: PlaybackCall): void => void commands.controlPlayback(call),
+    onPlaybackCalled: (listener: (call: PlaybackCall) => void) =>
+      on(events.playbackCalled(here()), listener),
+    showReplay: (nodeId: string | null, tab: ReplayTab): void =>
+      void commands.showReplay(nodeId, tab),
+    onReplayRequested: (listener: (request: ReplayRequested) => void) =>
+      on(events.replayRequested(here()), listener),
+    viewState: (dir: string): Promise<Partial<Record<string, unknown>>> =>
+      unwrap(commands.viewState(dir)),
     attachView: (id: string, listener: (frame: StreamFrame) => void) =>
       unwrap(commands.attachView(id, frameChannel(listener))),
     onViewEvent: (id: string, listener: (event: ViewEvent) => void) =>

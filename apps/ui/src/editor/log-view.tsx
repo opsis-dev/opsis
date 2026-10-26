@@ -1,6 +1,6 @@
 import { memo } from "react";
+import type { LogLine } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
-import type { LogLine } from "../store/run";
 import { MONO_TEXT } from "./text-styles";
 
 const LogRow = memo(function LogRow({ line, showTime }: { line: LogLine; showTime: boolean }) {

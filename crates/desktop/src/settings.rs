@@ -53,6 +53,15 @@ pub async fn patch_settings(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn view_state(
+    state: State<'_, AppState>,
+    dir: String,
+) -> CommandResult<serde_json::Map<String, Value>> {
+    Ok(state.db().read_view_state(&dir).await?)
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn set_view_pref(
     app: AppHandle,
     state: State<'_, AppState>,

@@ -155,3 +155,34 @@ pub struct RunRequest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub from_node_id: Option<String>,
 }
+
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct RunView {
+    pub seq: u64,
+    pub progress: RunProgress,
+    pub running: bool,
+    pub outputs: Vec<String>,
+    pub last_error: Option<String>,
+    pub failed_node_ids: Vec<String>,
+    pub skipped_node_ids: Vec<String>,
+    pub exports: Vec<crate::values::Artifact>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct LogLine {
+    pub id: u64,
+    pub at: i64,
+    pub level: LogLevel,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub node_id: Option<String>,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct RunState {
+    pub view: RunView,
+    pub logs: Vec<LogLine>,
+}

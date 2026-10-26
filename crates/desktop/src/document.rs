@@ -57,9 +57,11 @@ fn announce(app: &AppHandle) {
             document: doc.state(),
             edited: doc.take_edited(),
         });
-    if let Some(changed) = changed
-        && let Err(error) = changed.emit(app)
-    {
+    let Some(changed) = changed else {
+        return;
+    };
+    crate::run::forget_errors(app, &changed.edited);
+    if let Err(error) = changed.emit(app) {
         log::warn!("sending the document: {error}");
     }
 }
@@ -223,15 +225,23 @@ pub async fn open(app: &AppHandle, dir: &Path) -> CommandResult<OpenProject> {
             .db()
             .touch_recent(&shown(dir), &project.workflow.name, now_ms())
             .await?;
-        let mut editor = state.editor();
-        editor.results = project.last_run.map(|r| r.nodes).unwrap_or_default();
-        editor.disk_change = None;
-        editor.document = Some(Document::open(
-            dir,
-            project.workflow,
-            project.version,
-            Platform::current(),
-        ));
+        {
+            let mut editor = state.editor();
+            editor.results = project
+                .last_run
+                .as_ref()
+                .map(|r| r.nodes.clone())
+                .unwrap_or_default();
+            editor.disk_change = None;
+            editor.document = Some(Document::open(
+                dir,
+                project.workflow,
+                project.version,
+                Platform::current(),
+            ));
+        }
+        crate::run::reseed(app, &shown(dir), project.last_run.as_ref());
+        crate::shared::forget_project(app);
     }
     watch(app, dir)?;
     changed(app);
@@ -252,6 +262,8 @@ pub async fn adopt(
         editor.disk_change = None;
         editor.document = Some(Document::open(dir, workflow, version, Platform::current()));
     }
+    crate::run::reseed(app, &shown(dir), None);
+    crate::shared::forget_project(app);
     watch(app, dir)?;
     changed(app);
     opened_project(&state, dir).await

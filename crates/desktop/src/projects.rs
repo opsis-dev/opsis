@@ -222,8 +222,10 @@ pub async fn import_assets(
 
 #[tauri::command]
 #[specta::specta]
-pub fn clear_cache(dir: String) -> CommandResult<()> {
-    Ok(clear_project_cache(Path::new(&dir))?)
+pub fn clear_cache(app: AppHandle, dir: String) -> CommandResult<()> {
+    clear_project_cache(Path::new(&dir))?;
+    crate::run::reseed(&app, &dir, None);
+    Ok(())
 }
 
 #[tauri::command]

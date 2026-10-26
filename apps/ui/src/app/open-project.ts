@@ -5,7 +5,6 @@ import type { OpenProject } from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
-import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useUiStore } from "../store/ui";
 import { showDocument } from "../store/workflow";
@@ -18,14 +17,10 @@ export const openEditor = (navigate: NavigateFn, dir: string): void =>
 function openProjectIntoStores(p: OpenProject): void {
   loadViewState(p.dir, p.view);
   showDocument(p.document);
-  useRunStore.getState().seed(p.lastRun);
   useUiStore.getState().setSelected([]);
   useUiStore.getState().setReplay(null);
   useLiveStore.getState().reset();
   void useSecretsStore.getState().refresh(p.dir);
-  void window.opsis.runStatus().then((s) => {
-    if (s.runId && s.projectDir === p.dir) useRunStore.getState().resume(s.progress);
-  });
 }
 
 export function useOpenProject(dir: string, onFailed: () => void): "opening" | "open" | "failed" {

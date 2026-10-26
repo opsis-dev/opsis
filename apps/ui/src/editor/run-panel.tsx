@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { WorkflowNode } from "@/generated/bindings";
-import { useRunStore } from "../store/run";
+import { clearLogs, useRunStore } from "../store/run";
 import { singleSelected, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { LogView } from "./log-view";
@@ -15,7 +15,6 @@ const NO_NODES: WorkflowNode[] = [];
 
 function RunLogs({ filter }: { filter: string | null }) {
   const logs = useRunStore((s) => s.logs);
-  const clearLogs = useRunStore((s) => s.clearLogs);
   const visible = useMemo(
     () => (filter ? logs.filter((l) => l.nodeId === filter) : logs),
     [logs, filter],
@@ -48,9 +47,7 @@ export function RunPanel() {
     <div className="grid h-full grid-cols-[minmax(220px,1fr)_2fr_minmax(240px,1.2fr)] grid-rows-[minmax(0,1fr)] divide-x">
       <RunNodeList nodes={nodes} filter={filter} />
       <RunLogs filter={filter} />
-      {projectDir ? (
-        <RunOutputs nodes={nodes} filterNode={filterNode} projectDir={projectDir} />
-      ) : null}
+      {projectDir ? <RunOutputs filterNode={filterNode} projectDir={projectDir} /> : null}
     </div>
   );
 }

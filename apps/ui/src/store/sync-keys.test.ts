@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { playbackSnapshot, usePlayback } from "./playback";
-import { runSnapshot, useRunStore } from "./run";
 import { selection, useUiStore } from "./ui";
 
 const stateKeys = (state: object): string[] =>
@@ -10,7 +9,6 @@ const stateKeys = (state: object): string[] =>
     .toSorted();
 
 const STORES = [
-  { name: "run", state: useRunStore.getState, mirrored: runSnapshot, perWindow: [] },
   {
     name: "UI",
     state: useUiStore.getState,

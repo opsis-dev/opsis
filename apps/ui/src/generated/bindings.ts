@@ -27,6 +27,7 @@ export const commands = {
 	listTemplates: () => __TAURI_INVOKE<TemplateInfo[]>("list_templates"),
 	getSettings: () => __TAURI_INVOKE<AppSettings>("get_settings"),
 	patchSettings: (patch: { [key in string]: Value }) => typedError<AppSettings, CommandError>(__TAURI_INVOKE("patch_settings", { patch })),
+	viewState: (dir: string) => typedError<{ [key in string]: Value }, CommandError>(__TAURI_INVOKE("view_state", { dir })),
 	setViewPref: (dir: string, key: string, value: Value) => typedError<null, CommandError>(__TAURI_INVOKE("set_view_pref", { dir, key, value })),
 	appMenuSections: () => __TAURI_INVOKE<MenuSection[]>("app_menu_sections"),
 	getEnvironment: () => __TAURI_INVOKE<EnvStatus>("get_environment"),
@@ -58,7 +59,8 @@ export const commands = {
 	fileRoot: () => __TAURI_INVOKE<string>("file_root"),
 	runWorkflow: (targets: RunTargets) => typedError<StartedRun, CommandError>(__TAURI_INVOKE("run_workflow", { targets })),
 	cancelRun: () => __TAURI_INVOKE<void>("cancel_run"),
-	runStatus: () => __TAURI_INVOKE<RunStatus>("run_status"),
+	runState: () => __TAURI_INVOKE<RunState>("run_state"),
+	clearRunLog: () => __TAURI_INVOKE<void>("clear_run_log"),
 	watchLive: (frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<void>("watch_live", { frames }),
 	listFonts: () => typedError<FontFamilyDef[], CommandError>(__TAURI_INVOKE("list_fonts")),
 	inspectFontFiles: (paths: string[] | null) => typedError<InspectedFonts | null, CommandError>(__TAURI_INVOKE("inspect_font_files", { paths })),
@@ -89,9 +91,14 @@ export const commands = {
 	previewSeek: (frame: number) => typedError<null, CommandError>(__TAURI_INVOKE("preview_seek", { frame })),
 	previewResize: (size: ViewSize) => typedError<null, CommandError>(__TAURI_INVOKE("preview_resize", { size })),
 	previewClose: () => typedError<null, CommandError>(__TAURI_INVOKE("preview_close")),
-	relay: (to: RelayTarget, message: Value) => typedError<null, CommandError>(__TAURI_INVOKE("relay", { to, message })),
 	pageLog: (level: PageLogLevel, message: string) => __TAURI_INVOKE<void>("page_log", { level, message }),
 	sendMenuToEditor: (command: MenuCommand) => typedError<null, CommandError>(__TAURI_INVOKE("send_menu_to_editor", { command })),
+	sharedState: () => __TAURI_INVOKE<SharedState>("shared_state"),
+	shareSelection: (selection: Selection) => typedError<null, CommandError>(__TAURI_INVOKE("share_selection", { selection })),
+	shareView: (view: SharedView) => typedError<null, CommandError>(__TAURI_INVOKE("share_view", { view })),
+	sharePlayhead: (playhead: Playhead) => typedError<null, CommandError>(__TAURI_INVOKE("share_playhead", { playhead })),
+	controlPlayback: (call: PlaybackCall) => typedError<null, CommandError>(__TAURI_INVOKE("control_playback", { call })),
+	showReplay: (nodeId: string | null, tab: ReplayTab) => typedError<null, CommandError>(__TAURI_INVOKE("show_replay", { nodeId, tab })),
 	apiStatus: () => __TAURI_INVOKE<ApiServerStatus>("api_status"),
 };
 
@@ -109,15 +116,22 @@ export const events = {
 	menuCommandFired: makeEvent<MenuCommandFired, MenuCommandFired>("menu-command-fired"),
 	openRequested: makeEvent<OpenRequested, OpenRequested>("open-requested"),
 	panelWindowsChanged: makeEvent<PanelWindowsChanged, PanelWindowsChanged>("panel-windows-changed"),
+	playbackCalled: makeEvent<PlaybackCalled, PlaybackCalled>("playback-called"),
+	playheadShared: makeEvent<PlayheadShared, PlayheadShared>("playhead-shared"),
 	previewReported: makeEvent<PreviewReported, PreviewReported>("preview-reported"),
 	projectFilesChanged: makeEvent<ProjectFilesChanged, ProjectFilesChanged>("project-files-changed"),
 	projectReloaded: makeEvent<ProjectReloaded, ProjectReloaded>("project-reloaded"),
-	relayed: makeEvent<Relayed, Relayed>("relayed"),
+	replayRequested: makeEvent<ReplayRequested, ReplayRequested>("replay-requested"),
 	runEventFired: makeEvent<RunEventFired, RunEventFired>("run-event-fired"),
+	runLogged: makeEvent<RunLogged, RunLogged>("run-logged"),
+	runStateReset: makeEvent<RunStateReset, RunStateReset>("run-state-reset"),
+	runViewChanged: makeEvent<RunViewChanged, RunViewChanged>("run-view-changed"),
+	selectionShared: makeEvent<SelectionShared, SelectionShared>("selection-shared"),
 	settingsChanged: makeEvent<SettingsChanged, SettingsChanged>("settings-changed"),
 	settingsPageShown: makeEvent<SettingsPageShown, SettingsPageShown>("settings-page-shown"),
 	viewEventFired: makeEvent<ViewEventFired, ViewEventFired>("view-event-fired"),
 	viewPrefChanged: makeEvent<ViewPrefChanged, ViewPrefChanged>("view-pref-changed"),
+	viewShared: makeEvent<ViewShared, ViewShared>("view-shared"),
 	windowStateChanged: makeEvent<WindowStateChanged, WindowStateChanged>("window-state-changed"),
 };
 
@@ -982,6 +996,14 @@ export type LiveStepStatus = "running" | "done" | "error";
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
+export type LogLine = {
+	id: number,
+	at: number,
+	level: LogLevel,
+	nodeId?: string,
+	message: string,
+};
+
 export type LoudnessTarget = "off" | "web" | "podcast" | "broadcast";
 
 export type Loudness = {
@@ -1185,6 +1207,25 @@ export type PlannedFamily<C = {
 	faces: C[],
 };
 
+export type PlaybackCall = { call: "seek"; frame: number } | { call: "play" } | { call: "pause" } | { call: "rate"; rate: number };
+
+export type PlaybackCalled = PlaybackCall;
+
+export type PlayheadShared = {
+	from: string,
+	playhead: Playhead,
+};
+
+export type Playhead = {
+	frame: number,
+	playing: boolean,
+	rate: number,
+	fps: number,
+	durationInFrames: number,
+	inPoint?: number,
+	outPoint?: number,
+};
+
 export type Point = {
 	x: number,
 	y: number,
@@ -1294,13 +1335,6 @@ export type Rect = {
 
 export type ReframeMode = "follow" | "center" | "fit";
 
-export type RelayTarget = "editor" | "others";
-
-export type Relayed = {
-	from: string,
-	message: unknown,
-};
-
 export type Removal = {
 	nodeIds: string[],
 	edgeIds: string[],
@@ -1309,6 +1343,13 @@ export type Removal = {
 export type RenderSection = {
 	licenseKey: string,
 };
+
+export type ReplayRequested = {
+	nodeId: string | null,
+	tab: ReplayTab,
+};
+
+export type ReplayTab = "replay" | "trace";
 
 export type RippleLook = {
 	color: string,
@@ -1320,6 +1361,8 @@ export type RunEventFired = RunEvent;
 
 export type RunEvent = { type: "run:start"; runId: string; nodeIds: string[]; at: number } | { type: "node:start"; runId: string; nodeId: string; at: number } | { type: "node:progress"; runId: string; nodeId: string; progress: number; message?: string } | { type: "node:log"; runId: string; nodeId?: string; level: LogLevel; message: string; at: number } | { type: "node:done"; runId: string; nodeId: string; cached: boolean; result?: NodeResult } | { type: "node:error"; runId: string; nodeId: string; message: string; stack?: string; traceId?: string } | { type: "node:skipped"; runId: string; nodeId: string; reason: string } | { type: "run:done"; runId: string; ok: boolean; cancelled: boolean; error?: string; failedNodeIds?: string[]; skippedNodeIds?: string[]; outputs: string[]; at: number };
 
+export type RunLogged = LogLine;
+
 export type RunProgress = {
 	runId: string | null,
 	statuses: { [key in string]: NodeRunStatus },
@@ -1330,15 +1373,40 @@ export type RunProgress = {
 	results: { [key in string]: NodeResult },
 };
 
-export type RunStatus = {
-	runId: string | null,
-	projectDir: string | null,
-	progress: RunProgress,
+export type RunStateReset = RunState;
+
+export type RunState = {
+	view: RunView,
+	logs: LogLine[],
 };
 
 export type RunTargets = {
 	targetNodeIds?: string[],
 	fromNodeId?: string,
+};
+
+export type RunViewChanged = RunView;
+
+export type RunView = {
+	seq: number,
+	progress: RunProgress,
+	running: boolean,
+	outputs: string[],
+	lastError: string | null,
+	failedNodeIds: string[],
+	skippedNodeIds: string[],
+	exports: Artifact[],
+};
+
+export type SelectionShared = {
+	from: string,
+	selection: Selection,
+};
+
+export type Selection = {
+	selectedIds: string[],
+	activeIds: string[],
+	pinnedSource: string | null,
 };
 
 export type SequencerProps = {
@@ -1372,6 +1440,17 @@ export type SettingsPatch = {
 	background?: string,
 	theme?: Theme,
 	fonts?: ProjectFonts,
+};
+
+export type SharedState = {
+	selection: Selection,
+	view: SharedView | null,
+	playhead: Playhead | null,
+};
+
+export type SharedView = {
+	previewQuality: PreviewQuality,
+	previewShape: string,
 };
 
 export type Slot = {
@@ -1666,6 +1745,11 @@ export type ViewPrefChange = {
 };
 
 export type ViewPrefChanged = ViewPrefChange;
+
+export type ViewShared = {
+	from: string,
+	view: SharedView,
+};
 
 export type ViewSize = {
 	width: number,

@@ -195,3 +195,56 @@ pub struct EnvStatus {
     pub versions: AppVersions,
     pub engine: EngineStatus,
 }
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct Selection {
+    pub selected_ids: Vec<String>,
+    pub active_ids: Vec<String>,
+    pub pinned_source: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct SharedView {
+    pub preview_quality: crate::timeline::PreviewQuality,
+    pub preview_shape: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct Playhead {
+    pub frame: f64,
+    pub playing: bool,
+    pub rate: f64,
+    pub fps: u32,
+    pub duration_in_frames: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub in_point: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub out_point: Option<f64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(tag = "call", rename_all = "camelCase")]
+pub enum PlaybackCall {
+    Seek { frame: f64 },
+    Play,
+    Pause,
+    Rate { rate: f64 },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub enum ReplayTab {
+    Replay,
+    Trace,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct SharedState {
+    pub selection: Selection,
+    pub view: Option<SharedView>,
+    pub playhead: Option<Playhead>,
+}

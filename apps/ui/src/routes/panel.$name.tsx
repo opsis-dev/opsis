@@ -38,7 +38,7 @@ function PanelBody({ panel }: { panel: DockPanelName }) {
 function PanelRoute() {
   const { name: panel } = Route.useParams();
   const projectName = useWorkflowStore((s) => s.workflow?.name ?? null);
-  useWindowSync(close);
+  useWindowSync();
   useFileChanges();
 
   useEffect(() => {

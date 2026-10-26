@@ -4,7 +4,7 @@ use tauri_specta::{Builder, collect_commands, collect_events};
 
 use crate::{
     analysis, api, compile, document, engine, events, exit, file_server, fonts, page_log, projects,
-    relay, run, settings, views, windows,
+    run, settings, shared, views, windows,
 };
 
 pub const BINDINGS_FILE: &str = "apps/ui/src/generated/bindings.ts";
@@ -36,6 +36,7 @@ pub fn builder() -> Builder<tauri::Wry> {
             projects::list_templates,
             settings::get_settings,
             settings::patch_settings,
+            settings::view_state,
             settings::set_view_pref,
             settings::app_menu_sections,
             settings::get_environment,
@@ -67,7 +68,8 @@ pub fn builder() -> Builder<tauri::Wry> {
             file_server::file_root,
             run::run_workflow,
             run::cancel_run,
-            run::run_status,
+            run::run_state,
+            run::clear_run_log,
             run::watch_live,
             fonts::list_fonts,
             fonts::inspect_font_files,
@@ -98,9 +100,14 @@ pub fn builder() -> Builder<tauri::Wry> {
             views::preview_seek,
             views::preview_resize,
             views::preview_close,
-            relay::relay,
             page_log::page_log,
-            relay::send_menu_to_editor,
+            shared::send_menu_to_editor,
+            shared::shared_state,
+            shared::share_selection,
+            shared::share_view,
+            shared::share_playhead,
+            shared::control_playback,
+            shared::show_replay,
             api::api_status,
         ])
         .events(collect_events![
@@ -123,7 +130,14 @@ pub fn builder() -> Builder<tauri::Wry> {
             events::SettingsPageShown,
             events::LiveNoted,
             events::Compiled,
-            events::Relayed,
+            events::SelectionShared,
+            events::ViewShared,
+            events::PlayheadShared,
+            events::PlaybackCalled,
+            events::ReplayRequested,
+            events::RunViewChanged,
+            events::RunLogged,
+            events::RunStateReset,
             views::ViewEventFired,
             views::PreviewReported,
         ])
