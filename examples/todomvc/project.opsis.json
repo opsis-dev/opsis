@@ -3,9 +3,9 @@
   "id": "example_todomvc",
   "name": "Sample: to-do app",
   "settings": {
-    "width": 1920.0,
-    "height": 1080.0,
-    "fps": 30.0,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
     "theme": "dark",
     "fonts": {
       "main": "Inter",
@@ -220,7 +220,12 @@
         "speed": 1,
         "distortion": 0.6,
         "swirl": 0.1,
-        "colors": ["#12121a", "#232338", "#3a3a5c", "#52527a"],
+        "colors": [
+          "#12121a",
+          "#232338",
+          "#3a3a5c",
+          "#52527a"
+        ],
         "clipDuration": 75,
         "envelope": {}
       }
@@ -309,7 +314,10 @@
         "fileName": "{{Project name}}",
         "codec": "h264",
         "crf": 18,
-        "variants": ["16:9", "9:16"],
+        "variants": [
+          "16:9",
+          "9:16"
+        ],
         "reframe": "follow",
         "scale": 1,
         "chapters": true,

@@ -3,9 +3,9 @@
   "id": "example_changelog",
   "name": "Changelog clip",
   "settings": {
-    "width": 1920.0,
-    "height": 1080.0,
-    "fps": 30.0,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
     "theme": "dark",
     "fonts": {
       "main": "Inter",
@@ -229,7 +229,10 @@
         "fileName": "{{Project name}}",
         "codec": "h264",
         "crf": 18,
-        "variants": ["16:9", "1:1"],
+        "variants": [
+          "16:9",
+          "1:1"
+        ],
         "reframe": "follow",
         "scale": 1,
         "chapters": true,

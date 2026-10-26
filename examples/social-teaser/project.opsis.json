@@ -3,9 +3,9 @@
   "id": "example_social_teaser",
   "name": "Social teaser (9:16)",
   "settings": {
-    "width": 1080.0,
-    "height": 1920.0,
-    "fps": 30.0,
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
     "theme": "dark",
     "fonts": {
       "main": "Inter",
@@ -187,7 +187,9 @@
         "fileName": "{{Project name}}",
         "codec": "h264",
         "crf": 18,
-        "variants": ["9:16"],
+        "variants": [
+          "9:16"
+        ],
         "reframe": "follow",
         "scale": 1,
         "chapters": true,

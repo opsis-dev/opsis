@@ -11,6 +11,7 @@ const ID_ALPHABET: [char; 36] = [
 ];
 
 pub const DEFAULT_PROJECT_NAME: &str = "Demo";
+const BLANK_TEMPLATE: &str = "blank";
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -49,6 +50,19 @@ pub fn build_template(id: &str, name: &str) -> Option<Workflow> {
         name => name.to_owned(),
     };
     Some(workflow)
+}
+
+pub fn examples() -> Vec<(String, Workflow)> {
+    TEMPLATES
+        .iter()
+        .filter(|t| t.info.id != BLANK_TEMPLATE)
+        .map(|t| {
+            let mut workflow = t.workflow.clone();
+            workflow.id = format!("example_{}", t.info.id.replace('-', "_"));
+            workflow.name = t.info.title.clone();
+            (t.info.id.clone(), workflow)
+        })
+        .collect()
 }
 
 #[cfg(test)]

@@ -15,6 +15,7 @@ export const VIDEO_DIR = path.join(VIDEO_PACKAGE_DIR, "src");
 export const IGNORED_PATHS = [
   "target/**",
   "fixtures/**",
+  "examples/**",
   "crates/compile/src/elements/registry.generated.json",
   "crates/compile/src/fonts/bundled.generated.json",
   "crates/engine/src/downloads.generated.json",

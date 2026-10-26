@@ -244,6 +244,24 @@ mod tests {
     }
 
     #[test]
+    fn opens_every_example_as_the_templates_write_it_today() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples");
+        let files = ProjectFiles::default();
+        for (id, workflow) in crate::templates::examples() {
+            let dir = root.join(&id);
+            let opened = files
+                .open(&dir)
+                .unwrap_or_else(|e| panic!("{e} Run `bun run examples`."));
+            assert_eq!(
+                std::fs::read_to_string(dir.join(WORKFLOW_FILE)).unwrap(),
+                workflow_text(&workflow),
+                "examples/{id} is stale. Run `bun run examples`."
+            );
+            assert_eq!(opened.workflow, workflow.normalized());
+        }
+    }
+
+    #[test]
     fn says_why_a_project_cant_be_opened() {
         let dir = tempfile::tempdir().unwrap();
         let files = ProjectFiles::default();
