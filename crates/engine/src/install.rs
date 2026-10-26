@@ -99,21 +99,27 @@ fn downloaded_text(got: u64, total: Option<u64>) -> String {
     }
 }
 
-async fn fetch_verified(
+pub struct Fetched {
+    pub path: PathBuf,
+    pub sha256: String,
+    pub size: u64,
+}
+
+pub async fn fetch(
     client: &reqwest::Client,
-    pinned: &Pinned,
+    url: &str,
     into: &Path,
     cancel: &CancellationToken,
     on_bytes: &mut (dyn FnMut(u64, Option<u64>) + Send),
-) -> Result<PathBuf, InstallError> {
+) -> Result<Fetched, InstallError> {
     let network = |source| InstallError::Network {
-        url: pinned.url.clone(),
+        url: url.to_owned(),
         source,
     };
-    let response = client.get(&pinned.url).send().await.map_err(network)?;
+    let response = client.get(url).send().await.map_err(network)?;
     if !response.status().is_success() {
         return Err(InstallError::Status {
-            url: pinned.url.clone(),
+            url: url.to_owned(),
             status: response.status().as_u16(),
         });
     }
@@ -137,23 +143,39 @@ async fn fetch_verified(
         got += chunk.len() as u64;
         on_bytes(got, total);
     }
-    if got != pinned.size || hex::encode(hash.finalize()) != pinned.sha256 {
+    let (_, path) = file.keep().map_err(|e| e.error)?;
+    Ok(Fetched {
+        path,
+        sha256: hex::encode(hash.finalize()),
+        size: got,
+    })
+}
+
+async fn fetch_verified(
+    client: &reqwest::Client,
+    pinned: &Pinned,
+    into: &Path,
+    cancel: &CancellationToken,
+    on_bytes: &mut (dyn FnMut(u64, Option<u64>) + Send),
+) -> Result<PathBuf, InstallError> {
+    let fetched = fetch(client, &pinned.url, into, cancel, on_bytes).await?;
+    if fetched.size != pinned.size || fetched.sha256 != pinned.sha256 {
+        std::fs::remove_file(&fetched.path)?;
         return Err(InstallError::Mismatch {
             url: pinned.url.clone(),
         });
     }
-    let (_, path) = file.keep().map_err(|e| e.error)?;
-    Ok(path)
+    Ok(fetched.path)
 }
 
 #[cfg(unix)]
-fn make_executable(file: &Path) -> std::io::Result<()> {
+pub fn make_executable(file: &Path) -> std::io::Result<()> {
     use std::os::unix::fs::PermissionsExt;
     std::fs::set_permissions(file, std::fs::Permissions::from_mode(0o755))
 }
 
 #[cfg(not(unix))]
-fn make_executable(_file: &Path) -> std::io::Result<()> {
+pub fn make_executable(_file: &Path) -> std::io::Result<()> {
     Ok(())
 }
 

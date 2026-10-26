@@ -9,7 +9,6 @@ import {
   writeFileSync,
 } from "node:fs";
 import { createRequire } from "node:module";
-import os from "node:os";
 import path from "node:path";
 import { getCompositorPackage } from "@opsis/sidecar/compositor-package";
 import { z } from "zod";
@@ -20,12 +19,10 @@ import {
   readCompositorSources,
   sourcesNote,
 } from "./lib/compositor-sources";
-import { writeChromiumCredits } from "./lib/engine/chromium-credits";
-import { CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER, engineStatus } from "./lib/engine/paths";
+import { installEngine, writeChromiumCredits } from "./lib/engine";
 import { ROOT } from "./lib/tool-config";
 
 const RESOURCES = path.join(ROOT, "resources");
-const STAGED_ENGINE = path.join(os.homedir(), ".cache", "opsis-stage-engine");
 const SIDECAR = "opsis-render";
 
 const run = (program: string, args: string[]) =>
@@ -103,26 +100,11 @@ function stageExportSources() {
     });
 }
 
-async function stageBrowserCredits() {
-  run("cargo", [
-    "run",
-    "-q",
-    "--release",
-    "-p",
-    "opsis-engine",
-    "--bin",
-    "install-engine",
-    "--",
-    STAGED_ENGINE,
-  ]);
-  const { complete, headlessShell } = engineStatus(STAGED_ENGINE);
-  if (!complete || !headlessShell)
-    throw new Error(`The engine in ${STAGED_ENGINE} isn't complete.`);
-  const credits = await writeChromiumCredits(
-    headlessShell,
-    path.join(RESOURCES, ENGINE_LICENCES_FOLDER, CHROMIUM_CREDITS_FILE),
+function stageBrowserCredits() {
+  writeChromiumCredits(
+    installEngine().browser,
+    path.join(RESOURCES, "engine-licences", "LICENSES.chromium.html"),
   );
-  console.log(`Chromium ${credits.version} licences: ${credits.bytes} bytes`);
 }
 
 rmSync(RESOURCES, { recursive: true, force: true });
@@ -131,7 +113,7 @@ run("bun", ["run", "video:bundle", "--", "--release"]);
 compileSidecar();
 stageCompositor();
 stageExportSources();
-await stageBrowserCredits();
+stageBrowserCredits();
 if (!existsSync(path.join(ROOT, "remotion-bundle")))
   throw new Error("The video bundle is missing.");
 console.log(`Staged the app's resources in ${path.relative(ROOT, RESOURCES)}.`);

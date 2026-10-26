@@ -1,17 +1,17 @@
 use std::sync::LazyLock;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::paths::ShellPlatform;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ShellSource {
     Remotion,
     Google,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum FfmpegFile {
     Ffmpeg,
@@ -19,14 +19,14 @@ pub enum FfmpegFile {
     License,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Pinned {
     pub url: String,
     pub sha256: String,
     pub size: u64,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ShellDownload {
     pub platform: ShellPlatform,
     pub source: ShellSource,
@@ -34,7 +34,7 @@ pub struct ShellDownload {
     pub pinned: Pinned,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct FfmpegDownload {
     pub target: String,
     pub file: FfmpegFile,
@@ -42,7 +42,7 @@ pub struct FfmpegDownload {
     pub pinned: Pinned,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Downloads {
     pub tested_version: String,

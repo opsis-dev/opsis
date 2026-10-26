@@ -8,7 +8,7 @@ import {
   readCompositorSources,
   sourcesNote,
 } from "./lib/compositor-sources";
-import { downloadTo } from "./lib/engine/download";
+import { downloadTo } from "./lib/download";
 
 const manifest = readCompositorSources();
 const out =

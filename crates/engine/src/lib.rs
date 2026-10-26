@@ -1,3 +1,4 @@
+pub mod chrome_for_testing;
 pub mod downloads;
 pub mod files;
 pub mod hash;
@@ -5,6 +6,7 @@ pub mod http_files;
 pub mod install;
 pub mod licences;
 pub mod paths;
+pub mod pin;
 pub mod temp;
 pub mod tools;
 pub mod versions;

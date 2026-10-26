@@ -1,20 +1,14 @@
 import { mkdirSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright-core";
-import { devUserData } from "./lib/app-data";
-import { engineStatus, userEngineDir } from "./lib/engine/paths";
+import { installEngine } from "./lib/engine";
 import { ROOT } from "./lib/tool-config";
 
 const SVG = path.join(ROOT, "brand", "logo.svg");
 const OUT = path.join(ROOT, "brand", "icons");
 const ICON_SIZES = [16, 24, 32, 48, 64, 128, 256, 512, 1024];
 
-const shell =
-  process.env.OPSIS_HEADLESS_SHELL ?? engineStatus(userEngineDir(devUserData())).headlessShell;
-if (!shell)
-  throw new Error(
-    "No recording browser found. Download the engine in Settings → Engine or set OPSIS_HEADLESS_SHELL.",
-  );
+const shell = process.env.OPSIS_HEADLESS_SHELL ?? installEngine().browser;
 
 const svg = readFileSync(SVG, "utf8");
 rmSync(OUT, { recursive: true, force: true });
