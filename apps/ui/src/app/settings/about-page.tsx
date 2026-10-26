@@ -6,14 +6,14 @@ export function AboutPage() {
   const env = useFreshEnvironment();
   if (!env) return <Spinner />;
   const rows: Array<[string, string]> = [
-    ["App", `${env.versions.app} (${env.edition})`],
+    ["App", env.isPackaged ? env.versions.app : `${env.versions.app} (development)`],
     ["Tauri", env.versions.tauri],
     ["Web view", env.versions.webview],
     ["Platform", `${env.platform} / ${env.arch}`],
-    ["Engine folder", env.engine.dir],
-    ["Recording browser", env.engine.headlessShell ?? "Not set up"],
-    ["Video tools", env.engine.ffmpeg ?? "Not set up"],
-    ["Video inspector", env.engine.ffprobe ?? "Not set up"],
+    ["Recording browser", env.engine.browser.path ?? "Not set up"],
+    ["Video tools", env.engine.ffmpeg.path ?? "Not set up"],
+    ["Video inspector", env.engine.ffprobe.path ?? "Not set up"],
+    ["Engine downloads", env.engine.downloadDir],
     ["App data", env.userData],
   ];
   return (

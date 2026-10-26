@@ -6,4 +6,5 @@ pub mod install;
 pub mod licences;
 pub mod paths;
 pub mod temp;
+pub mod tools;
 pub mod versions;

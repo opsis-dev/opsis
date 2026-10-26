@@ -37,20 +37,20 @@ bun run video:bundle
 bun start
 ```
 
-`bun run video:bundle` builds the video code that exports and the preview use; run it again after changing `packages/video`. The first time, open **Settings → Engine → Set up engine**. It downloads the recording browser (Chrome Headless Shell) and FFmpeg into the app's data folder. Editing works without it; the preview, recording and exporting need it. Then **New project → Sample: to-do app → Run**.
+`bun run video:bundle` builds the video code that exports and the preview use; run it again after changing `packages/video`. The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) and FFmpeg in the app's data folder, or **Choose file…** for programs you already have. Opsis checks each one before using it, and again at start if the file changed. Editing works without it; the preview, recording and exporting need it. Then **New project → Sample: to-do app → Run**.
 
 Ready-made copies of every template are in [`examples/`](./examples) (**Open project…**).
 
 ## Building
 
-| Command                                            | What it does                                                             |
-| -------------------------------------------------- | ------------------------------------------------------------------------ |
-| `bun run make -- --bundles deb`                    | Stage everything the app ships and build the Linux `.deb` (full edition) |
-| `OPSIS_EDITION=lite bun run make -- --bundles deb` | Leave the engine out; users set it up from Settings                      |
-| `CARGO_TARGET_DIR=~/.cache/opsis-build`            | Put build output outside the repo                                        |
-| `CARGO_BUILD_JOBS=8`                               | Limit how many cores the Rust build uses                                 |
+| Command                                 | What it does                                              |
+| --------------------------------------- | --------------------------------------------------------- |
+| `bun run make -- --bundles deb`         | Stage everything the app ships and build the Linux `.deb` |
+| `bun run compositor:sources`            | Download the source of the FFmpeg build the app ships     |
+| `CARGO_TARGET_DIR=~/.cache/opsis-build` | Put build output outside the repo                         |
+| `CARGO_BUILD_JOBS=8`                    | Limit how many cores the Rust build uses                  |
 
-The full edition bundles the engine and its licence notices. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests, then builds both editions: deb, rpm and AppImage on Linux (x64), NSIS on Windows (x64) and the app on macOS (Apple Silicon and Intel), and uploads them as artifacts.
+The app never includes the recording browser or our FFmpeg; users download them or choose their own from Settings. It does ship Remotion's compositor, whose FFmpeg build is GPLv2 or later, with that licence and a note on where its source is. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests, then builds deb, rpm and AppImage on Linux (x64), NSIS and MSI on Windows (x64) and the app and a DMG on macOS (Apple Silicon and Intel), and uploads them as artifacts; on a `v*` tag it also collects the compositor's FFmpeg source.
 
 ## Scripts
 

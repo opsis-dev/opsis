@@ -18,6 +18,7 @@ fn root_dir(app: &AppHandle, root: &str) -> Option<PathBuf> {
     match root {
         "project" => state.editor().dir.clone(),
         "fonts" => Some(state.paths.fonts_dir()),
+        "app" => Some(state.paths.public_dir.clone()),
         _ => None,
     }
 }

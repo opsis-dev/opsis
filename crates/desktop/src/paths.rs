@@ -1,7 +1,7 @@
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use opsis_engine::paths::{EngineHome, ShellPlatform, resolve_engine_dir};
+use opsis_engine::paths::ShellPlatform;
 use opsis_engine::temp::{ChildKind, child_temp_name, temp_env};
 use opsis_render::sidecar::SidecarCommand;
 use tauri::{AppHandle, Manager};
@@ -54,8 +54,13 @@ impl AppPaths {
             .parent()
             .ok_or(StartupError::ProgramFolder)?
             .to_path_buf();
+        let public_dir = if packaged {
+            resources.join(VIDEO_BUNDLE_DIR).join("public")
+        } else {
+            resources.join("public")
+        };
         Ok(Self {
-            public_dir: resources.join("public"),
+            public_dir,
             preview_page: resources.join(PREVIEW_PAGE_DIR),
             video_bundle: resources.join(VIDEO_BUNDLE_DIR),
             temp_root: user_data.join("tmp"),
@@ -75,17 +80,6 @@ impl AppPaths {
             program_dir,
             platform,
         })
-    }
-
-    pub fn engine_dir(&self) -> PathBuf {
-        resolve_engine_dir(
-            &EngineHome {
-                packaged: self.packaged,
-                resources: &self.resources,
-                user_data: &self.user_data,
-            },
-            self.platform,
-        )
     }
 
     pub fn fonts_dir(&self) -> PathBuf {

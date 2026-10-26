@@ -1,4 +1,4 @@
-use opsis_types::engine::EngineInstallEvent;
+use opsis_types::engine::{EngineInstallEvent, EngineStatus};
 use opsis_types::events::RunEvent;
 use opsis_types::live::LiveEvent;
 use opsis_types::project::{ProjectFileChange, ProjectFilesChange};
@@ -25,6 +25,9 @@ pub struct RunEventFired(pub RunEvent);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
 pub struct EngineInstallProgress(pub EngineInstallEvent);
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct EngineChanged(pub EngineStatus);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
 pub struct SettingsChanged(pub AppSettings);

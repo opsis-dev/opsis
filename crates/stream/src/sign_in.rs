@@ -7,10 +7,10 @@ use chromiumoxide::cdp::browser_protocol::page::{
 };
 use futures::StreamExt;
 use indexmap::IndexMap;
-use opsis_capture::browser::shell_in;
 use opsis_capture::cdp::{CaptureError, Result, Tab};
 use opsis_capture::executors::{Login, LoginRequest};
 use opsis_compile::nodes::browser::DoneWhen;
+use opsis_engine::tools::EngineFiles;
 use opsis_runner::context::{BoxFuture, ExecError};
 use opsis_types::secrets::{SameSite, SavedCookie, SavedItem, SavedOrigin, StorageState};
 use serde::Deserialize;
@@ -196,7 +196,7 @@ pub async fn sign_in(
 }
 
 pub struct StreamLogin {
-    pub engine_dir: PathBuf,
+    pub engine: EngineFiles,
     pub temp_dir: PathBuf,
     pub host: Arc<dyn ViewHost>,
 }
@@ -208,8 +208,8 @@ impl Login for StreamLogin {
         cancel: CancellationToken,
     ) -> BoxFuture<std::result::Result<String, ExecError>> {
         let host = Arc::clone(&self.host);
-        let env = shell_in(&self.engine_dir).map(|executable| ViewEnv {
-            executable,
+        let env = self.engine.browser().map(|executable| ViewEnv {
+            executable: executable.to_path_buf(),
             temp_dir: self.temp_dir.clone(),
         });
         Box::pin(async move {

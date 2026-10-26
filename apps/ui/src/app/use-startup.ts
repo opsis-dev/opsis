@@ -2,7 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { reportError } from "@/lib/toast";
 import { loadedAppSettings } from "../store/app-settings";
-import { useEnvironment } from "../store/environment";
+import { needsEngine, useEnvironment } from "../store/environment";
 import { dispatchMenuCommand } from "./menu-commands";
 import { openEditor } from "./open-project";
 import { markStarted } from "./startup-flags";
@@ -14,7 +14,7 @@ export function useStartup(): void {
     const first = markStarted();
     void Promise.all([useEnvironment.getState().refresh(), loadedAppSettings()])
       .then(async ([env, settings]) => {
-        if (env && !env.engine.complete && !settings.app.setupSkipped) {
+        if (env && needsEngine(env.engine) && !settings.app.setupSkipped) {
           void router.navigate({ to: "/setup" });
           return;
         }

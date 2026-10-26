@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 use specta::Type;
 
+use crate::engine::{CheckedTool, EngineTool};
+
 pub const PROJECTS_FOLDER_NAME: &str = "OpsisProjects";
 
 #[derive(
@@ -134,6 +136,37 @@ pub struct EditorSection {
     Debug, Clone, PartialEq, Default, Serialize, Deserialize, Validate, Type, schemars::JsonSchema,
 )]
 #[serde(rename_all = "camelCase", default)]
+pub struct EngineSection {
+    #[garde(skip)]
+    pub browser: Option<CheckedTool>,
+    #[garde(skip)]
+    pub ffmpeg: Option<CheckedTool>,
+    #[garde(skip)]
+    pub ffprobe: Option<CheckedTool>,
+}
+
+impl EngineSection {
+    pub fn tool(&self, tool: EngineTool) -> Option<&CheckedTool> {
+        match tool {
+            EngineTool::Browser => self.browser.as_ref(),
+            EngineTool::Ffmpeg => self.ffmpeg.as_ref(),
+            EngineTool::Ffprobe => self.ffprobe.as_ref(),
+        }
+    }
+
+    pub fn set(&mut self, tool: EngineTool, checked: Option<CheckedTool>) {
+        match tool {
+            EngineTool::Browser => self.browser = checked,
+            EngineTool::Ffmpeg => self.ffmpeg = checked,
+            EngineTool::Ffprobe => self.ffprobe = checked,
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, PartialEq, Default, Serialize, Deserialize, Validate, Type, schemars::JsonSchema,
+)]
+#[serde(rename_all = "camelCase", default)]
 pub struct ApiSection {
     #[garde(skip)]
     pub enabled: bool,
@@ -158,8 +191,12 @@ pub struct AppSettings {
     pub editor: EditorSection,
     #[garde(dive)]
     pub api: ApiSection,
+    #[garde(dive)]
+    pub engine: EngineSection,
 }
 
-pub const SETTINGS_SECTIONS: [&str; 7] = [
-    "app", "traces", "live", "render", "projects", "editor", "api",
+pub const SETTINGS_SECTIONS: [&str; 8] = [
+    "app", "traces", "live", "render", "projects", "editor", "api", "engine",
 ];
+
+pub const RUST_ONLY_SECTIONS: [&str; 1] = ["engine"];

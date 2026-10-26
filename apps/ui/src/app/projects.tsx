@@ -8,7 +8,7 @@ import { Kbd } from "@/components/ui/kbd";
 import type { RecentProject, MenuCommand } from "@/generated/bindings";
 import { templates } from "@/store/catalog";
 import { NodeIcon } from "../editor/node-icon";
-import { useFreshEnvironment } from "../store/environment";
+import { needsEngine, useFreshEnvironment } from "../store/environment";
 import { AppBar } from "./app-bar";
 import { dispatchMenuCommand, usePendingProjectAction, type ProjectAction } from "./menu-commands";
 import { commandLabel, commandShortcut } from "./menu-shortcuts";
@@ -201,7 +201,7 @@ export function Projects() {
               <RecentList recent={recent ?? []} onOpen={(dir) => void open(dir)} />
             </div>
             <div className="flex min-w-0 flex-col gap-10">
-              {env && !env.engine.complete ? <EngineAlert /> : null}
+              {env && needsEngine(env.engine) ? <EngineAlert /> : null}
               <TemplateGrid onPick={startNew} />
             </div>
           </div>

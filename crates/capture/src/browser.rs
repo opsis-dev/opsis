@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -7,7 +7,9 @@ use chromiumoxide::cdp::browser_protocol::target::CreateTargetParams;
 use futures::StreamExt;
 use indexmap::IndexMap;
 use opsis_compile::nodes::browser::{ColorScheme, Open};
+use opsis_engine::tools::{ToolProblem, browser_version, tool_output, unrecognized};
 use opsis_types::actions::Viewport;
+use opsis_types::engine::EngineTool;
 use opsis_types::numbers::whole;
 use serde_json::{Value, json};
 use tokio::task::JoinHandle;
@@ -395,13 +397,21 @@ async fn new_page(launched: &Launched) -> Result<chromiumoxide::Page> {
     Ok(launched.browser.new_page(target).await?)
 }
 
-pub fn shell_in(engine_dir: &Path) -> Result<PathBuf> {
-    let platform = opsis_engine::paths::ShellPlatform::current()
-        .map_err(|e| CaptureError::Failed(e.to_string()))?;
-    let paths = opsis_engine::paths::engine_paths(engine_dir, platform);
-    opsis_engine::paths::require_engine_file(opsis_engine::paths::find_headless_shell(&paths))
-        .map(Path::to_path_buf)
-        .map_err(|e| CaptureError::Failed(e.to_string()))
+pub async fn check_browser(
+    executable: &Path,
+    temp_dir: &Path,
+) -> std::result::Result<String, ToolProblem> {
+    let version = browser_version(&tool_output(executable, &["--version"]).await?)
+        .ok_or_else(|| unrecognized(executable, EngineTool::Browser))?;
+    let launched = launch(executable, temp_dir, &[])
+        .await
+        .map_err(|e| ToolProblem::Failed(format!("The recording browser didn't start: {e}")))?;
+    let opened = launched.browser.new_page("about:blank").await;
+    launched.close().await;
+    opened.map_err(|e| {
+        ToolProblem::Failed(format!("The recording browser couldn't open a page: {e}"))
+    })?;
+    Ok(version)
 }
 
 #[cfg(test)]

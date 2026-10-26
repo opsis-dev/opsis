@@ -114,11 +114,15 @@ Used under the Remotion licence (https://www.remotion.dev/docs/license).
 
 ## FFmpeg (ffmpeg / ffprobe)
 
-The FFmpeg binaries are GPLv3 builds from the pinned ffmpeg-static GitHub release, shipped as separate executables in the engine folder (resources/engine/ffmpeg in the full edition, or downloaded into the app's data folder by the lite edition) together with their licence file. Source: https://ffmpeg.org/download.html · builds: https://github.com/eugeneware/ffmpeg-static
+The FFmpeg programs Opsis runs itself are GPLv3 builds from the pinned ffmpeg-static GitHub release. Opsis doesn't include them: Settings → Engine downloads them, with their licence file, into the app's data folder, or uses programs the user chooses. Source: https://ffmpeg.org/download.html · builds: https://github.com/eugeneware/ffmpeg-static
+
+## FFmpeg in Remotion's compositor
+
+Opsis ships Remotion's compositor (`compositor/`), which includes FFmpeg 7.1 built by Remotion with x264, x265, libaom, dav1d, fdk-aac-free, Opus, libvpx, LAME and zimg. That build is licensed under the GNU General Public License, version 2 or (at your option) any later version; the licence is `compositor/COPYING.GPLv2` and `compositor/SOURCES.md` says where its complete source is. Opsis attaches that source to every release; `licences/compositor-sources.json` lists each part. Build scripts: https://github.com/remotion-dev/rust-ffmpeg-splitter
 
 ## Chrome Headless Shell (recording and export browser)
 
-The full edition bundles Google's Chrome Headless Shell from Chrome for Testing (Chromium, BSD-3-Clause, plus the licences of every library it includes) in `resources/engine`. Its complete licence notices are in `resources/engine/LICENSES.chromium.html`, saved at build time from the `chrome://credits` page of the full Chrome for Testing build of the exact same version. The lite edition doesn't include the browser; Settings downloads it from Google onto the user's computer. Source: https://chromium.googlesource.com/chromium/src · builds: https://googlechromelabs.github.io/chrome-for-testing/
+Opsis doesn't include the recording browser: Settings → Engine downloads Chrome Headless Shell (Chromium, BSD-3-Clause, plus the licences of every library it includes) from Remotion or Google onto the user's computer, or uses a browser the user chooses. The complete licence notices of the pinned build ship with the app in `engine-licences/LICENSES.chromium.html`, saved at build time from the `chrome://credits` page of the full Chrome for Testing build of the exact same version. Source: https://chromium.googlesource.com/chromium/src · builds: https://googlechromelabs.github.io/chrome-for-testing/
 
 ## Remotion
 

@@ -16,6 +16,8 @@ import {
   type DockPanelName,
   type EditorCompile,
   type EngineInstallEvent,
+  type EngineStatus,
+  type EngineTool,
   type EnvStatus,
   type FontCatalogEntry,
   type FontFamilyDef,
@@ -171,6 +173,10 @@ export function createOpsis() {
     installEngine: () => unwrap(commands.installEngine()),
     onEngineInstall: (listener: (event: EngineInstallEvent) => void) =>
       on(events.engineInstallProgress(here()), listener),
+    chooseEngineTool: (tool: EngineTool): Promise<boolean> =>
+      unwrap(commands.chooseEngineTool(tool)),
+    onEngineChanged: (listener: (status: EngineStatus) => void) =>
+      on(events.engineChanged(here()), listener),
     getSettings: (): Promise<AppSettings> => unwrap(commands.getSettings()),
     patchSettings: (patch: { [key: string]: Value }): Promise<AppSettings> =>
       unwrap(commands.patchSettings(patch)),

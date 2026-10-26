@@ -36,6 +36,3 @@ export function engineStatus(dir: string): { complete: boolean; headlessShell: s
 }
 
 export const userEngineDir = (userData: string): string => path.join(userData, "engine");
-
-export const bundledEngineDir = (resourcesPath: string): string =>
-  path.join(resourcesPath, "engine");

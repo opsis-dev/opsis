@@ -1,4 +1,5 @@
 pub mod analysis;
+pub mod capabilities;
 pub mod codecs;
 pub mod executors;
 pub mod ffmpeg;

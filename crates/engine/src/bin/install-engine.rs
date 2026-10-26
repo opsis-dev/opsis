@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use opsis_engine::install::install_engine;
-use opsis_engine::paths::{ShellPlatform, engine_status};
+use opsis_engine::paths::{ShellPlatform, engine_paths, is_downloaded};
 use tokio_util::sync::CancellationToken;
 
 #[tokio::main(flavor = "current_thread")]
@@ -12,7 +12,7 @@ async fn main() {
             .expect("Name the folder to install the engine into."),
     );
     let platform = ShellPlatform::current().expect("a supported platform");
-    if engine_status(&dir, platform).complete {
+    if is_downloaded(&engine_paths(&dir, platform)) {
         println!("The engine in {} is complete.", dir.display());
         return;
     }

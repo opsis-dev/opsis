@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use opsis_types::engine::{ENGINE_MISSING_MESSAGE, EngineStatus};
+use opsis_types::engine::ENGINE_MISSING_MESSAGE;
 use serde::{Deserialize, Serialize};
 
 pub const CHROMIUM_CREDITS_FILE: &str = "LICENSES.chromium.html";
@@ -115,50 +115,17 @@ pub fn find_headless_shell(paths: &EnginePaths) -> Option<&Path> {
 #[error("{}", ENGINE_MISSING_MESSAGE)]
 pub struct EngineMissing;
 
-pub fn require_engine_file(file: Option<&Path>) -> Result<&Path, EngineMissing> {
-    file.ok_or(EngineMissing)
+pub fn is_downloaded(paths: &EnginePaths) -> bool {
+    find_headless_shell(paths).is_some() && paths.ffmpeg.is_file() && paths.ffprobe.is_file()
 }
 
-fn shown(path: Option<&Path>) -> Option<String> {
-    path.map(|p| p.to_string_lossy().into_owned())
+pub fn downloaded_browser(dir: &Path) -> Option<PathBuf> {
+    let paths = engine_paths(dir, ShellPlatform::current().ok()?);
+    find_headless_shell(&paths).map(Path::to_path_buf)
 }
 
-pub fn engine_status(dir: &Path, platform: ShellPlatform) -> EngineStatus {
-    let p = engine_paths(dir, platform);
-    let present = |f: &Path| f.exists().then(|| f.to_string_lossy().into_owned());
-    let headless_shell = shown(find_headless_shell(&p));
-    let ffmpeg = present(&p.ffmpeg);
-    let ffprobe = present(&p.ffprobe);
-    let complete = headless_shell.is_some() && ffmpeg.is_some() && ffprobe.is_some();
-    EngineStatus {
-        dir: dir.to_string_lossy().into_owned(),
-        headless_shell,
-        ffmpeg,
-        ffprobe,
-        complete,
-    }
-}
-
-pub fn user_engine_dir(user_data: &Path) -> PathBuf {
+pub fn download_dir(user_data: &Path) -> PathBuf {
     user_data.join("engine")
-}
-
-pub fn bundled_engine_dir(resources: &Path) -> PathBuf {
-    resources.join("engine")
-}
-
-pub struct EngineHome<'a> {
-    pub packaged: bool,
-    pub resources: &'a Path,
-    pub user_data: &'a Path,
-}
-
-pub fn resolve_engine_dir(home: &EngineHome<'_>, platform: ShellPlatform) -> PathBuf {
-    let bundled = bundled_engine_dir(home.resources);
-    if home.packaged && engine_status(&bundled, platform).complete {
-        return bundled;
-    }
-    user_engine_dir(home.user_data)
 }
 
 #[cfg(test)]

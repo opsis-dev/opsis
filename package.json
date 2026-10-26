@@ -47,6 +47,7 @@
     "app:icons": "tsx scripts/app-icons.ts",
     "engine:licences": "tsx scripts/engine-licences.ts",
     "engine:downloads": "tsx scripts/engine-downloads.ts",
+    "compositor:sources": "tsx scripts/compositor-sources.ts",
     "examples": "cargo run -q -p opsis-project --bin write-examples",
     "playwright:scripts": "tsx scripts/playwright-scripts.ts",
     "types:export": "cargo run -q -p opsis-desktop --features export-bindings --bin export-bindings && cargo run -q -p opsis-render --bin export-protocol && cargo run -q -p opsis-compile --bin export-spec",

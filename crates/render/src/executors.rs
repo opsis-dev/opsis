@@ -14,7 +14,6 @@ use opsis_compile::timeline::chapters::{
 };
 use opsis_engine::files::write_via_temp;
 use opsis_engine::http_files::FileServer;
-use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell, require_engine_file};
 use opsis_media::codecs::{codec_info, finish_args, has_sound_track, is_image_codec, mux_args};
 use opsis_media::executors::{Tools, tool_error};
 use opsis_media::ffmpeg::RunOptions;
@@ -68,9 +67,10 @@ fn render_target(
     spec: TimelineSpec,
     gl: Gl,
 ) -> Result<RenderTarget, ExecError> {
-    let platform = ShellPlatform::current().map_err(|e| ExecError::new(e.to_string()))?;
-    let paths = engine_paths(&ctx.env.engine_dir, platform);
-    let shell = require_engine_file(find_headless_shell(&paths))
+    let shell = ctx
+        .env
+        .engine
+        .browser()
         .map_err(|e| ExecError::new(e.to_string()))?;
     Ok(RenderTarget {
         serve_url: engine.serve_url.clone(),

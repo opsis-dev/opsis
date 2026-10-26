@@ -23,6 +23,8 @@ export const commands = {
 	appMenuSections: () => __TAURI_INVOKE<MenuSection[]>("app_menu_sections"),
 	getEnvironment: () => __TAURI_INVOKE<EnvStatus>("get_environment"),
 	installEngine: () => typedError<null, CommandError>(__TAURI_INVOKE("install_engine")),
+	chooseEngineTool: (tool: EngineTool) => typedError<boolean, CommandError>(__TAURI_INVOKE("choose_engine_tool", { tool })),
+	getEngineStatus: () => __TAURI_INVOKE<EngineStatus>("get_engine_status"),
 	listLicences: () => typedError<LicenceEntry[], CommandError>(__TAURI_INVOKE("list_licences")),
 	openLicenceFile: (file: string) => typedError<null, CommandError>(__TAURI_INVOKE("open_licence_file", { file })),
 	revealInFolder: (dir: string, relativePath: string | null) => typedError<null, CommandError>(__TAURI_INVOKE("reveal_in_folder", { dir, relativePath })),
@@ -93,6 +95,7 @@ export const events = {
 	apiStatusChanged: makeEvent<ApiStatusChanged, ApiStatusChanged>("api-status-changed"),
 	compiled: makeEvent<Compiled, Compiled>("compiled"),
 	confirmClose: makeEvent<ConfirmClose, ConfirmClose>("confirm-close"),
+	engineChanged: makeEvent<EngineChanged, EngineChanged>("engine-changed"),
 	engineInstallProgress: makeEvent<EngineInstallProgress, EngineInstallProgress>("engine-install-progress"),
 	flushSave: makeEvent<FlushSave, FlushSave>("flush-save"),
 	liveNoted: makeEvent<LiveNoted, LiveNoted>("live-noted"),
@@ -233,6 +236,7 @@ export type AppSettings = {
 	projects: ProjectsSection,
 	editor: EditorSection,
 	api: ApiSection,
+	engine: EngineSection,
 };
 
 export type AppVersions = {
@@ -480,6 +484,14 @@ export type CheckResult = {
 	workflow: Workflow | null,
 };
 
+export type CheckedTool = {
+	path: string,
+	version: string,
+	sha256: string,
+	size: number,
+	modifiedMs: number,
+};
+
 export type ClipValue = {
 	durationInFrames: number,
 	tracks: TimelineTrack[],
@@ -599,8 +611,6 @@ export type EditHandles = {
 	volume?: ParamRef,
 };
 
-export type Edition = "full" | "lite" | "dev";
-
 export type EditorCatalog = {
 	nodes: EditorNode[],
 	transitions: { [key in string]: string },
@@ -665,6 +675,8 @@ export type ElementRef = {
 	props: { [key in string]: unknown },
 };
 
+export type EngineChanged = EngineStatus;
+
 export type EngineInstallEvent = {
 	done?: boolean,
 	error?: string,
@@ -681,13 +693,21 @@ export type EngineInstallUpdate = {
 
 export type EnginePart = "ffmpeg" | "headless-shell";
 
+export type EngineSection = {
+	browser: CheckedTool | null,
+	ffmpeg: CheckedTool | null,
+	ffprobe: CheckedTool | null,
+};
+
 export type EngineStatus = {
-	dir: string,
-	headlessShell: string | null,
-	ffmpeg: string | null,
-	ffprobe: string | null,
+	downloadDir: string,
+	browser: ToolStatus,
+	ffmpeg: ToolStatus,
+	ffprobe: ToolStatus,
 	complete: boolean,
 };
+
+export type EngineTool = "browser" | "ffmpeg" | "ffprobe";
 
 export type EntriesValue = {
 	entries: StyleEntry[],
@@ -697,7 +717,6 @@ export type EnvStatus = {
 	platform: string,
 	arch: string,
 	isPackaged: boolean,
-	edition: Edition,
 	userData: string,
 	versions: AppVersions,
 	engine: EngineStatus,
@@ -1445,6 +1464,14 @@ export type TimelineTrack = {
 };
 
 export type Tone = "muted" | "warn";
+
+export type ToolStatus = {
+	path?: string,
+	version?: string,
+	problem?: string,
+	warning?: string,
+	checking: boolean,
+};
 
 export type TraceAction = {
 	id: string,

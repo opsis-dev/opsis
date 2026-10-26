@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use opsis_capture::browser::shell_in;
 use opsis_capture::take::{SignIns, StepError, TakeEnv, play_take};
 use opsis_compile::nodes::browser::OPEN_BROWSER_TYPE;
 use opsis_compile::registry::default_params;
+use opsis_engine::paths::downloaded_browser;
 use opsis_types::values::{BrowserAction, BrowserSessionValue, SessionBrowser, SessionStep};
 use serde_json::{Value, json};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -54,7 +54,7 @@ async fn play(saved: Option<String>, steps: Vec<SessionStep>) -> Result<(), Step
     let engine = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/Opsis/engine");
     let env = TakeEnv {
         project_dir: temp.path().to_path_buf(),
-        executable: shell_in(&engine).unwrap(),
+        executable: downloaded_browser(&engine).unwrap(),
         temp_dir: temp.path().to_path_buf(),
         live: None,
         trace: false,

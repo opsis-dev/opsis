@@ -250,5 +250,5 @@ Missing: alternative names, how many elements share each, nearby context.
 
 ## Decided
 
-- **Editions:** both lite and full; the assistant adds no files to either.
+- **Packaging:** the assistant adds no files to the app.
 - **Request log:** every request and answer is kept in the app database's `assistant_log` table, with a list and **Clear log** in Settings → Assistant. Keys and headers are never logged.

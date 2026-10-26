@@ -1,3 +1,4 @@
+use opsis_engine::tools::EngineFiles;
 use std::sync::{Arc, Mutex};
 
 use opsis_runner::context::{ExecutorOutput, Executors, RunEnv, executor};
@@ -58,7 +59,7 @@ async fn run(dir: &std::path::Path, workflow: &Workflow) -> Run {
     let deps = RunDeps {
         env: Arc::new(RunEnv {
             app_version: "test".into(),
-            engine_dir: dir.into(),
+            engine: EngineFiles::default(),
             public_dir: dir.into(),
             temp_dir: dir.into(),
             settings: AppSettings::default(),
@@ -135,7 +136,7 @@ async fn reports_a_failed_node_skips_what_follows_and_names_it_in_the_run_result
     let deps = RunDeps {
         env: Arc::new(RunEnv {
             app_version: "test".into(),
-            engine_dir: dir.path().into(),
+            engine: EngineFiles::default(),
             public_dir: dir.path().into(),
             temp_dir: dir.path().into(),
             settings: AppSettings::default(),

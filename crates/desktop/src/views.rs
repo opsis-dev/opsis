@@ -15,6 +15,7 @@ use tauri_plugin_dialog::DialogExt;
 use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
+use crate::engine::engine_files;
 use crate::error::{CommandError, CommandResult};
 use crate::frames::{FrameChannel, send};
 use crate::state::AppState;
@@ -165,7 +166,7 @@ impl ViewHost for AppViewHost {
 
 fn view_env(state: &AppState) -> CommandResult<ViewEnv> {
     Ok(ViewEnv {
-        executable: opsis_capture::browser::shell_in(&state.paths.engine_dir())?,
+        executable: engine_files(state).browser()?.to_path_buf(),
         temp_dir: state.paths.views_temp.clone(),
     })
 }

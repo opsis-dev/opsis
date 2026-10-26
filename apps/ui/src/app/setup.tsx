@@ -1,13 +1,13 @@
 import { wholePercent } from "@opsis/video/common/format";
 import { useNavigate } from "@tanstack/react-router";
-import { CheckCircle2, Download } from "lucide-react";
+import { CheckCircle2, Download, FileSearch } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import { errorMessage } from "@/core/errors";
-import type { EngineInstallEvent } from "@/generated/bindings";
+import type { EngineInstallEvent, EngineTool, ToolStatus } from "@/generated/bindings";
 import { useEnvironment, useFreshEnvironment } from "../store/environment";
 import { PageBar } from "./app-bar";
 import { AnimatedPercent } from "./motion";
@@ -62,27 +62,78 @@ function EngineProgress({
   );
 }
 
-function EngineBadges({
-  ready,
-  bundled,
-  edition,
-}: {
-  ready: boolean;
-  bundled: boolean;
-  edition?: string;
-}) {
+const TOOLS: Array<{ tool: EngineTool; title: string }> = [
+  { tool: "browser", title: "Recording browser" },
+  { tool: "ffmpeg", title: "Video tools" },
+  { tool: "ffprobe", title: "Video inspector" },
+];
+
+function ToolState({ status }: { status: ToolStatus }) {
+  if (status.checking)
+    return (
+      <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+        <Spinner /> Checking…
+      </span>
+    );
+  if (status.problem) return <p className="text-destructive text-xs">{status.problem}</p>;
+  if (!status.path) return <p className="text-muted-foreground text-xs">Not set up</p>;
   return (
     <>
-      {ready ? (
-        <Badge variant="secondary">
-          <CheckCircle2 data-icon="inline-start" />
-          {bundled ? "Included" : "Set up"}
-        </Badge>
-      ) : (
-        <Badge variant="outline">Not set up</Badge>
-      )}
-      {edition ? <Badge variant="outline">{edition} edition</Badge> : null}
+      <p className="text-muted-foreground text-xs">
+        {status.version ? `Version ${status.version} · ` : null}
+        <span className="font-mono break-all">{status.path}</span>
+      </p>
+      {status.warning ? <p className="text-warning text-xs">{status.warning}</p> : null}
     </>
+  );
+}
+
+function ToolRow({
+  tool,
+  title,
+  status,
+  disabled,
+}: {
+  tool: EngineTool;
+  title: string;
+  status: ToolStatus;
+  disabled: boolean;
+}) {
+  const [failure, setFailure] = useState<string | null>(null);
+  const [choosing, setChoosing] = useState(false);
+  async function choose() {
+    setChoosing(true);
+    setFailure(null);
+    try {
+      await window.opsis.chooseEngineTool(tool);
+    } catch (e) {
+      setFailure(errorMessage(e));
+    } finally {
+      setChoosing(false);
+    }
+  }
+  return (
+    <div className="flex items-start gap-3 border-t pt-2 first:border-t-0 first:pt-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex items-center gap-1.5 text-sm font-medium">
+          {title}
+          {status.path && !status.problem && !status.checking ? (
+            <CheckCircle2 className="text-success size-3.5" />
+          ) : null}
+        </span>
+        <ToolState status={status} />
+        {failure ? <p className="text-destructive text-xs">{failure}</p> : null}
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={disabled || choosing || status.checking}
+        onClick={() => void choose()}
+      >
+        {choosing ? <Spinner data-icon="inline-start" /> : <FileSearch data-icon="inline-start" />}
+        Choose file…
+      </Button>
+    </div>
   );
 }
 
@@ -90,27 +141,33 @@ export function EnginePanel({ onDone, title = "Engine" }: { onDone?: () => void;
   const env = useFreshEnvironment();
   const { event, error, busy, install } = useEngineInstall();
   const ready = !!env?.engine.complete;
-  const bundled = env?.edition === "full";
 
   return (
     <SettingsCard
       title={title}
-      badges={<EngineBadges ready={ready} bundled={bundled} edition={env?.edition} />}
-      description="The recording browser and video tools Opsis uses to record takes and export videos. Editing and preview work without them."
+      badges={
+        ready ? (
+          <Badge variant="secondary">
+            <CheckCircle2 data-icon="inline-start" />
+            Set up
+          </Badge>
+        ) : (
+          <Badge variant="outline">Not set up</Badge>
+        )
+      }
+      description="The recording browser and video tools Opsis uses to record takes and export videos. Download them, or choose programs already on this computer; Opsis checks each one before using it. Editing and preview work without them."
       contentClassName="flex flex-col gap-2"
       footer={
         <>
-          {bundled ? null : (
-            <Button
-              size="sm"
-              variant={ready ? "outline" : "default"}
-              disabled={busy}
-              onClick={() => void install()}
-            >
-              {busy ? <Spinner data-icon="inline-start" /> : <Download data-icon="inline-start" />}
-              {ready ? "Set up again" : "Set up engine"}
-            </Button>
-          )}
+          <Button
+            size="sm"
+            variant={ready ? "outline" : "default"}
+            disabled={busy}
+            onClick={() => void install()}
+          >
+            {busy ? <Spinner data-icon="inline-start" /> : <Download data-icon="inline-start" />}
+            {ready ? "Download again" : "Download engine"}
+          </Button>
           {onDone ? (
             <Button size="sm" variant="ghost" onClick={onDone}>
               {ready ? "Continue" : "Skip for now"}
@@ -119,6 +176,17 @@ export function EnginePanel({ onDone, title = "Engine" }: { onDone?: () => void;
         </>
       }
     >
+      {env
+        ? TOOLS.map(({ tool, title: name }) => (
+            <ToolRow
+              key={tool}
+              tool={tool}
+              title={name}
+              status={env.engine[tool]}
+              disabled={busy}
+            />
+          ))
+        : null}
       {busy || error ? <EngineProgress event={event} error={error} /> : null}
     </SettingsCard>
   );
@@ -134,8 +202,8 @@ export function Setup() {
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold tracking-tight">Welcome to Opsis</h1>
             <p className="text-muted-foreground text-sm">
-              This version doesn't include the recording and export engine. Set it up once to record
-              and export.
+              Recording and exporting need a recording browser and video tools. Download them once,
+              or choose your own.
             </p>
           </div>
           <p className="text-muted-foreground text-xs">

@@ -10,7 +10,7 @@ const UI_DEV_PORT = 5173;
 
 export default defineConfig({
   root: UI_DIR,
-  publicDir: path.join(UI_DIR, "..", "..", "public"),
+  publicDir: path.join(UI_DIR, "public"),
   plugins: [
     tanstackRouter({
       target: "react",

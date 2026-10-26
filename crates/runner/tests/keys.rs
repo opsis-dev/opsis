@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use opsis_compile::vars::workflow_vars;
-use opsis_runner::keys::{KeyInputs, hash_nodes, node_hash};
+use opsis_runner::keys::{KeyInputs, Release, hash_nodes, node_hash};
 use opsis_types::workflow::Workflow;
 use serde_json::Value;
 
@@ -29,7 +29,10 @@ fn key_of(wf: &Workflow, dir: &Path, id: &str) -> String {
             workflow: wf,
             vars: &vars,
             project_dir: dir,
-            app_version: "test",
+            release: Release {
+                app: "test",
+                engine: "",
+            },
         },
     )[id]
         .clone()
@@ -103,13 +106,13 @@ fn keys_ignore_port_listing_order_and_change_with_the_app_version() {
             "fx.core.title",
             &params,
             &ports(&[("clip", "x:clip"), ("audio", "y:audio")]),
-            ""
+            &Release::default()
         ),
         node_hash(
             "fx.core.title",
             &params,
             &ports(&[("audio", "y:audio"), ("clip", "x:clip")]),
-            ""
+            &Release::default()
         )
     );
     assert_ne!(
@@ -117,18 +120,23 @@ fn keys_ignore_port_listing_order_and_change_with_the_app_version() {
             "fx.core.title",
             &params,
             &ports(&[("clip", "x:clip"), ("audio", "y:audio")]),
-            ""
+            &Release::default()
         ),
         node_hash(
             "fx.core.title",
             &params,
             &ports(&[("clip", "y:audio"), ("audio", "x:clip")]),
-            ""
+            &Release::default()
         )
     );
+    let release = |app, engine| Release { app, engine };
     assert_ne!(
-        node_hash("media.trim", &params, &[], "0.1.0"),
-        node_hash("media.trim", &params, &[], "0.2.0")
+        node_hash("media.trim", &params, &[], &release("0.1.0", "")),
+        node_hash("media.trim", &params, &[], &release("0.2.0", ""))
+    );
+    assert_ne!(
+        node_hash("media.trim", &params, &[], &release("0.1.0", "a:b:c")),
+        node_hash("media.trim", &params, &[], &release("0.1.0", "a:d:c"))
     );
 }
 
@@ -145,14 +153,14 @@ fn keys_are_stable_under_key_order_and_change_with_params_or_upstream() {
         "fx.core.title",
         &serde_json::json!({ "title": "Hi", "fontSize": 100 }),
         &clip,
-        "",
+        &Release::default(),
     );
     assert_eq!(
         node_hash(
             "fx.core.title",
             &serde_json::json!({ "fontSize": 100, "title": "Hi" }),
             &clip,
-            ""
+            &Release::default()
         ),
         key
     );
@@ -161,7 +169,7 @@ fn keys_are_stable_under_key_order_and_change_with_params_or_upstream() {
             "fx.core.title",
             &serde_json::json!({ "title": "Hello", "fontSize": 100 }),
             &clip,
-            ""
+            &Release::default()
         ),
         key
     );
@@ -170,7 +178,7 @@ fn keys_are_stable_under_key_order_and_change_with_params_or_upstream() {
             "fx.core.title",
             &serde_json::json!({ "title": "Hi", "fontSize": 100 }),
             &upstream(&[("clip", "y:clip")]),
-            ""
+            &Release::default()
         ),
         key
     );
@@ -184,13 +192,13 @@ fn keys_ignore_the_order_connections_were_made_to_a_port_that_takes_several() {
             "audio.mix",
             &params,
             &upstream(&[("sounds", "a:audio"), ("sounds", "b:audio")]),
-            ""
+            &Release::default()
         ),
         node_hash(
             "audio.mix",
             &params,
             &upstream(&[("sounds", "b:audio"), ("sounds", "a:audio")]),
-            ""
+            &Release::default()
         )
     );
 }

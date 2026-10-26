@@ -3,10 +3,10 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use opsis_capture::browser::shell_in;
 use opsis_capture::executors::LoginRequest;
 use opsis_capture::live::FrameSink;
 use opsis_compile::nodes::browser::DoneWhen;
+use opsis_engine::paths::downloaded_browser;
 use opsis_stream::host::{ViewEnv, ViewHost};
 use opsis_stream::picker::{PickRequest, PickResult, PickedBy, pick};
 use opsis_stream::sign_in::sign_in;
@@ -23,7 +23,7 @@ const POPUP: &str = "<!doctype html><body style='margin:0'><button onclick=\"win
 fn env(temp: &tempfile::TempDir) -> ViewEnv {
     let engine = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/Opsis/engine");
     ViewEnv {
-        executable: shell_in(&engine).unwrap(),
+        executable: downloaded_browser(&engine).unwrap(),
         temp_dir: temp.path().to_path_buf(),
     }
 }

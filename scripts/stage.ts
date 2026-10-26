@@ -1,20 +1,29 @@
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import {
+  copyFileSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { getCompositorPackage } from "@opsis/sidecar/compositor-package";
 import { z } from "zod";
-import { writeChromiumCredits } from "./lib/engine/chromium-credits";
 import {
-  CHROMIUM_CREDITS_FILE,
-  ENGINE_LICENCES_FOLDER,
-  bundledEngineDir,
-  engineStatus,
-} from "./lib/engine/paths";
+  GPL_2,
+  appVersion,
+  installedRemotion,
+  readCompositorSources,
+  sourcesNote,
+} from "./lib/compositor-sources";
+import { writeChromiumCredits } from "./lib/engine/chromium-credits";
+import { CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER, engineStatus } from "./lib/engine/paths";
 import { ROOT } from "./lib/tool-config";
 
-const edition = process.env.OPSIS_EDITION === "lite" ? "lite" : "full";
 const RESOURCES = path.join(ROOT, "resources");
 const STAGED_ENGINE = path.join(os.homedir(), ".cache", "opsis-stage-engine");
 const SIDECAR = "opsis-render";
@@ -61,7 +70,15 @@ function stageCompositor() {
   const fromRenderer = createRequire(fromSidecar.resolve("@remotion/renderer/package.json"));
   const pkg = getCompositorPackage({ arch: process.arch, platform: process.platform });
   const folder = path.dirname(fromRenderer.resolve(`${pkg}/package.json`));
-  cpSync(folder, path.join(RESOURCES, "compositor"), { recursive: true, dereference: true });
+  const compositor = path.join(RESOURCES, "compositor");
+  cpSync(folder, compositor, { recursive: true, dereference: true });
+  const sources = readCompositorSources();
+  if (sources.remotion !== installedRemotion())
+    throw new Error(
+      `licences/compositor-sources.json names Remotion ${sources.remotion}, but ${installedRemotion()} is installed.`,
+    );
+  copyFileSync(GPL_2, path.join(compositor, "COPYING.GPLv2"));
+  writeFileSync(path.join(compositor, "SOURCES.md"), sourcesNote(sources, appVersion()));
 }
 
 const sourceSchema = z.object({ from: z.array(z.string()), to: z.string() });
@@ -86,7 +103,7 @@ function stageExportSources() {
     });
 }
 
-async function stageEngine() {
+async function stageBrowserCredits() {
   run("cargo", [
     "run",
     "-q",
@@ -101,13 +118,10 @@ async function stageEngine() {
   const { complete, headlessShell } = engineStatus(STAGED_ENGINE);
   if (!complete || !headlessShell)
     throw new Error(`The engine in ${STAGED_ENGINE} isn't complete.`);
-  const licences =
-    edition === "full"
-      ? path.join(bundledEngineDir(RESOURCES), CHROMIUM_CREDITS_FILE)
-      : path.join(RESOURCES, ENGINE_LICENCES_FOLDER, CHROMIUM_CREDITS_FILE);
-  if (edition === "full")
-    cpSync(STAGED_ENGINE, bundledEngineDir(RESOURCES), { recursive: true, verbatimSymlinks: true });
-  const credits = await writeChromiumCredits(headlessShell, licences);
+  const credits = await writeChromiumCredits(
+    headlessShell,
+    path.join(RESOURCES, ENGINE_LICENCES_FOLDER, CHROMIUM_CREDITS_FILE),
+  );
   console.log(`Chromium ${credits.version} licences: ${credits.bytes} bytes`);
 }
 
@@ -117,7 +131,7 @@ run("bun", ["run", "video:bundle", "--", "--release"]);
 compileSidecar();
 stageCompositor();
 stageExportSources();
-await stageEngine();
+await stageBrowserCredits();
 if (!existsSync(path.join(ROOT, "remotion-bundle")))
   throw new Error("The video bundle is missing.");
-console.log(`Staged the ${edition} edition in ${path.relative(ROOT, RESOURCES)}.`);
+console.log(`Staged the app's resources in ${path.relative(ROOT, RESOURCES)}.`);

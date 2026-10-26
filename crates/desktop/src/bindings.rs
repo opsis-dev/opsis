@@ -3,8 +3,8 @@ use opsis_types::ts_export::tidy_export;
 use tauri_specta::{Builder, collect_commands, collect_events};
 
 use crate::{
-    analysis, api, compile, events, exit, file_server, fonts, page_log, projects, relay, run,
-    settings, views, windows,
+    analysis, api, compile, engine, events, exit, file_server, fonts, page_log, projects, relay,
+    run, settings, views, windows,
 };
 
 pub const BINDINGS_FILE: &str = "apps/ui/src/generated/bindings.ts";
@@ -31,7 +31,9 @@ pub fn builder() -> Builder<tauri::Wry> {
             settings::set_view_pref,
             settings::app_menu_sections,
             settings::get_environment,
-            settings::install_engine,
+            engine::install_engine,
+            engine::choose_engine_tool,
+            engine::get_engine_status,
             settings::list_licences,
             settings::open_licence_file,
             settings::reveal_in_folder,
@@ -100,6 +102,7 @@ pub fn builder() -> Builder<tauri::Wry> {
             events::ProjectFilesChanged,
             events::RunEventFired,
             events::EngineInstallProgress,
+            events::EngineChanged,
             events::SettingsChanged,
             events::ViewPrefChanged,
             events::ApiStatusChanged,

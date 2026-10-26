@@ -11,6 +11,7 @@ use opsis_compile::errors::SettingsError;
 use opsis_compile::node::NodeDef;
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
+use opsis_engine::tools::EngineFiles;
 use opsis_project::paths::ref_to_path;
 use opsis_types::events::{LogLevel, RunEvent};
 use opsis_types::settings::AppSettings;
@@ -76,7 +77,7 @@ pub struct ExecutorOutput {
 #[derive(Debug, Clone)]
 pub struct RunEnv {
     pub app_version: String,
-    pub engine_dir: PathBuf,
+    pub engine: EngineFiles,
     pub public_dir: PathBuf,
     pub temp_dir: PathBuf,
     pub settings: AppSettings,

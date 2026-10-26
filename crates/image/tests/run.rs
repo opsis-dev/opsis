@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use image::{DynamicImage, GenericImageView, Rgb, RgbImage, Rgba, RgbaImage};
-use opsis_engine::paths::{ShellPlatform, engine_paths};
+use opsis_engine::tools::EngineFiles;
 use opsis_image::executors::image_executors;
 use opsis_media::executors::{Tools, media_executors};
 use opsis_media::ffmpeg::Ffmpeg;
@@ -73,8 +73,7 @@ fn workflow() -> Workflow {
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs the dev engine for reading the imported files"]
 async fn runs_image_nodes_one_after_another_from_imported_files() {
-    let engine_dir = home().join(".config/Opsis/engine");
-    let paths = engine_paths(&engine_dir, ShellPlatform::current().unwrap());
+    let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
     let base = tempfile::tempdir().unwrap();
     let project = base.path().join("project");
     let temp = base.path().join("tmp");
@@ -86,7 +85,7 @@ async fn runs_image_nodes_one_after_another_from_imported_files() {
     RgbaImage::from_pixel(40, 40, Rgba([255, 255, 255, 255]))
         .save(project.join("assets/logo.png"))
         .unwrap();
-    let tools: Tools = Arc::new(Ffmpeg::new(&paths).with_temp(&temp));
+    let tools: Tools = Arc::new(Ffmpeg::new(&engine).with_temp(&temp));
     let mut executors = Executors::default();
     executors.extend(media_executors(&tools)).unwrap();
     executors.extend(image_executors()).unwrap();
@@ -95,7 +94,7 @@ async fn runs_image_nodes_one_after_another_from_imported_files() {
     let deps = RunDeps {
         env: Arc::new(RunEnv {
             app_version: "test".into(),
-            engine_dir,
+            engine,
             public_dir: PathBuf::new(),
             temp_dir: temp,
             settings: AppSettings::default(),

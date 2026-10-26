@@ -14,7 +14,7 @@ export function projectFilesUrl(): string {
 export function fileUrl(ref: string): string {
   const target = refTarget(ref);
   if (target.kind === "project") return joinUrl(projectFilesUrl(), target.rel);
-  if (target.kind === "app") return new URL(target.rel, document.baseURI).href;
+  if (target.kind === "app") return joinUrl(`${fileRoot}app/`, target.rel);
   return ref;
 }
 

@@ -5,8 +5,6 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use indexmap::IndexMap;
 use opsis_fonts::library::FontLibrary;
 use opsis_fonts::online::FontsOnline;
-use opsis_media::executors::Tools;
-use opsis_media::ffmpeg::Ffmpeg;
 use opsis_project::files::ProjectFiles;
 use opsis_project::watch::{LoadedFilesWatch, ProjectWatch};
 use opsis_render::sidecar::Sidecar;
@@ -15,6 +13,7 @@ use opsis_store::keys::{KeyError, Keyring};
 use opsis_types::values::NodeResult;
 use opsis_types::workflow::Workflow;
 
+use crate::engine::EngineChecks;
 use crate::paths::AppPaths;
 use crate::startup::StartupError;
 
@@ -70,7 +69,7 @@ pub struct AppState {
     pub projects: ProjectFiles,
     pub fonts: FontLibrary,
     pub fonts_online: FontsOnline,
-    pub tools: Tools,
+    pub engine: Mutex<EngineChecks>,
     pub sidecar: Arc<Sidecar>,
     pub editor: Mutex<Editor>,
     pub watching: Mutex<Watching>,
@@ -86,14 +85,13 @@ impl AppState {
             std::fs::create_dir_all(dir)?;
         }
         let db = Database::open(&paths.database())?;
-        let engine = opsis_engine::paths::engine_paths(&paths.engine_dir(), paths.platform);
         Ok(Self {
             db: Mutex::new(db),
             keys: Keyring::platform(),
             projects: ProjectFiles::default(),
             fonts: FontLibrary::new(&paths.user_data),
             fonts_online: FontsOnline::default(),
-            tools: Arc::new(Ffmpeg::new(&engine)),
+            engine: Mutex::default(),
             sidecar: Arc::new(Sidecar::new(paths.sidecar(), sidecar_log)),
             editor: Mutex::default(),
             watching: Mutex::default(),
@@ -104,6 +102,10 @@ impl AppState {
 
     pub fn db(&self) -> MutexGuard<'_, Database> {
         self.db.lock().expect("app database")
+    }
+
+    pub fn engine_checks(&self) -> MutexGuard<'_, EngineChecks> {
+        self.engine.lock().expect("engine checks")
     }
 
     pub fn editor(&self) -> MutexGuard<'_, Editor> {

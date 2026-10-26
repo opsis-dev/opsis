@@ -4,11 +4,12 @@ use std::time::Duration;
 
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
-use opsis_capture::browser::{Session, shell_in};
+use opsis_capture::browser::Session;
 use opsis_capture::cdp::CaptureError;
 use opsis_capture::page::{Lifecycle, NAVIGATION_TIMEOUT};
 use opsis_capture::selectors::{ResolveError, ResolveOptions, Resolved, Target, resolve_target};
 use opsis_compile::nodes::browser::{Open, WaitUntil};
+use opsis_engine::paths::downloaded_browser;
 use opsis_types::actions::Point;
 use serde_json::json;
 use tokio_util::sync::CancellationToken;
@@ -28,9 +29,13 @@ struct Page {
 async fn page(html: &str) -> Page {
     let temp = tempfile::tempdir().unwrap();
     let params: Open = serde_json::from_value(json!({})).unwrap();
-    let session = Session::open(&params, &shell_in(&engine_dir()).unwrap(), temp.path())
-        .await
-        .unwrap();
+    let session = Session::open(
+        &params,
+        &downloaded_browser(&engine_dir()).unwrap(),
+        temp.path(),
+    )
+    .await
+    .unwrap();
     let lifecycle = Lifecycle::start(&session.tab).await.unwrap();
     let url = format!("data:text/html;base64,{}", STANDARD.encode(html));
     lifecycle

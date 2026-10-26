@@ -1,3 +1,4 @@
+use opsis_engine::tools::EngineFiles;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
@@ -116,7 +117,7 @@ async fn run(
         workflow: Arc::clone(&workflow),
         env: Arc::new(RunEnv {
             app_version: "test".into(),
-            engine_dir: setup.project_dir.into(),
+            engine: EngineFiles::default(),
             public_dir: setup.project_dir.join("public"),
             temp_dir: setup.project_dir.into(),
             settings: AppSettings::default(),
@@ -415,7 +416,7 @@ async fn has_sound(tools: &FakeTools, media: &LinkedMedia) -> bool {
         workflow: Arc::clone(&workflow),
         env: Arc::new(RunEnv {
             app_version: "test".into(),
-            engine_dir: project.into(),
+            engine: EngineFiles::default(),
             public_dir: project.into(),
             temp_dir: project.into(),
             settings: AppSettings::default(),

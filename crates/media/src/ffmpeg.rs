@@ -3,7 +3,8 @@ use std::process::Stdio;
 use std::sync::LazyLock;
 
 use futures::future::BoxFuture;
-use opsis_engine::paths::{EngineMissing, EnginePaths};
+use opsis_engine::paths::EngineMissing;
+use opsis_engine::tools::EngineFiles;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -215,13 +216,13 @@ fn tail_of(stderr: &str) -> String {
 
 #[derive(Clone)]
 pub struct Ffmpeg {
-    ffmpeg: PathBuf,
-    ffprobe: PathBuf,
+    ffmpeg: Option<PathBuf>,
+    ffprobe: Option<PathBuf>,
     env: Vec<(&'static str, PathBuf)>,
 }
 
 impl Ffmpeg {
-    pub fn new(engine: &EnginePaths) -> Self {
+    pub fn new(engine: &EngineFiles) -> Self {
         Self {
             ffmpeg: engine.ffmpeg.clone(),
             ffprobe: engine.ffprobe.clone(),
@@ -236,13 +237,11 @@ impl Ffmpeg {
 
     fn command(
         &self,
-        exe: &Path,
+        exe: Option<&Path>,
         args: &[String],
         cancel: Option<&CancellationToken>,
     ) -> Result<Command, ToolError> {
-        if !exe.exists() {
-            return Err(EngineMissing.into());
-        }
+        let exe = exe.filter(|e| e.exists()).ok_or(EngineMissing)?;
         if cancel.is_some_and(CancellationToken::is_cancelled) {
             return Err(ToolError::Cancelled);
         }
@@ -343,8 +342,11 @@ impl Ffmpeg {
     }
 
     pub async fn run(&self, args: &[String], opts: RunOptions<'_>) -> Result<(), ToolError> {
-        let mut command =
-            self.command(&self.ffmpeg, &Self::ffmpeg_args(args, &opts), opts.cancel)?;
+        let mut command = self.command(
+            self.ffmpeg.as_deref(),
+            &Self::ffmpeg_args(args, &opts),
+            opts.cancel,
+        )?;
         command.stdin(Stdio::null());
         let child = Self::spawn(command, "ffmpeg")?;
         Self::settle(child, "ffmpeg", opts, &mut |line| progress_in(line, &opts)).await
@@ -357,7 +359,7 @@ impl Ffmpeg {
     ) -> Result<FramePipe, ToolError> {
         let quiet = RunOptions::default();
         let mut command = self.command(
-            &self.ffmpeg,
+            self.ffmpeg.as_deref(),
             &Self::ffmpeg_args(args, &quiet),
             cancel.as_ref(),
         )?;
@@ -397,7 +399,7 @@ impl Ffmpeg {
         .map(|&a| a.to_owned())
         .chain(std::iter::once(file.to_string_lossy().into_owned()))
         .collect::<Vec<_>>();
-        let mut command = self.command(&self.ffprobe, &args, None)?;
+        let mut command = self.command(self.ffprobe.as_deref(), &args, None)?;
         command.stdin(Stdio::null());
         let child = Self::spawn(command, "ffprobe")?;
         let mut out = String::new();

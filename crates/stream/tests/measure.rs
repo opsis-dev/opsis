@@ -3,9 +3,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use opsis_capture::browser::shell_in;
 use opsis_capture::live::FrameSink;
 use opsis_compile::compile::compile_workflow;
+use opsis_engine::paths::downloaded_browser;
 use opsis_project::last_run::read_last_run;
 use opsis_stream::host::ViewEnv;
 use opsis_stream::preview::{Preview, PreviewDirs};
@@ -153,7 +153,7 @@ fn setup() -> Setup {
         .expect("OPSIS_PREVIEW_PROJECT");
     Setup {
         env: ViewEnv {
-            executable: shell_in(&engine).unwrap(),
+            executable: downloaded_browser(&engine).unwrap(),
             temp_dir: temp.path().to_path_buf(),
         },
         project,

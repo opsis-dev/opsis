@@ -91,7 +91,6 @@ Ideas that were discussed but never finalized or planned.
 - [ ] Exporting long films in chunks in fresh browsers and joining them, to avoid the GPU backend's memory leak.
 - [ ] A Run panel that lists every node, nesting compile-only nodes under their export and actions under their capture.
 - [ ] "Not in this run" and "Turned off" states in the Run panel.
-- [ ] Shipping one copy of `public/` in packaged builds instead of three: the shipped `public/`, the editor's build embedded in the binary, and the video bundle's `remotion-bundle/public` (6.3 MB each).
 - [ ] A smaller FFmpeg build (shared, combined or trimmed), which conflicts with keeping both ffmpeg-static binaries.
 - [ ] Replacing `../../` and deeper imports in `apps/ui/src` with `@/` (40 files) and banning them in lint.
 - [ ] Answering the API's `/status` from Rust's own state instead of asking the editor window (`read_project` in `crates/api/src/routes.rs`).

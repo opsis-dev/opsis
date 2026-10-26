@@ -2,6 +2,7 @@ import { statSync } from "node:fs";
 import path from "node:path";
 import { $, browser, expect } from "@wdio/globals";
 import { api, runEvents } from "../support/api";
+import { engineReady } from "../support/engine";
 import { PROJECTS } from "../support/paths";
 
 const EXPORT_MS = 600_000;
@@ -14,6 +15,8 @@ type Artifact = { path: string };
 
 describe("exports", function () {
   this.timeout(EXPORT_MS);
+
+  before(engineReady);
 
   it("runs the changelog example and writes its exports", async () => {
     const dir = path.join(PROJECTS, "changelog");

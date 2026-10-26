@@ -177,14 +177,6 @@ pub struct ApiServerStatus {
     pub error: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[serde(rename_all = "camelCase")]
-pub enum Edition {
-    Full,
-    Lite,
-    Dev,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct AppVersions {
@@ -199,7 +191,6 @@ pub struct EnvStatus {
     pub platform: String,
     pub arch: String,
     pub is_packaged: bool,
-    pub edition: Edition,
     pub user_data: String,
     pub versions: AppVersions,
     pub engine: EngineStatus,

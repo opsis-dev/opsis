@@ -3,6 +3,7 @@ import type { AddressInfo } from "node:net";
 import path from "node:path";
 import { $, browser, expect } from "@wdio/globals";
 import { api } from "../support/api";
+import { engineReady } from "../support/engine";
 import { PROJECTS } from "../support/paths";
 
 const PAGE_WIDTH = 800;
@@ -30,6 +31,8 @@ describe("streamed views", function () {
   });
 
   after(() => server.close());
+
+  before(engineReady);
 
   it("streams the preview into its own window and stops when it closes", async () => {
     const dir = path.join(PROJECTS, "changelog");

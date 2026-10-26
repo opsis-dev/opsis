@@ -2,7 +2,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
-use opsis_engine::paths::{ShellPlatform, engine_paths};
+use opsis_engine::tools::EngineFiles;
 use opsis_media::executors::{Tools, media_executors};
 use opsis_media::ffmpeg::Ffmpeg;
 use opsis_render::executors::{RenderEngine, output_executors};
@@ -120,8 +120,7 @@ async fn make_clip(ffmpeg: &Path, file: &Path) {
 #[tokio::test]
 #[ignore = "needs the dev engine and a video bundle named by OPSIS_VIDEO_BUNDLE"]
 async fn runs_media_nodes_and_exports_through_the_sidecar() {
-    let engine_dir = home().join(".config/Opsis/engine");
-    let paths = engine_paths(&engine_dir, ShellPlatform::current().unwrap());
+    let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
     let base = home().join(".cache/opsis-render-test");
     let project = base.join("project");
     let temp = base.join("tmp");
@@ -129,8 +128,12 @@ async fn runs_media_nodes_and_exports_through_the_sidecar() {
         std::fs::remove_dir_all(&project).unwrap();
     }
     std::fs::create_dir_all(&temp).unwrap();
-    make_clip(&paths.ffmpeg, &project.join("assets/clip.mp4")).await;
-    let tools: Tools = Arc::new(Ffmpeg::new(&paths).with_temp(&temp));
+    make_clip(
+        engine.ffmpeg.as_deref().unwrap(),
+        &project.join("assets/clip.mp4"),
+    )
+    .await;
+    let tools: Tools = Arc::new(Ffmpeg::new(&engine).with_temp(&temp));
     let env_vars = ["TMPDIR", "TEMP", "TMP"]
         .map(|k| (OsString::from(k), temp.clone().into_os_string()))
         .to_vec();
@@ -164,7 +167,7 @@ async fn runs_media_nodes_and_exports_through_the_sidecar() {
     let deps = RunDeps {
         env: Arc::new(RunEnv {
             app_version: "test".into(),
-            engine_dir,
+            engine,
             public_dir: repo().join("public"),
             temp_dir: temp,
             settings: AppSettings::default(),

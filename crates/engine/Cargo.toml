@@ -20,7 +20,15 @@ sha2 = "0.11.1"
 sysinfo = "0.39.6"
 tempfile = "3.27.0"
 thiserror = "2.0.21"
-tokio = { version = "1.54.1", features = ["fs", "io-util", "rt", "macros", "net"] }
+tokio = { version = "1.54.1", features = [
+  "fs",
+  "io-util",
+  "rt",
+  "macros",
+  "net",
+  "process",
+  "time",
+] }
 tokio-util = "0.7.20"
 tower = { version = "0.5.3", features = ["util"] }
 tower-http = { version = "0.7.1", features = ["fs", "cors"] }

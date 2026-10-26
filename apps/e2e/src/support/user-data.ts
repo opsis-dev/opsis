@@ -1,5 +1,13 @@
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, symlinkSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+} from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { DEV_ENGINE, PROJECTS, ROOT, RUN_DIR, USER_DATA } from "./paths";
@@ -21,10 +29,37 @@ function seedDatabase(settings: Record<string, unknown>): void {
   db.close();
 }
 
+const EXE = process.platform === "win32" ? ".exe" : "";
+const SHELL_NAMES = ["headless_shell", `chrome-headless-shell${EXE}`];
+
+const foldersIn = (dir: string): string[] =>
+  readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(dir, entry.name));
+
+function downloadedBrowser(engine: string): string | null {
+  const root = path.join(engine, "chrome-headless-shell");
+  if (!existsSync(root)) return null;
+  const builds = foldersIn(root).flatMap(foldersIn);
+  const shells = builds.flatMap((build) => SHELL_NAMES.map((name) => path.join(build, name)));
+  return shells.find((file) => existsSync(file)) ?? null;
+}
+
+function engineSettings(engine: string): Record<string, { path: string } | null> {
+  const tool = (file: string) => (existsSync(file) ? { path: file } : null);
+  const browser = downloadedBrowser(engine);
+  return {
+    browser: browser ? { path: browser } : null,
+    ffmpeg: tool(path.join(engine, "ffmpeg", `ffmpeg${EXE}`)),
+    ffprobe: tool(path.join(engine, "ffmpeg", `ffprobe${EXE}`)),
+  };
+}
+
 export function freshRun(): void {
   rmSync(RUN_DIR, { recursive: true, force: true });
   mkdirSync(USER_DATA, { recursive: true });
-  if (existsSync(DEV_ENGINE)) symlinkSync(DEV_ENGINE, path.join(USER_DATA, "engine"));
-  seedDatabase({ api: { enabled: true } });
+  const engine = path.join(USER_DATA, "engine");
+  if (existsSync(DEV_ENGINE)) symlinkSync(DEV_ENGINE, engine);
+  seedDatabase({ api: { enabled: true }, engine: engineSettings(engine) });
   cpSync(path.join(ROOT, "examples"), PROJECTS, { recursive: true });
 }

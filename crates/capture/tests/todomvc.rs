@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use opsis_capture::executors::{CaptureDeps, Login, LoginRequest, SignInStore, capture_executors};
-use opsis_engine::paths::{ShellPlatform, engine_paths};
+use opsis_engine::tools::EngineFiles;
 use opsis_media::executors::Tools;
 use opsis_media::ffmpeg::Ffmpeg;
 use opsis_runner::context::{BoxFuture, ExecError, Executors, RunEnv};
@@ -84,11 +84,8 @@ async fn run_example(edit: impl FnOnce(&mut Value), target: &str) -> Ran {
     let mut json: Value = serde_json::from_str(&std::fs::read_to_string(example).unwrap()).unwrap();
     edit(&mut json);
     let workflow: Workflow = serde_json::from_value(json).unwrap();
-    let engine = engine_dir();
-    let tools: Tools = Arc::new(Ffmpeg::new(&engine_paths(
-        &engine,
-        ShellPlatform::current().unwrap(),
-    )));
+    let engine = EngineFiles::downloaded(&engine_dir());
+    let tools: Tools = Arc::new(Ffmpeg::new(&engine));
     let deps = Arc::new(CaptureDeps {
         tools,
         sign_ins: Arc::new(NoSignIns),
@@ -102,7 +99,7 @@ async fn run_example(edit: impl FnOnce(&mut Value), target: &str) -> Ran {
     let run = RunDeps {
         env: Arc::new(RunEnv {
             app_version: "test".into(),
-            engine_dir: engine,
+            engine,
             public_dir: project.clone(),
             temp_dir: temp.path().to_path_buf(),
             settings: AppSettings::default(),

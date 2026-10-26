@@ -4,7 +4,6 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use opsis_compile::mix::plan::MixPlan;
-use opsis_engine::paths::engine_status;
 use opsis_media::analysis::{AnalysisDeps, analyze_filmstrip, analyze_waveform};
 use opsis_media::mix::render::{MixDeps, MixError, render_mix};
 use opsis_project::paths::ref_to_path;
@@ -15,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::State;
 
+use crate::engine::{engine_files, engine_tools};
 use crate::error::CommandResult;
 use crate::state::AppState;
 
@@ -89,13 +89,14 @@ async fn mix(state: &AppState, mixes: &Mixes, project: &Path, plan: &MixPlan) ->
         return AnalysisResult::Skipped;
     }
     let public = state.paths.public_dir.clone();
+    let tools = engine_tools(state);
     let resolve = move |reference: &str| {
         ref_to_path(project, &public, reference).map_err(|_| MixError::Failed)
     };
     let deps = MixDeps {
         project_dir: project,
         resolve: &resolve,
-        ffmpeg: state.tools.as_ref(),
+        ffmpeg: tools.as_ref(),
         cancel: None,
         on_progress: None,
     };
@@ -114,22 +115,20 @@ pub async fn analyze(
     mixes: State<'_, Mixes>,
     request: AnalysisRequest,
 ) -> CommandResult<AnalysisResult> {
-    if engine_status(&state.paths.engine_dir(), state.paths.platform)
-        .ffmpeg
-        .is_none()
-    {
+    if engine_files(&state).ffmpeg.is_none() {
         return Ok(AnalysisResult::Error {
             error: ENGINE_MISSING_MESSAGE.to_owned(),
             engine_missing: Some(true),
         });
     }
+    let tools = engine_tools(&state);
     Ok(match request {
         AnalysisRequest::Waveform { project_dir, src } => analyze_waveform(
             &src,
             &AnalysisDeps {
                 project_dir: Path::new(&project_dir),
                 public_dir: &state.paths.public_dir,
-                tools: state.tools.as_ref(),
+                tools: tools.as_ref(),
                 cancel: None,
             },
         )
@@ -140,7 +139,7 @@ pub async fn analyze(
             &AnalysisDeps {
                 project_dir: Path::new(&project_dir),
                 public_dir: &state.paths.public_dir,
-                tools: state.tools.as_ref(),
+                tools: tools.as_ref(),
                 cancel: None,
             },
         )

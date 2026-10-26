@@ -15,11 +15,17 @@ use serde_json::{Map, Value, json};
 pub const ENGINE_VERSION: &str = "opsis-engine/1";
 const KEY_LENGTH: usize = 24;
 
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Release<'a> {
+    pub app: &'a str,
+    pub engine: &'a str,
+}
+
 pub fn node_hash(
     kind: &str,
     params: &Value,
     upstream: &[(String, String)],
-    app_version: &str,
+    release: &Release<'_>,
 ) -> String {
     let mut ports: Vec<&(String, String)> = upstream.iter().collect();
     ports.sort_unstable();
@@ -29,7 +35,7 @@ pub fn node_hash(
         .collect();
     versioned_hash(
         ENGINE_VERSION,
-        &json!({ "type": kind, "params": params, "ports": ports, "app": app_version }),
+        &json!({ "type": kind, "params": params, "ports": ports, "app": release.app, "engine": release.engine }),
         KEY_LENGTH,
     )
 }
@@ -55,7 +61,7 @@ pub struct KeyInputs<'a> {
     pub workflow: &'a Workflow,
     pub vars: &'a Vars,
     pub project_dir: &'a Path,
-    pub app_version: &'a str,
+    pub release: Release<'a>,
 }
 
 pub fn hash_nodes(order: &[&WorkflowNode], inputs: &KeyInputs<'_>) -> HashMap<String, String> {
@@ -79,7 +85,7 @@ pub fn hash_nodes(order: &[&WorkflowNode], inputs: &KeyInputs<'_>) -> HashMap<St
                     &format!("{}:skipped", node.kind),
                     &Value::Null,
                     &upstream,
-                    inputs.app_version,
+                    &inputs.release,
                 ),
             );
             continue;
@@ -112,7 +118,7 @@ pub fn hash_nodes(order: &[&WorkflowNode], inputs: &KeyInputs<'_>) -> HashMap<St
         };
         hashes.insert(
             node.id.clone(),
-            node_hash(&node.kind, &keyed, &upstream, inputs.app_version),
+            node_hash(&node.kind, &keyed, &upstream, &inputs.release),
         );
     }
     hashes

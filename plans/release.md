@@ -12,46 +12,43 @@ Status: plan only, except where a section says what is already in place.
 
 ## Summary
 
-| Topic                           | What users get                                                       | Needs from the user                       | Status                |
-| ------------------------------- | -------------------------------------------------------------------- | ----------------------------------------- | --------------------- |
-| 1. Size work                    | A smaller download and install                                       | nothing                                   | not started           |
-| 2. Windows and macOS builds     | Installers that have actually run on each system                     | a push to start CI                        | configured, never run |
-| 3. Platform checks              | The editor working the same on WKWebView and WebView2                | nothing (CI runners)                      | not started           |
-| 4. Local API on Windows         | A named pipe only the user's account can open                        | nothing                                   | not started           |
-| 5. Code signing                 | No "unknown publisher" or "can't be opened" warnings                 | Apple account, a Windows signing route    | not started           |
-| 6. Updates                      | Check for updates, ask first, install signed updates                 | the signing key pair, CI secrets, answers | not started           |
-| 7. FFmpeg source offer          | The GPL's source obligation met for the shipped FFmpeg               | hosting the source tarballs               | notice in place       |
-| 8. Release test pass            | Fewer surprises: long takes, odd paths, every template, every system | nothing                                   | partly in place (e2e) |
-| 9. Profiling (development only) | Measured costs before optimizing                                     | nothing                                   | not started           |
-| 10. Node packs (long term)      | Nodes that install and update apart from the app                     | decisions when phase 3 starts             | not started           |
+| Topic                           | What users get                                                       | Needs from the user                       | Status                       |
+| ------------------------------- | -------------------------------------------------------------------- | ----------------------------------------- | ---------------------------- |
+| 1. Size work                    | A smaller download and install                                       | nothing                                   | not started                  |
+| 2. Windows and macOS builds     | Installers that have actually run on each system                     | a push to start CI                        | configured, never run        |
+| 3. Platform checks              | The editor working the same on WKWebView and WebView2                | nothing (CI runners)                      | not started                  |
+| 4. Local API on Windows         | A named pipe only the user's account can open                        | nothing                                   | not started                  |
+| 5. Code signing                 | No "unknown publisher" or "can't be opened" warnings                 | Apple account, a Windows signing route    | not started                  |
+| 6. Updates                      | Check for updates, ask first, install signed updates                 | the signing key pair, CI secrets, answers | not started                  |
+| 7. FFmpeg source offer          | The GPL's source obligation met for the shipped FFmpeg               | nothing (release assets)                  | in place, attach to releases |
+| 8. Release test pass            | Fewer surprises: long takes, odd paths, every template, every system | nothing                                   | partly in place (e2e)        |
+| 9. Profiling (development only) | Measured costs before optimizing                                     | nothing                                   | not started                  |
+| 10. Node packs (long term)      | Nodes that install and update apart from the app                     | decisions when phase 3 starts             | not started                  |
 
 ## 1. Size work
 
-**In place.** The lite deb is 111.6 MB and installs 232 MB on Linux x64 (measured 2026-10-26, from 122 MB and 292 MB): the app binary 70.2 MB (`opt-level = 3`, full LTO, one codegen unit, stripped; 11 min 30 s at 8 cargo jobs), the compiled sidecar 91.3 MB (`--minify` for the host's Bun target; about 89 MB of it is the Bun runtime), the compositor 26 MB, the video bundle 31 MB with no source maps, `public/` 6.2 MB, Export as code sources 4.3 MB and the recording browser's licences 5.1 MB. `--bytecode` would start the sidecar in 20 ms instead of 56 ms for 4 MB more; it's left out.
+**In place.** The deb is 99,605,920 bytes (95.0 MiB) and installs 225,424 KiB on Linux x64 (measured 2026-10-26, from 111.6 MB and 237,273 KiB the build before, and 122 MB and 292 MB before LTO): the app binary 64.4 MB (`opt-level = 3`, full LTO, one codegen unit, stripped), the compiled sidecar 91.3 MB (`--minify` for the host's Bun target; about 89 MB of it is the Bun runtime), the compositor 27.4 MB (about 25 MB of it FFmpeg), the video bundle 33.2 MB with no source maps and with `public/` (6.5 MB), which is the app's only copy of the `app:` files, the preview page 6.4 MB, Export as code sources 4.5 MB and the recording browser's licences 5.4 MB. There is one build: the recording browser and our FFmpeg are never shipped. `public/` used to ship three times (on its own, embedded in the binary through the editor's build, and in the bundle); a packaged app now reads it from the bundle (`AppPaths::public_dir`), the editor loads `app:` files through the desktop file server, and the editor's build carries only `page-errors.js`. `--bytecode` would start the sidecar in 20 ms instead of 56 ms for 4 MB more; it's left out.
 
 **Work.**
 
-1. **Measure first.** `cargo bloat --release -p opsis-desktop --crates` for the binary, `source-map-explorer` on the editor and video bundles, `dust` on the unpacked deb. Write the table here before changing anything, so each step below has a before and after.
-2. **Ship `public/` once.** Vite copies `public/` into the editor build (embedded in the binary) and into the preview page's build, and the bundle ships it again beside them. Point the editor's and the preview's `publicDir` at nothing for the packaged build and serve `app:` files from the shipped `public/` (the editor through the desktop file server, the preview page through its page server, which already serves `public/`). Check every `app:` asset still loads: fonts, backdrops, placeholders, sounds.
-3. **Record** each installer's size per platform from the CI artifacts.
+1. **Measure.** `cargo bloat --release -p opsis-desktop --crates` for the binary and `source-map-explorer` on the editor and video bundles (neither tool is installed yet), so the next cuts have a before and after.
+2. **Record** each installer's size per platform from the CI artifacts.
 
 **Decided.** The notices of the crates and npm packages compiled into the app are not shipped: not worth the size.
 
 ## 2. Windows and macOS builds
 
-**In place.** `.github/workflows/build.yml`: checks on Ubuntu 22.04; `bun run make` for both editions on Ubuntu 22.04 (deb, rpm, AppImage), `windows-latest` (NSIS, per-user install), `macos-latest` and `macos-26-intel` (the app, zipped); the engine and Chromium credits cached; artifacts uploaded; an end-to-end job. It passes `actionlint` and has never run. The repo's remote is `github.com/bismitpanda/opsis`.
+**In place.** `.github/workflows/build.yml`: checks on Ubuntu 22.04; `bun run make` on Ubuntu 22.04 (deb, rpm, AppImage), `windows-latest` (NSIS, per-user install, and MSI) and `macos-latest` and `macos-26-intel` (the app, zipped, and a DMG); the browser that the Chromium credits are read from cached; the compositor's FFmpeg source collected on `v*` tags; artifacts uploaded; an end-to-end job. It passes `actionlint` and has never run. The repo's remote is `github.com/bismitpanda/opsis`.
 
 **Work.**
 
 1. **First run.** Push a branch and start the workflow with `workflow_dispatch`; expect every build job to need fixes at least once (`fail-fast: false` is set).
-2. **Fix failures one system at a time.** Likely places: `install-engine` on Windows (Chrome for Testing download and unzip), the compositor package for `win32-x64-msvc` and `darwin-x64` in `scripts/stage.ts`, `bun build --compile` of the sidecar per platform, NSIS with a large full edition, long paths on Windows (the engine sits several folders deep).
+2. **Fix failures one system at a time.** Likely places: `install-engine` on Windows (Chrome for Testing download and unzip), the compositor package for `win32-x64-msvc` and `darwin-x64` in `scripts/stage.ts`, `bun build --compile` of the sidecar per platform, the MSI (WiX runs only on Windows and needs the VBSCRIPT feature), long paths on Windows (the downloaded engine sits several folders deep).
 3. **AppImage.** Tauri packs WebKitGTK and its GStreamer plugins into it; check on a clean Ubuntu that it starts, plays an exported video in the Run panel and keeps the webview's sandbox working.
 4. **Fedora.** The rpm can't fix H.264 playback: Fedora's `ffmpeg-free` has no H.264 decoder, and OpenH264 decodes Constrained Baseline only, while exports are High profile. The install notes say: enable RPM Fusion and swap `ffmpeg-free` for `ffmpeg`.
 5. **Keep the builds** in `~/.cache/opsis-ci/<run id>/` when checking them; sizes go to section 1.
 
-**Decided.** Public repo; CI runners only for Windows and macOS (no manual pass), plus a person on Linux; x64 Windows and separate Apple Silicon and Intel Mac builds, no Windows on Arm or universal build.
-
-**Decision for the user.** A DMG for macOS: the zip is enough for updates and notarization; add a DMG only if wanted for first installs.
+**Decided.** Public repo; CI runners only for Windows and macOS (no manual pass), plus a person on Linux; x64 Windows and separate Apple Silicon and Intel Mac builds, no Windows on Arm or universal build; one build with no engine inside; NSIS and MSI on Windows, the zipped app (for updates and notarization) and a DMG (for first installs) on macOS.
 
 ## 3. Platform checks
 
@@ -63,7 +60,8 @@ The editor has only run on WebKitGTK.
 2. **macOS shell.** The native menu (`crates/desktop/src/native_menu.rs`) is built and its ids are tested, but it has never run: check the app menu, Edit roles, Cmd+, opens Settings, Cmd+Q goes through the exit dialog, and the traffic lights sit inside the app bar.
 3. **Minimized editor.** The editor window disables background throttling, which only macOS 14+ honours. Check on WebKitGTK and WebView2 whether a minimized editor still answers a Local API edit and autosaves within the 20 s rule; if not, move the workflow and undo into Rust, so API edits never wait on a window.
 4. **Preview sound drift.** The preview's sound plays in the webview, kept within two frames of the page's clock; measure drift over a long film on each system.
-5. **Sign-in end to end.** Not in the e2e suite, because saving a sign-in writes to the real keyring. Add it with a keyring the test owns (a test-only store behind the `e2e` feature).
+5. **Engine checks.** On each runner, download the engine through Settings' installer and run the checks on it (`check_browser`, `check_ffmpeg`, `check_ffprobe`): ffmpeg-static's Windows and macOS builds must have every required encoder, decoder, format and filter, and Chrome for Testing must open a page.
+6. **Sign-in end to end.** Not in the e2e suite, because saving a sign-in writes to the real keyring. Add it with a keyring the test owns (a test-only store behind the `e2e` feature).
 
 ## 4. Local API on Windows
 
@@ -78,8 +76,8 @@ The named pipe is created with the default security descriptor, which grants rea
 
 **Work.**
 
-1. **macOS.** `bundle.macOS.signingIdentity`, `hardenedRuntime` (set) and an entitlements file; CI signs with `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` and notarizes with `APPLE_API_ISSUER`, `APPLE_API_KEY`, `APPLE_API_KEY_PATH` (the workflow passes them when the secrets exist and checks every Mach-O with `codesign -dv`). The sidecar, compositor, headless shell and FFmpeg must all be signed, or notarization fails.
-2. **Windows.** `bundle.windows.certificateThumbprint`, `digestAlgorithm` and `timestampUrl` for a certificate in the store, or `signCommand` for another tool (Azure Artifact Signing has a `signCommand` route). Sign the bundled programs in the full edition too.
+1. **macOS.** `bundle.macOS.signingIdentity`, `hardenedRuntime` (set) and an entitlements file; CI signs with `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` and notarizes with `APPLE_API_ISSUER`, `APPLE_API_KEY`, `APPLE_API_KEY_PATH` (the workflow passes them when the secrets exist and checks every Mach-O with `codesign -dv`). The sidecar and the compositor's programs must all be signed, or notarization fails; the recording browser and our FFmpeg are downloaded or chosen on the user's Mac, not shipped.
+2. **Windows.** `bundle.windows.certificateThumbprint`, `digestAlgorithm` and `timestampUrl` for a certificate in the store, or `signCommand` for another tool (Azure Artifact Signing has a `signCommand` route). Sign the sidecar and the compositor's programs too.
 3. **Check** on clean machines: the publisher name shows; macOS opens the downloaded zip with one confirmation.
 
 **Decided.** The signer is the user's own name.
@@ -90,7 +88,7 @@ The named pipe is created with the default security descriptor, which grants rea
 
 **How it works.** `tauri-plugin-updater`:
 
-1. The app fetches a small JSON feed (one per edition) from GitHub Releases, only when the user clicks "Check for updates" or has switched on checking at start. Nothing goes online by default.
+1. The app fetches a small JSON feed from GitHub Releases, only when the user clicks "Check for updates" or has switched on checking at start. Nothing goes online by default.
 2. It shows "Version X is available" with the notes; nothing downloads until the user clicks.
 3. `download()` fetches the update and checks its signature against the public key built into the app; `install()` installs it: the new installer on Windows, the app replaced on macOS, the AppImage replaced on Linux. deb and rpm can't update themselves, so they show a button that opens the release page.
 4. CI signs each build with the private key and writes the feed (`version`, `notes`, `pub_date`, `platforms.<os-arch>.url` and `signature`) to a draft release on a `v*` tag; a person publishes it after section 8.
@@ -100,29 +98,27 @@ The named pipe is created with the default security descriptor, which grants rea
 1. Run `bunx tauri signer generate -w ~/.tauri/opsis.key` (with a password if wanted) and keep the private key safe: if it's lost, installed copies can never update again.
 2. Add `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` to the GitHub repository's secrets.
 3. Send the public key; it goes into `plugins.updater.pubkey` and is safe to commit.
-4. Confirm the feed lives on the releases of `bismitpanda/opsis`, one feed per edition.
+4. Confirm the feed lives on the releases of `bismitpanda/opsis`.
 5. Choose: check on start with a Settings switch to turn it off, or only on the button.
 
 **Work.** Settings → About gets the button and the switch (`updates` section in the settings); the release job gets `createUpdaterArtifacts` and the feed; the exit dialog lists a running download (`AppState.tasks`).
 
 **Decided.** The feed address is the GitHub repo URL (GitHub forwards a renamed repo; never reuse the old name). deb: no apt repository, the release-page button.
 
-**Decision for the user.** Full-edition updates download the engine again (about 400 MB on Linux): let them, point updaters to the lite edition, or move the full edition's engine to the data folder on first run.
-
 ## 7. FFmpeg source offer
 
-**In place.** FFmpeg ships as separate GPLv3 programs (ffmpeg-static `b6.1.1`) with `LICENSE.txt`, listed in Settings → Licences and `THIRD_PARTY_NOTICES.md`. Remotion's compositor carries its own GPLv2+ FFmpeg. Opsis runs both over arguments and pipes, so the GPL doesn't reach Opsis's code. Decided: keep the GPL builds.
+**In place.** The only FFmpeg Opsis distributes is the one in Remotion's compositor: FFmpeg 7.1 built by Remotion with `--enable-gpl` (GPLv2 or later; Remotion's own page says so and points at `remotion-dev/rust-ffmpeg-splitter`). Our ffmpeg-static programs (GPLv3) are downloaded from that project's release on the user's request, or chosen, and never shipped. The stage writes `COPYING.GPLv2` and `SOURCES.md` next to the compositor, Settings → Licences lists both, and `THIRD_PARTY_NOTICES.md` names them. `licences/compositor-sources.json` pins the exact source, traced from Remotion 4.0.537's `packages/compositor/Cargo.toml` (`rust-ffmpeg` 0579107 → `rust-ffmpeg-sys` e7f864a, whose binaries came from `rust-ffmpeg-splitter` 50b6a0c): the splitter (scripts, the five FFmpeg patches and the bundled Opus 1.3.1, libvpx and LAME), FFmpeg 7.1, x264 at b35605a (the `stable` head when the binaries were built), both pinned x265 commits, dav1d 1.2.1, libaom 3.9.1, fdk-aac-free 2.0.0 and zimg 2.9.3. `bun run compositor:sources` downloads them with SHA256SUMS, CI's `compositor-sources` job does it on `v*` tags, and the stage and a test fail when the manifest names another Remotion version than the one installed. Decided: keep the GPL builds.
 
 **Work.**
 
-1. GPLv3 §6 needs the Corresponding Source with each binary release, or a written offer: for each platform's FFmpeg build (and the compositor's), record where its exact source lives, mirror the tarballs as assets of each Opsis release, and link them from the Licences page and the notices.
-2. When the pinned FFmpeg release or Remotion version changes, the mirrored source changes with it; a CI check fails when they don't match.
+1. Attach the collected sources to each GitHub release, in the release job of section 6, so `SOURCES.md`'s link (`releases/tag/v<version>`) holds them.
+2. When Remotion moves, trace the chain again (the compositor's `Cargo.toml` → `rust-ffmpeg` → `rust-ffmpeg-sys`'s last binaries commit, which names the splitter commit) and update the manifest; check that x264's `stable` head hasn't moved past the build date.
 
-**Risk.** Patents are a separate question: H.264 and H.265 patent pools apply whatever the copyright licence.
+**Risk.** Patents are a separate question: H.264 and H.265 patent pools apply whatever the copyright licence. The `remotion` program in the compositor is under Remotion's own licence and links that FFmpeg; Remotion publishes no written offer of its own.
 
 ## 8. Release test pass
 
-**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display): the start screen, every example opening, the streamed preview, the element picker, a run and export of the changelog, playing the export, and the close flow. The packaged lite deb was checked off-screen through the Local API: it opened the changelog and exported it with the packed sidecar.
+**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display): the start screen, every example opening, the streamed preview, the element picker, a run and export of the changelog, playing the export, and the close flow. The packaged deb was checked off-screen through the Local API: it opened the changelog and exported it with the packed sidecar.
 
 **Work, before each release** (Linux by hand, Windows and macOS through the runner checks in section 3):
 

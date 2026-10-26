@@ -5,6 +5,7 @@ mod analysis;
 mod api;
 pub mod bindings;
 mod compile;
+mod engine;
 mod error;
 mod events;
 mod exit;
@@ -50,7 +51,6 @@ fn start(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         );
     }
     let state = AppState::new(paths, Arc::new(|line: &str| log::info!("sidecar: {line}")))?;
-    settings::complete_licences(&state);
     app.manage(state);
     app.manage(file_server::start(app.handle())?);
     app.manage(RunHost::default());
@@ -60,6 +60,7 @@ fn start(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     app.manage(WindowRuntime::default());
     app.manage(api::Api::new(app.handle()));
     api::follow_setting(app.handle());
+    engine::verify_on_start(app.handle());
     #[cfg(target_os = "macos")]
     {
         app.set_menu(native_menu::build(app.handle())?)?;

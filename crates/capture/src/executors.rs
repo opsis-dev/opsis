@@ -28,7 +28,6 @@ use opsis_types::values::{
 };
 use tokio_util::sync::CancellationToken;
 
-use crate::browser::shell_in;
 use crate::cdp::CaptureError;
 use crate::encoder::{EncodeError, Encoded, FrameEncoder};
 use crate::live::{LiveFeed, LiveSink, NodeLive};
@@ -107,7 +106,12 @@ fn artifact(ctx: &ExecutorContext, kind: ArtifactKind, file: &str, label: &str) 
 }
 
 fn take_env(ctx: &Arc<ExecutorContext>, deps: &CaptureDeps) -> Result<TakeEnv, ExecError> {
-    let executable = shell_in(&ctx.env.engine_dir).map_err(|e| ExecError::new(e.to_string()))?;
+    let executable = ctx
+        .env
+        .engine
+        .browser()
+        .map_err(|e| ExecError::new(e.to_string()))?
+        .to_path_buf();
     let live = deps.live.as_ref().map(|feed| {
         Arc::new(NodeLive::new(
             Arc::clone(feed),

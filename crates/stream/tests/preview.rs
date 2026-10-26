@@ -1,8 +1,8 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use opsis_capture::browser::shell_in;
 use opsis_compile::compile::compile_workflow;
+use opsis_engine::paths::downloaded_browser;
 use opsis_project::last_run::read_last_run;
 use opsis_stream::host::ViewEnv;
 use opsis_stream::preview::{PlayerState, Preview, PreviewDirs};
@@ -39,7 +39,7 @@ async fn previews_the_film_frame_by_frame() {
     let temp = tempfile::tempdir().unwrap();
     let engine = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/Opsis/engine");
     let env = ViewEnv {
-        executable: shell_in(&engine).unwrap(),
+        executable: downloaded_browser(&engine).unwrap(),
         temp_dir: temp.path().to_path_buf(),
     };
     let project = take_project();
@@ -86,7 +86,7 @@ async fn draws_canvas_transitions_as_renders_do() {
     let temp = tempfile::tempdir().unwrap();
     let engine = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/Opsis/engine");
     let env = ViewEnv {
-        executable: shell_in(&engine).unwrap(),
+        executable: downloaded_browser(&engine).unwrap(),
         temp_dir: temp.path().join("tmp"),
     };
     std::fs::create_dir_all(&env.temp_dir).unwrap();

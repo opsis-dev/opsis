@@ -20,6 +20,7 @@ use tauri_plugin_notification::NotificationExt;
 use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
+use crate::engine::{engine_files, engine_tools};
 use crate::error::{CommandError, CommandResult};
 use crate::events::{LiveNoted, RunEventFired};
 use crate::frames::{FrameChannel, send};
@@ -136,7 +137,7 @@ impl LiveFeed for AppLive {
 
 fn executors(app: &AppHandle) -> Executors {
     let state = app.state::<AppState>();
-    let tools = Arc::clone(&state.tools);
+    let tools = engine_tools(&state);
     let engine = Arc::new(RenderEngine {
         sidecar: Arc::clone(&state.sidecar),
         tools: Arc::clone(&tools),
@@ -154,7 +155,7 @@ fn executors(app: &AppHandle) -> Executors {
         tools: Arc::clone(&tools),
         sign_ins: Arc::new(ProjectSignIns { app: app.clone() }),
         login: Arc::new(StreamLogin {
-            engine_dir: state.paths.engine_dir(),
+            engine: engine_files(&state),
             temp_dir: state.paths.views_temp.clone(),
             host: Arc::new(AppViewHost { app: app.clone() }),
         }),
@@ -282,7 +283,7 @@ pub async fn run_workflow(
     let settings = state.db().read_settings()?;
     let env = Arc::new(RunEnv {
         app_version: app.package_info().version.to_string(),
-        engine_dir: state.paths.engine_dir(),
+        engine: engine_files(&state),
         public_dir: state.paths.public_dir.clone(),
         temp_dir: temp_dir.clone(),
         settings,

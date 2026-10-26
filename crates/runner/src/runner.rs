@@ -26,7 +26,7 @@ use crate::cache::{read_cached, stamp_artifacts, write_cached};
 use crate::context::{
     BoxFuture, Emit, ExecError, ExecutorContext, Executors, ResultStore, RunEnv, now_ms,
 };
-use crate::keys::{KeyInputs, hash_nodes};
+use crate::keys::{KeyInputs, Release, hash_nodes};
 use crate::progress::failure_message;
 
 const SKIPPED_REASON: &str = "Something before it failed";
@@ -117,7 +117,10 @@ impl RunState {
             workflow: &self.workflow,
             vars: &self.vars,
             project_dir: &self.project_dir,
-            app_version: &self.deps.env.app_version,
+            release: Release {
+                app: &self.deps.env.app_version,
+                engine: &self.deps.env.engine.stamp,
+            },
         }
     }
 
