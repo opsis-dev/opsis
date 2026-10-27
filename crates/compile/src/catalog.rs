@@ -1,6 +1,7 @@
 use indexmap::IndexMap;
 use opsis_types::fonts::FontFamilyDef;
 use opsis_types::mix::{MixerBook, mixer_book};
+use opsis_types::settings::{SettingsBook, settings_book};
 use opsis_types::workflow::PortType;
 use serde::Serialize;
 use serde_json::Value;
@@ -177,6 +178,7 @@ pub struct EditorCatalog {
     pub text: TextRules,
     pub mixer: MixerBook,
     pub bundled_fonts: Vec<FontFamilyDef>,
+    pub settings: SettingsBook,
 }
 
 pub fn editor_bundle(platform: Platform) -> EditorCatalog {
@@ -206,5 +208,6 @@ pub fn editor_bundle(platform: Platform) -> EditorCatalog {
         },
         mixer: mixer_book(),
         bundled_fonts: bundled_fonts().to_vec(),
+        settings: settings_book(),
     }
 }

@@ -2,13 +2,11 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { whenFirstOneOf } from "@/lib/one-of";
 
 export function OptionToggle<T extends string>({
-  options,
-  labels,
+  choices,
   value,
   onChange,
 }: {
-  options: readonly T[];
-  labels: Record<T, string>;
+  choices: ReadonlyArray<readonly [T, string]>;
   value: T;
   onChange: (value: T) => void;
 }) {
@@ -17,11 +15,14 @@ export function OptionToggle<T extends string>({
       variant="outline"
       size="sm"
       value={[value]}
-      onValueChange={whenFirstOneOf(options, onChange)}
+      onValueChange={whenFirstOneOf(
+        choices.map(([option]) => option),
+        onChange,
+      )}
     >
-      {options.map((option) => (
+      {choices.map(([option, label]) => (
         <ToggleGroupItem key={option} value={option}>
-          {labels[option]}
+          {label}
         </ToggleGroupItem>
       ))}
     </ToggleGroup>

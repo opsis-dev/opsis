@@ -1,10 +1,10 @@
 import { Panel } from "@xyflow/react";
 import { Map as MapIcon, Mouse, Touchpad } from "lucide-react";
-import { CANVAS_MODES } from "@/app/settings/options";
 import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { CanvasMode } from "@/generated/bindings";
 import { whenFirstOneOf } from "@/lib/one-of";
+import { settingsBook } from "@/store/catalog";
 import { patchAppSettings } from "../store/app-settings";
 import { useViewOptions } from "../store/view-options";
 import { WithTooltip } from "./with-tooltip";
@@ -20,7 +20,7 @@ export function CanvasToolbar({ mode }: { mode: CanvasMode }) {
         size="sm"
         value={[mode]}
         onValueChange={whenFirstOneOf(
-          CANVAS_MODES,
+          settingsBook().canvasModes,
           (canvasMode) => void patchAppSettings({ editor: { canvasMode } }),
         )}
       >

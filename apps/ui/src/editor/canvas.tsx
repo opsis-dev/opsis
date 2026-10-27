@@ -9,9 +9,9 @@ import {
   type ReactFlowProps,
 } from "@xyflow/react";
 import { useCallback, useMemo, useRef } from "react";
-import { DEFAULT_SETTINGS } from "@/app/settings/options";
 import { ZoomSlider } from "@/components/zoom-slider";
 import { isMac } from "@/lib/platform";
+import { settingsBook } from "@/store/catalog";
 import { connects } from "@/workflow/graph";
 import { useAppSettings } from "../store/app-settings";
 import { useUiStore } from "../store/ui";
@@ -74,7 +74,7 @@ const clearSelection = () => useUiStore.getState().setSelected([]);
 export function Canvas({ projectDir }: { projectDir: string }) {
   const workflow = useRequiredWorkflow();
   const mode = useAppSettings(
-    (s) => s.settings?.editor.canvasMode ?? DEFAULT_SETTINGS.editor.canvasMode,
+    (s) => s.settings?.editor.canvasMode ?? settingsBook().defaults.editor.canvasMode,
   );
   const minimap = useViewOptions((s) => s.minimap);
   const selectedIds = useUiStore((s) => s.selectedIds);

@@ -1,13 +1,8 @@
 import { clamp } from "@opsis/video/common/math";
-import {
-  KEEP_LAST_TRACES,
-  LIVE_FPS,
-  TRACE_RETENTION,
-  TRACE_RETENTION_LABELS,
-} from "@/app/settings/options";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import type { AppSettings } from "@/generated/bindings";
 import { parseNumberText } from "@/lib/number-text";
+import { settingsBook } from "@/store/catalog";
 import { patchAppSettings } from "../../store/app-settings";
 import { OptionToggle } from "../option-toggle";
 import { SingleSlider } from "../single-slider";
@@ -17,9 +12,8 @@ import { SettingsCard } from "./settings-card";
 function setKeepLast(text: string): void {
   const n = parseNumberText(text);
   if (n === null) return;
-  void patchAppSettings({
-    traces: { keepLast: clamp(Math.round(n), KEEP_LAST_TRACES.min, KEEP_LAST_TRACES.max) },
-  });
+  const { min, max } = settingsBook().keepLastTraces;
+  void patchAppSettings({ traces: { keepLast: clamp(Math.round(n), min, max) } });
 }
 
 function TracesCard({ traces }: { traces: AppSettings["traces"] }) {
@@ -32,8 +26,7 @@ function TracesCard({ traces }: { traces: AppSettings["traces"] }) {
         <Field>
           <FieldLabel>Keep traces</FieldLabel>
           <OptionToggle
-            options={TRACE_RETENTION}
-            labels={TRACE_RETENTION_LABELS}
+            choices={settingsBook().traceRetention}
             value={traces.retention}
             onChange={(retention) => void patchAppSettings({ traces: { retention } })}
           />
@@ -44,8 +37,8 @@ function TracesCard({ traces }: { traces: AppSettings["traces"] }) {
             <CommitInput
               id="keep-last"
               type="number"
-              min={KEEP_LAST_TRACES.min}
-              max={KEEP_LAST_TRACES.max}
+              min={settingsBook().keepLastTraces.min}
+              max={settingsBook().keepLastTraces.max}
               value={String(traces.keepLast)}
               onCommit={setKeepLast}
             />
@@ -69,8 +62,8 @@ function LiveViewCard({ live }: { live: AppSettings["live"] }) {
             <span className="text-muted-foreground text-sm tabular-nums">{live.fps} fps</span>
           </div>
           <SingleSlider
-            min={LIVE_FPS.min}
-            max={LIVE_FPS.max}
+            min={settingsBook().liveFps.min}
+            max={settingsBook().liveFps.max}
             step={1}
             value={live.fps}
             onChange={(fps) => void patchAppSettings({ live: { fps } })}

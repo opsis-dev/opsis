@@ -10,6 +10,7 @@ import {
   type PortType,
   type TemplateInfo,
   type MixerBook,
+  type SettingsBook,
   type TextRules,
 } from "@/generated/bindings";
 
@@ -26,6 +27,7 @@ const loaded: {
   text: TextRules;
   mixer: MixerBook | null;
   bundledFonts: FontFamilyDef[];
+  settings: SettingsBook | null;
   templates: TemplateInfo[];
 } = {
   nodes: [],
@@ -36,6 +38,7 @@ const loaded: {
   text: { variablePattern: "(?!)", pauseMark: "" },
   mixer: null,
   bundledFonts: [],
+  settings: null,
   templates: [],
 };
 
@@ -52,7 +55,8 @@ export async function loadCatalog(): Promise<void> {
 
 export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
   loaded.templates = templates;
-  const { nodes, transitions, connects, text, mixer, bundledFonts } = catalog;
+  const { nodes, transitions, connects, text, mixer, bundledFonts, settings } = catalog;
+  loaded.settings = settings;
   loaded.text = text;
   loaded.mixer = mixer;
   loaded.bundledFonts = bundledFonts;
@@ -66,6 +70,11 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
 export const textRules = (): TextRules => loaded.text;
 
 export const bundledFonts = (): FontFamilyDef[] => loaded.bundledFonts;
+
+export function settingsBook(): SettingsBook {
+  if (!loaded.settings) throw new Error("The node catalogue hasn't loaded yet.");
+  return loaded.settings;
+}
 
 export function mixerBook(): MixerBook {
   if (!loaded.mixer) throw new Error("The node catalogue hasn't loaded yet.");

@@ -18,9 +18,11 @@ import { ListRow } from "./list-row";
 import { MONO_TEXT } from "./text-styles";
 import { traceClock, TraceTabs } from "./trace-tabs";
 
-const MOMENTS = ["before", "after"] as const;
-type Moment = (typeof MOMENTS)[number];
-const MOMENT_LABELS: Record<Moment, string> = { before: "Before", after: "After" };
+type Moment = "before" | "after";
+const MOMENTS: ReadonlyArray<readonly [Moment, string]> = [
+  ["before", "Before"],
+  ["after", "After"],
+];
 
 function useTrace(projectDir: string, traceId: string) {
   const [state, setState] = useState<{ trace?: TraceModel; error?: string; id?: string }>({});
@@ -187,7 +189,7 @@ function ActionHeader({
           {at(action.start)} · {formatPreciseDuration(action.end - action.start)}
         </Badge>
       ) : null}
-      <OptionToggle options={MOMENTS} labels={MOMENT_LABELS} value={moment} onChange={onMoment} />
+      <OptionToggle choices={MOMENTS} value={moment} onChange={onMoment} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
-import { START_OPTION_LABELS, START_OPTIONS } from "@/app/settings/options";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import type { AppSettings } from "@/generated/bindings";
+import { settingsBook } from "@/store/catalog";
 import { patchAppSettings } from "../../store/app-settings";
 import { OptionToggle } from "../option-toggle";
 import { SwitchField } from "./fields";
@@ -13,8 +13,7 @@ export function GeneralPage({ app }: { app: AppSettings["app"] }) {
         <Field>
           <FieldLabel>When Opsis starts</FieldLabel>
           <OptionToggle
-            options={START_OPTIONS}
-            labels={START_OPTION_LABELS}
+            choices={settingsBook().startOptions}
             value={app.onStart}
             onChange={(onStart) => void patchAppSettings({ app: { onStart } })}
           />

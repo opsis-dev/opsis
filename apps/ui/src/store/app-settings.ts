@@ -1,8 +1,19 @@
 import { create } from "zustand";
-import { DEFAULT_SETTINGS, mergeSettings, type SettingsPatch } from "@/app/settings/options";
 import { on } from "@/app/tauri";
 import { commands, events, type ApiServerStatus, type AppSettings } from "@/generated/bindings";
 import { loadOrReport } from "@/lib/toast";
+import { settingsBook } from "@/store/catalog";
+
+type Section = Exclude<keyof AppSettings, "engine">;
+
+export type SettingsPatch = { [K in Section]?: Partial<AppSettings[K]> };
+
+const merged = (current: AppSettings, patch: SettingsPatch): AppSettings => {
+  const next = { ...current };
+  for (const [section, values] of Object.entries(patch))
+    Object.assign(next, { [section]: { ...current[section as Section], ...values } });
+  return next;
+};
 
 type AppSettingsState = {
   settings: AppSettings | null;
@@ -12,7 +23,7 @@ type AppSettingsState = {
 export const useAppSettings = create<AppSettingsState>()(() => ({ settings: null, api: null }));
 
 export const liveAutoOpen = () =>
-  (useAppSettings.getState().settings ?? DEFAULT_SETTINGS).live.autoOpen;
+  (useAppSettings.getState().settings ?? settingsBook().defaults).live.autoOpen;
 
 async function reloadSettings(): Promise<void> {
   const settings = await loadOrReport(() => commands.getSettings(), "Couldn't read the settings");
@@ -49,7 +60,7 @@ export function watchAppSettings(): void {
 
 export function patchAppSettings(patch: SettingsPatch): Promise<AppSettings> {
   const current = useAppSettings.getState().settings;
-  if (current) useAppSettings.setState({ settings: mergeSettings(current, patch) });
+  if (current) useAppSettings.setState({ settings: merged(current, patch) });
   return commands.patchSettings(patch).catch((error: unknown) => {
     void reloadSettings();
     throw error;

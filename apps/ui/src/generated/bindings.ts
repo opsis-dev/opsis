@@ -672,6 +672,7 @@ export type EditorCatalog = {
 	text: TextRules,
 	mixer: MixerBook,
 	bundledFonts: FontFamilyDef[],
+	settings: SettingsBook,
 };
 
 export type EditorCompile = {
@@ -1509,6 +1510,15 @@ export type SessionStep = {
 	params: { [key in string]: unknown },
 };
 
+export type SettingsBook = {
+	defaults: AppSettings,
+	startOptions: ([StartOption, string])[],
+	traceRetention: ([TraceRetention, string])[],
+	canvasModes: CanvasMode[],
+	keepLastTraces: WholeRange,
+	liveFps: WholeRange,
+};
+
 export type SettingsChanged = AppSettings;
 
 export type SettingsPage = "general" | "projects" | "engine" | "recording" | "fonts" | "export" | "api" | "licences" | "about";
@@ -1874,6 +1884,11 @@ export type Waveform = {
 	levels: WaveformLevel[],
 	beats: (number)[],
 	bpm: number,
+};
+
+export type WholeRange = {
+	min: number,
+	max: number,
 };
 
 export type WindowRole = "cut" | "copy" | "paste" | "selectAll" | "reload" | "toggleDevTools" | "resetZoom" | "zoomIn" | "zoomOut" | "togglefullscreen" | "minimize" | "toggleMaximize" | "close" | "quit";
