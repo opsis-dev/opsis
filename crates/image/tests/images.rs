@@ -8,10 +8,11 @@ use image::{
 };
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, CropMode, GridFit, GridLayout,
-    ImageFormat, ImageGrid, LevelsMethod, OutlineImage, PlaceImage, RedactImage, RedactStyle,
-    ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges,
-    Turn, grid_plan, tilt_corners, tilted_size,
+    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, CropMode, FrameScreenshot,
+    FrameShape, GridFit, GridLayout, ImageFormat, ImageGrid, LevelsMethod, OutlineImage,
+    PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage,
+    StillFileFormat, TiltImage, TrimEdges, Turn, framed_placement, grid_plan, tilt_corners,
+    tilted_size,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -743,4 +744,57 @@ fn lays_images_out_in_rows_columns_and_cells() {
         [0, 0, 0],
         "the padding is the background"
     );
+}
+
+#[test]
+fn frames_a_picture_with_round_corners_and_a_shadow_on_a_background() {
+    let shot = block(100, 50, [250, 250, 250]);
+    let p = FrameScreenshot {
+        padding: 20.0,
+        radius: 10.0,
+        shadow_drop: 6.0,
+        shadow_softness: 4.0,
+        shadow_opacity: 0.5,
+        ..FrameScreenshot::default()
+    };
+    let paint = ops::Paint::Colour([40, 80, 160, 255]);
+    let out = ops::frame(&shot, &paint, &p).unwrap().to_rgba8();
+    let ((w, h), (x, y)) = framed_placement((100.0, 50.0), &p);
+    assert_eq!(out.dimensions(), (w as u32, h as u32));
+    assert_eq!((w, h, x, y), (120.0, 70.0, 10.0, 10.0));
+    assert_eq!(
+        out.get_pixel(10, 10).0,
+        [40, 80, 160, 255],
+        "the corner is rounded off"
+    );
+    assert_eq!(
+        out.get_pixel(60, 35).0,
+        [250, 250, 250, 255],
+        "the picture is in the middle"
+    );
+    assert_eq!(
+        out.get_pixel(2, 2).0,
+        [40, 80, 160, 255],
+        "far corners are the background"
+    );
+    let below = out.get_pixel(60, 63).0;
+    assert!(
+        below[2] < 160,
+        "the shadow darkens below the picture: {below:?}"
+    );
+    for (shape, ratio) in [
+        (FrameShape::Wide, 16.0 / 9.0),
+        (FrameShape::Square, 1.0),
+        (FrameShape::Portrait, 0.8),
+        (FrameShape::Story, 9.0 / 16.0),
+    ] {
+        let ((w, h), _) = framed_placement((100.0, 50.0), &FrameScreenshot { shape, ..p.clone() });
+        assert!((w / h - ratio).abs() < 0.02, "{shape:?} is {w} × {h}");
+        assert!(w >= 120.0 && h >= 70.0, "{shape:?} never cuts the picture");
+    }
+    let gradient =
+        opsis_compile::gradient::parse_gradient("linear-gradient(90deg, #000000 0%, #ffffff 100%)")
+            .unwrap();
+    let painted = ops::paint_gradient((100, 10), &gradient);
+    assert!(painted.get_pixel(1, 5).0[0] < 0.05 && painted.get_pixel(98, 5).0[0] > 0.95);
 }

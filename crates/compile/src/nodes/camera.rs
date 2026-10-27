@@ -391,7 +391,7 @@ impl Params for BackdropStyle {
 }
 
 impl BackdropStyle {
-    fn card_row(&self) -> CardRow {
+    pub fn card_row(&self) -> CardRow {
         match self.kind {
             BackdropKind::Image => row(Icon::Image, humanize(self.name.id())),
             BackdropKind::Solid => row(Icon::Palette, self.color.clone()),

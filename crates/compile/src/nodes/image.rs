@@ -6,10 +6,14 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
+use crate::errors::SettingsError;
 use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, PortFamily, RowExt, missing, port, row};
+use crate::nodes::camera::BackdropStyle;
 use crate::nodes::effects::Area;
 use crate::params::Params;
 use crate::ports::{IN_PREFIX, in_index};
+
+pub const FRAME_TYPE: &str = "image.frame";
 
 pub const GRID_TYPE: &str = "image.grid";
 
@@ -612,6 +616,86 @@ pub struct ImageGrid {
 }
 
 impl Params for ImageGrid {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum FrameShape {
+    #[default]
+    Keep,
+    Wide,
+    Square,
+    Portrait,
+    Story,
+}
+
+impl FrameShape {
+    fn ratio(self) -> Option<f64> {
+        match self {
+            Self::Keep => None,
+            Self::Wide => Some(16.0 / 9.0),
+            Self::Square => Some(1.0),
+            Self::Portrait => Some(4.0 / 5.0),
+            Self::Story => Some(9.0 / 16.0),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct FrameScreenshot {
+    #[serde(flatten)]
+    pub background: BackdropStyle,
+    #[default = 8.0]
+    #[schemars(
+        description = "Padding",
+        range(min = 0, max = 50),
+        extend("x-step" = 1, "x-unit" = "%", "x-help" = "Space around the picture, as a share of its shorter side.")
+    )]
+    pub padding: f64,
+    #[default = 16.0]
+    #[schemars(description = "Corner radius", range(min = 0, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
+    pub radius: f64,
+    #[default = 16.0]
+    #[schemars(description = "Shadow drop", range(min = 0, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
+    pub shadow_drop: f64,
+    #[default = 40.0]
+    #[schemars(description = "Shadow softness", range(min = 0, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
+    pub shadow_softness: f64,
+    #[default = 0.35]
+    #[schemars(description = "Shadow opacity", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    pub shadow_opacity: f64,
+    #[schemars(
+        description = "Shape",
+        extend(
+            "x-labels" = { "keep": "Keep", "wide": "16:9", "square": "1:1", "portrait": "4:5", "story": "9:16" },
+            "x-help" = "Grows the background around the picture to this shape; the picture is never cut."
+        )
+    )]
+    pub shape: FrameShape,
+}
+
+impl Params for FrameScreenshot {
+    fn check(&self) -> Result<(), SettingsError> {
+        self.background.check()
+    }
+}
+
+pub fn framed_placement(source: (f64, f64), p: &FrameScreenshot) -> ((f64, f64), (f64, f64)) {
+    let pad = (source.0.min(source.1) * p.padding.clamp(0.0, 50.0) / 100.0).round();
+    let (mut w, mut h) = (source.0 + 2.0 * pad, source.1 + 2.0 * pad);
+    if let Some(ratio) = p.shape.ratio() {
+        if w / h > ratio {
+            h = (w / ratio).round();
+        } else {
+            w = (h * ratio).round();
+        }
+    }
+    let at = (
+        ((w - source.0) / 2.0).round(),
+        ((h - source.1) / 2.0).round(),
+    );
+    ((w, h), at)
+}
 
 pub struct GridPlan {
     pub canvas: (f64, f64),
@@ -1345,6 +1429,21 @@ fn grid() -> NodeDef {
     })
 }
 
+fn frame() -> NodeDef {
+    image_node::<FrameScreenshot>(
+        FRAME_TYPE,
+        "Frame screenshot",
+        "Gives a screenshot rounded corners and a soft shadow on a padded background, ready for a post.",
+    )
+    .card(|ctx: &CardCtx<'_, FrameScreenshot>| {
+        let p = &ctx.params;
+        vec![
+            Some(p.background.card_row()),
+            size_row(ctx, |s| framed_placement(s, p).0),
+        ]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -1362,5 +1461,6 @@ pub fn nodes() -> Vec<NodeDef> {
         tilt().look(NodeLook::of("tabler:perspective")),
         levels().look(NodeLook::of("lucide:chart-column-increasing")),
         grid().look(NodeLook::of("lucide:grid-2x2")),
+        frame().look(NodeLook::of("lucide:frame")),
     ]
 }

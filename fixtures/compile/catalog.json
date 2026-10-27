@@ -4886,6 +4886,29 @@
    }
   },
   {
+   "type": "image.frame",
+   "title": "Frame screenshot",
+   "category": "Image",
+   "description": "Gives a screenshot rounded corners and a soft shadow on a padded background, ready for a post. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -52667,6 +52690,197 @@
      "gap": 24,
      "padding": 24,
      "background": "#ffffff"
+    }
+   }
+  },
+  {
+   "type": "image.frame",
+   "title": "Frame screenshot",
+   "category": "Image",
+   "description": "Gives a screenshot rounded corners and a soft shadow on a padded background, ready for a post. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "kind": {
+      "description": "Kind",
+      "type": "string",
+      "enum": [
+       "image",
+       "solid",
+       "gradient",
+       "asset"
+      ],
+      "default": "image",
+      "x-labels": {
+       "image": "Studio image",
+       "solid": "Colour",
+       "gradient": "Gradient",
+       "asset": "Your image"
+      }
+     },
+     "name": {
+      "description": "Studio image",
+      "type": "string",
+      "enum": [
+       "glaze",
+       "ink",
+       "cobalt",
+       "graphite",
+       "ember",
+       "flare",
+       "prism",
+       "bloom",
+       "halo",
+       "dusk",
+       "studio",
+       "moonrise",
+       "canyon",
+       "mist",
+       "chalk",
+       "aurora"
+      ],
+      "default": "glaze",
+      "x-show-if": {
+       "kind": [
+        "image"
+       ]
+      }
+     },
+     "color": {
+      "description": "Colour",
+      "type": "string",
+      "default": "#0b0b10",
+      "x-widget": "color",
+      "x-show-if": {
+       "kind": [
+        "solid"
+       ]
+      }
+     },
+     "gradient": {
+      "description": "Gradient",
+      "type": "string",
+      "default": "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
+      "x-widget": "gradient",
+      "x-show-if": {
+       "kind": [
+        "gradient"
+       ]
+      }
+     },
+     "asset": {
+      "description": "Image",
+      "type": "string",
+      "default": "",
+      "x-widget": "asset",
+      "x-accept": "image/*",
+      "x-show-if": {
+       "kind": [
+        "asset"
+       ]
+      }
+     },
+     "padding": {
+      "description": "Padding",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 50,
+      "default": 8.0,
+      "x-step": 1,
+      "x-unit": "%",
+      "x-help": "Space around the picture, as a share of its shorter side."
+     },
+     "radius": {
+      "description": "Corner radius",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 200,
+      "default": 16.0,
+      "x-step": 1,
+      "x-unit": "px"
+     },
+     "shadowDrop": {
+      "description": "Shadow drop",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 200,
+      "default": 16.0,
+      "x-step": 1,
+      "x-unit": "px"
+     },
+     "shadowSoftness": {
+      "description": "Shadow softness",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 200,
+      "default": 40.0,
+      "x-step": 1,
+      "x-unit": "px"
+     },
+     "shadowOpacity": {
+      "description": "Shadow opacity",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.35,
+      "x-step": 0.05
+     },
+     "shape": {
+      "description": "Shape",
+      "type": "string",
+      "enum": [
+       "keep",
+       "wide",
+       "square",
+       "portrait",
+       "story"
+      ],
+      "default": "keep",
+      "x-labels": {
+       "keep": "Keep",
+       "wide": "16:9",
+       "square": "1:1",
+       "portrait": "4:5",
+       "story": "9:16"
+      },
+      "x-help": "Grows the background around the picture to this shape; the picture is never cut."
+     }
+    },
+    "type": "object",
+    "default": {
+     "kind": "image",
+     "name": "glaze",
+     "color": "#0b0b10",
+     "gradient": "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
+     "asset": "",
+     "padding": 8.0,
+     "radius": 16.0,
+     "shadowDrop": 16.0,
+     "shadowSoftness": 40.0,
+     "shadowOpacity": 0.35,
+     "shape": "keep"
     }
    }
   },

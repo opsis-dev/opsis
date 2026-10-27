@@ -11596,6 +11596,57 @@
   }
  },
  {
+  "type": "image.frame",
+  "title": "Frame screenshot",
+  "category": "Image",
+  "description": "Gives a screenshot rounded corners and a soft shadow on a padded background, ready for a post. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "image",
+    "type": "media",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "kind": "image",
+   "name": "glaze",
+   "color": "#0b0b10",
+   "gradient": "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
+   "asset": "",
+   "padding": 8.0,
+   "radius": 16.0,
+   "shadowDrop": 16.0,
+   "shadowSoftness": 40.0,
+   "shadowOpacity": 0.35,
+   "shape": "keep"
+  }
+ },
+ {
   "type": "output.render",
   "title": "Export video",
   "category": "Output",

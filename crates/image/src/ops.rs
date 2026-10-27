@@ -14,12 +14,13 @@ use imageproc::geometric_transformations::{
     Border, Interpolation, Projection, rotate_about_center, warp_into,
 };
 use num_traits::ToPrimitive;
+use opsis_compile::gradient::{Gradient, GradientKind};
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, ImageFormat, ImageGrid,
-    LevelsMethod, OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle, Resample, ResizeFit,
-    ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn,
-    area_rect, crop_rect, grid_plan, outline_padding, resized_size, rotated_size, tilt_corners,
-    tilted_size,
+    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, FrameScreenshot, ImageFormat,
+    ImageGrid, LevelsMethod, OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle, Resample,
+    ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges,
+    Turn, area_rect, crop_rect, framed_placement, grid_plan, outline_padding, resized_size,
+    rotated_size, tilt_corners, tilted_size,
 };
 
 use crate::ImageError;
@@ -836,5 +837,141 @@ pub fn grid(images: &[DynamicImage], p: &ImageGrid) -> Result<DynamicImage, Imag
         DynamicImage::ImageRgba16(canvas)
     } else {
         DynamicImage::ImageRgba8(DynamicImage::ImageRgba16(canvas).to_rgba8())
+    })
+}
+
+pub enum Paint {
+    Colour([u8; 4]),
+    Gradient(Gradient),
+    Picture(DynamicImage),
+}
+
+fn stop_colour(colour: &str) -> [f32; 4] {
+    background_rgba(colour).map(|v| f32::from(v) / 255.0)
+}
+
+fn along(gradient: &Gradient, t: f64) -> [f32; 4] {
+    let stops: Vec<(f64, [f32; 4])> = gradient
+        .stops
+        .iter()
+        .map(|s| (s.at / 100.0, stop_colour(&s.color)))
+        .collect();
+    let first = stops.first().map_or([0.0; 4], |s| s.1);
+    if t <= stops.first().map_or(0.0, |s| s.0) {
+        return first;
+    }
+    for pair in stops.windows(2) {
+        let ((a, ca), (b, cb)) = (pair[0], pair[1]);
+        if t <= b {
+            let k = if b > a {
+                ((t - a) / (b - a)) as f32
+            } else {
+                1.0
+            };
+            return [0, 1, 2, 3].map(|i| ca[i] + (cb[i] - ca[i]) * k);
+        }
+    }
+    stops.last().map_or(first, |s| s.1)
+}
+
+pub fn paint_gradient(size: (u32, u32), gradient: &Gradient) -> Rgba32FImage {
+    let (w, h) = (f64::from(size.0), f64::from(size.1));
+    let (sin, cos) = gradient.angle.to_radians().sin_cos();
+    let length = (w * sin).abs() + (h * cos).abs();
+    ImageBuffer::from_fn(size.0, size.1, |x, y| {
+        let (dx, dy) = (f64::from(x) + 0.5 - w / 2.0, f64::from(y) + 0.5 - h / 2.0);
+        let t = match gradient.kind {
+            GradientKind::Linear => (dx * sin - dy * cos) / length.max(1.0) + 0.5,
+            GradientKind::Radial => {
+                let (rx, ry) = (
+                    w / 2.0 * std::f64::consts::SQRT_2,
+                    h / 2.0 * std::f64::consts::SQRT_2,
+                );
+                ((dx / rx).powi(2) + (dy / ry).powi(2)).sqrt()
+            }
+        };
+        Rgba(along(gradient, t))
+    })
+}
+
+fn covering(picture: &DynamicImage, size: (u32, u32)) -> Result<Rgba32FImage, ImageError> {
+    let options = ResizeOptions::new()
+        .resize_alg(algorithm(Resample::Smooth))
+        .fit_into_destination(Some((0.5, 0.5)));
+    Ok(resized_to(
+        &DynamicImage::ImageRgba16(picture.to_rgba16()),
+        size.0,
+        size.1,
+        &options,
+    )?
+    .to_rgba32f())
+}
+
+fn rounded_cover(px: f64, py: f64, rect: Rect, radius: f64) -> f32 {
+    let r = radius.min(rect.width / 2.0).min(rect.height / 2.0).max(0.0);
+    let (cx, cy) = (rect.x + rect.width / 2.0, rect.y + rect.height / 2.0);
+    let qx = (px - cx).abs() - (rect.width / 2.0 - r);
+    let qy = (py - cy).abs() - (rect.height / 2.0 - r);
+    let outside = qx.max(0.0).hypot(qy.max(0.0));
+    let distance = outside + qx.max(qy).min(0.0) - r;
+    (0.5 - distance).clamp(0.0, 1.0) as f32
+}
+
+pub fn frame(
+    image: &DynamicImage,
+    paint: &Paint,
+    p: &FrameScreenshot,
+) -> Result<DynamicImage, ImageError> {
+    let source = size_of(image);
+    let ((w, h), (x0, y0)) = framed_placement(source, p);
+    let size = (w as u32, h as u32);
+    let base = match paint {
+        Paint::Colour(rgba) => {
+            ImageBuffer::from_pixel(size.0, size.1, Rgba(rgba.map(|v| f32::from(v) / 255.0)))
+        }
+        Paint::Gradient(gradient) => paint_gradient(size, gradient),
+        Paint::Picture(picture) => covering(picture, size)?,
+    };
+    let picture = image.to_rgba32f();
+    let rect = Rect {
+        x: x0,
+        y: y0,
+        width: source.0,
+        height: source.1,
+    };
+    let drop = p.shadow_drop.max(0.0);
+    let shadow = (p.shadow_opacity > 0.0).then(|| {
+        let mask = ImageBuffer::from_fn(size.0, size.1, |x, y| {
+            let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5 - drop);
+            Luma([rounded_cover(px, py, rect, p.radius)])
+        });
+        soften(mask, p.shadow_softness / 2.0)
+    });
+    let opacity = p.shadow_opacity.clamp(0.0, 1.0) as f32;
+    let out = ImageBuffer::from_fn(size.0, size.1, |x, y| {
+        let mut pixel = base.get_pixel(x, y).0;
+        if let Some(shadow) = &shadow {
+            pixel = over(
+                [0.0, 0.0, 0.0, shadow.get_pixel(x, y).0[0] * opacity],
+                pixel,
+            );
+        }
+        let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
+        let cover = rounded_cover(px, py, rect, p.radius);
+        if cover > 0.0 {
+            let (ix, iy) = ((f64::from(x) - x0) as u32, (f64::from(y) - y0) as u32);
+            if ix < picture.width() && iy < picture.height() {
+                let mut top = picture.get_pixel(ix, iy).0;
+                top[3] *= cover;
+                pixel = over(top, pixel);
+            }
+        }
+        Rgba(pixel)
+    });
+    let out = DynamicImage::ImageRgba32F(out);
+    Ok(if is_deep(image) {
+        DynamicImage::ImageRgba16(out.to_rgba16())
+    } else {
+        DynamicImage::ImageRgba8(out.to_rgba8())
     })
 }

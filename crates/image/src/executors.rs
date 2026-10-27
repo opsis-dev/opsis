@@ -1,16 +1,16 @@
 use opsis_compile::nodes::image::{
-    ADJUST_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE, GRID_TYPE, LEVELS_TYPE,
-    OUTLINE_TYPE, PLACE_TYPE, REDACT_TYPE, RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE, TILT_TYPE,
-    TRIM_TYPE,
+    ADJUST_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE, FRAME_TYPE, GRID_TYPE,
+    LEVELS_TYPE, OUTLINE_TYPE, PLACE_TYPE, REDACT_TYPE, RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE,
+    TILT_TYPE, TRIM_TYPE,
 };
 use std::path::Path;
 use std::sync::Arc;
 
 use image::DynamicImage;
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, IMAGE_PORT, ImageFormat, ImageGrid,
-    OVERLAY_PORT, OutlineImage, PlaceImage, RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE,
-    SpotlightImage, TiltImage, TrimEdges, resized_size, upscale,
+    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, FrameScreenshot, IMAGE_PORT,
+    ImageFormat, ImageGrid, OVERLAY_PORT, OutlineImage, PlaceImage, RedactImage, ResizeImage,
+    RotateImage, SOFT_UPSCALE, SpotlightImage, TiltImage, TrimEdges, resized_size, upscale,
 };
 use opsis_engine::files::atomic_write;
 use opsis_media::executors::require_media;
@@ -20,6 +20,8 @@ use opsis_types::values::{Artifact, ArtifactKind, CompileValue, ImageValue, Port
 
 use crate::load::load_image;
 use crate::ops;
+use opsis_compile::gradient::parse_gradient;
+use opsis_compile::nodes::camera::BackdropKind;
 
 fn exec_error(error: crate::ImageError) -> ExecError {
     ExecError::new(error.to_string())
@@ -247,6 +249,37 @@ async fn grid(ctx: Arc<ExecutorContext>, inputs: PortValues) -> Result<ExecutorO
     saved(&ctx, &out, None)
 }
 
+async fn picture_at(ctx: &ExecutorContext, reference: &str) -> Result<DynamicImage, ExecError> {
+    let path = ctx.ref_to_path(reference)?;
+    let bytes = tokio::fs::read(&path)
+        .await
+        .map_err(|e| ExecError::new(format!("Couldn't read {}: {e}", path.display())))?;
+    blocking(move || load_image(&bytes)).await
+}
+
+async fn paint_of(ctx: &ExecutorContext, p: &FrameScreenshot) -> Result<ops::Paint, ExecError> {
+    let background = &p.background;
+    Ok(match background.kind {
+        BackdropKind::Image => ops::Paint::Picture(
+            picture_at(ctx, &format!("app:backdrops/{}.jpg", background.name.id())).await?,
+        ),
+        BackdropKind::Asset => ops::Paint::Picture(picture_at(ctx, &background.asset).await?),
+        BackdropKind::Solid => ops::Paint::Colour(ops::background_rgba(&background.color)),
+        BackdropKind::Gradient => ops::Paint::Gradient(
+            parse_gradient(&background.gradient)
+                .ok_or_else(|| ExecError::new("The gradient can't be read. Pick it again."))?,
+        ),
+    })
+}
+
+async fn frame(ctx: Arc<ExecutorContext>, inputs: PortValues) -> Result<ExecutorOutput, ExecError> {
+    let p: FrameScreenshot = ctx.params()?;
+    let image = input(&ctx, &inputs, IMAGE_PORT).await?;
+    let paint = paint_of(&ctx, &p).await?;
+    let out = blocking(move || ops::frame(&image, &paint, &p)).await?;
+    saved(&ctx, &out, None)
+}
+
 pub fn image_executors() -> Vec<(&'static str, Executor)> {
     vec![
         (RESIZE_TYPE, executor(resize)),
@@ -264,5 +297,6 @@ pub fn image_executors() -> Vec<(&'static str, Executor)> {
         (TILT_TYPE, executor(tilt)),
         (LEVELS_TYPE, executor(levels)),
         (GRID_TYPE, executor(grid)),
+        (FRAME_TYPE, executor(frame)),
     ]
 }
