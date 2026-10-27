@@ -11414,6 +11414,50 @@
   }
  },
  {
+  "type": "image.outline",
+  "title": "Outline",
+  "category": "Image",
+  "description": "Draws a coloured outline around the visible part of a see-through image, for cutouts and logos. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "image",
+    "type": "media",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "width": 8.0,
+   "color": "#ffffff",
+   "softness": 0.0,
+   "shadow": false
+  }
+ },
+ {
   "type": "output.render",
   "title": "Export video",
   "category": "Output",

@@ -10,6 +10,8 @@ use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, RowExt, missing, port,
 use crate::nodes::effects::Area;
 use crate::params::Params;
 
+pub const OUTLINE_TYPE: &str = "image.outline";
+
 pub const CLEAR_COLOUR_TYPE: &str = "image.clearColour";
 
 pub const TRIM_TYPE: &str = "image.trim";
@@ -467,6 +469,31 @@ pub struct ClearColour {
 
 impl Params for ClearColour {}
 
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct OutlineImage {
+    #[default = 8.0]
+    #[schemars(description = "Width", range(min = 1, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
+    pub width: f64,
+    #[default = "#ffffff"]
+    #[schemars(
+        description = "Colour",
+        extend("x-widget" = "color", "x-check" = { "rule": "colour", "message": "Pick a colour" })
+    )]
+    pub color: String,
+    #[schemars(description = "Soft edge", range(min = 0, max = 50), extend("x-step" = 1, "x-unit" = "px"))]
+    pub softness: f64,
+    #[schemars(description = "Shadow")]
+    pub shadow: bool,
+}
+
+impl Params for OutlineImage {}
+
+pub fn outline_padding(p: &OutlineImage) -> f64 {
+    let shadow = if p.shadow { p.width * 2.0 } else { 0.0 };
+    (p.width + p.softness + shadow).ceil()
+}
+
 fn even(value: f64) -> f64 {
     value.round().max(1.0)
 }
@@ -911,6 +938,29 @@ fn clear_colour() -> NodeDef {
     })
 }
 
+fn outline() -> NodeDef {
+    image_node::<OutlineImage>(
+        OUTLINE_TYPE,
+        "Outline",
+        "Draws a coloured outline around the visible part of a see-through image, for cutouts and logos.",
+    )
+    .card(|ctx: &CardCtx<'_, OutlineImage>| {
+        let p = &ctx.params;
+        let colour = p.color.trim().to_owned();
+        let mut text = format!("{} px outline", p.width);
+        if p.shadow {
+            text.push_str(" · shadow");
+        }
+        vec![
+            Some(row(Icon::Shapes, text).swatches(vec![colour])),
+            size_row(ctx, |(w, h)| {
+                let pad = outline_padding(p) * 2.0;
+                (w + pad, h + pad)
+            }),
+        ]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -924,5 +974,6 @@ pub fn nodes() -> Vec<NodeDef> {
         spotlight().look(NodeLook::of("lucide:flashlight")),
         trim().look(NodeLook::of("lucide:shrink")),
         clear_colour().look(NodeLook::of("lucide:eraser")),
+        outline().look(NodeLook::of("lucide:square-dashed-bottom")),
     ]
 }

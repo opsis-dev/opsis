@@ -4783,6 +4783,29 @@
    }
   },
   {
+   "type": "image.outline",
+   "title": "Outline",
+   "category": "Image",
+   "description": "Draws a coloured outline around the visible part of a see-through image, for cutouts and logos. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -52212,6 +52235,76 @@
      "tolerance": 10.0,
      "edgesOnly": true,
      "softness": 10.0
+    }
+   }
+  },
+  {
+   "type": "image.outline",
+   "title": "Outline",
+   "category": "Image",
+   "description": "Draws a coloured outline around the visible part of a see-through image, for cutouts and logos. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "width": {
+      "description": "Width",
+      "type": "number",
+      "format": "double",
+      "minimum": 1,
+      "maximum": 200,
+      "default": 8.0,
+      "x-step": 1,
+      "x-unit": "px"
+     },
+     "color": {
+      "description": "Colour",
+      "type": "string",
+      "default": "#ffffff",
+      "x-widget": "color",
+      "x-check": {
+       "rule": "colour",
+       "message": "Pick a colour"
+      }
+     },
+     "softness": {
+      "description": "Soft edge",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 50,
+      "default": 0.0,
+      "x-step": 1,
+      "x-unit": "px"
+     },
+     "shadow": {
+      "description": "Shadow",
+      "type": "boolean",
+      "default": false
+     }
+    },
+    "type": "object",
+    "default": {
+     "width": 8.0,
+     "color": "#ffffff",
+     "softness": 0.0,
+     "shadow": false
     }
    }
   },

@@ -8,9 +8,9 @@ use image::{
 };
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
-    AdjustImage, BlurImage, ClearColour, CropImage, CropMode, ImageFormat, PlaceImage, RedactImage,
-    RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TrimEdges,
-    Turn,
+    AdjustImage, BlurImage, ClearColour, CropImage, CropMode, ImageFormat, OutlineImage,
+    PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage,
+    StillFileFormat, TrimEdges, Turn,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -543,4 +543,56 @@ fn clears_the_corner_colour_from_the_edges_and_keeps_enclosed_areas() {
     .to_rgba8();
     assert_eq!(picked.get_pixel(12, 12).0[3], 0, "the picked colour goes");
     assert_eq!(picked.get_pixel(0, 0).0[3], 255, "white stays");
+}
+
+#[test]
+fn draws_an_outline_only_where_the_picture_was_see_through() {
+    let cutout = RgbaImage::from_fn(20, 20, |x, y| {
+        if (5..15).contains(&x) && (5..15).contains(&y) {
+            Rgba([10, 120, 30, 255])
+        } else {
+            Rgba([0, 0, 0, 0])
+        }
+    });
+    let image = DynamicImage::ImageRgba8(cutout);
+    assert!(ops::has_see_through(&image));
+    let p = OutlineImage {
+        width: 3.0,
+        color: "#ffffff".into(),
+        softness: 0.0,
+        shadow: false,
+    };
+    let out = ops::outline(&image, &p).to_rgba8();
+    assert_eq!(
+        out.dimensions(),
+        (26, 26),
+        "the canvas grows by the outline"
+    );
+    assert_eq!(
+        out.get_pixel(13, 13).0,
+        [10, 120, 30, 255],
+        "the picture stays"
+    );
+    assert_eq!(
+        out.get_pixel(6, 13).0,
+        [255, 255, 255, 255],
+        "the outline is beside it"
+    );
+    assert_eq!(out.get_pixel(1, 1).0[3], 0, "far away stays see-through");
+    let shadowed = ops::outline(
+        &image,
+        &OutlineImage {
+            shadow: true,
+            ..p.clone()
+        },
+    )
+    .to_rgba8();
+    assert_eq!(shadowed.dimensions(), (38, 38));
+    let below = shadowed.get_pixel(19, 19 + 10).0;
+    assert!(
+        below[3] > 0 && below[0] < 50,
+        "a dark shadow falls below: {below:?}"
+    );
+    let opaque = DynamicImage::ImageRgb8(RgbImage::new(4, 4));
+    assert!(!ops::has_see_through(&opaque));
 }

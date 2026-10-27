@@ -8,13 +8,15 @@ use image::codecs::webp::WebPEncoder;
 use image::{
     DynamicImage, ImageBuffer, Luma, Pixel, Primitive, Rgba, Rgba32FImage, RgbaImage, imageops,
 };
+use imageproc::distance_transform::euclidean_squared_distance_transform;
 use imageproc::filter::gaussian_blur_f32;
 use imageproc::geometric_transformations::{Border, Interpolation, rotate_about_center};
 use num_traits::ToPrimitive;
 use opsis_compile::nodes::image::{
-    AdjustImage, BlurImage, ClearColour, CropImage, ImageFormat, PlaceImage, Rect, RedactImage,
-    RedactStyle, Resample, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat,
-    TrimEdges, Turn, area_rect, crop_rect, resized_size, rotated_size,
+    AdjustImage, BlurImage, ClearColour, CropImage, ImageFormat, OutlineImage, PlaceImage, Rect,
+    RedactImage, RedactStyle, Resample, ResizeFit, ResizeImage, RotateImage, SpotlightImage,
+    StillFileFormat, TrimEdges, Turn, area_rect, crop_rect, outline_padding, resized_size,
+    rotated_size,
 };
 
 use crate::ImageError;
@@ -598,6 +600,74 @@ pub fn clear_colour(image: &DynamicImage, p: &ClearColour) -> DynamicImage {
         pixel.0[3] *= keep;
     }
     let out = DynamicImage::ImageRgba32F(pixels);
+    if is_deep(image) {
+        DynamicImage::ImageRgba16(out.to_rgba16())
+    } else {
+        DynamicImage::ImageRgba8(out.to_rgba8())
+    }
+}
+
+fn over(top: [f32; 4], bottom: [f32; 4]) -> [f32; 4] {
+    let a = top[3] + bottom[3] * (1.0 - top[3]);
+    if a <= 0.0 {
+        return [0.0; 4];
+    }
+    let mix = |i: usize| (top[i] * top[3] + bottom[i] * bottom[3] * (1.0 - top[3])) / a;
+    [mix(0), mix(1), mix(2), a]
+}
+
+pub fn has_see_through(image: &DynamicImage) -> bool {
+    image.color().has_alpha() && image.to_rgba32f().pixels().any(|p| p.0[3] < 1.0)
+}
+
+fn soften(mask: ImageBuffer<Luma<f32>, Vec<f32>>, sigma: f64) -> ImageBuffer<Luma<f32>, Vec<f32>> {
+    if sigma > 0.0 {
+        gaussian_blur_f32(&mask, sigma as f32)
+    } else {
+        mask
+    }
+}
+
+const SHADOW_ALPHA: f32 = 0.35;
+
+pub fn outline(image: &DynamicImage, p: &OutlineImage) -> DynamicImage {
+    let source = image.to_rgba32f();
+    let pad = outline_padding(p) as u32;
+    let (w, h) = (source.width() + 2 * pad, source.height() + 2 * pad);
+    let at = |x: u32, y: u32| {
+        if x >= pad && y >= pad && x < pad + source.width() && y < pad + source.height() {
+            source.get_pixel(x - pad, y - pad).0
+        } else {
+            [0.0; 4]
+        }
+    };
+    let solid = ImageBuffer::from_fn(w, h, |x, y| Luma([u8::from(at(x, y)[3] > 0.5) * 255]));
+    let distance = euclidean_squared_distance_transform(&solid);
+    let width = p.width.max(0.0);
+    let ring = ImageBuffer::from_fn(w, h, |x, y| {
+        let d = distance.get_pixel(x, y).0[0].sqrt();
+        Luma([(width + 0.5 - d).clamp(0.0, 1.0) as f32])
+    });
+    let ring = soften(ring, p.softness / 2.0);
+    let shadow = p.shadow.then(|| soften(ring.clone(), width));
+    let drop = (width / 2.0).round() as u32;
+    let [r, g, b, a] = background_rgba(&p.color).map(|v| f32::from(v) / 255.0);
+    let out = ImageBuffer::from_fn(w, h, |x, y| {
+        let mut pixel = [0.0; 4];
+        if let Some(shadow) = &shadow
+            && y >= drop
+        {
+            pixel = [
+                0.0,
+                0.0,
+                0.0,
+                shadow.get_pixel(x, y - drop).0[0] * SHADOW_ALPHA,
+            ];
+        }
+        pixel = over([r, g, b, a * ring.get_pixel(x, y).0[0]], pixel);
+        Rgba(over(at(x, y), pixel))
+    });
+    let out = DynamicImage::ImageRgba32F(out);
     if is_deep(image) {
         DynamicImage::ImageRgba16(out.to_rgba16())
     } else {

@@ -1,12 +1,12 @@
 # Image and sound nodes
 
-Twenty-two nodes for stills and sound: nine that work on images (annotate, frame, magnify, grid, before and after, compare, outline, tilt, auto levels), seven that clean or change a sound file (clean speech, shorten pauses, clicks and clipping, hum, pitch, voice effects, sound picture) and six that make sound (transition sounds, generated sounds, risers, room tone, tones, music fitted to the film).
+Twenty-one nodes for stills and sound: eight that work on images (annotate, frame, magnify, grid, before and after, compare, tilt, auto levels), seven that clean or change a sound file (clean speech, shorten pauses, clicks and clipping, hum, pitch, voice effects, sound picture) and six that make sound (transition sounds, generated sounds, risers, room tone, tones, music fitted to the film).
 
 Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code, except inside what is combined with Remotion (`packages/video`, `apps/preview`, `apps/sidecar`), where the Remotion permission in `LICENSE` covers only Opsis's own code. None of these nodes needs GPL code there.
 
 ## How to read this plan
 
-- Each section is one node and can be built on its own, except where a section names another it needs (sections 4 and 5 use the growing inputs that Sequence and Layers already have; sections 18 and 19 share section 17's sound maker).
+- Each section is one node and can be built on its own, except where a section names another it needs (sections 4 and 5 use the growing inputs that Sequence and Layers already have; sections 17 and 18 share section 16's sound maker).
 - Each section has **What it adds**, **In place**, **Work** (numbered), **Licence** and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
@@ -32,22 +32,21 @@ Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (v
 | 4. Grid                       | Any number of images in a row, column or grid                       | `imageproc::compose`                   | none new                   | small  |
 | 5. Before and after           | Two pictures side by side or split by a divider                     | `image`                                | none new                   | small  |
 | 6. Compare screenshots        | What changed between two captures, boxed                            | `imageproc` threshold, labelling, hash | none new                   | medium |
-| 7. Outline                    | A sticker outline around a cutout                                   | `imageproc::morphology`                | none new                   | small  |
-| 8. Tilt                       | A screenshot on a tilted plane                                      | `imageproc` projective warp            | none new                   | small  |
-| 9. Auto levels                | A dull capture's contrast stretched                                 | `imageproc::contrast`                  | none new                   | small  |
-| 10. Clean speech              | Noise, harsh "s" sounds and rumble removed, level evened            | `nnnoiseless`, FFmpeg                  | `nnnoiseless` BSD-3-Clause | medium |
-| 11. Shorten pauses            | Long silences in a voice file tightened                             | FFmpeg                                 | none new                   | small  |
-| 12. Fix clicks and clipping   | Clicks removed and clipped peaks rebuilt                            | FFmpeg                                 | none new                   | small  |
-| 13. Remove hum                | Mains hum and its harmonics removed                                 | FFmpeg                                 | none new                   | small  |
-| 14. Change pitch              | Pitch raised or lowered, length kept                                | FFmpeg                                 | none new                   | small  |
-| 15. Voice effects             | Telephone, radio, room and echo                                     | FFmpeg, built-in room recordings       | room recordings CC0        | medium |
-| 16. Sound picture             | A sound's waveform or spectrum as an image                          | FFmpeg                                 | none new                   | small  |
-| 17. Generated sound           | Whooshes, risers, pops, dings and swells made from settings         | `fundsp`                               | `fundsp` MIT OR Apache-2.0 | medium |
-| 18. Transition sounds         | A whoosh at every transition of a clip                              | section 17, flattened transitions      | none new                   | medium |
-| 19. Riser to a mark           | A build-up that ends exactly on an action or marker                 | section 17                             | none new                   | small  |
-| 20. Room tone                 | A quiet noise bed under a clip                                      | FFmpeg or `fundsp`                     | none new                   | small  |
-| 21. Tones and countdown beeps | Tones, beeps and countdowns                                         | FFmpeg or `fundsp`                     | none new                   | small  |
-| 22. Fit music to the film     | A song stretched or looped to end with the film                     | FFmpeg                                 | none new                   | medium |
+| 7. Tilt                       | A screenshot on a tilted plane                                      | `imageproc` projective warp            | none new                   | small  |
+| 8. Auto levels                | A dull capture's contrast stretched                                 | `imageproc::contrast`                  | none new                   | small  |
+| 9. Clean speech               | Noise, harsh "s" sounds and rumble removed, level evened            | `nnnoiseless`, FFmpeg                  | `nnnoiseless` BSD-3-Clause | medium |
+| 10. Shorten pauses            | Long silences in a voice file tightened                             | FFmpeg                                 | none new                   | small  |
+| 11. Fix clicks and clipping   | Clicks removed and clipped peaks rebuilt                            | FFmpeg                                 | none new                   | small  |
+| 12. Remove hum                | Mains hum and its harmonics removed                                 | FFmpeg                                 | none new                   | small  |
+| 13. Change pitch              | Pitch raised or lowered, length kept                                | FFmpeg                                 | none new                   | small  |
+| 14. Voice effects             | Telephone, radio, room and echo                                     | FFmpeg, built-in room recordings       | room recordings CC0        | medium |
+| 15. Sound picture             | A sound's waveform or spectrum as an image                          | FFmpeg                                 | none new                   | small  |
+| 16. Generated sound           | Whooshes, risers, pops, dings and swells made from settings         | `fundsp`                               | `fundsp` MIT OR Apache-2.0 | medium |
+| 17. Transition sounds         | A whoosh at every transition of a clip                              | section 16, flattened transitions      | none new                   | medium |
+| 18. Riser to a mark           | A build-up that ends exactly on an action or marker                 | section 16                             | none new                   | small  |
+| 19. Room tone                 | A quiet noise bed under a clip                                      | FFmpeg or `fundsp`                     | none new                   | small  |
+| 20. Tones and countdown beeps | Tones, beeps and countdowns                                         | FFmpeg or `fundsp`                     | none new                   | small  |
+| 21. Fit music to the film     | A song stretched or looped to end with the film                     | FFmpeg                                 | none new                   | medium |
 
 Left out: content-aware resize (`imageproc::seam_carving` is called rough by its own documentation), speech made from text and captions from speech (`plans/voice-and-captions.md` covers them).
 
@@ -184,28 +183,7 @@ The areas that changed between two captures of the same page, boxed on the newer
 
 Nothing new.
 
-## 7. Outline
-
-### What it adds
-
-A coloured outline around the visible part of a transparent picture, a sticker look for cutouts and logos.
-
-### Work
-
-1. **Settings.** Width, colour, softness, shadow on or off.
-2. **Operation.** Grow the alpha mask with `morphology::dilate` (or `distance_transform` for wide outlines), colour it, put the picture on top.
-3. **Card.** "8 px white outline".
-4. **Tests.** The outline appears only where the original was transparent.
-
-### Risks
-
-- A picture with no transparency gets an outline only around the frame; warn on the card when the input has no transparency.
-
-### Licence
-
-Nothing new.
-
-## 8. Tilt
+## 7. Tilt
 
 ### What it adds
 
@@ -222,7 +200,7 @@ A screenshot placed on a tilted plane with perspective, for a mock-up still with
 
 Nothing new.
 
-## 9. Auto levels
+## 8. Auto levels
 
 ### What it adds
 
@@ -239,7 +217,7 @@ A dull or washed-out capture's contrast and levels stretched, the still counterp
 
 Nothing new.
 
-## 10. Clean speech
+## 9. Clean speech
 
 ### What it adds
 
@@ -266,7 +244,7 @@ A voice recording cleaned in one step: background noise removed, rumble cut, har
 
 - The learned method works on 48 kHz mono; music under the voice is treated as noise. Say on the card it's for speech.
 
-## 11. Shorten pauses
+## 10. Shorten pauses
 
 ### What it adds
 
@@ -287,7 +265,7 @@ Long silences in a voice file shortened to a set length, so a slow narration tig
 
 Nothing new.
 
-## 12. Fix clicks and clipping
+## 11. Fix clicks and clipping
 
 ### What it adds
 
@@ -304,7 +282,7 @@ Clicks and pops removed and clipped peaks rebuilt in a recording.
 
 Nothing new.
 
-## 13. Remove hum
+## 12. Remove hum
 
 ### What it adds
 
@@ -321,7 +299,7 @@ Mains hum at 50 or 60 Hz and its harmonics removed from a recording.
 
 Nothing new.
 
-## 14. Change pitch
+## 13. Change pitch
 
 ### What it adds
 
@@ -342,7 +320,7 @@ The pitch library is inside the FFmpeg the user downloads; nothing is added to O
 
 - `rubberband` is in the pinned FFmpeg build but not in every FFmpeg a user may choose; check for it like the other required filters, or make it optional with the fallback above.
 
-## 15. Voice effects
+## 14. Voice effects
 
 ### What it adds
 
@@ -361,7 +339,7 @@ A voice or sound made to sound like a telephone, a radio, a small room, a hall o
 
 The impulse responses must be CC0 or compatible and credited in `THIRD_PARTY_NOTICES.md`.
 
-## 16. Sound picture
+## 15. Sound picture
 
 ### What it adds
 
@@ -378,7 +356,7 @@ A sound's waveform or spectrum drawn as an image, for a podcast post or a still 
 
 Nothing new.
 
-## 17. Generated sound
+## 16. Generated sound
 
 ### What it adds
 
@@ -404,7 +382,7 @@ Whooshes, risers, pops, dings, clicks and swells made from a few settings (lengt
 
 - Sound quality depends on the presets' tuning; ship few, good ones and listen to each before adding it.
 
-## 18. Transition sounds
+## 17. Transition sounds
 
 ### What it adds
 
@@ -417,7 +395,7 @@ A whoosh at every transition in a clip, timed to each transition's middle and sc
 
 ### Work
 
-1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in or section 17's whoosh), volume, vary each hit, skip plain cuts.
+1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in or section 16's whoosh), volume, vary each hit, skip plain cuts.
 2. **Compile.** Flatten the clip, one hit per transition mark at its middle, length from the transition's; hits flagged like Action sounds' so the Timeline shows one bar.
 3. **Card.** "6 transitions · Whoosh".
 4. **Tests.** Hits land at the marks' middles through a trim and a speed change.
@@ -426,7 +404,7 @@ A whoosh at every transition in a clip, timed to each transition's middle and sc
 
 Nothing new.
 
-## 19. Riser to a mark
+## 18. Riser to a mark
 
 ### What it adds
 
@@ -434,8 +412,8 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 
 ### Work
 
-1. **Settings.** Ends on (action, marker, clip end), length before it, preset (section 17's riser, swell), with a short hit at the end on or off.
-2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render via section 17.
+1. **Settings.** Ends on (action, marker, clip end), length before it, preset (section 16's riser, swell), with a short hit at the end on or off.
+2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render via section 16.
 3. **Card.** "Rises 3 s into “Launch”".
 4. **Tests.** The sound ends on the target frame.
 
@@ -443,7 +421,7 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 
 Nothing new.
 
-## 20. Room tone
+## 19. Room tone
 
 ### What it adds
 
@@ -460,7 +438,7 @@ A quiet bed of soft noise under a clip, so cuts between takes and silent stretch
 
 Nothing new.
 
-## 21. Tones and countdown beeps
+## 20. Tones and countdown beeps
 
 ### What it adds
 
@@ -477,7 +455,7 @@ A tone, a beep or a countdown (three short beeps and a long one) at a time or on
 
 Nothing new.
 
-## 22. Fit music to the film
+## 21. Fit music to the film
 
 ### What it adds
 

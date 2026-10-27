@@ -1,6 +1,6 @@
 use opsis_compile::nodes::image::{
-    ADJUST_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE, PLACE_TYPE, REDACT_TYPE,
-    RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE, TRIM_TYPE,
+    ADJUST_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE, OUTLINE_TYPE, PLACE_TYPE,
+    REDACT_TYPE, RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE, TRIM_TYPE,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -8,8 +8,8 @@ use std::sync::Arc;
 use image::DynamicImage;
 use opsis_compile::nodes::image::{
     AdjustImage, BlurImage, ClearColour, CropImage, IMAGE_PORT, ImageFormat, OVERLAY_PORT,
-    PlaceImage, RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, SpotlightImage, TrimEdges,
-    resized_size, upscale,
+    OutlineImage, PlaceImage, RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, SpotlightImage,
+    TrimEdges, resized_size, upscale,
 };
 use opsis_engine::files::atomic_write;
 use opsis_media::executors::require_media;
@@ -194,6 +194,23 @@ async fn clear_colour(
     saved(&ctx, &out, None)
 }
 
+async fn outline(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: OutlineImage = ctx.params()?;
+    let image = input(&ctx, &inputs, IMAGE_PORT).await?;
+    if !ops::has_see_through(&image) {
+        ctx.log(
+            LogLevel::Warn,
+            "The image has no see-through parts, so the outline only goes around its edges."
+                .to_owned(),
+        );
+    }
+    let out = blocking(move || Ok(ops::outline(&image, &p))).await?;
+    saved(&ctx, &out, None)
+}
+
 pub fn image_executors() -> Vec<(&'static str, Executor)> {
     vec![
         (RESIZE_TYPE, executor(resize)),
@@ -207,5 +224,6 @@ pub fn image_executors() -> Vec<(&'static str, Executor)> {
         (SPOTLIGHT_TYPE, executor(spotlight)),
         (TRIM_TYPE, executor(trim)),
         (CLEAR_COLOUR_TYPE, executor(clear_colour)),
+        (OUTLINE_TYPE, executor(outline)),
     ]
 }
