@@ -1,7 +1,14 @@
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
-pub const GLYPH_SETS: [&str; 2] = ["lucide", "tabler"];
+pub const GLYPH_SETS: [&str; 6] = [
+    "lucide",
+    "tabler",
+    "lucide-lab",
+    "hugeicons",
+    "iconoir",
+    "mynaui",
+];
 
 macro_rules! node_motions {
     ($($motion:ident = $name:literal),+ $(,)?) => {
