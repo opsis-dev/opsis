@@ -1,6 +1,6 @@
 use opsis_compile::nodes::image::{
     ADJUST_TYPE, BLUR_TYPE, CROP_TYPE, FORMAT_TYPE, PLACE_TYPE, REDACT_TYPE, RESIZE_TYPE,
-    ROTATE_TYPE,
+    ROTATE_TYPE, SPOTLIGHT_TYPE,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -8,7 +8,7 @@ use std::sync::Arc;
 use image::DynamicImage;
 use opsis_compile::nodes::image::{
     AdjustImage, BlurImage, CropImage, IMAGE_PORT, ImageFormat, OVERLAY_PORT, PlaceImage,
-    RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, resized_size, upscale,
+    RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, SpotlightImage, resized_size, upscale,
 };
 use opsis_engine::files::atomic_write;
 use opsis_media::executors::require_media;
@@ -166,6 +166,16 @@ async fn redact(
     saved(&ctx, &out, None)
 }
 
+async fn spotlight(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: SpotlightImage = ctx.params()?;
+    let image = input(&ctx, &inputs, IMAGE_PORT).await?;
+    let out = blocking(move || Ok(ops::spotlight(&image, &p))).await?;
+    saved(&ctx, &out, None)
+}
+
 pub fn image_executors() -> Vec<(&'static str, Executor)> {
     vec![
         (RESIZE_TYPE, executor(resize)),
@@ -176,5 +186,6 @@ pub fn image_executors() -> Vec<(&'static str, Executor)> {
         (PLACE_TYPE, executor(place)),
         (FORMAT_TYPE, executor(format)),
         (REDACT_TYPE, executor(redact)),
+        (SPOTLIGHT_TYPE, executor(spotlight)),
     ]
 }

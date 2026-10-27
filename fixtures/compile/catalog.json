@@ -4714,6 +4714,29 @@
    }
   },
   {
+   "type": "image.spotlight",
+   "title": "Spotlight",
+   "category": "Image",
+   "description": "Darkens or blurs everything outside the areas you draw, so the eye goes to them. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -51885,6 +51908,140 @@
      "blockSize": 16,
      "blur": 16.0,
      "color": "#000000"
+    }
+   }
+  },
+  {
+   "type": "image.spotlight",
+   "title": "Spotlight",
+   "category": "Image",
+   "description": "Darkens or blurs everything outside the areas you draw, so the eye goes to them. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "areas": {
+      "description": "Areas to light",
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "x": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "y": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "width": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "height": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        }
+       },
+       "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+       ],
+       "default": {}
+      },
+      "minItems": 1,
+      "maxItems": 8,
+      "default": [
+       {
+        "x": 0.3,
+        "y": 0.3,
+        "width": 0.4,
+        "height": 0.4
+       }
+      ],
+      "x-widget": "boxes",
+      "x-help": "Drag on the picture to mark each part to keep bright."
+     },
+     "dim": {
+      "description": "Darken the rest",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.6,
+      "x-step": 0.05
+     },
+     "blur": {
+      "description": "Blur the rest",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 50,
+      "default": 0.0,
+      "x-step": 0.5,
+      "x-unit": "px"
+     },
+     "radius": {
+      "description": "Corner radius",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 200,
+      "default": 12.0,
+      "x-step": 1,
+      "x-unit": "px"
+     },
+     "softness": {
+      "description": "Soft edge",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 8.0,
+      "x-step": 1,
+      "x-unit": "px"
+     }
+    },
+    "type": "object",
+    "default": {
+     "areas": [
+      {
+       "x": 0.3,
+       "y": 0.3,
+       "width": 0.4,
+       "height": 0.4
+      }
+     ],
+     "dim": 0.6,
+     "blur": 0.0,
+     "radius": 12.0,
+     "softness": 8.0
     }
    }
   },

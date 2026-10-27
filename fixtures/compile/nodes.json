@@ -11276,6 +11276,58 @@
   }
  },
  {
+  "type": "image.spotlight",
+  "title": "Spotlight",
+  "category": "Image",
+  "description": "Darkens or blurs everything outside the areas you draw, so the eye goes to them. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "image",
+    "type": "media",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "areas": [
+    {
+     "x": 0.3,
+     "y": 0.3,
+     "width": 0.4,
+     "height": 0.4
+    }
+   ],
+   "dim": 0.6,
+   "blur": 0.0,
+   "radius": 12.0,
+   "softness": 8.0
+  }
+ },
+ {
   "type": "output.render",
   "title": "Export video",
   "category": "Output",

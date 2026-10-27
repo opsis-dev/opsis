@@ -5,14 +5,16 @@ use image::codecs::avif::AvifEncoder;
 use image::codecs::jpeg::JpegEncoder;
 use image::codecs::png::PngEncoder;
 use image::codecs::webp::WebPEncoder;
-use image::{DynamicImage, ImageBuffer, Pixel, Primitive, Rgba, RgbaImage, imageops};
+use image::{
+    DynamicImage, ImageBuffer, Luma, Pixel, Primitive, Rgba, Rgba32FImage, RgbaImage, imageops,
+};
 use imageproc::filter::gaussian_blur_f32;
 use imageproc::geometric_transformations::{Border, Interpolation, rotate_about_center};
 use num_traits::ToPrimitive;
 use opsis_compile::nodes::image::{
     AdjustImage, BlurImage, CropImage, ImageFormat, PlaceImage, Rect, RedactImage, RedactStyle,
-    Resample, ResizeFit, ResizeImage, RotateImage, StillFileFormat, Turn, area_rect, crop_rect,
-    resized_size, rotated_size,
+    Resample, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, Turn,
+    area_rect, crop_rect, resized_size, rotated_size,
 };
 
 use crate::ImageError;
@@ -396,4 +398,81 @@ pub fn redact(image: &DynamicImage, p: &RedactImage) -> DynamicImage {
         |deep| redacted(deep, &rects, p),
         |shallow| redacted(shallow, &rects, p),
     )
+}
+
+fn from_float(image: &DynamicImage, out: Rgba32FImage) -> DynamicImage {
+    let out = DynamicImage::ImageRgba32F(out);
+    in_depth(image, out.to_rgba16(), out.to_rgba8())
+}
+
+fn in_rounded(px: f64, py: f64, rect: Rect, radius: f64) -> bool {
+    let r = radius.min(rect.width / 2.0).min(rect.height / 2.0).max(0.0);
+    let dx = (rect.x + r - px)
+        .max(px - (rect.x + rect.width - r))
+        .max(0.0);
+    let dy = (rect.y + r - py)
+        .max(py - (rect.y + rect.height - r))
+        .max(0.0);
+    px >= rect.x
+        && px <= rect.x + rect.width
+        && py >= rect.y
+        && py <= rect.y + rect.height
+        && dx * dx + dy * dy <= r * r
+}
+
+pub fn lit_mask(
+    size: (u32, u32),
+    rects: &[Rect],
+    radius: f64,
+    softness: f64,
+) -> ImageBuffer<Luma<f32>, Vec<f32>> {
+    let mask = ImageBuffer::from_fn(size.0, size.1, |x, y| {
+        let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
+        Luma([if rects.iter().any(|&r| in_rounded(px, py, r, radius)) {
+            1.0
+        } else {
+            0.0
+        }])
+    });
+    if softness > 0.0 {
+        gaussian_blur_f32(&mask, (softness / 2.0) as f32)
+    } else {
+        mask
+    }
+}
+
+pub fn spotlight(image: &DynamicImage, p: &SpotlightImage) -> DynamicImage {
+    let rects: Vec<Rect> = p
+        .areas
+        .iter()
+        .map(|area| area_rect(size_of(image), area))
+        .collect();
+    let mask = lit_mask(
+        (image.width(), image.height()),
+        &rects,
+        p.radius,
+        p.softness,
+    );
+    let source = image.to_rgba32f();
+    let rest = if p.blur > 0.0 {
+        DynamicImage::ImageRgba32F(source.clone())
+            .fast_blur(p.blur as f32)
+            .to_rgba32f()
+    } else {
+        source.clone()
+    };
+    let keep = 1.0 - p.dim.clamp(0.0, 1.0) as f32;
+    let out = ImageBuffer::from_fn(source.width(), source.height(), |x, y| {
+        let lit = mask.get_pixel(x, y).0[0].clamp(0.0, 1.0);
+        let [r, g, b, a] = source.get_pixel(x, y).0;
+        let [rr, rg, rb, ra] = rest.get_pixel(x, y).0;
+        let mix = |near: f32, far: f32| near * lit + far * (1.0 - lit);
+        Rgba([
+            mix(r, rr * keep),
+            mix(g, rg * keep),
+            mix(b, rb * keep),
+            mix(a, ra),
+        ])
+    });
+    from_float(image, out)
 }

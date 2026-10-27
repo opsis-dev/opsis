@@ -10,6 +10,8 @@ use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, RowExt, missing, port,
 use crate::nodes::effects::Area;
 use crate::params::Params;
 
+pub const SPOTLIGHT_TYPE: &str = "image.spotlight";
+
 pub const REDACT_TYPE: &str = "image.redact";
 
 pub const FORMAT_TYPE: &str = "image.format";
@@ -378,6 +380,40 @@ pub struct RedactImage {
 }
 
 impl Params for RedactImage {}
+
+fn lit_area() -> Vec<Area> {
+    vec![Area {
+        x: 0.3,
+        y: 0.3,
+        width: 0.4,
+        height: 0.4,
+    }]
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct SpotlightImage {
+    #[default(lit_area())]
+    #[schemars(
+        description = "Areas to light",
+        length(min = 1, max = 8),
+        extend("x-widget" = "boxes", "x-help" = "Drag on the picture to mark each part to keep bright.")
+    )]
+    pub areas: Vec<Area>,
+    #[default = 0.6]
+    #[schemars(description = "Darken the rest", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    pub dim: f64,
+    #[schemars(description = "Blur the rest", range(min = 0, max = 50), extend("x-step" = 0.5, "x-unit" = "px"))]
+    pub blur: f64,
+    #[default = 12.0]
+    #[schemars(description = "Corner radius", range(min = 0, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
+    pub radius: f64,
+    #[default = 8.0]
+    #[schemars(description = "Soft edge", range(min = 0, max = 100), extend("x-step" = 1, "x-unit" = "px"))]
+    pub softness: f64,
+}
+
+impl Params for SpotlightImage {}
 
 fn even(value: f64) -> f64 {
     value.round().max(1.0)
@@ -756,6 +792,26 @@ fn redact() -> NodeDef {
     })
 }
 
+fn spotlight() -> NodeDef {
+    image_node::<SpotlightImage>(
+        SPOTLIGHT_TYPE,
+        "Spotlight",
+        "Darkens or blurs everything outside the areas you draw, so the eye goes to them.",
+    )
+    .card(|ctx: &CardCtx<'_, SpotlightImage>| {
+        let p = &ctx.params;
+        let mut text = format!(
+            "{} · darkens {} %",
+            crate::text::plural(p.areas.len() as f64, "area"),
+            (p.dim * 100.0).round() as i64
+        );
+        if p.blur > 0.0 {
+            text.push_str(&format!(" · blurs {} px", p.blur));
+        }
+        vec![Some(row(Icon::Flashlight, text)), size_row(ctx, |s| s)]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -766,5 +822,6 @@ pub fn nodes() -> Vec<NodeDef> {
         place().look(NodeLook::of("lucide:stamp")),
         format().look(NodeLook::of("lucide:file-image")),
         redact().look(NodeLook::of("lucide:eye-off")),
+        spotlight().look(NodeLook::of("lucide:flashlight")),
     ]
 }

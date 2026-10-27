@@ -9,7 +9,7 @@ use image::{
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
     AdjustImage, BlurImage, CropImage, CropMode, ImageFormat, PlaceImage, RedactImage, RedactStyle,
-    ResizeFit, ResizeImage, RotateImage, StillFileFormat, Turn,
+    ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, Turn,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -414,4 +414,46 @@ fn hides_only_inside_its_areas_in_every_style_and_depth() {
     )
     .to_rgba8();
     assert_eq!(covered.get_pixel(30, 30).0, [255, 0, 255, 255]);
+}
+
+#[test]
+fn keeps_lit_areas_and_darkens_the_rest_in_every_depth() {
+    let grey = RgbaImage::from_pixel(64, 64, Rgba([200, 200, 200, 255]));
+    let p = SpotlightImage {
+        areas: vec![Area {
+            x: 0.25,
+            y: 0.25,
+            width: 0.5,
+            height: 0.5,
+        }],
+        dim: 0.5,
+        blur: 0.0,
+        radius: 8.0,
+        softness: 4.0,
+    };
+    for image in [
+        DynamicImage::ImageRgba8(grey.clone()),
+        DynamicImage::ImageRgba16(DynamicImage::ImageRgba8(grey.clone()).to_rgba16()),
+        DynamicImage::ImageRgb8(DynamicImage::ImageRgba8(grey.clone()).to_rgb8()),
+    ] {
+        let out = ops::spotlight(&image, &p);
+        assert_eq!(out.color(), image.color());
+        let out = out.to_rgba8();
+        assert_eq!(
+            out.get_pixel(32, 32).0,
+            [200, 200, 200, 255],
+            "the middle stays"
+        );
+        assert_eq!(
+            out.get_pixel(2, 2).0,
+            [100, 100, 100, 255],
+            "far outside is half as bright"
+        );
+        assert!(
+            out.get_pixel(17, 17).0[0] < 200,
+            "a rounded corner is darkened"
+        );
+        let edge = out.get_pixel(32, 15).0[0];
+        assert!(edge > 100 && edge < 200, "the edge is soft: {edge}");
+    }
 }
