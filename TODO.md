@@ -8,7 +8,6 @@ What's left outside the release plan: the places in the codebase that don't read
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
 
-- [ ] The render GPU backend leaks memory over a long export: export long films in chunks, each in a fresh browser, and join them.
 - [ ] HEVC (H.265) files don't play in the Preview window or in exports: the headless shell has no HEVC decoder (Chromium decodes HEVC only through platform hardware, so `canPlayType` is empty and loading fails with `DEMUXER_ERROR_NO_SUPPORTED_STREAMS`). The Run panel plays them (WebKitGTK through GStreamer's `avdec_h265`).
 
 ## Unconfirmed bugs
@@ -53,3 +52,4 @@ Behaviour that was never checked and isn't in the release test pass in `plans/re
 
 - [ ] Restoring saved window positions (`visible_bounds`, `crates/desktop/src/windows.rs`) on Windows and macOS. X11 was checked in a virtual display without a window manager; under Wayland the compositor places windows, so positions are never restored there.
 - [ ] Audio scrubbing on the Timeline.
+- [ ] Whether long exports leak memory with `angle` drawing. Remotion documents a Chrome memory leak with `angle` on long renders (fixed once on macOS in Chrome 133, remotion #4918); it was never tried in Opsis. If it shows, the documented workaround is exporting in chunks, each in a fresh browser, and joining them.
