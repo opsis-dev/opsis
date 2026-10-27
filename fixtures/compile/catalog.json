@@ -2208,31 +2208,12 @@
      "label": "Scene 2",
      "optional": true,
      "many": false
-    },
-    "in3": {
-     "type": "clip",
-     "label": "Scene 3",
-     "optional": true,
-     "many": false
-    },
-    "in4": {
-     "type": "clip",
-     "label": "Scene 4",
-     "optional": true,
-     "many": false
-    },
-    "in5": {
-     "type": "clip",
-     "label": "Scene 5",
-     "optional": true,
-     "many": false
-    },
-    "in6": {
-     "type": "clip",
-     "label": "Scene 6",
-     "optional": true,
-     "many": false
     }
+   },
+   "family": {
+    "prefix": "in",
+    "type": "clip",
+    "required": 0
    },
    "outputs": {
     "clip": {
@@ -3975,31 +3956,12 @@
      "label": "Clip 2",
      "optional": true,
      "many": false
-    },
-    "in3": {
-     "type": "clip",
-     "label": "Clip 3",
-     "optional": true,
-     "many": false
-    },
-    "in4": {
-     "type": "clip",
-     "label": "Clip 4",
-     "optional": true,
-     "many": false
-    },
-    "in5": {
-     "type": "clip",
-     "label": "Clip 5",
-     "optional": true,
-     "many": false
-    },
-    "in6": {
-     "type": "clip",
-     "label": "Clip 6",
-     "optional": true,
-     "many": false
     }
+   },
+   "family": {
+    "prefix": "in",
+    "type": "clip",
+    "required": 0
    },
    "outputs": {
     "clip": {
@@ -4028,31 +3990,12 @@
      "label": "Layer 2",
      "optional": true,
      "many": false
-    },
-    "in3": {
-     "type": "clip",
-     "label": "Layer 3",
-     "optional": true,
-     "many": false
-    },
-    "in4": {
-     "type": "clip",
-     "label": "Layer 4",
-     "optional": true,
-     "many": false
-    },
-    "in5": {
-     "type": "clip",
-     "label": "Layer 5",
-     "optional": true,
-     "many": false
-    },
-    "in6": {
-     "type": "clip",
-     "label": "Layer 6 (front)",
-     "optional": true,
-     "many": false
     }
+   },
+   "family": {
+    "prefix": "in",
+    "type": "clip",
+    "required": 0
    },
    "outputs": {
     "clip": {
@@ -4299,19 +4242,12 @@
      "label": "File 2",
      "optional": false,
      "many": false
-    },
-    "in3": {
-     "type": "media",
-     "label": "File 3",
-     "optional": true,
-     "many": false
-    },
-    "in4": {
-     "type": "media",
-     "label": "File 4",
-     "optional": true,
-     "many": false
     }
+   },
+   "family": {
+    "prefix": "in",
+    "type": "media",
+    "required": 2
    },
    "outputs": {
     "media": {
@@ -26466,31 +26402,12 @@
      "label": "Scene 2",
      "optional": true,
      "many": false
-    },
-    "in3": {
-     "type": "clip",
-     "label": "Scene 3",
-     "optional": true,
-     "many": false
-    },
-    "in4": {
-     "type": "clip",
-     "label": "Scene 4",
-     "optional": true,
-     "many": false
-    },
-    "in5": {
-     "type": "clip",
-     "label": "Scene 5",
-     "optional": true,
-     "many": false
-    },
-    "in6": {
-     "type": "clip",
-     "label": "Scene 6",
-     "optional": true,
-     "many": false
     }
+   },
+   "family": {
+    "prefix": "in",
+    "type": "clip",
+    "required": 0
    },
    "outputs": {
     "clip": {
@@ -26604,23 +26521,8 @@
         "scene": {
          "description": "Scene",
          "type": "string",
-         "enum": [
-          "in1",
-          "in2",
-          "in3",
-          "in4",
-          "in5",
-          "in6"
-         ],
          "default": "in1",
-         "x-labels": {
-          "in1": "Scene 1",
-          "in2": "Scene 2",
-          "in3": "Scene 3",
-          "in4": "Scene 4",
-          "in5": "Scene 5",
-          "in6": "Scene 6"
-         }
+         "x-widget": "port"
         },
         "color": {
          "description": "Colour",
@@ -49348,31 +49250,12 @@
      "label": "Clip 2",
      "optional": true,
      "many": false
-    },
-    "in3": {
-     "type": "clip",
-     "label": "Clip 3",
-     "optional": true,
-     "many": false
-    },
-    "in4": {
-     "type": "clip",
-     "label": "Clip 4",
-     "optional": true,
-     "many": false
-    },
-    "in5": {
-     "type": "clip",
-     "label": "Clip 5",
-     "optional": true,
-     "many": false
-    },
-    "in6": {
-     "type": "clip",
-     "label": "Clip 6",
-     "optional": true,
-     "many": false
     }
+   },
+   "family": {
+    "prefix": "in",
+    "type": "clip",
+    "required": 0
    },
    "outputs": {
     "clip": {
@@ -49473,21 +49356,8 @@
         "before": {
          "description": "Before",
          "type": "string",
-         "enum": [
-          "in2",
-          "in3",
-          "in4",
-          "in5",
-          "in6"
-         ],
          "default": "in2",
-         "x-labels": {
-          "in2": "Clip 2",
-          "in3": "Clip 3",
-          "in4": "Clip 4",
-          "in5": "Clip 5",
-          "in6": "Clip 6"
-         }
+         "x-widget": "cut"
         },
         "transition": {
          "description": "Transition",
@@ -49607,31 +49477,12 @@
      "label": "Layer 2",
      "optional": true,
      "many": false
-    },
-    "in3": {
-     "type": "clip",
-     "label": "Layer 3",
-     "optional": true,
-     "many": false
-    },
-    "in4": {
-     "type": "clip",
-     "label": "Layer 4",
-     "optional": true,
-     "many": false
-    },
-    "in5": {
-     "type": "clip",
-     "label": "Layer 5",
-     "optional": true,
-     "many": false
-    },
-    "in6": {
-     "type": "clip",
-     "label": "Layer 6 (front)",
-     "optional": true,
-     "many": false
     }
+   },
+   "family": {
+    "prefix": "in",
+    "type": "clip",
+    "required": 0
    },
    "outputs": {
     "clip": {
@@ -50492,19 +50343,12 @@
      "label": "File 2",
      "optional": false,
      "many": false
-    },
-    "in3": {
-     "type": "media",
-     "label": "File 3",
-     "optional": true,
-     "many": false
-    },
-    "in4": {
-     "type": "media",
-     "label": "File 4",
-     "optional": true,
-     "many": false
     }
+   },
+   "family": {
+    "prefix": "in",
+    "type": "media",
+    "required": 2
    },
    "outputs": {
     "media": {

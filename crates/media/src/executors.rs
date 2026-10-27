@@ -11,8 +11,8 @@ use futures::future::try_join_all;
 use opsis_compile::asset_ref::{kind_from_path, project_ref};
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
-    CONCAT_PORTS, ChangeSpeed, Encoding, EvenOutVolume, ExtractSound, GrabFrame, JoinFiles,
-    MakeGif, MediaFile, Resize, TrimFile,
+    ChangeSpeed, Encoding, EvenOutVolume, ExtractSound, GrabFrame, JoinFiles, MakeGif, MediaFile,
+    Resize, TrimFile, joined_files,
 };
 use opsis_compile::registry::{node_def, node_name};
 use opsis_compile::text::{format_duration, format_precise_duration, single_quoted};
@@ -398,9 +398,8 @@ async fn concat(
     tools: Tools,
 ) -> Result<ExecutorOutput, ExecError> {
     let p: JoinFiles = ctx.params()?;
-    let items: Vec<LinkedMedia> = CONCAT_PORTS
-        .iter()
-        .filter_map(|port| inputs.get(*port))
+    let items: Vec<LinkedMedia> = joined_files(&inputs)
+        .into_iter()
         .map(|v| require_media(Some(v)))
         .collect::<Result<_, _>>()?;
     if items.len() < 2 {

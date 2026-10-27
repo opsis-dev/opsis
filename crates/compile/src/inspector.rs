@@ -13,7 +13,7 @@ use crate::graph::{downstream_of, session_into, upstream_of};
 use crate::node::{Category, SESSION_PORT};
 use crate::nodes::media::APPLY_GRADE_TYPE;
 use crate::params::{ParamSchema, Values};
-use crate::ports::{IN_PORTS, convert_input};
+use crate::ports::convert_input;
 use crate::registry::{node_def, node_name};
 use crate::vars::{PROJECT_NAME_VAR, SITE_ADDRESS_VAR, interpolate_text, workflow_vars};
 
@@ -65,7 +65,14 @@ pub struct InspectorContext {
     pub picker: PickerTarget,
     pub swatches: Vec<String>,
     pub connected_inputs: Vec<String>,
+    pub ports: Vec<PortChoice>,
     pub file_kinds: IndexMap<String, MediaKind>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+pub struct PortChoice {
+    pub port: String,
+    pub label: String,
 }
 
 fn file_kinds(params: &ParamSchema, values: &Values) -> IndexMap<String, MediaKind> {
@@ -232,11 +239,20 @@ pub fn inspector_context(
         .filter(|e| e.target == node_id)
         .map(|e| e.target_handle.clone())
         .collect();
-    let layers = IN_PORTS
-        .iter()
-        .filter(|p| connected_inputs.iter().any(|c| c == *p))
-        .count()
-        .max(1);
+    let family = def.family.as_ref();
+    let connected = family.map_or_else(Vec::new, |f| {
+        f.connected(connected_inputs.iter().map(String::as_str))
+    });
+    let layers = connected.len().max(1);
+    let ports = family.map_or_else(Vec::new, |f| {
+        connected
+            .iter()
+            .map(|&i| PortChoice {
+                port: f.port(i),
+                label: f.label(i, connected.last().copied()),
+            })
+            .collect()
+    });
     let spot_background = match def.category {
         Category::Grade => graded_file(wf, node_id, compiled),
         Category::Image => input_picture(wf, node_id, compiled),
@@ -268,5 +284,6 @@ pub fn inspector_context(
         swatches: project_swatches(&params, MAX_SWATCHES),
         file_kinds: file_kinds(&def.params, &node.params),
         connected_inputs,
+        ports,
     })
 }

@@ -29,7 +29,7 @@ use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Outputs, Phase, RowExt, outputs, port, row,
 };
 use crate::params::{ParamSchema, Values, schema_of, whole_number};
-use crate::ports::{IN_PORTS, clip_ports, connected_clips, scene_label};
+use crate::ports::{clip_family, connected_clips, in_index, scene_label};
 use crate::text::plural;
 
 const TEXT_KEYS: [&str; 9] = [
@@ -52,26 +52,12 @@ struct EnvelopeField {
     envelope: VisualEnvelope,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum SceneSlot {
-    In1,
-    In2,
-    In3,
-    In4,
-    In5,
-    In6,
-}
-
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SceneBackground {
-    #[default(SceneSlot::In1)]
-    #[schemars(
-        description = "Scene",
-        extend("x-labels" = { "in1": "Scene 1", "in2": "Scene 2", "in3": "Scene 3", "in4": "Scene 4", "in5": "Scene 5", "in6": "Scene 6" })
-    )]
-    pub scene: SceneSlot,
+    #[default = "in1"]
+    #[schemars(description = "Scene", extend("x-widget" = "port"))]
+    pub scene: String,
     #[default = "#0b0b10"]
     #[schemars(description = "Colour", extend("x-widget" = "color"))]
     pub color: String,
@@ -558,11 +544,15 @@ fn element_node(meta: &'static ElementMeta) -> NodeDef {
 }
 
 fn sequencer_card(ctx: &CardCtx<'_, Values>) -> Vec<Option<CardRow>> {
-    let ports: Vec<&str> = IN_PORTS
+    let mut ports: Vec<(usize, &str)> = ctx
+        .inputs
+        .connected
         .iter()
-        .copied()
-        .filter(|p| ctx.connected(p))
+        .filter_map(|c| Some((in_index(c)?, c.as_str())))
         .collect();
+    ports.sort_unstable();
+    ports.dedup();
+    let ports: Vec<&str> = ports.into_iter().map(|(_, p)| p).collect();
     let items: Vec<usize> = ports
         .iter()
         .map(|p| ctx.inputs.items.get(*p).copied().unwrap_or(1))
@@ -620,13 +610,7 @@ fn compile_sequencer(
         backgrounds
             .iter()
             .rev()
-            .find(|b| {
-                serde_json::to_value(b.scene)
-                    .ok()
-                    .and_then(|v| v.as_str().map(str::to_owned))
-                    .as_deref()
-                    == Some(handle)
-            })
+            .find(|b| b.scene == handle)
             .map(|b| b.color.clone())
     };
     let mut props = element_props(meta, &params);
@@ -636,10 +620,8 @@ fn compile_sequencer(
         props,
         backgrounds: scenes.iter().map(|(handle, _)| color_of(handle)).collect(),
     };
-    let scenes: Vec<(String, ClipValue)> = scenes
-        .into_iter()
-        .map(|(p, c)| (p.to_owned(), c.clone()))
-        .collect();
+    let scenes: Vec<(String, ClipValue)> =
+        scenes.into_iter().map(|(p, c)| (p, c.clone())).collect();
     let clip = scene_sequence(node_id, &scenes, gap, sequencer);
     with_handles(clip, EditHandles::default(), Some(envelope), None)
 }
@@ -654,7 +636,7 @@ fn sequencer_node(meta: &'static ElementMeta) -> NodeDef {
         schema,
     )
     .element(meta)
-    .inputs(clip_ports(scene_label))
+    .family(clip_family(scene_label).with_refs(&[("backgrounds", "scene")]))
     .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
     .card(sequencer_card)
     .compiles(move |ctx: &Ctx<'_, Values>| -> Outputs {

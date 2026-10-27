@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use indexmap::IndexMap;
 use opsis_compile::asset_ref::project_refs_in;
 use opsis_compile::cards::{CardSources, workflow_cards};
-use opsis_compile::catalog::{EditorCatalog, editor_bundle};
+use opsis_compile::catalog::{CatalogPort, EditorCatalog, editor_bundle, node_inputs};
 use opsis_compile::compile::{CompileResult, PreviewTarget, compile_workflow, preview_spec};
 use opsis_compile::edits::timeline::Film;
 use opsis_compile::graph::{GraphIssue, validate_workflow};
@@ -40,6 +40,7 @@ pub struct EditorCompile {
     pub plan: Option<MixPlan>,
     pub levelled: Option<TimelineSpec>,
     pub cards: IndexMap<String, Vec<CardRow>>,
+    pub inputs: IndexMap<String, IndexMap<String, CatalogPort>>,
     pub inspector: Option<InspectorContext>,
     pub local_frames: IndexMap<String, LocalFrames>,
     pub mix: Mix,
@@ -113,6 +114,7 @@ fn editor_compile(input: &CompileInput) -> EditorCompile {
         plan,
         levelled,
         cards,
+        inputs: node_inputs(workflow),
         inspector,
         local_frames,
     }

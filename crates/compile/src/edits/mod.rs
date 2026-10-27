@@ -4,13 +4,14 @@ pub mod timeline;
 pub mod workflow;
 
 use indexmap::IndexSet;
-use opsis_types::edits::{MarkerEdit, WorkflowEdit};
+use opsis_types::edits::{MarkerEdit, Removal, WorkflowEdit};
 use opsis_types::workflow::{Marker, Workflow, WorkflowNode};
 
 use crate::graph::downstream_of;
 use crate::ids::{Ids, node_id_prefix};
 use crate::node::Platform;
 use crate::registry::node_def;
+use timeline::apply_removal;
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum EditError {
@@ -139,8 +140,7 @@ pub fn apply_edit(
             Vec::new()
         }
         WorkflowEdit::RemoveParts { node_ids, edge_ids } => {
-            remove_nodes(wf, &node_ids);
-            remove_edges(wf, &edge_ids);
+            apply_removal(&Removal { node_ids, edge_ids }, wf);
             Vec::new()
         }
         WorkflowEdit::SetSettings { patch } => {

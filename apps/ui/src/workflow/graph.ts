@@ -1,7 +1,21 @@
 import { findById } from "@opsis/video/common/lists";
-import type { CatalogPort, Workflow } from "@/generated/bindings";
-import type { EdgeEnds } from "@/generated/bindings";
+import type {
+  CatalogFamily,
+  CatalogPort,
+  EdgeEnds,
+  EditorNode,
+  Workflow,
+} from "@/generated/bindings";
 import { canConnect, getNodeDef } from "@/store/catalog";
+
+const inFamily = (family: CatalogFamily, handle: string): boolean =>
+  handle.startsWith(family.prefix) && /^[1-9]\d*$/.test(handle.slice(family.prefix.length));
+
+function familyPort(def: EditorNode, handle: string): CatalogPort | undefined {
+  const family = def.family;
+  if (!family || !inFamily(family, handle)) return undefined;
+  return { type: family.type, label: handle, optional: true, many: false };
+}
 
 export function portOf(
   wf: Workflow,
@@ -11,7 +25,9 @@ export function portOf(
 ): CatalogPort | undefined {
   const node = findById(wf.nodes, nodeId);
   const def = node ? getNodeDef(node.type) : undefined;
-  return def ? (side === "in" ? def.inputs : def.outputs)[handle] : undefined;
+  if (!def) return undefined;
+  if (side === "out") return def.outputs[handle];
+  return def.inputs[handle] ?? familyPort(def, handle);
 }
 
 export function connects(wf: Workflow, c: EdgeEnds): boolean {

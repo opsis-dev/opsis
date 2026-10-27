@@ -4,7 +4,7 @@ use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::mix::LOUDNESS_TARGETS;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
-use opsis_types::values::{ClipValue, CompileValue, MediaKind, MediaValue, NodeResult};
+use opsis_types::values::{ClipValue, CompileValue, MediaKind, MediaValue, NodeResult, PortValues};
 use opsis_types::workflow::{DEFAULT_STILL_MS, PortType};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -15,11 +15,12 @@ use crate::card::{file_row, range_row, truncate_card};
 use crate::clip::{IMAGE, ItemExtra, VIDEO, item_clip, placeholder_clip};
 use crate::errors::SettingsError;
 use crate::node::{
-    CardCtx, Category, Ctx, GRADE_PORT, Inputs, NodeDef, Outputs, Phase, Ports, RowExt, missing,
-    opt, port, row,
+    CardCtx, Category, Ctx, GRADE_PORT, Inputs, NodeDef, Outputs, Phase, PortFamily, Ports, RowExt,
+    missing, port, row,
 };
 use crate::nodes::grade::{grade_changes_nothing, grade_needs_video, grade_step_title};
 use crate::params::{Params, to_values};
+use crate::ports::{IN_PREFIX, in_index};
 use crate::text::{format_duration, plural, signed_text};
 use crate::time::ms_to_frames;
 
@@ -504,7 +505,18 @@ pub struct JoinFiles {
 
 impl Params for JoinFiles {}
 
-pub const CONCAT_PORTS: [&str; 4] = ["in1", "in2", "in3", "in4"];
+fn file_label(i: usize, _last: Option<usize>) -> String {
+    format!("File {}", i + 1)
+}
+
+pub fn joined_files(inputs: &PortValues) -> Vec<&CompileValue> {
+    let mut found: Vec<(usize, &CompileValue)> = inputs
+        .iter()
+        .filter_map(|(k, v)| Some((in_index(k)?, v)))
+        .collect();
+    found.sort_by_key(|(i, _)| *i);
+    found.into_iter().map(|(_, v)| v).collect()
+}
 
 fn join_files() -> NodeDef {
     NodeDef::of::<JoinFiles>(CONCAT_TYPE, "Join files", Category::Media, Phase::Media)
@@ -513,15 +525,15 @@ fn join_files() -> NodeDef {
         ))
         .executes()
         .uses_project_size()
-        .inputs(vec![
-            ("in1", port(PortType::Media, "File 1")),
-            ("in2", port(PortType::Media, "File 2")),
-            ("in3", opt(PortType::Media, "File 3")),
-            ("in4", opt(PortType::Media, "File 4")),
-        ])
+        .family(PortFamily::new(IN_PREFIX, PortType::Media, 2, file_label))
         .outputs(vec![(MEDIA_PORT, port(PortType::Media, "File"))])
         .card(|ctx: &CardCtx<'_, JoinFiles>| {
-            let n = CONCAT_PORTS.iter().filter(|p| ctx.connected(p)).count();
+            let n = ctx
+                .inputs
+                .connected
+                .iter()
+                .filter(|c| in_index(c).is_some())
+                .count();
             vec![
                 Some(match n {
                     0 => missing(Icon::Combine, "Connect two files"),

@@ -28,7 +28,7 @@ use crate::nodes::transitions::{
     NO_TRANSITION, transition_kinds, transition_ref, transition_title,
 };
 use crate::params::Params;
-use crate::ports::{IN_PORTS, clip_label, clip_ports, connected_clips, layer_label};
+use crate::ports::{clip_family, clip_label, connected_clips, in_index, layer_label};
 use crate::remap::{Remap, speed_remap};
 use crate::text::{format_duration, parse_number_text, plural};
 use crate::time::{at_least_one_frame, frames_to_ms, ms_to_frames, ms_to_frames_from};
@@ -55,7 +55,7 @@ fn with_connected_clips(
     let clip = if connected.is_empty() {
         empty_clip(EMPTY_CLIP_FRAMES)
     } else {
-        let ports = connected.iter().map(|(p, _)| (*p).to_owned()).collect();
+        let ports = connected.iter().map(|(p, _)| p.clone()).collect();
         build(
             connected.into_iter().map(|(_, c)| c.clone()).collect(),
             ports,
@@ -77,38 +77,13 @@ fn transition_choices(schema: &mut Schema) {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum CutSlot {
-    In2,
-    In3,
-    In4,
-    In5,
-    In6,
-}
-
-impl CutSlot {
-    fn port(self) -> &'static str {
-        match self {
-            Self::In2 => "in2",
-            Self::In3 => "in3",
-            Self::In4 => "in4",
-            Self::In5 => "in5",
-            Self::In6 => "in6",
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 #[schemars(transform = transition_choices)]
 pub struct Cut {
-    #[default(CutSlot::In2)]
-    #[schemars(
-        description = "Before",
-        extend("x-labels" = { "in2": "Clip 2", "in3": "Clip 3", "in4": "Clip 4", "in5": "Clip 5", "in6": "Clip 6" })
-    )]
-    pub before: CutSlot,
+    #[default = "in2"]
+    #[schemars(description = "Before", extend("x-widget" = "cut"))]
+    pub before: String,
     #[default = "core/fade"]
     #[schemars(description = "Transition", extend("x-widget" = "transition"))]
     pub transition: String,
@@ -163,7 +138,7 @@ fn cuts_for(p: &Sequence, ports: &[String]) -> Vec<CutPlan> {
         .enumerate()
         .skip(1)
         .map(|(i, handle)| {
-            let own = p.cuts.iter().rev().find(|c| c.before.port() == handle);
+            let own = p.cuts.iter().rev().find(|c| c.before == *handle);
             let (transition, duration, keep_whole) = match own {
                 Some(c) => (c.transition.clone(), c.transition_duration, c.keep_whole),
                 None => (p.transition.clone(), p.transition_duration, p.keep_whole),
@@ -205,11 +180,13 @@ fn worst_cover(
 }
 
 fn connected_ports(ctx_connected: &[String]) -> Vec<String> {
-    IN_PORTS
+    let mut ports: Vec<(usize, &String)> = ctx_connected
         .iter()
-        .filter(|p| ctx_connected.iter().any(|c| c == *p))
-        .map(|p| (*p).to_owned())
-        .collect()
+        .filter_map(|c| Some((in_index(c)?, c)))
+        .collect();
+    ports.sort_by_key(|(i, _)| *i);
+    ports.dedup_by_key(|(i, _)| *i);
+    ports.into_iter().map(|(_, c)| c.clone()).collect()
 }
 
 fn sequence() -> NodeDef {
@@ -220,7 +197,7 @@ fn sequence() -> NodeDef {
         Phase::Compile,
     )
     .describe("Plays clips one after another, with a transition between each.")
-    .inputs(clip_ports(clip_label))
+    .family(clip_family(clip_label).with_refs(&[("cuts", "before")]))
     .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
     .card(|ctx: &CardCtx<'_, Sequence>| {
         let p = &ctx.params;
@@ -375,7 +352,7 @@ fn layers() -> NodeDef {
         Phase::Compile,
     )
     .describe("Stacks clips on top of each other: Layer 1 at the back, the last at the front.")
-    .inputs(clip_ports(layer_label))
+    .family(clip_family(layer_label))
     .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
     .card(|ctx: &CardCtx<'_, Layers>| {
         let layers = connected_ports(&ctx.inputs.connected).len();

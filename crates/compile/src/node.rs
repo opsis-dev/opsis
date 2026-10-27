@@ -163,6 +163,88 @@ pub fn many(kind: PortType, label: impl Into<Cow<'static, str>>) -> PortSpec {
 }
 
 pub type Ports = Vec<(&'static str, PortSpec)>;
+
+pub type FamilyLabel = fn(usize, Option<usize>) -> String;
+
+pub fn numbered_index(prefix: &str, handle: &str) -> Option<usize> {
+    let digits = handle.strip_prefix(prefix)?;
+    if digits.is_empty() || digits.starts_with('0') || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    digits.parse::<usize>().ok()?.checked_sub(1)
+}
+
+#[derive(Debug, Clone)]
+pub struct PortFamily {
+    pub prefix: &'static str,
+    pub required: usize,
+    pub shown: usize,
+    pub refs: &'static [(&'static str, &'static str)],
+    label: FamilyLabel,
+    required_spec: PortSpec,
+    optional_spec: PortSpec,
+}
+
+impl PortFamily {
+    pub fn new(prefix: &'static str, kind: PortType, required: usize, label: FamilyLabel) -> Self {
+        let spec = PortSpec {
+            kind,
+            label: None,
+            optional: false,
+            many: false,
+        };
+        Self {
+            prefix,
+            required,
+            shown: required.max(2),
+            refs: &[],
+            label,
+            optional_spec: spec.clone().optional(),
+            required_spec: spec,
+        }
+    }
+
+    #[must_use]
+    pub fn with_refs(mut self, refs: &'static [(&'static str, &'static str)]) -> Self {
+        self.refs = refs;
+        self
+    }
+
+    pub fn kind(&self) -> PortType {
+        self.required_spec.kind
+    }
+
+    pub fn index(&self, handle: &str) -> Option<usize> {
+        numbered_index(self.prefix, handle)
+    }
+
+    pub fn port(&self, index: usize) -> String {
+        format!("{}{}", self.prefix, index + 1)
+    }
+
+    pub fn spec(&self, index: usize) -> &PortSpec {
+        if index < self.required {
+            &self.required_spec
+        } else {
+            &self.optional_spec
+        }
+    }
+
+    pub fn label(&self, index: usize, last: Option<usize>) -> String {
+        (self.label)(index, last)
+    }
+
+    pub fn connected<'a>(&self, handles: impl IntoIterator<Item = &'a str>) -> Vec<usize> {
+        let mut found: Vec<usize> = handles.into_iter().filter_map(|h| self.index(h)).collect();
+        found.sort_unstable();
+        found.dedup();
+        found
+    }
+
+    pub fn shown_count(&self, connected: &[usize]) -> usize {
+        connected.last().map_or(0, |last| last + 2).max(self.shown)
+    }
+}
 pub type Inputs = PortValues;
 pub type Outputs = PortValues;
 
@@ -318,6 +400,7 @@ pub struct NodeDef {
     pub description: Option<String>,
     pub phase: Phase,
     pub inputs: Ports,
+    pub family: Option<PortFamily>,
     pub outputs: Ports,
     pub params: ParamSchema,
     pub is_virtual: bool,
@@ -381,6 +464,7 @@ impl NodeDef {
             description: None,
             phase,
             inputs: Vec::new(),
+            family: None,
             outputs: Vec::new(),
             params,
             is_virtual: false,
@@ -421,6 +505,11 @@ impl NodeDef {
 
     pub fn inputs(mut self, ports: Ports) -> Self {
         self.inputs = ports;
+        self
+    }
+
+    pub fn family(mut self, family: PortFamily) -> Self {
+        self.family = Some(family);
         self
     }
 
@@ -619,7 +708,41 @@ impl NodeDef {
     }
 
     pub fn input(&self, id: &str) -> Option<&PortSpec> {
-        self.inputs.iter().find(|(k, _)| *k == id).map(|(_, s)| s)
+        self.inputs
+            .iter()
+            .find(|(k, _)| *k == id)
+            .map(|(_, s)| s)
+            .or_else(|| {
+                let family = self.family.as_ref()?;
+                family.index(id).map(|i| family.spec(i))
+            })
+    }
+
+    pub fn family_index(&self, id: &str) -> Option<usize> {
+        self.family.as_ref()?.index(id)
+    }
+
+    pub fn input_ports<'a>(
+        &self,
+        connected: impl IntoIterator<Item = &'a str>,
+    ) -> Vec<(String, String, PortSpec)> {
+        let mut ports: Vec<(String, String, PortSpec)> = self
+            .inputs
+            .iter()
+            .map(|(id, spec)| ((*id).to_owned(), spec.label(), spec.clone()))
+            .collect();
+        if let Some(family) = &self.family {
+            let found = family.connected(connected);
+            let last = found.last().copied();
+            ports.extend((0..family.shown_count(&found)).map(|i| {
+                (
+                    family.port(i),
+                    family.label(i, last),
+                    family.spec(i).clone(),
+                )
+            }));
+        }
+        ports
     }
 
     pub fn output(&self, id: &str) -> Option<&PortSpec> {

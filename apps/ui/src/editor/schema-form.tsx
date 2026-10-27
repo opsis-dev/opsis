@@ -48,6 +48,8 @@ import { MusicField, SoundField } from "./form/sound-field";
 import { SpotField } from "./form/spot-field";
 import {
   actionChoices,
+  anyPortChoices,
+  cutChoices,
   AssetField,
   backdropChoices,
   CodeField,
@@ -91,6 +93,8 @@ const presetsWidget = (presets: () => Array<[string, number]>): Widget => ({
 
 const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
   action: selectWidget(actionChoices),
+  cut: selectWidget(cutChoices),
+  port: selectWidget(anyPortChoices),
   variable: selectWidget(variableChoices),
   backdrop: selectWidget(backdropChoices),
   code: stringWidget(CodeField),
@@ -338,11 +342,22 @@ const SUMMARY_SKIPS: ReadonlySet<string | undefined> = new Set([
   "music",
 ]);
 
-function rowSummary(item: JsonSchema, entry: ParamValues, index: number): string {
+const PORT_WIDGETS: ReadonlySet<string | undefined> = new Set(["cut", "port"]);
+
+function rowSummary(
+  item: JsonSchema,
+  entry: ParamValues,
+  index: number,
+  ports: FormContext["ports"],
+): string {
   const fields = shapeEntries(item);
+  const portLabel = (port: string) => ports.find((p) => p.port === port)?.label ?? "Not connected";
   const textOf = (key: string) => {
     const v = entry[key];
-    return typeof v === "string" ? v.split("\n")[0]?.trim() : undefined;
+    if (typeof v !== "string") return undefined;
+    const field = fields.find(([k]) => k === key)?.[1];
+    if (field && PORT_WIDGETS.has(fieldMeta(field).widget)) return portLabel(v);
+    return v.split("\n")[0]?.trim();
   };
   const text = fields
     .filter(
@@ -391,7 +406,7 @@ function ObjectListField({
       >
         {({ item: entry, key }, i) => {
           const expanded = !closed.has(key);
-          const name = rowSummary(item, entry, i);
+          const name = rowSummary(item, entry, i, ctx.ports);
           return (
             <div className="bg-muted/40 flex min-w-0 flex-1 flex-col rounded-lg border">
               <div className="flex items-center gap-1 px-1 py-1">

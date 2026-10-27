@@ -12,6 +12,7 @@ use serde_json::{Value, json};
 use crate::helpers::{Graph, TITLE, film, flat_film};
 
 const DELTA: f64 = 6.0;
+const FED_FAMILY_INPUTS: usize = 6;
 const SOURCE: &str = "out";
 
 fn run(
@@ -171,11 +172,20 @@ struct RoundTrip {
     added: usize,
 }
 
-fn feed_inputs(g: &mut Graph, id: &str, kind: &str) {
+fn feed_inputs(g: &mut Graph, id: &str, kind: &str, family_inputs: usize) {
     let def = registry().get(kind).expect("a node definition");
-    for (i, (port, spec)) in def.inputs.iter().enumerate() {
+    let mut ports: Vec<(String, PortType)> = def
+        .inputs
+        .iter()
+        .map(|(port, spec)| ((*port).to_owned(), spec.kind))
+        .collect();
+    if let Some(family) = &def.family {
+        ports.extend((0..family_inputs).map(|i| (family.port(i), family.kind())));
+    }
+    for (i, (port, kind)) in ports.iter().enumerate() {
+        let port = port.as_str();
         let src = format!("{id}_{port}");
-        match spec.kind {
+        match kind {
             PortType::Clip => {
                 g.node(
                     &src,
@@ -194,9 +204,13 @@ fn feed_inputs(g: &mut Graph, id: &str, kind: &str) {
 }
 
 fn round_trips(kind: &str, params: Value) -> Vec<RoundTrip> {
+    round_trips_fed(kind, params, FED_FAMILY_INPUTS)
+}
+
+fn round_trips_fed(kind: &str, params: Value, family_inputs: usize) -> Vec<RoundTrip> {
     let wf = film(|g| {
         g.node("x", kind, params);
-        feed_inputs(g, "x", kind);
+        feed_inputs(g, "x", kind, family_inputs);
         "x".into()
     });
     let before = flat_film(&wf);
@@ -234,6 +248,18 @@ fn clip_kinds() -> Vec<String> {
         .filter(|d| d.has_compile() && d.output("clip").is_some() && !d.hidden)
         .map(|d| d.kind.to_string())
         .collect()
+}
+
+#[test]
+fn every_handle_moves_its_bar_in_a_sequence_of_twelve_clips() {
+    let trips = round_trips_fed("timeline.sequence", json!({}), 12);
+    assert!(trips.len() >= 12, "{} round trips", trips.len());
+    let misses: Vec<String> = trips
+        .iter()
+        .filter(|t| t.added != 0 || t.off.abs() > tolerance(t.kind))
+        .map(|t| format!("{:?} owned by {}: off by {}", t.kind, t.owner, t.off))
+        .collect();
+    assert_eq!(misses, Vec::<String>::new());
 }
 
 #[test]

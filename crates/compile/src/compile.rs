@@ -55,12 +55,13 @@ pub fn gather_inputs<'a>(
 }
 
 fn bypass(def: &NodeDef, inputs: &PortValues) -> PortValues {
+    let order = def.input_ports(inputs.keys().map(String::as_str));
     def.outputs
         .iter()
         .filter_map(|(port, spec)| {
-            def.inputs
+            order
                 .iter()
-                .filter_map(|(input, _)| inputs.get(*input))
+                .filter_map(|(input, _, _)| inputs.get(input))
                 .find(|v| v.port_type() == spec.kind)
                 .map(|v| ((*port).to_owned(), v.clone()))
         })

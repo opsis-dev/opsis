@@ -42,6 +42,23 @@ export const variableChoices = (ctx: FormContext, value: string): SelectChoices 
 
 export const backdropChoices = (): SelectChoices => ({ options: [...BACKDROPS], format: humanize });
 
+function portChoices(ports: FormContext["ports"], value: string): SelectChoices {
+  const names = new Map(ports.map((p) => [p.port, p.label]));
+  return {
+    options: withCurrent(
+      ports.map((p) => p.port),
+      value,
+    ),
+    format: (v) => names.get(v) ?? "Not connected",
+  };
+}
+
+export const anyPortChoices = (ctx: FormContext, value: string): SelectChoices =>
+  portChoices(ctx.ports, value);
+
+export const cutChoices = (ctx: FormContext, value: string): SelectChoices =>
+  portChoices(ctx.ports.slice(1), value);
+
 export function CodeField({ id, label, value, onChange, meta }: StringProps) {
   return (
     <FieldShell id={id} label={label} meta={meta}>

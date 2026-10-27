@@ -17,7 +17,8 @@ pub fn estimate_card_height(def: Option<&NodeDef>) -> f64 {
     if let Some(height) = def.card_height {
         return height;
     }
-    let ports = def.inputs.len().max(def.outputs.len()) as f64;
+    let inputs = def.input_ports(std::iter::empty()).len();
+    let ports = inputs.max(def.outputs.len()) as f64;
     let rows = if def.has_card() {
         MAX_CARD_ROWS as f64
     } else {

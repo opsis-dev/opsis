@@ -10,16 +10,6 @@ export const GROUP_TYPE = "core.group";
 export const NOTE_TYPE = "core.note";
 
 export const CLIP_PORT = "clip";
-export const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;
-
-export type InPort = (typeof IN_PORTS)[number];
-
-export const inPortIndex = (handle: string): number => IN_PORTS.findIndex((p) => p === handle);
-
-export function nextInPort(handle: string): InPort | undefined {
-  const index = inPortIndex(handle);
-  return index === -1 ? undefined : IN_PORTS[index + 1];
-}
 
 export const isGroupNode = (node: Pick<WorkflowNode, "type">): boolean => node.type === GROUP_TYPE;
 

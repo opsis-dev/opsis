@@ -18,6 +18,7 @@ const EMPTY: Compiled = {
   plan: null,
   levelled: null,
   cards: {},
+  inputs: {},
   inspector: null,
   localFrames: {},
   mix: null,

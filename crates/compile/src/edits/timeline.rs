@@ -14,7 +14,7 @@ use crate::ids::{Ids, node_id_prefix};
 use crate::limits::{MAX_SPEED, MAX_VOLUME, MIN_SPEED};
 use crate::nodes::timeline::Cut;
 use crate::nodes::transitions::NO_TRANSITION;
-use crate::ports::{IN_PORTS, in_port_index};
+use crate::ports::{in_index, in_port};
 use crate::registry::{node_def, node_name};
 use crate::time::{frames_to_ms, ms_to_exact_frames, whole_frames};
 use crate::timeline::camera_path::sorted_camera_keys;
@@ -688,68 +688,39 @@ impl TimelineEdits<'_> {
         next: &str,
         parts: SplitParts,
     ) {
-        let port = in_port_index(&edge.target_handle).unwrap_or(0);
-        let shift_port = |handle: &str| -> Option<String> {
-            let index = in_port_index(handle)?;
-            if index <= port {
-                Some(handle.to_owned())
-            } else {
-                IN_PORTS.get(index + 1).map(|p| (*p).to_owned())
-            }
-        };
-        let saved = container
-            .params
-            .get("cuts")
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default();
-        let mut cuts: Vec<Value> = saved
-            .into_iter()
-            .filter_map(|mut cut| {
-                let before = shift_port(cut.get("before")?.as_str()?)?;
-                cut["before"] = Value::String(before);
-                Some(cut)
-            })
-            .collect();
+        let port = in_index(&edge.target_handle).unwrap_or(0);
+        self.workflow.edges.retain(|e| e.id != edge.id);
+        renumber_family(&mut self.workflow, &container.id, &|i| {
+            Some(if i <= port { i } else { i + 1 })
+        });
         let transition = param_value(container, "transition");
-        if transition.as_ref().and_then(Value::as_str) != Some(NO_TRANSITION) {
+        let wf = &mut self.workflow;
+        if transition.as_ref().and_then(Value::as_str) != Some(NO_TRANSITION)
+            && let Some(node) = wf.nodes.iter_mut().find(|n| n.id == container.id)
+        {
             let mut cut = serde_json::to_value(Cut::default()).unwrap_or_else(|_| json!({}));
             cut["before"] = Value::String(next.to_owned());
             cut["transition"] = Value::String(NO_TRANSITION.to_owned());
+            let mut cuts = node
+                .params
+                .get("cuts")
+                .and_then(Value::as_array)
+                .cloned()
+                .unwrap_or_default();
             cuts.push(cut);
+            node.params.insert("cuts".to_owned(), Value::Array(cuts));
         }
-        let wf = &mut self.workflow;
-        let mut edges: Vec<WorkflowEdge> = wf
-            .edges
-            .iter()
-            .filter(|e| e.id != edge.id)
-            .filter_map(|e| {
-                if e.target != edge.target || in_port_index(&e.target_handle).is_none() {
-                    return Some(e.clone());
-                }
-                let target_handle = shift_port(&e.target_handle)?;
-                Some(clip_edge(
-                    &e.source,
-                    &e.source_handle,
-                    &e.target,
-                    &target_handle,
-                ))
-            })
-            .collect();
-        edges.extend(parts.feeds);
-        edges.push(clip_edge(
+        wf.edges.extend(parts.feeds);
+        wf.edges.push(clip_edge(
             &parts.head.id,
             CLIP_PORT,
             &edge.target,
             &edge.target_handle,
         ));
-        edges.push(clip_edge(&parts.tail.id, CLIP_PORT, &edge.target, next));
-        if let Some(node) = wf.nodes.iter_mut().find(|n| n.id == container.id) {
-            node.params.insert("cuts".to_owned(), Value::Array(cuts));
-        }
+        wf.edges
+            .push(clip_edge(&parts.tail.id, CLIP_PORT, &edge.target, next));
         wf.nodes.push(parts.head);
         wf.nodes.push(parts.tail);
-        wf.edges = edges;
     }
 
     fn split_with_new_sequence(&mut self, edge: &WorkflowEdge, parts: SplitParts) {
@@ -764,9 +735,9 @@ impl TimelineEdits<'_> {
         wf.edges.retain(|e| e.id != edge.id);
         wf.edges.extend(parts.feeds);
         wf.edges
-            .push(clip_edge(&parts.head.id, CLIP_PORT, &join.id, IN_PORTS[0]));
+            .push(clip_edge(&parts.head.id, CLIP_PORT, &join.id, &in_port(0)));
         wf.edges
-            .push(clip_edge(&parts.tail.id, CLIP_PORT, &join.id, IN_PORTS[1]));
+            .push(clip_edge(&parts.tail.id, CLIP_PORT, &join.id, &in_port(1)));
         wf.edges.push(clip_edge(
             &join.id,
             CLIP_PORT,
@@ -793,10 +764,7 @@ impl TimelineEdits<'_> {
         let name = self.clip_name(&bar.node_id);
         let parts = self.split_parts(&edge, offset);
         let container = self.workflow.node(&edge.target).cloned();
-        match container
-            .as_ref()
-            .and_then(|c| free_port_after(&self.workflow, c, &edge))
-        {
+        match container.as_ref().and_then(|c| free_port_after(c, &edge)) {
             Some(next) => {
                 let container = container.expect("a container with a free port");
                 self.split_in_sequence(&edge, &container, &next, parts);
@@ -1027,8 +995,23 @@ pub struct RippleTarget {
 }
 
 pub fn apply_removal(removal: &Removal, wf: &mut Workflow) {
+    let mut emptied: Vec<String> = wf
+        .edges
+        .iter()
+        .filter(|e| removal.edge_ids.contains(&e.id) || removal.node_ids.contains(&e.source))
+        .filter(|e| {
+            wf.node(&e.target)
+                .and_then(|n| node_def(&n.kind))
+                .is_some_and(|d| d.family_index(&e.target_handle).is_some())
+        })
+        .map(|e| e.target.clone())
+        .collect();
+    emptied.dedup();
     remove_nodes(wf, &removal.node_ids);
     wf.edges.retain(|e| !removal.edge_ids.contains(&e.id));
+    for node_id in &emptied {
+        close_gaps(wf, node_id);
+    }
 }
 
 pub fn handle_key(r: &ParamRef) -> String {
@@ -1080,21 +1063,73 @@ fn first_edge_on_path(wf: &Workflow, from: &str, to: &str) -> Option<WorkflowEdg
     None
 }
 
-fn free_port_after(wf: &Workflow, container: &WorkflowNode, edge: &WorkflowEdge) -> Option<String> {
+fn free_port_after(container: &WorkflowNode, edge: &WorkflowEdge) -> Option<String> {
     if container.kind != SEQUENCE_TYPE {
         return None;
     }
-    let index = in_port_index(&edge.target_handle)?;
-    let last_used = wf
-        .edges
-        .iter()
-        .filter(|e| e.target == container.id)
-        .filter_map(|e| in_port_index(&e.target_handle))
-        .max();
-    if last_used.is_some_and(|last| last >= IN_PORTS.len() - 1) {
-        return None;
+    in_index(&edge.target_handle).map(|index| in_port(index + 1))
+}
+
+pub fn renumber_family(wf: &mut Workflow, node_id: &str, map: &dyn Fn(usize) -> Option<usize>) {
+    let Some(family) = wf
+        .node(node_id)
+        .and_then(|n| node_def(&n.kind))
+        .and_then(|d| d.family.clone())
+    else {
+        return;
+    };
+    let renamed = |port: &str| family.index(port).map(|i| map(i).map(|n| family.port(n)));
+    wf.edges = std::mem::take(&mut wf.edges)
+        .into_iter()
+        .filter_map(|e| {
+            if e.target != node_id {
+                return Some(e);
+            }
+            match renamed(&e.target_handle) {
+                None => Some(e),
+                Some(None) => None,
+                Some(Some(port)) => Some(clip_edge(&e.source, &e.source_handle, &e.target, &port)),
+            }
+        })
+        .collect();
+    let Some(node) = wf.nodes.iter_mut().find(|n| n.id == node_id) else {
+        return;
+    };
+    for (list, field) in family.refs {
+        let Some(Value::Array(items)) = node.params.get_mut(*list) else {
+            continue;
+        };
+        items.retain_mut(|item| {
+            let Some(port) = item.get(*field).and_then(Value::as_str) else {
+                return true;
+            };
+            match renamed(port) {
+                None => true,
+                Some(None) => false,
+                Some(Some(next)) => {
+                    item[*field] = Value::String(next);
+                    true
+                }
+            }
+        });
     }
-    IN_PORTS.get(index + 1).map(|p| (*p).to_owned())
+}
+
+fn close_gaps(wf: &mut Workflow, node_id: &str) {
+    let Some(family) = wf
+        .node(node_id)
+        .and_then(|n| node_def(&n.kind))
+        .and_then(|d| d.family.clone())
+    else {
+        return;
+    };
+    let connected = family.connected(
+        wf.edges
+            .iter()
+            .filter(|e| e.target == node_id)
+            .map(|e| e.target_handle.as_str()),
+    );
+    renumber_family(wf, node_id, &|i| connected.binary_search(&i).ok());
 }
 
 const CUT_TOLERANCE_FRAMES: f64 = 1.0;

@@ -6,7 +6,7 @@ use opsis_types::workflow::{PortType, Workflow, WorkflowEdge, WorkflowNode};
 use serde::{Deserialize, Serialize};
 
 use crate::compile::{CompileResult, compile_workflow};
-use crate::node::{Claim, PortSpec, SESSION_PORT};
+use crate::node::{Claim, NodeDef, PortSpec, SESSION_PORT};
 use crate::ports::can_connect;
 use crate::registry::{is_output_type, node_def, node_name};
 use crate::vars::{interpolate_map, unknown_variables, workflow_vars};
@@ -197,6 +197,18 @@ fn port_mismatch(from: PortType, to: PortType) -> String {
     format!("A {} can't connect to a {} input", from.word(), to.word())
 }
 
+fn input_list(def: &NodeDef) -> String {
+    let mut names: Vec<String> = def.inputs.iter().map(|(id, _)| (*id).to_owned()).collect();
+    if let Some(f) = &def.family {
+        names.push(format!("{}, {}, …", f.port(0), f.port(1)));
+    }
+    if names.is_empty() {
+        "none".to_owned()
+    } else {
+        names.join(", ")
+    }
+}
+
 fn port_list(ports: &[(&'static str, PortSpec)]) -> String {
     if ports.is_empty() {
         "none".to_owned()
@@ -249,9 +261,7 @@ pub fn connection_problem(
             )
         }
         EdgeFault::Input(node, handle) => {
-            let ports = node_def(&node.kind)
-                .map(|d| port_list(&d.inputs))
-                .unwrap_or_else(|| "none".to_owned());
+            let ports = node_def(&node.kind).map_or_else(|| "none".to_owned(), input_list);
             format!(
                 "“{}” has no input “{handle}”. Its inputs: {ports}.",
                 node.id
@@ -323,20 +333,20 @@ pub fn session_into<'a>(
         .as_session()
 }
 
-fn port_issues(
-    wf: &Workflow,
-    node: &WorkflowNode,
-    inputs: &[(&'static str, PortSpec)],
-) -> Vec<GraphIssue> {
+fn port_issues(wf: &Workflow, node: &WorkflowNode, def: &NodeDef) -> Vec<GraphIssue> {
     let by_id = nodes_by_id(wf);
     let mut issues = Vec::new();
-    for (port_id, spec) in inputs {
+    let handles = wf
+        .edges
+        .iter()
+        .filter(|e| e.target == node.id)
+        .map(|e| e.target_handle.as_str());
+    for (port_id, name, spec) in def.input_ports(handles) {
         let count = wf
             .edges
             .iter()
-            .filter(|e| e.target == node.id && e.target_handle == *port_id && edge_ok(e, &by_id))
+            .filter(|e| e.target == node.id && e.target_handle == port_id && edge_ok(e, &by_id))
             .count();
-        let name = spec.label();
         if count == 0 && !spec.optional {
             issues.push(error(&node.id, format!("Connect something to “{name}”")));
         }
@@ -372,7 +382,7 @@ fn definition_issues(wf: &Workflow, node: &WorkflowNode) -> Vec<GraphIssue> {
         ));
     }
     if !is_structural(node) {
-        issues.extend(port_issues(wf, node, &def.inputs));
+        issues.extend(port_issues(wf, node, def));
     }
     issues
 }

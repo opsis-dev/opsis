@@ -477,6 +477,12 @@ export type CatalogEntry = {
 	params: { [key in string]: unknown },
 } & CatalogNode;
 
+export type CatalogFamily = {
+	prefix: string,
+	type: PortType,
+	required: number,
+};
+
 export type CatalogNode = {
 	type: string,
 	title: string,
@@ -484,6 +490,7 @@ export type CatalogNode = {
 	description: string,
 	runs: boolean,
 	inputs: { [key in string]: CatalogPort },
+	family?: CatalogFamily,
 	outputs: { [key in string]: CatalogPort },
 };
 
@@ -721,6 +728,7 @@ export type EditorCompile = {
 	plan: MixPlan | null,
 	levelled: TimelineSpec | null,
 	cards: { [key in string]: CardRow[] },
+	inputs: { [key in string]: { [key in string]: CatalogPort } },
 	inspector: InspectorContext | null,
 	localFrames: { [key in string]: LocalFrames },
 	mix: Mix,
@@ -735,6 +743,7 @@ export type EditorNode = {
 	description?: string,
 	phase: Phase,
 	inputs: { [key in string]: CatalogPort },
+	family?: CatalogFamily,
 	outputs: { [key in string]: CatalogPort },
 	params: { [key in string]: unknown },
 	defaults: { [key in string]: unknown },
@@ -1025,6 +1034,7 @@ export type InspectorContext = {
 	picker: PickerTarget,
 	swatches: string[],
 	connectedInputs: string[],
+	ports: PortChoice[],
 	fileKinds: { [key in string]: MediaKind },
 };
 
@@ -1408,6 +1418,11 @@ export type Playhead = {
 export type Point = {
 	x: number,
 	y: number,
+};
+
+export type PortChoice = {
+	port: string,
+	label: string,
 };
 
 export type PortLink = {

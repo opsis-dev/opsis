@@ -32,6 +32,7 @@ import { NodeBadge } from "./category-badge";
 import type { CanvasNode } from "./convert";
 import { GLYPH_HOST } from "./node-glyph";
 import { portTypeColor } from "./ports";
+import { useCompiledContext } from "./use-compiled";
 import { useNodeProblems } from "./use-node-problems";
 
 type StatusBadge = {
@@ -96,7 +97,7 @@ function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: Edi
       >
         <NodeHeader title={nodeName(node)} def={def} status={status} />
         <BaseNodeContent className="gap-1.5 px-0 py-2">
-          <NodePorts def={def} />
+          <NodePorts id={id} def={def} />
           <CardRows rows={rows} />
           {status === "running" ? <RunProgress id={id} /> : null}
         </BaseNodeContent>
@@ -150,12 +151,13 @@ function PortHandles({ ports, side }: { ports: Record<string, CatalogPort>; side
   });
 }
 
-function NodePorts({ def }: { def: EditorNode }) {
-  if (!Object.keys(def.inputs).length && !Object.keys(def.outputs).length) return null;
+function NodePorts({ id, def }: { id: string; def: EditorNode }) {
+  const inputs = useCompiledContext().inputs[id] ?? def.inputs;
+  if (!Object.keys(inputs).length && !Object.keys(def.outputs).length) return null;
   return (
     <div className="grid grid-cols-2 gap-y-1 text-xs">
       <div className="flex flex-col gap-1">
-        <PortHandles ports={def.inputs} side="in" />
+        <PortHandles ports={inputs} side="in" />
       </div>
       <div className="flex flex-col items-end gap-1">
         <PortHandles ports={def.outputs} side="out" />

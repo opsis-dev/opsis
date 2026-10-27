@@ -4,6 +4,7 @@ mod clip;
 mod compile;
 mod edits;
 mod graph;
+mod growing_inputs;
 mod helpers;
 mod hosted;
 mod keyframes;

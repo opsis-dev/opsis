@@ -1,12 +1,12 @@
 # Improvements
 
-Three improvements found by comparing Opsis with a hand-built feature-video recorder: Sequences and Layers with any number of clips, recording on a simulated clock, and server replies timed on that clock.
+Two improvements found by comparing Opsis with a hand-built feature-video recorder: recording on a simulated clock, and server replies timed on that clock.
 
 Status: plan only. Nothing here is built yet.
 
 ## How to read this plan
 
-- Each section is one improvement and can be built on its own, except section 3, which needs section 2.
+- Each section is one improvement and can be built on its own, except section 2, which needs section 1.
 - Each section has **What it adds**, **In place**, **Work** (numbered) and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
@@ -21,39 +21,12 @@ Status: plan only. Nothing here is built yet.
 
 ## Summary
 
-| Improvement                    | What users get                                                                          | Size   |
-| ------------------------------ | --------------------------------------------------------------------------------------- | ------ |
-| 1. Sequences and Layers grow   | Any number of clips in one Sequence or Layers node; splitting never runs out of inputs  | medium |
-| 2. Smooth recording            | A take with exactly one new picture per frame, however busy the computer is             | large  |
-| 3. Replies on the take's clock | In a smooth take, server replies and streamed answers land on the frames they took live | large  |
+| Improvement                    | What users get                                                                          | Size  |
+| ------------------------------ | --------------------------------------------------------------------------------------- | ----- |
+| 1. Smooth recording            | A take with exactly one new picture per frame, however busy the computer is             | large |
+| 2. Replies on the take's clock | In a smooth take, server replies and streamed answers land on the frames they took live | large |
 
-## 1. Sequences and Layers grow
-
-### What it adds
-
-A Sequence or Layers node takes as many clips as are connected: a new empty input appears each time the last one is connected. Today both stop at six (`in1`…`in6`), so a long film needs nested Sequences, and splitting a clip on the Timeline does nothing when its Sequence is full. Layers grows the same way as Sequence because they share the same inputs.
-
-### In place
-
-- `IN_PORTS` and `CUT_PORTS` are fixed lists of six and five (`crates/compile/src/ports.rs:64`).
-- A cut's own transition names its port with the `CutSlot` enum (`in2`…`in6`, `crates/compile/src/nodes/timeline.rs:82`).
-- Timeline slots are container node + port; `splitBar` shifts later ports and cuts by one and returns nothing when the last input is used (`crates/compile/src/edits/timeline.rs:1094`).
-- Nesting works today: a Sequence outputs a `clip` and the spec is recursive.
-
-### Work
-
-1. **Ports per node.** Let a node definition declare a growing input family (`in1`, `in2`, … with one empty input after the last connected one). The catalogue keeps the family's port type and label pattern; each compile sends every node's current inputs so the editor draws them per node.
-2. **Cuts.** `CutSlot` becomes a port name checked against the family (`in<n>`, n ≥ 2), with the "Before" field listing the node's connected ports from `InspectorContext`.
-3. **Edits.** `splitBar`, removal and ripple edits shift ports without a ceiling; removing a clip closes the gap so the inputs stay contiguous.
-4. **Editor.** Draw the node's inputs from the compile, with the empty one last; dropping a connection on the empty one adds the next.
-5. **Local API.** `/nodes/{type}` describes the family; edge checks accept any `in<n>`.
-6. **Tests.** Round trips in `crates/compile/tests/unit/timeline_edits.rs` with ten and more clips, a split in a node with seven, cut transitions past `in6`, every example opening as before.
-
-### Risks
-
-- Every place that loops over `IN_PORTS` assumes six; find them all (`rg IN_PORTS`, `CUT_PORTS`, `in6`).
-
-## 2. Smooth recording
+## 1. Smooth recording
 
 ### What it adds
 
@@ -83,10 +56,10 @@ It runs far slower than real time (a full picture per frame), so it is for final
 
 - With the page's timers paused, anything the take waits for only happens while it ticks; a wait that doesn't tick never ends. Every wait must go through the clock.
 - Videos inside the page, canvases driven by real time and workers' own timers don't follow the page clock.
-- Server replies arrive in real time while the page clock runs slower, so waits on the server take fewer frames than they took seconds. Section 3 fixes that.
+- Server replies arrive in real time while the page clock runs slower, so waits on the server take fewer frames than they took seconds. Section 2 fixes that.
 - Long takes: one picture per frame at 2× is slow; measure a 30 s take before choosing the default picture format.
 
-## 3. Replies on the take's clock
+## 2. Replies on the take's clock
 
 ### What it adds
 
@@ -98,7 +71,7 @@ Because smooth recording is slower than real time, a reply has almost always arr
 
 - Request interception for Mock response, pausing requests before they're sent (`crates/capture/src/route.rs`, `Fetch.enable` at the request stage).
 - The trace records every request and reply with times (`crates/capture/src/trace.rs:186`).
-- Section 2's take clock and frame stepper.
+- Section 1's take clock and frame stepper.
 
 ### Work
 

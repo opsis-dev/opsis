@@ -52,6 +52,7 @@ const ctx: FormContext = {
   swatches: [],
   actions: [],
   connectedInputs: [],
+  ports: [],
   fileKinds: {},
 };
 

@@ -6,6 +6,7 @@
   "description": "Starts a browser window for the actions that follow: size, device and language.",
   "phase": "capture",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -54,6 +55,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -98,6 +100,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -136,6 +139,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -178,6 +182,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -228,6 +233,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -276,6 +282,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -323,6 +330,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -378,6 +386,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -423,6 +432,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -467,6 +477,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -511,6 +522,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -553,6 +565,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -597,6 +610,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -639,6 +653,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -679,6 +694,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -720,6 +736,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -763,6 +780,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -804,6 +822,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -846,6 +865,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -889,6 +909,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "session",
@@ -930,6 +951,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "recording",
@@ -976,6 +998,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "image",
@@ -1036,6 +1059,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -1094,6 +1118,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -1132,6 +1157,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "recording",
@@ -1176,6 +1202,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "recording",
@@ -1222,6 +1249,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1263,6 +1291,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1305,6 +1334,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "recording",
@@ -1351,6 +1381,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -1394,6 +1425,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -1435,6 +1467,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1489,6 +1522,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1533,6 +1567,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1573,6 +1608,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1617,6 +1653,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1660,6 +1697,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1705,6 +1743,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1752,6 +1791,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1799,6 +1839,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1849,6 +1890,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "style",
@@ -1890,6 +1932,7 @@
   "description": "Turns your script into timed captions at a natural speaking pace.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "captions",
@@ -1940,6 +1983,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -1987,6 +2031,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "recording",
@@ -2038,6 +2083,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2083,6 +2129,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "grade",
@@ -2137,6 +2184,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "grade",
@@ -2178,6 +2226,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "grade",
@@ -2220,6 +2269,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "grade",
@@ -2265,6 +2315,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "grade",
@@ -2307,6 +2358,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "grade",
@@ -2343,6 +2395,7 @@
   "description": "A full-screen title with an optional eyebrow and subtitle.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2390,6 +2443,7 @@
   "description": "A headline that animates in word by word.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2430,6 +2484,7 @@
   "description": "A name or caption bar in the lower part of the screen.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2470,6 +2525,7 @@
   "description": "A short note that points something out.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2510,6 +2566,7 @@
   "description": "Shows an image from your project.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2555,6 +2612,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2598,6 +2656,7 @@
   "description": "Plays an animation file from your project, looped or once, at any speed.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2637,6 +2696,7 @@
   "description": "Plays a video from your project.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2677,6 +2737,7 @@
   "description": "A plain colour background.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2711,6 +2772,7 @@
   "description": "A gradient background.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2748,6 +2810,7 @@
   "description": "A soft moving noise background.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2785,6 +2848,7 @@
   "description": "Rays spreading from the centre.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2822,6 +2886,7 @@
   "description": "A paper texture background.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2857,6 +2922,7 @@
   "description": "A ready-made studio background image.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2891,6 +2957,7 @@
   "description": "A video that loops for as long as needed.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2926,6 +2993,7 @@
   "description": "A warm light flare over the video.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -2961,6 +3029,7 @@
   "description": "Your logo in 3D, spinning, tilting in or floating, with studio lighting.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3005,6 +3074,7 @@
   "description": "An image on a card with rounded corners and a soft shadow that tilts into place.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3049,6 +3119,7 @@
   "description": "Words in solid 3D letters with rounded edges, in any project font.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3099,6 +3170,7 @@
   "description": "A 3D model from your project on a turntable, with studio lighting and its own animation.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3153,6 +3225,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3195,6 +3268,7 @@
   "description": "Soft 3D spheres, rings and rounded boxes drifting slowly.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3242,6 +3316,7 @@
   "description": "Per-character fade-in with a gentle blur and upward motion.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3283,6 +3358,7 @@
   "description": "Types the text out letter by letter with a blinking cursor.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3326,6 +3402,7 @@
   "description": "A band of light sweeps across the text.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3367,6 +3444,7 @@
   "description": "Random scramble resolves left-to-right into the target text.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3409,6 +3487,7 @@
   "description": "Vertical reel scrolls characters from one value to another.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3450,6 +3529,7 @@
   "description": "Words fade in and slide up one after another with a configurable delay.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3492,6 +3572,7 @@
   "description": "A word appears in the center; each new word enters from the right and pushes the line until the full phrase locks centered.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3533,6 +3614,7 @@
   "description": "Lines reveal upward with a soft masked feel and compact stagger.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3574,6 +3656,7 @@
   "description": "Letter-spacing collapses and blur clears with a springy motion.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3616,6 +3699,7 @@
   "description": "A phrase builds from its first word centered: each next word drives in from the right and pushes the line left, easing into the new center.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3658,6 +3742,7 @@
   "description": "Three RGB-offset text copies jitter for a brief glitch window.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3708,6 +3793,7 @@
   "description": "An oversized gradient reveal snaps to a separate compact blurred line that settles left while the reveal continues.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3757,6 +3843,7 @@
   "description": "Draws a strike line across old text then reveals new text in its place.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3799,6 +3886,7 @@
   "description": "Each line enters from the left with a staggered slide and exits to the right for a flowing paragraph reveal.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3840,6 +3928,7 @@
   "description": "Colored marker block draws behind a phrase as the text color shifts.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3884,6 +3973,7 @@
   "description": "Animates one word inside a sentence from a base color to a brand color.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3927,6 +4017,7 @@
   "description": "A hand-dragged brush underline that sweeps itself across in a few stop-motion poses, thinning to a dry tail.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -3971,6 +4062,7 @@
   "description": "A brush circle swept around a region of the frame, opening thin and closing thick, with grain breaking up the dry opening.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4017,6 +4109,7 @@
   "description": "A hand-drawn brush arrow that sweeps itself from one point to another, thickening into the head that pops on the final poses.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4065,6 +4158,7 @@
   "description": "Shows a keyboard shortcut as keycaps being pressed.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4120,6 +4214,7 @@
   "description": "A burst of confetti to celebrate a moment.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4169,6 +4264,7 @@
   "description": "Sculptural ribbons twist into a tilted ring and sweep outward through contour echoes for an expressive product introduction.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4214,6 +4310,7 @@
   "description": "Soft colour blobs that drift and blend into each other.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4256,6 +4353,7 @@
   "description": "Grainy multi-stop gradient that drifts slowly with film-grain texture over the blend.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4302,6 +4400,7 @@
   "description": "Domain-warped color field that folds and stretches like liquid.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4346,6 +4445,7 @@
   "description": "Concentric bands swirling around a center point.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4389,6 +4489,7 @@
   "description": "Volumetric light rays radiating from an off-screen source.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4434,6 +4535,7 @@
   "description": "Classic Perlin noise clouds drifting across the frame.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4472,6 +4574,7 @@
   "description": "Ordered-dither shading over an animated gradient field.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4519,6 +4622,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4564,6 +4668,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4609,6 +4714,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4654,6 +4760,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4700,6 +4807,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4747,6 +4855,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4784,6 +4893,7 @@
   "description": "Streaks shoot across the frame toward a point and die as they land, or radial focus lines rush in from the edges and snap onto one point for an impact frame. Lay it over a clip with Layers.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4828,50 +4938,24 @@
   "category": "Timeline",
   "description": "Plays clips as scenes: each scene shrinks away, the stage holds empty for a beat, and the next one lands. Connect Layers to make a scene whose layers land one after another.",
   "phase": "compile",
-  "inputs": [
-   {
-    "id": "in1",
-    "type": "clip",
-    "label": "Scene 1",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in2",
-    "type": "clip",
-    "label": "Scene 2",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in3",
-    "type": "clip",
-    "label": "Scene 3",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in4",
-    "type": "clip",
-    "label": "Scene 4",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in5",
-    "type": "clip",
-    "label": "Scene 5",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in6",
-    "type": "clip",
-    "label": "Scene 6",
-    "optional": true,
-    "many": false
-   }
-  ],
+  "inputs": [],
+  "family": {
+   "prefix": "in",
+   "type": "clip",
+   "required": 0,
+   "shown": 2,
+   "refs": [
+    [
+     "backgrounds",
+     "scene"
+    ]
+   ],
+   "labels": [
+    "Scene 1",
+    "Scene 2",
+    "Scene 3"
+   ]
+  },
   "outputs": [
    {
     "id": "clip",
@@ -4888,7 +4972,7 @@
   "element": "remocn/spring-settle",
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 278.0,
+  "estimatedHeight": 190.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
@@ -4915,6 +4999,7 @@
   "description": "Terminal window that types out commands and rolls old lines off the top.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -4993,6 +5078,7 @@
   "description": "A frosted-glass code editor that reveals the code line by line.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5036,6 +5122,7 @@
   "description": "A flat code editor that morphs between versions of a file, gliding each surviving token to its new line and column while removed code dissolves and new code fades in.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5088,6 +5175,7 @@
   "description": "A stacked group of round brand chips that spring in one-by-one, then hold. Swap the logos to feature any set of marks.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5145,6 +5233,7 @@
   "description": "A handwritten checklist that writes itself out in full, then ticks and strikes through every done item, one at a time.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5205,6 +5294,7 @@
   "description": "Expanding construction circles snap into a search pill, type editable text, and reveal an abstract graphic panel.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5253,6 +5343,7 @@
   "description": "An AI assistant working through a plan, ticking off each step.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5338,6 +5429,7 @@
   "description": "Bars spring up from the baseline in a staggered cascade.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5413,6 +5505,7 @@
   "description": "Line chart whose SVG path draws on from left to right with a leading dot.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5464,6 +5557,7 @@
   "description": "Odometer where every place rolls at its own speed, new places rising into view, settling exactly on the target value.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5503,6 +5597,7 @@
   "description": "A sign-up form that fills itself in, step by step.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5547,6 +5642,7 @@
   "description": "An AI prompt composition: a prompt types into the field, the Generate button runs hover → press → loading, a skeleton shimmer reveals, then crossfades into the generated answer, and a ready toast slides in. A pure orchestrator — the shimmer is owned by the skeleton-block motion atom; every other channel comes from a composed primitive's hook.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5592,6 +5688,7 @@
   "description": "A command palette that opens, filters and picks an item.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5656,6 +5753,7 @@
   "description": "A 16-second cinematic release teaser with center-out typography, a procedural dimensional mark, moving edge light, and an independent fictional identity.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5709,6 +5807,7 @@
   "description": "An independent 26.7-second editorial product film with forest-green accents, original photography, seven editable demos, and geometric marks.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5785,6 +5884,7 @@
   "description": "A laptop that opens, shows a notification in its notch, then moves the camera into the screen until your clip fills the frame.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5839,6 +5939,7 @@
   "description": "A phone frame with a notch and a screen slot for your clip, flat or tilted, with rise, rotate-in or float entrances.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5891,6 +5992,7 @@
   "description": "Screen recording zoom: crop and auto-zoom a product demo capture. Takes a video or a still through the same track.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -5956,6 +6058,7 @@
   "description": "Launch title animation, product announcement intro with kinetic typography. A four-shot launch title: the eyebrow rushes past the camera on a receding type plane and lands on a colour field, the name assembles word by word on paper, and a macro pan across the tagline cuts wide as the line builds itself last word first while a white sweep drains it out of colour.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6006,6 +6109,7 @@
   "description": "Kinetic typography title cards: bold statements that cut hard between beats. A run of full-frame title cards that cut hard between beats.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6074,6 +6178,7 @@
   "description": "Text highlight animation: marker highlighter, underline, strikethrough and shimmer on a word. Animated emphasis on one span inside a static sentence — marker sweep, color shift, underline, strikethrough-replace, or shimmer.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6137,6 +6242,7 @@
   "description": "Status badge animation: a pill whose label cycles through states. A centred line whose status pill cycles: the label rolls up behind a hard clip while the pill's width springs past its target and back, and the line re-centres around it.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6196,6 +6302,7 @@
   "description": "Logo reveal animation: image cards orbit and collapse into your logo and brand name. A single ring of image cards revolves around a centred title, then spins inward and drains to the middle — giving birth to a simple logo that slides left as the brand name reveals to its right.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6266,6 +6373,7 @@
   "description": "Logo wall animation: a logo cloud of integrations drifting behind a headline. A field of tiles drifting past a headline while the camera pulls steadily back, so the wall of things-it-works-with keeps arriving from every edge.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6386,6 +6494,7 @@
   "description": "Product launch hero scene for a SaaS launch video intro. Cinematic product-launch hero — two cards slide into formation as the headline reveals above.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6427,6 +6536,7 @@
   "description": "One big number counts up while a ring fills, then its label and the change since last period appear.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6473,6 +6583,7 @@
   "description": "Key numbers on cards that count up, each with its change and a small trend line.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6557,6 +6668,7 @@
   "description": "A bar for each step of a funnel, narrowing to show how many people drop off.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6624,6 +6736,7 @@
   "description": "A ring chart that fills segment by segment, with a legend and a total.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6693,6 +6806,7 @@
   "description": "Pairs of bars comparing before and after, with the change called out.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6765,6 +6879,7 @@
   "description": "Ranked bars that grow and swap places as the values change over time.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6892,6 +7007,7 @@
   "description": "A dial whose needle sweeps up to a value.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -6939,6 +7055,7 @@
   "description": "A whole data story: title, bar chart, key numbers, timeline, takeaway and a closing call to action.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7067,6 +7184,7 @@
   "description": "Draws your logo outline, then brings in the name and a tagline.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7108,6 +7226,7 @@
   "description": "A pricing plan card: the price rolls in, then each feature is ticked off.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7163,6 +7282,7 @@
   "description": "A table comparing plans feature by feature, with one plan highlighted.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7260,6 +7380,7 @@
   "description": "A release note: version and date, then each change appears with its own tag.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7327,6 +7448,7 @@
   "description": "A grid of customer logos that light up from grey to colour.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7405,6 +7527,7 @@
   "description": "A closing card with a title, a button, your web address and social handles.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7452,6 +7575,7 @@
   "description": "A code editor that types out a file, then highlights the lines that matter.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7497,6 +7621,7 @@
   "description": "A code editor that applies a change line by line: removed lines collapse and new lines type in.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7538,6 +7663,7 @@
   "description": "A task board where cards move from one column to the next.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7624,6 +7750,7 @@
   "description": "A folder tree that opens one item at a time and highlights a file.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7673,6 +7800,7 @@
   "description": "A pointer drags a file into an upload area, which catches it and uploads it.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7722,6 +7850,7 @@
   "description": "A version history graph that draws its branches and merges commit by commit.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7803,6 +7932,7 @@
   "description": "Notifications slide in, stack up and dismiss themselves.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7878,6 +8008,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7927,6 +8058,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -7968,6 +8100,7 @@
   "description": "Writes the text out by hand, stroke by stroke.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8011,6 +8144,7 @@
   "description": "Text that flickers on like a neon sign, then hums gently.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8057,6 +8191,7 @@
   "description": "Big letters with a video, image or gradient showing through them.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8101,6 +8236,7 @@
   "description": "Soft ribbons of light drifting across a dark sky.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8151,6 +8287,7 @@
   "description": "Glowing particles drifting at different depths.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8211,6 +8348,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8259,6 +8397,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8308,6 +8447,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8357,6 +8497,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8406,6 +8547,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8454,6 +8596,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8502,6 +8645,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8552,6 +8696,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8602,6 +8747,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8652,6 +8798,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8701,6 +8848,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8754,6 +8902,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8813,6 +8962,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8872,6 +9022,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8926,6 +9077,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -8978,6 +9130,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9028,6 +9181,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9086,6 +9240,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9138,6 +9293,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9195,6 +9351,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9249,6 +9406,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9302,6 +9460,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9354,6 +9513,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9405,6 +9565,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9458,6 +9619,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9511,6 +9673,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9553,6 +9716,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "audio",
@@ -9601,6 +9765,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "audio",
@@ -9654,6 +9819,7 @@
     "many": true
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9692,6 +9858,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "audio",
@@ -9728,50 +9895,24 @@
   "category": "Timeline",
   "description": "Plays clips one after another, with a transition between each.",
   "phase": "compile",
-  "inputs": [
-   {
-    "id": "in1",
-    "type": "clip",
-    "label": "Clip 1",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in2",
-    "type": "clip",
-    "label": "Clip 2",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in3",
-    "type": "clip",
-    "label": "Clip 3",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in4",
-    "type": "clip",
-    "label": "Clip 4",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in5",
-    "type": "clip",
-    "label": "Clip 5",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in6",
-    "type": "clip",
-    "label": "Clip 6",
-    "optional": true,
-    "many": false
-   }
-  ],
+  "inputs": [],
+  "family": {
+   "prefix": "in",
+   "type": "clip",
+   "required": 0,
+   "shown": 2,
+   "refs": [
+    [
+     "cuts",
+     "before"
+    ]
+   ],
+   "labels": [
+    "Clip 1",
+    "Clip 2",
+    "Clip 3"
+   ]
+  },
   "outputs": [
    {
     "id": "clip",
@@ -9788,7 +9929,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 278.0,
+  "estimatedHeight": 190.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
@@ -9806,50 +9947,19 @@
   "category": "Timeline",
   "description": "Stacks clips on top of each other: Layer 1 at the back, the last at the front.",
   "phase": "compile",
-  "inputs": [
-   {
-    "id": "in1",
-    "type": "clip",
-    "label": "Layer 1 (back)",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in2",
-    "type": "clip",
-    "label": "Layer 2",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in3",
-    "type": "clip",
-    "label": "Layer 3",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in4",
-    "type": "clip",
-    "label": "Layer 4",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in5",
-    "type": "clip",
-    "label": "Layer 5",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in6",
-    "type": "clip",
-    "label": "Layer 6 (front)",
-    "optional": true,
-    "many": false
-   }
-  ],
+  "inputs": [],
+  "family": {
+   "prefix": "in",
+   "type": "clip",
+   "required": 0,
+   "shown": 2,
+   "refs": [],
+   "labels": [
+    "Layer 1 (back)",
+    "Layer 2",
+    "Layer 3 (front)"
+   ]
+  },
   "outputs": [
    {
     "id": "clip",
@@ -9866,7 +9976,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 278.0,
+  "estimatedHeight": 190.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
@@ -9892,6 +10002,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9933,6 +10044,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -9973,6 +10085,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -10013,6 +10126,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -10060,6 +10174,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -10108,6 +10223,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -10141,6 +10257,7 @@
   "description": "A video, image or sound from your project. Drop files on the canvas to add one.",
   "phase": "media",
   "inputs": [],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10191,6 +10308,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "clip",
@@ -10233,6 +10351,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10265,36 +10384,19 @@
   "category": "Media",
   "description": "Joins files end to end. Fast when they match, otherwise converts them. Makes a new file.",
   "phase": "media",
-  "inputs": [
-   {
-    "id": "in1",
-    "type": "media",
-    "label": "File 1",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "in2",
-    "type": "media",
-    "label": "File 2",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "in3",
-    "type": "media",
-    "label": "File 3",
-    "optional": true,
-    "many": false
-   },
-   {
-    "id": "in4",
-    "type": "media",
-    "label": "File 4",
-    "optional": true,
-    "many": false
-   }
-  ],
+  "inputs": [],
+  "family": {
+   "prefix": "in",
+   "type": "media",
+   "required": 2,
+   "shown": 2,
+   "refs": [],
+   "labels": [
+    "File 1",
+    "File 2",
+    "File 3"
+   ]
+  },
   "outputs": [
    {
     "id": "media",
@@ -10311,7 +10413,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 234.0,
+  "estimatedHeight": 190.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
@@ -10335,6 +10437,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10376,6 +10479,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10414,6 +10518,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10457,6 +10562,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10506,6 +10612,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10548,6 +10655,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10591,6 +10699,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10631,6 +10740,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10673,6 +10783,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "image",
@@ -10714,6 +10825,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -10752,6 +10864,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "info",
@@ -10797,6 +10910,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "image",
@@ -10840,6 +10954,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "image",
@@ -10892,6 +11007,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "image",
@@ -10936,6 +11052,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "image",
@@ -10981,6 +11098,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "image",
@@ -11030,6 +11148,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "image",
@@ -11073,6 +11192,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "image",
@@ -11116,6 +11236,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "media",
@@ -11166,6 +11287,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "image",
@@ -11212,6 +11334,7 @@
     "many": false
    }
   ],
+  "family": null,
   "outputs": [
    {
     "id": "folder",
@@ -11244,6 +11367,7 @@
   "description": "Boxes nodes together. Select nodes, then Group.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [],
   "virtual": false,
   "action": false,
@@ -11269,6 +11393,7 @@
   "description": "A sticky note on the canvas. Not part of the video.",
   "phase": "compile",
   "inputs": [],
+  "family": null,
   "outputs": [],
   "virtual": false,
   "action": false,
