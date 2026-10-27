@@ -5,7 +5,7 @@
   "private": true,
   "description": "Record a real website and turn it into a polished product demo.",
   "keywords": [],
-  "license": "Apache-2.0",
+  "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/bismitpanda/opsis#readme",
   "repository": {
     "type": "git",

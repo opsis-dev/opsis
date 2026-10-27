@@ -115,7 +115,7 @@ Contributor rules (no code comments, kebab-case files, pinned versions, what mus
 | FFmpeg            | The ffmpeg-static build, downloaded at setup and checked by sha256, never shipped                                     | Users get a known build without the app carrying it; Remotion's compositor ships its own FFmpeg for renders.                              |
 | Camera and cursor | Built on [programatic-demo](https://github.com/ashrafchowdury/programatic-demo) (MIT)                                 | It already solved the click log, auto-zoom camera, vector cursor and motion blur; its notice is kept.                                     |
 | Offline           | Nothing uses the internet unless you ask                                                                              | Engine and font downloads sit behind a button, and a film never loads anything remote.                                                    |
-| Licensing         | Apache 2.0 for Opsis; Remotion's free licence by default                                                              | Remotion is free for individuals and small companies; larger ones enter a key in Settings.                                                |
+| Licensing         | GPLv3 or later for Opsis, with a permission to combine it with Remotion; Remotion's free licence by default           | Remotion is free for individuals and small companies; larger ones enter a key in Settings.                                                |
 
 ## Not built yet
 
@@ -128,7 +128,7 @@ Each has a plan in [`plans/`](./plans):
 
 ## Licences
 
-Opsis is licensed under the [Apache License 2.0](./LICENSE).
+Opsis is free software under the [GNU General Public License version 3 or later](./LICENSE), with an additional permission (GPLv3 section 7) to combine it with Remotion and distribute the result. Videos you make with Opsis are yours: the licence covers the program, not what it makes.
 
 **Remotion is not open source.** Opsis renders videos with [Remotion](https://www.remotion.dev), which is free for individuals, non-profits and companies with up to 3 employees. Larger companies need a [Remotion company licence](https://www.remotion.dev/license) and must enter its key in **Settings → Video export licence**.
 

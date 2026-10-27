@@ -34,7 +34,7 @@
   "exports": {
     "./nodes/looks": "./src/nodes/looks.ts"
   },
-  "license": "Apache-2.0",
+  "license": "GPL-3.0-or-later",
   "private": true,
   "scripts": {
     "dev": "vite",

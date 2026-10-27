@@ -2,7 +2,7 @@
 
 Twenty-six nodes for stills and sound: thirteen that work on images (annotate, redact, frame, magnify, spotlight, grid, before and after, compare, trim edges, transparency, outline, tilt, auto levels), seven that clean or change a sound file (clean speech, shorten pauses, clicks and clipping, hum, pitch, voice effects, sound picture) and six that make sound (transition sounds, generated sounds, risers, room tone, tones, music fitted to the film).
 
-Status: plan only. Nothing here is built yet. This plan assumes Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code.
+Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code, except inside what is combined with Remotion (`packages/video`, `apps/preview`, `apps/sidecar`), where the Remotion permission in `LICENSE` covers only Opsis's own code. None of these nodes needs GPL code there.
 
 ## How to read this plan
 

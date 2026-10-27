@@ -9,7 +9,7 @@
     "shortDescription": "Record a real website and turn it into a polished product demo.",
     "longDescription": "Opsis records a real website, then turns the take into a product demo with camera moves, captions, sound and graphics, and exports it as a video.",
     "homepage": "https://github.com/bismitpanda/opsis",
-    "license": "Apache-2.0",
+    "license": "GPL-3.0-or-later",
     "licenseFile": "../../LICENSE",
     "icon": [
       "icons/32x32.png",

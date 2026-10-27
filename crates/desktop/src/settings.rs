@@ -114,7 +114,7 @@ fn licence_sources(state: &AppState) -> Vec<LicenceSource> {
         LicenceSource {
             id: "opsis",
             title: "Opsis",
-            summary: "Apache License 2.0",
+            summary: "GNU General Public License version 3 or later",
             kind: LicenceKind::Text,
             path: resources.join("LICENSE"),
         },

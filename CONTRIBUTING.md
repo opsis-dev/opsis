@@ -53,4 +53,4 @@ bun run test:e2e
 
 ## Licence
 
-Opsis is licensed under the [Apache License 2.0](./LICENSE), and contributions are accepted under the same licence. Opsis renders with Remotion, which has its own licence; see the README.
+Opsis is licensed under the [GNU General Public License version 3 or later](./LICENSE), with an additional permission to combine it with Remotion, and contributions are accepted under the same terms, that permission included. Opsis renders with Remotion, which has its own licence; see the README.

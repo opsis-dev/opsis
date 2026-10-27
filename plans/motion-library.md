@@ -126,7 +126,7 @@ Checked 2026-10-16 from each repository's licence file:
 | React Bits (`DavidHDev/react-bits`)                  | MIT + Commons Clause: commercial use allowed "so long as you do not sell, sublicense, or redistribute the components themselves".                                                                                           | **no** |
 | Animate UI (`imskyleen/animate-ui`), incl. its icons | MIT + Commons Clause: rights granted only "as part of an application, website, or product", and "so long as you do not sell or redistribute the components themselves in their original form—whether alone or in a bundle". | **no** |
 
-The Commons Clause sources and Aceternity are left out because Opsis's repository is Apache-2.0 and public: the files would be redistributed source under terms that forbid it. MIT code keeps its own licence inside its folder, which Apache-2.0 allows.
+The Commons Clause sources and Aceternity are left out because Opsis's repository is GPL-3.0-or-later and public: the files would be redistributed source under terms that forbid it. MIT code keeps its own licence inside its folder, which the GPL allows.
 
 ### Risks
 

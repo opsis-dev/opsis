@@ -963,7 +963,7 @@ fn meta<T: JsonSchema + Default + Serialize>(e: Entry) -> ElementMeta {
         ElementSource {
             registry: "Opsis".into(),
             url: OPSIS_URL.into(),
-            license: "Apache-2.0".into(),
+            license: "GPL-3.0-or-later".into(),
         }
     };
     ElementMeta {
