@@ -34,7 +34,7 @@ pub const REQUIRED_FORMATS: [&str; 10] = [
     "webm",
 ];
 
-pub const REQUIRED_FILTERS: [&str; 65] = [
+pub const REQUIRED_FILTERS: [&str; 66] = [
     "acompressor",
     "adelay",
     "afade",
@@ -48,6 +48,7 @@ pub const REQUIRED_FILTERS: [&str; 65] = [
     "aresample",
     "areverse",
     "asetpts",
+    "asetrate",
     "asplit",
     "atempo",
     "atrim",

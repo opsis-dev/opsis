@@ -3935,6 +3935,29 @@
    }
   },
   {
+   "type": "audio.actionSounds",
+   "title": "Action sounds",
+   "category": "Sound",
+   "description": "A click sound at every click and a key sound at every keystroke of the takes in a clip, on one Mixer channel.",
+   "runs": false,
+   "inputs": {
+    "clip": {
+     "type": "clip",
+     "label": "Clip",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "timeline.sequence",
    "title": "Sequence",
    "category": "Timeline",
@@ -5277,6 +5300,13 @@
       "default": 220,
       "x-step": 50,
       "x-unit": "ms"
+     },
+     "silent": {
+      "description": "No sound",
+      "type": "boolean",
+      "default": false,
+      "x-advanced": true,
+      "x-help": "Action sounds leave this action out."
      }
     },
     "type": "object",
@@ -5290,7 +5320,8 @@
      "frame": "",
      "zoomScale": 0.0,
      "travelMs": 0,
-     "hoverMs": 220
+     "hoverMs": 220,
+     "silent": false
     }
    }
   },
@@ -5402,6 +5433,13 @@
        "null"
       ],
       "x-hidden": true
+     },
+     "silent": {
+      "description": "No sound",
+      "type": "boolean",
+      "default": false,
+      "x-advanced": true,
+      "x-help": "Action sounds leave this action out."
      }
     },
     "type": "object",
@@ -5413,7 +5451,8 @@
      "after": 600,
      "cluster": "",
      "zoom": true,
-     "frame": ""
+     "frame": "",
+     "silent": false
     }
    }
   },
@@ -6165,12 +6204,20 @@
       "x-step": 50,
       "x-unit": "ms",
       "x-help": "How long the video lingers after this action."
+     },
+     "silent": {
+      "description": "No sound",
+      "type": "boolean",
+      "default": false,
+      "x-advanced": true,
+      "x-help": "Action sounds leave this action out."
      }
     },
     "type": "object",
     "default": {
      "keys": "Enter",
-     "after": 600
+     "after": 600,
+     "silent": false
     }
    }
   },
@@ -49173,6 +49220,114 @@
    "params": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object"
+   }
+  },
+  {
+   "type": "audio.actionSounds",
+   "title": "Action sounds",
+   "category": "Sound",
+   "description": "A click sound at every click and a key sound at every keystroke of the takes in a clip, on one Mixer channel.",
+   "runs": false,
+   "inputs": {
+    "clip": {
+     "type": "clip",
+     "label": "Clip",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "clicks": {
+      "description": "Clicks",
+      "type": "boolean",
+      "default": true
+     },
+     "clickSound": {
+      "description": "Click sound",
+      "type": "string",
+      "default": "app:sfx/mouse-click.wav",
+      "x-widget": "sound",
+      "x-accept": "audio/*",
+      "x-length-key": "clickSoundMs",
+      "x-show-if": {
+       "clicks": [
+        "true"
+       ]
+      }
+     },
+     "clickSoundMs": {
+      "description": "Click sound length",
+      "type": [
+       "number",
+       "null"
+      ],
+      "format": "double",
+      "exclusiveMinimum": 0,
+      "x-hidden": true
+     },
+     "keys": {
+      "description": "Keys",
+      "type": "boolean",
+      "default": true
+     },
+     "keySound": {
+      "description": "Key sound",
+      "type": "string",
+      "default": "app:sfx/key-press.wav",
+      "x-widget": "sound",
+      "x-accept": "audio/*",
+      "x-length-key": "keySoundMs",
+      "x-show-if": {
+       "keys": [
+        "true"
+       ]
+      }
+     },
+     "keySoundMs": {
+      "description": "Key sound length",
+      "type": [
+       "number",
+       "null"
+      ],
+      "format": "double",
+      "exclusiveMinimum": 0,
+      "x-hidden": true
+     },
+     "volume": {
+      "description": "Volume",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 2,
+      "default": 0.6,
+      "x-step": 0.05
+     },
+     "vary": {
+      "description": "Vary each hit",
+      "type": "boolean",
+      "default": true,
+      "x-help": "Changes the pitch and level of each click and key a little, so typing doesn't sound mechanical."
+     }
+    },
+    "type": "object",
+    "default": {
+     "clicks": true,
+     "clickSound": "app:sfx/mouse-click.wav",
+     "keys": true,
+     "keySound": "app:sfx/key-press.wav",
+     "volume": 0.6,
+     "vary": true
+    }
    }
   },
   {

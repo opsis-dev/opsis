@@ -30,6 +30,8 @@ export type Action = {
 	nodeId?: string,
 	path?: Point[],
 	drop?: Rect,
+	keyTimes?: (number)[],
+	silent?: boolean,
 };
 
 export type AddressMode = "fixed" | "host";
@@ -71,6 +73,8 @@ export type AudioItem = {
 	trimBefore?: number,
 	loop?: boolean,
 	rate?: number,
+	pitch?: number,
+	hit?: boolean,
 	fadeInFrames?: number,
 	fadeOutFrames?: number,
 	nodeId?: string,

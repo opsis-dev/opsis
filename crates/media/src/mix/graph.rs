@@ -2,11 +2,13 @@ use opsis_compile::envelope::sample_points;
 use opsis_compile::mix::plan::{BusDuck, BusPlan, ChannelPlan, SoundPlacement};
 use opsis_compile::time::clamp;
 use opsis_types::mix::{Comp, Eq, EqType, Highpass, LoudnessGoal, Master, SAMPLE_RATE, db_to_gain};
+use opsis_types::numbers::whole;
 use opsis_types::timeline::Keyframe;
 use serde::{Deserialize, Serialize};
 
 use crate::filters::{atempo_chain, loudnorm_filter};
 
+const LANE_AFTER: usize = 16;
 const MIN_COMP_THRESHOLD: f64 = 0.000_976_563;
 const MAX_COMP_MAKEUP: f64 = 64.0;
 const MIN_LIMITER_CEILING: f64 = 0.0625;
@@ -183,6 +185,12 @@ fn placement_steps(sound: &SoundPlacement, fps: f64) -> Vec<String> {
         format!("aresample={SAMPLE_RATE}"),
         "aformat=sample_fmts=fltp:channel_layouts=stereo".to_owned(),
     ];
+    if let Some(pitch) = sound.pitch.filter(|p| *p != 1.0) {
+        steps.extend([
+            format!("asetrate={}", whole(f64::from(SAMPLE_RATE) * pitch)),
+            format!("aresample={SAMPLE_RATE}"),
+        ]);
+    }
     if sound.offset > 0 {
         steps.extend([
             format!("atrim=start={}", secs(f64::from(sound.offset), fps)),
@@ -230,14 +238,23 @@ fn placement_steps(sound: &SoundPlacement, fps: f64) -> Vec<String> {
     steps
 }
 
-fn sound_chain(sound: &SoundPlacement, input: usize, label: &str, fps: f64) -> String {
-    let steps = placement_steps(sound, fps);
+fn delayed(sound: &SoundPlacement, fps: f64) -> Vec<String> {
     let delay = (f64::from(sound.at) * 1000.0 / fps).round();
-    let after: Vec<String> = if delay > 0.0 {
+    if delay > 0.0 {
         vec![format!("adelay=delays={}:all=1", delay.to_string())]
     } else {
         Vec::new()
-    };
+    }
+}
+
+fn sound_chain(
+    sound: &SoundPlacement,
+    input: usize,
+    label: &str,
+    fps: f64,
+    after: Vec<String>,
+) -> String {
+    let steps = placement_steps(sound, fps);
     let chain = match sound
         .envelope
         .as_ref()
@@ -473,17 +490,94 @@ fn strip_job(
     }
 }
 
+fn samples(frames: u32, fps: u32) -> u64 {
+    u64::from(frames) * u64::from(SAMPLE_RATE) / u64::from(fps)
+}
+
+fn pack_lanes(sounds: &[SoundPlacement], shots: &[usize]) -> Vec<Vec<usize>> {
+    let mut order = shots.to_vec();
+    order.sort_by_key(|&i| sounds[i].at);
+    let mut lanes: Vec<(u32, Vec<usize>)> = Vec::new();
+    for i in order {
+        let s = &sounds[i];
+        match lanes.iter_mut().find(|(end, _)| *end <= s.at) {
+            Some((end, lane)) => {
+                *end = s.at + s.length;
+                lane.push(i);
+            }
+            None => lanes.push((s.at + s.length, vec![i])),
+        }
+    }
+    lanes.into_iter().map(|(_, lane)| lane).collect()
+}
+
+fn lane_chains(plan: Plan, sounds: &[SoundPlacement], lane: &[usize], name: &str) -> Vec<String> {
+    let fps = f64::from(plan.fps);
+    let mut chains = Vec::new();
+    let mut parts = Vec::new();
+    let first = sounds[lane[0]].at;
+    if first > 0 {
+        chains.push(format!(
+            "anullsrc=r={SAMPLE_RATE}:cl=stereo,atrim=end_sample={}[{name}q]",
+            samples(first, plan.fps)
+        ));
+        parts.push(format!("[{name}q]"));
+    }
+    for (k, &i) in lane.iter().enumerate() {
+        let until = lane
+            .get(k + 1)
+            .map_or(plan.duration_in_frames, |&next| sounds[next].at);
+        let n = samples(until.saturating_sub(sounds[i].at), plan.fps);
+        let label = format!("s{i}");
+        let fill = vec![
+            format!("apad=whole_len={n}"),
+            format!("atrim=end_sample={n}"),
+        ];
+        chains.push(sound_chain(&sounds[i], i, &label, fps, fill));
+        parts.push(format!("[{label}]"));
+    }
+    chains.push(format!(
+        "{}concat=n={}:v=0:a=1[{name}]",
+        parts.concat(),
+        parts.len()
+    ));
+    chains
+}
+
 pub fn channel_job(plan: Plan, channel: &ChannelPlan, inputs: Vec<String>) -> Job {
     if channel.sounds.is_empty() {
         return silence_job(plan);
     }
-    let labels: Vec<String> = (0..channel.sounds.len()).map(|i| format!("s{i}")).collect();
-    let chains = channel
-        .sounds
+    let fps = f64::from(plan.fps);
+    let sounds = &channel.sounds;
+    let shots: Vec<usize> = (0..sounds.len())
+        .filter(|&i| !sounds[i].looped && sounds[i].at < plan.duration_in_frames)
+        .collect();
+    if shots.len() <= LANE_AFTER {
+        let labels: Vec<String> = (0..sounds.len()).map(|i| format!("s{i}")).collect();
+        let chains = sounds
+            .iter()
+            .enumerate()
+            .map(|(i, s)| sound_chain(s, i, &labels[i], fps, delayed(s, fps)))
+            .collect();
+        return strip_job(plan, inputs, chains, &labels, strip_stages(channel));
+    }
+    let mut chains = Vec::new();
+    let mut labels = Vec::new();
+    for (k, lane) in pack_lanes(sounds, &shots).iter().enumerate() {
+        let name = format!("l{k}");
+        chains.extend(lane_chains(plan, sounds, lane, &name));
+        labels.push(name);
+    }
+    for (i, s) in sounds
         .iter()
         .enumerate()
-        .map(|(i, s)| sound_chain(s, i, &labels[i], f64::from(plan.fps)))
-        .collect();
+        .filter(|(i, _)| !shots.contains(i))
+    {
+        let label = format!("s{i}");
+        chains.push(sound_chain(s, i, &label, fps, delayed(s, fps)));
+        labels.push(label);
+    }
     strip_job(plan, inputs, chains, &labels, strip_stages(channel))
 }
 
@@ -677,6 +771,59 @@ mod tests {
         .unwrap();
         let inputs = channel.sounds.iter().map(|s| resolve(&s.src)).collect();
         channel_job(FILM, &channel, inputs)
+    }
+
+    #[test]
+    fn changes_a_sounds_pitch_by_its_rate_of_play_and_back_to_the_mix_rate() {
+        let job = sound_job(json!({ "length": 6, "pitch": 1.03 }), json!({}));
+        assert_eq!(
+            job.filter,
+            format!(
+                "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=49440,aresample=48000,atrim=end=0.2,asetpts=PTS-STARTPTS[s0];{PADDED}"
+            )
+        );
+        assert!(
+            !sound_job(json!({ "pitch": 1 }), json!({}))
+                .filter
+                .contains("asetrate")
+        );
+    }
+
+    fn shots(count: u32, every: u32, length: u32) -> Job {
+        let sounds: Vec<Value> = (0..count)
+            .map(|i| json!({ "src": "app:sfx/key.wav", "at": 30 + i * every, "offset": 0, "length": length, "rate": 1, "loop": false, "volume": 1, "fadeIn": 0, "fadeOut": 0 }))
+            .collect();
+        let channel: ChannelPlan = serde_json::from_value(json!({
+            "id": "a", "kind": "effect", "bus": "effects", "audible": true,
+            "strip": serde_json::from_value::<Strip>(json!({})).unwrap(), "sounds": sounds
+        }))
+        .unwrap();
+        let inputs = channel.sounds.iter().map(|s| resolve(&s.src)).collect();
+        channel_job(FILM, &channel, inputs)
+    }
+
+    #[test]
+    fn plays_many_short_sounds_one_after_another_on_a_few_lanes() {
+        let one_lane = shots(18, 3, 2);
+        assert_eq!(one_lane.inputs.len(), 18);
+        assert!(
+            one_lane
+                .filter
+                .contains("anullsrc=r=48000:cl=stereo,atrim=end_sample=48000[l0q]")
+        );
+        assert!(
+            one_lane
+                .filter
+                .contains("apad=whole_len=4800,atrim=end_sample=4800[s0]")
+        );
+        assert!(one_lane.filter.contains("[s17]concat=n=19:v=0:a=1[l0]"));
+        assert!(!one_lane.filter.contains("adelay"));
+        assert!(!one_lane.filter.contains("amix"));
+        let crowded = shots(18, 3, 5);
+        assert!(crowded.filter.contains("concat=n=10:v=0:a=1[l0]"));
+        assert!(crowded.filter.contains("concat=n=10:v=0:a=1[l1]"));
+        assert!(crowded.filter.contains("[l0][l1]amix=inputs=2"));
+        assert!(shots(16, 3, 2).filter.contains("adelay"));
     }
 
     #[test]

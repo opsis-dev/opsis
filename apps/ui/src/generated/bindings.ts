@@ -189,6 +189,8 @@ export type Action = {
 	nodeId?: string,
 	path?: Point[],
 	drop?: Rect,
+	keyTimes?: (number)[],
+	silent?: boolean,
 };
 
 export type AddressMode = "fixed" | "host";
@@ -285,6 +287,7 @@ export type AudioBar = {
 	handles?: EditHandles,
 	item?: AudioItem,
 	bar?: VideoBar,
+	hits?: (number)[],
 };
 
 export type AudioEnvelope = {
@@ -301,6 +304,8 @@ export type AudioItem = {
 	trimBefore?: number,
 	loop?: boolean,
 	rate?: number,
+	pitch?: number,
+	hit?: boolean,
 	fadeInFrames?: number,
 	fadeOutFrames?: number,
 	nodeId?: string,
@@ -323,6 +328,7 @@ export type AudioTag = "audio";
 export type AudioValue = {
 	items: AudioItem[],
 	durationInFrames?: number,
+	hits?: Hits,
 };
 
 export type BandBounds = {
@@ -985,6 +991,11 @@ export type HighlightLook = "clean" | "box" | "circle" | "underline" | "marker";
 export type Highpass = {
 	on: boolean,
 	freq: number,
+};
+
+export type Hits = {
+	clicks: number,
+	keys: number,
 };
 
 export type Icon = "app-window" | "arrow-right-left" | "audio-lines" | "blend" | "bookmark" | "captions" | "check" | "circle-check" | "circle-dot" | "clapperboard" | "clock" | "code" | "code-xml" | "columns-2" | "combine" | "command" | "crop" | "crosshair" | "eye" | "eye-off" | "fast-forward" | "file" | "file-play" | "file-video" | "film" | "flashlight" | "folder-output" | "gauge" | "git-branch" | "globe" | "grab" | "hard-drive" | "hourglass" | "image" | "image-play" | "info" | "key-round" | "keyboard" | "languages" | "laptop" | "layers" | "link" | "list" | "list-checks" | "list-video" | "locate-fixed" | "map" | "maximize" | "message-square" | "monitor" | "moon" | "mouse-pointer" | "mouse-pointer-2" | "mouse-pointer-click" | "move" | "move-up-right" | "music" | "palette" | "presentation" | "ratio" | "refresh-cw" | "repeat" | "reply" | "rocket" | "ruler" | "scan" | "scan-search" | "scissors" | "scroll" | "scroll-text" | "server" | "settings-2" | "shapes" | "shield-alert" | "shield-check" | "smartphone" | "sparkles" | "spline" | "square-dashed" | "sticky-note" | "sun" | "timer" | "timer-off" | "triangle-alert" | "type" | "upload" | "video" | "volume-2" | "volume-x" | "wallpaper" | "wifi" | "wind" | "zoom-in" | "zoom-out";
@@ -1656,6 +1667,7 @@ export type SoundPlacement = {
 	length: number,
 	loop: boolean,
 	rate: number,
+	pitch?: number,
 	volume: number,
 	fadeIn: number,
 	fadeOut: number,

@@ -506,7 +506,8 @@
         "frame": "",
         "zoomScale": 0,
         "travelMs": 0,
-        "hoverMs": 220
+        "hoverMs": 220,
+        "silent": false
        }
       }
      ],
@@ -2760,7 +2761,8 @@
          "frame": "",
          "zoomScale": 0,
          "travelMs": 0,
-         "hoverMs": 220
+         "hoverMs": 220,
+         "silent": false
         }
        }
       ],

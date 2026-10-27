@@ -5,7 +5,7 @@ use opsis_types::timeline::{
     Anchor, AudioEnvelope, AudioItem, AudioRole, EditHandles, LinkedParam, ParamRef, ParamUnit,
     Sign,
 };
-use opsis_types::values::{AudioValue, ClipValue, CompileValue, MediaKind, MediaValue};
+use opsis_types::values::{AudioValue, ClipValue, CompileValue, Hits, MediaKind, MediaValue};
 use opsis_types::workflow::{PortType, WorkflowSettings};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -23,7 +23,7 @@ use crate::params::Params;
 use crate::sounds::{builtin_label, builtin_song, builtin_sound};
 use crate::text::{format_duration, percent_text, plural, sign_of};
 use crate::time::{ms_to_frames, ms_to_frames_from, ms_to_signed_frames};
-use crate::timeline::flatten::flatten_spec;
+use crate::timeline::flatten::{Hit, HitKind, flatten_spec};
 
 const MEDIA_PORT: &str = "media";
 const AUDIO_PORT: &str = "audio";
@@ -46,6 +46,7 @@ fn silent_audio() -> Outputs {
         CompileValue::Audio(AudioValue {
             items: Vec::new(),
             duration_in_frames: None,
+            hits: None,
         }),
     )])
 }
@@ -269,6 +270,7 @@ fn music() -> NodeDef {
                     CompileValue::Audio(AudioValue {
                         items: vec![item],
                         duration_in_frames: duration,
+                        hits: None,
                     }),
                 )])
             })
@@ -401,6 +403,7 @@ fn sound_effect() -> NodeDef {
                     CompileValue::Audio(AudioValue {
                         items: vec![item],
                         duration_in_frames: None,
+                        hits: None,
                     }),
                 )])
             })
@@ -464,10 +467,186 @@ fn add_sound() -> NodeDef {
         })
 }
 
+pub const ACTION_SOUNDS_TYPE: &str = "audio.actionSounds";
+const PITCH_SPREAD: f64 = 0.04;
+const LEVEL_SPREAD: f64 = 0.12;
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ActionSounds {
+    #[default = true]
+    #[schemars(description = "Clicks")]
+    pub clicks: bool,
+    #[default = "app:sfx/mouse-click.wav"]
+    #[schemars(
+        description = "Click sound",
+        extend("x-widget" = "sound", "x-accept" = "audio/*", "x-length-key" = "clickSoundMs", "x-show-if" = { "clicks": ["true"] })
+    )]
+    pub click_sound: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(description = "Click sound length", extend("exclusiveMinimum" = 0, "x-hidden" = true))]
+    pub click_sound_ms: Option<f64>,
+    #[default = true]
+    #[schemars(description = "Keys")]
+    pub keys: bool,
+    #[default = "app:sfx/key-press.wav"]
+    #[schemars(
+        description = "Key sound",
+        extend("x-widget" = "sound", "x-accept" = "audio/*", "x-length-key" = "keySoundMs", "x-show-if" = { "keys": ["true"] })
+    )]
+    pub key_sound: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(description = "Key sound length", extend("exclusiveMinimum" = 0, "x-hidden" = true))]
+    pub key_sound_ms: Option<f64>,
+    #[default = 0.6]
+    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    pub volume: f64,
+    #[default = true]
+    #[schemars(
+        description = "Vary each hit",
+        extend("x-help" = "Changes the pitch and level of each click and key a little, so typing doesn't sound mechanical.")
+    )]
+    pub vary: bool,
+}
+
+impl Params for ActionSounds {}
+
+impl ActionSounds {
+    fn sound_of(&self, kind: HitKind) -> Option<(&str, Option<f64>)> {
+        let (on, src, ms) = match kind {
+            HitKind::Click => (self.clicks, &self.click_sound, self.click_sound_ms),
+            HitKind::Key => (self.keys, &self.key_sound, self.key_sound_ms),
+        };
+        (on && !src.trim().is_empty()).then_some((src.as_str(), ms))
+    }
+}
+
+fn spread(seed: u64) -> f64 {
+    let mut z = seed.wrapping_add(0x9e37_79b9_7f4a_7c15);
+    z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
+    z ^= z >> 31;
+    let high = u32::try_from(z >> 32).unwrap_or(u32::MAX);
+    f64::from(high) / f64::from(u32::MAX) * 2.0 - 1.0
+}
+
+fn seed_of(text: &str) -> u64 {
+    text.bytes().fold(0xcbf2_9ce4_8422_2325, |h, b| {
+        (h ^ u64::from(b)).wrapping_mul(0x100_0000_01b3)
+    })
+}
+
+fn hit_item(
+    ctx: &Ctx<'_, ActionSounds>,
+    index: usize,
+    hit: Hit,
+    src: &str,
+    ms: Option<f64>,
+) -> AudioItem {
+    let p = &ctx.params;
+    let fps = ctx.settings.fps;
+    let src = project_ref(src);
+    let length_ms = builtin_sound(&src).map(|s| f64::from(s.duration_ms)).or(ms);
+    let seed = seed_of(ctx.node_id) ^ u64::try_from(index).unwrap_or(0).wrapping_mul(2);
+    let (pitch, level) = if p.vary {
+        (
+            1.0 + PITCH_SPREAD * spread(seed),
+            1.0 + LEVEL_SPREAD * spread(seed + 1),
+        )
+    } else {
+        (1.0, 1.0)
+    };
+    let timing = Timing {
+        from: whole_signed(hit.frame),
+        duration_in_frames: None,
+        looped: None,
+        trim_before: None,
+        fade_in_frames: None,
+        fade_out_frames: None,
+        anchor: None,
+        length_frames: length_ms.and_then(|ms| frames_if_set(ms, fps)),
+        keep_music: Some(true),
+    };
+    let mut item = sound_item(
+        ctx.node_id,
+        src,
+        AudioRole::Effect,
+        p.volume * level,
+        &AudioEnvelope::default(),
+        timing,
+        EditHandles::default(),
+    );
+    item.id = format!("{}:{index}", ctx.node_id);
+    item.pitch = p.vary.then_some(pitch);
+    item.hit = Some(true);
+    item
+}
+
+fn sound_name(src: &str) -> String {
+    builtin_label(src).map_or_else(|| base_name(src), str::to_owned)
+}
+
+fn hit_row(icon: Icon, on: bool, count: Option<u32>, noun: &str, src: &str) -> CardRow {
+    if !on {
+        return row(icon, format!("No {noun}s")).tone(Tone::Muted);
+    }
+    let name = sound_name(src);
+    match count {
+        Some(n) => row(icon, format!("{} · {name}", plural(f64::from(n), noun))),
+        None => row(icon, name),
+    }
+}
+
+fn action_sounds() -> NodeDef {
+    NodeDef::of::<ActionSounds>(ACTION_SOUNDS_TYPE, "Action sounds", Category::Audio, Phase::Compile)
+        .describe("A click sound at every click and a key sound at every keystroke of the takes in a clip, on one Mixer channel.")
+        .inputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
+        .outputs(vec![(AUDIO_PORT, port(PortType::Audio, "Sound"))])
+        .card(|ctx: &CardCtx<'_, ActionSounds>| {
+            let p = &ctx.params;
+            if !ctx.inputs.is_connected(CLIP_PORT) {
+                return vec![Some(missing(Icon::Film, "Connect a clip with a take"))];
+            }
+            let hits = ctx.inputs.hits;
+            vec![
+                Some(hit_row(Icon::MousePointerClick, p.clicks, hits.map(|h| h.clicks), "click", &p.click_sound)),
+                Some(hit_row(Icon::Keyboard, p.keys, hits.map(|h| h.keys), "key", &p.key_sound)),
+                Some(row(Icon::Volume2, percent_text(p.volume, f64::INFINITY))),
+            ]
+        })
+        .compiles(|ctx: &Ctx<'_, ActionSounds>| {
+            let Some(clip) = ctx.input(CLIP_PORT).and_then(CompileValue::as_clip) else {
+                return silent_audio();
+            };
+            let flat = flatten_spec(&clip_to_spec(clip, ctx.settings));
+            let mut hits = Hits { clicks: 0, keys: 0 };
+            let mut items = Vec::new();
+            for (index, hit) in flat.hits.iter().enumerate() {
+                let Some((src, ms)) = ctx.params.sound_of(hit.kind) else {
+                    continue;
+                };
+                match hit.kind {
+                    HitKind::Click => hits.clicks += 1,
+                    HitKind::Key => hits.keys += 1,
+                }
+                items.push(hit_item(ctx, index, *hit, src, ms));
+            }
+            outputs([(
+                AUDIO_PORT,
+                CompileValue::Audio(AudioValue {
+                    items,
+                    duration_in_frames: None,
+                    hits: Some(hits),
+                }),
+            )])
+        })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         music().look(NodeLook::of("lucide:eighth-notes")),
         sound_effect().look(NodeLook::of("lucide:audio-lines")),
         add_sound().look(NodeLook::of("lucide:audio-waveform")),
+        action_sounds().look(NodeLook::of("lucide:keyboard-music")),
     ]
 }

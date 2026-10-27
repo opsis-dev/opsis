@@ -361,17 +361,18 @@ Decodes 3D models with compressed meshes (Draco and meshoptimizer) into plain on
 
 ## Built-in sound effects — public/sfx
 
-Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero/1.0/). No attribution is required; credits are kept here. Files were taken from the set Remotion lists in `@remotion/sfx` (https://www.remotion.dev/docs/sfx), with each licence checked on its source page.
+Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero/1.0/). No attribution is required; credits are kept here. Files were taken from the set Remotion lists in `@remotion/sfx` (https://www.remotion.dev/docs/sfx), with each licence checked on its source page; that set has no key sound, so key-press.wav comes straight from Freesound (its licence checked on its page on 2026-10-27, its preview file encoded as WAV).
 
-| File               | Sound                                                    | Source                          |
-| ------------------ | -------------------------------------------------------- | ------------------------------- |
-| whoosh.wav         | Woosh by 1bob                                            | https://freesound.org/s/831936/ |
-| whip.wav           | SWSH_Badminton Racquet_Recording_01_JW Audio by JW_Audio | https://freesound.org/s/838766/ |
-| mouse-click.wav    | Mouse Click Sound.mp3 by Pixeliota                       | https://freesound.org/s/678248/ |
-| switch.wav         | UI Audio - Switch 35 by Kenney                           | https://kenney.nl/              |
-| page-turn.wav      | Draw Knife 1 by Kenney                                   | https://kenney.nl/              |
-| shutter-modern.wav | DSLR Shutter fast 006.wav by ristooooo1                  | https://freesound.org/s/539136/ |
-| shutter-old.wav    | Werra.wav by hmilleo                                     | https://freesound.org/s/409093/ |
+| File               | Sound                                                      | Source                          |
+| ------------------ | ---------------------------------------------------------- | ------------------------------- |
+| whoosh.wav         | Woosh by 1bob                                              | https://freesound.org/s/831936/ |
+| whip.wav           | SWSH_Badminton Racquet_Recording_01_JW Audio by JW_Audio   | https://freesound.org/s/838766/ |
+| mouse-click.wav    | Mouse Click Sound.mp3 by Pixeliota                         | https://freesound.org/s/678248/ |
+| key-press.wav      | Computer Keyboard - single key - type 2.wav by yottasounds | https://freesound.org/s/380141/ |
+| switch.wav         | UI Audio - Switch 35 by Kenney                             | https://kenney.nl/              |
+| page-turn.wav      | Draw Knife 1 by Kenney                                     | https://kenney.nl/              |
+| shutter-modern.wav | DSLR Shutter fast 006.wav by ristooooo1                    | https://freesound.org/s/539136/ |
+| shutter-old.wav    | Werra.wav by hmilleo                                       | https://freesound.org/s/409093/ |
 
 ## Built-in music — public/music
 

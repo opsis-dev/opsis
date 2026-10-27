@@ -10,7 +10,7 @@ use opsis_compile::asset_ref::project_rel_path;
 use opsis_compile::nodes::browser::{
     Assert, Chapter, Click, Drag, DragMethod as DragParam, DragMode, FreezeClock, HideElements,
     Hoist, Hover, MockRoute, Navigate, OPEN_BROWSER_TYPE, Open, OverlayHtml, PressKeys, Scroll,
-    ScrollMode, Select, SetState, SignIn, Type, Wait, WaitMode, WaitUntil, read_path,
+    ScrollMode, Select, SetState, SignIn, Silence, Type, Wait, WaitMode, WaitUntil, read_path,
 };
 use opsis_compile::nodes::capture::{Cursor, Record};
 use opsis_compile::registry::node_def;
@@ -210,6 +210,10 @@ pub fn video_start(steps: &[SessionStep]) -> usize {
         .unwrap_or(0)
 }
 
+fn silenced(step: &SessionStep) -> bool {
+    serde_json::from_value::<Silence>(Value::Object(step.params.clone())).is_ok_and(|s| s.silent)
+}
+
 pub fn click_kind_of(action: BrowserAction) -> Option<ActionKind> {
     match action {
         BrowserAction::Click => Some(ActionKind::Click),
@@ -285,9 +289,10 @@ impl TakeSink for Recorder {
         recorded.clicks.len() - 1
     }
 
-    fn type_end(&self, click: usize, t_ms: f64) {
+    fn type_end(&self, click: usize, t_ms: f64, key_times: Vec<f64>) {
         if let Some(event) = self.recorded().clicks.get_mut(click) {
             event.type_end_ms = Some(t_ms);
+            event.key_times = Some(key_times);
         }
     }
 
@@ -669,6 +674,7 @@ impl<'e> TakeRun<'e> {
             )
         };
         let kind = click_kind_of(step.kind);
+        let silent = silenced(step).then_some(true);
         for c in clicks {
             let Some(kind) = kind else {
                 continue;
@@ -694,6 +700,8 @@ impl<'e> TakeRun<'e> {
             };
             action.path = c.path;
             action.drop = c.drop;
+            action.key_times = c.key_times.filter(|_| kind == ActionKind::Type);
+            action.silent = silent;
             self.push_action(action, step);
         }
         for k in keys {
@@ -704,6 +712,7 @@ impl<'e> TakeRun<'e> {
             );
             action.text = Some(k.chord);
             action.label = k.label;
+            action.silent = silent;
             self.push_action(action, step);
         }
     }

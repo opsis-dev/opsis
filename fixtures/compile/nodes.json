@@ -209,7 +209,8 @@
    "frame": "",
    "zoomScale": 0.0,
    "travelMs": 0,
-   "hoverMs": 220
+   "hoverMs": 220,
+   "silent": false
   }
  },
  {
@@ -256,7 +257,8 @@
    "after": 600,
    "cluster": "",
    "zoom": true,
-   "frame": ""
+   "frame": "",
+   "silent": false
   }
  },
  {
@@ -532,7 +534,8 @@
   "hostDefaults": null,
   "defaults": {
    "keys": "Enter",
-   "after": 600
+   "after": 600,
+   "silent": false
   }
  },
  {
@@ -9673,6 +9676,51 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {}
+ },
+ {
+  "type": "audio.actionSounds",
+  "title": "Action sounds",
+  "category": "Audio",
+  "description": "A click sound at every click and a key sound at every keystroke of the takes in a clip, on one Mixer channel.",
+  "phase": "compile",
+  "inputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "outputs": [
+   {
+    "id": "audio",
+    "type": "audio",
+    "label": "Sound",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "clicks": true,
+   "clickSound": "app:sfx/mouse-click.wav",
+   "keys": true,
+   "keySound": "app:sfx/key-press.wav",
+   "volume": 0.6,
+   "vary": true
+  }
  },
  {
   "type": "timeline.sequence",

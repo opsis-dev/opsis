@@ -1,12 +1,12 @@
 # Improvements
 
-Four improvements found by comparing Opsis with a hand-built feature-video recorder: a sound for every click and keystroke, Sequences and Layers with any number of clips, recording on a simulated clock, and server replies timed on that clock.
+Three improvements found by comparing Opsis with a hand-built feature-video recorder: Sequences and Layers with any number of clips, recording on a simulated clock, and server replies timed on that clock.
 
 Status: plan only. Nothing here is built yet.
 
 ## How to read this plan
 
-- Each section is one improvement and can be built on its own, except section 4, which needs section 3.
+- Each section is one improvement and can be built on its own, except section 3, which needs section 2.
 - Each section has **What it adds**, **In place**, **Work** (numbered) and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
@@ -23,35 +23,11 @@ Status: plan only. Nothing here is built yet.
 
 | Improvement                    | What users get                                                                          | Size   |
 | ------------------------------ | --------------------------------------------------------------------------------------- | ------ |
-| 1. Action sounds               | One node that puts a click sound on every click and a key sound on every keystroke      | medium |
-| 2. Sequences and Layers grow   | Any number of clips in one Sequence or Layers node; splitting never runs out of inputs  | medium |
-| 3. Smooth recording            | A take with exactly one new picture per frame, however busy the computer is             | large  |
-| 4. Replies on the take's clock | In a smooth take, server replies and streamed answers land on the frames they took live | large  |
+| 1. Sequences and Layers grow   | Any number of clips in one Sequence or Layers node; splitting never runs out of inputs  | medium |
+| 2. Smooth recording            | A take with exactly one new picture per frame, however busy the computer is             | large  |
+| 3. Replies on the take's clock | In a smooth take, server replies and streamed answers land on the frames they took live | large  |
 
-## 1. Action sounds
-
-### What it adds
-
-One node, **Action sounds**, that adds a click sound at every click and a key sound at every keystroke of the takes in a clip, as one Mixer channel with its own volume. Today each sound is a Sound effect placed on one action, so a take with 30 clicks needs 30 nodes and 30 channels, and typing can't get a sound per key at all. A single action stays quiet through its own "No sound" switch, so the film keeps one node and one channel however many actions are silenced.
-
-### In place
-
-- Sound effect (`audio.sfx`) outputs a `sound` with an optional action anchor; Add sound (`audio.mix`) places anchored sounds at the action's mark through `anchor_sounds` and `flatten_spec` (`crates/compile/src/nodes/audio.rs:408`).
-- Action marks are one per action (`ActionMark`, `crates/compile/src/timeline/flatten.rs:235`). Keystroke times exist only in the take's log (`KeyEvent`, and typed text on the `TakeClick` of a Type).
-- Built-in sounds include "Mouse click" (`crates/compile/src/data/sounds.json`); there is no key sound.
-
-### Work
-
-1. **Key sound.** Find a CC0 key click, first in the set Remotion lists in `@remotion/sfx` that the built-in sounds came from, check its licence on its source page, and add it to `public/sfx`, `sounds.json` and `THIRD_PARTY_NOTICES.md`.
-2. **Keystroke times.** Make the take's keystroke times available to compile as a list on the flattened bar, mapped through trims, loops and speed like the action marks. A mark per keystroke would crowd the Timeline.
-3. **Node.** `audio.actionSounds`: input `clip`, output `sound`; settings: click sound (`sound` widget, default "Mouse click"), key sound (default the new one), volume, "Clicks" and "Keys" switches, and a small seeded change in pitch and level per hit so typing doesn't sound mechanical and preview still equals export. Compile turns every click and keystroke inside the clip into an `AudioItem` with `role: "effect"`.
-4. **Mixer.** One channel keyed by the node id, on the Effects bus, like a Sound effect. These sounds never key the music ducking (`keepMusic` behaviour).
-5. **No sound on an action.** Click, Type and Press keys get a "No sound" switch (`silent`, under `x-advanced`). It travels with the action into the take's log, and Action sounds skips that action's click and keystrokes.
-6. **Card.** Rows for the count of clicks and keys it places and the sounds chosen; an action's own card says "No sound" when its switch is on.
-7. **Look.** A look on the definition; no motion.
-8. **Tests.** Compile tests on a clip with a trim and a speed ramp (the sounds follow the mapped times), a silent Click and a silent Type in the same take, the Mixer channel, the round trip into Add sound.
-
-## 2. Sequences and Layers grow
+## 1. Sequences and Layers grow
 
 ### What it adds
 
@@ -77,7 +53,7 @@ A Sequence or Layers node takes as many clips as are connected: a new empty inpu
 
 - Every place that loops over `IN_PORTS` assumes six; find them all (`rg IN_PORTS`, `CUT_PORTS`, `in6`).
 
-## 3. Smooth recording
+## 2. Smooth recording
 
 ### What it adds
 
@@ -107,10 +83,10 @@ It runs far slower than real time (a full picture per frame), so it is for final
 
 - With the page's timers paused, anything the take waits for only happens while it ticks; a wait that doesn't tick never ends. Every wait must go through the clock.
 - Videos inside the page, canvases driven by real time and workers' own timers don't follow the page clock.
-- Server replies arrive in real time while the page clock runs slower, so waits on the server take fewer frames than they took seconds. Section 4 fixes that.
+- Server replies arrive in real time while the page clock runs slower, so waits on the server take fewer frames than they took seconds. Section 3 fixes that.
 - Long takes: one picture per frame at 2× is slow; measure a 30 s take before choosing the default picture format.
 
-## 4. Replies on the take's clock
+## 3. Replies on the take's clock
 
 ### What it adds
 
@@ -122,7 +98,7 @@ Because smooth recording is slower than real time, a reply has almost always arr
 
 - Request interception for Mock response, pausing requests before they're sent (`crates/capture/src/route.rs`, `Fetch.enable` at the request stage).
 - The trace records every request and reply with times (`crates/capture/src/trace.rs:186`).
-- Section 3's take clock and frame stepper.
+- Section 2's take clock and frame stepper.
 
 ### Work
 

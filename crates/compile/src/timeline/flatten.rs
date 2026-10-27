@@ -214,6 +214,10 @@ pub struct AudioBar {
     pub item: Option<AudioItem>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bar: Option<Box<VideoBar>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hits: Option<Vec<f64>>,
+    #[serde(skip)]
+    pub parts: Vec<AudioBar>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
@@ -264,6 +268,20 @@ pub struct FlatTimeline {
     pub transitions: Vec<TransitionMark>,
     pub marks: Vec<ActionMark>,
     pub camera_keys: Vec<CameraKeyMark>,
+    #[serde(skip)]
+    pub hits: Vec<Hit>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HitKind {
+    Click,
+    Key,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Hit {
+    pub frame: f64,
+    pub kind: HitKind,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, specta::Type)]
@@ -627,6 +645,48 @@ fn recording_marks(p: &Placed<'_>, props: &RecordingProps, fps: u32) -> Vec<Acti
         .collect()
 }
 
+fn action_hits(action: &Action) -> Vec<(f64, HitKind)> {
+    if action.silent == Some(true) {
+        return Vec::new();
+    }
+    let presses = match action.kind {
+        ActionKind::Click | ActionKind::Type => {
+            vec![action.t_down.unwrap_or(action.t)]
+        }
+        _ => Vec::new(),
+    };
+    let chord = (action.kind == ActionKind::Key).then_some(action.t);
+    presses
+        .into_iter()
+        .chain(action.t_second_down)
+        .map(|t| (t, HitKind::Click))
+        .chain(
+            chord
+                .into_iter()
+                .chain(action.key_times.iter().flatten().copied())
+                .map(|t| (t, HitKind::Key)),
+        )
+        .collect()
+}
+
+fn recording_hits(p: &Placed<'_>, props: &RecordingProps, fps: u32) -> Vec<Hit> {
+    let speed = recording_speed(props);
+    props
+        .log
+        .actions
+        .iter()
+        .flat_map(action_hits)
+        .map(|(t, kind)| Hit {
+            frame: p.walk.inst.to_abs(
+                p.item_from + recording_ms_to_frames(t, speed, fps),
+                RemapSide::Start,
+            ),
+            kind,
+        })
+        .filter(|h| h.frame >= p.from && h.frame < p.to)
+        .collect()
+}
+
 fn camera_key_marks(p: &Placed<'_>) -> Vec<CameraKeyMark> {
     let base = p.item.base();
     let (Some(node_id), Some(camera)) = (&base.node_id, &base.camera) else {
@@ -654,6 +714,7 @@ struct Collected {
     transitions: Vec<TransitionMark>,
     marks: Vec<ActionMark>,
     camera_keys: Vec<CameraKeyMark>,
+    hits: Vec<Hit>,
 }
 
 fn visit_tracks(acc: &mut Collected, tracks: &[TimelineTrack], walk: &Walk) {
@@ -684,6 +745,8 @@ fn visit_item(acc: &mut Collected, p: &Placed<'_>, previous_length: f64) {
             acc.bars.push(leaf_bar(p, link, order));
             let marks = recording_marks(p, props, acc.fps);
             acc.marks.extend(marks);
+            let hits = recording_hits(p, props, acc.fps);
+            acc.hits.extend(hits);
         }
         TimelineItem::Element { .. } => {
             let order = acc.bars.len() as u32;
@@ -794,6 +857,32 @@ fn sound_bar(a: &AudioItem, duration: u32) -> Option<AudioBar> {
         handles: a.handles.clone(),
         item: Some(a.clone()),
         bar: None,
+        hits: None,
+        parts: Vec::new(),
+    })
+}
+
+fn hits_bar(items: &[&AudioItem], duration: u32) -> Option<AudioBar> {
+    let bars: Vec<AudioBar> = items
+        .iter()
+        .filter_map(|a| sound_bar(a, duration))
+        .collect();
+    let first = bars.first()?;
+    let from = bars.iter().map(|b| b.from).fold(f64::INFINITY, f64::min);
+    let to = bars.iter().map(|b| b.to).fold(f64::NEG_INFINITY, f64::max);
+    let volume = bars.iter().map(|b| b.volume).sum::<f64>() / bars.len() as f64;
+    Some(AudioBar {
+        key: format!("hits:{}", first.channel),
+        id: first.channel.clone(),
+        from,
+        to,
+        trim_before: 0.0,
+        looped: false,
+        volume,
+        item: None,
+        hits: Some(bars.iter().map(|b| b.from).collect()),
+        parts: bars.clone(),
+        ..first.clone()
     })
 }
 
@@ -823,6 +912,8 @@ fn clip_sound_bar(bar: &VideoBar, fps: u32) -> Option<AudioBar> {
         handles: None,
         item: None,
         bar: Some(Box::new(bar.clone())),
+        hits: None,
+        parts: Vec::new(),
     })
 }
 
@@ -835,10 +926,19 @@ fn role_order(role: ChannelKind) -> usize {
 }
 
 fn audio_bars(spec: &TimelineSpec, bars: &[VideoBar]) -> Vec<AudioBar> {
+    let mut hits: IndexMap<String, Vec<&AudioItem>> = IndexMap::new();
+    for a in spec.audio.iter().filter(|a| a.hit == Some(true)) {
+        hits.entry(channel_of(a)).or_default().push(a);
+    }
     let mut out: Vec<AudioBar> = spec
         .audio
         .iter()
+        .filter(|a| a.hit != Some(true))
         .filter_map(|a| sound_bar(a, spec.duration_in_frames))
+        .chain(
+            hits.values()
+                .filter_map(|items| hits_bar(items, spec.duration_in_frames)),
+        )
         .chain(bars.iter().filter_map(|b| clip_sound_bar(b, spec.fps)))
         .collect();
     out.sort_by(|x, y| {
@@ -873,6 +973,7 @@ pub fn flatten_spec(spec: &TimelineSpec) -> FlatTimeline {
         transitions: Vec::new(),
         marks: Vec::new(),
         camera_keys: Vec::new(),
+        hits: Vec::new(),
     };
     let root = Walk {
         inst: Instance::root(f64::from(spec.duration_in_frames)),
@@ -887,6 +988,8 @@ pub fn flatten_spec(spec: &TimelineSpec) -> FlatTimeline {
     let transitions = place_transitions(acc.transitions, &bars);
     let mut marks = acc.marks;
     marks.sort_by(|x, y| x.frame.total_cmp(&y.frame));
+    let mut hits = acc.hits;
+    hits.sort_by(|x, y| x.frame.total_cmp(&y.frame));
     FlatTimeline {
         fps: spec.fps,
         duration_in_frames: spec.duration_in_frames,
@@ -897,6 +1000,7 @@ pub fn flatten_spec(spec: &TimelineSpec) -> FlatTimeline {
         transitions,
         marks,
         camera_keys: acc.camera_keys,
+        hits,
     }
 }
 

@@ -49,6 +49,7 @@ pub struct TakeClick {
     pub t_second_down_ms: Option<f64>,
     pub button: Option<ClickButton>,
     pub type_end_ms: Option<f64>,
+    pub key_times: Option<Vec<f64>>,
     pub x: f64,
     pub y: f64,
     pub rect: Option<Rect>,
@@ -72,7 +73,7 @@ pub struct KeyEvent {
 pub trait TakeSink: Send + Sync {
     fn aim(&self, label: &str, at: Point);
     fn click(&self, event: TakeClick) -> usize;
-    fn type_end(&self, click: usize, t_ms: f64);
+    fn type_end(&self, click: usize, t_ms: f64, key_times: Vec<f64>);
     fn cursor(&self, sample: CursorSample);
     fn key(&self, event: KeyEvent);
 }
@@ -295,15 +296,23 @@ impl CursorDriver {
         };
         self.input.press(&self.tab, select_all, None).await?;
         self.input.press(&self.tab, "Backspace", None).await?;
+        let key_times = std::sync::Mutex::new(Vec::new());
+        let keyed = || key_times.lock().expect("key times").push(self.now());
         for (i, chunk) in chunks.iter().enumerate() {
             if i > 0 {
                 pause(opts.chunk_pause_ms).await;
             }
             self.input
-                .type_text(&self.tab, chunk, Some(Duration::from_millis(KEY_DELAY_MS)))
+                .type_text(
+                    &self.tab,
+                    chunk,
+                    Some(Duration::from_millis(KEY_DELAY_MS)),
+                    &keyed,
+                )
                 .await?;
         }
-        self.sink.type_end(event, self.now());
+        let key_times = key_times.into_inner().expect("key times");
+        self.sink.type_end(event, self.now(), key_times);
         Ok(())
     }
 

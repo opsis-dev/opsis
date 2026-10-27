@@ -37,6 +37,16 @@ function audioHit(e: React.PointerEvent<HTMLElement>, width: number, lineY: numb
   return Math.abs(y - lineY) <= LINE_GRAB_PX ? "line" : "body";
 }
 
+function HitTicks({ hits, from, ppf }: { hits: number[]; from: number; ppf: number }) {
+  return hits.map((frame, i) => (
+    <div
+      key={i}
+      className="pointer-events-none absolute inset-y-1/4 w-px bg-foreground/60"
+      style={{ left: (frame - from) * ppf }}
+    />
+  ));
+}
+
 function VolumeLine({ y }: { y: number }) {
   return (
     <div
@@ -60,12 +70,15 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
   });
   const showLine = audioEnvelope === "volume" && !envelope.target?.keys.length;
   const lineY = showLine ? envelopeY("volume", bar.volume, HEIGHT) : null;
-  const hitAt = (e: React.PointerEvent<HTMLElement>) => audioHit(e, box.width, lineY);
+  const hitAt = (e: React.PointerEvent<HTMLElement>): Hit => {
+    const hit = audioHit(e, box.width, lineY);
+    return bar.hits && hit !== "line" ? "body" : hit;
+  };
 
   const onPress = (e: React.PointerEvent<HTMLDivElement>) => {
     const hit = hitAt(e);
     if (hit === "line") drag.startVolume(e, bar, HEIGHT);
-    else
+    else if (!bar.hits)
       drag.startEdit(
         e,
         { domain: "audio", kind: hit === "body" ? "audio-move" : EDGE_KIND[hit], bar },
@@ -82,19 +95,23 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
       nodeId={nodeId}
       split={bar.bar}
       title={title || undefined}
-      className={cn("cursor-grab", AUDIO_TONE[bar.role])}
+      className={cn(!bar.hits && "cursor-grab", AUDIO_TONE[bar.role])}
       cursorAt={(e) => HIT_CURSOR[hitAt(e)]}
       onPress={onPress}
       envelope={envelope}
     >
-      <WaveformCanvas
-        bar={bar}
-        box={box}
-        height={HEIGHT}
-        view={ctx.viewport}
-        fps={ctx.flat.fps}
-        gain={gain}
-      />
+      {bar.hits ? (
+        <HitTicks hits={bar.hits} from={bar.from} ppf={ppf} />
+      ) : (
+        <WaveformCanvas
+          bar={bar}
+          box={box}
+          height={HEIGHT}
+          view={ctx.viewport}
+          fps={ctx.flat.fps}
+          gain={gain}
+        />
+      )}
       <BarLabel>{title}</BarLabel>
       {lineY === null ? null : <VolumeLine y={lineY} />}
     </BarFrame>

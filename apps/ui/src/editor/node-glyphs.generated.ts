@@ -92,6 +92,7 @@ export const NODE_GLYPHS: Record<string, ReadonlyArray<readonly [string, Record<
   "lucide:info": [["circle",{"cx":"12","cy":"12","r":"10"}],["path",{"d":"M12 16v-4"}],["path",{"d":"M12 8h.01"}]],
   "lucide:key": [["path",{"d":"m2 21 9.6-9.6"}],["path",{"d":"m7.5 15.5 2.3 2.3a1 1 0 0 1 0 1.4l-2.1 2.1a1 1 0 0 1-1.4 0L4 19"}],["circle",{"cx":"15.5","cy":"7.5","r":"5.5"}]],
   "lucide:keyboard": [["path",{"d":"M10 8h.01"}],["path",{"d":"M12 12h.01"}],["path",{"d":"M14 8h.01"}],["path",{"d":"M16 12h.01"}],["path",{"d":"M18 8h.01"}],["path",{"d":"M6 8h.01"}],["path",{"d":"M7 16h10"}],["path",{"d":"M8 12h.01"}],["rect",{"width":"20","height":"16","x":"2","y":"4","rx":"2"}]],
+  "lucide:keyboard-music": [["rect",{"width":"20","height":"16","x":"2","y":"4","rx":"2"}],["path",{"d":"M6 8h4"}],["path",{"d":"M14 8h.01"}],["path",{"d":"M18 8h.01"}],["path",{"d":"M2 12h20"}],["path",{"d":"M6 12v4"}],["path",{"d":"M10 12v4"}],["path",{"d":"M14 12v4"}],["path",{"d":"M18 12v4"}]],
   "lucide:laptop": [["path",{"d":"M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"}],["path",{"d":"M20.054 15.987H3.946"}]],
   "lucide:laptop-minimal": [["rect",{"width":"18","height":"12","x":"3","y":"4","rx":"2","ry":"2"}],["line",{"x1":"2","x2":"22","y1":"20","y2":"20"}]],
   "lucide:lasso": [["path",{"d":"M3.704 14.467a10 8 0 1 1 3.115 2.375"}],["path",{"d":"M7 22a5 5 0 0 1-2-3.994"}],["circle",{"cx":"5","cy":"16","r":"2"}]],

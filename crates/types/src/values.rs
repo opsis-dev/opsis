@@ -104,6 +104,14 @@ pub struct AudioValue {
     pub items: Vec<AudioItem>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub duration_in_frames: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hits: Option<Hits>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+pub struct Hits {
+    pub clicks: u32,
+    pub keys: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

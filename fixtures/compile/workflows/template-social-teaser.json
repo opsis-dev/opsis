@@ -447,7 +447,8 @@
         "after": 1500,
         "cluster": "",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       }
      ],
@@ -2515,7 +2516,8 @@
          "after": 1500,
          "cluster": "",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        }
       ],

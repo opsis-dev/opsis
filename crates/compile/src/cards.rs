@@ -44,6 +44,11 @@ pub fn card_inputs(
             .and_then(|v| v.get(CLIP_PORT))
             .and_then(CompileValue::as_clip)
             .map(|c| c.duration_in_frames),
+        hits: compiled
+            .values
+            .get(&node.id)
+            .and_then(|v| v.values().find_map(CompileValue::as_audio))
+            .and_then(|a| a.hits),
         ..CardInputs::default()
     };
     for e in wf.edges.iter().filter(|e| e.target == node.id) {

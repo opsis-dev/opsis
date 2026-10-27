@@ -450,6 +450,10 @@ pub struct AudioItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rate: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pitch: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hit: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fade_in_frames: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fade_out_frames: Option<u32>,
@@ -488,6 +492,8 @@ impl AudioItem {
             trim_before: None,
             looped: None,
             rate: None,
+            pitch: None,
+            hit: None,
             fade_in_frames: None,
             fade_out_frames: None,
             node_id: None,

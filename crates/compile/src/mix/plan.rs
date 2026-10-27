@@ -22,6 +22,8 @@ pub struct SoundPlacement {
     #[serde(rename = "loop")]
     pub looped: bool,
     pub rate: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pitch: Option<f64>,
     pub volume: f64,
     pub fade_in: u32,
     pub fade_out: u32,
@@ -78,7 +80,14 @@ pub struct MixPlan {
 
 fn sound_placements(flat: &FlatTimeline) -> IndexMap<String, Vec<SoundPlacement>> {
     let mut by_channel: IndexMap<String, Vec<SoundPlacement>> = IndexMap::new();
-    for a in &flat.audio {
+    let sounds = flat.audio.iter().flat_map(|a| {
+        if a.parts.is_empty() {
+            std::slice::from_ref(a)
+        } else {
+            a.parts.as_slice()
+        }
+    });
+    for a in sounds {
         let item = a.item.as_ref();
         by_channel
             .entry(a.channel.clone())
@@ -90,6 +99,7 @@ fn sound_placements(flat: &FlatTimeline) -> IndexMap<String, Vec<SoundPlacement>
                 length: at_least_one_frame(a.to - a.from),
                 looped: a.looped,
                 rate: item.and_then(|i| i.rate).unwrap_or(1.0),
+                pitch: item.and_then(|i| i.pitch),
                 volume: a.volume,
                 fade_in: item.and_then(|i| i.fade_in_frames).unwrap_or(0),
                 fade_out: item.and_then(|i| i.fade_out_frames).unwrap_or(0),

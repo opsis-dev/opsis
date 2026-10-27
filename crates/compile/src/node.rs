@@ -6,7 +6,7 @@ use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::recording::RecordingProps;
 use opsis_types::values::{
-    BrowserAction, ClipValue, CompileValue, EntriesValue, MediaKind, NodeResult, PortValues,
+    BrowserAction, ClipValue, CompileValue, EntriesValue, Hits, MediaKind, NodeResult, PortValues,
     StyleEntry,
 };
 use opsis_types::workflow::{PortType, Workflow, WorkflowSettings};
@@ -226,6 +226,7 @@ pub struct CardInputs {
     pub style: IndexMap<String, Vec<String>>,
     pub grade: IndexMap<String, Vec<StyleEntry>>,
     pub missing_files: Vec<String>,
+    pub hits: Option<Hits>,
 }
 
 impl CardInputs {

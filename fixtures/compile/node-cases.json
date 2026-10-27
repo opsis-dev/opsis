@@ -1358,7 +1358,8 @@
       "type": "browser.press",
       "params": {
        "keys": "Enter",
-       "after": 600
+       "after": 600,
+       "silent": false
       }
      }
     ]

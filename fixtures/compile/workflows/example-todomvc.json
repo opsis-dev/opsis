@@ -587,7 +587,8 @@
         "after": 500,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       }
      ],
@@ -638,7 +639,8 @@
         "after": 500,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       },
       {
@@ -653,7 +655,8 @@
         "after": 500,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       }
      ],
@@ -782,7 +785,8 @@
         "after": 500,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       },
       {
@@ -797,7 +801,8 @@
         "after": 500,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       },
       {
@@ -812,7 +817,8 @@
         "after": 1200,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       }
      ],
@@ -1032,7 +1038,8 @@
         "after": 500,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       },
       {
@@ -1047,7 +1054,8 @@
         "after": 500,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       },
       {
@@ -1062,7 +1070,8 @@
         "after": 1200,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       },
       {
@@ -1080,7 +1089,8 @@
         "frame": "",
         "zoomScale": 0,
         "travelMs": 0,
-        "hoverMs": 220
+        "hoverMs": 220,
+        "silent": false
        }
       }
      ],
@@ -1131,7 +1141,8 @@
         "after": 500,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       },
       {
@@ -1146,7 +1157,8 @@
         "after": 500,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       },
       {
@@ -1161,7 +1173,8 @@
         "after": 1200,
         "cluster": "add",
         "zoom": true,
-        "frame": ""
+        "frame": "",
+        "silent": false
        }
       },
       {
@@ -1179,7 +1192,8 @@
         "frame": "",
         "zoomScale": 0,
         "travelMs": 0,
-        "hoverMs": 220
+        "hoverMs": 220,
+        "silent": false
        }
       },
       {
@@ -1197,7 +1211,8 @@
         "frame": "",
         "zoomScale": 0,
         "travelMs": 0,
-        "hoverMs": 220
+        "hoverMs": 220,
+        "silent": false
        }
       }
      ],
@@ -3946,7 +3961,8 @@
          "after": 500,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        }
       ],
@@ -3997,7 +4013,8 @@
          "after": 500,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        },
        {
@@ -4012,7 +4029,8 @@
          "after": 500,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        }
       ],
@@ -4141,7 +4159,8 @@
          "after": 500,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        },
        {
@@ -4156,7 +4175,8 @@
          "after": 500,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        },
        {
@@ -4171,7 +4191,8 @@
          "after": 1200,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        }
       ],
@@ -4391,7 +4412,8 @@
          "after": 500,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        },
        {
@@ -4406,7 +4428,8 @@
          "after": 500,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        },
        {
@@ -4421,7 +4444,8 @@
          "after": 1200,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        },
        {
@@ -4439,7 +4463,8 @@
          "frame": "",
          "zoomScale": 0,
          "travelMs": 0,
-         "hoverMs": 220
+         "hoverMs": 220,
+         "silent": false
         }
        }
       ],
@@ -4490,7 +4515,8 @@
          "after": 500,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        },
        {
@@ -4505,7 +4531,8 @@
          "after": 500,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        },
        {
@@ -4520,7 +4547,8 @@
          "after": 1200,
          "cluster": "add",
          "zoom": true,
-         "frame": ""
+         "frame": "",
+         "silent": false
         }
        },
        {
@@ -4538,7 +4566,8 @@
          "frame": "",
          "zoomScale": 0,
          "travelMs": 0,
-         "hoverMs": 220
+         "hoverMs": 220,
+         "silent": false
         }
        },
        {
@@ -4556,7 +4585,8 @@
          "frame": "",
          "zoomScale": 0,
          "travelMs": 0,
-         "hoverMs": 220
+         "hoverMs": 220,
+         "silent": false
         }
        }
       ],

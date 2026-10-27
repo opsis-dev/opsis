@@ -58,6 +58,23 @@ pub struct PauseAfter {
     pub after: u32,
 }
 
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Silence {
+    #[schemars(
+        description = "No sound",
+        extend("x-advanced" = true, "x-help" = "Action sounds leave this action out.")
+    )]
+    pub silent: bool,
+}
+
+impl Silence {
+    fn row(&self) -> Option<CardRow> {
+        self.silent
+            .then(|| row(Icon::VolumeX, "No sound").tone(Tone::Muted))
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Beat {
@@ -292,6 +309,8 @@ pub struct Click {
     #[default = 220]
     #[schemars(description = "Hover before clicking", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
     pub hover_ms: u32,
+    #[serde(flatten)]
+    pub sound: Silence,
 }
 
 impl Params for Click {}
@@ -325,6 +344,8 @@ pub struct Type {
     pub beat: Beat,
     #[serde(flatten)]
     pub frame: Frame,
+    #[serde(flatten)]
+    pub sound: Silence,
 }
 
 impl Params for Type {}
@@ -556,6 +577,8 @@ pub struct PressKeys {
     pub keys: String,
     #[serde(flatten)]
     pub pause: PauseAfter,
+    #[serde(flatten)]
+    pub sound: Silence,
 }
 
 impl Params for PressKeys {}
@@ -1067,7 +1090,11 @@ fn type_rows(p: &Type) -> Rows {
         typed_row
     };
     with_beat(
-        vec![target_row(Icon::Crosshair, &p.target), Some(typed_row)],
+        vec![
+            target_row(Icon::Crosshair, &p.target),
+            Some(typed_row),
+            p.sound.row(),
+        ],
         &p.beat,
     )
 }
@@ -1117,7 +1144,7 @@ fn press_rows(p: &PressKeys) -> Rows {
     } else {
         row(Icon::Command, chord_keys(&p.keys).join(" + "))
     };
-    vec![Some(keys), pause(p.pause.after)]
+    vec![Some(keys), p.sound.row(), pause(p.pause.after)]
 }
 
 fn set_state_rows(p: &SetState) -> Rows {
@@ -1214,7 +1241,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Click",
                 "Moves the cursor to an element and clicks it.",
             ),
-            |p: &Click| with_beat(vec![click_row(p)], &p.beat),
+            |p: &Click| with_beat(vec![click_row(p), p.sound.row()], &p.beat),
         ).look(NodeLook::of("lucide:mouse-pointer-click").moves(NodeMotion::Press)),
         card(
             action::<Type>(

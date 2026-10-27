@@ -194,16 +194,29 @@ impl Input {
         Ok(())
     }
 
-    pub async fn type_text(&self, tab: &Tab, text: &str, delay: Option<Duration>) -> Result<()> {
+    pub async fn type_text(
+        &self,
+        tab: &Tab,
+        text: &str,
+        delay: Option<Duration>,
+        keyed: &(dyn Fn() + Send + Sync),
+    ) -> Result<()> {
         tab.traced(
             || CallInfo::new("keyboardType", format!("Type \"{text}\"")),
-            self.typed(tab, text, delay),
+            self.typed(tab, text, delay, keyed),
         )
         .await
     }
 
-    async fn typed(&self, tab: &Tab, text: &str, delay: Option<Duration>) -> Result<()> {
+    async fn typed(
+        &self,
+        tab: &Tab,
+        text: &str,
+        delay: Option<Duration>,
+        keyed: &(dyn Fn() + Send + Sync),
+    ) -> Result<()> {
         for c in text.chars() {
+            keyed();
             let key = c.to_string();
             if key_layout().contains_key(&key) {
                 self.pressed(tab, &key, delay).await?;

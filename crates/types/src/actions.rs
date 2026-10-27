@@ -178,6 +178,10 @@ pub struct Action {
     pub path: Option<Vec<Point>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub drop: Option<Rect>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key_times: Option<Vec<f64>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub silent: Option<bool>,
 }
 
 impl Action {
@@ -202,6 +206,8 @@ impl Action {
             node_id: None,
             path: None,
             drop: None,
+            key_times: None,
+            silent: None,
         }
     }
 }
