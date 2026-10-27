@@ -11547,6 +11547,55 @@
   }
  },
  {
+  "type": "image.grid",
+  "title": "Grid",
+  "category": "Image",
+  "description": "Puts any number of images in a row, a column or a grid, with gaps and a background. Makes a new file.",
+  "phase": "media",
+  "inputs": [],
+  "family": {
+   "prefix": "in",
+   "type": "media",
+   "required": 2,
+   "shown": 2,
+   "refs": [],
+   "labels": [
+    "Image 1",
+    "Image 2",
+    "Image 3"
+   ]
+  },
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 190.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "layout": "grid",
+   "columns": 2,
+   "fit": "cells",
+   "gap": 24,
+   "padding": 24,
+   "background": "#ffffff"
+  }
+ },
+ {
   "type": "output.render",
   "title": "Export video",
   "category": "Output",

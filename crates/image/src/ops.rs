@@ -15,10 +15,11 @@ use imageproc::geometric_transformations::{
 };
 use num_traits::ToPrimitive;
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, ImageFormat, LevelsMethod,
-    OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle, Resample, ResizeFit, ResizeImage,
-    RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn, area_rect, crop_rect,
-    outline_padding, resized_size, rotated_size, tilt_corners, tilted_size,
+    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, ImageFormat, ImageGrid,
+    LevelsMethod, OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle, Resample, ResizeFit,
+    ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn,
+    area_rect, crop_rect, grid_plan, outline_padding, resized_size, rotated_size, tilt_corners,
+    tilted_size,
 };
 
 use crate::ImageError;
@@ -799,4 +800,41 @@ pub fn auto_levels(image: &DynamicImage, p: &AutoLevels) -> DynamicImage {
         }
     }
     from_float(image, pixels)
+}
+
+pub fn grid(images: &[DynamicImage], p: &ImageGrid) -> Result<DynamicImage, ImageError> {
+    let sizes: Vec<(f64, f64)> = images.iter().map(size_of).collect();
+    let plan = grid_plan(&sizes, p);
+    let [r, g, b, a] = background_rgba(&p.background);
+    let wide = |v: u8| u16::from(v) * 257;
+    let mut canvas: ImageBuffer<Rgba<u16>, Vec<u16>> = ImageBuffer::from_pixel(
+        plan.canvas.0 as u32,
+        plan.canvas.1 as u32,
+        Rgba([wide(r), wide(g), wide(b), wide(a)]),
+    );
+    let options = ResizeOptions::new().resize_alg(algorithm(Resample::Sharp));
+    for (image, cell) in images.iter().zip(&plan.cells) {
+        let sized = if (cell.width, cell.height) == size_of(image) {
+            image.clone()
+        } else {
+            resized_to(
+                &DynamicImage::ImageRgba16(image.to_rgba16()),
+                cell.width as u32,
+                cell.height as u32,
+                &options,
+            )?
+        };
+        imageops::overlay(
+            &mut canvas,
+            &sized.to_rgba16(),
+            cell.x as i64,
+            cell.y as i64,
+        );
+    }
+    let deep = images.iter().any(is_deep);
+    Ok(if deep {
+        DynamicImage::ImageRgba16(canvas)
+    } else {
+        DynamicImage::ImageRgba8(DynamicImage::ImageRgba16(canvas).to_rgba8())
+    })
 }

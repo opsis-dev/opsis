@@ -6,9 +6,12 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, RowExt, missing, port, row};
+use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, PortFamily, RowExt, missing, port, row};
 use crate::nodes::effects::Area;
 use crate::params::Params;
+use crate::ports::{IN_PREFIX, in_index};
+
+pub const GRID_TYPE: &str = "image.grid";
 
 pub const LEVELS_TYPE: &str = "image.levels";
 
@@ -559,6 +562,154 @@ pub struct AutoLevels {
 }
 
 impl Params for AutoLevels {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum GridLayout {
+    Row,
+    Column,
+    #[default]
+    Grid,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum GridFit {
+    SameHeight,
+    SameWidth,
+    #[default]
+    Cells,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ImageGrid {
+    #[schemars(description = "Layout", extend("x-labels" = { "row": "One row", "column": "One column", "grid": "Grid" }))]
+    pub layout: GridLayout,
+    #[default = 2]
+    #[schemars(description = "Columns", range(min = 1, max = 12), extend("x-show-if" = { "layout": ["grid"] }))]
+    pub columns: u32,
+    #[schemars(
+        description = "Sizes",
+        extend(
+            "x-labels" = { "same-height": "Same height", "same-width": "Same width", "cells": "Equal cells" },
+            "x-help" = "Same height and same width shrink every image to the smallest one's. Equal cells makes every cell as big as the largest image and centres each image in its own; nothing is enlarged."
+        )
+    )]
+    pub fit: GridFit,
+    #[default = 24]
+    #[schemars(description = "Gap", range(min = 0, max = 1000), extend("x-unit" = "px"))]
+    pub gap: u32,
+    #[default = 24]
+    #[schemars(description = "Padding", range(min = 0, max = 1000), extend("x-unit" = "px"))]
+    pub padding: u32,
+    #[default = "#ffffff"]
+    #[schemars(
+        description = "Background",
+        extend("x-widget" = "color", "x-check" = { "rule": "colour", "message": "Pick a colour" })
+    )]
+    pub background: String,
+}
+
+impl Params for ImageGrid {}
+
+pub struct GridPlan {
+    pub canvas: (f64, f64),
+    pub columns: usize,
+    pub rows: usize,
+    pub cells: Vec<Rect>,
+}
+
+fn grid_shape(n: usize, p: &ImageGrid) -> (usize, usize) {
+    let columns = match p.layout {
+        GridLayout::Row => n,
+        GridLayout::Column => 1,
+        GridLayout::Grid => (p.columns.max(1) as usize).min(n),
+    }
+    .max(1);
+    (columns, n.div_ceil(columns).max(1))
+}
+
+pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
+    let n = sizes.len();
+    let (columns, rows) = grid_shape(n, p);
+    let gap = f64::from(p.gap);
+    let pad = f64::from(p.padding);
+    let scaled: Vec<(f64, f64)> = match p.fit {
+        GridFit::SameHeight => {
+            let h = sizes.iter().map(|s| s.1).fold(f64::INFINITY, f64::min);
+            sizes
+                .iter()
+                .map(|&(w, sh)| ((w * h / sh).round().max(1.0), h))
+                .collect()
+        }
+        GridFit::SameWidth => {
+            let w = sizes.iter().map(|s| s.0).fold(f64::INFINITY, f64::min);
+            sizes
+                .iter()
+                .map(|&(sw, h)| (w, (h * w / sw).round().max(1.0)))
+                .collect()
+        }
+        GridFit::Cells => sizes.to_vec(),
+    };
+    let cell = (
+        scaled.iter().map(|s| s.0).fold(0.0, f64::max),
+        scaled.iter().map(|s| s.1).fold(0.0, f64::max),
+    );
+    let place = |i: usize| (i % columns, i / columns);
+    let column_widths: Vec<f64> = (0..columns)
+        .map(|c| {
+            (0..n)
+                .filter(|&i| place(i).0 == c)
+                .map(|i| {
+                    if p.fit == GridFit::Cells {
+                        cell.0
+                    } else {
+                        scaled[i].0
+                    }
+                })
+                .fold(0.0, f64::max)
+        })
+        .collect();
+    let row_heights: Vec<f64> = (0..rows)
+        .map(|r| {
+            (0..n)
+                .filter(|&i| place(i).1 == r)
+                .map(|i| {
+                    if p.fit == GridFit::Cells {
+                        cell.1
+                    } else {
+                        scaled[i].1
+                    }
+                })
+                .fold(0.0, f64::max)
+        })
+        .collect();
+    let left = |c: usize| pad + column_widths[..c].iter().sum::<f64>() + gap * c as f64;
+    let top = |r: usize| pad + row_heights[..r].iter().sum::<f64>() + gap * r as f64;
+    let cells = (0..n)
+        .map(|i| {
+            let (c, r) = place(i);
+            let (w, h) = scaled[i];
+            Rect {
+                x: (left(c) + (column_widths[c] - w) / 2.0).round(),
+                y: (top(r) + (row_heights[r] - h) / 2.0).round(),
+                width: w,
+                height: h,
+            }
+        })
+        .collect();
+    let canvas = (
+        (left(columns) - gap + pad).max(1.0),
+        (top(rows) - gap + pad).max(1.0),
+    );
+    GridPlan {
+        canvas,
+        columns,
+        rows,
+        cells,
+    }
+}
 
 const VIEW_DISTANCE: f64 = 2.0;
 const SHADOW_SPACE: f64 = 0.06;
@@ -1134,6 +1285,66 @@ fn levels() -> NodeDef {
     })
 }
 
+fn picture_label(i: usize, _last: Option<usize>) -> String {
+    format!("Image {}", i + 1)
+}
+
+fn grid() -> NodeDef {
+    image_node::<ImageGrid>(
+        GRID_TYPE,
+        "Grid",
+        "Puts any number of images in a row, a column or a grid, with gaps and a background.",
+    )
+    .inputs(vec![])
+    .family(PortFamily::new(
+        IN_PREFIX,
+        PortType::Media,
+        2,
+        picture_label,
+    ))
+    .card(|ctx: &CardCtx<'_, ImageGrid>| {
+        let p = &ctx.params;
+        let mut ports: Vec<(usize, (u32, u32))> = ctx
+            .inputs
+            .pixels
+            .iter()
+            .filter_map(|(port, size)| Some((in_index(port)?, *size)))
+            .collect();
+        ports.sort_by_key(|(i, _)| *i);
+        let connected = ctx
+            .inputs
+            .connected
+            .iter()
+            .filter(|c| in_index(c).is_some())
+            .count();
+        let count = match connected {
+            0 => missing(Icon::Columns2, "Connect two images"),
+            1 => missing(Icon::Columns2, "Connect one more image"),
+            n => {
+                let (columns, rows) = grid_shape(n, p);
+                row(
+                    Icon::Columns2,
+                    format!(
+                        "{} · {columns} × {rows}",
+                        crate::text::plural(n as f64, "image")
+                    ),
+                )
+            }
+        };
+        let sizes: Vec<(f64, f64)> = ports
+            .iter()
+            .map(|(_, (w, h))| (f64::from(*w), f64::from(*h)))
+            .collect();
+        let size = result_size(ctx).or_else(|| {
+            (sizes.len() == connected && connected >= 2).then(|| grid_plan(&sizes, p).canvas)
+        });
+        vec![
+            Some(count),
+            size.map(|(w, h)| row(Icon::Ruler, pixels(w, h))),
+        ]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -1150,5 +1361,6 @@ pub fn nodes() -> Vec<NodeDef> {
         outline().look(NodeLook::of("lucide:square-dashed-bottom")),
         tilt().look(NodeLook::of("tabler:perspective")),
         levels().look(NodeLook::of("lucide:chart-column-increasing")),
+        grid().look(NodeLook::of("lucide:grid-2x2")),
     ]
 }

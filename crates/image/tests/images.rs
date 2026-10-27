@@ -8,10 +8,10 @@ use image::{
 };
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, CropMode, ImageFormat,
-    LevelsMethod, OutlineImage, PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage,
-    RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn, tilt_corners,
-    tilted_size,
+    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, CropMode, GridFit, GridLayout,
+    ImageFormat, ImageGrid, LevelsMethod, OutlineImage, PlaceImage, RedactImage, RedactStyle,
+    ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges,
+    Turn, grid_plan, tilt_corners, tilted_size,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -680,5 +680,67 @@ fn stretches_dull_levels_to_black_and_white() {
     assert!(
         last[0] > 250 && last[2] > 250,
         "each colour reaches white: {last:?}"
+    );
+}
+
+fn block(width: u32, height: u32, colour: [u8; 3]) -> DynamicImage {
+    DynamicImage::ImageRgb8(RgbImage::from_pixel(width, height, Rgb(colour)))
+}
+
+#[test]
+fn lays_images_out_in_rows_columns_and_cells() {
+    let images = [
+        block(40, 20, [220, 20, 20]),
+        block(20, 20, [20, 200, 20]),
+        block(30, 60, [20, 20, 220]),
+    ];
+    let sizes: Vec<(f64, f64)> = images
+        .iter()
+        .map(|i| (f64::from(i.width()), f64::from(i.height())))
+        .collect();
+    let grid = |layout, fit, columns| ImageGrid {
+        layout,
+        fit,
+        columns,
+        gap: 4,
+        padding: 2,
+        background: "#000000".into(),
+    };
+    let row = grid_plan(&sizes, &grid(GridLayout::Row, GridFit::SameHeight, 2));
+    assert_eq!(
+        row.canvas,
+        (2.0 + 40.0 + 4.0 + 20.0 + 4.0 + 10.0 + 2.0, 24.0)
+    );
+    assert_eq!((row.columns, row.rows), (3, 1));
+    let column = grid_plan(&sizes, &grid(GridLayout::Column, GridFit::SameWidth, 2));
+    assert_eq!(
+        column.canvas,
+        (24.0, 2.0 + 10.0 + 4.0 + 20.0 + 4.0 + 40.0 + 2.0)
+    );
+    let cells = grid_plan(&sizes, &grid(GridLayout::Grid, GridFit::Cells, 2));
+    assert_eq!((cells.columns, cells.rows), (2, 2));
+    assert_eq!(
+        cells.canvas,
+        (2.0 + 40.0 + 4.0 + 40.0 + 2.0, 2.0 + 60.0 + 4.0 + 60.0 + 2.0)
+    );
+    let out = ops::grid(&images, &grid(GridLayout::Grid, GridFit::Cells, 2))
+        .unwrap()
+        .to_rgb8();
+    assert_eq!(out.dimensions(), (88, 128));
+    for (cell, colour) in cells
+        .cells
+        .iter()
+        .zip([[220, 20, 20], [20, 200, 20], [20, 20, 220]])
+    {
+        let middle = out.get_pixel(
+            (cell.x + cell.width / 2.0) as u32,
+            (cell.y + cell.height / 2.0) as u32,
+        );
+        assert_eq!(middle.0, colour);
+    }
+    assert_eq!(
+        out.get_pixel(0, 0).0,
+        [0, 0, 0],
+        "the padding is the background"
     );
 }

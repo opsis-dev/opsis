@@ -4852,6 +4852,40 @@
    }
   },
   {
+   "type": "image.grid",
+   "title": "Grid",
+   "category": "Image",
+   "description": "Puts any number of images in a row, a column or a grid, with gaps and a background. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "in1": {
+     "type": "media",
+     "label": "Image 1",
+     "optional": false,
+     "many": false
+    },
+    "in2": {
+     "type": "media",
+     "label": "Image 2",
+     "optional": false,
+     "many": false
+    }
+   },
+   "family": {
+    "prefix": "in",
+    "type": "media",
+    "required": 2
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -52513,6 +52547,126 @@
      "strength": 1.0,
      "clip": 0.5,
      "perChannel": false
+    }
+   }
+  },
+  {
+   "type": "image.grid",
+   "title": "Grid",
+   "category": "Image",
+   "description": "Puts any number of images in a row, a column or a grid, with gaps and a background. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "in1": {
+     "type": "media",
+     "label": "Image 1",
+     "optional": false,
+     "many": false
+    },
+    "in2": {
+     "type": "media",
+     "label": "Image 2",
+     "optional": false,
+     "many": false
+    }
+   },
+   "family": {
+    "prefix": "in",
+    "type": "media",
+    "required": 2
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "layout": {
+      "description": "Layout",
+      "type": "string",
+      "enum": [
+       "row",
+       "column",
+       "grid"
+      ],
+      "default": "grid",
+      "x-labels": {
+       "row": "One row",
+       "column": "One column",
+       "grid": "Grid"
+      }
+     },
+     "columns": {
+      "description": "Columns",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 1,
+      "maximum": 12,
+      "default": 2,
+      "x-show-if": {
+       "layout": [
+        "grid"
+       ]
+      }
+     },
+     "fit": {
+      "description": "Sizes",
+      "type": "string",
+      "enum": [
+       "same-height",
+       "same-width",
+       "cells"
+      ],
+      "default": "cells",
+      "x-labels": {
+       "same-height": "Same height",
+       "same-width": "Same width",
+       "cells": "Equal cells"
+      },
+      "x-help": "Same height and same width shrink every image to the smallest one's. Equal cells makes every cell as big as the largest image and centres each image in its own; nothing is enlarged."
+     },
+     "gap": {
+      "description": "Gap",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 1000,
+      "default": 24,
+      "x-unit": "px"
+     },
+     "padding": {
+      "description": "Padding",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 1000,
+      "default": 24,
+      "x-unit": "px"
+     },
+     "background": {
+      "description": "Background",
+      "type": "string",
+      "default": "#ffffff",
+      "x-widget": "color",
+      "x-check": {
+       "rule": "colour",
+       "message": "Pick a colour"
+      }
+     }
+    },
+    "type": "object",
+    "default": {
+     "layout": "grid",
+     "columns": 2,
+     "fit": "cells",
+     "gap": 24,
+     "padding": 24,
+     "background": "#ffffff"
     }
    }
   },

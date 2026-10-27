@@ -1,13 +1,14 @@
 use opsis_compile::nodes::image::{
-    ADJUST_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE, LEVELS_TYPE, OUTLINE_TYPE,
-    PLACE_TYPE, REDACT_TYPE, RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE, TILT_TYPE, TRIM_TYPE,
+    ADJUST_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE, GRID_TYPE, LEVELS_TYPE,
+    OUTLINE_TYPE, PLACE_TYPE, REDACT_TYPE, RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE, TILT_TYPE,
+    TRIM_TYPE,
 };
 use std::path::Path;
 use std::sync::Arc;
 
 use image::DynamicImage;
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, IMAGE_PORT, ImageFormat,
+    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, IMAGE_PORT, ImageFormat, ImageGrid,
     OVERLAY_PORT, OutlineImage, PlaceImage, RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE,
     SpotlightImage, TiltImage, TrimEdges, resized_size, upscale,
 };
@@ -228,6 +229,24 @@ async fn levels(
     saved(&ctx, &out, None)
 }
 
+async fn grid(ctx: Arc<ExecutorContext>, inputs: PortValues) -> Result<ExecutorOutput, ExecError> {
+    let p: ImageGrid = ctx.params()?;
+    let mut ports: Vec<(usize, &String)> = inputs
+        .keys()
+        .filter_map(|port| Some((opsis_compile::ports::in_index(port)?, port)))
+        .collect();
+    ports.sort_by_key(|(i, _)| *i);
+    if ports.len() < 2 {
+        return Err(ExecError::new("Connect at least two images."));
+    }
+    let mut images = Vec::with_capacity(ports.len());
+    for (_, port) in ports {
+        images.push(input(&ctx, &inputs, port).await?);
+    }
+    let out = blocking(move || ops::grid(&images, &p)).await?;
+    saved(&ctx, &out, None)
+}
+
 pub fn image_executors() -> Vec<(&'static str, Executor)> {
     vec![
         (RESIZE_TYPE, executor(resize)),
@@ -244,5 +263,6 @@ pub fn image_executors() -> Vec<(&'static str, Executor)> {
         (OUTLINE_TYPE, executor(outline)),
         (TILT_TYPE, executor(tilt)),
         (LEVELS_TYPE, executor(levels)),
+        (GRID_TYPE, executor(grid)),
     ]
 }
