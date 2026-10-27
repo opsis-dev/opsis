@@ -975,6 +975,8 @@
   "hostDefaults": null,
   "defaults": {
    "fps": 30,
+   "timing": "real",
+   "pictures": "standard",
    "quality": 90,
    "establishMs": 700,
    "endTailMs": 2500,

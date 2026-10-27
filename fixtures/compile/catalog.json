@@ -6738,6 +6738,41 @@
       ],
       "x-unit": "fps"
      },
+     "timing": {
+      "description": "Timing",
+      "type": "string",
+      "enum": [
+       "real",
+       "smooth"
+      ],
+      "default": "real",
+      "x-labels": {
+       "real": "Real time",
+       "smooth": "Smooth (slower)"
+      },
+      "x-help": "Smooth gives every frame its own picture, however busy the computer is. It takes longer to record than the take lasts."
+     },
+     "pictures": {
+      "description": "Frame pictures",
+      "type": "string",
+      "enum": [
+       "standard",
+       "lossless",
+       "full-detail"
+      ],
+      "default": "standard",
+      "x-labels": {
+       "standard": "Standard",
+       "lossless": "Lossless",
+       "full-detail": "Full detail"
+      },
+      "x-help": "Standard matches real-time takes. Lossless keeps every pixel exact and takes about 70% longer to record. Full detail uses every pixel of a high-density screen: sharper, with twice the width and height, but about four times as long to record.",
+      "x-show-if": {
+       "timing": [
+        "smooth"
+       ]
+      }
+     },
      "quality": {
       "description": "Recording quality",
       "type": "integer",
@@ -6801,6 +6836,8 @@
     "type": "object",
     "default": {
      "fps": 30,
+     "timing": "real",
+     "pictures": "standard",
      "quality": 90,
      "establishMs": 700,
      "endTailMs": 2500,

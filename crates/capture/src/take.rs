@@ -12,7 +12,7 @@ use opsis_compile::nodes::browser::{
     Hoist, Hover, MockRoute, Navigate, OPEN_BROWSER_TYPE, Open, OverlayHtml, PressKeys, Scroll,
     ScrollMode, Select, SetState, SignIn, Silence, Type, Wait, WaitMode, WaitUntil, read_path,
 };
-use opsis_compile::nodes::capture::{Cursor, Record};
+use opsis_compile::nodes::capture::{Cursor, Record, Timing};
 use opsis_compile::registry::node_def;
 use opsis_compile::text::{non_blank_lines, wall_time_in};
 use opsis_compile::vars::PAUSE_MARK;
@@ -33,6 +33,7 @@ use crate::clock::Clock;
 use crate::cursor::{
     ActionOpts, CursorDriver, DragMethod, DragOpts, DragTo, KeyEvent, Press, TakeClick, TakeSink,
 };
+use crate::ease::camera_ease;
 use crate::encoder::{EncodeError, Encoded, FrameEncoder};
 use crate::input::Input;
 use crate::keyboard::pressed_chord;
@@ -42,8 +43,8 @@ use crate::overlays::Overlays;
 use crate::page::{Lifecycle, NAVIGATION_TIMEOUT};
 use crate::page_scripts::{
     ADD_STYLES, CHAT_WIDGET_SELECTORS, COOKIE_BANNER_SELECTORS, INSTALL_CURSOR, INVALID_SELECTORS,
-    OPTION_VALUE, RESTORE_LOCAL_STORAGE, SavedStorage, before_first_load, call, cursor_look,
-    hiding_css, run_user_script,
+    OPTION_VALUE, PLAN_ELEMENT_SCROLL, RESTORE_LOCAL_STORAGE, STEP_ELEMENT_SCROLL, SavedStorage,
+    before_first_load, call, cursor_look, hiding_css, run_user_script,
 };
 use crate::route::{MockResponse, Routes};
 use crate::screencast::{DEFAULT_FRAME_QUALITY, FrameSinks, Screencast};
@@ -51,6 +52,8 @@ use crate::selectors::{
     CSS_PREFIX, ResolveError, ResolveOptions, Resolved, SelectorError, Target, dump_visible,
     resolve_target,
 };
+use crate::smooth::{FramePictures, Smooth};
+use crate::take_clock::TakeClock;
 use crate::trace::{CallInfo, Trace};
 
 const LIVE_CURSOR_GAP_MS: f64 = 30.0;
@@ -247,6 +250,7 @@ struct Recorded {
 }
 
 struct Recorder {
+    clock: TakeClock,
     t0: Mutex<f64>,
     recorded: Mutex<Recorded>,
     live: Option<Arc<dyn LiveSink>>,
@@ -255,7 +259,7 @@ struct Recorder {
 
 impl Recorder {
     fn elapsed(&self) -> f64 {
-        wall_ms() - *self.t0.lock().expect("take start")
+        self.clock.now() - *self.t0.lock().expect("take start")
     }
 
     fn recorded(&self) -> std::sync::MutexGuard<'_, Recorded> {
@@ -377,6 +381,7 @@ impl<'e> TakeRun<'e> {
             };
         (env.step)(browser_id, StepStatus::Done, None);
         let recorder = Arc::new(Recorder {
+            clock: session.tab.clock().clone(),
             t0: Mutex::new(wall_ms()),
             recorded: Mutex::default(),
             live: env.live.clone(),
@@ -464,7 +469,7 @@ impl<'e> TakeRun<'e> {
 
     async fn sleep(&self, duration: Duration) {
         let wait = async {
-            tokio::time::sleep(duration).await;
+            self.tab().clock().wait(duration).await;
             Ok(())
         };
         if let Err(error) = self
@@ -591,7 +596,33 @@ impl<'e> TakeRun<'e> {
         self.actions.push(action);
     }
 
-    async fn begin_video(&mut self) {
+    async fn step_frames(&mut self, t0: f64) -> StepResult {
+        let Some(recording) = &self.recording else {
+            return Ok(());
+        };
+        if recording.record.timing != Timing::Smooth {
+            return Ok(());
+        }
+        let pictures = FramePictures {
+            encoder: Some(recording.encoder.feed()),
+            view: self.env.live.clone().map(|live| live as Arc<dyn FrameSink>),
+            picture: recording.record.pictures,
+            quality: recording.record.quality,
+            viewport: self.session.viewport,
+            dpr: self.session.dpr,
+        };
+        let fps = recording.record.fps;
+        if let Some(screencast) = self.screencast.take() {
+            screencast.stop(self.tab()).await?;
+        }
+        self.clock.hold_for_frames(&self.session).await?;
+        let smooth = Smooth::start(self.tab(), fps, pictures).await?;
+        smooth.picture(t0).await;
+        self.tab().clock().step_from(t0, smooth);
+        Ok(())
+    }
+
+    async fn begin_video(&mut self) -> StepResult {
         self.actions = std::mem::take(&mut self.actions)
             .into_iter()
             .map(at_take_start)
@@ -601,6 +632,7 @@ impl<'e> TakeRun<'e> {
         if let Some(recording) = &self.recording {
             recording.encoder.set_origin(t0);
         }
+        self.step_frames(t0).await?;
         let recorder = Arc::clone(&self.recorder);
         let elapsed: Arc<dyn Fn() -> f64 + Send + Sync> = Arc::new(move || recorder.elapsed());
         let reads_shapes = self
@@ -619,6 +651,7 @@ impl<'e> TakeRun<'e> {
             )
             .await,
         );
+        Ok(())
     }
 
     fn live_step(&self, step: &SessionStep, status: LiveStepStatus, message: Option<&str>) {
@@ -869,17 +902,19 @@ impl<'e> TakeRun<'e> {
             ScrollMode::Element => {
                 let resolved = self.resolve(&p.target, None).await?;
                 let handle = self.element(&resolved.target, &p.target).await?;
-                let scrolled = if p.smooth {
+                let scrolled = if !p.smooth {
+                    self.tab().scroll_into_view_if_needed(&handle).await
+                } else if self.tab().clock().is_stepped() {
+                    self.scroll_by_frames(&handle, p.duration_ms).await
+                } else {
                     self.tab()
                         .call_on::<Value>(&handle, SCROLL_SMOOTHLY, &[])
                         .await
                         .map(drop)
-                } else {
-                    self.tab().scroll_into_view_if_needed(&handle).await
                 };
                 self.tab().release(&handle).await;
                 scrolled?;
-                if p.smooth {
+                if p.smooth && !self.tab().clock().is_stepped() {
                     self.sleep(ms(p.duration_ms)).await;
                 }
             }
@@ -890,11 +925,14 @@ impl<'e> TakeRun<'e> {
             }
             ScrollMode::By => {
                 let ticks = (f64::from(p.duration_ms) / SCROLL_TICK_MS).round().max(1.0);
-                for _ in 0..ticks as u64 {
+                let start = self.tab().clock().now();
+                for tick in 1..=ticks as u32 {
                     self.input
                         .wheel(self.tab(), 0.0, f64::from(p.delta_y) / ticks)
                         .await?;
-                    self.sleep(Duration::from_secs_f64(SCROLL_TICK_MS / 1000.0))
+                    self.tab()
+                        .clock()
+                        .sleep_until(start + f64::from(tick) * SCROLL_TICK_MS)
                         .await;
                 }
             }
@@ -905,6 +943,31 @@ impl<'e> TakeRun<'e> {
         self.push_action(action, step);
         self.pause_if_rolling(p.pause.after).await;
         Ok(())
+    }
+
+    async fn scroll_by_frames(
+        &self,
+        handle: &Handle,
+        duration_ms: u32,
+    ) -> Result<(), CaptureError> {
+        let tab = self.tab();
+        tab.call_on::<Value>(handle, PLAN_ELEMENT_SCROLL, &[])
+            .await?;
+        let start = tab.clock().now();
+        let span = f64::from(duration_ms.max(1));
+        loop {
+            let p01 = ((tab.clock().now() - start) / span).clamp(0.0, 1.0);
+            tab.call_on::<Value>(
+                handle,
+                STEP_ELEMENT_SCROLL,
+                &[Arg::Value(json!(camera_ease(p01)))],
+            )
+            .await?;
+            if p01 >= 1.0 {
+                return Ok(());
+            }
+            tab.clock().wait(Duration::from_millis(1)).await;
+        }
     }
 
     async fn select(&mut self, step: &SessionStep, p: Select) -> StepResult {
@@ -1220,7 +1283,7 @@ impl<'e> TakeRun<'e> {
         for step in &steps[..start] {
             self.run(step).await?;
         }
-        self.begin_video().await;
+        self.begin_video().await?;
         if let Some(recording) = &self.recording {
             self.sleep(ms(recording.record.establish_ms)).await;
         }
@@ -1231,7 +1294,8 @@ impl<'e> TakeRun<'e> {
     }
 
     async fn stop(mut self, failed: bool) -> Stopped {
-        let end = wall_ms();
+        let end = self.tab().clock().now();
+        self.tab().clock().stop();
         let t0 = *self.recorder.t0.lock().expect("take start");
         let mut duration_ms = end - t0;
         if let Some(screencast) = self.screencast.take()

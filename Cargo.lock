@@ -4643,6 +4643,7 @@ dependencies = [
  "chromiumoxide",
  "futures",
  "html-escape",
+ "image",
  "imagesize",
  "indexmap 2.14.2",
  "log",

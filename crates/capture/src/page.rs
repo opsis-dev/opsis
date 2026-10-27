@@ -16,12 +16,13 @@ use tokio::task::JoinHandle;
 use tokio::time::Instant;
 
 use crate::cdp::{Arg, CaptureError, Handle, Result, Tab};
-use crate::clock::wall_ms;
+use crate::take_clock::TakeClock;
 use crate::trace::CallInfo;
 use crate::url_match::url_matches;
 
 pub const NAVIGATION_TIMEOUT: Duration = Duration::from_secs(30);
 const VISIBLE_POLL: Duration = Duration::from_millis(16);
+const STEPPED_POLL: Duration = Duration::from_millis(1);
 const RETRY_WAITS: [Duration; 5] = [
     Duration::ZERO,
     Duration::from_millis(20),
@@ -43,18 +44,19 @@ struct PageState {
 }
 
 impl PageState {
-    fn moved_to(&mut self, url: String) {
+    fn moved_to(&mut self, url: String, at: f64) {
         if url == self.url {
             return;
         }
         if !url.starts_with("about:") {
-            self.visited.push((wall_ms(), url.clone()));
+            self.visited.push((at, url.clone()));
         }
         self.url = url;
     }
 }
 
 pub struct Lifecycle {
+    clock: TakeClock,
     state: Arc<Mutex<PageState>>,
     changed: Arc<Notify>,
     tasks: Vec<JoinHandle<()>>,
@@ -130,17 +132,21 @@ impl Lifecycle {
             }
         });
         let (s, c, f) = (Arc::clone(&state), Arc::clone(&changed), frame_id.clone());
+        let clock = tab.clock().clone();
         let on_navigated = tokio::spawn(async move {
             while let Some(event) = navigated.next().await {
                 if event.frame.id.inner() != &f {
                     continue;
                 }
                 let mut page = s.lock().expect("page state");
-                page.moved_to(format!(
-                    "{}{}",
-                    event.frame.url,
-                    event.frame.url_fragment.clone().unwrap_or_default()
-                ));
+                page.moved_to(
+                    format!(
+                        "{}{}",
+                        event.frame.url,
+                        event.frame.url_fragment.clone().unwrap_or_default()
+                    ),
+                    clock.now(),
+                );
                 if page.loader_id != *event.frame.loader_id.inner() {
                     page.loader_id = event.frame.loader_id.inner().clone();
                     page.fired.clear();
@@ -151,17 +157,21 @@ impl Lifecycle {
             }
         });
         let (s, c) = (Arc::clone(&state), Arc::clone(&changed));
+        let clock = tab.clock().clone();
         let on_within = tokio::spawn(async move {
             while let Some(event) = within.next().await {
                 if event.frame_id.inner() != &frame_id {
                     continue;
                 }
-                s.lock().expect("page state").moved_to(event.url.clone());
+                s.lock()
+                    .expect("page state")
+                    .moved_to(event.url.clone(), clock.now());
                 c.notify_waiters();
             }
         });
         state.lock().expect("page state").url = "about:blank".to_owned();
         Ok(Self {
+            clock: tab.clock().clone(),
             state,
             changed,
             tasks: vec![on_lifecycle, on_navigated, on_within],
@@ -193,6 +203,16 @@ impl Lifecycle {
         timeout: Duration,
         mut done: impl FnMut(&PageState) -> bool,
     ) -> Result<()> {
+        if self.clock.is_stepped() {
+            return self
+                .clock
+                .until(timeout, STEPPED_POLL, || {
+                    let finished = done(&self.state.lock().expect("page state"));
+                    async move { finished.then_some(()) }
+                })
+                .await
+                .ok_or_else(|| didnt_respond(timeout));
+        }
         let deadline = Instant::now() + timeout;
         loop {
             let notified = self.changed.notified();
@@ -284,12 +304,13 @@ impl Lifecycle {
 
     async fn waited_for_url(&self, glob: &str, timeout: Duration) -> Result<()> {
         url_matches("", glob).map_err(CaptureError::Failed)?;
-        let deadline = Instant::now() + timeout;
+        let start = self.clock.now();
         self.until(timeout, |page| {
             url_matches(&page.url, glob).unwrap_or(false)
         })
         .await?;
-        let left = deadline.saturating_duration_since(Instant::now());
+        let spent = Duration::from_secs_f64(((self.clock.now() - start) / 1000.0).max(0.0));
+        let left = timeout.saturating_sub(spent);
         self.until(left, |page| page.fired.contains("load"))
             .await
             .map_err(|_| didnt_respond(timeout))
@@ -329,21 +350,20 @@ impl Tab {
     }
 
     async fn waited_visible(&self, selector: &str, timeout: Duration) -> Result<Handle> {
-        let deadline = Instant::now() + timeout;
-        loop {
-            if self
-                .injected_value::<bool>(IS_VISIBLE, &[Arg::Value(json!(selector))])
-                .await
-                .unwrap_or(false)
-                && let Some(handle) = self.query(selector).await?
-            {
-                return Ok(handle);
-            }
-            if Instant::now() >= deadline {
-                return Err(CaptureError::NotFoundWithin(timeout));
-            }
-            tokio::time::sleep(VISIBLE_POLL).await;
-        }
+        let found = self
+            .clock()
+            .until(timeout, VISIBLE_POLL, || async {
+                if !self
+                    .injected_value::<bool>(IS_VISIBLE, &[Arg::Value(json!(selector))])
+                    .await
+                    .unwrap_or(false)
+                {
+                    return None;
+                }
+                self.query(selector).await.transpose()
+            })
+            .await;
+        found.unwrap_or(Err(CaptureError::NotFoundWithin(timeout)))
     }
 
     pub async fn bounding_box(&self, handle: &Handle) -> Result<Option<Rect>> {
@@ -372,10 +392,13 @@ impl Tab {
     }
 
     async fn scrolled_into_view(&self, handle: &Handle) -> Result<()> {
-        let deadline = Instant::now() + RETRY_LIMIT;
+        let start = self.clock().now();
+        let limit_ms = RETRY_LIMIT.as_secs_f64() * 1000.0;
         for retry in 0.. {
             if retry > 0 {
-                tokio::time::sleep(RETRY_WAITS[(retry - 1).min(RETRY_WAITS.len() - 1)]).await;
+                self.clock()
+                    .wait(RETRY_WAITS[(retry - 1).min(RETRY_WAITS.len() - 1)])
+                    .await;
             }
             let missing: Value = self.injected_value(STABLE, &[Arg::Handle(handle)]).await?;
             if missing == json!("error:notconnected") {
@@ -391,7 +414,7 @@ impl Tab {
                 .await?;
                 return Ok(());
             }
-            if Instant::now() >= deadline {
+            if self.clock().now() - start >= limit_ms {
                 break;
             }
         }

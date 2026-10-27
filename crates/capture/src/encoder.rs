@@ -28,14 +28,30 @@ impl From<ToolError> for EncodeError {
     }
 }
 
-pub fn encoder_args(fps: u32, output: &Path) -> Vec<String> {
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum FrameImage {
+    #[default]
+    Jpeg,
+    Png,
+}
+
+impl FrameImage {
+    fn decoder(self) -> &'static str {
+        match self {
+            Self::Jpeg => "mjpeg",
+            Self::Png => "png",
+        }
+    }
+}
+
+pub fn encoder_args(fps: u32, image: FrameImage, output: &Path) -> Vec<String> {
     let mut args = strings(&[
         "-f",
         "image2pipe",
         "-framerate",
         &fps.to_string(),
         "-c:v",
-        "mjpeg",
+        image.decoder(),
         "-i",
         "-",
         "-an",
@@ -163,9 +179,14 @@ impl Writer {
 }
 
 impl FrameEncoder {
-    pub fn start(tools: &dyn MediaTools, output: &Path, fps: u32) -> Result<Self, EncodeError> {
+    pub fn start(
+        tools: &dyn MediaTools,
+        output: &Path,
+        fps: u32,
+        image: FrameImage,
+    ) -> Result<Self, EncodeError> {
         let cancel = CancellationToken::new();
-        let pipe = tools.pipe(&encoder_args(fps, output), Some(cancel.clone()))?;
+        let pipe = tools.pipe(&encoder_args(fps, image, output), Some(cancel.clone()))?;
         let (sender, receiver) = mpsc::unbounded_channel();
         let writer = Writer {
             pipe,

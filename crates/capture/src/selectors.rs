@@ -5,7 +5,6 @@ use opsis_compile::nodes::browser::parse_point;
 use opsis_types::actions::Point;
 use serde::Deserialize;
 use serde_json::json;
-use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
 use crate::cdp::{CaptureError, Result, Tab};
@@ -102,8 +101,10 @@ pub async fn resolve_target(
         });
     }
     let candidates = auto_candidates(raw);
-    let start = Instant::now();
-    while start.elapsed() < timeout {
+    let clock = tab.clock();
+    let start = clock.now();
+    let timeout_ms = timeout.as_secs_f64() * 1000.0;
+    while clock.now() - start < timeout_ms {
         if opts.cancel.is_cancelled() {
             return Err(CaptureError::Cancelled.into());
         }
@@ -117,7 +118,7 @@ pub async fn resolve_target(
                 });
             }
         }
-        tokio::time::sleep(POLL).await;
+        clock.wait(POLL).await;
     }
     Err(ResolveError::NotFound(SelectorError {
         label: raw.to_owned(),

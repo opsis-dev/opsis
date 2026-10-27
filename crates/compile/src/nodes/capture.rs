@@ -32,6 +32,23 @@ pub enum Cursor {
     None,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum Timing {
+    #[default]
+    Real,
+    Smooth,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum FramePicture {
+    #[default]
+    Standard,
+    Lossless,
+    FullDetail,
+}
+
 impl Cursor {
     fn row(self) -> &'static str {
         match self {
@@ -48,6 +65,23 @@ pub struct Record {
     #[default = 30]
     #[schemars(description = "Frame rate", extend("enum" = [25, 30, 60], "x-unit" = "fps"))]
     pub fps: u32,
+    #[schemars(
+        description = "Timing",
+        extend(
+            "x-labels" = { "real": "Real time", "smooth": "Smooth (slower)" },
+            "x-help" = "Smooth gives every frame its own picture, however busy the computer is. It takes longer to record than the take lasts."
+        )
+    )]
+    pub timing: Timing,
+    #[schemars(
+        description = "Frame pictures",
+        extend(
+            "x-labels" = { "standard": "Standard", "lossless": "Lossless", "full-detail": "Full detail" },
+            "x-help" = "Standard matches real-time takes. Lossless keeps every pixel exact and takes about 70% longer to record. Full detail uses every pixel of a high-density screen: sharper, with twice the width and height, but about four times as long to record.",
+            "x-show-if" = { "timing": ["smooth"] }
+        )
+    )]
+    pub pictures: FramePicture,
     #[default = 90]
     #[schemars(
         description = "Recording quality",
@@ -226,7 +260,13 @@ fn record() -> NodeDef {
         let rec = recording_of(ctx.result);
         let steps = ctx.inputs.steps.get(SESSION_PORT);
         vec![
-            Some(row(Icon::Video, format!("{} fps", p.fps))),
+            Some(row(
+                Icon::Video,
+                match p.timing {
+                    Timing::Real => format!("{} fps", p.fps),
+                    Timing::Smooth => format!("{} fps · Smooth", p.fps),
+                },
+            )),
             Some(row(Icon::MousePointer, p.cursor.row())),
             steps
                 .filter(|s| !s.contains(&BrowserAction::StartRecording))

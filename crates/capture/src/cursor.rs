@@ -156,10 +156,6 @@ fn pad_small_target(rect: Rect, design_scale: f64) -> Rect {
     }
 }
 
-pub async fn pause(ms: f64) {
-    tokio::time::sleep(Duration::from_secs_f64(ms.max(0.0) / 1000.0)).await;
-}
-
 fn onto_plan(origin: Point, drop: &TargetBox) -> DragPlan {
     let end = Point {
         x: drop.cx,
@@ -224,8 +220,15 @@ impl CursorDriver {
         (self.elapsed)()
     }
 
+    async fn hold(&self, ms: f64) {
+        self.tab
+            .clock()
+            .wait(Duration::from_secs_f64(ms.max(0.0) / 1000.0))
+            .await;
+    }
+
     pub async fn pause(&self, ms: Option<f64>) {
-        pause(ms.unwrap_or(DEFAULT_PAUSE_MS)).await;
+        self.hold(ms.unwrap_or(DEFAULT_PAUSE_MS)).await;
     }
 
     pub async fn press_key(&self, chord: &str, label: Option<&str>) -> Result<()> {
@@ -288,7 +291,7 @@ impl CursorDriver {
                 Press::default(),
             )
             .await?;
-        pause(FIELD_FOCUS_MS).await;
+        self.hold(FIELD_FOCUS_MS).await;
         let select_all = if cfg!(target_os = "macos") {
             "Meta+A"
         } else {
@@ -300,7 +303,7 @@ impl CursorDriver {
         let keyed = || key_times.lock().expect("key times").push(self.now());
         for (i, chunk) in chunks.iter().enumerate() {
             if i > 0 {
-                pause(opts.chunk_pause_ms).await;
+                self.hold(opts.chunk_pause_ms).await;
             }
             self.input
                 .type_text(
@@ -394,7 +397,10 @@ impl CursorDriver {
             if p01 >= 1.0 {
                 return Ok(());
             }
-            tokio::time::sleep(Duration::from_millis(SAMPLE_MS)).await;
+            self.tab
+                .clock()
+                .wait(Duration::from_millis(SAMPLE_MS))
+                .await;
         }
     }
 
@@ -419,7 +425,7 @@ impl CursorDriver {
         self.park(to).await;
         self.read_shape().await;
         if settle_ms > 0.0 {
-            pause(settle_ms).await;
+            self.hold(settle_ms).await;
         }
         Ok(())
     }
@@ -454,7 +460,7 @@ impl CursorDriver {
                     y: found.y,
                 }) > SCROLL_MOVED_PX * self.design_scale
             {
-                pause(SCROLL_SETTLE_MS).await;
+                self.hold(SCROLL_SETTLE_MS).await;
             }
             Ok::<_, CaptureError>(found)
         }
@@ -552,7 +558,7 @@ impl CursorDriver {
         let t_down_ms = self.now();
         self.press_once(press.button, 1).await?;
         let t_second_down_ms = if press.double {
-            pause(DOUBLE_CLICK_GAP_MS).await;
+            self.hold(DOUBLE_CLICK_GAP_MS).await;
             let t = self.now();
             self.press_once(press.button, 2).await?;
             Some(t)
@@ -580,7 +586,7 @@ impl CursorDriver {
     async fn press_once(&self, button: ClickButton, count: u32) -> Result<()> {
         let button = MouseButton::from(button);
         self.input.mouse_down(&self.tab, button, count).await?;
-        pause(CLICK_HOLD_MS).await;
+        self.hold(CLICK_HOLD_MS).await;
         self.input.mouse_up(&self.tab, button, count).await
     }
 
@@ -635,9 +641,9 @@ impl CursorDriver {
         self.input
             .mouse_down(&self.tab, MouseButton::Left, 1)
             .await?;
-        pause(opts.hold_ms.unwrap_or(DRAG_HOLD_MS)).await;
+        self.hold(opts.hold_ms.unwrap_or(DRAG_HOLD_MS)).await;
         let moved = moving.await?;
-        pause(DROP_SETTLE_MS).await;
+        self.hold(DROP_SETTLE_MS).await;
         self.input.mouse_up(&self.tab, MouseButton::Left, 1).await?;
         Ok(moved)
     }

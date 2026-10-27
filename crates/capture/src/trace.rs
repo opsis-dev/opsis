@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use crate::clock::wall_ms;
+use crate::take_clock::TakeClock;
 use chromiumoxide::cdp::browser_protocol::network::{
     EventLoadingFailed, EventLoadingFinished, EventRequestWillBeSent, EventResponseReceived,
     Response,
@@ -101,6 +101,7 @@ impl State {
 pub struct Trace {
     state: Arc<Mutex<State>>,
     listeners: Vec<JoinHandle<()>>,
+    clock: TakeClock,
 }
 
 impl Drop for Trace {
@@ -286,7 +287,11 @@ impl Trace {
                 });
             }
         }));
-        Ok(Self { state, listeners })
+        Ok(Self {
+            state,
+            listeners,
+            clock: tab.clock().clone(),
+        })
     }
 
     fn state(&self) -> MutexGuard<'_, State> {
@@ -294,9 +299,9 @@ impl Trace {
     }
 
     pub fn group(&self, node_id: &str, title: &str) {
+        let now = self.clock.now();
         let mut state = self.state();
         let id = format!("group@{}", state.calls.len());
-        let now = wall_ms();
         let action = TraceAction {
             id,
             parent_id: None,
@@ -316,17 +321,18 @@ impl Trace {
     }
 
     pub fn end_group(&self, error: Option<&str>) {
+        let now = self.clock.now();
         let mut state = self.state();
         if let Some(index) = state.group.take() {
             let action = &mut state.calls[index].action;
-            action.end = wall_ms();
+            action.end = now;
             action.error = error.map(str::to_owned);
         }
     }
 
     pub fn begin(&self, info: CallInfo) -> usize {
+        let now = self.clock.now();
         let mut state = self.state();
-        let now = wall_ms();
         let action = TraceAction {
             id: format!("call@{}", state.calls.len()),
             parent_id: state.group_id(),
@@ -345,9 +351,10 @@ impl Trace {
     }
 
     pub fn end(&self, call: usize, error: Option<String>, bounds: Option<Bounds>) {
+        let now = self.clock.now();
         let mut state = self.state();
         if let Some(Call { action, .. }) = state.calls.get_mut(call) {
-            action.end = wall_ms();
+            action.end = now;
             action.error = error;
             if bounds.is_some() {
                 action.bounds = bounds;

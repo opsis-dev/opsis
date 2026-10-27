@@ -11,6 +11,7 @@ use serde_json::{Value, json};
 use tokio::sync::Mutex;
 
 use crate::playwright::INJECTED_SOURCE;
+use crate::take_clock::TakeClock;
 use crate::trace::{CallInfo, Trace};
 
 const UTILITY_WORLD: &str = "__opsis_utility_world__";
@@ -158,6 +159,7 @@ pub struct Tab {
     pub page: Page,
     utility: Mutex<Option<(i64, Handle)>>,
     trace: OnceLock<Arc<Trace>>,
+    clock: TakeClock,
 }
 
 impl Tab {
@@ -166,7 +168,12 @@ impl Tab {
             page,
             utility: Mutex::new(None),
             trace: OnceLock::new(),
+            clock: TakeClock::default(),
         }
+    }
+
+    pub fn clock(&self) -> &TakeClock {
+        &self.clock
     }
 
     pub fn set_trace(&self, trace: Arc<Trace>) {

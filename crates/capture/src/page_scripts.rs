@@ -382,3 +382,93 @@ pub const FIT_PAGE_TO_SCALE: &str = r#"function fitPageToScale({ scale, width, h
   apply();
   requestAnimationFrame(() => applyForStartupFrames());
 }"#;
+
+pub const STEP_FRAME: &str = r#"async function stepFrame(ms) {
+  const clock = globalThis.__pwClock?.controller;
+  if (clock) {
+    try {
+      await clock.runFor(ms);
+    } catch (error) {
+      queueMicrotask(() => {
+        throw error;
+      });
+    }
+  }
+  const step = (doc) => {
+    for (const animation of doc.getAnimations()) {
+      if (animation.playState === "running")
+        animation.currentTime = (animation.currentTime ?? 0) + ms * animation.playbackRate;
+    }
+    for (const frame of doc.querySelectorAll("iframe")) {
+      let inner = null;
+      try {
+        inner = frame.contentDocument;
+      } catch {}
+      if (inner) step(inner);
+    }
+  };
+  step(document);
+  return {
+    page: clock ? { time: clock.now(), fixed: clock._now.isFixedTime } : null,
+    left: visualViewport.pageLeft,
+    top: visualViewport.pageTop,
+  };
+}"#;
+
+pub const HOLD_PAGE_CLOCK: &str = r#"async function holdPageClock({ time, keepFixed }) {
+  const clock = globalThis.__pwClock.controller;
+  const fixed = keepFixed && clock._now.isFixedTime;
+  const at = time ?? clock.now();
+  if (time !== null) clock.install(time);
+  await clock.pauseAt(at);
+  if (fixed) clock.setFixedTime(at);
+}"#;
+
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub struct PageNow {
+    pub time: f64,
+    pub fixed: bool,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub struct SteppedPage {
+    pub page: Option<PageNow>,
+    pub left: f64,
+    pub top: f64,
+}
+
+pub fn page_time_for_new_pages(now: PageNow, wall: f64) -> String {
+    let fixed = if now.fixed {
+        format!(" c.log('setFixedTime', {wall}, {});", now.time)
+    } else {
+        String::new()
+    };
+    format!(
+        "if (window === window.top && globalThis.__pwClock) {{ const c = globalThis.__pwClock.controller; c.log('pauseAt', {wall}, {});{fixed} }}",
+        now.time
+    )
+}
+
+pub const PLAN_ELEMENT_SCROLL: &str = r#"function planElementScroll() {
+  const scrollers = [];
+  for (let node = this.parentElement; node; node = node.parentElement) {
+    if (node.scrollHeight > node.clientHeight || node.scrollWidth > node.clientWidth) scrollers.push(node);
+  }
+  const root = document.scrollingElement;
+  if (root && !scrollers.includes(root)) scrollers.push(root);
+  const from = scrollers.map((s) => [s.scrollLeft, s.scrollTop]);
+  this.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+  const to = scrollers.map((s) => [s.scrollLeft, s.scrollTop]);
+  scrollers.forEach((s, i) => s.scrollTo({ left: from[i][0], top: from[i][1], behavior: "instant" }));
+  this.__opsisScroll = { scrollers, from, to };
+}"#;
+
+pub const STEP_ELEMENT_SCROLL: &str = r#"function stepElementScroll(progress) {
+  const plan = this.__opsisScroll;
+  if (!plan) return;
+  plan.scrollers.forEach((s, i) => {
+    const [fromX, fromY] = plan.from[i];
+    const [toX, toY] = plan.to[i];
+    s.scrollTo({ left: fromX + (toX - fromX) * progress, top: fromY + (toY - fromY) * progress, behavior: "instant" });
+  });
+}"#;

@@ -31,6 +31,7 @@ tokio-util = "0.7.20"
 url = "2.5.8"
 
 [dev-dependencies]
+image = { version = "0.25.10", default-features = false, features = ["jpeg"] }
 imagesize = "0.15.0"
 opsis-golden = { path = "../golden" }
 tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros"] }

@@ -739,3 +739,14 @@ fn the_inspector_knows_the_kind_of_each_file_setting() {
     );
     assert!(kinds("").is_empty());
 }
+
+#[test]
+fn says_on_record_takes_card_when_the_take_is_smooth() {
+    let first =
+        |params: Value| card_texts("capture.record", params, CardInputs::default())[0].clone();
+    assert_eq!(first(json!({})), "30 fps");
+    assert_eq!(
+        first(json!({ "timing": "smooth", "fps": 60 })),
+        "60 fps · Smooth"
+    );
+}

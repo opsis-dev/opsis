@@ -138,14 +138,14 @@ impl Overlays {
     pub fn remove_after(self: &Arc<Self>, id: String, after: Duration) {
         let overlays = Arc::clone(self);
         tokio::spawn(async move {
-            tokio::time::sleep(after).await;
+            overlays.tab.clock().wait(after).await;
             overlays.remove(&id).await;
         });
     }
 
     pub async fn chapter(&self, title: &str, description: &str, duration: Duration) {
         let id = self.show(&chapter_html(title, description)).await;
-        tokio::time::sleep(duration).await;
+        self.tab.clock().wait(duration).await;
         if let Err(error) = self
             .tab
             .injected_value::<Value>(
@@ -194,7 +194,9 @@ impl Overlays {
                 log::debug!("showing an action: {error}");
                 return;
             }
-            tokio::time::sleep(Duration::from_millis(SHOW_ACTIONS_MS)).await;
+            tab.clock()
+                .wait(Duration::from_millis(SHOW_ACTIONS_MS))
+                .await;
             if current.load(Ordering::Relaxed) == generation
                 && let Err(error) = tab
                     .injected_value::<Value>(ANNOTATE, &[Arg::Value(Value::Null)])

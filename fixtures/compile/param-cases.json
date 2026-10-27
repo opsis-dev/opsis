@@ -10775,6 +10775,8 @@
     "ok": true,
     "data": {
      "fps": 30,
+     "timing": "real",
+     "pictures": "standard",
      "quality": 90,
      "establishMs": 700,
      "endTailMs": 2500,
@@ -10793,6 +10795,8 @@
     "ok": true,
     "data": {
      "fps": 30,
+     "timing": "real",
+     "pictures": "standard",
      "quality": 90,
      "establishMs": 700,
      "endTailMs": 2500,
@@ -10812,7 +10816,7 @@
    "outcome": {
     "ok": true,
     "value": 30,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -10861,7 +10865,7 @@
    "outcome": {
     "ok": true,
     "value": 90,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -10946,7 +10950,7 @@
    "outcome": {
     "ok": true,
     "value": 10,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -10971,7 +10975,7 @@
    "outcome": {
     "ok": true,
     "value": 100,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -10984,7 +10988,7 @@
    "outcome": {
     "ok": true,
     "value": 700,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11069,7 +11073,7 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11094,7 +11098,7 @@
    "outcome": {
     "ok": true,
     "value": 600000,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11107,7 +11111,7 @@
    "outcome": {
     "ok": true,
     "value": 2500,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11192,7 +11196,7 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11217,7 +11221,7 @@
    "outcome": {
     "ok": true,
     "value": 600000,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11230,7 +11234,7 @@
    "outcome": {
     "ok": true,
     "value": "synthetic",
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11279,7 +11283,7 @@
    "outcome": {
     "ok": true,
     "value": false,
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11316,7 +11320,7 @@
    "outcome": {
     "ok": true,
     "value": "",
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11353,7 +11357,7 @@
    "outcome": {
     "ok": true,
     "value": "",
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11366,7 +11370,7 @@
    "outcome": {
     "ok": true,
     "value": "   ",
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11379,7 +11383,7 @@
    "outcome": {
     "ok": true,
     "value": "nope",
-    "keys": 7
+    "keys": 9
    }
   },
   {
@@ -11392,7 +11396,7 @@
    "outcome": {
     "ok": true,
     "value": "{{Product name}}",
-    "keys": 7
+    "keys": 9
    }
   },
   {

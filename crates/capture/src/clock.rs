@@ -1,9 +1,10 @@
 use opsis_compile::nodes::browser::ClockMode;
 use opsis_runner::context::now_ms;
-use serde_json::Value;
+use serde_json::{Value, json};
 
 use crate::browser::Session;
 use crate::cdp::Result;
+use crate::page_scripts::{HOLD_PAGE_CLOCK, call};
 use crate::playwright::CLOCK_SOURCE;
 
 #[derive(Default)]
@@ -41,6 +42,31 @@ impl Clock {
             .tab
             .evaluate_main::<Value>(&format!(
                 "globalThis.__pwClock.controller.{method}({time_ms})"
+            ))
+            .await?;
+        Ok(())
+    }
+
+    pub async fn hold_for_frames(&mut self, session: &Session) -> Result<()> {
+        let time = if self.installed {
+            None
+        } else {
+            let now = now_ms();
+            let script = clock_script();
+            session
+                .add_init_script(&format!(
+                    "if (window === window.top) {{ {script}\nglobalThis.__pwClock.controller.log('install', {now}, {now}); }}"
+                ))
+                .await?;
+            session.tab.evaluate_main::<Value>(&script).await?;
+            self.installed = true;
+            Some(now)
+        };
+        session
+            .tab
+            .evaluate_main::<Value>(&call(
+                HOLD_PAGE_CLOCK,
+                &json!({ "time": time, "keepFixed": true }),
             ))
             .await?;
         Ok(())

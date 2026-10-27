@@ -185,7 +185,7 @@ impl Input {
         }
         self.key_down(tab, key).await?;
         if let Some(delay) = delay {
-            tokio::time::sleep(delay).await;
+            tab.clock().wait(delay).await;
         }
         self.key_up(tab, key).await?;
         for token in held.iter().rev() {
@@ -222,7 +222,7 @@ impl Input {
                 self.pressed(tab, &key, delay).await?;
             } else {
                 if let Some(delay) = delay {
-                    tokio::time::sleep(delay).await;
+                    tab.clock().wait(delay).await;
                 }
                 tab.send("Input.insertText", json!({ "text": key })).await?;
             }

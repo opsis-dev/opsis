@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use opsis_compile::node::{RECORDING_PORT, SESSION_PORT};
 use opsis_compile::nodes::browser::{DoneWhen, Open, SignIn};
-use opsis_compile::nodes::capture::{Record, Still};
+use opsis_compile::nodes::capture::{FramePicture, Record, Still, Timing};
 use opsis_compile::params::Values;
 use opsis_compile::recording::PREVIEW_FILE_WIDTH;
 use opsis_compile::registry::node_name;
@@ -32,7 +32,7 @@ use opsis_types::values::{
 use tokio_util::sync::CancellationToken;
 
 use crate::cdp::CaptureError;
-use crate::encoder::{EncodeError, Encoded, FrameEncoder};
+use crate::encoder::{EncodeError, Encoded, FrameEncoder, FrameImage};
 use crate::live::{LiveFeed, LiveSink, NodeLive};
 use crate::still::{Shot, StillRequest, still_take};
 use crate::still_layout::Size;
@@ -370,7 +370,13 @@ async fn record(
     let mp4 = ctx.dir.join(RECORDING_FILE);
     ctx.progress(0.02, Some("Starting the browser"));
     let env = take_env(&ctx, &deps)?;
-    let encoder = FrameEncoder::start(deps.tools.as_ref(), &mp4, p.fps).map_err(encode_error)?;
+    let image = if p.timing == Timing::Smooth && p.pictures == FramePicture::Lossless {
+        FrameImage::Png
+    } else {
+        FrameImage::Jpeg
+    };
+    let encoder =
+        FrameEncoder::start(deps.tools.as_ref(), &mp4, p.fps, image).map_err(encode_error)?;
     let fps = p.fps;
     let played = record_take(&env, session, Recording { encoder, record: p }).await;
     let frames = played.encoded.as_ref().map_or(0, |e| e.frames);
