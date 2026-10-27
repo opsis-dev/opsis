@@ -1,3 +1,4 @@
+pub mod children;
 pub mod chrome_for_testing;
 pub mod downloads;
 pub mod files;

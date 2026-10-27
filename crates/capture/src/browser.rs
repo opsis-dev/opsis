@@ -1,3 +1,4 @@
+use opsis_engine::children::{forget_child, remember_child};
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
@@ -85,6 +86,15 @@ pub struct Launched {
     handler: JoinHandle<()>,
     _profile: tempfile::TempDir,
     platform: &'static str,
+    pid: Option<u32>,
+}
+
+impl Drop for Launched {
+    fn drop(&mut self) {
+        if let Some(pid) = self.pid {
+            forget_child(pid);
+        }
+    }
 }
 
 impl Launched {
@@ -128,7 +138,11 @@ pub async fn launch(executable: &Path, temp_dir: &Path, extra: &[&str]) -> Resul
         config = config.arg(switch);
     }
     let config = config.build().map_err(CaptureError::Failed)?;
-    let (browser, mut handler) = Browser::launch(config).await?;
+    let (mut browser, mut handler) = Browser::launch(config).await?;
+    let pid = browser.get_mut_child().and_then(|child| child.inner.id());
+    if let Some(pid) = pid {
+        remember_child(pid);
+    }
     let handler = tokio::spawn(async move {
         while let Some(event) = handler.next().await {
             if let Err(error) = event {
@@ -149,6 +163,7 @@ pub async fn launch(executable: &Path, temp_dir: &Path, extra: &[&str]) -> Resul
         handler,
         _profile: profile,
         platform,
+        pid,
     })
 }
 

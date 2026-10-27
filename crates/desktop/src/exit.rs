@@ -94,6 +94,32 @@ async fn flush_save(app: &AppHandle) {
     }
 }
 
+#[cfg(unix)]
+pub fn close_on_signals(app: &AppHandle) {
+    use tokio::signal::unix::{SignalKind, signal};
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        let listening = (
+            signal(SignalKind::terminate()),
+            signal(SignalKind::interrupt()),
+            signal(SignalKind::hangup()),
+        );
+        let (Ok(mut terminate), Ok(mut interrupt), Ok(mut hangup)) = listening else {
+            log::warn!("couldn't listen for the signals that end the app");
+            return;
+        };
+        let name = tokio::select! {
+            _ = terminate.recv() => "SIGTERM",
+            _ = interrupt.recv() => "SIGINT",
+            _ = hangup.recv() => "SIGHUP",
+        };
+        log::info!("{name}: saving and closing");
+        flush_save(&app).await;
+        app.state::<RunHost>().cancel();
+        app.exit(0);
+    });
+}
+
 async fn confirm(app: &AppHandle, window: &Window) -> bool {
     let ask_first = app.state::<AppState>().settings().app.confirm_exit;
     let busy = ongoing(app);

@@ -43,6 +43,16 @@ use crate::windows::WindowRuntime;
 
 fn start(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let paths = AppPaths::new(app.handle())?;
+    let ended = opsis_engine::children::end_children_of_gone_apps(
+        &paths.temp_root,
+        &opsis_engine::temp::process_alive,
+    );
+    if !ended.is_empty() {
+        log::info!(
+            "ended {} programs left running by earlier runs: {ended:?}",
+            ended.len()
+        );
+    }
     let cleared = opsis_engine::temp::clear_stale_child_temps(
         &paths.temp_root,
         &opsis_engine::temp::process_alive,
@@ -87,6 +97,8 @@ async fn open(
     app.manage(WindowRuntime::default());
     app.manage(api::Api::new(app));
     api::follow_setting(app);
+    #[cfg(unix)]
+    exit::close_on_signals(app);
     engine::verify_on_start(app);
     windows::open_main(app).map_err(|e| e.0)?;
     Ok(())
@@ -118,6 +130,10 @@ pub fn run() {
                 && let Some(state) = app.try_state::<AppState>()
             {
                 app.state::<RunHost>().cancel();
+                let ended = opsis_engine::children::end_remembered_children();
+                if !ended.is_empty() {
+                    log::info!("ended the browsers still open: {ended:?}");
+                }
                 api::stop(app);
                 opsis_engine::temp::remove_child_temp(&state.paths.views_temp);
                 opsis_engine::temp::remove_child_temp(&state.paths.sidecar_temp);
