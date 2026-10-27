@@ -8,9 +8,10 @@ use image::{
 };
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
-    AdjustImage, BlurImage, ClearColour, CropImage, CropMode, ImageFormat, OutlineImage,
-    PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage,
-    StillFileFormat, TiltImage, TrimEdges, Turn, tilt_corners, tilted_size,
+    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, CropMode, ImageFormat,
+    LevelsMethod, OutlineImage, PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage,
+    RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn, tilt_corners,
+    tilted_size,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -632,4 +633,52 @@ fn tilts_the_corners_to_where_the_plan_puts_them() {
     assert!(top_width < bottom_width, "the top leans back");
     let shadowed = ops::tilt(&red, &TiltImage { shadow: true, ..p }).unwrap();
     assert!(shadowed.width() > out.width());
+}
+
+#[test]
+fn stretches_dull_levels_to_black_and_white() {
+    let dull = RgbImage::from_fn(64, 16, |x, _| {
+        let v = 80 + (x * 2) as u8;
+        Rgb([v, v, v + 10])
+    });
+    let image = DynamicImage::ImageRgb8(dull);
+    let range = |out: &DynamicImage| {
+        let values: Vec<u8> = out.to_rgb8().pixels().flat_map(|p| p.0).collect();
+        (*values.iter().min().unwrap(), *values.iter().max().unwrap())
+    };
+    for method in [LevelsMethod::Stretch, LevelsMethod::Equalize] {
+        let out = ops::auto_levels(
+            &image,
+            &AutoLevels {
+                method,
+                clip: 0.0,
+                ..AutoLevels::default()
+            },
+        );
+        assert_eq!(out.color(), image.color());
+        let (low, high) = range(&out);
+        assert!(low < 8 && high > 247, "{method:?} spans {low}..{high}");
+    }
+    let untouched = ops::auto_levels(
+        &image,
+        &AutoLevels {
+            strength: 0.0,
+            ..AutoLevels::default()
+        },
+    );
+    assert_eq!(range(&untouched), (80, 216));
+    let cast = ops::auto_levels(
+        &image,
+        &AutoLevels {
+            clip: 0.0,
+            per_channel: true,
+            ..AutoLevels::default()
+        },
+    )
+    .to_rgb8();
+    let last = cast.get_pixel(63, 0).0;
+    assert!(
+        last[0] > 250 && last[2] > 250,
+        "each colour reaches white: {last:?}"
+    );
 }

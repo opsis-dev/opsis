@@ -15,10 +15,10 @@ use imageproc::geometric_transformations::{
 };
 use num_traits::ToPrimitive;
 use opsis_compile::nodes::image::{
-    AdjustImage, BlurImage, ClearColour, CropImage, ImageFormat, OutlineImage, PlaceImage, Rect,
-    RedactImage, RedactStyle, Resample, ResizeFit, ResizeImage, RotateImage, SpotlightImage,
-    StillFileFormat, TiltImage, TrimEdges, Turn, area_rect, crop_rect, outline_padding,
-    resized_size, rotated_size, tilt_corners, tilted_size,
+    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, ImageFormat, LevelsMethod,
+    OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle, Resample, ResizeFit, ResizeImage,
+    RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn, area_rect, crop_rect,
+    outline_padding, resized_size, rotated_size, tilt_corners, tilted_size,
 };
 
 use crate::ImageError;
@@ -721,4 +721,82 @@ pub fn tilt(image: &DynamicImage, p: &TiltImage) -> Result<DynamicImage, ImageEr
     } else {
         DynamicImage::ImageRgba8(out.to_rgba8())
     })
+}
+
+const LEVEL_BINS: usize = 1024;
+
+fn bin(v: f32) -> usize {
+    ((v.clamp(0.0, 1.0) * (LEVEL_BINS - 1) as f32).round()) as usize
+}
+
+fn histogram(values: impl Iterator<Item = f32>) -> Vec<f64> {
+    let mut counts = vec![0.0; LEVEL_BINS];
+    for v in values {
+        counts[bin(v)] += 1.0;
+    }
+    counts
+}
+
+fn level_at(counts: &[f64], reached: impl Fn(f64) -> bool) -> f32 {
+    let mut seen = 0.0;
+    for (i, count) in counts.iter().enumerate() {
+        seen += count;
+        if reached(seen) {
+            return i as f32 / (LEVEL_BINS - 1) as f32;
+        }
+    }
+    1.0
+}
+
+fn stretch_map(counts: &[f64], clip: f64) -> impl Fn(f32) -> f32 + use<> {
+    let share = clip.clamp(0.0, 5.0) / 100.0;
+    let total: f64 = counts.iter().sum();
+    let low = level_at(counts, |seen| seen > total * share);
+    let high = level_at(counts, |seen| seen >= total * (1.0 - share));
+    let span = (high - low).max(1.0 / 255.0);
+    move |v| ((v - low) / span).clamp(0.0, 1.0)
+}
+
+fn equalize_map(counts: &[f64]) -> impl Fn(f32) -> f32 + use<> {
+    let total: f64 = counts.iter().sum::<f64>().max(1.0);
+    let mut running = 0.0;
+    let cdf: Vec<f32> = counts
+        .iter()
+        .map(|c| {
+            running += c;
+            (running / total) as f32
+        })
+        .collect();
+    move |v| cdf[bin(v)]
+}
+
+pub fn auto_levels(image: &DynamicImage, p: &AutoLevels) -> DynamicImage {
+    let mut pixels = image.to_rgba32f();
+    let strength = p.strength.clamp(0.0, 1.0) as f32;
+    let maps: Vec<Box<dyn Fn(f32) -> f32>> = (0..3)
+        .map(|channel| {
+            let values: Vec<f32> = if p.per_channel {
+                pixels.pixels().map(|px| px.0[channel]).collect()
+            } else {
+                pixels
+                    .pixels()
+                    .flat_map(|px| [px.0[0], px.0[1], px.0[2]])
+                    .collect()
+            };
+            let counts = histogram(values.into_iter());
+            match p.method {
+                LevelsMethod::Stretch => {
+                    Box::new(stretch_map(&counts, p.clip)) as Box<dyn Fn(f32) -> f32>
+                }
+                LevelsMethod::Equalize => Box::new(equalize_map(&counts)),
+            }
+        })
+        .collect();
+    for pixel in pixels.pixels_mut() {
+        for (channel, map) in maps.iter().enumerate() {
+            let v = pixel.0[channel];
+            pixel.0[channel] = v + (map(v) - v) * strength;
+        }
+    }
+    from_float(image, pixels)
 }

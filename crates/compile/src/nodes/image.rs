@@ -10,6 +10,8 @@ use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, RowExt, missing, port,
 use crate::nodes::effects::Area;
 use crate::params::Params;
 
+pub const LEVELS_TYPE: &str = "image.levels";
+
 pub const TILT_TYPE: &str = "image.tilt";
 
 pub const OUTLINE_TYPE: &str = "image.outline";
@@ -522,6 +524,41 @@ pub struct TiltImage {
 }
 
 impl Params for TiltImage {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum LevelsMethod {
+    #[default]
+    Stretch,
+    Equalize,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct AutoLevels {
+    #[schemars(
+        description = "Method",
+        extend(
+            "x-labels" = { "stretch": "Stretch", "equalize": "Even out" },
+            "x-help" = "Stretch spreads the levels from black to white. Even out spreads them evenly, which is stronger."
+        )
+    )]
+    pub method: LevelsMethod,
+    #[default = 1.0]
+    #[schemars(description = "Strength", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    pub strength: f64,
+    #[default = 0.5]
+    #[schemars(
+        description = "Ignore the darkest and lightest",
+        range(min = 0, max = 5),
+        extend("x-step" = 0.1, "x-unit" = "%", "x-show-if" = { "method": ["stretch"] })
+    )]
+    pub clip: f64,
+    #[schemars(description = "Each colour on its own", extend("x-help" = "Also corrects a colour cast, but can shift colours."))]
+    pub per_channel: bool,
+}
+
+impl Params for AutoLevels {}
 
 const VIEW_DISTANCE: f64 = 2.0;
 const SHADOW_SPACE: f64 = 0.06;
@@ -1072,6 +1109,31 @@ fn tilt() -> NodeDef {
     })
 }
 
+fn levels() -> NodeDef {
+    image_node::<AutoLevels>(
+        LEVELS_TYPE,
+        "Auto levels",
+        "Stretches a dull or washed-out image's levels from black to white.",
+    )
+    .card(|ctx: &CardCtx<'_, AutoLevels>| {
+        let p = &ctx.params;
+        let mut text = match p.method {
+            LevelsMethod::Stretch => "Levels stretched".to_owned(),
+            LevelsMethod::Equalize => "Levels evened out".to_owned(),
+        };
+        if p.per_channel {
+            text.push_str(" · each colour");
+        }
+        if p.strength < 1.0 {
+            text.push_str(&format!(" · {} %", (p.strength * 100.0).round() as i64));
+        }
+        vec![
+            Some(row(Icon::Sun, text).muted_if(p.strength <= 0.0)),
+            size_row(ctx, |s| s),
+        ]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -1087,5 +1149,6 @@ pub fn nodes() -> Vec<NodeDef> {
         clear_colour().look(NodeLook::of("lucide:eraser")),
         outline().look(NodeLook::of("lucide:square-dashed-bottom")),
         tilt().look(NodeLook::of("tabler:perspective")),
+        levels().look(NodeLook::of("lucide:chart-column-increasing")),
     ]
 }
