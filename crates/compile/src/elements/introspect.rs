@@ -23,6 +23,7 @@ pub enum FieldWidget {
     Keys,
     Loudness,
     Multiselect,
+    Music,
     Offsets,
     Quality,
     Sound,

@@ -44,7 +44,7 @@ import { OffsetsField } from "./form/offsets-field";
 import { Presets } from "./form/presets";
 import { typedField, type TypedField } from "./form/schema-kind";
 import { labelFor } from "./form/schema-meta";
-import { SoundField } from "./form/sound-field";
+import { MusicField, SoundField } from "./form/sound-field";
 import { SpotField } from "./form/spot-field";
 import {
   actionChoices,
@@ -97,6 +97,7 @@ const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
   asset: stringWidget(AssetField),
   font: stringWidget(FontField),
   sound: stringWidget(SoundField),
+  music: stringWidget(MusicField),
   target: stringWidget(TargetField),
   timezone: stringWidget(TimezoneField),
   keys: stringWidget(KeysField),
@@ -329,7 +330,13 @@ function EnumListChoice({
 
 const COLLAPSE_FROM = 4;
 
-const SUMMARY_SKIPS: ReadonlySet<string | undefined> = new Set(["asset", "color", "code", "sound"]);
+const SUMMARY_SKIPS: ReadonlySet<string | undefined> = new Set([
+  "asset",
+  "color",
+  "code",
+  "sound",
+  "music",
+]);
 
 function rowSummary(item: JsonSchema, entry: ParamValues, index: number): string {
   const fields = shapeEntries(item);

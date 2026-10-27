@@ -48777,7 +48777,7 @@
       "description": "Song",
       "type": "string",
       "default": "",
-      "x-widget": "asset",
+      "x-widget": "music",
       "x-accept": "audio/*"
      },
      "volume": {

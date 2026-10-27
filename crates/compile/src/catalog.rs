@@ -19,7 +19,7 @@ use crate::params::Values;
 use crate::ports::can_connect;
 use crate::registry::{node_def, registry};
 use crate::size::estimate_card_height;
-use crate::sounds::builtin_sounds;
+use crate::sounds::{builtin_songs, builtin_sounds};
 use crate::timeline::camera_path::{CAMERA_DIALS, CameraDial};
 use crate::vars::{PAUSE_MARK, VAR_PATTERN};
 
@@ -194,6 +194,7 @@ pub struct EditorCatalog {
     pub loudness_presets: Vec<(String, f64)>,
     pub timeline: TimelineBook,
     pub sounds: Vec<SoundChoice>,
+    pub music: Vec<SoundChoice>,
 }
 
 #[derive(Debug, Clone, Serialize, specta::Type)]
@@ -201,6 +202,8 @@ pub struct EditorCatalog {
 pub struct SoundChoice {
     pub reference: String,
     pub label: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hint: Option<String>,
     pub duration_ms: u32,
 }
 
@@ -284,6 +287,16 @@ pub fn editor_bundle(platform: Platform) -> EditorCatalog {
             .map(|s| SoundChoice {
                 reference: s.reference(),
                 label: s.label.clone(),
+                hint: None,
+                duration_ms: s.duration_ms,
+            })
+            .collect(),
+        music: builtin_songs()
+            .iter()
+            .map(|s| SoundChoice {
+                reference: s.reference(),
+                label: s.label.clone(),
+                hint: Some(s.mood.label().to_owned()),
                 duration_ms: s.duration_ms,
             })
             .collect(),

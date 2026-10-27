@@ -20,7 +20,7 @@ use crate::node::{
     opt, outputs, port, row, with_clip,
 };
 use crate::params::Params;
-use crate::sounds::builtin_sound;
+use crate::sounds::{builtin_label, builtin_song, builtin_sound};
 use crate::text::{format_duration, percent_text, plural, sign_of};
 use crate::time::{ms_to_frames, ms_to_frames_from, ms_to_signed_frames};
 use crate::timeline::flatten::flatten_spec;
@@ -135,8 +135,8 @@ fn source_row(icon: Icon, src: &str, inputs: &CardInputs, empty: &str) -> CardRo
     {
         return missing(icon, "The connected file has no sound");
     }
-    let chosen = (!src.is_empty())
-        .then(|| builtin_sound(src).map_or_else(|| base_name(src), |s| s.label.clone()));
+    let chosen =
+        (!src.is_empty()).then(|| builtin_label(src).map_or_else(|| base_name(src), str::to_owned));
     if inputs.is_connected(MEDIA_PORT) {
         return match chosen {
             Some(chosen) => row(icon, format!("Plays the connected file, not {}", quote(&chosen, LABELLED_TEXT_MAX)))
@@ -154,7 +154,7 @@ fn source_row(icon: Icon, src: &str, inputs: &CardInputs, empty: &str) -> CardRo
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Music {
-    #[schemars(description = "Song", extend("x-widget" = "asset", "x-accept" = "audio/*"))]
+    #[schemars(description = "Song", extend("x-widget" = "music", "x-accept" = "audio/*"))]
     pub src: String,
     #[default = 0.5]
     #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
@@ -239,6 +239,7 @@ fn music() -> NodeDef {
             let p = &ctx.params;
             let fps = ctx.settings.fps;
             with_source(ctx, &p.src, |src, media| {
+                let song_ms = builtin_song(&src).map(|s| s.duration_ms);
                 let timing = Timing {
                     from: signed(ms_to_frames_from(f64::from(p.start_ms), fps, 0)),
                     duration_in_frames: frames_if_set(f64::from(p.length_ms), fps),
@@ -261,6 +262,7 @@ fn music() -> NodeDef {
                 );
                 let duration = media
                     .and_then(|m| m.duration_ms)
+                    .or(song_ms)
                     .and_then(|ms| frames_if_set(f64::from(ms), fps));
                 outputs([(
                     AUDIO_PORT,

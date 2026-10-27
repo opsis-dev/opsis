@@ -1,0 +1,5 @@
+[
+  { "id": "elevate", "label": "Elevate", "mood": "upbeat", "durationMs": 161378 },
+  { "id": "calm-piano", "label": "Calm piano", "mood": "calm", "durationMs": 164954 },
+  { "id": "calm-ambient", "label": "Calm ambient", "mood": "ambient", "durationMs": 157895 }
+]

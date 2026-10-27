@@ -40,6 +40,7 @@ const loaded: {
   loudnessPresets: Array<[string, number]>;
   timeline: TimelineBook;
   sounds: SoundChoice[];
+  music: SoundChoice[];
   templates: TemplateInfo[];
 } = {
   nodes: [],
@@ -57,6 +58,7 @@ const loaded: {
   loudnessPresets: [],
   timeline: { eases: [], envelopes: [], cameraDials: [], previewQualities: [] },
   sounds: [],
+  music: [],
   templates: [],
 };
 
@@ -81,6 +83,7 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
   loaded.loudnessPresets = catalog.loudnessPresets;
   loaded.timeline = catalog.timeline;
   loaded.sounds = catalog.sounds;
+  loaded.music = catalog.music;
   loaded.text = text;
   loaded.mixer = mixer;
   loaded.bundledFonts = bundledFonts;
@@ -100,6 +103,8 @@ export const shapes = (): ShapeChoice[] => loaded.shapes;
 export const timelineBook = (): TimelineBook => loaded.timeline;
 
 export const builtinSounds = (): SoundChoice[] => loaded.sounds;
+
+export const builtinMusic = (): SoundChoice[] => loaded.music;
 
 export const qualityPresets = (): Array<[string, number]> => loaded.qualityPresets;
 

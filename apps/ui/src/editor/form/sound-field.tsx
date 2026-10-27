@@ -1,17 +1,16 @@
-import { Play } from "lucide-react";
+import { Play, Square } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import type { SoundChoice } from "@/generated/bindings";
 import { fileName } from "@/lib/file-name";
-import { builtinSounds } from "@/store/catalog";
+import { builtinMusic, builtinSounds } from "@/store/catalog";
 import { fileUrl } from "../file-url";
 import { ChoiceSelect } from "./choice-select";
 import { FieldShell } from "./field-shell";
 import type { ParamFieldProps } from "./types";
 
 const OWN_FILE = "own-file";
-
-const play = (ref: string) =>
-  void new Audio(fileUrl(ref)).play().catch(() => toast.error("Couldn't play this sound."));
 
 const lengthMsOf = (ref: string): Promise<number | undefined> =>
   new Promise((resolve) => {
@@ -24,7 +23,32 @@ const lengthMsOf = (ref: string): Promise<number | undefined> =>
     audio.src = fileUrl(ref);
   });
 
-export function SoundField({
+function usePlayer(): { playing: boolean; toggle: (ref: string) => void } {
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const stop = () => {
+    audio.current?.pause();
+    audio.current = null;
+    setPlaying(false);
+  };
+  useEffect(() => () => audio.current?.pause(), []);
+  const toggle = (ref: string) => {
+    if (audio.current) return stop();
+    const player = new Audio(fileUrl(ref));
+    player.addEventListener("ended", stop);
+    audio.current = player;
+    setPlaying(true);
+    void player.play().catch(() => {
+      stop();
+      toast.error("Couldn't play this sound.");
+    });
+  };
+  return { playing, toggle };
+}
+
+type Builtins = { choices: () => readonly SoundChoice[]; placeholder: string; play: string };
+
+function BuiltinAudioField({
   id,
   label,
   value,
@@ -33,11 +57,14 @@ export function SoundField({
   name,
   meta,
   ctx,
-}: ParamFieldProps<string>) {
+  builtins,
+}: ParamFieldProps<string> & { builtins: Builtins }) {
   const { lengthKey } = meta;
+  const { playing, toggle } = usePlayer();
   const choose = (ref: string, lengthMs?: number) =>
     lengthKey ? onPatch({ [name]: ref, [lengthKey]: lengthMs }) : onChange(ref);
-  const builtin = builtinSounds().find((s) => s.reference === value);
+  const choices = builtins.choices();
+  const builtin = choices.find((s) => s.reference === value);
   const ownLabel = value && !builtin ? fileName(value) : "Your own file…";
   const selectedKey = builtin?.reference ?? (value ? OWN_FILE : null);
   return (
@@ -47,7 +74,7 @@ export function SoundField({
           id={id}
           className="min-w-0 flex-1"
           groups={[
-            builtinSounds().map((s) => ({ value: s.reference, label: s.label })),
+            choices.map((s) => ({ value: s.reference, label: s.label, hint: s.hint })),
             [{ value: OWN_FILE, label: ownLabel, disabled: !ctx.projectDir }],
           ]}
           value={selectedKey}
@@ -59,19 +86,35 @@ export function SoundField({
               });
             else choose(v ?? "");
           }}
-          placeholder="Choose a sound"
+          placeholder={builtins.placeholder}
           noneLabel={meta.zeroLabel}
         />
         <Button
           variant="outline"
           size="icon"
-          aria-label="Play sound"
+          aria-label={playing ? "Stop" : builtins.play}
           disabled={!value}
-          onClick={() => play(value)}
+          onClick={() => toggle(value)}
         >
-          <Play />
+          {playing ? <Square /> : <Play />}
         </Button>
       </div>
     </FieldShell>
   );
 }
+
+const SOUNDS: Builtins = {
+  choices: builtinSounds,
+  placeholder: "Choose a sound",
+  play: "Play sound",
+};
+
+const MUSIC: Builtins = { choices: builtinMusic, placeholder: "Choose a song", play: "Play song" };
+
+export const SoundField = (props: ParamFieldProps<string>) => (
+  <BuiltinAudioField {...props} builtins={SOUNDS} />
+);
+
+export const MusicField = (props: ParamFieldProps<string>) => (
+  <BuiltinAudioField {...props} builtins={MUSIC} />
+);

@@ -8,8 +8,9 @@ use opsis_compile::nodes::text::{ScriptPace, ends_sentence, script_to_captions};
 use opsis_compile::nodes::transitions::presentations;
 use opsis_compile::ports::{can_connect, convert_input};
 use opsis_compile::registry::registry;
-use opsis_compile::sounds::builtin_sounds;
+use opsis_compile::sounds::{BuiltinSong, BuiltinSound, Mood, builtin_songs, builtin_sounds};
 use opsis_types::cards::Tone;
+use opsis_types::numbers::whole;
 use opsis_types::timeline::TimelineItem;
 use opsis_types::values::{CompileValue, MediaKind};
 use opsis_types::workflow::PortType;
@@ -228,6 +229,50 @@ fn knows_how_long_a_sound_effect_plays() {
             .length_frames
             .unwrap()
             > 0
+    );
+}
+
+#[test]
+fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
+    let song = &builtin_songs()[0];
+    match compile_node("audio.music", json!({ "src": song.reference() }), json!({}))
+        .shift_remove("audio")
+    {
+        Some(CompileValue::Audio(audio)) => {
+            assert_eq!(audio.items[0].src, song.reference());
+            assert_eq!(
+                audio.duration_in_frames,
+                Some(whole(f64::from(song.duration_ms) * 30.0 / 1000.0))
+            );
+        }
+        other => panic!("{other:?}"),
+    }
+    let first = node_card(
+        "audio.music",
+        json!({ "src": song.reference() }),
+        CardInputs::default(),
+    )[0]
+    .clone();
+    assert!(first.text.contains(&song.label), "{}", first.text);
+}
+
+#[test]
+fn ships_a_file_for_every_built_in_sound_and_song() {
+    let public = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public");
+    let refs = builtin_sounds()
+        .iter()
+        .map(BuiltinSound::reference)
+        .chain(builtin_songs().iter().map(BuiltinSong::reference));
+    let missing: Vec<String> = refs
+        .filter(|r| {
+            let file = public.join(r.trim_start_matches("app:"));
+            std::fs::metadata(file).map_or(true, |m| m.len() == 0)
+        })
+        .collect();
+    assert_eq!(missing, Vec::<String>::new());
+    assert_eq!(
+        builtin_songs().iter().map(|s| s.mood).collect::<Vec<_>>(),
+        [Mood::Upbeat, Mood::Calm, Mood::Ambient]
     );
 }
 

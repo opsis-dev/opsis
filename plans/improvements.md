@@ -1,12 +1,12 @@
 # Improvements
 
-Five improvements found by comparing Opsis with a hand-built feature-video recorder: a sound for every click and keystroke, Sequences and Layers with any number of clips, built-in music, recording on a simulated clock, and server replies timed on that clock.
+Four improvements found by comparing Opsis with a hand-built feature-video recorder: a sound for every click and keystroke, Sequences and Layers with any number of clips, recording on a simulated clock, and server replies timed on that clock.
 
 Status: plan only. Nothing here is built yet.
 
 ## How to read this plan
 
-- Each section is one improvement and can be built on its own, except section 5, which needs section 4.
+- Each section is one improvement and can be built on its own, except section 4, which needs section 3.
 - Each section has **What it adds**, **In place**, **Work** (numbered) and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
@@ -25,9 +25,8 @@ Status: plan only. Nothing here is built yet.
 | ------------------------------ | --------------------------------------------------------------------------------------- | ------ |
 | 1. Action sounds               | One node that puts a click sound on every click and a key sound on every keystroke      | medium |
 | 2. Sequences and Layers grow   | Any number of clips in one Sequence or Layers node; splitting never runs out of inputs  | medium |
-| 3. Built-in music              | A few free music beds to pick, next to the built-in sound effects                       | small  |
-| 4. Smooth recording            | A take with exactly one new picture per frame, however busy the computer is             | large  |
-| 5. Replies on the take's clock | In a smooth take, server replies and streamed answers land on the frames they took live | large  |
+| 3. Smooth recording            | A take with exactly one new picture per frame, however busy the computer is             | large  |
+| 4. Replies on the take's clock | In a smooth take, server replies and streamed answers land on the frames they took live | large  |
 
 ## 1. Action sounds
 
@@ -78,26 +77,7 @@ A Sequence or Layers node takes as many clips as are connected: a new empty inpu
 
 - Every place that loops over `IN_PORTS` assumes six; find them all (`rg IN_PORTS`, `CUT_PORTS`, `in6`).
 
-## 3. Built-in music
-
-### What it adds
-
-A few free music beds (calm, upbeat, ambient; 1–3 minutes each, loopable) offered in Music's song field next to the project's files, the way built-in sounds are offered in Sound effect. Opsis makes no sound itself: Music plays a file and the Mixer only processes, so a project without a song file has no music at all. A short list of good beds covers demo films; generating music is out of scope.
-
-### In place
-
-- Seven built-in sound effects in `public/sfx` (mouse click, whoosh, whip, switch, page turn, two camera shutters), CC0 files from the set Remotion lists in `@remotion/sfx`, credited in `THIRD_PARTY_NOTICES.md` ("Built-in sound effects"). No music ships with the app.
-- Music (`audio.music`) with `src` as an `asset` field, loop, trim, fades and keyframes.
-- The `sound` widget lists built-in sounds from `crates/compile/src/data/sounds.json` with a play button.
-
-### Work
-
-1. **Pick the tracks.** CC0 or similarly free for commercial use, checked one by one on their source pages; credits in `THIRD_PARTY_NOTICES.md`; files under `public/music`, kept small (a compressed format the file server and FFmpeg already handle).
-2. **List.** `crates/compile/src/data/music.json` (label, mood, `app:` ref, length, loop points); the editor reads the same file.
-3. **Field.** Music's song field offers the built-in list with a play button, like the `sound` widget.
-4. **Size.** Note the added size in `plans/release.md` section 1.
-
-## 4. Smooth recording
+## 3. Smooth recording
 
 ### What it adds
 
@@ -127,10 +107,10 @@ It runs far slower than real time (a full picture per frame), so it is for final
 
 - With the page's timers paused, anything the take waits for only happens while it ticks; a wait that doesn't tick never ends. Every wait must go through the clock.
 - Videos inside the page, canvases driven by real time and workers' own timers don't follow the page clock.
-- Server replies arrive in real time while the page clock runs slower, so waits on the server take fewer frames than they took seconds. Section 5 fixes that.
+- Server replies arrive in real time while the page clock runs slower, so waits on the server take fewer frames than they took seconds. Section 4 fixes that.
 - Long takes: one picture per frame at 2× is slow; measure a 30 s take before choosing the default picture format.
 
-## 5. Replies on the take's clock
+## 4. Replies on the take's clock
 
 ### What it adds
 
@@ -142,7 +122,7 @@ Because smooth recording is slower than real time, a reply has almost always arr
 
 - Request interception for Mock response, pausing requests before they're sent (`crates/capture/src/route.rs`, `Fetch.enable` at the request stage).
 - The trace records every request and reply with times (`crates/capture/src/trace.rs:186`).
-- Section 4's take clock and frame stepper.
+- Section 3's take clock and frame stepper.
 
 ### Work
 

@@ -703,6 +703,7 @@ export type EditorCatalog = {
 	loudnessPresets: ([string, number])[],
 	timeline: TimelineBook,
 	sounds: SoundChoice[],
+	music: SoundChoice[],
 };
 
 export type EditorCompile = {
@@ -1644,6 +1645,7 @@ export type Slot = {
 export type SoundChoice = {
 	reference: string,
 	label: string,
+	hint?: string,
 	durationMs: number,
 };
 

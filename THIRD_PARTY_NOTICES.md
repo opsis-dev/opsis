@@ -373,6 +373,16 @@ Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero
 | shutter-modern.wav | DSLR Shutter fast 006.wav by ristooooo1                  | https://freesound.org/s/539136/ |
 | shutter-old.wav    | Werra.wav by hmilleo                                     | https://freesound.org/s/409093/ |
 
+## Built-in music — public/music
+
+Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero/1.0/). No attribution is required; credits are kept here, with the notice the author asks for where there is one. Each licence was checked on its source page on 2026-10-27, and each file was encoded again as 128 kbps AAC to keep it small.
+
+| File             | Track                                                                                                     | Source                                                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| elevate.m4a      | Elevate by Fupi                                                                                           | https://opengameart.org/content/elevate-instrument-tracks   |
+| calm-piano.m4a   | Calm Piano 1 (Vaporware) by cynicmusic; notice: The Cynic Project / cynicmusic.com / pixelsphere.org      | https://opengameart.org/content/calm-piano-1-vaporware      |
+| calm-ambient.m4a | Calm Ambient 1 (Synthwave 4k) by cynicmusic; notice: The Cynic Project / cynicmusic.com / pixelsphere.org | https://opengameart.org/content/calm-ambient-1-synthwave-4k |
+
 ## Bundled fonts — public/fonts/bundled
 
 SIL Open Font License 1.1, taken from the Fontsource packages. Each family's licence text is next to its files in `public/fonts/bundled/<family>/LICENSE`: Inter, Geist, Geist Mono, JetBrains Mono, Manrope, DM Sans, Space Grotesk, Outfit, Montserrat, Plus Jakarta Sans, IBM Plex Sans, Playfair Display, Fraunces, Caveat, Google Sans Flex, Instrument Serif.

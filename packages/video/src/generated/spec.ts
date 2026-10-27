@@ -249,7 +249,7 @@ export type ElementRef = {
 
 export type Entrance = "rise" | "fade" | "blur" | "scale" | "none";
 
-export type FieldWidget = "action" | "asset" | "backdrop" | "boxes" | "camera" | "code" | "color" | "datetime" | "envelope" | "font" | "gradient" | "keys" | "loudness" | "multiselect" | "offsets" | "quality" | "sound" | "spot" | "target" | "textarea" | "theme" | "timezone" | "transition" | "variable";
+export type FieldWidget = "action" | "asset" | "backdrop" | "boxes" | "camera" | "code" | "color" | "datetime" | "envelope" | "font" | "gradient" | "keys" | "loudness" | "multiselect" | "music" | "offsets" | "quality" | "sound" | "spot" | "target" | "textarea" | "theme" | "timezone" | "transition" | "variable";
 
 export type FilmFonts = {
 	families: { [key in string]: FontFamilyDef },
