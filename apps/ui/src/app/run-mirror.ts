@@ -3,8 +3,9 @@ import { on } from "@/app/tauri";
 import { commands, events } from "@/generated/bindings";
 import { addLogLine, showRunState, showRunView } from "../store/run";
 
-export function useRunMirror(): void {
+export function useRunMirror(active = true): void {
   useEffect(() => {
+    if (!active) return;
     const offs = [
       on(events.runViewChanged, showRunView),
       on(events.runLogged, addLogLine),
@@ -14,5 +15,5 @@ export function useRunMirror(): void {
     return () => {
       for (const off of offs) off();
     };
-  }, []);
+  }, [active]);
 }

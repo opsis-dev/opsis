@@ -70,6 +70,7 @@ pub fn builder() -> Builder<tauri::Wry> {
             run::run_state,
             run::clear_run_log,
             run::watch_live,
+            run::unwatch_live,
             gradients::gradient_view,
             gradients::edit_gradient,
             fonts::list_fonts,

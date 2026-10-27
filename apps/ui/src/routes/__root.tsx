@@ -1,26 +1,10 @@
-import { createRootRoute, Outlet, useRouterState } from "@tanstack/react-router";
-import { useApiHost } from "../app/api-host";
-import { useDocumentMirror } from "../app/document-mirror";
-import { ExitDialog } from "../app/exit-dialog";
-import { useMenuShortcuts } from "../app/menu-shortcuts";
-import { useRunMirror } from "../app/run-mirror";
-import { isSecondaryWindow, useAppEvents } from "../app/use-app-events";
-import { useStartup } from "../app/use-startup";
+import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { WindowBorder } from "../app/window-chrome";
 
 function Root() {
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  useMenuShortcuts();
-  useApiHost();
-  useDocumentMirror();
-  useRunMirror();
-  useAppEvents();
-  useStartup();
-
   return (
     <>
       <Outlet />
-      {isSecondaryWindow(path) ? null : <ExitDialog />}
       <WindowBorder />
     </>
   );

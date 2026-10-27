@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { shallow } from "zustand/vanilla/shallow";
-import { on } from "@/app/tauri";
-import { watchLive, windowLabel } from "@/app/tauri";
+import { on, windowLabel } from "@/app/tauri";
 import {
   commands,
   events,
@@ -10,7 +9,6 @@ import {
   type SharedView,
 } from "@/generated/bindings";
 import { loadViewState } from "../editor/view-state";
-import { useLiveStore } from "../store/live";
 import { useMedia } from "../store/media";
 import {
   forwardPlaybackTo,
@@ -107,12 +105,7 @@ function useSharedState(): void {
   }, []);
 }
 
-function useLiveFrames(): void {
-  useEffect(() => watchLive((message) => useLiveStore.getState().apply(message)), []);
-}
-
 export function useEditorSync(): void {
-  useLiveFrames();
   useSharedState();
   useEffect(() => {
     const offs = [
@@ -143,7 +136,6 @@ function useProjectView(): void {
 }
 
 export function useWindowSync(): void {
-  useLiveFrames();
   useSharedState();
   useProjectView();
   useEffect(() => {

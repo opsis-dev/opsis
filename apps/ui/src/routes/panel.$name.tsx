@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PanelBottomClose } from "lucide-react";
 import { useEffect } from "react";
+import { useDocumentMirror } from "@/app/document-mirror";
+import { useMenuShortcuts } from "@/app/menu-shortcuts";
+import { useRunMirror } from "@/app/run-mirror";
 import { DOCK_TITLES } from "@/app/shell";
 import { Button } from "@/components/ui/button";
 import { commands, type DockPanelName } from "@/generated/bindings";
@@ -39,6 +42,9 @@ function PanelRoute() {
   const { name: panel } = Route.useParams();
   const projectName = useWorkflowStore((s) => s.workflow?.name ?? null);
   useWindowSync();
+  useDocumentMirror();
+  useRunMirror(panel === "run");
+  useMenuShortcuts();
   useFileChanges();
 
   useEffect(() => {

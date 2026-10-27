@@ -171,15 +171,25 @@ impl LiveFeed for AppLive {
                     .retain(|_, channel| send(channel, &header, &frame.jpeg));
             }
             LiveMessage::Event(note) => {
-                if let Err(error) = (LiveNoted {
+                let noted = LiveNoted {
                     capture_id: note.capture_id,
                     node_id: note.node_id,
                     t: note.t,
                     event: note.event,
-                })
-                .emit(&self.app)
-                {
-                    log::warn!("sending a live event: {error}");
+                };
+                let watching: Vec<String> = self
+                    .app
+                    .state::<RunHost>()
+                    .live
+                    .lock()
+                    .expect("live channels")
+                    .keys()
+                    .cloned()
+                    .collect();
+                for label in watching {
+                    if let Err(error) = noted.clone().emit_to(&self.app, label.as_str()) {
+                        log::warn!("sending a live event: {error}");
+                    }
                 }
             }
         }
@@ -424,6 +434,15 @@ pub fn clear_run_log(app: AppHandle) {
     host.log().clear();
     host.changed();
     emit_reset(&app);
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn unwatch_live(host: State<'_, RunHost>, window: tauri::WebviewWindow, channel: u32) {
+    let mut live = host.live.lock().expect("live channels");
+    if live.get(window.label()).is_some_and(|c| c.id() == channel) {
+        live.remove(window.label());
+    }
 }
 
 #[tauri::command]

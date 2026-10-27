@@ -59,20 +59,23 @@ export type LiveMessage =
   | { type: "event"; captureId: string; nodeId: string; t: number; event: LiveEvent };
 
 export function watchLive(listener: (message: LiveMessage) => void): () => void {
-  void commands.watchLive(
-    frameChannel(({ header, jpeg }) =>
-      listener({
-        type: "frame",
-        captureId: header.captureId ?? "",
-        nodeId: header.nodeId ?? "",
-        jpeg,
-        width: header.width,
-        height: header.height,
-        t: header.t,
-      }),
-    ),
+  const frames = frameChannel(({ header, jpeg }) =>
+    listener({
+      type: "frame",
+      captureId: header.captureId ?? "",
+      nodeId: header.nodeId ?? "",
+      jpeg,
+      width: header.width,
+      height: header.height,
+      t: header.t,
+    }),
   );
-  return on(events.liveNoted, (note) => listener({ type: "event", ...note }));
+  void commands.watchLive(frames);
+  const off = on(events.liveNoted, (note) => listener({ type: "event", ...note }));
+  return () => {
+    off();
+    void commands.unwatchLive(frames.id);
+  };
 }
 
 const droppedPaths = new Map<string, string>();

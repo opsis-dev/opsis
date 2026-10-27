@@ -1,5 +1,7 @@
 import { Maximize2, Radio, X } from "lucide-react";
+import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { watchLive } from "@/app/tauri";
 import { Button } from "@/components/ui/button";
 import { useLiveStore, type LiveCapture } from "../store/live";
 import { LiveDialog } from "./live-dialog";
@@ -58,6 +60,7 @@ function PipWindow({ capture }: { capture: LiveCapture }) {
 }
 
 export function LivePip() {
+  useEffect(() => watchLive((message) => useLiveStore.getState().apply(message)), []);
   const capture = useLiveStore((s) => (s.focusId ? s.captures[s.focusId] : undefined));
   const pipOpen = useLiveStore((s) => s.pipOpen);
   if (!capture) return null;

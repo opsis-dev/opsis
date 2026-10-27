@@ -9,22 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as EditorRouteImport } from './routes/editor'
+import { Route as MainRouteImport } from './routes/_main'
 import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SetupRouteImport } from './routes/setup'
+import { Route as MainIndexRouteImport } from './routes/_main/index'
+import { Route as MainEditorRouteImport } from './routes/_main/editor'
+import { Route as MainSetupRouteImport } from './routes/_main/setup'
 import { Route as PanelNameRouteImport } from './routes/panel.$name'
 import { Route as ViewIdRouteImport } from './routes/view.$id'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EditorRoute = EditorRouteImport.update({
-  id: '/editor',
-  path: '/editor',
+const MainRoute = MainRouteImport.update({
+  id: '/_main',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreviewRoute = PreviewRouteImport.update({
@@ -37,10 +32,20 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SetupRoute = SetupRouteImport.update({
+const MainIndexRoute = MainIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainEditorRoute = MainEditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainSetupRoute = MainSetupRouteImport.update({
   id: '/setup',
   path: '/setup',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => MainRoute,
 } as any)
 const PanelNameRoute = PanelNameRouteImport.update({
   id: '/panel/$name',
@@ -54,87 +59,80 @@ const ViewIdRoute = ViewIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/editor': typeof EditorRoute
+  '/': typeof MainIndexRoute
   '/preview': typeof PreviewRoute
   '/settings': typeof SettingsRoute
-  '/setup': typeof SetupRoute
+  '/editor': typeof MainEditorRoute
+  '/setup': typeof MainSetupRoute
   '/panel/$name': typeof PanelNameRoute
   '/view/$id': typeof ViewIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/editor': typeof EditorRoute
   '/preview': typeof PreviewRoute
   '/settings': typeof SettingsRoute
-  '/setup': typeof SetupRoute
+  '/editor': typeof MainEditorRoute
+  '/setup': typeof MainSetupRoute
   '/panel/$name': typeof PanelNameRoute
   '/view/$id': typeof ViewIdRoute
+  '/': typeof MainIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/editor': typeof EditorRoute
+  '/_main': typeof MainRouteWithChildren
   '/preview': typeof PreviewRoute
   '/settings': typeof SettingsRoute
-  '/setup': typeof SetupRoute
+  '/_main/editor': typeof MainEditorRoute
+  '/_main/setup': typeof MainSetupRoute
   '/panel/$name': typeof PanelNameRoute
   '/view/$id': typeof ViewIdRoute
+  '/_main/': typeof MainIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/editor'
     | '/preview'
     | '/settings'
+    | '/editor'
     | '/setup'
     | '/panel/$name'
     | '/view/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/editor'
     | '/preview'
     | '/settings'
+    | '/editor'
     | '/setup'
     | '/panel/$name'
     | '/view/$id'
+    | '/'
   id:
     | '__root__'
-    | '/'
-    | '/editor'
+    | '/_main'
     | '/preview'
     | '/settings'
-    | '/setup'
+    | '/_main/editor'
+    | '/_main/setup'
     | '/panel/$name'
     | '/view/$id'
+    | '/_main/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  EditorRoute: typeof EditorRoute
+  MainRoute: typeof MainRouteWithChildren
   PreviewRoute: typeof PreviewRoute
   SettingsRoute: typeof SettingsRoute
-  SetupRoute: typeof SetupRoute
   PanelNameRoute: typeof PanelNameRoute
   ViewIdRoute: typeof ViewIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_main': {
+      id: '/_main'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/editor': {
-      id: '/editor'
-      path: '/editor'
-      fullPath: '/editor'
-      preLoaderRoute: typeof EditorRouteImport
+      preLoaderRoute: typeof MainRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/preview': {
@@ -151,12 +149,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/setup': {
-      id: '/setup'
+    '/_main/': {
+      id: '/_main/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof MainIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/editor': {
+      id: '/_main/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof MainEditorRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/setup': {
+      id: '/_main/setup'
       path: '/setup'
       fullPath: '/setup'
-      preLoaderRoute: typeof SetupRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof MainSetupRouteImport
+      parentRoute: typeof MainRoute
     }
     '/panel/$name': {
       id: '/panel/$name'
@@ -175,12 +187,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface MainRouteChildren {
+  MainEditorRoute: typeof MainEditorRoute
+  MainSetupRoute: typeof MainSetupRoute
+  MainIndexRoute: typeof MainIndexRoute
+}
+
+const MainRouteChildren: MainRouteChildren = {
+  MainEditorRoute: MainEditorRoute,
+  MainSetupRoute: MainSetupRoute,
+  MainIndexRoute: MainIndexRoute,
+}
+
+const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  EditorRoute: EditorRoute,
+  MainRoute: MainRouteWithChildren,
   PreviewRoute: PreviewRoute,
   SettingsRoute: SettingsRoute,
-  SetupRoute: SetupRoute,
   PanelNameRoute: PanelNameRoute,
   ViewIdRoute: ViewIdRoute,
 }

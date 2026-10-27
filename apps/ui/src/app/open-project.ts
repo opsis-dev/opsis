@@ -5,7 +5,6 @@ import { commands, type OpenProject } from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
-import { useSecretsStore } from "../store/secrets";
 import { useUiStore } from "../store/ui";
 import { showDocument } from "../store/workflow";
 
@@ -20,7 +19,6 @@ function openProjectIntoStores(p: OpenProject): void {
   useUiStore.getState().setSelected([]);
   useUiStore.getState().setReplay(null);
   useLiveStore.getState().reset();
-  void useSecretsStore.getState().refresh(p.dir);
 }
 
 export function useOpenProject(dir: string, onFailed: () => void): "opening" | "open" | "failed" {

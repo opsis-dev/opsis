@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useDocumentMirror } from "@/app/document-mirror";
+import { useMenuShortcuts } from "@/app/menu-shortcuts";
 import { commands } from "@/generated/bindings";
 import { AppBar } from "../app/app-bar";
 import { LoadingPanel } from "../app/empty-panel";
@@ -27,6 +29,8 @@ function PreviewBody() {
 function PreviewRoute() {
   const projectName = useWorkflowStore((s) => s.workflow?.name ?? null);
   useWindowSync();
+  useDocumentMirror();
+  useMenuShortcuts();
   useFileChanges();
 
   useEffect(() => {

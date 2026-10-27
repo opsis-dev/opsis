@@ -61,6 +61,7 @@ export const commands = {
 	runState: () => __TAURI_INVOKE<RunState>("run_state"),
 	clearRunLog: () => __TAURI_INVOKE<void>("clear_run_log"),
 	watchLive: (frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<void>("watch_live", { frames }),
+	unwatchLive: (channel: number) => __TAURI_INVOKE<void>("unwatch_live", { channel }),
 	gradientView: (css: string) => __TAURI_INVOKE<GradientView | null>("gradient_view", { css }),
 	editGradient: (css: string, edit: GradientEdit) => __TAURI_INVOKE<GradientView | null>("edit_gradient", { css, edit }),
 	listFonts: () => __TAURI_INVOKE<FontChoice[]>("list_fonts"),
