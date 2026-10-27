@@ -3955,6 +3955,22 @@
    }
   },
   {
+   "type": "audio.tones",
+   "title": "Tones and countdown beeps",
+   "category": "Sound",
+   "description": "A tone, a beep or a countdown at a set time or on a browser action, for timers and go moments.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "timeline.sequence",
    "title": "Sequence",
    "category": "Timeline",
@@ -49643,6 +49659,149 @@
      "level": -45.0,
      "fadeInMs": 1000,
      "fadeOutMs": 1000
+    }
+   }
+  },
+  {
+   "type": "audio.tones",
+   "title": "Tones and countdown beeps",
+   "category": "Sound",
+   "description": "A tone, a beep or a countdown at a set time or on a browser action, for timers and go moments.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "kind": {
+      "description": "Sound",
+      "type": "string",
+      "enum": [
+       "tone",
+       "beep",
+       "countdown"
+      ],
+      "default": "beep",
+      "x-labels": {
+       "tone": "Tone",
+       "beep": "Beep",
+       "countdown": "Countdown"
+      },
+      "x-help": "A countdown is short beeps a set time apart, then a long one."
+     },
+     "pitchHz": {
+      "description": "Pitch",
+      "type": "number",
+      "format": "double",
+      "minimum": 100,
+      "maximum": 4000,
+      "default": 880.0,
+      "x-step": 10,
+      "x-unit": "Hz"
+     },
+     "lengthMs": {
+      "description": "Length",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 20,
+      "maximum": 10000,
+      "default": 150,
+      "x-step": 10,
+      "x-unit": "ms"
+     },
+     "count": {
+      "description": "Short beeps",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 1,
+      "maximum": 10,
+      "default": 3,
+      "x-show-if": {
+       "kind": [
+        "countdown"
+       ]
+      }
+     },
+     "spacingMs": {
+      "description": "Apart",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 100,
+      "maximum": 5000,
+      "default": 1000,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-show-if": {
+       "kind": [
+        "countdown"
+       ]
+      }
+     },
+     "atAction": {
+      "description": "On an action",
+      "type": "string",
+      "default": "",
+      "x-widget": "action",
+      "x-help": "Plays when this browser action happens in the clip the sound is added to."
+     },
+     "atMs": {
+      "description": "At",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 0,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-show-if": {
+       "atAction": [
+        ""
+       ]
+      }
+     },
+     "offsetMs": {
+      "description": "From the action",
+      "type": "integer",
+      "format": "int32",
+      "minimum": -10000,
+      "maximum": 10000,
+      "default": 0,
+      "x-unit": "ms",
+      "x-step": 50,
+      "x-show-if": {
+       "atAction": [
+        "*"
+       ]
+      }
+     },
+     "volume": {
+      "description": "Volume",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 2,
+      "default": 0.8,
+      "x-step": 0.05
+     }
+    },
+    "type": "object",
+    "default": {
+     "kind": "beep",
+     "pitchHz": 880.0,
+     "lengthMs": 150,
+     "count": 3,
+     "spacingMs": 1000,
+     "atAction": "",
+     "atMs": 0,
+     "offsetMs": 0,
+     "volume": 0.8
     }
    }
   },

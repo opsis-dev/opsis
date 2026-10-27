@@ -302,6 +302,29 @@ fn loops_room_tone_under_the_whole_film_with_its_fades() {
 }
 
 #[test]
+fn places_tones_at_a_time_or_on_an_action_for_their_own_length() {
+    let at = made_item("audio.tones", json!({ "atMs": 2000 }), "tones.wav", 150);
+    assert_eq!((at.from, at.length_frames, at.anchor), (60, Some(5), None));
+    assert_eq!(at.role, Some(opsis_types::timeline::AudioRole::Effect));
+    let on = made_item(
+        "audio.tones",
+        json!({ "kind": "countdown", "atAction": "click", "offsetMs": -3000 }),
+        "tones.wav",
+        3450,
+    );
+    assert_eq!(on.from, -90);
+    assert_eq!(on.anchor.map(|a| a.node_id).as_deref(), Some("click"));
+    assert_eq!(
+        card_texts(
+            "audio.tones",
+            json!({ "kind": "countdown", "count": 3 }),
+            CardInputs::default()
+        ),
+        ["Countdown · 3 beeps", "At 0 s", "Made when the node runs"]
+    );
+}
+
+#[test]
 fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
     let song = &builtin_songs()[0];
     match compile_node("audio.music", json!({ "src": song.reference() }), json!({}))

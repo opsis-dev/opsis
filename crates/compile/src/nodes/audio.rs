@@ -411,6 +411,7 @@ fn sound_effect() -> NodeDef {
 }
 
 pub const ROOM_TONE_TYPE: &str = "audio.roomTone";
+pub const TONES_TYPE: &str = "audio.tones";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
@@ -494,6 +495,141 @@ fn room_tone() -> NodeDef {
             item.channel = Some(ctx.node_id.to_owned());
             item.role = Some(AudioRole::Music);
             item.keep_music = Some(true);
+            outputs([(
+                AUDIO_PORT,
+                CompileValue::Audio(AudioValue {
+                    items: vec![item],
+                    duration_in_frames: None,
+                    hits: None,
+                }),
+            )])
+        })
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum ToneKind {
+    Tone,
+    #[default]
+    Beep,
+    Countdown,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Tones {
+    #[schemars(
+        description = "Sound",
+        extend(
+            "x-labels" = { "tone": "Tone", "beep": "Beep", "countdown": "Countdown" },
+            "x-help" = "A countdown is short beeps a set time apart, then a long one."
+        )
+    )]
+    pub kind: ToneKind,
+    #[default = 880.0]
+    #[schemars(description = "Pitch", range(min = 100, max = 4000), extend("x-step" = 10, "x-unit" = "Hz"))]
+    pub pitch_hz: f64,
+    #[default = 150]
+    #[schemars(description = "Length", range(min = 20, max = 10000), extend("x-step" = 10, "x-unit" = "ms"))]
+    pub length_ms: u32,
+    #[default = 3]
+    #[schemars(description = "Short beeps", range(min = 1, max = 10), extend("x-show-if" = { "kind": ["countdown"] }))]
+    pub count: u32,
+    #[default = 1000]
+    #[schemars(
+        description = "Apart",
+        range(min = 100, max = 5000),
+        extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "kind": ["countdown"] })
+    )]
+    pub spacing_ms: u32,
+    #[schemars(
+        description = "On an action",
+        extend("x-widget" = "action", "x-help" = "Plays when this browser action happens in the clip the sound is added to.")
+    )]
+    pub at_action: String,
+    #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "atAction": [""] }))]
+    pub at_ms: u32,
+    #[schemars(
+        description = "From the action",
+        range(min = -10000, max = 10000),
+        extend("x-unit" = "ms", "x-step" = 50, "x-show-if" = { "atAction": ["*"] })
+    )]
+    pub offset_ms: i32,
+    #[default = 0.8]
+    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    pub volume: f64,
+}
+
+impl Params for Tones {}
+
+fn tones() -> NodeDef {
+    NodeDef::of::<Tones>(TONES_TYPE, "Tones and countdown beeps", Category::Audio, Phase::Media)
+        .describe("A tone, a beep or a countdown at a set time or on a browser action, for timers and go moments.")
+        .executes()
+        .outputs(vec![(AUDIO_PORT, port(PortType::Audio, "Sound"))])
+        .card(|ctx: &CardCtx<'_, Tones>| {
+            let p = &ctx.params;
+            let what = match p.kind {
+                ToneKind::Tone => format!("Tone · {} Hz", p.pitch_hz),
+                ToneKind::Beep => format!("Beep · {} Hz", p.pitch_hz),
+                ToneKind::Countdown => {
+                    format!("Countdown · {}", plural(f64::from(p.count), "beep"))
+                }
+            };
+            vec![
+                Some(row(Icon::Timer, what)),
+                Some(if p.at_action.is_empty() {
+                    row(Icon::Clock, format!("At {}", format_duration(f64::from(p.at_ms))))
+                } else {
+                    row(
+                        Icon::MousePointerClick,
+                        format!("On an action{}", offset_label(p.offset_ms)),
+                    )
+                }),
+                ctx.result.is_none().then(not_made_yet),
+            ]
+        })
+        .compiles(|ctx: &Ctx<'_, Tones>| {
+            let p = &ctx.params;
+            let fps = ctx.settings.fps;
+            let Some((src, length_ms)) = made_sound(ctx) else {
+                return silent_audio();
+            };
+            let on_action = !p.at_action.is_empty();
+            let timing = Timing {
+                from: if on_action {
+                    ms_to_signed_frames(f64::from(p.offset_ms), fps)
+                } else {
+                    signed(ms_to_frames_from(f64::from(p.at_ms), fps, 0))
+                },
+                duration_in_frames: None,
+                looped: None,
+                trim_before: None,
+                fade_in_frames: None,
+                fade_out_frames: None,
+                anchor: on_action.then(|| Anchor {
+                    node_id: p.at_action.clone(),
+                }),
+                length_frames: length_ms.and_then(|ms| frames_if_set(f64::from(ms), fps)),
+                keep_music: None,
+            };
+            let handles = EditHandles {
+                move_to: Some(param_ref(
+                    ctx.node_id,
+                    if on_action { "offsetMs" } else { "atMs" },
+                    ParamUnit::Ms,
+                )),
+                ..EditHandles::default()
+            };
+            let item = sound_item(
+                ctx.node_id,
+                src,
+                AudioRole::Effect,
+                p.volume,
+                &AudioEnvelope::default(),
+                timing,
+                handles,
+            );
             outputs([(
                 AUDIO_PORT,
                 CompileValue::Audio(AudioValue {
@@ -744,5 +880,6 @@ pub fn nodes() -> Vec<NodeDef> {
         add_sound().look(NodeLook::of("lucide:audio-waveform")),
         action_sounds().look(NodeLook::of("lucide:keyboard-music")),
         room_tone().look(NodeLook::of("iconoir:sound-low")),
+        tones().look(NodeLook::of("lucide:bell-ring")),
     ]
 }

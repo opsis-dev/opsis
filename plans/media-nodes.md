@@ -1,6 +1,6 @@
 # Image and sound nodes
 
-Twelve nodes for stills and sound: four that work on images (annotate, magnify, before and after, compare), three that clean or change a sound file (clean speech, pitch, voice effects) and five that make sound (transition sounds, generated sounds, risers, tones, music fitted to the film).
+Eleven nodes for stills and sound: four that work on images (annotate, magnify, before and after, compare), three that clean or change a sound file (clean speech, pitch, voice effects) and four that make sound (transition sounds, generated sounds, risers, music fitted to the film).
 
 Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code, except inside what is combined with Remotion (`packages/video`, `apps/preview`, `apps/sidecar`), where the Remotion permission in `LICENSE` covers only Opsis's own code. None of these nodes needs GPL code there.
 
@@ -24,20 +24,19 @@ Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (v
 
 ## Summary
 
-| Node                          | What users get                                                      | Built with                             | Licence of what's added    | Size   |
-| ----------------------------- | ------------------------------------------------------------------- | -------------------------------------- | -------------------------- | ------ |
-| 1. Annotate                   | Arrows, boxes, ovals, numbered steps and text on a screenshot       | `imageproc` drawing, `ab_glyph` text   | `ab_glyph` Apache-2.0      | medium |
-| 2. Magnify                    | An enlarged circle or box of one area, joined to the spot by a line | `image`, `imageproc` drawing           | none new                   | small  |
-| 3. Before and after           | Two pictures side by side or split by a divider                     | `image`                                | none new                   | small  |
-| 4. Compare screenshots        | What changed between two captures, boxed                            | `imageproc` threshold, labelling, hash | none new                   | medium |
-| 5. Clean speech               | Noise, harsh "s" sounds and rumble removed, level evened            | `nnnoiseless`, FFmpeg                  | `nnnoiseless` BSD-3-Clause | medium |
-| 6. Change pitch               | Pitch raised or lowered, length kept                                | FFmpeg                                 | none new                   | small  |
-| 7. Voice effects              | Telephone, radio, room and echo                                     | FFmpeg, built-in room recordings       | room recordings CC0        | medium |
-| 8. Generated sound            | Whooshes, risers, pops, dings and swells made from settings         | `fundsp`                               | `fundsp` MIT OR Apache-2.0 | medium |
-| 9. Transition sounds          | A whoosh at every transition of a clip                              | section 8, flattened transitions       | none new                   | medium |
-| 10. Riser to a mark           | A build-up that ends exactly on an action or marker                 | section 8                              | none new                   | small  |
-| 11. Tones and countdown beeps | Tones, beeps and countdowns                                         | FFmpeg or `fundsp`                     | none new                   | small  |
-| 12. Fit music to the film     | A song stretched or looped to end with the film                     | FFmpeg                                 | none new                   | medium |
+| Node                      | What users get                                                      | Built with                             | Licence of what's added    | Size   |
+| ------------------------- | ------------------------------------------------------------------- | -------------------------------------- | -------------------------- | ------ |
+| 1. Annotate               | Arrows, boxes, ovals, numbered steps and text on a screenshot       | `imageproc` drawing, `ab_glyph` text   | `ab_glyph` Apache-2.0      | medium |
+| 2. Magnify                | An enlarged circle or box of one area, joined to the spot by a line | `image`, `imageproc` drawing           | none new                   | small  |
+| 3. Before and after       | Two pictures side by side or split by a divider                     | `image`                                | none new                   | small  |
+| 4. Compare screenshots    | What changed between two captures, boxed                            | `imageproc` threshold, labelling, hash | none new                   | medium |
+| 5. Clean speech           | Noise, harsh "s" sounds and rumble removed, level evened            | `nnnoiseless`, FFmpeg                  | `nnnoiseless` BSD-3-Clause | medium |
+| 6. Change pitch           | Pitch raised or lowered, length kept                                | FFmpeg                                 | none new                   | small  |
+| 7. Voice effects          | Telephone, radio, room and echo                                     | FFmpeg, built-in room recordings       | room recordings CC0        | medium |
+| 8. Generated sound        | Whooshes, risers, pops, dings and swells made from settings         | `fundsp`                               | `fundsp` MIT OR Apache-2.0 | medium |
+| 9. Transition sounds      | A whoosh at every transition of a clip                              | section 8, flattened transitions       | none new                   | medium |
+| 10. Riser to a mark       | A build-up that ends exactly on an action or marker                 | section 8                              | none new                   | small  |
+| 11. Fit music to the film | A song stretched or looped to end with the film                     | FFmpeg                                 | none new                   | medium |
 
 Left out: content-aware resize (`imageproc::seam_carving` is called rough by its own documentation), speech made from text and captions from speech (`plans/voice-and-captions.md` covers them).
 
@@ -262,24 +261,7 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 
 Nothing new.
 
-## 11. Tones and countdown beeps
-
-### What it adds
-
-A tone, a beep or a countdown (three short beeps and a long one) at a time or on an action, for timers and "go" moments.
-
-### Work
-
-1. **Settings.** Kind (tone, beep, countdown), pitch, length, count.
-2. **Operation.** `sine` (or `fundsp`) rendered to WAV; countdown spacing one second unless set.
-3. **Card.** "Countdown · 3 beeps".
-4. **Tests.** Beep count and spacing from the rendered samples.
-
-### Licence
-
-Nothing new.
-
-## 12. Fit music to the film
+## 11. Fit music to the film
 
 ### What it adds
 

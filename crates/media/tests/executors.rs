@@ -640,3 +640,20 @@ async fn makes_a_ten_second_loop_of_room_tone_at_its_level() {
     );
     assert_eq!(out.artifacts[0].kind, ArtifactKind::Audio);
 }
+
+#[tokio::test]
+async fn makes_a_countdown_of_beeps_then_a_long_one() {
+    let (out, samples, _) = made_sound(
+        "audio.tones",
+        json!({ "kind": "countdown", "count": 2, "spacingMs": 500, "lengthMs": 100 }),
+    )
+    .await;
+    assert_eq!(samples.len(), 2 * (48 * 1300));
+    assert_eq!(
+        serde_json::to_value(&out.outputs["audio"]).unwrap()["durationMs"],
+        1300
+    );
+    let (_, single, _) =
+        made_sound("audio.tones", json!({ "kind": "tone", "lengthMs": 2000 })).await;
+    assert_eq!(single.len(), 2 * 96_000);
+}

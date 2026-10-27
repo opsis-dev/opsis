@@ -9928,6 +9928,47 @@
   }
  },
  {
+  "type": "audio.tones",
+  "title": "Tones and countdown beeps",
+  "category": "Audio",
+  "description": "A tone, a beep or a countdown at a set time or on a browser action, for timers and go moments.",
+  "phase": "media",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "audio",
+    "type": "audio",
+    "label": "Sound",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "kind": "beep",
+   "pitchHz": 880.0,
+   "lengthMs": 150,
+   "count": 3,
+   "spacingMs": 1000,
+   "atAction": "",
+   "atMs": 0,
+   "offsetMs": 0,
+   "volume": 0.8
+  }
+ },
+ {
   "type": "timeline.sequence",
   "title": "Sequence",
   "category": "Timeline",

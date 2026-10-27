@@ -1,11 +1,13 @@
 use std::path::Path;
 
-use opsis_compile::nodes::audio::NoiseColour;
+use opsis_compile::nodes::audio::{NoiseColour, ToneKind};
 use opsis_types::numbers::whole;
 
 pub const RATE: u32 = 48_000;
 const LOOP_SECONDS: f64 = 10.0;
 const SEAM_SECONDS: f64 = 0.1;
+const EDGE_SECONDS: f64 = 0.005;
+const FINAL_BEEP_LONGER: f64 = 3.0;
 
 struct Seeded(u64);
 
@@ -72,6 +74,47 @@ pub fn room_tone(colour: NoiseColour, level_db: f64, seed: u64) -> Vec<f32> {
     let current = (looped.iter().map(|s| s * s).sum::<f64>() / length as f64).sqrt();
     let gain = 10f64.powf(level_db / 20.0) / current.max(1e-12);
     looped.iter().map(|s| (s * gain) as f32).collect()
+}
+
+fn beep(pitch: f64, seconds: f64) -> Vec<f32> {
+    let count = samples_for(seconds);
+    let edge = samples_for(EDGE_SECONDS).min(count / 2).max(1);
+    (0..count)
+        .map(|i| {
+            let shape = (i.min(count - 1 - i) as f64 / edge as f64).min(1.0);
+            let phase = i as f64 / f64::from(RATE) * pitch * std::f64::consts::TAU;
+            (phase.sin() * shape * 0.5) as f32
+        })
+        .collect()
+}
+
+pub struct Beeps {
+    pub kind: ToneKind,
+    pub pitch_hz: f64,
+    pub length_ms: f64,
+    pub count: u32,
+    pub spacing_ms: f64,
+}
+
+pub fn beeps(p: &Beeps) -> Vec<f32> {
+    let one = beep(p.pitch_hz, p.length_ms / 1000.0);
+    if p.kind != ToneKind::Countdown {
+        return one;
+    }
+    let step = samples_for(p.spacing_ms / 1000.0);
+    let last = beep(p.pitch_hz, p.length_ms / 1000.0 * FINAL_BEEP_LONGER);
+    let starts: Vec<usize> = (0..=p.count as usize).map(|n| n * step).collect();
+    let total = starts.last().copied().unwrap_or(0) + last.len();
+    let mut out = vec![0.0f32; total.max(one.len())];
+    for (n, &start) in starts.iter().enumerate() {
+        let sound = if n == starts.len() - 1 { &last } else { &one };
+        for (i, s) in sound.iter().enumerate() {
+            if let Some(slot) = out.get_mut(start + i) {
+                *slot += s;
+            }
+        }
+    }
+    out
 }
 
 pub fn write_wav(path: &Path, samples: &[f32]) -> Result<(), hound::Error> {
@@ -147,5 +190,48 @@ mod tests {
             tilt(NoiseColour::Brown),
         );
         assert!(white < pink && pink < brown, "{white} {pink} {brown}");
+    }
+
+    fn onsets(samples: &[f32]) -> Vec<usize> {
+        let mut found = Vec::new();
+        let mut quiet = true;
+        for (i, s) in samples.iter().enumerate() {
+            if quiet && s.abs() > 0.05 {
+                found.push(i);
+                quiet = false;
+            } else if !quiet
+                && samples[i.saturating_sub(480)..=i]
+                    .iter()
+                    .all(|v| v.abs() < 0.01)
+            {
+                quiet = true;
+            }
+        }
+        found
+    }
+
+    #[test]
+    fn counts_down_with_short_beeps_a_second_apart_then_a_long_one() {
+        let p = Beeps {
+            kind: ToneKind::Countdown,
+            pitch_hz: 880.0,
+            length_ms: 150.0,
+            count: 3,
+            spacing_ms: 1000.0,
+        };
+        let sound = beeps(&p);
+        let starts = onsets(&sound);
+        assert_eq!(starts.len(), 4, "{starts:?}");
+        for pair in starts.windows(2) {
+            let gap = (pair[1] - pair[0]) as f64 / f64::from(RATE);
+            assert!((gap - 1.0).abs() < 0.005, "{gap}");
+        }
+        assert_eq!(length_ms(&sound), 3000 + 450);
+        let single = beeps(&Beeps {
+            kind: ToneKind::Beep,
+            ..p
+        });
+        assert_eq!(length_ms(&single), 150);
+        assert!(single.iter().all(|s| s.abs() <= 0.5));
     }
 }

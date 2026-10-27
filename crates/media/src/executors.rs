@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use futures::future::try_join_all;
 use opsis_compile::asset_ref::{kind_from_path, project_ref};
-use opsis_compile::nodes::audio::{ROOM_TONE_TYPE, RoomTone};
+use opsis_compile::nodes::audio::{ROOM_TONE_TYPE, RoomTone, TONES_TYPE, Tones};
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
     ChangeSpeed, Encoding, EvenOutVolume, ExtractSound, FixClicks, GrabFrame, JoinFiles, MakeGif,
@@ -38,7 +38,7 @@ use crate::filters::{
     joined_parts_graph, loudnorm_filter, repair_filter, rms_level, silence_listen_filter, silences,
     sound_picture_graph, speed_args, speed_sound_args,
 };
-use crate::generate::{length_ms, room_tone, write_wav};
+use crate::generate::{Beeps, beeps, length_ms, room_tone, write_wav};
 use crate::grade::{GradeError, GradeSize, grade_filters};
 use crate::reverse::{
     PieceBudget, REVERSE_BUDGET_BYTES, ReversePiece, ReversedPart, WHOLE_FILE, frame_bytes,
@@ -1078,6 +1078,22 @@ async fn make_room_tone(
     made_sound(&ctx, "room-tone.wav", "Room tone", &samples)
 }
 
+async fn make_tones(
+    ctx: Arc<ExecutorContext>,
+    _inputs: PortValues,
+    _tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: Tones = ctx.params()?;
+    let samples = beeps(&Beeps {
+        kind: p.kind,
+        pitch_hz: p.pitch_hz,
+        length_ms: f64::from(p.length_ms),
+        count: p.count,
+        spacing_ms: f64::from(p.spacing_ms),
+    });
+    made_sound(&ctx, "tones.wav", "Tones", &samples)
+}
+
 async fn logged(
     ctx: &ExecutorContext,
     tools: &dyn MediaTools,
@@ -1303,5 +1319,6 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (FASTSTART_TYPE, bind(tools, faststart)),
         (PROBE_TYPE, bind(tools, probe)),
         (ROOM_TONE_TYPE, bind(tools, make_room_tone)),
+        (TONES_TYPE, bind(tools, make_tones)),
     ]
 }
