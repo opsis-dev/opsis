@@ -8,6 +8,9 @@ What's left outside the release plan: the places in the codebase that don't read
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
 
+- [ ] The render GPU backend leaks memory over a long export: export long films in chunks, each in a fresh browser, and join them.
+- [ ] HEVC (H.265) files don't play in the Preview window or in exports: the headless shell has no HEVC decoder (Chromium decodes HEVC only through platform hardware, so `canPlayType` is empty and loading fails with `DEMUXER_ERROR_NO_SUPPORTED_STREAMS`). The Run panel plays them (WebKitGTK through GStreamer's `avdec_h265`).
+
 ## Unconfirmed bugs
 
 Seen once during a session and never reproduced or explained.
@@ -15,10 +18,6 @@ Seen once during a session and never reproduced or explained.
 ## To be implemented
 
 Ideas you approved but left for later.
-
-## Briefs and deferred
-
-Ideas that were discussed but never finalized or planned.
 
 - [ ] A clip-level Reverse that plays a recording backwards through its time mapping, with one encode and no frame buffer.
 - [ ] A lossless format option for Export video, for files that feed later nodes.
@@ -38,21 +37,19 @@ Ideas that were discussed but never finalized or planned.
 - [ ] A Chapter node on the Timeline that marks the start of any clip.
 - [ ] Lid-angle keyframes on the 3D screen's laptop, so its lid can open and close on a playing clip.
 - [ ] KTX2 textures in 3D models through three.js's bundled basis transcoder.
-- [ ] Exporting long films in chunks in fresh browsers and joining them, to avoid the GPU backend's memory leak.
 - [ ] A Run panel that lists every node, nesting compile-only nodes under their export and actions under their capture.
 - [ ] "Not in this run" and "Turned off" states in the Run panel.
 - [ ] A smaller FFmpeg build (shared, combined or trimmed), which conflicts with keeping both ffmpeg-static binaries.
 - [ ] Reopening the panels that were popped out when the app starts.
 - [ ] A Keystroke chips option to leave out plain keys such as Esc, Enter and Tab.
 
+## Briefs and deferred
+
+Ideas that were discussed but never finalized or planned.
+
 ## Unverified
 
 Behaviour that was never checked and isn't in the release test pass in `plans/release.md` (section 8).
 
-- [ ] Resizing our undecorated window by dragging its edge under Wayland.
-- [ ] Double-clicking the app bar to maximize under Wayland.
-- [ ] Restoring saved window positions (`visible_bounds`, `crates/desktop/src/windows.rs`) on X11, Windows or macOS.
-- [ ] Why HEVC files don't play on Linux: in the Preview window (the headless shell's decoders) and in the Run panel (WebKitGTK through GStreamer).
+- [ ] Restoring saved window positions (`visible_bounds`, `crates/desktop/src/windows.rs`) on Windows and macOS. X11 was checked in a virtual display without a window manager; under Wayland the compositor places windows, so positions are never restored there.
 - [ ] Audio scrubbing on the Timeline.
-- [ ] The live recording view in a popped-out Run window.
-- [ ] Export chapters in a video player's chapter menu.
