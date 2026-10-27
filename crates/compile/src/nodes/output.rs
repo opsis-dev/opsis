@@ -7,7 +7,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::node::{CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Outputs, Phase, RowExt, port, row};
+use crate::node::{
+    CLIP_PORT, CardCtx, Category, Claim, Ctx, NodeDef, Outputs, Phase, RowExt, port, row,
+};
 use crate::nodes::media::Codec;
 use crate::params::Params;
 use crate::text::{format_bytes, format_duration, slug_name};
@@ -384,6 +386,12 @@ fn export_video() -> NodeDef {
         PortType::Media,
         "File",
     )
+    .claims(|p: &ExportVideo| {
+        video_file_names(&export_base_name(&p.file_name), p.codec, &p.variants)
+            .into_iter()
+            .map(Claim::File)
+            .collect()
+    })
     .card(|ctx: &CardCtx<'_, ExportVideo>| {
         let p = &ctx.params;
         let media = ctx
@@ -429,6 +437,12 @@ fn export_images() -> NodeDef {
         PortType::Image,
         "Image",
     )
+    .claims(|p: &ExportImages| {
+        still_file_names(&export_base_name(&p.file_name), &p.presets, p.format)
+            .into_iter()
+            .map(Claim::File)
+            .collect()
+    })
     .card(|ctx: &CardCtx<'_, ExportImages>| {
         let p = &ctx.params;
         let film_ms = ctx

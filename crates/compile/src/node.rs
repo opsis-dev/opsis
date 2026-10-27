@@ -256,6 +256,24 @@ pub const MAX_CARD_ROWS: usize = 4;
 type CompileFn = Arc<dyn Fn(&Ctx<'_, ()>) -> Result<Option<Outputs>, CompileError> + Send + Sync>;
 type CardFn = Arc<dyn Fn(&CardCtx<'_, ()>) -> Rows + Send + Sync>;
 type MutatesFn = Arc<dyn Fn(&Values) -> Option<String> + Send + Sync>;
+type ClaimsFn = Arc<dyn Fn(&Values) -> Vec<Claim> + Send + Sync>;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Claim {
+    SignIn(String),
+    File(String),
+}
+
+impl Claim {
+    pub fn key(&self) -> String {
+        match self {
+            Self::SignIn(name) => {
+                format!("sign-in:{}", opsis_types::secrets::secret_file_name(name))
+            }
+            Self::File(name) => format!("file:{name}"),
+        }
+    }
+}
 type HostDefaultsFn = fn(Platform) -> Values;
 type CheckFn = Arc<dyn Fn(&Values) -> Result<(), SettingsError> + Send + Sync>;
 type RestyleFn =
@@ -311,6 +329,7 @@ pub struct NodeDef {
     compile: Option<CompileFn>,
     card: Option<CardFn>,
     mutates: Option<MutatesFn>,
+    claims: Option<ClaimsFn>,
     restyle: Option<RestyleFn>,
     retime: Option<RetimeFn>,
     neutral: Option<NeutralFn>,
@@ -372,6 +391,7 @@ impl NodeDef {
             compile: None,
             card: None,
             mutates: None,
+            claims: None,
             restyle: None,
             retime: None,
             neutral: None,
@@ -488,6 +508,17 @@ impl NodeDef {
     {
         self.mutates = Some(Arc::new(move |values| {
             typed::<P>(values).ok().and_then(|p| f(&p))
+        }));
+        self
+    }
+
+    pub fn claims<P, F>(mut self, f: F) -> Self
+    where
+        P: DeserializeOwned + 'static,
+        F: Fn(&P) -> Vec<Claim> + Send + Sync + 'static,
+    {
+        self.claims = Some(Arc::new(move |values| {
+            typed::<P>(values).map(|p| f(&p)).unwrap_or_default()
         }));
         self
     }
@@ -638,6 +669,13 @@ impl NodeDef {
 
     pub fn mutation(&self, values: &Values) -> Option<String> {
         self.mutates.as_ref().and_then(|f| f(values))
+    }
+
+    pub fn claimed(&self, values: &Values) -> Vec<Claim> {
+        self.claims
+            .as_ref()
+            .map(|f| f(&self.params.with_defaults(values)))
+            .unwrap_or_default()
     }
 }
 

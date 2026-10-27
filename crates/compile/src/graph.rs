@@ -6,12 +6,7 @@ use opsis_types::workflow::{PortType, Workflow, WorkflowEdge, WorkflowNode};
 use serde::{Deserialize, Serialize};
 
 use crate::compile::{CompileResult, compile_workflow};
-use crate::node::{PortSpec, SESSION_PORT};
-use crate::nodes::browser::{secret_file_name, secret_name};
-use crate::nodes::output::{
-    ExportImages, ExportVideo, RENDER_TYPE, STILL_TYPE, export_base_name, still_file_names,
-    video_file_names,
-};
+use crate::node::{Claim, PortSpec, SESSION_PORT};
 use crate::ports::can_connect;
 use crate::registry::{is_output_type, node_def, node_name};
 use crate::vars::{interpolate_map, unknown_variables, workflow_vars};
@@ -475,80 +470,41 @@ fn anchor_issues(wf: &Workflow) -> Vec<GraphIssue> {
         .collect()
 }
 
-fn export_files(node: &WorkflowNode, vars: &crate::vars::Vars) -> Vec<String> {
+fn clash(claim: &Claim, first: &str) -> String {
+    match claim {
+        Claim::SignIn(name) => {
+            format!("“{first}” also saves the sign-in “{name}”. Give one of them another name.")
+        }
+        Claim::File(file) => {
+            format!("“{first}” also saves “{file}”. Give one of them another file name.")
+        }
+    }
+}
+
+fn node_claims(node: &WorkflowNode, vars: &crate::vars::Vars) -> Vec<Claim> {
     let Some(def) = node_def(&node.kind) else {
         return Vec::new();
     };
     let params = def
         .params
         .with_defaults(&interpolate_map(&node.params, vars));
-    match node.kind.as_str() {
-        RENDER_TYPE => def
-            .params
-            .parse(&params, None)
-            .ok()
-            .and_then(|v| def.typed_params::<ExportVideo>(&v).ok())
-            .map(|p| video_file_names(&export_base_name(&p.file_name), p.codec, &p.variants))
-            .unwrap_or_default(),
-        STILL_TYPE => def
-            .params
-            .parse(&params, None)
-            .ok()
-            .and_then(|v| def.typed_params::<ExportImages>(&v).ok())
-            .map(|p| still_file_names(&export_base_name(&p.file_name), &p.presets, p.format))
-            .unwrap_or_default(),
-        _ => Vec::new(),
-    }
+    let values = def.params.parse(&params, None).unwrap_or(params);
+    def.claimed(&values)
 }
 
-fn sign_in_clashes(wf: &Workflow) -> Vec<GraphIssue> {
+fn claim_clashes(wf: &Workflow) -> Vec<GraphIssue> {
     let vars = workflow_vars(&wf.name, &wf.variables);
-    let mut saver: HashMap<String, &WorkflowNode> = HashMap::new();
-    let mut issues = Vec::new();
-    for node in wf
-        .nodes
-        .iter()
-        .filter(|n| n.kind == BrowserAction::SignIn.kind() && !n.is_disabled())
-    {
-        let raw = node
-            .params
-            .get("secretName")
-            .cloned()
-            .map(|v| crate::vars::interpolate(&v, &vars));
-        let name = secret_name(raw.as_ref().and_then(|v| v.as_str()).unwrap_or(""));
-        match saver.get(&secret_file_name(&name)) {
-            None => {
-                saver.insert(secret_file_name(&name), node);
-            }
-            Some(first) => issues.push(error(
-                &node.id,
-                format!(
-                    "“{}” also saves the sign-in “{name}”. Give one of them another name.",
-                    node_name(first)
-                ),
-            )),
-        }
-    }
-    issues
-}
-
-fn export_clashes(wf: &Workflow) -> Vec<GraphIssue> {
-    let vars = workflow_vars(&wf.name, &wf.variables);
-    let mut writer: HashMap<String, &WorkflowNode> = HashMap::new();
+    let mut owner: HashMap<String, &WorkflowNode> = HashMap::new();
     let mut issues = Vec::new();
     for node in wf.nodes.iter().filter(|n| !n.is_disabled()) {
-        for file in export_files(node, &vars) {
-            match writer.get(&file) {
+        for claim in node_claims(node, &vars) {
+            match owner.get(&claim.key()) {
                 None => {
-                    writer.insert(file, node);
+                    owner.insert(claim.key(), node);
                 }
-                Some(first) if first.id != node.id => issues.push(error(
-                    &node.id,
-                    format!(
-                        "“{}” also saves “{file}”. Give one of them another file name.",
-                        node_name(first)
-                    ),
-                )),
+                Some(first) if first.id != node.id => {
+                    issues.push(error(&node.id, clash(&claim, &node_name(first))));
+                }
                 Some(_) => {}
             }
         }
@@ -620,8 +576,7 @@ pub fn validate_workflow(wf: &Workflow, compiled: Option<&CompileResult>) -> Vec
         cycle_issues(wf),
         reload_issues(wf, compiled),
         anchor_issues(wf),
-        export_clashes(wf),
-        sign_in_clashes(wf),
+        claim_clashes(wf),
         skipped_source_issues(wf),
     ]
     .into_iter()
