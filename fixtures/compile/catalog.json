@@ -4760,6 +4760,29 @@
    }
   },
   {
+   "type": "image.clearColour",
+   "title": "Make a colour transparent",
+   "category": "Image",
+   "description": "Makes a flat background, such as a logo's white, see-through. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -52116,6 +52139,79 @@
     "default": {
      "tolerance": 8,
      "padding": 0
+    }
+   }
+  },
+  {
+   "type": "image.clearColour",
+   "title": "Make a colour transparent",
+   "category": "Image",
+   "description": "Makes a flat background, such as a logo's white, see-through. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "color": {
+      "description": "Colour",
+      "type": "string",
+      "default": "",
+      "x-widget": "color",
+      "x-zero-label": "The corner's colour",
+      "x-check": {
+       "rule": "colour-or-empty",
+       "message": "Pick a colour"
+      }
+     },
+     "tolerance": {
+      "description": "Tolerance",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 10.0,
+      "x-step": 1,
+      "x-unit": "%",
+      "x-help": "How different a colour may be and still be made see-through."
+     },
+     "edgesOnly": {
+      "description": "Only areas touching the edges",
+      "type": "boolean",
+      "default": true,
+      "x-help": "Keeps the same colour inside the picture, such as the white inside a logo."
+     },
+     "softness": {
+      "description": "Soft edge",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 10.0,
+      "x-step": 1,
+      "x-unit": "%"
+     }
+    },
+    "type": "object",
+    "default": {
+     "color": "",
+     "tolerance": 10.0,
+     "edgesOnly": true,
+     "softness": 10.0
     }
    }
   },

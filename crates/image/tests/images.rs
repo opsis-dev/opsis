@@ -8,8 +8,9 @@ use image::{
 };
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
-    AdjustImage, BlurImage, CropImage, CropMode, ImageFormat, PlaceImage, RedactImage, RedactStyle,
-    ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TrimEdges, Turn,
+    AdjustImage, BlurImage, ClearColour, CropImage, CropMode, ImageFormat, PlaceImage, RedactImage,
+    RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TrimEdges,
+    Turn,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -484,4 +485,62 @@ fn trims_even_margins_within_the_tolerance_and_keeps_padding() {
         ops::trim(&blank, &TrimEdges::default()).dimensions(),
         (10, 10)
     );
+}
+
+#[test]
+fn clears_the_corner_colour_from_the_edges_and_keeps_enclosed_areas() {
+    let logo = RgbaImage::from_fn(40, 40, |x, y| {
+        let ring = (10..30).contains(&x) && (10..30).contains(&y);
+        let hole = (16..24).contains(&x) && (16..24).contains(&y);
+        if ring && !hole {
+            Rgba([200, 30, 30, 255])
+        } else {
+            Rgba([255, 255, 255, 255])
+        }
+    });
+    let image = DynamicImage::ImageRgba8(logo);
+    let clear = |edges_only| {
+        ops::clear_colour(
+            &image,
+            &ClearColour {
+                edges_only,
+                ..ClearColour::default()
+            },
+        )
+        .to_rgba8()
+    };
+    let edges = clear(true);
+    assert_eq!(edges.get_pixel(0, 0).0[3], 0, "the corner is see-through");
+    assert_eq!(
+        edges.get_pixel(20, 20).0[3],
+        255,
+        "the white inside the ring stays"
+    );
+    assert_eq!(
+        edges.get_pixel(12, 12).0,
+        [200, 30, 30, 255],
+        "the ring stays"
+    );
+    let everywhere = clear(false);
+    assert_eq!(
+        everywhere.get_pixel(20, 20).0[3],
+        0,
+        "the white inside goes too"
+    );
+    let deep = DynamicImage::ImageRgb16(image.to_rgb16());
+    assert_eq!(
+        ops::clear_colour(&deep, &ClearColour::default()).color(),
+        image::ColorType::Rgba16
+    );
+    let picked = ops::clear_colour(
+        &image,
+        &ClearColour {
+            color: "#c81e1e".into(),
+            edges_only: false,
+            ..ClearColour::default()
+        },
+    )
+    .to_rgba8();
+    assert_eq!(picked.get_pixel(12, 12).0[3], 0, "the picked colour goes");
+    assert_eq!(picked.get_pixel(0, 0).0[3], 255, "white stays");
 }

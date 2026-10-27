@@ -10,6 +10,8 @@ use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, RowExt, missing, port,
 use crate::nodes::effects::Area;
 use crate::params::Params;
 
+pub const CLEAR_COLOUR_TYPE: &str = "image.clearColour";
+
 pub const TRIM_TYPE: &str = "image.trim";
 
 pub const SPOTLIGHT_TYPE: &str = "image.spotlight";
@@ -433,6 +435,38 @@ pub struct TrimEdges {
 
 impl Params for TrimEdges {}
 
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ClearColour {
+    #[schemars(
+        description = "Colour",
+        extend(
+            "x-widget" = "color",
+            "x-zero-label" = "The corner's colour",
+            "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" }
+        )
+    )]
+    pub color: String,
+    #[default = 10.0]
+    #[schemars(
+        description = "Tolerance",
+        range(min = 0, max = 100),
+        extend("x-step" = 1, "x-unit" = "%", "x-help" = "How different a colour may be and still be made see-through.")
+    )]
+    pub tolerance: f64,
+    #[default = true]
+    #[schemars(
+        description = "Only areas touching the edges",
+        extend("x-help" = "Keeps the same colour inside the picture, such as the white inside a logo.")
+    )]
+    pub edges_only: bool,
+    #[default = 10.0]
+    #[schemars(description = "Soft edge", range(min = 0, max = 100), extend("x-step" = 1, "x-unit" = "%"))]
+    pub softness: f64,
+}
+
+impl Params for ClearColour {}
+
 fn even(value: f64) -> f64 {
     value.round().max(1.0)
 }
@@ -847,6 +881,36 @@ fn trim() -> NodeDef {
     })
 }
 
+fn clear_colour() -> NodeDef {
+    image_node::<ClearColour>(
+        CLEAR_COLOUR_TYPE,
+        "Make a colour transparent",
+        "Makes a flat background, such as a logo's white, see-through.",
+    )
+    .card(|ctx: &CardCtx<'_, ClearColour>| {
+        let p = &ctx.params;
+        let colour = p.color.trim();
+        let what = if colour.is_empty() {
+            row(Icon::Palette, "The corner's colour made see-through")
+        } else {
+            row(Icon::Palette, format!("{colour} made see-through"))
+                .swatches(vec![colour.to_owned()])
+        };
+        vec![
+            Some(what),
+            Some(row(
+                Icon::Scan,
+                if p.edges_only {
+                    "Only areas touching the edges"
+                } else {
+                    "Everywhere in the picture"
+                },
+            )),
+            size_row(ctx, |s| s),
+        ]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -859,5 +923,6 @@ pub fn nodes() -> Vec<NodeDef> {
         redact().look(NodeLook::of("lucide:eye-off")),
         spotlight().look(NodeLook::of("lucide:flashlight")),
         trim().look(NodeLook::of("lucide:shrink")),
+        clear_colour().look(NodeLook::of("lucide:eraser")),
     ]
 }

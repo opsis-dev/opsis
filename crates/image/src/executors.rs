@@ -1,15 +1,15 @@
 use opsis_compile::nodes::image::{
-    ADJUST_TYPE, BLUR_TYPE, CROP_TYPE, FORMAT_TYPE, PLACE_TYPE, REDACT_TYPE, RESIZE_TYPE,
-    ROTATE_TYPE, SPOTLIGHT_TYPE, TRIM_TYPE,
+    ADJUST_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE, PLACE_TYPE, REDACT_TYPE,
+    RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE, TRIM_TYPE,
 };
 use std::path::Path;
 use std::sync::Arc;
 
 use image::DynamicImage;
 use opsis_compile::nodes::image::{
-    AdjustImage, BlurImage, CropImage, IMAGE_PORT, ImageFormat, OVERLAY_PORT, PlaceImage,
-    RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, SpotlightImage, TrimEdges, resized_size,
-    upscale,
+    AdjustImage, BlurImage, ClearColour, CropImage, IMAGE_PORT, ImageFormat, OVERLAY_PORT,
+    PlaceImage, RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, SpotlightImage, TrimEdges,
+    resized_size, upscale,
 };
 use opsis_engine::files::atomic_write;
 use opsis_media::executors::require_media;
@@ -184,6 +184,16 @@ async fn trim(ctx: Arc<ExecutorContext>, inputs: PortValues) -> Result<ExecutorO
     saved(&ctx, &out, None)
 }
 
+async fn clear_colour(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: ClearColour = ctx.params()?;
+    let image = input(&ctx, &inputs, IMAGE_PORT).await?;
+    let out = blocking(move || Ok(ops::clear_colour(&image, &p))).await?;
+    saved(&ctx, &out, None)
+}
+
 pub fn image_executors() -> Vec<(&'static str, Executor)> {
     vec![
         (RESIZE_TYPE, executor(resize)),
@@ -196,5 +206,6 @@ pub fn image_executors() -> Vec<(&'static str, Executor)> {
         (REDACT_TYPE, executor(redact)),
         (SPOTLIGHT_TYPE, executor(spotlight)),
         (TRIM_TYPE, executor(trim)),
+        (CLEAR_COLOUR_TYPE, executor(clear_colour)),
     ]
 }

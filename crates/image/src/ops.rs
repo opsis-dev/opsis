@@ -12,9 +12,9 @@ use imageproc::filter::gaussian_blur_f32;
 use imageproc::geometric_transformations::{Border, Interpolation, rotate_about_center};
 use num_traits::ToPrimitive;
 use opsis_compile::nodes::image::{
-    AdjustImage, BlurImage, CropImage, ImageFormat, PlaceImage, Rect, RedactImage, RedactStyle,
-    Resample, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TrimEdges,
-    Turn, area_rect, crop_rect, resized_size, rotated_size,
+    AdjustImage, BlurImage, ClearColour, CropImage, ImageFormat, PlaceImage, Rect, RedactImage,
+    RedactStyle, Resample, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat,
+    TrimEdges, Turn, area_rect, crop_rect, resized_size, rotated_size,
 };
 
 use crate::ImageError;
@@ -513,4 +513,94 @@ pub fn trim(image: &DynamicImage, p: &TrimEdges) -> DynamicImage {
     let right = (content.x + content.width + pad).min(w);
     let bottom = (content.y + content.height + pad).min(h);
     image.crop_imm(x as u32, y as u32, (right - x) as u32, (bottom - y) as u32)
+}
+
+fn rgb_distance(a: [f32; 4], b: [f32; 4]) -> f32 {
+    let d: f32 = (0..3).map(|i| (a[i] - b[i]).powi(2)).sum();
+    (d / 3.0).sqrt() * 100.0
+}
+
+fn kept(distance: f32, tolerance: f32, softness: f32) -> f32 {
+    if distance <= tolerance {
+        0.0
+    } else if softness <= 0.0 || distance >= tolerance + softness {
+        1.0
+    } else {
+        (distance - tolerance) / softness
+    }
+}
+
+fn touching_edges(width: u32, height: u32, near: impl Fn(u32, u32) -> bool) -> Vec<bool> {
+    let index = |x: u32, y: u32| (y * width + x) as usize;
+    let mut reached = vec![false; (width * height) as usize];
+    let mut queue = std::collections::VecDeque::new();
+    for x in 0..width {
+        queue.push_back((x, 0));
+        queue.push_back((x, height - 1));
+    }
+    for y in 0..height {
+        queue.push_back((0, y));
+        queue.push_back((width - 1, y));
+    }
+    while let Some((x, y)) = queue.pop_front() {
+        if reached[index(x, y)] || !near(x, y) {
+            continue;
+        }
+        reached[index(x, y)] = true;
+        if x > 0 {
+            queue.push_back((x - 1, y));
+        }
+        if y > 0 {
+            queue.push_back((x, y - 1));
+        }
+        if x + 1 < width {
+            queue.push_back((x + 1, y));
+        }
+        if y + 1 < height {
+            queue.push_back((x, y + 1));
+        }
+    }
+    reached
+}
+
+pub fn clear_colour(image: &DynamicImage, p: &ClearColour) -> DynamicImage {
+    let mut pixels = image.to_rgba32f();
+    let (width, height) = pixels.dimensions();
+    let target = if p.color.trim().is_empty() {
+        pixels.get_pixel(0, 0).0
+    } else {
+        background_rgba(&p.color).map(|v| f32::from(v) / 255.0)
+    };
+    let tolerance = p.tolerance.clamp(0.0, 100.0) as f32;
+    let softness = p.softness.clamp(0.0, 100.0) as f32;
+    let distance = |x: u32, y: u32| rgb_distance(pixels.get_pixel(x, y).0, target);
+    let reached = if p.edges_only {
+        Some(touching_edges(width, height, |x, y| {
+            distance(x, y) < tolerance + softness
+        }))
+    } else {
+        None
+    };
+    let alphas: Vec<f32> = (0..height)
+        .flat_map(|y| (0..width).map(move |x| (x, y)))
+        .map(|(x, y)| {
+            let open = reached
+                .as_ref()
+                .is_none_or(|reached| reached[(y * width + x) as usize]);
+            if open {
+                kept(distance(x, y), tolerance, softness)
+            } else {
+                1.0
+            }
+        })
+        .collect();
+    for (pixel, keep) in pixels.pixels_mut().zip(alphas) {
+        pixel.0[3] *= keep;
+    }
+    let out = DynamicImage::ImageRgba32F(pixels);
+    if is_deep(image) {
+        DynamicImage::ImageRgba16(out.to_rgba16())
+    } else {
+        DynamicImage::ImageRgba8(out.to_rgba8())
+    }
 }
