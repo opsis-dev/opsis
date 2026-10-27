@@ -4806,6 +4806,29 @@
    }
   },
   {
+   "type": "image.tilt",
+   "title": "Tilt",
+   "category": "Image",
+   "description": "Shows an image on a turned and tilted plane, for a quick mock-up. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -52305,6 +52328,89 @@
      "color": "#ffffff",
      "softness": 0.0,
      "shadow": false
+    }
+   }
+  },
+  {
+   "type": "image.tilt",
+   "title": "Tilt",
+   "category": "Image",
+   "description": "Shows an image on a turned and tilted plane, for a quick mock-up. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "turn": {
+      "description": "Turn",
+      "type": "number",
+      "format": "double",
+      "minimum": -60,
+      "maximum": 60,
+      "default": 18.0,
+      "x-step": 1,
+      "x-unit": "°",
+      "x-help": "Turns the picture away on its right side, or its left with a negative angle."
+     },
+     "tilt": {
+      "description": "Tilt",
+      "type": "number",
+      "format": "double",
+      "minimum": -60,
+      "maximum": 60,
+      "default": 8.0,
+      "x-step": 1,
+      "x-unit": "°",
+      "x-help": "Leans the top back, or the bottom with a negative angle."
+     },
+     "lean": {
+      "description": "Lean",
+      "type": "number",
+      "format": "double",
+      "minimum": -45,
+      "maximum": 45,
+      "default": 0.0,
+      "x-step": 1,
+      "x-unit": "°"
+     },
+     "background": {
+      "description": "Background",
+      "type": "string",
+      "default": "#00000000",
+      "x-widget": "color",
+      "x-check": {
+       "rule": "colour",
+       "message": "Pick a colour"
+      }
+     },
+     "shadow": {
+      "description": "Shadow",
+      "type": "boolean",
+      "default": true
+     }
+    },
+    "type": "object",
+    "default": {
+     "turn": 18.0,
+     "tilt": 8.0,
+     "lean": 0.0,
+     "background": "#00000000",
+     "shadow": true
     }
    }
   },

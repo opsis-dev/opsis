@@ -10,7 +10,7 @@ use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
     AdjustImage, BlurImage, ClearColour, CropImage, CropMode, ImageFormat, OutlineImage,
     PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage,
-    StillFileFormat, TrimEdges, Turn,
+    StillFileFormat, TiltImage, TrimEdges, Turn, tilt_corners, tilted_size,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -595,4 +595,41 @@ fn draws_an_outline_only_where_the_picture_was_see_through() {
     );
     let opaque = DynamicImage::ImageRgb8(RgbImage::new(4, 4));
     assert!(!ops::has_see_through(&opaque));
+}
+
+#[test]
+fn tilts_the_corners_to_where_the_plan_puts_them() {
+    let red = DynamicImage::ImageRgba8(RgbaImage::from_pixel(100, 60, Rgba([220, 20, 20, 255])));
+    let p = TiltImage {
+        turn: 25.0,
+        tilt: 10.0,
+        lean: 0.0,
+        background: "#00000000".into(),
+        shadow: false,
+    };
+    let out = ops::tilt(&red, &p).unwrap().to_rgba8();
+    let (w, h) = tilted_size((100.0, 60.0), &p);
+    assert_eq!(out.dimensions(), (w as u32, h as u32));
+    let corners = tilt_corners((100.0, 60.0), &p);
+    let centre = corners
+        .iter()
+        .fold((0.0, 0.0), |a, c| (a.0 + c.0 / 4.0, a.1 + c.1 / 4.0));
+    let at = |x: f64, y: f64| out.get_pixel(x as u32, y as u32).0;
+    assert_eq!(at(centre.0, centre.1), [220, 20, 20, 255]);
+    for (x, y) in corners {
+        let inside = (x + (centre.0 - x) * 0.08, y + (centre.1 - y) * 0.08);
+        assert_eq!(
+            at(inside.0, inside.1)[3],
+            255,
+            "inside the corner at {x}, {y}"
+        );
+    }
+    let right_height = corners[2].1 - corners[1].1;
+    let left_height = corners[3].1 - corners[0].1;
+    assert!(right_height < left_height, "the right side turns away");
+    let top_width = corners[1].0 - corners[0].0;
+    let bottom_width = corners[2].0 - corners[3].0;
+    assert!(top_width < bottom_width, "the top leans back");
+    let shadowed = ops::tilt(&red, &TiltImage { shadow: true, ..p }).unwrap();
+    assert!(shadowed.width() > out.width());
 }

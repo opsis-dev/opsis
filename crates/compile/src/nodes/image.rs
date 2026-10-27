@@ -10,6 +10,8 @@ use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, RowExt, missing, port,
 use crate::nodes::effects::Area;
 use crate::params::Params;
 
+pub const TILT_TYPE: &str = "image.tilt";
+
 pub const OUTLINE_TYPE: &str = "image.outline";
 
 pub const CLEAR_COLOUR_TYPE: &str = "image.clearColour";
@@ -489,6 +491,88 @@ pub struct OutlineImage {
 
 impl Params for OutlineImage {}
 
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct TiltImage {
+    #[default = 18.0]
+    #[schemars(
+        description = "Turn",
+        range(min = -60, max = 60),
+        extend("x-step" = 1, "x-unit" = "°", "x-help" = "Turns the picture away on its right side, or its left with a negative angle.")
+    )]
+    pub turn: f64,
+    #[default = 8.0]
+    #[schemars(
+        description = "Tilt",
+        range(min = -60, max = 60),
+        extend("x-step" = 1, "x-unit" = "°", "x-help" = "Leans the top back, or the bottom with a negative angle.")
+    )]
+    pub tilt: f64,
+    #[schemars(description = "Lean", range(min = -45, max = 45), extend("x-step" = 1, "x-unit" = "°"))]
+    pub lean: f64,
+    #[default = "#00000000"]
+    #[schemars(
+        description = "Background",
+        extend("x-widget" = "color", "x-check" = { "rule": "colour", "message": "Pick a colour" })
+    )]
+    pub background: String,
+    #[default = true]
+    #[schemars(description = "Shadow")]
+    pub shadow: bool,
+}
+
+impl Params for TiltImage {}
+
+const VIEW_DISTANCE: f64 = 2.0;
+const SHADOW_SPACE: f64 = 0.06;
+
+pub fn tilt_corners(size: (f64, f64), p: &TiltImage) -> [(f64, f64); 4] {
+    let (w, h) = size;
+    let distance = VIEW_DISTANCE * w.max(h);
+    let (lean, tilt, turn) = (
+        p.lean.to_radians(),
+        p.tilt.to_radians(),
+        p.turn.to_radians(),
+    );
+    let projected = [(0.0, 0.0), (w, 0.0), (w, h), (0.0, h)].map(|(x, y)| {
+        let (x, y) = (x - w / 2.0, y - h / 2.0);
+        let (x, y) = (
+            x * lean.cos() - y * lean.sin(),
+            x * lean.sin() + y * lean.cos(),
+        );
+        let (y, z) = (y * tilt.cos(), -y * tilt.sin());
+        let (x, z) = (
+            x * turn.cos() - z * turn.sin(),
+            x * turn.sin() + z * turn.cos(),
+        );
+        let scale = distance / (distance + z);
+        (x * scale, y * scale)
+    });
+    let margin = if p.shadow {
+        SHADOW_SPACE * w.max(h)
+    } else {
+        0.0
+    };
+    let left = projected.iter().map(|c| c.0).fold(f64::INFINITY, f64::min);
+    let top = projected.iter().map(|c| c.1).fold(f64::INFINITY, f64::min);
+    projected.map(|(x, y)| (x - left + margin, y - top + margin))
+}
+
+pub fn tilted_size(size: (f64, f64), p: &TiltImage) -> (f64, f64) {
+    let corners = tilt_corners(size, p);
+    let margin = if p.shadow {
+        SHADOW_SPACE * size.0.max(size.1)
+    } else {
+        0.0
+    };
+    let right = corners.iter().map(|c| c.0).fold(0.0, f64::max);
+    let bottom = corners.iter().map(|c| c.1).fold(0.0, f64::max);
+    (
+        (right + margin).ceil().max(1.0),
+        (bottom + margin).ceil().max(1.0),
+    )
+}
+
 pub fn outline_padding(p: &OutlineImage) -> f64 {
     let shadow = if p.shadow { p.width * 2.0 } else { 0.0 };
     (p.width + p.softness + shadow).ceil()
@@ -961,6 +1045,33 @@ fn outline() -> NodeDef {
     })
 }
 
+fn tilt() -> NodeDef {
+    image_node::<TiltImage>(
+        TILT_TYPE,
+        "Tilt",
+        "Shows an image on a turned and tilted plane, for a quick mock-up.",
+    )
+    .card(|ctx: &CardCtx<'_, TiltImage>| {
+        let p = &ctx.params;
+        let mut parts = Vec::new();
+        if p.turn != 0.0 {
+            parts.push(format!("turned {}°", p.turn));
+        }
+        if p.tilt != 0.0 {
+            parts.push(format!("tilted {}°", p.tilt));
+        }
+        if p.lean != 0.0 {
+            parts.push(format!("leaning {}°", p.lean));
+        }
+        let what = if parts.is_empty() {
+            row(Icon::RefreshCw, "Flat").muted_if(true)
+        } else {
+            row(Icon::RefreshCw, crate::card::sentence(&parts.join(", ")))
+        };
+        vec![Some(what), size_row(ctx, |s| tilted_size(s, p))]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -975,5 +1086,6 @@ pub fn nodes() -> Vec<NodeDef> {
         trim().look(NodeLook::of("lucide:shrink")),
         clear_colour().look(NodeLook::of("lucide:eraser")),
         outline().look(NodeLook::of("lucide:square-dashed-bottom")),
+        tilt().look(NodeLook::of("tabler:perspective")),
     ]
 }

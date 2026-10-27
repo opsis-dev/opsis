@@ -10,13 +10,15 @@ use image::{
 };
 use imageproc::distance_transform::euclidean_squared_distance_transform;
 use imageproc::filter::gaussian_blur_f32;
-use imageproc::geometric_transformations::{Border, Interpolation, rotate_about_center};
+use imageproc::geometric_transformations::{
+    Border, Interpolation, Projection, rotate_about_center, warp_into,
+};
 use num_traits::ToPrimitive;
 use opsis_compile::nodes::image::{
     AdjustImage, BlurImage, ClearColour, CropImage, ImageFormat, OutlineImage, PlaceImage, Rect,
     RedactImage, RedactStyle, Resample, ResizeFit, ResizeImage, RotateImage, SpotlightImage,
-    StillFileFormat, TrimEdges, Turn, area_rect, crop_rect, outline_padding, resized_size,
-    rotated_size,
+    StillFileFormat, TiltImage, TrimEdges, Turn, area_rect, crop_rect, outline_padding,
+    resized_size, rotated_size, tilt_corners, tilted_size,
 };
 
 use crate::ImageError;
@@ -673,4 +675,50 @@ pub fn outline(image: &DynamicImage, p: &OutlineImage) -> DynamicImage {
     } else {
         DynamicImage::ImageRgba8(out.to_rgba8())
     }
+}
+
+const TILT_SHADOW_ALPHA: f32 = 0.35;
+const TILT_SHADOW_SOFTNESS: f64 = 0.02;
+
+pub fn tilt(image: &DynamicImage, p: &TiltImage) -> Result<DynamicImage, ImageError> {
+    let size = size_of(image);
+    let (w, h) = tilted_size(size, p);
+    let from = [(0.0, 0.0), (size.0, 0.0), size, (0.0, size.1)].map(|(x, y)| (x as f32, y as f32));
+    let to = tilt_corners(size, p).map(|(x, y)| (x as f32, y as f32));
+    let projection = Projection::from_control_points(from, to)
+        .ok_or_else(|| ImageError::Failed("That angle folds the picture away.".to_owned()))?;
+    let mut warped = ImageBuffer::new(w as u32, h as u32);
+    warp_into(
+        &image.to_rgba16(),
+        projection,
+        Interpolation::Bilinear,
+        Border::Constant(Rgba([0, 0, 0, 0])),
+        &mut warped,
+    );
+    let warped = DynamicImage::ImageRgba16(warped).to_rgba32f();
+    let soft = TILT_SHADOW_SOFTNESS * size.0.max(size.1);
+    let shadow = p.shadow.then(|| {
+        let alpha = ImageBuffer::from_fn(warped.width(), warped.height(), |x, y| {
+            Luma([warped.get_pixel(x, y).0[3]])
+        });
+        soften(alpha, soft)
+    });
+    let drop = soft.round() as u32;
+    let background = background_rgba(&p.background).map(|v| f32::from(v) / 255.0);
+    let out = ImageBuffer::from_fn(warped.width(), warped.height(), |x, y| {
+        let mut pixel = background;
+        if let Some(shadow) = &shadow
+            && y >= drop
+        {
+            let a = shadow.get_pixel(x, y - drop).0[0] * TILT_SHADOW_ALPHA;
+            pixel = over([0.0, 0.0, 0.0, a], pixel);
+        }
+        Rgba(over(warped.get_pixel(x, y).0, pixel))
+    });
+    let out = DynamicImage::ImageRgba32F(out);
+    Ok(if is_deep(image) {
+        DynamicImage::ImageRgba16(out.to_rgba16())
+    } else {
+        DynamicImage::ImageRgba8(out.to_rgba8())
+    })
 }

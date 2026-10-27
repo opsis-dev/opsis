@@ -11458,6 +11458,51 @@
   }
  },
  {
+  "type": "image.tilt",
+  "title": "Tilt",
+  "category": "Image",
+  "description": "Shows an image on a turned and tilted plane, for a quick mock-up. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "image",
+    "type": "media",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "turn": 18.0,
+   "tilt": 8.0,
+   "lean": 0.0,
+   "background": "#00000000",
+   "shadow": true
+  }
+ },
+ {
   "type": "output.render",
   "title": "Export video",
   "category": "Output",
