@@ -4449,6 +4449,29 @@
    }
   },
   {
+   "type": "media.repair",
+   "title": "Fix clicks and clipping",
+   "category": "Media",
+   "description": "Removes clicks and pops and rebuilds peaks that were cut off when recording too loud. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "media.thumbnail",
    "title": "Grab frame",
    "category": "Media",
@@ -51144,6 +51167,60 @@
      "integrated": -16.0,
      "truePeak": -1.5,
      "lra": 11.0
+    }
+   }
+  },
+  {
+   "type": "media.repair",
+   "title": "Fix clicks and clipping",
+   "category": "Media",
+   "description": "Removes clicks and pops and rebuilds peaks that were cut off when recording too loud. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "clicks": {
+      "description": "Remove clicks and pops",
+      "type": "boolean",
+      "default": true
+     },
+     "clipping": {
+      "description": "Rebuild clipped peaks",
+      "type": "boolean",
+      "default": true
+     },
+     "strength": {
+      "description": "Strength",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.5,
+      "x-step": 0.05,
+      "x-help": "Stronger finds more, but can soften sharp sounds that are meant to be there."
+     }
+    },
+    "type": "object",
+    "default": {
+     "clicks": true,
+     "clipping": true,
+     "strength": 0.5
     }
    }
   },

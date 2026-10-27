@@ -169,3 +169,15 @@ pub fn speed_sound_args(input: &str, output: &str, rate: f64, codecs: &[String])
 pub fn loudnorm_filter(lufs: f64, true_peak: f64, range: f64) -> String {
     format!("loudnorm=I={}:TP={}:LRA={}", lufs, true_peak, range)
 }
+
+pub fn repair_filter(clicks: bool, clipping: bool, strength: f64) -> Option<String> {
+    let s = strength.clamp(0.0, 1.0);
+    let mut chain = Vec::new();
+    if clicks {
+        chain.push(format!("adeclick=t={:.2}", 4.0 - 3.0 * s));
+    }
+    if clipping {
+        chain.push(format!("adeclip=t={:.2}", 15.0 - 10.0 * s));
+    }
+    (!chain.is_empty()).then(|| chain.join(","))
+}

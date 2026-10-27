@@ -34,8 +34,10 @@ pub const REQUIRED_FORMATS: [&str; 10] = [
     "webm",
 ];
 
-pub const REQUIRED_FILTERS: [&str; 66] = [
+pub const REQUIRED_FILTERS: [&str; 68] = [
     "acompressor",
+    "adeclick",
+    "adeclip",
     "adelay",
     "afade",
     "aformat",

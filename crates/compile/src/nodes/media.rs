@@ -31,6 +31,7 @@ pub const FASTSTART_TYPE: &str = "media.faststart";
 pub const THUMBNAIL_TYPE: &str = "media.thumbnail";
 
 pub const LOUDNORM_TYPE: &str = "media.loudnorm";
+pub const REPAIR_TYPE: &str = "media.repair";
 
 pub const EXTRACT_AUDIO_TYPE: &str = "media.extractAudio";
 
@@ -685,6 +686,26 @@ impl Params for EvenOutVolume {}
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
+pub struct FixClicks {
+    #[default = true]
+    #[schemars(description = "Remove clicks and pops")]
+    pub clicks: bool,
+    #[default = true]
+    #[schemars(description = "Rebuild clipped peaks")]
+    pub clipping: bool,
+    #[default = 0.5]
+    #[schemars(
+        description = "Strength",
+        range(min = 0, max = 1),
+        extend("x-step" = 0.05, "x-help" = "Stronger finds more, but can soften sharp sounds that are meant to be there.")
+    )]
+    pub strength: f64,
+}
+
+impl Params for FixClicks {}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
 pub struct GrabFrame {
     #[default = 1000]
     #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
@@ -906,6 +927,22 @@ pub fn nodes() -> Vec<NodeDef> {
             ))]
         })
         .look(NodeLook::of("lucide:volume-2")),
+        one_file_op::<FixClicks>(
+            REPAIR_TYPE,
+            "Fix clicks and clipping",
+            "Removes clicks and pops and rebuilds peaks that were cut off when recording too loud.",
+        )
+        .card(|ctx: &CardCtx<'_, FixClicks>| {
+            let p = &ctx.params;
+            let what = match (p.clicks, p.clipping) {
+                (true, true) => row(Icon::AudioLines, "Clicks and clipping"),
+                (true, false) => row(Icon::AudioLines, "Clicks"),
+                (false, true) => row(Icon::AudioLines, "Clipping"),
+                (false, false) => missing(Icon::AudioLines, "Turn on clicks or clipping"),
+            };
+            vec![Some(what), length_row(ctx.result, Icon::Clock)]
+        })
+        .look(NodeLook::of("lucide:bandage")),
         thumbnail().look(NodeLook::of("lucide:scan")),
         one_file_op::<NoSettings>(
             FASTSTART_TYPE,

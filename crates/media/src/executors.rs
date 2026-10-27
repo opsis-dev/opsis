@@ -1,6 +1,6 @@
 use opsis_compile::nodes::media::{
     APPLY_GRADE_TYPE, CONCAT_TYPE, CONVERT_TYPE, EXTRACT_AUDIO_TYPE, FASTSTART_TYPE, GIF_TYPE,
-    IMPORT_TYPE, LOUDNORM_TYPE, PROBE_TYPE, REVERSE_TYPE, SCALE_PAD_TYPE, SPEED_TYPE,
+    IMPORT_TYPE, LOUDNORM_TYPE, PROBE_TYPE, REPAIR_TYPE, REVERSE_TYPE, SCALE_PAD_TYPE, SPEED_TYPE,
     THUMBNAIL_TYPE, TRIM_TYPE,
 };
 use std::future::Future;
@@ -11,8 +11,8 @@ use futures::future::try_join_all;
 use opsis_compile::asset_ref::{kind_from_path, project_ref};
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
-    ChangeSpeed, Encoding, EvenOutVolume, ExtractSound, GrabFrame, JoinFiles, MakeGif, MediaFile,
-    Resize, TrimFile, joined_files,
+    ChangeSpeed, Encoding, EvenOutVolume, ExtractSound, FixClicks, GrabFrame, JoinFiles, MakeGif,
+    MediaFile, Resize, TrimFile, joined_files,
 };
 use opsis_compile::registry::{node_def, node_name};
 use opsis_compile::text::{format_duration, format_precise_duration, single_quoted};
@@ -32,8 +32,8 @@ use crate::codecs::{
 };
 use crate::ffmpeg::{MediaTools, OnProgress, ProbeResult, RunOptions, ToolError, can_stream_copy};
 use crate::filters::{
-    JoinPart, JoinSize, fit_filter, gif_filter, join_filter, loudnorm_filter, speed_args,
-    speed_sound_args,
+    JoinPart, JoinSize, fit_filter, gif_filter, join_filter, loudnorm_filter, repair_filter,
+    speed_args, speed_sound_args,
 };
 use crate::grade::{GradeError, GradeSize, grade_filters};
 use crate::reverse::{
@@ -867,12 +867,19 @@ async fn extract_audio(
     .await
 }
 
-async fn loudnorm(
-    ctx: Arc<ExecutorContext>,
-    inputs: PortValues,
-    tools: Tools,
+struct SoundFilter<'a> {
+    stem: &'a str,
+    label: &'a str,
+    silent: &'a str,
+    filter: String,
+}
+
+async fn filter_sound(
+    ctx: &ExecutorContext,
+    inputs: &PortValues,
+    tools: &dyn MediaTools,
+    job: SoundFilter<'_>,
 ) -> Result<ExecutorOutput, ExecError> {
-    let p: EvenOutVolume = ctx.params()?;
     let input = require_media(inputs.get(MEDIA_PORT))?;
     let format = (input.value.kind == MediaKind::Audio)
         .then(|| audio_format_for(ext_of(&input.src).trim_start_matches('.')));
@@ -883,7 +890,7 @@ async fn loudnorm(
     let audio = probe
         .audio
         .as_ref()
-        .ok_or_else(|| ExecError::new("This file has no sound to even out."))?;
+        .ok_or_else(|| ExecError::new(job.silent))?;
     let picture = match &probe.video {
         Some(v) if MP4_PICTURES.contains(&v.codec.as_str()) => strings(&["-c:v", "copy"]),
         _ => {
@@ -893,18 +900,14 @@ async fn loudnorm(
         }
     };
     let ext = format.map_or_else(|| "mp4".to_owned(), |f| serde_name(&f));
-    let job = Transcode {
-        file: format!("loudnorm.{ext}"),
-        label: "Loudness normalised",
+    let transcoded = Transcode {
+        file: format!("{}.{ext}", job.stem),
+        label: job.label,
         duration_ms: None,
     };
-    transcode(&ctx, &*tools, &input, job, |i, o| {
-        let mut args = vec![
-            "-i".to_owned(),
-            i.to_owned(),
-            "-af".to_owned(),
-            loudnorm_filter(p.integrated, p.true_peak, p.lra),
-        ];
+    let filter = job.filter;
+    transcode(ctx, tools, &input, transcoded, |i, o| {
+        let mut args = vec!["-i".to_owned(), i.to_owned(), "-af".to_owned(), filter];
         if let Some(rate) = audio.sample_rate {
             args.extend(["-ar".to_owned(), rate.to_string()]);
         }
@@ -919,6 +922,38 @@ async fn loudnorm(
         args
     })
     .await
+}
+
+async fn loudnorm(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: EvenOutVolume = ctx.params()?;
+    let job = SoundFilter {
+        stem: "loudnorm",
+        label: "Loudness normalised",
+        silent: "This file has no sound to even out.",
+        filter: loudnorm_filter(p.integrated, p.true_peak, p.lra),
+    };
+    filter_sound(&ctx, &inputs, &*tools, job).await
+}
+
+async fn repair(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: FixClicks = ctx.params()?;
+    let filter = repair_filter(p.clicks, p.clipping, p.strength)
+        .ok_or_else(|| ExecError::new("Turn on clicks or clipping to fix."))?;
+    let job = SoundFilter {
+        stem: "repaired",
+        label: "Clicks and clipping fixed",
+        silent: "This file has no sound to fix.",
+        filter,
+    };
+    filter_sound(&ctx, &inputs, &*tools, job).await
 }
 
 async fn thumbnail(
@@ -1049,6 +1084,7 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (GIF_TYPE, bind(tools, gif)),
         (EXTRACT_AUDIO_TYPE, bind(tools, extract_audio)),
         (LOUDNORM_TYPE, bind(tools, loudnorm)),
+        (REPAIR_TYPE, bind(tools, repair)),
         (THUMBNAIL_TYPE, bind(tools, thumbnail)),
         (FASTSTART_TYPE, bind(tools, faststart)),
         (PROBE_TYPE, bind(tools, probe)),

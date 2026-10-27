@@ -445,3 +445,47 @@ async fn media_has_sound_probes_the_file_when_the_value_doesnt_say() {
 async fn media_has_sound_trusts_the_value_when_it_says() {
     assert!(!has_sound(&probing(true), &linked_film(Some(false))).await);
 }
+
+#[tokio::test]
+async fn fixes_clicks_and_clipping_in_one_pass_keeping_the_sound_format() {
+    let (result, ran) = run(
+        sound_setup("media.repair", json!({ "strength": 1 })),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert_eq!(
+        ran[0],
+        [
+            "-i",
+            "/p/assets/voice.wav",
+            "-af",
+            "adeclick=t=1.00,adeclip=t=5.00",
+            "-ar",
+            "48000",
+            "-c:a",
+            "pcm_s16le",
+            "/p/.opsis/cache/h/repaired.wav"
+        ]
+    );
+    assert_eq!(result.unwrap().artifacts[0].kind, ArtifactKind::Audio);
+    let (_, ran) = run(
+        sound_setup("media.repair", json!({ "clipping": false })),
+        film_probe(Some("aac")),
+        json!({ "media": film("video") }),
+    )
+    .await;
+    let args = ran[0].join(" ");
+    assert!(args.contains("-af adeclick=t=2.50 "), "{args}");
+    assert!(args.contains("-c:v copy"), "the picture is copied: {args}");
+    let (result, _) = run(
+        sound_setup(
+            "media.repair",
+            json!({ "clicks": false, "clipping": false }),
+        ),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert_eq!(message(result), "Turn on clicks or clipping to fix.");
+}
