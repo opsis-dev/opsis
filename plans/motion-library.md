@@ -247,10 +247,9 @@ Use Remotion's `<RemotionRiveCanvas>` and download nothing at run time: both bun
 3. **Runtime redirect.** `packages/video/src/rive/runtime.ts` imports the real `canvas_advanced.mjs` and exports a default function that calls it with `locateFile: () => staticFile("rive/rive.wasm")`, whatever `locateFile` the caller passed. The Vite plugin and the Rspack hook resolve the bare `@rive-app/canvas-advanced` to that module, next to the font redirect; the `.mjs` subpath is left alone, so the wrapper doesn't redirect to itself. A test bundles a module that imports the bare name and checks it resolves to the wrapper in both bundlers.
 4. **Settings.** `core/rive` in `core.rs`: `src` (`asset`, `x-accept = ".riv"`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`; 90 frames.
 5. **Component.** `packages/video/src/core/rive.tsx`, in `LAZY_CORE_ELEMENTS`, renders `<RemotionRiveCanvas src={…} artboard={…} animation={…} fit={…} enableRiveAssetCdn={false} />`, with `src` resolved like Lottie's.
-6. **Export as code.** The exported project gets `public/rive/rive.wasm` and the redirect in its `remotion.config.ts` (`EXPORTED_SOURCES`, `apps/sidecar/src/source-layout.ts`, then `bun run source:layout`).
-7. **Copy.** Title "Rive animation", description in the Lottie element's style: "Plays an animation made in Rive (.riv)."
-8. **Licences.** `THIRD_PARTY_NOTICES.md`: `@rive-app/canvas-advanced` (MIT), including the bundled `rive.wasm`. `@remotion/rive` is under the Remotion licence, covered by the existing notice.
-9. **Check.**
+6. **Copy.** Title "Rive animation", description in the Lottie element's style: "Plays an animation made in Rive (.riv)."
+7. **Licences.** `THIRD_PARTY_NOTICES.md`: `@rive-app/canvas-advanced` (MIT), including the bundled `rive.wasm`. `@remotion/rive` is under the Remotion licence, covered by the existing notice.
+8. **Check.**
    - With networking off: the element loads in the Preview and in an export, and no request goes to unpkg or Rive's servers (the preview page's network log through CDP).
    - Frame stepping: an exported still of the middle frame (a fresh page jumping straight to one frame) matches the same frame in the export; scrubbing backwards and jumping around in the Preview match the export too. If they don't, use the fallback below.
 
@@ -264,7 +263,7 @@ If stepping from the previous frame gives wrong pictures, write `rive.tsx` on th
 
 ### Risks
 
-- **Stepping from the previous frame.** `<RemotionRiveCanvas>` advances by `frame - lastFrame`. Renders use one tab in order, but exported stills render one frame of a fresh page and the Preview scrubs, so check both (Work step 9) before shipping.
+- **Stepping from the previous frame.** `<RemotionRiveCanvas>` advances by `frame - lastFrame`. Renders use one tab in order, but exported stills render one frame of a fresh page and the Preview scrubs, so check both (Work step 8) before shipping.
 - **Version drift.** The wrapper, the copied `rive.wasm` and `@remotion/rive`'s pinned runtime must stay the same version; the copy test and the exact pins catch drift on the next Remotion bump.
 
 ### Sources

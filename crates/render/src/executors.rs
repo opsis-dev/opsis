@@ -1,4 +1,4 @@
-use opsis_compile::nodes::output::{EXPORT_PROJECT_TYPE, RENDER_TYPE, STILL_TYPE};
+use opsis_compile::nodes::output::{RENDER_TYPE, STILL_TYPE};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -28,7 +28,6 @@ use opsis_types::values::{
     Artifact, ArtifactKind, CompileValue, ImageValue, MediaKind, MediaValue, PortValues,
 };
 
-use crate::export_project::{ExportSources, export_code};
 use crate::film::{Stage, mixed, spec_for};
 use crate::picture::{PictureOptions, cached_picture, picture_key};
 use crate::protocol::{COMPOSITION_ID, MediaJob, RenderTarget, SidecarCall, StillJob};
@@ -43,7 +42,6 @@ pub struct RenderEngine {
     pub tools: Tools,
     pub serve_url: String,
     pub binaries_directory: Option<String>,
-    pub sources: ExportSources,
 }
 
 fn sidecar_error(error: SidecarError) -> ExecError {
@@ -456,6 +454,5 @@ pub fn output_executors(engine: &Arc<RenderEngine>) -> Vec<(&'static str, Execut
     vec![
         (RENDER_TYPE, bind(engine, export_video)),
         (STILL_TYPE, bind(engine, export_images)),
-        (EXPORT_PROJECT_TYPE, bind(engine, export_code)),
     ]
 }

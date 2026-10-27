@@ -125,20 +125,8 @@ fn a_hosted_spec_names_every_project_and_prepared_file_by_its_address_on_the_hos
 }
 
 #[test]
-fn an_exported_project_names_its_files_in_its_own_public_folder() {
-    let out = as_json(&hosted(&spec("static:", Value::Null, Value::Null)));
-    let props = &out["tracks"][0]["items"][0]["props"];
-    assert_eq!(props["image"], "app:project/assets/shot one.png");
-    assert_eq!(
-        props["model"],
-        "app:project/.opsis/prepared/model/project/assets/robot.glb"
-    );
-    assert_eq!(out["audio"][0]["src"], "app:project/assets/music.mp3");
-}
-
-#[test]
 fn a_spec_without_fonts_gets_the_default_project_fonts() {
-    let out = hosted(&spec("static:", Value::Null, Value::Null));
+    let out = hosted(&spec("http://127.0.0.1:9/p/", Value::Null, Value::Null));
     let fonts = out.fonts.unwrap();
     assert_eq!(fonts.families["df-main"].family, "Inter");
     assert_eq!(fonts.families["df-code"].family, "JetBrains Mono");

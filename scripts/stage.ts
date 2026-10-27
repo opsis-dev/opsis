@@ -1,17 +1,8 @@
 import { execFileSync } from "node:child_process";
-import {
-  copyFileSync,
-  cpSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { getCompositorPackage } from "@opsis/sidecar/compositor-package";
-import { z } from "zod";
 import {
   GPL_2,
   appVersion,
@@ -78,28 +69,6 @@ function stageCompositor() {
   writeFileSync(path.join(compositor, "SOURCES.md"), sourcesNote(sources, appVersion()));
 }
 
-const sourceSchema = z.object({ from: z.array(z.string()), to: z.string() });
-const layoutSchema = z.object({
-  exportedSources: z.array(sourceSchema),
-  dependencyManifests: z.array(sourceSchema),
-});
-
-function stageExportSources() {
-  const layout = layoutSchema.parse(
-    JSON.parse(
-      readFileSync(
-        path.join(ROOT, "crates", "render", "src", "source-layout.generated.json"),
-        "utf8",
-      ),
-    ),
-  );
-  for (const source of [...layout.exportedSources, ...layout.dependencyManifests])
-    cpSync(path.join(ROOT, ...source.from), path.join(RESOURCES, "export-src", source.to), {
-      recursive: true,
-      filter: (file) => !file.includes(`${path.sep}node_modules`),
-    });
-}
-
 function stageBrowserCredits() {
   writeChromiumCredits(
     installEngine().browser,
@@ -112,7 +81,6 @@ mkdirSync(RESOURCES, { recursive: true });
 run("bun", ["run", "video:bundle", "--", "--release"]);
 compileSidecar();
 stageCompositor();
-stageExportSources();
 stageBrowserCredits();
 if (!existsSync(path.join(ROOT, "remotion-bundle")))
   throw new Error("The video bundle is missing.");

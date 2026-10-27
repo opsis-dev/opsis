@@ -37,7 +37,6 @@ const PORT_COLORS: Record<PortType, string> = {
   image: "#2dd4bf",
   media: CATEGORY_STYLES.Media.color,
   "file-info": "#94a3b8",
-  folder: "#94a3b8",
 };
 
 export function portTypeColor(type: PortType | undefined): string {

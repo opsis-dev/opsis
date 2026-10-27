@@ -6,7 +6,6 @@ use opsis_engine::tools::EngineFiles;
 use opsis_media::executors::{Tools, media_executors};
 use opsis_media::ffmpeg::Ffmpeg;
 use opsis_render::executors::{RenderEngine, output_executors};
-use opsis_render::export_project::ExportSources;
 use opsis_render::sidecar::{Sidecar, SidecarCommand};
 use opsis_runner::context::{Executors, RunEnv};
 use opsis_runner::runner::{RunDeps, run_workflow};
@@ -60,7 +59,6 @@ fn workflow() -> Workflow {
         node("mixed", "audio.mix", json!({})),
         node("film", "output.render", json!({ "fileName": "film" })),
         node("still", "output.still", json!({ "fileName": "film" })),
-        node("code", "output.exportProject", json!({})),
     ];
     let edges = [
         edge("import", "media", "trim", "media"),
@@ -76,7 +74,6 @@ fn workflow() -> Workflow {
         edge("click", "audio", "mixed", "sounds"),
         edge("mixed", "clip", "film", "clip"),
         edge("title", "clip", "still", "clip"),
-        edge("mixed", "clip", "code", "clip"),
     ];
     serde_json::from_value(
         json!({ "version": 1, "id": "e2e", "name": "End to end", "nodes": nodes, "edges": edges }),
@@ -154,10 +151,6 @@ async fn runs_media_nodes_and_exports_through_the_sidecar() {
         serve_url: std::env::var("OPSIS_VIDEO_BUNDLE")
             .expect("OPSIS_VIDEO_BUNDLE names a video bundle"),
         binaries_directory: None,
-        sources: ExportSources {
-            root: repo(),
-            packaged: false,
-        },
     });
     let mut executors = Executors::default();
     executors.extend(media_executors(&tools)).unwrap();
@@ -199,13 +192,7 @@ async fn runs_media_nodes_and_exports_through_the_sidecar() {
         "{:?}",
         events.last()
     );
-    for file in [
-        "film.mp4",
-        "film-og.png",
-        "video-code/package.json",
-        "video-code/src/timeline.json",
-        "video-code/remotion.config.ts",
-    ] {
+    for file in ["film.mp4", "film-og.png"] {
         assert!(
             project.join(".opsis/out").join(file).exists(),
             "{file} wasn't exported"

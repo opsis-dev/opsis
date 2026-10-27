@@ -311,7 +311,6 @@ fn reads_every_saved_output_kind_and_rejects_mismatched_ones() {
         "media": { "type": "media", "src": "project:a.mp4", "kind": "video", "durationMs": 1200 },
         "image": { "type": "image", "src": null, "width": 640, "height": 360, "scale": 2 },
         "info": { "type": "file-info", "src": "project:probe.json" },
-        "folder": { "type": "folder", "src": "project:video-code" },
         "recording": {
             "type": "recording", "src": "project:r.mp4", "log": null, "durationMs": 5000,
             "viewport": { "width": 1920, "height": 1080 }, "nodeId": "record",

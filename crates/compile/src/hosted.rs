@@ -5,8 +5,8 @@ use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
 use serde_json::{Map, Value};
 
 use crate::asset_ref::{
-    APP_SCHEME, PREPARED_FOLDER, PREPARED_SCHEME, PROJECT_SCHEME, PreparedRef, RefTarget,
-    STATIC_PROJECT_BASE, is_project_ref, join_url, project_rel_path,
+    PREPARED_FOLDER, PREPARED_SCHEME, PROJECT_SCHEME, PreparedRef, RefTarget, is_project_ref,
+    join_url, project_rel_path,
 };
 use crate::fonts::film_fonts;
 
@@ -23,13 +23,8 @@ const COMPONENT: &AsciiSet = &NON_ALPHANUMERIC
     .remove(b'(')
     .remove(b')');
 
-enum Base<'a> {
-    Url(&'a str),
-    Static,
-}
-
 struct Host<'a> {
-    base: Base<'a>,
+    base: &'a str,
     versions: Option<&'a IndexMap<String, String>>,
 }
 
@@ -47,13 +42,10 @@ impl Host<'_> {
             RefTarget::Project(rel) => Some(format!("{PROJECT_SCHEME}{rel}")),
             _ => None,
         });
-        match self.base {
-            Base::Static => format!("{APP_SCHEME}project/{PREPARED_FOLDER}/{path}"),
-            Base::Url(base) => self.versioned(
-                join_url(base, &format!("{PREPARED_FOLDER}/{path}")),
-                source.as_deref().unwrap_or_default(),
-            ),
-        }
+        self.versioned(
+            join_url(self.base, &format!("{PREPARED_FOLDER}/{path}")),
+            source.as_deref().unwrap_or_default(),
+        )
     }
 
     fn resolve(&self, text: &str) -> Option<String> {
@@ -64,10 +56,7 @@ impl Host<'_> {
             return None;
         }
         let rel = project_rel_path(text)?;
-        Some(match self.base {
-            Base::Static => format!("{APP_SCHEME}project/{rel}"),
-            Base::Url(base) => self.versioned(join_url(base, &rel), text),
-        })
+        Some(self.versioned(join_url(self.base, &rel), text))
     }
 
     fn string(&self, text: &mut String) {
@@ -130,11 +119,7 @@ pub fn hosted(spec: &TimelineSpec) -> TimelineSpec {
         return out;
     };
     let host = Host {
-        base: if base == STATIC_PROJECT_BASE {
-            Base::Static
-        } else {
-            Base::Url(base)
-        },
+        base,
         versions: assets.versions.as_ref(),
     };
     host.tracks(&mut out.tracks);

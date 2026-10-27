@@ -8,7 +8,6 @@ use opsis_engine::temp::{ChildKind, child_temp_name, make_child_temp, remove_chi
 use opsis_image::executors::image_executors;
 use opsis_media::executors::media_executors;
 use opsis_render::executors::{RenderEngine, output_executors};
-use opsis_render::export_project::ExportSources;
 use opsis_runner::context::now_ms;
 use opsis_runner::context::{Executors, RunEnv};
 use opsis_runner::progress::{
@@ -209,10 +208,6 @@ fn executors(app: &AppHandle) -> Executors {
             .paths
             .compositor()
             .map(|dir| dir.to_string_lossy().into_owned()),
-        sources: ExportSources {
-            root: state.paths.export_sources(),
-            packaged: state.paths.packaged,
-        },
     });
     let capture = Arc::new(CaptureDeps {
         tools: Arc::clone(&tools),

@@ -427,7 +427,7 @@ mod tests {
     fn lists_every_exports_files_newest_first_and_once() {
         let results: IndexMap<String, NodeResult> = [
             ("film", result(1, &["film.mp4"])),
-            ("code", result(5, &["code"])),
+            ("shots", result(5, &["shots.png"])),
             ("rec", result(9, &["rec.mp4"])),
         ]
         .into_iter()
@@ -436,14 +436,14 @@ mod tests {
         let files = exported_artifacts(
             [
                 ("film", "output.render"),
-                ("code", "output.exportProject"),
+                ("shots", "output.still"),
                 ("rec", "capture.record"),
             ],
             &results,
         );
         assert_eq!(
             files.iter().map(|a| a.path.as_str()).collect::<Vec<_>>(),
-            ["code", "film.mp4"]
+            ["shots.png", "film.mp4"]
         );
         let results: IndexMap<String, NodeResult> = [
             ("a", result(1, &["out/project-og.png"])),

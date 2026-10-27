@@ -15,7 +15,6 @@ const PREVIEW_PAGE_DIR: &str = "apps/preview/dist";
 const SIDECAR_ENTRY: &str = "apps/sidecar/src/main.ts";
 const SIDECAR_PROGRAM: &str = "opsis-render";
 const COMPOSITOR_DIR: &str = "compositor";
-const EXPORT_SOURCES_DIR: &str = "export-src";
 
 #[derive(Debug, Clone)]
 pub struct AppPaths {
@@ -92,14 +91,6 @@ impl AppPaths {
 
     pub fn compositor(&self) -> Option<PathBuf> {
         self.packaged.then(|| self.resources.join(COMPOSITOR_DIR))
-    }
-
-    pub fn export_sources(&self) -> PathBuf {
-        if self.packaged {
-            self.resources.join(EXPORT_SOURCES_DIR)
-        } else {
-            self.resources.clone()
-        }
     }
 
     fn sidecar_env(&self) -> Vec<(OsString, OsString)> {

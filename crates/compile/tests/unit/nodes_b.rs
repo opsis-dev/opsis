@@ -112,22 +112,6 @@ fn shows_export_lengths_sizes_shapes_and_folders_on_cards() {
         texts(json!(["16:9", "1:1"]))[1],
         "MP4 · 1080p / 1920p · 30 fps"
     );
-    assert_eq!(
-        card_texts(
-            "output.exportProject",
-            json!({ "folderName": ".." }),
-            CardInputs::default()
-        )[0],
-        "output"
-    );
-    assert_eq!(
-        card_texts(
-            "output.exportProject",
-            json!({ "folderName": "My Code" }),
-            CardInputs::default()
-        )[0],
-        "my-code"
-    );
 }
 
 #[test]

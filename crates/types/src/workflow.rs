@@ -21,11 +21,10 @@ pub enum PortType {
     Image,
     Media,
     FileInfo,
-    Folder,
 }
 
 impl PortType {
-    pub const ALL: [PortType; 11] = [
+    pub const ALL: [PortType; 10] = [
         Self::BrowserSession,
         Self::Recording,
         Self::RecordingStyle,
@@ -36,7 +35,6 @@ impl PortType {
         Self::Image,
         Self::Media,
         Self::FileInfo,
-        Self::Folder,
     ];
 
     pub fn id(self) -> &'static str {
@@ -51,7 +49,6 @@ impl PortType {
             Self::Image => "image",
             Self::Media => "media",
             Self::FileInfo => "file-info",
-            Self::Folder => "folder",
         }
     }
 
@@ -67,7 +64,6 @@ impl PortType {
             Self::Image => "image",
             Self::Media => "file",
             Self::FileInfo => "file info",
-            Self::Folder => "folder",
         }
     }
 }

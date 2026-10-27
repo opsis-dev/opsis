@@ -33,7 +33,6 @@ pub enum Icon {
     FileVideo,
     Film,
     Flashlight,
-    FolderOutput,
     Gauge,
     GitBranch,
     Globe,

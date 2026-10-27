@@ -104,7 +104,6 @@ fn connects_the_same_resource_and_converts_images_and_recordings_to_files() {
     for (from, to) in [
         (PortType::Media, PortType::Audio),
         (PortType::FileInfo, PortType::Media),
-        (PortType::Folder, PortType::Media),
         (PortType::Recording, PortType::Clip),
     ] {
         assert!(!can_connect(from, to), "{from:?} -> {to:?}");

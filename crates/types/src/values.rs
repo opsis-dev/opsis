@@ -219,7 +219,6 @@ pub enum CompileValue {
     Image(ImageValue),
     Media(MediaValue),
     FileInfo(SrcValue),
-    Folder(SrcValue),
     Clip(ClipValue),
     Audio(AudioValue),
     Captions(CaptionsValue),
@@ -236,7 +235,6 @@ impl CompileValue {
             Self::Image(_) => PortType::Image,
             Self::Media(_) => PortType::Media,
             Self::FileInfo(_) => PortType::FileInfo,
-            Self::Folder(_) => PortType::Folder,
             Self::Clip(_) => PortType::Clip,
             Self::Audio(_) => PortType::Audio,
             Self::Captions(_) => PortType::Captions,
@@ -311,7 +309,7 @@ impl CompileValue {
             Self::Recording(v) => v.src.as_deref(),
             Self::Image(v) => v.src.as_deref(),
             Self::Media(v) => v.src.as_deref(),
-            Self::FileInfo(v) | Self::Folder(v) => v.src.as_deref(),
+            Self::FileInfo(v) => v.src.as_deref(),
             _ => None,
         }
     }

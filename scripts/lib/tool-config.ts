@@ -20,7 +20,6 @@ export const IGNORED_PATHS = [
   "crates/compile/src/elements/registry.generated.json",
   "crates/compile/src/fonts/bundled.generated.json",
   "crates/engine/src/downloads.generated.json",
-  "crates/render/src/source-layout.generated.json",
   "crates/capture/src/playwright/*.generated.*",
   "apps/ui/src/generated/bindings.ts",
   "apps/sidecar/src/generated/protocol.ts",

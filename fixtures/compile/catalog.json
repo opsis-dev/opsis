@@ -4737,29 +4737,6 @@
    }
   },
   {
-   "type": "output.exportProject",
-   "title": "Export as code",
-   "category": "Export",
-   "description": "Saves this video as an editable code project for developers.",
-   "runs": true,
-   "inputs": {
-    "clip": {
-     "type": "clip",
-     "label": "Clip",
-     "optional": false,
-     "many": false
-    }
-   },
-   "outputs": {
-    "folder": {
-     "type": "folder",
-     "label": "Folder",
-     "optional": false,
-     "many": false
-    }
-   }
-  },
-  {
    "type": "core.note",
    "title": "Note",
    "category": "Organise",
@@ -51991,43 +51968,6 @@
      ],
      "format": "png",
      "gl": "angle"
-    }
-   }
-  },
-  {
-   "type": "output.exportProject",
-   "title": "Export as code",
-   "category": "Export",
-   "description": "Saves this video as an editable code project for developers.",
-   "runs": true,
-   "inputs": {
-    "clip": {
-     "type": "clip",
-     "label": "Clip",
-     "optional": false,
-     "many": false
-    }
-   },
-   "outputs": {
-    "folder": {
-     "type": "folder",
-     "label": "Folder",
-     "optional": false,
-     "many": false
-    }
-   },
-   "params": {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "properties": {
-     "folderName": {
-      "description": "Folder name",
-      "type": "string",
-      "default": "video-code"
-     }
-    },
-    "type": "object",
-    "default": {
-     "folderName": "video-code"
     }
    }
   },

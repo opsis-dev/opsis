@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use opsis_capture::executors::{CaptureDeps, Login, LoginRequest, SignInStore, capture_executors};
@@ -7,7 +6,6 @@ use opsis_engine::tools::EngineFiles;
 use opsis_media::executors::{Tools, media_executors};
 use opsis_media::ffmpeg::Ffmpeg;
 use opsis_render::executors::{RenderEngine, output_executors};
-use opsis_render::export_project::ExportSources;
 use opsis_render::sidecar::{Sidecar, SidecarCommand};
 use opsis_runner::context::{BoxFuture, ExecError, Executor, Executors};
 use tokio_util::sync::CancellationToken;
@@ -43,10 +41,6 @@ fn all_executors() -> Vec<(&'static str, Executor)> {
         tools: Arc::clone(&tools),
         serve_url: String::new(),
         binaries_directory: None,
-        sources: ExportSources {
-            root: PathBuf::from("/nowhere"),
-            packaged: false,
-        },
     });
     let capture = Arc::new(CaptureDeps {
         tools: Arc::clone(&tools),

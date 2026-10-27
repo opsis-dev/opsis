@@ -9,7 +9,6 @@ use crate::vars::strings_in;
 pub const PROJECT_SCHEME: &str = "project:";
 pub const APP_SCHEME: &str = "app:";
 pub const LIBRARY_SCHEME: &str = "library:";
-pub const STATIC_PROJECT_BASE: &str = "static:";
 
 const EXTERNAL_SCHEMES: [&str; 4] = ["http:", "https:", "data:", "blob:"];
 

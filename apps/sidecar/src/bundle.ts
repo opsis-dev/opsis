@@ -1,8 +1,8 @@
 import { rm } from "node:fs/promises";
 import path from "node:path";
 import type { RspackPluginInstance } from "@rspack/core";
-import { VIDEO_SOURCE } from "#sidecar/source-layout";
 
+const VIDEO_SOURCE = ["packages", "video", "src"];
 const PREBUILT_REMOTION_BUNDLE_DIR = "remotion-bundle";
 const REMOTION_ENTRY = path.join(...VIDEO_SOURCE, "index.ts");
 

@@ -16,9 +16,7 @@ use crate::params::Params;
 use crate::text::{format_bytes, format_duration, slug_name};
 use crate::time::{even_px, frames_to_ms};
 
-pub const EXPORT_PROJECT_TYPE: &str = "output.exportProject";
-
-pub const EXPORT_FOLDER_FALLBACK: &str = "output";
+const EXPORT_NAME_FALLBACK: &str = "output";
 pub const RENDER_TYPE: &str = "output.render";
 pub const STILL_TYPE: &str = "output.still";
 
@@ -220,7 +218,7 @@ pub fn still_file_names(base: &str, presets: &[StillPreset], format: StillFormat
 }
 
 pub fn export_base_name(file_name: &str) -> String {
-    slug_name(file_name, EXPORT_FOLDER_FALLBACK)
+    slug_name(file_name, EXPORT_NAME_FALLBACK)
 }
 
 fn file_bytes(artifacts: &[Artifact]) -> u64 {
@@ -338,16 +336,6 @@ pub struct ExportImages {
 }
 
 impl Params for ExportImages {}
-
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
-pub struct ExportCode {
-    #[default = "video-code"]
-    #[schemars(description = "Folder name")]
-    pub folder_name: String,
-}
-
-impl Params for ExportCode {}
 
 fn output_node<P: Params>(
     kind: &'static str,
@@ -480,24 +468,6 @@ fn export_images() -> NodeDef {
     })
 }
 
-fn export_code() -> NodeDef {
-    output_node::<ExportCode>(
-        EXPORT_PROJECT_TYPE,
-        "Export as code",
-        Phase::Post,
-        "Saves this video as an editable code project for developers.",
-        "folder",
-        PortType::Folder,
-        "Folder",
-    )
-    .card(|ctx: &CardCtx<'_, ExportCode>| {
-        vec![Some(row(
-            Icon::FolderOutput,
-            slug_name(&ctx.params.folder_name, EXPORT_FOLDER_FALLBACK),
-        ))]
-    })
-}
-
 pub fn export_reframe(nodes: &[WorkflowNode]) -> ReframeMode {
     nodes
         .iter()
@@ -511,6 +481,5 @@ pub fn nodes() -> Vec<NodeDef> {
     vec![
         export_video().look(NodeLook::of("lucide:clapperboard")),
         export_images().look(NodeLook::of("lucide:image-down")),
-        export_code().look(NodeLook::of("lucide:folder-code")),
     ]
 }
