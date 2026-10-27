@@ -9,7 +9,7 @@ use image::{
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
     AdjustImage, BlurImage, CropImage, CropMode, ImageFormat, PlaceImage, RedactImage, RedactStyle,
-    ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, Turn,
+    ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TrimEdges, Turn,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -456,4 +456,32 @@ fn keeps_lit_areas_and_darkens_the_rest_in_every_depth() {
         let edge = out.get_pixel(32, 15).0[0];
         assert!(edge > 100 && edge < 200, "the edge is soft: {edge}");
     }
+}
+
+#[test]
+fn trims_even_margins_within_the_tolerance_and_keeps_padding() {
+    let framed = RgbaImage::from_fn(64, 48, |x, y| {
+        if (10..54).contains(&x) && (12..40).contains(&y) {
+            Rgba([20, 60, 200, 255])
+        } else {
+            let wobble = ((x + y) % 3) as u8;
+            Rgba([250 - wobble, 250, 250 + wobble / 2, 255])
+        }
+    });
+    let image = DynamicImage::ImageRgba8(framed);
+    let trim = |tolerance, padding| ops::trim(&image, &TrimEdges { tolerance, padding });
+    assert_eq!(trim(8, 0).dimensions(), (44, 28));
+    assert_eq!(trim(8, 0).to_rgba8().get_pixel(0, 0).0, [20, 60, 200, 255]);
+    assert_eq!(trim(8, 4).dimensions(), (52, 36));
+    assert_eq!(trim(8, 100).dimensions(), (64, 48));
+    assert_eq!(
+        trim(0, 0).dimensions(),
+        (64, 48),
+        "the wobble counts as content"
+    );
+    let blank = DynamicImage::ImageRgba8(RgbaImage::from_pixel(10, 10, Rgba([255, 255, 255, 255])));
+    assert_eq!(
+        ops::trim(&blank, &TrimEdges::default()).dimensions(),
+        (10, 10)
+    );
 }

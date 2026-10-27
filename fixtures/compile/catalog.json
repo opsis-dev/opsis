@@ -4737,6 +4737,29 @@
    }
   },
   {
+   "type": "image.trim",
+   "title": "Trim empty edges",
+   "category": "Image",
+   "description": "Cuts away even-coloured margins, so the content sits tight. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -52042,6 +52065,57 @@
      "blur": 0.0,
      "radius": 12.0,
      "softness": 8.0
+    }
+   }
+  },
+  {
+   "type": "image.trim",
+   "title": "Trim empty edges",
+   "category": "Image",
+   "description": "Cuts away even-coloured margins, so the content sits tight. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "tolerance": {
+      "description": "Tolerance",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 255,
+      "default": 8,
+      "x-help": "How far a pixel's colour may be from the corner's and still count as empty edge."
+     },
+     "padding": {
+      "description": "Keep around",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 2000,
+      "default": 0,
+      "x-unit": "px"
+     }
+    },
+    "type": "object",
+    "default": {
+     "tolerance": 8,
+     "padding": 0
     }
    }
   },

@@ -13,8 +13,8 @@ use imageproc::geometric_transformations::{Border, Interpolation, rotate_about_c
 use num_traits::ToPrimitive;
 use opsis_compile::nodes::image::{
     AdjustImage, BlurImage, CropImage, ImageFormat, PlaceImage, Rect, RedactImage, RedactStyle,
-    Resample, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, Turn,
-    area_rect, crop_rect, resized_size, rotated_size,
+    Resample, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TrimEdges,
+    Turn, area_rect, crop_rect, resized_size, rotated_size,
 };
 
 use crate::ImageError;
@@ -475,4 +475,42 @@ pub fn spotlight(image: &DynamicImage, p: &SpotlightImage) -> DynamicImage {
         ])
     });
     from_float(image, out)
+}
+
+fn differs(a: [u8; 4], b: [u8; 4], tolerance: u32) -> bool {
+    a.iter()
+        .zip(b)
+        .any(|(x, y)| u32::from(x.abs_diff(y)) > tolerance)
+}
+
+pub fn content_rect(image: &RgbaImage, tolerance: u32) -> Option<Rect> {
+    let edge = image.get_pixel(0, 0).0;
+    let (w, h) = image.dimensions();
+    let row_full = |y: u32| (0..w).any(|x| differs(image.get_pixel(x, y).0, edge, tolerance));
+    let column_full = |x: u32, top: u32, bottom: u32| {
+        (top..=bottom).any(|y| differs(image.get_pixel(x, y).0, edge, tolerance))
+    };
+    let top = (0..h).find(|&y| row_full(y))?;
+    let bottom = (0..h).rev().find(|&y| row_full(y))?;
+    let left = (0..w).find(|&x| column_full(x, top, bottom))?;
+    let right = (0..w).rev().find(|&x| column_full(x, top, bottom))?;
+    Some(Rect {
+        x: f64::from(left),
+        y: f64::from(top),
+        width: f64::from(right - left + 1),
+        height: f64::from(bottom - top + 1),
+    })
+}
+
+pub fn trim(image: &DynamicImage, p: &TrimEdges) -> DynamicImage {
+    let Some(content) = content_rect(&image.to_rgba8(), p.tolerance) else {
+        return image.clone();
+    };
+    let pad = f64::from(p.padding);
+    let (w, h) = size_of(image);
+    let x = (content.x - pad).max(0.0);
+    let y = (content.y - pad).max(0.0);
+    let right = (content.x + content.width + pad).min(w);
+    let bottom = (content.y + content.height + pad).min(h);
+    image.crop_imm(x as u32, y as u32, (right - x) as u32, (bottom - y) as u32)
 }

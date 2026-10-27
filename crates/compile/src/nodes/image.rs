@@ -10,6 +10,8 @@ use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, RowExt, missing, port,
 use crate::nodes::effects::Area;
 use crate::params::Params;
 
+pub const TRIM_TYPE: &str = "image.trim";
+
 pub const SPOTLIGHT_TYPE: &str = "image.spotlight";
 
 pub const REDACT_TYPE: &str = "image.redact";
@@ -415,6 +417,22 @@ pub struct SpotlightImage {
 
 impl Params for SpotlightImage {}
 
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct TrimEdges {
+    #[default = 8]
+    #[schemars(
+        description = "Tolerance",
+        range(min = 0, max = 255),
+        extend("x-help" = "How far a pixel's colour may be from the corner's and still count as empty edge.")
+    )]
+    pub tolerance: u32,
+    #[schemars(description = "Keep around", range(min = 0, max = 2000), extend("x-unit" = "px"))]
+    pub padding: u32,
+}
+
+impl Params for TrimEdges {}
+
 fn even(value: f64) -> f64 {
     value.round().max(1.0)
 }
@@ -812,6 +830,23 @@ fn spotlight() -> NodeDef {
     })
 }
 
+fn trim() -> NodeDef {
+    image_node::<TrimEdges>(
+        TRIM_TYPE,
+        "Trim empty edges",
+        "Cuts away even-coloured margins, so the content sits tight.",
+    )
+    .card(|ctx: &CardCtx<'_, TrimEdges>| {
+        let p = &ctx.params;
+        vec![
+            result_size(ctx)
+                .map(|(w, h)| row(Icon::Crop, pixels(w, h)))
+                .or_else(|| Some(row(Icon::Crop, "Cuts even-coloured edges"))),
+            (p.padding > 0).then(|| row(Icon::Ruler, format!("Keeps {} px around", p.padding))),
+        ]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -823,5 +858,6 @@ pub fn nodes() -> Vec<NodeDef> {
         format().look(NodeLook::of("lucide:file-image")),
         redact().look(NodeLook::of("lucide:eye-off")),
         spotlight().look(NodeLook::of("lucide:flashlight")),
+        trim().look(NodeLook::of("lucide:shrink")),
     ]
 }
