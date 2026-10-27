@@ -1,6 +1,6 @@
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import type { AppSettings } from "@/generated/bindings";
-import { patchAppSettings } from "../../store/app-settings";
+import { patchAppSettings } from "@/store/app-settings";
 import { CommitInput } from "./fields";
 import { SettingsCard } from "./settings-card";
 

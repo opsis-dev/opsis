@@ -1,7 +1,7 @@
 import { percent, signedText } from "@opsis/video/common/format";
 import { clamp01, normalize } from "@opsis/video/common/math";
 import { cn } from "@/lib/utils";
-import { usePlayback } from "../../store/playback";
+import { usePlayback } from "@/store/playback";
 import { useFilm } from "../film";
 import { formatLevelDb, formatSignedDb } from "./audio-format";
 import { levelAt, reductionAt, type Level, type Levels, type Reduction } from "./meter-levels";

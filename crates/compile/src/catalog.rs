@@ -18,6 +18,7 @@ use crate::params::Values;
 use crate::ports::can_connect;
 use crate::registry::{node_def, registry};
 use crate::size::estimate_card_height;
+use crate::sounds::builtin_sounds;
 use crate::timeline::camera_path::{CAMERA_DIALS, CameraDial};
 use crate::vars::{PAUSE_MARK, VAR_PATTERN};
 
@@ -190,6 +191,15 @@ pub struct EditorCatalog {
     pub quality_presets: Vec<(String, f64)>,
     pub loudness_presets: Vec<(String, f64)>,
     pub timeline: TimelineBook,
+    pub sounds: Vec<SoundChoice>,
+}
+
+#[derive(Debug, Clone, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct SoundChoice {
+    pub reference: String,
+    pub label: String,
+    pub duration_ms: u32,
 }
 
 #[derive(Debug, Clone, Serialize, specta::Type)]
@@ -267,5 +277,13 @@ pub fn editor_bundle(platform: Platform) -> EditorCatalog {
         quality_presets: quality_presets(),
         loudness_presets: loudness_presets(),
         timeline: timeline_book(),
+        sounds: builtin_sounds()
+            .iter()
+            .map(|s| SoundChoice {
+                reference: s.reference(),
+                label: s.label.clone(),
+                duration_ms: s.duration_ms,
+            })
+            .collect(),
     }
 }

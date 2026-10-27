@@ -1,9 +1,9 @@
 import { atLeastOneFrame } from "@opsis/video/common/time";
 import { useEffect, useState } from "react";
 import type { PreviewTarget } from "@/generated/bindings";
+import { registerPlayer, usePlayback } from "@/store/playback";
+import { singleSelected, useUiStore } from "@/store/ui";
 import { activeAt, loopOf, wrapInLoop, type Loop } from "@/timeline/playhead";
-import { registerPlayer, usePlayback } from "../../store/playback";
-import { singleSelected, useUiStore } from "../../store/ui";
 import { useFilm } from "../film";
 import { StemPlayer } from "../stem-player";
 import { useCompiledContext } from "../use-compiled";

@@ -1,7 +1,7 @@
 import { clamp, type MinMax, type StepRange } from "@opsis/video/common/math";
+import { SingleSlider } from "@/app/single-slider";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SingleSlider } from "../../app/single-slider";
 import { parseShown, shownText, unitScale, useDecimalInput } from "./decimal";
 import { Help, LabelledChoices } from "./field-shell";
 import type { FieldProps } from "./types";

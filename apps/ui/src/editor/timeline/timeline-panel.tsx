@@ -1,9 +1,9 @@
 import { SquareChartGantt } from "lucide-react";
 import { useRef } from "react";
+import { EmptyPanel } from "@/app/empty-panel";
 import type { Workflow } from "@/generated/bindings";
 import { isEditingElement } from "@/lib/dom";
-import { EmptyPanel } from "../../app/empty-panel";
-import { useWorkflowStore } from "../../store/workflow";
+import { useWorkflowStore } from "@/store/workflow";
 import { useFilm, type Film } from "../film";
 import { focusTargetRef } from "../panels";
 import { RemoveDialog } from "./remove-dialog";

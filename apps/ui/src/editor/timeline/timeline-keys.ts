@@ -1,6 +1,6 @@
 import { isPrimaryModifier } from "@/app/accelerators";
 import { platform } from "@/lib/platform";
-import { usePlayback } from "../../store/playback";
+import { usePlayback } from "@/store/playback";
 import { useTimeline } from "./timeline-state";
 import { COMMAND_KEYS, TOOLS, ZOOM_KEYS, ZOOM_STEP } from "./timeline-tools";
 import type { TimelineCommands } from "./use-timeline-commands";

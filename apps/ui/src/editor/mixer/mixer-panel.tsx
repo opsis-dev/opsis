@@ -1,13 +1,13 @@
 import { Plus, SlidersVertical } from "lucide-react";
 import { useState } from "react";
+import { EmptyPanel } from "@/app/empty-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { EmptyPanel } from "../../app/empty-panel";
-import { mixFailure, useMedia } from "../../store/media";
-import { toggleIds } from "../../store/ui";
-import { readPref, writePref } from "../../store/view-prefs";
-import { workflowEdits } from "../../store/workflow";
+import { mixFailure, useMedia } from "@/store/media";
+import { toggleIds } from "@/store/ui";
+import { readPref, writePref } from "@/store/view-prefs";
+import { workflowEdits } from "@/store/workflow";
 import { useFilm, type Film } from "../film";
 import { BusStrip } from "./bus-strip";
 import { ChannelStrip } from "./channel-strip";

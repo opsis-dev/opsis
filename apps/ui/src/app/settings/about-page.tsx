@@ -1,5 +1,5 @@
 import { Spinner } from "@/components/ui/spinner";
-import { useFreshEnvironment } from "../../store/environment";
+import { useFreshEnvironment } from "@/store/environment";
 import { SettingsCard } from "./settings-card";
 
 export function AboutPage() {

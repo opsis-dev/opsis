@@ -13,9 +13,9 @@ import type {
   WaveformLevel,
 } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { loadedFilmstrip, loadedWaveform, useMedia } from "@/store/media";
+import { useFileUrl } from "@/store/project-files";
 import { barLocalAt } from "@/timeline/local-frames";
-import { loadedFilmstrip, loadedWaveform, useMedia } from "../../store/media";
-import { useFileUrl } from "../../store/project-files";
 import { OFFSCREEN_PX, type BarBox, type Viewport } from "./timeline-layout";
 
 const END_EPSILON = 0.001;

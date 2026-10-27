@@ -695,6 +695,7 @@ export type EditorCatalog = {
 	qualityPresets: ([string, number])[],
 	loudnessPresets: ([string, number])[],
 	timeline: TimelineBook,
+	sounds: SoundChoice[],
 };
 
 export type EditorCompile = {
@@ -1616,6 +1617,12 @@ export type SharedView = {
 export type Slot = {
 	nodeId: string,
 	port: string,
+};
+
+export type SoundChoice = {
+	reference: string,
+	label: string,
+	durationMs: number,
 };
 
 export type SoundPlacement = {

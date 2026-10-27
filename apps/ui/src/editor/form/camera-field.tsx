@@ -1,13 +1,13 @@
 import { Plus, X } from "lucide-react";
+import { SingleSlider } from "@/app/single-slider";
 import { Button } from "@/components/ui/button";
 import { FieldLegend, FieldSet } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import type { CameraDial, CameraKey, CameraPath } from "@/generated/bindings";
 import { useItemKeys } from "@/lib/use-item-keys";
 import { timelineBook } from "@/store/catalog";
-import { SingleSlider } from "../../app/single-slider";
-import { usePlayback } from "../../store/playback";
-import { workflowEdits } from "../../store/workflow";
+import { usePlayback } from "@/store/playback";
+import { workflowEdits } from "@/store/workflow";
 import { useFilm } from "../film";
 import { framesScale, parseShown, shownText, useDecimalInput } from "./decimal";
 import { EaseSelect } from "./envelope-field";

@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import type { Workflow, FlatTimeline } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
-import { usePlayback } from "../../store/playback";
-import { selectedSet, useUiStore } from "../../store/ui";
+import { usePlayback } from "@/store/playback";
+import { selectedSet, useUiStore } from "@/store/ui";
 import type { Film } from "../film";
 import { AudioBarView } from "./audio-bar";
 import type { BarContext } from "./bar-context";

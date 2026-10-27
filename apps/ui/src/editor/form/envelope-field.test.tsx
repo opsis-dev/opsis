@@ -6,7 +6,7 @@ import type { FormContext } from "./types";
 
 const sent = vi.hoisted(() => [] as KeyframeEdit[]);
 
-vi.mock("../../store/workflow", () => ({
+vi.mock("@/store/workflow", () => ({
   workflowEdits: { keyframes: (edit: KeyframeEdit) => sent.push(edit) },
 }));
 

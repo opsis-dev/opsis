@@ -31,7 +31,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { fractionIn } from "@/lib/dom";
 import { useCommitDraft } from "@/lib/use-commit-draft";
 import { usePointerDrag } from "@/lib/use-pointer-drag";
-import { workflowEdits } from "../../store/workflow";
+import { workflowEdits } from "@/store/workflow";
 
 export const CHECKER: CSSProperties = {
   backgroundImage:

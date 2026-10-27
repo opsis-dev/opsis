@@ -26,9 +26,9 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
+import { FontsPanel } from "@/fonts/fonts-panel";
 import { commands, events, type SettingsPage, type AppSettings } from "@/generated/bindings";
-import { FontsPanel } from "../../fonts/fonts-panel";
-import { useAppSettings } from "../../store/app-settings";
+import { useAppSettings } from "@/store/app-settings";
 import { AppBar } from "../app-bar";
 import { onMenuCommand } from "../menu-commands";
 import { EnginePanel } from "../setup";

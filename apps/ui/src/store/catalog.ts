@@ -12,6 +12,7 @@ import {
   type MixerBook,
   type SettingsBook,
   type ShapeChoice,
+  type SoundChoice,
   type TimelineBook,
   type Theme,
   type TextRules,
@@ -36,6 +37,7 @@ const loaded: {
   qualityPresets: Array<[string, number]>;
   loudnessPresets: Array<[string, number]>;
   timeline: TimelineBook;
+  sounds: SoundChoice[];
   templates: TemplateInfo[];
 } = {
   nodes: [],
@@ -52,6 +54,7 @@ const loaded: {
   qualityPresets: [],
   loudnessPresets: [],
   timeline: { eases: [], envelopes: [], cameraDials: [], previewQualities: [] },
+  sounds: [],
   templates: [],
 };
 
@@ -75,6 +78,7 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
   loaded.qualityPresets = catalog.qualityPresets;
   loaded.loudnessPresets = catalog.loudnessPresets;
   loaded.timeline = catalog.timeline;
+  loaded.sounds = catalog.sounds;
   loaded.text = text;
   loaded.mixer = mixer;
   loaded.bundledFonts = bundledFonts;
@@ -92,6 +96,8 @@ export const bundledFonts = (): FontFamilyDef[] => loaded.bundledFonts;
 export const shapes = (): ShapeChoice[] => loaded.shapes;
 
 export const timelineBook = (): TimelineBook => loaded.timeline;
+
+export const builtinSounds = (): SoundChoice[] => loaded.sounds;
 
 export const qualityPresets = (): Array<[string, number]> => loaded.qualityPresets;
 

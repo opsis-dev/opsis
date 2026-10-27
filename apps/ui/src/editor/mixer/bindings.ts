@@ -1,7 +1,7 @@
 import type { MixResult, Eq, EqType } from "@/generated/bindings";
-import { useAudioPreview, type Contribution } from "../../store/audio-preview";
-import { usePlayback } from "../../store/playback";
-import { workflowEdits } from "../../store/workflow";
+import { useAudioPreview, type Contribution } from "@/store/audio-preview";
+import { usePlayback } from "@/store/playback";
+import { workflowEdits } from "@/store/workflow";
 import type { Gesture } from "./gesture";
 import { share, type Levels } from "./meter-levels";
 

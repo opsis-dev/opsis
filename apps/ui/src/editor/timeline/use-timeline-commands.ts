@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { commands, type FlatTimeline, type Removal, type VideoBar } from "@/generated/bindings";
-import { selectedSet } from "../../store/ui";
+import { selectedSet } from "@/store/ui";
 import {
   addMarkerAtPlayhead,
   commitEdit,

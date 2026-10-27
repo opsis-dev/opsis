@@ -11,7 +11,7 @@ import { fractionIn } from "@/lib/dom";
 import { parseNumberText } from "@/lib/number-text";
 import { useCommitDraft } from "@/lib/use-commit-draft";
 import { usePointerDrag } from "@/lib/use-pointer-drag";
-import { workflowEdits } from "../../store/workflow";
+import { workflowEdits } from "@/store/workflow";
 import { ColorInput } from "./color-field";
 import { CHECKER } from "./color-picker";
 import { trimNumber, useDecimalInput } from "./decimal";

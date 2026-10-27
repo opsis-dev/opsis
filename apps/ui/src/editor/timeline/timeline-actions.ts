@@ -8,9 +8,9 @@ import {
   type TimelineReply,
 } from "@/generated/bindings";
 import { errorMessage } from "@/lib/errors";
-import { usePlayback } from "../../store/playback";
-import { toggleIds, useUiStore } from "../../store/ui";
-import { workflowEdits } from "../../store/workflow";
+import { usePlayback } from "@/store/playback";
+import { toggleIds, useUiStore } from "@/store/ui";
+import { workflowEdits } from "@/store/workflow";
 import { useTimeline } from "./timeline-state";
 
 export function selectNodes(ids: string[], additive: boolean, sourceNodeId: string | null): void {

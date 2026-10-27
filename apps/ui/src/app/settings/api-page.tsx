@@ -8,7 +8,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import type { ApiServerStatus, AppSettings } from "@/generated/bindings";
 import { isWindows } from "@/lib/platform";
-import { patchAppSettings, useAppSettings } from "../../store/app-settings";
+import { patchAppSettings, useAppSettings } from "@/store/app-settings";
 import { SwitchField } from "./fields";
 import { SettingsCard } from "./settings-card";
 

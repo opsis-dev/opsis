@@ -11,8 +11,8 @@ import type {
   MixResult,
 } from "@/generated/bindings";
 import { mixerBook } from "@/store/catalog";
-import { usePlayback } from "../../store/playback";
-import { workflowEdits } from "../../store/workflow";
+import { usePlayback } from "@/store/playback";
+import { workflowEdits } from "@/store/workflow";
 import { OptionSelect } from "../option-select";
 import { formatDb, formatReading } from "./audio-format";
 import { bindChange, bindEq, bindGain, MASTER_TARGET } from "./bindings";

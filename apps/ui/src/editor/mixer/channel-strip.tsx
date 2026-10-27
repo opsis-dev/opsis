@@ -5,8 +5,8 @@ import type { Bus, ChannelPlan, Mix, MixResult, Strip, StripPatch } from "@/gene
 import { cn } from "@/lib/utils";
 import { mixerBook } from "@/store/catalog";
 import { nodeNameById } from "@/store/catalog";
-import { useUiStore } from "../../store/ui";
-import { useWorkflowStore, workflowEdits } from "../../store/workflow";
+import { useUiStore } from "@/store/ui";
+import { useWorkflowStore, workflowEdits } from "@/store/workflow";
 import { OptionSelect } from "../option-select";
 import { formatDb, formatPan } from "./audio-format";
 import { bindGain, bindPan, previewTarget } from "./bindings";

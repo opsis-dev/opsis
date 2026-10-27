@@ -29,6 +29,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { commands, type MenuEntry } from "@/generated/bindings";
 import { isMac } from "@/lib/platform";
 import { cn } from "@/lib/utils";
+// oxlint-disable-next-line no-restricted-imports
 import logoUrl from "../../../../brand/logo.svg";
 import { useAppSettings } from "../store/app-settings";
 import {

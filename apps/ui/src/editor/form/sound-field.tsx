@@ -1,8 +1,8 @@
 import { Play } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { BUILTIN_SOUNDS, builtinSound } from "@/editor/form/builtin-sounds";
 import { fileName } from "@/lib/file-name";
+import { builtinSounds } from "@/store/catalog";
 import { fileUrl } from "../file-url";
 import { ChoiceSelect } from "./choice-select";
 import { FieldShell } from "./field-shell";
@@ -37,9 +37,9 @@ export function SoundField({
   const { lengthKey } = meta;
   const choose = (ref: string, lengthMs?: number) =>
     lengthKey ? onPatch({ [name]: ref, [lengthKey]: lengthMs }) : onChange(ref);
-  const builtin = builtinSound(value);
+  const builtin = builtinSounds().find((s) => s.reference === value);
   const ownLabel = value && !builtin ? fileName(value) : "Your own file…";
-  const selectedKey = builtin?.ref ?? (value ? OWN_FILE : null);
+  const selectedKey = builtin?.reference ?? (value ? OWN_FILE : null);
   return (
     <FieldShell id={id} label={label} meta={meta}>
       <div className="flex gap-2">
@@ -47,7 +47,7 @@ export function SoundField({
           id={id}
           className="min-w-0 flex-1"
           groups={[
-            BUILTIN_SOUNDS.map((s) => ({ value: s.ref, label: s.label })),
+            builtinSounds().map((s) => ({ value: s.reference, label: s.label })),
             [{ value: OWN_FILE, label: ownLabel, disabled: !ctx.projectDir }],
           ]}
           value={selectedKey}

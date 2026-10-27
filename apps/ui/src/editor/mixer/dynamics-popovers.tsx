@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { Bus, Comp, CompRanges, DuckRanges, DuckSettings } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { mixerBook } from "@/store/catalog";
-import { toggleIds } from "../../store/ui";
+import { toggleIds } from "@/store/ui";
 import { formatDb, formatMs } from "./audio-format";
 import { commitOnce, mapGesture, type Gesture } from "./gesture";
 import { Knobs, type KnobSpec } from "./knob";

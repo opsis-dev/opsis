@@ -1,10 +1,10 @@
 import { clampFrame, framesToMs } from "@opsis/video/common/time";
 import type { AudioBar, CameraKeyMark, FlatTimeline, Marker } from "@/generated/bindings";
 import { endIfStarted, startOnceMoved, type ThresholdDrag } from "@/lib/dom";
+import { usePlayback } from "@/store/playback";
+import { useUiStore } from "@/store/ui";
+import { workflowEdits } from "@/store/workflow";
 import { snapFrame, type SnapTarget } from "@/timeline/snap";
-import { usePlayback } from "../../store/playback";
-import { useUiStore } from "../../store/ui";
-import { workflowEdits } from "../../store/workflow";
 import { envelopeShift } from "./envelope";
 import { scrubAt } from "./scrub";
 import { editTimeline, patchMarker, reportEdit, selectNodes } from "./timeline-actions";

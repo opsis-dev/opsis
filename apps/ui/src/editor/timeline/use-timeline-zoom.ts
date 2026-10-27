@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { isPrimaryModifier } from "@/app/accelerators";
 import { platform } from "@/lib/platform";
-import { usePlayback } from "../../store/playback";
+import { usePlayback } from "@/store/playback";
 import { FIT_PADDING_PX, HEADER_W, clientXToFrame } from "./timeline-layout";
 import { clampZoom, useTimeline } from "./timeline-state";
 

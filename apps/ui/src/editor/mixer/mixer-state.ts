@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { isPrimaryModifier } from "@/app/accelerators";
 import type { StripSettings } from "@/editor/mixer/strip-settings";
 import { platform } from "@/lib/platform";
-import { toggleIds, useUiStore } from "../../store/ui";
+import { toggleIds, useUiStore } from "@/store/ui";
 
 type MixerState = {
   clipboard: StripSettings | null;

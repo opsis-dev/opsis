@@ -3,8 +3,8 @@ import { clamp } from "@opsis/video/common/math";
 import { formatTime } from "@opsis/video/common/time";
 import { create } from "zustand";
 import type { EnvelopeKey } from "@/generated/bindings";
-import { usePlayback } from "../../store/playback";
-import { readPref, writePref } from "../../store/view-prefs";
+import { usePlayback } from "@/store/playback";
+import { readPref, writePref } from "@/store/view-prefs";
 import type { TimelineTool } from "./timeline-tools";
 
 type RulerMode = "seconds" | "timecode";

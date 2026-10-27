@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { VideoBar } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
-import { usePlayback } from "../../store/playback";
+import { usePlayback } from "@/store/playback";
 import type { BarContext } from "./bar-context";
 import { EnvelopeOverlay, type BarEnvelope } from "./envelope-overlay";
 import { BAR_INSET, type BarBox } from "./timeline-layout";

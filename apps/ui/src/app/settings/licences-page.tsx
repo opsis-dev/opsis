@@ -4,12 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Spinner } from "@/components/ui/spinner";
+import { fileUrl } from "@/editor/file-url";
+import { useFontLibrary } from "@/fonts/library";
 import { commands, type FontFamilyDef, type LicenceEntry } from "@/generated/bindings";
 import { errorMessage } from "@/lib/errors";
 import { attempt } from "@/lib/toast";
 import { bundledFonts } from "@/store/catalog";
-import { fileUrl } from "../../editor/file-url";
-import { useFontLibrary } from "../../fonts/library";
 import { useLoaded } from "../use-loaded";
 import { SettingsCard } from "./settings-card";
 

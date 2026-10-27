@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { Marker, AudioBar, CameraKeyMark } from "@/generated/bindings";
 import { usePointerSession } from "@/lib/use-pointer-drag";
+import { usePlayback } from "@/store/playback";
 import { snapFrame } from "@/timeline/snap";
-import { usePlayback } from "../../store/playback";
 import { snapTargetsFor, type EditTarget, type KeyStart, type MarqueeBox } from "./timeline-drag";
 import {
   cameraKeyGesture,

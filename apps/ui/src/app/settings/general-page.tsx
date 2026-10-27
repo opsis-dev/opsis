@@ -1,7 +1,7 @@
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import type { AppSettings } from "@/generated/bindings";
+import { patchAppSettings } from "@/store/app-settings";
 import { settingsBook } from "@/store/catalog";
-import { patchAppSettings } from "../../store/app-settings";
 import { OptionToggle } from "../option-toggle";
 import { SwitchField } from "./fields";
 import { SettingsCard } from "./settings-card";

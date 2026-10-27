@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Bus, BusPatch, Mix, MixResult } from "@/generated/bindings";
 import { mixerBook } from "@/store/catalog";
-import { workflowEdits } from "../../store/workflow";
+import { workflowEdits } from "@/store/workflow";
 import { useRenaming } from "../inline-edit";
 import { bindChange, previewTarget } from "./bindings";
 import { DuckPopover } from "./dynamics-popovers";

@@ -47,7 +47,6 @@ Ideas that were discussed but never finalized or planned.
 - [ ] A Run panel that lists every node, nesting compile-only nodes under their export and actions under their capture.
 - [ ] "Not in this run" and "Turned off" states in the Run panel.
 - [ ] A smaller FFmpeg build (shared, combined or trimmed), which conflicts with keeping both ffmpeg-static binaries.
-- [ ] Replacing `../../` and deeper imports in `apps/ui/src` with `@/` (40 files) and banning them in lint.
 - [ ] `bun run elements:render` covering Opsis's own core elements too.
 - [ ] Reopening the panels that were popped out when the app starts.
 - [ ] A Keystroke chips option to leave out plain keys such as Esc, Enter and Tab.

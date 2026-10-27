@@ -1,7 +1,7 @@
 import { msToSeconds } from "@opsis/video/common/time";
 import { useMemo } from "react";
 import type { Waveform, AudioBar, FlatTimeline } from "@/generated/bindings";
-import { loaded, useMedia } from "../../store/media";
+import { loaded, useMedia } from "@/store/media";
 
 const MAX_LOOPS = 200;
 

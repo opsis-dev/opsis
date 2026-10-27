@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import type { AppSettings } from "@/generated/bindings";
 import { useCommitDraft } from "@/lib/use-commit-draft";
-import { patchAppSettings } from "../../store/app-settings";
+import { patchAppSettings } from "@/store/app-settings";
 import { FolderField } from "../folder-field";
 import { useProjectLocations } from "../use-loaded";
 import { SettingsCard } from "./settings-card";
