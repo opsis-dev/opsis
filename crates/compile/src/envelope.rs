@@ -1,6 +1,42 @@
-use opsis_types::timeline::{AudioEnvelope, Ease, Keyframe, VisualEnvelope};
+use opsis_types::timeline::{AudioEnvelope, Ease, EnvelopeKey, Keyframe, VisualEnvelope};
+use serde::Serialize;
+use specta::Type;
 
+use crate::limits::MAX_VOLUME;
 use crate::time::clamp;
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Type)]
+pub struct EnvelopeTrack {
+    pub key: EnvelopeKey,
+    pub label: &'static str,
+    pub min: f64,
+    pub max: f64,
+    pub rest: f64,
+    pub audio: bool,
+}
+
+pub fn envelope_track(key: EnvelopeKey) -> EnvelopeTrack {
+    let (label, min, max, rest, audio) = match key {
+        EnvelopeKey::Opacity => ("Opacity", 0.0, 1.0, 1.0, false),
+        EnvelopeKey::X => ("Move across", -1.0, 1.0, 0.0, false),
+        EnvelopeKey::Y => ("Move up and down", -1.0, 1.0, 0.0, false),
+        EnvelopeKey::Scale => ("Size", 0.0, 3.0, 1.0, false),
+        EnvelopeKey::Volume => ("Volume", 0.0, MAX_VOLUME, 1.0, true),
+        EnvelopeKey::Pan => ("Balance", -1.0, 1.0, 0.0, true),
+    };
+    EnvelopeTrack {
+        key,
+        label,
+        min,
+        max,
+        rest,
+        audio,
+    }
+}
+
+pub fn envelope_tracks() -> Vec<EnvelopeTrack> {
+    EnvelopeKey::ALL.into_iter().map(envelope_track).collect()
+}
 
 pub fn ease(kind: Ease, t: f64) -> f64 {
     let x = clamp(t, 0.0, 1.0);
@@ -18,6 +54,10 @@ pub fn sort_keys(keys: &[Keyframe]) -> Vec<Keyframe> {
     let mut sorted = keys.to_vec();
     sorted.sort_by(|a, b| a.frame.total_cmp(&b.frame));
     sorted
+}
+
+pub fn envelope_at(keys: &[Keyframe], frame: f64, fallback: f64) -> f64 {
+    sorted_envelope_at(&sort_keys(keys), frame, fallback)
 }
 
 fn sorted_envelope_at(sorted: &[Keyframe], frame: f64, fallback: f64) -> f64 {

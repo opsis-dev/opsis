@@ -12,6 +12,7 @@ import {
   type MixerBook,
   type SettingsBook,
   type ShapeChoice,
+  type TimelineBook,
   type Theme,
   type TextRules,
 } from "@/generated/bindings";
@@ -34,6 +35,7 @@ const loaded: {
   shapes: ShapeChoice[];
   qualityPresets: Array<[string, number]>;
   loudnessPresets: Array<[string, number]>;
+  timeline: TimelineBook;
   templates: TemplateInfo[];
 } = {
   nodes: [],
@@ -49,6 +51,7 @@ const loaded: {
   shapes: [],
   qualityPresets: [],
   loudnessPresets: [],
+  timeline: { eases: [], envelopes: [], cameraDials: [], previewQualities: [] },
   templates: [],
 };
 
@@ -71,6 +74,7 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
   loaded.shapes = catalog.shapes;
   loaded.qualityPresets = catalog.qualityPresets;
   loaded.loudnessPresets = catalog.loudnessPresets;
+  loaded.timeline = catalog.timeline;
   loaded.text = text;
   loaded.mixer = mixer;
   loaded.bundledFonts = bundledFonts;
@@ -86,6 +90,8 @@ export const textRules = (): TextRules => loaded.text;
 export const bundledFonts = (): FontFamilyDef[] => loaded.bundledFonts;
 
 export const shapes = (): ShapeChoice[] => loaded.shapes;
+
+export const timelineBook = (): TimelineBook => loaded.timeline;
 
 export const qualityPresets = (): Array<[string, number]> => loaded.qualityPresets;
 

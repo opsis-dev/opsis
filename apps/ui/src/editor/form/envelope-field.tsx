@@ -2,11 +2,13 @@ import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FieldLegend, FieldSet } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import type { Ease, Keyframe } from "@/generated/bindings";
+import type { Ease, EnvelopeKey, Keyframe } from "@/generated/bindings";
 import { parseNumberText } from "@/lib/number-text";
 import { whenOneOf } from "@/lib/one-of";
 import { useItemKeys } from "@/lib/use-item-keys";
-import { EASES, ENVELOPE_LABELS, type Envelope, type EnvelopeKey } from "@/timeline/envelopes";
+import { timelineBook } from "@/store/catalog";
+import { envelopeTrack, type Envelope } from "@/timeline/envelopes";
+import { workflowEdits } from "../../store/workflow";
 import { ChoiceSelect } from "./choice-select";
 import { framesScale, parseShown, shownText, trimNumber, useDecimalInput } from "./decimal";
 import { Help } from "./field-shell";
@@ -16,59 +18,50 @@ type Format = {
   unit: string;
   toShown: (v: number) => number;
   fromShown: (v: number) => number;
-  initial: number;
 };
 
 const fromFraction = (v: number) => v * 100;
 const toFraction = (v: number) => v / 100;
 const FRACTION_AS_PERCENT = { unit: "%", toShown: fromFraction, fromShown: toFraction };
 
+const PLAIN: Format = { unit: "×", toShown: (v) => v, fromShown: (v) => v };
+
 const ENVELOPE_FORMAT: Record<EnvelopeKey, Format> = {
-  opacity: { ...FRACTION_AS_PERCENT, initial: 1 },
-  x: { ...FRACTION_AS_PERCENT, initial: 0 },
-  y: { ...FRACTION_AS_PERCENT, initial: 0 },
-  scale: { unit: "×", toShown: (v) => v, fromShown: (v) => v, initial: 1 },
-  volume: { ...FRACTION_AS_PERCENT, initial: 1 },
-  pan: { ...FRACTION_AS_PERCENT, unit: "", initial: 0 },
+  opacity: FRACTION_AS_PERCENT,
+  x: FRACTION_AS_PERCENT,
+  y: FRACTION_AS_PERCENT,
+  scale: PLAIN,
+  volume: FRACTION_AS_PERCENT,
+  pan: { ...FRACTION_AS_PERCENT, unit: "" },
 };
 
-const NEW_KEYFRAME_GAP_SECONDS = 1;
-
-const EASE_LABELS: Record<Ease, string> = {
-  linear: "Steady",
-  in: "Speed up",
-  out: "Slow down",
-  "in-out": "Smooth",
-  hold: "Jump",
-};
-const EASE_ITEMS = EASES.map((e) => ({ value: e, label: EASE_LABELS[e] }));
+type KeyPatch = Pick<Partial<Keyframe>, "frame" | "value" | "ease">;
 
 export function EnvelopeField({
   label,
   value: env,
-  onChange,
   meta,
   ctx,
   tracks,
 }: FieldProps<Envelope> & { tracks: EnvelopeKey[] }) {
-  const write = (prop: EnvelopeKey, keys: Keyframe[]) => {
-    const next: Envelope = { ...env };
-    if (keys.length) next[prop] = keys;
-    else delete next[prop];
-    onChange(next);
-  };
   return (
     <FieldSet>
       <FieldLegend variant="label">{label}</FieldLegend>
       <Help meta={meta} />
-      {tracks.map((prop) => (
+      {tracks.map((track) => (
         <EnvelopeTrack
-          key={prop}
-          label={ENVELOPE_LABELS[prop]}
-          keys={env[prop] ?? []}
-          format={ENVELOPE_FORMAT[prop]}
+          key={track}
+          label={envelopeTrack(track).label}
+          keys={env[track] ?? []}
+          format={ENVELOPE_FORMAT[track]}
           fps={ctx.fps}
-          onChange={(keys) => write(prop, keys)}
+          onAdd={() => workflowEdits.keyframes({ op: "appendKey", nodeId: ctx.nodeId, track })}
+          onSet={(index, patch) =>
+            workflowEdits.keyframes({ op: "setKey", nodeId: ctx.nodeId, track, index, ...patch })
+          }
+          onRemove={(index) =>
+            workflowEdits.keyframes({ op: "removeKey", nodeId: ctx.nodeId, track, index })
+          }
         />
       ))}
     </FieldSet>
@@ -80,30 +73,24 @@ function EnvelopeTrack({
   keys,
   format,
   fps,
-  onChange,
+  onAdd,
+  onSet,
+  onRemove,
 }: {
   label: string;
   keys: Keyframe[];
   format: Format;
   fps: number;
-  onChange: (keys: Keyframe[]) => void;
+  onAdd: () => void;
+  onSet: (index: number, patch: KeyPatch) => void;
+  onRemove: (index: number) => void;
 }) {
-  const list = useItemKeys(keys, (a, b) => a.frame - b.frame);
-  const add = () => {
-    const last = keys.at(-1);
-    onChange(
-      list.add({
-        frame: last ? last.frame + NEW_KEYFRAME_GAP_SECONDS * fps : 0,
-        value: last ? last.value : format.initial,
-        ease: "linear",
-      }),
-    );
-  };
+  const list = useItemKeys(keys);
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium">{label}</span>
-        <Button variant="ghost" size="xs" onClick={add}>
+        <Button variant="ghost" size="xs" onClick={onAdd}>
           <Plus data-icon="inline-start" />
           Add
         </Button>
@@ -114,8 +101,8 @@ function EnvelopeTrack({
           keyframe={k}
           format={format}
           fps={fps}
-          onChange={(patch) => onChange(list.update(i, { ...k, ...patch }))}
-          onRemove={() => onChange(list.remove(i))}
+          onChange={(patch) => onSet(i, patch)}
+          onRemove={() => onRemove(i)}
         />
       ))}
     </div>
@@ -132,13 +119,13 @@ function KeyframeRow({
   keyframe: Keyframe;
   format: Format;
   fps: number;
-  onChange: (patch: Partial<Keyframe>) => void;
+  onChange: (patch: KeyPatch) => void;
   onRemove: () => void;
 }) {
   const frames = framesScale(fps);
   const at = useDecimalInput(shownText(keyframe.frame, frames), "blur", (text) => {
     const frame = parseShown(text, frames);
-    if (frame !== null) onChange({ frame: Math.max(0, frame) });
+    if (frame !== null) onChange({ frame });
   });
   const amount = useDecimalInput(trimNumber(format.toShown(keyframe.value)), "blur", (text) => {
     const n = parseNumberText(text);
@@ -163,11 +150,15 @@ function KeyframeRow({
 }
 
 export function EaseSelect({ ease, onChange }: { ease: Ease; onChange: (ease: Ease) => void }) {
+  const { eases } = timelineBook();
   return (
     <ChoiceSelect
-      groups={[EASE_ITEMS]}
+      groups={[eases.map(([value, label]) => ({ value, label }))]}
       value={ease}
-      onChange={whenOneOf(EASES, onChange)}
+      onChange={whenOneOf(
+        eases.map(([value]) => value),
+        onChange,
+      )}
       size="sm"
       className="h-7 text-xs"
       aria-label="Easing"

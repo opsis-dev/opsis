@@ -1,4 +1,9 @@
-use opsis_types::timeline::{CameraKey, CameraPath, Ease};
+use opsis_types::timeline::{
+    CAMERA_DISTANCE, CAMERA_HEIGHT, CAMERA_PITCH, CAMERA_YAW, CameraKey, CameraPath, DialRange,
+    Ease,
+};
+use serde::Serialize;
+use specta::Type;
 
 use crate::envelope::ease;
 
@@ -9,6 +14,55 @@ pub struct CameraView {
     pub distance: f64,
     pub height: f64,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "lowercase")]
+pub enum CameraDialKey {
+    Yaw,
+    Pitch,
+    Distance,
+    Height,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Type)]
+pub struct CameraDial {
+    pub key: CameraDialKey,
+    pub label: &'static str,
+    pub min: f64,
+    pub max: f64,
+    pub step: f64,
+    pub unit: &'static str,
+}
+
+const fn dial(
+    key: CameraDialKey,
+    label: &'static str,
+    range: DialRange,
+    step: f64,
+    unit: &'static str,
+) -> CameraDial {
+    CameraDial {
+        key,
+        label,
+        min: range.min,
+        max: range.max,
+        step,
+        unit,
+    }
+}
+
+pub const CAMERA_DIALS: [CameraDial; 4] = [
+    dial(CameraDialKey::Yaw, "Turn", CAMERA_YAW, 1.0, "°"),
+    dial(CameraDialKey::Pitch, "Tilt", CAMERA_PITCH, 1.0, "°"),
+    dial(
+        CameraDialKey::Distance,
+        "Distance",
+        CAMERA_DISTANCE,
+        0.05,
+        "×",
+    ),
+    dial(CameraDialKey::Height, "Height", CAMERA_HEIGHT, 0.05, ""),
+];
 
 pub const REST_VIEW: CameraView = CameraView {
     yaw: 0.0,

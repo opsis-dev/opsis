@@ -1298,6 +1298,11 @@ impl TimelineEdits<'_> {
                     .ok_or("That camera key is gone.")?;
                 self.move_camera_key(mark, delta)
             }
+            TimelineEdit::Keyframes { edit } => {
+                super::keyframes::apply_keyframe_edit(&mut self.workflow, edit)
+                    .map_err(|e| e.to_string())?;
+                done()
+            }
         }
     }
 

@@ -16,14 +16,8 @@ import {
   takesNull,
   type JsonSchema,
 } from "@/editor/form/schema";
-import type { CameraPath } from "@/generated/bindings";
-import {
-  isCameraPath,
-  isEnvelope,
-  isEnvelopeKey,
-  type Envelope,
-  type EnvelopeKey,
-} from "@/timeline/envelopes";
+import type { CameraPath, EnvelopeKey } from "@/generated/bindings";
+import { isCameraPath, isEnvelope, isEnvelopeKey, type Envelope } from "@/timeline/envelopes";
 import { lengthLimits, type LengthLimits } from "./list-values";
 import type { ParamValues } from "./types";
 

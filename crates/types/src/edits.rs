@@ -6,6 +6,7 @@ use specta::Type;
 use crate::actions::Viewport;
 use crate::fonts::{FontFamilyDef, FontRole, ProjectFonts};
 use crate::mix::{Comp, DuckSettings, Eq, Highpass, Limiter, LoudnessTarget};
+use crate::timeline::{Ease, EnvelopeKey};
 use crate::workflow::{Position, Theme, Workflow, WorkflowEdge, WorkflowNode};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
@@ -236,8 +237,65 @@ pub enum WorkflowEdit {
     Markers {
         edit: MarkerEdit,
     },
+    Keyframes {
+        edit: KeyframeEdit,
+    },
     Replace {
         workflow: Box<Workflow>,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(tag = "op", rename_all = "camelCase", rename_all_fields = "camelCase")]
+pub enum KeyframeEdit {
+    AddKey {
+        node_id: String,
+        track: EnvelopeKey,
+        frame: f64,
+    },
+    AppendKey {
+        node_id: String,
+        track: EnvelopeKey,
+    },
+    SetKey {
+        node_id: String,
+        track: EnvelopeKey,
+        index: u32,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        frame: Option<f64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        value: Option<f64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        ease: Option<Ease>,
+    },
+    RemoveKey {
+        node_id: String,
+        track: EnvelopeKey,
+        index: u32,
+    },
+    AddCameraKey {
+        node_id: String,
+        frame: f64,
+    },
+    SetCameraKey {
+        node_id: String,
+        index: u32,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        frame: Option<f64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        yaw: Option<f64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pitch: Option<f64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        distance: Option<f64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        height: Option<f64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        ease: Option<Ease>,
+    },
+    RemoveCameraKey {
+        node_id: String,
+        index: u32,
     },
 }
 
@@ -321,6 +379,9 @@ pub enum TimelineEdit {
     CameraKey {
         key: String,
         delta: f64,
+    },
+    Keyframes {
+        edit: KeyframeEdit,
     },
 }
 

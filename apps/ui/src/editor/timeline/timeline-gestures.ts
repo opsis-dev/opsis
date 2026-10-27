@@ -1,12 +1,11 @@
-import { clamp, round3 } from "@opsis/video/common/math";
-import { clampFrame, framesToMs, wholeFrames } from "@opsis/video/common/time";
+import { clampFrame, framesToMs } from "@opsis/video/common/time";
 import type { AudioBar, CameraKeyMark, FlatTimeline, Marker } from "@/generated/bindings";
 import { endIfStarted, startOnceMoved, type ThresholdDrag } from "@/lib/dom";
 import { snapFrame, type SnapTarget } from "@/timeline/snap";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
 import { workflowEdits } from "../../store/workflow";
-import { ENVELOPE_INFO, envelopeShift, setEnvelopeKeys } from "./envelope";
+import { envelopeShift } from "./envelope";
 import { scrubAt } from "./scrub";
 import { editTimeline, patchMarker, reportEdit, selectNodes } from "./timeline-actions";
 import {
@@ -94,15 +93,13 @@ export function keyGesture(env: GestureEnv, e: React.PointerEvent, key: KeyStart
     move: (ev) => {
       const distance = Math.abs(ev.clientX - d.x0) + Math.abs(ev.clientY - d.y0);
       if (!startEditOnceMoved(d, distance)) return;
-      const { min, max } = ENVELOPE_INFO[d.prop];
-      const frame = wholeFrames(d.toLocal(env.xToFrame(ev.clientX)));
+      const frame = d.toLocal(env.xToFrame(ev.clientX));
       const dragged = envelopeShift(d.prop, ev.clientY - d.y0, d.height) / (d.scale || 1);
-      const value = round3(clamp(d.keys[d.index].value - dragged, min, max));
-      setEnvelopeKeys(
-        d.nodeId,
-        d.prop,
-        d.keys.map((k, i) => (i === d.index ? { ...k, frame, value } : k)),
-      );
+      const value = d.keys[d.index].value - dragged;
+      void editTimeline({
+        op: "keyframes",
+        edit: { op: "setKey", nodeId: d.nodeId, track: d.prop, index: d.index, frame, value },
+      });
     },
     finish: () => {
       if (!endEdit(d)) selectNodes([d.nodeId], false, env.sourceNodeId);

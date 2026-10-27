@@ -65,6 +65,7 @@ fn document_failure(error: &DocumentError) -> HostError {
             | EditError::NoMarker(_),
         ) => NOT_FOUND,
         DocumentError::Edit(EditError::NodeExists(_) | EditError::NoNodeType(_)) => BAD_REQUEST,
+        DocumentError::Edit(EditError::UnreadableKeys(_)) => UNREADABLE,
     };
     HostError::new(status, error.to_string())
 }

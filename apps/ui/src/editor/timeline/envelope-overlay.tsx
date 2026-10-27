@@ -2,16 +2,10 @@ import { samplePoints } from "@opsis/video/common/envelope";
 import { uniqueKeys } from "@opsis/video/common/lists";
 import { round3 } from "@opsis/video/common/math";
 import type { Keyframe } from "@/generated/bindings";
-import { ENVELOPE_LABELS, type EnvelopeKey } from "@/timeline/envelopes";
+import type { EnvelopeKey } from "@/generated/bindings";
+import { envelopeTrack } from "@/timeline/envelopes";
 import type { BarContext } from "./bar-context";
-import {
-  addKeyframe,
-  ENVELOPE_INFO,
-  envelopeTarget,
-  envelopeY,
-  setEnvelopeKeys,
-  type EnvelopeTarget,
-} from "./envelope";
+import { editKeys, envelopeTarget, envelopeY, type EnvelopeTarget } from "./envelope";
 import type { KeyStart } from "./timeline-drag";
 import { useDoublePress } from "./use-double-press";
 
@@ -45,7 +39,12 @@ function useKeyframeAdder(
   return (e) => {
     if (!target || e.button !== 0 || onKeyframe(e) || !isDouble(e)) return;
     e.stopPropagation();
-    addKeyframe(target.nodeId, target.prop, target.keys, localAt(e.clientX));
+    editKeys({
+      op: "addKey",
+      nodeId: target.nodeId,
+      track: target.prop,
+      frame: localAt(e.clientX),
+    });
   };
 }
 
@@ -86,16 +85,10 @@ export function EnvelopeOverlay({
   const { target, toX, toLocal, scale = 1 } = envelope;
   if (!target) return null;
   const { nodeId, prop, keys } = target;
-  const { rest } = ENVELOPE_INFO[prop];
-  const label = ENVELOPE_LABELS[prop];
+  const { rest, label } = envelopeTrack(prop);
   const y = (v: number) => envelopeY(prop, v * scale, height);
   const ids = uniqueKeys(keys.map((k) => String(k.frame)));
-  const remove = (index: number) =>
-    setEnvelopeKeys(
-      nodeId,
-      prop,
-      keys.filter((_key, k) => k !== index),
-    );
+  const remove = (index: number) => editKeys({ op: "removeKey", nodeId, track: prop, index });
   return (
     <svg className="absolute inset-0 overflow-visible" width={width} height={height}>
       <polyline

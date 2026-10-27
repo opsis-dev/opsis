@@ -6,6 +6,7 @@ import {
   type Edited,
   type FontFamilyDef,
   type FontRole,
+  type KeyframeEdit,
   type MarkerEdit,
   type MixEdit,
   type NodePatch,
@@ -111,6 +112,7 @@ export const workflowEdits = {
   },
   ungroup: (id: string) => send({ op: "ungroup", id }),
   mix: (edit: MixEdit) => send({ op: "mix", edit }),
+  keyframes: (edit: KeyframeEdit) => send({ op: "keyframes", edit }),
   markers: async (edit: MarkerEdit): Promise<string | undefined> =>
     (await created({ op: "markers", edit }))[0],
   replace: (workflow: Workflow) => send({ op: "replace", workflow }),

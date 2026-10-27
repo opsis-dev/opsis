@@ -3,10 +3,12 @@ use opsis_types::actions::Viewport;
 use opsis_types::fonts::FontFamilyDef;
 use opsis_types::mix::{MixerBook, mixer_book};
 use opsis_types::settings::{SettingsBook, settings_book};
+use opsis_types::timeline::{Ease, PreviewQuality};
 use opsis_types::workflow::{PortType, Theme};
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::envelope::{EnvelopeTrack, envelope_tracks};
 use crate::fonts::bundled_fonts;
 use crate::node::{Category, NodeDef, Phase, Platform, Ports};
 use crate::nodes::media::{loudness_presets, quality_presets};
@@ -16,6 +18,7 @@ use crate::params::Values;
 use crate::ports::can_connect;
 use crate::registry::{node_def, registry};
 use crate::size::estimate_card_height;
+use crate::timeline::camera_path::{CAMERA_DIALS, CameraDial};
 use crate::vars::{PAUSE_MARK, VAR_PATTERN};
 
 #[derive(Debug, Clone, PartialEq, Serialize, schemars::JsonSchema, specta::Type)]
@@ -186,6 +189,28 @@ pub struct EditorCatalog {
     pub shapes: Vec<ShapeChoice>,
     pub quality_presets: Vec<(String, f64)>,
     pub loudness_presets: Vec<(String, f64)>,
+    pub timeline: TimelineBook,
+}
+
+#[derive(Debug, Clone, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct TimelineBook {
+    pub eases: Vec<(Ease, String)>,
+    pub envelopes: Vec<EnvelopeTrack>,
+    pub camera_dials: Vec<CameraDial>,
+    pub preview_qualities: Vec<PreviewQuality>,
+}
+
+fn timeline_book() -> TimelineBook {
+    TimelineBook {
+        eases: Ease::ALL
+            .into_iter()
+            .map(|e| (e, e.label().to_owned()))
+            .collect(),
+        envelopes: envelope_tracks(),
+        camera_dials: CAMERA_DIALS.to_vec(),
+        preview_qualities: PreviewQuality::ALL.to_vec(),
+    }
 }
 
 #[derive(Debug, Clone, Serialize, specta::Type)]
@@ -241,5 +266,6 @@ pub fn editor_bundle(platform: Platform) -> EditorCatalog {
             .collect(),
         quality_presets: quality_presets(),
         loudness_presets: loudness_presets(),
+        timeline: timeline_book(),
     }
 }

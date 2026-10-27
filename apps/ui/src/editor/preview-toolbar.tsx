@@ -13,8 +13,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { TimelineSpec } from "@/generated/bindings";
 import { whenFirstOneOf } from "@/lib/one-of";
-import { shapes } from "@/store/catalog";
-import { PREVIEW_QUALITIES } from "@/timeline/envelopes";
+import { shapes, timelineBook } from "@/store/catalog";
 import { isPreviewShape, useViewOptions } from "../store/view-options";
 import { WithTooltip } from "./with-tooltip";
 
@@ -68,7 +67,9 @@ function QualityToggle() {
       variant="outline"
       size="sm"
       value={[quality]}
-      onValueChange={whenFirstOneOf(PREVIEW_QUALITIES, (v) => setOption("previewQuality", v))}
+      onValueChange={whenFirstOneOf(timelineBook().previewQualities, (v) =>
+        setOption("previewQuality", v),
+      )}
     >
       <WithTooltip
         trigger={<ToggleGroupItem value="fast" />}

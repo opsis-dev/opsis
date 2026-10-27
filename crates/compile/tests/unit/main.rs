@@ -5,6 +5,7 @@ mod edits;
 mod graph;
 mod helpers;
 mod hosted;
+mod keyframes;
 mod lengths;
 mod mix;
 mod nodes_a;

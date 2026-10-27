@@ -44,7 +44,72 @@ pub enum Ease {
 
 impl Ease {
     pub const ALL: [Ease; 5] = [Self::Linear, Self::In, Self::Out, Self::InOut, Self::Hold];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Linear => "Steady",
+            Self::In => "Speed up",
+            Self::Out => "Slow down",
+            Self::InOut => "Smooth",
+            Self::Hold => "Jump",
+        }
+    }
 }
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum EnvelopeKey {
+    Opacity,
+    X,
+    Y,
+    Scale,
+    Volume,
+    Pan,
+}
+
+impl EnvelopeKey {
+    pub const ALL: [Self; 6] = [
+        Self::Opacity,
+        Self::X,
+        Self::Y,
+        Self::Scale,
+        Self::Volume,
+        Self::Pan,
+    ];
+
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Opacity => "opacity",
+            Self::X => "x",
+            Self::Y => "y",
+            Self::Scale => "scale",
+            Self::Volume => "volume",
+            Self::Pan => "pan",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Type)]
+pub struct DialRange {
+    pub min: f64,
+    pub max: f64,
+}
+
+pub const CAMERA_YAW: DialRange = DialRange {
+    min: -180.0,
+    max: 180.0,
+};
+pub const CAMERA_PITCH: DialRange = DialRange {
+    min: -89.0,
+    max: 89.0,
+};
+pub const CAMERA_DISTANCE: DialRange = DialRange { min: 0.3, max: 4.0 };
+pub const CAMERA_HEIGHT: DialRange = DialRange {
+    min: -2.0,
+    max: 2.0,
+};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct Keyframe {
@@ -88,16 +153,16 @@ pub struct CameraKey {
     #[schemars(range(min = 0))]
     pub frame: f64,
     #[serde(default)]
-    #[schemars(range(min = -180, max = 180))]
+    #[schemars(range(min = CAMERA_YAW.min, max = CAMERA_YAW.max))]
     pub yaw: f64,
     #[serde(default)]
-    #[schemars(range(min = -89, max = 89))]
+    #[schemars(range(min = CAMERA_PITCH.min, max = CAMERA_PITCH.max))]
     pub pitch: f64,
     #[serde(default = "one")]
-    #[schemars(range(min = 0.3, max = 4))]
+    #[schemars(range(min = CAMERA_DISTANCE.min, max = CAMERA_DISTANCE.max))]
     pub distance: f64,
     #[serde(default)]
-    #[schemars(range(min = -2, max = 2))]
+    #[schemars(range(min = CAMERA_HEIGHT.min, max = CAMERA_HEIGHT.max))]
     pub height: f64,
     #[serde(default = "in_out")]
     pub ease: Ease,
@@ -485,6 +550,10 @@ pub enum ReframeMode {
 pub enum PreviewQuality {
     Fast,
     Exact,
+}
+
+impl PreviewQuality {
+    pub const ALL: [Self; 2] = [Self::Fast, Self::Exact];
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

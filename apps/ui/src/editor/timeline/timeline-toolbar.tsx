@@ -6,14 +6,9 @@ import { Kbd } from "@/components/ui/kbd";
 import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import type { Workflow } from "@/generated/bindings";
-import { isOutputType, nodeName } from "@/store/catalog";
-import {
-  AUDIO_ENVELOPES,
-  VISUAL_ENVELOPES,
-  ENVELOPE_LABELS,
-  type VisualEnvelopeKey,
-} from "@/timeline/envelopes";
+import type { EnvelopeKey, Workflow } from "@/generated/bindings";
+import { isOutputType, nodeName, timelineBook } from "@/store/catalog";
+import { envelopeTrack } from "@/timeline/envelopes";
 import { shortcutLabel } from "../../app/menu-shortcuts";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
@@ -23,11 +18,14 @@ import { useFormatTime, useLoopRange, useTimeline } from "./timeline-state";
 import { COMMAND_KEYS, TOOLS, ZOOM_KEYS, ZOOM_STEP } from "./timeline-tools";
 import type { TimelineCommands } from "./use-timeline-commands";
 
-type VideoChoice = VisualEnvelopeKey | "off";
+type VideoChoice = EnvelopeKey | "off";
 
-const VIDEO_CHOICES: VideoChoice[] = ["off", ...VISUAL_ENVELOPES];
+const tracksFor = (audio: boolean): EnvelopeKey[] =>
+  timelineBook()
+    .envelopes.filter((t) => t.audio === audio)
+    .map((t) => t.key);
 
-const videoLabel = (v: VideoChoice) => (v === "off" ? "No keyframes" : ENVELOPE_LABELS[v]);
+const videoLabel = (v: VideoChoice) => (v === "off" ? "No keyframes" : envelopeTrack(v).label);
 
 function IconTip({
   label,
@@ -124,7 +122,7 @@ function EnvelopePickers() {
       <OptionSelect
         label="Clip keyframes"
         value={videoChoice}
-        options={VIDEO_CHOICES}
+        options={["off", ...tracksFor(false)]}
         optionLabel={videoLabel}
         className="w-36"
         onChange={(v) => useTimeline.getState().setVideoEnvelope(v === "off" ? null : v)}
@@ -132,8 +130,8 @@ function EnvelopePickers() {
       <OptionSelect
         label="Sound keyframes"
         value={audioEnvelope}
-        options={AUDIO_ENVELOPES}
-        optionLabel={(v) => ENVELOPE_LABELS[v]}
+        options={tracksFor(true)}
+        optionLabel={(v) => envelopeTrack(v).label}
         className="w-28"
         onChange={(v) => useTimeline.getState().setAudioEnvelope(v)}
       />

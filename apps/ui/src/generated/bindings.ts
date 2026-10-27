@@ -397,6 +397,17 @@ export type Bus = {
 	duck: DuckSettings,
 };
 
+export type CameraDial = {
+	key: CameraDialKey,
+	label: string,
+	min: number,
+	max: number,
+	step: number,
+	unit: string,
+};
+
+export type CameraDialKey = "yaw" | "pitch" | "distance" | "height";
+
 export type CameraKeyMark = {
 	key: string,
 	itemId: string,
@@ -680,6 +691,7 @@ export type EditorCatalog = {
 	shapes: ShapeChoice[],
 	qualityPresets: ([string, number])[],
 	loudnessPresets: ([string, number])[],
+	timeline: TimelineBook,
 };
 
 export type EditorCompile = {
@@ -775,6 +787,17 @@ export type EnvStatus = {
 	userData: string,
 	versions: AppVersions,
 	engine: EngineStatus,
+};
+
+export type EnvelopeKey = "opacity" | "x" | "y" | "scale" | "volume" | "pan";
+
+export type EnvelopeTrack = {
+	key: EnvelopeKey,
+	label: string,
+	min: number,
+	max: number,
+	rest: number,
+	audio: boolean,
 };
 
 export type EqBand = {
@@ -1003,6 +1026,8 @@ export type ItemBase = {
 	camera?: CameraPath,
 	design?: Design,
 };
+
+export type KeyframeEdit = { op: "addKey"; nodeId: string; track: EnvelopeKey; frame: number } | { op: "appendKey"; nodeId: string; track: EnvelopeKey } | { op: "setKey"; nodeId: string; track: EnvelopeKey; index: number; frame?: number; value?: number; ease?: Ease } | { op: "removeKey"; nodeId: string; track: EnvelopeKey; index: number } | { op: "addCameraKey"; nodeId: string; frame: number } | { op: "setCameraKey"; nodeId: string; index: number; frame?: number; yaw?: number; pitch?: number; distance?: number; height?: number; ease?: Ease } | { op: "removeCameraKey"; nodeId: string; index: number };
 
 export type Keyframe = {
 	frame: number,
@@ -1694,7 +1719,14 @@ export type TextRules = {
 
 export type Theme = "light" | "dark";
 
-export type TimelineEdit = { op: "move"; bar: string; delta: number; ripple: boolean } | { op: "trimStart"; bar: string; delta: number } | { op: "trimEnd"; bar: string; delta: number; ripple: boolean } | { op: "slip"; bar: string; delta: number } | { op: "speed"; bar: string; delta: number } | { op: "rollStart"; bar: string; delta: number } | { op: "rollEnd"; bar: string; delta: number } | { op: "audioMove"; bar: string; delta: number; ripple: boolean } | { op: "audioTrimStart"; bar: string; delta: number } | { op: "audioTrimEnd"; bar: string; delta: number } | { op: "volume"; bar: string; volume: number } | { op: "split"; at: number; selected: string[] } | { op: "splitBar"; bar: string; at: number } | { op: "cameraKey"; key: string; delta: number };
+export type TimelineBook = {
+	eases: ([Ease, string])[],
+	envelopes: EnvelopeTrack[],
+	cameraDials: CameraDial[],
+	previewQualities: PreviewQuality[],
+};
+
+export type TimelineEdit = { op: "move"; bar: string; delta: number; ripple: boolean } | { op: "trimStart"; bar: string; delta: number } | { op: "trimEnd"; bar: string; delta: number; ripple: boolean } | { op: "slip"; bar: string; delta: number } | { op: "speed"; bar: string; delta: number } | { op: "rollStart"; bar: string; delta: number } | { op: "rollEnd"; bar: string; delta: number } | { op: "audioMove"; bar: string; delta: number; ripple: boolean } | { op: "audioTrimStart"; bar: string; delta: number } | { op: "audioTrimEnd"; bar: string; delta: number } | { op: "volume"; bar: string; volume: number } | { op: "split"; at: number; selected: string[] } | { op: "splitBar"; bar: string; at: number } | { op: "cameraKey"; key: string; delta: number } | { op: "keyframes"; edit: KeyframeEdit };
 
 export type TimelineItem = {
 	kind: "group",
@@ -1951,7 +1983,7 @@ export type WorkflowEdge = {
 	targetHandle: string,
 };
 
-export type WorkflowEdit = { op: "addNode"; type: string; id?: string; label?: string; position?: Position; params?: { [key in string]: unknown } } | { op: "updateNode"; id: string; patch: NodePatch } | { op: "moveNodes"; positions: { [key in string]: Position } } | { op: "removeNodes"; ids: string[] } | { op: "addEdge"; ends: EdgeEnds } | { op: "removeEdges"; ids: string[] } | { op: "removeParts"; nodeIds: string[]; edgeIds: string[] } | { op: "setSettings"; patch: SettingsPatch } | { op: "addProjectFont"; font: FontFamilyDef } | { op: "setFontRole"; role: FontRole; family: string } | { op: "setVariables"; variables: { [key in string]: string } } | { op: "renameVariable"; from: string; to: string } | { op: "rename"; name: string } | { op: "paste"; nodes: WorkflowNode[]; edges: WorkflowEdge[]; offset: Position } | { op: "group"; ids: string[]; title: string; sizes: { [key in string]: Viewport } } | { op: "ungroup"; id: string } | { op: "mix"; edit: MixEdit } | { op: "markers"; edit: MarkerEdit } | { op: "replace"; workflow: Workflow };
+export type WorkflowEdit = { op: "addNode"; type: string; id?: string; label?: string; position?: Position; params?: { [key in string]: unknown } } | { op: "updateNode"; id: string; patch: NodePatch } | { op: "moveNodes"; positions: { [key in string]: Position } } | { op: "removeNodes"; ids: string[] } | { op: "addEdge"; ends: EdgeEnds } | { op: "removeEdges"; ids: string[] } | { op: "removeParts"; nodeIds: string[]; edgeIds: string[] } | { op: "setSettings"; patch: SettingsPatch } | { op: "addProjectFont"; font: FontFamilyDef } | { op: "setFontRole"; role: FontRole; family: string } | { op: "setVariables"; variables: { [key in string]: string } } | { op: "renameVariable"; from: string; to: string } | { op: "rename"; name: string } | { op: "paste"; nodes: WorkflowNode[]; edges: WorkflowEdge[]; offset: Position } | { op: "group"; ids: string[]; title: string; sizes: { [key in string]: Viewport } } | { op: "ungroup"; id: string } | { op: "mix"; edit: MixEdit } | { op: "markers"; edit: MarkerEdit } | { op: "keyframes"; edit: KeyframeEdit } | { op: "replace"; workflow: Workflow };
 
 export type WorkflowNode = {
 	id: string,

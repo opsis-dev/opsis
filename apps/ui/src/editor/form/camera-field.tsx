@@ -1,10 +1,10 @@
-import { cameraKeyAt } from "@opsis/video/common/camera-path";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FieldLegend, FieldSet } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import type { CameraKey, CameraPath } from "@/generated/bindings";
+import type { CameraDial, CameraKey, CameraPath } from "@/generated/bindings";
 import { useItemKeys } from "@/lib/use-item-keys";
+import { timelineBook } from "@/store/catalog";
 import { SingleSlider } from "../../app/single-slider";
 import { usePlayback } from "../../store/playback";
 import { workflowEdits } from "../../store/workflow";
@@ -14,23 +14,7 @@ import { EaseSelect } from "./envelope-field";
 import { Help } from "./field-shell";
 import type { FieldProps } from "./types";
 
-type Dial = {
-  key: "yaw" | "pitch" | "distance" | "height";
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  unit: string;
-};
-
-const DIALS: Dial[] = [
-  { key: "yaw", label: "Turn", min: -180, max: 180, step: 1, unit: "°" },
-  { key: "pitch", label: "Tilt", min: -89, max: 89, step: 1, unit: "°" },
-  { key: "distance", label: "Distance", min: 0.3, max: 4, step: 0.05, unit: "×" },
-  { key: "height", label: "Height", min: -2, max: 2, step: 0.05, unit: "" },
-];
-
-const byFrame = (a: CameraKey, b: CameraKey) => a.frame - b.frame;
+type CameraKeyPatch = Partial<Omit<CameraKey, "frame">> & { frame?: number };
 
 function usePlayheadInNode(nodeId: string): number | null {
   const { flat } = useFilm();
@@ -45,7 +29,7 @@ function DialSlider({
   value,
   onChange,
 }: {
-  dial: Dial;
+  dial: CameraDial;
   value: number;
   onChange: (value: number) => void;
 }) {
@@ -78,13 +62,13 @@ function CameraKeyRow({
 }: {
   cameraKey: CameraKey;
   fps: number;
-  onChange: (patch: Partial<CameraKey>) => void;
+  onChange: (patch: CameraKeyPatch) => void;
   onRemove: () => void;
 }) {
   const frames = framesScale(fps);
   const at = useDecimalInput(shownText(cameraKey.frame, frames), "blur", (text) => {
     const frame = parseShown(text, frames);
-    if (frame !== null) onChange({ frame: Math.max(0, Math.round(frame)) });
+    if (frame !== null) onChange({ frame });
   });
   return (
     <div className="flex flex-col gap-1.5 rounded-md border p-2">
@@ -98,7 +82,7 @@ function CameraKeyRow({
           <X />
         </Button>
       </div>
-      {DIALS.map((dial) => (
+      {timelineBook().cameraDials.map((dial) => (
         <DialSlider
           key={dial.key}
           dial={dial}
@@ -110,10 +94,10 @@ function CameraKeyRow({
   );
 }
 
-export function CameraField({ label, value, onChange, meta, ctx }: FieldProps<CameraPath>) {
-  const list = useItemKeys(value.keys, byFrame);
+export function CameraField({ label, value, meta, ctx }: FieldProps<CameraPath>) {
+  const list = useItemKeys(value.keys);
   const playhead = usePlayheadInNode(ctx.nodeId);
-  const write = (keys: CameraKey[]) => onChange({ keys });
+  const nodeId = ctx.nodeId;
   return (
     <FieldSet>
       <div className="flex items-center justify-between">
@@ -125,7 +109,10 @@ export function CameraField({ label, value, onChange, meta, ctx }: FieldProps<Ca
           title={
             playhead === null ? "Put this node in the film to add keys at the playhead." : undefined
           }
-          onClick={() => playhead !== null && write(cameraKeyAt(value, playhead).keys)}
+          onClick={() =>
+            playhead !== null &&
+            workflowEdits.keyframes({ op: "addCameraKey", nodeId, frame: playhead })
+          }
         >
           <Plus data-icon="inline-start" />
           Add key at playhead
@@ -137,8 +124,10 @@ export function CameraField({ label, value, onChange, meta, ctx }: FieldProps<Ca
           key={key}
           cameraKey={item}
           fps={ctx.fps}
-          onChange={(patch) => write(list.update(i, { ...item, ...patch }))}
-          onRemove={() => write(list.remove(i))}
+          onChange={(patch) =>
+            workflowEdits.keyframes({ op: "setCameraKey", nodeId, index: i, ...patch })
+          }
+          onRemove={() => workflowEdits.keyframes({ op: "removeCameraKey", nodeId, index: i })}
         />
       ))}
     </FieldSet>

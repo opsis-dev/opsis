@@ -1,3 +1,4 @@
+pub mod keyframes;
 pub mod mix;
 pub mod timeline;
 pub mod workflow;
@@ -25,6 +26,8 @@ pub enum EditError {
     NoBus(String),
     #[error("There's no marker “{0}”.")]
     NoMarker(String),
+    #[error("The keyframes of “{0}” can't be read. Check them in the Inspector.")]
+    UnreadableKeys(String),
 }
 
 pub struct EditContext<'a> {
@@ -182,6 +185,10 @@ pub fn apply_edit(
             one(mix::apply_mix_edit(sound, edit, ctx.ids)?)
         }
         WorkflowEdit::Markers { edit } => one(apply_marker_edit(wf, edit, ctx.ids)?),
+        WorkflowEdit::Keyframes { edit } => {
+            keyframes::apply_keyframe_edit(wf, edit)?;
+            Vec::new()
+        }
         WorkflowEdit::Replace { workflow } => {
             *wf = workflow.normalized();
             Vec::new()
