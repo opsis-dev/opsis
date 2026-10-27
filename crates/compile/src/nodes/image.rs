@@ -10,6 +10,8 @@ use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, RowExt, missing, port,
 use crate::nodes::effects::Area;
 use crate::params::Params;
 
+pub const REDACT_TYPE: &str = "image.redact";
+
 pub const FORMAT_TYPE: &str = "image.format";
 
 pub const PLACE_TYPE: &str = "image.place";
@@ -306,6 +308,77 @@ pub struct ImageFormat {
 
 impl Params for ImageFormat {}
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum RedactStyle {
+    #[default]
+    Pixelate,
+    Blur,
+    Solid,
+}
+
+impl RedactStyle {
+    fn word(self) -> &'static str {
+        match self {
+            Self::Pixelate => "pixelated",
+            Self::Blur => "blurred",
+            Self::Solid => "covered",
+        }
+    }
+}
+
+fn hidden_area() -> Vec<Area> {
+    vec![Area {
+        x: 0.35,
+        y: 0.4,
+        width: 0.3,
+        height: 0.2,
+    }]
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct RedactImage {
+    #[default(hidden_area())]
+    #[schemars(
+        description = "Areas to hide",
+        length(min = 1, max = 8),
+        extend("x-widget" = "boxes", "x-help" = "Drag on the picture to mark each part to hide.")
+    )]
+    pub areas: Vec<Area>,
+    #[schemars(
+        description = "Hide with",
+        extend("x-labels" = { "pixelate": "Large pixels", "blur": "Blur", "solid": "Solid colour" })
+    )]
+    pub style: RedactStyle,
+    #[default = 16]
+    #[schemars(
+        description = "Pixel size",
+        range(min = 2, max = 256),
+        extend("x-unit" = "px", "x-show-if" = { "style": ["pixelate"] })
+    )]
+    pub block_size: u32,
+    #[default = 16.0]
+    #[schemars(
+        description = "Blur",
+        range(min = 1, max = 100),
+        extend("x-step" = 0.5, "x-unit" = "px", "x-show-if" = { "style": ["blur"] })
+    )]
+    pub blur: f64,
+    #[default = "#000000"]
+    #[schemars(
+        description = "Colour",
+        extend(
+            "x-widget" = "color",
+            "x-check" = { "rule": "colour", "message": "Pick a colour" },
+            "x-show-if" = { "style": ["solid"] }
+        )
+    )]
+    pub color: String,
+}
+
+impl Params for RedactImage {}
+
 fn even(value: f64) -> f64 {
     value.round().max(1.0)
 }
@@ -331,6 +404,31 @@ pub fn upscale(source: (f64, f64), out: (f64, f64)) -> f64 {
     (out.0 / source.0).max(out.1 / source.1)
 }
 
+fn inside(source: (f64, f64), rect: Rect) -> Rect {
+    let (sw, sh) = source;
+    let x = rect.x.clamp(0.0, sw - 1.0);
+    let y = rect.y.clamp(0.0, sh - 1.0);
+    Rect {
+        x,
+        y,
+        width: rect.width.clamp(1.0, sw - x),
+        height: rect.height.clamp(1.0, sh - y),
+    }
+}
+
+pub fn area_rect(source: (f64, f64), area: &Area) -> Rect {
+    let (sw, sh) = source;
+    inside(
+        source,
+        Rect {
+            x: (area.x * sw).round(),
+            y: (area.y * sh).round(),
+            width: (area.width * sw).round(),
+            height: (area.height * sh).round(),
+        },
+    )
+}
+
 pub fn crop_rect(source: (f64, f64), p: &CropImage) -> Rect {
     let (sw, sh) = source;
     let rect = match p.mode {
@@ -341,12 +439,7 @@ pub fn crop_rect(source: (f64, f64), p: &CropImage) -> Rect {
                 width: 1.0,
                 height: 1.0,
             });
-            Rect {
-                x: (area.x * sw).round(),
-                y: (area.y * sh).round(),
-                width: (area.width * sw).round(),
-                height: (area.height * sh).round(),
-            }
+            return area_rect(source, &area);
         }
         CropMode::Margins => Rect {
             x: f64::from(p.left),
@@ -355,14 +448,7 @@ pub fn crop_rect(source: (f64, f64), p: &CropImage) -> Rect {
             height: sh - (p.top + p.bottom) as f64,
         },
     };
-    let x = rect.x.clamp(0.0, sw - 1.0);
-    let y = rect.y.clamp(0.0, sh - 1.0);
-    Rect {
-        x,
-        y,
-        width: rect.width.clamp(1.0, sw - x),
-        height: rect.height.clamp(1.0, sh - y),
-    }
+    inside(source, rect)
 }
 
 pub fn rotated_size(source: (f64, f64), p: &RotateImage) -> (f64, f64) {
@@ -648,6 +734,28 @@ fn format() -> NodeDef {
     })
 }
 
+fn redact() -> NodeDef {
+    image_node::<RedactImage>(
+        REDACT_TYPE,
+        "Redact",
+        "Hides parts of an image, such as names, email addresses and keys, behind large pixels, a blur or a solid colour.",
+    )
+    .card(|ctx: &CardCtx<'_, RedactImage>| {
+        let p = &ctx.params;
+        vec![
+            Some(row(
+                Icon::EyeOff,
+                format!(
+                    "{} · {}",
+                    crate::text::plural(p.areas.len() as f64, "area"),
+                    p.style.word()
+                ),
+            )),
+            size_row(ctx, |s| s),
+        ]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -657,5 +765,6 @@ pub fn nodes() -> Vec<NodeDef> {
         blur().look(NodeLook::of("lucide:droplet")),
         place().look(NodeLook::of("lucide:stamp")),
         format().look(NodeLook::of("lucide:file-image")),
+        redact().look(NodeLook::of("lucide:eye-off")),
     ]
 }

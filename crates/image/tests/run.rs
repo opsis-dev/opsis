@@ -44,6 +44,11 @@ fn workflow() -> Workflow {
         node("look", "image.adjust", json!({ "contrast": 0.2 })),
         node("soft", "image.blur", json!({ "blur": 1.5, "sharpen": 0 })),
         node(
+            "hide",
+            "image.redact",
+            json!({ "areas": [{ "x": 0, "y": 0, "width": 0.25, "height": 0.25 }], "style": "solid", "color": "#000000" }),
+        ),
+        node(
             "mark",
             "image.place",
             json!({ "x": 0.5, "y": 0.5, "size": 50 }),
@@ -60,7 +65,8 @@ fn workflow() -> Workflow {
         edge("turn", "image", "size", "image"),
         edge("size", "image", "look", "image"),
         edge("look", "image", "soft", "image"),
-        edge("soft", "image", "mark", "image"),
+        edge("soft", "image", "hide", "image"),
+        edge("hide", "image", "mark", "image"),
         edge("logo", "media", "mark", "overlay"),
         edge("mark", "image", "save", "image"),
     ];
@@ -131,6 +137,11 @@ async fn runs_image_nodes_one_after_another_from_imported_files() {
     assert!(
         middle[0] > 200 && middle[2] > 200,
         "the logo sits in the middle: {middle:?}"
+    );
+    let corner = image.get_pixel(5, 5).0;
+    assert!(
+        corner[..3].iter().all(|&v| v < 20),
+        "the corner is hidden: {corner:?}"
     );
 }
 

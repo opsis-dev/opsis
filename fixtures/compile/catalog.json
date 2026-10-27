@@ -4691,6 +4691,29 @@
    }
   },
   {
+   "type": "image.redact",
+   "title": "Redact",
+   "category": "Image",
+   "description": "Hides parts of an image, such as names, email addresses and keys, behind large pixels, a blur or a solid colour. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -51708,6 +51731,160 @@
      "quality": 85,
      "speed": 6,
      "background": "#ffffff"
+    }
+   }
+  },
+  {
+   "type": "image.redact",
+   "title": "Redact",
+   "category": "Image",
+   "description": "Hides parts of an image, such as names, email addresses and keys, behind large pixels, a blur or a solid colour. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "areas": {
+      "description": "Areas to hide",
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "x": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "y": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "width": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "height": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        }
+       },
+       "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+       ],
+       "default": {}
+      },
+      "minItems": 1,
+      "maxItems": 8,
+      "default": [
+       {
+        "x": 0.35,
+        "y": 0.4,
+        "width": 0.3,
+        "height": 0.2
+       }
+      ],
+      "x-widget": "boxes",
+      "x-help": "Drag on the picture to mark each part to hide."
+     },
+     "style": {
+      "description": "Hide with",
+      "type": "string",
+      "enum": [
+       "pixelate",
+       "blur",
+       "solid"
+      ],
+      "default": "pixelate",
+      "x-labels": {
+       "pixelate": "Large pixels",
+       "blur": "Blur",
+       "solid": "Solid colour"
+      }
+     },
+     "blockSize": {
+      "description": "Pixel size",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 2,
+      "maximum": 256,
+      "default": 16,
+      "x-unit": "px",
+      "x-show-if": {
+       "style": [
+        "pixelate"
+       ]
+      }
+     },
+     "blur": {
+      "description": "Blur",
+      "type": "number",
+      "format": "double",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 16.0,
+      "x-step": 0.5,
+      "x-unit": "px",
+      "x-show-if": {
+       "style": [
+        "blur"
+       ]
+      }
+     },
+     "color": {
+      "description": "Colour",
+      "type": "string",
+      "default": "#000000",
+      "x-widget": "color",
+      "x-check": {
+       "rule": "colour",
+       "message": "Pick a colour"
+      },
+      "x-show-if": {
+       "style": [
+        "solid"
+       ]
+      }
+     }
+    },
+    "type": "object",
+    "default": {
+     "areas": [
+      {
+       "x": 0.35,
+       "y": 0.4,
+       "width": 0.3,
+       "height": 0.2
+      }
+     ],
+     "style": "pixelate",
+     "blockSize": 16,
+     "blur": 16.0,
+     "color": "#000000"
     }
    }
   },

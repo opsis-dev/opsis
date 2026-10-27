@@ -11224,6 +11224,58 @@
   }
  },
  {
+  "type": "image.redact",
+  "title": "Redact",
+  "category": "Image",
+  "description": "Hides parts of an image, such as names, email addresses and keys, behind large pixels, a blur or a solid colour. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "image",
+    "type": "media",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "areas": [
+    {
+     "x": 0.35,
+     "y": 0.4,
+     "width": 0.3,
+     "height": 0.2
+    }
+   ],
+   "style": "pixelate",
+   "blockSize": 16,
+   "blur": 16.0,
+   "color": "#000000"
+  }
+ },
+ {
   "type": "output.render",
   "title": "Export video",
   "category": "Output",

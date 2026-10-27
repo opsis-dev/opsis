@@ -5,11 +5,14 @@ use image::codecs::avif::AvifEncoder;
 use image::codecs::jpeg::JpegEncoder;
 use image::codecs::png::PngEncoder;
 use image::codecs::webp::WebPEncoder;
-use image::{DynamicImage, ImageBuffer, Pixel, Rgba, RgbaImage, imageops};
+use image::{DynamicImage, ImageBuffer, Pixel, Primitive, Rgba, RgbaImage, imageops};
+use imageproc::filter::gaussian_blur_f32;
 use imageproc::geometric_transformations::{Border, Interpolation, rotate_about_center};
+use num_traits::ToPrimitive;
 use opsis_compile::nodes::image::{
-    AdjustImage, BlurImage, CropImage, ImageFormat, PlaceImage, Resample, ResizeFit, ResizeImage,
-    RotateImage, StillFileFormat, Turn, crop_rect, resized_size, rotated_size,
+    AdjustImage, BlurImage, CropImage, ImageFormat, PlaceImage, Rect, RedactImage, RedactStyle,
+    Resample, ResizeFit, ResizeImage, RotateImage, StillFileFormat, Turn, area_rect, crop_rect,
+    resized_size, rotated_size,
 };
 
 use crate::ImageError;
@@ -269,4 +272,128 @@ pub fn encode(image: &DynamicImage, p: Option<&ImageFormat>) -> Result<Vec<u8>, 
         }
     }
     Ok(out.into_inner())
+}
+
+type Picture<P> = ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>;
+
+fn in_depth(image: &DynamicImage, deep: Picture<Rgba<u16>>, shallow: RgbaImage) -> DynamicImage {
+    if is_deep(image) {
+        DynamicImage::ImageRgba16(deep)
+    } else if image.color().has_alpha() {
+        DynamicImage::ImageRgba8(shallow)
+    } else {
+        DynamicImage::ImageRgb8(DynamicImage::ImageRgba8(shallow).to_rgb8())
+    }
+}
+
+fn on_each_depth(
+    image: &DynamicImage,
+    deep: impl FnOnce(Picture<Rgba<u16>>) -> Picture<Rgba<u16>>,
+    shallow: impl FnOnce(RgbaImage) -> RgbaImage,
+) -> DynamicImage {
+    if is_deep(image) {
+        in_depth(image, deep(image.to_rgba16()), RgbaImage::new(0, 0))
+    } else {
+        in_depth(image, ImageBuffer::new(0, 0), shallow(image.to_rgba8()))
+    }
+}
+
+fn channel<S: Primitive>(value: f64) -> S {
+    num_traits::NumCast::from(value.round()).unwrap_or(S::DEFAULT_MAX_VALUE)
+}
+
+fn colour_in<P: Pixel>(rgba: [u8; 4]) -> P {
+    let max = P::Subpixel::DEFAULT_MAX_VALUE.to_f64().unwrap_or(255.0);
+    let channels: Vec<P::Subpixel> = rgba
+        .iter()
+        .take(usize::from(P::CHANNEL_COUNT))
+        .map(|&v| channel(f64::from(v) / 255.0 * max))
+        .collect();
+    *P::from_slice(&channels)
+}
+
+fn pixel_bounds(rect: Rect) -> (u32, u32, u32, u32) {
+    (
+        rect.x as u32,
+        rect.y as u32,
+        (rect.x + rect.width) as u32,
+        (rect.y + rect.height) as u32,
+    )
+}
+
+fn pixelate<P: Pixel>(picture: &mut Picture<P>, rect: Rect, block: u32) {
+    let (left, top, right, bottom) = pixel_bounds(rect);
+    let block = block.max(1);
+    let channels = usize::from(P::CHANNEL_COUNT);
+    for y0 in (top..bottom).step_by(block as usize) {
+        for x0 in (left..right).step_by(block as usize) {
+            let (x1, y1) = ((x0 + block).min(right), (y0 + block).min(bottom));
+            let mut sum = vec![0.0f64; channels];
+            for y in y0..y1 {
+                for x in x0..x1 {
+                    for (total, value) in sum.iter_mut().zip(picture.get_pixel(x, y).channels()) {
+                        *total += value.to_f64().unwrap_or(0.0);
+                    }
+                }
+            }
+            let count = f64::from((x1 - x0) * (y1 - y0));
+            let average: Vec<P::Subpixel> =
+                sum.iter().map(|total| channel(total / count)).collect();
+            let average = *P::from_slice(&average);
+            for y in y0..y1 {
+                for x in x0..x1 {
+                    picture.put_pixel(x, y, average);
+                }
+            }
+        }
+    }
+}
+
+fn blur_inside<P>(picture: &mut Picture<P>, rect: Rect, sigma: f64)
+where
+    P: Pixel + 'static,
+    P::Subpixel: Into<f32> + imageproc::definitions::Clamp<f32>,
+{
+    let (left, top, right, bottom) = pixel_bounds(rect);
+    let part = imageops::crop_imm(picture, left, top, right - left, bottom - top).to_image();
+    let blurred = gaussian_blur_f32(&part, sigma.max(0.1) as f32);
+    imageops::replace(picture, &blurred, i64::from(left), i64::from(top));
+}
+
+fn fill<P: Pixel>(picture: &mut Picture<P>, rect: Rect, colour: P) {
+    let (left, top, right, bottom) = pixel_bounds(rect);
+    for y in top..bottom {
+        for x in left..right {
+            picture.put_pixel(x, y, colour);
+        }
+    }
+}
+
+fn redacted<P>(mut picture: Picture<P>, rects: &[Rect], p: &RedactImage) -> Picture<P>
+where
+    P: Pixel + 'static,
+    P::Subpixel: Into<f32> + imageproc::definitions::Clamp<f32>,
+{
+    let colour = colour_in::<P>(background_rgba(&p.color));
+    for &rect in rects {
+        match p.style {
+            RedactStyle::Pixelate => pixelate(&mut picture, rect, p.block_size),
+            RedactStyle::Blur => blur_inside(&mut picture, rect, p.blur),
+            RedactStyle::Solid => fill(&mut picture, rect, colour),
+        }
+    }
+    picture
+}
+
+pub fn redact(image: &DynamicImage, p: &RedactImage) -> DynamicImage {
+    let rects: Vec<Rect> = p
+        .areas
+        .iter()
+        .map(|area| area_rect(size_of(image), area))
+        .collect();
+    on_each_depth(
+        image,
+        |deep| redacted(deep, &rects, p),
+        |shallow| redacted(shallow, &rects, p),
+    )
 }

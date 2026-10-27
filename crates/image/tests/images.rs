@@ -8,8 +8,8 @@ use image::{
 };
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
-    AdjustImage, BlurImage, CropImage, CropMode, ImageFormat, PlaceImage, ResizeFit, ResizeImage,
-    RotateImage, StillFileFormat, Turn,
+    AdjustImage, BlurImage, CropImage, CropMode, ImageFormat, PlaceImage, RedactImage, RedactStyle,
+    ResizeFit, ResizeImage, RotateImage, StillFileFormat, Turn,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -350,4 +350,68 @@ fn saves_every_format_so_it_opens_again() {
             }
         }
     }
+}
+
+fn noise(width: u32, height: u32) -> RgbaImage {
+    RgbaImage::from_fn(width, height, |x, y| {
+        let v = ((x * 37 + y * 91) % 256) as u8;
+        Rgba([v, v.wrapping_mul(3), 255 - v, 255])
+    })
+}
+
+#[test]
+fn hides_only_inside_its_areas_in_every_style_and_depth() {
+    let area = Area {
+        x: 0.25,
+        y: 0.25,
+        width: 0.5,
+        height: 0.5,
+    };
+    let inside = |x: u32, y: u32| (16..48).contains(&x) && (16..48).contains(&y);
+    let shallow = DynamicImage::ImageRgba8(noise(64, 64));
+    let deep = DynamicImage::ImageRgba16(shallow.to_rgba16());
+    for style in [RedactStyle::Pixelate, RedactStyle::Blur, RedactStyle::Solid] {
+        let p = RedactImage {
+            areas: vec![area.clone()],
+            style,
+            block_size: 8,
+            blur: 6.0,
+            color: "#ff00ff".into(),
+        };
+        for image in [&shallow, &deep] {
+            let out = ops::redact(image, &p);
+            assert_eq!(out.color(), image.color(), "{style:?} keeps the depth");
+            let (before, after) = (image.to_rgba8(), out.to_rgba8());
+            let mut changed = 0;
+            for (x, y, pixel) in after.enumerate_pixels() {
+                if inside(x, y) {
+                    changed += usize::from(pixel != before.get_pixel(x, y));
+                } else {
+                    assert_eq!(pixel, before.get_pixel(x, y), "{style:?} at {x}, {y}");
+                }
+            }
+            assert!(changed > 32 * 32 * 9 / 10, "{style:?} changed {changed}");
+        }
+    }
+    let pixelated = ops::redact(
+        &shallow,
+        &RedactImage {
+            areas: vec![area.clone()],
+            block_size: 8,
+            ..RedactImage::default()
+        },
+    )
+    .to_rgba8();
+    assert_eq!(pixelated.get_pixel(16, 16), pixelated.get_pixel(23, 23));
+    let covered = ops::redact(
+        &shallow,
+        &RedactImage {
+            areas: vec![area],
+            style: RedactStyle::Solid,
+            color: "#ff00ff".into(),
+            ..RedactImage::default()
+        },
+    )
+    .to_rgba8();
+    assert_eq!(covered.get_pixel(30, 30).0, [255, 0, 255, 255]);
 }

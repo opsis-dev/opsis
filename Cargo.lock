@@ -4824,6 +4824,7 @@ dependencies = [
  "imageproc",
  "log",
  "moxcms 0.9.1",
+ "num-traits",
  "opsis-compile",
  "opsis-engine",
  "opsis-media",

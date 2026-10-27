@@ -12,6 +12,7 @@ image = "0.25.10"
 imageproc = "0.27.0"
 log = "0.4.34"
 moxcms = "0.9.1"
+num-traits = "0.2.19"
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }
 opsis-media = { version = "0.1.0", path = "../media" }
