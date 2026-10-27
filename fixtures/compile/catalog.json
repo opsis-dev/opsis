@@ -4472,6 +4472,29 @@
    }
   },
   {
+   "type": "media.hum",
+   "title": "Remove hum",
+   "category": "Media",
+   "description": "Removes mains hum and its harmonics from a recording. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "media.thumbnail",
    "title": "Grab frame",
    "category": "Media",
@@ -51221,6 +51244,76 @@
      "clicks": true,
      "clipping": true,
      "strength": 0.5
+    }
+   }
+  },
+  {
+   "type": "media.hum",
+   "title": "Remove hum",
+   "category": "Media",
+   "description": "Removes mains hum and its harmonics from a recording. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "mains": {
+      "description": "Hum",
+      "type": "string",
+      "enum": [
+       "find",
+       "fifty",
+       "sixty"
+      ],
+      "default": "find",
+      "x-labels": {
+       "find": "Find it",
+       "fifty": "50 Hz",
+       "sixty": "60 Hz"
+      },
+      "x-help": "Mains hum is 50 Hz in most of the world and 60 Hz in the Americas. Find it listens for both first."
+     },
+     "harmonics": {
+      "description": "Harmonics",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 10,
+      "default": 4,
+      "x-help": "Hum also rings at twice, three times and more of its pitch."
+     },
+     "width": {
+      "description": "Notch width",
+      "type": "number",
+      "format": "double",
+      "minimum": 0.5,
+      "maximum": 20,
+      "default": 2.0,
+      "x-step": 0.5,
+      "x-unit": "Hz",
+      "x-advanced": true
+     }
+    },
+    "type": "object",
+    "default": {
+     "mains": "find",
+     "harmonics": 4,
+     "width": 2.0
     }
    }
   },

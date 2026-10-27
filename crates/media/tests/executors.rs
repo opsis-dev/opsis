@@ -489,3 +489,36 @@ async fn fixes_clicks_and_clipping_in_one_pass_keeping_the_sound_format() {
     .await;
     assert_eq!(message(result), "Turn on clicks or clipping to fix.");
 }
+
+#[tokio::test]
+async fn notches_the_chosen_hum_and_its_harmonics() {
+    let (_, ran) = run(
+        sound_setup(
+            "media.hum",
+            json!({ "mains": "sixty", "harmonics": 2, "width": 3 }),
+        ),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert_eq!(ran.len(), 1, "a chosen hum needs no listening");
+    assert_eq!(
+        ran[0][3],
+        "equalizer=f=60:t=h:w=3:g=-40,equalizer=f=120:t=h:w=3:g=-40,equalizer=f=180:t=h:w=3:g=-40"
+    );
+    let (_, ran) = run(sound_setup("media.hum", json!({})), sound_probe(), voice()).await;
+    assert_eq!(
+        ran.len(),
+        3,
+        "finding the hum listens at 50 and 60 Hz first"
+    );
+    assert_eq!(
+        ran[0][3],
+        "bandpass=f=50:t=h:w=4,astats=measure_perchannel=none:measure_overall=RMS_level"
+    );
+    assert!(ran[1][3].starts_with("bandpass=f=60:"));
+    assert!(
+        ran[2][3].starts_with("equalizer=f=50:"),
+        "50 Hz when neither is heard"
+    );
+}

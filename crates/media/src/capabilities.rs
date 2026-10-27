@@ -34,7 +34,7 @@ pub const REQUIRED_FORMATS: [&str; 10] = [
     "webm",
 ];
 
-pub const REQUIRED_FILTERS: [&str; 68] = [
+pub const REQUIRED_FILTERS: [&str; 70] = [
     "acompressor",
     "adeclick",
     "adeclip",
@@ -52,8 +52,10 @@ pub const REQUIRED_FILTERS: [&str; 68] = [
     "asetpts",
     "asetrate",
     "asplit",
+    "astats",
     "atempo",
     "atrim",
+    "bandpass",
     "blend",
     "cas",
     "channelsplit",

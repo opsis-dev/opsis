@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use opsis_media::filters::repair_filter;
+use opsis_media::filters::{hum_filter, hum_listen_filter, repair_filter, rms_level};
 
 const RATE: u32 = 48_000;
 
@@ -70,4 +70,81 @@ fn takes_a_click_out_of_a_tone() {
         .iter()
         .fold(0.0f32, |m, s| m.max(s.abs()));
     assert!(peak < 0.5, "the click is gone: {peak}");
+}
+
+fn energy_at(samples: &[f32], hertz: f32) -> f32 {
+    let (mut re, mut im) = (0.0f32, 0.0f32);
+    for (i, s) in samples.iter().enumerate() {
+        let phase = i as f32 / RATE as f32 * hertz * std::f32::consts::TAU;
+        re += s * phase.cos();
+        im += s * phase.sin();
+    }
+    (re * re + im * im).sqrt() / samples.len() as f32
+}
+
+#[test]
+#[ignore = "needs the dev engine"]
+fn takes_mains_hum_out_and_leaves_the_voice() {
+    let dir = tempfile::tempdir().unwrap();
+    let samples: Vec<f32> = tone(2.0)
+        .iter()
+        .enumerate()
+        .map(|(i, s)| {
+            let t = i as f32 / RATE as f32;
+            s + 0.1 * (t * 50.0 * std::f32::consts::TAU).sin()
+                + 0.05 * (t * 100.0 * std::f32::consts::TAU).sin()
+        })
+        .collect();
+    write(&dir.path().join("in.wav"), &samples);
+    filtered(
+        &dir.path().join("in.wav"),
+        &hum_filter(50.0, 4, 2.0),
+        &dir.path().join("out.wav"),
+    );
+    let out = read(&dir.path().join("out.wav"));
+    let (before, after) = (&samples[RATE as usize / 2..], &out[RATE as usize / 2..]);
+    assert!(
+        energy_at(after, 50.0) < energy_at(before, 50.0) / 10.0,
+        "50 Hz is gone"
+    );
+    assert!(
+        energy_at(after, 100.0) < energy_at(before, 100.0) / 10.0,
+        "100 Hz is gone"
+    );
+    assert!(
+        energy_at(after, 440.0) > energy_at(before, 440.0) * 0.9,
+        "the tone stays"
+    );
+}
+
+fn listened(input: &Path, hertz: f64) -> Option<f64> {
+    let out = Command::new(ffmpeg())
+        .args(["-v", "info", "-i"])
+        .arg(input)
+        .args(["-af", &hum_listen_filter(hertz), "-f", "null", "-"])
+        .output()
+        .unwrap();
+    let lines: Vec<String> = String::from_utf8_lossy(&out.stderr)
+        .lines()
+        .map(str::to_owned)
+        .collect();
+    rms_level(&lines)
+}
+
+#[test]
+#[ignore = "needs the dev engine"]
+fn hears_which_mains_hum_a_recording_has() {
+    let dir = tempfile::tempdir().unwrap();
+    let samples: Vec<f32> = tone(2.0)
+        .iter()
+        .enumerate()
+        .map(|(i, s)| s + 0.1 * (i as f32 / RATE as f32 * 60.0 * std::f32::consts::TAU).sin())
+        .collect();
+    write(&dir.path().join("in.wav"), &samples);
+    let fifty = listened(&dir.path().join("in.wav"), 50.0).expect("a level at 50 Hz");
+    let sixty = listened(&dir.path().join("in.wav"), 60.0).expect("a level at 60 Hz");
+    assert!(
+        sixty > fifty + 3.0,
+        "60 Hz is louder: {sixty} against {fifty}"
+    );
 }

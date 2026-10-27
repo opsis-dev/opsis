@@ -32,6 +32,7 @@ pub const THUMBNAIL_TYPE: &str = "media.thumbnail";
 
 pub const LOUDNORM_TYPE: &str = "media.loudnorm";
 pub const REPAIR_TYPE: &str = "media.repair";
+pub const HUM_TYPE: &str = "media.hum";
 
 pub const EXTRACT_AUDIO_TYPE: &str = "media.extractAudio";
 
@@ -704,6 +705,46 @@ pub struct FixClicks {
 
 impl Params for FixClicks {}
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum Mains {
+    #[default]
+    Find,
+    Fifty,
+    Sixty,
+}
+
+impl Mains {
+    pub fn hertz(self) -> Option<f64> {
+        match self {
+            Self::Find => None,
+            Self::Fifty => Some(50.0),
+            Self::Sixty => Some(60.0),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct RemoveHum {
+    #[schemars(
+        description = "Hum",
+        extend(
+            "x-labels" = { "find": "Find it", "fifty": "50 Hz", "sixty": "60 Hz" },
+            "x-help" = "Mains hum is 50 Hz in most of the world and 60 Hz in the Americas. Find it listens for both first."
+        )
+    )]
+    pub mains: Mains,
+    #[default = 4]
+    #[schemars(description = "Harmonics", range(min = 0, max = 10), extend("x-help" = "Hum also rings at twice, three times and more of its pitch."))]
+    pub harmonics: u32,
+    #[default = 2.0]
+    #[schemars(description = "Notch width", range(min = 0.5, max = 20), extend("x-step" = 0.5, "x-unit" = "Hz", "x-advanced" = true))]
+    pub width: f64,
+}
+
+impl Params for RemoveHum {}
+
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct GrabFrame {
@@ -943,6 +984,26 @@ pub fn nodes() -> Vec<NodeDef> {
             vec![Some(what), length_row(ctx.result, Icon::Clock)]
         })
         .look(NodeLook::of("lucide:bandage")),
+        one_file_op::<RemoveHum>(
+            HUM_TYPE,
+            "Remove hum",
+            "Removes mains hum and its harmonics from a recording.",
+        )
+        .card(|ctx: &CardCtx<'_, RemoveHum>| {
+            let p = &ctx.params;
+            let tones = plural(f64::from(p.harmonics), "harmonic");
+            let text = match p.mains.hertz() {
+                Some(hz) if p.harmonics == 0 => format!("{hz} Hz"),
+                Some(hz) => format!("{hz} Hz and {tones}"),
+                None if p.harmonics == 0 => "50 or 60 Hz, whichever is there".to_owned(),
+                None => format!("50 or 60 Hz and {tones}"),
+            };
+            vec![
+                Some(row(Icon::AudioLines, text)),
+                length_row(ctx.result, Icon::Clock),
+            ]
+        })
+        .look(NodeLook::of("lucide:unplug")),
         thumbnail().look(NodeLook::of("lucide:scan")),
         one_file_op::<NoSettings>(
             FASTSTART_TYPE,

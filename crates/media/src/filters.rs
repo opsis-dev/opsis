@@ -181,3 +181,32 @@ pub fn repair_filter(clicks: bool, clipping: bool, strength: f64) -> Option<Stri
     }
     (!chain.is_empty()).then(|| chain.join(","))
 }
+
+pub const HUM_DEPTH_DB: f64 = -40.0;
+pub const HUM_LISTEN_WIDTH_HZ: f64 = 4.0;
+
+pub fn hum_filter(hertz: f64, harmonics: u32, width: f64) -> String {
+    (1..=harmonics + 1)
+        .map(|n| {
+            format!(
+                "equalizer=f={}:t=h:w={width}:g={HUM_DEPTH_DB}",
+                hertz * f64::from(n)
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+pub fn hum_listen_filter(hertz: f64) -> String {
+    format!(
+        "bandpass=f={hertz}:t=h:w={HUM_LISTEN_WIDTH_HZ},astats=measure_perchannel=none:measure_overall=RMS_level"
+    )
+}
+
+pub fn rms_level(lines: &[String]) -> Option<f64> {
+    lines
+        .iter()
+        .rev()
+        .find_map(|line| line.split("RMS level dB:").nth(1))
+        .and_then(|value| value.trim().parse().ok())
+}
