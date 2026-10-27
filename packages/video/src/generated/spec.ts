@@ -7,6 +7,7 @@ export type ActionLog = {
 	durationMs: number,
 	actions: Action[],
 	cursorTrack?: CursorSample[],
+	addresses?: PageAddress[],
 };
 
 export type Action = {
@@ -30,6 +31,8 @@ export type Action = {
 	path?: Point[],
 	drop?: Rect,
 };
+
+export type AddressMode = "fixed" | "host";
 
 export type Anchor = {
 	nodeId: string,
@@ -448,6 +451,11 @@ export type Noise = {
 	speed: number,
 };
 
+export type PageAddress = {
+	t: number,
+	url: string,
+};
+
 export type Paper = {
 	color: string,
 	grain: number,
@@ -504,6 +512,8 @@ export type RecordingProps = {
 	windowStyle?: WindowStyle,
 	frameTheme?: FrameTheme,
 	addressBar?: boolean,
+	address?: string,
+	addressMode?: AddressMode,
 	backdrop: string,
 	backdropChosen?: boolean,
 	cursor: boolean,

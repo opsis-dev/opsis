@@ -1,12 +1,12 @@
 # Improvements
 
-Six improvements found by comparing Opsis with a hand-built feature-video recorder: a sound for every click and keystroke, an address bar that shows a chosen address, Sequences and Layers with any number of clips, built-in music, recording on a simulated clock, and server replies timed on that clock.
+Five improvements found by comparing Opsis with a hand-built feature-video recorder: a sound for every click and keystroke, Sequences and Layers with any number of clips, built-in music, recording on a simulated clock, and server replies timed on that clock.
 
 Status: plan only. Nothing here is built yet.
 
 ## How to read this plan
 
-- Each section is one improvement and can be built on its own, except section 6, which needs section 5.
+- Each section is one improvement and can be built on its own, except section 5, which needs section 4.
 - Each section has **What it adds**, **In place**, **Work** (numbered) and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
@@ -21,14 +21,13 @@ Status: plan only. Nothing here is built yet.
 
 ## Summary
 
-| Improvement                    | What users get                                                                            | Size   |
-| ------------------------------ | ----------------------------------------------------------------------------------------- | ------ |
-| 1. Action sounds               | One node that puts a click sound on every click and a key sound on every keystroke        | medium |
-| 2. Address shown in the frame  | The window frame shows a typed address, fixed or as a host that keeps the page's own path | small  |
-| 3. Sequences and Layers grow   | Any number of clips in one Sequence or Layers node; splitting never runs out of inputs    | medium |
-| 4. Built-in music              | A few free music beds to pick, next to the built-in sound effects                         | small  |
-| 5. Smooth recording            | A take with exactly one new picture per frame, however busy the computer is               | large  |
-| 6. Replies on the take's clock | In a smooth take, server replies and streamed answers land on the frames they took live   | large  |
+| Improvement                    | What users get                                                                          | Size   |
+| ------------------------------ | --------------------------------------------------------------------------------------- | ------ |
+| 1. Action sounds               | One node that puts a click sound on every click and a key sound on every keystroke      | medium |
+| 2. Sequences and Layers grow   | Any number of clips in one Sequence or Layers node; splitting never runs out of inputs  | medium |
+| 3. Built-in music              | A few free music beds to pick, next to the built-in sound effects                       | small  |
+| 4. Smooth recording            | A take with exactly one new picture per frame, however busy the computer is             | large  |
+| 5. Replies on the take's clock | In a smooth take, server replies and streamed answers land on the frames they took live | large  |
 
 ## 1. Action sounds
 
@@ -53,27 +52,7 @@ One node, **Action sounds**, that adds a click sound at every click and a key so
 7. **Look.** A look on the definition; no motion.
 8. **Tests.** Compile tests on a clip with a trim and a speed ramp (the sounds follow the mapped times), a silent Click and a silent Type in the same take, the Mixer channel, the round trip into Add sound.
 
-## 2. Address shown in the frame
-
-### What it adds
-
-The address bar in Auto zoom's window frame and in Window frame shows an address the user types, such as `app.example.com`, instead of the take's first page address, which is often `localhost:3000` or a test host. A **Show** choice on the frame picks how: "This address" keeps the typed text for the whole take; "This host with the page's path" puts the typed host in front of the path of whatever page is on screen, so the bar follows navigation (`app.example.com/inbox`, then `app.example.com/settings`).
-
-### In place
-
-- `address_bar: bool` on Auto zoom (`crates/compile/src/nodes/camera.rs:99`) and on `WindowFrame` (`:404`), passed through `with_window_frame` to `RecordingProps.address_bar`.
-- `WindowFrame` in `packages/video/src/camera/window-frame.tsx` already draws an `address` string (`AddressField`), today the take's first address.
-- Navigate logs its address as its action label (`crates/capture/src/take.rs:741`); route changes caused by clicks aren't logged.
-
-### Work
-
-1. **Settings.** Add `address` (text, `x-zero-label` "Page address", `x-show-if` on `addressBar`) and `addressMode` ("Show": "This address" or "This host with the page's path", default the first) to both nodes. Variables work in the address like any text setting.
-2. **Addresses during the take.** The take logs every main-frame address change with its time, both loads and in-page route changes (`Page.frameNavigated` and `Page.navigatedWithinDocument`), as entries in the action log.
-3. **Props.** `RecordingProps` gets `address: Option<String>` and the mode. In the host mode the frame shows the typed host with the path of the address in effect at each frame. An empty address keeps today's behaviour.
-4. **Card.** The address row shows the typed address, with "· keeps the path" in the host mode.
-5. **Tests.** Compile test for both nodes and both modes; a capture test on a local single-page app that changes route on a click, checking the logged addresses; the address at a given frame from the log.
-
-## 3. Sequences and Layers grow
+## 2. Sequences and Layers grow
 
 ### What it adds
 
@@ -99,7 +78,7 @@ A Sequence or Layers node takes as many clips as are connected: a new empty inpu
 
 - Every place that loops over `IN_PORTS` assumes six; find them all (`rg IN_PORTS`, `CUT_PORTS`, `in6`).
 
-## 4. Built-in music
+## 3. Built-in music
 
 ### What it adds
 
@@ -118,7 +97,7 @@ A few free music beds (calm, upbeat, ambient; 1–3 minutes each, loopable) offe
 3. **Field.** Music's song field offers the built-in list with a play button, like the `sound` widget.
 4. **Size.** Note the added size in `plans/release.md` section 1.
 
-## 5. Smooth recording
+## 4. Smooth recording
 
 ### What it adds
 
@@ -148,10 +127,10 @@ It runs far slower than real time (a full picture per frame), so it is for final
 
 - With the page's timers paused, anything the take waits for only happens while it ticks; a wait that doesn't tick never ends. Every wait must go through the clock.
 - Videos inside the page, canvases driven by real time and workers' own timers don't follow the page clock.
-- Server replies arrive in real time while the page clock runs slower, so waits on the server take fewer frames than they took seconds. Section 6 fixes that.
+- Server replies arrive in real time while the page clock runs slower, so waits on the server take fewer frames than they took seconds. Section 5 fixes that.
 - Long takes: one picture per frame at 2× is slow; measure a 30 s take before choosing the default picture format.
 
-## 6. Replies on the take's clock
+## 5. Replies on the take's clock
 
 ### What it adds
 
@@ -163,7 +142,7 @@ Because smooth recording is slower than real time, a reply has almost always arr
 
 - Request interception for Mock response, pausing requests before they're sent (`crates/capture/src/route.rs`, `Fetch.enable` at the request stage).
 - The trace records every request and reply with times (`crates/capture/src/trace.rs:186`).
-- Section 5's take clock and frame stepper.
+- Section 4's take clock and frame stepper.
 
 ### Work
 

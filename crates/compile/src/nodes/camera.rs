@@ -1,7 +1,9 @@
 use opsis_types::actions::{Action, ActionKind, Point, Rect};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
-use opsis_types::recording::{CameraStyle, CameraTuning, FrameTheme, RecordingProps, WindowStyle};
+use opsis_types::recording::{
+    AddressMode, CameraStyle, CameraTuning, FrameTheme, RecordingProps, WindowStyle,
+};
 use opsis_types::timeline::{ElementRef, GroupProps};
 use opsis_types::values::{ClipValue, CompileValue, StyleEntry, TaggedRecording};
 use opsis_types::workflow::{DEFAULT_TAKE_MS, PortType};
@@ -31,7 +33,7 @@ use crate::recording::{
 };
 use crate::remap::{RemapSegment, remap_duration, remap_from_segments};
 use crate::style::{restyle_with, retime_with};
-use crate::text::{format_duration, humanize, percent_text, plural};
+use crate::text::{display_address, format_duration, humanize, percent_text, plural};
 use crate::time::{EPSILON, ms_to_frames, recording_ms_to_frames, whole_frames};
 
 const FOCUS_LEAD_MS: f64 = 400.0;
@@ -98,12 +100,40 @@ pub struct AutoZoom {
         extend("x-help" = "Shows the page's address in the title bar.", "x-show-if" = { "frame": ["macos", "windows", "linux"] })
     )]
     pub address_bar: bool,
+    #[schemars(
+        description = "Address",
+        extend(
+            "x-zero-label" = "Page address",
+            "x-help" = "Shown instead of the page's own address, such as app.example.com.",
+            "x-show-if" = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"] }
+        )
+    )]
+    pub address: String,
+    #[default(AddressMode::Fixed)]
+    #[schemars(
+        description = "Show",
+        extend(
+            "x-labels" = { "fixed": "This address", "host": "This host with the page's path" },
+            "x-show-if" = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"], "address": ["*"] }
+        )
+    )]
+    pub address_mode: AddressMode,
     #[default = true]
     #[schemars(description = "Motion blur")]
     pub motion_blur: bool,
 }
 
 impl Params for AutoZoom {}
+
+impl AutoZoom {
+    fn bar(&self) -> Bar<'_> {
+        Bar {
+            shown: self.address_bar,
+            address: &self.address,
+            mode: self.address_mode,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
@@ -403,26 +433,83 @@ pub struct WindowFrame {
     #[default(DEFAULT_ADDRESS_BAR)]
     #[schemars(description = "Address bar", extend("x-help" = "Shows the page's address in the title bar."))]
     pub address_bar: bool,
+    #[schemars(
+        description = "Address",
+        extend(
+            "x-zero-label" = "Page address",
+            "x-help" = "Shown instead of the page's own address, such as app.example.com.",
+            "x-show-if" = { "addressBar": ["true"] }
+        )
+    )]
+    pub address: String,
+    #[default(AddressMode::Fixed)]
+    #[schemars(
+        description = "Show",
+        extend(
+            "x-labels" = { "fixed": "This address", "host": "This host with the page's path" },
+            "x-show-if" = { "addressBar": ["true"], "address": ["*"] }
+        )
+    )]
+    pub address_mode: AddressMode,
 }
 
 impl Params for WindowFrame {}
+
+impl WindowFrame {
+    fn bar(&self) -> Bar<'_> {
+        Bar {
+            shown: self.address_bar,
+            address: &self.address,
+            mode: self.address_mode,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
 pub struct ApplyStyle {}
 
 impl Params for ApplyStyle {}
 
+struct Bar<'a> {
+    shown: bool,
+    address: &'a str,
+    mode: AddressMode,
+}
+
+impl Bar<'_> {
+    fn typed(&self) -> Option<&str> {
+        Some(self.address.trim()).filter(|a| self.shown && !a.is_empty())
+    }
+
+    fn row(&self) -> CardRow {
+        if !self.shown {
+            return row(Icon::Link, "No address bar").muted_if(true);
+        }
+        match self.typed() {
+            None => row(Icon::Link, "Address bar"),
+            Some(address) if self.mode == AddressMode::Host => row(
+                Icon::Link,
+                format!("{} · keeps the path", display_address(address, false)),
+            ),
+            Some(address) => row(Icon::Link, display_address(address, false)),
+        }
+    }
+}
+
 fn with_window_frame(
     props: RecordingProps,
     style: WindowStyle,
     theme: FrameTheme,
-    address_bar: bool,
+    bar: &Bar<'_>,
 ) -> RecordingProps {
+    let address = bar.typed().map(str::to_owned);
     RecordingProps {
         chrome: true,
         window_style: Some(style),
         frame_theme: Some(theme),
-        address_bar: Some(address_bar),
+        address_bar: Some(bar.shown),
+        address_mode: address.as_ref().map(|_| bar.mode),
+        address,
         ..props
     }
 }
@@ -542,6 +629,7 @@ fn auto_zoom() -> NodeDef {
                     row(Icon::ZoomOut, "No zoom").tone(Tone::Muted)
                 }),
                 p.zoom.then(|| row(Icon::Hourglass, format!("Hold {}", format_duration(f64::from(p.hold))))),
+                (p.frame.style().is_some() && p.bar().typed().is_some()).then(|| p.bar().row()),
                 (p.style == CameraStyle::Classic).then(|| row(Icon::Image, format!("{} backdrop", humanize(p.backdrop.id())))),
                 (p.speed != 1.0).then(|| row(Icon::Gauge, format!("{}× speed", p.speed))),
             ]
@@ -572,7 +660,7 @@ fn auto_zoom() -> NodeDef {
             own.style = p.style;
             own = match p.frame.style() {
                 None => RecordingProps { chrome: false, ..own },
-                Some(style) => with_window_frame(own, style, p.frame_theme, p.address_bar),
+                Some(style) => with_window_frame(own, style, p.frame_theme, &p.bar()),
             };
             own.backdrop = p.backdrop.id().to_owned();
             let props = restyle_with(own, &entries)?;
@@ -899,21 +987,11 @@ fn window_frame() -> NodeDef {
                         humanize(frame_theme_name(p.frame_theme))
                     ),
                 )),
-                Some(
-                    row(
-                        Icon::Link,
-                        if p.address_bar {
-                            "Address bar"
-                        } else {
-                            "No address bar"
-                        },
-                    )
-                    .muted_if(!p.address_bar),
-                ),
+                Some(p.bar().row()),
             ]
         })
         .restyle(|props: RecordingProps, p: &WindowFrame, _| {
-            with_window_frame(props, p.window_style, p.frame_theme, p.address_bar)
+            with_window_frame(props, p.window_style, p.frame_theme, &p.bar())
         })
         .host_defaults(|platform: Platform| {
             let mut values = Values::new();

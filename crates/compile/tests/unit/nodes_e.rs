@@ -153,6 +153,89 @@ fn frames_any_clip_in_a_device_and_draws_window_title_bars() {
     );
 }
 
+#[test]
+fn puts_a_typed_address_in_the_title_bar_of_either_frame() {
+    let address = |clip: &ClipValue| {
+        let props = serde_json::to_value(recording_props(clip)[0]).unwrap();
+        (props["address"].clone(), props["addressMode"].clone())
+    };
+    let framed = |params: Value| {
+        zoomed(
+            Some(&[("camera.windowFrame", params)]),
+            &[],
+            None,
+            json!({ "speed": 1 }),
+        )
+    };
+    let own = |params: Value| zoomed(None, &[], None, params);
+    let typed = |mode: &str| (json!("app.example.com"), json!(mode));
+    let none = (Value::Null, Value::Null);
+    assert_eq!(
+        address(&framed(json!({ "address": " app.example.com " }))),
+        typed("fixed")
+    );
+    assert_eq!(
+        address(&framed(
+            json!({ "address": "app.example.com", "addressMode": "host" })
+        )),
+        typed("host")
+    );
+    assert_eq!(
+        address(&framed(json!({ "address": "", "addressMode": "host" }))),
+        none
+    );
+    assert_eq!(
+        address(&framed(
+            json!({ "address": "app.example.com", "addressBar": false })
+        )),
+        none
+    );
+    assert_eq!(
+        address(&own(
+            json!({ "frame": "macos", "address": "app.example.com", "addressMode": "host" })
+        )),
+        typed("host")
+    );
+    assert_eq!(
+        address(&own(
+            json!({ "frame": "none", "address": "app.example.com" })
+        )),
+        none
+    );
+}
+
+#[test]
+fn shows_the_typed_address_on_the_frame_cards() {
+    let frame = |params: Value| card_texts("camera.windowFrame", params, CardInputs::default());
+    assert!(frame(json!({})).contains(&"Address bar".to_owned()));
+    assert!(
+        frame(json!({ "address": "https://app.example.com/" }))
+            .contains(&"app.example.com".to_owned())
+    );
+    assert!(
+        frame(json!({ "address": "app.example.com", "addressMode": "host" }))
+            .contains(&"app.example.com · keeps the path".to_owned())
+    );
+    assert!(
+        frame(json!({ "address": "app.example.com", "addressBar": false }))
+            .contains(&"No address bar".to_owned())
+    );
+    let zoom = |params: Value| card_texts("camera.autoZoom", params, CardInputs::default());
+    assert!(
+        zoom(json!({ "frame": "macos", "address": "app.example.com" }))
+            .contains(&"app.example.com".to_owned())
+    );
+    assert!(
+        !zoom(json!({ "frame": "none", "address": "app.example.com" }))
+            .contains(&"app.example.com".to_owned())
+    );
+    assert!(
+        !zoom(json!({ "frame": "macos" }))
+            .iter()
+            .any(|t| t.contains("Address"))
+    );
+}
+
 fn take(duration_ms: f64, cursor_track: bool) -> InputTake {
     InputTake {
         duration_ms,

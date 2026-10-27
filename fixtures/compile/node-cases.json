@@ -4134,7 +4134,9 @@
       "params": {
        "windowStyle": "macos",
        "frameTheme": "light",
-       "addressBar": true
+       "addressBar": true,
+       "address": "",
+       "addressMode": "fixed"
       }
      }
     ]
@@ -4181,7 +4183,9 @@
       "params": {
        "windowStyle": "macos",
        "frameTheme": "light",
-       "addressBar": true
+       "addressBar": true,
+       "address": "",
+       "addressMode": "fixed"
       }
      }
     ]

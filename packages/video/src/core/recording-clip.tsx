@@ -8,6 +8,7 @@ import {
   typedBeats,
 } from "#video/camera/action-log.ts";
 import { DemoClip, ScreenClip, useClipTime } from "#video/camera/demo-clip.tsx";
+import { frameAddress } from "#video/camera/frame-address.ts";
 import { KeycapHUD } from "#video/camera/keycap-hud.tsx";
 import { blurEffects } from "#video/camera/lib/blur-areas.ts";
 import { DesignWidthContext } from "#video/camera/lib/design-scale.ts";
@@ -15,7 +16,6 @@ import { faded, SHOT_STYLES } from "#video/camera/lib/style.ts";
 import { poseAt } from "#video/camera/lib/zoom.ts";
 import { STAGE_COLOR } from "#video/common/element-colors.ts";
 import { CODE_FONT } from "#video/common/fonts.ts";
-import { displayAddress } from "#video/common/format.ts";
 import { clamp } from "#video/common/math.ts";
 import { pick } from "#video/common/objects.ts";
 import { PREVIEW_FILE_WIDTH } from "#video/common/recording.ts";
@@ -122,7 +122,7 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
       box={contain?.box}
       src={src}
       log={log}
-      address={pageAddress(props.log)}
+      address={frameAddress(props.log, timeMs, props.address, props.addressMode)}
       motionBlur={props.motionBlur && !fast}
       tuning={narrow ? { ...props.tuning, narrow } : props.tuning}
       annotations={annotations}
@@ -264,8 +264,3 @@ const TypedChip: React.FC<{
     </AbsoluteFill>
   );
 };
-
-function pageAddress(log: RecordingProps["log"]): string | undefined {
-  const url = log.actions.find((a) => a.kind === "navigate")?.label;
-  return url ? displayAddress(url) : undefined;
-}

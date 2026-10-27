@@ -152,6 +152,7 @@ export type ActionLog = {
 	durationMs: number,
 	actions: Action[],
 	cursorTrack?: CursorSample[],
+	addresses?: PageAddress[],
 };
 
 export type ActionMark = {
@@ -189,6 +190,8 @@ export type Action = {
 	path?: Point[],
 	drop?: Rect,
 };
+
+export type AddressMode = "fixed" | "host";
 
 export type AnalysisRequest = { kind: "waveform"; projectDir: string; src: string } | { kind: "filmstrip"; projectDir: string; src: string } | { kind: "mix"; projectDir: string; plan: MixPlan };
 
@@ -1304,6 +1307,11 @@ export type OpenRequested = {
 	dir: string,
 };
 
+export type PageAddress = {
+	t: number,
+	url: string,
+};
+
 export type PageLogLevel = "error" | "warn";
 
 export type PanelWindowsChanged = DockPanelName[];
@@ -1461,6 +1469,8 @@ export type RecordingProps = {
 	windowStyle?: WindowStyle,
 	frameTheme?: FrameTheme,
 	addressBar?: boolean,
+	address?: string,
+	addressMode?: AddressMode,
 	backdrop: string,
 	backdropChosen?: boolean,
 	cursor: boolean,

@@ -18,6 +18,15 @@ pub enum CameraStyle {
     Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
 )]
 #[serde(rename_all = "lowercase")]
+pub enum AddressMode {
+    Fixed,
+    Host,
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
+)]
+#[serde(rename_all = "lowercase")]
 pub enum WindowStyle {
     Macos,
     Windows,
@@ -173,6 +182,10 @@ pub struct RecordingProps {
     pub frame_theme: Option<FrameTheme>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub address_bar: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address_mode: Option<AddressMode>,
     pub backdrop: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub backdrop_chosen: Option<bool>,

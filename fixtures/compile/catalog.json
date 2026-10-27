@@ -7286,6 +7286,49 @@
        ]
       }
      },
+     "address": {
+      "description": "Address",
+      "type": "string",
+      "default": "",
+      "x-zero-label": "Page address",
+      "x-help": "Shown instead of the page's own address, such as app.example.com.",
+      "x-show-if": {
+       "frame": [
+        "macos",
+        "windows",
+        "linux"
+       ],
+       "addressBar": [
+        "true"
+       ]
+      }
+     },
+     "addressMode": {
+      "description": "Show",
+      "type": "string",
+      "enum": [
+       "fixed",
+       "host"
+      ],
+      "default": "fixed",
+      "x-labels": {
+       "fixed": "This address",
+       "host": "This host with the page's path"
+      },
+      "x-show-if": {
+       "frame": [
+        "macos",
+        "windows",
+        "linux"
+       ],
+       "addressBar": [
+        "true"
+       ],
+       "address": [
+        "*"
+       ]
+      }
+     },
      "motionBlur": {
       "description": "Motion blur",
       "type": "boolean",
@@ -7303,6 +7346,8 @@
      "frame": "none",
      "frameTheme": "light",
      "addressBar": true,
+     "address": "",
+     "addressMode": "fixed",
      "motionBlur": true
     }
    }
@@ -7935,13 +7980,48 @@
       "type": "boolean",
       "default": true,
       "x-help": "Shows the page's address in the title bar."
+     },
+     "address": {
+      "description": "Address",
+      "type": "string",
+      "default": "",
+      "x-zero-label": "Page address",
+      "x-help": "Shown instead of the page's own address, such as app.example.com.",
+      "x-show-if": {
+       "addressBar": [
+        "true"
+       ]
+      }
+     },
+     "addressMode": {
+      "description": "Show",
+      "type": "string",
+      "enum": [
+       "fixed",
+       "host"
+      ],
+      "default": "fixed",
+      "x-labels": {
+       "fixed": "This address",
+       "host": "This host with the page's path"
+      },
+      "x-show-if": {
+       "addressBar": [
+        "true"
+       ],
+       "address": [
+        "*"
+       ]
+      }
      }
     },
     "type": "object",
     "default": {
      "windowStyle": "macos",
      "frameTheme": "light",
-     "addressBar": true
+     "addressBar": true,
+     "address": "",
+     "addressMode": "fixed"
     }
    }
   },

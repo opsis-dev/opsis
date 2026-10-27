@@ -45,6 +45,8 @@ pub fn default_recording_props(src: String, log: ActionLog, name: String) -> Rec
         window_style: None,
         frame_theme: None,
         address_bar: None,
+        address: None,
+        address_mode: None,
         backdrop: DEFAULT_BACKDROP.id().to_owned(),
         backdrop_chosen: None,
         cursor: true,

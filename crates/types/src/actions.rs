@@ -225,4 +225,12 @@ pub struct ActionLog {
     pub actions: Vec<Action>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cursor_track: Option<Vec<CursorSample>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub addresses: Vec<PageAddress>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+pub struct PageAddress {
+    pub t: f64,
+    pub url: String,
 }

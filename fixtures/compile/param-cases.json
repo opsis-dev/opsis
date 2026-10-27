@@ -12108,6 +12108,8 @@
      "frame": "none",
      "frameTheme": "light",
      "addressBar": true,
+     "address": "",
+     "addressMode": "fixed",
      "motionBlur": true
     }
    }
@@ -12129,6 +12131,8 @@
      "frame": "none",
      "frameTheme": "light",
      "addressBar": true,
+     "address": "",
+     "addressMode": "fixed",
      "motionBlur": true
     }
    }
@@ -12143,7 +12147,7 @@
    "outcome": {
     "ok": true,
     "value": true,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12180,7 +12184,7 @@
    "outcome": {
     "ok": true,
     "value": 1.74,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12265,7 +12269,7 @@
    "outcome": {
     "ok": true,
     "value": 1.1,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12290,7 +12294,7 @@
    "outcome": {
     "ok": true,
     "value": 2.5,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12303,7 +12307,7 @@
    "outcome": {
     "ok": true,
     "value": 1300,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12388,7 +12392,7 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12413,7 +12417,7 @@
    "outcome": {
     "ok": true,
     "value": 10000,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12426,7 +12430,7 @@
    "outcome": {
     "ok": true,
     "value": 1.25,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12475,7 +12479,7 @@
    "outcome": {
     "ok": true,
     "value": 0.5,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12512,7 +12516,7 @@
    "outcome": {
     "ok": true,
     "value": 0.25,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12537,7 +12541,7 @@
    "outcome": {
     "ok": true,
     "value": 4,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12550,7 +12554,7 @@
    "outcome": {
     "ok": true,
     "value": "classic",
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12599,7 +12603,7 @@
    "outcome": {
     "ok": true,
     "value": "glaze",
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12648,7 +12652,7 @@
    "outcome": {
     "ok": true,
     "value": "none",
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12697,7 +12701,7 @@
    "outcome": {
     "ok": true,
     "value": "light",
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12746,7 +12750,7 @@
    "outcome": {
     "ok": true,
     "value": true,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -12783,7 +12787,7 @@
    "outcome": {
     "ok": true,
     "value": true,
-    "keys": 10
+    "keys": 12
    }
   },
   {
@@ -16050,7 +16054,9 @@
     "data": {
      "windowStyle": "macos",
      "frameTheme": "light",
-     "addressBar": true
+     "addressBar": true,
+     "address": "",
+     "addressMode": "fixed"
     }
    }
   },
@@ -16064,7 +16070,9 @@
     "data": {
      "windowStyle": "macos",
      "frameTheme": "light",
-     "addressBar": true
+     "addressBar": true,
+     "address": "",
+     "addressMode": "fixed"
     }
    }
   },
@@ -16078,7 +16086,7 @@
    "outcome": {
     "ok": true,
     "value": "macos",
-    "keys": 3
+    "keys": 5
    }
   },
   {
@@ -16127,7 +16135,7 @@
    "outcome": {
     "ok": true,
     "value": "light",
-    "keys": 3
+    "keys": 5
    }
   },
   {
@@ -16176,7 +16184,7 @@
    "outcome": {
     "ok": true,
     "value": true,
-    "keys": 3
+    "keys": 5
    }
   },
   {

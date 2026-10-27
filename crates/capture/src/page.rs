@@ -8,7 +8,7 @@ use chromiumoxide::cdp::browser_protocol::page::{
 use futures::StreamExt;
 use opsis_compile::nodes::browser::WaitUntil;
 use opsis_compile::text::format_duration;
-use opsis_types::actions::Rect;
+use opsis_types::actions::{PageAddress, Rect};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use tokio::sync::Notify;
@@ -16,6 +16,7 @@ use tokio::task::JoinHandle;
 use tokio::time::Instant;
 
 use crate::cdp::{Arg, CaptureError, Handle, Result, Tab};
+use crate::clock::wall_ms;
 use crate::trace::CallInfo;
 use crate::url_match::url_matches;
 
@@ -38,6 +39,19 @@ struct PageState {
     loader_id: String,
     fired: HashSet<String>,
     url: String,
+    visited: Vec<(f64, String)>,
+}
+
+impl PageState {
+    fn moved_to(&mut self, url: String) {
+        if url == self.url {
+            return;
+        }
+        if !url.starts_with("about:") {
+            self.visited.push((wall_ms(), url.clone()));
+        }
+        self.url = url;
+    }
 }
 
 pub struct Lifecycle {
@@ -122,11 +136,11 @@ impl Lifecycle {
                     continue;
                 }
                 let mut page = s.lock().expect("page state");
-                page.url = format!(
+                page.moved_to(format!(
                     "{}{}",
                     event.frame.url,
                     event.frame.url_fragment.clone().unwrap_or_default()
-                );
+                ));
                 if page.loader_id != *event.frame.loader_id.inner() {
                     page.loader_id = event.frame.loader_id.inner().clone();
                     page.fired.clear();
@@ -142,7 +156,7 @@ impl Lifecycle {
                 if event.frame_id.inner() != &frame_id {
                     continue;
                 }
-                s.lock().expect("page state").url = event.url.clone();
+                s.lock().expect("page state").moved_to(event.url.clone());
                 c.notify_waiters();
             }
         });
@@ -156,6 +170,22 @@ impl Lifecycle {
 
     pub fn url(&self) -> String {
         self.state.lock().expect("page state").url.clone()
+    }
+
+    pub fn addresses_since(&self, t0: f64) -> Vec<PageAddress> {
+        let page = self.state.lock().expect("page state");
+        let first = page
+            .visited
+            .iter()
+            .rposition(|(at, _)| *at <= t0)
+            .unwrap_or(0);
+        page.visited[first..]
+            .iter()
+            .map(|(at, url)| PageAddress {
+                t: (at - t0).max(0.0),
+                url: url.clone(),
+            })
+            .collect()
     }
 
     async fn until(

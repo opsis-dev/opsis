@@ -1064,6 +1064,8 @@
    "frame": "none",
    "frameTheme": "light",
    "addressBar": true,
+   "address": "",
+   "addressMode": "fixed",
    "motionBlur": true
   }
  },
@@ -1464,7 +1466,9 @@
   "defaults": {
    "windowStyle": "macos",
    "frameTheme": "light",
-   "addressBar": true
+   "addressBar": true,
+   "address": "",
+   "addressMode": "fixed"
   }
  },
  {

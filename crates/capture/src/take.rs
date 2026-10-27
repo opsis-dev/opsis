@@ -1263,6 +1263,7 @@ impl<'e> TakeRun<'e> {
             duration_ms,
             actions: std::mem::take(&mut self.actions),
             cursor_track,
+            addresses: self.lifecycle.addresses_since(t0),
         };
         self.session.close().await;
         Stopped {
