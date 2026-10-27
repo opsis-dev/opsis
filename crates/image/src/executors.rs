@@ -71,6 +71,7 @@ fn saved(
             stamp: None,
         }],
         trace_id: None,
+        measured: Vec::new(),
     })
 }
 

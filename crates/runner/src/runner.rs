@@ -317,6 +317,7 @@ impl RunState {
             finished_at: finished,
             duration_ms: u64::try_from(finished - started).unwrap_or(0),
             trace_id: out.trace_id,
+            measured: out.measured,
         };
         if run.is_stamped() {
             self.rekey();

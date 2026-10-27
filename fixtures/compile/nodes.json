@@ -10980,6 +10980,50 @@
   }
  },
  {
+  "type": "media.cleanSpeech",
+  "title": "Clean speech",
+  "category": "Media",
+  "description": "Cleans a voice recording in one step: background noise and rumble out, harsh “s” sounds softened, the level evened. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "noise": 0.8,
+   "softenS": 0.5,
+   "evenLevel": true,
+   "method": "learned"
+  }
+ },
+ {
   "type": "media.shortenPauses",
   "title": "Shorten pauses",
   "category": "Media",

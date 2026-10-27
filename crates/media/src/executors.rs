@@ -1,7 +1,8 @@
 use opsis_compile::nodes::media::{
-    APPLY_GRADE_TYPE, CONCAT_TYPE, CONVERT_TYPE, EXTRACT_AUDIO_TYPE, FASTSTART_TYPE, GIF_TYPE,
-    HUM_TYPE, IMPORT_TYPE, LOUDNORM_TYPE, PAUSES_TYPE, PROBE_TYPE, REPAIR_TYPE, REVERSE_TYPE,
-    SCALE_PAD_TYPE, SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE, TRIM_TYPE,
+    APPLY_GRADE_TYPE, CLEAN_SPEECH_TYPE, CONCAT_TYPE, CONVERT_TYPE, EXTRACT_AUDIO_TYPE,
+    FASTSTART_TYPE, GIF_TYPE, HUM_TYPE, IMPORT_TYPE, LOUDNORM_TYPE, PAUSES_TYPE, PROBE_TYPE,
+    REPAIR_TYPE, REVERSE_TYPE, SCALE_PAD_TYPE, SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE,
+    TRIM_TYPE,
 };
 use std::future::Future;
 use std::path::Path;
@@ -12,17 +13,17 @@ use opsis_compile::asset_ref::{kind_from_path, project_ref};
 use opsis_compile::nodes::audio::{ROOM_TONE_TYPE, RoomTone, TONES_TYPE, Tones};
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
-    ChangeSpeed, Encoding, EvenOutVolume, ExtractSound, FixClicks, GrabFrame, JoinFiles, MakeGif,
-    MediaFile, RemoveHum, Resize, SOUND_PICTURE_PORT, ShortenPauses, SoundPicture, TrimFile,
-    joined_files, kept_parts,
+    ChangeSpeed, CleanSpeech, Encoding, EvenOutVolume, ExtractSound, FixClicks, GrabFrame,
+    JoinFiles, MakeGif, MediaFile, NoiseMethod, RemoveHum, Resize, SOUND_PICTURE_PORT,
+    ShortenPauses, SoundPicture, TrimFile, joined_files, kept_parts,
 };
 use opsis_compile::registry::{node_def, node_name};
 use opsis_compile::text::{format_duration, format_precise_duration, single_quoted};
 use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
 use opsis_types::values::{
-    Artifact, ArtifactKind, CompileValue, ImageValue, MediaKind, MediaValue, PortValues, SrcValue,
-    StyleEntry,
+    Artifact, ArtifactKind, CompileValue, ImageValue, Measured, MediaKind, MediaValue, PortValues,
+    SrcValue, StyleEntry,
 };
 use opsis_types::workflow::DEFAULT_STILL_MS;
 
@@ -32,11 +33,13 @@ use crate::codecs::{
     ffmpeg_seconds, frame_grab_args, grade_sound_args, grade_video_args, serde_name, sound_file,
     strings,
 };
+use crate::denoise::{DENOISE_RATE, denoised};
 use crate::ffmpeg::{MediaTools, OnProgress, ProbeResult, RunOptions, ToolError, can_stream_copy};
 use crate::filters::{
     JoinPart, JoinSize, fit_filter, gif_filter, hum_filter, hum_listen_filter, join_filter,
-    joined_parts_graph, loudnorm_filter, repair_filter, rms_level, silence_listen_filter, silences,
-    sound_picture_graph, speed_args, speed_sound_args,
+    joined_parts_graph, loudnorm_filter, noise_level, noise_level_listen_filter, repair_filter,
+    rms_level, silence_listen_filter, silences, sound_picture_graph, spectral_floor, speech_filter,
+    speed_args, speed_sound_args,
 };
 use crate::generate::{Beeps, beeps, length_ms, room_tone, write_wav};
 use crate::grade::{GradeError, GradeSize, grade_filters};
@@ -186,6 +189,7 @@ async fn media_result(
         outputs: output(MEDIA_PORT, CompileValue::Media(media)),
         artifacts,
         trace_id: None,
+        measured: Vec::new(),
     })
 }
 
@@ -877,6 +881,7 @@ struct SoundFilter<'a> {
     label: &'a str,
     silent: &'a str,
     filter: String,
+    sound: Option<&'a Path>,
 }
 
 async fn filter_sound(
@@ -911,8 +916,16 @@ async fn filter_sound(
         duration_ms: None,
     };
     let filter = job.filter;
+    let sound = job.sound.map(|path| path.to_string_lossy().into_owned());
     transcode(ctx, tools, &input, transcoded, |i, o| {
-        let mut args = vec!["-i".to_owned(), i.to_owned(), "-af".to_owned(), filter];
+        let mut args = vec!["-i".to_owned(), i.to_owned()];
+        if let Some(sound) = sound {
+            args.extend(strings(&["-i", &sound, "-map", "0:v?", "-map", "1:a"]));
+            if let Some(channels) = audio.channels {
+                args.extend(["-ac".to_owned(), channels.to_string()]);
+            }
+        }
+        args.extend(["-af".to_owned(), filter]);
         if let Some(rate) = audio.sample_rate {
             args.extend(["-ar".to_owned(), rate.to_string()]);
         }
@@ -940,6 +953,7 @@ async fn loudnorm(
         label: "Loudness normalised",
         silent: "This file has no sound to even out.",
         filter: loudnorm_filter(p.integrated, p.true_peak, p.lra),
+        sound: None,
     };
     filter_sound(&ctx, &inputs, &*tools, job).await
 }
@@ -994,6 +1008,7 @@ async fn hum(
         label: "Hum removed",
         silent: "This file has no sound to clean.",
         filter: hum_filter(hertz, p.harmonics, p.width),
+        sound: None,
     };
     filter_sound(&ctx, &inputs, &*tools, job).await
 }
@@ -1037,6 +1052,7 @@ async fn sound_picture(
         outputs: output(SOUND_PICTURE_PORT, CompileValue::Image(value)),
         artifacts: vec![artifact(&ctx, ArtifactKind::Image, file, "Sound picture")],
         trace_id: None,
+        measured: Vec::new(),
     })
 }
 
@@ -1065,6 +1081,7 @@ fn made_sound(
         outputs: output(SOUND_PORT, CompileValue::Media(value)),
         artifacts: vec![artifact(ctx, ArtifactKind::Audio, file, label)],
         trace_id: None,
+        measured: Vec::new(),
     })
 }
 
@@ -1092,6 +1109,120 @@ async fn make_tones(
         spacing_ms: f64::from(p.spacing_ms),
     });
     made_sound(&ctx, "tones.wav", "Tones", &samples)
+}
+
+const NO_SPEECH: &str = "This file has no sound to clean.";
+
+async fn noise_level_of(
+    ctx: &ExecutorContext,
+    tools: &dyn MediaTools,
+    file: &Path,
+) -> Result<Option<f64>, ExecError> {
+    let args = vec![
+        "-i".to_owned(),
+        file.to_string_lossy().into_owned(),
+        "-map".to_owned(),
+        "0:a:0".to_owned(),
+        "-af".to_owned(),
+        noise_level_listen_filter().to_owned(),
+        "-f".to_owned(),
+        "null".to_owned(),
+        "-".to_owned(),
+    ];
+    Ok(noise_level(&logged(ctx, tools, &args).await?))
+}
+
+pub fn speech_decode_args(source: &Path, out: &Path) -> Vec<String> {
+    let mut args = vec!["-i".to_owned(), source.to_string_lossy().into_owned()];
+    args.extend(strings(&["-map", "0:a:0", "-ac", "1", "-ar"]));
+    args.push(DENOISE_RATE.to_string());
+    args.extend(strings(&PCM_16));
+    args.push(out.to_string_lossy().into_owned());
+    args
+}
+
+fn wav_error(error: hound::Error) -> ExecError {
+    ExecError::new(format!("The sound couldn't be read or written: {error}"))
+}
+
+fn denoise_file(from: &Path, to: &Path, strength: f64) -> Result<(), ExecError> {
+    let mut reader = hound::WavReader::open(from).map_err(wav_error)?;
+    let samples = reader
+        .samples::<i16>()
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(wav_error)?;
+    let spec = hound::WavSpec {
+        channels: 1,
+        sample_rate: DENOISE_RATE,
+        bits_per_sample: 16,
+        sample_format: hound::SampleFormat::Int,
+    };
+    let mut writer = hound::WavWriter::create(to, spec).map_err(wav_error)?;
+    for sample in denoised(&samples, strength) {
+        writer.write_sample(sample).map_err(wav_error)?;
+    }
+    writer.finalize().map_err(wav_error)
+}
+
+async fn clean_speech(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: CleanSpeech = ctx.params()?;
+    let input = require_media(inputs.get(MEDIA_PORT))?;
+    let source = ctx.ref_to_path(&input.src)?;
+    let probe = tools.probe(&source).await.map_err(tool_error)?;
+    if probe.audio.is_none() {
+        return Err(ExecError::new(NO_SPEECH));
+    }
+    let before = noise_level_of(&ctx, &*tools, &source).await?;
+    let learned = p.method == NoiseMethod::Learned && p.noise > 0.0;
+    let voice = ctx.dir.join("voice.wav");
+    if learned {
+        let decoded = ctx.dir.join("voice-in.wav");
+        tools
+            .run(
+                &speech_decode_args(&source, &decoded),
+                run_options(&ctx, None, None),
+            )
+            .await
+            .map_err(tool_error)?;
+        let (from, to, strength) = (decoded.clone(), voice.clone(), p.noise);
+        tokio::task::spawn_blocking(move || denoise_file(&from, &to, strength))
+            .await
+            .map_err(|e| ExecError::new(e.to_string()))??;
+        if let Err(error) = std::fs::remove_file(&decoded) {
+            log::debug!("kept {}: {error}", decoded.display());
+        }
+    }
+    let job = SoundFilter {
+        stem: "speech",
+        label: "Speech cleaned",
+        silent: NO_SPEECH,
+        filter: speech_filter(&p, (!learned).then(|| spectral_floor(before))),
+        sound: learned.then_some(voice.as_path()),
+    };
+    let mut out = filter_sound(&ctx, &inputs, &*tools, job).await?;
+    if learned && let Err(error) = std::fs::remove_file(&voice) {
+        log::debug!("kept {}: {error}", voice.display());
+    }
+    let made = out
+        .outputs
+        .get(MEDIA_PORT)
+        .and_then(CompileValue::as_media)
+        .and_then(|m| m.src.clone());
+    let after = match made {
+        Some(src) => noise_level_of(&ctx, &*tools, &ctx.ref_to_path(&src)?).await?,
+        None => None,
+    };
+    if let (Some(before_db), Some(after_db)) = (before, after) {
+        out.measured.push(Measured::NoiseLevel {
+            before_db,
+            after_db,
+        });
+    }
+    Ok(out)
 }
 
 async fn logged(
@@ -1179,6 +1310,7 @@ async fn repair(
         label: "Clicks and clipping fixed",
         silent: "This file has no sound to fix.",
         filter,
+        sound: None,
     };
     filter_sound(&ctx, &inputs, &*tools, job).await
 }
@@ -1236,6 +1368,7 @@ async fn thumbnail(
         outputs: output("image", CompileValue::Image(image)),
         artifacts,
         trace_id: None,
+        measured: Vec::new(),
     })
 }
 
@@ -1286,6 +1419,7 @@ async fn probe(
         outputs,
         artifacts: vec![artifact(&ctx, ArtifactKind::Json, file, "Probe")],
         trace_id: None,
+        measured: Vec::new(),
     })
 }
 
@@ -1314,6 +1448,7 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (REPAIR_TYPE, bind(tools, repair)),
         (HUM_TYPE, bind(tools, hum)),
         (PAUSES_TYPE, bind(tools, shorten_pauses)),
+        (CLEAN_SPEECH_TYPE, bind(tools, clean_speech)),
         (SOUND_PICTURE_TYPE, bind(tools, sound_picture)),
         (THUMBNAIL_TYPE, bind(tools, thumbnail)),
         (FASTSTART_TYPE, bind(tools, faststart)),

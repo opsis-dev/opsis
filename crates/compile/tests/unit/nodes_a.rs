@@ -325,6 +325,48 @@ fn places_tones_at_a_time_or_on_an_action_for_their_own_length() {
 }
 
 #[test]
+fn lists_what_clean_speech_does_and_the_noise_before_and_after_a_run() {
+    assert_eq!(
+        card_texts("media.cleanSpeech", json!({}), CardInputs::default()),
+        [
+            "Removes noise, rumble and harsh “s”, evens the level",
+            "For speech: music under the voice goes too"
+        ]
+    );
+    assert_eq!(
+        card_texts(
+            "media.cleanSpeech",
+            json!({ "noise": 0, "softenS": 0, "evenLevel": false }),
+            CardInputs::default()
+        ),
+        ["Removes rumble"]
+    );
+    assert_eq!(
+        card_texts(
+            "media.cleanSpeech",
+            json!({ "method": "spectral", "softenS": 0 }),
+            CardInputs::default()
+        ),
+        ["Removes noise and rumble, evens the level"]
+    );
+    let made = node_result(json!({
+        "outputs": { "media": { "type": "media", "kind": "audio", "src": "project:.opsis/cache/h/speech.wav", "durationMs": 4000 } },
+        "measured": [{ "type": "noiseLevel", "beforeDb": -41.4, "afterDb": -68.6 }]
+    }));
+    let rows: Vec<String> = node_card_with(
+        "media.cleanSpeech",
+        json!({ "method": "spectral" }),
+        CardInputs::default(),
+        Some(&made),
+    )
+    .into_iter()
+    .map(|r| r.text)
+    .collect();
+    assert_eq!(rows[1], "Noise -41 dB → -69 dB");
+    assert_eq!(rows.len(), 3);
+}
+
+#[test]
 fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
     let song = &builtin_songs()[0];
     match compile_node("audio.music", json!({ "src": song.reference() }), json!({}))

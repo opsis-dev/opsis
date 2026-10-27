@@ -1,6 +1,7 @@
 pub mod analysis;
 pub mod capabilities;
 pub mod codecs;
+pub mod denoise;
 pub mod executors;
 pub mod ffmpeg;
 pub mod filters;

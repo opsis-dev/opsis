@@ -4,7 +4,9 @@ use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::mix::LOUDNESS_TARGETS;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
-use opsis_types::values::{ClipValue, CompileValue, MediaKind, MediaValue, NodeResult, PortValues};
+use opsis_types::values::{
+    ClipValue, CompileValue, Measured, MediaKind, MediaValue, NodeResult, PortValues,
+};
 use opsis_types::workflow::{DEFAULT_STILL_MS, PortType};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -33,6 +35,7 @@ pub const THUMBNAIL_TYPE: &str = "media.thumbnail";
 pub const LOUDNORM_TYPE: &str = "media.loudnorm";
 pub const REPAIR_TYPE: &str = "media.repair";
 pub const HUM_TYPE: &str = "media.hum";
+pub const CLEAN_SPEECH_TYPE: &str = "media.cleanSpeech";
 pub const PAUSES_TYPE: &str = "media.shortenPauses";
 pub const SOUND_PICTURE_TYPE: &str = "media.soundPicture";
 
@@ -747,6 +750,81 @@ pub struct RemoveHum {
 
 impl Params for RemoveHum {}
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum NoiseMethod {
+    #[default]
+    Learned,
+    Spectral,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct CleanSpeech {
+    #[default = 0.8]
+    #[schemars(
+        description = "Remove noise",
+        range(min = 0, max = 1),
+        extend("x-step" = 0.05, "x-help" = "How much of the background noise to take out. At 0 it stays.")
+    )]
+    pub noise: f64,
+    #[default = 0.5]
+    #[schemars(description = "Soften “s” sounds", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    pub soften_s: f64,
+    #[default = true]
+    #[schemars(description = "Even out the level", extend("x-help" = "Lifts quiet words and holds back loud ones."))]
+    pub even_level: bool,
+    #[schemars(
+        description = "Noise removal",
+        extend(
+            "x-labels" = { "learned": "Learned, for speech", "spectral": "Spectral, for steady noise" },
+            "x-help" = "The learned way keeps only the voice, so music under it goes too. The spectral way takes out a steady hiss or hum and leaves the rest.",
+            "x-advanced" = true
+        )
+    )]
+    pub method: NoiseMethod,
+}
+
+impl Params for CleanSpeech {}
+
+fn clean_speech_steps(p: &CleanSpeech) -> String {
+    let mut parts = Vec::new();
+    if p.noise > 0.0 {
+        parts.push("noise");
+    }
+    parts.push("rumble");
+    if p.soften_s > 0.0 {
+        parts.push("harsh “s”");
+    }
+    let removed = match parts.split_last() {
+        Some((last, [])) => (*last).to_owned(),
+        Some((last, rest)) => format!("{} and {last}", rest.join(", ")),
+        None => String::new(),
+    };
+    let text = format!("Removes {removed}");
+    if p.even_level {
+        format!("{text}, evens the level")
+    } else {
+        text
+    }
+}
+
+fn noise_level_row(result: Option<&NodeResult>) -> Option<CardRow> {
+    result?
+        .measured
+        .iter()
+        .map(|m| match m {
+            Measured::NoiseLevel {
+                before_db,
+                after_db,
+            } => row(
+                Icon::Volume2,
+                format!("Noise {before_db:.0} dB → {after_db:.0} dB"),
+            ),
+        })
+        .next()
+}
+
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ShortenPauses {
@@ -1168,6 +1246,22 @@ pub fn nodes() -> Vec<NodeDef> {
         })
         .look(NodeLook::of("iconoir:sine-wave")),
         sound_picture().look(NodeLook::of("lucide:chart-no-axes-column")),
+        one_file_op::<CleanSpeech>(
+            CLEAN_SPEECH_TYPE,
+            "Clean speech",
+            "Cleans a voice recording in one step: background noise and rumble out, harsh “s” sounds softened, the level evened.",
+        )
+        .card(|ctx: &CardCtx<'_, CleanSpeech>| {
+            let p = &ctx.params;
+            vec![
+                Some(row(Icon::AudioLines, clean_speech_steps(p))),
+                noise_level_row(ctx.result),
+                (p.method == NoiseMethod::Learned && p.noise > 0.0)
+                    .then(|| row(Icon::Info, "For speech: music under the voice goes too").muted_if(true)),
+                length_row(ctx.result, Icon::Clock),
+            ]
+        })
+        .look(NodeLook::of("lucide:mic-vocal")),
         one_file_op::<ShortenPauses>(
             PAUSES_TYPE,
             "Shorten pauses",

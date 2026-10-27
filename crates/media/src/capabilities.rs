@@ -34,13 +34,15 @@ pub const REQUIRED_FORMATS: [&str; 10] = [
     "webm",
 ];
 
-pub const REQUIRED_FILTERS: [&str; 75] = [
+pub const REQUIRED_FILTERS: [&str; 80] = [
     "acompressor",
     "acrossfade",
     "adeclick",
     "adeclip",
     "adelay",
     "afade",
+    "afftdn",
+    "ametadata",
     "aformat",
     "alimiter",
     "aloop",
@@ -51,6 +53,7 @@ pub const REQUIRED_FILTERS: [&str; 75] = [
     "aresample",
     "areverse",
     "asetpts",
+    "asetnsamples",
     "asetrate",
     "asplit",
     "astats",
@@ -69,6 +72,7 @@ pub const REQUIRED_FILTERS: [&str; 75] = [
     "crop",
     "curves",
     "deband",
+    "deesser",
     "eq",
     "equalizer",
     "exposure",
@@ -104,6 +108,7 @@ pub const REQUIRED_FILTERS: [&str; 75] = [
     "showwavespic",
     "silencedetect",
     "sidechaincompress",
+    "speechnorm",
     "split",
     "tile",
     "trim",

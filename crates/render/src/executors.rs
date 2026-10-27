@@ -370,6 +370,7 @@ async fn export_video(
             .collect(),
         artifacts,
         trace_id: None,
+        measured: Vec::new(),
     })
 }
 
@@ -438,6 +439,7 @@ async fn export_images(
             .collect(),
         artifacts,
         trace_id: None,
+        measured: Vec::new(),
     })
 }
 

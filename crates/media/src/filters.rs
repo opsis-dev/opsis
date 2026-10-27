@@ -185,6 +185,13 @@ pub fn repair_filter(clicks: bool, clipping: bool, strength: f64) -> Option<Stri
 pub const HUM_DEPTH_DB: f64 = -40.0;
 pub const HUM_LISTEN_WIDTH_HZ: f64 = 4.0;
 
+const RUMBLE_HZ: u32 = 80;
+const SPEECH_NOISE_REDUCTION_DB: f64 = 40.0;
+const SPEECH_NOISE_FLOOR_DB: f64 = -50.0;
+const FLOOR_ABOVE_NOISE_DB: f64 = 3.0;
+const QUIET_SHARE: f64 = 0.1;
+const SPEECH_LEVEL: &str = "speechnorm=e=6.25:r=0.00001:l=1:t=0.01";
+
 pub fn hum_filter(hertz: f64, harmonics: u32, width: f64) -> String {
     (1..=harmonics + 1)
         .map(|n| {
@@ -209,6 +216,49 @@ pub fn rms_level(lines: &[String]) -> Option<f64> {
         .rev()
         .find_map(|line| line.split("RMS level dB:").nth(1))
         .and_then(|value| value.trim().parse().ok())
+}
+
+pub fn spectral_floor(noise_level_db: Option<f64>) -> f64 {
+    noise_level_db.map_or(SPEECH_NOISE_FLOOR_DB, |level| {
+        round_to(level + FLOOR_ABOVE_NOISE_DB, 1).clamp(-80.0, -20.0)
+    })
+}
+
+pub fn speech_filter(
+    p: &opsis_compile::nodes::media::CleanSpeech,
+    spectral_floor_db: Option<f64>,
+) -> String {
+    let mut steps = Vec::new();
+    if let Some(floor) = spectral_floor_db.filter(|_| p.noise > 0.0) {
+        steps.push(format!(
+            "afftdn=nr={}:nf={floor}",
+            round_to(p.noise * SPEECH_NOISE_REDUCTION_DB, 1)
+        ));
+    }
+    steps.push(format!("highpass=f={RUMBLE_HZ}"));
+    if p.soften_s > 0.0 {
+        steps.push(format!("deesser=i={}", round_to(p.soften_s, 2)));
+    }
+    if p.even_level {
+        steps.push(SPEECH_LEVEL.to_owned());
+    }
+    steps.join(",")
+}
+
+pub fn noise_level_listen_filter() -> &'static str {
+    "aresample=48000,asetnsamples=n=960,astats=metadata=1:reset=1:measure_perchannel=none:measure_overall=RMS_level,ametadata=mode=print:key=lavfi.astats.Overall.RMS_level"
+}
+
+pub fn noise_level(lines: &[String]) -> Option<f64> {
+    let mut levels: Vec<f64> = lines
+        .iter()
+        .filter_map(|line| line.split("lavfi.astats.Overall.RMS_level=").nth(1))
+        .filter_map(|value| value.trim().parse::<f64>().ok())
+        .filter(|db| db.is_finite())
+        .collect();
+    levels.sort_by(f64::total_cmp);
+    let at = (levels.len() as f64 * QUIET_SHARE) as usize;
+    levels.get(at).map(|db| round_to(*db, 1))
 }
 
 pub fn sound_picture_graph(p: &opsis_compile::nodes::media::SoundPicture) -> String {

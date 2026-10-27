@@ -657,3 +657,120 @@ async fn makes_a_countdown_of_beeps_then_a_long_one() {
         made_sound("audio.tones", json!({ "kind": "tone", "lengthMs": 2000 })).await;
     assert_eq!(single.len(), 2 * 96_000);
 }
+
+#[tokio::test]
+async fn cleans_speech_with_the_spectral_way_in_one_pass_between_two_listens() {
+    let (result, ran) = run(
+        sound_setup(
+            "media.cleanSpeech",
+            json!({ "method": "spectral", "noise": 0.5 }),
+        ),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert!(result.unwrap().measured.is_empty());
+    assert_eq!(ran.len(), 3);
+    assert_eq!(
+        ran[0][2..6],
+        [
+            "-map",
+            "0:a:0",
+            "-af",
+            "aresample=48000,asetnsamples=n=960,astats=metadata=1:reset=1:measure_perchannel=none:measure_overall=RMS_level,ametadata=mode=print:key=lavfi.astats.Overall.RMS_level"
+        ]
+    );
+    assert_eq!(
+        ran[1],
+        [
+            "-i",
+            "/p/assets/voice.wav",
+            "-af",
+            "afftdn=nr=20:nf=-50,highpass=f=80,deesser=i=0.5,speechnorm=e=6.25:r=0.00001:l=1:t=0.01",
+            "-ar",
+            "48000",
+            "-c:a",
+            "pcm_s16le",
+            "/p/.opsis/cache/h/speech.wav"
+        ]
+    );
+    assert_eq!(ran[2][1], "/p/.opsis/cache/h/speech.wav");
+    let (_, ran) = run(
+        sound_setup(
+            "media.cleanSpeech",
+            json!({ "method": "spectral", "noise": 0, "softenS": 0, "evenLevel": false }),
+        ),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert_eq!(ran[1][3], "highpass=f=80");
+}
+
+#[tokio::test]
+async fn cleans_speech_the_learned_way_and_puts_the_cleaned_voice_back_under_the_picture() {
+    let dir = tempfile::tempdir().unwrap();
+    let cache = dir.path().join(".opsis/cache/h");
+    std::fs::create_dir_all(&cache).unwrap();
+    let spec = hound::WavSpec {
+        channels: 1,
+        sample_rate: 48000,
+        bits_per_sample: 16,
+        sample_format: hound::SampleFormat::Int,
+    };
+    let mut writer = hound::WavWriter::create(cache.join("voice-in.wav"), spec).unwrap();
+    for i in 0..4800 {
+        writer.write_sample(((i % 97) * 50) as i16).unwrap();
+    }
+    writer.finalize().unwrap();
+    let setup = Setup {
+        kind: "media.cleanSpeech",
+        params: json!({}),
+        project_dir: dir.path(),
+        names: &[],
+    };
+    let (result, ran) = run(
+        setup,
+        film_probe(Some("aac")),
+        json!({ "media": film("video") }),
+    )
+    .await;
+    result.unwrap();
+    let at = |path: &str| dir.path().join(path).to_string_lossy().into_owned();
+    assert_eq!(
+        ran[1],
+        [
+            "-i",
+            &at("assets/film.mp4"),
+            "-map",
+            "0:a:0",
+            "-ac",
+            "1",
+            "-ar",
+            "48000",
+            "-c:a",
+            "pcm_s16le",
+            &at(".opsis/cache/h/voice-in.wav")
+        ]
+    );
+    assert_eq!(
+        ran[2][..12],
+        [
+            "-i",
+            &at("assets/film.mp4"),
+            "-i",
+            &at(".opsis/cache/h/voice.wav"),
+            "-map",
+            "0:v?",
+            "-map",
+            "1:a",
+            "-ac",
+            "2",
+            "-af",
+            "highpass=f=80,deesser=i=0.5,speechnorm=e=6.25:r=0.00001:l=1:t=0.01"
+        ]
+    );
+    assert!(ran[2].windows(2).any(|w| w == ["-c:v", "copy"]));
+    assert!(!cache.join("voice-in.wav").exists());
+    assert!(!cache.join("voice.wav").exists());
+}

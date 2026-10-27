@@ -416,6 +416,7 @@ async fn record(
             artifact(&ctx, ArtifactKind::Json, ACTIONS_FILE, "Action log"),
         ],
         trace_id,
+        measured: Vec::new(),
     })
 }
 
@@ -463,6 +464,7 @@ async fn still(
             "Screenshot",
         )],
         trace_id,
+        measured: Vec::new(),
     })
 }
 

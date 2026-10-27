@@ -1191,6 +1191,8 @@ export type Master = {
 	loudness: LoudnessTarget,
 };
 
+export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number };
+
 export type MediaKind = "video" | "audio" | "image";
 
 export type MediaValue = {
@@ -1306,6 +1308,7 @@ export type NodeResult = {
 	finishedAt: number,
 	durationMs: number,
 	traceId?: string,
+	measured?: Measured[],
 };
 
 export type NodeRunStatus = "idle" | "queued" | "running" | "cached" | "done" | "error" | "skipped";

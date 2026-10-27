@@ -1,11 +1,13 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use opsis_compile::nodes::media::{CleanSpeech, NoiseMethod, SoundPicture, SoundPictureKind};
 use opsis_compile::nodes::media::{Pause, kept_parts};
-use opsis_compile::nodes::media::{SoundPicture, SoundPictureKind};
+use opsis_media::denoise::denoised;
 use opsis_media::filters::{
-    hum_filter, hum_listen_filter, joined_parts_graph, repair_filter, rms_level,
-    silence_listen_filter, silences, sound_picture_graph,
+    hum_filter, hum_listen_filter, joined_parts_graph, noise_level, noise_level_listen_filter,
+    repair_filter, rms_level, silence_listen_filter, silences, sound_picture_graph, spectral_floor,
+    speech_filter,
 };
 
 const RATE: u32 = 48_000;
@@ -267,5 +269,146 @@ fn shortens_known_gaps_to_the_expected_length() {
     assert!(
         (seconds - (3.0 + 2.0 * 0.4 - 2.0 * 0.01)).abs() < 0.05,
         "{seconds} s"
+    );
+}
+
+fn voice_in_hiss() -> (Vec<f32>, Vec<f32>) {
+    let mut x: u64 = 7;
+    (0..RATE as usize * 3)
+        .map(|i| {
+            x ^= x << 13;
+            x ^= x >> 7;
+            x ^= x << 17;
+            let t = i as f32 / RATE as f32;
+            let syllables = (t * 3.0 * std::f32::consts::TAU).sin().max(0.0);
+            let voice = 0.3
+                * syllables
+                * ((t * 180.0 * std::f32::consts::TAU).sin()
+                    + 0.5 * (t * 360.0 * std::f32::consts::TAU).sin());
+            let hiss = ((x >> 40) as f32 / (1u64 << 24) as f32 - 0.5) * 0.03;
+            (voice, voice + hiss)
+        })
+        .unzip()
+}
+
+fn gap_power(voice: &[f32], sound: &[f32]) -> f32 {
+    let gaps: Vec<f32> = (RATE as usize / 2..voice.len().min(sound.len()))
+        .filter(|&i| voice[i - 2400..=i].iter().all(|s| *s == 0.0))
+        .map(|i| sound[i] * sound[i])
+        .collect();
+    gaps.iter().sum::<f32>() / gaps.len() as f32
+}
+
+fn noise_of(input: &Path) -> f64 {
+    let out = Command::new(ffmpeg())
+        .args(["-v", "info", "-i"])
+        .arg(input)
+        .args(["-af", noise_level_listen_filter(), "-f", "null", "-"])
+        .output()
+        .unwrap();
+    let lines: Vec<String> = String::from_utf8_lossy(&out.stderr)
+        .lines()
+        .map(str::to_owned)
+        .collect();
+    noise_level(&lines).unwrap()
+}
+
+#[test]
+#[ignore = "needs the dev engine"]
+fn cleans_hiss_out_of_speech_both_ways() {
+    let dir = tempfile::tempdir().unwrap();
+    let (voice, noisy) = voice_in_hiss();
+    let noisy_path = dir.path().join("noisy.wav");
+    write(&noisy_path, &noisy);
+    let before = gap_power(&voice, &noisy);
+    let level = noise_of(&noisy_path);
+    assert!((level + 41.4).abs() < 1.0, "{level}");
+
+    let p = CleanSpeech::default();
+    assert_eq!(p.method, NoiseMethod::Learned);
+    let whole: Vec<i16> = noisy
+        .iter()
+        .map(|s| (s * f32::from(i16::MAX)) as i16)
+        .collect();
+    let cleaned: Vec<f32> = denoised(&whole, p.noise)
+        .iter()
+        .map(|s| f32::from(*s) / f32::from(i16::MAX))
+        .collect();
+    write(&dir.path().join("voice.wav"), &cleaned);
+    filtered(
+        &dir.path().join("voice.wav"),
+        &speech_filter(&p, None),
+        &dir.path().join("learned.wav"),
+    );
+    let learned = read(&dir.path().join("learned.wav"));
+    let learned_drop = 10.0 * (before / gap_power(&voice, &learned)).log10();
+    assert!(
+        learned_drop > 15.0,
+        "learned took {learned_drop:.1} dB of hiss out"
+    );
+
+    let spectral = CleanSpeech {
+        method: NoiseMethod::Spectral,
+        ..CleanSpeech::default()
+    };
+    filtered(
+        &noisy_path,
+        &speech_filter(&spectral, Some(spectral_floor(Some(level)))),
+        &dir.path().join("spectral.wav"),
+    );
+    let spectral_out = read(&dir.path().join("spectral.wav"));
+    let spectral_drop = 10.0 * (before / gap_power(&voice, &spectral_out)).log10();
+    assert!(
+        spectral_drop > 15.0,
+        "spectral took {spectral_drop:.1} dB of hiss out"
+    );
+
+    let levels = (
+        noise_of(&dir.path().join("learned.wav")),
+        noise_of(&dir.path().join("spectral.wav")),
+    );
+    assert!(
+        levels.0 < level - 15.0 && levels.1 < level - 15.0,
+        "{level} {levels:?}"
+    );
+    let speech = |sound: &[f32]| {
+        let loud: Vec<f32> = (0..voice.len().min(sound.len()))
+            .filter(|&i| (i as f32 / RATE as f32 * 3.0 * std::f32::consts::TAU).sin() > 0.5)
+            .map(|i| sound[i] * sound[i])
+            .collect();
+        10.0 * (loud.iter().sum::<f32>() / loud.len() as f32).log10()
+    };
+    let kept = (
+        speech(&learned) - speech(&noisy),
+        speech(&spectral_out) - speech(&noisy),
+    );
+    assert!(
+        kept.0.abs() < 6.0 && kept.1.abs() < 6.0,
+        "the voice moved {kept:?} dB"
+    );
+}
+
+#[test]
+fn reads_the_noise_level_from_the_quietest_tenth_of_short_windows() {
+    let mut lines: Vec<String> = (0..20)
+        .map(|i| {
+            format!(
+                "[Parsed_ametadata_4 @ 0x1] lavfi.astats.Overall.RMS_level={}",
+                -20 - i
+            )
+        })
+        .collect();
+    lines.push("lavfi.astats.Overall.RMS_level=-inf".to_owned());
+    lines.push("Stream mapping:".to_owned());
+    assert_eq!(noise_level(&lines), Some(-37.0));
+    assert_eq!(noise_level(&[]), None);
+    assert_eq!(
+        (
+            spectral_floor(None),
+            spectral_floor(Some(-41.42)),
+            spectral_floor(Some(-15.0)),
+            spectral_floor(Some(-95.0))
+        ),
+        (-50.0, -38.4, -20.0, -80.0)
     );
 }

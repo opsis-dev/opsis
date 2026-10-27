@@ -4550,6 +4550,29 @@
    }
   },
   {
+   "type": "media.cleanSpeech",
+   "title": "Clean speech",
+   "category": "Media",
+   "description": "Cleans a voice recording in one step: background noise and rumble out, harsh “s” sounds softened, the level evened. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "media.shortenPauses",
    "title": "Shorten pauses",
    "category": "Media",
@@ -51727,6 +51750,81 @@
      "color": "#6366f1",
      "colours": "magma",
      "background": "#00000000"
+    }
+   }
+  },
+  {
+   "type": "media.cleanSpeech",
+   "title": "Clean speech",
+   "category": "Media",
+   "description": "Cleans a voice recording in one step: background noise and rumble out, harsh “s” sounds softened, the level evened. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "noise": {
+      "description": "Remove noise",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.8,
+      "x-step": 0.05,
+      "x-help": "How much of the background noise to take out. At 0 it stays."
+     },
+     "softenS": {
+      "description": "Soften “s” sounds",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.5,
+      "x-step": 0.05
+     },
+     "evenLevel": {
+      "description": "Even out the level",
+      "type": "boolean",
+      "default": true,
+      "x-help": "Lifts quiet words and holds back loud ones."
+     },
+     "method": {
+      "description": "Noise removal",
+      "type": "string",
+      "enum": [
+       "learned",
+       "spectral"
+      ],
+      "default": "learned",
+      "x-labels": {
+       "learned": "Learned, for speech",
+       "spectral": "Spectral, for steady noise"
+      },
+      "x-help": "The learned way keeps only the voice, so music under it goes too. The spectral way takes out a steady hiss or hum and leaves the rest.",
+      "x-advanced": true
+     }
+    },
+    "type": "object",
+    "default": {
+     "noise": 0.8,
+     "softenS": 0.5,
+     "evenLevel": true,
+     "method": "learned"
     }
    }
   },

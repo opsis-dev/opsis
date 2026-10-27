@@ -16,7 +16,7 @@ use opsis_engine::tools::EngineFiles;
 use opsis_project::paths::ref_to_path;
 use opsis_types::events::{LogLevel, RunEvent};
 use opsis_types::settings::AppSettings;
-use opsis_types::values::{Artifact, NodeResult, PortValues};
+use opsis_types::values::{Artifact, Measured, NodeResult, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowNode};
 use serde::de::DeserializeOwned;
 use tokio_util::sync::CancellationToken;
@@ -73,6 +73,7 @@ pub struct ExecutorOutput {
     pub outputs: PortValues,
     pub artifacts: Vec<Artifact>,
     pub trace_id: Option<String>,
+    pub measured: Vec<Measured>,
 }
 
 #[derive(Debug, Clone)]
