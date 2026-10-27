@@ -2,7 +2,7 @@ import { resolveCursor } from "@remotion/mac-cursors";
 import React from "react";
 import { Img } from "remotion";
 import type { ClickLog } from "#video/camera/lib/click-log.ts";
-import { cursorAt } from "#video/camera/lib/cursor.ts";
+import { cursorAt, type Ring } from "#video/camera/lib/cursor.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { faded, ink } from "#video/camera/lib/style.ts";
 import { percent } from "#video/common/format.ts";
@@ -28,8 +28,8 @@ const ARROW_STROKE = 1.85;
 const MAC_CURSOR_PX = 64;
 const MAC_ARTWORK_PX = 32;
 
-const Ripple: React.FC<{ progress: number; k: number; look: RippleLook }> = ({
-  progress,
+const Ripple: React.FC<{ ring: Ring; k: number; look: RippleLook }> = ({
+  ring: { progress, hollow },
   k,
   look,
 }) => {
@@ -46,7 +46,7 @@ const Ripple: React.FC<{ progress: number; k: number; look: RippleLook }> = ({
         marginTop: -size / 2,
         borderRadius: "50%",
         border: `${look.width * k}px solid ${faded(look.color, RIPPLE_RING)}`,
-        background: faded(look.color, RIPPLE_FILL),
+        background: hollow ? "transparent" : faded(look.color, RIPPLE_FILL),
         transform: `scale(${RIPPLE_FROM + progress * RIPPLE_GROWTH})`,
         opacity: RIPPLE_OPACITY * (1 - progress),
       }}
@@ -152,9 +152,9 @@ export const Cursor: React.FC<{ clip: CursorOptions; timeS: number; cameraScale:
         transformOrigin: "0 0",
       }}
     >
-      {ripple && state.ripple !== null ? (
-        <Ripple progress={state.ripple} k={k} look={ripple} />
-      ) : null}
+      {ripple
+        ? state.rings.map((ring, i) => <Ripple key={i} ring={ring} k={k} look={ripple} />)
+        : null}
       {cursorLook.shape === "mac" ? (
         <MacCursor shape={state.shape} squash={state.squash} k={k} />
       ) : (

@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use chromiumoxide::cdp::browser_protocol::input::EventDragIntercepted;
 use futures::StreamExt;
-use opsis_types::actions::Point;
+use opsis_types::actions::{MouseButton, Point};
 use serde_json::{Value, json};
 use tokio::sync::Mutex;
 
@@ -338,40 +338,51 @@ impl Input {
         Ok(dragging)
     }
 
-    pub async fn mouse_down(&self, tab: &Tab) -> Result<()> {
+    pub async fn mouse_down(&self, tab: &Tab, button: MouseButton, count: u32) -> Result<()> {
         let at = self.position().await;
         tab.traced(
             || CallInfo::new("mouseDown", "Mouse down").at(at),
-            self.down(tab),
+            self.down(tab, button, count),
         )
         .await
     }
 
-    async fn down(&self, tab: &Tab) -> Result<()> {
+    async fn down(&self, tab: &Tab, button: MouseButton, count: u32) -> Result<()> {
+        let left = button == MouseButton::Left;
         let (x, y, dragging) = {
             let mut mouse = self.mouse.lock().await;
-            mouse.left_down = true;
-            (mouse.x, mouse.y, mouse.drag.is_some())
+            mouse.left_down |= left;
+            (mouse.x, mouse.y, left && mouse.drag.is_some())
         };
         if dragging {
             return Ok(());
         }
         let modifiers = self.modifiers().await;
-        tab.send("Input.dispatchMouseEvent", json!({ "type": "mousePressed", "button": "left", "buttons": 1, "x": x, "y": y, "modifiers": modifiers, "clickCount": 1, "force": 0.5 })).await?;
+        tab.send("Input.dispatchMouseEvent", json!({ "type": "mousePressed", "button": button, "buttons": button.mask(), "x": x, "y": y, "modifiers": modifiers, "clickCount": count, "force": 0.5 })).await?;
         Ok(())
     }
 
-    pub async fn mouse_up(&self, tab: &Tab) -> Result<()> {
+    pub async fn mouse_up(&self, tab: &Tab, button: MouseButton, count: u32) -> Result<()> {
         let at = self.position().await;
-        tab.traced(|| CallInfo::new("mouseUp", "Mouse up").at(at), self.up(tab))
-            .await
+        tab.traced(
+            || CallInfo::new("mouseUp", "Mouse up").at(at),
+            self.up(tab, button, count),
+        )
+        .await
     }
 
-    async fn up(&self, tab: &Tab) -> Result<()> {
+    async fn up(&self, tab: &Tab, button: MouseButton, count: u32) -> Result<()> {
+        let left = button == MouseButton::Left;
         let (x, y, drag) = {
             let mut mouse = self.mouse.lock().await;
-            mouse.left_down = false;
-            (mouse.x, mouse.y, mouse.drag.take())
+            if left {
+                mouse.left_down = false;
+            }
+            (
+                mouse.x,
+                mouse.y,
+                if left { mouse.drag.take() } else { None },
+            )
         };
         let modifiers = self.modifiers().await;
         if let Some(data) = drag {
@@ -382,7 +393,7 @@ impl Input {
             .await?;
             return Ok(());
         }
-        tab.send("Input.dispatchMouseEvent", json!({ "type": "mouseReleased", "button": "left", "buttons": 0, "x": x, "y": y, "modifiers": modifiers, "clickCount": 1 })).await?;
+        tab.send("Input.dispatchMouseEvent", json!({ "type": "mouseReleased", "button": button, "buttons": 0, "x": x, "y": y, "modifiers": modifiers, "clickCount": count })).await?;
         Ok(())
     }
 

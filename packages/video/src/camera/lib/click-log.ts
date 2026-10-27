@@ -1,10 +1,12 @@
-import type { Point, Rect, Viewport } from "#video/generated/spec.ts";
+import type { ClickButton, Point, Rect, Viewport } from "#video/generated/spec.ts";
 
 export type ClickEvent = {
   label?: string;
   tMs: number;
   tDepartMs?: number;
   tDownMs?: number;
+  tSecondDownMs?: number;
+  button?: ClickButton;
   typeEndMs?: number;
   x: number;
   y: number;

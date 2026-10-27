@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use opsis_compile::recording::point_rect;
-use opsis_types::actions::{CursorSample, Point, Rect, Viewport};
+use opsis_types::actions::{ClickButton, CursorSample, MouseButton, Point, Rect, Viewport};
 use serde_json::json;
 use tokio::sync::Mutex;
 
@@ -22,6 +22,7 @@ const GLIDE_MIN_PX: f64 = 6.0;
 const SETTLE_MS: f64 = 220.0;
 const OVERSHOOT_RETURN_MS: f64 = 130.0;
 const CLICK_HOLD_MS: f64 = 80.0;
+const DOUBLE_CLICK_GAP_MS: f64 = 90.0;
 const FIELD_FOCUS_MS: f64 = 150.0;
 const KEY_DELAY_MS: u64 = 30;
 const DRAG_HOLD_MS: f64 = 150.0;
@@ -45,6 +46,8 @@ pub struct TakeClick {
     pub t_ms: f64,
     pub t_depart_ms: Option<f64>,
     pub t_down_ms: Option<f64>,
+    pub t_second_down_ms: Option<f64>,
+    pub button: Option<ClickButton>,
     pub type_end_ms: Option<f64>,
     pub x: f64,
     pub y: f64,
@@ -84,6 +87,12 @@ pub struct ActionOpts {
     pub zoom_scale: Option<f64>,
     pub travel_ms: Option<f64>,
     pub hover_ms: Option<f64>,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Press {
+    pub button: ClickButton,
+    pub double: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -247,11 +256,12 @@ impl CursorDriver {
         target: &Target,
         label: Option<&str>,
         opts: &ActionOpts,
+        press: Press,
     ) -> Result<()> {
         let aim = self
             .approach(target, label.unwrap_or("click"), opts)
             .await?;
-        self.click_at(&aim, label, opts, TakeClick::default())
+        self.click_at(&aim, label, opts, TakeClick::default(), press)
             .await?;
         Ok(())
     }
@@ -274,6 +284,7 @@ impl CursorDriver {
                     text: Some(chunks.concat()),
                     ..TakeClick::default()
                 },
+                Press::default(),
             )
             .await?;
         pause(FIELD_FOCUS_MS).await;
@@ -527,11 +538,18 @@ impl CursorDriver {
         label: Option<&str>,
         opts: &ActionOpts,
         extra: TakeClick,
+        press: Press,
     ) -> Result<usize> {
         let t_down_ms = self.now();
-        self.input.mouse_down(&self.tab).await?;
-        pause(CLICK_HOLD_MS).await;
-        self.input.mouse_up(&self.tab).await?;
+        self.press_once(press.button, 1).await?;
+        let t_second_down_ms = if press.double {
+            pause(DOUBLE_CLICK_GAP_MS).await;
+            let t = self.now();
+            self.press_once(press.button, 2).await?;
+            Some(t)
+        } else {
+            None
+        };
         let event = self
             .log_event(
                 aim,
@@ -539,6 +557,8 @@ impl CursorDriver {
                 opts,
                 TakeClick {
                     t_down_ms: Some(t_down_ms),
+                    t_second_down_ms,
+                    button: (press.button != ClickButton::Left).then_some(press.button),
                     ..extra
                 },
                 None,
@@ -546,6 +566,13 @@ impl CursorDriver {
             .await;
         self.read_shape().await;
         Ok(event)
+    }
+
+    async fn press_once(&self, button: ClickButton, count: u32) -> Result<()> {
+        let button = MouseButton::from(button);
+        self.input.mouse_down(&self.tab, button, count).await?;
+        pause(CLICK_HOLD_MS).await;
+        self.input.mouse_up(&self.tab, button, count).await
     }
 
     async fn drag_plan(
@@ -596,11 +623,13 @@ impl CursorDriver {
         opts: &DragOpts,
         moving: impl Future<Output = Result<T>>,
     ) -> Result<T> {
-        self.input.mouse_down(&self.tab).await?;
+        self.input
+            .mouse_down(&self.tab, MouseButton::Left, 1)
+            .await?;
         pause(opts.hold_ms.unwrap_or(DRAG_HOLD_MS)).await;
         let moved = moving.await?;
         pause(DROP_SETTLE_MS).await;
-        self.input.mouse_up(&self.tab).await?;
+        self.input.mouse_up(&self.tab, MouseButton::Left, 1).await?;
         Ok(moved)
     }
 
@@ -622,17 +651,21 @@ impl CursorDriver {
             self.input
                 .mouse_move(&self.tab, source.cx, source.cy, 1)
                 .await?;
-            self.input.mouse_down(&self.tab).await?;
+            self.input
+                .mouse_down(&self.tab, MouseButton::Left, 1)
+                .await?;
             self.input
                 .mouse_move(&self.tab, target.cx, target.cy, QUICK_DRAG_STEPS)
                 .await?;
-            self.input.mouse_up(&self.tab).await?;
+            self.input.mouse_up(&self.tab, MouseButton::Left, 1).await?;
         } else {
-            self.input.mouse_down(&self.tab).await?;
+            self.input
+                .mouse_down(&self.tab, MouseButton::Left, 1)
+                .await?;
             self.input
                 .mouse_move(&self.tab, end.x, end.y, QUICK_DRAG_STEPS)
                 .await?;
-            self.input.mouse_up(&self.tab).await?;
+            self.input.mouse_up(&self.tab, MouseButton::Left, 1).await?;
         }
         self.mark(end, None).await;
         Ok(plan)

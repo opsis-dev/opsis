@@ -1,19 +1,19 @@
 # Improvements
 
-Seven improvements found by comparing Opsis with a hand-built feature-video recorder: double and right clicks, a sound for every click and keystroke, an address bar that shows a chosen address, Sequences and Layers with any number of clips, built-in music, recording on a simulated clock, and server replies timed on that clock.
+Six improvements found by comparing Opsis with a hand-built feature-video recorder: a sound for every click and keystroke, an address bar that shows a chosen address, Sequences and Layers with any number of clips, built-in music, recording on a simulated clock, and server replies timed on that clock.
 
 Status: plan only. Nothing here is built yet.
 
 ## How to read this plan
 
-- Each section is one improvement and can be built on its own, except section 7, which needs section 6.
+- Each section is one improvement and can be built on its own, except section 6, which needs section 5.
 - Each section has **What it adds**, **In place**, **Work** (numbered) and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
 ## Conventions
 
 - New settings are `schemars` fields with their label, limits and `x-` keywords; the editor builds the form from them. Technical settings go under `x-advanced`.
-- A new node has a `description`, a `card`, a look in `NODE_LOOKS` (then `bun run glyphs:bundle`) and passes `crates/compile/tests/unit/nodes_c.rs`.
+- A new node has a `description`, a `card`, a look on its definition (`.look(…)`, then `bun run glyphs:bundle`) and passes `crates/compile/tests/unit/nodes_c.rs`.
 - Copy names no library, tool or protocol. Browser nodes are "actions". Durations in seconds.
 - A change to how a spec is drawn bumps nothing before release (`PICTURE_VERSION` stays); clear test caches instead.
 - A new built-in sound or music file needs a checked free licence, an entry in `THIRD_PARTY_NOTICES.md` and a local file; nothing loads from the internet.
@@ -21,38 +21,16 @@ Status: plan only. Nothing here is built yet.
 
 ## Summary
 
-| Improvement                     | What users get                                                                            | Size   |
-| ------------------------------- | ----------------------------------------------------------------------------------------- | ------ |
-| 1. Double-click and right-click | Click opens files and folders that need a double click, and context menus                 | small  |
-| 2. Action sounds                | One node that puts a click sound on every click and a key sound on every keystroke        | medium |
-| 3. Address shown in the frame   | The window frame shows a typed address, fixed or as a host that keeps the page's own path | small  |
-| 4. Sequences and Layers grow    | Any number of clips in one Sequence or Layers node; splitting never runs out of inputs    | medium |
-| 5. Built-in music               | A few free music beds to pick, next to the built-in sound effects                         | small  |
-| 6. Smooth recording             | A take with exactly one new picture per frame, however busy the computer is               | large  |
-| 7. Replies on the take's clock  | In a smooth take, server replies and streamed answers land on the frames they took live   | large  |
+| Improvement                    | What users get                                                                            | Size   |
+| ------------------------------ | ----------------------------------------------------------------------------------------- | ------ |
+| 1. Action sounds               | One node that puts a click sound on every click and a key sound on every keystroke        | medium |
+| 2. Address shown in the frame  | The window frame shows a typed address, fixed or as a host that keeps the page's own path | small  |
+| 3. Sequences and Layers grow   | Any number of clips in one Sequence or Layers node; splitting never runs out of inputs    | medium |
+| 4. Built-in music              | A few free music beds to pick, next to the built-in sound effects                         | small  |
+| 5. Smooth recording            | A take with exactly one new picture per frame, however busy the computer is               | large  |
+| 6. Replies on the take's clock | In a smooth take, server replies and streamed answers land on the frames they took live   | large  |
 
-## 1. Double-click and right-click
-
-### What it adds
-
-Click can double-click (open a file or folder in a file list, select a word) and right-click (open a context menu). Today neither is possible, and a flow that opens a folder by double-clicking it has to navigate straight to its address instead. Hover and Drag keep the left button; middle click isn't offered.
-
-### In place
-
-- `Click` settings: `Target`, `Beat`, `Pointer`, `hover_ms` (`crates/compile/src/nodes/browser.rs:279`).
-- The press and release are always the left button with `clickCount: 1` (`crates/capture/src/input.rs:360`, `:385`).
-- The click is logged as a `TakeClick` (`crates/capture/src/cursor.rs:43`); the video's cursor and Click ripple draw from that log (`packages/video/src/camera/cursor.tsx`).
-
-### Work
-
-1. **Settings.** Add `button` (`left`, `right`; labels "Left", "Right") and `double` ("Double-click") to `Click`, defaults left and off. `double` shows only for the left button (`x-show-if`).
-2. **Input.** Let the input layer press a given button and click count: a double click is press/release with count 1, then press/release with count 2 at the same point, a short gap apart, which is what the page needs to fire `dblclick`. A right click presses `right` and fires `contextmenu`.
-3. **Log.** Add the button and click count to `TakeClick` and the action log type in `opsis-types`; `bun run types:export`.
-4. **Video.** The cursor presses twice for a double click, and Click ripple draws two rings close together; a right click draws its ripple in its own look (one ring, no fill) so it reads differently.
-5. **Card.** The Click card's first row says "Double-click …" or "Right-click …".
-6. **Tests.** A capture test on a local page that counts `click`, `dblclick` and `contextmenu`; a card test; the drawn cursor in the action log test.
-
-## 2. Action sounds
+## 1. Action sounds
 
 ### What it adds
 
@@ -72,10 +50,10 @@ One node, **Action sounds**, that adds a click sound at every click and a key so
 4. **Mixer.** One channel keyed by the node id, on the Effects bus, like a Sound effect. These sounds never key the music ducking (`keepMusic` behaviour).
 5. **No sound on an action.** Click, Type and Press keys get a "No sound" switch (`silent`, under `x-advanced`). It travels with the action into the take's log, and Action sounds skips that action's click and keystrokes.
 6. **Card.** Rows for the count of clicks and keys it places and the sounds chosen; an action's own card says "No sound" when its switch is on.
-7. **Look.** A `NODE_LOOKS` entry; no motion.
+7. **Look.** A look on the definition; no motion.
 8. **Tests.** Compile tests on a clip with a trim and a speed ramp (the sounds follow the mapped times), a silent Click and a silent Type in the same take, the Mixer channel, the round trip into Add sound.
 
-## 3. Address shown in the frame
+## 2. Address shown in the frame
 
 ### What it adds
 
@@ -95,7 +73,7 @@ The address bar in Auto zoom's window frame and in Window frame shows an address
 4. **Card.** The address row shows the typed address, with "· keeps the path" in the host mode.
 5. **Tests.** Compile test for both nodes and both modes; a capture test on a local single-page app that changes route on a click, checking the logged addresses; the address at a given frame from the log.
 
-## 4. Sequences and Layers grow
+## 3. Sequences and Layers grow
 
 ### What it adds
 
@@ -121,7 +99,7 @@ A Sequence or Layers node takes as many clips as are connected: a new empty inpu
 
 - Every place that loops over `IN_PORTS` assumes six; find them all (`rg IN_PORTS`, `CUT_PORTS`, `in6`).
 
-## 5. Built-in music
+## 4. Built-in music
 
 ### What it adds
 
@@ -140,7 +118,7 @@ A few free music beds (calm, upbeat, ambient; 1–3 minutes each, loopable) offe
 3. **Field.** Music's song field offers the built-in list with a play button, like the `sound` widget.
 4. **Size.** Note the added size in `plans/release.md` section 1.
 
-## 6. Smooth recording
+## 5. Smooth recording
 
 ### What it adds
 
@@ -170,10 +148,10 @@ It runs far slower than real time (a full picture per frame), so it is for final
 
 - With the page's timers paused, anything the take waits for only happens while it ticks; a wait that doesn't tick never ends. Every wait must go through the clock.
 - Videos inside the page, canvases driven by real time and workers' own timers don't follow the page clock.
-- Server replies arrive in real time while the page clock runs slower, so waits on the server take fewer frames than they took seconds. Section 7 fixes that.
+- Server replies arrive in real time while the page clock runs slower, so waits on the server take fewer frames than they took seconds. Section 6 fixes that.
 - Long takes: one picture per frame at 2× is slow; measure a 30 s take before choosing the default picture format.
 
-## 7. Replies on the take's clock
+## 6. Replies on the take's clock
 
 ### What it adds
 
@@ -185,7 +163,7 @@ Because smooth recording is slower than real time, a reply has almost always arr
 
 - Request interception for Mock response, pausing requests before they're sent (`crates/capture/src/route.rs`, `Fetch.enable` at the request stage).
 - The trace records every request and reply with times (`crates/capture/src/trace.rs:186`).
-- Section 6's take clock and frame stepper.
+- Section 5's take clock and frame stepper.
 
 ### Work
 

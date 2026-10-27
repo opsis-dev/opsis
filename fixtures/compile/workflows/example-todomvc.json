@@ -1072,6 +1072,8 @@
        "params": {
         "target": "Toggle Todo",
         "targetRole": "checkbox",
+        "button": "left",
+        "double": false,
         "after": 1100,
         "cluster": "done",
         "zoom": true,
@@ -1169,6 +1171,8 @@
        "params": {
         "target": "Toggle Todo",
         "targetRole": "checkbox",
+        "button": "left",
+        "double": false,
         "after": 1100,
         "cluster": "done",
         "zoom": true,
@@ -1185,6 +1189,8 @@
        "params": {
         "target": "Completed",
         "targetRole": "link",
+        "button": "left",
+        "double": false,
         "after": 1500,
         "cluster": "filter",
         "zoom": true,
@@ -4425,6 +4431,8 @@
         "params": {
          "target": "Toggle Todo",
          "targetRole": "checkbox",
+         "button": "left",
+         "double": false,
          "after": 1100,
          "cluster": "done",
          "zoom": true,
@@ -4522,6 +4530,8 @@
         "params": {
          "target": "Toggle Todo",
          "targetRole": "checkbox",
+         "button": "left",
+         "double": false,
          "after": 1100,
          "cluster": "done",
          "zoom": true,
@@ -4538,6 +4548,8 @@
         "params": {
          "target": "Completed",
          "targetRole": "link",
+         "button": "left",
+         "double": false,
          "after": 1500,
          "cluster": "filter",
          "zoom": true,

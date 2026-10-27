@@ -1749,7 +1749,7 @@
    "outcome": {
     "ok": true,
     "value": "nope",
-    "keys": 8
+    "keys": 10
    }
   },
   {
@@ -1762,7 +1762,7 @@
    "outcome": {
     "ok": true,
     "value": "{{Product name}}",
-    "keys": 8
+    "keys": 10
    }
   },
   {

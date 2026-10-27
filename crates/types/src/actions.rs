@@ -71,6 +71,59 @@ impl From<Bounds> for Rect {
 }
 
 #[derive(
+    Debug,
+    Clone,
+    Copy,
+    Default,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    Type,
+    schemars::JsonSchema,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum ClickButton {
+    #[default]
+    Left,
+    Right,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub enum MouseButton {
+    None,
+    Left,
+    Middle,
+    Right,
+    Back,
+    Forward,
+}
+
+impl MouseButton {
+    pub const fn mask(self) -> u8 {
+        match self {
+            Self::None => 0,
+            Self::Left => 1,
+            Self::Right => 2,
+            Self::Middle => 4,
+            Self::Back => 8,
+            Self::Forward => 16,
+        }
+    }
+}
+
+impl From<ClickButton> for MouseButton {
+    fn from(button: ClickButton) -> Self {
+        match button {
+            ClickButton::Left => Self::Left,
+            ClickButton::Right => Self::Right,
+        }
+    }
+}
+
+#[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
 )]
 #[serde(rename_all = "lowercase")]
@@ -99,6 +152,10 @@ pub struct Action {
     pub t_depart: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub t_down: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub t_second_down: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub button: Option<ClickButton>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub point: Option<Point>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -132,6 +189,8 @@ impl Action {
             t_end: None,
             t_depart: None,
             t_down: None,
+            t_second_down: None,
+            button: None,
             point: None,
             rect: None,
             cluster: None,

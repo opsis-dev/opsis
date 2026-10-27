@@ -175,6 +175,8 @@ export type Action = {
 	tEnd?: number,
 	tDepart?: number,
 	tDown?: number,
+	tSecondDown?: number,
+	button?: ClickButton,
 	point?: Point,
 	rect?: Rect,
 	cluster?: string,
@@ -521,6 +523,8 @@ export type CheckedTool = {
 	size: number,
 	modifiedMs: number,
 };
+
+export type ClickButton = "left" | "right";
 
 export type ClipValue = {
 	durationInFrames: number,

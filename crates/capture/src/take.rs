@@ -9,7 +9,7 @@ use crate::clock::wall_ms;
 use opsis_compile::asset_ref::project_rel_path;
 use opsis_compile::nodes::browser::{
     Assert, Chapter, Click, Drag, DragMethod as DragParam, DragMode, FreezeClock, HideElements,
-    Hoist, Hover, MockRoute, Navigate, OPEN_BROWSER_TYPE, Open, OverlayHtml, Press, Scroll,
+    Hoist, Hover, MockRoute, Navigate, OPEN_BROWSER_TYPE, Open, OverlayHtml, PressKeys, Scroll,
     ScrollMode, Select, SetState, SignIn, Type, Wait, WaitMode, WaitUntil, read_path,
 };
 use opsis_compile::nodes::capture::{Cursor, Record};
@@ -31,7 +31,7 @@ use crate::browser::Session;
 use crate::cdp::{Arg, CaptureError, Handle};
 use crate::clock::Clock;
 use crate::cursor::{
-    ActionOpts, CursorDriver, DragMethod, DragOpts, DragTo, KeyEvent, TakeClick, TakeSink,
+    ActionOpts, CursorDriver, DragMethod, DragOpts, DragTo, KeyEvent, Press, TakeClick, TakeSink,
 };
 use crate::encoder::{EncodeError, Encoded, FrameEncoder};
 use crate::input::Input;
@@ -678,6 +678,8 @@ impl<'e> TakeRun<'e> {
             action.t_end = c.type_end_ms;
             action.t_depart = c.t_depart_ms;
             action.t_down = c.t_down_ms;
+            action.t_second_down = c.t_second_down_ms;
+            action.button = c.button;
             action.point = Some(Point { x: c.x, y: c.y });
             action.rect = c.rect;
             action.cluster = c.cluster;
@@ -763,9 +765,13 @@ impl<'e> TakeRun<'e> {
                 Some((p.pointer.zoom_scale, p.pointer.travel_ms, p.hover_ms)),
             )
             .await?;
+        let press = Press {
+            button: p.button,
+            double: p.double_clicks(),
+        };
         let driver = self.rolling()?;
         driver
-            .move_and_click(&resolved.target, Some(&label), &opts)
+            .move_and_click(&resolved.target, Some(&label), &opts, press)
             .await?;
         driver.pause(Some(f64::from(p.beat.pause.after))).await;
         Ok(())
@@ -955,7 +961,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn press(&mut self, step: &SessionStep, p: Press) -> StepResult {
+    async fn press(&mut self, step: &SessionStep, p: PressKeys) -> StepResult {
         let chord = pressed_chord(&p.keys);
         self.press_key(&chord, &step_name(step, Some(&p.keys)))
             .await?;

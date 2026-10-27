@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use opsis_types::actions::Point;
+use opsis_types::actions::{ClickButton, Point};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::values::{
@@ -280,6 +280,11 @@ impl Params for Navigate {}
 pub struct Click {
     #[serde(flatten)]
     pub target: Target,
+    #[default(ClickButton::Left)]
+    #[schemars(description = "Button", extend("x-labels" = { "left": "Left", "right": "Right" }))]
+    pub button: ClickButton,
+    #[schemars(description = "Double-click", extend("x-show-if" = { "button": ["left"] }))]
+    pub double: bool,
     #[serde(flatten)]
     pub beat: Beat,
     #[serde(flatten)]
@@ -290,6 +295,12 @@ pub struct Click {
 }
 
 impl Params for Click {}
+
+impl Click {
+    pub fn double_clicks(&self) -> bool {
+        self.double && self.button == ClickButton::Left
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
@@ -539,7 +550,7 @@ impl Params for Upload {}
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
-pub struct Press {
+pub struct PressKeys {
     #[default = "Enter"]
     #[schemars(description = "Keys", extend("x-widget" = "keys", "x-help" = "Click the field and press the shortcut."))]
     pub keys: String,
@@ -547,7 +558,7 @@ pub struct Press {
     pub pause: PauseAfter,
 }
 
-impl Params for Press {}
+impl Params for PressKeys {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
@@ -892,6 +903,24 @@ fn target_row(icon: Icon, t: &Target) -> Option<CardRow> {
     Some(element_row(icon, &t.target, t.target_role.as_deref()))
 }
 
+fn click_row(p: &Click) -> Option<CardRow> {
+    let r = target_row(Icon::MousePointerClick, &p.target)?;
+    let how = if p.button == ClickButton::Right {
+        "Right-click"
+    } else if p.double_clicks() {
+        "Double-click"
+    } else {
+        return Some(r);
+    };
+    if r.tone == Some(Tone::Warn) {
+        return Some(r);
+    }
+    Some(CardRow {
+        text: format!("{how} {}", r.text),
+        ..r
+    })
+}
+
 fn address_row(url: &str) -> CardRow {
     row(Icon::Link, display_address(url, true)).titled(url)
 }
@@ -1082,7 +1111,7 @@ fn scroll_rows(p: &Scroll) -> Rows {
     ]
 }
 
-fn press_rows(p: &Press) -> Rows {
+fn press_rows(p: &PressKeys) -> Rows {
     let keys = if p.keys.trim().is_empty() {
         missing(Icon::Command, "Press a shortcut")
     } else {
@@ -1185,12 +1214,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Click",
                 "Moves the cursor to an element and clicks it.",
             ),
-            |p: &Click| {
-                with_beat(
-                    vec![target_row(Icon::MousePointerClick, &p.target)],
-                    &p.beat,
-                )
-            },
+            |p: &Click| with_beat(vec![click_row(p)], &p.beat),
         ).look(NodeLook::of("lucide:mouse-pointer-click").moves(NodeMotion::Press)),
         card(
             action::<Type>(
@@ -1270,7 +1294,7 @@ pub fn nodes() -> Vec<NodeDef> {
             },
         ).look(NodeLook::of("lucide:file-up").moves(NodeMotion::NudgeUp)),
         card(
-            action::<Press>(
+            action::<PressKeys>(
                 BrowserAction::Press,
                 "Press keys",
                 "Presses a key or shortcut, like Ctrl+K. Shows in keystroke chips.",

@@ -764,6 +764,8 @@
        "label": "Done",
        "params": {
         "target": "css=.todo-list li:nth-child(1) .toggle",
+        "button": "left",
+        "double": false,
         "after": 1400,
         "cluster": "",
         "zoom": true,
@@ -3165,6 +3167,8 @@
         "label": "Done",
         "params": {
          "target": "css=.todo-list li:nth-child(1) .toggle",
+         "button": "left",
+         "double": false,
          "after": 1400,
          "cluster": "",
          "zoom": true,

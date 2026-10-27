@@ -201,6 +201,8 @@
   "hostDefaults": null,
   "defaults": {
    "target": "",
+   "button": "left",
+   "double": false,
    "after": 600,
    "cluster": "",
    "zoom": true,

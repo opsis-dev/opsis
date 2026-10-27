@@ -14,7 +14,7 @@ use opsis_capture::cdp::{CaptureError, Result, Tab};
 use opsis_capture::live::FrameSink;
 use opsis_capture::screencast::{FrameSinks, Screencast};
 use opsis_compile::nodes::browser::Open;
-use opsis_types::actions::Viewport;
+use opsis_types::actions::{MouseButton, Viewport};
 use opsis_types::numbers::whole;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -62,17 +62,6 @@ pub enum ViewEvent {
 
 pub trait ViewSink: FrameSink {
     fn event(&self, event: ViewEvent);
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub enum MouseButton {
-    None,
-    Left,
-    Middle,
-    Right,
-    Back,
-    Forward,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, specta::Type)]

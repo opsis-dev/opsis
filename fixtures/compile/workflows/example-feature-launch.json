@@ -498,6 +498,8 @@
        "label": "Get started",
        "params": {
         "target": "Get started",
+        "button": "left",
+        "double": false,
         "after": 1500,
         "cluster": "",
         "zoom": true,
@@ -2750,6 +2752,8 @@
         "label": "Get started",
         "params": {
          "target": "Get started",
+         "button": "left",
+         "double": false,
          "after": 1500,
          "cluster": "",
          "zoom": true,

@@ -47,23 +47,41 @@ describe("cursorAt", () => {
       { tMs: 900, x: 400, y: 300 },
     ];
     const during = at(clicks, 0.55);
-    expect(during.ripple !== null && during.ripple > 0).toBe(true);
+    expect(during.rings).toHaveLength(1);
+    expect(during.rings[0].progress).toBeGreaterThan(0);
     expect(during.squash, "no squash on mousedown").toBeLessThan(1);
 
     const after = at(clicks, 1.2);
-    expect(after.ripple).toBe(null);
+    expect(after.rings).toEqual([]);
     expect(after.squash).toBe(1);
 
-    expect(at(clicks, 0.95).ripple).toBe(null);
+    expect(at(clicks, 0.95).rings).toEqual([]);
+  });
+
+  it("draws a ring for each press of a double click", () => {
+    const double = [{ tMs: 700, x: 300, y: 200, tDownMs: 500, tSecondDownMs: 670 }];
+    expect(at(double, 0.6).rings).toHaveLength(1);
+    const both = at(double, 0.7).rings;
+    expect(both).toHaveLength(2);
+    expect(both[0].progress).toBeGreaterThan(both[1].progress);
+    expect(at(double, 0.9).rings).toHaveLength(1);
+    expect(at(double, 0.68).squash, "squashes again on the second press").toBeLessThan(1);
+  });
+
+  it("draws a right click's ring hollow and a left click's filled", () => {
+    const right = [{ tMs: 600, x: 300, y: 200, tDownMs: 500, button: "right" as const }];
+    const left = [{ tMs: 600, x: 300, y: 200, tDownMs: 500 }];
+    expect(at(right, 0.55).rings[0].hollow).toBe(true);
+    expect(at(left, 0.55).rings[0].hollow).toBe(false);
   });
 
   it("stays pressed for the whole drag and springs back after the drop", () => {
     const drag = [{ tMs: 900, x: 500, y: 400, tDownMs: 200, tUpMs: 900 }];
-    expect(at(drag, 0.25).ripple !== null).toBe(true);
+    expect(at(drag, 0.25).rings).toHaveLength(1);
     const held = at(drag, 0.8);
     expect(held.squash).toBeLessThan(1);
     expect(at(drag, 0.5).squash).toBe(held.squash);
-    expect(held.ripple).toBe(null);
+    expect(held.rings).toEqual([]);
     const springing = at(drag, 0.95).squash;
     expect(springing > held.squash && springing < 1).toBe(true);
     expect(at(drag, 1.5).squash).toBe(1);

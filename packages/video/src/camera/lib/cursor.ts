@@ -9,11 +9,13 @@ const CURSOR_FADE_S = 0.18;
 const RIPPLE_S = 0.35;
 export const ARROW_SHAPE = "default";
 
+export type Ring = { progress: number; hollow: boolean };
+
 type CursorState = {
   x: number;
   y: number;
   squash: number;
-  ripple: number | null;
+  rings: Ring[];
   opacity: number;
   shape: string;
 };
@@ -67,21 +69,24 @@ export function cursorAt(
   if (!here) return null;
 
   let squash = 1;
-  let ripple: number | null = null;
+  const rings: Ring[] = [];
   for (const c of clicks) {
-    if (c.tDownMs == null) continue;
-    const sinceS = tS - c.tDownMs / 1000;
-    if (sinceS < 0) continue;
-    const heldS = c.tUpMs != null ? Math.max(0, (c.tUpMs - c.tDownMs) / 1000) : 0;
-    squash = Math.min(squash, squashAfter(sinceS - heldS));
-    ripple = rippleFor(sinceS) ?? ripple;
+    const presses = [c.tDownMs, c.tSecondDownMs].filter((t) => t != null);
+    for (const pressMs of presses) {
+      const sinceS = tS - pressMs / 1000;
+      if (sinceS < 0) continue;
+      const heldS = c.tUpMs != null ? Math.max(0, (c.tUpMs - pressMs) / 1000) : 0;
+      squash = Math.min(squash, squashAfter(sinceS - heldS));
+      const progress = rippleFor(sinceS);
+      if (progress !== null) rings.push({ progress, hollow: c.button === "right" });
+    }
   }
 
   return {
     x: here.x,
     y: here.y,
     squash,
-    ripple,
+    rings,
     opacity: cursorOpacity(clicks, tS),
     shape: shapeAt(track, tS),
   };

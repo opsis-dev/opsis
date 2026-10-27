@@ -5183,6 +5183,29 @@
       ],
       "x-hidden": true
      },
+     "button": {
+      "description": "Button",
+      "type": "string",
+      "enum": [
+       "left",
+       "right"
+      ],
+      "default": "left",
+      "x-labels": {
+       "left": "Left",
+       "right": "Right"
+      }
+     },
+     "double": {
+      "description": "Double-click",
+      "type": "boolean",
+      "default": false,
+      "x-show-if": {
+       "button": [
+        "left"
+       ]
+      }
+     },
      "after": {
       "description": "Pause after",
       "type": "integer",
@@ -5259,6 +5282,8 @@
     "type": "object",
     "default": {
      "target": "",
+     "button": "left",
+     "double": false,
      "after": 600,
      "cluster": "",
      "zoom": true,

@@ -16,6 +16,8 @@ export type Action = {
 	tEnd?: number,
 	tDepart?: number,
 	tDown?: number,
+	tSecondDown?: number,
+	button?: ClickButton,
 	point?: Point,
 	rect?: Rect,
 	cluster?: string,
@@ -170,6 +172,8 @@ export type Card3d = {
 	lighting: Lighting,
 	background: string,
 };
+
+export type ClickButton = "left" | "right";
 
 export type Colour = string;
 

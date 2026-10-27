@@ -68,6 +68,8 @@ export function toClickLog(
       y: a.point.y,
       tDepartMs: a.tDepart,
       tDownMs: a.tDown,
+      tSecondDownMs: a.tSecondDown,
+      button: a.button,
       typeEndMs: a.kind === "type" ? a.tEnd : undefined,
       rect: a.rect,
     });

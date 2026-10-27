@@ -68,6 +68,35 @@ describe("ActionLog → ClickLog", () => {
     expect(cl.keys).toEqual([{ tMs: 4000, chord: "Meta+K", label: "Palette" }]);
   });
 
+  it("carries a double click's second press and a right click's button", () => {
+    const clicks = toClickLog(
+      {
+        ...log,
+        actions: [
+          {
+            id: "d",
+            kind: "click",
+            t: 1300,
+            tDown: 1000,
+            tSecondDown: 1170,
+            point: { x: 500, y: 400 },
+          },
+          {
+            id: "r",
+            kind: "click",
+            t: 2100,
+            tDown: 2000,
+            button: "right",
+            point: { x: 520, y: 420 },
+          },
+        ],
+      },
+      "demo",
+    ).clicks;
+    expect(clicks[0]).toMatchObject({ tDownMs: 1000, tSecondDownMs: 1170, button: undefined });
+    expect(clicks[1]).toMatchObject({ tDownMs: 2000, tSecondDownMs: undefined, button: "right" });
+  });
+
   it("treats an empty zoom group as no group", () => {
     const clicks = toClickLog(
       {

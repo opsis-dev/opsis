@@ -115,6 +115,29 @@ fn shows_what_browser_actions_do_on_their_cards() {
     );
 }
 
+#[test]
+fn says_on_the_click_card_when_it_double_clicks_or_right_clicks() {
+    let first =
+        |params: Value| card_texts("browser.click", params, CardInputs::default())[0].clone();
+    assert_eq!(first(json!({ "target": "Reports" })), "“Reports”");
+    assert_eq!(
+        first(json!({ "target": "Reports", "double": true })),
+        "Double-click “Reports”"
+    );
+    assert_eq!(
+        first(json!({ "target": "Reports", "button": "right" })),
+        "Right-click “Reports”"
+    );
+    assert_eq!(
+        first(json!({ "target": "Reports", "button": "right", "double": true })),
+        "Right-click “Reports”"
+    );
+    assert_eq!(
+        first(json!({ "target": "", "double": true })),
+        "Pick an element"
+    );
+}
+
 fn problem(kind: &str, params: Value) -> Option<String> {
     parse_params(kind, params).err()
 }
