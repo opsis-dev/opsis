@@ -44,7 +44,6 @@ Ideas that were discussed but never finalized or planned.
 - [ ] A smaller FFmpeg build (shared, combined or trimmed), which conflicts with keeping both ffmpeg-static binaries.
 - [ ] Reopening the panels that were popped out when the app starts.
 - [ ] A Keystroke chips option to leave out plain keys such as Esc, Enter and Tab.
-- [ ] A project skill that launches the dev app headless with a short profile path for checks.
 
 ## Unverified
 
