@@ -61,6 +61,7 @@ export function useFormContext(workflow: Workflow, nodeId: string): FormContext 
       chooseAsset: (apply) => void chooseAsset(projectDir, apply),
       swatches: inspector?.swatches ?? [],
       connectedInputs: inspector?.connectedInputs ?? [],
+      fileKinds: inspector?.fileKinds ?? {},
     };
   }, [inspector, nodeId, projectDir, fps, width, height]);
 }

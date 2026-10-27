@@ -7,11 +7,14 @@ use opsis_types::workflow::Workflow;
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::asset_ref::kind_from_path;
 use crate::color::project_swatches;
 use crate::compile::CompileResult;
+use crate::elements::introspect::widget_keys;
 use crate::graph::{downstream_of, session_into, upstream_of};
 use crate::node::{Category, SESSION_PORT};
 use crate::nodes::media::APPLY_GRADE_TYPE;
+use crate::params::{ParamSchema, Values};
 use crate::ports::{IN_PORTS, convert_input};
 use crate::registry::{node_def, node_name};
 use crate::vars::{PROJECT_NAME_VAR, SITE_ADDRESS_VAR, interpolate_text, workflow_vars};
@@ -64,6 +67,18 @@ pub struct InspectorContext {
     pub picker: PickerTarget,
     pub swatches: Vec<String>,
     pub connected_inputs: Vec<String>,
+    pub file_kinds: IndexMap<String, MediaKind>,
+}
+
+fn file_kinds(params: &ParamSchema, values: &Values) -> IndexMap<String, MediaKind> {
+    let values = params.with_defaults(values);
+    widget_keys(params, "asset")
+        .into_iter()
+        .filter_map(|key| {
+            let path = values.get(&key)?.as_str()?.trim();
+            (!path.is_empty()).then(|| (key, kind_from_path(path)))
+        })
+        .collect()
 }
 
 fn variable_list(wf: &Workflow) -> Vec<VarInfo> {
@@ -263,6 +278,7 @@ pub fn inspector_context(
         spot_background,
         picker: picker_target(wf, compiled, node_id),
         swatches: project_swatches(&params, MAX_SWATCHES),
+        file_kinds: file_kinds(&def.params, &node.params),
         connected_inputs,
     })
 }

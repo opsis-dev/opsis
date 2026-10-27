@@ -1,6 +1,5 @@
 import { humanize } from "@opsis/video/common/format";
 import { isNumber } from "@opsis/video/common/guards";
-import { kindFromPath } from "@opsis/video/common/mime";
 import type { FieldWidget } from "@opsis/video/generated/spec";
 import { cn } from "cn";
 import { ChevronRight, Copy, Plus, Trash2 } from "lucide-react";
@@ -116,15 +115,15 @@ export const widgetTakes = (widget: FieldWidget, kind: TypedField["kind"]): bool
 const COLLAPSING =
   "h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-200 ease-out data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0";
 
-function fileKindsMatch(meta: FieldMeta, values: ParamValues): boolean {
+function fileKindsMatch(meta: FieldMeta, ctx: FormContext): boolean {
   return Object.entries(meta.showIfFile ?? {}).every(([k, kinds]) => {
-    const path = values[k];
-    return typeof path === "string" && path !== "" && kinds.includes(kindFromPath(path));
+    const kind = ctx.fileKinds[k];
+    return kind !== undefined && kinds.includes(kind);
   });
 }
 
-function visible(meta: FieldMeta, values: ParamValues): boolean {
-  if (meta.hidden || !fileKindsMatch(meta, values)) return false;
+function visible(meta: FieldMeta, values: ParamValues, ctx: FormContext): boolean {
+  if (meta.hidden || !fileKindsMatch(meta, ctx)) return false;
   if (!meta.showIf) return true;
   return Object.entries(meta.showIf).every(([k, allowed]) => {
     const v = values[k] == null ? "" : String(values[k]);
@@ -149,7 +148,7 @@ export function SchemaForm({
   const values = withDefaults(schema, value);
   const entries = shapeEntries(schema)
     .map(([key, field]): Entry => ({ key, field, meta: fieldMeta(field) }))
-    .filter(({ meta }) => visible(meta, values));
+    .filter(({ meta }) => visible(meta, values, ctx));
   if (entries.length === 0) return <p className="text-muted-foreground text-sm">No settings.</p>;
   const basic = entries.filter(({ meta }) => !meta.advanced);
   const advanced = entries.filter(({ meta }) => meta.advanced);

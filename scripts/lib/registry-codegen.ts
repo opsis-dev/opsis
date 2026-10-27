@@ -320,6 +320,7 @@ export function elementEntry({
     schema: { type: "object", properties },
     defaultProps,
     fixedProps: item.fixedProps ?? {},
+    ...(item.kindProps ? { kindProps: item.kindProps } : {}),
     defaultDurationInFrames: duration,
     ...(item.design ? { design: item.design } : {}),
     ...(item.optionalClip ? { optionalClip: true } : {}),

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 use smart_default::SmartDefault;
 
-use crate::asset_ref::project_ref;
+use crate::asset_ref::{kind_from_path, project_ref};
 use crate::card::{file_row, frame_secs, quoted, sentence};
 use crate::clip::{
     EMPTY_CLIP_FRAMES, ItemExtra, empty_clip, item_clip, scene_sequence, with_handles, wrap_clip,
@@ -191,6 +191,13 @@ pub fn element_props(meta: &ElementMeta, params: &Values) -> Values {
     };
     let mut props = meta.fixed_props.clone();
     props.extend(mapped);
+    for (prop, setting) in &meta.kind_props {
+        let path = props.get(setting).and_then(Value::as_str).map(str::trim);
+        if let Some(path) = path.filter(|p| !p.is_empty()) {
+            let kind = serde_json::to_value(kind_from_path(path)).unwrap_or(Value::Null);
+            props.insert(prop.clone(), kind);
+        }
+    }
     for key in widget_keys(&meta.schema, "font") {
         match props.get(&key).and_then(Value::as_str).and_then(font_prop) {
             Some(stack) => props.insert(key, Value::from(stack)),

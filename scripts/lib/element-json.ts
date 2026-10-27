@@ -24,6 +24,7 @@ export type ElementEntry = {
   schema: Json;
   defaultProps: Json;
   fixedProps: Json;
+  kindProps?: Record<string, string>;
   defaultDurationInFrames: number;
   design?: { width: number; height: number; exact?: boolean };
   optionalClip?: true;

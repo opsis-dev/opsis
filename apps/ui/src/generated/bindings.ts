@@ -953,6 +953,7 @@ export type InspectorContext = {
 	picker: PickerTarget,
 	swatches: string[],
 	connectedInputs: string[],
+	fileKinds: { [key in string]: MediaKind },
 };
 
 export type InstalledFamily = {

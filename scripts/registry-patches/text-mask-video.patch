@@ -1,19 +1,11 @@
 Fixes:
-- The letters were a fixed size on a stage six font-sizes wide, so a line of more than about eight letters was cut off, and a chosen file showed only once the fill was switched by hand, as a video even when it was an image; the size now fits the longest line to the frame and the fill follows the file.
+- The letters were a fixed size on a stage six font-sizes wide, so a line of more than about eight letters was cut off, and a chosen file showed only once the fill was switched by hand, as a video even when it was an image; the size now fits the longest line to the frame and the fill follows the kind of the chosen file, which compile passes as `media`.
 
 diff --git a/packages/video/src/elements/remotion-ui/text-mask-video.tsx b/packages/video/src/elements/remotion-ui/text-mask-video.tsx
-index 92c69c8..bc1e5fc 100644
+index d7bf0fa..c64e2a6 100644
 --- a/packages/video/src/elements/remotion-ui/text-mask-video.tsx
 +++ b/packages/video/src/elements/remotion-ui/text-mask-video.tsx
-@@ -1,6 +1,7 @@
- import { useId } from "react";
- import type { CSSProperties } from "react";
- import { Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
-+import { kindFromPath } from "#video/common/mime.ts";
- import { scaleFont } from "#video/lib/remotion-ui/layout.ts";
- import {
-   useEnterExit,
-@@ -14,7 +15,7 @@ export type TextMaskVideoProps = EnterExitOptions & {
+@@ -14,7 +14,7 @@ export type TextMaskVideoProps = EnterExitOptions & {
    text: string;
    /** Video or image source. Wrap local files in `staticFile()`. */
    src?: string;
@@ -22,7 +14,7 @@ index 92c69c8..bc1e5fc 100644
    media?: TextMaskMedia;
    /** Fill used by `media="gradient"`. Any CSS background value. */
    gradient?: string;
-@@ -43,6 +44,9 @@ export type TextMaskVideoProps = EnterExitOptions & {
+@@ -43,6 +43,9 @@ export type TextMaskVideoProps = EnterExitOptions & {
    className?: string;
  };
  
@@ -32,7 +24,7 @@ index 92c69c8..bc1e5fc 100644
  const REVEAL_INSET: Record<
    Exclude<TextMaskVideoProps["reveal"] & string, "none">,
    (hidden: number) => string
-@@ -91,13 +95,26 @@ export const TextMaskVideo: React.FC<TextMaskVideoProps> = ({
+@@ -91,13 +94,22 @@ export const TextMaskVideo: React.FC<TextMaskVideoProps> = ({
    ...motionProps
  }) => {
    const frame = useCurrentFrame();
@@ -42,12 +34,8 @@ index 92c69c8..bc1e5fc 100644
  
 -  const kind: TextMaskMedia = media ?? (src ? "video" : "gradient");
 -  const fontSize = fontSizeProp ?? scaleFont(150, videoWidth);
-+  const fileKind: TextMaskMedia | null = src
-+    ? kindFromPath(src) === "image"
-+      ? "image"
-+      : "video"
-+    : null;
-+  const kind: TextMaskMedia = media === "gradient" || !fileKind ? "gradient" : fileKind;
++  const kind: TextMaskMedia =
++    !src || media === "gradient" ? "gradient" : media === "image" ? "image" : "video";
    const lines = text.split(/\r?\n/);
 -  const width = widthProp ?? Math.round(fontSize * 6.2);
 +  const longest = Math.max(1, ...lines.map((line) => Array.from(line).length));

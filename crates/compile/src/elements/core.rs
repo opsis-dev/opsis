@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use opsis_types::timeline::CameraPath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -966,6 +967,7 @@ fn meta<T: JsonSchema + Default + Serialize>(e: Entry) -> ElementMeta {
         schema: ParamSchema::of::<T>(),
         default_props: to_values(&T::default()),
         fixed_props: Values::new(),
+        kind_props: IndexMap::new(),
         default_duration_in_frames: e.frames,
         design: None,
         optional_clip: false,

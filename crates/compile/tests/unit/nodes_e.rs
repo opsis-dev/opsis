@@ -617,3 +617,42 @@ fn speed_lines_are_an_element_of_their_own_with_no_clip_inside() {
     assert_eq!(item["props"]["children"], Value::Null);
     assert!(item["props"].as_object().unwrap().contains_key("children"));
 }
+
+#[test]
+fn a_text_mask_fills_with_the_kind_of_file_it_is_given() {
+    let media = |src: &str| {
+        first_item("fx.remotion-ui.text-mask-video", json!({ "src": src }))
+            .1
+            .get("media")
+            .cloned()
+    };
+    assert_eq!(media("project:assets/shot.png"), Some(json!("image")));
+    assert_eq!(media("project:assets/clip.mp4"), Some(json!("video")));
+    assert_eq!(media(""), None);
+}
+
+#[test]
+fn the_inspector_knows_the_kind_of_each_file_setting() {
+    use opsis_compile::compile::compile_workflow;
+    use opsis_compile::inspector::inspector_context;
+    use opsis_compile::nodes::media::IMPORT_TYPE;
+    use opsis_types::values::MediaKind;
+    let kinds = |path: &str| {
+        let mut g = crate::helpers::Graph::default();
+        g.node("file", IMPORT_TYPE, json!({ "path": path }));
+        let wf = g.build();
+        let compiled = compile_workflow(&wf, None);
+        inspector_context(&wf, &compiled, &indexmap::IndexMap::new(), "file")
+            .unwrap()
+            .file_kinds
+    };
+    assert_eq!(
+        kinds("project:assets/shot.png").get("path"),
+        Some(&MediaKind::Image)
+    );
+    assert_eq!(
+        kinds("project:assets/talk.wav").get("path"),
+        Some(&MediaKind::Audio)
+    );
+    assert!(kinds("").is_empty());
+}

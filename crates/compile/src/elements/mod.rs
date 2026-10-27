@@ -7,6 +7,8 @@ pub mod prepared;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
+use indexmap::IndexMap;
+
 use opsis_types::timeline::Design;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -55,6 +57,7 @@ pub struct ElementMeta {
     pub schema: ParamSchema,
     pub default_props: Values,
     pub fixed_props: Values,
+    pub kind_props: IndexMap<String, String>,
     pub default_duration_in_frames: u32,
     pub design: Option<Design>,
     pub optional_clip: bool,
@@ -74,6 +77,8 @@ struct ElementEntry {
     schema: Value,
     default_props: Values,
     fixed_props: Values,
+    #[serde(default)]
+    kind_props: IndexMap<String, String>,
     default_duration_in_frames: u32,
     #[serde(default)]
     design: Option<Design>,
@@ -95,6 +100,7 @@ impl From<ElementEntry> for ElementMeta {
             schema: ParamSchema::new(e.schema),
             default_props: e.default_props,
             fixed_props: e.fixed_props,
+            kind_props: e.kind_props,
             default_duration_in_frames: e.default_duration_in_frames,
             design: e.design,
             optional_clip: e.optional_clip,

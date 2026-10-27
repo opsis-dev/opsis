@@ -15307,6 +15307,9 @@
    "lineHeight": 0.98
   },
   "fixedProps": {},
+  "kindProps": {
+   "media": "src"
+  },
   "defaultDurationInFrames": 120
  },
  {

@@ -99,6 +99,7 @@ export type CuratedElement = {
   props?: "unchecked";
   defaults?: Record<string, unknown>;
   fixedProps?: Record<string, unknown>;
+  kindProps?: Record<string, string>;
   durationInFrames?: number;
   design?: { width: number; height: number; exact?: boolean };
   kind?: "component" | "wrapper" | "presentation" | "sequencer";
@@ -629,10 +630,10 @@ const REMOTION_UI: CuratedElement[] = [
         advanced: true,
       },
     },
+    kindProps: { media: "src" },
     omit: {
       width: "internal: sized from the text",
       height: "internal: sized from the text",
-      media: "internal: the fill follows the chosen file, or the gradient without one",
     },
   }),
   ...remotionui("background", ["aurora-bg"], {

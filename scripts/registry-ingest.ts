@@ -224,7 +224,14 @@ async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved 
   if (!exported.ok) return failed([...description.problems, exported.problem]);
   const resolved = await controlsAndDuration(item, file, exported.name, cfg);
   const { controls, duration } = resolved;
-  const shown = new Set([...controls.map(([k]) => k), ...Object.keys(item.fixedProps ?? {})]);
+  const shown = new Set([
+    ...controls.map(([k]) => k),
+    ...Object.keys(item.fixedProps ?? {}),
+    ...Object.keys(item.kindProps ?? {}),
+  ]);
+  const kindProblems = Object.entries(item.kindProps ?? {})
+    .filter(([, from]) => !controls.some(([k, c]) => k === from && c.type === "asset"))
+    .map(([prop, from]) => `${key}: kindProps.${prop} names "${from}", which isn't a file setting`);
   const hidden = hiddenPropProblems({
     key,
     item,
@@ -246,6 +253,7 @@ async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved 
       ...description.problems,
       ...resolved.problems,
       ...hidden,
+      ...kindProblems,
       ...defaultProblems(key, controls, item.fixedProps),
     ],
   };

@@ -1,7 +1,6 @@
 import { useId } from "react";
 import type { CSSProperties } from "react";
 import { Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
-import { kindFromPath } from "#video/common/mime.ts";
 import { scaleFont } from "#video/lib/remotion-ui/layout.ts";
 import {
   useEnterExit,
@@ -98,12 +97,8 @@ export const TextMaskVideo: React.FC<TextMaskVideoProps> = ({
   const { width: videoWidth, height: videoHeight, fps } = useVideoConfig();
   const clipId = `mask-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
 
-  const fileKind: TextMaskMedia | null = src
-    ? kindFromPath(src) === "image"
-      ? "image"
-      : "video"
-    : null;
-  const kind: TextMaskMedia = media === "gradient" || !fileKind ? "gradient" : fileKind;
+  const kind: TextMaskMedia =
+    !src || media === "gradient" ? "gradient" : media === "image" ? "image" : "video";
   const lines = text.split(/\r?\n/);
   const longest = Math.max(1, ...lines.map((line) => Array.from(line).length));
   const fittedSize = Math.min(
