@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use opsis_compile::clip::clip_to_spec;
 use opsis_compile::elements::element_node_type;
+use opsis_compile::hosted::hosted;
 use opsis_compile::node::{CLIP_PORT, Ctx};
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
@@ -218,13 +219,13 @@ async fn draws_3d_elements_as_recorded() {
     let never = CancellationToken::new();
     let mut failures = Vec::new();
     for (name, key, params) in cases() {
-        let spec = TimelineSpec {
+        let spec = hosted(&TimelineSpec {
             assets: Some(SpecAssets {
                 project_base: Some(server.url.clone()),
                 versions: None,
             }),
             ..spec_for(key, &params)
-        };
+        });
         let file = out.join(format!("{name}.png"));
         let job = StillJob {
             target: RenderTarget {

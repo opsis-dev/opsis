@@ -4,12 +4,19 @@ use std::sync::Arc;
 
 use opsis_compile::clip::clip_to_spec;
 use opsis_compile::compile::compile_workflow;
+use opsis_compile::elements::core::CAPTIONS_ELEMENT;
 use opsis_compile::elements::{ElementKind, ElementMeta, element_node_type, elements};
+use opsis_compile::hosted::hosted;
+use opsis_compile::node::CLIP_PORT;
 use opsis_compile::nodes::output::{Gl, StillFormat};
+use opsis_compile::nodes::text::{CAPTIONS_FROM_SCRIPT_TYPE, CAPTIONS_PORT, SHOW_CAPTIONS_TYPE};
+use opsis_engine::http_files::FileServer;
 use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
+use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_render::protocol::{COMPOSITION_ID, RenderTarget, SidecarCall, StillJob};
 use opsis_render::sidecar::{Sidecar, SidecarCommand};
 use opsis_types::numbers::whole;
+use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::CompileValue;
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use serde_json::{Value, json};
@@ -46,7 +53,11 @@ fn node(id: &str, kind: &str, params: Value) -> Value {
 }
 
 fn edge(source: &str, target: &str, target_handle: &str) -> Value {
-    json!({ "id": format!("{source}->{target}.{target_handle}"), "source": source, "sourceHandle": "clip", "target": target, "targetHandle": target_handle })
+    port_edge(source, CLIP_PORT, target, target_handle)
+}
+
+fn port_edge(source: &str, source_handle: &str, target: &str, target_handle: &str) -> Value {
+    json!({ "id": format!("{source}->{target}.{target_handle}"), "source": source, "sourceHandle": source_handle, "target": target, "targetHandle": target_handle })
 }
 
 fn solid(id: &str, color: &str) -> Value {
@@ -57,13 +68,30 @@ fn solid(id: &str, color: &str) -> Value {
     )
 }
 
+struct Host {
+    bundle: PathBuf,
+    shell: PathBuf,
+    project_base: String,
+}
+
 fn workflow_for(meta: &ElementMeta) -> Workflow {
     let kind = if meta.kind == ElementKind::Presentation {
         format!("transition.{}", meta.key.replacen('/', ".", 1))
+    } else if meta.key == CAPTIONS_ELEMENT {
+        SHOW_CAPTIONS_TYPE.to_owned()
     } else {
         element_node_type(&meta.key)
     };
     let (inputs, links): (Vec<Value>, Vec<Value>) = match meta.kind {
+        _ if meta.key == CAPTIONS_ELEMENT => (
+            vec![node("script", CAPTIONS_FROM_SCRIPT_TYPE, json!({}))],
+            vec![port_edge(
+                "script",
+                CAPTIONS_PORT,
+                ELEMENT_NODE,
+                CAPTIONS_PORT,
+            )],
+        ),
         ElementKind::Presentation => (
             vec![solid("a", "#334155"), solid("b", "#7c3aed")],
             vec![edge("a", ELEMENT_NODE, "a"), edge("b", ELEMENT_NODE, "b")],
@@ -86,13 +114,7 @@ fn workflow_for(meta: &ElementMeta) -> Workflow {
     serde_json::from_value(json!({ "version": 1, "id": "elements", "name": "Elements", "nodes": nodes, "edges": links, "markers": [] })).expect("a workflow")
 }
 
-fn still_for(
-    meta: &ElementMeta,
-    at: f64,
-    bundle: &Path,
-    shell: &Path,
-    out: &Path,
-) -> Result<SidecarCall, String> {
+fn still_for(meta: &ElementMeta, at: f64, host: &Host, out: &Path) -> Result<SidecarCall, String> {
     let settings = WorkflowSettings::default();
     let compiled = compile_workflow(&workflow_for(meta), None);
     if let Some(error) = compiled.errors.get(ELEMENT_NODE) {
@@ -101,16 +123,22 @@ fn still_for(
     let Some(CompileValue::Clip(clip)) = compiled
         .values
         .get(ELEMENT_NODE)
-        .and_then(|v| v.get("clip"))
+        .and_then(|v| v.get(CLIP_PORT))
     else {
         return Err("no clip".to_owned());
     };
-    let spec = clip_to_spec(clip, &settings);
+    let spec = hosted(&TimelineSpec {
+        assets: Some(SpecAssets {
+            project_base: Some(host.project_base.clone()),
+            versions: None,
+        }),
+        ..clip_to_spec(clip, &settings)
+    });
     let width = spec.width;
     Ok(SidecarCall::RenderStill(StillJob {
         target: RenderTarget {
-            serve_url: bundle.to_string_lossy().into_owned(),
-            browser_executable: shell.to_string_lossy().into_owned(),
+            serve_url: host.bundle.to_string_lossy().into_owned(),
+            browser_executable: host.shell.to_string_lossy().into_owned(),
             binaries_directory: None,
             license_key: "free-license".into(),
             composition: COMPOSITION_ID.into(),
@@ -148,7 +176,20 @@ async fn main() {
         .to_path_buf();
     let out = home().join(".cache/opsis-element-stills");
     let temp = out.join("tmp");
-    std::fs::create_dir_all(&temp).expect("the output folder");
+    let project = temp.join("project");
+    std::fs::create_dir_all(&project).expect("the output folder");
+    let dirs = PreparedDirs {
+        project: project.clone(),
+        public: repo.join("public"),
+    };
+    let server = FileServer::start_with(&project, prepared_routes(dirs))
+        .await
+        .expect("a file server for prepared files");
+    let host = Host {
+        bundle,
+        shell,
+        project_base: server.url.clone(),
+    };
     let env = ["TMPDIR", "TEMP", "TMP"]
         .map(|k| (OsString::from(k), temp.clone().into_os_string()))
         .to_vec();
@@ -164,11 +205,11 @@ async fn main() {
     let never = CancellationToken::new();
     let chosen: Vec<&ElementMeta> = elements()
         .iter()
-        .filter(|m| !m.key.starts_with("core/") && m.key.contains(&only))
+        .filter(|m| m.key.contains(&only))
         .collect();
     let mut failures = Vec::new();
     for meta in &chosen {
-        let done = match still_for(meta, at, &bundle, &shell, &out) {
+        let done = match still_for(meta, at, &host, &out) {
             Ok(call) => sidecar
                 .call(call, &never, None)
                 .await

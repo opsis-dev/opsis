@@ -27,7 +27,9 @@ use crate::time::{frames_to_ms, ms_to_frames};
 const MS_PER_MINUTE: f64 = 60_000.0;
 const EMPTY_CAPTIONS_MS: f64 = 1000.0;
 const CAPTION_TAIL_MS: f64 = 500.0;
-const CAPTIONS_PORT: &str = "captions";
+pub const CAPTIONS_PORT: &str = "captions";
+pub const CAPTIONS_FROM_SCRIPT_TYPE: &str = "text.captionsFromText";
+pub const SHOW_CAPTIONS_TYPE: &str = "text.captions";
 
 static ENDS_SENTENCE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"[.!?…。！？]$").expect("pattern"));
@@ -245,7 +247,7 @@ impl Params for CaptionsFromScript {}
 
 fn captions_from_script() -> NodeDef {
     NodeDef::of::<CaptionsFromScript>(
-        "text.captionsFromText",
+        CAPTIONS_FROM_SCRIPT_TYPE,
         "Captions from script",
         Category::TextAndOverlays,
         Phase::Compile,
@@ -288,7 +290,7 @@ fn humanized(value: &impl Serialize) -> Option<String> {
 
 fn show_captions() -> NodeDef {
     NodeDef::of::<Captions>(
-        "text.captions",
+        SHOW_CAPTIONS_TYPE,
         "Show captions",
         Category::TextAndOverlays,
         Phase::Compile,
