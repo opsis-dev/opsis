@@ -4,6 +4,7 @@ pub mod codecs;
 pub mod executors;
 pub mod ffmpeg;
 pub mod filters;
+pub mod generate;
 pub mod grade;
 pub mod mix;
 pub mod reverse;

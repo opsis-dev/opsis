@@ -594,3 +594,49 @@ async fn shortens_pauses_after_listening_for_them_and_refuses_videos() {
     .await;
     assert!(message(result).starts_with("Shorten pauses works on sound files"));
 }
+
+async fn made_sound(kind: &str, params: Value) -> (ExecutorOutput, Vec<i16>, u32) {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(dir.path().join(".opsis/cache/h")).unwrap();
+    let setup = Setup {
+        kind,
+        params,
+        project_dir: dir.path(),
+        names: &[],
+    };
+    let (result, ran) = run(setup, sound_probe(), json!({})).await;
+    assert!(ran.is_empty());
+    let out = result.unwrap();
+    let mut reader = hound::WavReader::open(dir.path().join(&out.artifacts[0].path)).unwrap();
+    let rate = reader.spec().sample_rate;
+    let samples = reader.samples::<i16>().map(Result::unwrap).collect();
+    (out, samples, rate)
+}
+
+fn level_db(samples: &[i16]) -> f64 {
+    let mean = samples
+        .iter()
+        .map(|s| (f64::from(*s) / f64::from(i16::MAX)).powi(2))
+        .sum::<f64>()
+        / samples.len() as f64;
+    10.0 * mean.log10()
+}
+
+#[tokio::test]
+async fn makes_a_ten_second_loop_of_room_tone_at_its_level() {
+    let (out, samples, rate) =
+        made_sound("audio.roomTone", json!({ "colour": "brown", "level": -40 })).await;
+    assert_eq!(rate, 48000);
+    assert_eq!(samples.len(), 2 * 480_000);
+    assert!(
+        (level_db(&samples) + 40.0).abs() < 0.1,
+        "{}",
+        level_db(&samples)
+    );
+    let media = &out.outputs["audio"];
+    assert_eq!(
+        serde_json::to_value(media).unwrap(),
+        json!({ "type": "media", "kind": "audio", "src": "project:.opsis/cache/h/room-tone.wav", "durationMs": 10000, "hasAudio": true })
+    );
+    assert_eq!(out.artifacts[0].kind, ArtifactKind::Audio);
+}

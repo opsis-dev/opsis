@@ -3939,6 +3939,22 @@
    }
   },
   {
+   "type": "audio.roomTone",
+   "title": "Room tone",
+   "category": "Sound",
+   "description": "A quiet bed of soft noise under the whole video, so cuts and silent stretches don't drop to dead silence.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "timeline.sequence",
    "title": "Sequence",
    "category": "Timeline",
@@ -49553,6 +49569,80 @@
      "keySound": "app:sfx/key-press.wav",
      "volume": 0.6,
      "vary": true
+    }
+   }
+  },
+  {
+   "type": "audio.roomTone",
+   "title": "Room tone",
+   "category": "Sound",
+   "description": "A quiet bed of soft noise under the whole video, so cuts and silent stretches don't drop to dead silence.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "colour": {
+      "description": "Noise",
+      "type": "string",
+      "enum": [
+       "pink",
+       "brown",
+       "white"
+      ],
+      "default": "pink",
+      "x-labels": {
+       "pink": "Pink (soft)",
+       "brown": "Brown (deep)",
+       "white": "White (bright)"
+      },
+      "x-help": "Pink sounds like a quiet room, brown like a distant rumble, white like air."
+     },
+     "level": {
+      "description": "Level",
+      "type": "number",
+      "format": "double",
+      "minimum": -70,
+      "maximum": -20,
+      "default": -45.0,
+      "x-step": 1,
+      "x-unit": "dB"
+     },
+     "fadeInMs": {
+      "description": "Fade in",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 20000,
+      "default": 1000,
+      "x-step": 50,
+      "x-unit": "ms"
+     },
+     "fadeOutMs": {
+      "description": "Fade out",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 20000,
+      "default": 1000,
+      "x-step": 50,
+      "x-unit": "ms"
+     }
+    },
+    "type": "object",
+    "default": {
+     "colour": "pink",
+     "level": -45.0,
+     "fadeInMs": 1000,
+     "fadeOutMs": 1000
     }
    }
   },

@@ -410,6 +410,101 @@ fn sound_effect() -> NodeDef {
         })
 }
 
+pub const ROOM_TONE_TYPE: &str = "audio.roomTone";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum NoiseColour {
+    #[default]
+    Pink,
+    Brown,
+    White,
+}
+
+impl NoiseColour {
+    fn word(self) -> &'static str {
+        match self {
+            Self::Pink => "Pink",
+            Self::Brown => "Brown",
+            Self::White => "White",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct RoomTone {
+    #[schemars(
+        description = "Noise",
+        extend(
+            "x-labels" = { "pink": "Pink (soft)", "brown": "Brown (deep)", "white": "White (bright)" },
+            "x-help" = "Pink sounds like a quiet room, brown like a distant rumble, white like air."
+        )
+    )]
+    pub colour: NoiseColour,
+    #[default(-45.0)]
+    #[schemars(description = "Level", range(min = -70, max = -20), extend("x-step" = 1, "x-unit" = "dB"))]
+    pub level: f64,
+    #[default = 1000]
+    #[schemars(description = "Fade in", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
+    pub fade_in_ms: u32,
+    #[default = 1000]
+    #[schemars(description = "Fade out", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
+    pub fade_out_ms: u32,
+}
+
+impl Params for RoomTone {}
+
+fn made_sound<P>(ctx: &Ctx<'_, P>) -> Option<(String, Option<u32>)> {
+    let media = ctx.result?.output(AUDIO_PORT)?.as_media()?;
+    Some((media.src.clone()?, media.duration_ms))
+}
+
+fn not_made_yet() -> CardRow {
+    row(Icon::Timer, "Made when the node runs").muted_if(true)
+}
+
+fn room_tone() -> NodeDef {
+    NodeDef::of::<RoomTone>(ROOM_TONE_TYPE, "Room tone", Category::Audio, Phase::Media)
+        .describe("A quiet bed of soft noise under the whole video, so cuts and silent stretches don't drop to dead silence.")
+        .executes()
+        .outputs(vec![(AUDIO_PORT, port(PortType::Audio, "Sound"))])
+        .card(|ctx: &CardCtx<'_, RoomTone>| {
+            let p = &ctx.params;
+            vec![
+                Some(row(
+                    Icon::AudioLines,
+                    format!("{} noise · {} dB", p.colour.word(), p.level),
+                )),
+                ctx.result.is_none().then(not_made_yet),
+            ]
+        })
+        .compiles(|ctx: &Ctx<'_, RoomTone>| {
+            let p = &ctx.params;
+            let fps = ctx.settings.fps;
+            let Some((src, _)) = made_sound(ctx) else {
+                return silent_audio();
+            };
+            let mut item = AudioItem::new(ctx.node_id, src, 0);
+            item.looped = Some(true);
+            item.volume = Some(1.0);
+            item.fade_in_frames = frames_if_set(f64::from(p.fade_in_ms), fps);
+            item.fade_out_frames = frames_if_set(f64::from(p.fade_out_ms), fps);
+            item.node_id = Some(ctx.node_id.to_owned());
+            item.channel = Some(ctx.node_id.to_owned());
+            item.role = Some(AudioRole::Music);
+            item.keep_music = Some(true);
+            outputs([(
+                AUDIO_PORT,
+                CompileValue::Audio(AudioValue {
+                    items: vec![item],
+                    duration_in_frames: None,
+                    hits: None,
+                }),
+            )])
+        })
+}
+
 fn anchor_sounds(
     items: Vec<AudioItem>,
     clip: &ClipValue,
@@ -648,5 +743,6 @@ pub fn nodes() -> Vec<NodeDef> {
         sound_effect().look(NodeLook::of("lucide:audio-lines")),
         add_sound().look(NodeLook::of("lucide:audio-waveform")),
         action_sounds().look(NodeLook::of("lucide:keyboard-music")),
+        room_tone().look(NodeLook::of("iconoir:sound-low")),
     ]
 }

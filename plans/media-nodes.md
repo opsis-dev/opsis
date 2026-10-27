@@ -1,6 +1,6 @@
 # Image and sound nodes
 
-Thirteen nodes for stills and sound: four that work on images (annotate, magnify, before and after, compare), three that clean or change a sound file (clean speech, pitch, voice effects) and six that make sound (transition sounds, generated sounds, risers, room tone, tones, music fitted to the film).
+Twelve nodes for stills and sound: four that work on images (annotate, magnify, before and after, compare), three that clean or change a sound file (clean speech, pitch, voice effects) and five that make sound (transition sounds, generated sounds, risers, tones, music fitted to the film).
 
 Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code, except inside what is combined with Remotion (`packages/video`, `apps/preview`, `apps/sidecar`), where the Remotion permission in `LICENSE` covers only Opsis's own code. None of these nodes needs GPL code there.
 
@@ -36,9 +36,8 @@ Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (v
 | 8. Generated sound            | Whooshes, risers, pops, dings and swells made from settings         | `fundsp`                               | `fundsp` MIT OR Apache-2.0 | medium |
 | 9. Transition sounds          | A whoosh at every transition of a clip                              | section 8, flattened transitions       | none new                   | medium |
 | 10. Riser to a mark           | A build-up that ends exactly on an action or marker                 | section 8                              | none new                   | small  |
-| 11. Room tone                 | A quiet noise bed under a clip                                      | FFmpeg or `fundsp`                     | none new                   | small  |
-| 12. Tones and countdown beeps | Tones, beeps and countdowns                                         | FFmpeg or `fundsp`                     | none new                   | small  |
-| 13. Fit music to the film     | A song stretched or looped to end with the film                     | FFmpeg                                 | none new                   | medium |
+| 11. Tones and countdown beeps | Tones, beeps and countdowns                                         | FFmpeg or `fundsp`                     | none new                   | small  |
+| 12. Fit music to the film     | A song stretched or looped to end with the film                     | FFmpeg                                 | none new                   | medium |
 
 Left out: content-aware resize (`imageproc::seam_carving` is called rough by its own documentation), speech made from text and captions from speech (`plans/voice-and-captions.md` covers them).
 
@@ -263,24 +262,7 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 
 Nothing new.
 
-## 11. Room tone
-
-### What it adds
-
-A quiet bed of soft noise under a clip, so cuts between takes and silent stretches don't drop to dead silence.
-
-### Work
-
-1. **Settings.** Colour of noise (pink, brown, white), level, fade in and out.
-2. **Operation.** `anoisesrc` rendered once to a looping WAV (or `fundsp` noise), placed as a looped sound the length of the clip on a Music-like channel that never keys the ducking.
-3. **Card.** "Pink noise · −45 dB".
-4. **Tests.** The level matches the setting.
-
-### Licence
-
-Nothing new.
-
-## 12. Tones and countdown beeps
+## 11. Tones and countdown beeps
 
 ### What it adds
 
@@ -297,7 +279,7 @@ A tone, a beep or a countdown (three short beeps and a long one) at a time or on
 
 Nothing new.
 
-## 13. Fit music to the film
+## 12. Fit music to the film
 
 ### What it adds
 

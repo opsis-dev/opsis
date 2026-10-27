@@ -9,6 +9,7 @@ use std::sync::Arc;
 
 use futures::future::try_join_all;
 use opsis_compile::asset_ref::{kind_from_path, project_ref};
+use opsis_compile::nodes::audio::{ROOM_TONE_TYPE, RoomTone};
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
     ChangeSpeed, Encoding, EvenOutVolume, ExtractSound, FixClicks, GrabFrame, JoinFiles, MakeGif,
@@ -37,6 +38,7 @@ use crate::filters::{
     joined_parts_graph, loudnorm_filter, repair_filter, rms_level, silence_listen_filter, silences,
     sound_picture_graph, speed_args, speed_sound_args,
 };
+use crate::generate::{length_ms, room_tone, write_wav};
 use crate::grade::{GradeError, GradeSize, grade_filters};
 use crate::reverse::{
     PieceBudget, REVERSE_BUDGET_BYTES, ReversePiece, ReversedPart, WHOLE_FILE, frame_bytes,
@@ -46,6 +48,7 @@ use crate::reverse::{
 
 const CONNECT_MEDIA: &str = "Connect a media input (and run the node that produces it).";
 const MEDIA_PORT: &str = "media";
+const SOUND_PORT: &str = "audio";
 const MP4_PICTURES: [&str; 5] = ["h264", "hevc", "av1", "vp9", "mpeg4"];
 const LAST_FRAME_MARGIN_MS: f64 = 100.0;
 const PARTS_SHARE: f64 = 0.9;
@@ -1037,6 +1040,44 @@ async fn sound_picture(
     })
 }
 
+fn seed_of(text: &str) -> u64 {
+    text.bytes().fold(0xcbf2_9ce4_8422_2325, |hash, byte| {
+        (hash ^ u64::from(byte)).wrapping_mul(0x0100_0000_01b3)
+    })
+}
+
+fn made_sound(
+    ctx: &ExecutorContext,
+    file: &str,
+    label: &str,
+    samples: &[f32],
+) -> Result<ExecutorOutput, ExecError> {
+    write_wav(&ctx.dir.join(file), samples).map_err(|e| ExecError::new(e.to_string()))?;
+    let value = MediaValue {
+        src: Some(ctx.project_file_ref(file)),
+        kind: MediaKind::Audio,
+        duration_ms: Some(length_ms(samples)),
+        width: None,
+        height: None,
+        has_audio: Some(true),
+    };
+    Ok(ExecutorOutput {
+        outputs: output(SOUND_PORT, CompileValue::Media(value)),
+        artifacts: vec![artifact(ctx, ArtifactKind::Audio, file, label)],
+        trace_id: None,
+    })
+}
+
+async fn make_room_tone(
+    ctx: Arc<ExecutorContext>,
+    _inputs: PortValues,
+    _tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: RoomTone = ctx.params()?;
+    let samples = room_tone(p.colour, p.level, seed_of(&ctx.node.id));
+    made_sound(&ctx, "room-tone.wav", "Room tone", &samples)
+}
+
 async fn logged(
     ctx: &ExecutorContext,
     tools: &dyn MediaTools,
@@ -1261,5 +1302,6 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (THUMBNAIL_TYPE, bind(tools, thumbnail)),
         (FASTSTART_TYPE, bind(tools, faststart)),
         (PROBE_TYPE, bind(tools, probe)),
+        (ROOM_TONE_TYPE, bind(tools, make_room_tone)),
     ]
 }

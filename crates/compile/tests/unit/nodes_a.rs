@@ -17,8 +17,8 @@ use opsis_types::workflow::PortType;
 use serde_json::{Map, Value, json};
 
 use crate::helpers::{
-    CLIP, card_texts, clip_value, compile_clip, compile_node, node_card, parse_params, typed,
-    zoomed,
+    CLIP, card_texts, clip_value, compile_clip, compile_node, compile_node_with, node_card,
+    node_card_with, node_result, parse_params, typed, zoomed,
 };
 
 #[test]
@@ -228,6 +228,76 @@ fn knows_how_long_a_sound_effect_plays() {
             .length_frames
             .unwrap()
             > 0
+    );
+}
+
+fn made_sound_result(file: &str, duration_ms: u32) -> opsis_types::values::NodeResult {
+    node_result(json!({ "outputs": { "audio": {
+        "type": "media", "kind": "audio", "src": format!("project:.opsis/cache/h/{file}"),
+        "durationMs": duration_ms, "hasAudio": true
+    } } }))
+}
+
+fn made_item(
+    kind: &str,
+    params: Value,
+    file: &str,
+    duration_ms: u32,
+) -> opsis_types::timeline::AudioItem {
+    let result = made_sound_result(file, duration_ms);
+    match compile_node_with(kind, params, json!({}), Some(&result))
+        .unwrap()
+        .shift_remove("audio")
+    {
+        Some(CompileValue::Audio(audio)) => audio.items[0].clone(),
+        other => panic!("no sound: {other:?}"),
+    }
+}
+
+#[test]
+fn loops_room_tone_under_the_whole_film_with_its_fades() {
+    let item = made_item(
+        "audio.roomTone",
+        json!({ "fadeInMs": 500, "fadeOutMs": 2000 }),
+        "room-tone.wav",
+        10_000,
+    );
+    assert_eq!(
+        (
+            item.from,
+            item.looped,
+            item.fade_in_frames,
+            item.fade_out_frames
+        ),
+        (0, Some(true), Some(15), Some(60))
+    );
+    assert_eq!(item.role, Some(opsis_types::timeline::AudioRole::Music));
+    assert_eq!(
+        (item.channel.as_deref(), item.keep_music),
+        (Some("n"), Some(true))
+    );
+    match compile_node("audio.roomTone", json!({}), json!({})).shift_remove("audio") {
+        Some(CompileValue::Audio(audio)) => assert!(audio.items.is_empty()),
+        other => panic!("{other:?}"),
+    }
+    assert_eq!(
+        card_texts(
+            "audio.roomTone",
+            json!({ "colour": "brown", "level": -50 }),
+            CardInputs::default()
+        ),
+        ["Brown noise · -50 dB", "Made when the node runs"]
+    );
+    let made = made_sound_result("room-tone.wav", 10_000);
+    assert_eq!(
+        node_card_with(
+            "audio.roomTone",
+            json!({}),
+            CardInputs::default(),
+            Some(&made)
+        )
+        .len(),
+        1
     );
 }
 

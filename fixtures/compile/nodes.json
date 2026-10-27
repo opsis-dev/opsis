@@ -9892,6 +9892,42 @@
   }
  },
  {
+  "type": "audio.roomTone",
+  "title": "Room tone",
+  "category": "Audio",
+  "description": "A quiet bed of soft noise under the whole video, so cuts and silent stretches don't drop to dead silence.",
+  "phase": "media",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "audio",
+    "type": "audio",
+    "label": "Sound",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "colour": "pink",
+   "level": -45.0,
+   "fadeInMs": 1000,
+   "fadeOutMs": 1000
+  }
+ },
+ {
   "type": "timeline.sequence",
   "title": "Sequence",
   "category": "Timeline",
