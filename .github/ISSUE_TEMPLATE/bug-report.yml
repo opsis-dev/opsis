@@ -1,0 +1,44 @@
+name: Bug report
+description: Something in Opsis doesn't work as it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps that shows it. Attach the project folder or a template name if it helps.
+      placeholder: |
+        1. New project → Sample: to-do app
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Opsis version or commit
+      description: From Settings → About, or `git rev-parse --short HEAD` for a dev build.
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux (Wayland)
+        - Linux (X11)
+        - Windows
+        - macOS
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and screenshots
+      description: The app's log, the Run panel's log, or a screenshot. Remove anything private first.

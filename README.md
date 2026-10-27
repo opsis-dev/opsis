@@ -100,6 +100,23 @@ scripts/     registry ingest, fonts, icons, engine downloads, packaging stage
 
 Contributor rules (no code comments, kebab-case files, pinned versions, what must not regress) are in [AGENTS.md](./AGENTS.md).
 
+## Why it's built this way
+
+| Decision          | Choice                                                                                                                | Why                                                                                                                                       |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| App shape         | One Tauri 2 app: Rust for everything that touches the system, the editor in the system webview                        | A small install, a typed boundary, and one place (Rust) that owns the project, runs, settings and state that windows share.               |
+| Types and logic   | Rust is the source; TypeScript types are generated (specta, tauri-specta)                                             | Commands, events, the timeline spec and the sidecar's messages can't drift apart, and the editor keeps no copy of logic Rust already has. |
+| Canvas            | [xyflow](https://reactflow.dev) with React Flow UI's shadcn components                                                | A mature node editor whose components install like the rest of the UI.                                                                    |
+| Workflow format   | A versioned JSON graph, compiled in Rust to one `TimelineSpec`                                                        | The graph is for people; the spec is the single input the video renders from.                                                             |
+| Video engine      | [Remotion](https://www.remotion.dev): its Player in the preview page, its renderer in a Bun sidecar                   | One composition, `DemoTimeline`, renders every spec in both, so the preview matches the export frame for frame.                           |
+| Browser           | One Chrome Headless Shell for recording, previews, renders, sign-in and the element picker, driven over CDP from Rust | The same engine everywhere; Playwright's page scripts and keyboard are reused without its Node runtime.                                   |
+| Animations        | Frame-driven only: built-in elements and the Remocn, snapcn and RemotionUI registries                                 | Remotion needs every frame to be a pure function of the frame number; CSS transitions and tween libraries don't survive a render.         |
+| GSAP              | Not used                                                                                                              | Remotion's `interpolate`, `spring` and easing cover it, without GSAP's licence clause on visual builders.                                 |
+| FFmpeg            | The ffmpeg-static build, downloaded at setup and checked by sha256, never shipped                                     | Users get a known build without the app carrying it; Remotion's compositor ships its own FFmpeg for renders.                              |
+| Camera and cursor | Built on [programatic-demo](https://github.com/ashrafchowdury/programatic-demo) (MIT)                                 | It already solved the click log, auto-zoom camera, vector cursor and motion blur; its notice is kept.                                     |
+| Offline           | Nothing uses the internet unless you ask                                                                              | Engine and font downloads sit behind a button, and a film never loads anything remote.                                                    |
+| Licensing         | Apache 2.0 for Opsis; Remotion's free licence by default                                                              | Remotion is free for individuals and small companies; larger ones enter a key in Settings.                                                |
+
 ## Not built yet
 
 Each has a plan in [`plans/`](./plans):
