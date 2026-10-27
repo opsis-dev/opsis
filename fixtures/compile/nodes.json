@@ -10857,6 +10857,52 @@
   }
  },
  {
+  "type": "media.soundPicture",
+  "title": "Sound picture",
+  "category": "Media",
+  "description": "Draws a sound's waveform or spectrum as an image.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "Sound",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "kind": "waveform",
+   "width": 1920,
+   "height": 400,
+   "color": "#6366f1",
+   "colours": "magma",
+   "background": "#00000000"
+  }
+ },
+ {
   "type": "media.thumbnail",
   "title": "Grab frame",
   "category": "Media",

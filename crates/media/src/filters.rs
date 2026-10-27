@@ -210,3 +210,22 @@ pub fn rms_level(lines: &[String]) -> Option<f64> {
         .find_map(|line| line.split("RMS level dB:").nth(1))
         .and_then(|value| value.trim().parse().ok())
 }
+
+pub fn sound_picture_graph(p: &opsis_compile::nodes::media::SoundPicture) -> String {
+    use opsis_compile::nodes::media::SoundPictureKind;
+    let size = format!("{}x{}", p.width, p.height);
+    let drawn = match p.kind {
+        SoundPictureKind::Waveform => format!(
+            "showwavespic=s={size}:split_channels=0:colors={}",
+            ffmpeg_color(&p.color)
+        ),
+        SoundPictureKind::Spectrum => format!(
+            "showspectrumpic=s={size}:legend=0:color={},scale={size}",
+            p.colours.id()
+        ),
+    };
+    format!(
+        "[0:a]{drawn},format=rgba[drawn];color=c={}:s={size},format=rgba[ground];[ground][drawn]overlay=format=auto,format=rgba[out]",
+        ffmpeg_color(&p.background)
+    )
+}

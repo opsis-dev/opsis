@@ -1,12 +1,12 @@
 # Image and sound nodes
 
-Fifteen nodes for stills and sound: four that work on images (annotate, magnify, before and after, compare), five that clean or change a sound file (clean speech, shorten pauses, pitch, voice effects, sound picture) and six that make sound (transition sounds, generated sounds, risers, room tone, tones, music fitted to the film).
+Fourteen nodes for stills and sound: four that work on images (annotate, magnify, before and after, compare), four that clean or change a sound file (clean speech, shorten pauses, pitch, voice effects) and six that make sound (transition sounds, generated sounds, risers, room tone, tones, music fitted to the film).
 
 Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code, except inside what is combined with Remotion (`packages/video`, `apps/preview`, `apps/sidecar`), where the Remotion permission in `LICENSE` covers only Opsis's own code. None of these nodes needs GPL code there.
 
 ## How to read this plan
 
-- Each section is one node and can be built on its own, except where a section names another it needs (sections 11 and 12 share section 10's sound maker).
+- Each section is one node and can be built on its own, except where a section names another it needs (sections 10 and 11 share section 9's sound maker).
 - Each section has **What it adds**, **In place**, **Work** (numbered), **Licence** and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
@@ -34,13 +34,12 @@ Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (v
 | 6. Shorten pauses             | Long silences in a voice file tightened                             | FFmpeg                                 | none new                   | small  |
 | 7. Change pitch               | Pitch raised or lowered, length kept                                | FFmpeg                                 | none new                   | small  |
 | 8. Voice effects              | Telephone, radio, room and echo                                     | FFmpeg, built-in room recordings       | room recordings CC0        | medium |
-| 9. Sound picture              | A sound's waveform or spectrum as an image                          | FFmpeg                                 | none new                   | small  |
-| 10. Generated sound           | Whooshes, risers, pops, dings and swells made from settings         | `fundsp`                               | `fundsp` MIT OR Apache-2.0 | medium |
-| 11. Transition sounds         | A whoosh at every transition of a clip                              | section 10, flattened transitions      | none new                   | medium |
-| 12. Riser to a mark           | A build-up that ends exactly on an action or marker                 | section 10                             | none new                   | small  |
-| 13. Room tone                 | A quiet noise bed under a clip                                      | FFmpeg or `fundsp`                     | none new                   | small  |
-| 14. Tones and countdown beeps | Tones, beeps and countdowns                                         | FFmpeg or `fundsp`                     | none new                   | small  |
-| 15. Fit music to the film     | A song stretched or looped to end with the film                     | FFmpeg                                 | none new                   | medium |
+| 9. Generated sound            | Whooshes, risers, pops, dings and swells made from settings         | `fundsp`                               | `fundsp` MIT OR Apache-2.0 | medium |
+| 10. Transition sounds         | A whoosh at every transition of a clip                              | section 9, flattened transitions       | none new                   | medium |
+| 11. Riser to a mark           | A build-up that ends exactly on an action or marker                 | section 9                              | none new                   | small  |
+| 12. Room tone                 | A quiet noise bed under a clip                                      | FFmpeg or `fundsp`                     | none new                   | small  |
+| 13. Tones and countdown beeps | Tones, beeps and countdowns                                         | FFmpeg or `fundsp`                     | none new                   | small  |
+| 14. Fit music to the film     | A song stretched or looped to end with the film                     | FFmpeg                                 | none new                   | medium |
 
 Left out: content-aware resize (`imageproc::seam_carving` is called rough by its own documentation), speech made from text and captions from speech (`plans/voice-and-captions.md` covers them).
 
@@ -221,24 +220,7 @@ A voice or sound made to sound like a telephone, a radio, a small room, a hall o
 
 The impulse responses must be CC0 or compatible and credited in `THIRD_PARTY_NOTICES.md`.
 
-## 9. Sound picture
-
-### What it adds
-
-A sound's waveform or spectrum drawn as an image, for a podcast post or a still that shows the voice.
-
-### Work
-
-1. **Settings.** Kind (waveform, spectrum), size, colours (`color`), background.
-2. **Operation.** `showwavespic` or `showspectrumpic` to a PNG; the output is an `image` so the image nodes take it.
-3. **Card.** The kind and size.
-4. **Tests.** Arguments by string; the PNG has the asked size.
-
-### Licence
-
-Nothing new.
-
-## 10. Generated sound
+## 9. Generated sound
 
 ### What it adds
 
@@ -264,7 +246,7 @@ Whooshes, risers, pops, dings, clicks and swells made from a few settings (lengt
 
 - Sound quality depends on the presets' tuning; ship few, good ones and listen to each before adding it.
 
-## 11. Transition sounds
+## 10. Transition sounds
 
 ### What it adds
 
@@ -277,7 +259,7 @@ A whoosh at every transition in a clip, timed to each transition's middle and sc
 
 ### Work
 
-1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in or section 10's whoosh), volume, vary each hit, skip plain cuts.
+1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in or section 9's whoosh), volume, vary each hit, skip plain cuts.
 2. **Compile.** Flatten the clip, one hit per transition mark at its middle, length from the transition's; hits flagged like Action sounds' so the Timeline shows one bar.
 3. **Card.** "6 transitions · Whoosh".
 4. **Tests.** Hits land at the marks' middles through a trim and a speed change.
@@ -286,7 +268,7 @@ A whoosh at every transition in a clip, timed to each transition's middle and sc
 
 Nothing new.
 
-## 12. Riser to a mark
+## 11. Riser to a mark
 
 ### What it adds
 
@@ -294,8 +276,8 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 
 ### Work
 
-1. **Settings.** Ends on (action, marker, clip end), length before it, preset (section 10's riser, swell), with a short hit at the end on or off.
-2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render via section 10.
+1. **Settings.** Ends on (action, marker, clip end), length before it, preset (section 9's riser, swell), with a short hit at the end on or off.
+2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render via section 9.
 3. **Card.** "Rises 3 s into “Launch”".
 4. **Tests.** The sound ends on the target frame.
 
@@ -303,7 +285,7 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 
 Nothing new.
 
-## 13. Room tone
+## 12. Room tone
 
 ### What it adds
 
@@ -320,7 +302,7 @@ A quiet bed of soft noise under a clip, so cuts between takes and silent stretch
 
 Nothing new.
 
-## 14. Tones and countdown beeps
+## 13. Tones and countdown beeps
 
 ### What it adds
 
@@ -337,7 +319,7 @@ A tone, a beep or a countdown (three short beeps and a long one) at a time or on
 
 Nothing new.
 
-## 15. Fit music to the film
+## 14. Fit music to the film
 
 ### What it adds
 

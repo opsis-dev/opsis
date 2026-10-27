@@ -522,3 +522,45 @@ async fn notches_the_chosen_hum_and_its_harmonics() {
         "50 Hz when neither is heard"
     );
 }
+
+#[tokio::test]
+async fn draws_a_sound_as_one_picture_of_the_chosen_size_on_its_background() {
+    let (result, ran) = run(
+        sound_setup(
+            "media.soundPicture",
+            json!({ "width": 800, "height": 200, "color": "#ff0000", "background": "#000000" }),
+        ),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert_eq!(
+        ran[0],
+        [
+            "-i",
+            "/p/assets/voice.wav",
+            "-filter_complex",
+            "[0:a]showwavespic=s=800x200:split_channels=0:colors=#ff0000,format=rgba[drawn];color=c=#000000:s=800x200,format=rgba[ground];[ground][drawn]overlay=format=auto,format=rgba[out]",
+            "-map",
+            "[out]",
+            "-frames:v",
+            "1",
+            "/p/.opsis/cache/h/picture.png"
+        ]
+    );
+    let out = result.unwrap();
+    assert_eq!(out.artifacts[0].kind, ArtifactKind::Image);
+    let (_, ran) = run(
+        sound_setup(
+            "media.soundPicture",
+            json!({ "kind": "spectrum", "colours": "fire" }),
+        ),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert!(
+        ran[0][3]
+            .starts_with("[0:a]showspectrumpic=s=1920x400:legend=0:color=fire,scale=1920x400,")
+    );
+}

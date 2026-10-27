@@ -1,7 +1,7 @@
 use opsis_compile::nodes::media::{
     APPLY_GRADE_TYPE, CONCAT_TYPE, CONVERT_TYPE, EXTRACT_AUDIO_TYPE, FASTSTART_TYPE, GIF_TYPE,
     HUM_TYPE, IMPORT_TYPE, LOUDNORM_TYPE, PROBE_TYPE, REPAIR_TYPE, REVERSE_TYPE, SCALE_PAD_TYPE,
-    SPEED_TYPE, THUMBNAIL_TYPE, TRIM_TYPE,
+    SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE, TRIM_TYPE,
 };
 use std::future::Future;
 use std::path::Path;
@@ -12,7 +12,7 @@ use opsis_compile::asset_ref::{kind_from_path, project_ref};
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
     ChangeSpeed, Encoding, EvenOutVolume, ExtractSound, FixClicks, GrabFrame, JoinFiles, MakeGif,
-    MediaFile, RemoveHum, Resize, TrimFile, joined_files,
+    MediaFile, RemoveHum, Resize, SOUND_PICTURE_PORT, SoundPicture, TrimFile, joined_files,
 };
 use opsis_compile::registry::{node_def, node_name};
 use opsis_compile::text::{format_duration, format_precise_duration, single_quoted};
@@ -33,7 +33,7 @@ use crate::codecs::{
 use crate::ffmpeg::{MediaTools, OnProgress, ProbeResult, RunOptions, ToolError, can_stream_copy};
 use crate::filters::{
     JoinPart, JoinSize, fit_filter, gif_filter, hum_filter, hum_listen_filter, join_filter,
-    loudnorm_filter, repair_filter, rms_level, speed_args, speed_sound_args,
+    loudnorm_filter, repair_filter, rms_level, sound_picture_graph, speed_args, speed_sound_args,
 };
 use crate::grade::{GradeError, GradeSize, grade_filters};
 use crate::reverse::{
@@ -993,6 +993,48 @@ async fn hum(
     filter_sound(&ctx, &inputs, &*tools, job).await
 }
 
+async fn sound_picture(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: SoundPicture = ctx.params()?;
+    let input = require_media(inputs.get(MEDIA_PORT))?;
+    let source = ctx.ref_to_path(&input.src)?;
+    let probe = tools.probe(&source).await.map_err(tool_error)?;
+    if probe.audio.is_none() {
+        return Err(ExecError::new("This file has no sound to draw."));
+    }
+    let file = "picture.png";
+    let args = vec![
+        "-i".to_owned(),
+        source.to_string_lossy().into_owned(),
+        "-filter_complex".to_owned(),
+        sound_picture_graph(&p),
+        "-map".to_owned(),
+        "[out]".to_owned(),
+        "-frames:v".to_owned(),
+        "1".to_owned(),
+        ctx.dir.join(file).to_string_lossy().into_owned(),
+    ];
+    tools
+        .run(&args, run_options(&ctx, None, None))
+        .await
+        .map_err(tool_error)?;
+    let value = ImageValue {
+        src: Some(ctx.project_file_ref(file)),
+        width: Some(p.width),
+        height: Some(p.height),
+        scale: None,
+        body: None,
+    };
+    Ok(ExecutorOutput {
+        outputs: output(SOUND_PICTURE_PORT, CompileValue::Image(value)),
+        artifacts: vec![artifact(&ctx, ArtifactKind::Image, file, "Sound picture")],
+        trace_id: None,
+    })
+}
+
 async fn repair(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
@@ -1140,6 +1182,7 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (LOUDNORM_TYPE, bind(tools, loudnorm)),
         (REPAIR_TYPE, bind(tools, repair)),
         (HUM_TYPE, bind(tools, hum)),
+        (SOUND_PICTURE_TYPE, bind(tools, sound_picture)),
         (THUMBNAIL_TYPE, bind(tools, thumbnail)),
         (FASTSTART_TYPE, bind(tools, faststart)),
         (PROBE_TYPE, bind(tools, probe)),

@@ -4495,6 +4495,29 @@
    }
   },
   {
+   "type": "media.soundPicture",
+   "title": "Sound picture",
+   "category": "Media",
+   "description": "Draws a sound's waveform or spectrum as an image.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "media.thumbnail",
    "title": "Grab frame",
    "category": "Media",
@@ -51314,6 +51337,124 @@
      "mains": "find",
      "harmonics": 4,
      "width": 2.0
+    }
+   }
+  },
+  {
+   "type": "media.soundPicture",
+   "title": "Sound picture",
+   "category": "Media",
+   "description": "Draws a sound's waveform or spectrum as an image.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "kind": {
+      "description": "Picture",
+      "type": "string",
+      "enum": [
+       "waveform",
+       "spectrum"
+      ],
+      "default": "waveform",
+      "x-labels": {
+       "waveform": "Waveform",
+       "spectrum": "Spectrum"
+      },
+      "x-help": "A waveform shows loudness over time; a spectrum also shows pitch, low at the bottom."
+     },
+     "width": {
+      "description": "Width",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 64,
+      "maximum": 8192,
+      "default": 1920,
+      "x-unit": "px"
+     },
+     "height": {
+      "description": "Height",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 32,
+      "maximum": 4096,
+      "default": 400,
+      "x-unit": "px"
+     },
+     "color": {
+      "description": "Colour",
+      "type": "string",
+      "default": "#6366f1",
+      "x-widget": "color",
+      "x-check": {
+       "rule": "colour",
+       "message": "Pick a colour"
+      },
+      "x-show-if": {
+       "kind": [
+        "waveform"
+       ]
+      }
+     },
+     "colours": {
+      "description": "Colours",
+      "type": "string",
+      "enum": [
+       "magma",
+       "fire",
+       "viridis",
+       "rainbow",
+       "cool"
+      ],
+      "default": "magma",
+      "x-labels": {
+       "magma": "Magma",
+       "fire": "Fire",
+       "viridis": "Viridis",
+       "rainbow": "Rainbow",
+       "cool": "Cool"
+      },
+      "x-show-if": {
+       "kind": [
+        "spectrum"
+       ]
+      }
+     },
+     "background": {
+      "description": "Background",
+      "type": "string",
+      "default": "#00000000",
+      "x-widget": "color",
+      "x-check": {
+       "rule": "colour",
+       "message": "Pick a colour"
+      }
+     }
+    },
+    "type": "object",
+    "default": {
+     "kind": "waveform",
+     "width": 1920,
+     "height": 400,
+     "color": "#6366f1",
+     "colours": "magma",
+     "background": "#00000000"
     }
    }
   },

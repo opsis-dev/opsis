@@ -33,6 +33,7 @@ pub const THUMBNAIL_TYPE: &str = "media.thumbnail";
 pub const LOUDNORM_TYPE: &str = "media.loudnorm";
 pub const REPAIR_TYPE: &str = "media.repair";
 pub const HUM_TYPE: &str = "media.hum";
+pub const SOUND_PICTURE_TYPE: &str = "media.soundPicture";
 
 pub const EXTRACT_AUDIO_TYPE: &str = "media.extractAudio";
 
@@ -745,6 +746,120 @@ pub struct RemoveHum {
 
 impl Params for RemoveHum {}
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum SoundPictureKind {
+    #[default]
+    Waveform,
+    Spectrum,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum SpectrumColours {
+    #[default]
+    Magma,
+    Fire,
+    Viridis,
+    Rainbow,
+    Cool,
+}
+
+impl SpectrumColours {
+    pub fn id(self) -> &'static str {
+        match self {
+            Self::Magma => "magma",
+            Self::Fire => "fire",
+            Self::Viridis => "viridis",
+            Self::Rainbow => "rainbow",
+            Self::Cool => "cool",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct SoundPicture {
+    #[schemars(
+        description = "Picture",
+        extend(
+            "x-labels" = { "waveform": "Waveform", "spectrum": "Spectrum" },
+            "x-help" = "A waveform shows loudness over time; a spectrum also shows pitch, low at the bottom."
+        )
+    )]
+    pub kind: SoundPictureKind,
+    #[default = 1920]
+    #[schemars(description = "Width", range(min = 64, max = 8192), extend("x-unit" = "px"))]
+    pub width: u32,
+    #[default = 400]
+    #[schemars(description = "Height", range(min = 32, max = 4096), extend("x-unit" = "px"))]
+    pub height: u32,
+    #[default = "#6366f1"]
+    #[schemars(
+        description = "Colour",
+        extend(
+            "x-widget" = "color",
+            "x-check" = { "rule": "colour", "message": "Pick a colour" },
+            "x-show-if" = { "kind": ["waveform"] }
+        )
+    )]
+    pub color: String,
+    #[schemars(
+        description = "Colours",
+        extend(
+            "x-labels" = { "magma": "Magma", "fire": "Fire", "viridis": "Viridis", "rainbow": "Rainbow", "cool": "Cool" },
+            "x-show-if" = { "kind": ["spectrum"] }
+        )
+    )]
+    pub colours: SpectrumColours,
+    #[default = "#00000000"]
+    #[schemars(
+        description = "Background",
+        extend("x-widget" = "color", "x-check" = { "rule": "colour", "message": "Pick a colour" })
+    )]
+    pub background: String,
+}
+
+impl Params for SoundPicture {}
+
+pub const SOUND_PICTURE_PORT: &str = "image";
+
+fn sound_picture() -> NodeDef {
+    NodeDef::of::<SoundPicture>(
+        SOUND_PICTURE_TYPE,
+        "Sound picture",
+        Category::Media,
+        Phase::Media,
+    )
+    .describe("Draws a sound's waveform or spectrum as an image.")
+    .executes()
+    .inputs(vec![(MEDIA_PORT, port(PortType::Media, "Sound"))])
+    .outputs(vec![(SOUND_PICTURE_PORT, port(PortType::Image, "Image"))])
+    .card(|ctx: &CardCtx<'_, SoundPicture>| {
+        let p = &ctx.params;
+        let kind = match p.kind {
+            SoundPictureKind::Waveform => "Waveform",
+            SoundPictureKind::Spectrum => "Spectrum",
+        };
+        vec![Some(row(
+            Icon::AudioLines,
+            format!("{kind} · {} × {} px", p.width, p.height),
+        ))]
+    })
+    .compile(|ctx: &Ctx<'_, SoundPicture>| {
+        let image = ctx
+            .result
+            .and_then(|r| r.output(SOUND_PICTURE_PORT))
+            .filter(|v| matches!(v, CompileValue::Image(_)));
+        Ok(Some(
+            image
+                .map(|v| (SOUND_PICTURE_PORT.to_owned(), v.clone()))
+                .into_iter()
+                .collect(),
+        ))
+    })
+}
+
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct GrabFrame {
@@ -1004,6 +1119,7 @@ pub fn nodes() -> Vec<NodeDef> {
             ]
         })
         .look(NodeLook::of("lucide:unplug")),
+        sound_picture().look(NodeLook::of("lucide:chart-no-axes-column")),
         thumbnail().look(NodeLook::of("lucide:scan")),
         one_file_op::<NoSettings>(
             FASTSTART_TYPE,

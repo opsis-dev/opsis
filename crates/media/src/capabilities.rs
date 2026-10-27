@@ -34,7 +34,7 @@ pub const REQUIRED_FORMATS: [&str; 10] = [
     "webm",
 ];
 
-pub const REQUIRED_FILTERS: [&str; 70] = [
+pub const REQUIRED_FILTERS: [&str; 73] = [
     "acompressor",
     "adeclick",
     "adeclip",
@@ -89,6 +89,7 @@ pub const REQUIRED_FILTERS: [&str; 70] = [
     "noise",
     "normalize",
     "null",
+    "overlay",
     "pad",
     "palettegen",
     "paletteuse",
@@ -98,6 +99,8 @@ pub const REQUIRED_FILTERS: [&str; 70] = [
     "scale",
     "setpts",
     "setsar",
+    "showspectrumpic",
+    "showwavespic",
     "sidechaincompress",
     "split",
     "tile",

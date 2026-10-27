@@ -1,7 +1,10 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use opsis_media::filters::{hum_filter, hum_listen_filter, repair_filter, rms_level};
+use opsis_compile::nodes::media::{SoundPicture, SoundPictureKind};
+use opsis_media::filters::{
+    hum_filter, hum_listen_filter, repair_filter, rms_level, sound_picture_graph,
+};
 
 const RATE: u32 = 48_000;
 
@@ -147,4 +150,42 @@ fn hears_which_mains_hum_a_recording_has() {
         sixty > fifty + 3.0,
         "60 Hz is louder: {sixty} against {fifty}"
     );
+}
+
+fn png_size(path: &Path) -> (u32, u32) {
+    let bytes = std::fs::read(path).unwrap();
+    let at = |i: usize| u32::from_be_bytes(bytes[i..i + 4].try_into().unwrap());
+    (at(16), at(20))
+}
+
+#[test]
+#[ignore = "needs the dev engine"]
+fn draws_sound_pictures_at_the_asked_size() {
+    let dir = tempfile::tempdir().unwrap();
+    write(&dir.path().join("in.wav"), &tone(1.0));
+    for kind in [SoundPictureKind::Waveform, SoundPictureKind::Spectrum] {
+        let p = SoundPicture {
+            kind,
+            width: 640,
+            height: 160,
+            ..SoundPicture::default()
+        };
+        let out = dir.path().join("out.png");
+        let status = Command::new(ffmpeg())
+            .args(["-v", "error", "-y", "-i"])
+            .arg(dir.path().join("in.wav"))
+            .args([
+                "-filter_complex",
+                &sound_picture_graph(&p),
+                "-map",
+                "[out]",
+                "-frames:v",
+                "1",
+            ])
+            .arg(&out)
+            .status()
+            .unwrap();
+        assert!(status.success(), "{kind:?}");
+        assert_eq!(png_size(&out), (640, 160), "{kind:?}");
+    }
 }
