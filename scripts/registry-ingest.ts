@@ -33,7 +33,9 @@ import { literalOf, scratchFile } from "./lib/ts-literal";
 import {
   CURATED,
   DESCRIPTIONS,
+  LOOKS,
   REGISTRIES,
+  unknownLookKeys,
   unknownOverrideNames,
   type CuratedElement,
 } from "./registry-ingest.list";
@@ -229,6 +231,8 @@ async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved 
     ...Object.keys(item.fixedProps ?? {}),
     ...Object.keys(item.kindProps ?? {}),
   ]);
+  const look = LOOKS[key];
+  const lookProblems = look ? [] : [`${key}: no look; add one to LOOKS`];
   const kindProblems = Object.entries(item.kindProps ?? {})
     .filter(([, from]) => !controls.some(([k, c]) => k === from && c.type === "asset"))
     .map(([prop, from]) => `${key}: kindProps.${prop} names "${from}", which isn't a file setting`);
@@ -248,8 +252,10 @@ async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved 
       description: description.value,
       controls,
       duration,
+      look,
     },
     problems: [
+      ...lookProblems,
       ...description.problems,
       ...resolved.problems,
       ...hidden,
@@ -268,7 +274,7 @@ async function ingest(item: CuratedElement): Promise<WithProblems<Ingested | nul
 }
 
 async function generate(): Promise<void> {
-  const problems: string[] = [...unknownOverrideNames()];
+  const problems: string[] = [...unknownOverrideNames(), ...unknownLookKeys()];
   const ingested: Ingested[] = [];
   for (const item of CURATED) {
     const result = await ingest(item);

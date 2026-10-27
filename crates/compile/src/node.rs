@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use indexmap::IndexMap;
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::looks::NodeLook;
 use opsis_types::recording::RecordingProps;
 use opsis_types::values::{
     BrowserAction, ClipValue, CompileValue, EntriesValue, MediaKind, NodeResult, PortValues,
@@ -12,6 +13,7 @@ use opsis_types::workflow::{PortType, Workflow, WorkflowSettings};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
+use crate::elements::ElementMeta;
 use crate::errors::{CompileError, SettingsError};
 use crate::params::{ParamSchema, Params, Values};
 use crate::vars::Vars;
@@ -323,6 +325,7 @@ pub struct NodeDef {
     pub uses_project_size: bool,
     pub element: Option<String>,
     pub hidden: bool,
+    pub look: Option<NodeLook>,
     pub card_height: Option<f64>,
     pub host_defaults: Option<HostDefaultsFn>,
     check: Option<CheckFn>,
@@ -385,6 +388,7 @@ impl NodeDef {
             uses_project_size: false,
             element: None,
             hidden: false,
+            look: None,
             card_height: None,
             host_defaults: None,
             check: None,
@@ -434,6 +438,11 @@ impl NodeDef {
         self
     }
 
+    pub fn look(mut self, look: NodeLook) -> Self {
+        self.look = Some(look);
+        self
+    }
+
     pub fn executes(mut self) -> Self {
         self.executes = true;
         self
@@ -444,8 +453,9 @@ impl NodeDef {
         self
     }
 
-    pub fn element(mut self, key: impl Into<String>) -> Self {
-        self.element = Some(key.into());
+    pub fn element(mut self, meta: &ElementMeta) -> Self {
+        self.element = Some(meta.key.clone());
+        self.look = meta.look.clone();
         self
     }
 

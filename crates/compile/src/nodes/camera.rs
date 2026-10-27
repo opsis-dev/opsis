@@ -1,5 +1,6 @@
 use opsis_types::actions::{Action, ActionKind, Point, Rect};
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::recording::{CameraStyle, CameraTuning, FrameTheme, RecordingProps, WindowStyle};
 use opsis_types::timeline::{ElementRef, GroupProps};
 use opsis_types::values::{ClipValue, CompileValue, StyleEntry, TaggedRecording};
@@ -954,17 +955,17 @@ fn motion_blur() -> NodeDef {
 
 pub fn nodes() -> Vec<NodeDef> {
     vec![
-        auto_zoom(),
-        apply_style(),
-        manual_zoom(),
-        pan(),
-        follow_cursor(),
-        idle_speedup(),
-        speed_ramp(),
-        crop(),
-        device_frame(),
-        window_frame(),
-        backdrop(),
-        motion_blur(),
+        auto_zoom().look(NodeLook::of("lucide:scan-search")),
+        apply_style().look(NodeLook::of("lucide:paint-roller")),
+        manual_zoom().look(NodeLook::of("lucide:zoom-in")),
+        pan().look(NodeLook::of("lucide:move").moves(NodeMotion::Pan)),
+        follow_cursor().look(NodeLook::of("lucide:crosshair").moves(NodeMotion::Track)),
+        idle_speedup().look(NodeLook::of("lucide:skip-forward").moves(NodeMotion::NudgeRight)),
+        speed_ramp().look(NodeLook::of("lucide:chart-spline")),
+        crop().look(NodeLook::of("lucide:crop")),
+        device_frame().look(NodeLook::of("lucide:laptop").morphs("lucide:smartphone")),
+        window_frame().look(NodeLook::of("lucide:panel-top")),
+        backdrop().look(NodeLook::of("tabler:background")),
+        motion_blur().look(NodeLook::of("lucide:wind").moves(NodeMotion::Smear)),
     ]
 }

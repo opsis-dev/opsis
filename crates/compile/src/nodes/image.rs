@@ -1,4 +1,5 @@
 use opsis_types::cards::Icon;
+use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::values::CompileValue;
 use opsis_types::workflow::PortType;
 use schemars::JsonSchema;
@@ -649,12 +650,12 @@ fn format() -> NodeDef {
 
 pub fn nodes() -> Vec<NodeDef> {
     vec![
-        resize(),
-        crop(),
-        rotate(),
-        adjust(),
-        blur(),
-        place(),
-        format(),
+        resize().look(NodeLook::of("lucide:image-upscale")),
+        crop().look(NodeLook::of("tabler:crop")),
+        rotate().look(NodeLook::of("lucide:rotate-cw-square").moves(NodeMotion::Turn)),
+        adjust().look(NodeLook::of("lucide:sliders-vertical")),
+        blur().look(NodeLook::of("lucide:droplet")),
+        place().look(NodeLook::of("lucide:stamp")),
+        format().look(NodeLook::of("lucide:file-image")),
     ]
 }

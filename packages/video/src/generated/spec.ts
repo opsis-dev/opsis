@@ -429,6 +429,14 @@ export type Mosaic = {
 
 export type Motion = "spin" | "tilt-in" | "float" | "orbit" | "swing" | "still" | "keyframes";
 
+export type NodeLook = {
+	glyph: string,
+	motion?: NodeMotion,
+	morph?: string,
+};
+
+export type NodeMotion = "blur-swap" | "bob" | "caret" | "clock-wipe" | "collapse" | "dissolve" | "draw" | "fade-through" | "flare" | "flicker" | "flip" | "glitch" | "grow" | "hard-cut" | "iris" | "march" | "mask-up" | "nudge-down" | "nudge-right" | "nudge-up" | "open" | "pan" | "press" | "push" | "rack-focus" | "ripple" | "rise" | "roll" | "shimmer" | "shutter" | "slide-through" | "smear" | "snap" | "stretch" | "track" | "tracking" | "turn" | "turn-over" | "twist" | "whip" | "wipe-reveal" | "zoom-blur" | "zoom-through";
+
 export type Noise = {
 	color1: string,
 	color2: string,

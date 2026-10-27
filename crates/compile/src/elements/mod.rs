@@ -9,6 +9,7 @@ use std::sync::LazyLock;
 
 use indexmap::IndexMap;
 
+use opsis_types::looks::NodeLook;
 use opsis_types::timeline::Design;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -62,6 +63,7 @@ pub struct ElementMeta {
     pub design: Option<Design>,
     pub optional_clip: bool,
     pub thumbnail: Option<String>,
+    pub look: Option<NodeLook>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -86,6 +88,8 @@ struct ElementEntry {
     optional_clip: bool,
     #[serde(default)]
     thumbnail: Option<String>,
+    #[serde(default)]
+    look: Option<NodeLook>,
 }
 
 impl From<ElementEntry> for ElementMeta {
@@ -105,6 +109,7 @@ impl From<ElementEntry> for ElementMeta {
             design: e.design,
             optional_clip: e.optional_clip,
             thumbnail: e.thumbnail,
+            look: e.look,
         }
     }
 }

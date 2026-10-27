@@ -525,7 +525,7 @@ fn element_node(meta: &'static ElementMeta) -> NodeDef {
         Phase::Compile,
         element_schema(meta),
     )
-    .element(meta.key.clone())
+    .element(meta)
     .inputs(inputs)
     .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
     .card(move |ctx: &CardCtx<'_, Values>| {
@@ -653,7 +653,7 @@ fn sequencer_node(meta: &'static ElementMeta) -> NodeDef {
         Phase::Compile,
         schema,
     )
-    .element(meta.key.clone())
+    .element(meta)
     .inputs(clip_ports(scene_label))
     .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
     .card(sequencer_card)

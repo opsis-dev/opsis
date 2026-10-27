@@ -7,6 +7,7 @@ mod helpers;
 mod hosted;
 mod keyframes;
 mod lengths;
+mod looks;
 mod mix;
 mod nodes_a;
 mod nodes_b;

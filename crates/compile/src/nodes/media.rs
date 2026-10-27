@@ -1,6 +1,7 @@
 use std::collections::BTreeSet;
 
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::looks::NodeLook;
 use opsis_types::mix::LOUDNESS_TARGETS;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
 use opsis_types::values::{ClipValue, CompileValue, MediaKind, MediaValue, NodeResult};
@@ -783,8 +784,8 @@ fn thumbnail() -> NodeDef {
 
 pub fn nodes() -> Vec<NodeDef> {
     vec![
-        import(),
-        use_as_clip(),
+        import().look(NodeLook::of("lucide:file-play")),
+        use_as_clip().look(NodeLook::of("lucide:film").morphs("lucide:clapperboard")),
         one_file_op::<TrimFile>(
             TRIM_TYPE,
             "Trim file",
@@ -799,8 +800,9 @@ pub fn nodes() -> Vec<NodeDef> {
                 )),
                 length_row(ctx.result, Icon::Clock),
             ]
-        }),
-        join_files(),
+        })
+        .look(NodeLook::of("lucide:scissors-line-dashed")),
+        join_files().look(NodeLook::of("lucide:combine")),
         one_file_op::<ChangeSpeed>(
             SPEED_TYPE,
             "Change speed",
@@ -817,7 +819,8 @@ pub fn nodes() -> Vec<NodeDef> {
                     row(Icon::VolumeX, "No sound")
                 }),
             ]
-        }),
+        })
+        .look(NodeLook::of("lucide:fast-forward")),
         one_file_op::<NoSettings>(REVERSE_TYPE, "Reverse", "Plays a file backwards.")
             .uses_project_size()
             .card(|ctx: &CardCtx<'_, NoSettings>| {
@@ -825,7 +828,8 @@ pub fn nodes() -> Vec<NodeDef> {
                     Some(row(Icon::RefreshCw, "Plays backwards")),
                     length_row(ctx.result, Icon::Clock),
                 ]
-            }),
+            })
+            .look(NodeLook::of("lucide:rewind")),
         one_file_op::<Resize>(
             SCALE_PAD_TYPE,
             "Resize",
@@ -837,7 +841,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 Some(row(Icon::Ratio, format!("{} × {}", p.width, p.height))),
                 Some(row(Icon::Maximize, p.mode.row())),
             ]
-        }),
+        })
+        .look(NodeLook::of("lucide:scaling")),
         one_file_op::<Encoding>(
             CONVERT_TYPE,
             "Convert",
@@ -845,8 +850,9 @@ pub fn nodes() -> Vec<NodeDef> {
         )
         .card(|ctx: &CardCtx<'_, Encoding>| {
             vec![Some(format_row(ctx.params.codec, ctx.params.crf))]
-        }),
-        apply_grade(),
+        })
+        .look(NodeLook::of("lucide:file-cog")),
+        apply_grade().look(NodeLook::of("lucide:swatch-book")),
         one_file_op::<MakeGif>(
             GIF_TYPE,
             "Make GIF",
@@ -861,7 +867,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 )),
                 p.r#loop.then(|| row(Icon::Repeat, "Loops")),
             ]
-        }),
+        })
+        .look(NodeLook::of("lucide:image-play")),
         one_file_op::<ExtractSound>(
             EXTRACT_AUDIO_TYPE,
             "Extract sound",
@@ -873,7 +880,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 .and_then(|v| v.as_str().map(str::to_uppercase))
                 .unwrap_or_default();
             vec![Some(row(Icon::AudioLines, format))]
-        }),
+        })
+        .look(NodeLook::of("lucide:file-music")),
         one_file_op::<EvenOutVolume>(
             LOUDNORM_TYPE,
             "Even out volume",
@@ -884,8 +892,9 @@ pub fn nodes() -> Vec<NodeDef> {
                 Icon::Volume2,
                 loudness_name(ctx.params.integrated),
             ))]
-        }),
-        thumbnail(),
+        })
+        .look(NodeLook::of("lucide:volume-2")),
+        thumbnail().look(NodeLook::of("lucide:scan")),
         one_file_op::<NoSettings>(
             FASTSTART_TYPE,
             "Web-ready",
@@ -896,7 +905,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 Some(row(Icon::Globe, "Starts playing before it fully loads")),
                 length_row(ctx.result, Icon::Clock),
             ]
-        }),
-        probe(),
+        })
+        .look(NodeLook::of("lucide:zap")),
+        probe().look(NodeLook::of("lucide:info")),
     ]
 }

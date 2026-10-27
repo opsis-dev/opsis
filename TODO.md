@@ -25,7 +25,6 @@ Ideas that were discussed but never finalized or planned.
 - [ ] A keep-quality encode option for the file nodes, in place of the fixed H.264 at quality 18 and `yuv420p`.
 - [ ] A lossless checkpoint node that renders a clip's finished picture to a file the rest of the graph plays.
 - [ ] Recording the page's own sound in a take.
-- [ ] Node looks on `NodeDef` (`crates/compile/src/node.rs`), so `NODE_LOOKS` in `apps/ui/src/nodes/looks.ts` comes from the catalogue instead of a list kept by hand.
 - [ ] An Open terminal session source.
 - [ ] An App window session source.
 - [ ] A Moments node that marks clicks and typing by hand on an imported video.

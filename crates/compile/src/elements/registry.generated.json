@@ -92,7 +92,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 60
+  "defaultDurationInFrames": 60,
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "blur-swap"
+  }
  },
  {
   "key": "remocn/typewriter",
@@ -204,7 +208,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:text-cursor",
+   "motion": "caret"
+  }
  },
  {
   "key": "remocn/shimmer-sweep",
@@ -300,7 +308,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "shimmer"
+  }
  },
  {
   "key": "remocn/matrix-decode",
@@ -405,7 +417,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:binary",
+   "morph": "lucide:type"
+  }
  },
  {
   "key": "remocn/slot-machine-roll",
@@ -497,7 +513,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "roll"
+  }
  },
  {
   "key": "remocn/staggered-fade-up",
@@ -603,7 +623,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "rise"
+  }
  },
  {
   "key": "remocn/kinetic-center-build",
@@ -702,6 +726,9 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:text-align-center"
   }
  },
  {
@@ -798,7 +825,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "mask-up"
+  }
  },
  {
   "key": "remocn/tracking-in",
@@ -906,6 +937,10 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "tracking"
   }
  },
  {
@@ -1014,6 +1049,10 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "push"
   }
  },
  {
@@ -1178,7 +1217,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "glitch"
+  }
  },
  {
   "key": "remocn/gradient-scale-cut-text",
@@ -1352,6 +1395,10 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "snap"
   }
  },
  {
@@ -1458,6 +1505,10 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:strikethrough",
+   "morph": "lucide:type"
   }
  },
  {
@@ -1554,7 +1605,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:text-align-start"
+  }
  },
  {
   "key": "remocn/marker-highlight",
@@ -1672,7 +1726,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:highlighter"
+  }
  },
  {
   "key": "remocn/inline-highlight",
@@ -1780,7 +1837,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:square-dashed-text"
+  }
  },
  {
   "key": "remocn/ink-underline",
@@ -1907,6 +1967,10 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:underline",
+   "motion": "draw"
   }
  },
  {
@@ -2054,6 +2118,10 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:lasso",
+   "motion": "draw"
   }
  },
  {
@@ -2224,6 +2292,10 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "tabler:arrow-curve-right",
+   "motion": "draw"
   }
  },
  {
@@ -2388,7 +2460,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 180
+  "defaultDurationInFrames": 180,
+  "look": {
+   "glyph": "lucide:command"
+  }
  },
  {
   "key": "remocn/confetti",
@@ -2518,6 +2593,9 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:party-popper"
   }
  },
  {
@@ -2647,7 +2725,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:sparkle"
+  }
  },
  {
   "key": "remocn/whip-pan",
@@ -2689,7 +2770,11 @@
    "blur": 24
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 114
+  "defaultDurationInFrames": 114,
+  "look": {
+   "glyph": "lucide:move-horizontal",
+   "motion": "whip"
+  }
  },
  {
   "key": "remocn/push-through",
@@ -2728,7 +2813,11 @@
    "blur": 14
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 112
+  "defaultDurationInFrames": 112,
+  "look": {
+   "glyph": "lucide:arrow-right-to-line",
+   "motion": "push"
+  }
  },
  {
   "key": "remocn/zoom-blur",
@@ -2767,7 +2856,11 @@
    "rise": 0
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 114
+  "defaultDurationInFrames": 114,
+  "look": {
+   "glyph": "lucide:expand",
+   "motion": "zoom-blur"
+  }
  },
  {
   "key": "remocn/focus-pull",
@@ -2797,7 +2890,11 @@
    "blur": 16
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 114
+  "defaultDurationInFrames": 114,
+  "look": {
+   "glyph": "lucide:focus",
+   "motion": "rack-focus"
+  }
  },
  {
   "key": "remocn/lens-zoom",
@@ -2862,7 +2959,11 @@
    "colorSplit": true
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 112
+  "defaultDurationInFrames": 112,
+  "look": {
+   "glyph": "lucide:zoom-in",
+   "motion": "zoom-through"
+  }
  },
  {
   "key": "remocn/ripple-zoom",
@@ -2964,7 +3065,11 @@
    "noise": 0.5
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 116
+  "defaultDurationInFrames": 116,
+  "look": {
+   "glyph": "tabler:ripple",
+   "motion": "ripple"
+  }
  },
  {
   "key": "remocn/wave-wipe",
@@ -3065,7 +3170,11 @@
    "zoom": 1.16
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 116
+  "defaultDurationInFrames": 116,
+  "look": {
+   "glyph": "lucide:sliders-horizontal",
+   "motion": "wipe-reveal"
+  }
  },
  {
   "key": "remocn/smoke-dissolve",
@@ -3135,7 +3244,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 116
+  "defaultDurationInFrames": 116,
+  "look": {
+   "glyph": "lucide:cloud-fog",
+   "motion": "dissolve"
+  }
  },
  {
   "key": "remocn/glitch-cut",
@@ -3192,7 +3305,11 @@
    "blockNoise": 0.6
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 78
+  "defaultDurationInFrames": 78,
+  "look": {
+   "glyph": "lucide:zap",
+   "motion": "glitch"
+  }
  },
  {
   "key": "remocn/page-turn",
@@ -3231,7 +3348,11 @@
    "poses": 8
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 128
+  "defaultDurationInFrames": 128,
+  "look": {
+   "glyph": "lucide:book-open",
+   "motion": "flip"
+  }
  },
  {
   "key": "remocn/grain-dissolve",
@@ -3328,7 +3449,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 116
+  "defaultDurationInFrames": 116,
+  "look": {
+   "glyph": "tabler:grain",
+   "motion": "dissolve"
+  }
  },
  {
   "key": "remocn/dither-dissolve",
@@ -3394,7 +3519,11 @@
    "speed": 1.5
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 100
+  "defaultDurationInFrames": 100,
+  "look": {
+   "glyph": "lucide:grip",
+   "motion": "dissolve"
+  }
  },
  {
   "key": "remocn/swirl-dissolve",
@@ -3476,7 +3605,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 116
+  "defaultDurationInFrames": 116,
+  "look": {
+   "glyph": "tabler:spiral",
+   "motion": "dissolve"
+  }
  },
  {
   "key": "remocn/particle-dissolve",
@@ -3555,7 +3688,11 @@
    "stagger": 0.55
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 84
+  "defaultDurationInFrames": 84,
+  "look": {
+   "glyph": "lucide:sparkles",
+   "motion": "dissolve"
+  }
  },
  {
   "key": "remocn/shader-mesh-gradient",
@@ -3628,7 +3765,10 @@
    ]
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 150
+  "defaultDurationInFrames": 150,
+  "look": {
+   "glyph": "lucide:blend"
+  }
  },
  {
   "key": "remocn/shader-grain-gradient",
@@ -3756,7 +3896,10 @@
    "rotation": 0
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 150
+  "defaultDurationInFrames": 150,
+  "look": {
+   "glyph": "tabler:noise-reduction"
+  }
  },
  {
   "key": "remocn/shader-warp",
@@ -3847,7 +3990,10 @@
    ]
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 150
+  "defaultDurationInFrames": 150,
+  "look": {
+   "glyph": "lucide:droplets"
+  }
  },
  {
   "key": "remocn/shader-swirl",
@@ -3937,7 +4083,10 @@
    ]
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 150
+  "defaultDurationInFrames": 150,
+  "look": {
+   "glyph": "tabler:spiral"
+  }
  },
  {
   "key": "remocn/shader-god-rays",
@@ -4039,7 +4188,10 @@
    "colorBloom": "#3a3a5c"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 150
+  "defaultDurationInFrames": 150,
+  "look": {
+   "glyph": "lucide:sunrise"
+  }
  },
  {
   "key": "remocn/shader-perlin-noise",
@@ -4107,7 +4259,10 @@
    "colorFront": "#6a6a85"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 150
+  "defaultDurationInFrames": 150,
+  "look": {
+   "glyph": "lucide:cloudy"
+  }
  },
  {
   "key": "remocn/shader-dithering",
@@ -4201,7 +4356,10 @@
    "type": "4x4"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 150
+  "defaultDurationInFrames": 150,
+  "look": {
+   "glyph": "lucide:grip"
+  }
  },
  {
   "key": "remocn/crt-screen",
@@ -4258,7 +4416,10 @@
    "vignette": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:tv-minimal"
+  }
  },
  {
   "key": "remocn/vhs-filter",
@@ -4315,7 +4476,10 @@
    "intensity": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:cassette-tape"
+  }
  },
  {
   "key": "remocn/halftone-print",
@@ -4373,7 +4537,10 @@
    "paperTint": "#f4efe4"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "tabler:grid-dots"
+  }
  },
  {
   "key": "remocn/camera-lens",
@@ -4439,7 +4606,11 @@
    "distortion": 0.05
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:aperture",
+   "motion": "rack-focus"
+  }
  },
  {
   "key": "remocn/polaroid",
@@ -4525,7 +4696,10 @@
    "captionColor": "#26242c"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 150
+  "defaultDurationInFrames": 150,
+  "look": {
+   "glyph": "tabler:polaroid"
+  }
  },
  {
   "key": "remocn/tv-power-off",
@@ -4583,7 +4757,11 @@
    "phosphor": "#d8ecff"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 62
+  "defaultDurationInFrames": 62,
+  "look": {
+   "glyph": "lucide:tv",
+   "motion": "collapse"
+  }
  },
  {
   "key": "remocn/speed-lines",
@@ -4715,7 +4893,10 @@
   "fixedProps": {
    "children": null
   },
-  "defaultDurationInFrames": 55
+  "defaultDurationInFrames": 55,
+  "look": {
+   "glyph": "lucide:chevrons-right"
+  }
  },
  {
   "key": "remocn/spring-settle",
@@ -4826,7 +5007,10 @@
    "loop": false
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 213
+  "defaultDurationInFrames": 213,
+  "look": {
+   "glyph": "tabler:carousel-vertical"
+  }
  },
  {
   "key": "remocn/terminal-simulator",
@@ -5025,7 +5209,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 240
+  "defaultDurationInFrames": 240,
+  "look": {
+   "glyph": "lucide:square-terminal"
+  }
  },
  {
   "key": "remocn/glass-code-block",
@@ -5128,7 +5315,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 180
+  "defaultDurationInFrames": 180,
+  "look": {
+   "glyph": "lucide:square-code"
+  }
  },
  {
   "key": "remocn/code-morph",
@@ -5268,7 +5458,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 138
+  "defaultDurationInFrames": 138,
+  "look": {
+   "glyph": "lucide:code-xml",
+   "morph": "lucide:braces"
+  }
  },
  {
   "key": "remocn/logo-enter",
@@ -5415,6 +5609,9 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:layout-grid-circles"
   }
  },
  {
@@ -5624,7 +5821,10 @@
    "background": "white"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 360
+  "defaultDurationInFrames": 360,
+  "look": {
+   "glyph": "lucide:list-checks"
+  }
  },
  {
   "key": "remocn/search-reveal",
@@ -5775,7 +5975,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 108
+  "defaultDurationInFrames": 108,
+  "look": {
+   "glyph": "lucide:search"
+  }
  },
  {
   "key": "remocn/agent-run",
@@ -6005,7 +6208,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 355
+  "defaultDurationInFrames": 355,
+  "look": {
+   "glyph": "lucide:bot"
+  }
  },
  {
   "key": "remocn/animated-bar-chart",
@@ -6202,6 +6408,10 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:chart-column",
+   "motion": "grow"
   }
  },
  {
@@ -6318,7 +6528,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 90
+  "defaultDurationInFrames": 90,
+  "look": {
+   "glyph": "lucide:chart-line",
+   "motion": "draw"
+  }
  },
  {
   "key": "remocn/rolling-number",
@@ -6400,6 +6614,10 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:hash",
+   "motion": "roll"
   }
  },
  {
@@ -6547,6 +6765,9 @@
    "width": 1280,
    "height": 720,
    "exact": true
+  },
+  "look": {
+   "glyph": "lucide:user-plus"
   }
  },
  {
@@ -6688,6 +6909,9 @@
    "width": 1280,
    "height": 720,
    "exact": true
+  },
+  "look": {
+   "glyph": "lucide:wand-sparkles"
   }
  },
  {
@@ -6953,6 +7177,9 @@
    "width": 1280,
    "height": 720,
    "exact": true
+  },
+  "look": {
+   "glyph": "lucide:search-code"
   }
  },
  {
@@ -7101,7 +7328,10 @@
    "musicVolume": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 300
+  "defaultDurationInFrames": 300,
+  "look": {
+   "glyph": "lucide:rocket"
+  }
  },
  {
   "key": "remocn/launch-anything",
@@ -7467,7 +7697,10 @@
    "musicVolume": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 600
+  "defaultDurationInFrames": 600,
+  "look": {
+   "glyph": "lucide:film"
+  }
  },
  {
   "key": "snapcn/laptop-frame",
@@ -7713,6 +7946,10 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:laptop",
+   "motion": "open"
   }
  },
  {
@@ -7942,6 +8179,9 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:smartphone"
   }
  },
  {
@@ -8233,7 +8473,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 240
+  "defaultDurationInFrames": 240,
+  "look": {
+   "glyph": "lucide:monitor-play"
+  }
  },
  {
   "key": "snapcn/announce-title",
@@ -8409,7 +8652,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 170
+  "defaultDurationInFrames": 170,
+  "look": {
+   "glyph": "lucide:megaphone"
+  }
  },
  {
   "key": "snapcn/punch-lines",
@@ -8784,7 +9030,11 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 144
+  "defaultDurationInFrames": 144,
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "hard-cut"
+  }
  },
  {
   "key": "snapcn/text-highlight",
@@ -9138,7 +9388,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 56
+  "defaultDurationInFrames": 56,
+  "look": {
+   "glyph": "lucide:baseline"
+  }
  },
  {
   "key": "snapcn/status-cycle",
@@ -9472,7 +9725,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 198
+  "defaultDurationInFrames": 198,
+  "look": {
+   "glyph": "lucide:badge"
+  }
  },
  {
   "key": "snapcn/logo-assemble",
@@ -9694,7 +9950,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 180
+  "defaultDurationInFrames": 180,
+  "look": {
+   "glyph": "lucide:orbit"
+  }
  },
  {
   "key": "snapcn/logo-drift",
@@ -10190,7 +10449,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 180
+  "defaultDurationInFrames": 180,
+  "look": {
+   "glyph": "lucide:cloud"
+  }
  },
  {
   "key": "snapcn/hero-launch",
@@ -10318,7 +10580,10 @@
    "fontFamily": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 180
+  "defaultDurationInFrames": 180,
+  "look": {
+   "glyph": "lucide:presentation"
+  }
  },
  {
   "key": "remotion-ui/grid-pixelate-wipe",
@@ -10394,7 +10659,11 @@
    "stagger": 0.82
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 26
+  "defaultDurationInFrames": 26,
+  "look": {
+   "glyph": "lucide:grid-2x2",
+   "motion": "wipe-reveal"
+  }
  },
  {
   "key": "remotion-ui/frosted-glass-wipe",
@@ -10455,7 +10724,11 @@
    "frostColor": "rgba(255,255,255,0.12)"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 24
+  "defaultDurationInFrames": 24,
+  "look": {
+   "glyph": "tabler:blur",
+   "motion": "wipe-reveal"
+  }
  },
  {
   "key": "remotion-ui/chromatic-aberration-wipe",
@@ -10501,7 +10774,11 @@
    "slide": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 14
+  "defaultDurationInFrames": 14,
+  "look": {
+   "glyph": "tabler:color-filter",
+   "motion": "slide-through"
+  }
  },
  {
   "key": "remotion-ui/transition-blinds",
@@ -10565,7 +10842,11 @@
    "edgeSoftness": 0.06
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 24
+  "defaultDurationInFrames": 24,
+  "look": {
+   "glyph": "lucide:blinds",
+   "motion": "shutter"
+  }
  },
  {
   "key": "remotion-ui/transition-morph-shape",
@@ -10652,7 +10933,11 @@
    "warp": 0
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 24
+  "defaultDurationInFrames": 24,
+  "look": {
+   "glyph": "lucide:square",
+   "morph": "lucide:circle"
+  }
  },
  {
   "key": "remotion-ui/stat-card",
@@ -10802,7 +11087,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 123
+  "defaultDurationInFrames": 123,
+  "look": {
+   "glyph": "lucide:circle-gauge"
+  }
  },
  {
   "key": "remotion-ui/metric-ticker",
@@ -11012,7 +11300,10 @@
    "theme": "dark"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:trending-up"
+  }
  },
  {
   "key": "remotion-ui/funnel-chart",
@@ -11226,6 +11517,9 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:funnel"
   }
  },
  {
@@ -11446,6 +11740,9 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:chart-pie"
   }
  },
  {
@@ -11682,6 +11979,9 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:chart-bar"
   }
  },
  {
@@ -12014,6 +12314,9 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:chart-bar-decreasing"
   }
  },
  {
@@ -12158,7 +12461,10 @@
    "labelColor": "rgba(250,250,250,0.58)"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:gauge"
+  }
  },
  {
   "key": "remotion-ui/data-story",
@@ -12543,7 +12849,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 420
+  "defaultDurationInFrames": 420,
+  "look": {
+   "glyph": "lucide:chart-area"
+  }
  },
  {
   "key": "remotion-ui/logo-reveal",
@@ -12654,7 +12963,11 @@
    "fill": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:pen-tool",
+   "motion": "draw"
+  }
  },
  {
   "key": "remotion-ui/pricing-card",
@@ -12834,7 +13147,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:badge-dollar-sign"
+  }
  },
  {
   "key": "remotion-ui/comparison-table",
@@ -13081,7 +13397,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:table-2"
+  }
  },
  {
   "key": "remotion-ui/changelog-entry",
@@ -13273,7 +13592,10 @@
    "kindRemoved": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:rotate-ccw-clock"
+  }
  },
  {
   "key": "remotion-ui/logo-wall",
@@ -13496,7 +13818,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:layout-grid"
+  }
  },
  {
   "key": "remotion-ui/end-card",
@@ -13626,7 +13951,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 150
+  "defaultDurationInFrames": 150,
+  "look": {
+   "glyph": "lucide:flag"
+  }
  },
  {
   "key": "remotion-ui/code-reveal",
@@ -13740,7 +14068,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 165
+  "defaultDurationInFrames": 165,
+  "look": {
+   "glyph": "lucide:code"
+  }
  },
  {
   "key": "remotion-ui/code-diff-wipe",
@@ -13836,7 +14167,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 135
+  "defaultDurationInFrames": 135,
+  "look": {
+   "glyph": "lucide:file-diff"
+  }
  },
  {
   "key": "remotion-ui/kanban-move",
@@ -14058,7 +14392,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:square-kanban"
+  }
  },
  {
   "key": "remotion-ui/file-tree-reveal",
@@ -14169,7 +14506,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:folder-tree"
+  }
  },
  {
   "key": "remotion-ui/drag-drop-flow",
@@ -14303,7 +14643,10 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 150
+  "defaultDurationInFrames": 150,
+  "look": {
+   "glyph": "lucide:cloud-upload"
+  }
  },
  {
   "key": "remotion-ui/commit-graph",
@@ -14522,7 +14865,11 @@
    "backgroundColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:git-graph",
+   "motion": "draw"
+  }
  },
  {
   "key": "remotion-ui/notification-stack",
@@ -14714,7 +15061,10 @@
    "speed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:bell"
+  }
  },
  {
   "key": "remotion-ui/device-mockup-zoom",
@@ -14809,7 +15159,10 @@
   },
   "fixedProps": {},
   "defaultDurationInFrames": 90,
-  "optionalClip": true
+  "optionalClip": true,
+  "look": {
+   "glyph": "lucide:laptop-minimal"
+  }
  },
  {
   "key": "remotion-ui/multi-device-lineup",
@@ -14904,6 +15257,9 @@
   "design": {
    "width": 1920,
    "height": 1080
+  },
+  "look": {
+   "glyph": "lucide:monitor-smartphone"
   }
  },
  {
@@ -15026,7 +15382,11 @@
    "fontWeight": "600"
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:signature",
+   "motion": "draw"
+  }
  },
  {
   "key": "remotion-ui/neon-flicker-text",
@@ -15177,7 +15537,11 @@
    "offColor": ""
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:type",
+   "motion": "flicker"
+  }
  },
  {
   "key": "remotion-ui/text-mask-video",
@@ -15310,7 +15674,10 @@
   "kindProps": {
    "media": "src"
   },
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:type-outline"
+  }
  },
  {
   "key": "remotion-ui/aurora-bg",
@@ -15452,7 +15819,10 @@
    "seed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "tabler:wave-sine"
+  }
  },
  {
   "key": "remotion-ui/particle-field",
@@ -15573,6 +15943,9 @@
    "seed": 1
   },
   "fixedProps": {},
-  "defaultDurationInFrames": 120
+  "defaultDurationInFrames": 120,
+  "look": {
+   "glyph": "lucide:sparkles"
+  }
  }
 ]

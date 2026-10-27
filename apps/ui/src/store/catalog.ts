@@ -10,6 +10,7 @@ import {
   type PortType,
   type TemplateInfo,
   type MixerBook,
+  type NodeLook,
   type SettingsBook,
   type ShapeChoice,
   type SoundChoice,
@@ -17,6 +18,7 @@ import {
   type Theme,
   type TextRules,
 } from "@/generated/bindings";
+import { FALLBACK_LOOK } from "@/nodes/looks";
 
 type Params = Record<string, unknown>;
 
@@ -120,6 +122,8 @@ export const NO_TRANSITION = "none";
 export const transitionTitle = (kind: string): string => loaded.transitions[kind] ?? kind;
 
 export const catalogNodes = (): readonly EditorNode[] => loaded.nodes;
+
+export const nodeLook = (type: string): NodeLook => loaded.byType.get(type)?.look ?? FALLBACK_LOOK;
 
 export const visibleNodes = (): EditorNode[] => loaded.nodes.filter((n) => !n.hidden);
 

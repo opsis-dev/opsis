@@ -1,6 +1,6 @@
 import { pascalCase } from "@opsis/video/common/format";
 import type { StepRange } from "@opsis/video/common/math";
-import type { FieldWidget } from "@opsis/video/generated/spec";
+import type { FieldWidget, NodeLook } from "@opsis/video/generated/spec";
 import type { ElementCategory } from "./lib/element-meta";
 
 type RegistryCategory = Exclude<ElementCategory, "core">;
@@ -294,6 +294,121 @@ export const DESCRIPTIONS: Partial<Record<string, string>> = {
     "A laptop that opens, shows a notification in its notch, then moves the camera into the screen until your clip fills the frame.",
   "phone-frame":
     "A phone frame with a notch and a screen slot for your clip, flat or tilted, with rise, rotate-in or float entrances.",
+};
+
+export const LOOKS: Partial<Record<string, NodeLook>> = {
+  "remocn/soft-blur-in": { glyph: "lucide:type", motion: "blur-swap" },
+  "remocn/typewriter": { glyph: "lucide:text-cursor", motion: "caret" },
+  "remocn/shimmer-sweep": { glyph: "lucide:type", motion: "shimmer" },
+  "remocn/matrix-decode": { glyph: "lucide:binary", morph: "lucide:type" },
+  "remocn/slot-machine-roll": { glyph: "lucide:type", motion: "roll" },
+  "remocn/staggered-fade-up": { glyph: "lucide:type", motion: "rise" },
+  "remocn/kinetic-center-build": { glyph: "lucide:text-align-center" },
+  "remocn/mask-reveal-up": { glyph: "lucide:type", motion: "mask-up" },
+  "remocn/tracking-in": { glyph: "lucide:type", motion: "tracking" },
+  "remocn/word-push": { glyph: "lucide:type", motion: "push" },
+  "remocn/rgb-glitch-text": { glyph: "lucide:type", motion: "glitch" },
+  "remocn/gradient-scale-cut-text": { glyph: "lucide:type", motion: "snap" },
+  "remocn/strikethrough-replace": { glyph: "lucide:strikethrough", morph: "lucide:type" },
+  "remocn/line-by-line-slide": { glyph: "lucide:text-align-start" },
+  "remocn/marker-highlight": { glyph: "lucide:highlighter" },
+  "remocn/inline-highlight": { glyph: "lucide:square-dashed-text" },
+  "remocn/ink-underline": { glyph: "lucide:underline", motion: "draw" },
+  "remocn/scribble-circle": { glyph: "lucide:lasso", motion: "draw" },
+  "remocn/ink-arrow": { glyph: "tabler:arrow-curve-right", motion: "draw" },
+  "remocn/keystroke": { glyph: "lucide:command" },
+  "remocn/confetti": { glyph: "lucide:party-popper" },
+  "remocn/radial-burst": { glyph: "lucide:sparkle" },
+  "remocn/shader-mesh-gradient": { glyph: "lucide:blend" },
+  "remocn/shader-grain-gradient": { glyph: "tabler:noise-reduction" },
+  "remocn/shader-warp": { glyph: "lucide:droplets" },
+  "remocn/shader-swirl": { glyph: "tabler:spiral" },
+  "remocn/shader-god-rays": { glyph: "lucide:sunrise" },
+  "remocn/shader-perlin-noise": { glyph: "lucide:cloudy" },
+  "remocn/shader-dithering": { glyph: "lucide:grip" },
+  "remocn/crt-screen": { glyph: "lucide:tv-minimal" },
+  "remocn/vhs-filter": { glyph: "lucide:cassette-tape" },
+  "remocn/halftone-print": { glyph: "tabler:grid-dots" },
+  "remocn/camera-lens": { glyph: "lucide:aperture", motion: "rack-focus" },
+  "remocn/polaroid": { glyph: "tabler:polaroid" },
+  "remocn/tv-power-off": { glyph: "lucide:tv", motion: "collapse" },
+  "remocn/speed-lines": { glyph: "lucide:chevrons-right" },
+  "remocn/spring-settle": { glyph: "tabler:carousel-vertical" },
+  "remocn/terminal-simulator": { glyph: "lucide:square-terminal" },
+  "remocn/glass-code-block": { glyph: "lucide:square-code" },
+  "remocn/code-morph": { glyph: "lucide:code-xml", morph: "lucide:braces" },
+  "remocn/logo-enter": { glyph: "lucide:layout-grid-circles" },
+  "remocn/check-list": { glyph: "lucide:list-checks" },
+  "remocn/search-reveal": { glyph: "lucide:search" },
+  "remocn/agent-run": { glyph: "lucide:bot" },
+  "remocn/animated-bar-chart": { glyph: "lucide:chart-column", motion: "grow" },
+  "remocn/animated-line-chart": { glyph: "lucide:chart-line", motion: "draw" },
+  "remocn/rolling-number": { glyph: "lucide:hash", motion: "roll" },
+  "remocn/signup-flow": { glyph: "lucide:user-plus" },
+  "remocn/ai-prompt-flow": { glyph: "lucide:wand-sparkles" },
+  "remocn/command-menu": { glyph: "lucide:search-code" },
+  "remocn/release-teaser": { glyph: "lucide:rocket" },
+  "remocn/launch-anything": { glyph: "lucide:film" },
+  "snapcn/laptop-frame": { glyph: "lucide:laptop", motion: "open" },
+  "snapcn/phone-frame": { glyph: "lucide:smartphone" },
+  "snapcn/screen-recording": { glyph: "lucide:monitor-play" },
+  "snapcn/announce-title": { glyph: "lucide:megaphone" },
+  "snapcn/punch-lines": { glyph: "lucide:type", motion: "hard-cut" },
+  "snapcn/text-highlight": { glyph: "lucide:baseline" },
+  "snapcn/status-cycle": { glyph: "lucide:badge" },
+  "snapcn/logo-assemble": { glyph: "lucide:orbit" },
+  "snapcn/logo-drift": { glyph: "lucide:cloud" },
+  "snapcn/hero-launch": { glyph: "lucide:presentation" },
+  "remotion-ui/stat-card": { glyph: "lucide:circle-gauge" },
+  "remotion-ui/metric-ticker": { glyph: "lucide:trending-up" },
+  "remotion-ui/funnel-chart": { glyph: "lucide:funnel" },
+  "remotion-ui/donut-chart": { glyph: "lucide:chart-pie" },
+  "remotion-ui/comparison-bars": { glyph: "lucide:chart-bar" },
+  "remotion-ui/bar-chart-race": { glyph: "lucide:chart-bar-decreasing" },
+  "remotion-ui/gauge-dial": { glyph: "lucide:gauge" },
+  "remotion-ui/data-story": { glyph: "lucide:chart-area" },
+  "remotion-ui/logo-reveal": { glyph: "lucide:pen-tool", motion: "draw" },
+  "remotion-ui/pricing-card": { glyph: "lucide:badge-dollar-sign" },
+  "remotion-ui/comparison-table": { glyph: "lucide:table-2" },
+  "remotion-ui/changelog-entry": { glyph: "lucide:rotate-ccw-clock" },
+  "remotion-ui/logo-wall": { glyph: "lucide:layout-grid" },
+  "remotion-ui/end-card": { glyph: "lucide:flag" },
+  "remotion-ui/code-reveal": { glyph: "lucide:code" },
+  "remotion-ui/code-diff-wipe": { glyph: "lucide:file-diff" },
+  "remotion-ui/kanban-move": { glyph: "lucide:square-kanban" },
+  "remotion-ui/file-tree-reveal": { glyph: "lucide:folder-tree" },
+  "remotion-ui/drag-drop-flow": { glyph: "lucide:cloud-upload" },
+  "remotion-ui/commit-graph": { glyph: "lucide:git-graph", motion: "draw" },
+  "remotion-ui/notification-stack": { glyph: "lucide:bell" },
+  "remotion-ui/device-mockup-zoom": { glyph: "lucide:laptop-minimal" },
+  "remotion-ui/multi-device-lineup": { glyph: "lucide:monitor-smartphone" },
+  "remotion-ui/handwriting-text": { glyph: "lucide:signature", motion: "draw" },
+  "remotion-ui/neon-flicker-text": { glyph: "lucide:type", motion: "flicker" },
+  "remotion-ui/text-mask-video": { glyph: "lucide:type-outline" },
+  "remotion-ui/aurora-bg": { glyph: "tabler:wave-sine" },
+  "remotion-ui/particle-field": { glyph: "lucide:sparkles" },
+  "remocn/whip-pan": { glyph: "lucide:move-horizontal", motion: "whip" },
+  "remocn/push-through": { glyph: "lucide:arrow-right-to-line", motion: "push" },
+  "remocn/zoom-blur": { glyph: "lucide:expand", motion: "zoom-blur" },
+  "remocn/focus-pull": { glyph: "lucide:focus", motion: "rack-focus" },
+  "remocn/lens-zoom": { glyph: "lucide:zoom-in", motion: "zoom-through" },
+  "remocn/ripple-zoom": { glyph: "tabler:ripple", motion: "ripple" },
+  "remocn/wave-wipe": { glyph: "lucide:sliders-horizontal", motion: "wipe-reveal" },
+  "remocn/smoke-dissolve": { glyph: "lucide:cloud-fog", motion: "dissolve" },
+  "remocn/glitch-cut": { glyph: "lucide:zap", motion: "glitch" },
+  "remocn/page-turn": { glyph: "lucide:book-open", motion: "flip" },
+  "remocn/grain-dissolve": { glyph: "tabler:grain", motion: "dissolve" },
+  "remocn/dither-dissolve": { glyph: "lucide:grip", motion: "dissolve" },
+  "remocn/swirl-dissolve": { glyph: "tabler:spiral", motion: "dissolve" },
+  "remocn/particle-dissolve": { glyph: "lucide:sparkles", motion: "dissolve" },
+  "remotion-ui/grid-pixelate-wipe": { glyph: "lucide:grid-2x2", motion: "wipe-reveal" },
+  "remotion-ui/frosted-glass-wipe": { glyph: "tabler:blur", motion: "wipe-reveal" },
+  "remotion-ui/chromatic-aberration-wipe": {
+    glyph: "tabler:color-filter",
+    motion: "slide-through",
+  },
+  "remotion-ui/transition-blinds": { glyph: "lucide:blinds", motion: "shutter" },
+  "remotion-ui/transition-morph-shape": { glyph: "lucide:square", morph: "lucide:circle" },
 };
 
 const METRICS = [
@@ -2281,6 +2396,13 @@ const LIST: CuratedElement[] = [
 ];
 
 const OVERRIDES = { DESCRIPTIONS, NEUTRAL_DEFAULTS, NEUTRAL_FIXED_PROPS, PAINTED, SETTINGS };
+
+export function unknownLookKeys(): string[] {
+  const keys = new Set(LIST.map((item) => `${REGISTRIES[item.registry].keyPrefix}/${item.name}`));
+  return Object.keys(LOOKS)
+    .filter((key) => !keys.has(key))
+    .map((key) => `LOOKS: "${key}" names no element in the list`);
+}
 
 export function unknownOverrideNames(): string[] {
   const names = new Set(LIST.map((item) => item.name));

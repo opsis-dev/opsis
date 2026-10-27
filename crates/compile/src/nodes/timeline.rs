@@ -1,4 +1,5 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::{
     EditHandles, GroupProps, ItemBase, LinkedParam, ParamRef, ParamUnit, Sign, TimelineTrack,
     TransitionRef,
@@ -842,13 +843,13 @@ fn branch() -> NodeDef {
 
 pub fn nodes() -> Vec<NodeDef> {
     vec![
-        sequence(),
-        layers(),
-        trim(),
-        repeat(),
-        delay(),
-        speed(),
-        fit_length(),
-        branch(),
+        sequence().look(NodeLook::of("lucide:list-video")),
+        layers().look(NodeLook::of("lucide:layers")),
+        trim().look(NodeLook::of("lucide:scissors")),
+        repeat().look(NodeLook::of("lucide:repeat").moves(NodeMotion::Turn)),
+        delay().look(NodeLook::of("lucide:timer")),
+        speed().look(NodeLook::of("lucide:rabbit").morphs("lucide:turtle")),
+        fit_length().look(NodeLook::of("lucide:ruler-dimension-line").moves(NodeMotion::Stretch)),
+        branch().look(NodeLook::of("lucide:split")),
     ]
 }

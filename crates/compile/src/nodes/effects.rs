@@ -1,4 +1,5 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::looks::NodeLook;
 use opsis_types::recording::{BlurArea, PictureLook, RecordingProps};
 use opsis_types::timeline::TimelineItem;
 use opsis_types::values::ClipValue;
@@ -276,5 +277,8 @@ fn picture_look() -> NodeDef {
 }
 
 pub fn nodes() -> Vec<NodeDef> {
-    vec![blur_areas(), picture_look()]
+    vec![
+        blur_areas().look(NodeLook::of("lucide:scan-eye")),
+        picture_look().look(NodeLook::of("lucide:contrast")),
+    ]
 }

@@ -1,6 +1,7 @@
 use indexmap::IndexMap;
 use opsis_types::actions::Viewport;
 use opsis_types::fonts::FontFamilyDef;
+use opsis_types::looks::NodeLook;
 use opsis_types::mix::{MixerBook, mixer_book};
 use opsis_types::settings::{SettingsBook, settings_book};
 use opsis_types::timeline::{Ease, PreviewQuality};
@@ -123,6 +124,8 @@ pub struct EditorNode {
     pub uses_project_size: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub element: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub look: Option<NodeLook>,
     pub card_height: f64,
     pub has_card: bool,
     pub compiles: bool,
@@ -147,6 +150,7 @@ fn editor_node(def: &NodeDef, platform: Platform) -> EditorNode {
         hidden: def.hidden,
         uses_project_size: def.uses_project_size,
         element: def.element.clone(),
+        look: def.look.clone(),
         card_height: estimate_card_height(Some(def)),
         has_card: def.has_card(),
         compiles: def.has_compile(),

@@ -1,5 +1,6 @@
 use opsis_types::actions::Bounds;
 use opsis_types::cards::{Icon, Tone};
+use opsis_types::looks::NodeLook;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
 use opsis_types::values::{BrowserAction, CompileValue, ImageValue, RecordingValue};
 use opsis_types::workflow::{DEFAULT_TAKE_MS, DEFAULT_VIEWPORT, PortType};
@@ -343,5 +344,8 @@ fn still() -> NodeDef {
 }
 
 pub fn nodes() -> Vec<NodeDef> {
-    vec![record(), still()]
+    vec![
+        record().look(NodeLook::of("lucide:circle-dot").morphs("lucide:circle-stop")),
+        still().look(NodeLook::of("lucide:camera")),
+    ]
 }

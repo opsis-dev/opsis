@@ -1,5 +1,6 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
+import type { NodeLook } from "@opsis/video/generated/spec";
 import type { ElementCategory, ElementKind } from "./element-meta";
 import { ROOT } from "./tool-config";
 
@@ -28,6 +29,7 @@ export type ElementEntry = {
   defaultDurationInFrames: number;
   design?: { width: number; height: number; exact?: boolean };
   optionalClip?: true;
+  look?: NodeLook;
 };
 
 export const elementsJsonText = (elements: readonly ElementEntry[]): string =>

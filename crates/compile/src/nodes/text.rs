@@ -3,6 +3,7 @@ use std::sync::LazyLock;
 use icu_segmenter::WordSegmenter;
 use icu_segmenter::options::WordBreakInvariantOptions;
 use opsis_types::cards::{Icon, Tone};
+use opsis_types::looks::NodeLook;
 use opsis_types::recording::{AnnotationKind, HighlightLook};
 use opsis_types::values::{Caption, CaptionsValue, CompileValue};
 use opsis_types::workflow::PortType;
@@ -377,14 +378,16 @@ pub fn nodes() -> Vec<NodeDef> {
             "Tooltip",
             Category::TextAndOverlays,
             "A tooltip that stays attached to an element as the camera moves.",
-        ),
+        )
+        .look(NodeLook::of("lucide:message-square")),
         annotation::<CalloutArrow>(
             "text.calloutArrow",
             "Callout arrow",
             Category::TextAndOverlays,
             "A hand-drawn arrow pointing at an element, with a label.",
-        ),
-        captions_from_script(),
-        show_captions(),
+        )
+        .look(NodeLook::of("lucide:move-up-right")),
+        captions_from_script().look(NodeLook::of("lucide:scroll-text").morphs("lucide:captions")),
+        show_captions().look(NodeLook::of("lucide:captions")),
     ]
 }

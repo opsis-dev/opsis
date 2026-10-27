@@ -37,6 +37,7 @@ pub fn spec_types() -> String {
             .register::<ActionLog>()
             .register::<CoreElementProps>()
             .register::<crate::elements::introspect::FieldWidget>()
+            .register::<opsis_types::looks::NodeLook>()
             .register::<crate::elements::core::PreparedTypeface>(),
     )
 }

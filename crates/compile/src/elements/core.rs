@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::CameraPath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -939,6 +940,14 @@ struct Entry {
     category: ElementCategory,
     kind: ElementKind,
     frames: u32,
+    look: Option<NodeLook>,
+}
+
+impl Entry {
+    fn look(mut self, look: NodeLook) -> Self {
+        self.look = Some(look);
+        self
+    }
 }
 
 fn meta<T: JsonSchema + Default + Serialize>(e: Entry) -> ElementMeta {
@@ -972,6 +981,7 @@ fn meta<T: JsonSchema + Default + Serialize>(e: Entry) -> ElementMeta {
         design: None,
         optional_clip: false,
         thumbnail: None,
+        look: e.look,
     }
 }
 
@@ -989,6 +999,7 @@ fn component(
         category,
         kind: ElementKind::Component,
         frames,
+        look: None,
     }
 }
 
@@ -1006,6 +1017,7 @@ fn wrapper(
         category,
         kind: ElementKind::Wrapper,
         frames,
+        look: None,
     }
 }
 
@@ -1017,6 +1029,7 @@ fn presentation(key: &'static str, title: &'static str, frames: u32) -> Entry {
         category: ElementCategory::Transition,
         kind: ElementKind::Presentation,
         frames,
+        look: None,
     }
 }
 
@@ -1029,28 +1042,28 @@ pub fn core_elements() -> Vec<ElementMeta> {
             "A full-screen title with an optional eyebrow and subtitle.",
             C::Text,
             75,
-        )),
+        ).look(NodeLook::of("lucide:heading"))),
         meta::<KineticHeadline>(component(
             "core/kinetic-headline",
             "Animated headline",
             "A headline that animates in word by word.",
             C::Text,
             90,
-        )),
+        ).look(NodeLook::of("lucide:whole-word"))),
         meta::<LowerThird>(component(
             "core/lower-third",
             "Lower third",
             "A name or caption bar in the lower part of the screen.",
             C::Overlay,
             120,
-        )),
+        ).look(NodeLook::of("lucide:panel-bottom"))),
         meta::<Callout>(component(
             "core/callout",
             "Callout",
             "A short note that points something out.",
             C::Overlay,
             75,
-        )),
+        ).look(NodeLook::of("lucide:message-square-quote"))),
         meta::<Captions>(component(
             CAPTIONS_ELEMENT,
             "Captions",
@@ -1064,132 +1077,132 @@ pub fn core_elements() -> Vec<ElementMeta> {
             "Shows an image from your project.",
             C::Core,
             90,
-        )),
+        ).look(NodeLook::of("lucide:image"))),
         meta::<Mosaic>(wrapper(
             "core/mosaic",
             "Mosaic",
             "Covers parts of the screen with coarse blocks, to hide keys, emails and personal details.",
             C::Effect,
             90,
-        )),
+        ).look(NodeLook::of("lucide:grid-3x3"))),
         meta::<Lottie>(component(
             "core/lottie",
             "Animation",
             "Plays an animation file from your project, looped or once, at any speed.",
             C::Overlay,
             90,
-        )),
+        ).look(NodeLook::of("lucide:shapes"))),
         meta::<Video>(component(
             "core/video",
             "Video",
             "Plays a video from your project.",
             C::Core,
             150,
-        )),
+        ).look(NodeLook::of("lucide:video"))),
         meta::<Solid>(component(
             "core/solid",
             "Solid colour",
             "A plain colour background.",
             C::Background,
             90,
-        )),
+        ).look(NodeLook::of("lucide:paint-bucket"))),
         meta::<Gradient>(component(
             "core/gradient",
             "Gradient",
             "A gradient background.",
             C::Background,
             90,
-        )),
+        ).look(NodeLook::of("lucide:rainbow"))),
         meta::<Noise>(component(
             "core/noise",
             "Noise",
             "A soft moving noise background.",
             C::Background,
             150,
-        )),
+        ).look(NodeLook::of("tabler:grain"))),
         meta::<Starburst>(component(
             "core/starburst",
             "Starburst",
             "Rays spreading from the centre.",
             C::Background,
             150,
-        )),
+        ).look(NodeLook::of("lucide:sun"))),
         meta::<Paper>(component(
             "core/paper",
             "Paper",
             "A paper texture background.",
             C::Background,
             150,
-        )),
+        ).look(NodeLook::of("lucide:file"))),
         meta::<StudioBackdrop>(component(
             "core/backdrop",
             "Studio backdrop",
             "A ready-made studio background image.",
             C::Background,
             150,
-        )),
+        ).look(NodeLook::of("lucide:wallpaper"))),
         meta::<VideoLoop>(component(
             "core/video-loop",
             "Looping video",
             "A video that loops for as long as needed.",
             C::Background,
             150,
-        )),
+        ).look(NodeLook::of("lucide:infinity"))),
         meta::<LightLeak>(component(
             "core/light-leak",
             "Light leak",
             "A warm light flare over the video.",
             C::Overlay,
             45,
-        )),
+        ).look(NodeLook::of("lucide:sun-dim"))),
         meta::<Logo3d>(component(
             "core/logo-3d",
             "3D logo",
             "Your logo in 3D, spinning, tilting in or floating, with studio lighting.",
             C::Scene,
             150,
-        )),
+        ).look(NodeLook::of("lucide:rotate-3d").moves(NodeMotion::Turn))),
         meta::<Card3d>(component(
             "core/card-3d",
             "3D card",
             "An image on a card with rounded corners and a soft shadow that tilts into place.",
             C::Scene,
             120,
-        )),
+        ).look(NodeLook::of("lucide:wallet-cards"))),
         meta::<Text3d>(component(
             "core/text-3d",
             "3D text",
             "Words in solid 3D letters with rounded edges, in any project font.",
             C::Text,
             120,
-        )),
+        ).look(NodeLook::of("lucide:case-sensitive").moves(NodeMotion::Turn))),
         meta::<Model3d>(component(
             "core/model-3d",
             "3D model",
             "A 3D model from your project on a turntable, with studio lighting and its own animation.",
             C::Scene,
             150,
-        )),
+        ).look(NodeLook::of("lucide:cuboid").moves(NodeMotion::Turn))),
         meta::<Screen3d>(wrapper(
             "core/screen-3d",
             "3D screen",
             "Shows a clip on a laptop, monitor, phone or floating screen in 3D, with a camera move.",
             C::Device,
             150,
-        )),
+        ).look(NodeLook::of("lucide:monitor-smartphone").morphs("lucide:laptop-minimal"))),
         meta::<Shapes3d>(component(
             "core/shapes-3d",
             "Floating shapes",
             "Soft 3D spheres, rings and rounded boxes drifting slowly.",
             C::Background,
             150,
-        )),
-        meta::<NoSettings>(presentation("core/fade", "Fade", 15)),
-        meta::<Slide>(presentation("core/slide", "Slide", 20)),
-        meta::<Wipe>(presentation("core/wipe", "Wipe", 20)),
-        meta::<Flip>(presentation("core/flip", "Flip", 24)),
-        meta::<NoSettings>(presentation("core/clock-wipe", "Clock wipe", 24)),
-        meta::<NoSettings>(presentation("core/iris", "Iris", 24)),
+        ).look(NodeLook::of("lucide:torus"))),
+        meta::<NoSettings>(presentation("core/fade", "Fade", 15).look(NodeLook::of("lucide:blend").moves(NodeMotion::FadeThrough))),
+        meta::<Slide>(presentation("core/slide", "Slide", 20).look(NodeLook::of("tabler:transition-right").moves(NodeMotion::SlideThrough))),
+        meta::<Wipe>(presentation("core/wipe", "Wipe", 20).look(NodeLook::of("lucide:square-split-horizontal").moves(NodeMotion::WipeReveal))),
+        meta::<Flip>(presentation("core/flip", "Flip", 24).look(NodeLook::of("lucide:triangles-centerline-dashed-horizontal").moves(NodeMotion::Flip))),
+        meta::<NoSettings>(presentation("core/clock-wipe", "Clock wipe", 24).look(NodeLook::of("lucide:clock-fading").moves(NodeMotion::ClockWipe))),
+        meta::<NoSettings>(presentation("core/iris", "Iris", 24).look(NodeLook::of("lucide:aperture").moves(NodeMotion::Iris))),
     ]
 }
 

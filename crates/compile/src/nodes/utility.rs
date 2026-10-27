@@ -1,4 +1,5 @@
 use opsis_types::cards::Icon;
+use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
@@ -35,7 +36,8 @@ pub fn nodes() -> Vec<NodeDef> {
     vec![
         NodeDef::of::<Group>(GROUP_TYPE, "Group", Category::Utility, Phase::Compile)
             .describe("Boxes nodes together. Select nodes, then Group.")
-            .hidden(),
+            .hidden()
+            .look(NodeLook::of("lucide:group")),
         NodeDef::of::<Note>(NOTE_TYPE, "Note", Category::Utility, Phase::Compile)
             .describe("A sticky note on the canvas. Not part of the video.")
             .card_height(140.0)
@@ -49,6 +51,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     Some(line) => row(Icon::StickyNote, truncate_card(line.trim())),
                     None => missing(Icon::StickyNote, "Write a note"),
                 })]
-            }),
+            })
+            .look(NodeLook::of("lucide:sticky-note")),
     ]
 }

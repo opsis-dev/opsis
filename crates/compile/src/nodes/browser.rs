@@ -2,6 +2,7 @@ use std::sync::LazyLock;
 
 use opsis_types::actions::Point;
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::values::{
     BrowserAction, BrowserSessionValue, CompileValue, SessionBrowser, SessionStep,
 };
@@ -1160,8 +1161,8 @@ fn overlay_rows(p: &OverlayHtml) -> Rows {
 
 pub fn nodes() -> Vec<NodeDef> {
     vec![
-        open(),
-        sign_in(),
+        open().look(NodeLook::of("lucide:app-window")),
+        sign_in().look(NodeLook::of("lucide:key").moves(NodeMotion::Twist)),
         card(
             chain::<StartRecording>(
                 BrowserAction::StartRecording,
@@ -1169,7 +1170,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "The video starts here. The actions before it run off camera, like signing in and the first page load.",
             ),
             |_: &StartRecording| vec![Some(row(Icon::Video, "Video starts here"))],
-        ),
+        ).look(NodeLook::of("lucide:circle-play")),
         card(go_to_page(), |p: &Navigate| {
             let url = if p.url.trim().is_empty() {
                 missing(Icon::Link, "Add an address")
@@ -1177,7 +1178,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 address_row(&p.url)
             };
             vec![Some(url), pause(p.after)]
-        }),
+        }).look(NodeLook::of("lucide:globe")),
         card(
             action::<Click>(
                 BrowserAction::Click,
@@ -1190,7 +1191,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     &p.beat,
                 )
             },
-        ),
+        ).look(NodeLook::of("lucide:mouse-pointer-click").moves(NodeMotion::Press)),
         card(
             action::<Type>(
                 BrowserAction::Type,
@@ -1198,7 +1199,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Types into a field, key by key.",
             ),
             type_rows,
-        ),
+        ).look(NodeLook::of("lucide:text-cursor-input")),
         card(
             action::<Hover>(
                 BrowserAction::Hover,
@@ -1206,7 +1207,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Moves the cursor over an element without clicking, so a menu or tooltip can appear.",
             ),
             hover_rows,
-        ),
+        ).look(NodeLook::of("lucide:pointer").moves(NodeMotion::Bob)),
         card(
             action::<Drag>(
                 BrowserAction::Drag,
@@ -1222,7 +1223,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     &p.beat,
                 )
             },
-        ),
+        ).look(NodeLook::of("lucide:hand").morphs("lucide:hand-grab")),
         card(
             action::<Scroll>(
                 BrowserAction::Scroll,
@@ -1230,7 +1231,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Scrolls to an element or by a distance.",
             ),
             scroll_rows,
-        ),
+        ).look(NodeLook::of("lucide:mouse").moves(NodeMotion::NudgeDown)),
         card(
             action::<Select>(
                 BrowserAction::Select,
@@ -1244,7 +1245,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     pause(p.beat.pause.after),
                 ]
             },
-        ),
+        ).look(NodeLook::of("lucide:square-chevron-down").morphs("lucide:list-checks")),
         card(
             action::<Upload>(
                 BrowserAction::Upload,
@@ -1267,7 +1268,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     pause(p.beat.pause.after),
                 ]
             },
-        ),
+        ).look(NodeLook::of("lucide:file-up").moves(NodeMotion::NudgeUp)),
         card(
             action::<Press>(
                 BrowserAction::Press,
@@ -1275,7 +1276,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Presses a key or shortcut, like Ctrl+K. Shows in keystroke chips.",
             ),
             press_rows,
-        ),
+        ).look(NodeLook::of("lucide:command").moves(NodeMotion::Press)),
         card(
             chain::<Wait>(
                 BrowserAction::Wait,
@@ -1288,7 +1289,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     (p.mode != WaitMode::Ms).then(|| give_up_row(p.timeout_ms)),
                 ]
             },
-        ),
+        ).look(NodeLook::of("lucide:hourglass").moves(NodeMotion::TurnOver)),
         card(
             chain::<Assert>(
                 BrowserAction::Assert,
@@ -1305,7 +1306,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     Some(give_up_row(p.timeout_ms)),
                 ]
             },
-        ),
+        ).look(NodeLook::of("lucide:spell-check")),
         card(
             chain::<Hoist>(
                 BrowserAction::Hoist,
@@ -1313,7 +1314,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Looks an element up ahead of time so a later action doesn't pause on screen while searching.",
             ),
             |p: &Hoist| vec![target_row(Icon::Crosshair, &p.target)],
-        ),
+        ).look(NodeLook::of("lucide:search-check")),
         card(
             chain::<SetState>(
                 BrowserAction::SetState,
@@ -1321,7 +1322,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Runs a small script in the page, e.g. to skip onboarding or turn on a feature. Put it before Go to page to run it as the site first opens.",
             ),
             set_state_rows,
-        ),
+        ).look(NodeLook::of("lucide:braces").morphs("lucide:play")),
         card(
             chain::<MockRoute>(
                 BrowserAction::MockRoute,
@@ -1329,7 +1330,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Makes the site show fixed data for matching requests made after it, so every take looks the same. Put it before Go to page to cover the first load.",
             ),
             mock_route_rows,
-        ),
+        ).look(NodeLook::of("lucide:server-cog")),
         card(
             chain::<FreezeClock>(
                 BrowserAction::FreezeClock,
@@ -1342,7 +1343,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     format!("{} · {}", format_when(&p.time), p.mode.label()),
                 ))]
             },
-        ),
+        ).look(NodeLook::of("lucide:calendar-clock")),
         card(
             chain::<HideElements>(
                 BrowserAction::HideElements,
@@ -1350,7 +1351,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Hides cookie banners, chat bubbles and anything else you list.",
             ),
             hide_rows,
-        ),
+        ).look(NodeLook::of("lucide:eye").morphs("lucide:eye-off")),
         card(
             chain::<Chapter>(
                 BrowserAction::Chapter,
@@ -1368,7 +1369,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     }),
                 ]
             },
-        ),
+        ).look(NodeLook::of("lucide:bookmark")),
         card(
             chain::<OverlayHtml>(
                 BrowserAction::OverlayHtml,
@@ -1376,6 +1377,6 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Shows your own HTML on top of the page while recording.",
             ),
             overlay_rows,
-        ),
+        ).look(NodeLook::of("lucide:file-code")),
     ]
 }

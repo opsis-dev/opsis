@@ -1,4 +1,5 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::TransitionRef;
 use opsis_types::values::{ClipValue, CompileValue};
 use opsis_types::workflow::PortType;
@@ -135,7 +136,7 @@ fn presentation_node(meta: &'static ElementMeta) -> NodeDef {
     let (inputs, outs) = ab();
     let lowered = sentence(&meta.title).to_lowercase();
     NodeDef::new(transition_node_type(&meta.key), sentence(&meta.title), Category::Transitions, Phase::Compile, extended_schema(&meta.schema, extra))
-        .element(meta.key.clone())
+        .element(meta)
         .describe(format!(
             "Plays the first clip, then the second, joined with a {lowered} transition. Tip: cut where the picture is still."
         ))
@@ -189,6 +190,7 @@ fn light_leak() -> NodeDef {
         Category::Transitions,
         Phase::Compile,
     )
+    .look(NodeLook::of("lucide:sun-dim").moves(NodeMotion::Flare))
     .describe("Cuts between two clips under a warm light flare.")
     .inputs(inputs)
     .outputs(outs)

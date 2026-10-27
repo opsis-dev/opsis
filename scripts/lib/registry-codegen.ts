@@ -4,6 +4,7 @@ import { isNumber, isRecord, isString } from "@opsis/video/common/guards";
 import { roundTo } from "@opsis/video/common/math";
 import { pick } from "@opsis/video/common/objects";
 import { AUTHORED_FPS } from "@opsis/video/common/spec";
+import type { NodeLook } from "@opsis/video/generated/spec";
 import type * as framing from "@opsis/video/registry/framing";
 import { REGISTRIES, SECONDS, TITLE_ACRONYMS, type CuratedElement } from "../registry-ingest.list";
 import type { ElementEntry, Json } from "./element-json";
@@ -204,6 +205,7 @@ export type Resolved = {
   description?: string;
   controls: Array<[string, Control]>;
   duration: number;
+  look?: NodeLook;
 };
 
 const seconds = (frames: number): number => roundTo(frames / AUTHORED_FPS, 4);
@@ -297,6 +299,7 @@ export function elementEntry({
   description,
   controls,
   duration,
+  look,
 }: Resolved): ElementEntry {
   const reg = REGISTRIES[item.registry];
   const properties = Object.fromEntries(
@@ -324,6 +327,7 @@ export function elementEntry({
     defaultDurationInFrames: duration,
     ...(item.design ? { design: item.design } : {}),
     ...(item.optionalClip ? { optionalClip: true } : {}),
+    ...(look ? { look } : {}),
   };
 }
 

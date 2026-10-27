@@ -1,4 +1,5 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::looks::NodeLook;
 use opsis_types::numbers::{signed, whole_signed};
 use opsis_types::timeline::{
     Anchor, AudioEnvelope, AudioItem, AudioRole, EditHandles, LinkedParam, ParamRef, ParamUnit,
@@ -462,5 +463,9 @@ fn add_sound() -> NodeDef {
 }
 
 pub fn nodes() -> Vec<NodeDef> {
-    vec![music(), sound_effect(), add_sound()]
+    vec![
+        music().look(NodeLook::of("lucide:eighth-notes")),
+        sound_effect().look(NodeLook::of("lucide:audio-lines")),
+        add_sound().look(NodeLook::of("lucide:audio-waveform")),
+    ]
 }

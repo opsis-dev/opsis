@@ -2,7 +2,8 @@ import { MorphIcon } from "morphicons/react";
 import { useReducedMotion } from "motion/react";
 import { createElement, useEffect, useRef, useState, type RefObject } from "react";
 import { cn } from "@/lib/utils";
-import { FALLBACK_LOOK, nodeLook, type NodeGlyph as Glyph } from "@/nodes/looks";
+import { FALLBACK_LOOK } from "@/nodes/looks";
+import { nodeLook } from "@/store/catalog";
 import { NODE_GLYPHS } from "./node-glyphs.generated";
 import { playNodeMotion } from "./node-motions";
 
@@ -10,7 +11,7 @@ const GLYPH_HOST_ATTRIBUTE = "data-glyph-host";
 
 export const GLYPH_HOST = { [GLYPH_HOST_ATTRIBUTE]: "" };
 
-const glyphNode = (glyph: Glyph) => NODE_GLYPHS[glyph] ?? NODE_GLYPHS[FALLBACK_LOOK.glyph];
+const glyphNode = (glyph: string) => NODE_GLYPHS[glyph] ?? NODE_GLYPHS[FALLBACK_LOOK.glyph];
 
 function useHostHover(ref: RefObject<HTMLElement | null>): boolean {
   const [hovered, setHovered] = useState(false);

@@ -1,4 +1,5 @@
 use opsis_types::cards::{CardRow, Icon};
+use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::recording::{
     AnnotationKind, AnnotationSpec, CursorLook, HighlightLook, KeystrokeLook, KeystrokePosition,
     RecordingProps, RippleLook,
@@ -447,20 +448,22 @@ fn keystroke_chips() -> NodeDef {
 
 pub fn nodes() -> Vec<NodeDef> {
     vec![
-        cursor_style(),
-        click_ripple(),
-        keystroke_chips(),
+        cursor_style().look(NodeLook::of("lucide:mouse-pointer-2")),
+        click_ripple().look(NodeLook::of("lucide:circle-dot-dashed").moves(NodeMotion::Ripple)),
+        keystroke_chips().look(NodeLook::of("lucide:keyboard")),
         annotation::<Spotlight>(
             "cursor.spotlight",
             "Spotlight",
             Category::Cursor,
             "Darkens everything except the element being used.",
-        ),
+        )
+        .look(NodeLook::of("lucide:spotlight")),
         annotation::<HighlightBox>(
             "cursor.highlightBox",
             "Highlight box",
             Category::Cursor,
             "Draws a box around the element being used, cleanly or by hand.",
-        ),
+        )
+        .look(NodeLook::of("lucide:square-dashed").moves(NodeMotion::March)),
     ]
 }

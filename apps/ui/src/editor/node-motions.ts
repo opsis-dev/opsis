@@ -1,6 +1,6 @@
 import { isKeyOf } from "@opsis/video/common/guards";
 import { animate, steps, type Easing } from "motion/react";
-import type { NodeMotion } from "@/nodes/looks";
+import type { NodeMotion } from "@/generated/bindings";
 
 const MOTION_PROPS = {
   transform: true,

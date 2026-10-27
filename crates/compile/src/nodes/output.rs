@@ -1,4 +1,5 @@
 use opsis_types::cards::{Icon, Tone};
+use opsis_types::looks::NodeLook;
 use opsis_types::numbers::whole;
 use opsis_types::timeline::{ReframeMode, TimelineSpec};
 use opsis_types::values::{Artifact, CompileValue};
@@ -507,5 +508,9 @@ pub fn export_reframe(nodes: &[WorkflowNode]) -> ReframeMode {
 }
 
 pub fn nodes() -> Vec<NodeDef> {
-    vec![export_video(), export_images(), export_code()]
+    vec![
+        export_video().look(NodeLook::of("lucide:clapperboard")),
+        export_images().look(NodeLook::of("lucide:image-down")),
+        export_code().look(NodeLook::of("lucide:folder-code")),
+    ]
 }
