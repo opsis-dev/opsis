@@ -1,9 +1,11 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use opsis_compile::nodes::media::{Pause, kept_parts};
 use opsis_compile::nodes::media::{SoundPicture, SoundPictureKind};
 use opsis_media::filters::{
-    hum_filter, hum_listen_filter, repair_filter, rms_level, sound_picture_graph,
+    hum_filter, hum_listen_filter, joined_parts_graph, repair_filter, rms_level,
+    silence_listen_filter, silences, sound_picture_graph,
 };
 
 const RATE: u32 = 48_000;
@@ -188,4 +190,82 @@ fn draws_sound_pictures_at_the_asked_size() {
         assert!(status.success(), "{kind:?}");
         assert_eq!(png_size(&out), (640, 160), "{kind:?}");
     }
+}
+
+#[test]
+fn keeps_the_middle_of_each_long_pause_and_leaves_short_ones() {
+    let pauses = [
+        Pause {
+            start_ms: 1000.0,
+            end_ms: 3000.0,
+        },
+        Pause {
+            start_ms: 4000.0,
+            end_ms: 4300.0,
+        },
+        Pause {
+            start_ms: 5000.0,
+            end_ms: 6000.0,
+        },
+    ];
+    assert_eq!(
+        kept_parts(8000.0, &pauses, 400.0),
+        [(0.0, 1200.0), (2800.0, 5200.0), (5800.0, 8000.0)]
+    );
+    assert_eq!(kept_parts(2000.0, &[], 400.0), [(0.0, 2000.0)]);
+    let lines: Vec<String> = [
+        "[silencedetect @ 0x1] silence_start: 1.0005",
+        "[silencedetect @ 0x1] silence_end: 3.001 | silence_duration: 2.0005",
+        "[silencedetect @ 0x1] silence_start: -0.002",
+        "[silencedetect @ 0x1] silence_end: 0.9 | silence_duration: 0.9",
+    ]
+    .iter()
+    .map(|l| (*l).to_owned())
+    .collect();
+    let found = silences(&lines);
+    assert_eq!(found.len(), 2);
+    assert!((found[0].start_ms - 1000.5).abs() < 1e-6 && (found[0].end_ms - 3001.0).abs() < 1e-6);
+    assert_eq!(found[1].start_ms, 0.0);
+}
+
+#[test]
+#[ignore = "needs the dev engine"]
+fn shortens_known_gaps_to_the_expected_length() {
+    let dir = tempfile::tempdir().unwrap();
+    let speech = tone(1.0);
+    let gap = vec![0.0f32; (RATE * 2) as usize];
+    let samples: Vec<f32> = [&speech[..], &gap, &speech, &gap, &speech].concat();
+    write(&dir.path().join("in.wav"), &samples);
+    let input = dir.path().join("in.wav");
+    let out = Command::new(ffmpeg())
+        .args(["-v", "info", "-i"])
+        .arg(&input)
+        .args(["-af", &silence_listen_filter(-40.0, 700), "-f", "null", "-"])
+        .output()
+        .unwrap();
+    let lines: Vec<String> = String::from_utf8_lossy(&out.stderr)
+        .lines()
+        .map(str::to_owned)
+        .collect();
+    let pauses = silences(&lines);
+    assert_eq!(pauses.len(), 2, "{lines:#?}");
+    let parts = kept_parts(7000.0, &pauses, 400.0);
+    let status = Command::new(ffmpeg())
+        .args(["-v", "error", "-y", "-i"])
+        .arg(&input)
+        .args([
+            "-filter_complex",
+            &joined_parts_graph(&parts),
+            "-map",
+            "[out]",
+        ])
+        .arg(dir.path().join("out.wav"))
+        .status()
+        .unwrap();
+    assert!(status.success());
+    let seconds = read(&dir.path().join("out.wav")).len() as f64 / f64::from(RATE);
+    assert!(
+        (seconds - (3.0 + 2.0 * 0.4 - 2.0 * 0.01)).abs() < 0.05,
+        "{seconds} s"
+    );
 }

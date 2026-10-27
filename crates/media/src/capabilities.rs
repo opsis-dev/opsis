@@ -34,8 +34,9 @@ pub const REQUIRED_FORMATS: [&str; 10] = [
     "webm",
 ];
 
-pub const REQUIRED_FILTERS: [&str; 73] = [
+pub const REQUIRED_FILTERS: [&str; 75] = [
     "acompressor",
+    "acrossfade",
     "adeclick",
     "adeclip",
     "adelay",
@@ -101,6 +102,7 @@ pub const REQUIRED_FILTERS: [&str; 73] = [
     "setsar",
     "showspectrumpic",
     "showwavespic",
+    "silencedetect",
     "sidechaincompress",
     "split",
     "tile",

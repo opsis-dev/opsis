@@ -10903,6 +10903,49 @@
   }
  },
  {
+  "type": "media.shortenPauses",
+  "title": "Shorten pauses",
+  "category": "Media",
+  "description": "Shortens long silences in a voice recording without cutting words. Use it on a voice before placing it against a take. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "threshold": -40.0,
+   "longerThanMs": 700,
+   "keepMs": 400
+  }
+ },
+ {
   "type": "media.thumbnail",
   "title": "Grab frame",
   "category": "Media",

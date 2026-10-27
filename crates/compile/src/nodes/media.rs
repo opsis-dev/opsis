@@ -33,6 +33,7 @@ pub const THUMBNAIL_TYPE: &str = "media.thumbnail";
 pub const LOUDNORM_TYPE: &str = "media.loudnorm";
 pub const REPAIR_TYPE: &str = "media.repair";
 pub const HUM_TYPE: &str = "media.hum";
+pub const PAUSES_TYPE: &str = "media.shortenPauses";
 pub const SOUND_PICTURE_TYPE: &str = "media.soundPicture";
 
 pub const EXTRACT_AUDIO_TYPE: &str = "media.extractAudio";
@@ -746,6 +747,53 @@ pub struct RemoveHum {
 
 impl Params for RemoveHum {}
 
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ShortenPauses {
+    #[default(-40.0)]
+    #[schemars(
+        description = "Silence below",
+        range(min = -70, max = -20),
+        extend("x-step" = 1, "x-unit" = "dB", "x-help" = "Quieter than this counts as a pause. Raise it for a noisy room.")
+    )]
+    pub threshold: f64,
+    #[default = 700]
+    #[schemars(description = "Shorten pauses longer than", range(min = 100, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+    pub longer_than_ms: u32,
+    #[default = 400]
+    #[schemars(description = "Down to", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+    pub keep_ms: u32,
+}
+
+impl Params for ShortenPauses {}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Pause {
+    pub start_ms: f64,
+    pub end_ms: f64,
+}
+
+pub fn kept_parts(duration_ms: f64, pauses: &[Pause], keep_ms: f64) -> Vec<(f64, f64)> {
+    let mut parts = Vec::new();
+    let mut from = 0.0;
+    for pause in pauses {
+        let length = pause.end_ms - pause.start_ms;
+        if length <= keep_ms {
+            continue;
+        }
+        let cut_from = pause.start_ms + keep_ms / 2.0;
+        let cut_to = pause.end_ms - keep_ms / 2.0;
+        if cut_from > from {
+            parts.push((from, cut_from));
+        }
+        from = cut_to;
+    }
+    if duration_ms > from {
+        parts.push((from, duration_ms));
+    }
+    parts
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum SoundPictureKind {
@@ -1120,6 +1168,26 @@ pub fn nodes() -> Vec<NodeDef> {
         })
         .look(NodeLook::of("iconoir:sine-wave")),
         sound_picture().look(NodeLook::of("lucide:chart-no-axes-column")),
+        one_file_op::<ShortenPauses>(
+            PAUSES_TYPE,
+            "Shorten pauses",
+            "Shortens long silences in a voice recording without cutting words. Use it on a voice before placing it against a take.",
+        )
+        .card(|ctx: &CardCtx<'_, ShortenPauses>| {
+            let p = &ctx.params;
+            vec![
+                Some(row(
+                    Icon::Scissors,
+                    format!(
+                        "Pauses over {} cut to {}",
+                        format_duration(f64::from(p.longer_than_ms)),
+                        format_duration(f64::from(p.keep_ms))
+                    ),
+                )),
+                length_row(ctx.result, Icon::Clock),
+            ]
+        })
+        .look(NodeLook::of("lucide:fold-horizontal")),
         thumbnail().look(NodeLook::of("tabler:photo-scan")),
         one_file_op::<NoSettings>(
             FASTSTART_TYPE,

@@ -229,3 +229,62 @@ pub fn sound_picture_graph(p: &opsis_compile::nodes::media::SoundPicture) -> Str
         ffmpeg_color(&p.background)
     )
 }
+
+pub const PAUSE_CROSSFADE_S: f64 = 0.01;
+
+pub fn silence_listen_filter(threshold_db: f64, longer_than_ms: u32) -> String {
+    format!(
+        "silencedetect=n={threshold_db}dB:d={}",
+        f64::from(longer_than_ms) / 1000.0
+    )
+}
+
+pub fn silences(lines: &[String]) -> Vec<opsis_compile::nodes::media::Pause> {
+    let number = |line: &str, key: &str| -> Option<f64> {
+        line.split(key)
+            .nth(1)?
+            .split_whitespace()
+            .next()?
+            .trim_end_matches('|')
+            .parse()
+            .ok()
+    };
+    let mut found = Vec::new();
+    let mut start = None;
+    for line in lines {
+        if let Some(at) = number(line, "silence_start:") {
+            start = Some(at.max(0.0));
+        } else if let (Some(from), Some(to)) = (start, number(line, "silence_end:")) {
+            found.push(opsis_compile::nodes::media::Pause {
+                start_ms: from * 1000.0,
+                end_ms: to * 1000.0,
+            });
+            start = None;
+        }
+    }
+    found
+}
+
+pub fn joined_parts_graph(parts: &[(f64, f64)]) -> String {
+    let mut chains: Vec<String> = parts
+        .iter()
+        .enumerate()
+        .map(|(i, (from, to))| {
+            format!(
+                "[0:a]atrim=start={:.3}:end={:.3},asetpts=PTS-STARTPTS[p{i}]",
+                from / 1000.0,
+                to / 1000.0
+            )
+        })
+        .collect();
+    let mut last = "p0".to_owned();
+    for i in 1..parts.len() {
+        let next = format!("j{i}");
+        chains.push(format!(
+            "[{last}][p{i}]acrossfade=d={PAUSE_CROSSFADE_S}[{next}]"
+        ));
+        last = next;
+    }
+    chains.push(format!("[{last}]anull[out]"));
+    chains.join(";")
+}

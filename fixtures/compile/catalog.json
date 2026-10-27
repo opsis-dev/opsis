@@ -4518,6 +4518,29 @@
    }
   },
   {
+   "type": "media.shortenPauses",
+   "title": "Shorten pauses",
+   "category": "Media",
+   "description": "Shortens long silences in a voice recording without cutting words. Use it on a voice before placing it against a take. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "media.thumbnail",
    "title": "Grab frame",
    "category": "Media",
@@ -51455,6 +51478,71 @@
      "color": "#6366f1",
      "colours": "magma",
      "background": "#00000000"
+    }
+   }
+  },
+  {
+   "type": "media.shortenPauses",
+   "title": "Shorten pauses",
+   "category": "Media",
+   "description": "Shortens long silences in a voice recording without cutting words. Use it on a voice before placing it against a take. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "threshold": {
+      "description": "Silence below",
+      "type": "number",
+      "format": "double",
+      "minimum": -70,
+      "maximum": -20,
+      "default": -40.0,
+      "x-step": 1,
+      "x-unit": "dB",
+      "x-help": "Quieter than this counts as a pause. Raise it for a noisy room."
+     },
+     "longerThanMs": {
+      "description": "Shorten pauses longer than",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 100,
+      "maximum": 10000,
+      "default": 700,
+      "x-step": 50,
+      "x-unit": "ms"
+     },
+     "keepMs": {
+      "description": "Down to",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 10000,
+      "default": 400,
+      "x-step": 50,
+      "x-unit": "ms"
+     }
+    },
+    "type": "object",
+    "default": {
+     "threshold": -40.0,
+     "longerThanMs": 700,
+     "keepMs": 400
     }
    }
   },

@@ -564,3 +564,33 @@ async fn draws_a_sound_as_one_picture_of_the_chosen_size_on_its_background() {
             .starts_with("[0:a]showspectrumpic=s=1920x400:legend=0:color=fire,scale=1920x400,")
     );
 }
+
+#[tokio::test]
+async fn shortens_pauses_after_listening_for_them_and_refuses_videos() {
+    let (result, ran) = run(
+        sound_setup("media.shortenPauses", json!({})),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert!(result.is_ok());
+    assert_eq!(ran[0][3], "silencedetect=n=-40dB:d=0.7");
+    assert_eq!(
+        ran[1][..6],
+        [
+            "-i",
+            "/p/assets/voice.wav",
+            "-filter_complex",
+            "[0:a]atrim=start=0.000:end=4.000,asetpts=PTS-STARTPTS[p0];[p0]anull[out]",
+            "-map",
+            "[out]"
+        ]
+    );
+    let (result, _) = run(
+        sound_setup("media.shortenPauses", json!({})),
+        film_probe(Some("aac")),
+        json!({ "media": film("video") }),
+    )
+    .await;
+    assert!(message(result).starts_with("Shorten pauses works on sound files"));
+}

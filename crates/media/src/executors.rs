@@ -1,7 +1,7 @@
 use opsis_compile::nodes::media::{
     APPLY_GRADE_TYPE, CONCAT_TYPE, CONVERT_TYPE, EXTRACT_AUDIO_TYPE, FASTSTART_TYPE, GIF_TYPE,
-    HUM_TYPE, IMPORT_TYPE, LOUDNORM_TYPE, PROBE_TYPE, REPAIR_TYPE, REVERSE_TYPE, SCALE_PAD_TYPE,
-    SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE, TRIM_TYPE,
+    HUM_TYPE, IMPORT_TYPE, LOUDNORM_TYPE, PAUSES_TYPE, PROBE_TYPE, REPAIR_TYPE, REVERSE_TYPE,
+    SCALE_PAD_TYPE, SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE, TRIM_TYPE,
 };
 use std::future::Future;
 use std::path::Path;
@@ -12,7 +12,8 @@ use opsis_compile::asset_ref::{kind_from_path, project_ref};
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
     ChangeSpeed, Encoding, EvenOutVolume, ExtractSound, FixClicks, GrabFrame, JoinFiles, MakeGif,
-    MediaFile, RemoveHum, Resize, SOUND_PICTURE_PORT, SoundPicture, TrimFile, joined_files,
+    MediaFile, RemoveHum, Resize, SOUND_PICTURE_PORT, ShortenPauses, SoundPicture, TrimFile,
+    joined_files, kept_parts,
 };
 use opsis_compile::registry::{node_def, node_name};
 use opsis_compile::text::{format_duration, format_precise_duration, single_quoted};
@@ -33,7 +34,8 @@ use crate::codecs::{
 use crate::ffmpeg::{MediaTools, OnProgress, ProbeResult, RunOptions, ToolError, can_stream_copy};
 use crate::filters::{
     JoinPart, JoinSize, fit_filter, gif_filter, hum_filter, hum_listen_filter, join_filter,
-    loudnorm_filter, repair_filter, rms_level, sound_picture_graph, speed_args, speed_sound_args,
+    joined_parts_graph, loudnorm_filter, repair_filter, rms_level, silence_listen_filter, silences,
+    sound_picture_graph, speed_args, speed_sound_args,
 };
 use crate::grade::{GradeError, GradeSize, grade_filters};
 use crate::reverse::{
@@ -1035,6 +1037,78 @@ async fn sound_picture(
     })
 }
 
+async fn logged(
+    ctx: &ExecutorContext,
+    tools: &dyn MediaTools,
+    args: &[String],
+) -> Result<Vec<String>, ExecError> {
+    let lines = std::sync::Mutex::new(Vec::new());
+    let log = |line: &str| lines.lock().expect("log lines").push(line.to_owned());
+    let mut options = run_options(ctx, None, None);
+    options.on_log = Some(&log);
+    tools.run(args, options).await.map_err(tool_error)?;
+    Ok(lines.into_inner().expect("log lines"))
+}
+
+async fn shorten_pauses(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: ShortenPauses = ctx.params()?;
+    let input = require_media(inputs.get(MEDIA_PORT))?;
+    if input.value.kind != MediaKind::Audio {
+        return Err(ExecError::new(
+            "Shorten pauses works on sound files, so a video doesn't lose its sync. Take the sound out with Extract sound first.",
+        ));
+    }
+    let source = ctx.ref_to_path(&input.src)?;
+    let probe = tools.probe(&source).await.map_err(tool_error)?;
+    let duration_ms = probe
+        .duration_ms
+        .map(f64::from)
+        .ok_or_else(|| ExecError::new("This file's length can't be read."))?;
+    let source_text = source.to_string_lossy().into_owned();
+    let listen = vec![
+        "-i".to_owned(),
+        source_text.clone(),
+        "-af".to_owned(),
+        silence_listen_filter(p.threshold, p.longer_than_ms),
+        "-f".to_owned(),
+        "null".to_owned(),
+        "-".to_owned(),
+    ];
+    let pauses = silences(&logged(&ctx, &*tools, &listen).await?);
+    let parts = kept_parts(duration_ms, &pauses, f64::from(p.keep_ms));
+    let kept: f64 = parts.iter().map(|(a, b)| b - a).sum();
+    let shortened = pauses
+        .iter()
+        .filter(|pause| pause.end_ms - pause.start_ms > f64::from(p.keep_ms))
+        .count();
+    ctx.log(
+        LogLevel::Info,
+        format!(
+            "Saved {} from {}.",
+            format_duration(duration_ms - kept),
+            opsis_compile::text::plural(shortened as f64, "pause")
+        ),
+    );
+    let format = audio_format_for(ext_of(&input.src).trim_start_matches('.'));
+    let job = Transcode {
+        file: format!("shortened.{}", serde_name(&format)),
+        label: "Pauses shortened",
+        duration_ms: Some(kept),
+    };
+    let graph = joined_parts_graph(&parts);
+    transcode(&ctx, &*tools, &input, job, |i, o| {
+        let mut args = strings(&["-i", i, "-filter_complex", &graph, "-map", "[out]"]);
+        args.extend(audio_format_args(format));
+        args.push(o.to_owned());
+        args
+    })
+    .await
+}
+
 async fn repair(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
@@ -1182,6 +1256,7 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (LOUDNORM_TYPE, bind(tools, loudnorm)),
         (REPAIR_TYPE, bind(tools, repair)),
         (HUM_TYPE, bind(tools, hum)),
+        (PAUSES_TYPE, bind(tools, shorten_pauses)),
         (SOUND_PICTURE_TYPE, bind(tools, sound_picture)),
         (THUMBNAIL_TYPE, bind(tools, thumbnail)),
         (FASTSTART_TYPE, bind(tools, faststart)),
