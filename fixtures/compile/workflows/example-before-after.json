@@ -453,7 +453,8 @@
         "after": 2500
        }
       }
-     ]
+     ],
+     "address": "https://example.com"
     }
    },
    "after-open": {
@@ -483,7 +484,8 @@
         "after": 2500
        }
       }
-     ]
+     ],
+     "address": "https://example.org"
     }
    },
    "before-start": {
@@ -518,7 +520,8 @@
        "type": "browser.startRecording",
        "params": {}
       }
-     ]
+     ],
+     "address": "https://example.com"
     }
    },
    "after-start": {
@@ -553,7 +556,8 @@
        "type": "browser.startRecording",
        "params": {}
       }
-     ]
+     ],
+     "address": "https://example.org"
     }
    },
    "before-record": {
@@ -3500,7 +3504,8 @@
          "after": 2500
         }
        }
-      ]
+      ],
+      "address": "https://example.com"
      }
     },
     "after-open": {
@@ -3530,7 +3535,8 @@
          "after": 2500
         }
        }
-      ]
+      ],
+      "address": "https://example.org"
      }
     },
     "before-start": {
@@ -3565,7 +3571,8 @@
         "type": "browser.startRecording",
         "params": {}
        }
-      ]
+      ],
+      "address": "https://example.com"
      }
     },
     "after-start": {
@@ -3600,7 +3607,8 @@
         "type": "browser.startRecording",
         "params": {}
        }
-      ]
+      ],
+      "address": "https://example.org"
      }
     },
     "before-record": {

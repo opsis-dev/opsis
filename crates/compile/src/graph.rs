@@ -551,7 +551,7 @@ fn reload_issues(wf: &Workflow, compiled: &CompileResult) -> Vec<GraphIssue> {
     wf.nodes
         .iter()
         .filter(|n| n.kind == BrowserAction::SetState.kind() && !n.is_disabled() && n.params.get("reload") == Some(&serde_json::Value::Bool(true)))
-        .filter(|n| session_into(wf, compiled, &n.id).is_some_and(|s| !s.steps.iter().any(|step| step.kind == BrowserAction::Navigate)))
+        .filter(|n| session_into(wf, compiled, &n.id).is_some_and(|s| s.address.is_none()))
         .map(|n| {
             warning(
                 &n.id,

@@ -1079,7 +1079,8 @@
         "after": 900
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc/#/"
     }
    },
    "song": {
@@ -1229,7 +1230,8 @@
        "type": "browser.startRecording",
        "params": {}
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc/#/"
     }
    },
    "loop": {
@@ -1332,7 +1334,8 @@
         "frame": ""
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc/#/"
     }
    },
    "todo2": {
@@ -1397,7 +1400,8 @@
         "frame": ""
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc/#/"
     }
    },
    "intro-bg": {
@@ -1555,7 +1559,8 @@
         "frame": ""
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc/#/"
     }
    },
    "intro": {
@@ -1820,7 +1825,8 @@
         "hoverMs": 220
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc/#/"
     }
    },
    "filter": {
@@ -1932,7 +1938,8 @@
         "hoverMs": 220
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc/#/"
     }
    },
    "chips": {
@@ -6713,7 +6720,8 @@
          "after": 900
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc/#/"
      }
     },
     "song": {
@@ -6863,7 +6871,8 @@
         "type": "browser.startRecording",
         "params": {}
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc/#/"
      }
     },
     "loop": {
@@ -6966,7 +6975,8 @@
          "frame": ""
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc/#/"
      }
     },
     "todo2": {
@@ -7031,7 +7041,8 @@
          "frame": ""
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc/#/"
      }
     },
     "intro-bg": {
@@ -7189,7 +7200,8 @@
          "frame": ""
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc/#/"
      }
     },
     "intro": {
@@ -7454,7 +7466,8 @@
          "hoverMs": 220
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc/#/"
      }
     },
     "filter": {
@@ -7566,7 +7579,8 @@
          "hoverMs": 220
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc/#/"
      }
     },
     "chips": {

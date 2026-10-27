@@ -322,7 +322,8 @@
         "after": 700
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc"
     }
    },
    "hook": {
@@ -399,7 +400,8 @@
        "type": "browser.startRecording",
        "params": {}
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc"
     }
    },
    "type": {
@@ -448,7 +450,8 @@
         "frame": ""
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc"
     }
    },
    "record": {
@@ -2387,7 +2390,8 @@
          "after": 700
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc"
      }
     },
     "hook": {
@@ -2464,7 +2468,8 @@
         "type": "browser.startRecording",
         "params": {}
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc"
      }
     },
     "type": {
@@ -2513,7 +2518,8 @@
          "frame": ""
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc"
      }
     },
     "record": {

@@ -339,7 +339,8 @@
         "after": 700
        }
       }
-     ]
+     ],
+     "address": "https://example.com"
     }
    },
    "headline": {
@@ -411,7 +412,8 @@
        "type": "browser.startRecording",
        "params": {}
       }
-     ]
+     ],
+     "address": "https://example.com"
     }
    },
    "outro": {
@@ -505,7 +507,8 @@
         "hoverMs": 220
        }
       }
-     ]
+     ],
+     "address": "https://example.com"
     }
    },
    "spotlight": {
@@ -2588,7 +2591,8 @@
          "after": 700
         }
        }
-      ]
+      ],
+      "address": "https://example.com"
      }
     },
     "headline": {
@@ -2660,7 +2664,8 @@
         "type": "browser.startRecording",
         "params": {}
        }
-      ]
+      ],
+      "address": "https://example.com"
      }
     },
     "outro": {
@@ -2754,7 +2759,8 @@
          "hoverMs": 220
         }
        }
-      ]
+      ],
+      "address": "https://example.com"
      }
     },
     "spotlight": {

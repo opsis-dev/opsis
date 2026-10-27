@@ -1,8 +1,6 @@
 use indexmap::IndexMap;
 use opsis_types::actions::Viewport;
-use opsis_types::values::{
-    BrowserAction, BrowserSessionValue, CompileValue, MediaKind, NodeResult,
-};
+use opsis_types::values::{BrowserSessionValue, CompileValue, MediaKind, NodeResult};
 use opsis_types::workflow::Workflow;
 use serde::Serialize;
 use serde_json::Value;
@@ -194,20 +192,10 @@ fn pixels(params: &serde_json::Map<String, Value>, key: &str) -> Option<u32> {
 
 fn picker_target(wf: &Workflow, compiled: &CompileResult, node_id: &str) -> PickerTarget {
     let session = session_at(wf, compiled, node_id);
-    let navigated = session
-        .and_then(|s| {
-            s.steps
-                .iter()
-                .rev()
-                .find(|step| step.kind == BrowserAction::Navigate)
-        })
-        .and_then(|step| {
-            step.params
-                .get("url")
-                .and_then(Value::as_str)
-                .map(str::to_owned)
-        });
-    let Some(url) = navigated.or_else(|| wf.variables.get(SITE_ADDRESS_VAR).cloned()) else {
+    let Some(url) = session
+        .and_then(|s| s.address.clone())
+        .or_else(|| wf.variables.get(SITE_ADDRESS_VAR).cloned())
+    else {
         return PickerTarget::Problem {
             message: NO_PAGE.to_owned(),
         };

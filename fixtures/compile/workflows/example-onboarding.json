@@ -400,7 +400,8 @@
         "after": 700
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc"
     }
    },
    "start": {
@@ -435,7 +436,8 @@
        "type": "browser.startRecording",
        "params": {}
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc"
     }
    },
    "chapter1": {
@@ -480,7 +482,8 @@
         "durationMs": 2000
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc"
     }
    },
    "type": {
@@ -540,7 +543,8 @@
         "frame": ""
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc"
     }
    },
    "script": {
@@ -662,7 +666,8 @@
         "durationMs": 2000
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc"
     }
    },
    "highlight": {
@@ -768,7 +773,8 @@
         "hoverMs": 220
        }
       }
-     ]
+     ],
+     "address": "https://demo.playwright.dev/todomvc"
     }
    },
    "tooltip": {
@@ -2795,7 +2801,8 @@
          "after": 700
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc"
      }
     },
     "start": {
@@ -2830,7 +2837,8 @@
         "type": "browser.startRecording",
         "params": {}
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc"
      }
     },
     "chapter1": {
@@ -2875,7 +2883,8 @@
          "durationMs": 2000
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc"
      }
     },
     "type": {
@@ -2935,7 +2944,8 @@
          "frame": ""
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc"
      }
     },
     "script": {
@@ -3057,7 +3067,8 @@
          "durationMs": 2000
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc"
      }
     },
     "highlight": {
@@ -3163,7 +3174,8 @@
          "hoverMs": 220
         }
        }
-      ]
+      ],
+      "address": "https://demo.playwright.dev/todomvc"
      }
     },
     "tooltip": {

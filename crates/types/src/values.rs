@@ -192,6 +192,8 @@ pub struct SessionBrowser {
 pub struct BrowserSessionValue {
     pub browser: SessionBrowser,
     pub steps: Vec<SessionStep>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

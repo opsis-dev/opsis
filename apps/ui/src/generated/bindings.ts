@@ -353,6 +353,7 @@ export type BrowserAction = "browser.startRecording" | "browser.navigate" | "bro
 export type BrowserSessionValue = {
 	browser: SessionBrowser,
 	steps: SessionStep[],
+	address?: string,
 };
 
 export type BusDuck = {

@@ -272,6 +272,47 @@ fn warns_that_a_reload_before_the_first_page_does_nothing() {
 }
 
 #[test]
+fn the_picker_opens_the_last_page_the_session_went_to_or_the_site_address() {
+    use opsis_compile::compile::compile_workflow;
+    use opsis_compile::inspector::{PickerTarget, inspector_context};
+    use opsis_compile::vars::SITE_ADDRESS_VAR;
+    let picker = |pages: &[&str], site: Option<&str>| {
+        let mut g = Graph::default();
+        let mut order = vec![g.node("session", "browser.open", json!({}))];
+        for (i, url) in pages.iter().enumerate() {
+            order.push(g.node(&format!("go{i}"), "browser.navigate", json!({ "url": url })));
+        }
+        order.push(g.node("click", "browser.click", json!({})));
+        g.chain(&order);
+        let mut wf = g.build();
+        if let Some(site) = site {
+            wf.variables
+                .insert(SITE_ADDRESS_VAR.to_owned(), site.to_owned());
+        }
+        let compiled = compile_workflow(&wf, None);
+        match inspector_context(&wf, &compiled, &indexmap::IndexMap::new(), "click")
+            .unwrap()
+            .picker
+        {
+            PickerTarget::Page(page) => Some(page.url),
+            PickerTarget::Problem { .. } => None,
+        }
+    };
+    assert_eq!(
+        picker(
+            &["https://a.test", "https://b.test"],
+            Some("https://site.test")
+        ),
+        Some("https://b.test".to_owned())
+    );
+    assert_eq!(
+        picker(&[], Some("https://site.test")),
+        Some("https://site.test".to_owned())
+    );
+    assert_eq!(picker(&[], None), None);
+}
+
+#[test]
 fn reports_group_and_note_settings_that_cant_be_read() {
     let mut g = Graph::default();
     g.node("note", "core.note", json!({ "text": 5 }));

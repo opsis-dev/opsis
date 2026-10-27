@@ -70,6 +70,7 @@ async fn play(saved: Option<String>, steps: Vec<SessionStep>) -> Result<(), Step
             params: default_params(OPEN_BROWSER_TYPE),
         },
         steps,
+        address: None,
     };
     play_take(&env, &session, None, |_| Box::pin(async { Ok(()) }))
         .await

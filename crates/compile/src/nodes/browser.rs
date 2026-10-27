@@ -980,8 +980,24 @@ fn open() -> NodeDef {
                     params: ctx.values.clone(),
                 },
                 steps: Vec::new(),
+                address: None,
             }),
         )])
+    })
+}
+
+fn go_to_page() -> NodeDef {
+    chain::<Navigate>(
+        BrowserAction::Navigate,
+        "Go to page",
+        "Opens a page address.",
+    )
+    .compiles(|ctx: &Ctx<'_, Navigate>| {
+        let mut out = append_step(ctx, BrowserAction::Navigate);
+        if let Some(CompileValue::BrowserSession(session)) = out.get_mut(SESSION_PORT) {
+            session.address = Some(ctx.params.url.clone());
+        }
+        out
     })
 }
 
@@ -1154,21 +1170,14 @@ pub fn nodes() -> Vec<NodeDef> {
             ),
             |_: &StartRecording| vec![Some(row(Icon::Video, "Video starts here"))],
         ),
-        card(
-            chain::<Navigate>(
-                BrowserAction::Navigate,
-                "Go to page",
-                "Opens a page address.",
-            ),
-            |p: &Navigate| {
-                let url = if p.url.trim().is_empty() {
-                    missing(Icon::Link, "Add an address")
-                } else {
-                    address_row(&p.url)
-                };
-                vec![Some(url), pause(p.after)]
-            },
-        ),
+        card(go_to_page(), |p: &Navigate| {
+            let url = if p.url.trim().is_empty() {
+                missing(Icon::Link, "Add an address")
+            } else {
+                address_row(&p.url)
+            };
+            vec![Some(url), pause(p.after)]
+        }),
         card(
             action::<Click>(
                 BrowserAction::Click,
