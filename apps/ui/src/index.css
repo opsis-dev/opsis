@@ -112,28 +112,6 @@
   --toggle-on-border: oklch(0.93 0.004 286 / 24%);
 }
 
-@utility app-drag {
-  -webkit-app-region: drag;
-  user-select: none;
-
-  &
-    :is(
-      button,
-      a,
-      input,
-      textarea,
-      select,
-      [role="button"],
-      [role="menuitem"],
-      [role="tab"],
-      [role="radio"],
-      [contenteditable="true"],
-      [data-no-drag]
-    ) {
-    -webkit-app-region: no-drag;
-  }
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -139,8 +139,9 @@ export function AppBar({
 }) {
   return (
     <header
+      data-tauri-drag-region="deep"
       className={cn(
-        "app-drag bg-sidebar text-sidebar-foreground flex h-12 shrink-0 items-center border-b",
+        "bg-sidebar text-sidebar-foreground flex h-12 shrink-0 items-center border-b select-none",
         isMac ? "pr-3 pl-21" : "pl-2",
         className,
       )}
