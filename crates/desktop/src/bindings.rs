@@ -46,7 +46,6 @@ pub fn builder() -> Builder<tauri::Wry> {
             settings::open_licence_file,
             settings::reveal_in_folder,
             settings::read_trace,
-            settings::list_secrets,
             windows::open_settings,
             windows::open_panel_window,
             windows::open_preview_window,

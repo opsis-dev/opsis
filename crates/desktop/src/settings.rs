@@ -4,7 +4,7 @@ use opsis_compile::asset_ref::{RefTarget, ref_target};
 use opsis_engine::licences::{
     LicenceKind, LicenceSource, is_licence_file, list_licences as licence_entries, shipped_credits,
 };
-use opsis_store::secrets::{list_secrets as project_secrets, read_secret, write_secret};
+use opsis_store::secrets::{read_secret, write_secret};
 use opsis_store::settings::SettingsPatch;
 use opsis_traces::read_trace as read_project_trace;
 use opsis_types::engine::LicenceEntry;
@@ -195,12 +195,6 @@ pub fn reveal_in_folder(app: AppHandle, dir: String, file: Option<String>) -> Co
 #[specta::specta]
 pub fn read_trace(dir: String, trace_id: String) -> CommandResult<TraceModel> {
     Ok(read_project_trace(Path::new(&dir), &trace_id)?)
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn list_secrets(dir: String) -> CommandResult<Vec<String>> {
-    Ok(project_secrets(Path::new(&dir))?)
 }
 
 pub struct ProjectSignIns {

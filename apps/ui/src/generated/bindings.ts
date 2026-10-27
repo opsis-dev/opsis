@@ -37,7 +37,6 @@ export const commands = {
 	openLicenceFile: (file: string) => __TAURI_INVOKE<null>("open_licence_file", { file }),
 	revealInFolder: (dir: string, file: string | null) => __TAURI_INVOKE<null>("reveal_in_folder", { dir, file }),
 	readTrace: (dir: string, traceId: string) => __TAURI_INVOKE<TraceModel>("read_trace", { dir, traceId }),
-	listSecrets: (dir: string) => __TAURI_INVOKE<string[]>("list_secrets", { dir }),
 	openSettings: (page: SettingsPage | null) => __TAURI_INVOKE<null>("open_settings", { page }),
 	openPanelWindow: (panel: DockPanelName) => __TAURI_INVOKE<null>("open_panel_window", { panel }),
 	openPreviewWindow: () => __TAURI_INVOKE<null>("open_preview_window"),
