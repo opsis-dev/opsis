@@ -3,11 +3,12 @@ use opsis_compile::node::CardInputs;
 use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::media::{loudness_name, quality_name};
 use opsis_compile::nodes::output::{
-    Variant, export_reframe, variant_canvas, variant_size, video_file_names,
+    Variant, export_reframe, shaped_preview, variant_canvas, variant_size, video_file_names,
 };
 use opsis_compile::params::ParamSchema;
 use opsis_compile::registry::node_def;
-use opsis_types::workflow::{WorkflowNode, WorkflowSettings};
+use opsis_types::timeline::{ReframeMode, TimelineSpec};
+use opsis_types::workflow::{Workflow, WorkflowNode, WorkflowSettings};
 use serde_json::{Value, json};
 
 use crate::helpers::{
@@ -45,6 +46,23 @@ fn render(id: &str, params: Value, disabled: bool) -> WorkflowNode {
     typed(
         json!({ "id": id, "type": "output.render", "position": { "x": 0, "y": 0 }, "params": params, "disabled": disabled }),
     )
+}
+
+#[test]
+fn a_preview_in_another_shape_takes_its_size_and_the_exports_reframe() {
+    let workflow: Workflow = typed(json!({
+        "version": 1,
+        "id": "w",
+        "name": "Shapes",
+        "nodes": [render("a", json!({ "reframe": "fit" }), false)],
+        "edges": [],
+    }));
+    let spec: TimelineSpec = typed(
+        json!({ "width": 1920, "height": 1080, "fps": 30, "durationInFrames": 30, "tracks": [] }),
+    );
+    let shaped = shaped_preview(&spec, Variant::Tall, &workflow);
+    assert_eq!((shaped.width, shaped.height), (1080, 1920));
+    assert_eq!(shaped.reframe, Some(ReframeMode::Fit));
 }
 
 #[test]

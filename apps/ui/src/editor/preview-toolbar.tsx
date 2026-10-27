@@ -12,10 +12,10 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { TimelineSpec } from "@/generated/bindings";
-import { whenFirstOneOf, whenOneOf } from "@/lib/one-of";
+import { whenFirstOneOf } from "@/lib/one-of";
+import { shapes } from "@/store/catalog";
 import { PREVIEW_QUALITIES } from "@/timeline/envelopes";
-import { VARIANTS } from "@/workflow/nodes";
-import { PREVIEW_SHAPES, useViewOptions } from "../store/view-options";
+import { isPreviewShape, useViewOptions } from "../store/view-options";
 import { WithTooltip } from "./with-tooltip";
 
 const PROJECT_SHAPE = "Project shape";
@@ -39,7 +39,9 @@ function ShapeSelect() {
   return (
     <Select
       value={shape}
-      onValueChange={whenOneOf(PREVIEW_SHAPES, (v) => setOption("previewShape", v))}
+      onValueChange={(v) => {
+        if (isPreviewShape(v)) setOption("previewShape", v);
+      }}
     >
       <SelectTrigger size="sm" className="w-32" aria-label="Preview shape">
         <SelectValue>{shapeLabel}</SelectValue>
@@ -47,9 +49,9 @@ function ShapeSelect() {
       <SelectContent>
         <SelectGroup>
           <SelectItem value="project">{PROJECT_SHAPE}</SelectItem>
-          {VARIANTS.map((v) => (
-            <SelectItem key={v} value={v}>
-              {v}
+          {shapes().map((choice) => (
+            <SelectItem key={choice.shape} value={choice.shape}>
+              {choice.shape}
             </SelectItem>
           ))}
         </SelectGroup>

@@ -22,8 +22,7 @@ import {
 import { fileName } from "@/lib/file-name";
 import { whenOneOf } from "@/lib/one-of";
 import { useItemKeys } from "@/lib/use-item-keys";
-import { transitionTitle } from "@/store/catalog";
-import { LOUDNESS_PRESETS, QUALITY_PRESETS } from "@/workflow/nodes";
+import { loudnessPresets, qualityPresets, transitionTitle } from "@/store/catalog";
 import { BoxesField } from "./form/boxes-field";
 import { CameraField } from "./form/camera-field";
 import { ColorField } from "./form/color-field";
@@ -85,8 +84,10 @@ const selectWidget = (choices: (ctx: FormContext, value: string) => SelectChoice
   ),
 });
 
-const presetsWidget = (presets: Readonly<Record<string, number>>): Widget => ({
-  number: (field, props) => <PresetNumber {...props} value={field.value} presets={presets} />,
+const presetsWidget = (presets: () => Array<[string, number]>): Widget => ({
+  number: (field, props) => (
+    <PresetNumber {...props} value={field.value} presets={Object.fromEntries(presets())} />
+  ),
 });
 
 const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
@@ -103,8 +104,8 @@ const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
   datetime: stringWidget(DatetimeField),
   offsets: stringWidget(OffsetsField),
   spot: { number: (field, props) => <SpotField {...props} value={field.value} /> },
-  quality: presetsWidget(QUALITY_PRESETS),
-  loudness: presetsWidget(LOUDNESS_PRESETS),
+  quality: presetsWidget(qualityPresets),
+  loudness: presetsWidget(loudnessPresets),
 };
 
 export const widgetTakes = (widget: FieldWidget, kind: TypedField["kind"]): boolean => {

@@ -86,6 +86,7 @@ export const commands = {
 	viewClose: (id: string) => __TAURI_INVOKE<void>("view_close", { id }),
 	previewOpen: (projectDir: string, size: ViewSize, frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<string>("preview_open", { projectDir, size, frames }),
 	previewLoad: (spec: TimelineSpec) => __TAURI_INVOKE<null>("preview_load", { spec }),
+	previewSpec: (spec: TimelineSpec, shape: Variant) => __TAURI_INVOKE<TimelineSpec>("preview_spec", { spec, shape }),
 	previewPlay: () => __TAURI_INVOKE<null>("preview_play"),
 	previewPause: () => __TAURI_INVOKE<null>("preview_pause"),
 	previewSeek: (frame: number) => __TAURI_INVOKE<null>("preview_seek", { frame }),
@@ -674,6 +675,9 @@ export type EditorCatalog = {
 	bundledFonts: FontFamilyDef[],
 	settings: SettingsBook,
 	themeBackgrounds: Partial<{ [key in Theme]: string }>,
+	shapes: ShapeChoice[],
+	qualityPresets: ([string, number])[],
+	loudnessPresets: ([string, number])[],
 };
 
 export type EditorCompile = {
@@ -1053,6 +1057,7 @@ export type LogLine = {
 
 export type LoudnessChoice = {
 	target: LoudnessTarget,
+	label: string,
 	goal: LoudnessGoal | null,
 };
 
@@ -1535,6 +1540,11 @@ export type SettingsPatch = {
 	fonts?: ProjectFonts,
 };
 
+export type ShapeChoice = {
+	shape: Variant,
+	canvas: Viewport,
+};
+
 export type SharedState = {
 	selection: Selection,
 	view: SharedView | null,
@@ -1808,6 +1818,8 @@ export type VarInfo = {
 	name: string,
 	value: string,
 };
+
+export type Variant = "16:9" | "1:1" | "4:5" | "9:16";
 
 export type VideoBar = {
 	type: VideoTag,

@@ -18,8 +18,7 @@ import type { Workflow, WorkflowSettings } from "@/generated/bindings";
 import { whenFirstOneOf } from "@/lib/one-of";
 import { attempt } from "@/lib/toast";
 import { useItemKeys } from "@/lib/use-item-keys";
-import { themeBackground } from "@/store/catalog";
-import { VARIANTS, variantCanvas } from "@/workflow/nodes";
+import { shapes, themeBackground } from "@/store/catalog";
 import { FontPicker } from "../fonts/font-picker";
 import { useMedia } from "../store/media";
 import { useRunStore } from "../store/run";
@@ -27,13 +26,6 @@ import { useUiStore } from "../store/ui";
 import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { InlineEdit } from "./inline-edit";
 import { useCompiledContext } from "./use-compiled";
-
-const CANVAS_SHORT_SIDE = 1080;
-
-const CANVAS_PRESETS = VARIANTS.map((variant) => ({
-  variant,
-  size: variantCanvas(variant, CANVAS_SHORT_SIDE),
-}));
 
 const FRAME_RATES = [30, 60] as const;
 
@@ -110,9 +102,9 @@ function SizeInput({
 
 function CanvasSettings({ settings }: { settings: WorkflowSettings }) {
   const setSettings = workflowEdits.setSettings;
-  const preset = CANVAS_PRESETS.find(
-    ({ size }) => size.width === settings.width && size.height === settings.height,
-  )?.variant;
+  const preset = shapes().find(
+    ({ canvas }) => canvas.width === settings.width && canvas.height === settings.height,
+  )?.shape;
   return (
     <>
       <Field>
@@ -121,13 +113,14 @@ function CanvasSettings({ settings }: { settings: WorkflowSettings }) {
           variant="outline"
           size="sm"
           value={[preset ?? "custom"]}
-          onValueChange={whenFirstOneOf(VARIANTS, (v) =>
-            setSettings(variantCanvas(v, CANVAS_SHORT_SIDE)),
-          )}
+          onValueChange={(v) => {
+            const chosen = shapes().find((s) => s.shape === v[0]);
+            if (chosen) setSettings(chosen.canvas);
+          }}
         >
-          {VARIANTS.map((v) => (
-            <ToggleGroupItem key={v} value={v}>
-              {v}
+          {shapes().map(({ shape }) => (
+            <ToggleGroupItem key={shape} value={shape}>
+              {shape}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>

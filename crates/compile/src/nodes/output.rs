@@ -1,8 +1,8 @@
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::numbers::whole;
-use opsis_types::timeline::ReframeMode;
+use opsis_types::timeline::{ReframeMode, TimelineSpec};
 use opsis_types::values::{Artifact, CompileValue};
-use opsis_types::workflow::{PortType, WorkflowNode, WorkflowSettings};
+use opsis_types::workflow::{PortType, Workflow, WorkflowNode, WorkflowSettings};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
@@ -42,7 +42,9 @@ impl Codec {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 pub enum Variant {
     #[serde(rename = "16:9")]
     Wide,
@@ -55,6 +57,8 @@ pub enum Variant {
 }
 
 impl Variant {
+    pub const ALL: [Self; 4] = [Self::Wide, Self::Square, Self::Portrait, Self::Tall];
+
     pub fn id(self) -> &'static str {
         match self {
             Self::Wide => "16:9",
@@ -114,6 +118,18 @@ pub fn variant_size(variant: Variant, settings: &WorkflowSettings) -> Size {
 
 pub fn variant_canvas(variant: Variant, short: u32) -> Size {
     size_for(variant, short, Edge::Short)
+}
+
+pub const CANVAS_SHORT_SIDE: u32 = 1080;
+
+pub fn shaped_preview(spec: &TimelineSpec, shape: Variant, workflow: &Workflow) -> TimelineSpec {
+    let size = variant_size(shape, &workflow.settings);
+    TimelineSpec {
+        width: size.width,
+        height: size.height,
+        reframe: Some(export_reframe(&workflow.nodes)),
+        ..spec.clone()
+    }
 }
 
 fn exported_short_side(variant: Variant, settings: &WorkflowSettings, scale: f64) -> u32 {

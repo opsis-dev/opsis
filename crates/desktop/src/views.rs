@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use opsis_capture::live::FrameSink;
+use opsis_compile::nodes::output::{Variant, shaped_preview};
 use opsis_stream::host::{ViewEnv, ViewHost};
 use opsis_stream::picker::{PickRequest, PickResult, pick};
 use opsis_stream::preview::{PlayerState, Preview, PreviewDirs};
@@ -358,6 +359,20 @@ pub async fn preview_open(
 #[specta::specta]
 pub async fn preview_load(views: State<'_, Views>, spec: TimelineSpec) -> CommandResult<()> {
     with_preview(&views, async |p| p.load(&spec).await).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn preview_spec(
+    state: State<'_, AppState>,
+    spec: TimelineSpec,
+    shape: Variant,
+) -> TimelineSpec {
+    let editor = state.editor();
+    match editor.document.as_ref() {
+        Some(doc) => shaped_preview(&spec, shape, doc.workflow()),
+        None => spec,
+    }
 }
 
 #[tauri::command]

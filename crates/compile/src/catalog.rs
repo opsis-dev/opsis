@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use opsis_types::actions::Viewport;
 use opsis_types::fonts::FontFamilyDef;
 use opsis_types::mix::{MixerBook, mixer_book};
 use opsis_types::settings::{SettingsBook, settings_book};
@@ -8,6 +9,8 @@ use serde_json::Value;
 
 use crate::fonts::bundled_fonts;
 use crate::node::{Category, NodeDef, Phase, Platform, Ports};
+use crate::nodes::media::{loudness_presets, quality_presets};
+use crate::nodes::output::{CANVAS_SHORT_SIDE, Variant, variant_canvas};
 use crate::nodes::transitions::{transition_kinds, transition_title};
 use crate::params::Values;
 use crate::ports::can_connect;
@@ -180,6 +183,15 @@ pub struct EditorCatalog {
     pub bundled_fonts: Vec<FontFamilyDef>,
     pub settings: SettingsBook,
     pub theme_backgrounds: IndexMap<Theme, String>,
+    pub shapes: Vec<ShapeChoice>,
+    pub quality_presets: Vec<(String, f64)>,
+    pub loudness_presets: Vec<(String, f64)>,
+}
+
+#[derive(Debug, Clone, Serialize, specta::Type)]
+pub struct ShapeChoice {
+    pub shape: Variant,
+    pub canvas: Viewport,
 }
 
 pub fn editor_bundle(platform: Platform) -> EditorCatalog {
@@ -214,5 +226,20 @@ pub fn editor_bundle(platform: Platform) -> EditorCatalog {
             .into_iter()
             .map(|theme| (theme, theme.background().to_owned()))
             .collect(),
+        shapes: Variant::ALL
+            .into_iter()
+            .map(|shape| {
+                let size = variant_canvas(shape, CANVAS_SHORT_SIDE);
+                ShapeChoice {
+                    shape,
+                    canvas: Viewport {
+                        width: size.width,
+                        height: size.height,
+                    },
+                }
+            })
+            .collect(),
+        quality_presets: quality_presets(),
+        loudness_presets: loudness_presets(),
     }
 }

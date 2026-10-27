@@ -11,7 +11,6 @@ import type {
   MixResult,
 } from "@/generated/bindings";
 import { mixerBook } from "@/store/catalog";
-import { loudnessName } from "@/workflow/nodes";
 import { usePlayback } from "../../store/playback";
 import { workflowEdits } from "../../store/workflow";
 import { OptionSelect } from "../option-select";
@@ -24,12 +23,15 @@ import { rangeProps } from "./knob-math";
 import { sampleAt } from "./meter-levels";
 import { FaderMeter } from "./strip-parts";
 
-const loudnessGoal = (target: LoudnessTarget) =>
-  mixerBook().loudness.find((c) => c.target === target)?.goal ?? null;
+const loudnessChoice = (target: LoudnessTarget) =>
+  mixerBook().loudness.find((c) => c.target === target);
+
+const loudnessGoal = (target: LoudnessTarget) => loudnessChoice(target)?.goal ?? null;
 
 function loudnessLabel(target: LoudnessTarget): string {
-  const aim = loudnessGoal(target);
-  return aim ? `${loudnessName(aim.lufs)} (${signedText(aim.lufs)})` : "Off";
+  const choice = loudnessChoice(target);
+  if (!choice) return "";
+  return choice.goal ? `${choice.label} (${signedText(choice.goal.lufs)})` : choice.label;
 }
 
 const QUIET_LUFS = -70;

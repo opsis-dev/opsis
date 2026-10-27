@@ -1,10 +1,9 @@
 import { findById } from "@opsis/video/common/lists";
 import { atLeastOneFrame } from "@opsis/video/common/time";
 import { Clapperboard } from "lucide-react";
-import { useMemo, useState } from "react";
-import type { TimelineSpec } from "@/generated/bindings";
+import { useEffect, useMemo, useState } from "react";
+import { commands, type TimelineSpec } from "@/generated/bindings";
 import { nodeName } from "@/store/catalog";
-import { exportReframe, variantSize } from "@/workflow/nodes";
 import { EmptyPanel } from "../app/empty-panel";
 import { useProjectFiles } from "../store/project-files";
 import { useViewOptions } from "../store/view-options";
@@ -29,21 +28,27 @@ function NothingToPreview() {
 
 function usePreviewSpec(): TimelineSpec | null {
   const film = useFilm();
-  const workflow = useWorkflowStore((s) => s.workflow);
   const quality = useViewOptions((s) => s.previewQuality);
   const shape = useViewOptions((s) => s.previewShape);
   const versions = useProjectFiles((s) => s.versions);
-  return useMemo(() => {
-    if (!film.spec || !workflow) return null;
-    const base = { ...film.spec, assets: { versions }, quality };
-    return shape === "project"
-      ? base
-      : {
-          ...base,
-          ...variantSize(shape, workflow.settings),
-          reframe: exportReframe(workflow.nodes),
-        };
-  }, [film.spec, quality, shape, workflow, versions]);
+  const base = useMemo(
+    () => (film.spec ? { ...film.spec, assets: { versions }, quality } : null),
+    [film.spec, quality, versions],
+  );
+  const [shaped, setShaped] = useState<{ for: TimelineSpec; spec: TimelineSpec } | null>(null);
+  useEffect(() => {
+    if (!base || shape === "project") return;
+    let current = true;
+    void commands.previewSpec(base, shape).then((spec) => {
+      if (current) setShaped({ for: base, spec });
+    });
+    return () => {
+      current = false;
+    };
+  }, [base, shape]);
+  if (!base) return null;
+  if (shape === "project") return base;
+  return shaped?.for === base ? shaped.spec : null;
 }
 
 export function PreviewPlayer() {

@@ -95,6 +95,7 @@ pub fn builder() -> Builder<tauri::Wry> {
             views::view_close,
             views::preview_open,
             views::preview_load,
+            views::preview_spec,
             views::preview_play,
             views::preview_pause,
             views::preview_seek,

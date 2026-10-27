@@ -1,6 +1,7 @@
 use std::collections::BTreeSet;
 
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::mix::LOUDNESS_TARGETS;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
 use opsis_types::values::{ClipValue, CompileValue, MediaKind, MediaValue, NodeResult};
 use opsis_types::workflow::{DEFAULT_STILL_MS, PortType};
@@ -94,19 +95,27 @@ pub fn quality_name(crf: u32) -> &'static str {
     best.0
 }
 
-pub const LOUDNESS_PRESETS: [(&str, f64); 3] = [
-    ("Online video", -14.0),
-    ("Podcast", -16.0),
-    ("Broadcast", -23.0),
-];
+pub fn loudness_presets() -> Vec<(String, f64)> {
+    LOUDNESS_TARGETS
+        .iter()
+        .filter_map(|t| Some((t.label().to_owned(), t.target()?.lufs)))
+        .collect()
+}
+
+pub fn quality_presets() -> Vec<(String, f64)> {
+    QUALITY_PRESETS
+        .iter()
+        .map(|(label, crf)| ((*label).to_owned(), f64::from(*crf)))
+        .collect()
+}
 
 pub fn loudness_name(lufs: f64) -> String {
-    LOUDNESS_PRESETS
-        .iter()
+    loudness_presets()
+        .into_iter()
         .find(|(_, v)| *v == lufs)
         .map_or_else(
             || format!("{} LUFS", signed_text(lufs, None, false)),
-            |(name, _)| (*name).to_owned(),
+            |(name, _)| name,
         )
 }
 

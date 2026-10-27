@@ -1,16 +1,16 @@
 import { isBoolean, isOneOf } from "@opsis/video/common/guards";
 import { pick } from "@opsis/video/common/objects";
 import { create } from "zustand";
-import type { PreviewQuality } from "@/generated/bindings";
+import type { PreviewQuality, Variant } from "@/generated/bindings";
+import { shapes } from "@/store/catalog";
 import { PREVIEW_QUALITIES } from "@/timeline/envelopes";
-import { VARIANTS } from "@/workflow/nodes";
 import { readPref, writePref } from "./view-prefs";
 
 const isPreviewQuality = (v: unknown): v is PreviewQuality => isOneOf(PREVIEW_QUALITIES, v);
 
-export const PREVIEW_SHAPES = ["project", ...VARIANTS] as const;
-type PreviewShape = (typeof PREVIEW_SHAPES)[number];
-export const isPreviewShape = (v: unknown): v is PreviewShape => isOneOf(PREVIEW_SHAPES, v);
+export type PreviewShape = "project" | Variant;
+export const isPreviewShape = (v: unknown): v is PreviewShape =>
+  v === "project" || shapes().some((s) => s.shape === v);
 
 type ViewOptions = {
   previewQuality: PreviewQuality;

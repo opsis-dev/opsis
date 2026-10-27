@@ -11,6 +11,7 @@ import {
   type TemplateInfo,
   type MixerBook,
   type SettingsBook,
+  type ShapeChoice,
   type Theme,
   type TextRules,
 } from "@/generated/bindings";
@@ -30,6 +31,9 @@ const loaded: {
   bundledFonts: FontFamilyDef[];
   settings: SettingsBook | null;
   themeBackgrounds: Partial<Record<Theme, string>>;
+  shapes: ShapeChoice[];
+  qualityPresets: Array<[string, number]>;
+  loudnessPresets: Array<[string, number]>;
   templates: TemplateInfo[];
 } = {
   nodes: [],
@@ -42,6 +46,9 @@ const loaded: {
   bundledFonts: [],
   settings: null,
   themeBackgrounds: {},
+  shapes: [],
+  qualityPresets: [],
+  loudnessPresets: [],
   templates: [],
 };
 
@@ -61,6 +68,9 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
   const { nodes, transitions, connects, text, mixer, bundledFonts, settings } = catalog;
   loaded.settings = settings;
   loaded.themeBackgrounds = catalog.themeBackgrounds;
+  loaded.shapes = catalog.shapes;
+  loaded.qualityPresets = catalog.qualityPresets;
+  loaded.loudnessPresets = catalog.loudnessPresets;
   loaded.text = text;
   loaded.mixer = mixer;
   loaded.bundledFonts = bundledFonts;
@@ -74,6 +84,12 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
 export const textRules = (): TextRules => loaded.text;
 
 export const bundledFonts = (): FontFamilyDef[] => loaded.bundledFonts;
+
+export const shapes = (): ShapeChoice[] => loaded.shapes;
+
+export const qualityPresets = (): Array<[string, number]> => loaded.qualityPresets;
+
+export const loudnessPresets = (): Array<[string, number]> => loaded.loudnessPresets;
 
 export const themeBackground = (theme: Theme): string => loaded.themeBackgrounds[theme] ?? "";
 

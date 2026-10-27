@@ -373,6 +373,15 @@ pub struct LoudnessGoal {
 }
 
 impl LoudnessTarget {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Off => "Off",
+            Self::Web => "Online video",
+            Self::Podcast => "Podcast",
+            Self::Broadcast => "Broadcast",
+        }
+    }
+
     pub fn target(self) -> Option<LoudnessGoal> {
         match self {
             Self::Off => None,
@@ -611,6 +620,7 @@ pub const LOUDNESS_TARGETS: [LoudnessTarget; 4] = [
 #[serde(rename_all = "camelCase")]
 pub struct LoudnessChoice {
     pub target: LoudnessTarget,
+    pub label: String,
     pub goal: Option<LoudnessGoal>,
 }
 
@@ -741,6 +751,7 @@ pub fn mixer_book() -> MixerBook {
             .iter()
             .map(|t| LoudnessChoice {
                 target: *t,
+                label: t.label().to_owned(),
                 goal: t.target(),
             })
             .collect(),
