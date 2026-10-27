@@ -1,5 +1,4 @@
 use indexmap::IndexMap;
-use opsis_compile::compile::compile_workflow;
 use opsis_compile::time::frames_to_ms;
 use opsis_compile::timeline::chapters::{
     FilmChapter, chapter_list, chapter_metadata, film_chapters,
@@ -7,7 +6,9 @@ use opsis_compile::timeline::chapters::{
 use opsis_compile::timeline::flatten::node_spans;
 use serde_json::{Value, json};
 
-use crate::helpers::{Graph, TITLE, action, film, film_spec, flat_film, make_log, record_result};
+use crate::helpers::{
+    Graph, TITLE, action, export_film, film, film_spec, flat_film, make_log, record_result,
+};
 
 fn near(a: f64, b: f64, tolerance: f64) -> bool {
     (a - b).abs() <= tolerance
@@ -164,10 +165,7 @@ fn chaptered_film(
     g.node("out", "output.render", json!({}));
     g.link(&last, "out");
     let results = IndexMap::from([("record".to_owned(), record_result(&log))]);
-    let spec = compile_workflow(&g.build(), Some(&results))
-        .specs
-        .shift_remove("out")
-        .unwrap();
+    let spec = export_film(&g.build(), Some(&results), "out");
     let chapters = film_chapters(&spec);
     (spec, chapters)
 }
@@ -227,7 +225,7 @@ fn chapters_follow_delays_speed_changes_and_trims() {
 #[test]
 fn a_film_without_chapters_has_none() {
     let wf = film(|g| g.node("t", TITLE, json!({ "clipDuration": 90 })));
-    assert!(film_chapters(&compile_workflow(&wf, None).specs["out"]).is_empty());
+    assert!(film_chapters(&export_film(&wf, None, "out")).is_empty());
 }
 
 #[test]

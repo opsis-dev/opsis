@@ -1,3 +1,4 @@
+use opsis_compile::compile::film_of;
 use opsis_compile::mix::levels::{apply_mix_levels, with_master_stem};
 use opsis_compile::mix::plan::build_mix_plan;
 use opsis_compile::time::lerp;
@@ -15,10 +16,7 @@ pub fn spec_for(ctx: &ExecutorContext) -> Result<TimelineSpec, ExecError> {
     if let Some(error) = result.errors.get(&ctx.node.id) {
         return Err(ExecError::new(error.clone()));
     }
-    result
-        .specs
-        .get(&ctx.node.id)
-        .cloned()
+    film_of(&ctx.workflow, &result, &ctx.node.id)
         .ok_or_else(|| ExecError::new("Connect a clip to this node."))
 }
 

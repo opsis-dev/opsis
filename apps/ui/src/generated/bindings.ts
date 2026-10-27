@@ -560,7 +560,6 @@ export type Comp = {
 export type CompileResult = {
 	values: { [key in string]: { [key in string]: CompileValue } },
 	errors: { [key in string]: string },
-	specs: { [key in string]: TimelineSpec },
 	order: string[],
 };
 

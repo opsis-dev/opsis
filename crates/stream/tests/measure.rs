@@ -4,7 +4,7 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 use opsis_capture::live::FrameSink;
-use opsis_compile::compile::compile_workflow;
+use opsis_compile::compile::{compile_workflow, film_of};
 use opsis_engine::paths::downloaded_browser;
 use opsis_project::last_run::read_last_run;
 use opsis_stream::host::ViewEnv;
@@ -42,11 +42,12 @@ fn film(project: &Path, title_background: Option<&str>) -> TimelineSpec {
     let results = read_last_run(project).unwrap().expect("a saved run").nodes;
     TimelineSpec {
         quality: Some(PreviewQuality::Fast),
-        ..compile_workflow(&workflow, Some(&results))
-            .specs
-            .get("render")
-            .cloned()
-            .unwrap()
+        ..film_of(
+            &workflow,
+            &compile_workflow(&workflow, Some(&results)),
+            "render",
+        )
+        .unwrap()
     }
 }
 

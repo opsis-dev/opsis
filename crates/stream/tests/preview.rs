@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use opsis_compile::compile::compile_workflow;
+use opsis_compile::compile::{compile_workflow, film_of};
 use opsis_engine::paths::downloaded_browser;
 use opsis_project::last_run::read_last_run;
 use opsis_stream::host::ViewEnv;
@@ -29,7 +29,7 @@ fn film(project: &Path) -> TimelineSpec {
     let compiled = compile_workflow(&workflow, Some(&results));
     TimelineSpec {
         quality: Some(PreviewQuality::Fast),
-        ..compiled.specs.get("render").cloned().expect("the film")
+        ..film_of(&workflow, &compiled, "render").expect("the film")
     }
 }
 

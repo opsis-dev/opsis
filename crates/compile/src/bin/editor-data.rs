@@ -14,7 +14,7 @@ fn film() -> serde_json::Value {
         .expect("a workflow on standard input");
     let workflow: Workflow = serde_json::from_str(&text).expect("a workflow");
     let compiled = compile_workflow(&workflow, None);
-    let preview = preview_spec(&workflow.settings, &compiled, None);
+    let preview = preview_spec(&workflow, &compiled, None);
     let flat = preview.as_ref().map(|p| flatten_spec(&p.spec));
     let local_frames: serde_json::Map<String, serde_json::Value> = flat
         .iter()

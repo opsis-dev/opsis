@@ -73,7 +73,7 @@ fn editor_compile(input: &CompileInput) -> EditorCompile {
     let seq = COMPILES.fetch_add(1, Ordering::Relaxed) + 1;
     let result = compile_workflow(workflow, Some(&input.results));
     let issues = validate_workflow(workflow, Some(&result));
-    let preview = preview_spec(&workflow.settings, &result, input.selected.as_deref());
+    let preview = preview_spec(workflow, &result, input.selected.as_deref());
     let flat = preview.as_ref().map(|p| flatten_spec(&p.spec));
     let film = preview.as_ref().zip(flat.as_ref());
     let plan = film.map(|(p, f)| build_mix_plan(&p.spec, workflow.mix.as_ref(), f));

@@ -14036,29 +14036,29 @@
           "yaw": {
            "type": "number",
            "format": "double",
-           "minimum": -180,
-           "maximum": 180,
+           "minimum": -180.0,
+           "maximum": 180.0,
            "default": 0.0
           },
           "pitch": {
            "type": "number",
            "format": "double",
-           "minimum": -89,
-           "maximum": 89,
+           "minimum": -89.0,
+           "maximum": 89.0,
            "default": 0.0
           },
           "distance": {
            "type": "number",
            "format": "double",
            "minimum": 0.3,
-           "maximum": 4,
+           "maximum": 4.0,
            "default": 1.0
           },
           "height": {
            "type": "number",
            "format": "double",
-           "minimum": -2,
-           "maximum": 2,
+           "minimum": -2.0,
+           "maximum": 2.0,
            "default": 0.0
           },
           "ease": {
@@ -14410,29 +14410,29 @@
           "yaw": {
            "type": "number",
            "format": "double",
-           "minimum": -180,
-           "maximum": 180,
+           "minimum": -180.0,
+           "maximum": 180.0,
            "default": 0.0
           },
           "pitch": {
            "type": "number",
            "format": "double",
-           "minimum": -89,
-           "maximum": 89,
+           "minimum": -89.0,
+           "maximum": 89.0,
            "default": 0.0
           },
           "distance": {
            "type": "number",
            "format": "double",
            "minimum": 0.3,
-           "maximum": 4,
+           "maximum": 4.0,
            "default": 1.0
           },
           "height": {
            "type": "number",
            "format": "double",
-           "minimum": -2,
-           "maximum": 2,
+           "minimum": -2.0,
+           "maximum": 2.0,
            "default": 0.0
           },
           "ease": {
@@ -14831,29 +14831,29 @@
           "yaw": {
            "type": "number",
            "format": "double",
-           "minimum": -180,
-           "maximum": 180,
+           "minimum": -180.0,
+           "maximum": 180.0,
            "default": 0.0
           },
           "pitch": {
            "type": "number",
            "format": "double",
-           "minimum": -89,
-           "maximum": 89,
+           "minimum": -89.0,
+           "maximum": 89.0,
            "default": 0.0
           },
           "distance": {
            "type": "number",
            "format": "double",
            "minimum": 0.3,
-           "maximum": 4,
+           "maximum": 4.0,
            "default": 1.0
           },
           "height": {
            "type": "number",
            "format": "double",
-           "minimum": -2,
-           "maximum": 2,
+           "minimum": -2.0,
+           "maximum": 2.0,
            "default": 0.0
           },
           "ease": {
@@ -15180,29 +15180,29 @@
           "yaw": {
            "type": "number",
            "format": "double",
-           "minimum": -180,
-           "maximum": 180,
+           "minimum": -180.0,
+           "maximum": 180.0,
            "default": 0.0
           },
           "pitch": {
            "type": "number",
            "format": "double",
-           "minimum": -89,
-           "maximum": 89,
+           "minimum": -89.0,
+           "maximum": 89.0,
            "default": 0.0
           },
           "distance": {
            "type": "number",
            "format": "double",
            "minimum": 0.3,
-           "maximum": 4,
+           "maximum": 4.0,
            "default": 1.0
           },
           "height": {
            "type": "number",
            "format": "double",
-           "minimum": -2,
-           "maximum": 2,
+           "minimum": -2.0,
+           "maximum": 2.0,
            "default": 0.0
           },
           "ease": {
@@ -15582,29 +15582,29 @@
           "yaw": {
            "type": "number",
            "format": "double",
-           "minimum": -180,
-           "maximum": 180,
+           "minimum": -180.0,
+           "maximum": 180.0,
            "default": 0.0
           },
           "pitch": {
            "type": "number",
            "format": "double",
-           "minimum": -89,
-           "maximum": 89,
+           "minimum": -89.0,
+           "maximum": 89.0,
            "default": 0.0
           },
           "distance": {
            "type": "number",
            "format": "double",
            "minimum": 0.3,
-           "maximum": 4,
+           "maximum": 4.0,
            "default": 1.0
           },
           "height": {
            "type": "number",
            "format": "double",
-           "minimum": -2,
-           "maximum": 2,
+           "minimum": -2.0,
+           "maximum": 2.0,
            "default": 0.0
           },
           "ease": {
@@ -15942,29 +15942,29 @@
           "yaw": {
            "type": "number",
            "format": "double",
-           "minimum": -180,
-           "maximum": 180,
+           "minimum": -180.0,
+           "maximum": 180.0,
            "default": 0.0
           },
           "pitch": {
            "type": "number",
            "format": "double",
-           "minimum": -89,
-           "maximum": 89,
+           "minimum": -89.0,
+           "maximum": 89.0,
            "default": 0.0
           },
           "distance": {
            "type": "number",
            "format": "double",
            "minimum": 0.3,
-           "maximum": 4,
+           "maximum": 4.0,
            "default": 1.0
           },
           "height": {
            "type": "number",
            "format": "double",
-           "minimum": -2,
-           "maximum": 2,
+           "minimum": -2.0,
+           "maximum": 2.0,
            "default": 0.0
           },
           "ease": {

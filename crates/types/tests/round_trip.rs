@@ -44,13 +44,14 @@ fn fixture_values_round_trip() {
             &format!("{name} workflow"),
             &fixture["workflow"],
         ));
-        for compile in [&fixture["compile"], &fixture["run"]["compile"]] {
-            for (id, spec) in compile["specs"].as_object().unwrap() {
+        for outcome in [&fixture, &fixture["run"]] {
+            for (id, spec) in outcome["films"].as_object().unwrap() {
                 problems.extend(round_trip::<TimelineSpec>(
                     &format!("{name} spec {id}"),
                     spec,
                 ));
             }
+            let compile = &outcome["compile"];
             for (id, ports) in compile["values"].as_object().unwrap() {
                 for (port, value) in ports.as_object().unwrap() {
                     problems.extend(round_trip::<CompileValue>(

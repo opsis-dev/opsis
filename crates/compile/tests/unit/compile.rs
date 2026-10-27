@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 use opsis_compile::clip::walk_items;
-use opsis_compile::compile::{CompileResult, compile_workflow, preview_spec};
+use opsis_compile::compile::{CompileResult, compile_workflow, film_of, preview_spec};
 use opsis_compile::graph::connection_problem;
 use opsis_compile::timeline::flatten::{BarKind, flatten_spec};
 use opsis_types::actions::ActionKind;
@@ -9,7 +9,9 @@ use opsis_types::values::{ClipValue, CompileValue, NodeResult};
 use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
 
-use crate::helpers::{Graph, TITLE, action, make_log, node_result, record_result, template};
+use crate::helpers::{
+    Graph, TITLE, action, export_film, make_log, node_result, record_result, template,
+};
 
 fn log() -> opsis_types::actions::ActionLog {
     make_log(
@@ -38,6 +40,11 @@ fn with_results(wf: &Workflow, results: Vec<(&str, NodeResult)>) -> CompileResul
         .map(|(k, r)| (k.to_owned(), r))
         .collect();
     compile_workflow(wf, Some(&results))
+}
+
+fn todo_film(results: Vec<(&str, NodeResult)>) -> TimelineSpec {
+    let wf = todo_mvc();
+    film_of(&wf, &with_results(&wf, results), "render").unwrap()
 }
 
 fn items_of(spec: &TimelineSpec) -> Vec<TimelineItem> {
@@ -69,9 +76,10 @@ fn group_value(item: &TimelineItem) -> Value {
 
 #[test]
 fn compiles_the_sample_to_one_spec_per_export_with_a_placeholder_before_the_first_run() {
-    let out = compile_workflow(&todo_mvc(), None);
+    let wf = todo_mvc();
+    let out = compile_workflow(&wf, None);
     assert!(out.errors.is_empty(), "{:?}", out.errors);
-    let spec = &out.specs["render"];
+    let spec = &film_of(&wf, &out, "render").unwrap();
     assert_eq!(spec.width, 1920);
     let components: Vec<String> = items_of(spec)
         .iter()
@@ -93,8 +101,8 @@ fn compiles_the_sample_to_one_spec_per_export_with_a_placeholder_before_the_firs
 
 #[test]
 fn uses_the_recording_once_the_capture_node_has_a_result() {
-    let out = with_results(&todo_mvc(), vec![("record", record_result(&log()))]);
-    let props = recording_in(&out.specs["render"]).unwrap();
+    let film = todo_film(vec![("record", record_result(&log()))]);
+    let props = recording_in(&film).unwrap();
     assert_eq!(props["src"], "project:.opsis/cache/h/recording.mp4");
     assert_eq!(props["tuning"]["sMax"], 1.74);
     assert_eq!(
@@ -105,8 +113,7 @@ fn uses_the_recording_once_the_capture_node_has_a_result() {
 
 #[test]
 fn marks_every_action_of_the_recording_on_the_timeline_at_its_frame() {
-    let out = with_results(&todo_mvc(), vec![("record", record_result(&log()))]);
-    let flat = flatten_spec(&out.specs["render"]);
+    let flat = flatten_spec(&todo_film(vec![("record", record_result(&log()))]));
     let bar = flat
         .bars
         .iter()
@@ -129,8 +136,7 @@ fn passes_the_small_preview_copy_along_with_the_full_recording() {
     if let Some(CompileValue::Recording(r)) = result.outputs.get_mut("recording") {
         r.proxy_src = Some("project:.opsis/cache/h/recording.preview.mp4".into());
     }
-    let props =
-        recording_in(&with_results(&todo_mvc(), vec![("record", result)]).specs["render"]).unwrap();
+    let props = recording_in(&todo_film(vec![("record", result)])).unwrap();
     assert_eq!(props["src"], "project:.opsis/cache/h/recording.mp4");
     assert_eq!(
         props["proxySrc"],
@@ -140,8 +146,7 @@ fn passes_the_small_preview_copy_along_with_the_full_recording() {
 
 #[test]
 fn sequences_clips_with_overlapping_transitions_and_fills_variables() {
-    let out = with_results(&todo_mvc(), vec![("record", record_result(&log()))]);
-    let spec = &out.specs["render"];
+    let spec = &todo_film(vec![("record", record_result(&log()))]);
     let seq = &spec.tracks[0].items;
     assert_eq!(seq.len(), 3);
     let enter = seq[1].base().enter.clone().unwrap();
@@ -155,7 +160,7 @@ fn sequences_clips_with_overlapping_transitions_and_fills_variables() {
         spec.duration_in_frames,
         seq[2].base().from + seq[2].base().duration_in_frames
     );
-    let outro = items_of(&compile_workflow(&todo_mvc(), None).specs["render"])
+    let outro = items_of(&todo_film(Vec::new()))
         .into_iter()
         .find_map(|i| match i {
             TimelineItem::Element {
@@ -238,10 +243,10 @@ fn reports_invalid_params_per_node_and_previews_the_selected_nodes_clip() {
         "loop".into()
     });
     let out = compile_workflow(&wf, None);
-    let selected = preview_spec(&wf.settings, &out, Some("title")).unwrap();
+    let selected = preview_spec(&wf, &out, Some("title")).unwrap();
     assert_eq!(selected.spec.duration_in_frames, 90);
     assert_eq!(
-        preview_spec(&wf.settings, &out, None)
+        preview_spec(&wf, &out, None)
             .unwrap()
             .spec
             .duration_in_frames,
@@ -263,10 +268,7 @@ fn wraps_layers_that_keep_their_layout_in_a_box_at_the_projects_size() {
         .link_ports("t", "stack", "clip", "in2");
     g.node("out", "output.render", json!({}));
     g.link("stack", "out");
-    let spec = compile_workflow(&g.build(), None)
-        .specs
-        .shift_remove("out")
-        .unwrap();
+    let spec = export_film(&g.build(), None, "out");
     let props = group_value(&spec.tracks[0].items[0]);
     assert_eq!(props["design"], json!({ "width": 1920, "height": 1080 }));
     assert_eq!(props["tracks"].as_array().unwrap().len(), 2);
@@ -300,10 +302,13 @@ fn with_sounds(sounds: &[(&str, Value)]) -> TimelineSpec {
     }
     g.node("out", "output.render", json!({}));
     g.link("mix", "out");
-    with_results(&g.build(), vec![("record", record_result(&tagged))])
-        .specs
-        .shift_remove("out")
-        .unwrap()
+    let wf = g.build();
+    film_of(
+        &wf,
+        &with_results(&wf, vec![("record", record_result(&tagged))]),
+        "out",
+    )
+    .unwrap()
 }
 
 #[test]
@@ -351,9 +356,7 @@ fn sequence(cuts: Value, ports: &[&str]) -> Vec<TimelineItem> {
     );
     g.node("out", "output.render", json!({}));
     g.link("seq", "out");
-    compile_workflow(&g.build(), None).specs["out"].tracks[0]
-        .items
-        .clone()
+    export_film(&g.build(), None, "out").tracks[0].items.clone()
 }
 
 fn enters(items: &[TimelineItem]) -> Vec<Option<(String, u32, bool)>> {
@@ -497,9 +500,10 @@ fn an_export_takes_its_film_from_the_connected_clip_and_a_skipped_node_passes_it
     g.node("film", "output.render", json!({}));
     g.node("loose", "output.render", json!({ "fileName": "loose" }));
     g.link("title", "film");
-    let out = compile_workflow(&g.build(), None);
-    assert_eq!(out.specs["film"].duration_in_frames, 45);
-    assert!(!out.specs.contains_key("loose"));
+    let wf = g.build();
+    let out = compile_workflow(&wf, None);
+    assert_eq!(film_of(&wf, &out, "film").unwrap().duration_in_frames, 45);
+    assert!(film_of(&wf, &out, "loose").is_none());
     assert!(out.values["film"].is_empty());
     let mut g = Graph::default();
     g.node("red", "fx.core.solid", json!({ "color": "#ff0000" }));

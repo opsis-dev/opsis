@@ -1,5 +1,4 @@
 use opsis_compile::clip::{item_has_sound, walk_items};
-use opsis_compile::compile::compile_workflow;
 use opsis_compile::mix::levels::{apply_mix_levels, duck_spans, with_master_stem};
 use opsis_compile::mix::plan::{MixPlan, build_mix_plan, channel_identity};
 use opsis_compile::timeline::flatten::flatten_spec;
@@ -8,7 +7,7 @@ use opsis_types::timeline::{AudioItem, TimelineItem, TimelineSpec};
 use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
 
-use crate::helpers::{Graph, TITLE, film, film_spec};
+use crate::helpers::{Graph, TITLE, export_film, film, film_spec};
 
 fn project(mix: Option<Mix>) -> (Workflow, TimelineSpec) {
     let mut g = Graph::default();
@@ -227,10 +226,7 @@ fn lists_channels_in_connection_order_routed_to_the_default_buses() {
         .link_ports("early", "mix", "audio", "sounds")
         .link("mix", "out");
     let wf = g.build();
-    let spec = compile_workflow(&wf, None)
-        .specs
-        .shift_remove("out")
-        .unwrap();
+    let spec = export_film(&wf, None, "out");
     assert_eq!(
         plan_of(&spec, None)
             .channels

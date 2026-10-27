@@ -35,7 +35,6 @@
  "compile": {
   "values": {},
   "errors": {},
-  "specs": {},
   "order": []
  },
  "problems": [],
@@ -50,13 +49,13 @@
   }
  },
  "preview": null,
+ "films": {},
  "timelines": {},
  "run": {
   "results": {},
   "compile": {
    "values": {},
    "errors": {},
-   "specs": {},
    "order": []
   },
   "problems": [],
@@ -71,6 +70,7 @@
    }
   },
   "preview": null,
+  "films": {},
   "timelines": {}
  }
 }

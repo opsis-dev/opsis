@@ -2983,856 +2983,6 @@
    "render": {}
   },
   "errors": {},
-  "specs": {
-   "render": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
-    "durationInFrames": 258,
-    "background": "#09090b",
-    "tracks": [
-     {
-      "id": "layers:l0",
-      "items": [
-       {
-        "kind": "group",
-        "id": "layers:l0:g",
-        "from": 0,
-        "durationInFrames": 258,
-        "handles": {
-         "move": {
-          "nodeId": "layers",
-          "param": "offsetsMs",
-          "unit": "ms",
-          "index": 0
-         }
-        },
-        "slot": {
-         "nodeId": "layers",
-         "port": "in1"
-        },
-        "props": {
-         "tracks": [
-          {
-           "id": "sequence:seq",
-           "items": [
-            {
-             "kind": "group",
-             "id": "sequence:s0",
-             "from": 0,
-             "durationInFrames": 75,
-             "exit": {
-              "kind": "remocn/whip-pan",
-              "durationInFrames": 18
-             },
-             "slot": {
-              "nodeId": "sequence",
-              "port": "in1"
-             },
-             "props": {
-              "tracks": [
-               {
-                "id": "intro:l0",
-                "items": [
-                 {
-                  "kind": "group",
-                  "id": "intro:l0:g",
-                  "from": 0,
-                  "durationInFrames": 75,
-                  "handles": {
-                   "move": {
-                    "nodeId": "intro",
-                    "param": "offsetsMs",
-                    "unit": "ms",
-                    "index": 0
-                   }
-                  },
-                  "slot": {
-                   "nodeId": "intro",
-                   "port": "in1"
-                  },
-                  "props": {
-                   "tracks": [
-                    {
-                     "id": "intro-bg:t",
-                     "items": [
-                      {
-                       "kind": "element",
-                       "id": "intro-bg:i",
-                       "from": 0,
-                       "durationInFrames": 75,
-                       "nodeId": "intro-bg",
-                       "handles": {
-                        "trimEnd": {
-                         "nodeId": "intro-bg",
-                         "param": "clipDuration",
-                         "unit": "frames"
-                        }
-                       },
-                       "component": "remocn/shader-mesh-gradient",
-                       "props": {
-                        "speed": 1,
-                        "distortion": 0.6,
-                        "swirl": 0.1,
-                        "colors": [
-                         "#12121a",
-                         "#232338",
-                         "#3a3a5c",
-                         "#52527a"
-                        ]
-                       }
-                      }
-                     ]
-                    }
-                   ]
-                  }
-                 }
-                ],
-                "layer": true
-               },
-               {
-                "id": "intro:l1",
-                "items": [
-                 {
-                  "kind": "group",
-                  "id": "intro:l1:g",
-                  "from": 0,
-                  "durationInFrames": 75,
-                  "handles": {
-                   "move": {
-                    "nodeId": "intro",
-                    "param": "offsetsMs",
-                    "unit": "ms",
-                    "index": 1
-                   }
-                  },
-                  "slot": {
-                   "nodeId": "intro",
-                   "port": "in2"
-                  },
-                  "props": {
-                   "tracks": [
-                    {
-                     "id": "intro-title:t",
-                     "items": [
-                      {
-                       "kind": "element",
-                       "id": "intro-title:i",
-                       "from": 0,
-                       "durationInFrames": 75,
-                       "nodeId": "intro-title",
-                       "handles": {
-                        "trimEnd": {
-                         "nodeId": "intro-title",
-                         "param": "clipDuration",
-                         "unit": "frames"
-                        }
-                       },
-                       "component": "remocn/soft-blur-in",
-                       "props": {
-                        "text": "TodoMVC in 20 seconds",
-                        "blur": 12,
-                        "fontSize": 104,
-                        "color": "#fafafa",
-                        "fontWeight": "600",
-                        "background": "white",
-                        "speed": 1
-                       }
-                      }
-                     ]
-                    }
-                   ]
-                  }
-                 }
-                ],
-                "layer": true
-               }
-              ]
-             }
-            },
-            {
-             "kind": "group",
-             "id": "sequence:s1",
-             "from": 57,
-             "durationInFrames": 144,
-             "enter": {
-              "kind": "remocn/whip-pan",
-              "durationInFrames": 18
-             },
-             "exit": {
-              "kind": "remocn/whip-pan",
-              "durationInFrames": 18
-             },
-             "slot": {
-              "nodeId": "sequence",
-              "port": "in2"
-             },
-             "props": {
-              "tracks": [
-               {
-                "id": "camera:t",
-                "items": [
-                 {
-                  "kind": "element",
-                  "id": "camera:i",
-                  "from": 0,
-                  "durationInFrames": 144,
-                  "nodeId": "camera",
-                  "component": "core/placeholder",
-                  "props": {
-                   "title": "Not recorded yet",
-                   "subtitle": "Run to record the take. The camera moves appear here afterwards."
-                  }
-                 }
-                ]
-               }
-              ]
-             }
-            },
-            {
-             "kind": "group",
-             "id": "sequence:s2",
-             "from": 183,
-             "durationInFrames": 75,
-             "enter": {
-              "kind": "remocn/whip-pan",
-              "durationInFrames": 18
-             },
-             "slot": {
-              "nodeId": "sequence",
-              "port": "in3"
-             },
-             "props": {
-              "tracks": [
-               {
-                "id": "outro:t",
-                "items": [
-                 {
-                  "kind": "element",
-                  "id": "outro:i",
-                  "from": 0,
-                  "durationInFrames": 75,
-                  "nodeId": "outro",
-                  "handles": {
-                   "trimEnd": {
-                    "nodeId": "outro",
-                    "param": "clipDuration",
-                    "unit": "frames"
-                   }
-                  },
-                  "component": "core/title",
-                  "props": {
-                   "eyebrow": "Made with",
-                   "title": "Opsis",
-                   "subtitle": "https://demo.playwright.dev/todomvc",
-                   "mark": "",
-                   "markLook": "underline",
-                   "markColor": "#facc15",
-                   "align": "center",
-                   "entrance": "rise",
-                   "color": "#fafafa",
-                   "accent": "#a78bfa",
-                   "background": "transparent",
-                   "fontSize": 112,
-                   "fontWeight": 760
-                  }
-                 }
-                ]
-               }
-              ]
-             }
-            }
-           ]
-          }
-         ]
-        }
-       }
-      ],
-      "layer": true
-     },
-     {
-      "id": "layers:l1",
-      "items": [
-       {
-        "kind": "group",
-        "id": "layers:l1:g",
-        "from": 12,
-        "durationInFrames": 150,
-        "handles": {
-         "move": {
-          "nodeId": "layers",
-          "param": "offsetsMs",
-          "unit": "ms",
-          "index": 1
-         }
-        },
-        "slot": {
-         "nodeId": "layers",
-         "port": "in2"
-        },
-        "props": {
-         "tracks": [
-          {
-           "id": "talk-clip:t",
-           "items": [
-            {
-             "kind": "element",
-             "id": "talk-clip:i",
-             "from": 0,
-             "durationInFrames": 150,
-             "nodeId": "talk-clip",
-             "component": "core/video",
-             "props": {
-              "src": "project:clips/talk.mp4",
-              "fit": "contain",
-              "muted": false
-             }
-            }
-           ]
-          }
-         ]
-        }
-       }
-      ],
-      "layer": true
-     }
-    ],
-    "audio": [
-     {
-      "id": "song",
-      "src": "project:music/song.mp3",
-      "from": 15,
-      "durationInFrames": 243,
-      "volume": 0.5,
-      "trimBefore": 6,
-      "loop": true,
-      "fadeInFrames": 12,
-      "fadeOutFrames": 45,
-      "nodeId": "song",
-      "channel": "song",
-      "role": "music",
-      "handles": {
-       "move": {
-        "nodeId": "song",
-        "param": "startMs",
-        "unit": "ms"
-       },
-       "trimStart": {
-        "nodeId": "song",
-        "param": "trimMs",
-        "unit": "ms",
-        "linked": [
-         {
-          "param": "startMs",
-          "sign": 1
-         },
-         {
-          "param": "lengthMs",
-          "sign": -1,
-          "ifNonZero": true
-         }
-        ]
-       },
-       "trimEnd": {
-        "nodeId": "song",
-        "param": "lengthMs",
-        "unit": "ms"
-       },
-       "volume": {
-        "nodeId": "song",
-        "param": "volume",
-        "unit": "number"
-       }
-      }
-     },
-     {
-      "id": "whip",
-      "src": "app:sfx/whip.wav",
-      "from": 30,
-      "durationInFrames": 228,
-      "volume": 1.0,
-      "nodeId": "whip",
-      "channel": "whip",
-      "role": "effect",
-      "lengthFrames": 5,
-      "keepMusic": true,
-      "handles": {
-       "move": {
-        "nodeId": "whip",
-        "param": "atMs",
-        "unit": "ms"
-       },
-       "volume": {
-        "nodeId": "whip",
-        "param": "volume",
-        "unit": "number"
-       }
-      }
-     },
-     {
-      "id": "loop",
-      "src": "project:music/bed.mp3",
-      "from": 0,
-      "durationInFrames": 90,
-      "volume": 0.3,
-      "loop": true,
-      "fadeInFrames": 24,
-      "fadeOutFrames": 45,
-      "nodeId": "loop",
-      "channel": "loop",
-      "role": "music",
-      "handles": {
-       "move": {
-        "nodeId": "loop",
-        "param": "startMs",
-        "unit": "ms"
-       },
-       "trimStart": {
-        "nodeId": "loop",
-        "param": "trimMs",
-        "unit": "ms",
-        "linked": [
-         {
-          "param": "startMs",
-          "sign": 1
-         },
-         {
-          "param": "lengthMs",
-          "sign": -1,
-          "ifNonZero": true
-         }
-        ]
-       },
-       "trimEnd": {
-        "nodeId": "loop",
-        "param": "lengthMs",
-        "unit": "ms"
-       },
-       "volume": {
-        "nodeId": "loop",
-        "param": "volume",
-        "unit": "number"
-       }
-      }
-     }
-    ],
-    "fonts": {
-     "families": {
-      "df-main": {
-       "id": "inter",
-       "family": "Inter",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/inter/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
-         "weight": "100 900",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "df-heading": {
-       "id": "inter",
-       "family": "Inter",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/inter/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
-         "weight": "100 900",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "df-code": {
-       "id": "jetbrains-mono",
-       "family": "JetBrains Mono",
-       "category": "monospace",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
-         "weight": "100 800",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
-         "weight": "100 800",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "inter": {
-       "id": "inter",
-       "family": "Inter",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/inter/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
-         "weight": "100 900",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "jetbrains mono": {
-       "id": "jetbrains-mono",
-       "family": "JetBrains Mono",
-       "category": "monospace",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
-         "weight": "100 800",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
-         "weight": "100 800",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "google sans": {
-       "id": "google-sans-flex",
-       "family": "Google Sans Flex",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        }
-       ]
-      },
-      "geist": {
-       "id": "geist",
-       "family": "Geist",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/geist/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
-         "weight": "100 900",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "geist mono": {
-       "id": "geist-mono",
-       "family": "Geist Mono",
-       "category": "monospace",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
-         "weight": "100 900",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "manrope": {
-       "id": "manrope",
-       "family": "Manrope",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/manrope/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
-         "weight": "200 800",
-         "style": "normal",
-         "format": "woff2"
-        }
-       ]
-      },
-      "dm sans": {
-       "id": "dm-sans",
-       "family": "DM Sans",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
-         "weight": "100 900",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "space grotesk": {
-       "id": "space-grotesk",
-       "family": "Space Grotesk",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
-         "weight": "300 700",
-         "style": "normal",
-         "format": "woff2"
-        }
-       ]
-      },
-      "outfit": {
-       "id": "outfit",
-       "family": "Outfit",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/outfit/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        }
-       ]
-      },
-      "montserrat": {
-       "id": "montserrat",
-       "family": "Montserrat",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
-         "weight": "100 900",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "plus jakarta sans": {
-       "id": "plus-jakarta-sans",
-       "family": "Plus Jakarta Sans",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
-         "weight": "200 800",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
-         "weight": "200 800",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "ibm plex sans": {
-       "id": "ibm-plex-sans",
-       "family": "IBM Plex Sans",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
-         "weight": "100 700",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
-         "weight": "100 700",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "playfair display": {
-       "id": "playfair-display",
-       "family": "Playfair Display",
-       "category": "serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
-         "weight": "400 900",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
-         "weight": "400 900",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "fraunces": {
-       "id": "fraunces",
-       "family": "Fraunces",
-       "category": "serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
-         "weight": "100 900",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      },
-      "caveat": {
-       "id": "caveat",
-       "family": "Caveat",
-       "category": "handwriting",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/caveat/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
-         "weight": "400 700",
-         "style": "normal",
-         "format": "woff2"
-        }
-       ]
-      },
-      "google sans flex": {
-       "id": "google-sans-flex",
-       "family": "Google Sans Flex",
-       "category": "sans-serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
-         "weight": "100 900",
-         "style": "normal",
-         "format": "woff2"
-        }
-       ]
-      },
-      "instrument serif": {
-       "id": "instrument-serif",
-       "family": "Instrument Serif",
-       "category": "serif",
-       "source": "bundled",
-       "license": "OFL-1.1",
-       "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
-       "faces": [
-        {
-         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
-         "weight": "400",
-         "style": "normal",
-         "format": "woff2"
-        },
-        {
-         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
-         "weight": "400",
-         "style": "italic",
-         "format": "woff2"
-        }
-       ]
-      }
-     },
-     "preload": [
-      "df-main",
-      "df-heading",
-      "df-code",
-      "Inter",
-      "JetBrains Mono"
-     ]
-    }
-   }
-  },
   "order": [
    "session",
    "talk",
@@ -5107,6 +4257,856 @@
    }
   },
   "sourceNodeId": "render"
+ },
+ "films": {
+  "render": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "durationInFrames": 258,
+   "background": "#09090b",
+   "tracks": [
+    {
+     "id": "layers:l0",
+     "items": [
+      {
+       "kind": "group",
+       "id": "layers:l0:g",
+       "from": 0,
+       "durationInFrames": 258,
+       "handles": {
+        "move": {
+         "nodeId": "layers",
+         "param": "offsetsMs",
+         "unit": "ms",
+         "index": 0
+        }
+       },
+       "slot": {
+        "nodeId": "layers",
+        "port": "in1"
+       },
+       "props": {
+        "tracks": [
+         {
+          "id": "sequence:seq",
+          "items": [
+           {
+            "kind": "group",
+            "id": "sequence:s0",
+            "from": 0,
+            "durationInFrames": 75,
+            "exit": {
+             "kind": "remocn/whip-pan",
+             "durationInFrames": 18
+            },
+            "slot": {
+             "nodeId": "sequence",
+             "port": "in1"
+            },
+            "props": {
+             "tracks": [
+              {
+               "id": "intro:l0",
+               "items": [
+                {
+                 "kind": "group",
+                 "id": "intro:l0:g",
+                 "from": 0,
+                 "durationInFrames": 75,
+                 "handles": {
+                  "move": {
+                   "nodeId": "intro",
+                   "param": "offsetsMs",
+                   "unit": "ms",
+                   "index": 0
+                  }
+                 },
+                 "slot": {
+                  "nodeId": "intro",
+                  "port": "in1"
+                 },
+                 "props": {
+                  "tracks": [
+                   {
+                    "id": "intro-bg:t",
+                    "items": [
+                     {
+                      "kind": "element",
+                      "id": "intro-bg:i",
+                      "from": 0,
+                      "durationInFrames": 75,
+                      "nodeId": "intro-bg",
+                      "handles": {
+                       "trimEnd": {
+                        "nodeId": "intro-bg",
+                        "param": "clipDuration",
+                        "unit": "frames"
+                       }
+                      },
+                      "component": "remocn/shader-mesh-gradient",
+                      "props": {
+                       "speed": 1,
+                       "distortion": 0.6,
+                       "swirl": 0.1,
+                       "colors": [
+                        "#12121a",
+                        "#232338",
+                        "#3a3a5c",
+                        "#52527a"
+                       ]
+                      }
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                }
+               ],
+               "layer": true
+              },
+              {
+               "id": "intro:l1",
+               "items": [
+                {
+                 "kind": "group",
+                 "id": "intro:l1:g",
+                 "from": 0,
+                 "durationInFrames": 75,
+                 "handles": {
+                  "move": {
+                   "nodeId": "intro",
+                   "param": "offsetsMs",
+                   "unit": "ms",
+                   "index": 1
+                  }
+                 },
+                 "slot": {
+                  "nodeId": "intro",
+                  "port": "in2"
+                 },
+                 "props": {
+                  "tracks": [
+                   {
+                    "id": "intro-title:t",
+                    "items": [
+                     {
+                      "kind": "element",
+                      "id": "intro-title:i",
+                      "from": 0,
+                      "durationInFrames": 75,
+                      "nodeId": "intro-title",
+                      "handles": {
+                       "trimEnd": {
+                        "nodeId": "intro-title",
+                        "param": "clipDuration",
+                        "unit": "frames"
+                       }
+                      },
+                      "component": "remocn/soft-blur-in",
+                      "props": {
+                       "text": "TodoMVC in 20 seconds",
+                       "blur": 12,
+                       "fontSize": 104,
+                       "color": "#fafafa",
+                       "fontWeight": "600",
+                       "background": "white",
+                       "speed": 1
+                      }
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                }
+               ],
+               "layer": true
+              }
+             ]
+            }
+           },
+           {
+            "kind": "group",
+            "id": "sequence:s1",
+            "from": 57,
+            "durationInFrames": 144,
+            "enter": {
+             "kind": "remocn/whip-pan",
+             "durationInFrames": 18
+            },
+            "exit": {
+             "kind": "remocn/whip-pan",
+             "durationInFrames": 18
+            },
+            "slot": {
+             "nodeId": "sequence",
+             "port": "in2"
+            },
+            "props": {
+             "tracks": [
+              {
+               "id": "camera:t",
+               "items": [
+                {
+                 "kind": "element",
+                 "id": "camera:i",
+                 "from": 0,
+                 "durationInFrames": 144,
+                 "nodeId": "camera",
+                 "component": "core/placeholder",
+                 "props": {
+                  "title": "Not recorded yet",
+                  "subtitle": "Run to record the take. The camera moves appear here afterwards."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           },
+           {
+            "kind": "group",
+            "id": "sequence:s2",
+            "from": 183,
+            "durationInFrames": 75,
+            "enter": {
+             "kind": "remocn/whip-pan",
+             "durationInFrames": 18
+            },
+            "slot": {
+             "nodeId": "sequence",
+             "port": "in3"
+            },
+            "props": {
+             "tracks": [
+              {
+               "id": "outro:t",
+               "items": [
+                {
+                 "kind": "element",
+                 "id": "outro:i",
+                 "from": 0,
+                 "durationInFrames": 75,
+                 "nodeId": "outro",
+                 "handles": {
+                  "trimEnd": {
+                   "nodeId": "outro",
+                   "param": "clipDuration",
+                   "unit": "frames"
+                  }
+                 },
+                 "component": "core/title",
+                 "props": {
+                  "eyebrow": "Made with",
+                  "title": "Opsis",
+                  "subtitle": "https://demo.playwright.dev/todomvc",
+                  "mark": "",
+                  "markLook": "underline",
+                  "markColor": "#facc15",
+                  "align": "center",
+                  "entrance": "rise",
+                  "color": "#fafafa",
+                  "accent": "#a78bfa",
+                  "background": "transparent",
+                  "fontSize": 112,
+                  "fontWeight": 760
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ],
+     "layer": true
+    },
+    {
+     "id": "layers:l1",
+     "items": [
+      {
+       "kind": "group",
+       "id": "layers:l1:g",
+       "from": 12,
+       "durationInFrames": 150,
+       "handles": {
+        "move": {
+         "nodeId": "layers",
+         "param": "offsetsMs",
+         "unit": "ms",
+         "index": 1
+        }
+       },
+       "slot": {
+        "nodeId": "layers",
+        "port": "in2"
+       },
+       "props": {
+        "tracks": [
+         {
+          "id": "talk-clip:t",
+          "items": [
+           {
+            "kind": "element",
+            "id": "talk-clip:i",
+            "from": 0,
+            "durationInFrames": 150,
+            "nodeId": "talk-clip",
+            "component": "core/video",
+            "props": {
+             "src": "project:clips/talk.mp4",
+             "fit": "contain",
+             "muted": false
+            }
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ],
+     "layer": true
+    }
+   ],
+   "audio": [
+    {
+     "id": "song",
+     "src": "project:music/song.mp3",
+     "from": 15,
+     "durationInFrames": 243,
+     "volume": 0.5,
+     "trimBefore": 6,
+     "loop": true,
+     "fadeInFrames": 12,
+     "fadeOutFrames": 45,
+     "nodeId": "song",
+     "channel": "song",
+     "role": "music",
+     "handles": {
+      "move": {
+       "nodeId": "song",
+       "param": "startMs",
+       "unit": "ms"
+      },
+      "trimStart": {
+       "nodeId": "song",
+       "param": "trimMs",
+       "unit": "ms",
+       "linked": [
+        {
+         "param": "startMs",
+         "sign": 1
+        },
+        {
+         "param": "lengthMs",
+         "sign": -1,
+         "ifNonZero": true
+        }
+       ]
+      },
+      "trimEnd": {
+       "nodeId": "song",
+       "param": "lengthMs",
+       "unit": "ms"
+      },
+      "volume": {
+       "nodeId": "song",
+       "param": "volume",
+       "unit": "number"
+      }
+     }
+    },
+    {
+     "id": "whip",
+     "src": "app:sfx/whip.wav",
+     "from": 30,
+     "durationInFrames": 228,
+     "volume": 1.0,
+     "nodeId": "whip",
+     "channel": "whip",
+     "role": "effect",
+     "lengthFrames": 5,
+     "keepMusic": true,
+     "handles": {
+      "move": {
+       "nodeId": "whip",
+       "param": "atMs",
+       "unit": "ms"
+      },
+      "volume": {
+       "nodeId": "whip",
+       "param": "volume",
+       "unit": "number"
+      }
+     }
+    },
+    {
+     "id": "loop",
+     "src": "project:music/bed.mp3",
+     "from": 0,
+     "durationInFrames": 90,
+     "volume": 0.3,
+     "loop": true,
+     "fadeInFrames": 24,
+     "fadeOutFrames": 45,
+     "nodeId": "loop",
+     "channel": "loop",
+     "role": "music",
+     "handles": {
+      "move": {
+       "nodeId": "loop",
+       "param": "startMs",
+       "unit": "ms"
+      },
+      "trimStart": {
+       "nodeId": "loop",
+       "param": "trimMs",
+       "unit": "ms",
+       "linked": [
+        {
+         "param": "startMs",
+         "sign": 1
+        },
+        {
+         "param": "lengthMs",
+         "sign": -1,
+         "ifNonZero": true
+        }
+       ]
+      },
+      "trimEnd": {
+       "nodeId": "loop",
+       "param": "lengthMs",
+       "unit": "ms"
+      },
+      "volume": {
+       "nodeId": "loop",
+       "param": "volume",
+       "unit": "number"
+      }
+     }
+    }
+   ],
+   "fonts": {
+    "families": {
+     "df-main": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "df-heading": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "df-code": {
+      "id": "jetbrains-mono",
+      "family": "JetBrains Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+        "weight": "100 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+        "weight": "100 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "inter": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "jetbrains mono": {
+      "id": "jetbrains-mono",
+      "family": "JetBrains Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+        "weight": "100 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+        "weight": "100 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "google sans": {
+      "id": "google-sans-flex",
+      "family": "Google Sans Flex",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "geist": {
+      "id": "geist",
+      "family": "Geist",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/geist/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "geist mono": {
+      "id": "geist-mono",
+      "family": "Geist Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "manrope": {
+      "id": "manrope",
+      "family": "Manrope",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/manrope/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
+        "weight": "200 800",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "dm sans": {
+      "id": "dm-sans",
+      "family": "DM Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "space grotesk": {
+      "id": "space-grotesk",
+      "family": "Space Grotesk",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
+        "weight": "300 700",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "outfit": {
+      "id": "outfit",
+      "family": "Outfit",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/outfit/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "montserrat": {
+      "id": "montserrat",
+      "family": "Montserrat",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "plus jakarta sans": {
+      "id": "plus-jakarta-sans",
+      "family": "Plus Jakarta Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
+        "weight": "200 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
+        "weight": "200 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "ibm plex sans": {
+      "id": "ibm-plex-sans",
+      "family": "IBM Plex Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+        "weight": "100 700",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
+        "weight": "100 700",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "playfair display": {
+      "id": "playfair-display",
+      "family": "Playfair Display",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
+        "weight": "400 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
+        "weight": "400 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "fraunces": {
+      "id": "fraunces",
+      "family": "Fraunces",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "caveat": {
+      "id": "caveat",
+      "family": "Caveat",
+      "category": "handwriting",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/caveat/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
+        "weight": "400 700",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "google sans flex": {
+      "id": "google-sans-flex",
+      "family": "Google Sans Flex",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "instrument serif": {
+      "id": "instrument-serif",
+      "family": "Instrument Serif",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
+        "weight": "400",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
+        "weight": "400",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     }
+    },
+    "preload": [
+     "df-main",
+     "df-heading",
+     "df-code",
+     "Inter",
+     "JetBrains Mono"
+    ]
+   }
+  }
  },
  "timelines": {
   "render": {
@@ -9963,1040 +9963,6 @@
     }
    },
    "errors": {},
-   "specs": {
-    "render": {
-     "width": 1920,
-     "height": 1080,
-     "fps": 30,
-     "durationInFrames": 299,
-     "background": "#09090b",
-     "tracks": [
-      {
-       "id": "layers:l0",
-       "items": [
-        {
-         "kind": "group",
-         "id": "layers:l0:g",
-         "from": 0,
-         "durationInFrames": 299,
-         "handles": {
-          "move": {
-           "nodeId": "layers",
-           "param": "offsetsMs",
-           "unit": "ms",
-           "index": 0
-          }
-         },
-         "slot": {
-          "nodeId": "layers",
-          "port": "in1"
-         },
-         "props": {
-          "tracks": [
-           {
-            "id": "sequence:seq",
-            "items": [
-             {
-              "kind": "group",
-              "id": "sequence:s0",
-              "from": 0,
-              "durationInFrames": 75,
-              "exit": {
-               "kind": "remocn/whip-pan",
-               "durationInFrames": 18
-              },
-              "slot": {
-               "nodeId": "sequence",
-               "port": "in1"
-              },
-              "props": {
-               "tracks": [
-                {
-                 "id": "intro:l0",
-                 "items": [
-                  {
-                   "kind": "group",
-                   "id": "intro:l0:g",
-                   "from": 0,
-                   "durationInFrames": 75,
-                   "handles": {
-                    "move": {
-                     "nodeId": "intro",
-                     "param": "offsetsMs",
-                     "unit": "ms",
-                     "index": 0
-                    }
-                   },
-                   "slot": {
-                    "nodeId": "intro",
-                    "port": "in1"
-                   },
-                   "props": {
-                    "tracks": [
-                     {
-                      "id": "intro-bg:t",
-                      "items": [
-                       {
-                        "kind": "element",
-                        "id": "intro-bg:i",
-                        "from": 0,
-                        "durationInFrames": 75,
-                        "nodeId": "intro-bg",
-                        "handles": {
-                         "trimEnd": {
-                          "nodeId": "intro-bg",
-                          "param": "clipDuration",
-                          "unit": "frames"
-                         }
-                        },
-                        "component": "remocn/shader-mesh-gradient",
-                        "props": {
-                         "speed": 1,
-                         "distortion": 0.6,
-                         "swirl": 0.1,
-                         "colors": [
-                          "#12121a",
-                          "#232338",
-                          "#3a3a5c",
-                          "#52527a"
-                         ]
-                        }
-                       }
-                      ]
-                     }
-                    ]
-                   }
-                  }
-                 ],
-                 "layer": true
-                },
-                {
-                 "id": "intro:l1",
-                 "items": [
-                  {
-                   "kind": "group",
-                   "id": "intro:l1:g",
-                   "from": 0,
-                   "durationInFrames": 75,
-                   "handles": {
-                    "move": {
-                     "nodeId": "intro",
-                     "param": "offsetsMs",
-                     "unit": "ms",
-                     "index": 1
-                    }
-                   },
-                   "slot": {
-                    "nodeId": "intro",
-                    "port": "in2"
-                   },
-                   "props": {
-                    "tracks": [
-                     {
-                      "id": "intro-title:t",
-                      "items": [
-                       {
-                        "kind": "element",
-                        "id": "intro-title:i",
-                        "from": 0,
-                        "durationInFrames": 75,
-                        "nodeId": "intro-title",
-                        "handles": {
-                         "trimEnd": {
-                          "nodeId": "intro-title",
-                          "param": "clipDuration",
-                          "unit": "frames"
-                         }
-                        },
-                        "component": "remocn/soft-blur-in",
-                        "props": {
-                         "text": "TodoMVC in 20 seconds",
-                         "blur": 12,
-                         "fontSize": 104,
-                         "color": "#fafafa",
-                         "fontWeight": "600",
-                         "background": "white",
-                         "speed": 1
-                        }
-                       }
-                      ]
-                     }
-                    ]
-                   }
-                  }
-                 ],
-                 "layer": true
-                }
-               ]
-              }
-             },
-             {
-              "kind": "group",
-              "id": "sequence:s1",
-              "from": 57,
-              "durationInFrames": 185,
-              "enter": {
-               "kind": "remocn/whip-pan",
-               "durationInFrames": 18
-              },
-              "exit": {
-               "kind": "remocn/whip-pan",
-               "durationInFrames": 18
-              },
-              "slot": {
-               "nodeId": "sequence",
-               "port": "in2"
-              },
-              "props": {
-               "tracks": [
-                {
-                 "id": "camera:t",
-                 "items": [
-                  {
-                   "kind": "recording",
-                   "id": "camera:i",
-                   "from": 0,
-                   "durationInFrames": 185,
-                   "nodeId": "camera",
-                   "props": {
-                    "src": "project:.opsis/cache/record/recording.mp4",
-                    "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
-                    "log": {
-                     "viewport": {
-                      "width": 1920,
-                      "height": 1080
-                     },
-                     "dpr": 1.0,
-                     "t0": 0.0,
-                     "durationMs": 7700.0,
-                     "actions": [
-                      {
-                       "id": "open:navigate",
-                       "kind": "navigate",
-                       "t": 600.0,
-                       "tEnd": 1000.0,
-                       "point": {
-                        "x": 200.0,
-                        "y": 150.0
-                       },
-                       "rect": {
-                        "x": 140.0,
-                        "y": 130.0,
-                        "w": 120.0,
-                        "h": 40.0
-                       },
-                       "label": "browser.navigate",
-                       "nodeId": "open"
-                      },
-                      {
-                       "id": "todo1:type",
-                       "kind": "type",
-                       "t": 2400.0,
-                       "tEnd": 2800.0,
-                       "point": {
-                        "x": 546.0,
-                        "y": 344.0
-                       },
-                       "rect": {
-                        "x": 486.0,
-                        "y": 324.0,
-                        "w": 120.0,
-                        "h": 40.0
-                       },
-                       "label": "New todo",
-                       "nodeId": "todo1"
-                      },
-                      {
-                       "id": "todo2:type",
-                       "kind": "type",
-                       "t": 3300.0,
-                       "tEnd": 3700.0,
-                       "point": {
-                        "x": 719.0,
-                        "y": 441.0
-                       },
-                       "rect": {
-                        "x": 659.0,
-                        "y": 421.0,
-                        "w": 120.0,
-                        "h": 40.0
-                       },
-                       "label": "New todo",
-                       "nodeId": "todo2"
-                      },
-                      {
-                       "id": "todo3:type",
-                       "kind": "type",
-                       "t": 4200.0,
-                       "tEnd": 4600.0,
-                       "point": {
-                        "x": 892.0,
-                        "y": 538.0
-                       },
-                       "rect": {
-                        "x": 832.0,
-                        "y": 518.0,
-                        "w": 120.0,
-                        "h": 40.0
-                       },
-                       "label": "New todo",
-                       "nodeId": "todo3"
-                      },
-                      {
-                       "id": "complete:click",
-                       "kind": "click",
-                       "t": 5100.0,
-                       "tEnd": 5500.0,
-                       "point": {
-                        "x": 1065.0,
-                        "y": 635.0
-                       },
-                       "rect": {
-                        "x": 1005.0,
-                        "y": 615.0,
-                        "w": 120.0,
-                        "h": 40.0
-                       },
-                       "label": "Complete",
-                       "nodeId": "complete"
-                      },
-                      {
-                       "id": "filter:click",
-                       "kind": "click",
-                       "t": 6000.0,
-                       "tEnd": 6400.0,
-                       "point": {
-                        "x": 1238.0,
-                        "y": 732.0
-                       },
-                       "rect": {
-                        "x": 1178.0,
-                        "y": 712.0,
-                        "w": 120.0,
-                        "h": 40.0
-                       },
-                       "label": "Completed filter",
-                       "nodeId": "filter"
-                      }
-                     ],
-                     "cursorTrack": [
-                      {
-                       "t": 0.0,
-                       "x": 960.0,
-                       "y": 540.0
-                      }
-                     ]
-                    },
-                    "name": "record",
-                    "speed": 1.25,
-                    "zoom": true,
-                    "tuning": {
-                     "sMax": 1.74,
-                     "holdMinS": 1.3
-                    },
-                    "motionBlur": true,
-                    "style": "classic",
-                    "chrome": false,
-                    "backdrop": "glaze",
-                    "cursor": true,
-                    "cursorScale": 1.0,
-                    "cursorLook": {
-                     "shape": "arrow",
-                     "fill": "#111418",
-                     "edge": "#ffffff"
-                    },
-                    "ripple": {
-                     "color": "#0f172a",
-                     "size": 1.0,
-                     "width": 2.0
-                    },
-                    "extraBeats": [],
-                    "keystrokes": {
-                     "position": "bottom",
-                     "typed": true,
-                     "chords": true,
-                     "keycap": "#0a0a0a",
-                     "ink": "#ffffff",
-                     "size": 1.0
-                    },
-                    "annotations": []
-                   }
-                  }
-                 ]
-                }
-               ]
-              }
-             },
-             {
-              "kind": "group",
-              "id": "sequence:s2",
-              "from": 224,
-              "durationInFrames": 75,
-              "enter": {
-               "kind": "remocn/whip-pan",
-               "durationInFrames": 18
-              },
-              "slot": {
-               "nodeId": "sequence",
-               "port": "in3"
-              },
-              "props": {
-               "tracks": [
-                {
-                 "id": "outro:t",
-                 "items": [
-                  {
-                   "kind": "element",
-                   "id": "outro:i",
-                   "from": 0,
-                   "durationInFrames": 75,
-                   "nodeId": "outro",
-                   "handles": {
-                    "trimEnd": {
-                     "nodeId": "outro",
-                     "param": "clipDuration",
-                     "unit": "frames"
-                    }
-                   },
-                   "component": "core/title",
-                   "props": {
-                    "eyebrow": "Made with",
-                    "title": "Opsis",
-                    "subtitle": "https://demo.playwright.dev/todomvc",
-                    "mark": "",
-                    "markLook": "underline",
-                    "markColor": "#facc15",
-                    "align": "center",
-                    "entrance": "rise",
-                    "color": "#fafafa",
-                    "accent": "#a78bfa",
-                    "background": "transparent",
-                    "fontSize": 112,
-                    "fontWeight": 760
-                   }
-                  }
-                 ]
-                }
-               ]
-              }
-             }
-            ]
-           }
-          ]
-         }
-        }
-       ],
-       "layer": true
-      },
-      {
-       "id": "layers:l1",
-       "items": [
-        {
-         "kind": "group",
-         "id": "layers:l1:g",
-         "from": 12,
-         "durationInFrames": 120,
-         "handles": {
-          "move": {
-           "nodeId": "layers",
-           "param": "offsetsMs",
-           "unit": "ms",
-           "index": 1
-          }
-         },
-         "slot": {
-          "nodeId": "layers",
-          "port": "in2"
-         },
-         "props": {
-          "tracks": [
-           {
-            "id": "talk-clip:t",
-            "items": [
-             {
-              "kind": "element",
-              "id": "talk-clip:i",
-              "from": 0,
-              "durationInFrames": 120,
-              "nodeId": "talk-clip",
-              "component": "core/video",
-              "props": {
-               "src": "project:.opsis/out/talk.mp4",
-               "fit": "contain",
-               "muted": false
-              }
-             }
-            ]
-           }
-          ]
-         }
-        }
-       ],
-       "layer": true
-      }
-     ],
-     "audio": [
-      {
-       "id": "song",
-       "src": "project:music/song.mp3",
-       "from": 15,
-       "durationInFrames": 284,
-       "volume": 0.5,
-       "trimBefore": 6,
-       "loop": true,
-       "fadeInFrames": 12,
-       "fadeOutFrames": 45,
-       "nodeId": "song",
-       "channel": "song",
-       "role": "music",
-       "handles": {
-        "move": {
-         "nodeId": "song",
-         "param": "startMs",
-         "unit": "ms"
-        },
-        "trimStart": {
-         "nodeId": "song",
-         "param": "trimMs",
-         "unit": "ms",
-         "linked": [
-          {
-           "param": "startMs",
-           "sign": 1
-          },
-          {
-           "param": "lengthMs",
-           "sign": -1,
-           "ifNonZero": true
-          }
-         ]
-        },
-        "trimEnd": {
-         "nodeId": "song",
-         "param": "lengthMs",
-         "unit": "ms"
-        },
-        "volume": {
-         "nodeId": "song",
-         "param": "volume",
-         "unit": "number"
-        }
-       }
-      },
-      {
-       "id": "whoosh",
-       "src": "app:sfx/whoosh.wav",
-       "from": 173,
-       "durationInFrames": 126,
-       "volume": 1.0,
-       "nodeId": "whoosh",
-       "channel": "whoosh",
-       "role": "effect",
-       "lengthFrames": 5,
-       "handles": {
-        "move": {
-         "nodeId": "whoosh",
-         "param": "offsetMs",
-         "unit": "ms"
-        },
-        "volume": {
-         "nodeId": "whoosh",
-         "param": "volume",
-         "unit": "number"
-        }
-       },
-       "anchor": {
-        "nodeId": "complete"
-       }
-      },
-      {
-       "id": "whip",
-       "src": "app:sfx/whip.wav",
-       "from": 30,
-       "durationInFrames": 269,
-       "volume": 1.0,
-       "nodeId": "whip",
-       "channel": "whip",
-       "role": "effect",
-       "lengthFrames": 5,
-       "keepMusic": true,
-       "handles": {
-        "move": {
-         "nodeId": "whip",
-         "param": "atMs",
-         "unit": "ms"
-        },
-        "volume": {
-         "nodeId": "whip",
-         "param": "volume",
-         "unit": "number"
-        }
-       }
-      },
-      {
-       "id": "loop",
-       "src": "project:music/bed.mp3",
-       "from": 0,
-       "durationInFrames": 90,
-       "volume": 0.3,
-       "loop": true,
-       "fadeInFrames": 24,
-       "fadeOutFrames": 45,
-       "nodeId": "loop",
-       "channel": "loop",
-       "role": "music",
-       "handles": {
-        "move": {
-         "nodeId": "loop",
-         "param": "startMs",
-         "unit": "ms"
-        },
-        "trimStart": {
-         "nodeId": "loop",
-         "param": "trimMs",
-         "unit": "ms",
-         "linked": [
-          {
-           "param": "startMs",
-           "sign": 1
-          },
-          {
-           "param": "lengthMs",
-           "sign": -1,
-           "ifNonZero": true
-          }
-         ]
-        },
-        "trimEnd": {
-         "nodeId": "loop",
-         "param": "lengthMs",
-         "unit": "ms"
-        },
-        "volume": {
-         "nodeId": "loop",
-         "param": "volume",
-         "unit": "number"
-        }
-       }
-      }
-     ],
-     "fonts": {
-      "families": {
-       "df-main": {
-        "id": "inter",
-        "family": "Inter",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/inter/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
-          "weight": "100 900",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "df-heading": {
-        "id": "inter",
-        "family": "Inter",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/inter/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
-          "weight": "100 900",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "df-code": {
-        "id": "jetbrains-mono",
-        "family": "JetBrains Mono",
-        "category": "monospace",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
-          "weight": "100 800",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
-          "weight": "100 800",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "inter": {
-        "id": "inter",
-        "family": "Inter",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/inter/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
-          "weight": "100 900",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "jetbrains mono": {
-        "id": "jetbrains-mono",
-        "family": "JetBrains Mono",
-        "category": "monospace",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
-          "weight": "100 800",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
-          "weight": "100 800",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "google sans": {
-        "id": "google-sans-flex",
-        "family": "Google Sans Flex",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         }
-        ]
-       },
-       "geist": {
-        "id": "geist",
-        "family": "Geist",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/geist/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
-          "weight": "100 900",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "geist mono": {
-        "id": "geist-mono",
-        "family": "Geist Mono",
-        "category": "monospace",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
-          "weight": "100 900",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "manrope": {
-        "id": "manrope",
-        "family": "Manrope",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/manrope/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
-          "weight": "200 800",
-          "style": "normal",
-          "format": "woff2"
-         }
-        ]
-       },
-       "dm sans": {
-        "id": "dm-sans",
-        "family": "DM Sans",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
-          "weight": "100 900",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "space grotesk": {
-        "id": "space-grotesk",
-        "family": "Space Grotesk",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
-          "weight": "300 700",
-          "style": "normal",
-          "format": "woff2"
-         }
-        ]
-       },
-       "outfit": {
-        "id": "outfit",
-        "family": "Outfit",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/outfit/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         }
-        ]
-       },
-       "montserrat": {
-        "id": "montserrat",
-        "family": "Montserrat",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
-          "weight": "100 900",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "plus jakarta sans": {
-        "id": "plus-jakarta-sans",
-        "family": "Plus Jakarta Sans",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
-          "weight": "200 800",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
-          "weight": "200 800",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "ibm plex sans": {
-        "id": "ibm-plex-sans",
-        "family": "IBM Plex Sans",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
-          "weight": "100 700",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
-          "weight": "100 700",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "playfair display": {
-        "id": "playfair-display",
-        "family": "Playfair Display",
-        "category": "serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
-          "weight": "400 900",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
-          "weight": "400 900",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "fraunces": {
-        "id": "fraunces",
-        "family": "Fraunces",
-        "category": "serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
-          "weight": "100 900",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       },
-       "caveat": {
-        "id": "caveat",
-        "family": "Caveat",
-        "category": "handwriting",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/caveat/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
-          "weight": "400 700",
-          "style": "normal",
-          "format": "woff2"
-         }
-        ]
-       },
-       "google sans flex": {
-        "id": "google-sans-flex",
-        "family": "Google Sans Flex",
-        "category": "sans-serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
-          "weight": "100 900",
-          "style": "normal",
-          "format": "woff2"
-         }
-        ]
-       },
-       "instrument serif": {
-        "id": "instrument-serif",
-        "family": "Instrument Serif",
-        "category": "serif",
-        "source": "bundled",
-        "license": "OFL-1.1",
-        "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
-        "faces": [
-         {
-          "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
-          "weight": "400",
-          "style": "normal",
-          "format": "woff2"
-         },
-         {
-          "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
-          "weight": "400",
-          "style": "italic",
-          "format": "woff2"
-         }
-        ]
-       }
-      },
-      "preload": [
-       "df-main",
-       "df-heading",
-       "df-code",
-       "Inter",
-       "JetBrains Mono"
-      ]
-     }
-    }
-   },
    "order": [
     "session",
     "talk",
@@ -12467,6 +11433,1040 @@
     }
    },
    "sourceNodeId": "render"
+  },
+  "films": {
+   "render": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 299,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "layers:l0",
+      "items": [
+       {
+        "kind": "group",
+        "id": "layers:l0:g",
+        "from": 0,
+        "durationInFrames": 299,
+        "handles": {
+         "move": {
+          "nodeId": "layers",
+          "param": "offsetsMs",
+          "unit": "ms",
+          "index": 0
+         }
+        },
+        "slot": {
+         "nodeId": "layers",
+         "port": "in1"
+        },
+        "props": {
+         "tracks": [
+          {
+           "id": "sequence:seq",
+           "items": [
+            {
+             "kind": "group",
+             "id": "sequence:s0",
+             "from": 0,
+             "durationInFrames": 75,
+             "exit": {
+              "kind": "remocn/whip-pan",
+              "durationInFrames": 18
+             },
+             "slot": {
+              "nodeId": "sequence",
+              "port": "in1"
+             },
+             "props": {
+              "tracks": [
+               {
+                "id": "intro:l0",
+                "items": [
+                 {
+                  "kind": "group",
+                  "id": "intro:l0:g",
+                  "from": 0,
+                  "durationInFrames": 75,
+                  "handles": {
+                   "move": {
+                    "nodeId": "intro",
+                    "param": "offsetsMs",
+                    "unit": "ms",
+                    "index": 0
+                   }
+                  },
+                  "slot": {
+                   "nodeId": "intro",
+                   "port": "in1"
+                  },
+                  "props": {
+                   "tracks": [
+                    {
+                     "id": "intro-bg:t",
+                     "items": [
+                      {
+                       "kind": "element",
+                       "id": "intro-bg:i",
+                       "from": 0,
+                       "durationInFrames": 75,
+                       "nodeId": "intro-bg",
+                       "handles": {
+                        "trimEnd": {
+                         "nodeId": "intro-bg",
+                         "param": "clipDuration",
+                         "unit": "frames"
+                        }
+                       },
+                       "component": "remocn/shader-mesh-gradient",
+                       "props": {
+                        "speed": 1,
+                        "distortion": 0.6,
+                        "swirl": 0.1,
+                        "colors": [
+                         "#12121a",
+                         "#232338",
+                         "#3a3a5c",
+                         "#52527a"
+                        ]
+                       }
+                      }
+                     ]
+                    }
+                   ]
+                  }
+                 }
+                ],
+                "layer": true
+               },
+               {
+                "id": "intro:l1",
+                "items": [
+                 {
+                  "kind": "group",
+                  "id": "intro:l1:g",
+                  "from": 0,
+                  "durationInFrames": 75,
+                  "handles": {
+                   "move": {
+                    "nodeId": "intro",
+                    "param": "offsetsMs",
+                    "unit": "ms",
+                    "index": 1
+                   }
+                  },
+                  "slot": {
+                   "nodeId": "intro",
+                   "port": "in2"
+                  },
+                  "props": {
+                   "tracks": [
+                    {
+                     "id": "intro-title:t",
+                     "items": [
+                      {
+                       "kind": "element",
+                       "id": "intro-title:i",
+                       "from": 0,
+                       "durationInFrames": 75,
+                       "nodeId": "intro-title",
+                       "handles": {
+                        "trimEnd": {
+                         "nodeId": "intro-title",
+                         "param": "clipDuration",
+                         "unit": "frames"
+                        }
+                       },
+                       "component": "remocn/soft-blur-in",
+                       "props": {
+                        "text": "TodoMVC in 20 seconds",
+                        "blur": 12,
+                        "fontSize": 104,
+                        "color": "#fafafa",
+                        "fontWeight": "600",
+                        "background": "white",
+                        "speed": 1
+                       }
+                      }
+                     ]
+                    }
+                   ]
+                  }
+                 }
+                ],
+                "layer": true
+               }
+              ]
+             }
+            },
+            {
+             "kind": "group",
+             "id": "sequence:s1",
+             "from": 57,
+             "durationInFrames": 185,
+             "enter": {
+              "kind": "remocn/whip-pan",
+              "durationInFrames": 18
+             },
+             "exit": {
+              "kind": "remocn/whip-pan",
+              "durationInFrames": 18
+             },
+             "slot": {
+              "nodeId": "sequence",
+              "port": "in2"
+             },
+             "props": {
+              "tracks": [
+               {
+                "id": "camera:t",
+                "items": [
+                 {
+                  "kind": "recording",
+                  "id": "camera:i",
+                  "from": 0,
+                  "durationInFrames": 185,
+                  "nodeId": "camera",
+                  "props": {
+                   "src": "project:.opsis/cache/record/recording.mp4",
+                   "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+                   "log": {
+                    "viewport": {
+                     "width": 1920,
+                     "height": 1080
+                    },
+                    "dpr": 1.0,
+                    "t0": 0.0,
+                    "durationMs": 7700.0,
+                    "actions": [
+                     {
+                      "id": "open:navigate",
+                      "kind": "navigate",
+                      "t": 600.0,
+                      "tEnd": 1000.0,
+                      "point": {
+                       "x": 200.0,
+                       "y": 150.0
+                      },
+                      "rect": {
+                       "x": 140.0,
+                       "y": 130.0,
+                       "w": 120.0,
+                       "h": 40.0
+                      },
+                      "label": "browser.navigate",
+                      "nodeId": "open"
+                     },
+                     {
+                      "id": "todo1:type",
+                      "kind": "type",
+                      "t": 2400.0,
+                      "tEnd": 2800.0,
+                      "point": {
+                       "x": 546.0,
+                       "y": 344.0
+                      },
+                      "rect": {
+                       "x": 486.0,
+                       "y": 324.0,
+                       "w": 120.0,
+                       "h": 40.0
+                      },
+                      "label": "New todo",
+                      "nodeId": "todo1"
+                     },
+                     {
+                      "id": "todo2:type",
+                      "kind": "type",
+                      "t": 3300.0,
+                      "tEnd": 3700.0,
+                      "point": {
+                       "x": 719.0,
+                       "y": 441.0
+                      },
+                      "rect": {
+                       "x": 659.0,
+                       "y": 421.0,
+                       "w": 120.0,
+                       "h": 40.0
+                      },
+                      "label": "New todo",
+                      "nodeId": "todo2"
+                     },
+                     {
+                      "id": "todo3:type",
+                      "kind": "type",
+                      "t": 4200.0,
+                      "tEnd": 4600.0,
+                      "point": {
+                       "x": 892.0,
+                       "y": 538.0
+                      },
+                      "rect": {
+                       "x": 832.0,
+                       "y": 518.0,
+                       "w": 120.0,
+                       "h": 40.0
+                      },
+                      "label": "New todo",
+                      "nodeId": "todo3"
+                     },
+                     {
+                      "id": "complete:click",
+                      "kind": "click",
+                      "t": 5100.0,
+                      "tEnd": 5500.0,
+                      "point": {
+                       "x": 1065.0,
+                       "y": 635.0
+                      },
+                      "rect": {
+                       "x": 1005.0,
+                       "y": 615.0,
+                       "w": 120.0,
+                       "h": 40.0
+                      },
+                      "label": "Complete",
+                      "nodeId": "complete"
+                     },
+                     {
+                      "id": "filter:click",
+                      "kind": "click",
+                      "t": 6000.0,
+                      "tEnd": 6400.0,
+                      "point": {
+                       "x": 1238.0,
+                       "y": 732.0
+                      },
+                      "rect": {
+                       "x": 1178.0,
+                       "y": 712.0,
+                       "w": 120.0,
+                       "h": 40.0
+                      },
+                      "label": "Completed filter",
+                      "nodeId": "filter"
+                     }
+                    ],
+                    "cursorTrack": [
+                     {
+                      "t": 0.0,
+                      "x": 960.0,
+                      "y": 540.0
+                     }
+                    ]
+                   },
+                   "name": "record",
+                   "speed": 1.25,
+                   "zoom": true,
+                   "tuning": {
+                    "sMax": 1.74,
+                    "holdMinS": 1.3
+                   },
+                   "motionBlur": true,
+                   "style": "classic",
+                   "chrome": false,
+                   "backdrop": "glaze",
+                   "cursor": true,
+                   "cursorScale": 1.0,
+                   "cursorLook": {
+                    "shape": "arrow",
+                    "fill": "#111418",
+                    "edge": "#ffffff"
+                   },
+                   "ripple": {
+                    "color": "#0f172a",
+                    "size": 1.0,
+                    "width": 2.0
+                   },
+                   "extraBeats": [],
+                   "keystrokes": {
+                    "position": "bottom",
+                    "typed": true,
+                    "chords": true,
+                    "keycap": "#0a0a0a",
+                    "ink": "#ffffff",
+                    "size": 1.0
+                   },
+                   "annotations": []
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            },
+            {
+             "kind": "group",
+             "id": "sequence:s2",
+             "from": 224,
+             "durationInFrames": 75,
+             "enter": {
+              "kind": "remocn/whip-pan",
+              "durationInFrames": 18
+             },
+             "slot": {
+              "nodeId": "sequence",
+              "port": "in3"
+             },
+             "props": {
+              "tracks": [
+               {
+                "id": "outro:t",
+                "items": [
+                 {
+                  "kind": "element",
+                  "id": "outro:i",
+                  "from": 0,
+                  "durationInFrames": 75,
+                  "nodeId": "outro",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "outro",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
+                  "component": "core/title",
+                  "props": {
+                   "eyebrow": "Made with",
+                   "title": "Opsis",
+                   "subtitle": "https://demo.playwright.dev/todomvc",
+                   "mark": "",
+                   "markLook": "underline",
+                   "markColor": "#facc15",
+                   "align": "center",
+                   "entrance": "rise",
+                   "color": "#fafafa",
+                   "accent": "#a78bfa",
+                   "background": "transparent",
+                   "fontSize": 112,
+                   "fontWeight": 760
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ],
+      "layer": true
+     },
+     {
+      "id": "layers:l1",
+      "items": [
+       {
+        "kind": "group",
+        "id": "layers:l1:g",
+        "from": 12,
+        "durationInFrames": 120,
+        "handles": {
+         "move": {
+          "nodeId": "layers",
+          "param": "offsetsMs",
+          "unit": "ms",
+          "index": 1
+         }
+        },
+        "slot": {
+         "nodeId": "layers",
+         "port": "in2"
+        },
+        "props": {
+         "tracks": [
+          {
+           "id": "talk-clip:t",
+           "items": [
+            {
+             "kind": "element",
+             "id": "talk-clip:i",
+             "from": 0,
+             "durationInFrames": 120,
+             "nodeId": "talk-clip",
+             "component": "core/video",
+             "props": {
+              "src": "project:.opsis/out/talk.mp4",
+              "fit": "contain",
+              "muted": false
+             }
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ],
+      "layer": true
+     }
+    ],
+    "audio": [
+     {
+      "id": "song",
+      "src": "project:music/song.mp3",
+      "from": 15,
+      "durationInFrames": 284,
+      "volume": 0.5,
+      "trimBefore": 6,
+      "loop": true,
+      "fadeInFrames": 12,
+      "fadeOutFrames": 45,
+      "nodeId": "song",
+      "channel": "song",
+      "role": "music",
+      "handles": {
+       "move": {
+        "nodeId": "song",
+        "param": "startMs",
+        "unit": "ms"
+       },
+       "trimStart": {
+        "nodeId": "song",
+        "param": "trimMs",
+        "unit": "ms",
+        "linked": [
+         {
+          "param": "startMs",
+          "sign": 1
+         },
+         {
+          "param": "lengthMs",
+          "sign": -1,
+          "ifNonZero": true
+         }
+        ]
+       },
+       "trimEnd": {
+        "nodeId": "song",
+        "param": "lengthMs",
+        "unit": "ms"
+       },
+       "volume": {
+        "nodeId": "song",
+        "param": "volume",
+        "unit": "number"
+       }
+      }
+     },
+     {
+      "id": "whoosh",
+      "src": "app:sfx/whoosh.wav",
+      "from": 173,
+      "durationInFrames": 126,
+      "volume": 1.0,
+      "nodeId": "whoosh",
+      "channel": "whoosh",
+      "role": "effect",
+      "lengthFrames": 5,
+      "handles": {
+       "move": {
+        "nodeId": "whoosh",
+        "param": "offsetMs",
+        "unit": "ms"
+       },
+       "volume": {
+        "nodeId": "whoosh",
+        "param": "volume",
+        "unit": "number"
+       }
+      },
+      "anchor": {
+       "nodeId": "complete"
+      }
+     },
+     {
+      "id": "whip",
+      "src": "app:sfx/whip.wav",
+      "from": 30,
+      "durationInFrames": 269,
+      "volume": 1.0,
+      "nodeId": "whip",
+      "channel": "whip",
+      "role": "effect",
+      "lengthFrames": 5,
+      "keepMusic": true,
+      "handles": {
+       "move": {
+        "nodeId": "whip",
+        "param": "atMs",
+        "unit": "ms"
+       },
+       "volume": {
+        "nodeId": "whip",
+        "param": "volume",
+        "unit": "number"
+       }
+      }
+     },
+     {
+      "id": "loop",
+      "src": "project:music/bed.mp3",
+      "from": 0,
+      "durationInFrames": 90,
+      "volume": 0.3,
+      "loop": true,
+      "fadeInFrames": 24,
+      "fadeOutFrames": 45,
+      "nodeId": "loop",
+      "channel": "loop",
+      "role": "music",
+      "handles": {
+       "move": {
+        "nodeId": "loop",
+        "param": "startMs",
+        "unit": "ms"
+       },
+       "trimStart": {
+        "nodeId": "loop",
+        "param": "trimMs",
+        "unit": "ms",
+        "linked": [
+         {
+          "param": "startMs",
+          "sign": 1
+         },
+         {
+          "param": "lengthMs",
+          "sign": -1,
+          "ifNonZero": true
+         }
+        ]
+       },
+       "trimEnd": {
+        "nodeId": "loop",
+        "param": "lengthMs",
+        "unit": "ms"
+       },
+       "volume": {
+        "nodeId": "loop",
+        "param": "volume",
+        "unit": "number"
+       }
+      }
+     }
+    ],
+    "fonts": {
+     "families": {
+      "df-main": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "df-heading": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "df-code": {
+       "id": "jetbrains-mono",
+       "family": "JetBrains Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+         "weight": "100 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+         "weight": "100 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "inter": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "jetbrains mono": {
+       "id": "jetbrains-mono",
+       "family": "JetBrains Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+         "weight": "100 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+         "weight": "100 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "google sans": {
+       "id": "google-sans-flex",
+       "family": "Google Sans Flex",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "geist": {
+       "id": "geist",
+       "family": "Geist",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/geist/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "geist mono": {
+       "id": "geist-mono",
+       "family": "Geist Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "manrope": {
+       "id": "manrope",
+       "family": "Manrope",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/manrope/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
+         "weight": "200 800",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "dm sans": {
+       "id": "dm-sans",
+       "family": "DM Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "space grotesk": {
+       "id": "space-grotesk",
+       "family": "Space Grotesk",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
+         "weight": "300 700",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "outfit": {
+       "id": "outfit",
+       "family": "Outfit",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/outfit/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "montserrat": {
+       "id": "montserrat",
+       "family": "Montserrat",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "plus jakarta sans": {
+       "id": "plus-jakarta-sans",
+       "family": "Plus Jakarta Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
+         "weight": "200 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
+         "weight": "200 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "ibm plex sans": {
+       "id": "ibm-plex-sans",
+       "family": "IBM Plex Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+         "weight": "100 700",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
+         "weight": "100 700",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "playfair display": {
+       "id": "playfair-display",
+       "family": "Playfair Display",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
+         "weight": "400 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
+         "weight": "400 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "fraunces": {
+       "id": "fraunces",
+       "family": "Fraunces",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "caveat": {
+       "id": "caveat",
+       "family": "Caveat",
+       "category": "handwriting",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/caveat/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
+         "weight": "400 700",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "google sans flex": {
+       "id": "google-sans-flex",
+       "family": "Google Sans Flex",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "instrument serif": {
+       "id": "instrument-serif",
+       "family": "Instrument Serif",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
+         "weight": "400",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
+         "weight": "400",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      }
+     },
+     "preload": [
+      "df-main",
+      "df-heading",
+      "df-code",
+      "Inter",
+      "JetBrains Mono"
+     ]
+    }
+   }
   },
   "timelines": {
    "render": {

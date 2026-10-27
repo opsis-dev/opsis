@@ -8,7 +8,8 @@ pub fn template(id: &str) -> Value {
     fixture(&format!("workflows/template-{id}.json"))["workflow"].clone()
 }
 
-use opsis_compile::compile::{compile_workflow, preview_spec};
+use indexmap::IndexMap;
+use opsis_compile::compile::{compile_workflow, film_of, preview_spec};
 use opsis_compile::registry::node_def;
 use opsis_compile::timeline::flatten::{FlatTimeline, flatten_spec};
 use opsis_types::actions::{Action, ActionLog};
@@ -120,9 +121,17 @@ pub fn film(make: impl FnOnce(&mut Graph) -> String) -> Workflow {
 }
 
 pub fn film_spec(wf: &Workflow) -> TimelineSpec {
-    preview_spec(&wf.settings, &compile_workflow(wf, None), None)
+    preview_spec(wf, &compile_workflow(wf, None), None)
         .expect("a film to preview")
         .spec
+}
+
+pub fn export_film(
+    wf: &Workflow,
+    results: Option<&IndexMap<String, NodeResult>>,
+    id: &str,
+) -> TimelineSpec {
+    film_of(wf, &compile_workflow(wf, results), id).expect("a film")
 }
 
 pub fn flat_film(wf: &Workflow) -> FlatTimeline {
