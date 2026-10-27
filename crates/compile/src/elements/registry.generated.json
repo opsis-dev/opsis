@@ -3172,7 +3172,7 @@
   "fixedProps": {},
   "defaultDurationInFrames": 116,
   "look": {
-   "glyph": "lucide:sliders-horizontal",
+   "glyph": "lucide:waves-horizontal",
    "motion": "wipe-reveal"
   }
  },
@@ -15259,7 +15259,7 @@
    "height": 1080
   },
   "look": {
-   "glyph": "lucide:monitor-smartphone"
+   "glyph": "tabler:devices"
   }
  },
  {

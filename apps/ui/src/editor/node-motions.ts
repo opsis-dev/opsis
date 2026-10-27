@@ -43,8 +43,8 @@ const blurred = (px: number, rest: Record<string, string | number> = {}) => ({
 });
 const outAndBack = (
   prop: MotionProp,
-  rest: string,
-  mid: string,
+  rest: string | number,
+  mid: string | number,
   ms: number,
   ease = EASE,
 ): MotionSpec => ({
@@ -267,7 +267,7 @@ export const NODE_MOTION_SPECS: Record<NodeMotion, MotionSpec> = {
     ],
     ms: 800,
   },
-  "fade-through": outAndBack("opacity", "1", "0.1", 800),
+  "fade-through": outAndBack("opacity", 1, 0.1, 800),
   dissolve: {
     frames: [
       { opacity: 1, ...blurred(0), ...scale(1), ease: EASE },

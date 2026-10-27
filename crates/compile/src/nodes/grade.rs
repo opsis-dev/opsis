@@ -391,7 +391,7 @@ pub fn nodes() -> Vec<NodeDef> {
             let p = &ctx.params;
             vec![Some(changes_row(Icon::Sun, &p.changes())), (p.curve != ToneCurve::None).then(|| row(Icon::Spline, p.curve.label()))]
         })
-        .neutral(|p: &Colour| active(&p.changes()).is_empty()).look(NodeLook::of("lucide:sun-medium")),
+        .neutral(|p: &Colour| active(&p.changes()).is_empty()).look(NodeLook::of("tabler:exposure")),
         step::<LookFile>(LOOK_TYPE, "Look file", "Applies a colour look saved from another video editor. Used by Apply grade.")
             .card(|ctx: &CardCtx<'_, LookFile>| {
                 vec![Some(look_file_row(&ctx.params.file, &ctx.inputs.missing_files)), strength_row(ctx.params.strength)]
@@ -408,21 +408,21 @@ pub fn nodes() -> Vec<NodeDef> {
             let kind = if p.kind == MonoKind::Tint { kind.swatches(vec![color_or(&p.tint, DEFAULT_TINT)]) } else { kind };
             vec![Some(kind), strength_row(p.strength)]
         })
-        .neutral(|p: &Mono| p.strength == 0.0).look(NodeLook::of("lucide:moon")),
+        .neutral(|p: &Mono| p.strength == 0.0).look(NodeLook::of("iconoir:droplet-half")),
         step::<Texture>(
             TEXTURE_TYPE,
             "Texture",
             "Sharpens or softens the picture and adds dark edges and film grain. Used by Apply grade.",
         )
         .card(|ctx: &CardCtx<'_, Texture>| vec![Some(changes_row(Icon::Sparkles, &ctx.params.changes()))])
-        .neutral(|p: &Texture| active(&p.changes()).is_empty()).look(NodeLook::of("lucide:sliders-horizontal")),
+        .neutral(|p: &Texture| active(&p.changes()).is_empty()).look(NodeLook::of("tabler:texture")),
         step::<Lens>(
             LENS_TYPE,
             "Lens",
             "Adds colour fringing, bends the picture like a lens and leaves trails behind motion. Used by Apply grade.",
         )
         .card(|ctx: &CardCtx<'_, Lens>| vec![Some(changes_row(Icon::Scan, &ctx.params.changes()))])
-        .neutral(|p: &Lens| active(&p.changes()).is_empty()).look(NodeLook::of("lucide:aperture")),
+        .neutral(|p: &Lens| active(&p.changes()).is_empty()).look(NodeLook::of("tabler:prism-light")),
         step::<AutoFix>(
             AUTO_FIX_TYPE,
             "Auto fix",

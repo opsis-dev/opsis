@@ -1133,7 +1133,7 @@ pub fn core_elements() -> Vec<ElementMeta> {
             "A paper texture background.",
             C::Background,
             150,
-        ).look(NodeLook::of("lucide:file"))),
+        ).look(NodeLook::of("lucide:scroll"))),
         meta::<StudioBackdrop>(component(
             "core/backdrop",
             "Studio backdrop",
@@ -1168,7 +1168,7 @@ pub fn core_elements() -> Vec<ElementMeta> {
             "An image on a card with rounded corners and a soft shadow that tilts into place.",
             C::Scene,
             120,
-        ).look(NodeLook::of("lucide:wallet-cards"))),
+        ).look(NodeLook::of("lucide-lab:copy-image"))),
         meta::<Text3d>(component(
             "core/text-3d",
             "3D text",
@@ -1189,7 +1189,7 @@ pub fn core_elements() -> Vec<ElementMeta> {
             "Shows a clip on a laptop, monitor, phone or floating screen in 3D, with a camera move.",
             C::Device,
             150,
-        ).look(NodeLook::of("lucide:monitor-smartphone").morphs("lucide:laptop-minimal"))),
+        ).look(NodeLook::of("iconoir:perspective-view"))),
         meta::<Shapes3d>(component(
             "core/shapes-3d",
             "Floating shapes",

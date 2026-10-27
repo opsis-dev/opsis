@@ -1226,7 +1226,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "The video starts here. The actions before it run off camera, like signing in and the first page load.",
             ),
             |_: &StartRecording| vec![Some(row(Icon::Video, "Video starts here"))],
-        ).look(NodeLook::of("lucide:circle-play")),
+        ).look(NodeLook::of("lucide:circle-play").morphs("lucide:circle-dot")),
         card(go_to_page(), |p: &Navigate| {
             let url = if p.url.trim().is_empty() {
                 missing(Icon::Link, "Add an address")

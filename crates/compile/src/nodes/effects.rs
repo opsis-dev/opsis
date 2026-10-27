@@ -278,7 +278,7 @@ fn picture_look() -> NodeDef {
 
 pub fn nodes() -> Vec<NodeDef> {
     vec![
-        blur_areas().look(NodeLook::of("lucide:scan-eye")),
+        blur_areas().look(NodeLook::of("mynaui:incognito")),
         picture_look().look(NodeLook::of("lucide:contrast")),
     ]
 }

@@ -29,4 +29,11 @@ describe("node motions", () => {
     });
     expect(broken.map(([name]) => name)).toEqual([]);
   });
+
+  it("gives opacity as numbers, since motion leaves string opacities where they are", () => {
+    const stringly = Object.entries(NODE_MOTION_SPECS).filter(([, spec]) =>
+      spec.frames.some((f) => f.opacity !== undefined && typeof f.opacity !== "number"),
+    );
+    expect(stringly.map(([name]) => name)).toEqual([]);
+  });
 });

@@ -1042,7 +1042,7 @@ pub fn nodes() -> Vec<NodeDef> {
         speed_ramp().look(NodeLook::of("lucide:chart-spline")),
         crop().look(NodeLook::of("lucide:crop")),
         device_frame().look(NodeLook::of("lucide:laptop").morphs("lucide:smartphone")),
-        window_frame().look(NodeLook::of("lucide:panel-top")),
+        window_frame().look(NodeLook::of("lucide:app-window-mac")),
         backdrop().look(NodeLook::of("tabler:background")),
         motion_blur().look(NodeLook::of("lucide:wind").moves(NodeMotion::Smear)),
     ]

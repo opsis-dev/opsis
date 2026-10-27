@@ -1447,20 +1447,20 @@ fn frame() -> NodeDef {
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
-        crop().look(NodeLook::of("tabler:crop")),
+        crop().look(NodeLook::of("hugeicons:image-crop")),
         rotate().look(NodeLook::of("lucide:rotate-cw-square").moves(NodeMotion::Turn)),
         adjust().look(NodeLook::of("lucide:sliders-vertical")),
-        blur().look(NodeLook::of("lucide:droplet")),
+        blur().look(NodeLook::of("lucide:droplet").moves(NodeMotion::RackFocus)),
         place().look(NodeLook::of("lucide:stamp")),
         format().look(NodeLook::of("lucide:file-image")),
-        redact().look(NodeLook::of("lucide:eye-off")),
+        redact().look(NodeLook::of("lucide:rectangle-ellipsis")),
         spotlight().look(NodeLook::of("lucide:flashlight")),
         trim().look(NodeLook::of("lucide:shrink")),
         clear_colour().look(NodeLook::of("lucide:eraser")),
-        outline().look(NodeLook::of("lucide:square-dashed-bottom")),
-        tilt().look(NodeLook::of("tabler:perspective")),
-        levels().look(NodeLook::of("lucide:chart-column-increasing")),
-        grid().look(NodeLook::of("lucide:grid-2x2")),
-        frame().look(NodeLook::of("lucide:frame")),
+        outline().look(NodeLook::of("tabler:sticker")),
+        tilt().look(NodeLook::of("tabler:perspective").moves(NodeMotion::Open)),
+        levels().look(NodeLook::of("tabler:chart-histogram")),
+        grid().look(NodeLook::of("tabler:layout-collage")),
+        frame().look(NodeLook::of("hugeicons:image-composition")),
     ]
 }

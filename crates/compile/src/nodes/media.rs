@@ -1118,9 +1118,9 @@ pub fn nodes() -> Vec<NodeDef> {
                 length_row(ctx.result, Icon::Clock),
             ]
         })
-        .look(NodeLook::of("lucide:unplug")),
+        .look(NodeLook::of("iconoir:sine-wave")),
         sound_picture().look(NodeLook::of("lucide:chart-no-axes-column")),
-        thumbnail().look(NodeLook::of("lucide:scan")),
+        thumbnail().look(NodeLook::of("tabler:photo-scan")),
         one_file_op::<NoSettings>(
             FASTSTART_TYPE,
             "Web-ready",
