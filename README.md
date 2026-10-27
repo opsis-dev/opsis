@@ -68,7 +68,6 @@ The app never includes the recording browser or our FFmpeg; users download them 
 | `bun run fonts:bundle`    | Copy the bundled fonts from their Fontsource packages                      |
 | `bun run brand:icons`     | Render `brand/logo.svg` to PNGs; `bun run app:icons` makes the app's icons |
 | `bun run routes`          | Regenerate the TanStack Router route tree                                  |
-| `bun run studio`          | Remotion Studio on the `DemoTimeline` composition                          |
 | `bun run examples`        | Rewrite `examples/*/project.opsis.json` from the templates                 |
 
 ## Architecture

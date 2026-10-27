@@ -15,7 +15,6 @@
         "@wdio/tauri-service": "^1.5.1",
         "oxfmt": "^0.74.0",
         "oxlint": "^1.89.0",
-        "tsx": "^4.23.15",
         "typescript": "6.0.3",
         "webdriverio": "^9.31.9",
       },
