@@ -39,6 +39,7 @@ import {
   type MenuItem,
 } from "./menu-shortcuts";
 import { WindowControls } from "./window-chrome";
+import { windowDragHandlers } from "./window-drag";
 
 function groups(items: MenuEntry[]): MenuItem[][] {
   const out: MenuItem[][] = [];
@@ -139,7 +140,7 @@ export function AppBar({
 }) {
   return (
     <header
-      data-tauri-drag-region="deep"
+      {...windowDragHandlers}
       className={cn(
         "bg-sidebar text-sidebar-foreground flex h-12 shrink-0 items-center border-b select-none",
         isMac ? "pr-3 pl-21" : "pl-2",
