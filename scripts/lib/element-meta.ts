@@ -1,33 +1,5 @@
+import type { FieldWidget } from "@opsis/video/generated/spec";
 type FieldPreset = { label: string; values: Record<string, unknown> };
-
-export const FIELD_WIDGETS = [
-  "action",
-  "asset",
-  "backdrop",
-  "boxes",
-  "camera",
-  "code",
-  "color",
-  "datetime",
-  "envelope",
-  "font",
-  "gradient",
-  "keys",
-  "loudness",
-  "multiselect",
-  "offsets",
-  "quality",
-  "sound",
-  "spot",
-  "target",
-  "textarea",
-  "theme",
-  "timezone",
-  "transition",
-  "variable",
-] as const;
-
-export type FieldWidget = (typeof FIELD_WIDGETS)[number];
 
 export const THEME_MODES = ["light", "dark"] as const;
 

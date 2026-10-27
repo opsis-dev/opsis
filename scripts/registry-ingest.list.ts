@@ -1,6 +1,6 @@
 import { pascalCase } from "@opsis/video/common/format";
 import type { StepRange } from "@opsis/video/common/math";
-import type { FieldWidget } from "./lib/element-meta";
+import type { FieldWidget } from "@opsis/video/generated/spec";
 import type { ElementCategory } from "./lib/element-meta";
 
 type RegistryCategory = Exclude<ElementCategory, "core">;

@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 use crate::params::ParamSchema;
@@ -5,32 +6,40 @@ use crate::text::round_to;
 
 pub const ANY_VALUE: &str = "*";
 
-pub const FIELD_WIDGETS: [&str; 24] = [
-    "action",
-    "asset",
-    "backdrop",
-    "boxes",
-    "camera",
-    "code",
-    "color",
-    "datetime",
-    "envelope",
-    "font",
-    "gradient",
-    "keys",
-    "loudness",
-    "multiselect",
-    "offsets",
-    "quality",
-    "sound",
-    "spot",
-    "target",
-    "textarea",
-    "theme",
-    "timezone",
-    "transition",
-    "variable",
-];
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "lowercase")]
+pub enum FieldWidget {
+    Action,
+    Asset,
+    Backdrop,
+    Boxes,
+    Camera,
+    Code,
+    Color,
+    Datetime,
+    Envelope,
+    Font,
+    Gradient,
+    Keys,
+    Loudness,
+    Multiselect,
+    Offsets,
+    Quality,
+    Sound,
+    Spot,
+    Target,
+    Textarea,
+    Theme,
+    Timezone,
+    Transition,
+    Variable,
+}
+
+impl FieldWidget {
+    pub fn named(name: &str) -> Option<Self> {
+        serde_json::from_value(Value::from(name)).ok()
+    }
+}
 
 fn branch(schema: &Value) -> &Value {
     match schema.get("anyOf").and_then(Value::as_array) {

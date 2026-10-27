@@ -1,6 +1,7 @@
 import { humanize } from "@opsis/video/common/format";
 import { isNumber } from "@opsis/video/common/guards";
 import { kindFromPath } from "@opsis/video/common/mime";
+import type { FieldWidget } from "@opsis/video/generated/spec";
 import { cn } from "cn";
 import { ChevronRight, Copy, Plus, Trash2 } from "lucide-react";
 import { useState, type ComponentType, type ReactNode } from "react";
@@ -16,7 +17,6 @@ import {
   shapeEntries,
   withDefaults,
   type FieldMeta,
-  type FieldWidget,
   type JsonSchema,
 } from "@/editor/form/schema";
 import { fileName } from "@/lib/file-name";

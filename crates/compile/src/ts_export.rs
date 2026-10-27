@@ -36,6 +36,7 @@ pub fn spec_types() -> String {
             .register::<CaptionsValue>()
             .register::<ActionLog>()
             .register::<CoreElementProps>()
+            .register::<crate::elements::introspect::FieldWidget>()
             .register::<crate::elements::core::PreparedTypeface>(),
     )
 }

@@ -2,7 +2,7 @@ use opsis_compile::audio::sound_length;
 use opsis_compile::clip::{ItemExtra, empty_clip, item_clip, recording_props, walk_items};
 use opsis_compile::elements::core::CAPTIONS_ELEMENT;
 use opsis_compile::elements::elements;
-use opsis_compile::elements::introspect::FIELD_WIDGETS;
+use opsis_compile::elements::introspect::FieldWidget;
 use opsis_compile::node::{CardInputs, InputMedia, PortSpec};
 use opsis_compile::nodes::text::{ScriptPace, ends_sentence, script_to_captions};
 use opsis_compile::nodes::transitions::presentations;
@@ -48,7 +48,7 @@ fn starts_every_node_with_parseable_defaults_and_a_hidden_role_beside_each_picke
             {
                 missing_roles.push(format!("{}.{key}", def.kind));
             }
-            if let Some(w) = widget.filter(|w| !FIELD_WIDGETS.contains(w)) {
+            if let Some(w) = widget.filter(|w| FieldWidget::named(w).is_none()) {
                 unknown_widgets.push(format!("{}.{key}: {w}", def.kind));
             }
         }
