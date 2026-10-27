@@ -222,3 +222,19 @@ fn keys_ignore_the_order_connections_were_made_to_a_port_that_takes_several() {
         )
     );
 }
+
+#[test]
+fn changes_the_key_of_a_node_that_draws_text_when_the_project_fonts_change() {
+    let mut wf = workflow(
+        serde_json::json!([
+            node("compare", "image.beforeAfter", serde_json::json!({})),
+            node("crop", "image.crop", serde_json::json!({}))
+        ]),
+        serde_json::json!([]),
+    );
+    let dir = Path::new("/nowhere");
+    let (labelled, cropped) = (key_of(&wf, dir, "compare"), key_of(&wf, dir, "crop"));
+    wf.settings.fonts.main = "Fraunces".to_owned();
+    assert_ne!(key_of(&wf, dir, "compare"), labelled);
+    assert_eq!(key_of(&wf, dir, "crop"), cropped);
+}

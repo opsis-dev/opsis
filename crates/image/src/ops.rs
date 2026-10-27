@@ -16,14 +16,17 @@ use imageproc::geometric_transformations::{
 use num_traits::ToPrimitive;
 use opsis_compile::gradient::{Gradient, GradientKind};
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, FrameScreenshot, ImageFormat,
-    ImageGrid, LevelsMethod, OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle, Resample,
-    ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges,
-    Turn, area_rect, crop_rect, framed_placement, grid_plan, outline_padding, resized_size,
+    AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BeforeAfterPlan, BlurImage,
+    ClearColour, CropImage, FrameScreenshot, ImageFormat, ImageGrid, LevelsMethod, OutlineImage,
+    PlaceImage, Rect, RedactImage, RedactStyle, Resample, ResizeFit, ResizeImage, RotateImage,
+    SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn, area_rect, before_after_plan,
+    crop_rect, framed_placement, grid_plan, label_size, outline_padding, resized_size,
     rotated_size, tilt_corners, tilted_size,
 };
 
 use crate::ImageError;
+use crate::text::{draw_text, measure};
+use opsis_types::numbers::whole;
 
 fn failed<E: std::fmt::Display>(error: E) -> ImageError {
     ImageError::Failed(error.to_string())
@@ -611,7 +614,7 @@ pub fn clear_colour(image: &DynamicImage, p: &ClearColour) -> DynamicImage {
     }
 }
 
-fn over(top: [f32; 4], bottom: [f32; 4]) -> [f32; 4] {
+pub(crate) fn over(top: [f32; 4], bottom: [f32; 4]) -> [f32; 4] {
     let a = top[3] + bottom[3] * (1.0 - top[3]);
     if a <= 0.0 {
         return [0.0; 4];
@@ -970,6 +973,143 @@ pub fn frame(
     });
     let out = DynamicImage::ImageRgba32F(out);
     Ok(if is_deep(image) {
+        DynamicImage::ImageRgba16(out.to_rgba16())
+    } else {
+        DynamicImage::ImageRgba8(out.to_rgba8())
+    })
+}
+
+fn unit_colour(rgba: [u8; 4]) -> [f32; 4] {
+    rgba.map(|v| f32::from(v) / 255.0)
+}
+
+fn lerp(a: [f32; 4], b: [f32; 4], t: f32) -> [f32; 4] {
+    [0, 1, 2, 3].map(|i| a[i] + (b[i] - a[i]) * t)
+}
+
+fn split_pictures(
+    before: &Rgba32FImage,
+    after: &Rgba32FImage,
+    divider: [f32; 4],
+    p: &BeforeAfter,
+) -> Rgba32FImage {
+    let (w, h) = before.dimensions();
+    let centre = (
+        p.position.clamp(0.0, 1.0) * f64::from(w),
+        f64::from(h) / 2.0,
+    );
+    let (sin, cos) = p.angle.to_radians().sin_cos();
+    let half = f64::from(p.divider_width) / 2.0;
+    ImageBuffer::from_fn(w, h, |x, y| {
+        let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
+        let d = (px - centre.0) * cos + (py - centre.1) * sin;
+        let share = (d + 0.5).clamp(0.0, 1.0) as f32;
+        let mut pixel = lerp(before.get_pixel(x, y).0, after.get_pixel(x, y).0, share);
+        if half > 0.0 {
+            let cover = (half - d.abs() + 0.5).clamp(0.0, 1.0) as f32;
+            let mut line = divider;
+            line[3] *= cover;
+            pixel = over(line, pixel);
+        }
+        Rgba(pixel)
+    })
+}
+
+fn paste(canvas: &mut Rgba32FImage, picture: &Rgba32FImage, at: Rect) {
+    let (x0, y0) = (whole(at.x), whole(at.y));
+    for (x, y, pixel) in picture.enumerate_pixels() {
+        if x0 + x < canvas.width() && y0 + y < canvas.height() {
+            canvas.put_pixel(x0 + x, y0 + y, *pixel);
+        }
+    }
+}
+
+fn draw_label(
+    canvas: &mut Rgba32FImage,
+    font: &ab_glyph::FontVec,
+    size: f64,
+    corner: (f64, f64, bool),
+    text: &str,
+    p: &BeforeAfter,
+) {
+    if text.trim().is_empty() {
+        return;
+    }
+    let measured = measure(font, size, text);
+    let (pad_x, pad_y) = (size * 0.55, size * 0.3);
+    let rect = Rect {
+        x: if corner.2 {
+            corner.0 - measured.width - 2.0 * pad_x
+        } else {
+            corner.0
+        },
+        y: corner.1,
+        width: measured.width + 2.0 * pad_x,
+        height: measured.height + 2.0 * pad_y,
+    };
+    let background = unit_colour(background_rgba(&p.label_background));
+    let radius = rect.height * 0.3;
+    for (x, y, pixel) in canvas.enumerate_pixels_mut() {
+        let cover = rounded_cover(f64::from(x) + 0.5, f64::from(y) + 0.5, rect, radius);
+        if cover > 0.0 {
+            let mut top = background;
+            top[3] *= cover;
+            *pixel = Rgba(over(top, pixel.0));
+        }
+    }
+    let colour = unit_colour(background_rgba(&p.label_color));
+    draw_text(
+        canvas,
+        font,
+        size,
+        (rect.x + pad_x, rect.y + pad_y),
+        text,
+        colour,
+    );
+}
+
+pub fn before_after(
+    before: &DynamicImage,
+    after: &DynamicImage,
+    font: Option<&ab_glyph::FontVec>,
+    p: &BeforeAfter,
+) -> Result<DynamicImage, ImageError> {
+    let plan: BeforeAfterPlan = before_after_plan(size_of(before), size_of(after), p);
+    let (w, h) = plan.size;
+    let divider = unit_colour(background_rgba(&p.divider_color));
+    let pixels_of = |rect: Rect| (whole(rect.width), whole(rect.height));
+    let before_pixels = covering(before, pixels_of(plan.before))?;
+    let after_pixels = covering(after, pixels_of(plan.after))?;
+    let mut out = match p.layout {
+        BeforeAfterLayout::Split => split_pictures(&before_pixels, &after_pixels, divider, p),
+        BeforeAfterLayout::SideBySide | BeforeAfterLayout::Stacked => {
+            let mut canvas = ImageBuffer::from_pixel(w, h, Rgba(divider));
+            paste(&mut canvas, &before_pixels, plan.before);
+            paste(&mut canvas, &after_pixels, plan.after);
+            canvas
+        }
+    };
+    if p.labels
+        && let Some(font) = font
+    {
+        let size = label_size(&plan, p);
+        let margin = size * 0.8;
+        let split = p.layout == BeforeAfterLayout::Split;
+        let before_corner = (plan.before.x + margin, plan.before.y + margin, false);
+        let after_corner = if split {
+            (
+                plan.after.x + plan.after.width - margin,
+                plan.after.y + margin,
+                true,
+            )
+        } else {
+            (plan.after.x + margin, plan.after.y + margin, false)
+        };
+        draw_label(&mut out, font, size, before_corner, &p.before_label, p);
+        draw_label(&mut out, font, size, after_corner, &p.after_label, p);
+    }
+    let out = DynamicImage::ImageRgba32F(out);
+    Ok(if is_deep(before) || is_deep(after) {
         DynamicImage::ImageRgba16(out.to_rgba16())
     } else {
         DynamicImage::ImageRgba8(out.to_rgba8())

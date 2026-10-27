@@ -407,6 +407,7 @@ pub struct NodeDef {
     pub action: bool,
     pub executes: bool,
     pub uses_project_size: bool,
+    pub uses_project_fonts: bool,
     pub element: Option<String>,
     pub hidden: bool,
     pub look: Option<NodeLook>,
@@ -471,6 +472,7 @@ impl NodeDef {
             action: false,
             executes: false,
             uses_project_size: false,
+            uses_project_fonts: false,
             element: None,
             hidden: false,
             look: None,
@@ -540,6 +542,11 @@ impl NodeDef {
 
     pub fn uses_project_size(mut self) -> Self {
         self.uses_project_size = true;
+        self
+    }
+
+    pub fn uses_project_fonts(mut self) -> Self {
+        self.uses_project_fonts = true;
         self
     }
 

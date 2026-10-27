@@ -4864,6 +4864,7 @@ dependencies = [
 name = "opsis-image"
 version = "0.1.0"
 dependencies = [
+ "ab_glyph",
  "csscolorparser",
  "fast_image_resize",
  "image",
@@ -4881,6 +4882,7 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
+ "wuff",
 ]
 
 [[package]]

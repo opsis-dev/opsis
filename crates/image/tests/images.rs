@@ -8,11 +8,11 @@ use image::{
 };
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, CropMode, FrameScreenshot,
-    FrameShape, GridFit, GridLayout, ImageFormat, ImageGrid, LevelsMethod, OutlineImage,
-    PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage,
-    StillFileFormat, TiltImage, TrimEdges, Turn, framed_placement, grid_plan, tilt_corners,
-    tilted_size,
+    AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BlurImage, ClearColour, CropImage,
+    CropMode, FrameScreenshot, FrameShape, GridFit, GridLayout, ImageFormat, ImageGrid,
+    LevelsMethod, OutlineImage, PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage,
+    RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn, framed_placement,
+    grid_plan, tilt_corners, tilted_size,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -797,4 +797,153 @@ fn frames_a_picture_with_round_corners_and_a_shadow_on_a_background() {
             .unwrap();
     let painted = ops::paint_gradient((100, 10), &gradient);
     assert!(painted.get_pixel(1, 5).0[0] < 0.05 && painted.get_pixel(98, 5).0[0] > 0.95);
+}
+
+fn split(position: f64, angle: f64, divider: u32) -> BeforeAfter {
+    BeforeAfter {
+        layout: BeforeAfterLayout::Split,
+        position,
+        angle,
+        divider_width: divider,
+        labels: false,
+        ..BeforeAfter::default()
+    }
+}
+
+const RED: [u8; 3] = [220, 20, 20];
+const BLUE: [u8; 3] = [20, 20, 220];
+
+fn rgb_at(image: &DynamicImage, x: u32, y: u32) -> [u8; 3] {
+    let p = image.get_pixel(x, y).0;
+    [p[0], p[1], p[2]]
+}
+
+#[test]
+fn splits_at_the_chosen_column_with_the_after_covering_the_before_size() {
+    let before = block(200, 100, RED);
+    let after = block(400, 300, BLUE);
+    let out = ops::before_after(&before, &after, None, &split(0.25, 0.0, 0)).unwrap();
+    assert_eq!(out.dimensions(), (200, 100));
+    for y in [0, 50, 99] {
+        assert_eq!(rgb_at(&out, 49, y), RED, "row {y}");
+        assert_eq!(rgb_at(&out, 50, y), BLUE, "row {y}");
+    }
+    let lined = ops::before_after(&before, &after, None, &split(0.5, 0.0, 4)).unwrap();
+    for x in 98..102 {
+        assert_eq!(rgb_at(&lined, x, 50), [255, 255, 255], "column {x}");
+    }
+    assert_eq!(rgb_at(&lined, 96, 50), RED);
+    assert_eq!(rgb_at(&lined, 103, 50), BLUE);
+}
+
+#[test]
+fn turns_the_divider_about_the_middle_of_the_picture() {
+    let out = ops::before_after(
+        &block(200, 100, RED),
+        &block(200, 100, BLUE),
+        None,
+        &split(0.5, 20.0, 0),
+    )
+    .unwrap();
+    let edge = |y: u32| (0..200).find(|&x| rgb_at(&out, x, y) != RED).unwrap();
+    let shift = 50.0 * 20f64.to_radians().tan();
+    assert!((f64::from(edge(50)) - 100.0).abs() <= 1.0, "{}", edge(50));
+    assert!(
+        (f64::from(edge(0)) - (100.0 + shift)).abs() <= 1.5,
+        "{}",
+        edge(0)
+    );
+    assert!(
+        (f64::from(edge(99)) - (100.0 - shift)).abs() <= 1.5,
+        "{}",
+        edge(99)
+    );
+}
+
+#[test]
+fn puts_the_pictures_side_by_side_or_stacked_at_one_height_or_width_with_the_divider_between() {
+    let side = BeforeAfter {
+        layout: BeforeAfterLayout::SideBySide,
+        labels: false,
+        ..BeforeAfter::default()
+    };
+    let out = ops::before_after(&block(100, 50, RED), &block(200, 200, BLUE), None, &side).unwrap();
+    assert_eq!(out.dimensions(), (154, 50));
+    assert_eq!(
+        [
+            rgb_at(&out, 99, 25),
+            rgb_at(&out, 101, 25),
+            rgb_at(&out, 104, 25),
+            rgb_at(&out, 153, 49)
+        ],
+        [RED, [255, 255, 255], BLUE, BLUE]
+    );
+    let stacked = BeforeAfter {
+        layout: BeforeAfterLayout::Stacked,
+        divider_width: 0,
+        ..side
+    };
+    let out =
+        ops::before_after(&block(100, 50, RED), &block(50, 100, BLUE), None, &stacked).unwrap();
+    assert_eq!(out.dimensions(), (100, 250));
+    assert_eq!([rgb_at(&out, 50, 49), rgb_at(&out, 50, 50)], [RED, BLUE]);
+}
+
+fn bundled_font(weight: f64) -> ab_glyph::FontVec {
+    let file = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../public/fonts/bundled/inter/inter-latin-wght-normal.woff2");
+    opsis_image::text::load_font(std::fs::read(file).unwrap(), weight).unwrap()
+}
+
+fn ink(image: &DynamicImage, x: std::ops::Range<u32>, y: std::ops::Range<u32>) -> usize {
+    x.flat_map(|x| y.clone().map(move |y| (x, y)))
+        .filter(|&(x, y)| rgb_at(image, x, y).iter().all(|&v| v > 200))
+        .count()
+}
+
+#[test]
+fn labels_each_side_in_its_corner_with_the_chosen_weight() {
+    let before = block(800, 400, [60, 60, 60]);
+    let after = block(800, 400, [60, 60, 60]);
+    let p = BeforeAfter {
+        divider_width: 0,
+        label_size: 40,
+        ..BeforeAfter::default()
+    };
+    let light = ops::before_after(&before, &after, Some(&bundled_font(300.0)), &p).unwrap();
+    let bold = ops::before_after(&before, &after, Some(&bundled_font(800.0)), &p).unwrap();
+    let pill = rgb_at(&light, 40, 40);
+    assert!(
+        pill.iter().all(|&v| v < 40),
+        "a dark label behind the text: {pill:?}"
+    );
+    assert_eq!(
+        rgb_at(&light, 20, 20),
+        [60, 60, 60],
+        "the label keeps its margin"
+    );
+    let (left, right) = (
+        ink(&light, 30..300, 30..110),
+        ink(&light, 500..770, 30..110),
+    );
+    assert!(
+        left > 300 && right > 300,
+        "both labels drawn: {left} {right}"
+    );
+    assert_eq!(
+        ink(&light, 300..500, 0..400),
+        0,
+        "nothing between the labels"
+    );
+    assert!(
+        ink(&bold, 30..300, 30..110) > left * 3 / 2,
+        "a heavier weight draws thicker letters"
+    );
+    let quiet = BeforeAfter {
+        before_label: " ".to_owned(),
+        ..p
+    };
+    let only_after =
+        ops::before_after(&before, &after, Some(&bundled_font(600.0)), &quiet).unwrap();
+    assert_eq!(rgb_at(&only_after, 40, 40), [60, 60, 60]);
 }

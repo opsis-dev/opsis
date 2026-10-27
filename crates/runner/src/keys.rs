@@ -95,11 +95,16 @@ pub fn hash_nodes(order: &[&WorkflowNode], inputs: &KeyInputs<'_>) -> HashMap<St
                 "vars": inputs.vars,
                 "files": files,
             }),
-            Some(d) if d.uses_project_size => json!({
-                "params": params,
-                "files": files,
-                "size": { "width": wf.settings.width, "height": wf.settings.height, "fps": wf.settings.fps },
-            }),
+            Some(d) if d.uses_project_size || d.uses_project_fonts => {
+                let mut keyed = json!({ "params": params, "files": files });
+                if d.uses_project_size {
+                    keyed["size"] = json!({ "width": wf.settings.width, "height": wf.settings.height, "fps": wf.settings.fps });
+                }
+                if d.uses_project_fonts {
+                    keyed["fonts"] = json!(wf.settings.fonts);
+                }
+                keyed
+            }
             _ if !files.is_empty() => json!({ "params": params, "files": files }),
             _ => Value::Object(params),
         };

@@ -5056,6 +5056,35 @@
    }
   },
   {
+   "type": "image.beforeAfter",
+   "title": "Before and after",
+   "category": "Image",
+   "description": "Shows two pictures side by side, stacked, or split by a divider, with Before and After labels. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Before",
+     "optional": false,
+     "many": false
+    },
+    "after": {
+     "type": "media",
+     "label": "After",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -53627,6 +53656,205 @@
      "shadowSoftness": 40.0,
      "shadowOpacity": 0.35,
      "shape": "keep"
+    }
+   }
+  },
+  {
+   "type": "image.beforeAfter",
+   "title": "Before and after",
+   "category": "Image",
+   "description": "Shows two pictures side by side, stacked, or split by a divider, with Before and After labels. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Before",
+     "optional": false,
+     "many": false
+    },
+    "after": {
+     "type": "media",
+     "label": "After",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "layout": {
+      "description": "Layout",
+      "type": "string",
+      "enum": [
+       "split",
+       "side-by-side",
+       "stacked"
+      ],
+      "default": "split",
+      "x-labels": {
+       "split": "One picture, split",
+       "side-by-side": "Side by side",
+       "stacked": "Stacked"
+      },
+      "x-help": "Split shows the before on one side of a divider and the after on the other, both at the before's size."
+     },
+     "position": {
+      "description": "Divider at",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.5,
+      "x-step": 0.01,
+      "x-help": "How far across the picture the divider sits.",
+      "x-show-if": {
+       "layout": [
+        "split"
+       ]
+      }
+     },
+     "angle": {
+      "description": "Divider angle",
+      "type": "number",
+      "format": "double",
+      "minimum": -45,
+      "maximum": 45,
+      "default": 0.0,
+      "x-step": 1,
+      "x-unit": "°",
+      "x-show-if": {
+       "layout": [
+        "split"
+       ]
+      }
+     },
+     "dividerWidth": {
+      "description": "Divider width",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 80,
+      "default": 4,
+      "x-unit": "px"
+     },
+     "dividerColor": {
+      "description": "Divider colour",
+      "type": "string",
+      "default": "#ffffff",
+      "x-widget": "color"
+     },
+     "labels": {
+      "description": "Labels",
+      "type": "boolean",
+      "default": true
+     },
+     "beforeLabel": {
+      "description": "Before label",
+      "type": "string",
+      "default": "Before",
+      "x-show-if": {
+       "labels": [
+        true
+       ]
+      }
+     },
+     "afterLabel": {
+      "description": "After label",
+      "type": "string",
+      "default": "After",
+      "x-show-if": {
+       "labels": [
+        true
+       ]
+      }
+     },
+     "font": {
+      "description": "Font",
+      "type": "string",
+      "default": "",
+      "x-widget": "font",
+      "x-zero-label": "Main font",
+      "x-show-if": {
+       "labels": [
+        true
+       ]
+      }
+     },
+     "labelWeight": {
+      "description": "Weight",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 100,
+      "maximum": 900,
+      "default": 600,
+      "x-step": 100,
+      "x-show-if": {
+       "labels": [
+        true
+       ]
+      }
+     },
+     "labelSize": {
+      "description": "Text size",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 400,
+      "default": 0,
+      "x-unit": "px",
+      "x-zero-label": "Fit the picture",
+      "x-show-if": {
+       "labels": [
+        true
+       ]
+      }
+     },
+     "labelColor": {
+      "description": "Text colour",
+      "type": "string",
+      "default": "#ffffff",
+      "x-widget": "color",
+      "x-show-if": {
+       "labels": [
+        true
+       ]
+      }
+     },
+     "labelBackground": {
+      "description": "Label background",
+      "type": "string",
+      "default": "rgba(0, 0, 0, 0.6)",
+      "x-widget": "color",
+      "x-show-if": {
+       "labels": [
+        true
+       ]
+      }
+     }
+    },
+    "type": "object",
+    "default": {
+     "layout": "split",
+     "position": 0.5,
+     "angle": 0.0,
+     "dividerWidth": 4,
+     "dividerColor": "#ffffff",
+     "labels": true,
+     "beforeLabel": "Before",
+     "afterLabel": "After",
+     "font": "",
+     "labelWeight": 600,
+     "labelSize": 0,
+     "labelColor": "#ffffff",
+     "labelBackground": "rgba(0, 0, 0, 0.6)"
     }
    }
   },

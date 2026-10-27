@@ -12,6 +12,7 @@ use crate::nodes::camera::BackdropStyle;
 use crate::nodes::effects::Area;
 use crate::params::Params;
 use crate::ports::{IN_PREFIX, in_index};
+use opsis_types::numbers::whole;
 
 pub const FRAME_TYPE: &str = "image.frame";
 
@@ -35,6 +36,8 @@ pub const FORMAT_TYPE: &str = "image.format";
 
 pub const PLACE_TYPE: &str = "image.place";
 
+pub const BEFORE_AFTER_TYPE: &str = "image.beforeAfter";
+
 pub const BLUR_TYPE: &str = "image.blur";
 
 pub const ADJUST_TYPE: &str = "image.adjust";
@@ -47,6 +50,7 @@ pub const RESIZE_TYPE: &str = "image.resize";
 
 pub const IMAGE_PORT: &str = "image";
 pub const OVERLAY_PORT: &str = "overlay";
+pub const AFTER_PORT: &str = "after";
 pub const MAX_SIDE: u32 = 16384;
 pub const SOFT_UPSCALE: f64 = 2.0;
 pub const SMALL_CROP: f64 = 64.0;
@@ -1444,6 +1448,182 @@ fn frame() -> NodeDef {
     })
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum BeforeAfterLayout {
+    #[default]
+    Split,
+    SideBySide,
+    Stacked,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct BeforeAfter {
+    #[schemars(
+        description = "Layout",
+        extend(
+            "x-labels" = { "split": "One picture, split", "side-by-side": "Side by side", "stacked": "Stacked" },
+            "x-help" = "Split shows the before on one side of a divider and the after on the other, both at the before's size."
+        )
+    )]
+    pub layout: BeforeAfterLayout,
+    #[default = 0.5]
+    #[schemars(
+        description = "Divider at",
+        range(min = 0, max = 1),
+        extend("x-step" = 0.01, "x-help" = "How far across the picture the divider sits.", "x-show-if" = { "layout": ["split"] })
+    )]
+    pub position: f64,
+    #[schemars(
+        description = "Divider angle",
+        range(min = -45, max = 45),
+        extend("x-step" = 1, "x-unit" = "°", "x-show-if" = { "layout": ["split"] })
+    )]
+    pub angle: f64,
+    #[default = 4]
+    #[schemars(description = "Divider width", range(min = 0, max = 80), extend("x-unit" = "px"))]
+    pub divider_width: u32,
+    #[default("#ffffff".to_owned())]
+    #[schemars(description = "Divider colour", extend("x-widget" = "color"))]
+    pub divider_color: String,
+    #[default = true]
+    #[schemars(description = "Labels")]
+    pub labels: bool,
+    #[default("Before".to_owned())]
+    #[schemars(description = "Before label", extend("x-show-if" = { "labels": [true] }))]
+    pub before_label: String,
+    #[default("After".to_owned())]
+    #[schemars(description = "After label", extend("x-show-if" = { "labels": [true] }))]
+    pub after_label: String,
+    #[schemars(description = "Font", extend("x-widget" = "font", "x-zero-label" = "Main font", "x-show-if" = { "labels": [true] }))]
+    pub font: String,
+    #[default = 600]
+    #[schemars(description = "Weight", range(min = 100, max = 900), extend("x-step" = 100, "x-show-if" = { "labels": [true] }))]
+    pub label_weight: u32,
+    #[schemars(
+        description = "Text size",
+        range(min = 0, max = 400),
+        extend("x-unit" = "px", "x-zero-label" = "Fit the picture", "x-show-if" = { "labels": [true] })
+    )]
+    pub label_size: u32,
+    #[default("#ffffff".to_owned())]
+    #[schemars(description = "Text colour", extend("x-widget" = "color", "x-show-if" = { "labels": [true] }))]
+    pub label_color: String,
+    #[default("rgba(0, 0, 0, 0.6)".to_owned())]
+    #[schemars(description = "Label background", extend("x-widget" = "color", "x-show-if" = { "labels": [true] }))]
+    pub label_background: String,
+}
+
+impl Params for BeforeAfter {}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BeforeAfterPlan {
+    pub size: (u32, u32),
+    pub before: Rect,
+    pub after: Rect,
+}
+
+const LABEL_SHARE: f64 = 0.045;
+const SMALLEST_LABEL: f64 = 12.0;
+
+pub fn before_after_plan(
+    before: (f64, f64),
+    after: (f64, f64),
+    p: &BeforeAfter,
+) -> BeforeAfterPlan {
+    let gap = f64::from(p.divider_width);
+    let (bw, bh) = (
+        f64::from(whole(before.0).max(1)),
+        f64::from(whole(before.1).max(1)),
+    );
+    let (aw, ah) = (after.0.max(1.0), after.1.max(1.0));
+    let place = |x: f64, y: f64, width: f64, height: f64| Rect {
+        x,
+        y,
+        width,
+        height,
+    };
+    match p.layout {
+        BeforeAfterLayout::Split => BeforeAfterPlan {
+            size: (whole(bw), whole(bh)),
+            before: place(0.0, 0.0, bw, bh),
+            after: place(0.0, 0.0, bw, bh),
+        },
+        BeforeAfterLayout::SideBySide => {
+            let width = f64::from(whole(aw * bh / ah).max(1));
+            BeforeAfterPlan {
+                size: (whole(bw + gap + width), whole(bh)),
+                before: place(0.0, 0.0, bw, bh),
+                after: place(bw + gap, 0.0, width, bh),
+            }
+        }
+        BeforeAfterLayout::Stacked => {
+            let height = f64::from(whole(ah * bw / aw).max(1));
+            BeforeAfterPlan {
+                size: (whole(bw), whole(bh + gap + height)),
+                before: place(0.0, 0.0, bw, bh),
+                after: place(0.0, bh + gap, bw, height),
+            }
+        }
+    }
+}
+
+pub fn label_size(plan: &BeforeAfterPlan, p: &BeforeAfter) -> f64 {
+    if p.label_size > 0 {
+        return f64::from(p.label_size);
+    }
+    let short = plan.before.width.min(plan.before.height);
+    (short * LABEL_SHARE).round().max(SMALLEST_LABEL)
+}
+
+fn before_after() -> NodeDef {
+    image_node::<BeforeAfter>(
+        BEFORE_AFTER_TYPE,
+        "Before and after",
+        "Shows two pictures side by side, stacked, or split by a divider, with Before and After labels.",
+    )
+    .uses_project_fonts()
+    .inputs(vec![
+        (IMAGE_PORT, port(PortType::Media, "Before")),
+        (AFTER_PORT, port(PortType::Media, "After")),
+    ])
+    .card(|ctx: &CardCtx<'_, BeforeAfter>| {
+        let p = &ctx.params;
+        let layout = match p.layout {
+            BeforeAfterLayout::Split => {
+                let at = format!("Split at {} %", (p.position * 100.0).round() as i64);
+                if p.angle == 0.0 {
+                    at
+                } else {
+                    format!("{at}, turned {}°", p.angle.round() as i64)
+                }
+            }
+            BeforeAfterLayout::SideBySide => "Side by side".to_owned(),
+            BeforeAfterLayout::Stacked => "Stacked".to_owned(),
+        };
+        let labels = if p.labels {
+            format!("{layout} · “{}” and “{}”", p.before_label, p.after_label)
+        } else {
+            layout
+        };
+        let planned = match (input_size(ctx, IMAGE_PORT), input_size(ctx, AFTER_PORT)) {
+            (Some(before), Some(after)) => {
+                let size = before_after_plan(before, after, p).size;
+                Some(row(Icon::Ruler, pixels(f64::from(size.0), f64::from(size.1))))
+            }
+            _ => None,
+        };
+        vec![
+            Some(row(Icon::Columns2, labels)),
+            (!ctx.connected(AFTER_PORT)).then(|| missing(Icon::Image, "Connect the after picture")),
+            result_size(ctx)
+                .map(|(w, h)| row(Icon::Ruler, pixels(w, h)))
+                .or(planned),
+        ]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -1462,5 +1642,6 @@ pub fn nodes() -> Vec<NodeDef> {
         levels().look(NodeLook::of("tabler:chart-histogram")),
         grid().look(NodeLook::of("tabler:layout-collage")),
         frame().look(NodeLook::of("hugeicons:image-composition")),
+        before_after().look(NodeLook::of("lucide:columns-2")),
     ]
 }

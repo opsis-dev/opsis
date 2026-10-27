@@ -11943,6 +11943,66 @@
   }
  },
  {
+  "type": "image.beforeAfter",
+  "title": "Before and after",
+  "category": "Image",
+  "description": "Shows two pictures side by side, stacked, or split by a divider, with Before and After labels. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "image",
+    "type": "media",
+    "label": "Before",
+    "optional": false,
+    "many": false
+   },
+   {
+    "id": "after",
+    "type": "media",
+    "label": "After",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 190.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "layout": "split",
+   "position": 0.5,
+   "angle": 0.0,
+   "dividerWidth": 4,
+   "dividerColor": "#ffffff",
+   "labels": true,
+   "beforeLabel": "Before",
+   "afterLabel": "After",
+   "font": "",
+   "labelWeight": 600,
+   "labelSize": 0,
+   "labelColor": "#ffffff",
+   "labelBackground": "rgba(0, 0, 0, 0.6)"
+  }
+ },
+ {
   "type": "output.render",
   "title": "Export video",
   "category": "Output",

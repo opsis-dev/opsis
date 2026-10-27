@@ -1,6 +1,7 @@
 pub mod executors;
 pub mod load;
 pub mod ops;
+pub mod text;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ImageError {

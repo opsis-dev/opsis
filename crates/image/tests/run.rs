@@ -157,3 +157,85 @@ fn walk(dir: &std::path::Path) -> Vec<PathBuf> {
     }
     found
 }
+
+async fn run_before_after(params: Value) -> Result<DynamicImage, String> {
+    use opsis_compile::vars::Vars;
+    use opsis_runner::context::{ExecutorContext, ResultStore};
+    let base = tempfile::tempdir().unwrap();
+    let project = base.path().to_path_buf();
+    std::fs::create_dir_all(project.join("assets")).unwrap();
+    std::fs::create_dir_all(project.join(".opsis/cache/h")).unwrap();
+    RgbImage::from_pixel(400, 200, Rgb([200, 30, 30]))
+        .save(project.join("assets/before.png"))
+        .unwrap();
+    RgbImage::from_pixel(400, 200, Rgb([30, 30, 200]))
+        .save(project.join("assets/after.png"))
+        .unwrap();
+    let workflow: Workflow = serde_json::from_value(
+        json!({ "version": 1, "id": "x", "name": "x", "nodes": [], "edges": [] }),
+    )
+    .unwrap();
+    let workflow = Arc::new(workflow);
+    let mut values = opsis_compile::registry::default_params("image.beforeAfter");
+    values.extend(params.as_object().cloned().unwrap_or_default());
+    let ctx = ExecutorContext {
+        run_id: "run".into(),
+        node: serde_json::from_value(node("compare", "image.beforeAfter", Value::Object(values)))
+            .unwrap(),
+        workflow: Arc::clone(&workflow),
+        env: Arc::new(RunEnv {
+            app_version: "test".into(),
+            engine: EngineFiles::default(),
+            public_dir: PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../public"),
+            temp_dir: project.clone(),
+            settings: AppSettings::default(),
+        }),
+        project_dir: project.clone(),
+        dir: project.join(".opsis/cache/h"),
+        rel_dir: ".opsis/cache/h".into(),
+        out_dir: project.join(".opsis/out"),
+        hash: "h".into(),
+        forced: false,
+        vars: Arc::new(Vars::default()),
+        cancel: CancellationToken::new(),
+        emit: Arc::new(|_| {}),
+        store: Arc::new(ResultStore::new(workflow)),
+    };
+    let inputs = serde_json::from_value(json!({
+        "image": { "type": "media", "kind": "image", "src": "project:assets/before.png" },
+        "after": { "type": "media", "kind": "image", "src": "project:assets/after.png" }
+    }))
+    .unwrap();
+    let executors = image_executors();
+    let (_, run) = executors
+        .iter()
+        .find(|(kind, _)| *kind == "image.beforeAfter")
+        .unwrap();
+    let out = run
+        .run(Arc::new(ctx), inputs)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(image::open(project.join(&out.artifacts[0].path)).unwrap())
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn labels_before_and_after_in_the_projects_main_font() {
+    let out = run_before_after(json!({ "labelSize": 30, "dividerWidth": 0 }))
+        .await
+        .unwrap();
+    assert_eq!(out.dimensions(), (400, 200));
+    let whites = (0..400)
+        .flat_map(|x| (0..80).map(move |y| (x, y)))
+        .filter(|&(x, y)| out.get_pixel(x, y).0[..3].iter().all(|&v| v > 200))
+        .count();
+    assert!(whites > 200, "the labels are drawn: {whites}");
+    assert_eq!(out.get_pixel(100, 150).0, [200, 30, 30, 255]);
+    assert_eq!(out.get_pixel(300, 150).0, [30, 30, 200, 255]);
+    let missing = run_before_after(json!({ "font": "No Such Face" }))
+        .await
+        .unwrap_err();
+    assert_eq!(
+        missing,
+        "The font “No Such Face” isn't in this project. Pick another."
+    );
+}

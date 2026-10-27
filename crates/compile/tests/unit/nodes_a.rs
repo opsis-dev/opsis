@@ -367,6 +367,38 @@ fn lists_what_clean_speech_does_and_the_noise_before_and_after_a_run() {
 }
 
 #[test]
+fn says_how_before_and_after_lays_out_and_the_size_it_will_make() {
+    let mut inputs = CardInputs::default();
+    inputs.pixels.insert("image".to_owned(), (1200, 800));
+    inputs.pixels.insert("after".to_owned(), (600, 800));
+    inputs.connected.push("image".to_owned());
+    inputs.connected.push("after".to_owned());
+    assert_eq!(
+        card_texts("image.beforeAfter", json!({}), inputs.clone()),
+        ["Split at 50 % · “Before” and “After”", "1200 × 800 px"]
+    );
+    assert_eq!(
+        card_texts(
+            "image.beforeAfter",
+            json!({ "layout": "side-by-side", "labels": false, "dividerWidth": 10 }),
+            inputs.clone()
+        ),
+        ["Side by side", "1810 × 800 px"]
+    );
+    assert_eq!(
+        card_texts(
+            "image.beforeAfter",
+            json!({ "angle": 12, "position": 0.3 }),
+            CardInputs::default()
+        )[..2],
+        [
+            "Split at 30 %, turned 12° · “Before” and “After”",
+            "Connect the after picture"
+        ]
+    );
+}
+
+#[test]
 fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
     let song = &builtin_songs()[0];
     match compile_node("audio.music", json!({ "src": song.reference() }), json!({}))

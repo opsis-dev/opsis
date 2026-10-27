@@ -1,16 +1,17 @@
 use opsis_compile::nodes::image::{
-    ADJUST_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE, FRAME_TYPE, GRID_TYPE,
-    LEVELS_TYPE, OUTLINE_TYPE, PLACE_TYPE, REDACT_TYPE, RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE,
-    TILT_TYPE, TRIM_TYPE,
+    ADJUST_TYPE, BEFORE_AFTER_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE,
+    FRAME_TYPE, GRID_TYPE, LEVELS_TYPE, OUTLINE_TYPE, PLACE_TYPE, REDACT_TYPE, RESIZE_TYPE,
+    ROTATE_TYPE, SPOTLIGHT_TYPE, TILT_TYPE, TRIM_TYPE,
 };
 use std::path::Path;
 use std::sync::Arc;
 
 use image::DynamicImage;
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BlurImage, ClearColour, CropImage, FrameScreenshot, IMAGE_PORT,
-    ImageFormat, ImageGrid, OVERLAY_PORT, OutlineImage, PlaceImage, RedactImage, ResizeImage,
-    RotateImage, SOFT_UPSCALE, SpotlightImage, TiltImage, TrimEdges, resized_size, upscale,
+    AFTER_PORT, AdjustImage, AutoLevels, BeforeAfter, BlurImage, ClearColour, CropImage,
+    FrameScreenshot, IMAGE_PORT, ImageFormat, ImageGrid, OVERLAY_PORT, OutlineImage, PlaceImage,
+    RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, SpotlightImage, TiltImage, TrimEdges,
+    resized_size, upscale,
 };
 use opsis_engine::files::atomic_write;
 use opsis_media::executors::require_media;
@@ -20,8 +21,12 @@ use opsis_types::values::{Artifact, ArtifactKind, CompileValue, ImageValue, Port
 
 use crate::load::load_image;
 use crate::ops;
+use crate::text::load_font;
+use opsis_compile::elements::prepared::face_for;
+use opsis_compile::fonts::family_for;
 use opsis_compile::gradient::parse_gradient;
 use opsis_compile::nodes::camera::BackdropKind;
+use opsis_types::fonts::FontRole;
 
 fn exec_error(error: crate::ImageError) -> ExecError {
     ExecError::new(error.to_string())
@@ -281,6 +286,44 @@ async fn frame(ctx: Arc<ExecutorContext>, inputs: PortValues) -> Result<Executor
     saved(&ctx, &out, None)
 }
 
+async fn label_font(
+    ctx: &ExecutorContext,
+    p: &BeforeAfter,
+) -> Result<Option<ab_glyph::FontVec>, ExecError> {
+    if !p.labels {
+        return Ok(None);
+    }
+    let name = match p.font.trim() {
+        "" => FontRole::Main.family(),
+        name => name,
+    };
+    let weight = f64::from(p.label_weight);
+    let face = family_for(name, &ctx.workflow.settings.fonts)
+        .and_then(|def| face_for(def, weight, false))
+        .ok_or_else(|| {
+            ExecError::new(format!(
+                "The font “{name}” isn't in this project. Pick another."
+            ))
+        })?;
+    let path = ctx.ref_to_path(&face.file)?;
+    let bytes = tokio::fs::read(&path)
+        .await
+        .map_err(|e| ExecError::new(format!("Couldn't read {}: {e}", path.display())))?;
+    blocking(move || load_font(bytes, weight)).await.map(Some)
+}
+
+async fn before_after(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: BeforeAfter = ctx.params()?;
+    let before = input(&ctx, &inputs, IMAGE_PORT).await?;
+    let after = input(&ctx, &inputs, AFTER_PORT).await?;
+    let font = label_font(&ctx, &p).await?;
+    let out = blocking(move || ops::before_after(&before, &after, font.as_ref(), &p)).await?;
+    saved(&ctx, &out, None)
+}
+
 pub fn image_executors() -> Vec<(&'static str, Executor)> {
     vec![
         (RESIZE_TYPE, executor(resize)),
@@ -289,6 +332,7 @@ pub fn image_executors() -> Vec<(&'static str, Executor)> {
         (ADJUST_TYPE, executor(adjust)),
         (BLUR_TYPE, executor(blur)),
         (PLACE_TYPE, executor(place)),
+        (BEFORE_AFTER_TYPE, executor(before_after)),
         (FORMAT_TYPE, executor(format)),
         (REDACT_TYPE, executor(redact)),
         (SPOTLIGHT_TYPE, executor(spotlight)),
