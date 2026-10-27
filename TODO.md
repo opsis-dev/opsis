@@ -48,16 +48,9 @@ Ideas that were discussed but never finalized or planned.
 - [ ] "Not in this run" and "Turned off" states in the Run panel.
 - [ ] A smaller FFmpeg build (shared, combined or trimmed), which conflicts with keeping both ffmpeg-static binaries.
 - [ ] Replacing `../../` and deeper imports in `apps/ui/src` with `@/` (40 files) and banning them in lint.
-- [ ] Answering the API's `/status` from Rust's own state instead of asking the editor window (`read_project` in `crates/api/src/routes.rs`).
 - [ ] `bun run elements:render` covering Opsis's own core elements too.
 - [ ] Reopening the panels that were popped out when the app starts.
 - [ ] A Keystroke chips option to leave out plain keys such as Esc, Enter and Tab.
-- [ ] A `CONTRIBUTING.md`.
-- [ ] A `CODE_OF_CONDUCT.md`.
-- [ ] A `SECURITY.md`.
-- [ ] Issue and pull request templates.
-- [ ] A changelog.
-- [ ] A "Why it's built this way" README section from PLAN.md's old decisions table.
 - [ ] A project skill that launches the dev app headless with a short profile path for checks.
 
 ## Unverified
