@@ -42,6 +42,20 @@ function ClickRipple({ click, width }: { click: LiveCapture["clicks"][number]; w
   );
 }
 
+export function LiveBadge({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "bg-live text-live-foreground inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-[11px] leading-none font-semibold tracking-wide",
+        className,
+      )}
+    >
+      <span className="bg-live-foreground size-1.5 rounded-full" />
+      LIVE
+    </span>
+  );
+}
+
 export function LiveView({ capture, className }: { capture: LiveCapture; className?: string }) {
   if (!capture.viewport)
     return (
@@ -66,7 +80,7 @@ export function LiveView({ capture, className }: { capture: LiveCapture; classNa
       {capture.frameUrl ? (
         <img
           src={capture.frameUrl}
-          alt={capture.title}
+          alt={capture.title || "Live recording"}
           className="absolute inset-0 size-full object-contain"
         />
       ) : (
@@ -74,6 +88,9 @@ export function LiveView({ capture, className }: { capture: LiveCapture; classNa
           <Spinner />
         </div>
       )}
+      {capture.frameUrl && capture.status === "live" ? (
+        <LiveBadge className="absolute top-2 left-2 z-10" />
+      ) : null}
       <FrameOverlay
         width={width}
         height={height}
@@ -86,7 +103,7 @@ export function LiveView({ capture, className }: { capture: LiveCapture; classNa
         ))}
       </FrameOverlay>
       <div className="absolute inset-x-2 bottom-2 flex items-center gap-1.5">
-        <StatusBadge status={capture.status} />
+        {capture.status === "live" ? null : <StatusBadge status={capture.status} />}
         {current ? (
           <Badge variant="outline" className="bg-background/80 truncate">
             {current.label}

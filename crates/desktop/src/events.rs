@@ -62,6 +62,9 @@ pub struct MenuCommandFired(pub MenuCommand);
 pub struct PanelWindowsChanged(pub Vec<DockPanelName>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct LiveWindowWatching(pub bool);
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
 pub struct ConfirmClose(pub CloseRequest);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]

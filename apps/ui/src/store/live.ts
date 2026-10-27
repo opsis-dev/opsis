@@ -27,11 +27,11 @@ type LiveState = {
   order: string[];
   pipOpen: boolean;
   focusId: string | null;
-  dialogOpen: boolean;
+  windowWatching: boolean;
   apply: (message: LiveMessage) => void;
   setPipOpen: (open: boolean) => void;
   focus: (captureId: string | null) => void;
-  setDialogOpen: (open: boolean) => void;
+  setWindowWatching: (watching: boolean) => void;
   reset: () => void;
 };
 
@@ -45,7 +45,7 @@ const recentClicks = (clicks: LiveCapture["clicks"], now: number): LiveCapture["
 const blank = (captureId: string, nodeId: string): LiveCapture => ({
   captureId,
   nodeId,
-  title: nodeId,
+  title: "",
   viewport: null,
   steps: [],
   frameUrl: null,
@@ -95,6 +95,7 @@ function applyMessage(prev: LiveCapture, message: LiveMessage): LiveCapture {
   if (prev.frameUrl) URL.revokeObjectURL(prev.frameUrl);
   return {
     ...prev,
+    viewport: prev.viewport ?? { width: message.width, height: message.height },
     frameUrl: objectUrl(message.jpeg),
     clicks: recentClicks(prev.clicks, Date.now()),
   };
@@ -114,7 +115,7 @@ export const useLiveStore = create<LiveState>()((set, get) => ({
   order: [],
   pipOpen: false,
   focusId: null,
-  dialogOpen: false,
+  windowWatching: false,
 
   apply: (message) => {
     const { captureId } = message;
@@ -127,7 +128,8 @@ export const useLiveStore = create<LiveState>()((set, get) => ({
   },
   setPipOpen: (pipOpen) => set({ pipOpen }),
   focus: (focusId) => set({ focusId }),
-  setDialogOpen: (dialogOpen) => set({ dialogOpen }),
+  setWindowWatching: (windowWatching) =>
+    set((s) => ({ windowWatching, pipOpen: windowWatching ? s.pipOpen : true })),
   reset: () => {
     for (const c of Object.values(get().captures)) if (c.frameUrl) URL.revokeObjectURL(c.frameUrl);
     set({ captures: {}, order: [], focusId: null });

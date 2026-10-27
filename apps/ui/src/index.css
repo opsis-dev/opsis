@@ -55,6 +55,8 @@
   --color-meter-mid: var(--meter-mid);
   --color-meter-high: var(--meter-high);
   --color-keyframe: var(--keyframe);
+  --color-live: var(--live);
+  --color-live-foreground: var(--live-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -104,6 +106,8 @@
   --meter-mid: oklch(0.84 0.15 90);
   --meter-high: oklch(0.66 0.2 27);
   --keyframe: oklch(0.9 0.1 90);
+  --live: oklch(0.6 0.22 27);
+  --live-foreground: oklch(0.985 0.002 286);
   --waveform: oklch(0.97 0.004 286 / 55%);
   --transition-hatch: oklch(0.97 0.004 286 / 12%);
   --scrollbar-thumb: oklch(0.93 0.004 286 / 16%);

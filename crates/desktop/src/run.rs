@@ -28,12 +28,14 @@ use tokio_util::sync::CancellationToken;
 
 use crate::engine::{engine_files, engine_tools};
 use crate::error::{CommandError, CommandResult};
-use crate::events::{LiveNoted, RunEventFired, RunLogged, RunStateReset, RunViewChanged};
+use crate::events::{
+    LiveNoted, LiveWindowWatching, RunEventFired, RunLogged, RunStateReset, RunViewChanged,
+};
 use crate::frames::{FrameChannel, send};
 use crate::settings::ProjectSignIns;
 use crate::state::AppState;
 use crate::views::AppViewHost;
-use crate::windows::MAIN_WINDOW;
+use crate::windows::{LIVE_WINDOW, MAIN_WINDOW};
 
 struct ActiveRun {
     run_id: String,
@@ -47,7 +49,7 @@ pub struct RunHost {
     view: Mutex<RunView>,
     log: Mutex<RunLog>,
     changes: AtomicU64,
-    live: Mutex<HashMap<String, FrameChannel>>,
+    pub live: Mutex<HashMap<String, FrameChannel>>,
 }
 
 impl RunHost {
@@ -452,4 +454,18 @@ pub fn watch_live(host: State<'_, RunHost>, window: tauri::WebviewWindow, frames
         .lock()
         .expect("live channels")
         .insert(window.label().to_owned(), frames);
+    if window.label() == LIVE_WINDOW
+        && let Err(error) = LiveWindowWatching(true).emit_to(window.app_handle(), MAIN_WINDOW)
+    {
+        log::warn!("telling the editor the live window is watching: {error}");
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn live_window_watching(host: State<'_, RunHost>) -> bool {
+    host.live
+        .lock()
+        .expect("live channels")
+        .contains_key(LIVE_WINDOW)
 }

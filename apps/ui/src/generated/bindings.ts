@@ -40,6 +40,7 @@ export const commands = {
 	openSettings: (page: SettingsPage | null) => __TAURI_INVOKE<null>("open_settings", { page }),
 	openPanelWindow: (panel: DockPanelName) => __TAURI_INVOKE<null>("open_panel_window", { panel }),
 	openPreviewWindow: () => __TAURI_INVOKE<null>("open_preview_window"),
+	openLiveWindow: () => __TAURI_INVOKE<null>("open_live_window"),
 	focusPanelWindow: (panel: DockPanelName) => __TAURI_INVOKE<void>("focus_panel_window", { panel }),
 	closePanelWindow: (panel: DockPanelName) => __TAURI_INVOKE<null>("close_panel_window", { panel }),
 	closePanelWindows: () => __TAURI_INVOKE<null>("close_panel_windows"),
@@ -61,6 +62,7 @@ export const commands = {
 	clearRunLog: () => __TAURI_INVOKE<void>("clear_run_log"),
 	watchLive: (frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<void>("watch_live", { frames }),
 	unwatchLive: (channel: number) => __TAURI_INVOKE<void>("unwatch_live", { channel }),
+	liveWindowWatching: () => __TAURI_INVOKE<boolean>("live_window_watching"),
 	gradientView: (css: string) => __TAURI_INVOKE<GradientView | null>("gradient_view", { css }),
 	editGradient: (css: string, edit: GradientEdit) => __TAURI_INVOKE<GradientView | null>("edit_gradient", { css, edit }),
 	listFonts: () => __TAURI_INVOKE<FontChoice[]>("list_fonts"),
@@ -116,6 +118,7 @@ export const events = {
 	engineInstallProgress: makeEvent<EngineInstallProgress, EngineInstallProgress>("engine-install-progress"),
 	flushSave: makeEvent<FlushSave, FlushSave>("flush-save"),
 	liveNoted: makeEvent<LiveNoted, LiveNoted>("live-noted"),
+	liveWindowWatching: makeEvent<LiveWindowWatching, LiveWindowWatching>("live-window-watching"),
 	menuCommandFired: makeEvent<MenuCommandFired, MenuCommandFired>("menu-command-fired"),
 	openRequested: makeEvent<OpenRequested, OpenRequested>("open-requested"),
 	panelWindowsChanged: makeEvent<PanelWindowsChanged, PanelWindowsChanged>("panel-windows-changed"),
@@ -1091,6 +1094,8 @@ export type LiveStep = {
 };
 
 export type LiveStepStatus = "running" | "done" | "error";
+
+export type LiveWindowWatching = boolean;
 
 export type LocalFrames = {
 	first: number,

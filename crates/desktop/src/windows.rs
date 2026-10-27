@@ -13,12 +13,15 @@ use tauri::{
 use tauri_specta::Event;
 
 use crate::error::CommandResult;
-use crate::events::{PanelWindowsChanged, SettingsPageShown, WindowStateChanged};
+use crate::events::{
+    LiveWindowWatching, PanelWindowsChanged, SettingsPageShown, WindowStateChanged,
+};
 use crate::state::AppState;
 
 pub const MAIN_WINDOW: &str = "main";
 pub const SETTINGS_WINDOW: &str = "settings";
 pub const PREVIEW_WINDOW: &str = "preview";
+pub const LIVE_WINDOW: &str = "live";
 const PANEL_PREFIX: &str = "panel-";
 const MAIN_WINDOW_KEY: &str = "mainWindow";
 const BACKGROUND: Color = Color(0x10, 0x10, 0x13, 0xff);
@@ -305,6 +308,11 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
             let destroyed = window.clone();
             tauri::async_runtime::spawn(async move { save_bounds_now(&destroyed).await });
             let app = window.app_handle();
+            app.state::<crate::run::RunHost>()
+                .live
+                .lock()
+                .expect("live channels")
+                .remove(window.label());
             if window.label() == MAIN_WINDOW {
                 for (label, other) in app.webview_windows() {
                     if label != MAIN_WINDOW
@@ -320,6 +328,10 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
                 tauri::async_runtime::spawn(async move {
                     app.state::<crate::views::Views>().close_preview().await;
                 });
+            } else if window.label() == LIVE_WINDOW
+                && let Err(error) = LiveWindowWatching(false).emit_to(app, MAIN_WINDOW)
+            {
+                log::warn!("telling the editor the live window closed: {error}");
             }
         }
         _ => {}
@@ -377,6 +389,20 @@ pub async fn open_preview_window(app: AppHandle) -> CommandResult<()> {
         title: "Preview — Opsis".to_owned(),
         size: (960.0, 640.0),
         min: (420.0, 260.0),
+    };
+    open_remembered(&app, &spec).await?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn open_live_window(app: AppHandle) -> CommandResult<()> {
+    let spec = WindowSpec {
+        label: LIVE_WINDOW.to_owned(),
+        route: "/live".to_owned(),
+        title: "Live — Opsis".to_owned(),
+        size: (960.0, 600.0),
+        min: (320.0, 200.0),
     };
     open_remembered(&app, &spec).await?;
     Ok(())
