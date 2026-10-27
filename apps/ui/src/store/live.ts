@@ -3,7 +3,6 @@ import { create } from "zustand";
 import type { LiveMessage } from "@/app/tauri";
 import type { Rect } from "@/generated/bindings";
 import type { LiveEvent, LiveStepStatus } from "@/generated/bindings";
-import { DEFAULT_VIEWPORT } from "@/workflow/defaults";
 import { liveAutoOpen } from "./app-settings";
 
 type LiveStep = { nodeId: string; label: string; status?: LiveStepStatus; message?: string };
@@ -12,7 +11,7 @@ export type LiveCapture = {
   captureId: string;
   nodeId: string;
   title: string;
-  viewport: { width: number; height: number };
+  viewport: { width: number; height: number } | null;
   steps: LiveStep[];
   frameUrl: string | null;
   cursor: { x: number; y: number } | null;
@@ -47,7 +46,7 @@ const blank = (captureId: string, nodeId: string): LiveCapture => ({
   captureId,
   nodeId,
   title: nodeId,
-  viewport: DEFAULT_VIEWPORT,
+  viewport: null,
   steps: [],
   frameUrl: null,
   cursor: null,

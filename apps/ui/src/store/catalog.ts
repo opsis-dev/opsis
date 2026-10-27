@@ -11,6 +11,7 @@ import {
   type TemplateInfo,
   type MixerBook,
   type SettingsBook,
+  type Theme,
   type TextRules,
 } from "@/generated/bindings";
 
@@ -28,6 +29,7 @@ const loaded: {
   mixer: MixerBook | null;
   bundledFonts: FontFamilyDef[];
   settings: SettingsBook | null;
+  themeBackgrounds: Partial<Record<Theme, string>>;
   templates: TemplateInfo[];
 } = {
   nodes: [],
@@ -39,6 +41,7 @@ const loaded: {
   mixer: null,
   bundledFonts: [],
   settings: null,
+  themeBackgrounds: {},
   templates: [],
 };
 
@@ -57,6 +60,7 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
   loaded.templates = templates;
   const { nodes, transitions, connects, text, mixer, bundledFonts, settings } = catalog;
   loaded.settings = settings;
+  loaded.themeBackgrounds = catalog.themeBackgrounds;
   loaded.text = text;
   loaded.mixer = mixer;
   loaded.bundledFonts = bundledFonts;
@@ -70,6 +74,8 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
 export const textRules = (): TextRules => loaded.text;
 
 export const bundledFonts = (): FontFamilyDef[] => loaded.bundledFonts;
+
+export const themeBackground = (theme: Theme): string => loaded.themeBackgrounds[theme] ?? "";
 
 export function settingsBook(): SettingsBook {
   if (!loaded.settings) throw new Error("The node catalogue hasn't loaded yet.");

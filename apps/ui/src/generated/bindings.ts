@@ -673,6 +673,7 @@ export type EditorCatalog = {
 	mixer: MixerBook,
 	bundledFonts: FontFamilyDef[],
 	settings: SettingsBook,
+	themeBackgrounds: Partial<{ [key in Theme]: string }>,
 };
 
 export type EditorCompile = {

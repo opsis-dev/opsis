@@ -43,6 +43,17 @@ function ClickRipple({ click, width }: { click: LiveCapture["clicks"][number]; w
 }
 
 export function LiveView({ capture, className }: { capture: LiveCapture; className?: string }) {
+  if (!capture.viewport)
+    return (
+      <div
+        className={cn(
+          "text-muted-foreground grid aspect-video place-items-center rounded-md bg-black",
+          className,
+        )}
+      >
+        <Spinner />
+      </div>
+    );
   const { width, height } = capture.viewport;
   const current = capture.steps.find((s) => s.status === "running");
   const target = capture.target;

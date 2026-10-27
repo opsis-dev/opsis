@@ -54,7 +54,7 @@ export function LiveDialog({ capture }: { capture: LiveCapture }) {
           <DialogHeader>
             <DialogTitle>{capture.title}</DialogTitle>
             <DialogDescription>
-              {capture.viewport.width}×{capture.viewport.height} ·{" "}
+              {capture.viewport ? `${capture.viewport.width}×${capture.viewport.height} · ` : ""}
               {STATUS_LOOKS[capture.status].word}
               {capture.message ? ` · ${capture.message}` : ""}
             </DialogDescription>

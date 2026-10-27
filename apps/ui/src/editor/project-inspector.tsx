@@ -18,7 +18,7 @@ import type { Workflow, WorkflowSettings } from "@/generated/bindings";
 import { whenFirstOneOf } from "@/lib/one-of";
 import { attempt } from "@/lib/toast";
 import { useItemKeys } from "@/lib/use-item-keys";
-import { THEME_BACKGROUNDS } from "@/workflow/defaults";
+import { themeBackground } from "@/store/catalog";
 import { VARIANTS, variantCanvas } from "@/workflow/nodes";
 import { FontPicker } from "../fonts/font-picker";
 import { useMedia } from "../store/media";
@@ -181,7 +181,7 @@ function BackgroundField({ background, theme }: Pick<WorkflowSettings, "backgrou
       <Input
         id="wf-bg"
         value={background ?? ""}
-        placeholder={THEME_BACKGROUNDS[theme]}
+        placeholder={themeBackground(theme)}
         onChange={(e) => setSettings({ background: e.target.value || undefined })}
       />
     </Field>

@@ -93,6 +93,8 @@ pub enum Theme {
 }
 
 impl Theme {
+    pub const ALL: [Self; 2] = [Self::Light, Self::Dark];
+
     pub fn background(self) -> &'static str {
         match self {
             Self::Light => "#fafafa",
