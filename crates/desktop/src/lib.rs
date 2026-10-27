@@ -13,6 +13,7 @@ mod exit;
 mod file_server;
 mod fonts;
 mod frames;
+mod gradients;
 mod menu;
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 mod native_menu;

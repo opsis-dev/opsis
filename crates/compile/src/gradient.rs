@@ -1,22 +1,26 @@
 use std::sync::LazyLock;
 
+use opsis_types::numbers::whole;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
+use specta::Type;
 
 use crate::color::is_color;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "lowercase")]
 pub enum GradientKind {
     Linear,
     Radial,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 pub struct GradientStop {
     pub color: String,
     pub at: f64,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 pub struct Gradient {
     pub kind: GradientKind,
     pub angle: f64,
@@ -128,4 +132,206 @@ pub fn parse_gradient(text: &str) -> Option<Gradient> {
         })
         .collect();
     Some(Gradient { kind, angle, stops })
+}
+
+const STRAIGHT_ACROSS: f64 = 90.0;
+const FALLBACK_STOP_COLOR: &str = "#ffffff";
+
+fn stop_list(stops: &[GradientStop]) -> String {
+    stops
+        .iter()
+        .map(|s| format!("{} {}%", s.color, whole(s.at)))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+pub fn format_gradient(gradient: &Gradient) -> String {
+    match gradient.kind {
+        GradientKind::Linear => format!(
+            "linear-gradient({}deg, {})",
+            whole(gradient.angle),
+            stop_list(&gradient.stops)
+        ),
+        GradientKind::Radial => format!("radial-gradient(circle, {})", stop_list(&gradient.stops)),
+    }
+}
+
+fn sorted_stops(stops: &[GradientStop]) -> Vec<GradientStop> {
+    let mut sorted = stops.to_vec();
+    sorted.sort_by(|a, b| a.at.total_cmp(&b.at));
+    sorted
+}
+
+fn percent(at: f64) -> f64 {
+    at.round().clamp(0.0, 100.0)
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Type)]
+#[serde(tag = "op", rename_all = "camelCase")]
+pub enum GradientEdit {
+    Kind { kind: GradientKind },
+    Angle { angle: f64 },
+    StopColor { index: usize, color: String },
+    StopAt { index: usize, at: f64 },
+    AddStop { at: f64 },
+    RemoveStop { index: usize },
+    Sort { index: usize },
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct GradientView {
+    pub gradient: Gradient,
+    pub css: String,
+    pub strip: String,
+    pub can_add: bool,
+    pub can_remove: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selected: Option<usize>,
+}
+
+fn view_of(gradient: Gradient, selected: Option<usize>) -> GradientView {
+    GradientView {
+        css: format_gradient(&gradient),
+        strip: format_gradient(&Gradient {
+            kind: GradientKind::Linear,
+            angle: STRAIGHT_ACROSS,
+            stops: gradient.stops.clone(),
+        }),
+        can_add: gradient.stops.len() < MAX_STOPS,
+        can_remove: gradient.stops.len() > MIN_STOPS,
+        selected,
+        gradient,
+    }
+}
+
+pub fn gradient_view(css: &str) -> Option<GradientView> {
+    parse_gradient(css).map(|g| view_of(g, None))
+}
+
+pub fn edit_gradient(css: &str, edit: &GradientEdit) -> Option<GradientView> {
+    let mut gradient = parse_gradient(css)?;
+    let mut selected = None;
+    match edit {
+        GradientEdit::Kind { kind } => gradient.kind = *kind,
+        GradientEdit::Angle { angle } => gradient.angle = angle.round().rem_euclid(360.0),
+        GradientEdit::StopColor { index, color } => {
+            if is_color(color)
+                && let Some(stop) = gradient.stops.get_mut(*index)
+            {
+                stop.color.clone_from(color);
+            }
+        }
+        GradientEdit::StopAt { index, at } => {
+            if let Some(stop) = gradient.stops.get_mut(*index) {
+                stop.at = percent(*at);
+            }
+        }
+        GradientEdit::AddStop { at } => {
+            if gradient.stops.len() < MAX_STOPS {
+                let at = percent(*at);
+                let sorted = sorted_stops(&gradient.stops);
+                let color = sorted
+                    .iter()
+                    .find(|s| s.at >= at)
+                    .or(sorted.last())
+                    .map_or_else(|| FALLBACK_STOP_COLOR.to_owned(), |s| s.color.clone());
+                gradient.stops.push(GradientStop { color, at });
+                selected = Some(gradient.stops.len() - 1);
+            }
+        }
+        GradientEdit::RemoveStop { index } => {
+            if gradient.stops.len() > MIN_STOPS && *index < gradient.stops.len() {
+                gradient.stops.remove(*index);
+                selected = Some(index.saturating_sub(1));
+            }
+        }
+        GradientEdit::Sort { index } => {
+            let mut order: Vec<usize> = (0..gradient.stops.len()).collect();
+            order.sort_by(|a, b| gradient.stops[*a].at.total_cmp(&gradient.stops[*b].at));
+            selected = order.iter().position(|i| i == index);
+            gradient.stops = sorted_stops(&gradient.stops);
+        }
+    }
+    Some(view_of(gradient, selected))
+}
+
+#[cfg(test)]
+mod edits {
+    use super::*;
+
+    const CSS: &str = "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)";
+
+    #[test]
+    fn formats_what_it_parses() {
+        let view = gradient_view(CSS).unwrap();
+        assert_eq!(view.css, CSS);
+        assert_eq!(
+            view.strip,
+            "linear-gradient(90deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)"
+        );
+        assert!(view.can_add && view.can_remove);
+        assert_eq!(
+            gradient_view("radial-gradient(red, blue)").unwrap().css,
+            "radial-gradient(circle, red 0%, blue 100%)"
+        );
+        assert!(gradient_view("conic-gradient(red, blue)").is_none());
+    }
+
+    #[test]
+    fn adds_a_stop_in_the_colour_after_it_and_stops_at_six() {
+        let added = edit_gradient(CSS, &GradientEdit::AddStop { at: 20.4 }).unwrap();
+        assert_eq!(
+            added.gradient.stops.last(),
+            Some(&GradientStop {
+                color: "#f472b6".into(),
+                at: 20.0
+            })
+        );
+        assert_eq!(added.selected, Some(3));
+        let mut css = CSS.to_owned();
+        for _ in 0..5 {
+            css = edit_gradient(&css, &GradientEdit::AddStop { at: 50.0 })
+                .unwrap()
+                .css;
+        }
+        let full = gradient_view(&css).unwrap();
+        assert_eq!(full.gradient.stops.len(), MAX_STOPS);
+        assert!(!full.can_add);
+    }
+
+    #[test]
+    fn keeps_two_stops_and_follows_a_dragged_stop_when_sorting() {
+        let two = "linear-gradient(90deg, red 0%, blue 100%)";
+        let kept = edit_gradient(two, &GradientEdit::RemoveStop { index: 0 }).unwrap();
+        assert_eq!(kept.gradient.stops.len(), 2);
+        assert!(!kept.can_remove);
+        let past = edit_gradient(
+            CSS,
+            &GradientEdit::StopAt {
+                index: 0,
+                at: 150.0,
+            },
+        )
+        .unwrap();
+        assert_eq!(past.gradient.stops[0].at, 100.0);
+        let moved = edit_gradient(CSS, &GradientEdit::StopAt { index: 0, at: 90.0 }).unwrap();
+        let sorted = edit_gradient(&moved.css, &GradientEdit::Sort { index: 0 }).unwrap();
+        assert_eq!(sorted.selected, Some(1));
+        assert_eq!(sorted.gradient.stops[1].color, "#e8b86d");
+    }
+
+    #[test]
+    fn turns_round_and_wraps_the_angle() {
+        let radial = edit_gradient(
+            CSS,
+            &GradientEdit::Kind {
+                kind: GradientKind::Radial,
+            },
+        )
+        .unwrap();
+        assert!(radial.css.starts_with("radial-gradient(circle, "));
+        let turned = edit_gradient(CSS, &GradientEdit::Angle { angle: 370.4 }).unwrap();
+        assert_eq!(turned.gradient.angle, 10.0);
+    }
 }

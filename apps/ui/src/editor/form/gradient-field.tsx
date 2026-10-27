@@ -6,14 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import {
-  formatGradient,
-  insertStop,
-  MIN_STOPS,
-  parseGradient,
-  sortStops,
-  type Gradient,
-} from "@/editor/form/gradient";
+import { commands, type GradientEdit, type GradientView } from "@/generated/bindings";
 import { fractionIn } from "@/lib/dom";
 import { parseNumberText } from "@/lib/number-text";
 import { useCommitDraft } from "@/lib/use-commit-draft";
@@ -25,22 +18,20 @@ import { trimNumber, useDecimalInput } from "./decimal";
 import { Help } from "./field-shell";
 import type { FieldProps } from "./types";
 
+type Edit = (change: GradientEdit) => void;
+
 function StopBar({
-  gradient,
+  view,
   selected,
   onSelect,
-  onChange,
+  onEdit,
 }: {
-  gradient: Gradient;
+  view: GradientView;
   selected: number;
   onSelect: (index: number) => void;
-  onChange: (gradient: Gradient) => void;
+  onEdit: Edit;
 }) {
   const bar = useRef<HTMLDivElement>(null);
-  const latest = useRef(gradient);
-  useEffect(() => {
-    latest.current = gradient;
-  });
   const atOf = (e: PointerEvent) => {
     const rect = bar.current?.getBoundingClientRect();
     return rect ? fractionIn(rect, e.clientX, e.clientY).x * 100 : 0;
@@ -52,19 +43,12 @@ function StopBar({
       workflowEdits.beginGesture();
       return index;
     },
-    move: (e, index) =>
-      onChange({
-        ...gradient,
-        stops: gradient.stops.map((s, i) => (i === index ? { ...s, at: Math.round(atOf(e)) } : s)),
-      }),
+    move: (e, index) => onEdit({ op: "stopAt", index, at: atOf(e) }),
     end: (index) => {
-      const sorted = sortStops(latest.current);
-      onChange(sorted);
-      onSelect(sorted.stops.indexOf(latest.current.stops[index]));
+      onEdit({ op: "sort", index });
       workflowEdits.endGesture();
     },
   });
-  const linear = formatGradient({ ...gradient, type: "linear", angle: 90 });
   return (
     <div className="relative px-2 pb-3">
       <div
@@ -72,19 +56,16 @@ function StopBar({
         className="h-6 w-full cursor-copy rounded-md border"
         style={CHECKER}
         onPointerDown={(e) => {
-          if (e.target !== e.currentTarget) return;
-          const next = insertStop(gradient, atOf(e));
-          if (next === gradient) return;
-          onChange(next);
-          onSelect(next.stops.length - 1);
+          if (e.target !== e.currentTarget || !view.canAdd) return;
+          onEdit({ op: "addStop", at: atOf(e) });
         }}
       >
         <div
           className="pointer-events-none h-full w-full rounded-md"
-          style={{ background: linear }}
+          style={{ background: view.strip }}
         />
       </div>
-      {gradient.stops.map((stop, i) => (
+      {view.gradient.stops.map((stop, i) => (
         <button
           key={i}
           type="button"
@@ -100,12 +81,7 @@ function StopBar({
             const step = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
             if (!step) return;
             e.preventDefault();
-            onChange({
-              ...gradient,
-              stops: gradient.stops.map((s, j) =>
-                j === i ? { ...s, at: clamp(s.at + step * (e.shiftKey ? 10 : 1), 0, 100) } : s,
-              ),
-            });
+            onEdit({ op: "stopAt", index: i, at: stop.at + step * (e.shiftKey ? 10 : 1) });
           }}
           {...drag}
         />
@@ -118,20 +94,16 @@ function SmallNumber({
   label,
   value,
   unit,
-  min,
-  max,
   onChange,
 }: {
   label: string;
   value: number;
   unit: string;
-  min: number;
-  max: number;
   onChange: (value: number) => void;
 }) {
   const input = useDecimalInput(trimNumber(value), "edit", (text) => {
     const n = parseNumberText(text);
-    if (n !== null) onChange(clamp(n, min, max));
+    if (n !== null) onChange(n);
   });
   return (
     <label className="text-muted-foreground flex items-center gap-1 text-xs">
@@ -159,38 +131,64 @@ function RawGradient({ value, onChange }: { value: string; onChange: (value: str
   );
 }
 
+function useGradientView(
+  value: string,
+  onChange: (css: string) => void,
+  onSelect: (i: number) => void,
+) {
+  const [shown, setShown] = useState<{ css: string; view: GradientView | null } | null>(null);
+  const css = useRef(value);
+  useEffect(() => {
+    css.current = value;
+    let live = true;
+    void commands.gradientView(value).then((view) => {
+      if (live) setShown({ css: value, view });
+    });
+    return () => {
+      live = false;
+    };
+  }, [value]);
+  const edit: Edit = (change) =>
+    void commands.editGradient(css.current, change).then((view) => {
+      if (!view) return;
+      css.current = view.css;
+      setShown({ css: view.css, view });
+      if (view.selected !== undefined) onSelect(view.selected);
+      onChange(view.css);
+    });
+  return { shown, edit };
+}
+
 export function GradientField({ id, label, meta, value, onChange, ctx }: FieldProps<string>) {
-  const gradient = parseGradient(value);
   const [selected, setSelected] = useState(0);
-  const update = (next: Gradient) => onChange(formatGradient(next));
-  const index = gradient ? clamp(selected, 0, gradient.stops.length - 1) : 0;
-  const stop = gradient?.stops[index];
+  const { shown, edit } = useGradientView(value, onChange, setSelected);
+  const view = shown?.view ?? null;
+  const index = view ? clamp(selected, 0, view.gradient.stops.length - 1) : 0;
+  const stop = view?.gradient.stops[index];
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      {gradient && stop ? (
+      {view && stop ? (
         <>
-          <StopBar gradient={gradient} selected={index} onSelect={setSelected} onChange={update} />
+          <StopBar view={view} selected={index} onSelect={setSelected} onEdit={edit} />
           <div className="flex flex-wrap items-center gap-2">
             <ToggleGroup
               variant="outline"
               size="sm"
-              value={[gradient.type]}
+              value={[view.gradient.kind]}
               onValueChange={(v) => {
-                if (v[0] === "linear" || v[0] === "radial") update({ ...gradient, type: v[0] });
+                if (v[0] === "linear" || v[0] === "radial") edit({ op: "kind", kind: v[0] });
               }}
             >
               <ToggleGroupItem value="linear">Straight</ToggleGroupItem>
               <ToggleGroupItem value="radial">Round</ToggleGroupItem>
             </ToggleGroup>
-            {gradient.type === "linear" ? (
+            {view.gradient.kind === "linear" ? (
               <SmallNumber
                 label="Angle"
                 unit="°"
-                min={0}
-                max={360}
-                value={gradient.angle}
-                onChange={(angle) => update({ ...gradient, angle })}
+                value={view.gradient.angle}
+                onChange={(angle) => edit({ op: "angle", angle })}
               />
             ) : null}
           </div>
@@ -200,47 +198,32 @@ export function GradientField({ id, label, meta, value, onChange, ctx }: FieldPr
                 label={`Stop ${index + 1} colour`}
                 value={stop.color}
                 swatches={ctx.swatches}
-                onChange={(color) =>
-                  update({
-                    ...gradient,
-                    stops: gradient.stops.map((s, i) => (i === index ? { ...s, color } : s)),
-                  })
-                }
+                onChange={(color) => edit({ op: "stopColor", index, color })}
               />
             </div>
             <SmallNumber
               label="At"
               unit="%"
-              min={0}
-              max={100}
               value={stop.at}
-              onChange={(at) =>
-                update({
-                  ...gradient,
-                  stops: gradient.stops.map((s, i) => (i === index ? { ...s, at } : s)),
-                })
-              }
+              onChange={(at) => edit({ op: "stopAt", index, at })}
             />
             <Button
               variant="ghost"
               size="icon-sm"
               aria-label="Remove this colour stop"
-              disabled={gradient.stops.length <= MIN_STOPS}
-              onClick={() => {
-                update({ ...gradient, stops: gradient.stops.toSpliced(index, 1) });
-                setSelected(Math.max(0, index - 1));
-              }}
+              disabled={!view.canRemove}
+              onClick={() => edit({ op: "removeStop", index })}
             >
               <Trash2 />
             </Button>
           </div>
         </>
-      ) : (
+      ) : shown ? (
         <p className="text-muted-foreground text-xs">
           This gradient can only be edited as text. Use two or more colours in a straight or round
           gradient to edit it here.
         </p>
-      )}
+      ) : null}
       <RawGradient value={value} onChange={onChange} />
       <Help meta={meta} />
     </Field>

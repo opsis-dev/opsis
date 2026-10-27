@@ -3,8 +3,8 @@ use opsis_types::ts_export::tidy_export;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands, collect_events};
 
 use crate::{
-    analysis, api, compile, document, engine, events, exit, file_server, fonts, page_log, projects,
-    run, settings, shared, views, windows,
+    analysis, api, compile, document, engine, events, exit, file_server, fonts, gradients,
+    page_log, projects, run, settings, shared, views, windows,
 };
 
 pub const BINDINGS_FILE: &str = "apps/ui/src/generated/bindings.ts";
@@ -70,6 +70,8 @@ pub fn builder() -> Builder<tauri::Wry> {
             run::run_state,
             run::clear_run_log,
             run::watch_live,
+            gradients::gradient_view,
+            gradients::edit_gradient,
             fonts::list_fonts,
             fonts::font_choices,
             fonts::inspect_font_files,

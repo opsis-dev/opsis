@@ -61,6 +61,8 @@ export const commands = {
 	runState: () => __TAURI_INVOKE<RunState>("run_state"),
 	clearRunLog: () => __TAURI_INVOKE<void>("clear_run_log"),
 	watchLive: (frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<void>("watch_live", { frames }),
+	gradientView: (css: string) => __TAURI_INVOKE<GradientView | null>("gradient_view", { css }),
+	editGradient: (css: string, edit: GradientEdit) => __TAURI_INVOKE<GradientView | null>("edit_gradient", { css, edit }),
 	listFonts: () => __TAURI_INVOKE<FontChoice[]>("list_fonts"),
 	fontChoices: (value: string, project: FontFamilyDef[]) => __TAURI_INVOKE<FontChoices>("font_choices", { value, project }),
 	inspectFontFiles: (paths: string[] | null) => __TAURI_INVOKE<InspectedFonts | null>("inspect_font_files", { paths }),
@@ -899,6 +901,30 @@ export type FrameRange = {
 };
 
 export type FrameTheme = "light" | "dark";
+
+export type Gradient = {
+	kind: GradientKind,
+	angle: number,
+	stops: GradientStop[],
+};
+
+export type GradientEdit = { op: "kind"; kind: GradientKind } | { op: "angle"; angle: number } | { op: "stopColor"; index: number; color: string } | { op: "stopAt"; index: number; at: number } | { op: "addStop"; at: number } | { op: "removeStop"; index: number } | { op: "sort"; index: number };
+
+export type GradientKind = "linear" | "radial";
+
+export type GradientStop = {
+	color: string,
+	at: number,
+};
+
+export type GradientView = {
+	gradient: Gradient,
+	css: string,
+	strip: string,
+	canAdd: boolean,
+	canRemove: boolean,
+	selected?: number,
+};
 
 export type GraphIssue = {
 	level: IssueLevel,
