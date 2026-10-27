@@ -728,7 +728,6 @@ export type EditorNode = {
 	action: boolean,
 	executes: boolean,
 	hidden: boolean,
-	secretParams: string[],
 	usesProjectSize: boolean,
 	element?: string,
 	cardHeight: number,

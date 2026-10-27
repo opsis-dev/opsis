@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use opsis_compile::vars::workflow_vars;
+use opsis_runner::context::{ExecutorOutput, Executors, Stamps, executor};
 use opsis_runner::keys::{KeyInputs, Release, hash_nodes, node_hash};
 use opsis_types::workflow::Workflow;
 use serde_json::Value;
@@ -20,7 +21,7 @@ fn edge(source: &str, source_handle: &str, target: &str, target_handle: &str) ->
     serde_json::json!({ "id": format!("{source}-{target}"), "source": source, "sourceHandle": source_handle, "target": target, "targetHandle": target_handle })
 }
 
-fn key_of(wf: &Workflow, dir: &Path, id: &str) -> String {
+fn key_with(wf: &Workflow, dir: &Path, executors: &Executors, id: &str) -> String {
     let vars = workflow_vars(&wf.name, &wf.variables);
     let order: Vec<_> = wf.nodes.iter().collect();
     hash_nodes(
@@ -29,6 +30,7 @@ fn key_of(wf: &Workflow, dir: &Path, id: &str) -> String {
             workflow: wf,
             vars: &vars,
             project_dir: dir,
+            executors,
             release: Release {
                 app: "test",
                 engine: "",
@@ -36,6 +38,10 @@ fn key_of(wf: &Workflow, dir: &Path, id: &str) -> String {
         },
     )[id]
         .clone()
+}
+
+fn key_of(wf: &Workflow, dir: &Path, id: &str) -> String {
+    key_with(wf, dir, &Executors::default(), id)
 }
 
 #[test]
@@ -60,7 +66,7 @@ fn changes_every_key_after_a_node_when_skip_is_turned_on_or_off() {
 }
 
 #[test]
-fn changes_the_takes_key_when_a_new_sign_in_is_saved() {
+fn changes_every_key_after_a_stamped_executor_when_its_stamp_changes() {
     let dir = tempfile::tempdir().unwrap();
     let wf = workflow(
         serde_json::json!([
@@ -83,14 +89,28 @@ fn changes_the_takes_key_when_a_new_sign_in_is_saved() {
             edge("go", "session", "rec", "session")
         ]),
     );
-    let unsaved = key_of(&wf, dir.path(), "rec");
-    let file = opsis_types::secrets::secret_file(dir.path(), "admin");
-    std::fs::create_dir_all(file.parent().unwrap()).unwrap();
+    let file = dir.path().join("saved");
+    let read = file.clone();
+    let mut executors = Executors::default();
+    executors
+        .add(
+            "browser.signIn",
+            executor(|_, _| async { Ok(ExecutorOutput::default()) }).stamped(move |_, params| {
+                let name = params["secretName"].as_str().unwrap_or_default();
+                std::fs::read_to_string(&read)
+                    .map(|text| Stamps::from([(name.to_owned(), text)]))
+                    .unwrap_or_default()
+            }),
+        )
+        .unwrap();
+    let unsaved = key_with(&wf, dir.path(), &executors, "rec");
+    assert_eq!(key_of(&wf, dir.path(), "rec"), unsaved);
     std::fs::write(&file, "first").unwrap();
-    let saved = key_of(&wf, dir.path(), "rec");
+    let saved = key_with(&wf, dir.path(), &executors, "rec");
     std::fs::write(&file, "a later sign-in").unwrap();
     assert_ne!(saved, unsaved);
-    assert_ne!(key_of(&wf, dir.path(), "rec"), saved);
+    assert_ne!(key_with(&wf, dir.path(), &executors, "rec"), saved);
+    assert_eq!(key_of(&wf, dir.path(), "rec"), unsaved);
 }
 
 #[test]

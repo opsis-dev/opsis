@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use opsis_capture::executors::sign_in_stamp;
 use opsis_capture::take::{SignIns, StepError, TakeEnv, play_take};
 use opsis_compile::nodes::browser::OPEN_BROWSER_TYPE;
 use opsis_compile::registry::default_params;
@@ -157,4 +158,18 @@ async fn runs_a_script_set_before_the_first_page_once_per_site() {
         ),
     ];
     play(None, steps).await.unwrap();
+}
+
+#[test]
+fn stamps_a_sign_in_by_its_saved_file_and_by_nothing_before_it_is_saved() {
+    let dir = tempfile::tempdir().unwrap();
+    let params = json!({ "secretName": "acct" }).as_object().unwrap().clone();
+    assert!(sign_in_stamp(dir.path(), &params).is_empty());
+    let file = opsis_types::secrets::secret_file(dir.path(), "acct");
+    std::fs::create_dir_all(file.parent().unwrap()).unwrap();
+    std::fs::write(&file, "one").unwrap();
+    let first = sign_in_stamp(dir.path(), &params);
+    std::fs::write(&file, "a longer one").unwrap();
+    assert_eq!(first.len(), 1);
+    assert_ne!(sign_in_stamp(dir.path(), &params), first);
 }

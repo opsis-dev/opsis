@@ -7,10 +7,11 @@ use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
 use opsis_engine::hash::versioned_hash;
 use opsis_engine::versions::{PICTURE_VERSION, PREPARED_VERSION};
-use opsis_project::stamps::{file_stamps, sign_in_stamp};
-use opsis_types::secrets::secret_name;
+use opsis_project::stamps::file_stamps;
 use opsis_types::workflow::{Workflow, WorkflowNode};
 use serde_json::{Map, Value, json};
+
+use crate::context::Executors;
 
 pub const ENGINE_VERSION: &str = "opsis-engine/1";
 const KEY_LENGTH: usize = 24;
@@ -40,27 +41,11 @@ pub fn node_hash(
     )
 }
 
-fn secret_stamps(
-    node: &WorkflowNode,
-    params: &Map<String, Value>,
-    project_dir: &Path,
-) -> Map<String, Value> {
-    let keys = node_def(&node.kind)
-        .map(|d| d.secret_params)
-        .unwrap_or_default();
-    keys.iter()
-        .filter_map(|key| {
-            let name = secret_name(params.get(*key).and_then(Value::as_str).unwrap_or(""));
-            sign_in_stamp(project_dir, &name)
-                .map(|stamp| (format!("secret:{key}"), Value::String(stamp)))
-        })
-        .collect()
-}
-
 pub struct KeyInputs<'a> {
     pub workflow: &'a Workflow,
     pub vars: &'a Vars,
     pub project_dir: &'a Path,
+    pub executors: &'a Executors,
     pub release: Release<'a>,
 }
 
@@ -92,12 +77,14 @@ pub fn hash_nodes(order: &[&WorkflowNode], inputs: &KeyInputs<'_>) -> HashMap<St
         }
         let def = node_def(&node.kind);
         let params = interpolated_params(def, &node.params, inputs.vars);
-        let mut files: Map<String, Value> =
-            file_stamps(inputs.project_dir, &Value::Object(params.clone()))
-                .into_iter()
-                .map(|(k, v)| (k, Value::String(v)))
-                .collect();
-        files.extend(secret_stamps(node, &params, inputs.project_dir));
+        let mut stamps = file_stamps(inputs.project_dir, &Value::Object(params.clone()));
+        if let Some(executor) = inputs.executors.get(&node.kind) {
+            stamps.extend(executor.stamps(inputs.project_dir, &params));
+        }
+        let files: Map<String, Value> = stamps
+            .into_iter()
+            .map(|(k, v)| (k, Value::String(v)))
+            .collect();
         let keyed = match def {
             Some(d) if d.phase == Phase::Render => json!({
                 "params": params,

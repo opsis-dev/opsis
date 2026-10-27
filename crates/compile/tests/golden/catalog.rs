@@ -39,7 +39,6 @@ fn node_metadata(def: &NodeDef) -> Value {
         "virtual": def.is_virtual,
         "action": def.action,
         "executes": def.executes,
-        "secretParams": def.secret_params,
         "usesProjectSize": def.uses_project_size,
         "element": def.element,
         "hidden": def.hidden,

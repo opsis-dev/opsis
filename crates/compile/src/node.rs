@@ -302,7 +302,6 @@ pub struct NodeDef {
     pub is_virtual: bool,
     pub action: bool,
     pub executes: bool,
-    pub secret_params: &'static [&'static str],
     pub uses_project_size: bool,
     pub element: Option<String>,
     pub hidden: bool,
@@ -364,7 +363,6 @@ impl NodeDef {
             is_virtual: false,
             action: false,
             executes: false,
-            secret_params: &[],
             uses_project_size: false,
             element: None,
             hidden: false,
@@ -418,11 +416,6 @@ impl NodeDef {
 
     pub fn executes(mut self) -> Self {
         self.executes = true;
-        self
-    }
-
-    pub fn secrets(mut self, keys: &'static [&'static str]) -> Self {
-        self.secret_params = keys;
         self
     }
 

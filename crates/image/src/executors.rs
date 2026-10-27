@@ -11,7 +11,7 @@ use opsis_compile::nodes::image::{
 };
 use opsis_engine::files::atomic_write;
 use opsis_media::executors::require_media;
-use opsis_runner::context::{ExecError, ExecutorContext, ExecutorFn, ExecutorOutput, executor};
+use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
 use opsis_types::values::{Artifact, ArtifactKind, CompileValue, ImageValue, PortValues};
 
@@ -155,7 +155,7 @@ async fn format(
     saved(&ctx, &image, Some(&p))
 }
 
-pub fn image_executors() -> Vec<(&'static str, ExecutorFn)> {
+pub fn image_executors() -> Vec<(&'static str, Executor)> {
     vec![
         (RESIZE_TYPE, executor(resize)),
         (CROP_TYPE, executor(crop)),

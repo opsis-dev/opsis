@@ -20,7 +20,7 @@ use opsis_media::executors::{Tools, tool_error};
 use opsis_media::ffmpeg::RunOptions;
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_project::paths::to_posix_rel;
-use opsis_runner::context::{ExecError, ExecutorContext, ExecutorFn, ExecutorOutput, executor};
+use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
 use opsis_types::numbers::whole;
 use opsis_types::timeline::{ReframeMode, SpecAssets, TimelineSpec};
@@ -443,7 +443,7 @@ async fn export_images(
     })
 }
 
-fn bind<F, Fut>(engine: &Arc<RenderEngine>, run: F) -> ExecutorFn
+fn bind<F, Fut>(engine: &Arc<RenderEngine>, run: F) -> Executor
 where
     F: Fn(Arc<ExecutorContext>, PortValues, Arc<RenderEngine>) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = Result<ExecutorOutput, ExecError>> + Send + 'static,
@@ -452,7 +452,7 @@ where
     executor(move |ctx, inputs| run(ctx, inputs, Arc::clone(&engine)))
 }
 
-pub fn output_executors(engine: &Arc<RenderEngine>) -> Vec<(&'static str, ExecutorFn)> {
+pub fn output_executors(engine: &Arc<RenderEngine>) -> Vec<(&'static str, Executor)> {
     vec![
         (RENDER_TYPE, bind(engine, export_video)),
         (STILL_TYPE, bind(engine, export_images)),

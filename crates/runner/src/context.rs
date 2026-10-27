@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::future::Future;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 
@@ -9,6 +9,7 @@ use opsis_compile::asset_ref::project_ref;
 use opsis_compile::compile::{CompileResult, compile_workflow, gather_inputs, parse_node_params};
 use opsis_compile::errors::SettingsError;
 use opsis_compile::node::NodeDef;
+use opsis_compile::params::Values;
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
 use opsis_engine::tools::EngineFiles;
@@ -83,18 +84,60 @@ pub struct RunEnv {
     pub settings: AppSettings,
 }
 
-pub type ExecutorFn = Arc<
+type RunFn = Arc<
     dyn Fn(Arc<ExecutorContext>, PortValues) -> BoxFuture<Result<ExecutorOutput, ExecError>>
         + Send
         + Sync,
 >;
 
-pub fn executor<F, Fut>(run: F) -> ExecutorFn
+pub type Stamps = BTreeMap<String, String>;
+
+type StampFn = Arc<dyn Fn(&Path, &Values) -> Stamps + Send + Sync>;
+
+#[derive(Clone)]
+pub struct Executor {
+    run: RunFn,
+    stamp: Option<StampFn>,
+}
+
+impl Executor {
+    pub fn stamped(
+        mut self,
+        stamp: impl Fn(&Path, &Values) -> Stamps + Send + Sync + 'static,
+    ) -> Self {
+        self.stamp = Some(Arc::new(stamp));
+        self
+    }
+
+    pub fn run(
+        &self,
+        ctx: Arc<ExecutorContext>,
+        inputs: PortValues,
+    ) -> BoxFuture<Result<ExecutorOutput, ExecError>> {
+        (self.run)(ctx, inputs)
+    }
+
+    pub fn is_stamped(&self) -> bool {
+        self.stamp.is_some()
+    }
+
+    pub fn stamps(&self, project_dir: &Path, params: &Values) -> Stamps {
+        self.stamp
+            .as_ref()
+            .map(|stamp| stamp(project_dir, params))
+            .unwrap_or_default()
+    }
+}
+
+pub fn executor<F, Fut>(run: F) -> Executor
 where
     F: Fn(Arc<ExecutorContext>, PortValues) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = Result<ExecutorOutput, ExecError>> + Send + 'static,
 {
-    Arc::new(move |ctx, inputs| Box::pin(run(ctx, inputs)))
+    Executor {
+        run: Arc::new(move |ctx, inputs| Box::pin(run(ctx, inputs))),
+        stamp: None,
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -103,23 +146,23 @@ pub struct TwoExecutors(pub String);
 
 #[derive(Default, Clone)]
 pub struct Executors {
-    by_type: HashMap<String, ExecutorFn>,
+    by_type: HashMap<String, Executor>,
 }
 
 impl Executors {
-    pub fn add(&mut self, kind: &str, run: ExecutorFn) -> Result<(), TwoExecutors> {
+    pub fn add(&mut self, kind: &str, run: Executor) -> Result<(), TwoExecutors> {
         if self.by_type.insert(kind.to_owned(), run).is_some() {
             return Err(TwoExecutors(kind.to_owned()));
         }
         Ok(())
     }
 
-    pub fn extend(&mut self, list: Vec<(&str, ExecutorFn)>) -> Result<(), TwoExecutors> {
+    pub fn extend(&mut self, list: Vec<(&str, Executor)>) -> Result<(), TwoExecutors> {
         list.into_iter()
             .try_for_each(|(kind, run)| self.add(kind, run))
     }
 
-    pub fn get(&self, kind: &str) -> Option<&ExecutorFn> {
+    pub fn get(&self, kind: &str) -> Option<&Executor> {
         self.by_type.get(kind)
     }
 

@@ -120,7 +120,6 @@ pub struct EditorNode {
     pub action: bool,
     pub executes: bool,
     pub hidden: bool,
-    pub secret_params: Vec<String>,
     pub uses_project_size: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub element: Option<String>,
@@ -146,7 +145,6 @@ fn editor_node(def: &NodeDef, platform: Platform) -> EditorNode {
         action: def.action,
         executes: def.executes,
         hidden: def.hidden,
-        secret_params: def.secret_params.iter().map(|p| (*p).to_owned()).collect(),
         uses_project_size: def.uses_project_size,
         element: def.element.clone(),
         card_height: estimate_card_height(Some(def)),

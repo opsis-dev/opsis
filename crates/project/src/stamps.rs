@@ -4,7 +4,6 @@ use std::path::Path;
 use opsis_compile::asset_ref::project_rel_path;
 use opsis_compile::cards::named_files;
 use opsis_engine::files::stamp_of;
-use opsis_types::secrets::secret_file;
 use serde_json::Value;
 
 use crate::paths::is_inside;
@@ -32,10 +31,6 @@ pub fn ref_stamps(project_dir: &Path, refs: &[String]) -> BTreeMap<String, Strin
 
 pub fn file_stamps(project_dir: &Path, params: &Value) -> BTreeMap<String, String> {
     ref_stamps(project_dir, &named_files(params))
-}
-
-pub fn sign_in_stamp(project_dir: &Path, name: &str) -> Option<String> {
-    file_stamp(&secret_file(project_dir, name))
 }
 
 #[cfg(test)]
@@ -79,18 +74,5 @@ mod tests {
             }),
         );
         assert_eq!(stamps.keys().collect::<Vec<_>>(), ["project:logo.png"]);
-    }
-
-    #[test]
-    fn a_sign_in_stamp_changes_when_it_is_saved_again_and_is_empty_before() {
-        let dir = tempfile::tempdir().unwrap();
-        assert_eq!(sign_in_stamp(dir.path(), "acct"), None);
-        let file = secret_file(dir.path(), "acct");
-        std::fs::create_dir_all(file.parent().unwrap()).unwrap();
-        std::fs::write(&file, "one").unwrap();
-        let first = sign_in_stamp(dir.path(), "acct");
-        std::fs::write(&file, "a longer one").unwrap();
-        assert!(first.is_some());
-        assert_ne!(sign_in_stamp(dir.path(), "acct"), first);
     }
 }

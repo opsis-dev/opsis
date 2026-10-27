@@ -5,6 +5,7 @@ use std::sync::Arc;
 use opsis_compile::node::{RECORDING_PORT, SESSION_PORT};
 use opsis_compile::nodes::browser::{DoneWhen, Open, SignIn};
 use opsis_compile::nodes::capture::{Record, Still};
+use opsis_compile::params::Values;
 use opsis_compile::recording::PREVIEW_FILE_WIDTH;
 use opsis_compile::registry::node_name;
 use opsis_compile::text::{format_duration, plural};
@@ -13,15 +14,17 @@ use opsis_engine::files::write_json;
 use opsis_media::codecs::{H264, h264_args, strings};
 use opsis_media::executors::{Tools, tool_error};
 use opsis_media::ffmpeg::RunOptions;
+use opsis_project::stamps::file_stamp;
 use opsis_runner::context::{
-    BoxFuture, ExecError, ExecutorContext, ExecutorFn, ExecutorOutput, executor, now_ms,
+    BoxFuture, ExecError, Executor, ExecutorContext, ExecutorOutput, Stamps, executor, now_ms,
 };
 use opsis_traces::{TakeFrame, TraceMeta, TraceTake, apply_retention, store_trace};
 use opsis_types::actions::Viewport;
 use opsis_types::events::{LogLevel, RunEvent};
 use opsis_types::numbers::whole;
-use opsis_types::secrets::secret_name;
+use opsis_types::secrets::{secret_file, secret_name};
 use opsis_types::settings::TraceRetention;
+use opsis_types::values::BrowserAction;
 use opsis_types::values::{
     Artifact, ArtifactKind, BrowserSessionValue, CompileValue, ImageValue, PortValues,
     RecordingValue,
@@ -37,6 +40,7 @@ use crate::take::{Played, Recording, SignIns, StepError, StepStatus, TakeEnv, re
 use crate::trace::FRAME_GAP_MS;
 
 const RECORDING_FILE: &str = "recording.mp4";
+const SIGN_IN_STAMP: &str = "secret:secretName";
 const PREVIEW_FILE: &str = "recording.preview.mp4";
 const ACTIONS_FILE: &str = "actions.json";
 const STILL_FILE: &str = "still.png";
@@ -505,7 +509,15 @@ async fn sign_in(
     Ok(ExecutorOutput::default())
 }
 
-fn with_deps<F, Fut>(deps: &Arc<CaptureDeps>, run: F) -> ExecutorFn
+pub fn sign_in_stamp(project_dir: &Path, params: &Values) -> Stamps {
+    serde_json::from_value::<SignIn>(serde_json::Value::Object(params.clone()))
+        .ok()
+        .and_then(|p| file_stamp(&secret_file(project_dir, &secret_name(&p.secret_name))))
+        .map(|stamp| Stamps::from([(SIGN_IN_STAMP.to_owned(), stamp)]))
+        .unwrap_or_default()
+}
+
+fn with_deps<F, Fut>(deps: &Arc<CaptureDeps>, run: F) -> Executor
 where
     F: Fn(Arc<ExecutorContext>, PortValues, Arc<CaptureDeps>) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = Result<ExecutorOutput, ExecError>> + Send + 'static,
@@ -514,10 +526,13 @@ where
     executor(move |ctx, inputs| run(ctx, inputs, Arc::clone(&deps)))
 }
 
-pub fn capture_executors(deps: &Arc<CaptureDeps>) -> Vec<(&'static str, ExecutorFn)> {
+pub fn capture_executors(deps: &Arc<CaptureDeps>) -> Vec<(&'static str, Executor)> {
     vec![
         (RECORD_TYPE, with_deps(deps, record)),
         (STILL_TYPE, with_deps(deps, still)),
-        ("browser.signIn", with_deps(deps, sign_in)),
+        (
+            BrowserAction::SignIn.kind(),
+            with_deps(deps, sign_in).stamped(sign_in_stamp),
+        ),
     ]
 }

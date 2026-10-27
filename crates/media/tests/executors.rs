@@ -139,7 +139,7 @@ async fn run(
         .find(|(kind, _)| *kind == setup.kind)
         .unwrap();
     let inputs: PortValues = serde_json::from_value(inputs).unwrap();
-    let result = run(Arc::new(ctx), inputs).await;
+    let result = run.run(Arc::new(ctx), inputs).await;
     let ran = fake.ran.lock().unwrap().clone();
     (result, ran)
 }

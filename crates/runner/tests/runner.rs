@@ -1,9 +1,11 @@
 use opsis_engine::tools::EngineFiles;
 use std::sync::{Arc, Mutex};
 
-use opsis_runner::context::{ExecutorOutput, Executors, RunEnv, executor};
+use opsis_project::stamps::file_stamp;
+use opsis_runner::context::{ExecutorOutput, Executors, RunEnv, Stamps, executor};
 use opsis_runner::runner::{RunDeps, run_workflow};
 use opsis_types::events::{RunEvent, RunRequest};
+use opsis_types::secrets::secret_file;
 use opsis_types::settings::AppSettings;
 use opsis_types::workflow::Workflow;
 use serde_json::json;
@@ -36,24 +38,28 @@ async fn run(dir: &std::path::Path, workflow: &Workflow) -> Run {
     let mut executors = Executors::default();
     for kind in ["browser.signIn", "capture.record"] {
         let ran = Arc::clone(&ran);
-        executors
-            .add(
-                kind,
-                executor(move |ctx, _| {
-                    let ran = Arc::clone(&ran);
-                    async move {
-                        ran.lock().unwrap().push(ctx.node.id.clone());
-                        if ctx.node.kind == "browser.signIn" {
-                            let file =
-                                opsis_types::secrets::secret_file(&ctx.project_dir, "default");
-                            std::fs::create_dir_all(file.parent().unwrap())?;
-                            std::fs::write(file, "sealed sign-in")?;
-                        }
-                        Ok(ExecutorOutput::default())
-                    }
-                }),
-            )
-            .unwrap();
+        let run = executor(move |ctx, _| {
+            let ran = Arc::clone(&ran);
+            async move {
+                ran.lock().unwrap().push(ctx.node.id.clone());
+                if ctx.node.kind == "browser.signIn" {
+                    let file = secret_file(&ctx.project_dir, "default");
+                    std::fs::create_dir_all(file.parent().unwrap())?;
+                    std::fs::write(file, "sealed sign-in")?;
+                }
+                Ok(ExecutorOutput::default())
+            }
+        });
+        let run = if kind == "browser.signIn" {
+            run.stamped(|dir, _| {
+                file_stamp(&secret_file(dir, "default"))
+                    .map(|stamp| Stamps::from([("signIn".to_owned(), stamp)]))
+                    .unwrap_or_default()
+            })
+        } else {
+            run
+        };
+        executors.add(kind, run).unwrap();
     }
     let seen = Arc::clone(&events);
     let deps = RunDeps {

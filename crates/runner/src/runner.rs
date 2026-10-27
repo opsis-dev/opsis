@@ -117,6 +117,7 @@ impl RunState {
             workflow: &self.workflow,
             vars: &self.vars,
             project_dir: &self.project_dir,
+            executors: &self.deps.executors,
             release: Release {
                 app: &self.deps.env.app_version,
                 engine: &self.deps.env.engine.stamp,
@@ -296,7 +297,7 @@ impl RunState {
             store: Arc::clone(&self.store),
         });
         let inputs = self.store.inputs_for(&job.node, job.def);
-        let out = run(ctx, inputs).await?;
+        let out = run.run(ctx, inputs).await?;
         let mut artifacts = out.artifacts;
         for artifact in &mut artifacts {
             match std::fs::metadata(self.project_dir.join(&artifact.path)) {
@@ -317,7 +318,7 @@ impl RunState {
             duration_ms: u64::try_from(finished - started).unwrap_or(0),
             trace_id: out.trace_id,
         };
-        if !job.def.secret_params.is_empty() {
+        if run.is_stamped() {
             self.rekey();
             if let Some(fresh) = self.hash_of(&job.node.id)
                 && fresh != result.hash

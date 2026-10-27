@@ -16,7 +16,7 @@ use opsis_compile::nodes::media::{
 };
 use opsis_compile::registry::{node_def, node_name};
 use opsis_compile::text::{format_duration, format_precise_duration, single_quoted};
-use opsis_runner::context::{ExecError, ExecutorContext, ExecutorFn, ExecutorOutput, executor};
+use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
 use opsis_types::values::{
     Artifact, ArtifactKind, CompileValue, ImageValue, MediaKind, MediaValue, PortValues, SrcValue,
@@ -1028,7 +1028,7 @@ async fn probe(
     })
 }
 
-fn bind<F, Fut>(tools: &Tools, run: F) -> ExecutorFn
+fn bind<F, Fut>(tools: &Tools, run: F) -> Executor
 where
     F: Fn(Arc<ExecutorContext>, PortValues, Tools) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = Result<ExecutorOutput, ExecError>> + Send + 'static,
@@ -1037,7 +1037,7 @@ where
     executor(move |ctx, inputs| run(ctx, inputs, Arc::clone(&tools)))
 }
 
-pub fn media_executors(tools: &Tools) -> Vec<(&'static str, ExecutorFn)> {
+pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
     vec![
         (IMPORT_TYPE, bind(tools, import_media)),
         (TRIM_TYPE, bind(tools, trim)),

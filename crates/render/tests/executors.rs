@@ -9,7 +9,7 @@ use opsis_media::ffmpeg::Ffmpeg;
 use opsis_render::executors::{RenderEngine, output_executors};
 use opsis_render::export_project::ExportSources;
 use opsis_render::sidecar::{Sidecar, SidecarCommand};
-use opsis_runner::context::{BoxFuture, ExecError, ExecutorFn, Executors};
+use opsis_runner::context::{BoxFuture, ExecError, Executor, Executors};
 use tokio_util::sync::CancellationToken;
 
 struct NoSignIns;
@@ -30,7 +30,7 @@ impl Login for NoSignIns {
     }
 }
 
-fn all_executors() -> Vec<(&'static str, ExecutorFn)> {
+fn all_executors() -> Vec<(&'static str, Executor)> {
     let tools: Tools = Arc::new(Ffmpeg::new(&EngineFiles::default()));
     let command = SidecarCommand {
         program: "bun".into(),
@@ -90,7 +90,7 @@ fn refuse_a_second_executor_for_the_same_node() {
     let mut executors = all_executors();
     let (kind, run) = executors.remove(0);
     let mut table = Executors::default();
-    table.add(kind, Arc::clone(&run)).unwrap();
+    table.add(kind, run.clone()).unwrap();
     assert_eq!(
         table.add(kind, run).unwrap_err().to_string(),
         format!("Two executors for {kind}")

@@ -25,7 +25,6 @@ Ideas that were discussed but never finalized or planned.
 - [ ] A keep-quality encode option for the file nodes, in place of the fixed H.264 at quality 18 and `yuv420p`.
 - [ ] A lossless checkpoint node that renders a clip's finished picture to a file the rest of the graph plays.
 - [ ] Recording the page's own sound in a take.
-- [ ] An executor stamp hook that replaces the sign-in-specific `secret_params` and `sign_in_stamp` (`crates/project/src/stamps.rs`) in node cache keys.
 - [ ] A node claims hook that replaces `sign_in_clashes` and `export_clashes` in `crates/compile/src/graph.rs`.
 - [ ] A session value that carries its current address, so the picker and the reload warning stop looking for Go to page.
 - [ ] Node looks on `NodeDef` (`crates/compile/src/node.rs`), so `NODE_LOOKS` in `apps/ui/src/nodes/looks.ts` comes from the catalogue instead of a list kept by hand.

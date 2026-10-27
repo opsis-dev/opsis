@@ -994,7 +994,6 @@ fn sign_in() -> NodeDef {
         .outputs(vec![(SESSION_PORT, session_port())])
         .compiles(|ctx: &Ctx<'_, SignIn>| append_step(ctx, BrowserAction::SignIn))
         .executes()
-        .secrets(&["secretName"])
         .card(|ctx: &CardCtx<'_, SignIn>| {
             let p = &ctx.params;
             let name = secret_name(&p.secret_name);
