@@ -9,3 +9,4 @@ pub mod generate;
 pub mod grade;
 pub mod mix;
 pub mod reverse;
+pub mod sound_maker;

@@ -1,12 +1,12 @@
 # Image and sound nodes
 
-Three nodes that make sound: transition sounds, generated sounds and risers.
+Two nodes that make sound: transition sounds and risers.
 
 Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code, except inside what is combined with Remotion (`packages/video`, `apps/preview`, `apps/sidecar`), where the Remotion permission in `LICENSE` covers only Opsis's own code. None of these nodes needs GPL code there.
 
 ## How to read this plan
 
-- Each section is one node and can be built on its own, except where a section names another it needs (sections 2 and 3 share section 1's sound maker).
+- Each section is one node and can be built on its own. Both use Generated sound's sounds (`audio.generate`: its presets and variations, `sound_shape`, made by `crates/media/src/sound_maker.rs`).
 - Each section has **What it adds**, **In place**, **Work** (numbered), **Licence** and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
@@ -24,41 +24,14 @@ Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (v
 
 ## Summary
 
-| Node                 | What users get                                              | Built with                       | Licence of what's added    | Size   |
-| -------------------- | ----------------------------------------------------------- | -------------------------------- | -------------------------- | ------ |
-| 1. Generated sound   | Whooshes, risers, pops, dings and swells made from settings | `fundsp`                         | `fundsp` MIT OR Apache-2.0 | medium |
-| 2. Transition sounds | A whoosh at every transition of a clip                      | section 1, flattened transitions | none new                   | medium |
-| 3. Riser to a mark   | A build-up that ends exactly on an action or marker         | section 1                        | none new                   | small  |
+| Node                 | What users get                                      | Built with                             | Licence of what's added | Size   |
+| -------------------- | --------------------------------------------------- | -------------------------------------- | ----------------------- | ------ |
+| 1. Transition sounds | A whoosh at every transition of a clip              | Generated sound, flattened transitions | none new                | medium |
+| 2. Riser to a mark   | A build-up that ends exactly on an action or marker | Generated sound                        | none new                | small  |
 
 Left out: content-aware resize (`imageproc::seam_carving` is called rough by its own documentation), speech made from text and captions from speech (`plans/voice-and-captions.md` covers them).
 
-## 1. Generated sound
-
-### What it adds
-
-Whooshes, risers, pops, dings, clicks and swells made from a few settings (length, pitch, brightness, variation seed), so every film gets fresh, matching sounds with no file to find and no licence to check.
-
-### In place
-
-- Built-in sounds are seven CC0 files (`crates/compile/src/data/sounds.json`); Sound effect places one at a time or on an action.
-
-### Work
-
-1. **Engine.** `fundsp` graphs per preset: noise through a swept band-pass with an envelope (whoosh, riser), a short sine burst with pitch drop (pop), bell partials (ding), filtered noise click, slow pad swell. One pure function per preset, seeded.
-2. **Node.** `audio.generate`: preset, length (seconds), pitch, brightness, seed; output `sound` like Sound effect, with time or **On an action** placement shared with Sound effect.
-3. **Rendering.** The executor renders 48 kHz stereo WAV with `hound` into the node's folder; the cache key is the settings, so the same settings never render twice.
-4. **Card.** The preset and length, with a play button in the Inspector after a run.
-5. **Tests.** Same seed gives the same samples; length and peak level per preset.
-
-### Licence
-
-`fundsp`: MIT OR Apache-2.0.
-
-### Risks
-
-- Sound quality depends on the presets' tuning; ship few, good ones and listen to each before adding it.
-
-## 2. Transition sounds
+## 1. Transition sounds
 
 ### What it adds
 
@@ -71,7 +44,7 @@ A whoosh at every transition in a clip, timed to each transition's middle and sc
 
 ### Work
 
-1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in or section 1's whoosh), volume, vary each hit, skip plain cuts.
+1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in, or Generated sound's whoosh with its variation), volume, vary each hit, skip plain cuts.
 2. **Compile.** Flatten the clip, one hit per transition mark at its middle, length from the transition's; hits flagged like Action sounds' so the Timeline shows one bar.
 3. **Card.** "6 transitions · Whoosh".
 4. **Tests.** Hits land at the marks' middles through a trim and a speed change.
@@ -80,7 +53,7 @@ A whoosh at every transition in a clip, timed to each transition's middle and sc
 
 Nothing new.
 
-## 3. Riser to a mark
+## 2. Riser to a mark
 
 ### What it adds
 
@@ -88,8 +61,8 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 
 ### Work
 
-1. **Settings.** Ends on (action, marker, clip end), length before it, preset (section 1's riser, swell), with a short hit at the end on or off.
-2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render via section 1.
+1. **Settings.** Ends on (action, marker, clip end), length before it, preset (Generated sound's riser or swell, with its variation), with a short hit at the end on or off.
+2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render it like Generated sound.
 3. **Card.** "Rises 3 s into “Launch”".
 4. **Tests.** The sound ends on the target frame.
 

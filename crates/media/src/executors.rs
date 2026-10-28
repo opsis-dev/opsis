@@ -11,7 +11,9 @@ use std::sync::Arc;
 
 use futures::future::try_join_all;
 use opsis_compile::asset_ref::{kind_from_path, project_ref};
-use opsis_compile::nodes::audio::{ROOM_TONE_TYPE, RoomTone, TONES_TYPE, Tones};
+use opsis_compile::nodes::audio::{
+    GENERATE_TYPE, GenerateSound, ROOM_TONE_TYPE, RoomTone, TONES_TYPE, Tones, sound_shape,
+};
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
     ChangePitch, ChangeSpeed, CleanSpeech, Encoding, EvenOutVolume, ExtractSound, FixClicks,
@@ -1261,6 +1263,35 @@ async fn clean_speech(
     Ok(out)
 }
 
+async fn make_generated(
+    ctx: Arc<ExecutorContext>,
+    _inputs: PortValues,
+    _tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: GenerateSound = ctx.params()?;
+    let shape = sound_shape(&p);
+    let channels = tokio::task::spawn_blocking(move || crate::sound_maker::make(&shape))
+        .await
+        .map_err(|e| ExecError::new(e.to_string()))?;
+    let file = "generated.wav";
+    crate::generate::write_stereo_pcm(&ctx.dir.join(file), &channels)
+        .map_err(|e| ExecError::new(e.to_string()))?;
+    let value = MediaValue {
+        src: Some(ctx.project_file_ref(file)),
+        kind: MediaKind::Audio,
+        duration_ms: Some(length_ms(&channels[0])),
+        width: None,
+        height: None,
+        has_audio: Some(true),
+    };
+    Ok(ExecutorOutput {
+        outputs: output(SOUND_PORT, CompileValue::Media(value)),
+        artifacts: vec![artifact(&ctx, ArtifactKind::Audio, file, "Generated sound")],
+        trace_id: None,
+        measured: Vec::new(),
+    })
+}
+
 async fn logged(
     ctx: &ExecutorContext,
     tools: &dyn MediaTools,
@@ -1567,5 +1598,6 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (FASTSTART_TYPE, bind(tools, faststart)),
         (ROOM_TONE_TYPE, bind(tools, make_room_tone)),
         (TONES_TYPE, bind(tools, make_tones)),
+        (GENERATE_TYPE, bind(tools, make_generated)),
     ]
 }

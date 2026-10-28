@@ -199,6 +199,22 @@ pub fn write_stereo_wav(path: &Path, channels: &[Vec<f32>; 2]) -> Result<(), hou
     writer.finalize()
 }
 
+pub fn write_stereo_pcm(path: &Path, channels: &[Vec<f32>; 2]) -> Result<(), hound::Error> {
+    let spec = hound::WavSpec {
+        channels: 2,
+        sample_rate: RATE,
+        bits_per_sample: 16,
+        sample_format: hound::SampleFormat::Int,
+    };
+    let mut writer = hound::WavWriter::create(path, spec)?;
+    let pcm = |s: f32| (s.clamp(-1.0, 1.0) * f32::from(i16::MAX)) as i16;
+    for (left, right) in channels[0].iter().zip(&channels[1]) {
+        writer.write_sample(pcm(*left))?;
+        writer.write_sample(pcm(*right))?;
+    }
+    writer.finalize()
+}
+
 pub fn write_wav(path: &Path, samples: &[f32]) -> Result<(), hound::Error> {
     let spec = hound::WavSpec {
         channels: 2,

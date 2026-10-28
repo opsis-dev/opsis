@@ -9969,6 +9969,48 @@
   }
  },
  {
+  "type": "audio.generate",
+  "title": "Generated sound",
+  "category": "Audio",
+  "description": "A whoosh, riser, pop, ding, tap, swell or click made from settings, at a set time or on a browser action. No file to find.",
+  "phase": "media",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "audio",
+    "type": "audio",
+    "label": "Sound",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "preset": "whoosh",
+   "variation": "picked",
+   "lengthMs": 0,
+   "pitch": 0.0,
+   "brightness": 0.5,
+   "take": 1,
+   "atAction": "",
+   "atMs": 0,
+   "offsetMs": 0,
+   "volume": 0.8
+  }
+ },
+ {
   "type": "timeline.sequence",
   "title": "Sequence",
   "category": "Timeline",

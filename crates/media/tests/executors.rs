@@ -1020,3 +1020,19 @@ async fn fits_a_song_to_the_films_length_by_stretching_or_looping_it() {
         "Connect the film, so the song knows how long to be."
     );
 }
+
+#[tokio::test]
+async fn generates_each_variation_at_its_own_length() {
+    let (out, samples, rate) = made_sound("audio.generate", json!({})).await;
+    assert_eq!((rate, samples.len()), (48000, 2 * 38_400));
+    assert_eq!(
+        serde_json::to_value(&out.outputs["audio"]).unwrap()["durationMs"],
+        800
+    );
+    let (_, longer, _) = made_sound(
+        "audio.generate",
+        json!({ "preset": "swell", "variation": "longer" }),
+    )
+    .await;
+    assert_eq!(longer.len(), 2 * 288_000);
+}

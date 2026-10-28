@@ -3971,6 +3971,22 @@
    }
   },
   {
+   "type": "audio.generate",
+   "title": "Generated sound",
+   "category": "Sound",
+   "description": "A whoosh, riser, pop, ding, tap, swell or click made from settings, at a set time or on a browser action. No file to find.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "timeline.sequence",
    "title": "Sequence",
    "category": "Timeline",
@@ -49977,6 +49993,198 @@
      "lengthMs": 150,
      "count": 3,
      "spacingMs": 1000,
+     "atAction": "",
+     "atMs": 0,
+     "offsetMs": 0,
+     "volume": 0.8
+    }
+   }
+  },
+  {
+   "type": "audio.generate",
+   "title": "Generated sound",
+   "category": "Sound",
+   "description": "A whoosh, riser, pop, ding, tap, swell or click made from settings, at a set time or on a browser action. No file to find.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "preset": {
+      "description": "Sound",
+      "type": "string",
+      "enum": [
+       "whoosh",
+       "riser",
+       "pop",
+       "ding",
+       "tap",
+       "swell",
+       "click"
+      ],
+      "default": "whoosh",
+      "x-labels": {
+       "whoosh": "Whoosh",
+       "riser": "Riser",
+       "pop": "Pop",
+       "ding": "Ding",
+       "tap": "Tap",
+       "swell": "Swell",
+       "click": "Click"
+      }
+     },
+     "variation": {
+      "description": "Variation",
+      "type": "string",
+      "enum": [
+       "picked",
+       "as-made",
+       "another-take",
+       "darker",
+       "brighter",
+       "lower",
+       "higher",
+       "shorter",
+       "longer",
+       "custom"
+      ],
+      "default": "picked",
+      "x-labels": {
+       "picked": "Default",
+       "as-made": "As first made",
+       "another-take": "Another take",
+       "darker": "Darker",
+       "brighter": "Brighter",
+       "lower": "5 semitones lower",
+       "higher": "5 semitones higher",
+       "shorter": "Shorter",
+       "longer": "Longer",
+       "custom": "Custom"
+      },
+      "x-help": "Custom sets the length, pitch, brightness and take yourself. On a click, shorter and longer change the gap between its press and release."
+     },
+     "lengthMs": {
+      "description": "Length",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 20000,
+      "default": 0,
+      "x-step": 10,
+      "x-unit": "ms",
+      "x-zero-label": "The sound's usual length",
+      "x-show-if": {
+       "variation": [
+        "custom"
+       ]
+      }
+     },
+     "pitch": {
+      "description": "Pitch",
+      "type": "number",
+      "format": "double",
+      "minimum": -24,
+      "maximum": 24,
+      "default": 0.0,
+      "x-step": 0.5,
+      "x-help": "Semitones up or down.",
+      "x-show-if": {
+       "variation": [
+        "custom"
+       ]
+      }
+     },
+     "brightness": {
+      "description": "Brightness",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.5,
+      "x-step": 0.05,
+      "x-show-if": {
+       "variation": [
+        "custom"
+       ]
+      }
+     },
+     "take": {
+      "description": "Take",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 1000,
+      "default": 1,
+      "x-help": "Changes the noisy parts, and a click's gap. The same take always sounds the same.",
+      "x-show-if": {
+       "variation": [
+        "custom"
+       ]
+      }
+     },
+     "atAction": {
+      "description": "On an action",
+      "type": "string",
+      "default": "",
+      "x-widget": "action",
+      "x-help": "Plays when this browser action happens in the clip the sound is added to."
+     },
+     "atMs": {
+      "description": "At",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 0,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-show-if": {
+       "atAction": [
+        ""
+       ]
+      }
+     },
+     "offsetMs": {
+      "description": "From the action",
+      "type": "integer",
+      "format": "int32",
+      "minimum": -10000,
+      "maximum": 10000,
+      "default": 0,
+      "x-unit": "ms",
+      "x-step": 50,
+      "x-show-if": {
+       "atAction": [
+        "*"
+       ]
+      }
+     },
+     "volume": {
+      "description": "Volume",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 2,
+      "default": 0.8,
+      "x-step": 0.05
+     }
+    },
+    "type": "object",
+    "default": {
+     "preset": "whoosh",
+     "variation": "picked",
+     "lengthMs": 0,
+     "pitch": 0.0,
+     "brightness": 0.5,
+     "take": 1,
      "atAction": "",
      "atMs": 0,
      "offsetMs": 0,

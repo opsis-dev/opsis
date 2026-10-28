@@ -677,6 +677,106 @@ fn counts_the_marks_and_steps_and_warns_about_empty_text() {
 }
 
 #[test]
+fn starts_each_generated_sound_at_the_pick_and_reaches_the_other_variations() {
+    use opsis_compile::nodes::audio::{GenerateSound, SoundPreset, sound_shape};
+    let shape = |params: Value| {
+        sound_shape(&typed::<GenerateSound>(crate::helpers::defaults_with(
+            "audio.generate",
+            params,
+        )))
+    };
+    let picks = [
+        ("whoosh", 0.8, 0.0, 0.15),
+        ("riser", 3.0, -5.0, 0.5),
+        ("pop", 0.15, 5.0, 0.5),
+        ("ding", 1.5, 5.0, 0.5),
+        ("tap", 0.05, 5.0, 0.5),
+        ("swell", 3.0, 0.0, 0.5),
+        ("click", 0.1, 0.0, 0.9),
+    ];
+    for (preset, seconds, pitch, brightness) in picks {
+        let s = shape(json!({ "preset": preset }));
+        assert_eq!(
+            (s.seconds, s.pitch, s.brightness, s.seed),
+            (seconds, pitch, brightness, 1),
+            "{preset}"
+        );
+    }
+    assert_eq!(SoundPreset::ALL.len(), picks.len());
+    let riser = |variation: &str| shape(json!({ "preset": "riser", "variation": variation }));
+    assert_eq!(
+        (
+            riser("as-made").pitch,
+            riser("darker").brightness,
+            riser("darker").pitch
+        ),
+        (0.0, 0.15, 0.0)
+    );
+    assert_eq!(
+        (
+            riser("another-take").seed,
+            riser("higher").pitch,
+            riser("shorter").seconds,
+            riser("longer").seconds
+        ),
+        (2, 5.0, 1.5, 6.0)
+    );
+    let click = |variation: &str| shape(json!({ "preset": "click", "variation": variation }));
+    assert_eq!(
+        (
+            click("shorter").seed,
+            click("longer").seed,
+            click("longer").seconds
+        ),
+        (0, 4, 0.1)
+    );
+    let custom = shape(
+        json!({ "preset": "pop", "variation": "custom", "lengthMs": 400, "pitch": -2.5, "brightness": 0.7, "take": 9 }),
+    );
+    assert_eq!(
+        (custom.seconds, custom.pitch, custom.brightness, custom.seed),
+        (0.4, -2.5, 0.7, 9)
+    );
+    assert_eq!(
+        shape(json!({ "preset": "pop", "variation": "custom" })).seconds,
+        0.15
+    );
+}
+
+#[test]
+fn places_a_generated_sound_like_a_sound_effect_and_names_it_on_the_card() {
+    let at = made_item(
+        "audio.generate",
+        json!({ "atMs": 1000 }),
+        "generated.wav",
+        800,
+    );
+    assert_eq!((at.from, at.length_frames), (30, Some(24)));
+    let on = made_item(
+        "audio.generate",
+        json!({ "atAction": "go", "offsetMs": -500 }),
+        "generated.wav",
+        800,
+    );
+    assert_eq!(
+        (on.from, on.anchor.map(|a| a.node_id)),
+        (-15, Some("go".to_owned()))
+    );
+    assert_eq!(
+        card_texts(
+            "audio.generate",
+            json!({ "preset": "riser", "variation": "lower" }),
+            CardInputs::default()
+        ),
+        [
+            "Riser · 5 semitones lower · 3 s",
+            "At 0 s",
+            "Made when the node runs"
+        ]
+    );
+}
+
+#[test]
 fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
     let song = &builtin_songs()[0];
     match compile_node("audio.music", json!({ "src": song.reference() }), json!({}))

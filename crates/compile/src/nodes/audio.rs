@@ -412,6 +412,7 @@ fn sound_effect() -> NodeDef {
 
 pub const ROOM_TONE_TYPE: &str = "audio.roomTone";
 pub const TONES_TYPE: &str = "audio.tones";
+pub const GENERATE_TYPE: &str = "audio.generate";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
@@ -578,66 +579,376 @@ fn tones() -> NodeDef {
             };
             vec![
                 Some(row(Icon::Timer, what)),
-                Some(if p.at_action.is_empty() {
-                    row(Icon::Clock, format!("At {}", format_duration(f64::from(p.at_ms))))
-                } else {
-                    row(
-                        Icon::MousePointerClick,
-                        format!("On an action{}", offset_label(p.offset_ms)),
-                    )
-                }),
+                Some(placing_row(&p.placing())),
                 ctx.result.is_none().then(not_made_yet),
             ]
         })
         .compiles(|ctx: &Ctx<'_, Tones>| {
+            placed_effect(ctx, &ctx.params.placing(), ctx.params.volume)
+        })
+}
+
+struct Placing<'a> {
+    at_action: &'a str,
+    at_ms: u32,
+    offset_ms: i32,
+}
+
+impl Tones {
+    fn placing(&self) -> Placing<'_> {
+        Placing {
+            at_action: &self.at_action,
+            at_ms: self.at_ms,
+            offset_ms: self.offset_ms,
+        }
+    }
+}
+
+fn placing_row(placing: &Placing<'_>) -> CardRow {
+    if placing.at_action.is_empty() {
+        row(
+            Icon::Clock,
+            format!("At {}", format_duration(f64::from(placing.at_ms))),
+        )
+    } else {
+        row(
+            Icon::MousePointerClick,
+            format!("On an action{}", offset_label(placing.offset_ms)),
+        )
+    }
+}
+
+fn placed_effect<P>(ctx: &Ctx<'_, P>, placing: &Placing<'_>, volume: f64) -> Outputs {
+    let fps = ctx.settings.fps;
+    let Some((src, length_ms)) = made_sound(ctx) else {
+        return silent_audio();
+    };
+    let on_action = !placing.at_action.is_empty();
+    let timing = Timing {
+        from: if on_action {
+            ms_to_signed_frames(f64::from(placing.offset_ms), fps)
+        } else {
+            signed(ms_to_frames_from(f64::from(placing.at_ms), fps, 0))
+        },
+        duration_in_frames: None,
+        looped: None,
+        trim_before: None,
+        fade_in_frames: None,
+        fade_out_frames: None,
+        anchor: on_action.then(|| Anchor {
+            node_id: placing.at_action.to_owned(),
+        }),
+        length_frames: length_ms.and_then(|ms| frames_if_set(f64::from(ms), fps)),
+        keep_music: None,
+    };
+    let handles = EditHandles {
+        move_to: Some(param_ref(
+            ctx.node_id,
+            if on_action { "offsetMs" } else { "atMs" },
+            ParamUnit::Ms,
+        )),
+        ..EditHandles::default()
+    };
+    let item = sound_item(
+        ctx.node_id,
+        src,
+        AudioRole::Effect,
+        volume,
+        &AudioEnvelope::default(),
+        timing,
+        handles,
+    );
+    outputs([(
+        AUDIO_PORT,
+        CompileValue::Audio(AudioValue {
+            items: vec![item],
+            duration_in_frames: None,
+            hits: None,
+        }),
+    )])
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum SoundPreset {
+    #[default]
+    Whoosh,
+    Riser,
+    Pop,
+    Ding,
+    Tap,
+    Swell,
+    Click,
+}
+
+impl SoundPreset {
+    pub const ALL: [Self; 7] = [
+        Self::Whoosh,
+        Self::Riser,
+        Self::Pop,
+        Self::Ding,
+        Self::Tap,
+        Self::Swell,
+        Self::Click,
+    ];
+
+    pub fn word(self) -> &'static str {
+        match self {
+            Self::Whoosh => "Whoosh",
+            Self::Riser => "Riser",
+            Self::Pop => "Pop",
+            Self::Ding => "Ding",
+            Self::Tap => "Tap",
+            Self::Swell => "Swell",
+            Self::Click => "Click",
+        }
+    }
+
+    pub fn usual_seconds(self) -> f64 {
+        match self {
+            Self::Whoosh => 0.8,
+            Self::Riser | Self::Swell => 3.0,
+            Self::Pop => 0.15,
+            Self::Ding => 1.5,
+            Self::Tap => 0.05,
+            Self::Click => 0.1,
+        }
+    }
+
+    fn picked(self) -> (f64, f64) {
+        match self {
+            Self::Whoosh => (0.0, 0.15),
+            Self::Riser => (-5.0, 0.5),
+            Self::Pop | Self::Ding | Self::Tap => (5.0, 0.5),
+            Self::Swell => (0.0, 0.5),
+            Self::Click => (0.0, 0.9),
+        }
+    }
+
+    fn lengths(self) -> (f64, f64) {
+        match self {
+            Self::Whoosh => (0.4, 1.5),
+            Self::Riser | Self::Swell => (1.5, 6.0),
+            Self::Ding => (0.6, 2.5),
+            Self::Pop => (0.08, 0.3),
+            Self::Tap => (0.03, 0.1),
+            Self::Click => (0.1, 0.1),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum SoundVariation {
+    #[default]
+    Picked,
+    AsMade,
+    AnotherTake,
+    Darker,
+    Brighter,
+    Lower,
+    Higher,
+    Shorter,
+    Longer,
+    Custom,
+}
+
+impl SoundVariation {
+    fn word(self) -> &'static str {
+        match self {
+            Self::Picked => "default",
+            Self::AsMade => "as first made",
+            Self::AnotherTake => "another take",
+            Self::Darker => "darker",
+            Self::Brighter => "brighter",
+            Self::Lower => "5 semitones lower",
+            Self::Higher => "5 semitones higher",
+            Self::Shorter => "shorter",
+            Self::Longer => "longer",
+            Self::Custom => "custom",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct GenerateSound {
+    #[schemars(
+        description = "Sound",
+        extend("x-labels" = { "whoosh": "Whoosh", "riser": "Riser", "pop": "Pop", "ding": "Ding", "tap": "Tap", "swell": "Swell", "click": "Click" })
+    )]
+    pub preset: SoundPreset,
+    #[schemars(
+        description = "Variation",
+        extend(
+            "x-labels" = {
+                "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
+                "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher",
+                "shorter": "Shorter", "longer": "Longer", "custom": "Custom"
+            },
+            "x-help" = "Custom sets the length, pitch, brightness and take yourself. On a click, shorter and longer change the gap between its press and release."
+        )
+    )]
+    pub variation: SoundVariation,
+    #[schemars(
+        description = "Length",
+        range(min = 0, max = 20000),
+        extend("x-step" = 10, "x-unit" = "ms", "x-zero-label" = "The sound's usual length", "x-show-if" = { "variation": ["custom"] })
+    )]
+    pub length_ms: u32,
+    #[schemars(
+        description = "Pitch",
+        range(min = -24, max = 24),
+        extend("x-step" = 0.5, "x-help" = "Semitones up or down.", "x-show-if" = { "variation": ["custom"] })
+    )]
+    pub pitch: f64,
+    #[default = 0.5]
+    #[schemars(description = "Brightness", range(min = 0, max = 1), extend("x-step" = 0.05, "x-show-if" = { "variation": ["custom"] }))]
+    pub brightness: f64,
+    #[default = 1]
+    #[schemars(
+        description = "Take",
+        range(min = 0, max = 1000),
+        extend("x-help" = "Changes the noisy parts, and a click's gap. The same take always sounds the same.", "x-show-if" = { "variation": ["custom"] })
+    )]
+    pub take: u32,
+    #[schemars(
+        description = "On an action",
+        extend("x-widget" = "action", "x-help" = "Plays when this browser action happens in the clip the sound is added to.")
+    )]
+    pub at_action: String,
+    #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "atAction": [""] }))]
+    pub at_ms: u32,
+    #[schemars(
+        description = "From the action",
+        range(min = -10000, max = 10000),
+        extend("x-unit" = "ms", "x-step" = 50, "x-show-if" = { "atAction": ["*"] })
+    )]
+    pub offset_ms: i32,
+    #[default = 0.8]
+    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    pub volume: f64,
+}
+
+impl Params for GenerateSound {}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SoundShape {
+    pub preset: SoundPreset,
+    pub seconds: f64,
+    pub pitch: f64,
+    pub brightness: f64,
+    pub seed: u64,
+}
+
+const DARKER: f64 = 0.15;
+const BRIGHTER: f64 = 0.9;
+const STEP_SEMITONES: f64 = 5.0;
+const CLICK_SHORT_GAP_TAKE: u64 = 0;
+const CLICK_LONG_GAP_TAKE: u64 = 4;
+
+pub fn sound_shape(p: &GenerateSound) -> SoundShape {
+    let preset = p.preset;
+    let base = SoundShape {
+        preset,
+        seconds: preset.usual_seconds(),
+        pitch: 0.0,
+        brightness: 0.5,
+        seed: 1,
+    };
+    let (shorter, longer) = preset.lengths();
+    let click = preset == SoundPreset::Click;
+    match p.variation {
+        SoundVariation::Picked => {
+            let (pitch, brightness) = preset.picked();
+            SoundShape {
+                pitch,
+                brightness,
+                ..base
+            }
+        }
+        SoundVariation::AsMade => base,
+        SoundVariation::AnotherTake => SoundShape { seed: 2, ..base },
+        SoundVariation::Darker => SoundShape {
+            brightness: DARKER,
+            ..base
+        },
+        SoundVariation::Brighter => SoundShape {
+            brightness: BRIGHTER,
+            ..base
+        },
+        SoundVariation::Lower => SoundShape {
+            pitch: -STEP_SEMITONES,
+            ..base
+        },
+        SoundVariation::Higher => SoundShape {
+            pitch: STEP_SEMITONES,
+            ..base
+        },
+        SoundVariation::Shorter if click => SoundShape {
+            seed: CLICK_SHORT_GAP_TAKE,
+            ..base
+        },
+        SoundVariation::Longer if click => SoundShape {
+            seed: CLICK_LONG_GAP_TAKE,
+            ..base
+        },
+        SoundVariation::Shorter => SoundShape {
+            seconds: shorter,
+            ..base
+        },
+        SoundVariation::Longer => SoundShape {
+            seconds: longer,
+            ..base
+        },
+        SoundVariation::Custom => SoundShape {
+            seconds: if p.length_ms == 0 {
+                base.seconds
+            } else {
+                f64::from(p.length_ms) / 1000.0
+            },
+            pitch: p.pitch,
+            brightness: p.brightness.clamp(0.0, 1.0),
+            seed: u64::from(p.take),
+            ..base
+        },
+    }
+}
+
+impl GenerateSound {
+    fn placing(&self) -> Placing<'_> {
+        Placing {
+            at_action: &self.at_action,
+            at_ms: self.at_ms,
+            offset_ms: self.offset_ms,
+        }
+    }
+}
+
+fn generate() -> NodeDef {
+    NodeDef::of::<GenerateSound>(GENERATE_TYPE, "Generated sound", Category::Audio, Phase::Media)
+        .describe("A whoosh, riser, pop, ding, tap, swell or click made from settings, at a set time or on a browser action. No file to find.")
+        .executes()
+        .outputs(vec![(AUDIO_PORT, port(PortType::Audio, "Sound"))])
+        .card(|ctx: &CardCtx<'_, GenerateSound>| {
             let p = &ctx.params;
-            let fps = ctx.settings.fps;
-            let Some((src, length_ms)) = made_sound(ctx) else {
-                return silent_audio();
-            };
-            let on_action = !p.at_action.is_empty();
-            let timing = Timing {
-                from: if on_action {
-                    ms_to_signed_frames(f64::from(p.offset_ms), fps)
-                } else {
-                    signed(ms_to_frames_from(f64::from(p.at_ms), fps, 0))
-                },
-                duration_in_frames: None,
-                looped: None,
-                trim_before: None,
-                fade_in_frames: None,
-                fade_out_frames: None,
-                anchor: on_action.then(|| Anchor {
-                    node_id: p.at_action.clone(),
-                }),
-                length_frames: length_ms.and_then(|ms| frames_if_set(f64::from(ms), fps)),
-                keep_music: None,
-            };
-            let handles = EditHandles {
-                move_to: Some(param_ref(
-                    ctx.node_id,
-                    if on_action { "offsetMs" } else { "atMs" },
-                    ParamUnit::Ms,
+            let shape = sound_shape(p);
+            vec![
+                Some(row(
+                    Icon::Sparkles,
+                    format!(
+                        "{} · {} · {}",
+                        p.preset.word(),
+                        p.variation.word(),
+                        format_duration(shape.seconds * 1000.0)
+                    ),
                 )),
-                ..EditHandles::default()
-            };
-            let item = sound_item(
-                ctx.node_id,
-                src,
-                AudioRole::Effect,
-                p.volume,
-                &AudioEnvelope::default(),
-                timing,
-                handles,
-            );
-            outputs([(
-                AUDIO_PORT,
-                CompileValue::Audio(AudioValue {
-                    items: vec![item],
-                    duration_in_frames: None,
-                    hits: None,
-                }),
-            )])
+                Some(placing_row(&p.placing())),
+                ctx.result.is_none().then(not_made_yet),
+            ]
+        })
+        .compiles(|ctx: &Ctx<'_, GenerateSound>| {
+            placed_effect(ctx, &ctx.params.placing(), ctx.params.volume)
         })
 }
 
@@ -881,5 +1192,6 @@ pub fn nodes() -> Vec<NodeDef> {
         action_sounds().look(NodeLook::of("lucide:keyboard-music")),
         room_tone().look(NodeLook::of("iconoir:sound-low")),
         tones().look(NodeLook::of("lucide:bell-ring")),
+        generate().look(NodeLook::of("tabler:music-bolt")),
     ]
 }
