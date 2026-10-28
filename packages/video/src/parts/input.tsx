@@ -1,18 +1,12 @@
-import { Caret } from "#video/parts/caret.tsx";
 import {
   mixOklch,
   type NeutralTheme,
   revealedText,
   useNeutralTheme,
 } from "#video/lib/neutral-ui/index.ts";
+import { Caret } from "#video/parts/caret.tsx";
 
-export type InputState =
-  | "idle"
-  | "hover"
-  | "active"
-  | "typing"
-  | "blur"
-  | "invalid";
+export type InputState = "idle" | "hover" | "active" | "typing" | "blur" | "invalid";
 
 type InputSize = "sm" | "default" | "lg";
 
@@ -30,10 +24,7 @@ export interface InputProps {
 
 const FIELD_WIDTH = 320;
 
-const SIZE_STYLES: Record<
-  InputSize,
-  { height: number; padding: number; fontSize: number }
-> = {
+const SIZE_STYLES: Record<InputSize, { height: number; padding: number; fontSize: number }> = {
   sm: { height: 36, padding: 12, fontSize: 13 },
   default: { height: 40, padding: 14, fontSize: 15 },
   lg: { height: 48, padding: 16, fontSize: 17 },
@@ -77,10 +68,7 @@ export function inputStyleContext(theme: NeutralTheme): InputStyleContext {
   };
 }
 
-export function inputStyle(
-  state: InputState,
-  ctx: InputStyleContext,
-): InputStyle {
+export function inputStyle(state: InputState, ctx: InputStyleContext): InputStyle {
   switch (state) {
     case "hover":
       return {
@@ -156,18 +144,12 @@ export function Input({
   fullWidth = false,
   className,
 }: InputProps) {
-  const theme = useNeutralTheme(
-    { ...themeOverride, ...(primary ? { primary } : {}) },
-    "light",
-  );
+  const theme = useNeutralTheme({ ...themeOverride, ...(primary ? { primary } : {}) }, "light");
 
   const sizeStyle = SIZE_STYLES[size];
   const ctx = inputStyleContext(theme);
   const v = style ?? inputStyle(state, ctx);
-  const revealed = revealedText(
-    value,
-    Math.round(value.length * v.valueReveal),
-  );
+  const revealed = revealedText(value, Math.round(value.length * v.valueReveal));
 
   return (
     <div
@@ -178,8 +160,7 @@ export function Input({
         alignItems: "center",
         justifyContent: "center",
         background: "transparent",
-        fontFamily:
-          "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       <div
@@ -199,7 +180,6 @@ export function Input({
           boxShadow: `0 0 0 ${v.ringWidth}px ${v.ringColor}`,
         }}
       >
-        {}
         <span
           style={{
             position: "absolute",
@@ -212,11 +192,8 @@ export function Input({
         >
           {placeholder}
         </span>
-        {}
         <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
-          <span style={{ whiteSpace: "nowrap", color: ctx.foreground }}>
-            {revealed}
-          </span>
+          <span style={{ whiteSpace: "nowrap", color: ctx.foreground }}>{revealed}</span>
           <Caret
             color={ctx.foreground}
             height={Math.round(sizeStyle.fontSize * 1.1)}

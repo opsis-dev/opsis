@@ -269,10 +269,8 @@ const OPERATORS = [
   "/>",
 ];
 
-const NUMBER =
-  /0[xXbBoO][\dA-Fa-f_]+n?|\d[\d_]*(?:\.\d[\d_]*)?(?:[eE][+-]?\d+)?n?/y;
-const WORD =
-  /[A-Za-z_$\u00c0-\u024f\u0370-\u03ff][\w$\u00c0-\u024f\u0370-\u03ff]*/y;
+const NUMBER = /0[xXbBoO][\dA-Fa-f_]+n?|\d[\d_]*(?:\.\d[\d_]*)?(?:[eE][+-]?\d+)?n?/y;
+const WORD = /[A-Za-z_$\u00c0-\u024f\u0370-\u03ff][\w$\u00c0-\u024f\u0370-\u03ff]*/y;
 const SPACE = /\s/;
 const CAPITAL = /^[A-Z]/;
 const OPENERS = new Set(["(", "[", "{"]);
@@ -358,8 +356,7 @@ interface Lexed {
 
 const finite = (value: number | undefined, fallback: number) =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const unit01 = (value: number) => clamp(value, 0, 1);
 const easeOut = (value: number) => 1 - (1 - unit01(value)) ** 3;
 const easeOutQuad = (value: number) => 1 - (1 - unit01(value)) ** 2;
@@ -575,20 +572,11 @@ function expectedCost(sides: Sides, i: number, j: number, shift: Shift) {
   const left = source.col + shift.cols;
   const tail = (sides.fromWidths.get(source.line) ?? 0) - source.col;
   const right = (sides.toWidths.get(target.line) ?? 0) - tail;
-  const colOff = Math.min(
-    Math.abs(target.col - left),
-    Math.abs(target.col - right),
-  );
+  const colOff = Math.min(Math.abs(target.col - left), Math.abs(target.col - right));
   return lineOff * LINE_COST + colOff * COLUMN_COST;
 }
 
-function costOf(
-  sides: Sides,
-  i: number,
-  j: number,
-  before: Shift | null,
-  after: Shift | null,
-) {
+function costOf(sides: Sides, i: number, j: number, before: Shift | null, after: Shift | null) {
   if (before === null && after === null) {
     return Math.min(MAX_COST, expectedCost(sides, i, j, STILL));
   }
@@ -657,7 +645,7 @@ function increasing(candidates: Pair[]): Pair[] {
   }
   const chain: Pair[] = [];
   for (let k = best; k !== -1; k = previous[k]) chain.push(candidates[k]);
-  return chain.reverse();
+  return chain.toReversed();
 }
 
 function anchorsOf(from: CodeMorphToken[], to: CodeMorphToken[]) {
@@ -677,8 +665,7 @@ function anchorsOf(from: CodeMorphToken[], to: CodeMorphToken[]) {
   const candidates: Pair[] = [];
   for (const [i, token] of from.entries()) {
     const j = toIndex.get(token.text);
-    const unique =
-      fromCount.get(token.text) === 1 && toCount.get(token.text) === 1;
+    const unique = fromCount.get(token.text) === 1 && toCount.get(token.text) === 1;
     if (token.word && unique && j !== undefined) candidates.push([i, j]);
   }
   return increasing(candidates);
@@ -746,10 +733,7 @@ function signatureOf(tokens: CodeMorphToken[], indices: number[]) {
   return JSON.stringify(shape);
 }
 
-export function diffCodeMorphTokens(
-  from: CodeMorphToken[],
-  to: CodeMorphToken[],
-): CodeMorphDiff {
+export function diffCodeMorphTokens(from: CodeMorphToken[], to: CodeMorphToken[]): CodeMorphDiff {
   const sides: Sides = {
     from,
     to,
@@ -833,11 +817,7 @@ function ranks(lines: number[]) {
   return map;
 }
 
-function changedLines(
-  from: CodeMorphVersion,
-  to: CodeMorphVersion,
-  diff: CodeMorphDiff,
-) {
+function changedLines(from: CodeMorphVersion, to: CodeMorphVersion, diff: CodeMorphDiff) {
   const sizes = new Map<number, number>();
   for (const token of from.tokens) {
     sizes.set(token.line, (sizes.get(token.line) ?? 0) + 1);
@@ -950,10 +930,7 @@ export function getCodeMorphLayout(options: CodeMorphOptions = {}) {
 export type CodeMorphLayout = ReturnType<typeof getCodeMorphLayout>;
 
 export function getCodeMorphTimeline(options: CodeMorphOptions = {}) {
-  const requested = finite(
-    options.morphDuration,
-    codeMorphDefaults.morphDuration,
-  );
+  const requested = finite(options.morphDuration, codeMorphDefaults.morphDuration);
   const morph = clamp(requested, MIN_MORPH, MAX_MORPH);
   const highlight = options.highlight !== false;
   const steps = stepsOf(options.steps).map((step) => step.at);
@@ -998,10 +975,7 @@ export function getCodeMorphDuration(options: CodeMorphOptions = {}) {
   return Math.max(1, Math.ceil(duration / speed));
 }
 
-export function getCodeMorphTime(
-  frame: number,
-  options: CodeMorphOptions = {},
-) {
+export function getCodeMorphTime(frame: number, options: CodeMorphOptions = {}) {
   const fps = Math.max(1, finite(options.fps, 30));
   const speed = Math.max(0, finite(options.speed, codeMorphDefaults.speed));
   return Math.max(0, finite(frame, 0)) * (30 / fps) * speed;
@@ -1017,27 +991,20 @@ function rowsOf(count: number, opacity: (row: number) => number) {
 
 function restingTokens(layout: CodeMorphLayout, version: number) {
   const { tokens } = layout.versions[version];
-  return tokens.map(
-    (token, j): CodeMorphRenderToken => ({
-      key: `${version}:${j}`,
-      text: token.text,
-      kind: token.kind,
-      role: "rest",
-      line: token.line,
-      col: token.col,
-      opacity: 1,
-      scale: 1,
-      blur: 0,
-    }),
-  );
+  return tokens.map((token, j): CodeMorphRenderToken => ({
+    key: `${version}:${j}`,
+    text: token.text,
+    kind: token.kind,
+    role: "rest",
+    line: token.line,
+    col: token.col,
+    opacity: 1,
+    scale: 1,
+    blur: 0,
+  }));
 }
 
-function morphFrame(
-  layout: CodeMorphLayout,
-  index: number,
-  local: number,
-  morph: number,
-) {
+function morphFrame(layout: CodeMorphLayout, index: number, local: number, morph: number) {
   const data = layout.morphs[index];
   const from = layout.versions[index];
   const to = layout.versions[index + 1];

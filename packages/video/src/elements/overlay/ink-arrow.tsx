@@ -1,4 +1,9 @@
+import type React from "react";
+import { AbsoluteFill, useVideoConfig } from "remotion";
+import { numberOr } from "#video/common/math.ts";
+import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
 import {
   BrushGrain,
   type BrushPoint,
@@ -8,11 +13,6 @@ import {
   sampleCubic,
   sampleLine,
 } from "#video/parts/brush.tsx";
-import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
-import { numberOr } from "#video/common/math.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import { AbsoluteFill, useVideoConfig } from "remotion";
-import type React from "react";
 
 const HEAD_ANGLE = 0.72;
 const SHAFT_SAMPLES = 40;
@@ -38,16 +38,8 @@ export function inkArrowControls(
   const wobble = distance * 0.06;
 
   const at = (t: number, key: string): InkArrowPoint => ({
-    x:
-      from.x +
-      dx * t +
-      normalX * bow +
-      hashRange(`${seed}:${key}:x`, -wobble, wobble),
-    y:
-      from.y +
-      dy * t +
-      normalY * bow +
-      hashRange(`${seed}:${key}:y`, -wobble, wobble),
+    x: from.x + dx * t + normalX * bow + hashRange(`${seed}:${key}:x`, -wobble, wobble),
+    y: from.y + dy * t + normalY * bow + hashRange(`${seed}:${key}:y`, -wobble, wobble),
   });
 
   return { c1: at(0.3, "c1"), c2: at(0.7, "c2") };
@@ -76,11 +68,7 @@ export function inkArrowArmWidth(strokeWidth: number, release: number): number {
   return strokeWidth * release;
 }
 
-export function inkArrowApex(
-  c2: InkArrowPoint,
-  to: InkArrowPoint,
-  reach: number,
-): InkArrowPoint {
+export function inkArrowApex(c2: InkArrowPoint, to: InkArrowPoint, reach: number): InkArrowPoint {
   const dx = to.x - c2.x;
   const dy = to.y - c2.y;
   const length = Math.hypot(dx, dy) || 1;
@@ -90,10 +78,7 @@ export function inkArrowApex(
   };
 }
 
-export function inkArrowHeadReach(
-  headSize: number,
-  strokeWidth: number,
-): number {
+export function inkArrowHeadReach(headSize: number, strokeWidth: number): number {
   return Math.max(headSize, strokeWidth * HEAD_MIN_RATIO);
 }
 
@@ -164,14 +149,7 @@ function InkArrowView({
     step,
   });
 
-  const { width, height } = inkArrowViewport(
-    from,
-    to,
-    curvature,
-    headSize,
-    strokeWidth,
-    grain,
-  );
+  const { width, height } = inkArrowViewport(from, to, curvature, headSize, strokeWidth, grain);
 
   const filterId = brushFilterId(seed, strokeWidth, grain);
   const filter = grain > 0 ? `url(#${filterId})` : undefined;
@@ -209,20 +187,10 @@ function InkArrowView({
         filter={filter}
       />
       {leftArm > 0 ? (
-        <path
-          d={armRibbon(head.left, leftArm)}
-          fill={color}
-          opacity={0.85}
-          filter={filter}
-        />
+        <path d={armRibbon(head.left, leftArm)} fill={color} opacity={0.85} filter={filter} />
       ) : null}
       {rightArm > 0 ? (
-        <path
-          d={armRibbon(head.right, rightArm)}
-          fill={color}
-          opacity={0.85}
-          filter={filter}
-        />
+        <path d={armRibbon(head.right, rightArm)} fill={color} opacity={0.85} filter={filter} />
       ) : null}
     </svg>
   );
@@ -231,6 +199,19 @@ function InkArrowView({
 export function InkArrow(all: ElementProps & { children?: React.ReactNode }) {
   const { fromX, fromY, toX, toY, ...props } = all;
   const { width, height } = useVideoConfig();
-  const point = (x: unknown, y: unknown) => ({ x: numberOr(x, 0.5) * width, y: numberOr(y, 0.5) * height });
-  return <AbsoluteFill><InkArrowView {...({ ...props, from: point(fromX, fromY), to: point(toX, toY) } as unknown as React.ComponentProps<typeof InkArrowView>)} /></AbsoluteFill>;
+  const point = (x: unknown, y: unknown) => ({
+    x: numberOr(x, 0.5) * width,
+    y: numberOr(y, 0.5) * height,
+  });
+  return (
+    <AbsoluteFill>
+      <InkArrowView
+        {...({
+          ...props,
+          from: point(fromX, fromY),
+          to: point(toX, toY),
+        } as unknown as React.ComponentProps<typeof InkArrowView>)}
+      />
+    </AbsoluteFill>
+  );
 }

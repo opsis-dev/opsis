@@ -1,16 +1,10 @@
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import type React from "react";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import { nestedFrom } from "#video/lib/settings/shape.ts";
-import type React from "react";
 
 const fontFamily = '"Inter"';
 
@@ -22,28 +16,17 @@ export type ChangeRow = {
 };
 
 export type ChangelogEntryProps = {
-  /** Version string in the header. */
   version?: string;
-  /** Date printed beside the version. */
   date?: string;
-  /** Line under the version, if this release has a headline. */
   summary?: string;
   changes?: ChangeRow[];
-  /** Tag colours per kind. Any missing kind falls back to the accent. */
   kindColors?: Partial<Record<ChangeKind, string>>;
-  /** Second the first change row arrives. */
   startAtSeconds?: number;
-  /** Seconds between rows. */
   staggerSeconds?: number;
-  /**
-   * Seconds the finished entry holds before it retreats. Omit to leave it up
-   * for the rest of the scene.
-   */
   holdSeconds?: number;
   accentColor?: string;
   backgroundColor?: string;
   theme?: "dark" | "light";
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
@@ -62,7 +45,6 @@ const DEFAULT_KIND_COLORS: Record<ChangeKind, string> = {
   removed: "#E89B9B",
 };
 
-/** Beat plan in seconds. Row times come from the props. */
 const T = {
   card: 0,
   cardFor: 0.46,
@@ -78,15 +60,6 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-/**
- * A release note that reads itself out: the version lands first, a rule draws
- * under it, then each change arrives behind its own coloured tag so the kind of
- * change registers before the sentence does.
- *
- * Tags are fixed width rather than sized to their label, which is what lets the
- * sentences share a left edge — a column of ragged text beside ragged tags is
- * the fastest way to make a changelog look unmaintained.
- */
 const ChangelogEntryView: React.FC<ChangelogEntryProps> = ({
   version = "v2.4.0",
   date = "16 August",
@@ -111,15 +84,7 @@ const ChangelogEntryView: React.FC<ChangelogEntryProps> = ({
     interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
 
   const portrait = height > width;
-  // D1. Authored against a 1280x720 reference, u resolves to 0.75 on the 960
-  // docs stage, so a 15-unit label landed at 11px — 3.6px once the contact
-  // sheet reduces the stage 3.1x. The reference is the whole design's scale, so
-  // shrinking it grows the layout into the margin it was leaving empty and
-  // lifts every tier of type with it, instead of hand-tuning font sizes against
-  // a layout that stays too small.
-  const u = portrait
-    ? Math.min(width / 496, height / 896)
-    : Math.min(width / 1024, height / 576);
+  const u = portrait ? Math.min(width / 496, height / 896) : Math.min(width / 1024, height / 576);
 
   const cardIn = spring({
     frame: frame - at(T.card),
@@ -219,8 +184,6 @@ const ChangelogEntryView: React.FC<ChangelogEntryProps> = ({
           </div>
         ) : null}
 
-        {/* The rule draws out from the left rather than fading — it reads as the
-            header being underlined, which is a beat, not a transition. */}
         <div
           style={{
             marginTop: 18 * u,
@@ -235,8 +198,6 @@ const ChangelogEntryView: React.FC<ChangelogEntryProps> = ({
           {changes.map((change, index) => {
             const rowAt = startAtSeconds + index * staggerSeconds;
             const rowIn = ease(rowAt, rowAt + 0.4);
-            // The tag lands before its sentence: the kind of change is what a
-            // viewer scans for, so it gets the earlier frames.
             const textIn = ease(rowAt + 0.08, rowAt + 0.46);
             const color = colorFor(change.kind);
 
@@ -290,5 +251,14 @@ const ChangelogEntryView: React.FC<ChangelogEntryProps> = ({
 };
 
 export function ChangelogEntry(props: ElementProps & { children?: React.ReactNode }) {
-  return <ChangelogEntryView {...(nestedFrom(props, {"kindAdded":"kindColors.added","kindFixed":"kindColors.fixed","kindChanged":"kindColors.changed","kindRemoved":"kindColors.removed"}) as unknown as React.ComponentProps<typeof ChangelogEntryView>)} />;
+  return (
+    <ChangelogEntryView
+      {...(nestedFrom(props, {
+        kindAdded: "kindColors.added",
+        kindFixed: "kindColors.fixed",
+        kindChanged: "kindColors.changed",
+        kindRemoved: "kindColors.removed",
+      }) as unknown as React.ComponentProps<typeof ChangelogEntryView>)}
+    />
+  );
 }

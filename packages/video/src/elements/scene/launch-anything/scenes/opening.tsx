@@ -1,23 +1,19 @@
 import { Img, Sequence, useVideoConfig } from "remotion";
+import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { ShaderTextReveal } from "#video/elements/scene/launch-anything/shader-text-reveal.tsx";
-import type { SceneProps } from "../content";
-import { tween } from "../motion";
-import { Center, Title } from "../ui";
+import { Center, Title } from "#video/elements/scene/launch-anything/ui.tsx";
 
 export function Opening({ scene, t }: SceneProps) {
   const { fps } = useVideoConfig();
   return (
     <>
-      <Sequence
-        name="Opening — chrome reveal"
-        durationInFrames={Math.round(fps)}
-      >
+      <Sequence name="Opening — chrome reveal" durationInFrames={Math.round(fps)}>
         <div
           style={{
             position: "absolute",
             inset: 0,
-            filter:
-              "sepia(0.7) hue-rotate(65deg) saturate(0.65) brightness(1.35)",
+            filter: "sepia(0.7) hue-rotate(65deg) saturate(0.65) brightness(1.35)",
             maskImage: `linear-gradient(125deg, transparent ${tween(t, 0.7, 1, -70, 105)}%, black ${tween(t, 0.7, 1, -45, 130)}%)`,
           }}
         >
@@ -39,8 +35,7 @@ export function Opening({ scene, t }: SceneProps) {
           style={{
             position: "absolute",
             inset: 0,
-            filter:
-              "sepia(0.7) hue-rotate(65deg) saturate(0.65) brightness(1.35)",
+            filter: "sepia(0.7) hue-rotate(65deg) saturate(0.65) brightness(1.35)",
           }}
         >
           <ShaderTextReveal

@@ -28,8 +28,7 @@ const REST: CursorStyle = {
   rippleScale: 0,
 };
 
-const ARROW_PATH =
-  "M1 1 L1 18.5 L5.6 14.4 L8.7 21.6 L11.6 20.4 L8.5 13.2 L14.5 13.2 Z";
+const ARROW_PATH = "M1 1 L1 18.5 L5.6 14.4 L8.7 21.6 L11.6 20.4 L8.5 13.2 L14.5 13.2 Z";
 const POINTER_PATH =
   "M8 2.2 C8 1.3 8.7 0.7 9.5 0.7 C10.3 0.7 11 1.3 11 2.2 L11 9 " +
   "C11 9 11.3 8.4 12.2 8.4 C13 8.4 13.4 9 13.4 9.6 " +
@@ -69,7 +68,6 @@ export function Cursor({
         pointerEvents: "none",
       }}
     >
-      {}
       <div
         style={{
           position: "absolute",
@@ -84,7 +82,6 @@ export function Cursor({
           transformOrigin: "center",
         }}
       />
-      {}
       <svg
         width={size}
         height={size}

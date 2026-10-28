@@ -1,9 +1,6 @@
 import { Warp, type WarpProps } from "@paper-design/shaders-react";
 import { useCallback, useState } from "react";
-import {
-  continueRender,
-  delayRender,
-} from "remotion";
+import { continueRender, delayRender } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 const NEUTRAL_COLORS = ["#12121a", "#3a3a5c", "#12121a", "#52527a"];
@@ -27,19 +24,13 @@ export function ShaderWarp({
   const gate = useCallback(
     (element: HTMLDivElement | null) => {
       if (!element) return;
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => continueRender(handle)),
-      );
+      requestAnimationFrame(() => requestAnimationFrame(() => continueRender(handle)));
     },
     [handle],
   );
 
   return (
-    <div
-      ref={gate}
-      className={className}
-      style={{ position: "absolute", inset: 0 }}
-    >
+    <div ref={gate} className={className} style={{ position: "absolute", inset: 0 }}>
       <Warp
         speed={0}
         frame={(frame / fps) * speed * 1000}

@@ -1,50 +1,31 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { LineChartDraw } from "#video/parts/line-chart-draw.tsx";
 import { formatCompactNumber, readDelta } from "#video/lib/charts/chart-utils.ts";
 import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
 import { DURATION, EASING, STAGGER } from "#video/lib/motion/motion-tokens.ts";
+import { LineChartDraw } from "#video/parts/line-chart-draw.tsx";
 
 const fontFamily = '"Inter"';
 
 export type MetricTickerItem = {
   label: string;
   value: number;
-  /**
-   * Value the counter starts from. Defaults to 0. Set it above `value` for a
-   * metric that improves by falling — a latency figure that ticks *up* to its
-   * final number while claiming a saving reads backwards.
-   */
   from?: number;
-  /** Unit appended to the counted value, e.g. `"min"`. */
   suffix?: string;
-  /** Symbol placed before the value, e.g. `"$"`. */
   prefix?: string;
-  /** Signed change, e.g. `"+18%"` — the sign picks the colour and arrow. */
   delta?: string;
-  /** Recent history, drawn as a sparkline under the value. */
   trend?: number[];
-  /** Overrides `accentColor` for this card. */
   color?: string;
 };
 
 export type MetricTickerProps = {
   metrics: MetricTickerItem[];
   title?: string;
-  /** Short label above the title. */
   eyebrow?: string;
-  /** Formats the counted value. */
   valueFormatter?: (value: number) => string;
-  /** Cards beyond this count are dropped rather than squeezed. */
   maxCards?: number;
   backgroundColor?: string;
   accentColor?: string;
-  /** Surface palette: ink, cards and the change colours. */
   theme?: "dark" | "light";
-  /**
-   * Seconds after which the panel leaves. Omit to hold — correct inside a
-   * `TransitionSeries`, where the transition covers the tail, and wrong on
-   * its own, where the scene stands still for the rest of the clip.
-   */
   holdSeconds?: number;
 };
 
@@ -75,14 +56,6 @@ const PALETTES = {
 
 const DELTA_GLYPH = { up: "↑", down: "↓", flat: "" } as const;
 
-/**
- * KPI cards that count themselves in.
- *
- * Cards divide the full content width instead of hugging the left edge, so the
- * row reads as one instrument panel. The counter, the delta chip and the
- * sparkline are all driven off the card's own spring, staggered just enough
- * that the eye lands on each card in reading order.
- */
 export const MetricTicker: React.FC<MetricTickerProps> = ({
   metrics,
   title,
@@ -107,8 +80,6 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
   const cardPadding = scaleFont(28, width);
   const contentWidth = width - safe.paddingLeft - safe.paddingRight;
   const cardWidth = (contentWidth - gap * (columns - 1)) / columns;
-  // Sparklines are drawn at an explicit width, so the card geometry has to be
-  // known here rather than left to the layout engine.
   const sparkWidth = Math.max(1, Math.round(cardWidth - cardPadding * 2));
   const sparkHeight = scaleFont(isPortrait ? 56 : 64, width);
 
@@ -118,7 +89,6 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
     easing: EASING.enter,
   });
 
-  // Exits accelerate away; entrances decelerate in. Never ease-out an exit.
   const exit =
     holdSeconds === undefined
       ? 0
@@ -154,8 +124,7 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
             gap: scaleFont(10, width),
             opacity: headerProgress * (1 - exit),
             translate: `0 ${
-              (1 - headerProgress) * scaleFont(16, width) +
-              exit * scaleFont(-26, width)
+              (1 - headerProgress) * scaleFont(16, width) + exit * scaleFont(-26, width)
             }px`,
           }}
         >
@@ -263,10 +232,7 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
                   }}
                 >
                   {metric.prefix ?? ""}
-                  {valueFormatter(
-                    (metric.from ?? 0) +
-                      (metric.value - (metric.from ?? 0)) * enter,
-                  )}
+                  {valueFormatter((metric.from ?? 0) + (metric.value - (metric.from ?? 0)) * enter)}
                   {metric.suffix ?? ""}
                 </span>
                 {delta.text ? (
@@ -293,9 +259,6 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
                     }))}
                     width={sparkWidth}
                     height={sparkHeight}
-                    // Tinting the sparkline by direction keeps the card from
-                    // reading as one flat accent wash and repeats the delta's
-                    // meaning in the shape below it.
                     color={delta.text ? deltaColor : cardColor}
                     strokeWidth={Math.max(2, scaleFont(3, width))}
                     showAxis={false}

@@ -1,27 +1,16 @@
-import {
-  AbsoluteFill,
-  interpolate,
-} from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface ConfettiProps {
-  /** Number of confetti pieces. */
   particleCount?: number;
   colors?: string[];
-  /** Burst origin as a 0..1 fraction of the canvas. */
   originX?: number;
   originY?: number;
-  /** Frame the burst fires on. */
   startFrame?: number;
-  /** Lifetime of the burst, in frames. */
   lifetime?: number;
-  /** Initial launch speed (px/frame at the 720px reference height). */
   power?: number;
-  /** Downward acceleration (px/frame² at the 720px reference height). */
   gravity?: number;
-  /** Base piece size in reference px. */
   size?: number;
-  /** PRNG seed — same seed renders an identical burst every time. */
   seed?: number;
 }
 
@@ -35,18 +24,8 @@ export interface Particle {
   drift: number;
 }
 
-const DEFAULT_COLORS = [
-  "#1d9bf0",
-  "#ff5da2",
-  "#ffd23f",
-  "#22c55e",
-  "#a855f7",
-  "#ff7a45",
-];
+const DEFAULT_COLORS = ["#1d9bf0", "#ff5da2", "#ffd23f", "#22c55e", "#a855f7", "#ff7a45"];
 
-// --- Pure helpers (unit-tested) -------------------------------------------
-
-/** Deterministic PRNG (mulberry32) — returns a function yielding [0, 1). */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -57,7 +36,6 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-/** Build a deterministic particle set for a seed (stable across renders). */
 export function makeParticles({
   count,
   seed,
@@ -86,7 +64,6 @@ export function makeParticles({
   return out;
 }
 
-/** Opacity envelope over a particle's lifetime: quick fade-in, slow fade-out. */
 export function particleOpacity(tt: number, lifetime: number): number {
   if (tt < 0 || tt > lifetime) return 0;
   const fadeIn = interpolate(tt, [0, 4], [0, 1], {
@@ -99,8 +76,6 @@ export function particleOpacity(tt: number, lifetime: number): number {
   });
   return Math.min(fadeIn, fadeOut);
 }
-
-// --- Component -------------------------------------------------------------
 
 export function Confetti({
   particleCount = 140,

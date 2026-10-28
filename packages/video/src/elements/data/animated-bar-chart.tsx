@@ -1,8 +1,8 @@
-import { spring } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import { listsFrom } from "#video/lib/settings/shape.ts";
 import type React from "react";
+import { spring } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { listsFrom } from "#video/lib/settings/shape.ts";
 
 export interface AnimatedBarChartProps {
   data?: number[];
@@ -55,12 +55,10 @@ function AnimatedBarChartView({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily:
-          "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-        {/* Baseline */}
         <line
           x1={padding}
           x2={padding + innerWidth}
@@ -104,7 +102,10 @@ function AnimatedBarChartView({
                   x={x + barWidth / 2}
                   y={baseY + 28}
                   fill={labelColor}
-                  fontSize={Math.min(16, (barWidth + fitGap * 0.8) / Math.max(1, labels[index].length * 0.56))}
+                  fontSize={Math.min(
+                    16,
+                    (barWidth + fitGap * 0.8) / Math.max(1, labels[index].length * 0.56),
+                  )}
                   textAnchor="middle"
                   style={{
                     opacity: scaleY,
@@ -124,5 +125,11 @@ function AnimatedBarChartView({
 }
 
 export function AnimatedBarChart(props: ElementProps & { children?: React.ReactNode }) {
-  return <AnimatedBarChartView {...(listsFrom(props, {"bars":{"label":"labels","value":"data"}}) as unknown as React.ComponentProps<typeof AnimatedBarChartView>)} />;
+  return (
+    <AnimatedBarChartView
+      {...(listsFrom(props, {
+        bars: { label: "labels", value: "data" },
+      }) as unknown as React.ComponentProps<typeof AnimatedBarChartView>)}
+    />
+  );
 }

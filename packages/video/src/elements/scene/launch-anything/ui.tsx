@@ -1,14 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Img, Interactive } from "remotion";
-import { clamp, tween } from "./motion";
+import { clamp, tween } from "#video/elements/scene/launch-anything/motion.ts";
 
-export function Center({
-  children,
-  style,
-}: {
-  children: ReactNode;
-  style?: CSSProperties;
-}) {
+export function Center({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
     <div
       style={{
@@ -64,12 +58,7 @@ export function BrandMark({
   src?: string;
 }) {
   if (src)
-    return (
-      <Img
-        src={src}
-        style={{ width: size, height: size * 1.25, objectFit: "contain" }}
-      />
-    );
+    return <Img src={src} style={{ width: size, height: size * 1.25, objectFit: "contain" }} />;
   return (
     <svg
       width={size}

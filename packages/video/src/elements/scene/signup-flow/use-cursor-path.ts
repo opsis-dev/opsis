@@ -45,9 +45,7 @@ export function clickPress(framesSinceClick: number): number {
   if (framesSinceClick < 0 || framesSinceClick >= PRESS_FRAMES) return 1;
   const half = PRESS_FRAMES / 2;
   const p =
-    framesSinceClick < half
-      ? framesSinceClick / half
-      : 1 - (framesSinceClick - half) / half;
+    framesSinceClick < half ? framesSinceClick / half : 1 - (framesSinceClick - half) / half;
   return 1 - clamp01(p);
 }
 
@@ -93,25 +91,20 @@ export function cursorPathAt(
   }
   const pastLast = effectiveFrame >= waypoints[waypoints.length - 1].at;
   const to = pastLast ? waypoints[waypoints.length - 1] : waypoints[toIndex];
-  const from = pastLast
-    ? waypoints[waypoints.length - 1]
-    : waypoints[toIndex - 1];
+  const from = pastLast ? waypoints[waypoints.length - 1] : waypoints[toIndex - 1];
 
   const dur = to.duration ?? defaultDuration;
   const ease = easings[to.easing ?? "inOut"];
   const start = to.at - dur;
-  const t =
-    pastLast || dur <= 0 ? 1 : ease(clamp01((effectiveFrame - start) / dur));
+  const t = pastLast || dur <= 0 ? 1 : ease(clamp01((effectiveFrame - start) / dur));
   const x = lerp(from.x, to.x, t);
   const y = lerp(from.y, to.y, t);
 
   let lastClickAt = -Infinity;
   for (const wp of waypoints) {
-    if (wp.click && wp.at <= effectiveFrame && wp.at > lastClickAt)
-      lastClickAt = wp.at;
+    if (wp.click && wp.at <= effectiveFrame && wp.at > lastClickAt) lastClickAt = wp.at;
   }
-  const sinceClick =
-    lastClickAt === -Infinity ? -1 : effectiveFrame - lastClickAt;
+  const sinceClick = lastClickAt === -Infinity ? -1 : effectiveFrame - lastClickAt;
   const ripple = ripplePhase(sinceClick);
   const clickDip = clickPress(sinceClick);
 

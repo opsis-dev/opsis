@@ -125,32 +125,17 @@ export function GradientScaleCutText({
   const revealSolid = Math.max(0, revealEdge - safeSoftness / 2);
   const revealFade = revealEdge + safeSoftness / 2;
   const maskImage = `linear-gradient(90deg, #000 0%, #000 ${revealSolid}%, transparent ${revealFade}%, transparent ${revealFade}%)`;
-  const giantProgress = interpolate(
-    frame,
-    [0, Math.max(safeCutFrame - 1, 1)],
-    [0, 1],
-    {
-      ...clamp,
-      easing: Easing.out(Easing.cubic),
-    },
-  );
-  const settleProgress = interpolate(
-    frame,
-    [safeCutFrame, safeCutFrame + SETTLE_FRAMES],
-    [0, 1],
-    {
-      ...clamp,
-      easing: Easing.out(Easing.cubic),
-    },
-  );
+  const giantProgress = interpolate(frame, [0, Math.max(safeCutFrame - 1, 1)], [0, 1], {
+    ...clamp,
+    easing: Easing.out(Easing.cubic),
+  });
+  const settleProgress = interpolate(frame, [safeCutFrame, safeCutFrame + SETTLE_FRAMES], [0, 1], {
+    ...clamp,
+    easing: Easing.out(Easing.cubic),
+  });
   const moveProgress = interpolate(
     frame,
-    [
-      safeCutFrame + 1,
-      safeCutFrame + 2,
-      safeCutFrame + 4,
-      safeCutFrame + SETTLE_FRAMES,
-    ],
+    [safeCutFrame + 1, safeCutFrame + 2, safeCutFrame + 4, safeCutFrame + SETTLE_FRAMES],
     [0, 0.58, 0.875, 1],
     clamp,
   );

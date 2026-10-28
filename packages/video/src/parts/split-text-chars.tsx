@@ -9,32 +9,14 @@ import {
   type SplitUnitState,
 } from "#video/lib/text/text-split.ts";
 
-/**
- * Splits a string into characters, words or lines and staggers them in.
- *
- * The default look is deliberately plain. This component's job is to be the
- * thing every other text effect is built on: it owns the split, the layout and
- * the stagger, and hands each unit's 0-1 progress to `renderUnit` so an effect
- * only has to describe one glyph. Effects that draw something other than a
- * `<span>` of text should skip the component and call `useSplitText()` instead.
- */
-
 export type SplitTextEffect = "fade-up" | "fade" | "scale" | "blur" | "none";
 
 export type SplitTextCharsProps = Omit<SplitTimingOptions, "mode"> & {
   text: string;
-  /** What one unit is. `words` absorbs a word-by-word reveal. */
   mode?: SplitMode;
   order?: SplitOrder;
-  /** Built-in look. `none` positions the units and animates nothing. */
   effect?: SplitTextEffect;
-  /**
-   * Draws one unit. Receives the unit's own progress, already staggered.
-   * The returned node is placed inside a positioned inline-block, so it only
-   * needs to describe appearance.
-   */
   renderUnit?: (unit: SplitUnitState) => ReactNode;
-  /** Travel distance of `fade-up`, in em. */
   travel?: number;
   fontSize?: number;
   color?: string;
@@ -43,21 +25,14 @@ export type SplitTextCharsProps = Omit<SplitTimingOptions, "mode"> & {
   lineHeight?: number;
   letterSpacing?: string;
   textAlign?: CSSProperties["textAlign"];
-  /** Gap between words, in em. Chars mode needs the space to be real layout. */
   wordSpacing?: number;
   style?: CSSProperties;
   className?: string;
 };
 
-function unitStyle(
-  effect: SplitTextEffect,
-  unit: SplitUnitState,
-  travel: number,
-): CSSProperties {
+function unitStyle(effect: SplitTextEffect, unit: SplitUnitState, travel: number): CSSProperties {
   const base: CSSProperties = {
     display: "inline-block",
-    // A collapsed empty unit would drop out of the line box and shift the
-    // baseline of everything after it.
     whiteSpace: "pre",
     willChange: "transform, opacity",
   };
@@ -125,11 +100,7 @@ export const SplitTextChars: React.FC<SplitTextCharsProps> = ({
         display: "inline-flex",
         flexDirection: "column",
         alignItems:
-          textAlign === "left"
-            ? "flex-start"
-            : textAlign === "right"
-              ? "flex-end"
-              : "center",
+          textAlign === "left" ? "flex-start" : textAlign === "right" ? "flex-end" : "center",
         fontSize,
         fontWeight,
         color,
@@ -145,8 +116,6 @@ export const SplitTextChars: React.FC<SplitTextCharsProps> = ({
           key={line.index}
           style={{
             display: "block",
-            // Words wrap; the characters inside one never do, because each word
-            // is its own inline-block.
             whiteSpace: "normal",
           }}
         >
@@ -155,15 +124,11 @@ export const SplitTextChars: React.FC<SplitTextCharsProps> = ({
               key={word.index}
               style={{
                 display: "inline-block",
-                marginRight:
-                  wordIndex === line.words.length - 1 ? 0 : `${wordSpacing}em`,
+                marginRight: wordIndex === line.words.length - 1 ? 0 : `${wordSpacing}em`,
               }}
             >
               {word.units.map((unit) => (
-                <span
-                  key={`${unit.index}-${unit.text}`}
-                  style={unitStyle(effect, unit, travel)}
-                >
+                <span key={`${unit.index}-${unit.text}`} style={unitStyle(effect, unit, travel)}>
                   {renderUnit ? renderUnit(unit) : unit.text}
                 </span>
               ))}

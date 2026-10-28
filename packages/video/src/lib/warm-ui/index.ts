@@ -5,20 +5,20 @@ export {
   rgbToOklch,
   toCss,
   withAlpha,
-} from "./color";
-export { FONT_NAMES, FONTS, resolveFont } from "./fonts";
-export type { ItemHost } from "./item";
-export { Item, ItemHostProvider } from "./item";
-export type { EasingName, SpringName } from "./motion";
-export { easings, springs } from "./motion";
-export type { WarmTheme, WarmUIProviderProps } from "./theme";
+} from "#video/lib/warm-ui/color.ts";
+export { FONT_NAMES, FONTS, resolveFont } from "#video/lib/warm-ui/fonts.ts";
+export type { ItemHost } from "#video/lib/warm-ui/item.tsx";
+export { Item, ItemHostProvider } from "#video/lib/warm-ui/item.tsx";
+export type { EasingName, SpringName } from "#video/lib/warm-ui/motion.ts";
+export { easings, springs } from "#video/lib/warm-ui/motion.ts";
+export type { WarmTheme, WarmUIProviderProps } from "#video/lib/warm-ui/theme.ts";
 export {
   defaultDarkTheme,
   defaultLightTheme,
   WarmUIProvider,
   useWarmTheme,
-} from "./theme";
-export type { TypewriterOptions, TypewriterState } from "./timeline";
+} from "#video/lib/warm-ui/theme.ts";
+export type { TypewriterOptions, TypewriterState } from "#video/lib/warm-ui/timeline.ts";
 export {
   clamp01,
   framesFor,
@@ -27,5 +27,5 @@ export {
   useCurrentState,
   useStateTransition,
   useTypewriter,
-} from "./timeline";
-export type { Step } from "./types";
+} from "#video/lib/warm-ui/timeline.ts";
+export type { Step } from "#video/lib/warm-ui/types.ts";

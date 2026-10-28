@@ -7,55 +7,33 @@ const fontFamily = '"Inter"';
 
 export type EndCardProps = {
   title: string;
-  /** Line under the title. */
   subtitle?: string;
-  /** Chip above the title. */
   eyebrow?: string;
-  /** Button label. Omit to end on the title alone. */
   cta?: string;
-  /** Address typed under the button. */
   url?: string;
-  /** Handles or channels listed along the foot. */
   handles?: string[];
   logoSrc?: string;
   logoSize?: number;
   backgroundColor?: string;
   accentColor?: string;
   theme?: "dark" | "light";
-  /**
-   * Seconds to hold the finished card before it leaves. Left out, the card
-   * holds to the last frame — which is what a scene inside a
-   * `TransitionSeries` wants, since the transition covers the tail.
-   */
   holdSeconds?: number;
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
-/** Beat plan in seconds. */
 const T = {
   logo: 0,
   eyebrow: 0.14,
   title: 0.26,
   subtitle: 0.6,
-  /**
-   * The button assembles and its label rises out of it — overlapping, not in
-   * sequence. A label that waits for the pill to finish leaves a filled button
-   * with nothing written in it, which is a bug to any viewer who lands on that
-   * frame.
-   */
   button: 0.78,
   buttonLabel: 0.84,
-  /** Address types under the button. */
   url: 1.24,
   handles: 1.6,
-  /** Attention pulse once everything is standing. */
   pulse: 2.05,
-  /** Length of the exit, once `holdSeconds` has run out. */
   exitFor: 0.42,
 } as const;
 
-/** Characters per second the address types at. */
 const URL_CPS = 26;
 
 const clamp = {
@@ -63,12 +41,6 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-/**
- * The outro built in the order a viewer acts on it: the title lands, the button
- * assembles and its label rises out of it, the address types underneath, the
- * channels list, and a single ring pulses off the button — rather than a stack
- * of text fading in together.
- */
 export const EndCard: React.FC<EndCardProps> = ({
   title,
   subtitle,
@@ -115,25 +87,18 @@ export const EndCard: React.FC<EndCardProps> = ({
       })
     : 0;
   const buttonLabel = cta ? ease(T.buttonLabel, T.buttonLabel + 0.4) : 0;
-  const typed = url
-    ? Math.floor(Math.max(now - T.url, 0) * URL_CPS)
-    : 0;
+  const typed = url ? Math.floor(Math.max(now - T.url, 0) * URL_CPS) : 0;
   const urlDone = url ? typed >= url.length : false;
   const handlesIn = handles?.length ? ease(T.handles, T.handles + 0.5) : 0;
-  const pulse = cta
-    ? interpolate(frame, [at(T.pulse), at(T.pulse + 0.7)], [0, 1], clamp)
-    : 0;
+  const pulse = cta ? interpolate(frame, [at(T.pulse), at(T.pulse + 0.7)], [0, 1], clamp) : 0;
 
-  // Exits accelerate away; entrances decelerate in. Never ease-out an exit.
   const exit =
     holdSeconds === undefined
       ? 0
-      : interpolate(
-          frame,
-          [at(holdSeconds), at(holdSeconds + T.exitFor)],
-          [0, 1],
-          { easing: EASING.exit, ...clamp },
-        );
+      : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
+          easing: EASING.exit,
+          ...clamp,
+        });
 
   return (
     <div
@@ -198,7 +163,6 @@ export const EndCard: React.FC<EndCardProps> = ({
           </div>
         ) : null}
 
-        {/* The title rises out of its own mask */}
         <div style={{ overflow: "hidden", paddingBottom: "0.04em" }}>
           <h2
             style={{
@@ -233,7 +197,6 @@ export const EndCard: React.FC<EndCardProps> = ({
 
         {cta ? (
           <div style={{ position: "relative", marginTop: 10 * u }}>
-            {/* Pulse leaves the button edge, so it reads as a prompt */}
             <div
               style={{
                 position: "absolute",
@@ -258,19 +221,10 @@ export const EndCard: React.FC<EndCardProps> = ({
                 fontWeight: 700,
                 letterSpacing: "-0.01em",
                 boxShadow: `0 ${14 * u}px ${40 * u}px color-mix(in srgb, ${accentColor} 27%, transparent)`,
-                // The label rises out of the pill from below it, so the
-                // pill must clip vertically — which means a label long enough to
-                // wrap would be cut mid-glyph. Keep it on one line and bounded
-                // by the stage so a sentence degrades to an ellipsis, not to a
-                // sliced word.
                 maxWidth: stage.w,
                 whiteSpace: "nowrap",
                 opacity: Math.min(button, 1),
-                scale: `${interpolate(
-                  Math.min(button, 1),
-                  [0, 1],
-                  [0.9, 1],
-                )}`,
+                scale: `${interpolate(Math.min(button, 1), [0, 1], [0.9, 1])}`,
                 overflow: "hidden",
               }}
             >
@@ -280,9 +234,6 @@ export const EndCard: React.FC<EndCardProps> = ({
                   minWidth: 0,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  // A short rise with its own fade: the label is legible while
-                  // the pill is still assembling, so no frame catches a filled
-                  // button with an empty middle.
                   opacity: buttonLabel,
                   translate: `0px ${(1 - buttonLabel) * 60}%`,
                 }}
@@ -321,7 +272,6 @@ export const EndCard: React.FC<EndCardProps> = ({
             }}
           >
             {url.slice(0, typed)}
-            {/* Caret holds while typing, then clears once the address is whole */}
             <span
               style={{
                 display: "inline-block",

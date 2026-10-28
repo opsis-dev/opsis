@@ -1,10 +1,4 @@
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
@@ -13,37 +7,22 @@ const fontFamily = '"Inter"';
 
 export type KanbanCard = {
   title: string;
-  /** Small line under the title — an issue key, an owner, an estimate. */
   meta?: string;
-  /** Column the card starts in, as an index into `columns`. */
   column: number;
-  /** Colour of the card's leading rail. Falls back to the accent. */
   tint?: string;
-  /**
-   * The one move this card makes. Omit for cards that stay put — a board where
-   * everything moves reads as noise, not as work getting done.
-   */
   moveTo?: number;
-  /** Second the move starts. Required when `moveTo` is set. */
   moveAtSeconds?: number;
 };
 
 export type KanbanMoveProps = {
   columns?: string[];
   cards?: KanbanCard[];
-  /** How long one card takes to cross from column to column. */
   moveSeconds?: number;
-  /** Seconds between each card's arrival during the opening stagger. */
   dealStaggerSeconds?: number;
-  /**
-   * Seconds the settled board holds before it retreats. Omit to leave the board
-   * up for the rest of the scene.
-   */
   holdSeconds?: number;
   accentColor?: string;
   backgroundColor?: string;
   theme?: "dark" | "light";
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
@@ -72,11 +51,9 @@ const DEFAULT_CARDS: KanbanCard[] = [
   { title: "Export presets", meta: "RUI-166 · Dai", column: 2, tint: "#9BD4A0" },
 ];
 
-/** Beat plan in seconds. Card moves carry their own times. */
 const T = {
   board: 0,
   boardFor: 0.5,
-  /** Cards start dealing in while the board is still opening. */
   deal: 0.18,
   dealFor: 0.42,
   exitFor: 0.42,
@@ -87,16 +64,6 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-/**
- * A board where work actually moves: a card lifts off its column, arcs across
- * the gutter under a shadow that grows with the lift, and drops into the end of
- * the next list while the cards it left behind close the gap.
- *
- * Slots are arithmetic, not layout. Every card's row is its starting order minus
- * the summed progress of the cards above it that have left, so the column closes
- * up over exactly the frames the card is travelling — no reflow, no snap, and
- * nothing that depends on measuring the DOM in a headless render.
- */
 export const KanbanMove: React.FC<KanbanMoveProps> = ({
   columns = DEFAULT_COLUMNS,
   cards: cardsProp = DEFAULT_CARDS,
@@ -118,12 +85,6 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
     interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
 
   const portrait = height > width;
-  // D1. Authored against a 1280x720 reference, u resolves to 0.75 on the 960
-  // docs stage, so a 15-unit label landed at 11px — 3.6px once the contact
-  // sheet reduces the stage 3.1x. The reference is the whole design's scale, so
-  // shrinking it grows the layout into the margin it was leaving empty and
-  // lifts every tier of type with it, instead of hand-tuning font sizes against
-  // a layout that stays too small.
   const designU = portrait
     ? Math.min(width / 496, height / 896)
     : Math.min(width / 1024, height / 576);
@@ -140,14 +101,8 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
   });
 
   const startSlot = (card: KanbanCard, index: number) =>
-    cards.filter(
-      (other, otherIndex) => other.column === card.column && otherIndex < index,
-    ).length;
+    cards.filter((other, otherIndex) => other.column === card.column && otherIndex < index).length;
 
-  // A card lands at the bottom of the column as it stands at the moment it
-  // arrives: everyone who started there, minus whoever has already left, plus
-  // whoever arrived before it. Every term is static — the landing slot must not
-  // depend on the current frame, or the card would chase a moving target.
   const landingSlot = (card: KanbanCard, index: number) => {
     const arrivesAt = card.moveAtSeconds ?? 0;
     const resident = cards.filter((other) => other.column === card.moveTo).length;
@@ -170,10 +125,8 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
     3,
     ...cards.map(
       (card, index) =>
-        Math.max(
-          startSlot(card, index),
-          card.moveTo === undefined ? 0 : landingSlot(card, index),
-        ) + 1,
+        Math.max(startSlot(card, index), card.moveTo === undefined ? 0 : landingSlot(card, index)) +
+        1,
     ),
   );
   const u = Math.min(
@@ -188,7 +141,6 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
   });
   const open = ease(T.board, T.board + T.boardFor, EASING.editorial);
 
-  // Exits accelerate away; entrances decelerate in.
   const exit =
     holdSeconds === undefined
       ? 0
@@ -205,24 +157,12 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
   const headerH = 34 * u;
   const listH = cardH * rows + cardGap * (rows - 1);
 
-  /** How far through its move each card is, 0 while it still waits. */
   const progressOf = (card: KanbanCard) =>
     card.moveTo === undefined || card.moveAtSeconds === undefined
       ? 0
       : ease(card.moveAtSeconds, card.moveAtSeconds + moveSeconds, EASING.editorial);
 
-  /**
-   * Slots close up behind a departure. A card shifts one row for every card
-   * above it that leaves the column *after* the card itself got there — a
-   * departure that happened before it arrived is already priced into the
-   * landing slot, and counting it twice would drop the card through the floor.
-   */
-  const closedUpBy = (
-    column: number,
-    ownSlot: number,
-    presentFromSeconds: number,
-    index: number,
-  ) =>
+  const closedUpBy = (column: number, ownSlot: number, presentFromSeconds: number, index: number) =>
     cards.reduce((sum, other, otherIndex) => {
       if (otherIndex === index) return sum;
       if (other.column !== column || other.moveTo === undefined) return sum;
@@ -255,18 +195,18 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
         }}
       >
         {columns.map((column, columnIndex) => {
-          // Count follows the cards, not the clock: a card in flight is counted
-          // by the column it is closest to.
           const settled = cards.filter((card, index) => {
             const progress = progressOf(card);
             const where = progress > 0.5 ? card.moveTo : card.column;
-            return where === columnIndex && ease(
-              T.deal + index * dealStaggerSeconds,
-              T.deal + index * dealStaggerSeconds + T.dealFor,
-            ) > 0.5;
+            return (
+              where === columnIndex &&
+              ease(
+                T.deal + index * dealStaggerSeconds,
+                T.deal + index * dealStaggerSeconds + T.dealFor,
+              ) > 0.5
+            );
           }).length;
 
-          // The gutter a card is crossing right now lights its destination.
           const incoming = cards.reduce((peak, card) => {
             if (card.moveTo !== columnIndex) return peak;
             const progress = progressOf(card);
@@ -289,9 +229,10 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
                     ? `color-mix(in srgb, ${accentColor} ${((40 + incoming * 120) / 2.55).toFixed(1)}%, transparent)`
                     : palette.border
                 }`,
-                boxShadow: incoming > 0.02
-                  ? `0 0 ${incoming * 26 * u}px color-mix(in srgb, ${accentColor} 20%, transparent)`
-                  : "none",
+                boxShadow:
+                  incoming > 0.02
+                    ? `0 0 ${incoming * 26 * u}px color-mix(in srgb, ${accentColor} 20%, transparent)`
+                    : "none",
               }}
             >
               <div
@@ -334,20 +275,13 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
           const dealt = ease(dealAt, dealAt + T.dealFor);
           const progress = progressOf(card);
 
-          // Cards above a departing card close the gap as it leaves.
           const home = startSlot(card, index);
-          const fromSlot =
-            home - closedUpBy(card.column, home, Number.NEGATIVE_INFINITY, index);
+          const fromSlot = home - closedUpBy(card.column, home, Number.NEGATIVE_INFINITY, index);
           const toSlot =
             card.moveTo === undefined
               ? fromSlot
               : landingSlot(card, index) -
-                closedUpBy(
-                  card.moveTo,
-                  landingSlot(card, index),
-                  card.moveAtSeconds ?? 0,
-                  index,
-                );
+                closedUpBy(card.moveTo, landingSlot(card, index), card.moveAtSeconds ?? 0, index);
 
           const x = interpolate(
             progress,
@@ -356,7 +290,6 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
           );
           const y = interpolate(progress, [0, 1], [slotY(fromSlot), slotY(toSlot)]);
 
-          // A single hump: highest, largest and most shadowed at the midpoint.
           const lift = Math.sin(Math.PI * progress);
           const tint = card.tint ?? accentColor;
 
@@ -369,7 +302,6 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
                 top: y - lift * 22 * u,
                 width: columnW - 16 * u,
                 height: cardH,
-                // A card in flight crosses over the board, never under it.
                 zIndex: lift > 0.01 ? 20 : 1,
                 borderRadius: 11 * u,
                 background: palette.window,

@@ -1,5 +1,8 @@
-import type { SceneProps } from "../content";
-import { ActionFrame, actionBackground } from "./action-frame";
+import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import {
+  ActionFrame,
+  actionBackground,
+} from "#video/elements/scene/launch-anything/scenes/action-frame.tsx";
 export function Portal(props: SceneProps) {
   return (
     <div

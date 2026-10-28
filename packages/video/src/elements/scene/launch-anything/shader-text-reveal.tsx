@@ -3,32 +3,24 @@ import { useDelayRender } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export type ShaderTextRevealProps = {
-  /** Words appear one at a time. Separate phrases with newlines to keep them together. */
   text?: string;
   fontSize?: number;
   fontFamily?: string;
   fontWeight?: number;
-  /** Frames per word, including its entrance and exit. The final word stays visible. */
   wordDuration?: number;
-  /** Strength of the original hero shader inside the letters, from 0 to 1. */
   intensity?: number;
 };
 
 const clamp = (n: number, min = 0, max = 1) => Math.min(max, Math.max(min, n));
 
-export function getShaderTextState(
-  frame: number,
-  wordCount: number,
-  wordDuration: number,
-) {
+export function getShaderTextState(frame: number, wordCount: number, wordDuration: number) {
   const duration = Math.max(12, Math.round(wordDuration));
   const count = Math.max(1, wordCount);
   const f = Math.max(0, frame);
   const index = Math.min(count - 1, Math.floor(f / duration));
   const local = f - index * duration;
   const enter = clamp((local / duration + 0.16) / 0.76);
-  const exit =
-    index === count - 1 ? 0 : clamp((local / duration - 0.65) / 0.35);
+  const exit = index === count - 1 ? 0 : clamp((local / duration - 0.65) / 0.35);
   return {
     index,
     enter,
@@ -43,9 +35,6 @@ void main() {
   gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
 }`;
 
-/* @remocn · OpenShaders — https://openshaders.com/@remocn
- * Original hero field and halftone GLSL. Only its clock is driven by Remotion.
- */
 const HERO_FIELD = `#version 300 es
 precision highp float;
 
@@ -242,7 +231,6 @@ void main() {
   float rank = q.x * 0.64 + (1.0 - q.y) * 0.36 + flow;
   float d = rank - mix(-0.15, 1.65, uEnter);
   float edge = exp(-pow((d + 0.1) * 6.0, 2.0));
-  // Refraction affects the glyph itself, concentrated inside the wet leading edge.
   vec3 field = texture(uHero, uv).rgb;
   vec2 warp = vec2(field.r - field.b, field.g - field.r);
   vec2 sampleUV = uv + warp * edge * uIntensity * 2.5 / uResolution;
@@ -287,15 +275,12 @@ function createRenderer(canvas: HTMLCanvasElement) {
       [gl.FRAGMENT_SHADER, fragment],
     ] as const) {
       const shader = gl.createShader(type);
-      if (!shader)
-        throw new Error("Shader Text Reveal: shader allocation failed.");
+      if (!shader) throw new Error("Shader Text Reveal: shader allocation failed.");
       shaders.push(shader);
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-        throw new Error(
-          gl.getShaderInfoLog(shader) ?? "Shader compilation failed.",
-        );
+        throw new Error(gl.getShaderInfoLog(shader) ?? "Shader compilation failed.");
       gl.attachShader(program, shader);
     }
     gl.linkProgram(program);
@@ -303,8 +288,7 @@ function createRenderer(canvas: HTMLCanvasElement) {
       throw new Error(gl.getProgramInfoLog(program) ?? "Shader link failed.");
     const locations = new Map<string, WebGLUniformLocation | null>();
     const uniform = (name: string) => {
-      if (!locations.has(name))
-        locations.set(name, gl.getUniformLocation(program, name));
+      if (!locations.has(name)) locations.set(name, gl.getUniformLocation(program, name));
       return locations.get(name) ?? null;
     };
     return {
@@ -323,8 +307,7 @@ function createRenderer(canvas: HTMLCanvasElement) {
   };
   const texture = () => {
     const value = gl.createTexture();
-    if (!value)
-      throw new Error("Shader Text Reveal: texture allocation failed.");
+    if (!value) throw new Error("Shader Text Reveal: texture allocation failed.");
     textures.push(value);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, value);
@@ -337,8 +320,7 @@ function createRenderer(canvas: HTMLCanvasElement) {
   const target = () => {
     const value = texture();
     const buffer = gl.createFramebuffer();
-    if (!buffer)
-      throw new Error("Shader Text Reveal: framebuffer allocation failed.");
+    if (!buffer) throw new Error("Shader Text Reveal: framebuffer allocation failed.");
     buffers.push(buffer);
     gl.bindFramebuffer(gl.FRAMEBUFFER, buffer);
     gl.texImage2D(
@@ -352,13 +334,7 @@ function createRenderer(canvas: HTMLCanvasElement) {
       gl.UNSIGNED_BYTE,
       null,
     );
-    gl.framebufferTexture2D(
-      gl.FRAMEBUFFER,
-      gl.COLOR_ATTACHMENT0,
-      gl.TEXTURE_2D,
-      value,
-      0,
-    );
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, value, 0);
     if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE)
       throw new Error("Shader Text Reveal: incomplete framebuffer.");
     return { value, buffer };
@@ -386,9 +362,7 @@ function createRenderer(canvas: HTMLCanvasElement) {
         time: number,
         intensity: number,
       ) => {
-        if (gl.isContextLost())
-          throw new Error("Shader Text Reveal: WebGL context lost.");
-        // Render the hero's original field, then its original halftone pass.
+        if (gl.isContextLost()) throw new Error("Shader Text Reveal: WebGL context lost.");
         gl.bindFramebuffer(gl.FRAMEBUFFER, raw.buffer);
         field.begin(time);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -403,25 +377,14 @@ function createRenderer(canvas: HTMLCanvasElement) {
         bind(text, 0);
         if (previous !== word.canvas) {
           gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-          gl.texImage2D(
-            gl.TEXTURE_2D,
-            0,
-            gl.RGBA,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            word.canvas,
-          );
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, word.canvas);
           gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
           previous = word.canvas;
         }
         bind(hero.value, 1);
         gl.uniform1i(composite.uniform("uText"), 0);
         gl.uniform1i(composite.uniform("uHero"), 1);
-        gl.uniform2f(
-          composite.uniform("uResolution"),
-          canvas.width,
-          canvas.height,
-        );
+        gl.uniform2f(composite.uniform("uResolution"), canvas.width, canvas.height);
         gl.uniform4f(composite.uniform("uBounds"), ...word.bounds);
         gl.uniform1f(composite.uniform("uEnter"), state.enter);
         gl.uniform1f(composite.uniform("uExit"), state.exit);
@@ -457,10 +420,7 @@ function textTexture(
   if (!ctx) throw new Error("Shader Text Reveal: cannot rasterize text.");
   let size = Math.min(Math.max(1, fontSize), height * 0.58);
   ctx.font = `${fontWeight} ${size}px ${fontFamily}`;
-  size *= Math.min(
-    1,
-    (width * 0.72) / Math.max(1, ctx.measureText(text).width),
-  );
+  size *= Math.min(1, (width * 0.72) / Math.max(1, ctx.measureText(text).width));
   ctx.font = `${fontWeight} ${size}px ${fontFamily}`;
   const metrics = ctx.measureText(text);
   const left = (width - metrics.width) / 2;
@@ -497,7 +457,9 @@ export function ShaderTextReveal({
     words: TextTexture[];
   } | null>(null);
   const current = useRef({ frame, fps, wordDuration, intensity });
-  current.current = { frame, fps, wordDuration, intensity };
+  useLayoutEffect(() => {
+    current.current = { frame, fps, wordDuration, intensity };
+  }, [frame, fps, wordDuration, intensity]);
 
   useLayoutEffect(() => {
     const element = canvas.current;
@@ -510,11 +472,7 @@ export function ShaderTextReveal({
       const resource = resources.current;
       if (!resource || resource.words.length === 0) return;
       const clock = current.current;
-      const state = getShaderTextState(
-        clock.frame,
-        resource.words.length,
-        clock.wordDuration,
-      );
+      const state = getShaderTextState(clock.frame, resource.words.length, clock.wordDuration);
       resource.renderer.draw(
         resource.words[state.index],
         state,
@@ -535,10 +493,7 @@ export function ShaderTextReveal({
         continueRender(handle);
       })
       .catch((error: unknown) => {
-        if (!cancelled)
-          cancelRender(
-            error instanceof Error ? error : new Error(String(error)),
-          );
+        if (!cancelled) cancelRender(error instanceof Error ? error : new Error(String(error)));
       });
     return () => {
       cancelled = true;
@@ -562,17 +517,8 @@ export function ShaderTextReveal({
     const resource = resources.current;
     if (!resource || resource.words.length === 0) return;
     try {
-      const state = getShaderTextState(
-        frame,
-        resource.words.length,
-        wordDuration,
-      );
-      resource.renderer.draw(
-        resource.words[state.index],
-        state,
-        frame / fps,
-        intensity,
-      );
+      const state = getShaderTextState(frame, resource.words.length, wordDuration);
+      resource.renderer.draw(resource.words[state.index], state, frame / fps, intensity);
     } catch (error) {
       cancelRender(error instanceof Error ? error : new Error(String(error)));
     }

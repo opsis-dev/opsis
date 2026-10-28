@@ -36,33 +36,22 @@ export const releaseTeaserStatements = [
   "A fresh chapter.\nNo starting over.",
 ] as const;
 
-const nonempty = (value: string | undefined, fallback: string) =>
-  value?.trim() || fallback;
+const nonempty = (value: string | undefined, fallback: string) => value?.trim() || fallback;
 
 export function resolveReleaseTeaserProps(props: ReleaseTeaserProps = {}) {
   return {
     brandName: nonempty(props.brandName, "Orvio"),
-    // An explicit empty release intentionally hides the version suffix.
     release: props.release === undefined ? "2" : props.release.trim(),
     tagline: nonempty(props.tagline, "Your next chapter starts here."),
     statements: releaseTeaserStatements.map((fallback, i) =>
       nonempty(props.statements?.[i], fallback),
     ),
     theme: {
-      background: nonempty(
-        props.theme?.background,
-        releaseTeaserTheme.background,
-      ),
+      background: nonempty(props.theme?.background, releaseTeaserTheme.background),
       surface: nonempty(props.theme?.surface, releaseTeaserTheme.surface),
-      foreground: nonempty(
-        props.theme?.foreground,
-        releaseTeaserTheme.foreground,
-      ),
+      foreground: nonempty(props.theme?.foreground, releaseTeaserTheme.foreground),
       muted: nonempty(props.theme?.muted, releaseTeaserTheme.muted),
-      accent: nonempty(
-        props.accentColor,
-        nonempty(props.theme?.accent, releaseTeaserTheme.accent),
-      ),
+      accent: nonempty(props.accentColor, nonempty(props.theme?.accent, releaseTeaserTheme.accent)),
     },
     logoSrc: props.logoSrc?.trim() || undefined,
     lightIntensity: Number.isFinite(props.lightIntensity)

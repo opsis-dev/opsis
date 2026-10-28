@@ -14,28 +14,16 @@ const fontFamily = '"Inter"';
 export type AnimatedBarChartProps = {
   data: ChartDatum[];
   title?: string;
-  /** Supporting line under the title — the read, not a repeat of the title. */
   subtitle?: string;
-  /** Fixed axis top. Defaults to a rounded domain above the largest bar. */
   maxValue?: number;
-  /** Formats the value on the end of each bar. */
   valueFormatter?: (value: number) => string;
-  /** Label of the bar that carries `accentColor`. */
   highlightLabel?: string;
-  /** Vertical gridlines and the value axis under the bars. */
   showAxis?: boolean;
-  /** Bars beyond this count are dropped rather than squeezed. */
   maxBars?: number;
   barColor?: string;
   accentColor?: string;
   backgroundColor?: string;
-  /** Surface palette: text, axis, track and the change colours. */
   theme?: "dark" | "light";
-  /**
-   * Seconds the finished chart holds before it retreats. Omit to leave it up
-   * for the rest of the scene — inside a `TransitionSeries` the transition
-   * should cover the tail rather than the chart fading under it.
-   */
   holdSeconds?: number;
 };
 
@@ -66,17 +54,8 @@ const PALETTES = {
   },
 } as const;
 
-/** Length of the retreat once `holdSeconds` is up, in seconds. */
 const EXIT_FOR = 0.42;
 
-/**
- * Ranked bar chart scene.
- *
- * Bars are measured against a rounded axis rather than the largest value, so
- * the longest bar stops short of the frame edge and the numbers under it read
- * as a scale instead of decoration. Each bar's length and its counter share one
- * spring — the number can never claim a total the bar has not reached yet.
- */
 export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
   data,
   title,
@@ -104,20 +83,13 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
   const bars = data.slice(0, maxBars);
   const domain = niceDomain(
     maxValue === undefined ? bars.map((item) => item.value) : [0, maxValue],
-    // Fewer ticks in portrait, but not so few that the axis rounds up to
-    // double the largest bar and throws away half the width.
     { includeZero: true, tickCount: isPortrait ? 3 : 4 },
   );
 
   const gap = scaleFont(16, width);
-  const longestLabel = bars.reduce(
-    (longest, item) => Math.max(longest, item.label.length),
-    0,
-  );
+  const longestLabel = bars.reduce((longest, item) => Math.max(longest, item.label.length), 0);
   const labelSize = scaleFont(isPortrait ? 30 : 28, width);
   const valueSize = scaleFont(isPortrait ? 32 : 30, width);
-  // Gutters are sized from the actual copy so nothing truncates and no bar
-  // column is thrown away on padding that holds two characters.
   const labelWidth = Math.min(
     Math.round(width * 0.26),
     Math.round(Math.min(longestLabel, 14) * labelSize * 0.62) + gap,
@@ -125,27 +97,17 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
   const valueWidth = Math.round(scaleFont(96, width));
   const barHeight = Math.min(
     scaleFont(52, width),
-    Math.round(
-      (height * (isPortrait ? 0.44 : 0.52)) / Math.max(1, bars.length),
-    ),
+    Math.round((height * (isPortrait ? 0.44 : 0.52)) / Math.max(1, bars.length)),
   );
 
-  // Exits accelerate away; entrances decelerate in. Never ease-out an exit.
   const exit =
     holdSeconds === undefined
       ? 0
-      : interpolate(
-          frame,
-          [holdSeconds * fps, (holdSeconds + EXIT_FOR) * fps],
-          [0, 1],
-          {
-            easing: EASING.exit,
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          },
-        );
-  // The plate keeps its background and the content leaves over it, so a scene
-  // stacked under this one is not revealed by the exit.
+      : interpolate(frame, [holdSeconds * fps, (holdSeconds + EXIT_FOR) * fps], [0, 1], {
+          easing: EASING.exit,
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        });
   const leaving = {
     opacity: 1 - exit,
     translate: `0 ${exit * -scaleFont(26, width)}px`,
@@ -191,16 +153,12 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
         paddingBottom: safe.paddingBottom,
         display: "flex",
         flexDirection: "column",
-        // A tall frame has far more room than four rows need, so the whole
-        // stack centres together instead of stranding the title at the top.
         justifyContent: isPortrait ? "center" : "flex-start",
         gap: scaleFont(40, width),
       }}
     >
       {title ? (
-        <header
-          style={{ display: "grid", gap: scaleFont(12, width), ...leaving }}
-        >
+        <header style={{ display: "grid", gap: scaleFont(12, width), ...leaving }}>
           <h2
             style={{
               margin: 0,
@@ -241,8 +199,6 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
           ...leaving,
         }}
       >
-        {/* Gridlines are scoped to the rows so they never run on through the
-            empty space a tall frame leaves above and below the chart. */}
         <div
           style={{
             position: "relative",
@@ -280,7 +236,6 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
 
           {bars.map((item, index) => {
             const delay = STAGGER.normal + index * STAGGER.normal;
-            // One spring drives length, counter and row lift together.
             const enter = spring({
               frame: frame - delay,
               fps,
@@ -328,8 +283,6 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
                 >
                   <div
                     style={{
-                      // A floor keeps a near-zero bar visible as a pill, but it
-                      // still grows from nothing rather than popping in at width.
                       width: `${Math.max(ratio, 0.015) * enter * 100}%`,
                       height: "100%",
                       borderRadius: barHeight / 2,
@@ -405,7 +358,6 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
                   position: "absolute",
                   top: 0,
                   left: `${((tick - domain.min) / domain.span) * 100}%`,
-                  // End ticks pull inward so the axis never overhangs the plot.
                   transform:
                     index === 0
                       ? "none"

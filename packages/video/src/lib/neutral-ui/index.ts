@@ -4,17 +4,17 @@ export {
   parseColor,
   rgbToOklch,
   toCss,
-} from "./color";
-export type { EasingName, SpringName } from "./motion";
-export { easings, springs } from "./motion";
-export type { NeutralTheme, NeutralUIProviderProps } from "./theme";
+} from "#video/lib/neutral-ui/color.ts";
+export type { EasingName, SpringName } from "#video/lib/neutral-ui/motion.ts";
+export { easings, springs } from "#video/lib/neutral-ui/motion.ts";
+export type { NeutralTheme, NeutralUIProviderProps } from "#video/lib/neutral-ui/theme.ts";
 export {
   defaultDarkTheme,
   defaultLightTheme,
   NeutralUIProvider,
   useNeutralTheme,
-} from "./theme";
-export type { TypewriterOptions, TypewriterState } from "./timeline";
+} from "#video/lib/neutral-ui/theme.ts";
+export type { TypewriterOptions, TypewriterState } from "#video/lib/neutral-ui/timeline.ts";
 export {
   clamp01,
   framesFor,
@@ -23,5 +23,5 @@ export {
   useCurrentState,
   useStateTransition,
   useTypewriter,
-} from "./timeline";
-export type { Step } from "./types";
+} from "#video/lib/neutral-ui/timeline.ts";
+export type { Step } from "#video/lib/neutral-ui/types.ts";

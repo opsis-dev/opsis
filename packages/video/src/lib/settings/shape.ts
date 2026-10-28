@@ -13,9 +13,13 @@ function setPath(target: ElementProps, path: string[], value: unknown): void {
   target[head] = inner;
 }
 
-export function nestedFrom<P extends ElementProps>(props: P, paths: Record<string, string>): ElementProps {
+export function nestedFrom<P extends ElementProps>(
+  props: P,
+  paths: Record<string, string>,
+): ElementProps {
   const out: ElementProps = {};
-  for (const [key, value] of Object.entries(props)) if (!Object.hasOwn(paths, key)) out[key] = value;
+  for (const [key, value] of Object.entries(props))
+    if (!Object.hasOwn(paths, key)) out[key] = value;
   for (const [key, path] of Object.entries(paths))
     if (props[key] !== undefined) setPath(out, path.split("."), props[key]);
   return out;

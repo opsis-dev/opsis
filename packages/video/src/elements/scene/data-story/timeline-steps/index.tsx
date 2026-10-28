@@ -11,35 +11,21 @@ export type TimelineStep = {
 };
 
 export type TimelineStepsProps = {
-  /** Steps in order. Two to five read best at any aspect. */
   steps: TimelineStep[];
-  /** Optional heading above the rail. */
   title?: string;
-  /** Small label above the heading — phase, release, chapter. */
   eyebrow?: string;
   backgroundColor?: string;
   accentColor?: string;
   theme?: "dark" | "light";
-  /**
-   * Seconds the walked timeline holds before it retreats. Omit to leave it up
-   * for the rest of the scene — a scene inside a `TransitionSeries` wants the
-   * transition to cover its tail rather than fading under it.
-   */
   holdSeconds?: number;
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
-/** Beat plan in seconds. */
 const T = {
   title: 0,
-  /** First step lights up here. */
   start: 0.5,
-  /** Time a step is worked before it is checked off. */
   dwell: 0.78,
-  /** Time the head takes to travel to the next step. */
   travel: 0.42,
-  /** Length of the retreat once `holdSeconds` is up. */
   exitFor: 0.42,
 } as const;
 
@@ -66,12 +52,6 @@ const CheckGlyph: React.FC<{
   </svg>
 );
 
-/**
- * A process that advances rather than a row of dots fading in: the rail draws
- * ahead of a travelling head, each step lights as the head lands on it, works
- * through a ring that closes, then checks off and dims to done as the head
- * moves on — so the scene ends on a fully walked timeline.
- */
 export const TimelineSteps: React.FC<TimelineStepsProps> = ({
   steps,
   title,
@@ -103,7 +83,6 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
   const list = steps.slice(0, 5);
   const count = list.length;
 
-  /** When the head lands on step `index`, and when that step is checked off. */
   const arrival = (index: number) => T.start + index * (T.dwell + T.travel);
   const completion = (index: number) => arrival(index) + T.dwell;
   const finished = completion(count - 1);
@@ -114,23 +93,15 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
   const railStart = portrait ? headerH + node * 0.9 : railInset;
   const railEnd = portrait ? stage.h - node * 0.6 : stage.w - railInset;
   const railSpan = Math.max(railEnd - railStart, 1);
-  // In landscape the rail carries its copy underneath, so it is offset to
-  // centre the rail-plus-copy block in what the header left — parking it at a
-  // fixed fraction leaves the bottom of the frame empty.
   const hasDescription = list.some((step) => step.description);
   const copyDrop = node * 0.78 + (hasDescription ? 116 * u : 48 * u);
   const railAcross = portrait
     ? node / 2
-    : headerH +
-      Math.max(
-        node / 2,
-        (stage.h - headerH - (copyDrop + node / 2)) / 2 + node / 2,
-      );
+    : headerH + Math.max(node / 2, (stage.h - headerH - (copyDrop + node / 2)) / 2 + node / 2);
 
   const nodeAt = (index: number) =>
     railStart + (count === 1 ? railSpan / 2 : (index / (count - 1)) * railSpan);
 
-  /** Head position as a fraction of the rail, holding still during each dwell. */
   const headIndex = (() => {
     if (now <= arrival(0)) {
       return 0;
@@ -140,12 +111,10 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
         return index;
       }
       if (now < arrival(index + 1)) {
-        return interpolate(
-          now,
-          [completion(index), arrival(index + 1)],
-          [index, index + 1],
-          { easing: EASING.editorial, ...clamp },
-        );
+        return interpolate(now, [completion(index), arrival(index + 1)], [index, index + 1], {
+          easing: EASING.editorial,
+          ...clamp,
+        });
       }
     }
     return count - 1;
@@ -158,12 +127,10 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
   const exit =
     holdSeconds === undefined
       ? 0
-      : interpolate(
-          frame,
-          [at(holdSeconds), at(holdSeconds + T.exitFor)],
-          [0, 1],
-          { easing: EASING.exit, ...clamp },
-        );
+      : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
+          easing: EASING.exit,
+          ...clamp,
+        });
 
   return (
     <div
@@ -235,7 +202,6 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
           </h2>
         ) : null}
 
-        {/* Rail: the unwalked track, then the walked part behind the head */}
         <div
           style={{
             position: "absolute",
@@ -246,9 +212,7 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
             background: palette.border,
             borderRadius: 999,
             transformOrigin: portrait ? "center top" : "left center",
-            transform: portrait
-              ? `scaleY(${railDrawn})`
-              : `scaleX(${railDrawn})`,
+            transform: portrait ? `scaleY(${railDrawn})` : `scaleX(${railDrawn})`,
           }}
         />
         <div
@@ -267,18 +231,14 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
 
         {list.map((step, index) => {
           const landed = ease(arrival(index), arrival(index) + 0.3);
-          const work = interpolate(
-            now,
-            [arrival(index), completion(index)],
-            [0, 1],
-            { easing: EASING.editorial, ...clamp },
-          );
-          const check = interpolate(
-            now,
-            [completion(index), completion(index) + 0.32],
-            [0, 1],
-            { easing: EASING.enter, ...clamp },
-          );
+          const work = interpolate(now, [arrival(index), completion(index)], [0, 1], {
+            easing: EASING.editorial,
+            ...clamp,
+          });
+          const check = interpolate(now, [completion(index), completion(index) + 0.32], [0, 1], {
+            easing: EASING.enter,
+            ...clamp,
+          });
           const active = landed * (1 - check * 0.55);
           const pop = spring({
             frame: frame - at(arrival(index)),
@@ -293,7 +253,6 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
 
           return (
             <div key={step.title}>
-              {/* Node */}
               <div
                 style={{
                   position: "absolute",
@@ -308,15 +267,11 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
                       : landed > 0.1
                         ? accentColor
                         : palette.window,
-                  border: `${2 * u}px solid ${
-                    landed > 0.1 ? accentColor : palette.border
-                  }`,
+                  border: `${2 * u}px solid ${landed > 0.1 ? accentColor : palette.border}`,
                   boxShadow: `0 0 ${34 * u * active}px color-mix(in srgb, ${accentColor} 40%, transparent)`,
                   display: "grid",
                   placeItems: "center",
-                  scale: `${
-                    interpolate(railDrawn, [0, 1], [0.75, 1]) + pop * 0.06
-                  }`,
+                  scale: `${interpolate(railDrawn, [0, 1], [0.75, 1]) + pop * 0.06}`,
                   color: check > 0.4 ? accentColor : landed > 0.1 ? palette.page : palette.dim,
                   fontSize: 26 * u,
                   fontWeight: 700,
@@ -324,17 +279,12 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
                 }}
               >
                 {check > 0.05 ? (
-                  <CheckGlyph
-                    size={30 * u}
-                    color={accentColor}
-                    progress={check}
-                  />
+                  <CheckGlyph size={30 * u} color={accentColor} progress={check} />
                 ) : (
                   index + 1
                 )}
               </div>
 
-              {/* Working ring — closes over the dwell, then hands off to the check */}
               <svg
                 width={node + 16 * u}
                 height={node + 16 * u}
@@ -359,19 +309,12 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
                 />
               </svg>
 
-              {/* Copy */}
               <div
                 style={{
                   position: "absolute",
-                  left: portrait
-                    ? railAcross + node * 0.85
-                    : along - stage.w / count / 2 + 10 * u,
-                  top: portrait
-                    ? along - node * 0.34
-                    : railAcross + node * 0.78,
-                  width: portrait
-                    ? stage.w - railAcross - node * 0.85
-                    : stage.w / count - 20 * u,
+                  left: portrait ? railAcross + node * 0.85 : along - stage.w / count / 2 + 10 * u,
+                  top: portrait ? along - node * 0.34 : railAcross + node * 0.78,
+                  width: portrait ? stage.w - railAcross - node * 0.85 : stage.w / count - 20 * u,
                   opacity: copyIn,
                   translate: `0 ${(1 - copyIn) * 14 * u}px`,
                 }}
@@ -404,7 +347,6 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
           );
         })}
 
-        {/* Travelling head — only between steps, where there is travel to show */}
         <div
           style={{
             position: "absolute",
@@ -415,9 +357,7 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
             borderRadius: "50%",
             background: accentColor,
             boxShadow: `0 0 ${18 * u}px ${accentColor}`,
-            opacity:
-              railDrawn *
-              (now >= finished ? 0 : Math.abs(headIndex % 1) > 0.02 ? 1 : 0),
+            opacity: railDrawn * (now >= finished ? 0 : Math.abs(headIndex % 1) > 0.02 ? 1 : 0),
           }}
         />
       </div>

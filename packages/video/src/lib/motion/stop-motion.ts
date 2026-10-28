@@ -2,11 +2,9 @@ import { spring } from "remotion";
 
 export const DEFAULT_STEP = 3;
 
-export const qf = (frame: number, step = DEFAULT_STEP): number =>
-  Math.floor(frame / step) * step;
+export const qf = (frame: number, step = DEFAULT_STEP): number => Math.floor(frame / step) * step;
 
-export const qstep = (frame: number, step = DEFAULT_STEP): number =>
-  Math.floor(frame / step);
+export const qstep = (frame: number, step = DEFAULT_STEP): number => Math.floor(frame / step);
 
 export const hash01 = (seed: string): number => {
   let h = 2166136261;
@@ -46,10 +44,7 @@ export const steppedSpring = (args: {
   config?: { damping?: number; stiffness?: number; mass?: number };
 }): number =>
   spring({
-    frame: qf(
-      Math.max(0, args.frame - (args.delay ?? 0)),
-      args.step ?? DEFAULT_STEP,
-    ),
+    frame: qf(Math.max(0, args.frame - (args.delay ?? 0)), args.step ?? DEFAULT_STEP),
     fps: args.fps,
     config: args.config,
   });

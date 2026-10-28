@@ -1,4 +1,5 @@
 import { type CSSProperties, useCallback, useState } from "react";
+import type React from "react";
 import {
   AbsoluteFill,
   continueRender,
@@ -9,6 +10,8 @@ import {
   OffthreadVideo,
   staticFile,
 } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   Item,
@@ -18,45 +21,22 @@ import {
   useWarmTheme,
   withAlpha,
 } from "#video/lib/warm-ui/index.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
-import type React from "react";
 
 const SANS = '"Inter"';
 
 export interface HeroLaunchProps {
-  /** Reveal caption under the cards. */
   heading?: string;
-  /**
-   * Left card media. An image URL, a video URL (`.mp4`/`.webm`/`.mov` → plays
-   * via <OffthreadVideo>), or a CSS `linear-gradient(...)`. The video editor
-   * swaps this for the viewer's own image/clip.
-   */
   image1?: string;
-  /** Right card media (same rules as `image1`). */
   image2?: string;
-  /** Design-system token overrides. */
   theme?: Partial<WarmTheme>;
-  /** Defaults to `"dark"` — the scene is a cinematic stage, lit for dark. */
   mode?: "light" | "dark";
-  /**
-   * The face this scene paints its words in — a label from `fonts.ts`
-   * ("Inter", "Space Grotesk", "Instrument Serif") or a CSS family you have
-   * loaded yourself. Unset, the scene keeps the face it was designed around.
-   *
-   * Overrides `theme.fontFamily`, which is how a brand kit re-skins a whole
-   * timeline from one value.
-   */
   fontFamily?: string;
 }
 
 const PERSP = 1000;
-// Pure rotateY about each card's INNER edge — no rotateX, so the inner edges
-// stay vertical and the centre gap is a clean, even channel top-to-bottom.
 const TILT = 17;
 const GAP = 92;
-/** Stand-in for missing media — the page lifted a shade, not a fixed grey. */
 const placeholder = (t: WarmTheme) =>
   `linear-gradient(135deg,${mixOklch(t.background, t.card, 0.55)},${mixOklch(
     t.background,
@@ -67,23 +47,12 @@ const placeholder = (t: WarmTheme) =>
 const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
 const isGradient = (src: string) => src.startsWith("linear-gradient");
 
-// easeOutQuint — quick to move, silky to settle, lands exactly on target with
-// no asymptotic "stuck" tail (the thing overdamped springs get wrong).
 const OUT = Easing.bezier(0.22, 1, 0.36, 1);
-// Gravity-ish accelerate for the drop-off.
 const FALL = Easing.bezier(0.5, 0, 0.9, 0.4);
 
-/**
- * A root-relative asset ("/showcase-assets/..") is served at the origin root by
- * Next in the Player, but Remotion Studio and a render serve `public/` through
- * `staticFile()` alone — so rewrite local paths everywhere but the Player, and pass
- * http(s)/data/blob URLs straight through.
- */
 function resolveSrc(src: string): string {
   const isLocal = src.startsWith("/") && !src.startsWith("//");
   if (!isLocal || getRemotionEnvironment().isPlayer) return src;
-  // A value that already came out of staticFile() carries the static base
-  // (`/static-<hash>/…`); running it through again would prefix it twice.
   const base = staticFile("_").slice(0, -2);
   if (base && src.startsWith(`${base}/`)) return src;
   try {
@@ -93,30 +62,12 @@ function resolveSrc(src: string): string {
   }
 }
 
-/**
- * Image that holds the server render until it has actually *loaded*, then
- * releases. Remotion's <Img> is avoided on purpose: it awaits `img.decode()`,
- * which the headless compositor rejects for some progressive JPEGs and hangs the
- * export. A plain <img> paints fine — we wait for `onload` ourselves and clear
- * on error too, so a bad source degrades gracefully. In the Player this is an
- * ordinary, instantly-shown image.
- */
 function HeroImage({ src, style }: { src: string; style: CSSProperties }) {
   const [handle] = useState(() => delayRender(`hero image: ${src}`));
   const release = useCallback(() => continueRender(handle), [handle]);
-  return (
-    // biome-ignore lint/performance/noImgElement: Remotion frame, not a Next route.
-    <img // eslint-disable-line @remotion/warn-native-media-tag -- onLoad releases the frame; <Img> hangs on some JPEGs
-      src={resolveSrc(src)}
-      alt=""
-      style={style}
-      onLoad={release}
-      onError={release}
-    />
-  );
+  return <img src={resolveSrc(src)} alt="" style={style} onLoad={release} onError={release} />;
 }
 
-/** Fills a card edge-to-edge with an image, a video, or a gradient. */
 function CardMedia({ src, t }: { src: string; t: WarmTheme }) {
   const media: CSSProperties = {
     position: "absolute",
@@ -135,22 +86,6 @@ function CardMedia({ src, t }: { src: string; t: WarmTheme }) {
   return <HeroImage src={effective} style={media} />;
 }
 
-/**
- * Cinematic product-launch hero — deterministic Remotion composition
- * (1280×720 @30fps). Two image cards, one continuous professionally-eased
- * motion, no bounce:
- *
- *   f0–40    the left image HOLDS full-screen, flat and clear
- *   f40      it recedes to its floating size and angles in about its inner edge
- *   f60      the right image slides in from the right; the two sit SYMMETRIC
- *            about the frame centre with an even, centred gap
- *   f100     both breathe with a barely-there float (never dead-static)
- *   f122     they fall off the lower edge together
- *   f126     the headline reveals and eases forward ("comes to front")
- *
- * Left/right/bottom edges dissolve into black. `image1`/`image2` + `heading`
- * are the props the video editor drives.
- */
 function HeroLaunchView({
   heading = "Launch day, done right",
   image1 = "",
@@ -169,15 +104,12 @@ function HeroLaunchView({
   const cardH = 620 * s;
   const centerLeft = (width - cardW) / 2;
   const cardTop = 0.3 * height;
-  // Symmetric about the centre → the gap sits exactly on the frame's midline.
   const restOffset = (cardW + GAP * s) / 2;
   const leftXFinal = -restOffset;
   const rightXFinal = restOffset;
   const rightXStart = 1.08 * width;
   const groupYFinal = 0.16 * height;
 
-  // A clamped, eased 0→1 segment — the single motion primitive for the whole
-  // scene. Easing lands cleanly on the target, so nothing ever "sticks".
   const seg = (start: number, dur: number, easing = OUT) =>
     interpolate(frame, [start, start + dur], [0, 1], {
       easing,
@@ -185,12 +117,12 @@ function HeroLaunchView({
       extrapolateRight: "clamp",
     });
 
-  const recede = seg(40, 30); // full-screen → floating
-  const angle = seg(46, 36); // flat → angled (rotateY only)
-  const slideL = seg(46, 36); // centre → left rest
-  const slideR = seg(60, 40); // offscreen right → right rest
-  const drop = seg(122, 34, FALL); // settle → fall off bottom
-  const title = seg(126, 40); // headline reveal + forward
+  const recede = seg(40, 30);
+  const angle = seg(46, 36);
+  const slideL = seg(46, 36);
+  const slideR = seg(60, 40);
+  const drop = seg(122, 34, FALL);
+  const title = seg(126, 40);
 
   const leftScale = interpolate(recede, [0, 1], [1.5, 1]);
   const leftX = interpolate(slideL, [0, 1], [0, leftXFinal]);
@@ -205,8 +137,6 @@ function HeroLaunchView({
     extrapolateRight: "clamp",
   });
 
-  // Barely-there float once settled (fades out into the drop) so the held beat
-  // reads as alive, not frozen — the classic "why does it feel stuck" fix.
   const floatEnv = seg(94, 22) * (1 - drop);
   const floatY = Math.sin(frame * 0.09) * 3.5 * s * floatEnv;
   const groupY = interpolate(drop, [0, 1], [0, groupYFinal]) + floatY;
@@ -227,7 +157,6 @@ function HeroLaunchView({
     transform: `translateX(${x}px)`,
   });
 
-  // Opening zoom pivots on the centre; the tilt pivots on the inner edge.
   const zoom = (scale: number): CSSProperties => ({
     width: "100%",
     height: "100%",
@@ -249,11 +178,9 @@ function HeroLaunchView({
   return (
     <AbsoluteFill style={{ backgroundColor: t.background, fontFamily: face }}>
       <AbsoluteFill style={{ transform: `translateY(${groupY}px)` }}>
-        {/* Each card is its own object to Remotion Studio (see `Item`). */}
         <Item index={0}>
           <div style={cardBox(leftX, leftOpacity)}>
             <div style={zoom(leftScale)}>
-              {/* inner edge = right edge → pivot at 100% 50% */}
               <div style={tilt(leftDeg, "100% 50%")}>
                 <ImageCard s={s} src={image1} t={t} />
               </div>
@@ -262,7 +189,6 @@ function HeroLaunchView({
         </Item>
         <Item index={1}>
           <div style={cardBox(rightX, rightOpacity)}>
-            {/* inner edge = left edge → pivot at 0% 50% */}
             <div style={tilt(TILT, "0% 50%")}>
               <ImageCard s={s} src={image2} t={t} />
             </div>
@@ -270,23 +196,10 @@ function HeroLaunchView({
         </Item>
       </AbsoluteFill>
 
-      {/* Wide, clean edge dissolve — fades in after the full-screen opening. */}
       <AbsoluteFill style={{ opacity: vignette, pointerEvents: "none" }}>
-        <div
-          style={fade(
-            `linear-gradient(to left, ${t.background} 0%, transparent 30%)`,
-          )}
-        />
-        <div
-          style={fade(
-            `linear-gradient(to right, ${t.background} 0%, transparent 22%)`,
-          )}
-        />
-        <div
-          style={fade(
-            `linear-gradient(to top, ${t.background} 0%, transparent 30%)`,
-          )}
-        />
+        <div style={fade(`linear-gradient(to left, ${t.background} 0%, transparent 30%)`)} />
+        <div style={fade(`linear-gradient(to right, ${t.background} 0%, transparent 22%)`)} />
+        <div style={fade(`linear-gradient(to top, ${t.background} 0%, transparent 30%)`)} />
       </AbsoluteFill>
 
       <div
@@ -312,7 +225,6 @@ function HeroLaunchView({
   );
 }
 
-/** A single card: one image (or video/gradient) filling it edge-to-edge. */
 function ImageCard({ s, src, t }: { s: number; src: string; t: WarmTheme }) {
   return (
     <div
@@ -323,8 +235,6 @@ function ImageCard({ s, src, t }: { s: number; src: string; t: WarmTheme }) {
         overflow: "hidden",
         borderRadius: 30 * s,
         background: mixOklch(t.background, t.card, 0.35),
-        // Drop shadow + a subtle inset hairline ring so the edge reads on both
-        // dark and bright media without dominating.
         boxShadow: `0 ${20 * s}px ${52 * s}px -${28 * s}px ${withAlpha(
           mixOklch(t.background, "#000", 0.75),
           0.9,
@@ -332,7 +242,6 @@ function ImageCard({ s, src, t }: { s: number; src: string; t: WarmTheme }) {
       }}
     >
       {src ? <CardMedia src={src} t={t} /> : null}
-      {/* subtle depth: darken the lower edge + a hairline top sheen */}
       <div
         style={{
           position: "absolute",
@@ -362,6 +271,17 @@ function ImageCard({ s, src, t }: { s: number; src: string; t: WarmTheme }) {
 
 export function HeroLaunch(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme)) return <HeroLaunchView {...(props as unknown as React.ComponentProps<typeof HeroLaunchView>)} />;
-  return <WarmUIProvider mode={theme.mode}><HeroLaunchView {...(props as unknown as React.ComponentProps<typeof HeroLaunchView>)} theme={themeColors(theme)} mode={theme.mode} /></WarmUIProvider>;
+  if (!isThemeValue(theme))
+    return (
+      <HeroLaunchView {...(props as unknown as React.ComponentProps<typeof HeroLaunchView>)} />
+    );
+  return (
+    <WarmUIProvider mode={theme.mode}>
+      <HeroLaunchView
+        {...(props as unknown as React.ComponentProps<typeof HeroLaunchView>)}
+        theme={themeColors(theme)}
+        mode={theme.mode}
+      />
+    </WarmUIProvider>
+  );
 }

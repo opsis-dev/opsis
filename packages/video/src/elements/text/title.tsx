@@ -9,9 +9,9 @@ import {
   exitOpacity,
   type Entrance,
 } from "#video/core/anim.ts";
-import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
 import { HandDrawnMark, type MarkLook } from "#video/core/hand-drawn.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
+import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
 
 const TITLE = { padding: "0 9%", gapEm: 0.22 } as const;
 

@@ -7,26 +7,16 @@ import { springSmooth } from "#video/lib/motion/springs.ts";
 const fontFamily = '"Inter"';
 
 export type LogoRevealProps = {
-  /** One path, or several drawn in sequence for a multi-stroke mark. */
   pathD: string | string[];
-  /** Omit to frame the mark automatically from its bounding box. */
   viewBox?: string;
-  /** Mark size in pixels — defaults to a share of the frame's short edge. */
   size?: number;
   wordmark?: string;
   tagline?: string;
   stroke?: string;
   strokeWidth?: number;
-  /** Fill flooded into the mark once the stroke closes. */
   fill?: string;
   backgroundColor?: string;
-  /** Wordmark colour; the tagline is a faded copy of it. */
   textColor?: string;
-  /**
-   * Seconds the finished lockup holds before it retreats. Omit to leave it up
-   * for the rest of the scene — inside a `TransitionSeries` the transition
-   * should cover the tail rather than the mark fading under it.
-   */
   holdSeconds?: number;
 };
 
@@ -36,14 +26,12 @@ const COLORS = {
   ink: "#f4f4f5",
 } as const;
 
-/** Beats: bloom → mark draws → wordmark → tagline. */
 const BEATS = {
   mark: DELAY.short,
   wordmark: DELAY.short + DURATION.slow,
   tagline: DELAY.short + DURATION.slow + STAGGER.relaxed,
 } as const;
 
-/** Length of the retreat once `holdSeconds` is up, in seconds. */
 const EXIT_FOR = 0.42;
 
 export const LogoReveal: React.FC<LogoRevealProps> = ({
@@ -64,15 +52,10 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
   const safeArea = getSafeAreaPadding({ width, height });
 
   const hasCopy = Boolean(wordmark || tagline);
-  // Without a wordmark the mark carries the whole frame, so it grows to fill
-  // the space the copy would otherwise take.
-  const markSize =
-    size ?? Math.round(Math.min(width, height) * (hasCopy ? 0.4 : 0.56));
+  const markSize = size ?? Math.round(Math.min(width, height) * (hasCopy ? 0.4 : 0.56));
   const lineWidth = strokeWidth ?? Math.max(2, Math.round(markSize * 0.022));
   const drawFrames = DURATION.slow * 2;
 
-  // The bloom lands first and settles under the mark, so the frame is never
-  // empty while the stroke is still short.
   const bloom = spring({
     frame,
     fps,
@@ -86,33 +69,20 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
     config: springSmooth,
     durationInFrames: DURATION.normal,
   });
-  const taglineIn = interpolate(
-    frame,
-    [BEATS.tagline, BEATS.tagline + DURATION.normal],
-    [0, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: EASING.enter,
-    },
-  );
+  const taglineIn = interpolate(frame, [BEATS.tagline, BEATS.tagline + DURATION.normal], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASING.enter,
+  });
 
-  // Exits accelerate away; entrances decelerate in. Never ease-out an exit.
   const exit =
     holdSeconds === undefined
       ? 0
-      : interpolate(
-          frame,
-          [holdSeconds * fps, (holdSeconds + EXIT_FOR) * fps],
-          [0, 1],
-          {
-            easing: EASING.exit,
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          },
-        );
-  // The plate keeps its background and the lockup leaves over it, so a scene
-  // stacked under this one is not revealed by the exit.
+      : interpolate(frame, [holdSeconds * fps, (holdSeconds + EXIT_FOR) * fps], [0, 1], {
+          easing: EASING.exit,
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        });
   const leaving = {
     opacity: 1 - exit,
     translate: `0 ${exit * -scaleFont(26, width)}px`,
@@ -185,8 +155,7 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
             textAlign: "center",
             opacity: wordmarkLift * (1 - exit),
             translate: `0 ${
-              (1 - wordmarkLift) * scaleFont(28, width) -
-              exit * scaleFont(26, width)
+              (1 - wordmarkLift) * scaleFont(28, width) - exit * scaleFont(26, width)
             }px`,
           }}
         >
@@ -205,8 +174,7 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
             maxWidth: width * 0.7,
             opacity: taglineIn * (1 - exit),
             translate: `0 ${
-              (1 - taglineIn) * scaleFont(16, width) -
-              exit * scaleFont(26, width)
+              (1 - taglineIn) * scaleFont(16, width) - exit * scaleFont(26, width)
             }px`,
           }}
         >

@@ -44,14 +44,7 @@ function LayoutPlaceholder({
   if (layout === "card") {
     return (
       <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-        {}
-        <SkeletonBlock
-          width={48}
-          height={48}
-          radius={24}
-          flexShrink={0}
-          {...shimmer}
-        />
+        <SkeletonBlock width={48} height={48} radius={24} flexShrink={0} {...shimmer} />
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <SkeletonBlock width={180} height={14} {...shimmer} />
           <SkeletonBlock width={120} height={14} {...shimmer} />
@@ -91,13 +84,10 @@ export function Skeleton({
       style={{
         position: "relative",
         display: "inline-block",
-        fontFamily:
-          "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
-      {}
       <div style={{ opacity: v.contentOpacity }}>{children}</div>
-      {}
       <div
         style={{
           position: "absolute",

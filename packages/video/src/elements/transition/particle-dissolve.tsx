@@ -9,12 +9,7 @@ import {
   makeSceneShader,
 } from "#video/lib/transitions/canvas-presentation.tsx";
 
-export type ParticleDissolveDirection =
-  | "reveal"
-  | "up"
-  | "down"
-  | "left"
-  | "right";
+export type ParticleDissolveDirection = "reveal" | "up" | "down" | "left" | "right";
 
 export type ParticleDissolveProps = {
   particleSize?: number;

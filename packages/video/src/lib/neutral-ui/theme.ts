@@ -83,16 +83,8 @@ export interface NeutralUIProviderProps {
   children: ReactNode;
 }
 
-export function NeutralUIProvider({
-  theme,
-  mode,
-  children,
-}: NeutralUIProviderProps) {
-  return createElement(
-    NeutralThemeContext.Provider,
-    { value: { theme, mode } },
-    children,
-  );
+export function NeutralUIProvider({ theme, mode, children }: NeutralUIProviderProps) {
+  return createElement(NeutralThemeContext.Provider, { value: { theme, mode } }, children);
 }
 
 export function useNeutralTheme(

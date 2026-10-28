@@ -43,16 +43,10 @@ function revealFrame(index: number, wordGap: number, accel: number): number {
   return (wordGap * (1 - accel ** index)) / (1 - accel);
 }
 
-export function wordPushLength(
-  text: string,
-  wordGap = 10,
-  accel = 0.8,
-): number {
+export function wordPushLength(text: string, wordGap = 10, accel = 0.8): number {
   const words = text.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return 0;
-  return (
-    Math.ceil(revealFrame(words.length - 1, wordGap, accel)) + SLIDE_FRAMES
-  );
+  return Math.ceil(revealFrame(words.length - 1, wordGap, accel)) + SLIDE_FRAMES;
 }
 
 const pushEasing = Easing.out(Easing.cubic);
@@ -78,29 +72,19 @@ export function WordPush({
     [text, fontSize, fontWeight, fontFamily],
   );
 
-  let lineX = interpolate(
-    frame,
-    [0, SLIDE_FRAMES],
-    [-OVERSHOOT_EM * fontSize, 0],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: driveEasing,
-    },
-  );
+  let lineX = interpolate(frame, [0, SLIDE_FRAMES], [-OVERSHOOT_EM * fontSize, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: driveEasing,
+  });
   for (let j = 1; j < words.length; j++) {
     const wordWidth = widths[j] + SPACE_WIDTH_EM * fontSize;
     const revealAt = revealFrame(j, wordGap, accel);
-    const pushed = interpolate(
-      frame,
-      [revealAt + 1, revealAt + 1 + SLIDE_FRAMES],
-      [0, 1],
-      {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-        easing: pushEasing,
-      },
-    );
+    const pushed = interpolate(frame, [revealAt + 1, revealAt + 1 + SLIDE_FRAMES], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: pushEasing,
+    });
     lineX += (wordWidth / 2) * (1 - pushed);
   }
 
@@ -130,29 +114,19 @@ export function WordPush({
         {words.map((word, j) => {
           const revealAt = revealFrame(j, wordGap, accel);
 
-          const opacity = interpolate(
-            frame,
-            [revealAt, revealAt + REVEAL_FRAMES],
-            [0, 1],
-            {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            },
-          );
+          const opacity = interpolate(frame, [revealAt, revealAt + REVEAL_FRAMES], [0, 1], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          });
 
           const driven =
             j === 0
               ? 1
-              : interpolate(
-                  frame,
-                  [revealAt, revealAt + SLIDE_FRAMES],
-                  [0, 1],
-                  {
-                    extrapolateLeft: "clamp",
-                    extrapolateRight: "clamp",
-                    easing: driveEasing,
-                  },
-                );
+              : interpolate(frame, [revealAt, revealAt + SLIDE_FRAMES], [0, 1], {
+                  extrapolateLeft: "clamp",
+                  extrapolateRight: "clamp",
+                  easing: driveEasing,
+                });
 
           return (
             <span

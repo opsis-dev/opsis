@@ -1,10 +1,4 @@
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
@@ -12,43 +6,23 @@ import { EASING } from "#video/lib/motion/motion-tokens.ts";
 const fontFamily = '"Inter"';
 
 export type PricingCardProps = {
-  /** Tier name across the top of the card. */
   tier?: string;
-  /** Chip beside the tier name. Omit to drop it. */
   badge?: string;
-  /** The number the price rolls up to. */
   price?: number;
-  /** Symbol set ahead of the number. */
   currency?: string;
-  /** Cadence printed after the price — "/mo", "per seat", anything short. */
   period?: string;
-  /** Line under the price. */
   note?: string;
-  /**
-   * Price the card was, struck through beside the new one. Omit for a card with
-   * no before-and-after story to tell.
-   */
   wasPrice?: number;
   features?: string[];
-  /** Text in the call-to-action button. Omit to drop the button. */
   ctaLabel?: string;
-  /** Second the price starts rolling. */
   priceAtSeconds?: number;
-  /** How long the roll takes. */
   rollSeconds?: number;
-  /** Second the first feature ticks in. */
   featuresAtSeconds?: number;
-  /** Seconds between features. */
   featureStaggerSeconds?: number;
-  /**
-   * Seconds the finished card holds before it retreats. Omit to leave it up for
-   * the rest of the scene.
-   */
   holdSeconds?: number;
   accentColor?: string;
   backgroundColor?: string;
   theme?: "dark" | "light";
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
@@ -60,7 +34,6 @@ const DEFAULT_FEATURES = [
   "Priority render queue",
 ];
 
-/** Beat plan in seconds. Price and feature times come from the props. */
 const T = {
   card: 0,
   cardFor: 0.48,
@@ -76,16 +49,6 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-/**
- * A tier card that earns its price: the number rolls up under a soft blur that
- * clears as it settles, the features tick in one at a time beneath it, and the
- * call to action arrives last so the card finishes on the thing you want clicked.
- *
- * The roll is a plain interpolation on the value rather than a spinning digit
- * strip. A strip has to guess glyph widths; a counted number stays in register
- * with `tabular-nums` at any font size, and reads as counting rather than as a
- * slot machine.
- */
 export const PricingCard: React.FC<PricingCardProps> = ({
   tier = "Studio",
   badge = "Most picked",
@@ -116,15 +79,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
     interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
 
   const portrait = height > width;
-  // D1. Authored against a 1280x720 reference, u resolves to 0.75 on the 960
-  // docs stage, so a 15-unit label landed at 11px — 3.6px once the contact
-  // sheet reduces the stage 3.1x. The reference is the whole design's scale, so
-  // shrinking it grows the layout into the margin it was leaving empty and
-  // lifts every tier of type with it, instead of hand-tuning font sizes against
-  // a layout that stays too small.
-  const u = portrait
-    ? Math.min(width / 496, height / 896)
-    : Math.min(width / 1024, height / 576);
+  const u = portrait ? Math.min(width / 496, height / 896) : Math.min(width / 1024, height / 576);
 
   const cardIn = spring({
     frame: frame - at(T.card),
@@ -137,8 +92,6 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   const roll = ease(priceAtSeconds, priceAtSeconds + rollSeconds, EASING.editorial);
   const priceDecimals = Math.min(2, (String(price).split(".")[1] ?? "").length);
   const shown = interpolate(roll, [0, 1], [0, price]).toFixed(priceDecimals);
-  // Motion blur only while the digits are actually changing — it clears over the
-  // last third of the roll so the settled price is never soft.
   const rollBlur = Math.sin(Math.PI * roll) * 2.2;
 
   const lastFeatureAt =
@@ -185,8 +138,6 @@ export const PricingCard: React.FC<PricingCardProps> = ({
           translate: `0 ${(1 - cardIn) * 24 * u + exit * 32 * u}px`,
         }}
       >
-        {/* A single warm wash off the top-left corner. It sits under everything
-            so the card has depth without any element carrying its own gradient. */}
         <div
           style={{
             position: "absolute",
@@ -259,8 +210,6 @@ export const PricingCard: React.FC<PricingCardProps> = ({
                 letterSpacing: "-0.04em",
                 lineHeight: 1,
                 fontVariantNumeric: "tabular-nums",
-                // The number lifts as it counts, so the roll has motion even on
-                // a tier whose price is a single digit.
                 translate: `0 ${(1 - roll) * 10 * u}px`,
                 opacity: roll > 0 ? 1 : 0,
               }}
@@ -336,7 +285,12 @@ export const PricingCard: React.FC<PricingCardProps> = ({
                   }}
                 >
                   <svg width={18 * u} height={18 * u} viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="11" fill={`color-mix(in srgb, ${accentColor} 13%, transparent)`} />
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="11"
+                      fill={`color-mix(in srgb, ${accentColor} 13%, transparent)`}
+                    />
                     <path
                       d="M6.5 12.5 L10.5 16.5 L17.5 8"
                       stroke={accentColor}

@@ -1,10 +1,4 @@
-import {
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
-import { Caret, stageScale } from "#video/lib/text/ai-composer-utils.tsx";
+import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import {
   CODE_THEMES,
   CodeLine,
@@ -13,10 +7,10 @@ import {
   tokenizeCode,
 } from "#video/lib/code/code-syntax.tsx";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { Caret, stageScale } from "#video/lib/text/ai-composer-utils.tsx";
 
 const fontFamily = '"JetBrains Mono"';
 
-/** Reference stage the editor is laid out against, then uniformly scaled. */
 const REF_WIDTH = 1280;
 const REF_HEIGHT = 720;
 
@@ -27,12 +21,9 @@ const ROW_HEIGHT = 34;
 const FONT_SIZE = 21;
 const GUTTER_WIDTH = 62;
 const CODE_INSET = 20;
-/** Longest listing shown at once — anything past this scrolls. */
 const MAX_VISIBLE_ROWS = 10;
 
-/** Characters per second the code is written at. */
 const WRITE_CPS = 55;
-/** Beat spent moving to the next line, in seconds. */
 const NEWLINE_PAUSE = 0.07;
 
 const DEFAULT_CODE = `import { CodeReveal } from "#video/elements/ui/code-reveal/index.tsx";
@@ -45,34 +36,20 @@ export const Explainer = () => (
 );`;
 
 export type CodeRevealProps = {
-  /** Source shown in the editor. Surrounding blank lines are trimmed. */
   code?: string;
-  /** 1-based line numbers focused once the listing finishes writing. */
   highlightedLines?: number[];
-  /** Filename on the editor tab. */
   title?: string;
-  /** Language badge on the right of the header. */
   language?: string;
-  /** First line number in the gutter — set it when showing an excerpt. */
   startLine?: number;
-  /** Hides the gutter entirely when false. */
   showLineNumbers?: boolean;
   accentColor?: string;
-  /** Overrides the page background behind the window. */
   backgroundColor?: string;
   theme?: "dark" | "light";
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
 const CHROME_LIGHTS = ["#FF5F57", "#FEBC2E", "#28C840"] as const;
 
-/**
- * Code reveal staged as an editor actually writing the file: a write head runs
- * through the listing character by character with the caret riding its tip,
- * then — once the file is complete — attention lands on the lines that matter
- * and the rest of the listing recedes.
- */
 export const CodeReveal: React.FC<CodeRevealProps> = ({
   code = DEFAULT_CODE,
   highlightedLines = [],
@@ -98,7 +75,10 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
     extrapolateRight: "clamp" as const,
   };
 
-  const lines = code.replace(/\s+$/, "").replace(/^(\r?\n)+/, "").split(/\r?\n/);
+  const lines = code
+    .replace(/\s+$/, "")
+    .replace(/^(\r?\n)+/, "")
+    .split(/\r?\n/);
   const longest = Math.max(0, ...lines.map((line) => line.length));
   const windowWidth = Math.max(
     WINDOW_WIDTH,
@@ -113,25 +93,28 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
   const focused = new Set(highlightedLines);
   const hasFocus = highlightedLines.length > 0;
 
-  // --- Write plan ---------------------------------------------------------
-  // Leading indentation is free — editors auto-indent, so only the characters
-  // a person actually types cost time. Each row carries a short newline beat.
   const writeStart = seconds(0.4);
+  const plan: Array<{
+    tokens: (typeof tokenLines)[number];
+    indent: number;
+    cost: number;
+    startsAt: number;
+    endsAt: number;
+  }> = [];
   let cursorFrame = writeStart;
-  const plan = tokenLines.map((tokens, index) => {
+  for (const [index, tokens] of tokenLines.entries()) {
     const raw = lines[index];
     const indent = raw.length - raw.trimStart().length;
     const cost = Math.max(0, lineLength(tokens) - indent);
     const startsAt = cursorFrame;
     const endsAt = startsAt + (cost / WRITE_CPS) * fps;
     cursorFrame = endsAt + seconds(NEWLINE_PAUSE);
-    return { tokens, indent, cost, startsAt, endsAt };
-  });
+    plan.push({ tokens, indent, cost, startsAt, endsAt });
+  }
 
   const writeEnd = plan[plan.length - 1]?.endsAt ?? writeStart;
   const focusAt = writeEnd + seconds(0.34);
 
-  /** Characters of a row written by now, indentation included. */
   const writtenChars = (row: (typeof plan)[number]) =>
     row.indent +
     Math.round(
@@ -143,7 +126,6 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
       ),
     );
 
-  // --- Window -------------------------------------------------------------
   const enter = spring({
     fps,
     frame,
@@ -160,22 +142,15 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
       })
     : 0;
 
-  // --- Caret --------------------------------------------------------------
   const charWidth = FONT_SIZE * MONO_ADVANCE;
   const writing = plan.findIndex((row) => frame < row.endsAt);
   const caretRow = writing === -1 ? plan.length - 1 : writing;
   const caretPlan = plan[caretRow];
   const caretChars = caretPlan ? writtenChars(caretPlan) : 0;
-  // While writing the caret is solid; once the file is done it rests and blinks.
   const caretResting = frame >= writeEnd;
 
-  // --- Scroll -------------------------------------------------------------
-  // The viewport follows the write head fractionally, so a long listing pans
-  // instead of jumping a whole line-height as each row starts.
   const visibleRows = Math.min(plan.length, MAX_VISIBLE_ROWS);
   const bodyHeight = visibleRows * ROW_HEIGHT + BODY_PADDING * 2;
-  // Rows count in fractionally as they open, so a long listing pans by that
-  // fraction instead of jumping a whole line-height when a row starts.
   const openRows = plan.reduce(
     (total, row) =>
       total +
@@ -234,7 +209,6 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
           position: "relative",
         }}
       >
-        {/* Header chrome */}
         <div
           style={{
             height: HEADER_HEIGHT,
@@ -278,13 +252,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
                 height: 7,
                 borderRadius: "50%",
                 background: accentColor,
-                // The unsaved-changes dot settles once the file is written.
-                opacity: interpolate(
-                  frame,
-                  [writeEnd, writeEnd + seconds(0.4)],
-                  [1, 0.2],
-                  clamp,
-                ),
+                opacity: interpolate(frame, [writeEnd, writeEnd + seconds(0.4)], [1, 0.2], clamp),
               }}
             />
             <span
@@ -311,7 +279,6 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
           </span>
         </div>
 
-        {/* Editor body */}
         <div
           style={{
             height: bodyHeight,
@@ -354,8 +321,6 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
                 const written = started ? writtenChars(row) : 0;
                 const complete = written >= row.indent + row.cost;
                 const isFocused = focused.has(index + startLine);
-                // Unfocused lines recede rather than vanish — the reader should
-                // still feel the shape of the file around the point.
                 const recede = hasFocus && !isFocused ? focusProgress : 0;
 
                 return (
@@ -366,9 +331,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
                       display: "flex",
                       alignItems: "center",
                       position: "relative",
-                      opacity: started
-                        ? interpolate(recede, [0, 1], [1, 0.34])
-                        : 0,
+                      opacity: started ? interpolate(recede, [0, 1], [1, 0.34]) : 0,
                     }}
                   >
                     {isFocused ? (
@@ -411,8 +374,6 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
                       >
                         {index + startLine}
                         {isFocused ? (
-                          // The number only takes the accent as focus lands —
-                          // colouring it up front would give the point away.
                           <span
                             style={{
                               position: "absolute",
@@ -443,7 +404,6 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
                 );
               })}
 
-              {/* Caret rides the write head, then rests at the end of the file */}
               {frame >= writeStart && caretPlan ? (
                 <div
                   style={{
@@ -469,7 +429,6 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
             </div>
           </div>
 
-          {/* Fades so scrolled rows dissolve rather than clip */}
           <div
             style={{
               position: "absolute",

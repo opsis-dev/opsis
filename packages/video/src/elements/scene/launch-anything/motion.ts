@@ -5,7 +5,6 @@ export const LAUNCH_FRAMES = 1600;
 export const LAUNCH_WIDTH = 1920;
 export const LAUNCH_HEIGHT = 1080;
 
-// Measured against the 799-frame, 30000/1001-fps reference. Bounds are exclusive.
 export const launchTimeline = [
   { id: "opening", from: 0, to: 228 },
   { id: "action", from: 228, to: 354 },
@@ -32,10 +31,8 @@ export type ShowcaseId = (typeof showcaseTimeline)[number]["id"];
 export const clamp = (n: number) => Math.min(1, Math.max(0, n));
 export const settle = Easing.bezier(0.16, 1, 0.3, 1);
 export const smooth = Easing.bezier(0.65, 0, 0.25, 1);
-export const ramp = (t: number, a: number, b: number) =>
-  clamp((t - a) / (b - a));
+export const ramp = (t: number, a: number, b: number) => clamp((t - a) / (b - a));
 
-/** Shared geometry: the clicked button becomes the portal frame without a cut. */
 export function actionFrame(t: number) {
   const enter = tween(t, 4.65, 5.05, 0, 1, smooth);
   const center = tween(t, 5.47, 5.83, 0, 1, smooth);
@@ -52,14 +49,7 @@ export function actionFrame(t: number) {
     press: tween(t, 5.35, 5.47) - tween(t, 5.48, 5.65),
   };
 }
-export function tween(
-  t: number,
-  a: number,
-  b: number,
-  from = 0,
-  to = 1,
-  easing = settle,
-) {
+export function tween(t: number, a: number, b: number, from = 0, to = 1, easing = settle) {
   return from + (to - from) * easing(ramp(t, a, b));
 }
 export function key(t: number, times: number[], values: number[]) {
@@ -71,12 +61,10 @@ export function key(t: number, times: number[], values: number[]) {
 export function getShowcase(t: number) {
   const frame = Math.max(440, Math.min(906, Math.round(t * LAUNCH_FPS)));
   return (
-    showcaseTimeline.find((shot) => frame >= shot.from && frame < shot.to) ??
-    showcaseTimeline[0]
+    showcaseTimeline.find((shot) => frame >= shot.from && frame < shot.to) ?? showcaseTimeline[0]
   );
 }
 
-// Camera and screen are transformed as one layer, so the screen never drifts.
 export function deskCamera(t: number) {
   return {
     scale: key(

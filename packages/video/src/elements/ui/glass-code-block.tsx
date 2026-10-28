@@ -15,20 +15,14 @@ export interface GlassCodeBlockProps {
   className?: string;
 }
 
-const FONT_MONO =
-  "var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace";
+const FONT_MONO = "var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace";
 
-const DEFAULT_CODE = `import { motion } from "remotion";
-
-// Generate a hero scene
-export function Hero() {
-  const frame = useAuthoredFrame();
-  const opacity = frame / 30;
-  return <h1 style={{ opacity }}>Hello</h1>;
+const DEFAULT_CODE = `export async function publish(draft: Draft) {
+  const page = await render(draft);
+  await upload(page, { public: true });
+  return page.url;
 }`;
 
-// Minimal regex tokenizer. NOT a real syntax highlighter — just enough to
-// give the eye color anchors. Order matters: comments → strings → keywords.
 const KEYWORDS = new Set([
   "import",
   "from",
@@ -60,14 +54,12 @@ type Token = {
 const MIN_FONT_SIZE = 9;
 
 function tokenizeLine(line: string): Token[] {
-  // Whole-line comment.
   const trimmed = line.trimStart();
   if (trimmed.startsWith("//")) {
     return [{ text: line, kind: "comment" }];
   }
 
   const tokens: Token[] = [];
-  // Split keeping delimiters: words, strings, numbers, everything else.
   const re = /("[^"]*"|'[^']*'|`[^`]*`|\b\d+\b|\b[A-Za-z_$][\w$]*\b|[^\w"'`]+|["'`])/g;
   let match: RegExpExecArray | null = re.exec(line);
   while (match !== null) {
@@ -141,7 +133,6 @@ export function GlassCodeBlock({
     >
       {aura && <BackdropAura />}
 
-      {/* 1px gradient ring acting as a microborder */}
       <div
         style={{
           position: "relative",
@@ -169,7 +160,6 @@ export function GlassCodeBlock({
             fontFamily: FONT_MONO,
           }}
         >
-          {/* Chrome */}
           <div
             style={{
               height: 40,
@@ -200,7 +190,6 @@ export function GlassCodeBlock({
             </div>
           </div>
 
-          {/* Code body */}
           <div
             style={{
               flex: 1,
@@ -214,16 +203,23 @@ export function GlassCodeBlock({
               lineHeight: 1.55,
             }}
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, translate: `0 ${-scroll}px` }}>
-            {lines.map((line, i) => (
-              <Sequence
-                key={i}
-                from={Math.round(realFrames((i * staggerFrames) / speed))}
-                layout="none"
-              >
-                <CodeLine line={line} index={i} digits={digits} fontSize={fitted} />
-              </Sequence>
-            ))}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                translate: `0 ${-scroll}px`,
+              }}
+            >
+              {lines.map((line, i) => (
+                <Sequence
+                  key={i}
+                  from={Math.round(realFrames((i * staggerFrames) / speed))}
+                  layout="none"
+                >
+                  <CodeLine line={line} index={i} digits={digits} fontSize={fitted} />
+                </Sequence>
+              ))}
             </div>
           </div>
         </div>
@@ -268,8 +264,6 @@ function CodeLine({
   });
 
   const tokens = tokenizeLine(line);
-  // Render an empty line as a half-height spacer so blank lines still take
-  // visual space without collapsing the gap.
   if (tokens.length === 0) {
     return <div style={{ height: fontSize * 0.8, opacity }} />;
   }
@@ -283,7 +277,9 @@ function CodeLine({
         gap: 0,
       }}
     >
-      <span style={{ width: `${digits + 1}ch`, flexShrink: 0, color: "#3f3f46", userSelect: "none" }}>
+      <span
+        style={{ width: `${digits + 1}ch`, flexShrink: 0, color: "#3f3f46", userSelect: "none" }}
+      >
         {String(index + 1).padStart(digits, " ")}
       </span>
       <span>
@@ -298,8 +294,6 @@ function CodeLine({
 }
 
 function BackdropAura() {
-  // Slow, low-amplitude blob behind the glass so the backdrop blur has
-  // perceptible content to refract.
   const frame = useAuthoredFrame();
   const t = frame / 60;
   const x = 50 + Math.sin(t) * 20;

@@ -1,41 +1,28 @@
 import { Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { fitHeadline } from "#video/elements/scene/data-story/text-fit-utils.ts";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { fitHeadline } from "#video/elements/scene/data-story/text-fit-utils.ts";
 
 const fontFamily = '"Inter"';
 
 export type AutoFitTitleProps = {
-  /** Headline. Sized to fill the safe area whatever its length. */
   title: string;
   subtitle?: string;
   logoSrc?: string;
   logoSize?: number;
-  /** Ceiling for the fitted size, at a 1080-wide stage. */
   maxFontSize?: number;
-  /** Floor for the fitted size, so a very long title stays legible. */
   minFontSize?: number;
   accentColor?: string;
   backgroundColor?: string;
   theme?: "dark" | "light";
-  /** Animation speed multiplier. */
   speed?: number;
-  /**
-   * Seconds after which the card leaves. Omit to hold. Inside a
-   * `TransitionSeries` set it so the exit finishes a few frames *before* the
-   * cut begins — otherwise the headline is still at full opacity while the next
-   * scene's own heading fades up over it, and the overlap reads as one title
-   * printed on top of another.
-   */
   holdSeconds?: number;
 };
 
-/** Beat plan in seconds. */
 const T = {
   logo: 0,
   title: 0.2,
-  /** Added per word. */
   wordStagger: 0.06,
   subtitle: 0.72,
 } as const;
@@ -45,11 +32,6 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-/**
- * A headline sized to the frame it is given, then set in motion word by word:
- * the fit is measured before anything animates, so a two-word title and a
- * twelve-word title both fill the safe area and both land the same way.
- */
 export const AutoFitTitle: React.FC<AutoFitTitleProps> = ({
   title,
   subtitle,
@@ -91,11 +73,8 @@ export const AutoFitTitle: React.FC<AutoFitTitleProps> = ({
 
   const logoIn = logoSrc ? ease(T.logo, T.logo + 0.45) : 0;
   const subtitleIn = subtitle ? ease(T.subtitle, T.subtitle + 0.5) : 0;
-  /** Slow push, so the card is never dead still on a hold. */
   const push = ease(0, 7, EASING.editorial);
-  /** Exits accelerate away; entrances decelerate in. Never ease-out an exit. */
-  const exit =
-    holdSeconds === undefined ? 0 : ease(holdSeconds, holdSeconds + 0.4, EASING.exit);
+  const exit = holdSeconds === undefined ? 0 : ease(holdSeconds, holdSeconds + 0.4, EASING.exit);
 
   return (
     <div
@@ -168,12 +147,7 @@ export const AutoFitTitle: React.FC<AutoFitTitleProps> = ({
               T.title + index * T.wordStagger + 0.5,
             );
             return (
-              // Word-level masks: the fitted line assembles instead of scaling
-              // in, which would fight the whole point of fitting it first.
-              <span
-                key={`${word}-${index}`}
-                style={{ display: "block", overflow: "hidden" }}
-              >
+              <span key={`${word}-${index}`} style={{ display: "block", overflow: "hidden" }}>
                 <span
                   style={{
                     display: "block",

@@ -1,16 +1,9 @@
-import {
-  PerlinNoise,
-  type PerlinNoiseProps,
-} from "@paper-design/shaders-react";
+import { PerlinNoise, type PerlinNoiseProps } from "@paper-design/shaders-react";
 import { useCallback, useState } from "react";
-import {
-  continueRender,
-  delayRender,
-} from "remotion";
+import { continueRender, delayRender } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
-export interface ShaderPerlinNoiseProps
-  extends Omit<PerlinNoiseProps, "frame" | "ref"> {}
+export interface ShaderPerlinNoiseProps extends Omit<PerlinNoiseProps, "frame" | "ref"> {}
 
 export function ShaderPerlinNoise({
   speed = 1,
@@ -28,19 +21,13 @@ export function ShaderPerlinNoise({
   const gate = useCallback(
     (element: HTMLDivElement | null) => {
       if (!element) return;
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => continueRender(handle)),
-      );
+      requestAnimationFrame(() => requestAnimationFrame(() => continueRender(handle)));
     },
     [handle],
   );
 
   return (
-    <div
-      ref={gate}
-      className={className}
-      style={{ position: "absolute", inset: 0 }}
-    >
+    <div ref={gate} className={className} style={{ position: "absolute", inset: 0 }}>
       <PerlinNoise
         speed={0}
         frame={(frame / fps) * speed * 1000}

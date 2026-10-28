@@ -1,5 +1,5 @@
-import { launchMedia } from "./assets";
-import type { ShowcaseId } from "./motion";
+import { launchMedia } from "#video/elements/scene/launch-anything/assets.ts";
+import type { ShowcaseId } from "#video/elements/scene/launch-anything/motion.ts";
 
 export const launchContent = {
   opening: "Good",
@@ -30,16 +30,13 @@ export type LaunchContent = typeof launchContent;
 export type LaunchMedia = typeof launchMedia;
 
 export type LaunchAnythingProps = {
-  /** Editable closing label or URL. The default uses a reserved example domain. */
   brandUrl?: string;
   accentColor?: string;
   opening?: string;
   subject?: string;
   content?: Partial<LaunchContent>;
   media?: Partial<LaunchMedia>;
-  /** Optional custom screen images, cropped to the laptop display. */
   screenImages?: Partial<Record<ShowcaseId, string>>;
-  /** Custom brand marks for the floating proof grid. */
   logos?: string[];
   logoSrc?: string;
   audioSrc?: string;
@@ -47,9 +44,7 @@ export type LaunchAnythingProps = {
 };
 
 export function resolveLaunchProps(props: LaunchAnythingProps) {
-  const integrations = props.content?.integrations?.filter((name) =>
-    name.trim(),
-  );
+  const integrations = props.content?.integrations?.filter((name) => name.trim());
   return {
     brandUrl: props.brandUrl ?? "yourproduct.example",
     accent: props.accentColor ?? "#245744",
@@ -58,9 +53,7 @@ export function resolveLaunchProps(props: LaunchAnythingProps) {
       ...props.content,
       ...(props.opening === undefined ? {} : { opening: props.opening }),
       ...(props.subject === undefined ? {} : { subject: props.subject }),
-      integrations: integrations?.length
-        ? integrations
-        : launchContent.integrations,
+      integrations: integrations?.length ? integrations : launchContent.integrations,
     },
     media: { ...launchMedia, ...props.media },
     screenImages: props.screenImages ?? {},

@@ -23,9 +23,7 @@ export type RippleZoomProps = {
   speed?: number;
 };
 
-const RippleZoomPresentation: React.FC<
-  TransitionPresentationComponentProps<RippleZoomProps>
-> = ({
+const RippleZoomPresentation: React.FC<TransitionPresentationComponentProps<RippleZoomProps>> = ({
   children,
   presentationProgress,
   presentationDirection,
@@ -94,9 +92,7 @@ const RippleZoomPresentation: React.FC<
   );
 };
 
-export function rippleZoom(
-  props: RippleZoomProps = {},
-): TransitionPresentation<RippleZoomProps> {
+export function rippleZoom(props: RippleZoomProps = {}): TransitionPresentation<RippleZoomProps> {
   return {
     component: RippleZoomPresentation,
     props,

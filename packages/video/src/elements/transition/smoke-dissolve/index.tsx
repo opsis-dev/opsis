@@ -28,17 +28,14 @@ const SmokeDissolvePresentation: React.FC<
   presentationDurationInFrames,
   passedProps,
 }) => {
-  const {
-    colorBack = "#141318",
-    colors = DEFAULT_COLORS,
-    speed = 1,
-  } = passedProps;
+  const { colorBack = "#141318", colors = DEFAULT_COLORS, speed = 1 } = passedProps;
   const entering = presentationDirection === "entering";
   const p =
     presentationDurationInFrames > 1
       ? Math.min(
           1,
-          (presentationProgress * presentationDurationInFrames) / (presentationDurationInFrames - 1),
+          (presentationProgress * presentationDurationInFrames) /
+            (presentationDurationInFrames - 1),
         )
       : 1;
 

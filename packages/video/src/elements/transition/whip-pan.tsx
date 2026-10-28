@@ -15,9 +15,7 @@ export type WhipPanProps = {
   blur?: number;
 };
 
-const WhipPanPresentation: React.FC<
-  TransitionPresentationComponentProps<WhipPanProps>
-> = ({
+const WhipPanPresentation: React.FC<TransitionPresentationComponentProps<WhipPanProps>> = ({
   children,
   presentationProgress,
   presentationDirection,
@@ -33,8 +31,7 @@ const WhipPanPresentation: React.FC<
   });
   const velocity = Math.sin(Math.PI * travel);
 
-  const axis: "x" | "y" =
-    direction === "left" || direction === "right" ? "x" : "y";
+  const axis: "x" | "y" = direction === "left" || direction === "right" ? "x" : "y";
   const sign = direction === "left" || direction === "up" ? -1 : 1;
 
   const offset = entering ? (travel - 1) * 110 * sign : travel * 110 * sign;
@@ -52,9 +49,7 @@ const WhipPanPresentation: React.FC<
   return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
 };
 
-export function whipPan(
-  props: WhipPanProps = {},
-): TransitionPresentation<WhipPanProps> {
+export function whipPan(props: WhipPanProps = {}): TransitionPresentation<WhipPanProps> {
   return {
     component: WhipPanPresentation,
     props,

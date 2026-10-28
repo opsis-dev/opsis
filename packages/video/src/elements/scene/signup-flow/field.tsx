@@ -8,11 +8,7 @@ export interface FieldGroupProps {
 }
 
 export function FieldGroup({ children, gap = 16, style }: FieldGroupProps) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap, ...style }}>
-      {children}
-    </div>
-  );
+  return <div style={{ display: "flex", flexDirection: "column", gap, ...style }}>{children}</div>;
 }
 
 export interface FieldProps {
@@ -22,11 +18,7 @@ export interface FieldProps {
 }
 
 export function Field({ children, gap = 6, style }: FieldProps) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap, ...style }}>
-      {children}
-    </div>
-  );
+  return <div style={{ display: "flex", flexDirection: "column", gap, ...style }}>{children}</div>;
 }
 
 export interface FieldLabelProps {
@@ -88,12 +80,6 @@ export interface FieldControlProps {
   style?: CSSProperties;
 }
 
-export function FieldControl({
-  children,
-  height = 40,
-  style,
-}: FieldControlProps) {
-  return (
-    <div style={{ position: "relative", height, ...style }}>{children}</div>
-  );
+export function FieldControl({ children, height = 40, style }: FieldControlProps) {
+  return <div style={{ position: "relative", height, ...style }}>{children}</div>;
 }

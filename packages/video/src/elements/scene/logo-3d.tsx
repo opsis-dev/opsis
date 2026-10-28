@@ -16,8 +16,8 @@ import {
 } from "three";
 import type { SVGResult } from "three/addons/loaders/SVGLoader.js";
 import { isRecord } from "#video/common/guards.ts";
-import type { ElementSettings } from "#video/generated/spec.ts";
 import { Card } from "#video/elements/scene/card-3d.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { isSvg, useSvg, useTexture } from "#video/three/load.ts";
 import { elementPose } from "#video/three/motion.ts";
 import { fitToSize } from "#video/three/shapes.ts";

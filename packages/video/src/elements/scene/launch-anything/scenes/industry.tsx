@@ -1,6 +1,6 @@
-import type { SceneProps } from "../content";
-import { tween } from "../motion";
-import { Center, RevealCopy } from "../ui";
+import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { tween } from "#video/elements/scene/launch-anything/motion.ts";
+import { Center, RevealCopy } from "#video/elements/scene/launch-anything/ui.tsx";
 
 export function Industry({ scene, t }: SceneProps) {
   const age = t - 1021 / 60;

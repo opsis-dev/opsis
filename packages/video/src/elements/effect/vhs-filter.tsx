@@ -111,21 +111,18 @@ void main() {
   outColor = vec4(clamp(color, 0.0, 1.0), base.a);
 }`;
 
-const shader = makeFilterShader<VhsFilterProps>(
-  FRAGMENT_SHADER,
-  ({ gl, uniform, passedProps }) => {
-    const {
-      bleed = DEFAULTS.bleed,
-      wobble = DEFAULTS.wobble,
-      noise = DEFAULTS.noise,
-      intensity = DEFAULTS.intensity,
-    } = passedProps;
-    gl.uniform1f(uniform("u_bleed"), bleed);
-    gl.uniform1f(uniform("u_wobble"), wobble);
-    gl.uniform1f(uniform("u_noise"), noise);
-    gl.uniform1f(uniform("u_intensity"), intensity);
-  },
-);
+const shader = makeFilterShader<VhsFilterProps>(FRAGMENT_SHADER, ({ gl, uniform, passedProps }) => {
+  const {
+    bleed = DEFAULTS.bleed,
+    wobble = DEFAULTS.wobble,
+    noise = DEFAULTS.noise,
+    intensity = DEFAULTS.intensity,
+  } = passedProps;
+  gl.uniform1f(uniform("u_bleed"), bleed);
+  gl.uniform1f(uniform("u_wobble"), wobble);
+  gl.uniform1f(uniform("u_noise"), noise);
+  gl.uniform1f(uniform("u_intensity"), intensity);
+});
 
 const VhsFilterFallback: React.FC<VhsFilterProps & CanvasFilterProps> = ({
   children,
@@ -135,10 +132,8 @@ const VhsFilterFallback: React.FC<VhsFilterProps & CanvasFilterProps> = ({
   intensity = DEFAULTS.intensity,
 }) => {
   const frame = useAuthoredFrame();
-  const shift =
-    (random(`vhs-wobble-${frame}`) - 0.5) * 3.4 * wobble * intensity;
-  const flicker =
-    1 + (random(`vhs-flicker-${frame}`) - 0.5) * 0.07 * noise * intensity;
+  const shift = (random(`vhs-wobble-${frame}`) - 0.5) * 3.4 * wobble * intensity;
+  const flicker = 1 + (random(`vhs-flicker-${frame}`) - 0.5) * 0.07 * noise * intensity;
   const smear = 3 + bleed * 5;
 
   return (

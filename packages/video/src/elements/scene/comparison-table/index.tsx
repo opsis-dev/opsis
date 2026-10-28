@@ -1,51 +1,32 @@
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import type React from "react";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import { ticksFromWords } from "#video/lib/settings/shape.ts";
-import type React from "react";
 
 const fontFamily = '"Inter"';
 
-/** `true` ticks, `false` crosses, a string prints as-is. */
 export type MatrixCell = boolean | string;
 
 export type MatrixRow = {
   label: string;
-  /** One entry per column, in column order. */
   cells: MatrixCell[];
 };
 
 export type ComparisonTableProps = {
-  /** Column headings. The first table column is the feature label, unnamed. */
   columns?: string[];
   rows?: MatrixRow[];
-  /** Heading above the table. Omit to drop it. */
   title?: string;
-  /** Index into `columns` that stays lit throughout. Pass -1 for none. */
   highlightColumn?: number;
-  /** Chip pinned above the highlighted column. */
   highlightLabel?: string;
-  /** Second the first row wipes in. */
   startAtSeconds?: number;
-  /** Seconds between rows. */
   rowStaggerSeconds?: number;
-  /**
-   * Seconds the finished table holds before it retreats. Omit to leave it up
-   * for the rest of the scene.
-   */
   holdSeconds?: number;
   accentColor?: string;
   backgroundColor?: string;
   theme?: "dark" | "light";
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
@@ -60,7 +41,6 @@ const DEFAULT_ROWS: MatrixRow[] = [
   { label: "Priority queue", cells: [false, false, true] },
 ];
 
-/** Beat plan in seconds. Row times come from the props. */
 const T = {
   card: 0,
   cardFor: 0.46,
@@ -111,15 +91,6 @@ const Cross: React.FC<{ color: string; size: number; progress: number }> = ({
   </svg>
 );
 
-/**
- * A feature matrix that fills in the way you would read it: one row at a time,
- * label first, then each column's verdict a fraction behind the last so the eye
- * tracks left to right instead of taking the whole row as a block.
- *
- * Ticks and crosses draw their own strokes rather than fading, which keeps them
- * legible at the small sizes a matrix forces — a fading glyph spends most of its
- * entrance as grey mush, a drawing one is sharp from the first frame.
- */
 const ComparisonTableView: React.FC<ComparisonTableProps> = ({
   columns = DEFAULT_COLUMNS,
   rows = DEFAULT_ROWS,
@@ -144,20 +115,11 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
     interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
 
   const portrait = height > width;
-  // D1. Authored against a 1280x720 reference, u resolves to 0.75 on the 960
-  // docs stage, so a 15-unit label landed at 11px — 3.6px once the contact
-  // sheet reduces the stage 3.1x. The reference is the whole design's scale, so
-  // shrinking it grows the layout into the margin it was leaving empty and
-  // lifts every tier of type with it, instead of hand-tuning font sizes against
-  // a layout that stays too small.
   const designU = portrait
     ? Math.min(width / 496, height / 896)
     : Math.min(width / 1024, height / 576);
   const tableUnits = 24 * 2 + (title ? 44 : 0) + 44 + 46 * rows.length;
-  const u = Math.min(
-    designU,
-    (height - safe.paddingTop - safe.paddingBottom) / tableUnits,
-  );
+  const u = Math.min(designU, (height - safe.paddingTop - safe.paddingBottom) / tableUnits);
 
   const cardIn = spring({
     frame: frame - at(T.card),
@@ -178,7 +140,7 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
   const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 880 * u);
   const pad = 24 * u;
   const labelW = (cardW - pad * 2) * 0.36;
-  const colW = ((cardW - pad * 2) - labelW) / Math.max(1, columns.length);
+  const colW = (cardW - pad * 2 - labelW) / Math.max(1, columns.length);
   const rowH = 46 * u;
   const headH = 44 * u;
 
@@ -210,9 +172,6 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
           translate: `0 ${(1 - cardIn) * 22 * u + exit * 30 * u}px`,
         }}
       >
-        {/* The favoured column is a lit band behind the grid, not a per-cell
-            background — one shape means the rows can never disagree about where
-            its edges are. */}
         {highlightColumn >= 0 && highlightColumn < columns.length ? (
           <div
             style={{
@@ -314,7 +273,6 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
                 </div>
                 {columns.map((_, cellIndex) => {
                   const cell = row.cells[cellIndex] ?? "";
-                  // Cells trail their label so the row resolves left to right.
                   const cellAt = rowAt + 0.09 + cellIndex * 0.07;
                   const cellIn = ease(cellAt, cellAt + 0.3, EASING.editorial);
                   const lit = cellIndex === highlightColumn;
@@ -363,5 +321,11 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
 };
 
 export function ComparisonTable(props: ElementProps & { children?: React.ReactNode }) {
-  return <ComparisonTableView {...({ ...props, rows: ticksFromWords(props.rows) } as unknown as React.ComponentProps<typeof ComparisonTableView>)} />;
+  return (
+    <ComparisonTableView
+      {...({ ...props, rows: ticksFromWords(props.rows) } as unknown as React.ComponentProps<
+        typeof ComparisonTableView
+      >)}
+    />
+  );
 }

@@ -1,46 +1,28 @@
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
-import {
-  formatCompactNumber,
-  readDelta,
-  type ChartDatum,
-} from "#video/lib/charts/chart-utils.ts";
-import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import type React from "react";
+import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
+import { formatCompactNumber, readDelta, type ChartDatum } from "#video/lib/charts/chart-utils.ts";
+import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
 export type DonutChartProps = {
   segments: ChartDatum[];
-  /** Outer diameter of the ring, in pixels. */
   size?: number;
-  /** Ring thickness. Below about a tenth of `size` it reads as a hairline. */
   thickness?: number;
-  /** Fallback colours, cycled for segments that carry no `color`. */
   colors?: string[];
-  /** Legend rows beside the ring, one per segment. */
   showLegend?: boolean;
-  /** Total in the hole, counting up as the ring fills. */
   showTotal?: boolean;
-  /** Caption under the total. */
   totalLabel?: string;
-  /** Formats the centre total and the legend values. */
   valueFormatter?: (value: number) => string;
   trackColor?: string;
   labelColor?: string;
   inkColor?: string;
-  /** Colour of a legend change that is a rise. */
   upColor?: string;
-  /** Colour of a legend change that is a fall. */
   downColor?: string;
-  /** Length of one segment's sweep. Segments overlap by design. */
   durationInFrames?: number;
-  /** Frames between the start of one segment and the next. */
   staggerInFrames?: number;
   delayInFrames?: number;
-  /** Frame the exit begins on. Omit to hold once filled. */
   exitAtInFrames?: number;
-  /** Length of the exit. */
   exitInFrames?: number;
-  /** Frame override — pass the parent frame inside a `<Sequence>`. */
   frame?: number;
 };
 
@@ -48,19 +30,6 @@ const DEFAULT_COLORS = ["#e8b86d", "#2dd4bf", "#f472b6", "#8b8bf5"];
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/**
- * Multi-segment donut whose slices sweep on one after another.
- *
- * The ring is drawn as one `<circle>` per segment, each rotated to its own
- * start angle and revealed by its dash offset. Arc paths would need their own
- * large-arc bookkeeping and lose the round caps; a dashed stroke gets both for
- * free and keeps every segment on the same radius, so nothing drifts as the
- * sweep runs.
- *
- * The centre total counts the segments that have actually landed rather than
- * the grand total scaled by progress — the number and the ring then agree at
- * every frame instead of only at the end.
- */
 const DonutChartView: React.FC<DonutChartProps> = ({
   segments,
   size = 360,
@@ -88,8 +57,6 @@ const DonutChartView: React.FC<DonutChartProps> = ({
   const total = segments.reduce((sum, segment) => sum + segment.value, 0) || 1;
   const radius = (size - thickness) / 2;
   const circumference = 2 * Math.PI * radius;
-  // A fixed pixel gap keeps thin slices from touching their neighbours without
-  // eating a visible share of a wide one.
   const gap = Math.min(circumference * 0.012, thickness * 0.22);
 
   const exit =
@@ -101,11 +68,9 @@ const DonutChartView: React.FC<DonutChartProps> = ({
           easing: EASING.exit,
         });
 
-  let cumulative = 0;
   const drawn = segments.map((segment, index) => {
-    const start = cumulative;
+    const start = segments.slice(0, index).reduce((sum, before) => sum + before.value / total, 0);
     const fraction = segment.value / total;
-    cumulative += fraction;
 
     const progress = interpolate(
       frame,
@@ -126,10 +91,7 @@ const DonutChartView: React.FC<DonutChartProps> = ({
     };
   });
 
-  const landed = drawn.reduce(
-    (sum, segment) => sum + segment.value * segment.progress,
-    0,
-  );
+  const landed = drawn.reduce((sum, segment) => sum + segment.value * segment.progress, 0);
 
   return (
     <div
@@ -137,8 +99,6 @@ const DonutChartView: React.FC<DonutChartProps> = ({
         display: "flex",
         alignItems: "center",
         gap: size * 0.16,
-        // The exit dismisses the whole chart rather than unwinding the sweep:
-        // a ring that retracts reads as data being withdrawn.
         opacity: 1 - clamp01(exit / 0.7),
         scale: `${1 - exit * 0.06}`,
       }}
@@ -154,10 +114,7 @@ const DonutChartView: React.FC<DonutChartProps> = ({
             strokeWidth={thickness}
           />
           {drawn.map((segment, index) => {
-            const length = Math.max(
-              0,
-              segment.fraction * circumference * segment.progress - gap,
-            );
+            const length = Math.max(0, segment.fraction * circumference * segment.progress - gap);
 
             return (
               <circle
@@ -170,8 +127,6 @@ const DonutChartView: React.FC<DonutChartProps> = ({
                 strokeWidth={thickness}
                 strokeLinecap="butt"
                 strokeDasharray={`${length} ${circumference}`}
-                // −90° puts the first segment at twelve o'clock; the rotation
-                // is applied about the centre so every segment shares a radius.
                 transform={`rotate(${-90 + segment.start * 360} ${size / 2} ${size / 2})`}
               />
             );
@@ -226,8 +181,6 @@ const DonutChartView: React.FC<DonutChartProps> = ({
                 display: "flex",
                 alignItems: "center",
                 gap: size * 0.045,
-                // Each row arrives with its own slice, so the legend reads as
-                // a running commentary instead of a caption bolted on at the end.
                 opacity: clamp01(segment.progress * 1.6),
                 translate: `${(1 - segment.progress) * size * 0.05}px`,
               }}
@@ -287,5 +240,9 @@ const DonutChartView: React.FC<DonutChartProps> = ({
 };
 
 export function DonutChart(props: ElementProps & { children?: React.ReactNode }) {
-  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><DonutChartView {...(props as unknown as React.ComponentProps<typeof DonutChartView>)} /></AbsoluteFill>;
+  return (
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <DonutChartView {...(props as unknown as React.ComponentProps<typeof DonutChartView>)} />
+    </AbsoluteFill>
+  );
 }

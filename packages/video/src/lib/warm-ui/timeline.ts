@@ -1,19 +1,11 @@
 import { useCurrentFrame, useVideoConfig } from "remotion";
-import type { Step } from "./types";
+import type { Step } from "#video/lib/warm-ui/types.ts";
 
-export function framesFor(
-  d: number | { seconds: number },
-  fps: number,
-): number {
+export function framesFor(d: number | { seconds: number }, fps: number): number {
   return typeof d === "number" ? d : Math.round(d.seconds * fps);
 }
 
-export function revealCount(
-  localFrame: number,
-  fps: number,
-  len: number,
-  cps: number,
-): number {
+export function revealCount(localFrame: number, fps: number, len: number, cps: number): number {
   const over = (len / cps) * fps;
   if (over <= 0) return len;
   return Math.max(0, Math.min(len, Math.floor((localFrame / over) * len)));
@@ -41,10 +33,7 @@ export interface TypewriterState {
   typing: boolean;
 }
 
-export function useTypewriter(
-  full: string,
-  options: TypewriterOptions = {},
-): TypewriterState {
+export function useTypewriter(full: string, options: TypewriterOptions = {}): TypewriterState {
   const { cps = 20, speed = 1, startFrame = 0 } = options;
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -58,11 +47,7 @@ export function useTypewriter(
   };
 }
 
-export function useCurrentState<S extends string>(
-  steps: Step<S>[],
-  defaultState: S,
-  speed = 1,
-): S {
+export function useCurrentState<S extends string>(steps: Step<S>[], defaultState: S, speed = 1): S {
   const effectiveFrame = useCurrentFrame() * speed;
   let current = defaultState;
   let bestAt = -Infinity;
@@ -86,13 +71,8 @@ export function useStateTransition<S extends string>(
     .map((step, index) => ({ step, index }))
     .sort((a, b) => a.step.at - b.step.at || a.index - b.index)
     .filter((e) => e.step.at <= effectiveFrame)
-    // Same-`at` ties: the later array entry wins and the earlier tied
-    // entries never display, so they can never act as a `from` state.
-    .filter(
-      (e, i, arr) => i === arr.length - 1 || arr[i + 1].step.at !== e.step.at,
-    );
-  if (started.length === 0)
-    return { from: defaultState, to: defaultState, progress: 1 };
+    .filter((e, i, arr) => i === arr.length - 1 || arr[i + 1].step.at !== e.step.at);
+  if (started.length === 0) return { from: defaultState, to: defaultState, progress: 1 };
   const to = started[started.length - 1].step;
   const from = started.length >= 2 ? started[started.length - 2].step : null;
   const dur = to.duration ?? defaultDuration;

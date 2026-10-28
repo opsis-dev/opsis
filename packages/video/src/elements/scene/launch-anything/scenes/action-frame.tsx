@@ -1,6 +1,6 @@
 import { Img } from "remotion";
-import type { SceneProps } from "../content";
-import { actionFrame, smooth, tween } from "../motion";
+import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { actionFrame, smooth, tween } from "#video/elements/scene/launch-anything/motion.ts";
 
 export const actionBackground = "linear-gradient(#f3edde, #faf6ec 75%)";
 
@@ -19,8 +19,7 @@ export function ActionFrame({ scene, t }: SceneProps) {
         opacity: shape.enter,
         transform: `scale(${1 - 0.07 * shape.press})`,
         overflow: "hidden",
-        background:
-          "linear-gradient(135deg, #fbf8ee 10%, #f5f1e5 36%, #d9dfc8 70%, #90a47f 100%)",
+        background: "linear-gradient(135deg, #fbf8ee 10%, #f5f1e5 36%, #d9dfc8 70%, #90a47f 100%)",
         boxShadow: "inset 1px 1px 2px #fff, 0 4px 18px #728b6415",
       }}
     >
@@ -29,8 +28,7 @@ export function ActionFrame({ scene, t }: SceneProps) {
           position: "absolute",
           inset: 0,
           opacity: shape.morph,
-          background:
-            "linear-gradient(140deg, #8ca48d, #d1d8c3 35%, #f8f4ea 60%, #9ca78a)",
+          background: "linear-gradient(140deg, #8ca48d, #d1d8c3 35%, #f8f4ea 60%, #9ca78a)",
         }}
       />
       <div
@@ -41,10 +39,7 @@ export function ActionFrame({ scene, t }: SceneProps) {
           alignItems: "center",
           justifyContent: "center",
           color: "#070707",
-          fontSize: Math.min(
-            36,
-            320 / Math.max(1, Array.from(scene.content.action).length),
-          ),
+          fontSize: Math.min(36, 320 / Math.max(1, Array.from(scene.content.action).length)),
           letterSpacing: "-0.045em",
           fontWeight: 500,
           whiteSpace: "nowrap",
@@ -64,8 +59,7 @@ export function ActionFrame({ scene, t }: SceneProps) {
           boxSizing: "border-box",
           opacity: shape.morph,
           overflow: "hidden",
-          background:
-            "linear-gradient(140deg, #f8f4ea 25%, #efecdf 46%, #d5d8c2 72%, #849b7b)",
+          background: "linear-gradient(140deg, #f8f4ea 25%, #efecdf 46%, #d5d8c2 72%, #849b7b)",
           boxShadow: "inset 0 0 12px #ffffff9a",
         }}
       >

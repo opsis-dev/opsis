@@ -136,10 +136,7 @@ export function KineticCenterBuild({
             opacity = interpolate(frame, range, [0, 1], opts);
             scale = interpolate(frame, range, [entryScale, 1], opts);
             blur = interpolate(frame, range, [entryBlur, 0], opts);
-            y =
-              j === 0
-                ? interpolate(frame, travelRange, [firstWordY, 0], opts)
-                : 0;
+            y = j === 0 ? interpolate(frame, travelRange, [firstWordY, 0], opts) : 0;
           } else {
             for (let w = j + 1; w < n; w++) {
               const pushStart = firstDur + (w - 1) * pushDur;

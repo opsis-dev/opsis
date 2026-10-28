@@ -1,19 +1,14 @@
-import type { SceneProps } from "../content";
-import { clamp, smooth, tween } from "../motion";
-import { BrandMark, Center, Title } from "../ui";
+import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { clamp, smooth, tween } from "#video/elements/scene/launch-anything/motion.ts";
+import { BrandMark, Center, Title } from "#video/elements/scene/launch-anything/ui.tsx";
 
 export function Address({ scene, t }: SceneProps) {
   const url = scene.brandUrl;
-  const prefixLength = url
-    .toLowerCase()
-    .startsWith(scene.content.launch.toLowerCase())
+  const prefixLength = url.toLowerCase().startsWith(scene.content.launch.toLowerCase())
     ? scene.content.launch.length
     : 0;
   const typing = clamp((t - 21.94) / 0.59);
-  const text = url.slice(
-    0,
-    prefixLength + Math.floor((url.length - prefixLength) * typing),
-  );
+  const text = url.slice(0, prefixLength + Math.floor((url.length - prefixLength) * typing));
   const glow = tween(t, 22.15, 22.45) * (1 - tween(t, 22.6, 23.25));
   return (
     <Center style={{ background: "#122d24", color: "#fff9f3" }}>

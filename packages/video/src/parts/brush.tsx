@@ -26,11 +26,7 @@ export function brushReach(strokeWidth: number, grain: number): number {
   return strokeWidth / 2 + brushGrainScale(strokeWidth, grain) / 2;
 }
 
-export function brushFilterId(
-  seed: string,
-  strokeWidth: number,
-  grain: number,
-): string {
+export function brushFilterId(seed: string, strokeWidth: number, grain: number): string {
   return `brush-${Math.floor(hash01(`${seed}:${strokeWidth}:${grain}`) * 1e9)}`;
 }
 
@@ -56,11 +52,7 @@ export function sampleCubic(
   });
 }
 
-export function sampleLine(
-  from: BrushPoint,
-  to: BrushPoint,
-  points = 8,
-): BrushPoint[] {
+export function sampleLine(from: BrushPoint, to: BrushPoint, points = 8): BrushPoint[] {
   const count = Math.max(2, points);
   return Array.from({ length: count }, (_, i) => {
     const t = i / (count - 1);
@@ -112,7 +104,7 @@ export function brushRibbon(
       y: spine[i].y - normal.y * half,
     });
   }
-  const back = right.slice().reverse();
+  const back = right.toReversed();
 
   return `M ${left[0].x} ${left[0].y} ${curveSegments(left)} L ${back[0].x} ${back[0].y} ${curveSegments(back)} Z`;
 }

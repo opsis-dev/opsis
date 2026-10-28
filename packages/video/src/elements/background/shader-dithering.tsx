@@ -1,13 +1,9 @@
 import { Dithering, type DitheringProps } from "@paper-design/shaders-react";
 import { useCallback, useState } from "react";
-import {
-  continueRender,
-  delayRender,
-} from "remotion";
+import { continueRender, delayRender } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
-export interface ShaderDitheringProps
-  extends Omit<DitheringProps, "frame" | "ref"> {}
+export interface ShaderDitheringProps extends Omit<DitheringProps, "frame" | "ref"> {}
 
 export function ShaderDithering({
   speed = 1,
@@ -26,19 +22,13 @@ export function ShaderDithering({
   const gate = useCallback(
     (element: HTMLDivElement | null) => {
       if (!element) return;
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => continueRender(handle)),
-      );
+      requestAnimationFrame(() => requestAnimationFrame(() => continueRender(handle)));
     },
     [handle],
   );
 
   return (
-    <div
-      ref={gate}
-      className={className}
-      style={{ position: "absolute", inset: 0 }}
-    >
+    <div ref={gate} className={className} style={{ position: "absolute", inset: 0 }}>
       <Dithering
         speed={0}
         frame={(frame / fps) * speed * 1000}

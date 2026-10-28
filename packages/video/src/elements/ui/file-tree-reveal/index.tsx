@@ -1,45 +1,28 @@
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import type React from "react";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { isString } from "#video/common/guards.ts";
+import { type ElementProps } from "#video/common/spec.ts";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { isString } from "#video/common/guards.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import { treeFromPaths } from "#video/lib/settings/shape.ts";
-import type React from "react";
 
 const fontFamily = '"Inter"';
 
 export type FileNode = {
   name: string;
-  /** Present means folder, absent means file. An empty array is a folder with
-   * nothing in it, which is why this is not a `kind` field. */
   children?: FileNode[];
 };
 
 export type FileTreeRevealProps = {
   nodes?: FileNode[];
-  /** Title bar over the tree — the repo or project name. */
   title?: string;
-  /** Slash-joined path of the file that lights up at the end, e.g.
-   * `src/scenes/lower-third.tsx`. Omit to leave nothing selected. */
   selectedPath?: string;
-  /** Seconds between one row appearing and the next. */
   rowStagger?: number;
-  /**
-   * Seconds the finished tree holds before the panel retreats. Omit to leave it
-   * on screen for the rest of the scene.
-   */
   holdSeconds?: number;
   accentColor?: string;
   backgroundColor?: string;
   theme?: "dark" | "light";
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
@@ -60,16 +43,12 @@ const DEFAULT_NODES: FileNode[] = [
   { name: "package.json" },
 ];
 
-/** Beat plan in seconds. Row times are derived from `rowStagger`, so only the
- * frame around them lives here. */
 const T = {
   panel: 0,
   panelFor: 0.46,
   header: 0.16,
-  /** First row appears. */
   rows: 0.42,
   rowFor: 0.34,
-  /** Pause after the last row before the selection lands. */
   beforeSelect: 0.24,
   selectFor: 0.4,
   exitFor: 0.42,
@@ -80,10 +59,8 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-/** Panel metrics in `u`, shared by the fit calculation and the layout. */
 const HEADER_U = 42;
 const ROW_U = 31;
-/** Vertical padding above and below the rows. */
 const PAD_U = 24;
 
 type FlatRow = {
@@ -91,12 +68,9 @@ type FlatRow = {
   path: string;
   depth: number;
   isFolder: boolean;
-  /** Reveal index of this row's first child, for timing the chevron. */
   firstChildIndex: number | null;
 };
 
-/** Depth-first walk in display order — the same order the rows reveal in, so a
- * row's index is also its beat. */
 function flatten(nodes: FileNode[], depth = 0, parent = "", out: FlatRow[] = []) {
   for (const node of nodes) {
     const path = parent ? `${parent}/${node.name}` : node.name;
@@ -116,14 +90,10 @@ function flatten(nodes: FileNode[], depth = 0, parent = "", out: FlatRow[] = [])
   return out;
 }
 
-/** File names take their colour from the extension, using the same token
- * palette the code components use, so a tree next to a code block agrees with
- * it. */
 function extensionColor(name: string, palette: (typeof CODE_THEMES)["dark"]) {
   const extension = name.slice(name.lastIndexOf(".") + 1);
   if (extension === "tsx" || extension === "jsx") return palette.token.type;
-  if (extension === "ts" || extension === "js" || extension === "mjs")
-    return palette.token.call;
+  if (extension === "ts" || extension === "js" || extension === "mjs") return palette.token.call;
   if (extension === "json") return palette.token.number;
   if (extension === "css") return palette.token.prop;
   if (extension === "md" || extension === "mdx") return palette.token.string;
@@ -166,16 +136,6 @@ const ChevronGlyph: React.FC<{ size: number; color: string }> = ({ size, color }
   </svg>
 );
 
-/**
- * A project tree opening itself: folders turn their chevron down as their
- * contents arrive, each row takes up its own height so the rows beneath are
- * pushed down rather than fading in on top of a gap, and one file is selected
- * at the end.
- *
- * The reveal order is the depth-first display order, which is why a folder is
- * always on screen before anything inside it — the tree expands, it does not
- * assemble out of order.
- */
 const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
   nodes = DEFAULT_NODES,
   title = "northstar-studio",
@@ -199,20 +159,13 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
   const portrait = height > width;
   const rows = flatten(nodes);
 
-  // Unit sizing is driven by the row count as well as the frame: a short tree
-  // grows to fill the frame (the whole point of the preview is that the
-  // filenames are readable), a long one shrinks so it still fits vertically.
   const panelUnits = HEADER_U + PAD_U + rows.length * ROW_U;
   const fitU = portrait
     ? Math.min(width / 560, height / 1000)
     : Math.min(width / 640, height / 360);
-  const u = Math.min(
-    fitU,
-    (height - safe.paddingTop - safe.paddingBottom) / panelUnits,
-  );
+  const u = Math.min(fitU, (height - safe.paddingTop - safe.paddingBottom) / panelUnits);
   const revealAt = (index: number) => T.rows + rowStagger * index;
-  const lastRowEnd =
-    rows.length > 0 ? revealAt(rows.length - 1) + T.rowFor : T.rows;
+  const lastRowEnd = rows.length > 0 ? revealAt(rows.length - 1) + T.rowFor : T.rows;
   const selectAt = lastRowEnd + T.beforeSelect;
   const select = selectedPath ? ease(selectAt, selectAt + T.selectFor, EASING.editorial) : 0;
   const wantedPath = (selectedPath ?? "")
@@ -229,7 +182,6 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
   const open = ease(T.panel, T.panel + T.panelFor, EASING.editorial);
   const headerIn = ease(T.header, T.header + 0.4);
 
-  // Exits accelerate away; entrances decelerate in. Never ease-out an exit.
   const exit =
     holdSeconds === undefined
       ? 0
@@ -241,9 +193,6 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
   const panelW = Math.min(width - safe.paddingLeft - safe.paddingRight, 480 * u);
   const rowH = ROW_U * u;
   const indent = 19 * u;
-  // The rows column keeps its full height from the first frame, so the panel is
-  // already full size while the tree is still opening. Without it the 15%
-  // sample is a two-row sliver on an otherwise empty stage.
   const rowsH = rows.length * rowH;
 
   return (
@@ -320,24 +269,17 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
         >
           {rows.map((row, index) => {
             const rowIn = ease(revealAt(index), revealAt(index) + T.rowFor);
-            // Chevron turns as the folder's first child starts arriving, so the
-            // opening gesture and the contents are the same event.
-            const childAt =
-              row.firstChildIndex === null ? null : revealAt(row.firstChildIndex);
+            const childAt = row.firstChildIndex === null ? null : revealAt(row.firstChildIndex);
             const turn = childAt === null ? 0 : ease(childAt - 0.08, childAt + 0.22);
             const selected = wantedPath !== "" && row.path.toLowerCase() === wantedPath;
             const lit = selected ? select : 0;
-            const nameColor = row.isFolder
-              ? palette.fg
-              : extensionColor(row.name, palette);
+            const nameColor = row.isFolder ? palette.fg : extensionColor(row.name, palette);
 
             return (
               <div
                 key={row.path}
                 style={{
                   position: "relative",
-                  // Rows take their height as they arrive, which is what pushes
-                  // the tree open instead of cross-fading rows onto a fixed grid.
                   height: rowH * rowIn,
                   display: "flex",
                   alignItems: "center",
@@ -383,7 +325,10 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
                 {row.isFolder ? (
                   <FolderGlyph size={16 * u} color={palette.dim} />
                 ) : (
-                  <FileGlyph size={16 * u} color={`color-mix(in srgb, ${nameColor} 70%, transparent)`} />
+                  <FileGlyph
+                    size={16 * u}
+                    color={`color-mix(in srgb, ${nameColor} 70%, transparent)`}
+                  />
                 )}
 
                 <span
@@ -392,8 +337,6 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
                     fontSize: 16 * u,
                     fontWeight: row.isFolder ? 600 : 500,
                     whiteSpace: "nowrap",
-                    // Rows slide in from the left of their own indent, which
-                    // reads as coming out of the parent folder.
                     translate: `${(1 - rowIn) * -14 * u}px`,
                   }}
                 >
@@ -409,5 +352,12 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
 };
 
 export function FileTreeReveal(props: ElementProps & { children?: React.ReactNode }) {
-  return <FileTreeRevealView {...({ ...props, nodes: treeFromPaths(Array.isArray(props.nodes) ? props.nodes.filter(isString) : []) } as unknown as React.ComponentProps<typeof FileTreeRevealView>)} />;
+  return (
+    <FileTreeRevealView
+      {...({
+        ...props,
+        nodes: treeFromPaths(Array.isArray(props.nodes) ? props.nodes.filter(isString) : []),
+      } as unknown as React.ComponentProps<typeof FileTreeRevealView>)}
+    />
+  );
 }

@@ -1,14 +1,14 @@
 import type React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
+import { numberOr } from "#video/common/math.ts";
+import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { parseColor } from "#video/lib/neutral-ui/color.ts";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
   makeFilterShader,
 } from "#video/lib/transitions/canvas-presentation.tsx";
-import { parseColor } from "#video/lib/neutral-ui/color.ts";
-import { numberOr } from "#video/common/math.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 
 export type TvPowerOffProps = {
   durationInFrames?: number;
@@ -135,8 +135,7 @@ void main() {
   );
 }`;
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function toRgb(color: string): [number, number, number] {
   const { r, g, b } = parseColor(color);
@@ -144,10 +143,7 @@ function toRgb(color: string): [number, number, number] {
 }
 
 function powerProgress(props: TvPowerOffProps, frame: number): number {
-  const {
-    durationInFrames = DEFAULTS.durationInFrames,
-    delay = DEFAULTS.delay,
-  } = props;
+  const { durationInFrames = DEFAULTS.durationInFrames, delay = DEFAULTS.delay } = props;
   return clamp((frame - delay) / Math.max(1, durationInFrames), 0, 1);
 }
 
@@ -167,9 +163,7 @@ const shader = makeFilterShader<TvPowerOffProps>(
   },
 );
 
-const TvPowerOffFallback: React.FC<TvPowerOffProps & CanvasFilterProps> = (
-  props,
-) => {
+const TvPowerOffFallback: React.FC<TvPowerOffProps & CanvasFilterProps> = (props) => {
   const frame = useAuthoredFrame();
   const {
     children,
@@ -223,5 +217,12 @@ const TvPowerOffView = makeCanvasFilter<TvPowerOffProps>({
 export function TvPowerOff(props: ElementProps & { children?: React.ReactNode }) {
   const { durationInFrames } = useVideoConfig();
   const length = numberOr(props.durationInFrames, 0);
-  return <TvPowerOffView {...({ ...props, delay: Math.max(0, durationInFrames - length) } as unknown as React.ComponentProps<typeof TvPowerOffView>)} />;
+  return (
+    <TvPowerOffView
+      {...({
+        ...props,
+        delay: Math.max(0, durationInFrames - length),
+      } as unknown as React.ComponentProps<typeof TvPowerOffView>)}
+    />
+  );
 }

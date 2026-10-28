@@ -1,3 +1,8 @@
+import type React from "react";
+import { Easing, interpolate } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   type CommandMenuIcon,
   CommandMenuItemRow,
@@ -7,17 +12,12 @@ import {
   commandMenuItemStyle,
   commandMenuItemStyleContext,
 } from "#video/elements/scene/command-menu/command-menu-item.tsx";
-import { Easing, interpolate } from "remotion";
-import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { type NeutralTheme, revealedText, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 import {
-  type NeutralTheme,
-  revealedText,
-  useNeutralTheme,
-} from "#video/lib/neutral-ui/index.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
-import { NeutralUIProvider, defaultDarkTheme, defaultLightTheme } from "#video/lib/neutral-ui/theme.ts";
-import type React from "react";
+  NeutralUIProvider,
+  defaultDarkTheme,
+  defaultLightTheme,
+} from "#video/lib/neutral-ui/theme.ts";
 
 export type CommandMenuState = "opened" | "closed";
 
@@ -60,11 +60,7 @@ export function commandMenuPlayEnd(query: string): number {
   );
 }
 
-function blendStyles(
-  a: CommandMenuStyle,
-  b: CommandMenuStyle,
-  t: number,
-): CommandMenuStyle {
+function blendStyles(a: CommandMenuStyle, b: CommandMenuStyle, t: number): CommandMenuStyle {
   return {
     backdropOpacity: a.backdropOpacity + (b.backdropOpacity - a.backdropOpacity) * t,
     panelOpacity: a.panelOpacity + (b.panelOpacity - a.panelOpacity) * t,
@@ -82,9 +78,7 @@ export function filterCommandItems(
   query: string,
   revealCount?: number,
 ): CommandMenuEntry[] {
-  const visible = (
-    revealCount === undefined ? query : revealedText(query, revealCount)
-  )
+  const visible = (revealCount === undefined ? query : revealedText(query, revealCount))
     .trim()
     .toLowerCase();
   if (visible === "") return items;
@@ -110,9 +104,7 @@ export interface CommandMenuStyleContext {
   itemCtx: CommandMenuItemStyleContext;
 }
 
-export function commandMenuStyleContext(
-  theme: NeutralTheme,
-): CommandMenuStyleContext {
+export function commandMenuStyleContext(theme: NeutralTheme): CommandMenuStyleContext {
   return {
     panelBg: theme.popover,
     panelBorder: theme.border,
@@ -193,15 +185,18 @@ function CommandMenuView({
     ? blendStyles(commandMenuStyle("closed", ctx), commandMenuStyle("opened", ctx), opened)
     : (style ?? commandMenuStyle(state, ctx));
 
-  const visibleQuery =
-    shownCount === undefined ? query : revealedText(query, shownCount);
+  const visibleQuery = shownCount === undefined ? query : revealedText(query, shownCount);
   const filtered = filterCommandItems(items, query, shownCount);
   const typingEnd = TYPE_AT + Array.from(query).length * FRAMES_PER_LETTER;
   const pick = items.indexOf(filtered[0]);
   const hoverAt = typingEnd + HOVER_AFTER_TYPING;
   const pressAt = hoverAt + PRESS_AFTER_HOVER;
   const highlighted = autoplay ? (frame >= hoverAt ? pick : -1) : highlightedIndex;
-  const pressed = autoplay ? (frame >= pressAt && frame < pressAt + PRESS_FOR ? pick : -1) : pressedIndex;
+  const pressed = autoplay
+    ? frame >= pressAt && frame < pressAt + PRESS_FOR
+      ? pick
+      : -1
+    : pressedIndex;
   const selected = autoplay ? (frame >= pressAt + PRESS_FOR ? pick : -1) : selectedIndex;
 
   return (
@@ -213,11 +208,9 @@ function CommandMenuView({
         alignItems: "flex-start",
         justifyContent: "center",
         paddingTop: "18%",
-        fontFamily:
-          "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
-      {}
       <div
         style={{
           position: "absolute",
@@ -243,7 +236,6 @@ function CommandMenuView({
           boxShadow: "0 24px 48px -12px rgba(0,0,0,0.25)",
         }}
       >
-        {}
         <div
           style={{
             display: "flex",
@@ -271,7 +263,6 @@ function CommandMenuView({
             }}
           >
             {visibleQuery || "Type a command or search…"}
-            {}
             <span
               style={{
                 display: "inline-block",
@@ -283,7 +274,6 @@ function CommandMenuView({
             />
           </span>
         </div>
-        {}
         <div
           style={{
             height: 1,
@@ -291,7 +281,6 @@ function CommandMenuView({
             margin: "4px 0",
           }}
         />
-        {}
         <div
           style={{
             display: "flex",
@@ -343,7 +332,20 @@ function CommandMenuView({
 
 export function CommandMenu(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme)) return <CommandMenuView {...(props as unknown as React.ComponentProps<typeof CommandMenuView>)} />;
-  const tokens = { ...(theme.mode === "dark" ? defaultDarkTheme : defaultLightTheme), ...themeColors(theme) };
-  return <NeutralUIProvider mode={theme.mode} theme={tokens}><CommandMenuView {...(props as unknown as React.ComponentProps<typeof CommandMenuView>)} theme={tokens} /></NeutralUIProvider>;
+  if (!isThemeValue(theme))
+    return (
+      <CommandMenuView {...(props as unknown as React.ComponentProps<typeof CommandMenuView>)} />
+    );
+  const tokens = {
+    ...(theme.mode === "dark" ? defaultDarkTheme : defaultLightTheme),
+    ...themeColors(theme),
+  };
+  return (
+    <NeutralUIProvider mode={theme.mode} theme={tokens}>
+      <CommandMenuView
+        {...(props as unknown as React.ComponentProps<typeof CommandMenuView>)}
+        theme={tokens}
+      />
+    </NeutralUIProvider>
+  );
 }

@@ -1,6 +1,6 @@
 import { Interactive, interpolate } from "remotion";
-import type { ReleaseTeaserScene } from "../content";
-import { characterState, fitText, graphemes } from "../motion";
+import type { ReleaseTeaserScene } from "#video/elements/scene/release-teaser/content.ts";
+import { characterState, fitText, graphemes } from "#video/elements/scene/release-teaser/motion.ts";
 
 export function Statement({
   scene,
@@ -51,22 +51,14 @@ export function Statement({
             {scene.reducedMotion
               ? line
               : chars.map((char, index) => {
-                  const state = characterState(
-                    frame,
-                    duration,
-                    index,
-                    chars.length,
-                  );
+                  const state = characterState(frame, duration, index, chars.length);
                   return (
                     <span
                       key={`${index}-${char}`}
                       style={{
                         display: "inline-block",
                         opacity: state.opacity,
-                        filter:
-                          state.blur > 0.08
-                            ? `blur(${state.blur}px)`
-                            : undefined,
+                        filter: state.blur > 0.08 ? `blur(${state.blur}px)` : undefined,
                         translate: `0 ${state.y}px`,
                       }}
                     >

@@ -1,10 +1,4 @@
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
@@ -13,41 +7,23 @@ const fontFamily = '"Inter"';
 
 export type GraphCommit = {
   message: string;
-  /** Short hash shown in the gutter. Any length works; 7 reads as git. */
   hash: string;
-  /** Lane index. 0 is the trunk; 1 and up are branches to its right. */
   lane?: number;
-  /**
-   * Index of the commit this one descends from. Defaults to the previous entry,
-   * which is what you want for a straight run; point it further back to fork,
-   * and set `mergeFrom` to bring a fork home.
-   */
   parent?: number;
-  /** Second lane this commit also descends from — draws the merge curve. */
   mergeFrom?: number;
-  /** Tag or branch chip pinned to the row. */
   ref?: string;
 };
 
 export type CommitGraphProps = {
   commits?: GraphCommit[];
-  /** Text in the window's title bar. Omit to drop the chrome header. */
   windowTitle?: string;
-  /** Second the first commit lands. */
   startAtSeconds?: number;
-  /** Seconds between commits. The edge draws over this same gap. */
   stepSeconds?: number;
-  /**
-   * Seconds the finished graph holds before it retreats. Omit to leave it up
-   * for the rest of the scene.
-   */
   holdSeconds?: number;
-  /** Colour of the trunk. Branch lanes take `laneColors`. */
   accentColor?: string;
   laneColors?: string[];
   backgroundColor?: string;
   theme?: "dark" | "light";
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
@@ -67,7 +43,6 @@ const DEFAULT_COMMITS: GraphCommit[] = [
   },
 ];
 
-/** Beat plan in seconds. Commit times come from the props. */
 const T = {
   window: 0,
   windowFor: 0.46,
@@ -82,17 +57,6 @@ const clamp = {
 
 const DEFAULT_LANE_COLORS = ["#7DD3E8", "#C99BE8", "#9BD4A0", "#E8B86D"];
 
-/**
- * A branch graph that draws itself: every edge grows from its parent toward the
- * commit it feeds, the dot pops the moment the line arrives, and the message
- * beside it fades up a beat later so the eye follows the rail rather than
- * jumping to the text.
- *
- * Edges use `pathLength={1}`, so the dash offset that reveals them is the same
- * number as the commit's progress regardless of whether the segment is a short
- * vertical hop or a long merge curve — a fork and a straight run draw at the
- * same apparent speed.
- */
 export const CommitGraph: React.FC<CommitGraphProps> = ({
   commits: commitsProp = DEFAULT_COMMITS,
   windowTitle = "git log --graph --oneline",
@@ -115,12 +79,6 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
     interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
 
   const portrait = height > width;
-  // D1. Authored against a 1280x720 reference, u resolves to 0.75 on the 960
-  // docs stage, so a 15-unit label landed at 11px — 3.6px once the contact
-  // sheet reduces the stage 3.1x. The reference is the whole design's scale, so
-  // shrinking it grows the layout into the margin it was leaving empty and
-  // lifts every tier of type with it, instead of hand-tuning font sizes against
-  // a layout that stays too small.
   const designU = portrait
     ? Math.min(width / 496, height / 896)
     : Math.min(width / 1024, height / 576);
@@ -172,7 +130,6 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
   const rowY = (index: number) => index * rowH + rowH / 2;
   const laneX = (lane: number) => gutterX + lane * laneW;
 
-  /** Reveal of the edge feeding commit `index`, and of the commit itself. */
   const arrivalOf = (index: number) =>
     ease(
       startAtSeconds + index * stepSeconds,
@@ -188,8 +145,6 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
     const x2 = laneX(to.lane ?? 0);
     const y2 = rowY(toIndex);
     if (x1 === x2) return `M ${x1} ${y1} L ${x2} ${y2}`;
-    // A fork leaves its parent vertically and arrives vertically, so the curve
-    // reads as a lane change rather than a diagonal shortcut.
     const bend = (y2 - y1) * 0.55;
     return `M ${x1} ${y1} C ${x1} ${y1 + bend}, ${x2} ${y2 - bend}, ${x2} ${y2}`;
   };
@@ -295,9 +250,8 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
             })}
 
             {commits.map((commit, index) => {
-              const progress = index === 0 ? ease(startAtSeconds - 0.24, startAtSeconds) : arrivalOf(index);
-              // The dot only exists once its edge has arrived, so a commit can
-              // never appear ahead of the line that feeds it.
+              const progress =
+                index === 0 ? ease(startAtSeconds - 0.24, startAtSeconds) : arrivalOf(index);
               const pop = interpolate(progress, [0.82, 1], [0, 1], clamp);
               if (pop <= 0) return null;
               const color = laneColor(commit.lane ?? 0);
@@ -317,7 +271,8 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
           </svg>
 
           {commits.map((commit, index) => {
-            const progress = index === 0 ? ease(startAtSeconds - 0.24, startAtSeconds) : arrivalOf(index);
+            const progress =
+              index === 0 ? ease(startAtSeconds - 0.24, startAtSeconds) : arrivalOf(index);
             const textIn = interpolate(progress, [0.86, 1], [0, 1], clamp);
             return (
               <div

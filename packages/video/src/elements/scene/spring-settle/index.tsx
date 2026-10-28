@@ -67,9 +67,10 @@ type SceneClock = {
 
 const SceneCtx = createContext<SceneClock | null>(null);
 
-const resolveConfig = (
-  config?: Partial<SpringSettleConfig>,
-): SpringSettleConfig => ({ ...SPRING_SETTLE_DEFAULTS, ...config });
+const resolveConfig = (config?: Partial<SpringSettleConfig>): SpringSettleConfig => ({
+  ...SPRING_SETTLE_DEFAULTS,
+  ...config,
+});
 
 const dwellOf = (scene: SpringSettleSceneDef, cfg: SpringSettleConfig) =>
   scene.durationInFrames ?? cfg.sceneFrames;
@@ -121,12 +122,7 @@ export const springSettleExitStyle = (
   config?: Partial<SpringSettleConfig>,
 ): CSSProperties => {
   const cfg = resolveConfig(config);
-  const tExit = interpolate(
-    local,
-    [dwellFrames - cfg.exitFrames, dwellFrames],
-    [0, 1],
-    CLAMP,
-  );
+  const tExit = interpolate(local, [dwellFrames - cfg.exitFrames, dwellFrames], [0, 1], CLAMP);
   if (tExit <= 0) return {};
   const eExit = tExit ** cfg.exitPower;
   return {
@@ -142,11 +138,7 @@ export interface SpringSettleEnterProps {
   children: ReactNode;
 }
 
-export function SpringSettleEnter({
-  local,
-  config,
-  children,
-}: SpringSettleEnterProps) {
+export function SpringSettleEnter({ local, config, children }: SpringSettleEnterProps) {
   const { fps } = useVideoConfig();
   return (
     <SceneCtx.Provider value={{ local, cfg: resolveConfig(config), fps }}>
@@ -161,24 +153,14 @@ export interface SpringSettleItemProps {
   children: ReactNode;
 }
 
-export function SpringSettleItem({
-  index = 0,
-  style,
-  children,
-}: SpringSettleItemProps) {
+export function SpringSettleItem({ index = 0, style, children }: SpringSettleItemProps) {
   const clock = useContext(SceneCtx);
   if (!clock) {
     return <div style={style}>{children}</div>;
   }
   const { local, cfg, fps } = clock;
   const tEnter =
-    local -
-    stagger(
-      index,
-      cfg.enterStagger,
-      cfg.enterStaggerPower,
-      cfg.enterStaggerJitter,
-    );
+    local - stagger(index, cfg.enterStagger, cfg.enterStaggerPower, cfg.enterStaggerJitter);
   const enterP = spring({
     frame: tEnter,
     fps,
@@ -207,8 +189,7 @@ export function SpringSettleItem({
   );
 }
 
-const wrapSigned = (d: number, total: number) =>
-  (((d % total) + total * 1.5) % total) - total / 2;
+const wrapSigned = (d: number, total: number) => (((d % total) + total * 1.5) % total) - total / 2;
 
 export interface SpringSettleScenesProps {
   scenes: SpringSettleSceneDef[];
@@ -229,12 +210,7 @@ export function SpringSettleScenes({
 
   const lens = scenes.map((s) => dwellOf(s, cfg) + cfg.gapFrames);
   const total = lens.reduce((a, b) => a + b, 0);
-  const { index, local, dwellFrames } = springSettleTimeline(
-    frame,
-    scenes,
-    cfg,
-    { loop },
-  );
+  const { index, local, dwellFrames } = springSettleTimeline(frame, scenes, cfg, { loop });
 
   const n = scenes.length;
   const cur = scenes[index];

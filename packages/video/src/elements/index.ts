@@ -1,5 +1,3 @@
-import { component, presentation, sequencer } from "#video/registry/framing.tsx";
-import type { ElementImpl } from "#video/registry/types.ts";
 import { Placeholder } from "#video/core/placeholder.tsx";
 import { StillElement } from "#video/core/still.tsx";
 import { AuroraBg } from "#video/elements/background/aurora-bg.tsx";
@@ -77,7 +75,10 @@ import { Model3D } from "#video/elements/scene/model-3d.tsx";
 import { PricingCard } from "#video/elements/scene/pricing-card/index.tsx";
 import { ReleaseTeaser } from "#video/elements/scene/release-teaser/index.tsx";
 import { SignupFlow } from "#video/elements/scene/signup-flow/index.tsx";
-import { SpringSettleItem, SpringSettleScenes } from "#video/elements/scene/spring-settle/index.tsx";
+import {
+  SpringSettleItem,
+  SpringSettleScenes,
+} from "#video/elements/scene/spring-settle/index.tsx";
 import { AnnounceTitle } from "#video/elements/text/announce-title.tsx";
 import { GradientScaleCutText } from "#video/elements/text/gradient-scale-cut-text.tsx";
 import { HandwritingText } from "#video/elements/text/handwriting-text.tsx";
@@ -140,6 +141,8 @@ import { KanbanMove } from "#video/elements/ui/kanban-move/index.tsx";
 import { LogoEnter } from "#video/elements/ui/logo-enter.tsx";
 import { SearchReveal } from "#video/elements/ui/search-reveal.tsx";
 import { TerminalSimulator } from "#video/elements/ui/terminal-simulator.tsx";
+import { component, presentation, sequencer } from "#video/registry/framing.tsx";
+import type { ElementImpl } from "#video/registry/types.ts";
 
 export const ELEMENTS: Readonly<Record<string, ElementImpl>> = {
   "soft-blur-in": component(SoftBlurIn),

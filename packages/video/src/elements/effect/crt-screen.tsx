@@ -117,9 +117,7 @@ const CrtScreenFallback: React.FC<CrtScreenProps & CanvasFilterProps> = ({
   vignette = DEFAULTS.vignette,
 }) => (
   <AbsoluteFill>
-    <AbsoluteFill style={{ filter: "saturate(1.1) contrast(1.06)" }}>
-      {children}
-    </AbsoluteFill>
+    <AbsoluteFill style={{ filter: "saturate(1.1) contrast(1.06)" }}>{children}</AbsoluteFill>
     <AbsoluteFill
       style={{
         background:

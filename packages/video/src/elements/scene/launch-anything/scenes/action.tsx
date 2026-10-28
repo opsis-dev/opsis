@@ -1,8 +1,11 @@
 import { useId } from "react";
-import type { SceneProps } from "../content";
-import { actionFrame, tween } from "../motion";
-import { Center, RevealCopy } from "../ui";
-import { ActionFrame, actionBackground } from "./action-frame";
+import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { actionFrame, tween } from "#video/elements/scene/launch-anything/motion.ts";
+import {
+  ActionFrame,
+  actionBackground,
+} from "#video/elements/scene/launch-anything/scenes/action-frame.tsx";
+import { Center, RevealCopy } from "#video/elements/scene/launch-anything/ui.tsx";
 
 export function Action({ scene, t }: SceneProps) {
   const id = useId();
@@ -27,13 +30,7 @@ export function Action({ scene, t }: SceneProps) {
         }}
       >
         <Center>
-          <RevealCopy
-            text={scene.content.next}
-            size={47 - 11 * travel}
-            t={t}
-            start={3.8}
-            dark
-          />
+          <RevealCopy text={scene.content.next} size={47 - 11 * travel} t={t} start={3.8} dark />
         </Center>
       </div>
       <ActionFrame scene={scene} t={t} />

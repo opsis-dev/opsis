@@ -42,7 +42,6 @@ export function AnimatedLineChart({
     return { x, y };
   });
 
-  // Analytical path length: sum of segment distances
   let pathLength = 0;
   for (let i = 1; i < points.length; i++) {
     const dx = points[i].x - points[i - 1].x;
@@ -54,8 +53,6 @@ export function AnimatedLineChart({
     .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(2)},${p.y.toFixed(2)}`)
     .join(" ");
 
-  // Spring-driven progress: smooth, no bounce. Matches the "smooth" preset
-  // from remotion-best-practices/timing.md.
   const progress = spring({
     frame,
     fps,
@@ -65,7 +62,6 @@ export function AnimatedLineChart({
 
   const dashOffset = pathLength * (1 - progress);
 
-  // Find dot position along the path at current progress
   const targetLen = pathLength * progress;
   let traveled = 0;
   let dotX = points[0].x;
@@ -97,8 +93,7 @@ export function AnimatedLineChart({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily:
-          "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       <svg
@@ -107,7 +102,6 @@ export function AnimatedLineChart({
         viewBox={`0 0 ${width} ${height}`}
         style={{ overflow: "visible" }}
       >
-        {/* Horizontal grid */}
         {Array.from({ length: gridRows + 1 }).map((_, i) => {
           const y = padding + (i / gridRows) * innerHeight;
           return (
@@ -122,7 +116,6 @@ export function AnimatedLineChart({
             />
           );
         })}
-        {/* Vertical grid */}
         {Array.from({ length: gridCols + 1 }).map((_, i) => {
           const x = padding + (i / gridCols) * innerWidth;
           return (
@@ -137,7 +130,6 @@ export function AnimatedLineChart({
             />
           );
         })}
-        {/* Axis */}
         <line
           x1={padding}
           x2={padding}
@@ -155,7 +147,6 @@ export function AnimatedLineChart({
           strokeWidth={2}
         />
 
-        {/* Animated line */}
         <path
           d={d}
           fill="none"

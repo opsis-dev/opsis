@@ -1,25 +1,11 @@
 import type { CSSProperties } from "react";
-import {
-  Easing,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 
-/** Frame the prompt starts typing in the chat-style composers. */
 export const AI_TYPING_START = 42;
-/** Frame the prompt starts typing in the terminal-style composers. */
 export const AI_TYPING_START_TUI = 48;
-/** Characters per second for the chat-style composers. */
 export const AI_TYPING_CPS = 22;
 
-export function stageScale(
-  width: number,
-  height: number,
-  refW = 1280,
-  refH = 720,
-): number {
+export function stageScale(width: number, height: number, refW = 1280, refH = 720): number {
   return Math.min(width / refW, height / refH);
 }
 
@@ -36,20 +22,8 @@ export interface TypewriterState {
   typing: boolean;
 }
 
-/**
- * Character-by-character reveal. `typing` is false both before the first
- * character and after the last one, so a caret bound to `!typing` blinks while
- * idle and holds solid while text is being revealed.
- */
-export function useTypewriter(
-  full: string,
-  options: TypewriterOptions = {},
-): TypewriterState {
-  const {
-    cps = AI_TYPING_CPS,
-    speed = 1,
-    startFrame = AI_TYPING_START,
-  } = options;
+export function useTypewriter(full: string, options: TypewriterOptions = {}): TypewriterState {
+  const { cps = AI_TYPING_CPS, speed = 1, startFrame = AI_TYPING_START } = options;
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const local = frame * speed - startFrame;
@@ -69,7 +43,6 @@ export function useTypewriter(
   };
 }
 
-/** Spring that drives the mic/waveform → send button morph. */
 export function morphProgressAt(
   frame: number,
   opts: { startFrame?: number; fps: number; speed?: number },
@@ -84,27 +57,13 @@ export function morphProgressAt(
 }
 
 export interface SendBeat {
-  /** Speed-adjusted frame the send happens on. */
   frame: number;
-  /** True once the prompt has left the composer. */
   sent: boolean;
-  /** 0 → 1 → 0 pulse across the button press. Map it onto a scale dip. */
   press: number;
-  /** 0 → 1 as the sent message rises into the thread. */
   bubble: number;
-  /** 0 → 1 as the assistant starts working on the reply. */
   reply: number;
 }
 
-/**
- * The beat after the typewriter stops: press, clear, and the prompt landing in
- * the thread. Timed off the prompt length so it always follows the last
- * character rather than sitting on a hand-picked frame that a longer prompt
- * would overrun.
- *
- * `frame` must already be speed-adjusted (`frame * speed`), the same value the
- * typewriter is driven with.
- */
 export function sendBeatAt(
   frame: number,
   opts: {
@@ -112,7 +71,6 @@ export function sendBeatAt(
     fps: number;
     cps?: number;
     startFrame?: number;
-    /** Beat between the last character and the press. */
     pauseSeconds?: number;
   },
 ): SendBeat {
@@ -127,8 +85,7 @@ export function sendBeatAt(
     extrapolateLeft: "clamp" as const,
     extrapolateRight: "clamp" as const,
   };
-  const at =
-    startFrame + (cps > 0 ? (promptLength / cps) * fps : 0) + pauseSeconds * fps;
+  const at = startFrame + (cps > 0 ? (promptLength / cps) * fps : 0) + pauseSeconds * fps;
 
   return {
     frame: at,
@@ -145,25 +102,13 @@ export function sendBeatAt(
   };
 }
 
-/**
- * Three-dot "working on it" pulse. `index` is the dot, `frame` the
- * speed-adjusted frame; the period is deliberately short so a preview sampled
- * late in its window still has something moving in it.
- */
-export function replyDotOpacity(
-  frame: number,
-  index: number,
-  fps: number,
-): number {
+export function replyDotOpacity(frame: number, index: number, fps: number): number {
   const period = fps * 0.9;
-  const phase = ((frame - index * (period / 3)) % period + period) % period;
+  const phase = (((frame - index * (period / 3)) % period) + period) % period;
   return 0.28 + 0.72 * (0.5 - 0.5 * Math.cos((phase / period) * Math.PI * 2));
 }
 
-export function introBounceIn(
-  frame: number,
-  fps: number,
-): { translateY: number; scale: number } {
+export function introBounceIn(frame: number, fps: number): { translateY: number; scale: number } {
   const s = spring({
     fps,
     frame,

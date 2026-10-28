@@ -7,21 +7,15 @@ import {
   type TransitionVariant,
 } from "#video/lib/transitions/transition-timing.ts";
 
-export type GridPixelateOrder =
-  | "from-left"
-  | "from-top"
-  | "diagonal"
-  | "center";
+export type GridPixelateOrder = "from-left" | "from-top" | "diagonal" | "center";
 
 export type GridPixelateShape = "square" | "dot";
 
 export type GridPixelateWipeProps = {
   cols?: number;
   rows?: number;
-  /** Which corner or axis the cells light up from. */
   order?: GridPixelateOrder;
   shape?: GridPixelateShape;
-  /** 0 pops every cell together; 1 spreads them across the whole window. */
   stagger?: number;
 };
 
@@ -43,15 +37,11 @@ function cellRank(
     case "diagonal":
       return (u + v) / 2;
     case "center":
-      return Math.min(1, Math.hypot(u - 0.5, v - 0.5) / 0.7071);
+      return Math.min(1, Math.hypot(u - 0.5, v - 0.5) / Math.SQRT1_2);
   }
 }
 
-function cellOpacity(
-  progress: number,
-  rank: number,
-  stagger: number,
-): number {
+function cellOpacity(progress: number, rank: number, stagger: number): number {
   const revealAt = rank * stagger;
   const span = Math.max(1 - stagger, 0.001);
   const raw = Math.min(1, Math.max(0, (progress - revealAt) / span));
@@ -78,11 +68,7 @@ function buildGridMask(
 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-      const opacity = cellOpacity(
-        progress,
-        cellRank(order, col, row, cols, rows),
-        stagger,
-      );
+      const opacity = cellOpacity(progress, cellRank(order, col, row, cols, rows), stagger);
 
       if (opacity < 0.004) {
         continue;
@@ -91,10 +77,6 @@ function buildGridMask(
       const alpha = opacity.toFixed(3);
 
       if (shape === "dot") {
-        // The dot grows with its own reveal, so the frame fills in as a field
-        // of expanding points rather than a grid of fading squares.
-        // Grows to the cell's half-diagonal, so the dots close into a solid
-        // field on the last frames instead of popping from dots to full frame.
         const r = (Math.hypot(cellW * aspect, cellH) / 2) * opacity;
         cells.push(
           `<ellipse cx="${(col + 0.5) * cellW}" cy="${(row + 0.5) * cellH}" rx="${(r / aspect).toFixed(3)}" ry="${r.toFixed(3)}" fill="white" fill-opacity="${alpha}"/>`,
@@ -113,20 +95,12 @@ function buildGridMask(
 }
 
 const GridPixelateWipePresentation: React.FC<
-  React.ComponentProps<
-    NonNullable<TransitionPresentation<GridPixelateWipeProps>["component"]>
-  >
+  React.ComponentProps<NonNullable<TransitionPresentation<GridPixelateWipeProps>["component"]>>
 > = ({
   children,
   presentationProgress,
   presentationDirection,
-  passedProps: {
-    cols = 12,
-    rows = 8,
-    order = "from-left",
-    shape = "square",
-    stagger = 0.82,
-  },
+  passedProps: { cols = 12, rows = 8, order = "from-left", shape = "square", stagger = 0.82 },
 }) => {
   const phase = transitionPhase(presentationProgress, presentationDirection, {
     lead: 1,
@@ -136,19 +110,10 @@ const GridPixelateWipePresentation: React.FC<
   const shapedRows = Math.max(1, Math.round((rows * (height / width) * 16) / 9));
 
   const style = useMemo(() => {
-    // Only the arriving scene is masked. Masking the outgoing one as well
-    // would leave both partly transparent mid-cut and show the background
-    // through the gaps between cells.
-    // `displace === 0` means untouched. TransitionSeries keeps the
-    // presentation mounted for the scene's whole life, and a `dot` mask at
-    // full size still leaves every cell's corners transparent — so without
-    // this the arriving scene stayed perforated long after the cut landed.
     if (!phase.isEntering || filled >= 1) {
       return undefined;
     }
 
-    // Built once and handed to both mask properties — the previous version
-    // called this twice per frame for identical output.
     const mask = buildGridMask(filled, cols, shapedRows, order, shape, stagger, width / height);
 
     return {
@@ -164,7 +129,6 @@ const GridPixelateWipePresentation: React.FC<
   return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
 };
 
-/** Grid cell stagger wipe presentation for TransitionSeries */
 export function gridPixelateWipe(
   props: GridPixelateWipeProps = {},
 ): TransitionPresentation<GridPixelateWipeProps> {
@@ -184,7 +148,6 @@ export type TransitionGridPixelateWipeConfig = {
   variant?: TransitionVariant;
 };
 
-/** Grid pixelate wipe transition config for use with TransitionSeries.Transition */
 export function transitionGridPixelateWipe({
   durationInFrames = 26,
   cols = 12,

@@ -124,10 +124,7 @@ type Named =
 type IconShape = { box: string; paths: readonly string[] };
 type IconSpec = { label: string; icon: KeystrokeIcon; units: number };
 type NamedSpec = IconSpec | { label: string; word: string; units: number };
-type Draft = Omit<
-  KeystrokeGroup,
-  "index" | "label" | "layout" | "pushes" | "exit" | "end"
->;
+type Draft = Omit<KeystrokeGroup, "index" | "label" | "layout" | "pushes" | "exit" | "end">;
 
 export const keystrokeDefaults: Required<Omit<KeystrokeProps, Unset>> = {
   platform: "mac",
@@ -220,9 +217,7 @@ const FONT_FAMILY =
 const ICONS: Record<KeystrokeIcon, IconShape> = {
   command: {
     box: "0 0 24 24",
-    paths: [
-      "M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3",
-    ],
+    paths: ["M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"],
   },
   option: { box: "0 0 24 24", paths: ["M3 3h6l6 18h6", "M14 3h7"] },
   shift: {
@@ -386,32 +381,22 @@ const NAMED_KEYS: Record<KeystrokePlatform, Record<Named, NamedSpec>> = {
 
 const finite = (value: number | undefined, fallback: number) =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
-const within = (
-  value: number | undefined,
-  fallback: number,
-  min: number,
-  max: number,
-) => clamp(finite(value, fallback), min, max);
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const within = (value: number | undefined, fallback: number, min: number, max: number) =>
+  clamp(finite(value, fallback), min, max);
 const round = (value: number) => Math.round(value * 1000) / 1000 + 0;
 const smoothstep = (value: number) => {
   const t = clamp(value, 0, 1);
   return t * t * (3 - 2 * t);
 };
 const fpsOf = (fps: number | undefined) => Math.max(1, finite(fps, 30));
-const rateOf = (speed: number | undefined) =>
-  Math.max(0, finite(speed, keystrokeDefaults.speed));
+const rateOf = (speed: number | undefined) => Math.max(0, finite(speed, keystrokeDefaults.speed));
 const platformOf = (value: string | undefined): KeystrokePlatform =>
   value === "windows" ? value : "mac";
-const themeOf = (value: string | undefined): KeystrokeTheme =>
-  value === "dark" ? value : "light";
+const themeOf = (value: string | undefined): KeystrokeTheme => (value === "dark" ? value : "light");
 const accentOf = (value: string | undefined) =>
-  typeof value === "string" && value.trim() !== ""
-    ? value.trim()
-    : keystrokeDefaults.accent;
-const modOf = (platform: KeystrokePlatform): Modifier =>
-  platform === "mac" ? "meta" : "ctrl";
+  typeof value === "string" && value.trim() !== "" ? value.trim() : keystrokeDefaults.accent;
+const modOf = (platform: KeystrokePlatform): Modifier => (platform === "mac" ? "meta" : "ctrl");
 
 function eased(frames: number, duration: number, curve: (t: number) => number) {
   if (Number.isNaN(frames) || frames <= 0) return 0;
@@ -433,12 +418,7 @@ function settle(rise: number, damping: number, taper: number, end: number) {
 }
 
 const riseCurve = settle(ENTER_RISE, ENTER_DAMPING, ENTER_TAPER, ENTER);
-const releaseCurve = settle(
-  RELEASE_RISE,
-  RELEASE_DAMPING,
-  RELEASE_TAPER,
-  RELEASE,
-);
+const releaseCurve = settle(RELEASE_RISE, RELEASE_DAMPING, RELEASE_TAPER, RELEASE);
 
 export function getKeystrokePress(frames: number) {
   return eased(frames, PRESS, smoothstep);
@@ -477,10 +457,7 @@ function wordKey(
   return { name, label, legend: { kind: "word", text }, units, modifier };
 }
 
-function modifierKey(
-  modifier: Modifier,
-  platform: KeystrokePlatform,
-): KeystrokeKey {
+function modifierKey(modifier: Modifier, platform: KeystrokePlatform): KeystrokeKey {
   if (platform === "windows") {
     const word = WINDOWS_MODIFIERS[modifier];
     return wordKey(modifier, word, word, platform, true);
@@ -514,8 +491,7 @@ function keyOf(part: string, platform: KeystrokePlatform): KeystrokeKey {
   const name = part.toLowerCase();
   const named = NAMED.get(name);
   if (named) return namedKey(named, platform);
-  const character =
-    CHARACTERS.get(name) ?? (Array.from(part).length === 1 ? part : undefined);
+  const character = CHARACTERS.get(name) ?? (Array.from(part).length === 1 ? part : undefined);
   if (character !== undefined) {
     const text = character.toUpperCase();
     return {
@@ -562,10 +538,7 @@ function parseChord(token: string, platform: KeystrokePlatform) {
   return [...modifiers, ...keys];
 }
 
-export function parseKeystrokeKeys(
-  keys: string,
-  platform?: KeystrokePlatform,
-): KeystrokeChord[] {
+export function parseKeystrokeKeys(keys: string, platform?: KeystrokePlatform): KeystrokeChord[] {
   if (typeof keys !== "string") return [];
   const target = platformOf(platform);
   return keys
@@ -576,9 +549,7 @@ export function parseKeystrokeKeys(
     .filter((chord) => chord.length > 0);
 }
 
-export function getKeystrokeLayout(
-  chords: readonly KeystrokeChord[],
-): KeystrokeLayout {
+export function getKeystrokeLayout(chords: readonly KeystrokeChord[]): KeystrokeLayout {
   const layout: KeystrokeLayout = { caps: [], separators: [], widths: [] };
   let cursor = 0;
   for (const [chord, keys] of chords.entries()) {
@@ -624,12 +595,7 @@ export function getKeystrokeTimeline(
 ) {
   const platform = platformOf(options.platform);
   const scale = 30 / fpsOf(options.fps);
-  const lingerFrames = within(
-    options.linger,
-    keystrokeDefaults.linger,
-    0,
-    MAX_FRAMES,
-  );
+  const lingerFrames = within(options.linger, keystrokeDefaults.linger, 0, MAX_FRAMES);
   const linger = lingerFrames * scale;
   const steps = options.steps ?? keystrokeDefaultSteps;
   const drafts: Draft[] = [];
@@ -649,9 +615,7 @@ export function getKeystrokeTimeline(
         release: round(key.release + offset),
       })),
     }));
-    const releases = timing.flatMap((chord) =>
-      chord.keys.map((key) => key.release),
-    );
+    const releases = timing.flatMap((chord) => chord.keys.map((key) => key.release));
     drafts.push({
       step,
       keys: entry.keys,
@@ -753,10 +717,7 @@ function groupState(
   accent: string,
 ) {
   const { size } = metrics;
-  const slot = group.pushes.reduce(
-    (sum, at) => sum + eased(time - at, PUSH, GLIDE),
-    0,
-  );
+  const slot = group.pushes.reduce((sum, at) => sum + eased(time - at, PUSH, GLIDE), 0);
   const leaving = clamp((time - group.exit) / EXIT, 0, 1);
   const pushedAway = group.pushes.some((at) => at <= group.exit);
   const drift = (pushedAway ? -1 : 1) * EXIT_DRIFT * size * leaving ** 3;
@@ -774,8 +735,7 @@ function groupState(
     if (time <= enter) return [];
     const key = group.chords[cap.chord][cap.index];
     const depth = getKeystrokeDepth(time, timing.keys[cap.index]);
-    const landing =
-      group.timing.at(cap.chord + 1)?.fire ?? Number.POSITIVE_INFINITY;
+    const landing = group.timing.at(cap.chord + 1)?.fire ?? Number.POSITIVE_INFINITY;
     const dim = smoothstep((time - (landing - DIM)) / DIM);
     const lean = clamp(depth, -1, 1);
     const shadowY = SHADOW_Y - (SHADOW_Y - SHADOW_Y_PRESSED) * lean;
@@ -837,12 +797,7 @@ export function getKeystrokeState(
   const width = Math.max(1, finite(options.width, 1280));
   const height = Math.max(1, finite(options.height, 720));
   const unit = Math.min(height / 720, width / 1280);
-  const reference = within(
-    options.size,
-    keystrokeDefaults.size,
-    MIN_SIZE,
-    MAX_SIZE,
-  );
+  const reference = within(options.size, keystrokeDefaults.size, MIN_SIZE, MAX_SIZE);
   const metrics = getKeystrokeMetrics(reference * unit, unit);
   const time = getKeystrokeTime(frame, options);
   const x = finite(options.x, keystrokeDefaults.x);
@@ -872,13 +827,7 @@ export function getKeystrokeState(
 
 export type KeystrokeState = ReturnType<typeof getKeystrokeState>;
 
-function Legend({
-  legend,
-  metrics,
-}: {
-  legend: KeystrokeLegend;
-  metrics: KeystrokeMetrics;
-}) {
+function Legend({ legend, metrics }: { legend: KeystrokeLegend; metrics: KeystrokeMetrics }) {
   if (legend.kind === "icon") {
     const icon = ICONS[legend.icon];
     return (
@@ -902,9 +851,7 @@ function Legend({
   }
   const fontSize = legend.kind === "word" ? metrics.wordFont : metrics.charFont;
   return (
-    <span
-      style={{ fontSize, fontWeight: 500, lineHeight: 1, whiteSpace: "nowrap" }}
-    >
+    <span style={{ fontSize, fontWeight: 500, lineHeight: 1, whiteSpace: "nowrap" }}>
       {legend.text}
     </span>
   );

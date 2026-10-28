@@ -1,17 +1,10 @@
-import {
-  AbsoluteFill,
-  Img,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import type React from "react";
+import { AbsoluteFill, Img, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
 import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
+import { ScreenFit } from "#video/lib/layout/screen-fit.tsx";
 import { DURATION, EASING, STAGGER } from "#video/lib/motion/motion-tokens.ts";
 import { springSmooth } from "#video/lib/motion/springs.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import { ScreenFit } from "#video/lib/layout/screen-fit.tsx";
-import type React from "react";
 
 const fontFamily = '"Inter"';
 
@@ -24,7 +17,6 @@ export type DeviceMockupZoomProps = {
   device?: "phone" | "browser" | "laptop";
   backgroundColor?: string;
   accentColor?: string;
-  /** Title colour; the subtitle and the small heading's chip are drawn from it. */
   textColor?: string;
 };
 
@@ -43,11 +35,7 @@ const COLORS = {
   rose: "#f472b6",
 } as const;
 
-const clampProgress = (
-  frame: number,
-  input: [number, number],
-  output: [number, number],
-) =>
+const clampProgress = (frame: number, input: [number, number], output: [number, number]) =>
   interpolate(frame, input, output, {
     easing: EASING.enter,
     extrapolateLeft: "clamp",
@@ -59,10 +47,7 @@ type MockupContentProps = {
   accentColor: string;
 };
 
-const BrowserDashboard: React.FC<MockupContentProps> = ({
-  frame,
-  accentColor,
-}) => {
+const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) => {
   const bars = [0.46, 0.72, 0.58, 0.9, 0.66, 0.82, 0.54];
   const graphProgress = clampProgress(frame, [18, 64], [0, 1]);
   const rowProgress = clampProgress(frame, [28, 70], [0, 1]);
@@ -107,8 +92,7 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({
               display: "flex",
               alignItems: "center",
               gap: "9%",
-              background:
-                index === 0 ? "rgba(232, 184, 109, 0.22)" : "transparent",
+              background: index === 0 ? "rgba(232, 184, 109, 0.22)" : "transparent",
               color: index === 0 ? COLORS.ink : COLORS.muted,
               fontSize: 12,
               fontWeight: 700,
@@ -137,12 +121,8 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({
             gap: 10,
           }}
         >
-          <div style={{ fontSize: 11, color: "#d1d5db", fontWeight: 700 }}>
-            This week
-          </div>
-          <div style={{ fontSize: 26, lineHeight: 1, fontWeight: 800 }}>
-            42%
-          </div>
+          <div style={{ fontSize: 11, color: "#d1d5db", fontWeight: 700 }}>This week</div>
+          <div style={{ fontSize: 26, lineHeight: 1, fontWeight: 800 }}>42%</div>
           <div
             style={{
               height: 6,
@@ -180,12 +160,8 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({
           }}
         >
           <div>
-            <div style={{ fontSize: 13, color: COLORS.muted, fontWeight: 700 }}>
-              Launch console
-            </div>
-            <div style={{ fontSize: 34, lineHeight: 1.05, fontWeight: 800 }}>
-              Campaign health
-            </div>
+            <div style={{ fontSize: 13, color: COLORS.muted, fontWeight: 700 }}>Launch console</div>
+            <div style={{ fontSize: 34, lineHeight: 1.05, fontWeight: 800 }}>Campaign health</div>
           </div>
           <div
             style={{
@@ -236,12 +212,7 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({
                     flex: 1,
                     height: `${Math.max(10, bar * 100 * graphProgress)}%`,
                     borderRadius: "16px 16px 6px 6px",
-                    background:
-                      index === 3
-                        ? accentColor
-                        : index === 5
-                          ? COLORS.teal
-                          : "#d8deea",
+                    background: index === 3 ? accentColor : index === 5 ? COLORS.teal : "#d8deea",
                   }}
                 />
               ))}
@@ -267,11 +238,7 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({
                     border: `1px solid ${COLORS.line}`,
                   }}
                 >
-                  <div
-                    style={{ fontSize: 11, color: COLORS.muted, fontWeight: 700 }}
-                  >
-                    {label}
-                  </div>
+                  <div style={{ fontSize: 11, color: COLORS.muted, fontWeight: 700 }}>{label}</div>
                   <div
                     style={{
                       marginTop: 5,
@@ -312,14 +279,8 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({
                   justifyContent: "space-between",
                 }}
               >
-                <div
-                  style={{ fontSize: 12, color: COLORS.muted, fontWeight: 700 }}
-                >
-                  {label}
-                </div>
-                <div style={{ fontSize: 34, lineHeight: 1, fontWeight: 800 }}>
-                  {value}
-                </div>
+                <div style={{ fontSize: 12, color: COLORS.muted, fontWeight: 700 }}>{label}</div>
+                <div style={{ fontSize: 34, lineHeight: 1, fontWeight: 800 }}>{value}</div>
                 <div
                   style={{
                     height: 7,
@@ -371,10 +332,7 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({
   );
 };
 
-const PhoneChecklist: React.FC<MockupContentProps> = ({
-  frame,
-  accentColor,
-}) => {
+const PhoneChecklist: React.FC<MockupContentProps> = ({ frame, accentColor }) => {
   const progress = clampProgress(frame, [18, 62], [0, 1]);
 
   return (
@@ -399,12 +357,8 @@ const PhoneChecklist: React.FC<MockupContentProps> = ({
         }}
       >
         <div>
-          <div style={{ fontSize: 10, color: COLORS.muted, fontWeight: 800 }}>
-            Launch app
-          </div>
-          <div style={{ fontSize: 24, lineHeight: 1, fontWeight: 800 }}>
-            Today
-          </div>
+          <div style={{ fontSize: 10, color: COLORS.muted, fontWeight: 800 }}>Launch app</div>
+          <div style={{ fontSize: 24, lineHeight: 1, fontWeight: 800 }}>Today</div>
         </div>
         <div
           style={{
@@ -434,12 +388,8 @@ const PhoneChecklist: React.FC<MockupContentProps> = ({
           gap: 12,
         }}
       >
-        <div style={{ fontSize: 12, color: "#d1d5db", fontWeight: 700 }}>
-          Active campaign
-        </div>
-        <div style={{ fontSize: 30, lineHeight: 1, fontWeight: 800 }}>
-          91%
-        </div>
+        <div style={{ fontSize: 12, color: "#d1d5db", fontWeight: 700 }}>Active campaign</div>
+        <div style={{ fontSize: 30, lineHeight: 1, fontWeight: 800 }}>91%</div>
         <div
           style={{
             height: 8,
@@ -560,7 +510,6 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
       >
         {isPhone ? (
           <>
-            {/* Mute switch + volume rocker */}
             <div
               style={{
                 position: "absolute",
@@ -594,7 +543,6 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
                 background: buttonColor,
               }}
             />
-            {/* Power button */}
             <div
               style={{
                 position: "absolute",
@@ -720,8 +668,7 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
               width: "104%",
               height: scaleFont(30, width),
               borderRadius: `0 0 ${scaleFont(16, width)}px ${scaleFont(16, width)}px`,
-              background:
-                "linear-gradient(180deg, #30384b 0%, #171b26 60%, #0b0d14 100%)",
+              background: "linear-gradient(180deg, #30384b 0%, #171b26 60%, #0b0d14 100%)",
               boxShadow: `0 ${scaleFont(24, width)}px ${scaleFont(50, width)}px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.16)`,
               display: "flex",
               justifyContent: "center",
@@ -781,8 +728,6 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
   const copyProgress = clampProgress(frame, [0, DURATION.normal], [0, 1]);
   const deviceProgress = clampProgress(frame, [STAGGER.normal, 64], [0, 1]);
   const accentProgress = clampProgress(frame, [20, 72], [0, 1]);
-  // Doc rule 20. Perceived size grows with the square of the factor, so a
-  // linear ramp reads front-loaded; `perceptual-scale` interpolates in area.
   const cameraScale = interpolate(camera, [0, 1], [1.18, 0.95], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -806,11 +751,11 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
           : hasCopy
             ? "100%"
             : "86%"
-      : portrait
-        ? "96%"
-        : hasCopy
-          ? "100%"
-          : "82%";
+        : portrait
+          ? "96%"
+          : hasCopy
+            ? "100%"
+            : "82%";
 
   const screenContent = children ?? (
     <>
@@ -864,11 +809,7 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
           display: "grid",
           gridTemplateColumns,
           alignItems: "center",
-          gap: hasCopy
-            ? portrait
-              ? scaleFont(42, width)
-              : scaleFont(54, width)
-            : 0,
+          gap: hasCopy ? (portrait ? scaleFont(42, width) : scaleFont(54, width)) : 0,
         }}
       >
         {hasCopy ? (
@@ -953,5 +894,11 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
 
 export function DeviceMockupZoom(all: ElementProps & { children?: React.ReactNode }) {
   const { children, ...props } = all;
-  return <DeviceMockupZoomView {...(props as unknown as React.ComponentProps<typeof DeviceMockupZoomView>)}>{children ? <ScreenFit>{children}</ScreenFit> : undefined}</DeviceMockupZoomView>;
+  return (
+    <DeviceMockupZoomView
+      {...(props as unknown as React.ComponentProps<typeof DeviceMockupZoomView>)}
+    >
+      {children ? <ScreenFit>{children}</ScreenFit> : undefined}
+    </DeviceMockupZoomView>
+  );
 }

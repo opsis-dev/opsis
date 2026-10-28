@@ -1,9 +1,8 @@
 import { Img } from "remotion";
-import type { SceneProps } from "../content";
-import { tween } from "../motion";
-import { Center, LogoGlyph, Title } from "../ui";
+import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { tween } from "#video/elements/scene/launch-anything/motion.ts";
+import { Center, LogoGlyph, Title } from "#video/elements/scene/launch-anything/ui.tsx";
 
-// Fixed staggered field, clear at the headline's center. No runtime randomness.
 const positions = [
   [26, -6],
   [107, 6],
@@ -59,9 +58,7 @@ export function Proof({ scene, t }: SceneProps) {
       >
         {positions.map(([x, y], i) => {
           const blur = [0.2, 1.3, 0, 0.7, 0.1, 1.7][i % 6];
-          const src = scene.logos.length
-            ? scene.logos[i % scene.logos.length]
-            : undefined;
+          const src = scene.logos.length ? scene.logos[i % scene.logos.length] : undefined;
           return (
             <div
               key={i}
@@ -83,10 +80,7 @@ export function Proof({ scene, t }: SceneProps) {
               }}
             >
               {src ? (
-                <Img
-                  src={src}
-                  style={{ width: 27, height: 27, objectFit: "contain" }}
-                />
+                <Img src={src} style={{ width: 27, height: 27, objectFit: "contain" }} />
               ) : (
                 <LogoGlyph variant={i * 5 + 2} size={24} />
               )}

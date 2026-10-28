@@ -6,53 +6,30 @@ import { EASING } from "#video/lib/motion/motion-tokens.ts";
 const fontFamily = '"Inter"';
 
 export type StatCardProps = {
-  /** The number the counter lands on. */
   value?: number;
-  /**
-   * What the number is out of. With it, the ring is a meter filling to
-   * `value / max`; without it the ring draws a full sweep, so a count like
-   * "3 dependencies" is not rendered as 3% of something.
-   */
   max?: number;
-  /** Unit after the number, e.g. "%" or "k". */
   suffix?: string;
-  /** Unit before the number, e.g. "$". */
   prefix?: string;
-  /** Decimal places while counting and at rest. */
   decimals?: number;
   label?: string;
-  /** Line under the label — the source, the window, the cohort. */
   caption?: string;
-  /** Shows the change chip. */
   showDelta?: boolean;
-  /** Change against the previous period, e.g. 12 for "+12%". */
   delta?: number;
-  /** Unit on the delta chip. */
   deltaSuffix?: string;
   backgroundColor?: string;
   accentColor?: string;
   theme?: "dark" | "light";
-  /**
-   * Seconds after which the scene leaves. Omit to hold — correct inside a
-   * `TransitionSeries`, where the transition covers the tail, and wrong on
-   * its own, where the scene stands still for the rest of the clip.
-   */
   holdSeconds?: number;
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
-/** Beat plan in seconds. */
 const T = {
   ring: 0.1,
   ringFor: 1.5,
   count: 0.16,
-  /** Long enough that the roll is caught mid-count by a sampled still, not
-   *  only at its final value. */
   countFor: 2.2,
   label: 0.6,
   caption: 0.78,
-  /** Delta lands after the number has settled, and settles before the exit. */
   delta: 2.7,
   exitFor: 0.4,
 } as const;
@@ -62,12 +39,6 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-/**
- * A number landing rather than a ring and a digit fading in together: the ring
- * fills to the share the value represents while the counter rolls up under it,
- * the label settles, and the change against the last period lands last — once
- * the number it is qualifying has stopped moving.
- */
 export const StatCard: React.FC<StatCardProps> = ({
   value = 98,
   max,
@@ -94,16 +65,13 @@ export const StatCard: React.FC<StatCardProps> = ({
   const at = (seconds: number) => (seconds * fps) / speed;
   const ease = (from: number, to: number, easing = EASING.enter) =>
     interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
-  // Exits accelerate away; entrances decelerate in. Never ease-out an exit.
   const exit =
     holdSeconds === undefined
       ? 0
-      : interpolate(
-          frame,
-          [at(holdSeconds), at(holdSeconds + T.exitFor)],
-          [0, 1],
-          { easing: EASING.exit, ...clamp },
-        );
+      : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
+          easing: EASING.exit,
+          ...clamp,
+        });
 
   const stage = {
     w: width - safe.paddingLeft - safe.paddingRight,
@@ -115,13 +83,6 @@ export const StatCard: React.FC<StatCardProps> = ({
     : Math.min(stage.w / 1120, stage.h / 620);
 
   const share = max && max > 0 ? Math.min(Math.max(value / max, 0), 1) : 1;
-  // Ease-out (not the symmetric `editorial` curve) so the ring and the count
-  // both make real progress in their first few frames. A host composition
-  // that crossfades this scene in (as `showcase` does, over 12 frames) spends
-  // that whole transition rendering this scene simultaneously with the
-  // outgoing one — with a slow-starting ease, the count is still close to 0
-  // by the time the transition resolves and the card is alone on screen, so
-  // it reads as a dead counter rather than one mid-animation.
   const ring = ease(T.ring, T.ring + T.ringFor, EASING.enter) * share;
   const counted = ease(T.count, T.count + T.countFor, EASING.enter) * value;
   const labelIn = ease(T.label, T.label + 0.45);
@@ -134,7 +95,6 @@ export const StatCard: React.FC<StatCardProps> = ({
           fps,
           config: { damping: 13, stiffness: 190, mass: 0.6 },
         });
-  /** One pulse as the ring closes, so the landing is felt. */
   const land = interpolate(
     frame,
     [at(T.ring + T.ringFor), at(T.ring + T.ringFor + 0.45)],
@@ -180,11 +140,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         }}
       >
         <div style={{ position: "relative", width: size, height: size }}>
-          <svg
-            width={size}
-            height={size}
-            style={{ rotate: "-90deg" }}
-          >
+          <svg width={size} height={size} style={{ rotate: "-90deg" }}>
             <circle
               cx={size / 2}
               cy={size / 2}
@@ -233,11 +189,7 @@ export const StatCard: React.FC<StatCardProps> = ({
               </span>
             ) : null}
             {counted.toFixed(decimals)}
-            {suffix ? (
-              <span style={{ fontSize: 54 * u, color: accentColor }}>
-                {suffix}
-              </span>
-            ) : null}
+            {suffix ? <span style={{ fontSize: 54 * u, color: accentColor }}>{suffix}</span> : null}
           </div>
         </div>
 

@@ -1,38 +1,27 @@
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
-import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import type React from "react";
+import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
+import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
 export type GaugeDialProps = {
-  /** Target the needle sweeps to. */
   value: number;
   min?: number;
   max?: number;
-  /** Outer diameter, in pixels. */
   size?: number;
-  /** Track and fill thickness. */
   thickness?: number;
-  /** Total sweep of the dial in degrees, centred on twelve o'clock. */
   sweepInDegrees?: number;
   color?: string;
   trackColor?: string;
   inkColor?: string;
   labelColor?: string;
-  /** Caption under the readout. */
   label?: string;
-  /** Suffix on the readout, e.g. `"%"` or `" ms"`. */
   unit?: string;
-  /** Tick marks around the arc. `0` hides them. */
   tickCount?: number;
-  /** Formats the readout. Defaults to as many decimals as `value` has, up to three. */
   valueFormatter?: (value: number) => string;
   durationInFrames?: number;
   delayInFrames?: number;
-  /** Frame the exit begins on. Omit to hold at the target. */
   exitAtInFrames?: number;
-  /** Length of the exit. */
   exitInFrames?: number;
-  /** Frame override — pass the parent frame inside a `<Sequence>`. */
   frame?: number;
 };
 
@@ -43,7 +32,6 @@ function polar(cx: number, cy: number, radius: number, degrees: number) {
   return { x: cx + radius * Math.cos(radians), y: cy + radius * Math.sin(radians) };
 }
 
-/** Open arc between two angles, drawn as a stroke rather than a wedge. */
 function arcPath(
   cx: number,
   cy: number,
@@ -62,14 +50,6 @@ function decimalsOf(value: number): number {
   return Math.min(3, (String(value).split(".")[1] ?? "").length);
 }
 
-/**
- * A dial whose needle sweeps to its target.
- *
- * The needle uses the overshoot curve and the fill arc does not: a needle that
- * settles back is instrument-like, while a coloured arc that retreats reads as
- * the value itself changing its mind. The readout counts from the same eased
- * progress as the arc, so number and arc always agree.
- */
 const GaugeDialView: React.FC<GaugeDialProps> = ({
   value,
   min = 0,
@@ -97,8 +77,7 @@ const GaugeDialView: React.FC<GaugeDialProps> = ({
   const sweepInDegrees = Math.min(360, Math.max(1, sweepSetting));
   const fullCircle = sweepInDegrees >= 360;
   const tickSteps = fullCircle ? tickCount : tickCount - 1;
-  const format =
-    valueFormatter ?? ((input: number) => input.toFixed(decimalsOf(value)));
+  const format = valueFormatter ?? ((input: number) => input.toFixed(decimalsOf(value)));
   const centre = size / 2;
   const radius = (size - thickness) / 2;
   const startAngle = -sweepInDegrees / 2;
@@ -107,10 +86,7 @@ const GaugeDialView: React.FC<GaugeDialProps> = ({
   const span = max - min || 1;
   const target = clamp01((value - min) / span);
 
-  const enterWindow: [number, number] = [
-    delayInFrames,
-    delayInFrames + durationInFrames,
-  ];
+  const enterWindow: [number, number] = [delayInFrames, delayInFrames + durationInFrames];
   const arcProgress = interpolate(frame, enterWindow, [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -131,8 +107,6 @@ const GaugeDialView: React.FC<GaugeDialProps> = ({
           easing: EASING.exit,
         });
 
-  // The exit unwinds the dial back to its rest position — an instrument
-  // powering down, rather than the panel dissolving where it stands.
   const arcFraction = target * arcProgress * (1 - exit);
   const needleFraction = target * needleProgress * (1 - exit);
   const needleAngle = startAngle + needleFraction * sweepInDegrees;
@@ -157,13 +131,7 @@ const GaugeDialView: React.FC<GaugeDialProps> = ({
           strokeLinecap="round"
         />
         <path
-          d={arcPath(
-            centre,
-            centre,
-            radius,
-            startAngle,
-            startAngle + arcFraction * sweepInDegrees,
-          )}
+          d={arcPath(centre, centre, radius, startAngle, startAngle + arcFraction * sweepInDegrees)}
           fill="none"
           stroke={color}
           strokeWidth={thickness}
@@ -176,8 +144,6 @@ const GaugeDialView: React.FC<GaugeDialProps> = ({
               const angle = startAngle + fraction * sweepInDegrees;
               const outer = polar(centre, centre, radius - thickness * 0.72, angle);
               const inner = polar(centre, centre, radius - thickness * 1.05, angle);
-              // Ticks the needle has already passed sit brighter, so the dial
-              // carries its reading even where the arc is hidden behind it.
               const passed = fraction <= needleFraction;
 
               return (
@@ -250,5 +216,9 @@ const GaugeDialView: React.FC<GaugeDialProps> = ({
 };
 
 export function GaugeDial(props: ElementProps & { children?: React.ReactNode }) {
-  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><GaugeDialView {...(props as unknown as React.ComponentProps<typeof GaugeDialView>)} /></AbsoluteFill>;
+  return (
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <GaugeDialView {...(props as unknown as React.ComponentProps<typeof GaugeDialView>)} />
+    </AbsoluteFill>
+  );
 }

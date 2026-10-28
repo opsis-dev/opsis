@@ -1,69 +1,41 @@
+import type React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
 import { formatCompactNumber, readDelta } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import type React from "react";
 
 export type ComparisonRowDatum = {
   label: string;
-  /** Baseline value — the muted bar. */
   before: number;
-  /** New value — the coloured bar. */
   after: number;
-  /** Overrides the computed percentage change. Needed when `before` is 0, which has none. */
   delta?: string;
 };
 
 export type ComparisonBarsProps = {
   rows: ComparisonRowDatum[];
   width?: number;
-  /** Height of one pair of bars, both bars and their gap included. */
   rowHeight?: number;
-  /** Space between rows. */
   gap?: number;
-  /** Width reserved for the row labels. */
   labelWidth?: number;
   beforeColor?: string;
   afterColor?: string;
-  /** Colour of a delta chip when the change is a fall. */
   downColor?: string;
-  /** Ink for the figure printed inside the coloured bar. */
   barInkColor?: string;
   labelColor?: string;
-  /** Names for the two series, shown as a legend above the rows. */
   seriesLabels?: [string, string];
-  /** Percentage-change chip at the end of the second bar. */
   showDelta?: boolean;
   valueFormatter?: (value: number) => string;
-  /** Length of one bar's growth. */
   durationInFrames?: number;
-  /** Frames between one row and the next. */
   staggerInFrames?: number;
-  /** Frames the second bar trails the first by. */
   pairOffsetInFrames?: number;
   delayInFrames?: number;
-  /** Frame the exit begins on. Omit to hold once grown. */
   exitAtInFrames?: number;
-  /** Length of the exit. */
   exitInFrames?: number;
-  /** Frame override — pass the parent frame inside a `<Sequence>`. */
   frame?: number;
 };
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/**
- * Before-and-after pairs with the change called out.
- *
- * Both bars share one scale across every row, so the pairs are comparable to
- * each other and not only within themselves — per-row scaling is what makes a
- * small category look like it beat a large one.
- *
- * The second bar trails the first by `pairOffsetInFrames`. The gap is what
- * makes the pair read as *a change* rather than as two unrelated bars that
- * happen to be adjacent, and it is short enough that both are still growing at
- * once.
- */
 const ComparisonBarsView: React.FC<ComparisonBarsProps> = ({
   rows,
   width = 820,
@@ -89,11 +61,7 @@ const ComparisonBarsView: React.FC<ComparisonBarsProps> = ({
   const localFrame = useCurrentFrame();
   const frame = frameOverride ?? localFrame;
 
-  const peak =
-    rows.reduce(
-      (highest, row) => Math.max(highest, row.before, row.after),
-      0,
-    ) || 1;
+  const peak = rows.reduce((highest, row) => Math.max(highest, row.before, row.after), 0) || 1;
   const barWidth = width - labelWidth;
   const barHeight = (rowHeight - 8) / 2;
   const chipSize = barHeight * 0.5;
@@ -132,10 +100,7 @@ const ComparisonBarsView: React.FC<ComparisonBarsProps> = ({
           }}
         >
           {legend.map((entry, index) => (
-            <span
-              key={index}
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
+            <span key={index} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span
                 style={{
                   width: barHeight * 0.42,
@@ -154,16 +119,12 @@ const ComparisonBarsView: React.FC<ComparisonBarsProps> = ({
         const start = delayInFrames + index * staggerInFrames;
         const beforeProgress = grow(start);
         const afterProgress = grow(start + pairOffsetInFrames);
-        // Rows leave in the order they arrived.
         const drain = clamp01((exit - index * 0.05) / 0.7);
 
-        const change =
-          row.before === 0 ? 0 : ((row.after - row.before) / row.before) * 100;
+        const change = row.before === 0 ? 0 : ((row.after - row.before) / row.before) * 100;
         const delta =
           row.delta ??
-          (row.before === 0
-            ? ""
-            : `${change >= 0 ? "+" : "−"}${Math.abs(Math.round(change))}%`);
+          (row.before === 0 ? "" : `${change >= 0 ? "+" : "−"}${Math.abs(Math.round(change))}%`);
         const falls = row.delta ? readDelta(row.delta).direction === "down" : change < 0;
 
         return (
@@ -220,8 +181,6 @@ const ComparisonBarsView: React.FC<ComparisonBarsProps> = ({
                       fontSize: barHeight * 0.46,
                       fontWeight: 700,
                       fontVariantNumeric: "tabular-nums",
-                      // The figure waits until the bar is wide enough to hold
-                      // it, rather than spilling past its own left edge.
                       opacity: clamp01((afterProgress - 0.55) / 0.25),
                     }}
                   >
@@ -237,8 +196,6 @@ const ComparisonBarsView: React.FC<ComparisonBarsProps> = ({
                       fontWeight: 700,
                       fontVariantNumeric: "tabular-nums",
                       whiteSpace: "nowrap",
-                      // The callout is the conclusion of the pair, so it lands
-                      // only once the second bar has stopped moving.
                       opacity: clamp01((afterProgress - 0.86) / 0.14),
                       translate: `${(1 - clamp01((afterProgress - 0.86) / 0.14)) * -12}px`,
                     }}
@@ -256,5 +213,11 @@ const ComparisonBarsView: React.FC<ComparisonBarsProps> = ({
 };
 
 export function ComparisonBars(props: ElementProps & { children?: React.ReactNode }) {
-  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><ComparisonBarsView {...(props as unknown as React.ComponentProps<typeof ComparisonBarsView>)} /></AbsoluteFill>;
+  return (
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <ComparisonBarsView
+        {...(props as unknown as React.ComponentProps<typeof ComparisonBarsView>)}
+      />
+    </AbsoluteFill>
+  );
 }

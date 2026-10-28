@@ -10,40 +10,18 @@ import {
   prepareMaskMorph,
   type DisplacementCoreConfig,
   type DisplacementMaskConfig,
-} from "./displacement-transition";
-import { morphPath } from "./path-morph";
+} from "#video/elements/transition/transition-morph-shape/displacement-transition.ts";
+import { morphPath } from "#video/elements/transition/transition-morph-shape/path-morph.ts";
 import {
   resolveTransitionTiming,
   transitionPhase,
   type TransitionVariant,
-} from "../../../lib/transitions/transition-timing";
-
-/**
- * The shared displacement presentation.
- *
- * `transition-liquid-warp` and `transition-morph-shape` are configurations of
- * this, not separate implementations: one is the turbulence channel with no
- * mask, the other is the mask channel with no turbulence. Building them apart
- * would have meant two copies of the displace-contract handling, which is the
- * part that is easy to get subtly wrong and impossible to notice in a preview.
- *
- * It satisfies the same contract as every shipped transition:
- * `transitionPhase().displace === 0` leaves the scene completely untouched, and
- * both effect channels are pinned to zero there.
- */
+} from "#video/lib/transitions/transition-timing.ts";
 
 export type DisplacementPresentationProps = DisplacementCoreConfig & {
-  /**
-   * Reveal the entering scene through a morphing shape. Omit for a pure warp.
-   * When present the exiting scene holds whole underneath, as with any wipe —
-   * fading both scenes at once lets the background show through the cut.
-   */
   mask?: DisplacementMaskConfig;
-  /** Crossfade alongside the warp. On by default: a warp alone never reveals. */
   fade?: boolean;
-  /** Share of the window the displacement spans. */
   lead?: number;
-  /** Warp both scenes, or only the arriving one. */
   affect?: "both" | "entering";
 };
 
@@ -54,7 +32,6 @@ const DisplacementPresentationComponent: React.FC<
 > = ({ children, presentationProgress, presentationDirection, passedProps }) => {
   const { width, height } = useVideoConfig();
   const rawId = useId();
-  // `useId()` returns colons, which are not legal in a CSS `url(#...)` fragment.
   const domId = rawId.replace(/:/g, "");
 
   const mask = passedProps.mask;
@@ -68,40 +45,26 @@ const DisplacementPresentationComponent: React.FC<
     fade,
   });
 
-  /**
-   * Only the arriving scene fades.
-   *
-   * `transitionPhase({ fade: true })` ramps both scenes' opacity, which is
-   * right for a dip-to-colour and wrong here: a warp does not cover the frame,
-   * so two half-transparent scenes let the page background through and the
-   * middle of the cut renders as a white flash. The outgoing scene holds fully
-   * opaque underneath and the incoming one dissolves onto it instead.
-   */
   const opacity = fade && phase.isEntering ? phase.opacity : 1;
 
-  // The overscan is uniform, so it has to be sized against the short axis.
   const state = displacementFrame(phase.displace, Math.min(width, height), passedProps);
   const maskState = maskFrame(phase.displace, { width, height }, mask ?? {});
 
+  const maskFrom = mask?.from;
+  const maskTo = mask?.to;
   const maskPair = useMemo(
-    () => (hasMask ? prepareMaskMorph(mask) : null),
-    // Depending on the config object itself would rebuild the pair every frame,
-    // and preparing a morph is the expensive half.
-    [hasMask, mask?.from, mask?.to],
+    () => (hasMask ? prepareMaskMorph({ from: maskFrom, to: maskTo }) : null),
+    [hasMask, maskFrom, maskTo],
   );
 
   const wantsFilter =
-    state.scale >= DISPLACEMENT_EPSILON &&
-    (affect === "both" || phase.isEntering);
+    state.scale >= DISPLACEMENT_EPSILON && (affect === "both" || phase.isEntering);
   const wantsMask = hasMask && phase.isEntering && !maskState.isComplete;
 
   const frequency = passedProps.frequency ?? DISPLACEMENT_DEFAULTS.frequency;
   const octaves = passedProps.octaves ?? DISPLACEMENT_DEFAULTS.octaves;
-  const turbulenceType =
-    passedProps.turbulenceType ?? DISPLACEMENT_DEFAULTS.turbulenceType;
+  const turbulenceType = passedProps.turbulenceType ?? DISPLACEMENT_DEFAULTS.turbulenceType;
 
-  // The exiting scene under a mask is a plain hold — one shape crosses the
-  // frame, not two.
   if (hasMask && !phase.isEntering) {
     return <AbsoluteFill>{children}</AbsoluteFill>;
   }
@@ -110,8 +73,7 @@ const DisplacementPresentationComponent: React.FC<
     return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
   }
 
-  const maskD =
-    maskPair && wantsMask ? morphPath(maskState.coverage, maskPair) : null;
+  const maskD = maskPair && wantsMask ? morphPath(maskState.coverage, maskPair) : null;
 
   return (
     <AbsoluteFill
@@ -122,11 +84,6 @@ const DisplacementPresentationComponent: React.FC<
     >
       <svg width={0} height={0} style={{ position: "absolute" }}>
         <defs>
-          {/* The filter region has to clear the displacement radius plus the
-              blur on the *short* axis: at -10%/120% a 540px stage only had
-              54px of slack, so a peak displacement larger than that had its
-              output clipped before the overscan could hide the seam.
-              -30%/160% is 162px on the same stage. */}
           {wantsFilter ? (
             <filter id={`${domId}-warp`} x="-30%" y="-30%" width="160%" height="160%">
               <feTurbulence
@@ -143,16 +100,11 @@ const DisplacementPresentationComponent: React.FC<
                 xChannelSelector="R"
                 yChannelSelector="G"
               />
-              {state.blur > 0.1 ? (
-                <feGaussianBlur stdDeviation={state.blur} />
-              ) : null}
+              {state.blur > 0.1 ? <feGaussianBlur stdDeviation={state.blur} /> : null}
             </filter>
           ) : null}
           {maskD ? (
             <clipPath id={`${domId}-clip`} clipPathUnits="userSpaceOnUse">
-              {/* The path is authored in a unit box, so the frame-sized
-                  geometry is a transform rather than a per-frame rescale of
-                  the path data itself. */}
               <path
                 d={maskD}
                 transform={`translate(${maskState.centerX} ${maskState.centerY}) scale(${maskState.size}) translate(-0.5 -0.5)`}
@@ -166,9 +118,6 @@ const DisplacementPresentationComponent: React.FC<
           wantsFilter
             ? {
                 filter: `url(#${domId}-warp)`,
-                // Displacing by N pixels drags transparency in from outside
-                // the layer along every edge. `overscanFor` sizes the scale-up
-                // so the *clean* middle band covers the whole stage.
                 scale: `${state.overscan}`,
               }
             : undefined
@@ -180,7 +129,6 @@ const DisplacementPresentationComponent: React.FC<
   );
 };
 
-/** Displacement presentation for `TransitionSeries.Transition`. */
 export function displacementPresentation(
   props: DisplacementPresentationProps = {},
 ): TransitionPresentation<DisplacementPresentationProps> {

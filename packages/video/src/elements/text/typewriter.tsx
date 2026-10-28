@@ -1,5 +1,5 @@
-import { Caret } from "#video/parts/caret.tsx";
 import { useTypewriter } from "#video/lib/neutral-ui/index.ts";
+import { Caret } from "#video/parts/caret.tsx";
 
 export interface TypewriterProps {
   background?: string;

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
-import type { ReleaseTeaserScene } from "./content";
+import type { ReleaseTeaserScene } from "#video/elements/scene/release-teaser/content.ts";
 import {
   createRing,
   createRotator,
@@ -7,13 +7,12 @@ import {
   normalize,
   project,
   type Vec3,
-} from "./geometry";
-import { ringPose } from "./motion";
-import { BrandImage } from "./ui";
+} from "#video/elements/scene/release-teaser/geometry.ts";
+import { ringPose } from "#video/elements/scene/release-teaser/motion.ts";
+import { BrandImage } from "#video/elements/scene/release-teaser/ui.tsx";
 
 const ring = createRing();
 
-/** Resolve any browser CSS color to channels without bundling a color library. */
 function channels(ctx: CanvasRenderingContext2D, color: string): number[] {
   ctx.clearRect(0, 0, 1, 1);
   ctx.fillStyle = "#000000";
@@ -22,16 +21,9 @@ function channels(ctx: CanvasRenderingContext2D, color: string): number[] {
   return Array.from(ctx.getImageData(0, 0, 1, 1).data).slice(0, 3);
 }
 
-function DimensionalRing({
-  scene,
-  frame,
-}: {
-  scene: ReleaseTeaserScene;
-  frame: number;
-}) {
+function DimensionalRing({ scene, frame }: { scene: ReleaseTeaserScene; frame: number }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const colorCache = useRef(new Map<string, number[]>());
-  // Synchronous layout paint: a seek paints only its requested frame, with no RAF or history.
   useLayoutEffect(() => {
     const ctx = canvas.current?.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
@@ -65,34 +57,26 @@ function DimensionalRing({
       if (
         dot(
           face.normal,
-          normalize([
-            -face.center[0],
-            -face.center[1],
-            1100 / pose.scale - face.center[2],
-          ]),
+          normalize([-face.center[0], -face.center[1], 1100 / pose.scale - face.center[2]]),
         ) <= 0
       )
         continue;
       const shade = (normal: Vec3) => {
         const diffuse = Math.max(0, dot(normal, key));
         const rimLight = Math.max(0, dot(normal, rim));
-        const specular =
-          Math.max(0, dot(normal, half)) ** (face.bevel ? 26 : 48);
+        const specular = Math.max(0, dot(normal, half)) ** (face.bevel ? 26 : 48);
         const intensity = scene.lightIntensity * pose.opacity;
         const rgb = surface.map((c, i) =>
           Math.min(
             255,
             c * 0.19 +
               intensity *
-                (accent[i] * (diffuse ** 3 * 0.36 + rimLight ** 6 * 0.16) +
-                  180 * specular * 0.68),
+                (accent[i] * (diffuse ** 3 * 0.36 + rimLight ** 6 * 0.16) + 180 * specular * 0.68),
           ),
         );
         return `rgb(${rgb.join(",")})`;
       };
-      const points = face.vertices.map((v) =>
-        project(v, pose.scale, pose.x, pose.y),
-      );
+      const points = face.vertices.map((v) => project(v, pose.scale, pose.x, pose.y));
       ctx.beginPath();
       ctx.moveTo(...points[0]);
       for (const p of points.slice(1)) ctx.lineTo(...p);
@@ -111,18 +95,11 @@ function DimensionalRing({
         ctx.fillStyle = shade(face.normal);
       }
       ctx.fill();
-      // A sub-pixel seam overlap prevents hairlines between adjoining mesh quads.
       ctx.strokeStyle = ctx.fillStyle;
       ctx.lineWidth = 0.45;
       ctx.stroke();
     }
-  }, [
-    frame,
-    scene.reducedMotion,
-    scene.lightIntensity,
-    scene.theme.accent,
-    scene.theme.surface,
-  ]);
+  }, [frame, scene.reducedMotion, scene.lightIntensity, scene.theme.accent, scene.theme.surface]);
 
   return (
     <canvas
@@ -136,13 +113,7 @@ function DimensionalRing({
   );
 }
 
-export function TeaserBackground({
-  scene,
-  frame,
-}: {
-  scene: ReleaseTeaserScene;
-  frame: number;
-}) {
+export function TeaserBackground({ scene, frame }: { scene: ReleaseTeaserScene; frame: number }) {
   const pose = ringPose(frame, scene.reducedMotion);
   return (
     <div

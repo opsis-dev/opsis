@@ -30,11 +30,6 @@ export type CodeTheme = {
   token: Record<CodeTokenKind, string>;
 };
 
-/**
- * JetBrains Mono (and every other mono face worth shipping) advances 0.6em per
- * character. Carets and wipe masks are positioned arithmetically from this
- * rather than measured, so they stay exact in a headless render.
- */
 export const MONO_ADVANCE = 0.6;
 
 export const CODE_THEMES: Record<"dark" | "light", CodeTheme> = {
@@ -146,7 +141,6 @@ const KEYWORDS = new Set([
   "impl",
 ]);
 
-/** Ordered scanners — first match at the cursor wins. */
 const SCANNERS: Array<{ kind: CodeTokenKind; re: RegExp }> = [
   { kind: "comment", re: /^(\/\/[^\n]*|#[^\n]*)/ },
   { kind: "comment", re: /^\/\*[\s\S]*?(\*\/|$)/ },
@@ -157,23 +151,15 @@ const SCANNERS: Array<{ kind: CodeTokenKind; re: RegExp }> = [
   { kind: "plain", re: /^\s+/ },
 ];
 
-function classifyWord(
-  word: string,
-  before: string,
-  after: string,
-): CodeTokenKind {
+function classifyWord(word: string, before: string, after: string): CodeTokenKind {
   if (KEYWORDS.has(word)) return "keyword";
-  if (/[<\/]$/.test(before.trimEnd()) && /^[A-Z]/.test(word)) return "tag";
+  if (/[</]$/.test(before.trimEnd()) && /^[A-Z]/.test(word)) return "tag";
   if (after.startsWith("(")) return "call";
   if (after.startsWith("=") && !after.startsWith("==")) return "prop";
   if (/^[A-Z]/.test(word)) return "type";
   return "plain";
 }
 
-/**
- * Split one line into coloured tokens. Block comments opened on an earlier
- * line are handled by the caller passing `inBlockComment` forward.
- */
 export function tokenizeLine(
   line: string,
   inBlockComment = false,
@@ -208,11 +194,7 @@ export function tokenizeLine(
         block = true;
       }
       if (kind === "plain" && /^[A-Za-z_$]/.test(text)) {
-        kind = classifyWord(
-          text,
-          line.slice(0, offset),
-          rest.slice(text.length),
-        );
+        kind = classifyWord(text, line.slice(0, offset), rest.slice(text.length));
       }
 
       tokens.push({ text, kind });
@@ -222,7 +204,6 @@ export function tokenizeLine(
       break;
     }
 
-    // Unreachable for well-formed input, but never spin on an unmatched char.
     if (!matched) {
       tokens.push({ text: rest[0], kind: "plain" });
       offset += 1;
@@ -233,7 +214,6 @@ export function tokenizeLine(
   return { tokens, inBlockComment: block };
 }
 
-/** Tokenize a whole listing, carrying block-comment state across lines. */
 export function tokenizeCode(lines: string[]): CodeToken[][] {
   let block = false;
   return lines.map((line) => {
@@ -246,32 +226,15 @@ export function tokenizeCode(lines: string[]): CodeToken[][] {
 export type CodeLineProps = {
   tokens: CodeToken[];
   theme: CodeTheme;
-  /**
-   * Characters of the line to show. `undefined` shows all of it — pass a count
-   * to reveal the line as if it were being written.
-   */
   reveal?: number;
-  /** Fades the whole line toward the theme's dim colour. */
   muted?: boolean;
 };
 
-/**
- * One rendered line of code. Characters past `reveal` are kept in the DOM at
- * zero opacity so the line never reflows as it writes in.
- */
-export const CodeLine: React.FC<CodeLineProps> = ({
-  tokens,
-  theme,
-  reveal,
-  muted = false,
-}) => {
-  let consumed = 0;
-
+export const CodeLine: React.FC<CodeLineProps> = ({ tokens, theme, reveal, muted = false }) => {
   return (
     <span style={{ whiteSpace: "pre" }}>
       {tokens.map((token, index) => {
-        const start = consumed;
-        consumed += token.text.length;
+        const start = lineLength(tokens.slice(0, index));
         const shown =
           reveal === undefined
             ? token.text.length
@@ -297,7 +260,6 @@ export const CodeLine: React.FC<CodeLineProps> = ({
   );
 };
 
-/** Total character count of a tokenized line. */
 export function lineLength(tokens: CodeToken[]): number {
   return tokens.reduce((total, token) => total + token.text.length, 0);
 }

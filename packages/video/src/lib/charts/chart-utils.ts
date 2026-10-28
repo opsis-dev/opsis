@@ -1,16 +1,13 @@
 export type ChartDatum = {
   label: string;
   value: number;
-  /** Overrides the series colour for this bar/point. */
   color?: string;
-  /** Short change annotation, e.g. `"+18%"`. */
   delta?: string;
 };
 
 export type ChartPoint = {
   x: number;
   y: number;
-  /** Axis tick label. Falls back to the x value when omitted. */
   label?: string;
 };
 
@@ -20,7 +17,6 @@ export type ChartDomain = {
   span: number;
 };
 
-/** Inner drawing rectangle, in SVG user units. */
 export type PlotArea = {
   left: number;
   top: number;
@@ -37,7 +33,6 @@ export type PlotInsets = {
   left?: number;
 };
 
-/** A point projected into plot coordinates, with its source values kept. */
 export type PlottedPoint = {
   x: number;
   y: number;
@@ -47,7 +42,6 @@ export type PlottedPoint = {
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/** Raw min/max of a series. `includeZero` anchors bar charts to a true zero. */
 export function getChartDomain(
   values: number[],
   { includeZero = false }: { includeZero?: boolean } = {},
@@ -61,7 +55,6 @@ export function getChartDomain(
   const min = Math.min(...finite, includeZero ? 0 : Infinity);
   const max = Math.max(...finite, includeZero ? 0 : -Infinity);
 
-  // A flat series still needs a span, otherwise every point lands on one line.
   if (min === max) {
     const padding = Math.abs(max) || 1;
     return { min: min - padding, max: max + padding, span: padding * 2 };
@@ -70,7 +63,6 @@ export function getChartDomain(
   return { min, max, span: max - min };
 }
 
-/** Rounds a raw step up to the nearest 1 / 2 / 5 × 10ⁿ so ticks read cleanly. */
 function niceStep(rawStep: number): number {
   if (rawStep <= 0) return 1;
   const magnitude = 10 ** Math.floor(Math.log10(rawStep));
@@ -79,17 +71,9 @@ function niceStep(rawStep: number): number {
   return step * magnitude;
 }
 
-/**
- * Domain snapped outward to round numbers, with the tick values that land
- * inside it. Charts read as measured rather than arbitrary when the axis stops
- * at 60K instead of 58.4K.
- */
 export function niceDomain(
   values: number[],
-  {
-    includeZero = true,
-    tickCount = 4,
-  }: { includeZero?: boolean; tickCount?: number } = {},
+  { includeZero = true, tickCount = 4 }: { includeZero?: boolean; tickCount?: number } = {},
 ): ChartDomain & { ticks: number[] } {
   const raw = getChartDomain(values, { includeZero });
   const step = niceStep(raw.span / Math.max(1, tickCount));
@@ -97,7 +81,6 @@ export function niceDomain(
   const max = Math.ceil(raw.max / step) * step;
   const ticks: number[] = [];
 
-  // Float steps accumulate error, so walk an integer index instead.
   for (let index = 0; min + index * step <= max + step * 1e-6; index += 1) {
     ticks.push(Number((min + index * step).toPrecision(12)));
   }
@@ -105,21 +88,12 @@ export function niceDomain(
   return { min, max, span: max - min || 1, ticks };
 }
 
-/** Normalized 0→1 position of a value inside a domain. */
 export function scaleValue(value: number, min: number, max: number): number {
   if (max === min) return 0;
   return (value - min) / (max - min);
 }
 
-/**
- * Inner rectangle of a chart. Insets are per-edge because the left gutter has
- * to hold axis labels while the right edge only needs room for the line cap.
- */
-export function getPlotArea(
-  width: number,
-  height: number,
-  insets: PlotInsets = {},
-): PlotArea {
+export function getPlotArea(width: number, height: number, insets: PlotInsets = {}): PlotArea {
   const top = insets.top ?? 24;
   const right = insets.right ?? 24;
   const bottom = insets.bottom ?? 24;
@@ -135,12 +109,6 @@ export function getPlotArea(
   };
 }
 
-/**
- * Projects data points into plot coordinates.
- *
- * The x domain is the index range rather than the x values when points are
- * evenly spaced categories — pass real x values and they are honoured.
- */
 export function plotPoints(
   points: ChartPoint[],
   plot: PlotArea,
@@ -150,15 +118,12 @@ export function plotPoints(
 
   return points.map((point) => ({
     x: plot.left + scaleValue(point.x, xDomain.min, xDomain.max) * plot.width,
-    y:
-      plot.bottom -
-      clamp01(scaleValue(point.y, yDomain.min, yDomain.max)) * plot.height,
+    y: plot.bottom - clamp01(scaleValue(point.y, yDomain.min, yDomain.max)) * plot.height,
     value: point.y,
     label: point.label,
   }));
 }
 
-/** Straight polyline through the projected points. */
 export function buildLinePath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return "";
   return points
@@ -166,15 +131,7 @@ export function buildLinePath(points: { x: number; y: number }[]): string {
     .join(" ");
 }
 
-/**
- * Cardinal spline through the points, with control points clamped inside each
- * segment's own y range. Unclamped splines overshoot past local minima, which
- * on a chart reads as data that was never in the series.
- */
-export function buildSmoothPath(
-  points: { x: number; y: number }[],
-  tension = 0.42,
-): string {
+export function buildSmoothPath(points: { x: number; y: number }[], tension = 0.42): string {
   if (points.length < 3) return buildLinePath(points);
 
   const parts = [`M ${round(points[0].x)} ${round(points[0].y)}`];
@@ -187,8 +144,7 @@ export function buildSmoothPath(
 
     const lowerBound = Math.min(current.y, next.y);
     const upperBound = Math.max(current.y, next.y);
-    const clampY = (value: number) =>
-      Math.min(upperBound, Math.max(lowerBound, value));
+    const clampY = (value: number) => Math.min(upperBound, Math.max(lowerBound, value));
 
     const c1x = current.x + ((next.x - previous.x) / 6) * tension * 2;
     const c1y = clampY(current.y + ((next.y - previous.y) / 6) * tension * 2);
@@ -203,7 +159,6 @@ export function buildSmoothPath(
   return parts.join(" ");
 }
 
-/** Closes a line path down to a baseline so it can be filled. */
 export function buildAreaPath(
   linePath: string,
   points: { x: number; y: number }[],
@@ -215,29 +170,17 @@ export function buildAreaPath(
   return `${linePath} L ${round(last.x)} ${round(baselineY)} L ${round(first.x)} ${round(baselineY)} Z`;
 }
 
-/** `124000` → `"124K"`. The default label format across the chart layer. */
-export function formatCompactNumber(
-  value: number,
-  maximumFractionDigits = 1,
-): string {
+export function formatCompactNumber(value: number, maximumFractionDigits = 1): string {
   return new Intl.NumberFormat("en", {
     notation: "compact",
     maximumFractionDigits,
   }).format(value);
 }
 
-/**
- * Axis ticks drop the fraction that `formatCompactNumber` keeps — an axis
- * reading 0 / 30K / 60K is quieter than 0 / 30.0K / 60.0K.
- */
 export function formatAxisValue(value: number): string {
   return formatCompactNumber(value, Math.abs(value) < 10 ? 1 : 0);
 }
 
-/**
- * Splits a delta string into its direction and text so callers can colour it.
- * Anything that is not clearly signed stays neutral rather than guessing.
- */
 export function readDelta(delta: string | undefined): {
   direction: "up" | "down" | "flat";
   text: string;

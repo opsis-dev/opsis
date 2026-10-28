@@ -1,44 +1,27 @@
 import type { ReactNode } from "react";
-import {
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
-import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill } from "remotion";
 import type { ElementProps } from "#video/common/spec.ts";
 import { ScreenFit } from "#video/lib/layout/screen-fit.tsx";
+import { EASING } from "#video/lib/motion/motion-tokens.ts";
 import { nestedFrom } from "#video/lib/settings/shape.ts";
-import { AbsoluteFill } from "remotion";
 
 const fontFamily = '"Inter"';
 
 export type LineupScreen = {
-  /** What fills the device's screen. Rendered at the device's own viewport. */
   content?: ReactNode;
-  /** Caption under the device. */
   label?: string;
 };
 
 export type MultiDeviceLineupProps = {
-  /** Screen for each device, in lineup order: phone, tablet, laptop. */
   phone?: LineupScreen;
   tablet?: LineupScreen;
   laptop?: LineupScreen;
-  /**
-   * Rendered inside every device when that device has no `content` of its own —
-   * one responsive design shown at three widths.
-   */
   children?: ReactNode;
-  /** Overall scale of the lineup. */
   scale?: number;
-  /** Frame the first device arrives. */
   delayInFrames?: number;
-  /** Frames between devices. */
   staggerInFrames?: number;
-  /** Frame the lineup starts leaving. Omit to leave it on screen. */
   exitAtInFrames?: number;
-  /** Frames the exit takes. */
   exitInFrames?: number;
   bezelColor?: string;
   screenColor?: string;
@@ -50,7 +33,6 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-/** Screen sizes in CSS pixels before `scale`. Ratios are the real hardware. */
 const HARDWARE = {
   phone: { screenW: 148, screenH: 320, bezel: 8, radius: 26 },
   tablet: { screenW: 236, screenH: 316, bezel: 11, radius: 20 },
@@ -59,17 +41,6 @@ const HARDWARE = {
 
 type DeviceKind = keyof typeof HARDWARE;
 
-/**
- * One design at three widths, arriving in order.
- *
- * Devices land largest-last: the laptop is the widest object and the thing a
- * viewer ends up reading, so it arrives on top of a lineup that already exists
- * rather than being the thing everything else lands beside.
- *
- * Screens are real elements at each device's own pixel size, not one screenshot
- * scaled three ways — pass the same `children` and whatever you render lays
- * itself out per width, which is the point of showing three devices at all.
- */
 const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
   phone,
   tablet,
@@ -95,7 +66,6 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
           ...clamp,
         });
 
-  // Phone, tablet, laptop — the order they arrive in, smallest first.
   const devices: { kind: DeviceKind; screen?: LineupScreen }[] = [
     { kind: "phone", screen: phone },
     { kind: "tablet", screen: tablet },
@@ -128,8 +98,6 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
         const rise = spring({
           frame: frame - start,
           fps,
-          // Clamped: a bezel that pops past 1.0 is a device growing bigger than
-          // its own hardware, which reads as a wobble rather than an arrival.
           config: {
             damping: 17,
             stiffness: 150,
@@ -183,8 +151,6 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
                   position: "relative",
                 }}
               >
-                {/* The screen is its own element at the device's real pixel
-                    size, so a responsive child lays itself out per width. */}
                 <div
                   style={{
                     position: "absolute",
@@ -229,9 +195,6 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
             </div>
 
             {device.kind === "laptop" ? (
-              // Base and hinge, drawn as their own strip: a laptop read as a
-              // slab with rounded corners is the giveaway that a mockup was
-              // never looked at.
               <div
                 style={{
                   width: (spec.width + 52) * scale,
@@ -283,7 +246,13 @@ export function MultiDeviceLineup(all: ElementProps & { children?: React.ReactNo
   const { children, ...props } = all;
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-      <MultiDeviceLineupView {...(nestedFrom(props, {"phoneLabel":"phone.label","tabletLabel":"tablet.label","laptopLabel":"laptop.label"}) as unknown as MultiDeviceLineupProps)}>
+      <MultiDeviceLineupView
+        {...(nestedFrom(props, {
+          phoneLabel: "phone.label",
+          tabletLabel: "tablet.label",
+          laptopLabel: "laptop.label",
+        }) as unknown as MultiDeviceLineupProps)}
+      >
         {children ? <ScreenFit>{children}</ScreenFit> : undefined}
       </MultiDeviceLineupView>
     </AbsoluteFill>

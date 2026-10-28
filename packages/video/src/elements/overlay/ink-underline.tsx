@@ -1,4 +1,9 @@
+import type React from "react";
+import { AbsoluteFill, useVideoConfig } from "remotion";
+import { numberOr } from "#video/common/math.ts";
+import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
 import {
   BrushGrain,
   type BrushPoint,
@@ -7,19 +12,10 @@ import {
   brushRibbon,
   sampleCubic,
 } from "#video/parts/brush.tsx";
-import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
-import { numberOr } from "#video/common/math.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import { AbsoluteFill, useVideoConfig } from "remotion";
-import type React from "react";
 
 const SAMPLES = 40;
 
-export function inkUnderlineSpine(
-  width: number,
-  thickness: number,
-  seed: string,
-): BrushPoint[] {
+export function inkUnderlineSpine(width: number, thickness: number, seed: string): BrushPoint[] {
   const wobble = hashRange(`${seed}:w`, -1.2, 1.2);
   const mid = thickness / 2 + 2;
   return sampleCubic(
@@ -97,11 +93,7 @@ function InkUnderlineView({
           d={d}
           fill={color}
           opacity={0.85}
-          filter={
-            grain > 0
-              ? `url(#${brushFilterId(seed, thickness, grain)})`
-              : undefined
-          }
+          filter={grain > 0 ? `url(#${brushFilterId(seed, thickness, grain)})` : undefined}
         />
       </svg>
     </div>
@@ -111,5 +103,20 @@ function InkUnderlineView({
 export function InkUnderline(all: ElementProps & { children?: React.ReactNode }) {
   const { x, y, ...props } = all;
   const { width, height } = useVideoConfig();
-  return <AbsoluteFill><div style={{ position: "absolute", left: numberOr(x, 0.5) * width, top: numberOr(y, 0.5) * height, translate: "-50% -50%" }}><InkUnderlineView {...(props as unknown as React.ComponentProps<typeof InkUnderlineView>)} /></div></AbsoluteFill>;
+  return (
+    <AbsoluteFill>
+      <div
+        style={{
+          position: "absolute",
+          left: numberOr(x, 0.5) * width,
+          top: numberOr(y, 0.5) * height,
+          translate: "-50% -50%",
+        }}
+      >
+        <InkUnderlineView
+          {...(props as unknown as React.ComponentProps<typeof InkUnderlineView>)}
+        />
+      </div>
+    </AbsoluteFill>
+  );
 }

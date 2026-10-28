@@ -14,9 +14,7 @@ export type FocusPullProps = {
   blur?: number;
 };
 
-const FocusPullPresentation: React.FC<
-  TransitionPresentationComponentProps<FocusPullProps>
-> = ({
+const FocusPullPresentation: React.FC<TransitionPresentationComponentProps<FocusPullProps>> = ({
   children,
   presentationProgress,
   presentationDirection,
@@ -59,9 +57,7 @@ const FocusPullPresentation: React.FC<
   return <AbsoluteFill style={childStyle}>{children}</AbsoluteFill>;
 };
 
-export function focusPull(
-  props: FocusPullProps = {},
-): TransitionPresentation<FocusPullProps> {
+export function focusPull(props: FocusPullProps = {}): TransitionPresentation<FocusPullProps> {
   return {
     component: FocusPullPresentation,
     props,

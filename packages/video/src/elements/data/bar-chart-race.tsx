@@ -1,59 +1,40 @@
+import type React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
 import { formatCompactNumber } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import type React from "react";
 
 export type RaceSeries = {
   label: string;
-  /** One value per keyframe. A series with fewer values leaves the board after its last one. */
   values: number[];
   color?: string;
 };
 
 export type BarChartRaceProps = {
   series: RaceSeries[];
-  /** Keyframe labels, e.g. years. Shown as the running caption. */
   steps?: string[];
-  /** Frames spent travelling between two keyframes. */
   framesPerStep?: number;
-  /** How many rows are visible. Series ranked below this fade out. */
   visibleRows?: number;
   width?: number;
   rowHeight?: number;
-  /** Space between rows. */
   gap?: number;
   colors?: string[];
   inkColor?: string;
-  /** Ink for the figure printed inside each bar. */
   barInkColor?: string;
   labelColor?: string;
-  /** Width reserved for the row labels, left of the bars. */
   labelWidth?: number;
-  /** Big step caption in the bottom-right corner. */
   showStepLabel?: boolean;
   valueFormatter?: (value: number) => string;
   delayInFrames?: number;
-  /** Frame the exit begins on. Omit to hold on the final standings. */
   exitAtInFrames?: number;
-  /** Length of the exit. */
   exitInFrames?: number;
-  /** Frame override — pass the parent frame inside a `<Sequence>`. */
   frame?: number;
 };
 
-const DEFAULT_COLORS = [
-  "#e8b86d",
-  "#2dd4bf",
-  "#f472b6",
-  "#8b8bf5",
-  "#f59e0b",
-  "#5eead4",
-];
+const DEFAULT_COLORS = ["#e8b86d", "#2dd4bf", "#f472b6", "#8b8bf5", "#f59e0b", "#5eead4"];
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/** Value of a series at a fractional keyframe position. */
 function valueAt(values: number[], time: number): number {
   if (values.length === 0) return 0;
   const clamped = Math.min(values.length - 1, Math.max(0, time));
@@ -63,16 +44,6 @@ function valueAt(values: number[], time: number): number {
   return values[lower] + (values[upper] - values[lower]) * t;
 }
 
-/**
- * Ranked bars that overtake each other as the clock runs.
- *
- * Rank is the sort position at each keyframe, eased between one keyframe and
- * the next. An integer rank of the live values makes bars teleport a full row
- * the instant two values cross; easing between keyframe orders slides them past
- * each other, and every bar rests on a whole row once the clock stops.
- *
- * Distinct from `animated-bar-chart`, which reveals a single fixed ranking.
- */
 const BarChartRaceView: React.FC<BarChartRaceProps> = ({
   series,
   steps,
@@ -96,10 +67,7 @@ const BarChartRaceView: React.FC<BarChartRaceProps> = ({
   const localFrame = useCurrentFrame();
   const frame = frameOverride ?? localFrame;
 
-  const stepCount = series.reduce(
-    (longest, entry) => Math.max(longest, entry.values.length),
-    0,
-  );
+  const stepCount = series.reduce((longest, entry) => Math.max(longest, entry.values.length), 0);
   const lastStep = Math.max(0, stepCount - 1);
   const time = Math.min(
     lastStep,
@@ -113,14 +81,19 @@ const BarChartRaceView: React.FC<BarChartRaceProps> = ({
     color: entry.color ?? colors[index % colors.length],
   }));
 
-  const leader = current.reduce(
-    (highest, entry) => (entry.present > 0 ? Math.max(highest, entry.current) : highest),
-    0,
-  ) || 1;
+  const leader =
+    current.reduce(
+      (highest, entry) => (entry.present > 0 ? Math.max(highest, entry.current) : highest),
+      0,
+    ) || 1;
 
   const ranksAt = (step: number) => {
     const live = series
-      .map((entry, index) => ({ index, value: entry.values[step], live: step < entry.values.length }))
+      .map((entry, index) => ({
+        index,
+        value: entry.values[step],
+        live: step < entry.values.length,
+      }))
       .filter((entry) => entry.live)
       .sort((a, b) => b.value - a.value || a.index - b.index);
     return series.map((_, index) => {
@@ -159,8 +132,6 @@ const BarChartRaceView: React.FC<BarChartRaceProps> = ({
       {current.map((entry, index) => {
         const rank = lowerRanks[index] + (upperRanks[index] - lowerRanks[index]) * eased;
 
-        // Rows past the visible window fade rather than clip, so a series
-        // dropping off the board reads as losing rather than as a render bug.
         const visibility = clamp01(visibleRows - rank) * entry.present;
         if (visibility <= 0) return null;
 
@@ -198,10 +169,7 @@ const BarChartRaceView: React.FC<BarChartRaceProps> = ({
             <div
               style={{
                 height: rowHeight,
-                width: Math.max(
-                  rowHeight * 0.6,
-                  (entry.current / leader) * barWidth * (1 - exit),
-                ),
+                width: Math.max(rowHeight * 0.6, (entry.current / leader) * barWidth * (1 - exit)),
                 borderRadius: rowHeight * 0.22,
                 background: entry.color,
                 display: "flex",
@@ -247,5 +215,9 @@ const BarChartRaceView: React.FC<BarChartRaceProps> = ({
 };
 
 export function BarChartRace(props: ElementProps & { children?: React.ReactNode }) {
-  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><BarChartRaceView {...(props as unknown as React.ComponentProps<typeof BarChartRaceView>)} /></AbsoluteFill>;
+  return (
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <BarChartRaceView {...(props as unknown as React.ComponentProps<typeof BarChartRaceView>)} />
+    </AbsoluteFill>
+  );
 }

@@ -30,8 +30,7 @@ const LAYER: React.CSSProperties = {
 
 const OUTPUT_LAYER: React.CSSProperties = { ...LAYER, pointerEvents: "none" };
 
-export const isCanvasTransitionSupported = (): boolean =>
-  isHtmlInCanvasSupported();
+export const isCanvasTransitionSupported = (): boolean => isHtmlInCanvasSupported();
 
 export const isCanvasFilterSupported = (): boolean => isHtmlInCanvasSupported();
 
@@ -59,9 +58,7 @@ export type SceneShaderInstance<Props> = {
   cleanup: () => void;
 };
 
-export type SceneShader<Props> = (
-  canvas: OffscreenCanvas,
-) => SceneShaderInstance<Props>;
+export type SceneShader<Props> = (canvas: OffscreenCanvas) => SceneShaderInstance<Props>;
 
 export type SceneFilterFrame<Props> = {
   gl: WebGL2RenderingContext;
@@ -88,15 +85,9 @@ export type SceneFilterInstance<Props> = {
   cleanup: () => void;
 };
 
-export type SceneFilter<Props> = (
-  canvas: OffscreenCanvas,
-) => SceneFilterInstance<Props>;
+export type SceneFilter<Props> = (canvas: OffscreenCanvas) => SceneFilterInstance<Props>;
 
-function compileShader(
-  gl: WebGL2RenderingContext,
-  source: string,
-  type: GLenum,
-): WebGLShader {
+function compileShader(gl: WebGL2RenderingContext, source: string, type: GLenum): WebGLShader {
   const shader = gl.createShader(type);
   if (!shader) {
     throw new Error("canvas-presentation: failed to create shader");
@@ -111,10 +102,7 @@ function compileShader(
   return shader;
 }
 
-function createProgram(
-  gl: WebGL2RenderingContext,
-  fragment: string,
-): WebGLProgram {
+function createProgram(gl: WebGL2RenderingContext, fragment: string): WebGLProgram {
   const program = gl.createProgram();
   if (!program) {
     throw new Error("canvas-presentation: failed to create program");
@@ -213,14 +201,7 @@ function createQuadSurface(canvas: OffscreenCanvas, fragment: string) {
     gl.activeTexture(gl.TEXTURE0 + unit);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     if (image) {
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        image,
-      );
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     }
     gl.uniform1i(uniform(name), unit);
   };
@@ -343,8 +324,7 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
     const layoutRef = React.useRef<HTMLCanvasElement | null>(null);
     const outputRef = React.useRef<HTMLCanvasElement | null>(null);
     const captureRef = React.useRef<OffscreenCanvas | null>(null);
-    const captureContextRef =
-      React.useRef<OffscreenCanvasRenderingContext2D | null>(null);
+    const captureContextRef = React.useRef<OffscreenCanvasRenderingContext2D | null>(null);
     const outputSurfaceRef = React.useRef<OffscreenCanvas | null>(null);
     const instanceRef = React.useRef<SceneShaderInstance<Props> | null>(null);
     const passedPropsRef = React.useRef(passedProps);
@@ -355,8 +335,7 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
     onUnmountRef.current = onUnmount;
 
     const { delayRender, continueRender } = useDelayRender();
-    const passThrough =
-      bothEnteringAndExiting && presentationDirection === "exiting";
+    const passThrough = bothEnteringAndExiting && presentationDirection === "exiting";
 
     const drawRef = React.useRef<
       (
@@ -392,11 +371,8 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
     };
 
     const draw = React.useCallback(
-      (
-        prevImage: OffscreenCanvas | null,
-        nextImage: OffscreenCanvas | null,
-        progress: number,
-      ) => drawRef.current(prevImage, nextImage, progress),
+      (prevImage: OffscreenCanvas | null, nextImage: OffscreenCanvas | null, progress: number) =>
+        drawRef.current(prevImage, nextImage, progress),
       [],
     );
 
@@ -427,7 +403,7 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
         captureContextRef.current = null;
         outputSurfaceRef.current = null;
       };
-    }, [passThrough, shader]);
+    }, [passThrough]);
 
     React.useLayoutEffect(() => {
       if (passThrough) {
@@ -484,7 +460,6 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
       return () => observer.disconnect();
     }, [passThrough]);
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: presentationProgress is the intentional trigger — a new progress value is what schedules the next paint
     React.useLayoutEffect(() => {
       if (passThrough) {
         return;
@@ -529,8 +504,7 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
     const layoutRef = React.useRef<HTMLCanvasElement | null>(null);
     const outputRef = React.useRef<HTMLCanvasElement | null>(null);
     const captureRef = React.useRef<OffscreenCanvas | null>(null);
-    const captureContextRef =
-      React.useRef<OffscreenCanvasRenderingContext2D | null>(null);
+    const captureContextRef = React.useRef<OffscreenCanvasRenderingContext2D | null>(null);
     const outputSurfaceRef = React.useRef<OffscreenCanvas | null>(null);
     const instanceRef = React.useRef<SceneFilterInstance<Props> | null>(null);
 
@@ -565,7 +539,7 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
         captureContextRef.current = null;
         outputSurfaceRef.current = null;
       };
-    }, [shader]);
+    }, []);
 
     React.useLayoutEffect(() => {
       const layout = layoutRef.current;
@@ -662,19 +636,11 @@ export type CanvasPresentationOptions<Props extends Record<string, unknown>> = {
 export function makeCanvasPresentation<Props extends Record<string, unknown>>({
   shader,
   fallback: Fallback,
-}: CanvasPresentationOptions<Props>): (
-  props: Props,
-) => TransitionPresentation<Props> {
+}: CanvasPresentationOptions<Props>): (props: Props) => TransitionPresentation<Props> {
   const Canvas = makeCanvasComponent(shader);
 
-  const Presentation: React.FC<TransitionPresentationComponentProps<Props>> = (
-    props,
-  ) =>
-    isCanvasTransitionSupported() ? (
-      <Canvas {...props} />
-    ) : (
-      <Fallback {...props} />
-    );
+  const Presentation: React.FC<TransitionPresentationComponentProps<Props>> = (props) =>
+    isCanvasTransitionSupported() ? <Canvas {...props} /> : <Fallback {...props} />;
 
   return (props) => ({ component: Presentation, props });
 }
@@ -691,10 +657,6 @@ export function makeCanvasFilter<Props extends Record<string, unknown>>({
   const Canvas = makeFilterComponent(shader);
 
   return function CanvasFilter(props) {
-    return isCanvasFilterSupported() ? (
-      <Canvas {...props} />
-    ) : (
-      <Fallback {...props} />
-    );
+    return isCanvasFilterSupported() ? <Canvas {...props} /> : <Fallback {...props} />;
   };
 }

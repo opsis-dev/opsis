@@ -7,40 +7,24 @@ import { samplePath, waypointsToPath } from "#video/lib/paths/path-utils.ts";
 const fontFamily = '"Inter"';
 
 export type DragDropFlowProps = {
-  /** File the cursor picks up and drops. */
   fileName?: string;
-  /** Size shown once the upload completes. */
   fileSize?: string;
-  /** Other rows in the source list, for context around the dragged file. */
   siblings?: string[];
-  /** Heading on the source panel. */
   sourceLabel?: string;
-  /** Idle prompt inside the drop zone. */
   label?: string;
-  /** Secondary line under the prompt — accepted formats, limits. */
   hint?: string;
-  /** Prompt while the file is held over the zone. */
   activeLabel?: string;
-  /** Label while the file uploads. */
   uploadingLabel?: string;
-  /** Label once the upload finishes. */
   doneLabel?: string;
   accentColor?: string;
   backgroundColor?: string;
   theme?: "dark" | "light";
-  /**
-   * Seconds the finished upload holds before it retreats. Omit to leave it up
-   * for the rest of the scene — inside a `TransitionSeries` the transition
-   * should cover the tail rather than the flow fading under it.
-   */
   holdSeconds?: number;
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
 const DEFAULT_SIBLINGS = ["b-roll-rooftop.mov", "interview-cam-b.mp4"];
 
-/** Beat plan in seconds — every frame number below derives from these. */
 const T = {
   panel: 0,
   rows: 0.28,
@@ -56,7 +40,6 @@ const T = {
   uploadStart: 2.42,
   uploadEnd: 3.68,
   doneEnd: 4.05,
-  /** Length of the retreat once `holdSeconds` is up. */
   exitFor: 0.42,
 } as const;
 
@@ -65,10 +48,7 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-const FileGlyph: React.FC<{ size: number; color: string }> = ({
-  size,
-  color,
-}) => (
+const FileGlyph: React.FC<{ size: number; color: string }> = ({ size, color }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <path
       d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5L13.5 3Z"
@@ -87,10 +67,7 @@ const FileGlyph: React.FC<{ size: number; color: string }> = ({
   </svg>
 );
 
-const UploadGlyph: React.FC<{ size: number; color: string }> = ({
-  size,
-  color,
-}) => (
+const UploadGlyph: React.FC<{ size: number; color: string }> = ({ size, color }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <path
       d="M12 15.5V4.2m0 0L7.6 8.6M12 4.2l4.4 4.4"
@@ -126,7 +103,6 @@ const CheckGlyph: React.FC<{
   </svg>
 );
 
-/** Pointer arrow, drawn rather than typed so it renders on every platform. */
 const CursorGlyph: React.FC<{ size: number; fill: string; stroke: string }> = ({
   size,
   fill,
@@ -143,12 +119,6 @@ const CursorGlyph: React.FC<{ size: number; fill: string; stroke: string }> = ({
   </svg>
 );
 
-/**
- * The whole drag beat rather than a card sliding into a box: the cursor picks
- * a file out of the library, the row it left keeps its place as a ghost, the
- * drop zone arms while the file is held over it, and the release turns into a
- * real upload that completes.
- */
 export const DragDropFlow: React.FC<DragDropFlowProps> = ({
   fileName = "hero-take.mp4",
   fileSize = "48.2 MB",
@@ -170,7 +140,6 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
   const palette = CODE_THEMES[theme];
   const safe = getSafeAreaPadding({ width, height });
 
-  /** Seconds → frames, compressed by `speed`. */
   const at = (seconds: number) => (seconds * fps) / speed;
   const ease = (from: number, to: number, easing = EASING.enter) =>
     interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
@@ -182,17 +151,8 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
     h: height - safe.paddingTop - safe.paddingBottom,
   };
   const portrait = height > width;
-  /** One typographic unit, so text and radii follow the smaller edge. */
-  // D1. See the note in `weather-card`: a 1120x620 reference resolves to
-  // u = 0.71 on the 818x440 docs stage, so the design was drawn at 71% of the
-  // room it had and every secondary tier fell under the legibility floor.
-  /** The dragged file sits mid-list so the ghost it leaves reads clearly. */
   const draggedIndex = Math.min(1, siblings.length);
-  const rows = [
-    ...siblings.slice(0, draggedIndex),
-    fileName,
-    ...siblings.slice(draggedIndex),
-  ];
+  const rows = [...siblings.slice(0, draggedIndex), fileName, ...siblings.slice(draggedIndex)];
   const trayUnits = 26 * 2 + 46 + rows.length * 74 + (rows.length - 1) * 12;
   const u = Math.min(
     stage.w / 900,
@@ -204,14 +164,9 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
   const rowH = 74 * u;
   const rowGap = 12 * u;
 
-  // Both panels are sized to what they hold and then centred, rather than
-  // stretched to the safe area — a half-empty list panel reads as a bug.
   const gap = 0.05 * Math.min(stage.w, stage.h * 1.6);
-  const trayH =
-    trayPad * 2 + 46 * u + rows.length * rowH + (rows.length - 1) * rowGap;
-  const zoneH = portrait
-    ? stage.h - trayH - gap
-    : Math.min(stage.h, Math.max(trayH, 400 * u));
+  const trayH = trayPad * 2 + 46 * u + rows.length * rowH + (rows.length - 1) * rowGap;
+  const zoneH = portrait ? stage.h - trayH - gap : Math.min(stage.h, Math.max(trayH, 400 * u));
   const tray = portrait
     ? { x: 0, y: 0, w: stage.w, h: trayH }
     : { x: 0, y: (stage.h - trayH) / 2, w: stage.w * 0.34, h: trayH };
@@ -233,17 +188,12 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
     x: tray.x + trayPad + cardW / 2,
     y: rowY(draggedIndex) + cardH / 2,
   };
-  /** Where the file lands — high in the zone, so the prompt below stays clear. */
   const dropCenter = {
     x: zone.x + zone.w / 2,
     y: zone.y + zone.h * 0.34,
   };
-  /** Where the pointer holds the card — its top-left quadrant, as a mouse does. */
   const grip = { x: cardW * 0.16, y: cardH * 0.18 };
 
-  // The cursor travels on two arcs: in to the file, then out to the zone.
-  // Keeping them separate lets the grab land on an exact beat instead of on a
-  // guessed fraction of one long path.
   const approach = waypointsToPath(
     [
       { x: tray.x + tray.w * 0.12, y: stage.h + 90 * u },
@@ -301,8 +251,6 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
     config: { damping: 18, stiffness: 120, mass: 0.8 },
   });
 
-  // The card is parented to the cursor while carried, then springs into the
-  // zone after the release.
   const cardCenter = released
     ? {
         x: interpolate(settle, [0, 1], [cursorPoint.x - grip.x, dropCenter.x]),
@@ -312,16 +260,13 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
       ? { x: cursorPoint.x - grip.x, y: cursorPoint.y - grip.y }
       : homeCenter;
 
-  // Exits accelerate away; entrances decelerate in. Never ease-out an exit.
   const exit =
     holdSeconds === undefined
       ? 0
-      : interpolate(
-          frame,
-          [at(holdSeconds), at(holdSeconds + T.exitFor)],
-          [0, 1],
-          { easing: EASING.exit, ...clamp },
-        );
+      : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
+          easing: EASING.exit,
+          ...clamp,
+        });
 
   const zoneArmed = armed > 0 || released;
   const zoneLabel = released
@@ -366,7 +311,6 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
           translate: `0 ${exit * -26 * u}px`,
         }}
       >
-        {/* Source list */}
         <div
           style={{
             position: "absolute",
@@ -410,7 +354,6 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
           );
 
           if (isDragged) {
-            // The slot the file left — dashed, and only while it is away.
             return (
               <div
                 key={name}
@@ -422,8 +365,6 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
                   height: rowH,
                   borderRadius: 14 * u,
                   border: `1px dashed ${palette.faint}`,
-                  // Stays after the drop: the file left the library for the
-                  // upload, so its slot should still read as vacated.
                   opacity: rowIn * Math.max(lift * 0.9, released ? 0.55 : 0),
                 }}
               />
@@ -454,14 +395,11 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
               }}
             >
               <FileGlyph size={26 * u} color={palette.faint} />
-              <span style={{ whiteSpace: "nowrap", overflow: "hidden" }}>
-                {name}
-              </span>
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{name}</span>
             </div>
           );
         })}
 
-        {/* Drop zone */}
         <div
           style={{
             position: "absolute",
@@ -470,9 +408,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
             width: zone.w,
             height: zone.h,
             borderRadius: 26 * u,
-            border: `${2 * u}px dashed ${
-              zoneArmed ? accentColor : palette.border
-            }`,
+            border: `${2 * u}px dashed ${zoneArmed ? accentColor : palette.border}`,
             background: zoneArmed
               ? `linear-gradient(180deg, color-mix(in srgb, ${accentColor} ${
                   released ? 5 : 9
@@ -486,8 +422,6 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
           }}
         />
 
-        {/* Zone copy — centred while the zone waits, tucked under the file once
-            it lands, so the two never share the same band */}
         <div
           style={{
             position: "absolute",
@@ -508,10 +442,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
         >
           {released ? null : (
             <div style={{ transform: `translateY(${armed * -6 * u}px)` }}>
-              <UploadGlyph
-                size={44 * u}
-                color={armed > 0.4 ? accentColor : palette.dim}
-              />
+              <UploadGlyph size={44 * u} color={armed > 0.4 ? accentColor : palette.dim} />
             </div>
           )}
           <div
@@ -524,9 +455,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
               gap: 10 * u,
             }}
           >
-            {done > 0 ? (
-              <CheckGlyph size={28 * u} color={accentColor} progress={done} />
-            ) : null}
+            {done > 0 ? <CheckGlyph size={28 * u} color={accentColor} progress={done} /> : null}
             {zoneLabel}
           </div>
           <div style={{ color: palette.faint, fontSize: 20 * u }}>
@@ -534,7 +463,6 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
           </div>
         </div>
 
-        {/* The file itself — one element from library row to landed upload */}
         <div
           style={{
             position: "absolute",
@@ -545,20 +473,15 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
             borderRadius: 14 * u,
             background: palette.window,
             border: `1px solid ${
-              lift > 0.2 || released ? `color-mix(in srgb, ${accentColor} 53%, transparent)` : palette.border
+              lift > 0.2 || released
+                ? `color-mix(in srgb, ${accentColor} 53%, transparent)`
+                : palette.border
             }`,
-            boxShadow: `0 ${(6 + lift * 22) * u}px ${(16 + lift * 46) * u}px ${
-              palette.shadow
-            }`,
+            boxShadow: `0 ${(6 + lift * 22) * u}px ${(16 + lift * 46) * u}px ${palette.shadow}`,
             transform: `scale(${1 + lift * 0.06 - press * 0.04}) rotate(${
               lift * -2.2 * (1 - settle)
             }deg)`,
-            opacity: interpolate(
-              frame,
-              [at(T.rows), at(T.rows + 0.4)],
-              [0, 1],
-              clamp,
-            ),
+            opacity: interpolate(frame, [at(T.rows), at(T.rows + 0.4)], [0, 1], clamp),
             display: "flex",
             alignItems: "center",
             gap: 14 * u,
@@ -585,7 +508,6 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
           />
         </div>
 
-        {/* Transfer readout under the landed file */}
         <div
           style={{
             position: "absolute",
@@ -604,7 +526,6 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
           <span>{Math.round(upload * 100)}%</span>
         </div>
 
-        {/* Click ring, then the cursor on top of it */}
         <div
           style={{
             position: "absolute",
@@ -614,19 +535,9 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
             height: 60 * u,
             borderRadius: "50%",
             border: `${2 * u}px solid ${accentColor}`,
-            // Only after the release — a clamped ramp would otherwise hold the
-            // ring at full strength for the whole approach.
             opacity: released
-              ? interpolate(
-                  frame,
-                  [at(T.release), at(T.release + 0.34)],
-                  [0.75, 0],
-                  clamp,
-                )
+              ? interpolate(frame, [at(T.release), at(T.release + 0.34)], [0.75, 0], clamp)
               : 0,
-            // Doc rule 20: perceived size grows with the square of the
-            // factor, so this 0.4 -> 1.5 ramp reads front-loaded on a linear
-            // interpolation.
             transform: `scale(${interpolate(
               frame,
               [at(T.release), at(T.release + 0.34)],
@@ -642,12 +553,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
             top: cursorPoint.y,
             opacity: interpolate(
               frame,
-              [
-                at(T.cursorIn),
-                at(T.cursorIn + 0.2),
-                at(T.release + 0.25),
-                at(T.release + 0.6),
-              ],
+              [at(T.cursorIn), at(T.cursorIn + 0.2), at(T.release + 0.25), at(T.release + 0.6)],
               [0, 1, 1, 0],
               clamp,
             ),
@@ -658,9 +564,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
           <CursorGlyph
             size={19 * u}
             fill={theme === "dark" ? "#F6F7FA" : "#1A1D24"}
-            stroke={
-              theme === "dark" ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.7)"
-            }
+            stroke={theme === "dark" ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.7)"}
           />
         </div>
       </div>

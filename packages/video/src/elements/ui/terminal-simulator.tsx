@@ -1,7 +1,4 @@
-import {
-  interpolate,
-  Sequence,
-} from "remotion";
+import { interpolate, Sequence } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "#video/core/authored-clock.ts";
 import { parseColor } from "#video/lib/neutral-ui/color.ts";
 
@@ -11,11 +8,6 @@ export interface TerminalLine {
   text: string;
   type: TerminalLineType;
   delay?: number;
-  /**
-   * Extra freeze-frame pause AFTER this line finishes typing, in frames.
-   * Use this to build dramatic tension before the next batch of logs.
-   * If omitted, lines whose text ends in "..." auto-freeze for 18 frames.
-   */
   pause?: number;
 }
 
@@ -26,13 +18,7 @@ export interface TerminalSimulatorProps {
   background?: string;
   chromeColor?: string;
   fontSize?: number;
-  /**
-   * Reveal speed. Despite the name, the reveal is now CHUNKED — each
-   * `1 / charsPerFrame` frames bumps the cursor by `chunkSize` characters,
-   * so output appears in bursts instead of dripping char-by-char.
-   */
   charsPerFrame?: number;
-  /** Characters revealed per step. */
   chunkSize?: number;
   speed?: number;
   className?: string;
@@ -71,7 +57,6 @@ function isLight(color: string): boolean {
   return alpha > 0.5 && 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5;
 }
 
-/** Auto freeze-frame heuristic: any line ending in "..." holds the camera. */
 function autoPause(line: TerminalLine): number {
   if (line.pause !== undefined) return line.pause;
   if (line.text.trimEnd().endsWith("...")) return 18;
@@ -103,24 +88,16 @@ export function TerminalSimulator({
   );
   const typeColors = isLight(background) ? LIGHT_TYPE_COLORS : TYPE_COLORS;
 
-  // Compute cumulative start frames for each line, including auto/explicit
-  // pauses AFTER a line finishes typing.
   const starts: number[] = [];
   let acc = 10;
   for (let i = 0; i < lines.length; i++) {
     const delay = lines[i].delay ?? 8;
     acc += delay;
     starts.push(acc);
-    // Approximate typing duration (in frames) for chunked output.
-    const typingFrames = Math.ceil(
-      lines[i].text.length / (chunkSize * charsPerFrame),
-    );
+    const typingFrames = Math.ceil(lines[i].text.length / (chunkSize * charsPerFrame));
     acc += typingFrames + autoPause(lines[i]);
   }
 
-  // STEP-FUNCTION scroll. Each overflowing line snaps the buffer up by
-  // exactly one lineHeight on the frame it begins. No interpolation, no
-  // easing — terminals do not glide.
   let translateY = 0;
   for (let i = visibleLines; i < lines.length; i++) {
     if (frame >= starts[i]) {
@@ -146,15 +123,12 @@ export function TerminalSimulator({
           background,
           borderRadius: 12,
           overflow: "hidden",
-          boxShadow:
-            "0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
+          boxShadow: "0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
           display: "flex",
           flexDirection: "column",
-          fontFamily:
-            "var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace",
+          fontFamily: "var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace",
         }}
       >
-        {/* Chrome */}
         <div
           style={{
             height: 40,
@@ -181,7 +155,6 @@ export function TerminalSimulator({
           </div>
         </div>
 
-        {/* Content */}
         <div
           style={{
             flex: 1,
@@ -264,22 +237,15 @@ function TerminalLineRow({
   const localFrame = useAuthoredFrame() * speed;
   const totalChars = line.text.length;
 
-  // Chunked reveal: Math.floor of an interpolated count, then snapped to the
-  // nearest multiple of `chunkSize`. This is what gives the bursty terminal
-  // feel — text doesn't drip, it lurches.
   const linearRevealed = Math.floor(
     interpolate(localFrame, [0, totalChars / charsPerFrame], [0, totalChars], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
     }),
   );
-  const revealed = Math.min(
-    totalChars,
-    Math.ceil(linearRevealed / chunkSize) * chunkSize,
-  );
+  const revealed = Math.min(totalChars, Math.ceil(linearRevealed / chunkSize) * chunkSize);
   const visible = line.text.substring(0, revealed);
   const typingDone = revealed >= totalChars;
-  // 2 Hz blink at any framerate.
   const cursorVisible = Math.floor((localFrame / fps) * 2) % 2 === 0;
 
   return (

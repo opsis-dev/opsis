@@ -75,10 +75,7 @@ export function RGBGlitchText({
         background,
       }}
     >
-      <div
-        className={className}
-        style={{ position: "relative", display: "inline-block" }}
-      >
+      <div className={className} style={{ position: "relative", display: "inline-block" }}>
         <span
           style={{
             position: "relative",

@@ -27,12 +27,7 @@ export type GrainDissolveProps = {
 
 const GrainDissolvePresentation: React.FC<
   TransitionPresentationComponentProps<GrainDissolveProps>
-> = ({
-  children,
-  presentationProgress,
-  presentationDirection,
-  passedProps,
-}) => {
+> = ({ children, presentationProgress, presentationDirection, passedProps }) => {
   const {
     colors = DEFAULT_COLORS,
     colorBack = "#141318",

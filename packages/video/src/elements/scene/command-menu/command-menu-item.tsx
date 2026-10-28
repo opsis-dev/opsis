@@ -38,9 +38,7 @@ export interface CommandMenuItemStyleContext {
   kbdBorder: string;
 }
 
-export function commandMenuItemStyleContext(
-  theme: NeutralTheme,
-): CommandMenuItemStyleContext {
+export function commandMenuItemStyleContext(theme: NeutralTheme): CommandMenuItemStyleContext {
   return {
     idleBg: theme.popover,
     hoverBg: theme.accent,
@@ -100,13 +98,7 @@ const ICON_PATHS: Record<CommandMenuIcon, string> = {
   file: "M7 3h7l4 4v14H7ZM14 3v4h4",
 };
 
-function CommandMenuItemIcon({
-  icon,
-  color,
-}: {
-  icon: CommandMenuIcon;
-  color: string;
-}) {
+function CommandMenuItemIcon({ icon, color }: { icon: CommandMenuIcon; color: string }) {
   return (
     <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <path
@@ -231,8 +223,7 @@ export function CommandMenuItem({
         alignItems: "center",
         justifyContent: "center",
         background: "transparent",
-        fontFamily:
-          "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       <CommandMenuItemRow

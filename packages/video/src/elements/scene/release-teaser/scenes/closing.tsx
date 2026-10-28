@@ -1,15 +1,9 @@
 import { Interactive, interpolate } from "remotion";
-import type { ReleaseTeaserScene } from "../content";
-import { ease, fitText } from "../motion";
-import { BrandImage, OrbitMark } from "../ui";
+import type { ReleaseTeaserScene } from "#video/elements/scene/release-teaser/content.ts";
+import { ease, fitText } from "#video/elements/scene/release-teaser/motion.ts";
+import { BrandImage, OrbitMark } from "#video/elements/scene/release-teaser/ui.tsx";
 
-export function ReleaseLockup({
-  scene,
-  frame,
-}: {
-  scene: ReleaseTeaserScene;
-  frame: number;
-}) {
+export function ReleaseLockup({ scene, frame }: { scene: ReleaseTeaserScene; frame: number }) {
   const title = `${scene.brandName}${scene.release ? ` ${scene.release}` : ""}`;
   const reveal = scene.reducedMotion ? 1 : ease(frame, 0, 32);
   return (
@@ -23,10 +17,7 @@ export function ReleaseLockup({
         alignItems: "center",
         justifyContent: "center",
         opacity: reveal,
-        filter:
-          !scene.reducedMotion && reveal < 0.99
-            ? `blur(${(1 - reveal) * 6}px)`
-            : undefined,
+        filter: !scene.reducedMotion && reveal < 0.99 ? `blur(${(1 - reveal) * 6}px)` : undefined,
         scale: scene.reducedMotion
           ? 1
           : interpolate(frame, [0, 350], [0.97, 1.03], {

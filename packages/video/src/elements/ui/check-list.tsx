@@ -1,7 +1,7 @@
 import { AbsoluteFill } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { Handwrite, handwriteDuration } from "#video/parts/handwrite.tsx";
 import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
+import { Handwrite, handwriteDuration } from "#video/parts/handwrite.tsx";
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
@@ -43,9 +43,7 @@ export type CheckListTiming = {
   closeGap?: number;
 };
 
-export function normalizeCheckListItems(
-  items: (string | CheckListItem)[],
-): CheckListEntry[] {
+export function normalizeCheckListItems(items: (string | CheckListItem)[]): CheckListEntry[] {
   return items.map((item) =>
     typeof item === "string"
       ? { text: item, checked: true }
@@ -53,10 +51,7 @@ export function normalizeCheckListItems(
   );
 }
 
-export function checkListGeometry(
-  width: number,
-  fontSize: number,
-): CheckListGeometry {
+export function checkListGeometry(width: number, fontSize: number): CheckListGeometry {
   const boxSize = Math.round(fontSize * 0.62);
   const boxGap = Math.round(fontSize * 0.4);
   return {
@@ -85,10 +80,7 @@ export function checkListEnterEnd(
     (end, item, i) =>
       Math.max(
         end,
-        delay +
-          i * itemGap +
-          step * 2 +
-          handwriteDuration(item.text, { perStep, step }),
+        delay + i * itemGap + step * 2 + handwriteDuration(item.text, { perStep, step }),
       ),
     delay,
   );
@@ -157,9 +149,7 @@ const boxPath = (size: number, seed: string, index: number): string => {
     [lo + nudge(6), hi + nudge(7)],
   ];
   const [start, ...rest] = corners;
-  return `M ${start[0]} ${start[1]} ${rest
-    .map(([x, y]) => `L ${x} ${y}`)
-    .join(" ")} Z`;
+  return `M ${start[0]} ${start[1]} ${rest.map(([x, y]) => `L ${x} ${y}`).join(" ")} Z`;
 };
 
 const tickPath = (size: number): string =>
@@ -167,15 +157,8 @@ const tickPath = (size: number): string =>
 
 const CAVEAT_ADVANCE = 0.36;
 
-export function checkListStrikeWidth(
-  text: string,
-  fontSize: number,
-  labelWidth: number,
-): number {
-  return Math.min(
-    labelWidth,
-    Array.from(text).length * fontSize * CAVEAT_ADVANCE,
-  );
+export function checkListStrikeWidth(text: string, fontSize: number, labelWidth: number): number {
+  return Math.min(labelWidth, Array.from(text).length * fontSize * CAVEAT_ADVANCE);
 }
 
 const strikePath = (
@@ -237,10 +220,7 @@ export function CheckList({
     perStep,
     step,
   });
-  const { boxSize, boxGap, rowHeight, labelWidth } = checkListGeometry(
-    width,
-    fontSize,
-  );
+  const { boxSize, boxGap, rowHeight, labelWidth } = checkListGeometry(width, fontSize);
   const labelSize = (text: string) =>
     Math.min(fontSize, labelWidth / Math.max(1, Array.from(text).length * CAVEAT_ADVANCE));
 

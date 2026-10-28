@@ -11,16 +11,10 @@ export type PathPoint = {
   y: number;
 };
 
-/** Point on a path plus the heading of the curve at that point, in degrees. */
 export type PathSample = PathPoint & {
   angle: number;
 };
 
-/**
- * Measuring a path parses its `d` string, which is far too expensive to redo
- * for every path on every frame. Paths are static strings, so results are
- * cached by the string itself.
- */
 const lengthCache = new Map<string, number>();
 const boxCache = new Map<string, ReturnType<typeof getBoundingBox>>();
 
@@ -56,12 +50,6 @@ export function getPathDrawStyles(progress: number, path: string) {
   };
 }
 
-/**
- * A viewBox that tightly frames the artwork, so callers can hand over any path
- * — a logo exported at the origin or one sitting at x=940 in a 1024 canvas —
- * without hand-computing coordinates. `padding` is in path units and leaves
- * room for the stroke, which straddles the geometry and would otherwise clip.
- */
 export function fitViewBox(paths: string | string[], padding = 0): string {
   const list = (Array.isArray(paths) ? paths : [paths]).filter(Boolean);
   const boxes = list.map(pathBoundingBox);
@@ -83,15 +71,9 @@ export function fitViewBox(paths: string | string[], padding = 0): string {
   ].join(" ");
 }
 
-/**
- * Sample a path by arc length rather than by segment index, so a cursor or a
- * comet head travels at an even speed no matter how the path was authored.
- */
 export function samplePath(d: string, progress: number): PathSample {
   const length = pathLength(d);
   const at = clampProgress(progress) * length;
-  // Both return null for a path with no drawable segments (an empty `d`, or a
-  // lone moveto), which is a valid input a caller can build from waypoints.
   const point = getPointAtLength(d, at) ?? { x: 0, y: 0 };
   const tangent = getTangentAtLength(d, at) ?? { x: 1, y: 0 };
 
@@ -102,15 +84,7 @@ export function samplePath(d: string, progress: number): PathSample {
   };
 }
 
-/**
- * Build a path through waypoints. `smoothing` of 0 gives straight hops; higher
- * values round the corners with a cardinal spline whose control points are
- * derived from the neighbouring points, so the curve stays close to the line.
- */
-export function waypointsToPath(
-  points: readonly PathPoint[],
-  smoothing = 0.25,
-): string {
+export function waypointsToPath(points: readonly PathPoint[], smoothing = 0.25): string {
   if (points.length === 0) {
     return "";
   }
@@ -146,17 +120,7 @@ export function waypointsToPath(
   return segments.join(" ");
 }
 
-/**
- * Arc-length progress at which each waypoint sits, so callers can fire events
- * — a click, a label — exactly when the traveller reaches a point instead of
- * at a guessed frame. Smoothing moves a waypoint off the straight line, so the
- * nearest sample is found by scanning rather than by segment ratio.
- */
-export function waypointProgress(
-  d: string,
-  points: readonly PathPoint[],
-  samples = 240,
-): number[] {
+export function waypointProgress(d: string, points: readonly PathPoint[], samples = 240): number[] {
   const length = pathLength(d);
   if (length === 0) {
     return points.map(() => 0);

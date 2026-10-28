@@ -1,7 +1,4 @@
-import {
-  interpolate,
-  interpolateColors,
-} from "remotion";
+import { interpolate, interpolateColors } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface InlineHighlightProps {
@@ -35,18 +32,12 @@ export function InlineHighlight({
   const { durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
 
-  const progress = interpolate(
-    frame,
-    [durationInFrames * 0.2, durationInFrames * 0.7],
-    [0, 1],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-  );
+  const progress = interpolate(frame, [durationInFrames * 0.2, durationInFrames * 0.7], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
-  const color = interpolateColors(
-    progress,
-    [0, 1],
-    [baseColor, highlightColor],
-  );
+  const color = interpolateColors(progress, [0, 1], [baseColor, highlightColor]);
 
   return (
     <div

@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import type React from "react";
 import {
   Easing,
   getRemotionEnvironment,
@@ -7,107 +8,55 @@ import {
   OffthreadVideo,
   staticFile,
 } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-import {
-  resolveFont,
-  type WarmTheme,
-  useWarmTheme,
-  withAlpha,
-} from "#video/lib/warm-ui/index.ts";
 import { type ElementProps } from "#video/common/spec.ts";
 import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { resolveFont, type WarmTheme, useWarmTheme, withAlpha } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
-import type React from "react";
 
 export type PhoneFrameVariant = "flat" | "tilt" | "showcase";
 export type PhoneFrameEntrance = "rise" | "rotate-in" | "float";
 
 export interface PhoneFrameProps {
-  /** Screen content. Falls back to `screenSrc`, then the ride-summary placeholder. */
   children?: ReactNode;
-  /**
-   * Image *or* video to fill the screen when `children` is omitted. Videos
-   * (.mp4/.webm/.mov/.m4v) play via `<OffthreadVideo>`, images via `<Img>` —
-   * both cover-fit the screen.
-   */
   screenSrc?: string;
-  /**
-   * `flat` faces the camera; `tilt` adds a static 3D rotateY; `showcase` is a
-   * cinematic crane move — the camera starts low at the bottom-left corner of
-   * the laid-back device, sweeps up the screen while zooming in, then pulls
-   * back and settles on a straight frontal view.
-   */
   variant?: PhoneFrameVariant;
-  /** How the device enters the frame. */
   entrance?: PhoneFrameEntrance;
-  /** Device shell color. Defaults to the theme's `foreground`. */
   bezelColor?: string;
-  /** Screen fill behind the children. Defaults to the theme's `card`. */
   screenColor?: string;
-  /** Design-system token overrides. */
   theme?: Partial<WarmTheme>;
   mode?: "light" | "dark";
-  /**
-   * The face this scene paints its words in — a label from `fonts.ts`
-   * ("Inter", "Space Grotesk", "Instrument Serif") or a CSS family you have
-   * loaded yourself. Unset, the scene keeps the face it was designed around.
-   *
-   * Overrides `theme.fontFamily`, which is how a brand kit re-skins a whole
-   * timeline from one value.
-   */
   fontFamily?: string;
-  /** Outer body corner radius. Defaults to real-device curvature. */
   radius?: number;
-  /** Screen corner radius. Defaults to `radius - bezel` (concentric corners). */
   screenRadius?: number;
-  /** CSS box-shadow under the device. Empty string disables it. */
   shadow?: string;
-  /** Uniform size multiplier for the whole device. */
   scale?: number;
-  /** Render the dynamic-island cutout over the screen. */
   showDynamicIsland?: boolean;
-  /** Gentle vertical bob after the entrance settles. */
   floatLoop?: boolean;
-  /** Peak float displacement in pixels. */
   floatAmplitude?: number;
-  /** rotateY angle (degrees) used by the `tilt` variant. */
   tiltAngle?: number;
   speed?: number;
   className?: string;
 }
 
-const FONT_FAMILY =
-  'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
-/** Device shell size — matches the ~0.488 width:height ratio of a real iPhone. */
 export const DEVICE_WIDTH = 320;
 export const DEVICE_HEIGHT = 656;
 
-/** Shell thickness between the body edge and the screen. */
 export const BEZEL_WIDTH = 12;
 
-/** Outer body curvature: real devices sit near 16.5% of the body width. */
 export const DEVICE_RADIUS_RATIO = 0.165;
 
-/** Frames the entrance takes before the device is fully settled. */
 export const ENTRANCE_FRAMES = 30;
 
-/** Seconds per full float-loop cycle. */
 export const FLOAT_PERIOD_SECONDS = 4.5;
 
-/** Default outer radius for a given device width (real-device curvature). */
 export function deviceRadius(deviceWidth: number): number {
   return Math.round(deviceWidth * DEVICE_RADIUS_RATIO);
 }
 
-/**
- * Concentric-corner rule: the screen radius is the body radius minus the
- * bezel thickness, floored so tiny radii never go negative.
- */
-export function screenRadiusFor(
-  radius: number,
-  bezel: number = BEZEL_WIDTH,
-): number {
+export function screenRadiusFor(radius: number, bezel: number = BEZEL_WIDTH): number {
   return Math.max(4, radius - bezel);
 }
 
@@ -118,14 +67,7 @@ export interface EntrancePose {
   scale: number;
 }
 
-/**
- * Pure entrance schedule. All three entrances settle to the identity pose by
- * `ENTRANCE_FRAMES`, so the float loop can take over without a seam.
- */
-export function entrancePose(
-  frame: number,
-  entrance: PhoneFrameEntrance,
-): EntrancePose {
+export function entrancePose(frame: number, entrance: PhoneFrameEntrance): EntrancePose {
   const clamp = {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -162,7 +104,6 @@ export function entrancePose(
     };
   }
 
-  // rise (default)
   return {
     opacity: interpolate(frame, [0, 12], [0, 1], clamp),
     translateY: interpolate(frame, [0, 26], [70, 0], {
@@ -174,10 +115,6 @@ export function entrancePose(
   };
 }
 
-/**
- * Deterministic float-loop offset in pixels. Starts at 0 with an upward
- * drift at `startFrame`, so it blends seamlessly out of any entrance.
- */
 export function floatOffset(
   frame: number,
   fps: number,
@@ -186,33 +123,24 @@ export function floatOffset(
   periodSeconds: number = FLOAT_PERIOD_SECONDS,
 ): number {
   const local = Math.max(0, frame - startFrame);
-  const value =
-    Math.sin((local / (fps * periodSeconds)) * Math.PI * 2) * amplitude;
-  // Negative = upward drift; the `=== 0` guard avoids returning -0.
+  const value = Math.sin((local / (fps * periodSeconds)) * Math.PI * 2) * amplitude;
   return value === 0 ? 0 : -value;
 }
 
-/** Side-button spec (position along the edge, length) in body pixels. */
 export const SIDE_BUTTONS: Array<{
   side: "left" | "right";
   top: number;
   length: number;
 }> = [
-  { side: "left", top: 118, length: 26 }, // action button
-  { side: "left", top: 166, length: 46 }, // volume up
-  { side: "left", top: 222, length: 46 }, // volume down
-  { side: "right", top: 176, length: 68 }, // power
+  { side: "left", top: 118, length: 26 },
+  { side: "left", top: 166, length: 46 },
+  { side: "left", top: 222, length: 46 },
+  { side: "right", top: 176, length: 68 },
 ];
 
-// ─── Ride-summary demo screen ────────────────────────────────────────────────
-// A glowing GPS route draws itself across a dark map while stat "insight" pills
-// pop in along it — the default screen the phone shows off as it rotates.
+const SCREEN_W = DEVICE_WIDTH - BEZEL_WIDTH * 2;
+const SCREEN_H = DEVICE_HEIGHT - BEZEL_WIDTH * 2;
 
-/** Screen interior (device minus bezel on both sides). */
-const SCREEN_W = DEVICE_WIDTH - BEZEL_WIDTH * 2; // 296
-const SCREEN_H = DEVICE_HEIGHT - BEZEL_WIDTH * 2; // 632
-
-/** Route waypoints in screen space; a closed loop drawn head-first from [0]. */
 const ROUTE: ReadonlyArray<readonly [number, number]> = [
   [224, 450],
   [172, 462],
@@ -230,7 +158,6 @@ const ROUTE: ReadonlyArray<readonly [number, number]> = [
   [244, 448],
 ];
 
-/** Cumulative segment lengths of the closed polyline (last→first closes it). */
 function routeCumLengths(pts: ReadonlyArray<readonly [number, number]>) {
   const cum = [0];
   let total = 0;
@@ -245,7 +172,6 @@ function routeCumLengths(pts: ReadonlyArray<readonly [number, number]>) {
 
 const ROUTE_LEN = routeCumLengths(ROUTE);
 
-/** Point at fraction `f` (0..1) along the closed route — the draw head. */
 export function pointAtFraction(
   f: number,
   pts: ReadonlyArray<readonly [number, number]> = ROUTE,
@@ -265,10 +191,7 @@ export function pointAtFraction(
   return { x: last[0], y: last[1] };
 }
 
-/** Catmull-Rom → cubic-bezier smoothing of a closed point loop into an SVG `d`. */
-export function smoothClosedPath(
-  pts: ReadonlyArray<readonly [number, number]>,
-): string {
+export function smoothClosedPath(pts: ReadonlyArray<readonly [number, number]>): string {
   const n = pts.length;
   const p = (i: number) => pts[((i % n) + n) % n];
   let d = `M ${p(0)[0]} ${p(0)[1]}`;
@@ -288,7 +211,6 @@ export function smoothClosedPath(
 
 const ROUTE_PATH = smoothClosedPath(ROUTE);
 
-/** An "insight" pill anchored to a point on the route. */
 interface Pill {
   title: string;
   sub: string;
@@ -353,7 +275,6 @@ const PILLS: Pill[] = [
   },
 ];
 
-/** Small monochrome pill glyphs, tinted per pill. */
 function PillIcon({ kind, color }: { kind: Pill["icon"]; color: string }) {
   const stroke = {
     width: 11,
@@ -409,7 +330,6 @@ function PillIcon({ kind, color }: { kind: Pill["icon"]; color: string }) {
   );
 }
 
-/** iOS-style status-bar right cluster: signal, wifi, battery. */
 function StatusIcons() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -464,7 +384,6 @@ function StatusIcons() {
   );
 }
 
-/** One stat column in the header. */
 function Stat({
   value,
   unit,
@@ -508,22 +427,14 @@ function Stat({
 }
 
 export interface ShowcasePose {
-  /** Device orientation (deg), applied inside the perspective. */
   rotateX: number;
   rotateY: number;
   rotateZ: number;
-  /** Camera zoom + pan (screen px), applied outside the perspective. */
   zoom: number;
   x: number;
   y: number;
 }
 
-/**
- * Keyframes of the `showcase` crane move, on normalized progress 0..1:
- * hold low at the bottom-left of the laid-back device → sweep up the screen
- * while zooming in → linger near the top → pull back to a straight frontal
- * view. Ends exactly at the identity pose, so a float loop can take over.
- */
 const SHOWCASE_STOPS = [0, 0.1, 0.42, 0.62, 0.9, 1];
 const SHOWCASE_KEYS: Record<keyof ShowcasePose, number[]> = {
   rotateX: [52, 36, 26, 12, 1.5, 0],
@@ -534,19 +445,10 @@ const SHOWCASE_KEYS: Record<keyof ShowcasePose, number[]> = {
   y: [-195, -40, 430, 380, 15, 0],
 };
 
-/**
- * Cinematic "showcase" pose at `frame`, normalized to the composition length
- * so the move always completes regardless of duration. Each keyframe is a
- * natural rest point, so per-segment ease-in-out reads as one continuous move.
- */
-export function showcasePose(
-  frame: number,
-  durationInFrames: number,
-): ShowcasePose {
+export function showcasePose(frame: number, durationInFrames: number): ShowcasePose {
   const p = Math.max(0, Math.min(1, frame / Math.max(1, durationInFrames - 1)));
   const easing = Easing.inOut(Easing.cubic);
-  const at = (values: number[]) =>
-    interpolate(p, SHOWCASE_STOPS, values, { easing });
+  const at = (values: number[]) => interpolate(p, SHOWCASE_STOPS, values, { easing });
   return {
     rotateX: at(SHOWCASE_KEYS.rotateX),
     rotateY: at(SHOWCASE_KEYS.rotateY),
@@ -559,7 +461,6 @@ export function showcasePose(
 
 const CLAMP = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
-/** Default screen: a glowing ride-summary map that draws itself with insight pills. */
 function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
   const ease = Easing.bezier(0.2, 0.6, 0.35, 1);
   const draw = interpolate(frame, [12, 128], [0, 1], {
@@ -582,7 +483,6 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
         color: "#fff",
       }}
     >
-      {/* Ambient terrain bleed under the route */}
       <div
         style={{
           position: "absolute",
@@ -593,7 +493,6 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
         }}
       />
 
-      {/* Route + glow + draw head */}
       <svg
         width={SCREEN_W}
         height={SCREEN_H}
@@ -621,7 +520,6 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
 
         <path d={ROUTE_PATH} fill="url(#pf-elev)" opacity={fillIn} />
 
-        {/* connectors from pills down to the route */}
         {PILLS.map((p) => (
           <line
             key={`c-${p.title}`}
@@ -631,16 +529,10 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
             y2={p.y + 30}
             stroke="rgba(255,255,255,0.28)"
             strokeWidth={1}
-            opacity={interpolate(
-              frame,
-              [p.appear, p.appear + 10],
-              [0, 1],
-              CLAMP,
-            )}
+            opacity={interpolate(frame, [p.appear, p.appear + 10], [0, 1], CLAMP)}
           />
         ))}
 
-        {/* glow underlay + crisp stroke, both revealed by the draw */}
         <path
           d={ROUTE_PATH}
           fill="none"
@@ -664,7 +556,6 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
           strokeDashoffset={1 - draw}
         />
 
-        {/* anchor dots where pills attach */}
         {PILLS.map((p) => (
           <circle
             key={`a-${p.title}`}
@@ -672,31 +563,18 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
             cy={p.anchor[1]}
             r={2.4}
             fill="#EE8348"
-            opacity={interpolate(
-              frame,
-              [p.appear, p.appear + 8],
-              [0, 0.95],
-              CLAMP,
-            )}
+            opacity={interpolate(frame, [p.appear, p.appear + 8], [0, 0.95], CLAMP)}
           />
         ))}
 
-        {/* draw head */}
         {draw > 0 && (
           <>
-            <circle
-              cx={head.x}
-              cy={head.y}
-              r={7}
-              fill="#FFFFFF"
-              filter="url(#pf-glow)"
-            />
+            <circle cx={head.x} cy={head.y} r={7} fill="#FFFFFF" filter="url(#pf-glow)" />
             <circle cx={head.x} cy={head.y} r={3.4} fill="#FFFFFF" />
           </>
         )}
       </svg>
 
-      {/* Insight pills */}
       {PILLS.map((p) => {
         const t = interpolate(frame, [p.appear, p.appear + 12], [0, 1], {
           ...CLAMP,
@@ -750,15 +628,12 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
               >
                 {p.title}
               </span>
-              <span style={{ fontSize: 8, color: "rgba(232,227,220,0.6)" }}>
-                {p.sub}
-              </span>
+              <span style={{ fontSize: 8, color: "rgba(232,227,220,0.6)" }}>{p.sub}</span>
             </div>
           </div>
         );
       })}
 
-      {/* Status bar (split around the dynamic island) */}
       <div
         style={{
           position: "absolute",
@@ -792,7 +667,6 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
         <StatusIcons />
       </div>
 
-      {/* Nav row */}
       <div
         style={{
           position: "absolute",
@@ -804,15 +678,10 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
           alignItems: "center",
         }}
       >
-        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>
-          System voice
-        </span>
-        <span style={{ fontSize: 11, fontWeight: 600, color: "#fff" }}>
-          Save
-        </span>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>System voice</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: "#fff" }}>Save</span>
       </div>
 
-      {/* Athlete selector */}
       <div
         style={{
           position: "absolute",
@@ -842,7 +711,6 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
         </svg>
       </div>
 
-      {/* Stats row + reset */}
       <div
         style={{
           position: "absolute",
@@ -889,7 +757,6 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
         </div>
       </div>
 
-      {/* Scrub hint */}
       <div
         style={{
           position: "absolute",
@@ -910,17 +777,9 @@ function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
 
 const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
 
-/**
- * A root-relative asset (`/showcase-mobile-videos/x.mp4`) is served at the
- * origin root by Next in the Player, but Remotion Studio and a render serve `public/` through
- * `staticFile()` alone — so rewrite local paths everywhere but the Player, and
- * pass http(s)/data/blob URLs straight through.
- */
 function resolveSrc(src: string): string {
   const isLocal = src.startsWith("/") && !src.startsWith("//");
   if (!isLocal || getRemotionEnvironment().isPlayer) return src;
-  // A value that already came out of staticFile() carries the static base
-  // (`/static-<hash>/…`); running it through again would prefix it twice.
   const base = staticFile("_").slice(0, -2);
   if (base && src.startsWith(`${base}/`)) return src;
   try {
@@ -930,7 +789,6 @@ function resolveSrc(src: string): string {
   }
 }
 
-/** Fills the screen with an image or a video, fading and un-blurring it in. */
 function ScreenMedia({ src, frame }: { src: string; frame: number }) {
   const t = interpolate(frame, [4, 22], [0, 1], CLAMP);
   const style: CSSProperties = {
@@ -938,8 +796,6 @@ function ScreenMedia({ src, frame }: { src: string; frame: number }) {
     inset: 0,
     width: "100%",
     height: "100%",
-    // Tailwind's preflight sets `img { max-width: 100% }`, which can collapse a
-    // media element we size ourselves to 0px wide. Opt out. (motion-quality skill.)
     maxWidth: "none",
     objectFit: "cover",
     opacity: t,
@@ -977,9 +833,6 @@ function PhoneFrameView({
   const frame = useAuthoredFrame() * speed;
   const { fps, durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
-  // The screen carries the app, so it follows the app theme. The body and the
-  // Dynamic Island are a physical object: they take the dark end of the system
-  // whatever mode the screen is in.
   const t = useWarmTheme(theme, mode);
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? FONT_FAMILY;
   const island = useWarmTheme(theme, "dark");
@@ -992,12 +845,9 @@ function PhoneFrameView({
 
   const pose = entrancePose(frame, entrance);
   const floatStart = entrance === "float" ? 0 : ENTRANCE_FRAMES;
-  const bob = floatLoop
-    ? floatOffset(frame, fps, floatAmplitude, floatStart)
-    : 0;
+  const bob = floatLoop ? floatOffset(frame, fps, floatAmplitude, floatStart) : 0;
 
-  const crane =
-    variant === "showcase" ? showcasePose(frame, durationInFrames) : null;
+  const crane = variant === "showcase" ? showcasePose(frame, durationInFrames) : null;
 
   return (
     <div
@@ -1011,7 +861,6 @@ function PhoneFrameView({
         fontFamily: face,
       }}
     >
-      {/* Entrance + float rig */}
       <div
         style={{
           opacity: pose.opacity,
@@ -1020,7 +869,6 @@ function PhoneFrameView({
           scale: `${pose.scale * scale}`,
         }}
       >
-        {/* Camera: pan + zoom in screen space, outside the perspective (showcase only) */}
         <div
           style={{
             transform: crane
@@ -1028,17 +876,13 @@ function PhoneFrameView({
               : undefined,
           }}
         >
-          {/* Device orientation: crane pose (showcase), static rotateY (tilt), or flat */}
           <div
             style={{
-              transform: `perspective(1400px) rotateX(${
-                crane ? crane.rotateX : 0
-              }deg) rotateY(${
+              transform: `perspective(1400px) rotateX(${crane ? crane.rotateX : 0}deg) rotateY(${
                 crane ? crane.rotateY : variant === "tilt" ? tiltAngle : 0
               }deg) rotateZ(${crane ? crane.rotateZ : 0}deg)`,
             }}
           >
-            {/* Device body */}
             <div
               style={{
                 position: "relative",
@@ -1050,7 +894,6 @@ function PhoneFrameView({
                 ...(shadow === "" ? {} : { boxShadow: drop }),
               }}
             >
-              {/* Side buttons */}
               {SIDE_BUTTONS.map((button) => (
                 <div
                   key={`${button.side}-${button.top}`}
@@ -1066,7 +909,6 @@ function PhoneFrameView({
                 />
               ))}
 
-              {/* Screen */}
               <div
                 style={{
                   position: "relative",
@@ -1084,7 +926,6 @@ function PhoneFrameView({
                     <RideSummaryDemo frame={frame} face={face} />
                   ))}
 
-                {/* Dynamic island */}
                 {showDynamicIsland && (
                   <div
                     style={{
@@ -1103,7 +944,6 @@ function PhoneFrameView({
                       paddingRight: 9,
                     }}
                   >
-                    {/* Camera lens */}
                     <div
                       style={{
                         width: 9,
@@ -1126,6 +966,17 @@ function PhoneFrameView({
 
 export function PhoneFrame(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme)) return <PhoneFrameView {...(props as unknown as React.ComponentProps<typeof PhoneFrameView>)} />;
-  return <WarmUIProvider mode={theme.mode}><PhoneFrameView {...(props as unknown as React.ComponentProps<typeof PhoneFrameView>)} theme={themeColors(theme)} mode={theme.mode} /></WarmUIProvider>;
+  if (!isThemeValue(theme))
+    return (
+      <PhoneFrameView {...(props as unknown as React.ComponentProps<typeof PhoneFrameView>)} />
+    );
+  return (
+    <WarmUIProvider mode={theme.mode}>
+      <PhoneFrameView
+        {...(props as unknown as React.ComponentProps<typeof PhoneFrameView>)}
+        theme={themeColors(theme)}
+        mode={theme.mode}
+      />
+    </WarmUIProvider>
+  );
 }

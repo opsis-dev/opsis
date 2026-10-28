@@ -42,7 +42,8 @@ const SwirlDissolvePresentation: React.FC<
     presentationDurationInFrames > 1
       ? Math.min(
           1,
-          (presentationProgress * presentationDurationInFrames) / (presentationDurationInFrames - 1),
+          (presentationProgress * presentationDurationInFrames) /
+            (presentationDurationInFrames - 1),
         )
       : 1;
 

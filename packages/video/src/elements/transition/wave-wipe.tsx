@@ -23,9 +23,7 @@ export type WaveWipeProps = {
   speed?: number;
 };
 
-const WaveWipePresentation: React.FC<
-  TransitionPresentationComponentProps<WaveWipeProps>
-> = ({
+const WaveWipePresentation: React.FC<TransitionPresentationComponentProps<WaveWipeProps>> = ({
   children,
   presentationProgress,
   presentationDirection,
@@ -85,16 +83,12 @@ const WaveWipePresentation: React.FC<
           offsetY={drift}
         />
       </AbsoluteFill>
-      <AbsoluteFill style={{ translate: `0 ${rise}%` }}>
-        {children}
-      </AbsoluteFill>
+      <AbsoluteFill style={{ translate: `0 ${rise}%` }}>{children}</AbsoluteFill>
     </AbsoluteFill>
   );
 };
 
-export function waveWipe(
-  props: WaveWipeProps = {},
-): TransitionPresentation<WaveWipeProps> {
+export function waveWipe(props: WaveWipeProps = {}): TransitionPresentation<WaveWipeProps> {
   return {
     component: WaveWipePresentation,
     props,

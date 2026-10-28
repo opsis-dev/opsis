@@ -1,10 +1,4 @@
 import {
-  type InputState,
-  type InputStyle,
-  inputStyle,
-  inputStyleContext,
-} from "#video/parts/input.tsx";
-import {
   easings,
   mixOklch,
   type NeutralTheme,
@@ -12,20 +6,21 @@ import {
   useNeutralTheme,
   useStateTransition,
 } from "#video/lib/neutral-ui/index.ts";
+import {
+  type InputState,
+  type InputStyle,
+  inputStyle,
+  inputStyleContext,
+} from "#video/parts/input.tsx";
 
 export const DEFAULT_DURATION = 8;
 
-export function tweenInputStyle(
-  a: InputStyle,
-  b: InputStyle,
-  t: number,
-): InputStyle {
+export function tweenInputStyle(a: InputStyle, b: InputStyle, t: number): InputStyle {
   return {
     ringWidth: a.ringWidth + (b.ringWidth - a.ringWidth) * t,
     caretOpacity: a.caretOpacity + (b.caretOpacity - a.caretOpacity) * t,
     valueReveal: a.valueReveal + (b.valueReveal - a.valueReveal) * t,
-    placeholderOpacity:
-      a.placeholderOpacity + (b.placeholderOpacity - a.placeholderOpacity) * t,
+    placeholderOpacity: a.placeholderOpacity + (b.placeholderOpacity - a.placeholderOpacity) * t,
     borderColor: mixOklch(a.borderColor, b.borderColor, t),
     ringColor: mixOklch(a.ringColor, b.ringColor, t),
     background: mixOklch(a.background, b.background, t),
@@ -51,17 +46,9 @@ export function useInputTransition(
     speed = 1,
     defaultDuration = DEFAULT_DURATION,
   } = opts;
-  const theme = useNeutralTheme(
-    { ...themeOverride, ...(primary ? { primary } : {}) },
-    mode,
-  );
+  const theme = useNeutralTheme({ ...themeOverride, ...(primary ? { primary } : {}) }, mode);
   const ctx = inputStyleContext(theme);
-  const { from, to, progress } = useStateTransition(
-    steps,
-    "idle",
-    speed,
-    defaultDuration,
-  );
+  const { from, to, progress } = useStateTransition(steps, "idle", speed, defaultDuration);
   const t = easings.out(progress);
   return tweenInputStyle(inputStyle(from, ctx), inputStyle(to, ctx), t);
 }

@@ -1,9 +1,5 @@
 import type React from "react";
-import {
-  AbsoluteFill,
-  Easing,
-  interpolate,
-} from "remotion";
+import { AbsoluteFill, Easing, interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 const MONO_FAMILY = '"JetBrains Mono"';
@@ -24,21 +20,12 @@ const REVEAL_BAND = 0.4;
 const REVEAL_EASING = Easing.inOut(Easing.sin);
 const REVEAL_RISE_EM = 0.32;
 
-function easedProgress(
-  frame: number,
-  speed: number,
-  durationInFrames: number,
-): number {
-  return interpolate(
-    frame * speed,
-    [0, durationInFrames * COUNT_PORTION],
-    [0, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: COUNT_EASING,
-    },
-  );
+function easedProgress(frame: number, speed: number, durationInFrames: number): number {
+  return interpolate(frame * speed, [0, durationInFrames * COUNT_PORTION], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: COUNT_EASING,
+  });
 }
 
 function placeTravel(start: number, end: number, place: number): number {
@@ -48,9 +35,7 @@ function placeTravel(start: number, end: number, place: number): number {
   const startDigit = Math.floor(start / pow) % 10;
   const finalDigit = Math.floor(end / pow) % 10;
   const fullTurns = Math.floor(diff / (pow * 10));
-  const stepDelta = up
-    ? (finalDigit - startDigit + 10) % 10
-    : (startDigit - finalDigit + 10) % 10;
+  const stepDelta = up ? (finalDigit - startDigit + 10) % 10 : (startDigit - finalDigit + 10) % 10;
   const magnitude = fullTurns * 10 + stepDelta;
   return up ? magnitude : -magnitude;
 }
@@ -100,10 +85,7 @@ function DigitColumn({
         }}
       >
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d, i) => (
-          <span
-            key={i}
-            style={{ height: cellHeight, lineHeight: `${cellHeight}px` }}
-          >
+          <span key={i} style={{ height: cellHeight, lineHeight: `${cellHeight}px` }}>
             {d}
           </span>
         ))}

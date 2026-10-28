@@ -7,16 +7,10 @@ import { easings, type Step, useStateTransition } from "#video/lib/neutral-ui/in
 
 export const DEFAULT_DURATION = 12;
 
-export function tweenSkeletonStyle(
-  a: SkeletonStyle,
-  b: SkeletonStyle,
-  t: number,
-): SkeletonStyle {
+export function tweenSkeletonStyle(a: SkeletonStyle, b: SkeletonStyle, t: number): SkeletonStyle {
   return {
-    skeletonOpacity:
-      a.skeletonOpacity + (b.skeletonOpacity - a.skeletonOpacity) * t,
-    contentOpacity:
-      a.contentOpacity + (b.contentOpacity - a.contentOpacity) * t,
+    skeletonOpacity: a.skeletonOpacity + (b.skeletonOpacity - a.skeletonOpacity) * t,
+    contentOpacity: a.contentOpacity + (b.contentOpacity - a.contentOpacity) * t,
   };
 }
 
@@ -31,12 +25,7 @@ export function useSkeletonTransition(
   opts: SkeletonTransitionOptions = {},
 ): SkeletonStyle {
   const { speed = 1, defaultDuration = DEFAULT_DURATION } = opts;
-  const { from, to, progress } = useStateTransition(
-    steps,
-    "loading",
-    speed,
-    defaultDuration,
-  );
+  const { from, to, progress } = useStateTransition(steps, "loading", speed, defaultDuration);
   const t = easings.out(progress);
   return tweenSkeletonStyle(skeletonStyle(from), skeletonStyle(to), t);
 }

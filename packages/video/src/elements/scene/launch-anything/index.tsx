@@ -1,38 +1,32 @@
-import {
-  AbsoluteFill,
-  Audio,
-  Sequence,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
-import { type LaunchAnythingProps, resolveLaunchProps } from "./content";
-import {
-  LAUNCH_FPS,
-  launchTimeline,
-} from "./motion";
-import { Action } from "./scenes/action";
-import { Address, ClosingMark } from "./scenes/closing";
-import { Industry } from "./scenes/industry";
-import { Opening } from "./scenes/opening";
-import { Portal } from "./scenes/portal";
-import { Proof } from "./scenes/proof";
-import { Showcase } from "./scenes/showcase";
-import { Space } from "./scenes/space";
+import { AbsoluteFill, Audio, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
 import type { ElementProps } from "#video/common/spec.ts";
+import {
+  type LaunchAnythingProps,
+  resolveLaunchProps,
+} from "#video/elements/scene/launch-anything/content.ts";
+import { LAUNCH_FPS, launchTimeline } from "#video/elements/scene/launch-anything/motion.ts";
+import { Action } from "#video/elements/scene/launch-anything/scenes/action.tsx";
+import { Address, ClosingMark } from "#video/elements/scene/launch-anything/scenes/closing.tsx";
+import { Industry } from "#video/elements/scene/launch-anything/scenes/industry.tsx";
+import { Opening } from "#video/elements/scene/launch-anything/scenes/opening.tsx";
+import { Portal } from "#video/elements/scene/launch-anything/scenes/portal.tsx";
+import { Proof } from "#video/elements/scene/launch-anything/scenes/proof.tsx";
+import { Showcase } from "#video/elements/scene/launch-anything/scenes/showcase.tsx";
+import { Space } from "#video/elements/scene/launch-anything/scenes/space.tsx";
 import { listsFrom, nestedFrom } from "#video/lib/settings/shape.ts";
 
-export { launchMedia } from "./assets";
+export { launchMedia } from "#video/elements/scene/launch-anything/assets.ts";
 export type {
   LaunchAnythingProps,
   LaunchContent,
   LaunchMedia,
-} from "./content";
-export { launchContent } from "./content";
+} from "#video/elements/scene/launch-anything/content.ts";
+export { launchContent } from "#video/elements/scene/launch-anything/content.ts";
 export {
   LAUNCH_FPS,
   launchTimeline,
   showcaseTimeline,
-} from "./motion";
+} from "#video/elements/scene/launch-anything/motion.ts";
 
 const scenes = {
   opening: Opening,
@@ -51,9 +45,7 @@ function LaunchAnythingView(props: LaunchAnythingProps) {
   const { width, height, fps } = useVideoConfig();
   const scene = resolveLaunchProps(props);
   const scale = Math.min(width / 480, height / 270);
-  const volume = Number.isFinite(props.volume)
-    ? Math.min(1, Math.max(0, props.volume ?? 1))
-    : 1;
+  const volume = Number.isFinite(props.volume) ? Math.min(1, Math.max(0, props.volume ?? 1)) : 1;
   return (
     <AbsoluteFill
       name="Product Showcase"
@@ -95,14 +87,44 @@ function LaunchAnythingView(props: LaunchAnythingProps) {
           );
         })}
       </div>
-      {props.audioSrc?.trim() ? (
-        <Audio src={props.audioSrc} volume={volume} />
-      ) : null}
+      {props.audioSrc?.trim() ? <Audio src={props.audioSrc} volume={volume} /> : null}
     </AbsoluteFill>
   );
 }
 
 export function LaunchAnything(props: ElementProps) {
-  const settings = nestedFrom(listsFrom(props, {"logoImages":{"image":"logos"}}), {"copyReady":"content.ready","copyNext":"content.next","copyAction":"content.action","copyProof":"content.proof","copyIndustry":"content.industry","copyPromise":"content.promise","copyLaunch":"content.launch","copyShoppers":"content.shoppers","copyShopName":"content.shopName","copyShopHeadline":"content.shopHeadline","copyShopDetail":"content.shopDetail","copyShopAction":"content.shopAction","copyBuilder":"content.builder","copyBuilderPrompt":"content.builderPrompt","copyTrading":"content.trading","copyLoyalty":"content.loyalty","copyLoyaltyPayoff":"content.loyaltyPayoff","copyIntegration":"content.integration","copyConnections":"content.connections","copyIntegrations":"content.integrations","screenDashboard":"screenImages.dashboard","screenShoppers":"screenImages.shoppers","screenExchange":"screenImages.exchange","screenBuilder":"screenImages.builder","screenTrading":"screenImages.trading","screenLoyalty":"screenImages.loyalty","screenIntegrations":"screenImages.integrations","photoDesk":"media.desk","photoHorizon":"media.horizon","photoRocket":"media.rocket","photoEarth":"media.earth"});
+  const settings = nestedFrom(listsFrom(props, { logoImages: { image: "logos" } }), {
+    copyReady: "content.ready",
+    copyNext: "content.next",
+    copyAction: "content.action",
+    copyProof: "content.proof",
+    copyIndustry: "content.industry",
+    copyPromise: "content.promise",
+    copyLaunch: "content.launch",
+    copyShoppers: "content.shoppers",
+    copyShopName: "content.shopName",
+    copyShopHeadline: "content.shopHeadline",
+    copyShopDetail: "content.shopDetail",
+    copyShopAction: "content.shopAction",
+    copyBuilder: "content.builder",
+    copyBuilderPrompt: "content.builderPrompt",
+    copyTrading: "content.trading",
+    copyLoyalty: "content.loyalty",
+    copyLoyaltyPayoff: "content.loyaltyPayoff",
+    copyIntegration: "content.integration",
+    copyConnections: "content.connections",
+    copyIntegrations: "content.integrations",
+    screenDashboard: "screenImages.dashboard",
+    screenShoppers: "screenImages.shoppers",
+    screenExchange: "screenImages.exchange",
+    screenBuilder: "screenImages.builder",
+    screenTrading: "screenImages.trading",
+    screenLoyalty: "screenImages.loyalty",
+    screenIntegrations: "screenImages.integrations",
+    photoDesk: "media.desk",
+    photoHorizon: "media.horizon",
+    photoRocket: "media.rocket",
+    photoEarth: "media.earth",
+  });
   return <LaunchAnythingView {...(settings as unknown as LaunchAnythingProps)} />;
 }

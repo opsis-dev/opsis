@@ -95,28 +95,22 @@ void main() {
   outColor = color;
 }`;
 
-const shader = makeSceneShader<GlitchCutProps>(
-  FRAGMENT_SHADER,
-  ({ gl, uniform, passedProps }) => {
-    const {
-      intensity = DEFAULTS.intensity,
-      slices = DEFAULTS.slices,
-      rgbSplit = DEFAULTS.rgbSplit,
-      blockNoise = DEFAULTS.blockNoise,
-    } = passedProps;
-    gl.uniform1f(uniform("u_intensity"), intensity);
-    gl.uniform1f(uniform("u_slices"), slices);
-    gl.uniform1f(uniform("u_rgb_split"), rgbSplit);
-    gl.uniform1f(uniform("u_block_noise"), blockNoise);
-  },
-);
+const shader = makeSceneShader<GlitchCutProps>(FRAGMENT_SHADER, ({ gl, uniform, passedProps }) => {
+  const {
+    intensity = DEFAULTS.intensity,
+    slices = DEFAULTS.slices,
+    rgbSplit = DEFAULTS.rgbSplit,
+    blockNoise = DEFAULTS.blockNoise,
+  } = passedProps;
+  gl.uniform1f(uniform("u_intensity"), intensity);
+  gl.uniform1f(uniform("u_slices"), slices);
+  gl.uniform1f(uniform("u_rgb_split"), rgbSplit);
+  gl.uniform1f(uniform("u_block_noise"), blockNoise);
+});
 
-const bandCut = (band: number) =>
-  0.5 + (random(`glitch-cut-handoff-${band}`) - 0.5) * 0.32;
+const bandCut = (band: number) => 0.5 + (random(`glitch-cut-handoff-${band}`) - 0.5) * 0.32;
 
-const GlitchCutFallback: React.FC<
-  TransitionPresentationComponentProps<GlitchCutProps>
-> = ({
+const GlitchCutFallback: React.FC<TransitionPresentationComponentProps<GlitchCutProps>> = ({
   children,
   presentationProgress,
   presentationDirection,
@@ -147,14 +141,9 @@ const GlitchCutFallback: React.FC<
         if (!shown) {
           return null;
         }
-        const shift =
-          (random(`glitch-cut-shift-${clock}-${band}`) - 0.5) *
-          52 *
-          intensity *
-          energy;
+        const shift = (random(`glitch-cut-shift-${clock}-${band}`) - 0.5) * 52 * intensity * energy;
         const tint = band % 2 === 0 ? "rgb(255, 42, 90)" : "rgb(0, 224, 255)";
-        const tintOpacity =
-          rgbSplit * 0.2 * energy * random(`glitch-cut-tint-${clock}-${band}`);
+        const tintOpacity = rgbSplit * 0.2 * energy * random(`glitch-cut-tint-${clock}-${band}`);
         return (
           <AbsoluteFill
             key={band}
@@ -183,8 +172,6 @@ const presentation = makeCanvasPresentation<GlitchCutProps>({
   fallback: GlitchCutFallback,
 });
 
-export function glitchCut(
-  props: GlitchCutProps = {},
-): TransitionPresentation<GlitchCutProps> {
+export function glitchCut(props: GlitchCutProps = {}): TransitionPresentation<GlitchCutProps> {
   return presentation(props);
 }

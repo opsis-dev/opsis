@@ -7,15 +7,10 @@ import {
   type TransitionVariant,
 } from "#video/lib/transitions/transition-timing.ts";
 
-export type FrostedGlassDirection =
-  | "from-left"
-  | "from-right"
-  | "from-top"
-  | "from-bottom";
+export type FrostedGlassDirection = "from-left" | "from-right" | "from-top" | "from-bottom";
 
 export type FrostedGlassWipeProps = {
   blur?: number;
-  /** Panel width as a share of the frame, 0→1. */
   panelWidth?: number;
   direction?: FrostedGlassDirection;
   frostColor?: string;
@@ -32,9 +27,7 @@ const AXIS: Record<
 };
 
 const FrostedGlassWipePresentation: React.FC<
-  React.ComponentProps<
-    NonNullable<TransitionPresentation<FrostedGlassWipeProps>["component"]>
-  >
+  React.ComponentProps<NonNullable<TransitionPresentation<FrostedGlassWipeProps>["component"]>>
 > = ({
   children,
   presentationProgress,
@@ -53,9 +46,6 @@ const FrostedGlassWipePresentation: React.FC<
   const swept = 1 - phase.displace;
 
   const revealStyle = useMemo(() => {
-    // The glass panel covers the frame edge it is crossing, so the scene under
-    // it can be cut hard: the panel is what hides the seam. Only the arriving
-    // scene is clipped — the outgoing one holds whole beneath it.
     if (!phase.isEntering) {
       return undefined;
     }
@@ -75,8 +65,6 @@ const FrostedGlassWipePresentation: React.FC<
 
   const panelStyle = useMemo(() => {
     const widthPct = panelWidth * 100;
-    // Rides the seam, and is parked off-frame at both ends so it never sits
-    // over a scene that is not moving.
     const offset = swept * (100 + widthPct) - widthPct;
     const glow = interpolate(swept, [0, 0.15, 0.85, 1], [0, 1, 1, 0], {
       extrapolateLeft: "clamp",
@@ -110,8 +98,6 @@ const FrostedGlassWipePresentation: React.FC<
     };
   }, [blur, frostColor, gradient, near, panelWidth, swept, vertical]);
 
-  // The exiting scene renders underneath without a panel of its own — one pane
-  // of glass crosses the frame, not two.
   if (!phase.isEntering) {
     return <AbsoluteFill>{children}</AbsoluteFill>;
   }
@@ -124,7 +110,6 @@ const FrostedGlassWipePresentation: React.FC<
   );
 };
 
-/** Progressive frosted glass panel sweep presentation for TransitionSeries */
 export function frostedGlassWipe(
   props: FrostedGlassWipeProps = {},
 ): TransitionPresentation<FrostedGlassWipeProps> {
@@ -143,7 +128,6 @@ export type TransitionFrostedGlassWipeConfig = {
   variant?: TransitionVariant;
 };
 
-/** Frosted glass wipe transition config for use with TransitionSeries.Transition */
 export function transitionFrostedGlassWipe({
   durationInFrames = 24,
   blur = 20,

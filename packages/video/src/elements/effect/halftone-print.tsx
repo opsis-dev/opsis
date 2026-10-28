@@ -1,12 +1,12 @@
 import type React from "react";
 import { AbsoluteFill } from "remotion";
 import { useAuthoredConfig } from "#video/core/authored-clock.ts";
+import { parseColor } from "#video/lib/neutral-ui/color.ts";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
   makeFilterShader,
 } from "#video/lib/transitions/canvas-presentation.tsx";
-import { parseColor } from "#video/lib/neutral-ui/color.ts";
 
 export type HalftonePrintProps = {
   dotSize?: number;
@@ -108,18 +108,16 @@ const shader = makeFilterShader<NormalizedProps>(
   },
 );
 
-const HalftonePrintFallback: React.FC<NormalizedProps & CanvasFilterProps> = ({
-  children,
-}) => <AbsoluteFill>{children}</AbsoluteFill>;
+const HalftonePrintFallback: React.FC<NormalizedProps & CanvasFilterProps> = ({ children }) => (
+  <AbsoluteFill>{children}</AbsoluteFill>
+);
 
 const HalftonePrintCanvas = makeCanvasFilter<NormalizedProps>({
   shader,
   fallback: HalftonePrintFallback,
 });
 
-export const HalftonePrint: React.FC<
-  HalftonePrintProps & CanvasFilterProps
-> = ({
+export const HalftonePrint: React.FC<HalftonePrintProps & CanvasFilterProps> = ({
   dotSize = DEFAULTS.dotSize,
   angle = DEFAULTS.angle,
   misregistration = DEFAULTS.misregistration,

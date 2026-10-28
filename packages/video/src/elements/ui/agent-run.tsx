@@ -1,20 +1,13 @@
 import { type CSSProperties, useMemo } from "react";
-import { Easing, random } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import { nestedFrom } from "#video/lib/settings/shape.ts";
 import type React from "react";
+import { Easing, random } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { nestedFrom } from "#video/lib/settings/shape.ts";
 
 export type AgentRunTheme = "light" | "dark";
 
-export type AgentRunIcon =
-  | "chart"
-  | "database"
-  | "search"
-  | "book"
-  | "globe"
-  | "terminal"
-  | "file";
+export type AgentRunIcon = "chart" | "database" | "search" | "book" | "globe" | "terminal" | "file";
 
 export interface AgentRunStep {
   name: string;
@@ -243,10 +236,8 @@ const EXPO = Easing.bezier(0.16, 1, 0.3, 1);
 
 const finite = (value: number | undefined, fallback: number) =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
-const progress = (value: number) =>
-  Number.isNaN(value) ? 0 : clamp(value, 0, 1);
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const progress = (value: number) => (Number.isNaN(value) ? 0 : clamp(value, 0, 1));
 const round = (value: number) => Math.round(value * 1000) / 1000;
 const expo = (value: number) => EXPO(progress(value));
 const easeOut = (value: number) => 1 - (1 - progress(value)) ** 3;
@@ -258,16 +249,10 @@ const backOut = (value: number, overshoot: number) => {
   const t = progress(value) - 1;
   return 1 + (overshoot + 1) * t ** 3 + overshoot * t ** 2;
 };
-const rateOf = (speed: number | undefined) =>
-  Math.max(0, finite(speed, agentRunDefaults.speed));
-const seedOf = (seed: number | undefined) =>
-  finite(seed, agentRunDefaults.seed);
+const rateOf = (speed: number | undefined) => Math.max(0, finite(speed, agentRunDefaults.speed));
+const seedOf = (seed: number | undefined) => finite(seed, agentRunDefaults.seed);
 const compressionOf = (compression: number | undefined) =>
-  clamp(
-    finite(compression, agentRunDefaults.compression),
-    MIN_COMPRESSION,
-    MAX_COMPRESSION,
-  );
+  clamp(finite(compression, agentRunDefaults.compression), MIN_COMPRESSION, MAX_COMPRESSION);
 
 export function formatAgentRunSeconds(seconds: number) {
   const value = Math.max(0, finite(seconds, 0));
@@ -290,10 +275,7 @@ export function tokenizeAgentRun(text: string): number[] {
       ends.push(index);
       continue;
     }
-    while (
-      index < text.length &&
-      (text[index] === " " || text[index] === "\t")
-    ) {
+    while (index < text.length && (text[index] === " " || text[index] === "\t")) {
       index += 1;
     }
     if (index < text.length && text[index] !== "\n") {
@@ -342,8 +324,7 @@ export function getAgentRunChunks(
 ): AgentRunChunk[] {
   const ends = tokenizeAgentRun(text);
   const startOf = (token: number) => (token > 0 ? ends[token - 1] : 0);
-  const isNewline = (token: number) =>
-    token < ends.length && text[startOf(token)] === "\n";
+  const isNewline = (token: number) => token < ends.length && text[startOf(token)] === "\n";
   const key = `agent-run-${seedOf(seed)}-${stream}`;
   const chunks: AgentRunChunk[] = [];
   let token = 0;
@@ -365,7 +346,7 @@ export function getAgentRunChunks(
       stop += 1;
       cut = true;
     }
-    while (cut && isNewline(stop)) stop += 1;
+    if (cut) while (isNewline(stop)) stop += 1;
     if (index > 0) {
       at += pick(GAP_WEIGHTS, random(`${key}-gap-${index}`)) + 1;
       if (random(`${key}-pause-${index}`) < PAUSE_CHANCE) {
@@ -411,18 +392,12 @@ function chunkIndexAt(chunks: readonly AgentRunChunk[], offset: number) {
   return found;
 }
 
-export function getAgentRunArrival(
-  chunks: readonly AgentRunChunk[],
-  offset: number,
-) {
+export function getAgentRunArrival(chunks: readonly AgentRunChunk[], offset: number) {
   const index = chunkIndexAt(chunks, offset);
   return index < chunks.length ? chunks[index].at : Number.POSITIVE_INFINITY;
 }
 
-export function getAgentRunReveal(
-  chunks: readonly AgentRunChunk[],
-  local: number,
-) {
+export function getAgentRunReveal(chunks: readonly AgentRunChunk[], local: number) {
   let low = 0;
   let high = chunks.length - 1;
   let revealed = 0;
@@ -548,9 +523,7 @@ const HEADING_LINE = /^(#{1,3})[ \t]+(.*)$/;
 const ITEM_LINE = /^[-*][ \t]+(.*)$/;
 
 function isStructural(line: string) {
-  return (
-    line.startsWith("```") || HEADING_LINE.test(line) || ITEM_LINE.test(line)
-  );
+  return line.startsWith("```") || HEADING_LINE.test(line) || ITEM_LINE.test(line);
 }
 
 export function parseAgentRunMarkdown(markdown: string): AgentRunBlock[] {
@@ -656,21 +629,13 @@ function charWidth(char: string) {
   return 0.62;
 }
 
-export function estimateAgentRunWidth(
-  text: string,
-  size: number,
-  mono = false,
-) {
+export function estimateAgentRunWidth(text: string, size: number, mono = false) {
   let em = 0;
   for (const char of text) em += mono ? 0.6 : charWidth(char);
   return em * size;
 }
 
-export type AgentRunPieceKind =
-  | AgentRunInlineKind
-  | "punct"
-  | "string"
-  | "comment";
+export type AgentRunPieceKind = AgentRunInlineKind | "punct" | "string" | "comment";
 
 export interface AgentRunPiece {
   kind: AgentRunPieceKind;
@@ -726,10 +691,7 @@ function atomsOf(inline: readonly AgentRunInline[], size: number): Atom[] {
     while (index < segment.text.length) {
       const space = segment.text[index] === " ";
       let stop = index;
-      while (
-        stop < segment.text.length &&
-        (segment.text[stop] === " ") === space
-      ) {
+      while (stop < segment.text.length && (segment.text[stop] === " ") === space) {
         stop += 1;
       }
       const piece: AgentRunPiece = {
@@ -807,16 +769,10 @@ export function wrapAgentRunInline(
 }
 
 function plainInline(text: string, raw: number): AgentRunInline[] {
-  return text.length > 0
-    ? [{ kind: "text", text, raw, end: raw + text.length }]
-    : [];
+  return text.length > 0 ? [{ kind: "text", text, raw, end: raw + text.length }] : [];
 }
 
-function textLines(
-  pieces: AgentRunPiece[][],
-  lineHeight: number,
-  raw: number,
-): AgentRunTextLine[] {
+function textLines(pieces: AgentRunPiece[][], lineHeight: number, raw: number): AgentRunTextLine[] {
   if (pieces.length === 0) {
     return [{ y: 0, height: lineHeight, raw, pieces: [] }];
   }
@@ -878,15 +834,8 @@ export function getAgentRunCodePieces(line: AgentRunCodeLine): AgentRunPiece[] {
 export function getAgentRunFrame(width?: number, height?: number) {
   const frameWidth = Math.max(1, finite(width, 1280));
   const frameHeight = Math.max(1, finite(height, 720));
-  const scale = Math.min(
-    frameHeight / REF_HEIGHT,
-    frameWidth / (PANEL_W + 2 * MARGIN_X),
-  );
-  const panelHeight = clamp(
-    frameHeight / scale - 2 * MARGIN_Y,
-    MIN_PANEL_H,
-    MAX_PANEL_H,
-  );
+  const scale = Math.min(frameHeight / REF_HEIGHT, frameWidth / (PANEL_W + 2 * MARGIN_X));
+  const panelHeight = clamp(frameHeight / scale - 2 * MARGIN_Y, MIN_PANEL_H, MAX_PANEL_H);
   return {
     width: frameWidth,
     height: frameHeight,
@@ -928,19 +877,13 @@ export function getAgentRunTimeline(
   const compression = compressionOf(options.compression);
   const perFrame = compression / 30;
   const planText = planTextOf(run);
-  const planChunks =
-    planText.length > 0 ? getAgentRunChunks(planText, seed, "plan") : [];
+  const planChunks = planText.length > 0 ? getAgentRunChunks(planText, seed, "plan") : [];
   const planStart = RUN_START + THINK_LEAD;
   const planEnd = planStart + lastArrival(planChunks);
   const thinkEnd = planEnd + THINK_TAIL;
   const segments: AgentRunSegment[] = [];
   let real = 0;
-  const push = (
-    kind: AgentRunSegment["kind"],
-    from: number,
-    to: number,
-    seconds: number,
-  ) => {
+  const push = (kind: AgentRunSegment["kind"], from: number, to: number, seconds: number) => {
     segments.push({ kind, from, to, realFrom: real, real: seconds });
     real += seconds;
   };
@@ -1003,10 +946,7 @@ export function getAgentRunDuration(
   return Math.ceil(round(settled / rate)) + HOLD;
 }
 
-export function getAgentRunTime(
-  frame: number,
-  playback: AgentRunPlayback = {},
-) {
+export function getAgentRunTime(frame: number, playback: AgentRunPlayback = {}) {
   const fps = Math.max(1, finite(playback.fps, 30));
   return Math.max(0, finite(frame, 0)) * (30 / fps) * rateOf(playback.speed);
 }
@@ -1117,13 +1057,9 @@ export function fitAgentRunChips(sources: readonly string[]) {
   return { chips, more: sources.length - chips.length };
 }
 
-const lineText = (line: readonly AgentRunPiece[]) =>
-  line.map((piece) => piece.text).join("");
+const lineText = (line: readonly AgentRunPiece[]) => line.map((piece) => piece.text).join("");
 
-function blockGap(
-  previous: AgentRunBlock["kind"] | undefined,
-  next: AgentRunBlock["kind"],
-) {
+function blockGap(previous: AgentRunBlock["kind"] | undefined, next: AgentRunBlock["kind"]) {
   if (previous === undefined) return 0;
   if (previous === "item" && next === "item") return ITEM_GAP;
   if (previous === "code" || next === "code") return CODE_GAP;
@@ -1172,8 +1108,7 @@ export function getAgentRunLayout(run: AgentRunScript = defaultAgentRun) {
     for (const [index, step] of steps.entries()) {
       const sources = step.sources ?? [];
       const fit = fitAgentRunChips(sources);
-      const height =
-        ROW_H + (index > 0 ? 1 : 0) + (sources.length > 0 ? CHIPS_H : 0);
+      const height = ROW_H + (index > 0 ? 1 : 0) + (sources.length > 0 ? CHIPS_H : 0);
       rows.push({
         index,
         y: cursor,
@@ -1264,10 +1199,7 @@ export interface AgentRunScrollStep {
   delta: number;
 }
 
-export function getAgentRunGrowth(
-  layout: AgentRunLayout,
-  timeline: AgentRunTimeline,
-) {
+export function getAgentRunGrowth(layout: AgentRunLayout, timeline: AgentRunTimeline) {
   const events: { at: number; bottom: number }[] = [
     { at: BUBBLE_AT, bottom: layout.bubble.y + layout.bubble.height },
     { at: RUN_START, bottom: layout.status.y + layout.status.height },
@@ -1314,9 +1246,7 @@ export function getAgentRunGrowth(
       });
     }
   }
-  return events
-    .filter((event) => Number.isFinite(event.at))
-    .sort((a, b) => a.at - b.at);
+  return events.filter((event) => Number.isFinite(event.at)).sort((a, b) => a.at - b.at);
 }
 
 export function getAgentRunScrollSteps(
@@ -1336,10 +1266,7 @@ export function getAgentRunScrollSteps(
   return steps;
 }
 
-export function getAgentRunScroll(
-  time: number,
-  steps: readonly AgentRunScrollStep[],
-) {
+export function getAgentRunScroll(time: number, steps: readonly AgentRunScrollStep[]) {
   let total = 0;
   for (const step of steps) {
     const since = time - step.at + SCROLL_LEAD;
@@ -1370,11 +1297,7 @@ export interface AgentRunSpinnerState {
   resolved: boolean;
 }
 
-export function getAgentRunSpinner(
-  time: number,
-  start: number,
-  end: number,
-): AgentRunSpinnerState {
+export function getAgentRunSpinner(time: number, start: number, end: number): AgentRunSpinnerState {
   const spinning = clamp(time - start, 0, Math.max(0, end - start));
   const since = time - end;
   const settle = progress(since / RESOLVE);
@@ -1543,13 +1466,8 @@ function blockState(
   }
   if (revealed <= block.raw) return null;
   if (block.kind === "heading") {
-    const complete =
-      revealed > block.end ||
-      (block.end >= text.length && revealed >= block.end);
-    const completeAt = getAgentRunArrival(
-      chunks,
-      Math.min(block.end, text.length - 1),
-    );
+    const complete = revealed > block.end || (block.end >= text.length && revealed >= block.end);
+    const completeAt = getAgentRunArrival(chunks, Math.min(block.end, text.length - 1));
     const morph = complete ? round(expo((local - completeAt) / MORPH)) : 0;
     const markShown = clamp(revealed - block.raw, 0, block.mark.length);
     return {
@@ -1586,11 +1504,7 @@ export interface AgentRunPlanItemState {
   lines: AgentRunLineState[];
 }
 
-function planState(
-  plan: AgentRunPlanSection,
-  chunks: readonly AgentRunChunk[],
-  local: number,
-) {
+function planState(plan: AgentRunPlanSection, chunks: readonly AgentRunChunk[], local: number) {
   const revealed = getAgentRunReveal(chunks, local);
   const items: AgentRunPlanItemState[] = [];
   let rule = 0;
@@ -1634,11 +1548,7 @@ function chipPops(count: number, since: number, span: number) {
   });
 }
 
-function toolsState(
-  tools: AgentRunToolsSection,
-  timeline: AgentRunTimeline,
-  time: number,
-) {
+function toolsState(tools: AgentRunToolsSection, timeline: AgentRunTimeline, time: number) {
   let height = 2;
   const rows = tools.rows
     .filter((row) => time >= timeline.tools[row.index].start)
@@ -1647,11 +1557,7 @@ function toolsState(
       const since = time - span.start;
       const open = expo(since / ROW_IN);
       height += row.height * open;
-      const pops = chipPops(
-        row.chips.length + (row.more > 0 ? 1 : 0),
-        since,
-        span.span,
-      );
+      const pops = chipPops(row.chips.length + (row.more > 0 ? 1 : 0), since, span.span);
       const more = pops[row.chips.length];
       return {
         key: `tool-${row.index}`,
@@ -1686,18 +1592,11 @@ export function getAgentRunState(
   const answerLocal = time - timeline.answerStart;
   const answerRevealed = getAgentRunReveal(timeline.answerChunks, answerLocal);
   const running = time - RUN_START;
-  const swap =
-    time >= timeline.thinkEnd ? expo((time - timeline.thinkEnd) / SWAP) : 0;
+  const swap = time >= timeline.thinkEnd ? expo((time - timeline.thinkEnd) / SWAP) : 0;
   const thinking = "Thinking";
   const blocks: AgentRunBlockState[] = [];
   for (const block of layout.blocks) {
-    const next = blockState(
-      block,
-      run.answer,
-      timeline.answerChunks,
-      answerLocal,
-      answerRevealed,
-    );
+    const next = blockState(block, run.answer, timeline.answerChunks, answerLocal, answerRevealed);
     if (next) blocks.push(next);
   }
   return {
@@ -1736,9 +1635,7 @@ export function getAgentRunState(
       swap: round(swap),
       lift: round(SWAP_RISE * (1 - swap)),
     },
-    plan: layout.plan
-      ? planState(layout.plan, timeline.planChunks, planLocal)
-      : null,
+    plan: layout.plan ? planState(layout.plan, timeline.planChunks, planLocal) : null,
     tools: layout.tools ? toolsState(layout.tools, timeline, time) : null,
     blocks,
     revealed: {
@@ -1809,9 +1706,7 @@ export function getAgentRunPalette(
     ...AGENT_RUN_THEMES[dark ? "dark" : "light"],
     accent: accentColor,
     accentTint: `color-mix(in srgb, ${accentColor} ${tint}%, transparent)`,
-    accentText: dark
-      ? `color-mix(in srgb, ${accentColor} 62%, #ffffff)`
-      : accentColor,
+    accentText: dark ? `color-mix(in srgb, ${accentColor} 62%, #ffffff)` : accentColor,
   };
 }
 
@@ -1881,15 +1776,7 @@ const ICONS: Record<IconName, readonly IconNode[]> = {
   ],
 };
 
-function Icon({
-  name,
-  size,
-  color,
-}: {
-  name: IconName;
-  size: number;
-  color: string;
-}) {
+function Icon({ name, size, color }: { name: IconName; size: number; color: string }) {
   return (
     <svg
       width={size}
@@ -1908,15 +1795,7 @@ function Icon({
           return <circle key={index} cx={node.cx} cy={node.cy} r={node.r} />;
         }
         if (node.tag === "ellipse") {
-          return (
-            <ellipse
-              key={index}
-              cx={node.cx}
-              cy={node.cy}
-              rx={node.rx}
-              ry={node.ry}
-            />
-          );
+          return <ellipse key={index} cx={node.cx} cy={node.cy} rx={node.rx} ry={node.ry} />;
         }
         return (
           <rect
@@ -1964,13 +1843,7 @@ function Spinner({
         strokeDasharray={`${round(state.arc * CIRCLE)} ${round(CIRCLE)}`}
         transform={`rotate(${state.angle} 12 12)`}
       />
-      <circle
-        cx={12}
-        cy={12}
-        r={10}
-        stroke={palette.muted}
-        opacity={state.done}
-      />
+      <circle cx={12} cy={12} r={10} stroke={palette.muted} opacity={state.done} />
       <path
         d="m9 12 2 2 4-4"
         stroke={palette.muted}
@@ -1982,10 +1855,7 @@ function Spinner({
   );
 }
 
-function spanStyle(
-  span: AgentRunSpan,
-  palette: AgentRunPalette,
-): CSSProperties {
+function spanStyle(span: AgentRunSpan, palette: AgentRunPalette): CSSProperties {
   if (span.kind === "bold") return { fontWeight: 600 };
   if (span.kind === "code") {
     return {
@@ -2030,12 +1900,7 @@ function renderSpans(spans: readonly AgentRunSpan[], palette: AgentRunPalette) {
   return spans.map((span, index) => (
     <span key={index} style={spanStyle(span, palette)}>
       {span.fragments.map((fragment, part) => (
-        <span
-          key={part}
-          style={
-            fragment.opacity < 1 ? { opacity: fragment.opacity } : undefined
-          }
-        >
+        <span key={part} style={fragment.opacity < 1 ? { opacity: fragment.opacity } : undefined}>
           {fragment.text}
         </span>
       ))}
@@ -2043,13 +1908,7 @@ function renderSpans(spans: readonly AgentRunSpan[], palette: AgentRunPalette) {
   ));
 }
 
-function AnswerBlock({
-  block,
-  palette,
-}: {
-  block: AgentRunBlockState;
-  palette: AgentRunPalette;
-}) {
+function AnswerBlock({ block, palette }: { block: AgentRunBlockState; palette: AgentRunPalette }) {
   if (block.kind === "code") {
     return (
       <div
@@ -2427,13 +2286,7 @@ function chipStyle(
 
 type AgentRunRowState = NonNullable<AgentRunState["tools"]>["rows"][number];
 
-function ToolRow({
-  row,
-  palette,
-}: {
-  row: AgentRunRowState;
-  palette: AgentRunPalette;
-}) {
+function ToolRow({ row, palette }: { row: AgentRunRowState; palette: AgentRunPalette }) {
   const chips = row.chips.filter((chip) => chip.visible);
   return (
     <div
@@ -2505,18 +2358,13 @@ function ToolRow({
           }}
         >
           {chips.map((chip, index) => (
-            <span
-              key={`${index}-${chip.label}`}
-              style={chipStyle(palette, chip, "0 9px 0 7px")}
-            >
+            <span key={`${index}-${chip.label}`} style={chipStyle(palette, chip, "0 9px 0 7px")}>
               <Icon name={chip.icon} size={12} color={palette.subtle} />
               {chip.label}
             </span>
           ))}
           {row.more?.visible ? (
-            <span style={chipStyle(palette, row.more, "0 9px")}>
-              {`+${row.more.count}`}
-            </span>
+            <span style={chipStyle(palette, row.more, "0 9px")}>{`+${row.more.count}`}</span>
           ) : null}
         </div>
       ) : null}
@@ -2624,9 +2472,7 @@ function AgentRunView({
               <Bubble bubble={state.bubble} palette={palette} />
               <Status status={state.status} palette={palette} />
               {state.plan ? <Plan plan={state.plan} palette={palette} /> : null}
-              {state.tools ? (
-                <Tools tools={state.tools} palette={palette} />
-              ) : null}
+              {state.tools ? <Tools tools={state.tools} palette={palette} /> : null}
               {state.blocks.map((block) => (
                 <AnswerBlock key={block.key} block={block} palette={palette} />
               ))}
@@ -2639,5 +2485,15 @@ function AgentRunView({
 }
 
 export function AgentRun(props: ElementProps & { children?: React.ReactNode }) {
-  return <AgentRunView {...(nestedFrom(props, {"runTitle":"run.title","runPrompt":"run.prompt","runPlan":"run.plan","runSteps":"run.steps","runAnswer":"run.answer"}) as unknown as React.ComponentProps<typeof AgentRunView>)} />;
+  return (
+    <AgentRunView
+      {...(nestedFrom(props, {
+        runTitle: "run.title",
+        runPrompt: "run.prompt",
+        runPlan: "run.plan",
+        runSteps: "run.steps",
+        runAnswer: "run.answer",
+      }) as unknown as React.ComponentProps<typeof AgentRunView>)}
+    />
+  );
 }

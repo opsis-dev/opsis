@@ -1,10 +1,4 @@
 import {
-  type ButtonState,
-  type ButtonStyle,
-  buttonStyle,
-  buttonStyleContext,
-} from "#video/parts/button.tsx";
-import {
   easings,
   mixOklch,
   type NeutralTheme,
@@ -12,20 +6,21 @@ import {
   useNeutralTheme,
   useStateTransition,
 } from "#video/lib/neutral-ui/index.ts";
+import {
+  type ButtonState,
+  type ButtonStyle,
+  buttonStyle,
+  buttonStyleContext,
+} from "#video/parts/button.tsx";
 
 export const DEFAULT_DURATION = 8;
 
-export function tweenButtonStyle(
-  a: ButtonStyle,
-  b: ButtonStyle,
-  t: number,
-): ButtonStyle {
+export function tweenButtonStyle(a: ButtonStyle, b: ButtonStyle, t: number): ButtonStyle {
   return {
     translateY: a.translateY + (b.translateY - a.translateY) * t,
     scale: a.scale + (b.scale - a.scale) * t,
     labelOpacity: a.labelOpacity + (b.labelOpacity - a.labelOpacity) * t,
-    spinnerOpacity:
-      a.spinnerOpacity + (b.spinnerOpacity - a.spinnerOpacity) * t,
+    spinnerOpacity: a.spinnerOpacity + (b.spinnerOpacity - a.spinnerOpacity) * t,
     checkOpacity: a.checkOpacity + (b.checkOpacity - a.checkOpacity) * t,
     background: mixOklch(a.background, b.background, t),
   };
@@ -52,17 +47,9 @@ export function useButtonTransition(
     speed = 1,
     defaultDuration = DEFAULT_DURATION,
   } = opts;
-  const theme = useNeutralTheme(
-    { ...themeOverride, ...(primary ? { primary } : {}) },
-    mode,
-  );
+  const theme = useNeutralTheme({ ...themeOverride, ...(primary ? { primary } : {}) }, mode);
   const ctx = buttonStyleContext(variant, theme);
-  const { from, to, progress } = useStateTransition(
-    steps,
-    "idle",
-    speed,
-    defaultDuration,
-  );
+  const { from, to, progress } = useStateTransition(steps, "idle", speed, defaultDuration);
   const t = easings.out(progress);
   return tweenButtonStyle(buttonStyle(from, ctx), buttonStyle(to, ctx), t);
 }

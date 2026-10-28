@@ -15,9 +15,7 @@ export type PushThroughProps = {
   blur?: number;
 };
 
-const PushThroughPresentation: React.FC<
-  TransitionPresentationComponentProps<PushThroughProps>
-> = ({
+const PushThroughPresentation: React.FC<TransitionPresentationComponentProps<PushThroughProps>> = ({
   children,
   presentationProgress,
   presentationDirection,

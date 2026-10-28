@@ -1,14 +1,9 @@
-import { Spinner } from "#video/parts/spinner.tsx";
 import { mixOklch, type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { Spinner } from "#video/parts/spinner.tsx";
 
 export type ButtonState = "idle" | "hover" | "press" | "loading" | "success";
 
-type ButtonVariant =
-  | "default"
-  | "secondary"
-  | "destructive"
-  | "outline"
-  | "ghost";
+type ButtonVariant = "default" | "secondary" | "destructive" | "outline" | "ghost";
 
 type ButtonSize = "sm" | "default" | "lg";
 
@@ -26,11 +21,7 @@ export interface ButtonProps {
 }
 
 function justify(align: "start" | "center" | "end"): string {
-  return align === "start"
-    ? "flex-start"
-    : align === "end"
-      ? "flex-end"
-      : "center";
+  return align === "start" ? "flex-start" : align === "end" ? "flex-end" : "center";
 }
 
 const CHECK_PATH_LENGTH = 14;
@@ -51,10 +42,7 @@ interface VariantTokens {
   border: string;
 }
 
-function variantTokens(
-  variant: ButtonVariant,
-  theme: NeutralTheme,
-): VariantTokens {
+function variantTokens(variant: ButtonVariant, theme: NeutralTheme): VariantTokens {
   const variants = {
     secondary: {
       bg: theme.secondary,
@@ -124,10 +112,7 @@ export function buttonStyleContext(
   };
 }
 
-export function buttonStyle(
-  state: ButtonState,
-  ctx: ButtonStyleContext,
-): ButtonStyle {
+export function buttonStyle(state: ButtonState, ctx: ButtonStyleContext): ButtonStyle {
   switch (state) {
     case "hover":
       return {
@@ -189,10 +174,7 @@ export function Button({
   align = "center",
   className,
 }: ButtonProps) {
-  const theme = useNeutralTheme(
-    { ...themeOverride, ...(primary ? { primary } : {}) },
-    "light",
-  );
+  const theme = useNeutralTheme({ ...themeOverride, ...(primary ? { primary } : {}) }, "light");
 
   const sizeStyle = SIZE_STYLES[size];
   const tokens = variantTokens(variant, theme);
@@ -210,8 +192,7 @@ export function Button({
         alignItems: "center",
         justifyContent: justify(align),
         background: "transparent",
-        fontFamily:
-          "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       <button
@@ -231,15 +212,11 @@ export function Button({
           letterSpacing: "-0.01em",
           color: tokens.fg,
           background: v.background,
-          border:
-            variant === "outline"
-              ? `1px solid ${tokens.border}`
-              : "1px solid transparent",
+          border: variant === "outline" ? `1px solid ${tokens.border}` : "1px solid transparent",
           borderRadius: theme.radius,
           cursor: "pointer",
         }}
       >
-        {}
         <span style={{ position: "relative", display: "inline-flex" }}>
           <span style={{ opacity: v.labelOpacity }}>{label}</span>
           <span
@@ -264,12 +241,7 @@ export function Button({
               opacity: v.checkOpacity,
             }}
           >
-            <svg
-              width={iconSize}
-              height={iconSize}
-              viewBox="0 0 24 24"
-              fill="none"
-            >
+            <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none">
               <path
                 d="M5 12.5l4.5 4.5L19 7"
                 stroke={tokens.fg}

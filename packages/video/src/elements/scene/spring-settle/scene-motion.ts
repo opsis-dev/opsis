@@ -29,11 +29,7 @@ export const stagger = (
   power = 0.8,
   jitter = 1.5,
   seed = "stagger",
-): number =>
-  Math.max(
-    0,
-    index ** power * base + (random(`${seed}-${index}`) - 0.5) * 2 * jitter,
-  );
+): number => Math.max(0, index ** power * base + (random(`${seed}-${index}`) - 0.5) * 2 * jitter);
 
 export const fadeIn = (frame: number, at: number, frames = 7): number =>
   interpolate(frame, [at, at + frames], [0, 1], { ...CLAMP, easing: FADE });

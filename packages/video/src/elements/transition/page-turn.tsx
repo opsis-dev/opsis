@@ -8,10 +8,13 @@ import { AbsoluteFill, useVideoConfig } from "remotion";
 const LIFT_RATIO = 1.28;
 
 function originFractions(origin: string): [number, number] {
-  const parts = origin.trim().split(/\s+/).map((part) => {
-    const value = Number.parseFloat(part);
-    return part.endsWith("%") && Number.isFinite(value) ? value / 100 : null;
-  });
+  const parts = origin
+    .trim()
+    .split(/\s+/)
+    .map((part) => {
+      const value = Number.parseFloat(part);
+      return part.endsWith("%") && Number.isFinite(value) ? value / 100 : null;
+    });
   return [parts[0] ?? 0.5, parts[1] ?? 0.5];
 }
 
@@ -45,9 +48,7 @@ export type PageTurnProps = {
   poses?: number;
 };
 
-const PageTurnPresentation: React.FC<
-  TransitionPresentationComponentProps<PageTurnProps>
-> = ({
+const PageTurnPresentation: React.FC<TransitionPresentationComponentProps<PageTurnProps>> = ({
   children,
   presentationProgress,
   presentationDirection,
@@ -76,9 +77,7 @@ const PageTurnPresentation: React.FC<
   );
 };
 
-export function pageTurn(
-  props: PageTurnProps = {},
-): TransitionPresentation<PageTurnProps> {
+export function pageTurn(props: PageTurnProps = {}): TransitionPresentation<PageTurnProps> {
   return {
     component: PageTurnPresentation,
     props,

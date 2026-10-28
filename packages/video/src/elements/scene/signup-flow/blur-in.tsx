@@ -22,18 +22,13 @@ export function blurInStyleContext(
   direction: BlurInDirection,
   distance: number,
 ): BlurInStyleContext {
-  const axis: "x" | "y" =
-    direction === "left" || direction === "right" ? "x" : "y";
+  const axis: "x" | "y" = direction === "left" || direction === "right" ? "x" : "y";
   const sign: 1 | -1 = direction === "up" || direction === "left" ? 1 : -1;
   return { blur, distance, axis, sign };
 }
 
-export function blurInStyle(
-  state: BlurInState,
-  ctx: BlurInStyleContext,
-): BlurInStyle {
-  if (state === "revealed")
-    return { blur: 0, opacity: 1, translateX: 0, translateY: 0 };
+export function blurInStyle(state: BlurInState, ctx: BlurInStyleContext): BlurInStyle {
+  if (state === "revealed") return { blur: 0, opacity: 1, translateX: 0, translateY: 0 };
   const offset = ctx.distance === 0 ? 0 : ctx.sign * ctx.distance;
   return {
     blur: ctx.blur,
@@ -64,8 +59,7 @@ export function BlurIn({
   display = "inline-block",
   className,
 }: BlurInProps) {
-  const v =
-    style ?? blurInStyle(state, blurInStyleContext(blur, direction, distance));
+  const v = style ?? blurInStyle(state, blurInStyleContext(blur, direction, distance));
   return (
     <div
       className={className}

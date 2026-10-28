@@ -26,10 +26,7 @@ export interface ToastStyleContext {
   iconColor: string;
 }
 
-export function toastStyleContext(
-  variant: ToastVariant,
-  theme: NeutralTheme,
-): ToastStyleContext {
+export function toastStyleContext(variant: ToastVariant, theme: NeutralTheme): ToastStyleContext {
   if (variant === "success") return { iconColor: "oklch(0.6 0.17 150)" };
   if (variant === "error") return { iconColor: theme.destructive };
   return { iconColor: theme.mutedForeground };
@@ -44,13 +41,7 @@ export function toastStyle(state: ToastState): ToastStyle {
   }
 }
 
-function ToastIcon({
-  variant,
-  color,
-}: {
-  variant: ToastVariant;
-  color: string;
-}) {
+function ToastIcon({ variant, color }: { variant: ToastVariant; color: string }) {
   if (variant === "success") {
     return (
       <svg width={18} height={18} viewBox="0 0 24 24" fill="none">
@@ -69,12 +60,7 @@ function ToastIcon({
     return (
       <svg width={18} height={18} viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="2" />
-        <path
-          d="M12 7.5v5"
-          stroke={color}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
+        <path d="M12 7.5v5" stroke={color} strokeWidth="2" strokeLinecap="round" />
         <circle cx="12" cy="16" r="1.1" fill={color} />
       </svg>
     );
@@ -115,13 +101,11 @@ export function Toast({
         color: theme.popoverForeground,
         border: `1px solid ${theme.border}`,
         borderRadius: theme.radius,
-        boxShadow:
-          "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)",
+        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)",
         opacity: v.opacity,
         transform: `translateY(${v.translateY}px) scale(${v.scale})`,
         transformOrigin: "bottom center",
-        fontFamily:
-          "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       <span

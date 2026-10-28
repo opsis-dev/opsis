@@ -124,9 +124,11 @@ const PixelateRegionCanvas = makeCanvasFilter<NormalizedProps>({
   fallback: PixelateRegionFallback,
 });
 
-export const PixelateRegion: React.FC<
-  PixelateRegionProps & CanvasFilterProps
-> = ({ regions, cellSize = DEFAULTS.cellSize, children }) => {
+export const PixelateRegion: React.FC<PixelateRegionProps & CanvasFilterProps> = ({
+  regions,
+  cellSize = DEFAULTS.cellSize,
+  children,
+}) => {
   const { width, height } = useAuthoredConfig();
 
   if (regions.length > MAX_REGIONS) {
@@ -143,11 +145,7 @@ export const PixelateRegion: React.FC<
   }));
 
   return (
-    <PixelateRegionCanvas
-      rects={rects}
-      cellX={cellSize / width}
-      cellY={cellSize / height}
-    >
+    <PixelateRegionCanvas rects={rects} cellX={cellSize / width} cellY={cellSize / height}>
       {children}
     </PixelateRegionCanvas>
   );

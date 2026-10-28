@@ -1,5 +1,5 @@
-import { useId } from "react";
 import { getLength, getPointAtLength } from "@remotion/paths";
+import { useId } from "react";
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import {
   buildAreaPath,
@@ -16,55 +16,29 @@ import { getPathDrawStyles } from "#video/lib/paths/path-utils.ts";
 
 export type LineChartDrawProps = {
   points: ChartPoint[];
-  /** Drawing width. Defaults to the composition width. */
   width?: number;
-  /** Drawing height. Defaults to 40% of the composition height. */
   height?: number;
   color?: string;
   strokeWidth?: number;
-  /** Cardinal spline through the points, or straight segments. */
   variant?: "smooth" | "linear";
-  /** Gridlines and value labels down the left gutter. */
   showAxis?: boolean;
-  /** Category labels under the plot, read from `point.label`. */
   showXLabels?: boolean;
-  /** Gradient fill under the line, wiped in with the draw. */
   showArea?: boolean;
-  /** Dot deposited on each data point as the line passes it. */
   showDots?: boolean;
-  /** Glowing dot riding the tip of the line while it draws. */
   showHead?: boolean;
-  /** Value callout pinned to the final point once the draw lands. */
   showEndLabel?: boolean;
-  /**
-   * Anchor the value axis at zero. Turn it off for sparklines, where the shape
-   * of the recent range matters more than its distance from zero.
-   */
   includeZero?: boolean;
-  /** Formats axis ticks and the end label. */
   valueFormatter?: (value: number) => string;
-  /** Text colour for axis and category labels. */
   labelColor?: string;
   gridColor?: string;
-  /** Ink behind the dots — match the surface the chart sits on. */
   surfaceColor?: string;
   durationInFrames?: number;
   delayInFrames?: number;
-  /** Frame override — pass the parent frame inside a `<Sequence>`. */
   frame?: number;
 };
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/**
- * A line chart that draws itself on.
- *
- * The line, its fill, gridlines and labels are all projected from one plot
- * rectangle (see `chart-utils`), so the geometry stays locked together at any
- * size. The draw is a single progress value: the stroke evolves along its own
- * length, the fill is wiped by a clip rect, and each dot lands as the tip
- * passes it — one gesture instead of several animations that merely overlap.
- */
 export const LineChartDraw: React.FC<LineChartDrawProps> = ({
   points,
   width: widthProp,
@@ -93,8 +67,6 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
   const width = widthProp ?? config.width;
   const height = heightProp ?? Math.round(config.height * 0.4);
 
-  // Type scales off the chart's own width, so a chart dropped into a narrow
-  // column keeps the same label-to-plot ratio as a full-bleed one.
   const unit = width / 960;
   const scale = (value: number) => Math.max(1, Math.round(value * unit));
   const labelSize = scale(22);
@@ -104,16 +76,9 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
     points.map((point) => point.y),
     { includeZero, tickCount: 4 },
   );
-  // Called with one argument on purpose — a point-free `.map(valueFormatter)`
-  // would feed the array index into a formatter's second parameter.
   const axisLabels = domain.ticks.map((tick) => valueFormatter(tick));
-  const longestLabel = axisLabels.reduce(
-    (longest, label) => Math.max(longest, label.length),
-    0,
-  );
-  const gutter = showAxis
-    ? Math.round(longestLabel * labelSize * 0.62) + scale(18)
-    : scale(6);
+  const longestLabel = axisLabels.reduce((longest, label) => Math.max(longest, label.length), 0);
+  const gutter = showAxis ? Math.round(longestLabel * labelSize * 0.62) + scale(18) : scale(6);
 
   const plot = getPlotArea(width, height, {
     top: scale(showEndLabel ? 34 : 16),
@@ -123,32 +88,20 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
   });
 
   const plotted = plotPoints(points, plot, domain);
-  const linePath =
-    variant === "smooth" ? buildSmoothPath(plotted) : buildLinePath(plotted);
+  const linePath = variant === "smooth" ? buildSmoothPath(plotted) : buildLinePath(plotted);
   const areaPath = buildAreaPath(linePath, plotted, plot.bottom);
 
-  const progress = interpolate(
-    frame,
-    [delayInFrames, delayInFrames + durationInFrames],
-    [0, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: EASING.enter,
-    },
-  );
+  const progress = interpolate(frame, [delayInFrames, delayInFrames + durationInFrames], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASING.enter,
+  });
 
-  // The tip is read off the real path rather than inferred from progress, so
-  // it tracks the curve instead of floating beside it on steep segments.
   const pathLength = linePath === "" ? 0 : getLength(linePath);
   const fallbackTip = { x: plot.left, y: plot.bottom };
   const tip =
-    (pathLength > 0
-      ? getPointAtLength(linePath, pathLength * progress)
-      : null) ?? fallbackTip;
+    (pathLength > 0 ? getPointAtLength(linePath, pathLength * progress) : null) ?? fallbackTip;
 
-  // Two charts on one frame would otherwise share a gradient id and the second
-  // would repaint the first.
   const uid = useId().replace(/:/g, "");
   const gradientId = `${uid}-fill`;
   const clipId = `${uid}-clip`;
@@ -183,8 +136,7 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
 
       {showAxis
         ? domain.ticks.map((tick, index) => {
-            const y =
-              plot.bottom - ((tick - domain.min) / domain.span) * plot.height;
+            const y = plot.bottom - ((tick - domain.min) / domain.span) * plot.height;
 
             return (
               <g key={tick}>
@@ -195,7 +147,6 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
                   y2={y}
                   stroke={gridColor}
                   strokeWidth={1}
-                  // The zero line carries the baseline, so it reads heavier.
                   opacity={index === 0 ? 1.8 : 1}
                 />
                 <text
@@ -216,11 +167,7 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
         : null}
 
       {showArea && areaPath !== "" ? (
-        <path
-          d={areaPath}
-          fill={`url(#${gradientId})`}
-          clipPath={`url(#${clipId})`}
-        />
+        <path d={areaPath} fill={`url(#${gradientId})`} clipPath={`url(#${clipId})`} />
       ) : null}
 
       <path
@@ -242,14 +189,7 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
               fill={labelColor}
               fontSize={labelSize}
               fontWeight={600}
-              // End labels anchor inward so they never clip the plot edges.
-              textAnchor={
-                index === 0
-                  ? "start"
-                  : index === plotted.length - 1
-                    ? "end"
-                    : "middle"
-              }
+              textAnchor={index === 0 ? "start" : index === plotted.length - 1 ? "end" : "middle"}
               dominantBaseline="central"
             >
               {point.label ?? ""}
@@ -259,8 +199,6 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
 
       {showDots
         ? plotted.map((point) => {
-            // Dots grow in as the tip clears them, over a short window, so the
-            // reveal reads as the line depositing them rather than a blink.
             const window = Math.max(1, plot.width * 0.04);
             const reveal = clamp01((tip.x - point.x + window) / window);
 
@@ -280,13 +218,7 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
 
       {showHead && progress > 0 && progress < 1 ? (
         <g>
-          <circle
-            cx={tip.x}
-            cy={tip.y}
-            r={strokeWidth * 2.6}
-            fill={color}
-            opacity={0.18}
-          />
+          <circle cx={tip.x} cy={tip.y} r={strokeWidth * 2.6} fill={color} opacity={0.18} />
           <circle cx={tip.x} cy={tip.y} r={strokeWidth * 1.05} fill={color} />
         </g>
       ) : null}

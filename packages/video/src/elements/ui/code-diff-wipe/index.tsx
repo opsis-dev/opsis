@@ -1,21 +1,10 @@
-import {
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
-import { stageScale } from "#video/lib/text/ai-composer-utils.tsx";
-import {
-  CODE_THEMES,
-  CodeLine,
-  MONO_ADVANCE,
-  tokenizeCode,
-} from "#video/lib/code/code-syntax.tsx";
+import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { CODE_THEMES, CodeLine, MONO_ADVANCE, tokenizeCode } from "#video/lib/code/code-syntax.tsx";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { stageScale } from "#video/lib/text/ai-composer-utils.tsx";
 
 const fontFamily = '"JetBrains Mono"';
 
-/** Reference stage the window is laid out against, then uniformly scaled. */
 const REF_WIDTH = 1280;
 const REF_HEIGHT = 720;
 
@@ -28,19 +17,13 @@ const GUTTER_WIDTH = 46;
 const CODE_INSET = 18;
 
 export type CodeDiffWipeProps = {
-  /** Source before the patch. */
   before?: string;
-  /** Source after the patch. */
   after?: string;
-  /** Filename on the window header. */
   title?: string;
-  /** Seconds the patch front takes to travel the file. */
   wipeSeconds?: number;
   accentColor?: string;
-  /** Overrides the page background behind the window. */
   backgroundColor?: string;
   theme?: "dark" | "light";
-  /** Animation speed multiplier. */
   speed?: number;
 };
 
@@ -62,13 +45,9 @@ type DiffRow = {
   text: string;
 };
 
-/**
- * Line-level LCS diff. Snippets in a video are a handful of lines, so the
- * quadratic table is free and the result is the one a reader expects.
- */
 function diffLines(before: string[], after: string[]): DiffRow[] {
   const table: number[][] = Array.from({ length: before.length + 1 }, () =>
-    new Array(after.length + 1).fill(0),
+    Array.from({ length: after.length + 1 }, () => 0),
   );
 
   for (let i = before.length - 1; i >= 0; i -= 1) {
@@ -112,35 +91,18 @@ function diffLines(before: string[], after: string[]): DiffRow[] {
 
 const CHROME_LIGHTS = ["#FF5F57", "#FEBC2E", "#28C840"] as const;
 
-/** Drawn markers — a bare "+"/"−" in the gutter is a font gamble at this size. */
 const Plus: React.FC<{ size: number; color: string }> = ({ size, color }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M12 5.5v13M5.5 12h13"
-      stroke={color}
-      strokeWidth={2.6}
-      strokeLinecap="round"
-    />
+    <path d="M12 5.5v13M5.5 12h13" stroke={color} strokeWidth={2.6} strokeLinecap="round" />
   </svg>
 );
 
 const Minus: React.FC<{ size: number; color: string }> = ({ size, color }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M5.5 12h13"
-      stroke={color}
-      strokeWidth={2.6}
-      strokeLinecap="round"
-    />
+    <path d="M5.5 12h13" stroke={color} strokeWidth={2.6} strokeLinecap="round" />
   </svg>
 );
 
-/**
- * Diff wipe staged as the patch actually landing: the before-file sits whole,
- * then an apply front travels down it — removed lines redden and collapse as it
- * passes, added lines open under it and write themselves in — and the header
- * tallies the change as it goes.
- */
 export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
   before = DEFAULT_BEFORE,
   after = DEFAULT_AFTER,
@@ -165,8 +127,14 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
   };
 
   const rows = diffLines(
-    before.replace(/\s+$/, "").replace(/^(\r?\n)+/, "").split(/\r?\n/),
-    after.replace(/\s+$/, "").replace(/^(\r?\n)+/, "").split(/\r?\n/),
+    before
+      .replace(/\s+$/, "")
+      .replace(/^(\r?\n)+/, "")
+      .split(/\r?\n/),
+    after
+      .replace(/\s+$/, "")
+      .replace(/^(\r?\n)+/, "")
+      .split(/\r?\n/),
   );
   const tokenRows = tokenizeCode(rows.map((row) => row.text));
   const longest = Math.max(0, ...rows.map((row) => row.text.length));
@@ -183,21 +151,17 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
   const addColor = palette.token.string;
   const removeColor = theme === "dark" ? "#F87171" : "#DC2626";
 
-  // --- Timeline -----------------------------------------------------------
   const wipeStart = seconds(0.7);
   const wipeFrames = seconds(wipeSeconds);
   const rowTrigger = (index: number) =>
     wipeStart + (rows.length <= 1 ? 0 : (index / rows.length) * wipeFrames);
   const wipeEnd = wipeStart + wipeFrames;
 
-  /** 0 → 1 as the apply front passes a given row. */
   const rowProgress = (index: number) =>
-    interpolate(
-      frame,
-      [rowTrigger(index), rowTrigger(index) + seconds(0.3)],
-      [0, 1],
-      { easing: EASING.enter, ...clamp },
-    );
+    interpolate(frame, [rowTrigger(index), rowTrigger(index) + seconds(0.3)], [0, 1], {
+      easing: EASING.enter,
+      ...clamp,
+    });
 
   const enter = spring({
     fps,
@@ -208,24 +172,15 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
     easing: EASING.enter,
     ...clamp,
   });
-  // Tints hold while the change is fresh, then cool off.
-  const settle = interpolate(
-    frame,
-    [wipeEnd + seconds(0.7), wipeEnd + seconds(1.4)],
-    [0, 1],
-    { easing: EASING.enter, ...clamp },
-  );
+  const settle = interpolate(frame, [wipeEnd + seconds(0.7), wipeEnd + seconds(1.4)], [0, 1], {
+    easing: EASING.enter,
+    ...clamp,
+  });
 
-  // Removed lines hold their place, struck through, while the front passes —
-  // both sides of the change are readable together, the way a diff is meant to
-  // be read. Only once the patch has fully landed do they drop away, leaving
-  // the new file behind.
-  const dropOld = interpolate(
-    frame,
-    [wipeEnd + seconds(0.3), wipeEnd + seconds(0.75)],
-    [0, 1],
-    { easing: EASING.enter, ...clamp },
-  );
+  const dropOld = interpolate(frame, [wipeEnd + seconds(0.3), wipeEnd + seconds(0.75)], [0, 1], {
+    easing: EASING.enter,
+    ...clamp,
+  });
 
   const heights = rows.map((row, index) => {
     const progress = rowProgress(index);
@@ -234,8 +189,6 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
     return ROW_HEIGHT;
   });
 
-  // The front is drawn where the rows it has already passed end, so it always
-  // sits on the seam between changed and untouched code.
   const frontIndex = interpolate(frame, [wipeStart, wipeEnd], [0, rows.length], {
     ...clamp,
   });
@@ -249,10 +202,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
     clamp,
   );
 
-  // The window breathes with its contents rather than reserving dead space for
-  // the widest moment of the diff.
-  const bodyHeight =
-    heights.reduce((total, value) => total + value, 0) + BODY_PADDING * 2;
+  const bodyHeight = heights.reduce((total, value) => total + value, 0) + BODY_PADDING * 2;
   const glyphSize = FONT_SIZE * 0.8;
 
   return (
@@ -300,7 +250,6 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
           overflow: "hidden",
         }}
       >
-        {/* Header chrome, with the tally filling in as the patch lands */}
         <div
           style={{
             height: HEADER_HEIGHT,
@@ -348,7 +297,6 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
               gap: 12,
               fontSize: 14,
               fontVariantNumeric: "tabular-nums",
-              // There is nothing to tally until the patch starts landing.
               opacity: interpolate(
                 frame,
                 [wipeStart - seconds(0.2), wipeStart + seconds(0.2)],
@@ -358,21 +306,14 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
             }}
           >
             <span style={{ color: addColor }}>
-              +
-              {Math.round(
-                interpolate(frame, [wipeStart, wipeEnd], [0, added], clamp),
-              )}
+              +{Math.round(interpolate(frame, [wipeStart, wipeEnd], [0, added], clamp))}
             </span>
             <span style={{ color: removeColor }}>
-              −
-              {Math.round(
-                interpolate(frame, [wipeStart, wipeEnd], [0, removed], clamp),
-              )}
+              −{Math.round(interpolate(frame, [wipeStart, wipeEnd], [0, removed], clamp))}
             </span>
           </span>
         </div>
 
-        {/* Diff body */}
         <div
           style={{
             height: bodyHeight,
@@ -388,14 +329,8 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
               const isAdd = row.kind === "add";
               const isRemove = row.kind === "remove";
               const tint = isRemove ? progress : (1 - settle) * progress;
-              const color = isAdd
-                ? addColor
-                : isRemove
-                  ? removeColor
-                  : palette.faint;
-              const revealed = isAdd
-                ? Math.round(progress * row.text.length)
-                : row.text.length;
+              const color = isAdd ? addColor : isRemove ? removeColor : palette.faint;
+              const revealed = isAdd ? Math.round(progress * row.text.length) : row.text.length;
 
               return (
                 <div
@@ -404,14 +339,10 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
                     height: heights[index],
                     overflow: "hidden",
                     display: "flex",
-                    // Rows close like a shutter from the bottom — centring the
-                    // content would clip the type from both sides at once.
                     alignItems: "flex-start",
                     fontSize: FONT_SIZE,
                     lineHeight: `${ROW_HEIGHT}px`,
-                    background:
-                      isAdd || isRemove ? `${color}${tintAlpha(tint)}` : "none",
-                    // A removed line drains toward the gutter as it closes.
+                    background: isAdd || isRemove ? `${color}${tintAlpha(tint)}` : "none",
                     opacity: isRemove ? 1 - progress * 0.3 - dropOld * 0.5 : 1,
                   }}
                 >
@@ -437,11 +368,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
                       height: ROW_HEIGHT,
                       display: "flex",
                       alignItems: "center",
-                      // Struck-through text stays legible while it leaves.
-                      // Longhand only — mixing the `textDecoration` shorthand
-                      // with `textDecorationColor` warns on rerender.
-                      textDecorationLine:
-                        isRemove && progress > 0.15 ? "line-through" : "none",
+                      textDecorationLine: isRemove && progress > 0.15 ? "line-through" : "none",
                       textDecorationColor: removeColor,
                     }}
                   >
@@ -456,7 +383,6 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
               );
             })}
 
-            {/* The apply front */}
             <div
               style={{
                 position: "absolute",
@@ -476,7 +402,6 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
   );
 };
 
-/** 0 → 1 tint as a two-digit hex alpha suffix for an 8-digit colour. */
 function tintAlpha(value: number): string {
   const alpha = Math.round(Math.max(0, Math.min(1, value)) * 30);
   return alpha.toString(16).padStart(2, "0");

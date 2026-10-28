@@ -1,48 +1,24 @@
-import { AbsoluteFill, useCurrentFrame } from "remotion";
-import {
-  SplitTextChars,
-  type SplitTextCharsProps,
-} from "#video/parts/split-text-chars.tsx";
-import type { SplitUnitState } from "#video/lib/text/text-split.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import type React from "react";
+import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
+import type { SplitUnitState } from "#video/lib/text/text-split.ts";
+import { SplitTextChars, type SplitTextCharsProps } from "#video/parts/split-text-chars.tsx";
 
-export type NeonFlickerTextProps = Omit<
-  SplitTextCharsProps,
-  "effect" | "renderUnit"
-> & {
-  /** Colour of the halo around the tube. */
+export type NeonFlickerTextProps = Omit<SplitTextCharsProps, "effect" | "renderUnit"> & {
   glowColor?: string;
-  /** Halo radius in px at full brightness. */
   glowSize?: number;
-  /** The tube with no gas lit — cold glass, not invisible. Defaults to a faint `glowColor`. */
   offColor?: string;
-  /** Brightness of an unlit tube, 0–1. */
   offLevel?: number;
-  /** Depth of the mains hum once the sign has settled, 0–1. */
   hum?: number;
-  /** Chance per beat that a settled tube stutters. 0 disables it. */
   buzz?: number;
-  /** Flicker off again on the way out. */
   flickerOnExit?: boolean;
 };
 
-/** Deterministic 0–1. A real random would resample per render pass. */
 function noise(index: number, beat: number, seed: number): number {
   const value = Math.sin(index * 73.19 + beat * 137.51 + seed * 311.7) * 43758.5453;
   return value - Math.floor(value);
 }
 
-/**
- * Lights a word tube by tube, the way a neon sign actually starts.
- *
- * The flicker is a gas-discharge model, not a random opacity: an unlit tube is
- * still there as cold glass (`offColor`), the strike probability climbs across
- * each character's own window so the sign resolves rather than sputtering
- * forever, and once lit the tube keeps a mains hum and an occasional stutter.
- * A settled state with no hum is what makes a neon effect look like a static
- * PNG two seconds in.
- */
 const NeonFlickerTextView: React.FC<NeonFlickerTextProps> = ({
   glowColor = "#f472b6",
   glowSize = 26,
@@ -66,20 +42,15 @@ const NeonFlickerTextView: React.FC<NeonFlickerTextProps> = ({
     if (unit.enter <= 0) {
       lit = 0;
     } else if (striking) {
-      // Strike probability climbs with the unit's own progress, so the tube
-      // stutters at first and is solid by the end of its window.
       const beat = Math.floor(frame / 2);
       lit = noise(unit.index, beat, seed) < 0.22 + 0.78 * unit.enter ? 1 : offLevel;
     } else {
       const wave = 0.5 + 0.5 * Math.sin(frame * 0.42 + unit.index * 1.3);
-      const stutter =
-        buzz > 0 && noise(unit.index, Math.floor(frame / 3), seed + 7) < buzz;
+      const stutter = buzz > 0 && noise(unit.index, Math.floor(frame / 3), seed + 7) < buzz;
       lit = stutter ? offLevel + 0.2 : 1 - hum * wave;
     }
 
     if (leaving) {
-      // Going out is not the entrance reversed: the gas dies in stutters, and
-      // the odds of a dead beat rise as the exit runs.
       const dying = noise(unit.index, Math.floor(frame / 2), seed + 3);
       if (dying < unit.exit) lit = offLevel;
     }
@@ -117,5 +88,11 @@ const NeonFlickerTextView: React.FC<NeonFlickerTextProps> = ({
 };
 
 export function NeonFlickerText(props: ElementProps & { children?: React.ReactNode }) {
-  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><NeonFlickerTextView {...(props as unknown as React.ComponentProps<typeof NeonFlickerTextView>)} /></AbsoluteFill>;
+  return (
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <NeonFlickerTextView
+        {...(props as unknown as React.ComponentProps<typeof NeonFlickerTextView>)}
+      />
+    </AbsoluteFill>
+  );
 }

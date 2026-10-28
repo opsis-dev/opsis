@@ -28,12 +28,10 @@ export function ShimmerSweep({
   const { durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
 
-  const position = interpolate(
-    frame,
-    [0, durationInFrames * 0.8],
-    [200, -100],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-  );
+  const position = interpolate(frame, [0, durationInFrames * 0.8], [200, -100], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
   const textStyle: React.CSSProperties = {
     fontSize,

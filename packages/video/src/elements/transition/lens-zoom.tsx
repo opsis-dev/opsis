@@ -106,10 +106,7 @@ function ringClip(
     const s = clockwise ? 1 : 0;
     return `M ${cx + r} ${cy} A ${r} ${r} 0 1 ${s} ${cx - r} ${cy} A ${r} ${r} 0 1 ${s} ${cx + r} ${cy} Z`;
   };
-  const outer =
-    rOuter === null
-      ? `M 0 0 L ${w} 0 L ${w} ${h} L 0 ${h} Z`
-      : circle(rOuter, true);
+  const outer = rOuter === null ? `M 0 0 L ${w} 0 L ${w} ${h} L 0 ${h} Z` : circle(rOuter, true);
   return rInner > 0 ? `${outer} ${circle(rInner, false)}` : outer;
 }
 
@@ -154,12 +151,8 @@ function TransitionHalf({
     return { s, r: radiusForMagnification(s, fov) };
   });
 
-  const samples =
-    blur <= 0.05 ? 1 : Math.max(2, Math.round((blurSamples * blur) / 60));
-  const weights = Array.from(
-    { length: samples },
-    (_, j) => (1 - j / samples) ** blurFade,
-  );
+  const samples = blur <= 0.05 ? 1 : Math.max(2, Math.round((blurSamples * blur) / 60));
+  const weights = Array.from({ length: samples }, (_, j) => (1 - j / samples) ** blurFade);
 
   const groups: {
     key: number;
@@ -169,10 +162,7 @@ function TransitionHalf({
   let running = 0;
   for (let j = samples - 1; j >= 0; j--) {
     running += weights[j];
-    const g =
-      samples === 1
-        ? 1
-        : 1 + (blur / 100) * blurScaleGain * (j / (samples - 1));
+    const g = samples === 1 ? 1 : 1 + (blur / 100) * blurScaleGain * (j / (samples - 1));
     const halfWidth = (width / 2) * g;
     const copies: { key: string; clip: string; k: number }[] = [];
 
@@ -193,14 +183,7 @@ function TransitionHalf({
       const inner = i + 1 < rings.length ? rings[i + 1].r * halfWidth : 0;
       copies.push({
         key: `${i}`,
-        clip: ringClip(
-          inner,
-          rings[i].r * halfWidth,
-          width,
-          height,
-          centerX,
-          centerY,
-        ),
+        clip: ringClip(inner, rings[i].r * halfWidth, width, height, centerX, centerY),
         k: g * rings[i].s * base,
       });
     }
@@ -211,10 +194,7 @@ function TransitionHalf({
   return (
     <div style={{ position: "absolute", inset: 0 }}>
       {groups.map(({ key, alpha, copies }) => (
-        <div
-          key={key}
-          style={{ position: "absolute", inset: 0, opacity: alpha }}
-        >
+        <div key={key} style={{ position: "absolute", inset: 0, opacity: alpha }}>
           {copies.map(({ key: ck, clip, k }) => (
             <div
               key={ck}
@@ -309,16 +289,12 @@ function LensZoomStage({
   );
 
   const t = (frame / fps) * shakeFrequency * shakeCyclesPerUnit;
-  const octave = (seed: number) =>
-    valueNoise(seed, t) + 0.45 * valueNoise(seed + 977, t * 2.6);
+  const octave = (seed: number) => valueNoise(seed, t) + 0.45 * valueNoise(seed + 977, t * 2.6);
   const shakeX = octave(11) * shakeTranslatePx * shakeEnvelope;
   const shakeY = octave(23) * shakeTranslatePx * shakeEnvelope;
   const shakeR = octave(41) * shakeRotateDeg * shakeEnvelope;
 
-  const barHeight =
-    letterboxAspect > 0
-      ? Math.max(0, (height - width / letterboxAspect) / 2)
-      : 0;
+  const barHeight = letterboxAspect > 0 ? Math.max(0, (height - width / letterboxAspect) / 2) : 0;
 
   return (
     <div
@@ -335,11 +311,7 @@ function LensZoomStage({
         <svg width={0} height={0} style={{ position: "absolute" }} aria-hidden>
           <defs>
             {channels.map((c) => (
-              <filter
-                key={c.id}
-                id={`${filterId}-${c.id}`}
-                colorInterpolationFilters="sRGB"
-              >
+              <filter key={c.id} id={`${filterId}-${c.id}`} colorInterpolationFilters="sRGB">
                 <feColorMatrix type="matrix" values={c.matrix} />
               </filter>
             ))}
@@ -387,9 +359,7 @@ function LensZoomStage({
   );
 }
 
-const LensZoomPresentation: React.FC<
-  TransitionPresentationComponentProps<LensZoomProps>
-> = ({
+const LensZoomPresentation: React.FC<TransitionPresentationComponentProps<LensZoomProps>> = ({
   children,
   presentationDirection,
   presentationProgress,
@@ -444,8 +414,7 @@ const LensZoomPresentation: React.FC<
 
   const exiting = presentationDirection === "exiting";
 
-  if (exiting ? presentationProgress >= 0.5 : presentationProgress < 0.5)
-    return null;
+  if (exiting ? presentationProgress >= 0.5 : presentationProgress < 0.5) return null;
 
   const p = exiting
     ? interpolate(presentationProgress, [0, 0.5], [0, 1], {
@@ -459,8 +428,7 @@ const LensZoomPresentation: React.FC<
         extrapolateRight: "clamp",
       });
 
-  const anticipating =
-    exiting && anticipatePortion > 0 && anticipateScale < inScaleFrom;
+  const anticipating = exiting && anticipatePortion > 0 && anticipateScale < inScaleFrom;
 
   const pFx =
     anticipating && exiting
@@ -473,16 +441,11 @@ const LensZoomPresentation: React.FC<
   const lerp = (from: number, to: number) => from + (to - from) * pFx;
 
   const exitScale = anticipating
-    ? interpolate(
-        p,
-        [0, anticipatePortion, 1],
-        [inScaleFrom, anticipateScale, inScaleTo],
-        {
-          easing: Easing.inOut(Easing.ease),
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        },
-      )
+    ? interpolate(p, [0, anticipatePortion, 1], [inScaleFrom, anticipateScale, inScaleTo], {
+        easing: Easing.inOut(Easing.ease),
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      })
     : lerp(inScaleFrom, inScaleTo);
 
   const shakeEnvelope =
@@ -499,11 +462,7 @@ const LensZoomPresentation: React.FC<
       scale={exiting ? exitScale : lerp(outScaleFrom, outScaleTo)}
       fov={exiting ? lerp(inFovFrom, inFovTo) : lerp(outFovFrom, outFovTo)}
       blur={exiting ? lerp(inBlurFrom, inBlurTo) : lerp(outBlurFrom, outBlurTo)}
-      rotation={
-        exiting
-          ? lerp(inRotationFrom, inRotationTo)
-          : lerp(outRotationFrom, outRotationTo)
-      }
+      rotation={exiting ? lerp(inRotationFrom, inRotationTo) : lerp(outRotationFrom, outRotationTo)}
       centerX={distortionCenterX}
       centerY={distortionCenterY}
       width={width}
@@ -525,9 +484,7 @@ const LensZoomPresentation: React.FC<
   );
 };
 
-export function lensZoom(
-  props: LensZoomProps = {},
-): TransitionPresentation<LensZoomProps> {
+export function lensZoom(props: LensZoomProps = {}): TransitionPresentation<LensZoomProps> {
   return {
     component: LensZoomPresentation,
     props,

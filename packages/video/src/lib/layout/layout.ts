@@ -16,7 +16,6 @@ export type SafeAreaPadding = {
   paddingBottom: number;
 };
 
-/** Per-edge safe area from video-layout guidance */
 export function getSafeAreaPadding({
   width,
   height,
@@ -35,12 +34,7 @@ export function getSafeAreaPadding({
   };
 }
 
-/** Uniform padding — max of horizontal/vertical safe insets */
-export function getSafePadding({
-  width,
-  height,
-  ratio,
-}: SafePaddingOptions): number {
+export function getSafePadding({ width, height, ratio }: SafePaddingOptions): number {
   if (ratio !== undefined) {
     return Math.round(Math.min(width, height) * ratio);
   }
@@ -49,10 +43,6 @@ export function getSafePadding({
   return Math.max(paddingLeft, paddingTop);
 }
 
-/**
- * Scale a font size defined at 1080p width to any composition width.
- * Skill minimums at 1080: headline 84, supporting 44, label 32.
- */
 export function scaleFont(
   sizeAt1080: number,
   width: number,
@@ -68,12 +58,7 @@ export type Rect = {
   height: number;
 };
 
-/** Clamp a rect inside the video safe area (for spotlight targets, overlays). */
-export function clampRectToSafeArea(
-  rect: Rect,
-  frameWidth: number,
-  frameHeight: number,
-): Rect {
+export function clampRectToSafeArea(rect: Rect, frameWidth: number, frameHeight: number): Rect {
   const safe = getSafeAreaPadding({ width: frameWidth, height: frameHeight });
   const minX = safe.paddingLeft;
   const minY = safe.paddingTop;
@@ -88,7 +73,6 @@ export function clampRectToSafeArea(
   return { x, y, width, height };
 }
 
-/** Preview aspect presets for docs QA */
 export const PREVIEW_LANDSCAPE = { width: 960, height: 540 } as const;
 export const PREVIEW_PORTRAIT = { width: 1080, height: 1920 } as const;
 export const PREVIEW_HD = { width: 1920, height: 1080 } as const;

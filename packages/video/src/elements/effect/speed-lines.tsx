@@ -128,8 +128,7 @@ const MAX_DURATION = 120;
 
 const finite = (value: number | undefined, fallback: number) =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const round = (value: number) => Math.round(value * 100) / 100;
 const fine = (value: number) => Math.round(value * 10000) / 10000;
 const fraction = (value: number) => value - Math.floor(value);
@@ -148,10 +147,7 @@ function easeOut(value: number) {
   return 1 - (1 - t) * (1 - t);
 }
 
-function pointOf(
-  value: SpeedLinesPoint | undefined,
-  fallback: SpeedLinesPoint,
-) {
+function pointOf(value: SpeedLinesPoint | undefined, fallback: SpeedLinesPoint) {
   return { x: finite(value?.x, fallback.x), y: finite(value?.y, fallback.y) };
 }
 
@@ -273,19 +269,13 @@ export function getSpeedLinesDuration(options: SpeedLinesOptions = {}) {
   return Math.max(1, Math.ceil(delay + (end + HOLD) / speed));
 }
 
-export function getSpeedLinesTime(
-  frame: number,
-  options: SpeedLinesOptions = {},
-) {
+export function getSpeedLinesTime(frame: number, options: SpeedLinesOptions = {}) {
   const { fps, delay, speed } = settingsOf(options);
   const elapsed = Math.max(0, finite(frame, 0) - delay);
   return elapsed * (30 / fps) * speed;
 }
 
-export function getSpeedLinesEase(
-  time: number,
-  options: SpeedLinesOptions = {},
-) {
+export function getSpeedLinesEase(time: number, options: SpeedLinesOptions = {}) {
   const { duration, bounce } = settingsOf(options);
   return easeOf(finite(time, 0), duration, bounce);
 }
@@ -305,10 +295,7 @@ function positionAt(time: number, settings: Settings) {
   };
 }
 
-export function getSpeedLinesPosition(
-  time: number,
-  options: SpeedLinesOptions = {},
-) {
+export function getSpeedLinesPosition(time: number, options: SpeedLinesOptions = {}) {
   const { x, y } = positionAt(finite(time, 0), settingsOf(options));
   return { x, y };
 }
@@ -328,25 +315,18 @@ function shapeAt(time: number, settings: Settings) {
   const landed = time > duration ? easeOf(time, duration, bounce) - 1 : 0;
   const past = Math.max(0, landed) * span;
   const stretch = STRETCH * Math.tanh((squash * STRETCH_GAIN * rate) / STRETCH);
-  const compression =
-    SQUASH * Math.tanh((squash * SQUASH_GAIN * past) / SQUASH);
+  const compression = SQUASH * Math.tanh((squash * SQUASH_GAIN * past) / SQUASH);
   const strain = clamp(stretch - compression, -SQUASH, STRETCH);
   return { rotation, along: Math.exp(strain), across: Math.exp(-strain) };
 }
 
-export function getSpeedLinesShape(
-  time: number,
-  options: SpeedLinesOptions = {},
-) {
+export function getSpeedLinesShape(time: number, options: SpeedLinesOptions = {}) {
   return shapeAt(finite(time, 0), settingsOf(options));
 }
 
 export type SpeedLinesShape = ReturnType<typeof getSpeedLinesShape>;
 
-export function getSpeedLinesVelocity(
-  frame: number,
-  options: SpeedLinesOptions = {},
-) {
+export function getSpeedLinesVelocity(frame: number, options: SpeedLinesOptions = {}) {
   const settings = settingsOf(options);
   const current = finite(frame, 0);
   const now = positionAt(getSpeedLinesTime(current, options), settings);
@@ -432,18 +412,14 @@ export function getSpeedLinesRadius(time: number, ray: SpeedLinesRayTiming) {
     const q = (t - start) / (IMPACT - start);
     return outer + (rest - outer) * q * q;
   }
-  const settle = (at: number) =>
-    rest * (1 + RELAX * (1 - Math.exp(-(at - IMPACT) / RELAX_RATE)));
+  const settle = (at: number) => rest * (1 + RELAX * (1 - Math.exp(-(at - IMPACT) / RELAX_RATE)));
   if (t < release) return settle(t);
   const held = settle(release);
   const q = clamp((t - release) / RETRACT, 0, 1);
   return outer - (outer - held) * (1 - q * q);
 }
 
-export function getSpeedLinesRays(
-  frame: number,
-  options: SpeedLinesOptions = {},
-): SpeedLinesRay[] {
+export function getSpeedLinesRays(frame: number, options: SpeedLinesOptions = {}): SpeedLinesRay[] {
   const settings = settingsOf(options);
   if (settings.mode !== "focus") return [];
   const time = getSpeedLinesTime(frame, options);
@@ -486,10 +462,7 @@ export function getSpeedLinesRays(
   return rays;
 }
 
-export function getSpeedLinesState(
-  frame: number,
-  options: SpeedLinesOptions = {},
-) {
+export function getSpeedLinesState(frame: number, options: SpeedLinesOptions = {}) {
   const settings = settingsOf(options);
   const time = getSpeedLinesTime(frame, options);
   const point = positionAt(time, settings);
@@ -572,10 +545,7 @@ export function SpeedLines({
   const placed = children !== undefined && children !== null;
 
   return (
-    <div
-      className={className}
-      style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
-    >
+    <div className={className} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
       <svg
         width="100%"
         height="100%"

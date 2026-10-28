@@ -1,9 +1,8 @@
 import { Img } from "remotion";
-import type { SceneProps } from "../content";
-import { tween } from "../motion";
-import { Center, Title } from "../ui";
+import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { tween } from "#video/elements/scene/launch-anything/motion.ts";
+import { Center, Title } from "#video/elements/scene/launch-anything/ui.tsx";
 
-// Three editorial cuts retain the original montage timing, with original plates.
 export function Space({ scene, t }: SceneProps) {
   const first = t < 20.62;
   const inset = !first && t < 21.02;

@@ -87,27 +87,17 @@ export function MaskRevealUp({
 
           const opacity = enterP * (1 - exitP);
 
-          const yEnter = interpolate(
-            enterLocal,
-            [0, enterTravel],
-            [distance, 0],
-            {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-              easing: enterEasing,
-            },
-          );
+          const yEnter = interpolate(enterLocal, [0, enterTravel], [distance, 0], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing: enterEasing,
+          });
 
-          const yExit = interpolate(
-            exitLocal,
-            [exitTravelFrom, exitDur],
-            [0, -22],
-            {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-              easing: exitEasing,
-            },
-          );
+          const yExit = interpolate(exitLocal, [exitTravelFrom, exitDur], [0, -22], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing: exitEasing,
+          });
 
           const y = yEnter + yExit;
 

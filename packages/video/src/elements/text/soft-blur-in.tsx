@@ -65,12 +65,11 @@ export function SoftBlurIn({
             extrapolateRight: "clamp",
             easing,
           });
-          const blurAmount = interpolate(
-            local,
-            [0, charDurationFrames],
-            [blur, 0],
-            { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing },
-          );
+          const blurAmount = interpolate(local, [0, charDurationFrames], [blur, 0], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing,
+          });
           return (
             <span
               key={i}

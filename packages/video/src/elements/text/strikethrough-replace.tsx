@@ -30,10 +30,6 @@ export function StrikethroughReplace({
   const { durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
 
-  // Phases:
-  // 0 .. 40% -> draw strikethrough across `from`
-  // 40% .. 60% -> fade out `from`, fade in `to`
-  // 60% .. 100% -> hold
   const strikeEnd = durationInFrames * 0.4;
   const fadeStart = durationInFrames * 0.4;
   const fadeEnd = durationInFrames * 0.6;
@@ -85,7 +81,6 @@ export function StrikethroughReplace({
           justifyContent: "center",
         }}
       >
-        {/* from text with strikethrough line */}
         <span
           className={className}
           style={{
@@ -110,7 +105,6 @@ export function StrikethroughReplace({
           />
         </span>
 
-        {/* to text */}
         <span
           className={className}
           style={{

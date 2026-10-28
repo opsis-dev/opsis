@@ -87,27 +87,17 @@ export function LineByLineSlide({
 
           const opacity = enterP * (1 - exitP);
 
-          const xEnter = interpolate(
-            enterLocal,
-            [0, enterTravel],
-            [-distance, 0],
-            {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-              easing: enterEasing,
-            },
-          );
+          const xEnter = interpolate(enterLocal, [0, enterTravel], [-distance, 0], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing: enterEasing,
+          });
 
-          const xExit = interpolate(
-            exitLocal,
-            [exitTravelFrom, exitDur],
-            [0, distance],
-            {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-              easing: exitEasing,
-            },
-          );
+          const xExit = interpolate(exitLocal, [exitTravelFrom, exitDur], [0, distance], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing: exitEasing,
+          });
 
           const x = xEnter + xExit;
 

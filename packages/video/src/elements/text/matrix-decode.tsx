@@ -27,7 +27,6 @@ export function MatrixDecode({
   background = "transparent",
 }: MatrixDecodeProps) {
   const frame = useAuthoredFrame() * speed;
-  // useVideoConfig kept for consistency with sibling primitives
   useAuthoredConfig();
 
   let output = "";

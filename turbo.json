@@ -41,6 +41,9 @@
     "//#lint:rust": {
       "cache": false
     },
+    "//#lint:comments": {
+      "cache": false
+    },
     "//#test:rust": {
       "cache": false
     }

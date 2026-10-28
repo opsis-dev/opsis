@@ -5,7 +5,6 @@ export const RELEASE_TEASER_FRAMES = 960;
 export const RELEASE_TEASER_WIDTH = 1920;
 export const RELEASE_TEASER_HEIGHT = 1080;
 
-// Half-open intervals on a doubled NTSC picture clock (16.016 seconds).
 export const releaseTeaserTimeline = [
   { name: "An idea", from: 0, to: 104 },
   { name: "Better work", from: 104, to: 208 },
@@ -15,8 +14,7 @@ export const releaseTeaserTimeline = [
   { name: "Release reveal", from: 610, to: 960 },
 ] as const;
 
-export const atFps = (frame: number, fps: number) =>
-  Math.round((frame / RELEASE_TEASER_FPS) * fps);
+export const atFps = (frame: number, fps: number) => Math.round((frame / RELEASE_TEASER_FPS) * fps);
 export const clamp = (value: number) => Math.max(0, Math.min(1, value));
 export const progress = (frame: number, from: number, to: number) =>
   clamp((frame - from) / (to - from));
@@ -40,7 +38,6 @@ export function textUnits(text: string) {
   }, 0);
 }
 
-/** Honor explicit lines; keep arbitrary overrides within the safe area. */
 export function fitText(text: string, maxSize = 48, width = 808) {
   const lines = text.split("\n");
   return Math.min(
@@ -50,15 +47,8 @@ export function fitText(text: string, maxSize = 48, width = 808) {
   );
 }
 
-/** Center-out focus, with a bounded stagger independent of copy length. */
-export function characterState(
-  frame: number,
-  end: number,
-  index: number,
-  count: number,
-) {
-  const distance =
-    count <= 1 ? 0 : Math.abs(index - (count - 1) / 2) / ((count - 1) / 2);
+export function characterState(frame: number, end: number, index: number, count: number) {
+  const distance = count <= 1 ? 0 : Math.abs(index - (count - 1) / 2) / ((count - 1) / 2);
   const delay = distance * 7;
   const enter = ease(frame, delay, delay + 18);
   const exit = ease(frame, end - 16 - distance * 5, end - 1 - distance * 5);

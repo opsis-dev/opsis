@@ -1,8 +1,4 @@
-import {
-  AbsoluteFill,
-  Easing,
-  interpolate,
-} from "remotion";
+import { AbsoluteFill, Easing, interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export type SearchRevealProps = {
@@ -28,8 +24,7 @@ export const searchRevealLength = 90;
 const MIN_FIELD_FONT = 16;
 const finite = (value: number | undefined, fallback: number) =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const letters = (text: string) =>
   Array.from(
     new Intl.Segmenter("en", { granularity: "grapheme" }).segment(text),
@@ -50,17 +45,12 @@ function timing(props: SearchRevealProps) {
   return { characters, step, end, speed: Math.max(0, finite(props.speed, 1)) };
 }
 
-/** Demo duration at 30 fps, including an 18-frame final hold. */
 export function getSearchRevealDuration(props: SearchRevealProps = {}) {
   const { end, speed } = timing(props);
   return speed === 0 ? 1 : Math.ceil((end + 18) / speed);
 }
 
-/** Frame is expressed at 30 fps; playback speed is applied here. */
-export function getSearchRevealState(
-  frame: number,
-  props: SearchRevealProps = {},
-) {
+export function getSearchRevealState(frame: number, props: SearchRevealProps = {}) {
   const { characters, step, end, speed } = timing(props);
   const t = props.reducedMotion ? end : Math.max(0, finite(frame, 0)) * speed;
   const typedCount = clamp(Math.floor((t - 54) / step), 0, characters.length);
@@ -68,8 +58,7 @@ export function getSearchRevealState(
   const reveal = props.showPanel === false ? 0 : tween(t, 56, 90);
   const fieldWidth = tween(t, 26, 48, 130, width);
   const fieldHeight = tween(t, 26, 46, 24, 80);
-  const panelWidth =
-    fieldWidth + (Math.max(774, width + 170) - fieldWidth) * reveal;
+  const panelWidth = fieldWidth + (Math.max(774, width + 170) - fieldWidth) * reveal;
   const panelHeight = fieldHeight + (374 - fieldHeight) * reveal;
   return {
     t,
@@ -90,21 +79,14 @@ export function getSearchRevealState(
     panelOpacity: tween(t, 56, 60),
     reveal,
     caretVisible:
-      t >= 52 &&
-      t < end &&
-      (typedCount < characters.length || Math.floor((t - 52) / 12) % 2 === 0),
+      t >= 52 && t < end && (typedCount < characters.length || Math.floor((t - 52) / 12) % 2 === 0),
   };
 }
 
 function Cross({ x, y, size = 9 }: { x: number; y: number; size?: number }) {
-  return (
-    <path
-      d={`M ${x - size} ${y} H ${x + size} M ${x} ${y - size} V ${y + size}`}
-    />
-  );
+  return <path d={`M ${x - size} ${y} H ${x + size} M ${x} ${y - size} V ${y + size}`} />;
 }
 
-/** A video scene: expanding construction circles, a search pill, and typed copy. */
 export function SearchReveal({
   text = "acme",
   fontFamily = "var(--font-geist-sans), sans-serif",
@@ -141,8 +123,7 @@ export function SearchReveal({
       (state.fieldWidth - 120) / Math.max(1, letters(text).length * 0.65),
     ),
   );
-  const typedOverflows =
-    letters(state.text).length * 0.65 * fittedFont > state.fieldWidth - 120;
+  const typedOverflows = letters(state.text).length * 0.65 * fittedFont > state.fieldWidth - 120;
   const markerWidth = showPanel ? state.panelWidth : state.fieldWidth;
   const markerHeight = showPanel ? state.panelHeight : state.fieldHeight;
 
@@ -176,17 +157,12 @@ export function SearchReveal({
             <g fill="none" stroke={ringColor} strokeWidth="1">
               {[-1, 1].map((side) => (
                 <g key={side}>
-                  <circle
-                    cx={side * state.circleOffset}
-                    r={state.circleRadius}
-                  />
+                  <circle cx={side * state.circleOffset} r={state.circleRadius} />
                   {showGuides &&
                     [-1, 1].map((edge) => (
                       <Cross
                         key={edge}
-                        x={
-                          side * state.circleOffset + edge * state.circleRadius
-                        }
+                        x={side * state.circleOffset + edge * state.circleRadius}
                         y={0}
                         size={6}
                       />
@@ -254,13 +230,7 @@ export function SearchReveal({
                     fill={accentColor}
                   >
                     {Array.from({ length: 10 }, (_, i) => (
-                      <ellipse
-                        key={i}
-                        cy="-41"
-                        rx="19"
-                        ry="48"
-                        transform={`rotate(${i * 36})`}
-                      />
+                      <ellipse key={i} cy="-41" rx="19" ry="48" transform={`rotate(${i * 36})`} />
                     ))}
                   </g>
                   <g
@@ -288,12 +258,7 @@ export function SearchReveal({
                   overflow: "visible",
                 }}
               >
-                <g
-                  fill="none"
-                  stroke={ringColor}
-                  strokeWidth="1"
-                  opacity={0.5 * state.iconOpacity}
-                >
+                <g fill="none" stroke={ringColor} strokeWidth="1" opacity={0.5 * state.iconOpacity}>
                   <path
                     d={`M ${markerWidth / 2} ${-markerHeight / 2 - 14} V -360 M ${-markerWidth / 2} ${markerHeight / 2 + 14} V 360`}
                   />

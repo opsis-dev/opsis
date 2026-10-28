@@ -1,7 +1,7 @@
 import { Img } from "remotion";
-import type { SceneProps } from "../content";
-import { deskCamera, getShowcase, tween } from "../motion";
-import { ShowcaseScreen } from "../screens";
+import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { deskCamera, getShowcase, tween } from "#video/elements/scene/launch-anything/motion.ts";
+import { ShowcaseScreen } from "#video/elements/scene/launch-anything/screens.tsx";
 
 export function Showcase({ scene, t }: SceneProps) {
   const camera = deskCamera(t);
@@ -33,7 +33,6 @@ export function Showcase({ scene, t }: SceneProps) {
             objectFit: "fill",
           }}
         />
-        {/* Code-native, unbranded laptop. The screen keeps the camera's existing focus geometry. */}
         <svg
           width="480"
           height="270"
@@ -42,14 +41,7 @@ export function Showcase({ scene, t }: SceneProps) {
           role="img"
           style={{ position: "absolute", inset: 0 }}
         >
-          <ellipse
-            cx="250"
-            cy="208"
-            rx="94"
-            ry="7"
-            fill="#2d241a"
-            opacity="0.2"
-          />
+          <ellipse cx="250" cy="208" rx="94" ry="7" fill="#2d241a" opacity="0.2" />
           <rect
             x="180.8"
             y="99.3"
@@ -84,10 +76,7 @@ export function Showcase({ scene, t }: SceneProps) {
           }}
         >
           {custom ? (
-            <Img
-              src={custom}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
+            <Img src={custom} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           ) : (
             <div
               style={{
@@ -106,8 +95,7 @@ export function Showcase({ scene, t }: SceneProps) {
               position: "absolute",
               inset: 0,
               pointerEvents: "none",
-              background:
-                "linear-gradient(135deg,#ffc79906,transparent 55%,#99683206)",
+              background: "linear-gradient(135deg,#ffc79906,transparent 55%,#99683206)",
             }}
           />
         </div>

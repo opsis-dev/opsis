@@ -1,4 +1,9 @@
+import type React from "react";
+import { AbsoluteFill, useVideoConfig } from "remotion";
+import { numberOr } from "#video/common/math.ts";
+import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
 import {
   BrushGrain,
   type BrushPoint,
@@ -6,11 +11,6 @@ import {
   brushReach,
   brushRibbon,
 } from "#video/parts/brush.tsx";
-import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
-import { numberOr } from "#video/common/math.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import { AbsoluteFill, useVideoConfig } from "remotion";
-import type React from "react";
 
 const SAMPLES_PER_LAP = 48;
 const NOISE = 0.035;
@@ -29,11 +29,7 @@ export type ScribbleCircleGeometry = {
   progress?: number;
 };
 
-export function scribbleCircleCentre(
-  width: number,
-  height: number,
-  seed = "scribble",
-): BrushPoint {
+export function scribbleCircleCentre(width: number, height: number, seed = "scribble"): BrushPoint {
   return {
     x: width / 2 + hashRange(`${seed}:cx`, -CENTRE, CENTRE) * width,
     y: height / 2 + hashRange(`${seed}:cy`, -CENTRE, CENTRE) * height,
@@ -174,11 +170,7 @@ function ScribbleCircleView({
           d={d}
           fill={color}
           opacity={0.85}
-          filter={
-            grain > 0
-              ? `url(#${brushFilterId(seed, strokeWidth, grain)})`
-              : undefined
-          }
+          filter={grain > 0 ? `url(#${brushFilterId(seed, strokeWidth, grain)})` : undefined}
         />
       </svg>
     </div>
@@ -188,5 +180,20 @@ function ScribbleCircleView({
 export function ScribbleCircle(all: ElementProps & { children?: React.ReactNode }) {
   const { x, y, ...props } = all;
   const { width, height } = useVideoConfig();
-  return <AbsoluteFill><div style={{ position: "absolute", left: numberOr(x, 0.5) * width, top: numberOr(y, 0.5) * height, translate: "-50% -50%" }}><ScribbleCircleView {...(props as unknown as React.ComponentProps<typeof ScribbleCircleView>)} /></div></AbsoluteFill>;
+  return (
+    <AbsoluteFill>
+      <div
+        style={{
+          position: "absolute",
+          left: numberOr(x, 0.5) * width,
+          top: numberOr(y, 0.5) * height,
+          translate: "-50% -50%",
+        }}
+      >
+        <ScribbleCircleView
+          {...(props as unknown as React.ComponentProps<typeof ScribbleCircleView>)}
+        />
+      </div>
+    </AbsoluteFill>
+  );
 }

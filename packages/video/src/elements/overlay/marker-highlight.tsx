@@ -1,8 +1,4 @@
-import {
-  interpolate,
-  interpolateColors,
-  spring,
-} from "remotion";
+import { interpolate, interpolateColors, spring } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface MarkerHighlightProps {
@@ -86,9 +82,7 @@ export function MarkerHighlight({
               zIndex: 0,
             }}
           />
-          <span style={{ position: "relative", zIndex: 1, color: textColor }}>
-            {highlight}
-          </span>
+          <span style={{ position: "relative", zIndex: 1, color: textColor }}>{highlight}</span>
         </span>
         {after}
       </span>

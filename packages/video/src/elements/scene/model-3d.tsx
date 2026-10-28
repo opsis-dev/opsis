@@ -12,8 +12,8 @@ import {
 } from "three";
 import type { GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-import type { ElementSettings } from "#video/generated/spec.ts";
 import { GroundShadow } from "#video/elements/scene/card-3d.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { useModel } from "#video/three/load-model.ts";
 import { elementPose } from "#video/three/motion.ts";
 import { Posed, Stage3D } from "#video/three/stage.tsx";

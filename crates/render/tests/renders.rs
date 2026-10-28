@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 
 use opsis_compile::clip::{ItemExtra, clip_to_spec, item_clip};
 use opsis_compile::elements::{ElementKind, element_meta, element_node_type};
+use opsis_compile::hosted::hosted;
 use opsis_compile::node::{CLIP_PORT, Ctx};
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
@@ -173,13 +174,13 @@ impl Setup {
             binaries_directory: std::env::var("OPSIS_COMPOSITOR").ok(),
             license_key: "free-license".into(),
             composition: COMPOSITION_ID.into(),
-            spec: TimelineSpec {
+            spec: hosted(&TimelineSpec {
                 assets: Some(SpecAssets {
                     project_base: Some(self.assets.url.clone()),
                     versions: None,
                 }),
                 ..spec
-            },
+            }),
             gl: serde_json::from_value(json!("angle")).unwrap(),
         }
     }

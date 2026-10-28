@@ -4,7 +4,9 @@ import { listsFrom, nestedFrom, ticksFromWords, treeFromPaths } from "#video/lib
 describe("nestedFrom", () => {
   it("builds nested props from flat settings and leaves unset ones out", () => {
     const paths = { runTitle: "run.title", runPlan: "run.plan", bg: "theme.background" };
-    expect(nestedFrom({ runTitle: "Hello", runPlan: ["a"], bg: undefined, other: 1 }, paths)).toEqual({
+    expect(
+      nestedFrom({ runTitle: "Hello", runPlan: ["a"], bg: undefined, other: 1 }, paths),
+    ).toEqual({
       other: 1,
       run: { title: "Hello", plan: ["a"] },
     });

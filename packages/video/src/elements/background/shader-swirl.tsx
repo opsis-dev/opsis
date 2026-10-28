@@ -1,9 +1,6 @@
 import { Swirl, type SwirlProps } from "@paper-design/shaders-react";
 import { useCallback, useState } from "react";
-import {
-  continueRender,
-  delayRender,
-} from "remotion";
+import { continueRender, delayRender } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 const NEUTRAL_COLORS = ["#52527a", "#3a3a5c", "#232338"];
@@ -27,19 +24,13 @@ export function ShaderSwirl({
   const gate = useCallback(
     (element: HTMLDivElement | null) => {
       if (!element) return;
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => continueRender(handle)),
-      );
+      requestAnimationFrame(() => requestAnimationFrame(() => continueRender(handle)));
     },
     [handle],
   );
 
   return (
-    <div
-      ref={gate}
-      className={className}
-      style={{ position: "absolute", inset: 0 }}
-    >
+    <div ref={gate} className={className} style={{ position: "absolute", inset: 0 }}>
       <Swirl
         speed={0}
         frame={(frame / fps) * speed * 1000}

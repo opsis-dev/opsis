@@ -13,15 +13,8 @@ const toOklch = converter("oklch");
 
 const BLACK: Rgb = { mode: "rgb", r: 0, g: 0, b: 0, alpha: 1 };
 
-/**
- * Whether to warn. Read through `globalThis`, never a bare `process`: a Vite
- * project defines no `process`, so the bare name threw a ReferenceError on the
- * very input it meant to warn about — and a stock Remotion project has no Node
- * types, so the bare name was also a type error in every install.
- */
 function isDev(): boolean {
-  const env = (globalThis as { process?: { env?: { NODE_ENV?: string } } })
-    .process?.env;
+  const env = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process?.env;
   return env?.NODE_ENV !== "production";
 }
 
@@ -42,9 +35,7 @@ export function parseColor(c: string): Rgb {
   const rgb = toRgb(parse(s));
   if (!rgb) {
     if (isDev()) {
-      console.warn(
-        `[warm-ui] parseColor could not parse "${s}"; using black.`,
-      );
+      console.warn(`[warm-ui] parseColor could not parse "${s}"; using black.`);
     }
     return { ...BLACK };
   }
@@ -76,9 +67,7 @@ function resolveColorString(s: string): string {
   }
   if (!parse(trimmed)) {
     if (isDev()) {
-      console.warn(
-        `[warm-ui] mixOklch could not parse "${trimmed}"; using black.`,
-      );
+      console.warn(`[warm-ui] mixOklch could not parse "${trimmed}"; using black.`);
     }
     return "#000";
   }
@@ -98,15 +87,6 @@ export function toCss(color: Rgb): string {
   return formatRgb(color);
 }
 
-/**
- * A token at partial opacity — for scrims, veils and inner washes.
- *
- * A scrim written as a literal `rgba(0,0,0,0.4)` is lit for a light surface and
- * does nothing on a dark one; `withAlpha(t.foreground, 0.4)` follows the theme
- * and a user's override. Resolves through `parseColor`, so it inherits the same
- * `var()` guard — an unresolvable token degrades to black rather than an
- * invalid colour string mid-render.
- */
 export function withAlpha(color: string, alpha: number): string {
   const { r, g, b } = parseColor(color);
   return formatRgb({ mode: "rgb", r, g, b, alpha });

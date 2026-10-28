@@ -11,17 +11,14 @@ const clampOpts = {
   extrapolateRight: "clamp" as const,
 };
 
-const coverEnvelope = (p: number) =>
-  interpolate(p, [0, 0.3, 0.65, 1], [0, 1, 1, 0], clampOpts);
+const coverEnvelope = (p: number) => interpolate(p, [0, 0.3, 0.65, 1], [0, 1, 1, 0], clampOpts);
 
 const coverChildOpacity = (p: number, entering: boolean) =>
   entering
     ? interpolate(p, [0.58, 0.66], [0, 1], clampOpts)
     : interpolate(p, [0.28, 0.36], [1, 0], clampOpts);
 
-type DitherShape = NonNullable<
-  React.ComponentProps<typeof ShaderDithering>["shape"]
->;
+type DitherShape = NonNullable<React.ComponentProps<typeof ShaderDithering>["shape"]>;
 
 export type DitherDissolveProps = {
   colorBack?: string;
@@ -32,12 +29,7 @@ export type DitherDissolveProps = {
 
 const DitherDissolvePresentation: React.FC<
   TransitionPresentationComponentProps<DitherDissolveProps>
-> = ({
-  children,
-  presentationProgress,
-  presentationDirection,
-  passedProps,
-}) => {
+> = ({ children, presentationProgress, presentationDirection, passedProps }) => {
   const {
     colorBack = "#141318",
     colorFront = "#8f88ae",
@@ -50,13 +42,9 @@ const DitherDissolvePresentation: React.FC<
 
   return (
     <AbsoluteFill>
-      <AbsoluteFill style={{ opacity: coverChildOpacity(p, entering) }}>
-        {children}
-      </AbsoluteFill>
+      <AbsoluteFill style={{ opacity: coverChildOpacity(p, entering) }}>{children}</AbsoluteFill>
       {entering ? (
-        <AbsoluteFill
-          style={{ opacity: coverEnvelope(p), pointerEvents: "none" }}
-        >
+        <AbsoluteFill style={{ opacity: coverEnvelope(p), pointerEvents: "none" }}>
           <ShaderDithering
             speed={speed}
             colorBack={colorBack}

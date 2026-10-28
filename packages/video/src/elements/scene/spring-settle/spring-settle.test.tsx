@@ -1,7 +1,10 @@
 import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { SpringSettleItem, SpringSettleScenes } from "#video/elements/scene/spring-settle/index.tsx";
+import {
+  SpringSettleItem,
+  SpringSettleScenes,
+} from "#video/elements/scene/spring-settle/index.tsx";
 
 afterEach(() => {
   vi.restoreAllMocks();

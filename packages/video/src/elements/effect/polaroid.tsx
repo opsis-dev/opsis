@@ -1,8 +1,8 @@
 import type React from "react";
-import { Handwrite } from "#video/parts/handwrite.tsx";
-import { DEFAULT_STEP } from "#video/lib/motion/stop-motion.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import { AbsoluteFill } from "remotion";
+import { type ElementProps } from "#video/common/spec.ts";
+import { DEFAULT_STEP } from "#video/lib/motion/stop-motion.ts";
+import { Handwrite } from "#video/parts/handwrite.tsx";
 
 const BASE_WIDTH = 652;
 const BASE_PAD = 16;
@@ -55,8 +55,7 @@ function PolaroidView({
   captionSize,
   step = DEFAULT_STEP,
 }: PolaroidProps) {
-  const { pad, mediaWidth, mediaHeight, captionHeight, height } =
-    polaroidGeometry(width);
+  const { pad, mediaWidth, mediaHeight, captionHeight, height } = polaroidGeometry(width);
   const resolvedCaptionSize = Math.min(
     captionSize ?? BASE_CAPTION_SIZE * (width / BASE_WIDTH),
     captionHeight * 0.62,
@@ -71,8 +70,7 @@ function PolaroidView({
         boxSizing: "border-box",
         background: frameColor,
         borderRadius: 4,
-        boxShadow:
-          "0 8px 20px rgba(38,36,44,0.18), 0 2px 5px rgba(38,36,44,0.12)",
+        boxShadow: "0 8px 20px rgba(38,36,44,0.18), 0 2px 5px rgba(38,36,44,0.12)",
         paddingTop: pad,
       }}
     >
@@ -106,5 +104,9 @@ function PolaroidView({
 }
 
 export function Polaroid(props: ElementProps & { children?: React.ReactNode }) {
-  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><PolaroidView {...(props as unknown as React.ComponentProps<typeof PolaroidView>)} /></AbsoluteFill>;
+  return (
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <PolaroidView {...(props as unknown as React.ComponentProps<typeof PolaroidView>)} />
+    </AbsoluteFill>
+  );
 }

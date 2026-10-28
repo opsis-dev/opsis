@@ -1,8 +1,8 @@
 import { useId } from "react";
 import { Img } from "remotion";
-import type { SceneProps } from "./content";
-import { clamp, getShowcase, key, tween } from "./motion";
-import { LogoGlyph } from "./ui";
+import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { clamp, getShowcase, key, tween } from "#video/elements/scene/launch-anything/motion.ts";
+import { LogoGlyph } from "#video/elements/scene/launch-anything/ui.tsx";
 
 const surface = {
   position: "absolute" as const,
@@ -29,9 +29,7 @@ function Dashboard({ scene, t }: SceneProps) {
           borderRight: "1px solid #e8e4df",
         }}
       >
-        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 26 }}>
-          ◈ Workroom
-        </div>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 26 }}>◈ Workroom</div>
         {[
           "Workspace",
           "Overview",
@@ -153,16 +151,11 @@ function Dashboard({ scene, t }: SceneProps) {
               "Files organized",
               "Milestone reached",
             ].map((label, n) => (
-              <div
-                key={label}
-                style={{ display: "flex", gap: 6, marginTop: 18, fontSize: 8 }}
-              >
+              <div key={label} style={{ display: "flex", gap: 6, marginTop: 18, fontSize: 8 }}>
                 <span style={{ color: scene.accent }}>●</span>
                 <span>
                   {label}
-                  <small
-                    style={{ display: "block", color: "#b0a59e", marginTop: 4 }}
-                  >
+                  <small style={{ display: "block", color: "#b0a59e", marginTop: 4 }}>
                     {n * 4 + 2} minutes ago
                   </small>
                 </span>
@@ -279,15 +272,11 @@ function Shoppers({ scene, t }: SceneProps) {
               background: "linear-gradient(0deg, #153326aa, transparent)",
             }}
           />
-          <span style={{ position: "relative" }}>
-            {scene.content.shopHeadline}
-          </span>
+          <span style={{ position: "relative" }}>{scene.content.shopHeadline}</span>
         </div>
         <div style={{ padding: "12px 15px", fontSize: 13 }}>
           <b>{scene.content.shopDetail}</b>
-          <p style={{ fontSize: 9, color: "#827c82" }}>
-            A collection for slower mornings.
-          </p>
+          <p style={{ fontSize: 9, color: "#827c82" }}>A collection for slower mornings.</p>
           <div
             style={{
               background: scene.accent,
@@ -318,9 +307,7 @@ function Exchange({ scene, t }: SceneProps) {
           opacity: p,
         }}
       >
-        <span style={{ whiteSpace: "pre-line" }}>
-          {scene.content.connections}
-        </span>
+        <span style={{ whiteSpace: "pre-line" }}>{scene.content.connections}</span>
       </div>
       <div
         style={{
@@ -330,8 +317,7 @@ function Exchange({ scene, t }: SceneProps) {
           width: 104,
           height: 123,
           background: "linear-gradient(120deg,#e0e6cb,#7ba385 48%,#345b40)",
-          clipPath:
-            "polygon(0 0,75% 0,75% 25%,25% 25%,25% 75%,100% 75%,100% 100%,0 100%)",
+          clipPath: "polygon(0 0,75% 0,75% 25%,25% 25%,25% 75%,100% 75%,100% 100%,0 100%)",
           transform: `rotateY(${t * 30}deg)`,
         }}
       />
@@ -392,9 +378,7 @@ function Builder({ scene, t }: SceneProps) {
           gap: 27,
         }}
       >
-        <div
-          style={{ fontSize: 20, color: "#245744", letterSpacing: "-0.02em" }}
-        >
+        <div style={{ fontSize: 20, color: "#245744", letterSpacing: "-0.02em" }}>
           {scene.content.builder}
         </div>
         <div
@@ -479,18 +463,12 @@ function Trading({ scene, t }: SceneProps) {
       >
         <div style={{ fontSize: 10 }}>Draft　 Review　 Ready</div>
         <div style={{ height: 1, background: "#34312a", marginTop: 16 }} />
-        <div style={{ fontSize: 9, color: "#aba694", marginTop: 15 }}>
-          Project
-        </div>
+        <div style={{ fontSize: 9, color: "#aba694", marginTop: 15 }}>Project</div>
         <div style={{ fontSize: 13, marginTop: 8 }}>Autumn release　⌄</div>
-        <div style={{ fontSize: 9, color: "#9f9d8c", marginTop: 22 }}>
-          Review progress
-        </div>
+        <div style={{ fontSize: 9, color: "#9f9d8c", marginTop: 22 }}>Review progress</div>
         <div style={{ fontSize: 22, marginTop: 9 }}>
           12 / 12
-          <span style={{ fontSize: 10, float: "right", color: "#a09a81" }}>
-            DONE
-          </span>
+          <span style={{ fontSize: 10, float: "right", color: "#a09a81" }}>DONE</span>
         </div>
         <div style={{ display: "flex", marginTop: 18, gap: 6 }}>
           <span
@@ -518,28 +496,23 @@ function Trading({ scene, t }: SceneProps) {
             Revise
           </span>
         </div>
-        {[
-          "Files reviewed",
-          "Comments resolved",
-          "Contributors",
-          "Next milestone",
-        ].map((label, i) => (
-          <div
-            key={label}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: 18,
-              fontSize: 8,
-              color: "#8a877a",
-            }}
-          >
-            <span>{label}</span>
-            <span>
-              {["12 files", "28 / 28", "4 people", "Ready to share"][i]}
-            </span>
-          </div>
-        ))}
+        {["Files reviewed", "Comments resolved", "Contributors", "Next milestone"].map(
+          (label, i) => (
+            <div
+              key={label}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: 18,
+                fontSize: 8,
+                color: "#8a877a",
+              }}
+            >
+              <span>{label}</span>
+              <span>{["12 files", "28 / 28", "4 people", "Ready to share"][i]}</span>
+            </div>
+          ),
+        )}
       </div>
       <div
         style={{
@@ -589,10 +562,7 @@ function Loyalty({ scene, t }: SceneProps) {
           <b>◫ Project notes</b>
           <p>Collect ideas. Connect the details.</p>
           {[80, 106, 63].map((width, n) => (
-            <div
-              key={n}
-              style={{ height: 3, width, background: "#d9d5d9", marginTop: 9 }}
-            />
+            <div key={n} style={{ height: 3, width, background: "#d9d5d9", marginTop: 9 }} />
           ))}
         </div>
       ))}
@@ -695,10 +665,7 @@ function Loyalty({ scene, t }: SceneProps) {
 
 function Integrations({ scene, t }: SceneProps) {
   const names = scene.content.integrations;
-  const index = Math.min(
-    names.length - 1,
-    Math.floor(clamp((t - 14.017) / 1.1) * names.length),
-  );
+  const index = Math.min(names.length - 1, Math.floor(clamp((t - 14.017) / 1.1) * names.length));
   const progress = (((t - 14.017) * names.length) / 1.1) % 1;
   return (
     <div
