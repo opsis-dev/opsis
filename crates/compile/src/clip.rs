@@ -16,10 +16,10 @@ use crate::params::to_values;
 use crate::remap::{RemapSide, inverse_remap};
 
 pub const EMPTY_CLIP_FRAMES: u32 = 30;
-pub const PLACEHOLDER: &str = "core/placeholder";
-pub const STILL: &str = "core/still";
-pub const IMAGE: &str = "core/image";
-pub const VIDEO: &str = "core/video";
+pub const PLACEHOLDER: &str = "placeholder";
+pub const STILL: &str = "still";
+pub const IMAGE: &str = "image";
+pub const VIDEO: &str = "video";
 
 fn yes() -> bool {
     true

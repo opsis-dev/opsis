@@ -266,7 +266,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<CodeReveal>(
             element(
                 ElementKind::Component,
-                "remotion-ui/code-reveal",
+                "code-reveal",
                 "Code reveal",
                 "A code editor that types out a file, then highlights the lines that matter.",
                 C::Ui,
@@ -278,7 +278,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<CodeDiffWipe>(
             element(
                 ElementKind::Component,
-                "remotion-ui/code-diff-wipe",
+                "code-diff-wipe",
                 "Code diff",
                 "A code editor that applies a change line by line: removed lines collapse and new lines type in.",
                 C::Ui,
@@ -290,7 +290,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<KanbanMove>(
             element(
                 ElementKind::Component,
-                "remotion-ui/kanban-move",
+                "kanban-move",
                 "Kanban board",
                 "A task board where cards move from one column to the next.",
                 C::Ui,
@@ -302,7 +302,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<FileTreeReveal>(
             element(
                 ElementKind::Component,
-                "remotion-ui/file-tree-reveal",
+                "file-tree-reveal",
                 "File tree",
                 "A folder tree that opens one item at a time and highlights a file.",
                 C::Ui,
@@ -314,7 +314,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<DragDropFlow>(
             element(
                 ElementKind::Component,
-                "remotion-ui/drag-drop-flow",
+                "drag-drop-flow",
                 "File upload",
                 "A pointer drags a file into an upload area, which catches it and uploads it.",
                 C::Ui,
@@ -326,7 +326,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<CommitGraph>(
             element(
                 ElementKind::Component,
-                "remotion-ui/commit-graph",
+                "commit-graph",
                 "Commit graph",
                 "A version history graph that draws its branches and merges commit by commit.",
                 C::Ui,

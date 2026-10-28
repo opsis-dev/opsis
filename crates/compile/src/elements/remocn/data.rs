@@ -114,38 +114,41 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<AnimatedBarChart>(
             element(
                 ElementKind::Component,
-                "remocn/animated-bar-chart",
+                "animated-bar-chart",
                 "Animated bar chart",
                 "Bars spring up from the baseline in a staggered cascade.",
                 C::Data,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/animated-bar-chart", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:chart-column").moves(NodeMotion::Grow)),
         ),
         meta::<AnimatedLineChart>(
             element(
                 ElementKind::Component,
-                "remocn/animated-line-chart",
+                "animated-line-chart",
                 "Animated line chart",
                 "Line chart whose SVG path draws on from left to right with a leading dot.",
                 C::Data,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/animated-line-chart", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:chart-line").moves(NodeMotion::Draw)),
         ),
         meta::<RollingNumber>(
             element(
                 ElementKind::Component,
-                "remocn/rolling-number",
+                "rolling-number",
                 "Rolling number",
                 "Odometer where every place rolls at its own speed, new places rising into view, settling exactly on the target value.",
                 C::Data,
                 150,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/rolling-number", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:hash").moves(NodeMotion::Roll)),
         ),

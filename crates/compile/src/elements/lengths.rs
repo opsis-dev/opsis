@@ -3,8 +3,8 @@ use std::collections::BTreeSet;
 use opsis_types::numbers::whole;
 use serde_json::{Map, Value};
 
+use crate::elements::ElementMeta;
 use crate::elements::introspect::settings_in_frames;
-use crate::elements::{ElementKind, ElementMeta};
 
 type Settings = Map<String, Value>;
 
@@ -349,13 +349,13 @@ const KEEPS_ITS_LENGTH: Timing = Timing {
 
 fn element_timing(key: &str) -> Option<Timing> {
     Some(match key {
-        "remocn/soft-blur-in" => authored(|s| last_index(characters(text(s, "text"))) + 27.0),
-        "remocn/typewriter" => authored(|s| {
+        "soft-blur-in" => authored(|s| last_index(characters(text(s, "text"))) + 27.0),
+        "typewriter" => authored(|s| {
             characters(text(s, "text")) as f64 / num(s, "charsPerSecond", 22.0).max(0.1)
                 * f64::from(AUTHORED_FPS)
         }),
-        "remocn/matrix-decode" => authored(|s| num(s, "revealDuration", 60.0)),
-        "remocn/slot-machine-roll" => authored(|s| {
+        "matrix-decode" => authored(|s| num(s, "revealDuration", 60.0)),
+        "slot-machine-roll" => authored(|s| {
             last_index(
                 text(s, "from")
                     .encode_utf16()
@@ -363,77 +363,69 @@ fn element_timing(key: &str) -> Option<Timing> {
                     .max(text(s, "to").encode_utf16().count()),
             ) * 4.0
         }),
-        "remocn/staggered-fade-up" => {
+        "staggered-fade-up" => {
             authored(|s| last_index(spaced(text(s, "text"))) * num(s, "staggerDelay", 4.0) + 12.0)
         }
-        "remocn/kinetic-center-build" => {
-            authored(|s| 10.0 + last_index(spaced(text(s, "text"))) * 13.0)
-        }
-        "remocn/mask-reveal-up" => authored(|s| last_index(lines(text(s, "text"))) * 5.0),
-        "remocn/line-by-line-slide" => authored(|s| last_index(lines(text(s, "text"))) * 6.0),
-        "remocn/word-push" => authored(|s| {
+        "kinetic-center-build" => authored(|s| 10.0 + last_index(spaced(text(s, "text"))) * 13.0),
+        "mask-reveal-up" => authored(|s| last_index(lines(text(s, "text"))) * 5.0),
+        "line-by-line-slide" => authored(|s| last_index(lines(text(s, "text"))) * 6.0),
+        "word-push" => authored(|s| {
             word_push_end(
                 text(s, "text"),
                 num(s, "wordGap", 10.0),
                 num(s, "accel", 0.8),
             )
         }),
-        "remocn/rgb-glitch-text" => {
-            authored(|s| num(s, "glitchAt", 20.0) + num(s, "glitchDuration", 8.0))
-        }
-        "remocn/ink-underline" => authored(|s| num(s, "durationSteps", 5.0) * num(s, "step", 3.0)),
-        "remocn/scribble-circle" => {
-            authored(|s| num(s, "durationSteps", 10.0) * num(s, "step", 3.0))
-        }
-        "remocn/ink-arrow" => {
+        "rgb-glitch-text" => authored(|s| num(s, "glitchAt", 20.0) + num(s, "glitchDuration", 8.0)),
+        "ink-underline" => authored(|s| num(s, "durationSteps", 5.0) * num(s, "step", 3.0)),
+        "scribble-circle" => authored(|s| num(s, "durationSteps", 10.0) * num(s, "step", 3.0)),
+        "ink-arrow" => {
             authored(|s| num(s, "drawDur", 36.0) + num(s, "headDur", num(s, "step", 3.0) * 4.0))
         }
-        "remocn/confetti" => authored(|s| num(s, "lifetime", 90.0)),
-        "remocn/keystroke" => authored(keystroke_end),
-        "remocn/terminal-simulator" => authored(terminal_end),
-        "remocn/glass-code-block" => {
+        "confetti" => authored(|s| num(s, "lifetime", 90.0)),
+        "keystroke" => authored(keystroke_end),
+        "terminal-simulator" => authored(terminal_end),
+        "glass-code-block" => {
             authored(|s| last_index(lines(text(s, "code"))) * num(s, "staggerFrames", 4.0) + 8.0)
         }
-        "remocn/code-morph" => authored(code_morph_end),
-        "remocn/logo-enter" => {
-            authored(|s| last_index(list(s, "logos").len()) * num(s, "stagger", 7.0))
-        }
-        "remocn/check-list" => authored(check_list_end),
-        "remocn/search-reveal" => authored(|s| {
+        "code-morph" => authored(code_morph_end),
+        "logo-enter" => authored(|s| last_index(list(s, "logos").len()) * num(s, "stagger", 7.0)),
+        "check-list" => authored(check_list_end),
+        "search-reveal" => authored(|s| {
             let step = num(s, "framesPerCharacter", 4.0).clamp(1.0, 12.0);
             (54.0 + characters(text(s, "text")) as f64 * step + 10.0).max(90.0)
         }),
-        "remocn/agent-run" => authored(agent_run_end),
-        "remocn/signup-flow" => authored(|_| 348.0),
-        "remocn/command-menu" => authored(|s| {
+        "agent-run" => authored(agent_run_end),
+        "signup-flow" => authored(|_| 348.0),
+        "command-menu" => authored(|s| {
             if s.get("autoplay") == Some(&Value::Bool(false)) {
                 0.0
             } else {
                 24.0 + characters(text(s, "query")) as f64 * 2.5 + 8.0 + 18.0 + 6.0
             }
         }),
-        "remocn/release-teaser" => seconds(|_| RELEASE_TEASER_SECONDS),
-        "remocn/launch-anything" => seconds(|_| LAUNCH_ANYTHING_SECONDS),
-        "remocn/animated-bar-chart" => {
+        "release-teaser" => seconds(|_| RELEASE_TEASER_SECONDS),
+        "launch-anything" => seconds(|_| LAUNCH_ANYTHING_SECONDS),
+        "animated-bar-chart" => {
             authored(|s| last_index(list(s, "bars").len()) * num(s, "staggerFrames", 6.0))
         }
-        "remotion-ui/metric-ticker" => frames(|s| {
+        "metric-ticker" => frames(|s| {
             (list(s, "metrics").len() as f64).min(num(s, "maxCards", 4.0).max(1.0)) * 8.0
         }),
-        "remotion-ui/funnel-chart" => frames(|s| {
+        "funnel-chart" => frames(|s| {
             last_index(list(s, "stages").len()) * num(s, "staggerInFrames", 12.0)
                 + num(s, "durationInFrames", 22.0)
         }),
-        "remotion-ui/donut-chart" => frames(|s| {
+        "donut-chart" => frames(|s| {
             last_index(list(s, "segments").len()) * num(s, "staggerInFrames", 9.0)
                 + num(s, "durationInFrames", 26.0)
         }),
-        "remotion-ui/comparison-bars" => frames(|s| {
+        "comparison-bars" => frames(|s| {
             last_index(list(s, "rows").len()) * num(s, "staggerInFrames", 12.0)
                 + num(s, "pairOffsetInFrames", 6.0)
                 + num(s, "durationInFrames", 30.0)
         }),
-        "remotion-ui/bar-chart-race" => frames(|s| {
+        "bar-chart-race" => frames(|s| {
             let steps = list(s, "series")
                 .iter()
                 .map(|row| {
@@ -444,23 +436,23 @@ fn element_timing(key: &str) -> Option<Timing> {
                 .max();
             last_index(steps.unwrap_or(0)) * num(s, "framesPerStep", 26.0)
         }),
-        "remotion-ui/gauge-dial" => frames(|s| num(s, "durationInFrames", 44.0)),
-        "remotion-ui/handwriting-text" => frames(|s| {
+        "gauge-dial" => frames(|s| num(s, "durationInFrames", 44.0)),
+        "handwriting-text" => frames(|s| {
             last_index(characters(text(s, "text"))) * num(s, "staggerInFrames", 3.0)
                 + num(s, "durationInFrames", 10.0)
         }),
-        "remotion-ui/neon-flicker-text" => {
+        "neon-flicker-text" => {
             frames(|s| last_index(characters(text(s, "text"))) * num(s, "staggerInFrames", 0.0))
         }
-        "remotion-ui/text-mask-video" => frames(|s| num(s, "durationInFrames", 0.0)),
-        "remotion-ui/pricing-card" => seconds(|s| {
+        "text-mask-video" => frames(|s| num(s, "durationInFrames", 0.0)),
+        "pricing-card" => seconds(|s| {
             (num(s, "priceAtSeconds", 0.42) + num(s, "rollSeconds", 0.9)).max(
                 num(s, "featuresAtSeconds", 1.05)
                     + last_index(list(s, "features").len()) * num(s, "featureStaggerSeconds", 0.22)
                     + 0.58,
             )
         }),
-        "remotion-ui/comparison-table" => seconds(|s| {
+        "comparison-table" => seconds(|s| {
             let rows = list(s, "rows");
             let cells = rows
                 .iter()
@@ -475,17 +467,17 @@ fn element_timing(key: &str) -> Option<Timing> {
                 + last_index(rows.len()) * num(s, "rowStaggerSeconds", 0.26)
                 + (0.39 + last_index(cells) * 0.07).max(0.4)
         }),
-        "remotion-ui/changelog-entry" => seconds(|s| {
+        "changelog-entry" => seconds(|s| {
             (num(s, "startAtSeconds", 0.66)
                 + last_index(list(s, "changes").len()) * num(s, "staggerSeconds", 0.28)
                 + 0.46)
                 .max(0.84)
         }),
-        "remotion-ui/logo-wall" => seconds(logo_wall_end),
-        "remotion-ui/end-card" => seconds(end_card_end),
-        "remotion-ui/code-reveal" => seconds(code_reveal_end),
-        "remotion-ui/code-diff-wipe" => seconds(|s| 0.7 + num(s, "wipeSeconds", 1.7) + 1.4),
-        "remotion-ui/kanban-move" => seconds(|s| {
+        "logo-wall" => seconds(logo_wall_end),
+        "end-card" => seconds(end_card_end),
+        "code-reveal" => seconds(code_reveal_end),
+        "code-diff-wipe" => seconds(|s| 0.7 + num(s, "wipeSeconds", 1.7) + 1.4),
+        "kanban-move" => seconds(|s| {
             let cards = list(s, "cards");
             let moves = cards.iter().filter_map(|card| {
                 let at = field(card, "moveAtSeconds").and_then(Value::as_f64)?;
@@ -498,7 +490,7 @@ fn element_timing(key: &str) -> Option<Timing> {
                 f64::max,
             )
         }),
-        "remotion-ui/file-tree-reveal" => seconds(|s| {
+        "file-tree-reveal" => seconds(|s| {
             let paths: Vec<&str> = list(s, "nodes")
                 .iter()
                 .map(|v| v.as_str().unwrap_or(""))
@@ -511,25 +503,25 @@ fn element_timing(key: &str) -> Option<Timing> {
                     0.64
                 }
         }),
-        "remotion-ui/commit-graph" => seconds(|s| {
+        "commit-graph" => seconds(|s| {
             num(s, "startAtSeconds", 0.34)
                 + (list(s, "commits").len() as f64 - 1.0).max(1.0) * num(s, "stepSeconds", 0.36)
         }),
-        "remotion-ui/notification-stack" => seconds(notification_end),
-        "snapcn/punch-lines" => authored(punch_lines_end),
-        "snapcn/status-cycle" => authored(|s| {
+        "notification-stack" => seconds(notification_end),
+        "punch-lines" => authored(punch_lines_end),
+        "status-cycle" => authored(|s| {
             num(s, "startAt", 0.0)
                 + num(s, "introFrames", 24.0)
                 + last_index(comma_list(text(s, "statuses")).len()) * num(s, "statusHold", 30.0)
         }),
-        "snapcn/text-highlight" => authored(|s| {
+        "text-highlight" => authored(|s| {
             num(s, "startAt", 6.0)
                 + num(s, "drawDuration", 14.0)
                 + num(s, "holdDuration", 12.0)
                 + num(s, "rushDuration", 24.0)
         }),
-        "snapcn/logo-drift" => seconds(|s| num(s, "exitAt", 3.13) + num(s, "exitDuration", 0.0)),
-        "snapcn/screen-recording" => authored(|s| {
+        "logo-drift" => seconds(|s| num(s, "exitAt", 3.13) + num(s, "exitDuration", 0.0)),
+        "screen-recording" => authored(|s| {
             max_of(
                 list(s, "camera")
                     .iter()
@@ -540,16 +532,11 @@ fn element_timing(key: &str) -> Option<Timing> {
     })
 }
 
-const SCENE_TEMPLATES: [&str; 2] = ["remocn/release-teaser", "remocn/launch-anything"];
-
 fn timing_of(meta: &ElementMeta) -> Option<Timing> {
     if let Some(timing) = element_timing(&meta.key) {
         return Some(timing);
     }
-    let own_clock = meta.kind == ElementKind::Component
-        && (meta.key.starts_with("remocn/") || meta.key.starts_with("snapcn/"))
-        && !SCENE_TEMPLATES.contains(&meta.key.as_str());
-    own_clock.then_some(KEEPS_ITS_LENGTH)
+    meta.authored_clock.then_some(KEEPS_ITS_LENGTH)
 }
 
 pub fn fits_its_animation(meta: &ElementMeta) -> bool {

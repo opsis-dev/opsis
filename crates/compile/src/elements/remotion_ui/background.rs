@@ -98,7 +98,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<AuroraBg>(
             element(
                 ElementKind::Component,
-                "remotion-ui/aurora-bg",
+                "aurora-bg",
                 "Aurora",
                 "Soft ribbons of light drifting across a dark sky.",
                 C::Background,
@@ -114,7 +114,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<ParticleField>(
             element(
                 ElementKind::Component,
-                "remotion-ui/particle-field",
+                "particle-field",
                 "Particle field",
                 "Glowing particles drifting at different depths.",
                 C::Background,

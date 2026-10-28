@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 fn spec(extra: Value) -> TimelineSpec {
     let mut spec = json!({
         "width": 1920, "height": 1080, "fps": 30, "durationInFrames": 300,
-        "tracks": [{ "id": "t", "items": [{ "id": "i", "from": 0, "durationInFrames": 300, "kind": "element", "component": "core/title", "props": { "title": "Hi" } }] }],
+        "tracks": [{ "id": "t", "items": [{ "id": "i", "from": 0, "durationInFrames": 300, "kind": "element", "component": "title", "props": { "title": "Hi" } }] }],
         "audio": [{ "id": "a", "src": "app:sfx/pop.wav", "from": 10 }]
     });
     spec.as_object_mut()

@@ -849,7 +849,7 @@
          "from": 0,
          "durationInFrames": 144,
          "nodeId": "camera",
-         "component": "core/placeholder",
+         "component": "placeholder",
          "props": {
           "title": "Not recorded yet",
           "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -885,7 +885,7 @@
               "from": 0,
               "durationInFrames": 144,
               "nodeId": "camera",
-              "component": "core/placeholder",
+              "component": "placeholder",
               "props": {
                "title": "Not recorded yet",
                "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -917,7 +917,7 @@
               "from": 0,
               "durationInFrames": 179,
               "nodeId": "captions",
-              "component": "core/captions",
+              "component": "captions",
               "props": {
                "style": "word-by-word",
                "position": "bottom",
@@ -1201,7 +1201,7 @@
             "from": 0,
             "durationInFrames": 144,
             "nodeId": "camera",
-            "component": "core/placeholder",
+            "component": "placeholder",
             "props": {
              "title": "Not recorded yet",
              "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1233,7 +1233,7 @@
             "from": 0,
             "durationInFrames": 179,
             "nodeId": "captions",
-            "component": "core/captions",
+            "component": "captions",
             "props": {
              "style": "word-by-word",
              "position": "bottom",
@@ -1755,7 +1755,7 @@
             "from": 0,
             "durationInFrames": 144,
             "nodeId": "camera",
-            "component": "core/placeholder",
+            "component": "placeholder",
             "props": {
              "title": "Not recorded yet",
              "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1787,7 +1787,7 @@
             "from": 0,
             "durationInFrames": 179,
             "nodeId": "captions",
-            "component": "core/captions",
+            "component": "captions",
             "props": {
              "style": "word-by-word",
              "position": "bottom",
@@ -2283,7 +2283,7 @@
       "itemId": "camera:i",
       "nodeId": "camera",
       "kind": "element",
-      "component": "core/placeholder",
+      "component": "placeholder",
       "props": {
        "title": "Not recorded yet",
        "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -2317,7 +2317,7 @@
       "itemId": "captions:i",
       "nodeId": "captions",
       "kind": "element",
-      "component": "core/captions",
+      "component": "captions",
       "props": {
        "style": "word-by-word",
        "position": "bottom",
@@ -3866,7 +3866,7 @@
                "from": 0,
                "durationInFrames": 179,
                "nodeId": "captions",
-               "component": "core/captions",
+               "component": "captions",
                "props": {
                 "style": "word-by-word",
                 "position": "bottom",
@@ -4477,7 +4477,7 @@
              "from": 0,
              "durationInFrames": 179,
              "nodeId": "captions",
-             "component": "core/captions",
+             "component": "captions",
              "props": {
               "style": "word-by-word",
               "position": "bottom",
@@ -5188,7 +5188,7 @@
              "from": 0,
              "durationInFrames": 179,
              "nodeId": "captions",
-             "component": "core/captions",
+             "component": "captions",
              "props": {
               "style": "word-by-word",
               "position": "bottom",
@@ -5880,7 +5880,7 @@
        "itemId": "captions:i",
        "nodeId": "captions",
        "kind": "element",
-       "component": "core/captions",
+       "component": "captions",
        "props": {
         "style": "word-by-word",
         "position": "bottom",

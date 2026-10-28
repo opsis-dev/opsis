@@ -84,7 +84,7 @@ pub struct Cut {
     #[default = "in2"]
     #[schemars(description = "Before", extend("x-widget" = "cut"))]
     pub before: String,
-    #[default = "core/fade"]
+    #[default = "fade"]
     #[schemars(description = "Transition", extend("x-widget" = "transition"))]
     pub transition: String,
     #[default = 15]
@@ -101,7 +101,7 @@ pub struct Cut {
 #[serde(rename_all = "camelCase", default)]
 #[schemars(transform = transition_choices)]
 pub struct Sequence {
-    #[default = "core/fade"]
+    #[default = "fade"]
     #[schemars(description = "Transition", extend("x-widget" = "transition"))]
     pub transition: String,
     #[default = 15]

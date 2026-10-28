@@ -189,37 +189,40 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<LogoAssemble>(
             element(
                 ElementKind::Component,
-                "snapcn/logo-assemble",
+                "logo-assemble",
                 "Logo assemble",
                 "Logo reveal animation: image cards orbit and collapse into your logo and brand name. A single ring of image cards revolves around a centred title, then spins inward and drains to the middle — giving birth to a simple logo that slides left as the brand name reveals to its right.",
                 C::Scene,
                 180,
             )
                 .source("snapcn", "https://snapcn.dev/docs/logo-assemble", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:orbit")),
         ),
         meta::<LogoDrift>(
             element(
                 ElementKind::Component,
-                "snapcn/logo-drift",
+                "logo-drift",
                 "Logo drift",
                 "Logo wall animation: a logo cloud of integrations drifting behind a headline. A field of tiles drifting past a headline while the camera pulls steadily back, so the wall of things-it-works-with keeps arriving from every edge.",
                 C::Scene,
                 180,
             )
                 .source("snapcn", "https://snapcn.dev/docs/logo-drift", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:cloud")),
         ),
         meta::<HeroLaunch>(
             element(
                 ElementKind::Component,
-                "snapcn/hero-launch",
+                "hero-launch",
                 "Hero launch",
                 "Product launch hero scene for a SaaS launch video intro. Cinematic product-launch hero — two cards slide into formation as the headline reveals above.",
                 C::Scene,
                 180,
             )
                 .source("snapcn", "https://snapcn.dev/docs/hero-launch", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:presentation")),
         ),
     ]

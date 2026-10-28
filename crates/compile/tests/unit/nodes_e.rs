@@ -130,7 +130,7 @@ fn frames_any_clip_in_a_device_and_draws_window_title_bars() {
         );
         assert_eq!(
             group_value(&framed)["wrapper"]["component"],
-            format!("snapcn/{device}-frame")
+            format!("{device}-frame")
         );
     }
     let clip = zoomed(
@@ -379,7 +379,7 @@ fn styles_every_take_in_a_sequence_and_warns_when_a_clip_has_no_recording() {
     );
 }
 
-const SPRING_SETTLE: &str = "fx.remocn.spring-settle";
+const SPRING_SETTLE: &str = "fx.spring-settle";
 
 #[test]
 fn plays_connected_clips_as_spring_settle_scenes_and_counts_them_on_its_card() {
@@ -390,7 +390,7 @@ fn plays_connected_clips_as_spring_settle_scenes_and_counts_them_on_its_card() {
     );
     assert_eq!(clip.duration_in_frames, 54);
     let sequencer = group_value(&clip)["sequencer"].clone();
-    assert_eq!(sequencer["component"], "remocn/spring-settle");
+    assert_eq!(sequencer["component"], "spring-settle");
     assert_eq!(
         (
             sequencer["props"]["enterScale"].as_f64(),
@@ -441,7 +441,7 @@ fn first_item(kind: &str, params: Value) -> (String, Map<String, Value>, Option<
 #[test]
 fn makes_files_in_rows_project_files_and_drops_colours_left_on_the_theme() {
     let (_, props, _) = first_item(
-        "fx.remocn.logo-enter",
+        "fx.logo-enter",
         json!({ "logos": [{ "image": "assets/a.svg", "background": "#000" }, { "image": "app:placeholders/logo-mark.svg", "background": "#111" }] }),
     );
     assert_eq!(
@@ -449,16 +449,12 @@ fn makes_files_in_rows_project_files_and_drops_colours_left_on_the_theme() {
         json!([{ "image": "project:assets/a.svg", "background": "#000" }, { "image": "app:placeholders/logo-mark.svg", "background": "#111" }])
     );
     assert!(
-        !first_item("fx.remotion-ui.stat-card", json!({ "backgroundColor": "" }))
+        !first_item("fx.stat-card", json!({ "backgroundColor": "" }))
             .1
             .contains_key("backgroundColor")
     );
     assert_eq!(
-        first_item(
-            "fx.remotion-ui.stat-card",
-            json!({ "backgroundColor": "#123456" })
-        )
-        .1["backgroundColor"],
+        first_item("fx.stat-card", json!({ "backgroundColor": "#123456" })).1["backgroundColor"],
         "#123456"
     );
 }
@@ -477,7 +473,7 @@ fn row_with(
 #[test]
 fn shows_palettes_gradients_and_themes_on_element_cards() {
     let palette = row_with(
-        "fx.remocn.shader-mesh-gradient",
+        "fx.shader-mesh-gradient",
         json!({}),
         Icon::Palette,
         CardInputs::default(),
@@ -496,7 +492,7 @@ fn shows_palettes_gradients_and_themes_on_element_cards() {
         )
     );
     let gradient = row_with(
-        "fx.remotion-ui.text-mask-video",
+        "fx.text-mask-video",
         json!({}),
         Icon::Blend,
         CardInputs::default(),
@@ -511,7 +507,7 @@ fn shows_palettes_gradients_and_themes_on_element_cards() {
     );
     assert!(
         row_with(
-            "fx.remotion-ui.text-mask-video",
+            "fx.text-mask-video",
             json!({ "src": "project:assets/clip.mp4" }),
             Icon::Blend,
             CardInputs::default()
@@ -520,7 +516,7 @@ fn shows_palettes_gradients_and_themes_on_element_cards() {
     );
     assert_eq!(
         row_with(
-            "fx.snapcn.hero-launch",
+            "fx.hero-launch",
             json!({}),
             Icon::Moon,
             CardInputs::default()
@@ -530,7 +526,7 @@ fn shows_palettes_gradients_and_themes_on_element_cards() {
         "Dark theme"
     );
     let light = row_with(
-        "fx.snapcn.hero-launch",
+        "fx.hero-launch",
         json!({ "theme": { "mode": "light", "colors": { "background": "#fff" } } }),
         Icon::Sun,
         CardInputs::default(),
@@ -559,7 +555,7 @@ fn every_elements_defaults_pass_its_own_schema() {
 #[test]
 fn plays_element_music_through_the_mix_as_the_nodes_own_channel() {
     let clip = compile_clip(
-        "fx.remocn.release-teaser",
+        "fx.release-teaser",
         json!({ "music": "assets/song.mp3", "musicVolume": 0.4 }),
         json!({}),
     );
@@ -587,7 +583,7 @@ fn plays_element_music_through_the_mix_as_the_nodes_own_channel() {
         assert!(!props.contains_key("music") && !props.contains_key("musicVolume"));
     }
     assert!(
-        compile_clip("fx.remocn.release-teaser", json!({}), json!({}))
+        compile_clip("fx.release-teaser", json!({}), json!({}))
             .audio
             .is_empty()
     );
@@ -596,15 +592,15 @@ fn plays_element_music_through_the_mix_as_the_nodes_own_channel() {
 #[test]
 fn passes_element_times_in_frames_of_thirty_a_second_and_lays_out_fixed_size_elements() {
     assert_eq!(
-        first_item("fx.snapcn.status-cycle", json!({ "statusHold": 1.5 })).1["statusHold"].as_f64(),
+        first_item("fx.status-cycle", json!({ "statusHold": 1.5 })).1["statusHold"].as_f64(),
         Some(45.0)
     );
     assert_eq!(
-        first_item("fx.snapcn.punch-lines", json!({ "holds": "1, 2.5" })).1["holds"],
+        first_item("fx.punch-lines", json!({ "holds": "1, 2.5" })).1["holds"],
         "30, 75"
     );
     let steps = first_item(
-        "fx.remocn.keystroke",
+        "fx.keystroke",
         json!({ "steps": [{ "keys": "mod+k", "at": 2, "hold": 0.5 }] }),
     )
     .1["steps"]
@@ -618,16 +614,16 @@ fn passes_element_times_in_frames_of_thirty_a_second_and_lays_out_fixed_size_ele
         (json!("mod+k"), Some(60.0), Some(15.0))
     );
     assert_eq!(
-        first_item("fx.remotion-ui.funnel-chart", json!({})).2,
+        first_item("fx.funnel-chart", json!({})).2,
         Some(json!({ "width": 1920, "height": 1080 }))
     );
     assert_eq!(
-        first_item("fx.remocn.soft-blur-in", json!({ "text": "Hi" })).2,
+        first_item("fx.soft-blur-in", json!({ "text": "Hi" })).2,
         None
     );
 }
 
-const DEVICE_MOCKUP: &str = "fx.remotion-ui.device-mockup-zoom";
+const DEVICE_MOCKUP: &str = "fx.device-mockup-zoom";
 
 #[test]
 fn runs_a_device_mockup_with_or_without_a_clip() {
@@ -642,10 +638,7 @@ fn runs_a_device_mockup_with_or_without_a_clip() {
         first_item(DEVICE_MOCKUP, json!({ "src": "project:assets/screen.png" }));
     assert_eq!(
         (component.as_str(), props["src"].clone()),
-        (
-            "remotion-ui/device-mockup-zoom",
-            json!("project:assets/screen.png")
-        )
+        ("device-mockup-zoom", json!("project:assets/screen.png"))
     );
     let field = node_def(DEVICE_MOCKUP)
         .unwrap()
@@ -678,7 +671,7 @@ fn runs_a_device_mockup_with_or_without_a_clip() {
     );
     assert_eq!(clock(DEVICE_MOCKUP, &[]).as_deref(), Some("3 s"));
     assert_eq!(
-        clock("fx.remotion-ui.multi-device-lineup", &[]).as_deref(),
+        clock("fx.multi-device-lineup", &[]).as_deref(),
         Some("Matches the clip")
     );
     let clip = compile_clip(
@@ -689,13 +682,13 @@ fn runs_a_device_mockup_with_or_without_a_clip() {
     assert_eq!(clip.duration_in_frames, 45);
     assert_eq!(
         group_value(&clip)["wrapper"]["component"],
-        "remotion-ui/device-mockup-zoom"
+        "device-mockup-zoom"
     );
 }
 
 #[test]
 fn speed_lines_are_an_element_of_their_own_with_no_clip_inside() {
-    let clip = compile_clip("fx.remocn.speed-lines", json!({}), json!({}));
+    let clip = compile_clip("fx.speed-lines", json!({}), json!({}));
     let item = serde_json::to_value(&clip.tracks[0].items[0]).unwrap();
     assert_eq!(item["props"]["children"], Value::Null);
     assert!(item["props"].as_object().unwrap().contains_key("children"));
@@ -704,7 +697,7 @@ fn speed_lines_are_an_element_of_their_own_with_no_clip_inside() {
 #[test]
 fn a_text_mask_fills_with_the_kind_of_file_it_is_given() {
     let media = |src: &str| {
-        first_item("fx.remotion-ui.text-mask-video", json!({ "src": src }))
+        first_item("fx.text-mask-video", json!({ "src": src }))
             .1
             .get("media")
             .cloned()

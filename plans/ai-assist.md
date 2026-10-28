@@ -118,7 +118,7 @@ In place:
 - The hidden browser: `Session::open` (`crates/capture/src/browser.rs`) launches the headless shell with Open browser's settings and talks CDP; a take applies a saved sign-in through its `SignIns` (`crates/capture/src/take.rs`).
 - Selectors: `crates/capture/src/selectors.rs` and `locators.rs` find an element by visible name and role; targets are stored as a name plus its role setting (`targetRoleKey` in the editor).
 - Takes: `crates/capture/src/take.rs` plays a session's steps; a check take would be one more caller with no recording.
-- The catalogue (`node_catalog`, `catalog_entry`) gives titles, descriptions and settings; `check_workflow` validates; Title card is `fx.core.title`; the templates in `crates/project/src/templates.json` show the target shape.
+- The catalogue (`node_catalog`, `catalog_entry`) gives titles, descriptions and settings; `check_workflow` validates; Title card is `fx.title`; the templates in `crates/project/src/templates.json` show the target shape.
 
 Missing: the outline, the draft schema, the draft-to-nodes mapping, the dialog. The full catalogue is about 400 KB and its schemas use keywords strict modes reject, so it can't be the model's schema as it is.
 
@@ -127,7 +127,7 @@ Missing: the outline, the draft schema, the draft-to-nodes mapping, the dialog. 
 1. **Page outline.** In `opsis-capture`: open the page with `Session::open` (the project's Open browser settings, plus its saved sign-in applied as a take does), wait for load, read `Accessibility.getFullAXTree`, keep landmarks and named controls, cut to a fixed size, and give each kept node a ref (`e1`, `e2`…) with its role and name. agent-browser's snapshot code (`cli/src/native/snapshot.rs`, Apache-2.0) is a working model of the same idea. Returns the outline text, the ref table, the page title and the final address; a command `page_outline` runs it in the background like analysis.
 2. **Draft schema.** `FlowDraft { title, subtitle, actions: Vec<DraftAction { act, ref_id, text, address, label }> }`, every field required. `act` is an enum of draft actions mapped to node types (`browser.navigate`, `browser.click`, `browser.type`, `browser.hover`, `browser.scroll`, `browser.press`, `browser.select`, `browser.wait`, `browser.chapter`); `ref_id` is an enum of the outline's refs built per request, or empty.
 3. **The catalogue as the model's tools.** The prompt lists each draft action with its node's title and description from the catalogue, so new wording in a node definition reaches the model. A test checks every draft action maps to a visible node type and that the settings `draft_to_workflow` writes pass that node's schema.
-4. **Draft to nodes.** `draft_to_workflow(workflow, draft, outline)` (pure, in `opsis-compile`): refs become a target name plus role; the first action is Go to page with `{{Site address}}`; then `capture.record`, `camera.autoZoom`, `fx.core.title` with the title, `timeline.sequence`, `output.render`, placed to the right of existing nodes with the same placement the Local API uses for new nodes. Sets the "Site address" variable when it's empty.
+4. **Draft to nodes.** `draft_to_workflow(workflow, draft, outline)` (pure, in `opsis-compile`): refs become a target name plus role; the first action is Go to page with `{{Site address}}`; then `capture.record`, `camera.autoZoom`, `fx.title` with the title, `timeline.sequence`, `output.render`, placed to the right of existing nodes with the same placement the Local API uses for new nodes. Sets the "Site address" variable when it's empty.
 5. **Check and repair.** Run `check_workflow` on the result; if the new nodes have problems, send them back once; anything left shows in the review list.
 6. **Review dialog.** `describe-dialog.tsx`: sentence and address, progress ("Opening the page", "Writing the actions", "Checking"), then the draft as editable rows with the node icons. Rows whose target wasn't on the first page are marked "Not seen on the page". **Insert** applies one update, selects the new nodes and fits the view.
 7. **Entry points.** A menu command `edit:describe` in `app_menu` (`crates/desktop/src/menu.rs`), the empty-canvas button, and "Describe your demo" in the New project dialog. Hidden when the assistant is off; without the engine, offers to set it up.
@@ -196,7 +196,7 @@ A sparkles button next to headline text fields (Title card's eyebrow, title and 
 
 In place:
 
-- `core/title` and `core/kinetic-headline` (`crates/compile/src/elements/core.rs`); the headline keeps its `*asterisks*` emphasis rule.
+- `title` and `kinetic-headline` (`crates/compile/src/elements/core.rs`); the headline keeps its `*asterisks*` emphasis rule.
 - Fields carry their UI as `x-` keywords in their JSON Schema and the editor builds forms from it (`schema-form.tsx`); `sparkles` is in the card icons.
 
 Missing: a way to mark a field as copy, and the request.

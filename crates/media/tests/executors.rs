@@ -1043,12 +1043,12 @@ fn sequence_with_two_fades() -> Value {
     let wf: Workflow = serde_json::from_value(json!({
         "version": 1, "id": "x", "name": "x",
         "nodes": [
-            node("a", "fx.core.title", json!({ "clipDuration": 60 })),
-            node("b", "fx.core.title", json!({ "clipDuration": 60 })),
-            node("c", "fx.core.title", json!({ "clipDuration": 60 })),
+            node("a", "fx.title", json!({ "clipDuration": 60 })),
+            node("b", "fx.title", json!({ "clipDuration": 60 })),
+            node("c", "fx.title", json!({ "clipDuration": 60 })),
             node("seq", "timeline.sequence", json!({
-                "transition": "core/fade", "transitionDuration": 15,
-                "cuts": [{ "before": "in3", "transition": "core/fade", "transitionDuration": 30 }]
+                "transition": "fade", "transitionDuration": 15,
+                "cuts": [{ "before": "in3", "transition": "fade", "transitionDuration": 30 }]
             }))
         ],
         "edges": [edge("a", "seq", "in1"), edge("b", "seq", "in2"), edge("c", "seq", "in3")]

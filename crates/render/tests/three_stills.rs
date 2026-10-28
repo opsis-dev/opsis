@@ -50,57 +50,57 @@ fn cases() -> Vec<(&'static str, &'static str, Value)> {
     vec![
         (
             "text-inter",
-            "core/text-3d",
+            "text-3d",
             json!({ "text": "Opsis 3D", "fontFamily": "Inter", "fontWeight": 700 }),
         ),
         (
             "text-serif-italic",
-            "core/text-3d",
+            "text-3d",
             json!({ "text": "Quiet craft", "fontFamily": "Instrument Serif", "fontWeight": 400, "italic": true }),
         ),
         (
             "text-mono-italic",
-            "core/text-3d",
+            "text-3d",
             json!({ "text": "fn main()", "fontFamily": "JetBrains Mono", "fontWeight": 700, "italic": true }),
         ),
-        ("text-heading", "core/text-3d", json!({})),
+        ("text-heading", "text-3d", json!({})),
         (
             "model-plain",
-            "core/model-3d",
+            "model-3d",
             json!({ "src": "project:assets/models/plain.glb" }),
         ),
         (
             "model-external",
-            "core/model-3d",
+            "model-3d",
             json!({ "src": "project:assets/models/external/external.gltf" }),
         ),
         (
             "model-draco",
-            "core/model-3d",
+            "model-3d",
             json!({ "src": "project:assets/models/draco.glb" }),
         ),
         (
             "model-meshopt",
-            "core/model-3d",
+            "model-3d",
             json!({ "src": "project:assets/models/meshopt.glb" }),
         ),
-        ("logo-default", "core/logo-3d", json!({})),
+        ("logo-default", "logo-3d", json!({})),
         (
             "logo-svg",
-            "core/logo-3d",
+            "logo-3d",
             json!({ "src": "project:assets/models/logo.svg", "motion": "still" }),
         ),
         (
             "logo-default-still",
-            "core/logo-3d",
+            "logo-3d",
             json!({ "src": "project:assets/models/logo-mark.svg", "motion": "still" }),
         ),
         (
             "logo-image",
-            "core/logo-3d",
+            "logo-3d",
             json!({ "src": "project:assets/models/external/checker.png" }),
         ),
-        ("card-default", "core/card-3d", json!({})),
+        ("card-default", "card-3d", json!({})),
     ]
 }
 

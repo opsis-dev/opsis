@@ -100,7 +100,7 @@
    },
    {
     "id": "before-label",
-    "type": "fx.core.lower-third",
+    "type": "fx.lower-third",
     "position": {
      "x": 900,
      "y": 422
@@ -210,7 +210,7 @@
    },
    {
     "id": "after-label",
-    "type": "fx.core.lower-third",
+    "type": "fx.lower-third",
     "position": {
      "x": 900,
      "y": 1272
@@ -242,7 +242,7 @@
    },
    {
     "id": "wipe",
-    "type": "transition.core.wipe",
+    "type": "transition.wipe",
     "position": {
      "x": 1500,
      "y": 510
@@ -588,7 +588,7 @@
          "from": 0,
          "durationInFrames": 144,
          "nodeId": "before-camera",
-         "component": "core/placeholder",
+         "component": "placeholder",
          "props": {
           "title": "Not recorded yet",
           "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -621,7 +621,7 @@
            "unit": "frames"
           }
          },
-         "component": "core/lower-third",
+         "component": "lower-third",
          "props": {
           "title": "Before",
           "subtitle": "https://example.com",
@@ -665,7 +665,7 @@
          "from": 0,
          "durationInFrames": 144,
          "nodeId": "after-camera",
-         "component": "core/placeholder",
+         "component": "placeholder",
          "props": {
           "title": "Not recorded yet",
           "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -698,7 +698,7 @@
            "unit": "frames"
           }
          },
-         "component": "core/lower-third",
+         "component": "lower-third",
          "props": {
           "title": "After",
           "subtitle": "https://example.org",
@@ -750,7 +750,7 @@
               "from": 0,
               "durationInFrames": 144,
               "nodeId": "before-camera",
-              "component": "core/placeholder",
+              "component": "placeholder",
               "props": {
                "title": "Not recorded yet",
                "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -802,7 +802,7 @@
                 "unit": "frames"
                }
               },
-              "component": "core/lower-third",
+              "component": "lower-third",
               "props": {
                "title": "Before",
                "subtitle": "https://example.com",
@@ -860,7 +860,7 @@
               "from": 0,
               "durationInFrames": 144,
               "nodeId": "after-camera",
-              "component": "core/placeholder",
+              "component": "placeholder",
               "props": {
                "title": "Not recorded yet",
                "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -912,7 +912,7 @@
                 "unit": "frames"
                }
               },
-              "component": "core/lower-third",
+              "component": "lower-third",
               "props": {
                "title": "After",
                "subtitle": "https://example.org",
@@ -948,7 +948,7 @@
          "from": 0,
          "durationInFrames": 144,
          "exit": {
-          "kind": "core/wipe",
+          "kind": "wipe",
           "durationInFrames": 24,
           "params": {
            "direction": "from-left"
@@ -991,7 +991,7 @@
                    "from": 0,
                    "durationInFrames": 144,
                    "nodeId": "before-camera",
-                   "component": "core/placeholder",
+                   "component": "placeholder",
                    "props": {
                     "title": "Not recorded yet",
                     "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1043,7 +1043,7 @@
                      "unit": "frames"
                     }
                    },
-                   "component": "core/lower-third",
+                   "component": "lower-third",
                    "props": {
                     "title": "Before",
                     "subtitle": "https://example.com",
@@ -1070,7 +1070,7 @@
          "from": 120,
          "durationInFrames": 144,
          "enter": {
-          "kind": "core/wipe",
+          "kind": "wipe",
           "durationInFrames": 24,
           "params": {
            "direction": "from-left"
@@ -1113,7 +1113,7 @@
                    "from": 0,
                    "durationInFrames": 144,
                    "nodeId": "after-camera",
-                   "component": "core/placeholder",
+                   "component": "placeholder",
                    "props": {
                     "title": "Not recorded yet",
                     "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1165,7 +1165,7 @@
                      "unit": "frames"
                     }
                    },
-                   "component": "core/lower-third",
+                   "component": "lower-third",
                    "props": {
                     "title": "After",
                     "subtitle": "https://example.org",
@@ -1426,7 +1426,7 @@
        "from": 0,
        "durationInFrames": 144,
        "exit": {
-        "kind": "core/wipe",
+        "kind": "wipe",
         "durationInFrames": 24,
         "params": {
          "direction": "from-left"
@@ -1469,7 +1469,7 @@
                  "from": 0,
                  "durationInFrames": 144,
                  "nodeId": "before-camera",
-                 "component": "core/placeholder",
+                 "component": "placeholder",
                  "props": {
                   "title": "Not recorded yet",
                   "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1521,7 +1521,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "core/lower-third",
+                 "component": "lower-third",
                  "props": {
                   "title": "Before",
                   "subtitle": "https://example.com",
@@ -1548,7 +1548,7 @@
        "from": 120,
        "durationInFrames": 144,
        "enter": {
-        "kind": "core/wipe",
+        "kind": "wipe",
         "durationInFrames": 24,
         "params": {
          "direction": "from-left"
@@ -1591,7 +1591,7 @@
                  "from": 0,
                  "durationInFrames": 144,
                  "nodeId": "after-camera",
-                 "component": "core/placeholder",
+                 "component": "placeholder",
                  "props": {
                   "title": "Not recorded yet",
                   "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1643,7 +1643,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "core/lower-third",
+                 "component": "lower-third",
                  "props": {
                   "title": "After",
                   "subtitle": "https://example.org",
@@ -2121,7 +2121,7 @@
        "from": 0,
        "durationInFrames": 144,
        "exit": {
-        "kind": "core/wipe",
+        "kind": "wipe",
         "durationInFrames": 24,
         "params": {
          "direction": "from-left"
@@ -2164,7 +2164,7 @@
                  "from": 0,
                  "durationInFrames": 144,
                  "nodeId": "before-camera",
-                 "component": "core/placeholder",
+                 "component": "placeholder",
                  "props": {
                   "title": "Not recorded yet",
                   "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -2216,7 +2216,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "core/lower-third",
+                 "component": "lower-third",
                  "props": {
                   "title": "Before",
                   "subtitle": "https://example.com",
@@ -2243,7 +2243,7 @@
        "from": 120,
        "durationInFrames": 144,
        "enter": {
-        "kind": "core/wipe",
+        "kind": "wipe",
         "durationInFrames": 24,
         "params": {
          "direction": "from-left"
@@ -2286,7 +2286,7 @@
                  "from": 0,
                  "durationInFrames": 144,
                  "nodeId": "after-camera",
-                 "component": "core/placeholder",
+                 "component": "placeholder",
                  "props": {
                   "title": "Not recorded yet",
                   "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -2338,7 +2338,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "core/lower-third",
+                 "component": "lower-third",
                  "props": {
                   "title": "After",
                   "subtitle": "https://example.org",
@@ -2792,7 +2792,7 @@
       "itemId": "before-camera:i",
       "nodeId": "before-camera",
       "kind": "element",
-      "component": "core/placeholder",
+      "component": "placeholder",
       "props": {
        "title": "Not recorded yet",
        "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -2858,7 +2858,7 @@
       "itemId": "before-label:i",
       "nodeId": "before-label",
       "kind": "element",
-      "component": "core/lower-third",
+      "component": "lower-third",
       "props": {
        "title": "Before",
        "subtitle": "https://example.com",
@@ -2935,7 +2935,7 @@
       "itemId": "after-camera:i",
       "nodeId": "after-camera",
       "kind": "element",
-      "component": "core/placeholder",
+      "component": "placeholder",
       "props": {
        "title": "Not recorded yet",
        "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -3001,7 +3001,7 @@
       "itemId": "after-label:i",
       "nodeId": "after-label",
       "kind": "element",
-      "component": "core/lower-third",
+      "component": "lower-third",
       "props": {
        "title": "After",
        "subtitle": "https://example.org",
@@ -3082,7 +3082,7 @@
       "itemKey": "/0:wipe:s1",
       "from": 120.0,
       "to": 144.0,
-      "kind": "core/wipe",
+      "kind": "wipe",
       "lanes": [
        0,
        1,
@@ -3816,7 +3816,7 @@
             "unit": "frames"
            }
           },
-          "component": "core/lower-third",
+          "component": "lower-third",
           "props": {
            "title": "Before",
            "subtitle": "https://example.com",
@@ -4037,7 +4037,7 @@
             "unit": "frames"
            }
           },
-          "component": "core/lower-third",
+          "component": "lower-third",
           "props": {
            "title": "After",
            "subtitle": "https://example.org",
@@ -4201,7 +4201,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "core/lower-third",
+               "component": "lower-third",
                "props": {
                 "title": "Before",
                 "subtitle": "https://example.com",
@@ -4419,7 +4419,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "core/lower-third",
+               "component": "lower-third",
                "props": {
                 "title": "After",
                 "subtitle": "https://example.org",
@@ -4503,7 +4503,7 @@
           "from": 0,
           "durationInFrames": 77,
           "exit": {
-           "kind": "core/wipe",
+           "kind": "wipe",
            "durationInFrames": 24,
            "params": {
             "direction": "from-left"
@@ -4658,7 +4658,7 @@
                       "unit": "frames"
                      }
                     },
-                    "component": "core/lower-third",
+                    "component": "lower-third",
                     "props": {
                      "title": "Before",
                      "subtitle": "https://example.com",
@@ -4685,7 +4685,7 @@
           "from": 53,
           "durationInFrames": 77,
           "enter": {
-           "kind": "core/wipe",
+           "kind": "wipe",
            "durationInFrames": 24,
            "params": {
             "direction": "from-left"
@@ -4840,7 +4840,7 @@
                       "unit": "frames"
                      }
                     },
-                    "component": "core/lower-third",
+                    "component": "lower-third",
                     "props": {
                      "title": "After",
                      "subtitle": "https://example.org",
@@ -5171,7 +5171,7 @@
         "from": 0,
         "durationInFrames": 77,
         "exit": {
-         "kind": "core/wipe",
+         "kind": "wipe",
          "durationInFrames": 24,
          "params": {
           "direction": "from-left"
@@ -5326,7 +5326,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "core/lower-third",
+                  "component": "lower-third",
                   "props": {
                    "title": "Before",
                    "subtitle": "https://example.com",
@@ -5353,7 +5353,7 @@
         "from": 53,
         "durationInFrames": 77,
         "enter": {
-         "kind": "core/wipe",
+         "kind": "wipe",
          "durationInFrames": 24,
          "params": {
           "direction": "from-left"
@@ -5508,7 +5508,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "core/lower-third",
+                  "component": "lower-third",
                   "props": {
                    "title": "After",
                    "subtitle": "https://example.org",
@@ -5986,7 +5986,7 @@
         "from": 0,
         "durationInFrames": 77,
         "exit": {
-         "kind": "core/wipe",
+         "kind": "wipe",
          "durationInFrames": 24,
          "params": {
           "direction": "from-left"
@@ -6141,7 +6141,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "core/lower-third",
+                  "component": "lower-third",
                   "props": {
                    "title": "Before",
                    "subtitle": "https://example.com",
@@ -6168,7 +6168,7 @@
         "from": 53,
         "durationInFrames": 77,
         "enter": {
-         "kind": "core/wipe",
+         "kind": "wipe",
          "durationInFrames": 24,
          "params": {
           "direction": "from-left"
@@ -6323,7 +6323,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "core/lower-third",
+                  "component": "lower-third",
                   "props": {
                    "title": "After",
                    "subtitle": "https://example.org",
@@ -6908,7 +6908,7 @@
        "itemId": "before-label:i",
        "nodeId": "before-label",
        "kind": "element",
-       "component": "core/lower-third",
+       "component": "lower-third",
        "props": {
         "title": "Before",
         "subtitle": "https://example.com",
@@ -7116,7 +7116,7 @@
        "itemId": "after-label:i",
        "nodeId": "after-label",
        "kind": "element",
-       "component": "core/lower-third",
+       "component": "lower-third",
        "props": {
         "title": "After",
         "subtitle": "https://example.org",
@@ -7197,7 +7197,7 @@
        "itemKey": "/0:wipe:s1",
        "from": 53.0,
        "to": 77.0,
-       "kind": "core/wipe",
+       "kind": "wipe",
        "lanes": [
         0,
         1,

@@ -408,7 +408,7 @@ fn three_d_elements_name_prepared_files_and_text_picks_the_face_the_page_would()
         value.as_object().unwrap().clone()
     };
     let mut heading = props(json!({ "fontWeight": 700, "italic": true }));
-    prepare_props("core/text-3d", &mut heading, &fonts);
+    prepare_props("text-3d", &mut heading, &fonts);
     assert_eq!(
         heading["typeface"],
         "prepared:typeface/700/app/fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2"
@@ -417,7 +417,7 @@ fn three_d_elements_name_prepared_files_and_text_picks_the_face_the_page_would()
     let mut serif = props(
         json!({ "fontFamily": "\"Instrument Serif\", serif", "fontWeight": 400, "italic": true }),
     );
-    prepare_props("core/text-3d", &mut serif, &fonts);
+    prepare_props("text-3d", &mut serif, &fonts);
     assert_eq!(
         serif["typefaceItalic"],
         serif["typeface"].as_str().unwrap().contains("italic")
@@ -425,21 +425,21 @@ fn three_d_elements_name_prepared_files_and_text_picks_the_face_the_page_would()
     let mut code = props(
         json!({ "fontFamily": "\"JetBrains Mono\", monospace", "fontWeight": 900, "italic": false }),
     );
-    prepare_props("core/text-3d", &mut code, &fonts);
+    prepare_props("text-3d", &mut code, &fonts);
     assert_eq!(
         code["typeface"],
         "prepared:typeface/900/app/fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2"
     );
     let mut model = props(json!({ "src": "project:assets/robot.glb" }));
-    prepare_props("core/model-3d", &mut model, &fonts);
+    prepare_props("model-3d", &mut model, &fonts);
     assert_eq!(model["src"], "prepared:model/project/assets/robot.glb");
     let mut logo = props(json!({ "src": "project:brand/logo.svg" }));
-    prepare_props("core/logo-3d", &mut logo, &fonts);
+    prepare_props("logo-3d", &mut logo, &fonts);
     assert_eq!(logo["src"], "prepared:svg/project/brand/logo.svg");
     let mut photo = props(json!({ "src": "project:brand/photo.jpg" }));
-    prepare_props("core/card-3d", &mut photo, &fonts);
+    prepare_props("card-3d", &mut photo, &fonts);
     assert_eq!(photo["src"], "prepared:texture/project/brand/photo.jpg");
     let mut empty = props(json!({ "src": "" }));
-    prepare_props("core/logo-3d", &mut empty, &fonts);
+    prepare_props("logo-3d", &mut empty, &fonts);
     assert_eq!(empty["src"], "");
 }

@@ -134,7 +134,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<HandwritingText>(
             element(
                 ElementKind::Component,
-                "remotion-ui/handwriting-text",
+                "handwriting-text",
                 "Handwriting",
                 "Writes the text out by hand, stroke by stroke.",
                 C::Text,
@@ -150,7 +150,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<NeonFlickerText>(
             element(
                 ElementKind::Component,
-                "remotion-ui/neon-flicker-text",
+                "neon-flicker-text",
                 "Neon sign",
                 "Text that flickers on like a neon sign, then hums gently.",
                 C::Text,
@@ -166,7 +166,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<TextMaskVideo>(
             element(
                 ElementKind::Component,
-                "remotion-ui/text-mask-video",
+                "text-mask-video",
                 "Text mask",
                 "Big letters with a video, image or gradient showing through them.",
                 C::Text,

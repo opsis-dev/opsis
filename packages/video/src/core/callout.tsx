@@ -25,7 +25,7 @@ const CALLOUT_DIRECTION = {
   right: [1, -0.35],
 } as const;
 
-export const Callout: React.FC<CoreElementProps["core/callout"]> = ({
+export const Callout: React.FC<CoreElementProps["callout"]> = ({
   text,
   x,
   y,

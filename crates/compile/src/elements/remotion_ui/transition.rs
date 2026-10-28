@@ -105,7 +105,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<GridPixelateWipe>(
             element(
                 ElementKind::Presentation,
-                "remotion-ui/grid-pixelate-wipe",
+                "grid-pixelate-wipe",
                 "Pixel grid wipe",
                 "The next scene appears one grid cell at a time.",
                 C::Transition,
@@ -117,7 +117,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<FrostedGlassWipe>(
             element(
                 ElementKind::Presentation,
-                "remotion-ui/frosted-glass-wipe",
+                "frosted-glass-wipe",
                 "Frosted glass wipe",
                 "A pane of frosted glass crosses the frame and leaves the next scene behind it.",
                 C::Transition,
@@ -129,7 +129,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<ChromaticAberrationWipe>(
             element(
                 ElementKind::Presentation,
-                "remotion-ui/chromatic-aberration-wipe",
+                "chromatic-aberration-wipe",
                 "Colour split slide",
                 "A fast slide that pulls the colours apart mid-move and brings them back together as it lands.",
                 C::Transition,
@@ -141,7 +141,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<TransitionBlinds>(
             element(
                 ElementKind::Presentation,
-                "remotion-ui/transition-blinds",
+                "transition-blinds",
                 "Blinds",
                 "Slats open one after another to reveal the next scene.",
                 C::Transition,
@@ -153,7 +153,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<TransitionMorphShape>(
             element(
                 ElementKind::Presentation,
-                "remotion-ui/transition-morph-shape",
+                "transition-morph-shape",
                 "Shape morph",
                 "The next scene shows through a shape that grows and changes form until it fills the frame.",
                 C::Transition,

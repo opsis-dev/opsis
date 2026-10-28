@@ -466,174 +466,188 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<SoftBlurIn>(
             element(
                 ElementKind::Component,
-                "remocn/soft-blur-in",
+                "soft-blur-in",
                 "Soft blur in",
                 "Per-character fade-in with a gentle blur and upward motion.",
                 C::Text,
                 60,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/soft-blur-in", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::BlurSwap)),
         ),
         meta::<Typewriter>(
             element(
                 ElementKind::Component,
-                "remocn/typewriter",
+                "typewriter",
                 "Typewriter",
                 "Types the text out letter by letter with a blinking cursor.",
                 C::Text,
                 120,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/typewriter", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:text-cursor").moves(NodeMotion::Caret)),
         ),
         meta::<ShimmerSweep>(
             element(
                 ElementKind::Component,
-                "remocn/shimmer-sweep",
+                "shimmer-sweep",
                 "Shimmer sweep",
                 "A band of light sweeps across the text.",
                 C::Text,
                 120,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/shimmer-sweep", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::Shimmer)),
         ),
         meta::<MatrixDecode>(
             element(
                 ElementKind::Component,
-                "remocn/matrix-decode",
+                "matrix-decode",
                 "Matrix decode",
                 "Random scramble resolves left-to-right into the target text.",
                 C::Text,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/matrix-decode", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:binary").morphs("lucide:type")),
         ),
         meta::<SlotMachineRoll>(
             element(
                 ElementKind::Component,
-                "remocn/slot-machine-roll",
+                "slot-machine-roll",
                 "Slot machine roll",
                 "Vertical reel scrolls characters from one value to another.",
                 C::Text,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/slot-machine-roll", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::Roll)),
         ),
         meta::<StaggeredFadeUp>(
             element(
                 ElementKind::Component,
-                "remocn/staggered-fade-up",
+                "staggered-fade-up",
                 "Staggered fade up",
                 "Words fade in and slide up one after another with a configurable delay.",
                 C::Text,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/staggered-fade-up", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::Rise)),
         ),
         meta::<KineticCenterBuild>(
             element(
                 ElementKind::Component,
-                "remocn/kinetic-center-build",
+                "kinetic-center-build",
                 "Kinetic center build",
                 "A word appears in the center; each new word enters from the right and pushes the line until the full phrase locks centered.",
                 C::Text,
                 60,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/kinetic-center-build", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:text-align-center")),
         ),
         meta::<MaskRevealUp>(
             element(
                 ElementKind::Component,
-                "remocn/mask-reveal-up",
+                "mask-reveal-up",
                 "Mask reveal up",
                 "Lines reveal upward with a soft masked feel and compact stagger.",
                 C::Text,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/mask-reveal-up", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::MaskUp)),
         ),
         meta::<TrackingIn>(
             element(
                 ElementKind::Component,
-                "remocn/tracking-in",
+                "tracking-in",
                 "Tracking in",
                 "Letter-spacing collapses and blur clears with a springy motion.",
                 C::Text,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/tracking-in", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::Tracking)),
         ),
         meta::<WordPush>(
             element(
                 ElementKind::Component,
-                "remocn/word-push",
+                "word-push",
                 "Word push",
                 "A phrase builds from its first word centered: each next word drives in from the right and pushes the line left, easing into the new center.",
                 C::Text,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/word-push", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::Push)),
         ),
         meta::<RgbGlitchText>(
             element(
                 ElementKind::Component,
-                "remocn/rgb-glitch-text",
+                "rgb-glitch-text",
                 "RGB glitch text",
                 "Three RGB-offset text copies jitter for a brief glitch window.",
                 C::Text,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/rgb-glitch-text", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::Glitch)),
         ),
         meta::<GradientScaleCutText>(
             element(
                 ElementKind::Component,
-                "remocn/gradient-scale-cut-text",
+                "gradient-scale-cut-text",
                 "Gradient scale cut text",
                 "An oversized gradient reveal snaps to a separate compact blurred line that settles left while the reveal continues.",
                 C::Text,
                 36,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/gradient-scale-cut-text", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::Snap)),
         ),
         meta::<StrikethroughReplace>(
             element(
                 ElementKind::Component,
-                "remocn/strikethrough-replace",
+                "strikethrough-replace",
                 "Strikethrough replace",
                 "Draws a strike line across old text then reveals new text in its place.",
                 C::Text,
                 120,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/strikethrough-replace", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:strikethrough").morphs("lucide:type")),
         ),
         meta::<LineByLineSlide>(
             element(
                 ElementKind::Component,
-                "remocn/line-by-line-slide",
+                "line-by-line-slide",
                 "Line by line slide",
                 "Each line enters from the left with a staggered slide and exits to the right for a flowing paragraph reveal.",
                 C::Text,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/line-by-line-slide", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:text-align-start")),
         ),
     ]

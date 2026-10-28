@@ -48,7 +48,7 @@ fn key_of(wf: &Workflow, dir: &Path, id: &str) -> String {
 fn changes_every_key_after_a_node_when_skip_is_turned_on_or_off() {
     let mut wf = workflow(
         serde_json::json!([
-            node("bg", "fx.core.solid", serde_json::json!({})),
+            node("bg", "fx.solid", serde_json::json!({})),
             node("spot", "camera.crop", serde_json::json!({})),
             node("out", "output.render", serde_json::json!({}))
         ]),
@@ -123,13 +123,13 @@ fn keys_ignore_port_listing_order_and_change_with_the_app_version() {
     let params = serde_json::json!({});
     assert_eq!(
         node_hash(
-            "fx.core.title",
+            "fx.title",
             &params,
             &ports(&[("clip", "x:clip"), ("audio", "y:audio")]),
             &Release::default()
         ),
         node_hash(
-            "fx.core.title",
+            "fx.title",
             &params,
             &ports(&[("audio", "y:audio"), ("clip", "x:clip")]),
             &Release::default()
@@ -137,13 +137,13 @@ fn keys_ignore_port_listing_order_and_change_with_the_app_version() {
     );
     assert_ne!(
         node_hash(
-            "fx.core.title",
+            "fx.title",
             &params,
             &ports(&[("clip", "x:clip"), ("audio", "y:audio")]),
             &Release::default()
         ),
         node_hash(
-            "fx.core.title",
+            "fx.title",
             &params,
             &ports(&[("clip", "y:audio"), ("audio", "x:clip")]),
             &Release::default()
@@ -170,14 +170,14 @@ fn upstream(list: &[(&str, &str)]) -> Vec<(String, String)> {
 fn keys_are_stable_under_key_order_and_change_with_params_or_upstream() {
     let clip = upstream(&[("clip", "x:clip")]);
     let key = node_hash(
-        "fx.core.title",
+        "fx.title",
         &serde_json::json!({ "title": "Hi", "fontSize": 100 }),
         &clip,
         &Release::default(),
     );
     assert_eq!(
         node_hash(
-            "fx.core.title",
+            "fx.title",
             &serde_json::json!({ "fontSize": 100, "title": "Hi" }),
             &clip,
             &Release::default()
@@ -186,7 +186,7 @@ fn keys_are_stable_under_key_order_and_change_with_params_or_upstream() {
     );
     assert_ne!(
         node_hash(
-            "fx.core.title",
+            "fx.title",
             &serde_json::json!({ "title": "Hello", "fontSize": 100 }),
             &clip,
             &Release::default()
@@ -195,7 +195,7 @@ fn keys_are_stable_under_key_order_and_change_with_params_or_upstream() {
     );
     assert_ne!(
         node_hash(
-            "fx.core.title",
+            "fx.title",
             &serde_json::json!({ "title": "Hi", "fontSize": 100 }),
             &upstream(&[("clip", "y:clip")]),
             &Release::default()

@@ -116,7 +116,7 @@ const SvgLogo: React.FC<{ svg: SVGResult; look: Look }> = ({ svg, look }) => {
   return <primitive object={model} />;
 };
 
-export const Logo3D: React.FC<CoreElementProps["core/logo-3d"]> = ({
+export const Logo3D: React.FC<CoreElementProps["logo-3d"]> = ({
   src,
   depth,
   color,

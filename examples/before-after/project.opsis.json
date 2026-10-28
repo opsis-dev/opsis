@@ -99,7 +99,7 @@
     },
     {
       "id": "before-label",
-      "type": "fx.core.lower-third",
+      "type": "fx.lower-third",
       "position": {
         "x": 900.0,
         "y": 422.0
@@ -209,7 +209,7 @@
     },
     {
       "id": "after-label",
-      "type": "fx.core.lower-third",
+      "type": "fx.lower-third",
       "position": {
         "x": 900.0,
         "y": 1272.0
@@ -241,7 +241,7 @@
     },
     {
       "id": "wipe",
-      "type": "transition.core.wipe",
+      "type": "transition.wipe",
       "position": {
         "x": 1500.0,
         "y": 510.0

@@ -338,101 +338,109 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<MarkerHighlight>(
             element(
                 ElementKind::Component,
-                "remocn/marker-highlight",
+                "marker-highlight",
                 "Marker highlight",
                 "Colored marker block draws behind a phrase as the text color shifts.",
                 C::Overlay,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/marker-highlight", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:highlighter")),
         ),
         meta::<InlineHighlight>(
             element(
                 ElementKind::Component,
-                "remocn/inline-highlight",
+                "inline-highlight",
                 "Inline highlight",
                 "Animates one word inside a sentence from a base color to a brand color.",
                 C::Overlay,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/inline-highlight", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:square-dashed-text")),
         ),
         meta::<InkUnderline>(
             element(
                 ElementKind::Component,
-                "remocn/ink-underline",
+                "ink-underline",
                 "Ink underline",
                 "A hand-dragged brush underline that sweeps itself across in a few stop-motion poses, thinning to a dry tail.",
                 C::Overlay,
                 120,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/ink-underline", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:underline").moves(NodeMotion::Draw)),
         ),
         meta::<ScribbleCircle>(
             element(
                 ElementKind::Component,
-                "remocn/scribble-circle",
+                "scribble-circle",
                 "Scribble circle",
                 "A brush circle swept around a region of the frame, opening thin and closing thick, with grain breaking up the dry opening.",
                 C::Overlay,
                 150,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/scribble-circle", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:lasso").moves(NodeMotion::Draw)),
         ),
         meta::<InkArrow>(
             element(
                 ElementKind::Component,
-                "remocn/ink-arrow",
+                "ink-arrow",
                 "Ink arrow",
                 "A hand-drawn brush arrow that sweeps itself from one point to another, thickening into the head that pops on the final poses.",
                 C::Overlay,
                 150,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/ink-arrow", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("tabler:arrow-curve-right").moves(NodeMotion::Draw)),
         ),
         meta::<Keystroke>(
             element(
                 ElementKind::Component,
-                "remocn/keystroke",
+                "keystroke",
                 "Keystroke",
                 "Shows a keyboard shortcut as keycaps being pressed.",
                 C::Overlay,
                 180,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/keystroke", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:command")),
         ),
         meta::<Confetti>(
             element(
                 ElementKind::Component,
-                "remocn/confetti",
+                "confetti",
                 "Confetti",
                 "A burst of confetti to celebrate a moment.",
                 C::Overlay,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/confetti", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:party-popper")),
         ),
         meta::<RadialBurst>(
             element(
                 ElementKind::Component,
-                "remocn/radial-burst",
+                "radial-burst",
                 "Radial burst",
                 "Sculptural ribbons twist into a tilted ring and sweep outward through contour echoes for an expressive product introduction.",
                 C::Overlay,
                 120,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/radial-burst", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:sparkle")),
         ),
     ]

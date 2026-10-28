@@ -2650,7 +2650,7 @@
          "from": 0,
          "durationInFrames": 75,
          "kind": "element",
-         "component": "core/title",
+         "component": "title",
          "props": {
           "eyebrow": "",
           "title": "Clip out-clip",
@@ -2718,7 +2718,7 @@
           "unit": "ms"
          }
         },
-        "component": "core/still",
+        "component": "still",
         "props": {
          "src": "project:shots/out-image.png",
          "look": "window",
@@ -2815,7 +2815,7 @@
          "from": 0,
          "durationInFrames": 75,
          "kind": "element",
-         "component": "core/title",
+         "component": "title",
          "props": {
           "eyebrow": "",
           "title": "Clip out-clip",
@@ -2885,7 +2885,7 @@
           "unit": "ms"
          }
         },
-        "component": "core/still",
+        "component": "still",
         "props": {
          "src": "project:shots/out-image.png",
          "look": "window",
@@ -2945,7 +2945,7 @@
         "from": 0,
         "durationInFrames": 144,
         "nodeId": "n",
-        "component": "core/placeholder",
+        "component": "placeholder",
         "props": {
          "title": "Not recorded yet",
          "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -3179,7 +3179,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -3246,7 +3246,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -3835,7 +3835,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -3908,7 +3908,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -3993,7 +3993,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -4066,7 +4066,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -4087,7 +4087,7 @@
           }
          ],
          "wrapper": {
-          "component": "snapcn/laptop-frame",
+          "component": "laptop-frame",
           "props": {
            "mode": "dark",
            "entrance": "open"
@@ -5238,7 +5238,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -5311,7 +5311,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -5354,7 +5354,7 @@
              "from": 0,
              "durationInFrames": 93,
              "nodeId": "n",
-             "component": "core/captions",
+             "component": "captions",
              "props": {
               "style": "word-by-word",
               "position": "bottom",
@@ -5557,7 +5557,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -5619,7 +5619,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -6170,7 +6170,7 @@
   }
  },
  {
-  "type": "fx.core.title",
+  "type": "fx.title",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -6200,7 +6200,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Sign up in 10 seconds",
@@ -6238,7 +6238,7 @@
   }
  },
  {
-  "type": "fx.core.title",
+  "type": "fx.title",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -6268,7 +6268,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Sign up in 10 seconds",
@@ -6306,7 +6306,7 @@
   }
  },
  {
-  "type": "fx.core.kinetic-headline",
+  "type": "fx.kinetic-headline",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -6336,7 +6336,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/kinetic-headline",
+        "component": "kinetic-headline",
         "props": {
          "text": "Ship *faster* with demos that *move*",
          "color": "#fafafa",
@@ -6367,7 +6367,7 @@
   }
  },
  {
-  "type": "fx.core.kinetic-headline",
+  "type": "fx.kinetic-headline",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -6397,7 +6397,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/kinetic-headline",
+        "component": "kinetic-headline",
         "props": {
          "text": "Ship *faster* with demos that *move*",
          "color": "#fafafa",
@@ -6428,7 +6428,7 @@
   }
  },
  {
-  "type": "fx.core.lower-third",
+  "type": "fx.lower-third",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -6458,7 +6458,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/lower-third",
+        "component": "lower-third",
         "props": {
          "title": "Ada Lovelace",
          "subtitle": "Founder, Acme",
@@ -6489,7 +6489,7 @@
   }
  },
  {
-  "type": "fx.core.lower-third",
+  "type": "fx.lower-third",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -6519,7 +6519,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/lower-third",
+        "component": "lower-third",
         "props": {
          "title": "Ada Lovelace",
          "subtitle": "Founder, Acme",
@@ -6550,7 +6550,7 @@
   }
  },
  {
-  "type": "fx.core.callout",
+  "type": "fx.callout",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -6580,7 +6580,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/callout",
+        "component": "callout",
         "props": {
          "text": "Click here",
          "x": 0.5,
@@ -6611,7 +6611,7 @@
   }
  },
  {
-  "type": "fx.core.callout",
+  "type": "fx.callout",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -6641,7 +6641,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/callout",
+        "component": "callout",
         "props": {
          "text": "Click here",
          "x": 0.5,
@@ -6672,7 +6672,7 @@
   }
  },
  {
-  "type": "fx.core.image",
+  "type": "fx.image",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -6702,7 +6702,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/image",
+        "component": "image",
         "props": {
          "src": "",
          "fit": "contain",
@@ -6727,7 +6727,7 @@
   }
  },
  {
-  "type": "fx.core.image",
+  "type": "fx.image",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -6757,7 +6757,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/image",
+        "component": "image",
         "props": {
          "src": "",
          "fit": "contain",
@@ -6782,7 +6782,7 @@
   }
  },
  {
-  "type": "fx.core.mosaic",
+  "type": "fx.mosaic",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -6812,7 +6812,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/mosaic",
+        "component": "mosaic",
         "props": {
          "boxes": [
           {
@@ -6844,7 +6844,7 @@
   }
  },
  {
-  "type": "fx.core.mosaic",
+  "type": "fx.mosaic",
   "filled": true,
   "inputs": {
    "clip": {
@@ -6859,7 +6859,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -6939,7 +6939,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -6960,7 +6960,7 @@
           }
          ],
          "wrapper": {
-          "component": "core/mosaic",
+          "component": "mosaic",
           "props": {
            "boxes": [
             {
@@ -6994,7 +6994,7 @@
   }
  },
  {
-  "type": "fx.core.lottie",
+  "type": "fx.lottie",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -7024,7 +7024,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/lottie",
+        "component": "lottie",
         "props": {
          "src": "",
          "loop": true,
@@ -7051,7 +7051,7 @@
   }
  },
  {
-  "type": "fx.core.lottie",
+  "type": "fx.lottie",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -7081,7 +7081,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/lottie",
+        "component": "lottie",
         "props": {
          "src": "",
          "loop": true,
@@ -7108,7 +7108,7 @@
   }
  },
  {
-  "type": "fx.core.video",
+  "type": "fx.video",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -7138,7 +7138,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/video",
+        "component": "video",
         "props": {
          "src": "",
          "fit": "cover",
@@ -7166,7 +7166,7 @@
   }
  },
  {
-  "type": "fx.core.video",
+  "type": "fx.video",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -7196,7 +7196,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/video",
+        "component": "video",
         "props": {
          "src": "",
          "fit": "cover",
@@ -7224,7 +7224,7 @@
   }
  },
  {
-  "type": "fx.core.solid",
+  "type": "fx.solid",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -7254,7 +7254,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/solid",
+        "component": "solid",
         "props": {
          "color": "#09090b"
         }
@@ -7276,7 +7276,7 @@
   }
  },
  {
-  "type": "fx.core.solid",
+  "type": "fx.solid",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -7306,7 +7306,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/solid",
+        "component": "solid",
         "props": {
          "color": "#09090b"
         }
@@ -7328,7 +7328,7 @@
   }
  },
  {
-  "type": "fx.core.gradient",
+  "type": "fx.gradient",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -7358,7 +7358,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/gradient",
+        "component": "gradient",
         "props": {
          "from": "#1e1b4b",
          "to": "#0f172a",
@@ -7383,7 +7383,7 @@
   }
  },
  {
-  "type": "fx.core.gradient",
+  "type": "fx.gradient",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -7413,7 +7413,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/gradient",
+        "component": "gradient",
         "props": {
          "from": "#1e1b4b",
          "to": "#0f172a",
@@ -7438,7 +7438,7 @@
   }
  },
  {
-  "type": "fx.core.noise",
+  "type": "fx.noise",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -7468,7 +7468,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/noise",
+        "component": "noise",
         "props": {
          "color1": "#0b1020",
          "color2": "#4f46e5",
@@ -7493,7 +7493,7 @@
   }
  },
  {
-  "type": "fx.core.noise",
+  "type": "fx.noise",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -7523,7 +7523,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/noise",
+        "component": "noise",
         "props": {
          "color1": "#0b1020",
          "color2": "#4f46e5",
@@ -7548,7 +7548,7 @@
   }
  },
  {
-  "type": "fx.core.starburst",
+  "type": "fx.starburst",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -7578,7 +7578,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/starburst",
+        "component": "starburst",
         "props": {
          "color1": "#18181b",
          "color2": "#27272a",
@@ -7603,7 +7603,7 @@
   }
  },
  {
-  "type": "fx.core.starburst",
+  "type": "fx.starburst",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -7633,7 +7633,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/starburst",
+        "component": "starburst",
         "props": {
          "color1": "#18181b",
          "color2": "#27272a",
@@ -7658,7 +7658,7 @@
   }
  },
  {
-  "type": "fx.core.paper",
+  "type": "fx.paper",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -7688,7 +7688,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/paper",
+        "component": "paper",
         "props": {
          "color": "#f5f1e8",
          "grain": 0.18
@@ -7711,7 +7711,7 @@
   }
  },
  {
-  "type": "fx.core.paper",
+  "type": "fx.paper",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -7741,7 +7741,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/paper",
+        "component": "paper",
         "props": {
          "color": "#f5f1e8",
          "grain": 0.18
@@ -7764,7 +7764,7 @@
   }
  },
  {
-  "type": "fx.core.backdrop",
+  "type": "fx.backdrop",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -7794,7 +7794,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/backdrop",
+        "component": "backdrop",
         "props": {
          "name": "glaze"
         }
@@ -7820,7 +7820,7 @@
   }
  },
  {
-  "type": "fx.core.backdrop",
+  "type": "fx.backdrop",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -7850,7 +7850,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/backdrop",
+        "component": "backdrop",
         "props": {
          "name": "glaze"
         }
@@ -7876,7 +7876,7 @@
   }
  },
  {
-  "type": "fx.core.video-loop",
+  "type": "fx.video-loop",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -7906,7 +7906,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/video-loop",
+        "component": "video-loop",
         "props": {
          "src": "",
          "dim": 0.3
@@ -7929,7 +7929,7 @@
   }
  },
  {
-  "type": "fx.core.video-loop",
+  "type": "fx.video-loop",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -7959,7 +7959,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/video-loop",
+        "component": "video-loop",
         "props": {
          "src": "",
          "dim": 0.3
@@ -7982,7 +7982,7 @@
   }
  },
  {
-  "type": "fx.core.light-leak",
+  "type": "fx.light-leak",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -8012,7 +8012,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/light-leak",
+        "component": "light-leak",
         "props": {
          "seed": 3.0,
          "hueShift": 0.0
@@ -8035,7 +8035,7 @@
   }
  },
  {
-  "type": "fx.core.light-leak",
+  "type": "fx.light-leak",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -8065,7 +8065,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/light-leak",
+        "component": "light-leak",
         "props": {
          "seed": 3.0,
          "hueShift": 0.0
@@ -8088,7 +8088,7 @@
   }
  },
  {
-  "type": "fx.core.logo-3d",
+  "type": "fx.logo-3d",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -8118,7 +8118,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/logo-3d",
+        "component": "logo-3d",
         "props": {
          "background": "transparent",
          "depth": 0.25,
@@ -8148,7 +8148,7 @@
   }
  },
  {
-  "type": "fx.core.logo-3d",
+  "type": "fx.logo-3d",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -8178,7 +8178,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/logo-3d",
+        "component": "logo-3d",
         "props": {
          "background": "transparent",
          "depth": 0.25,
@@ -8208,7 +8208,7 @@
   }
  },
  {
-  "type": "fx.core.card-3d",
+  "type": "fx.card-3d",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -8238,7 +8238,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/card-3d",
+        "component": "card-3d",
         "props": {
          "background": "transparent",
          "cornerRadius": 0.04,
@@ -8269,7 +8269,7 @@
   }
  },
  {
-  "type": "fx.core.card-3d",
+  "type": "fx.card-3d",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -8299,7 +8299,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/card-3d",
+        "component": "card-3d",
         "props": {
          "background": "transparent",
          "cornerRadius": 0.04,
@@ -8330,7 +8330,7 @@
   }
  },
  {
-  "type": "fx.core.text-3d",
+  "type": "fx.text-3d",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -8360,7 +8360,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/text-3d",
+        "component": "text-3d",
         "props": {
          "text": "Ship faster",
          "background": "transparent",
@@ -8403,7 +8403,7 @@
   }
  },
  {
-  "type": "fx.core.text-3d",
+  "type": "fx.text-3d",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -8433,7 +8433,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/text-3d",
+        "component": "text-3d",
         "props": {
          "text": "Ship faster",
          "background": "transparent",
@@ -8476,7 +8476,7 @@
   }
  },
  {
-  "type": "fx.core.model-3d",
+  "type": "fx.model-3d",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -8506,7 +8506,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/model-3d",
+        "component": "model-3d",
         "props": {
          "src": "",
          "motion": "spin",
@@ -8540,7 +8540,7 @@
   }
  },
  {
-  "type": "fx.core.model-3d",
+  "type": "fx.model-3d",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -8570,7 +8570,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/model-3d",
+        "component": "model-3d",
         "props": {
          "src": "",
          "motion": "spin",
@@ -8604,7 +8604,7 @@
   }
  },
  {
-  "type": "fx.core.screen-3d",
+  "type": "fx.screen-3d",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -8634,7 +8634,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/screen-3d",
+        "component": "screen-3d",
         "props": {
          "device": "laptop",
          "deviceColor": "#c9ced6",
@@ -8665,7 +8665,7 @@
   }
  },
  {
-  "type": "fx.core.screen-3d",
+  "type": "fx.screen-3d",
   "filled": true,
   "inputs": {
    "clip": {
@@ -8680,7 +8680,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -8760,7 +8760,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -8781,7 +8781,7 @@
           }
          ],
          "wrapper": {
-          "component": "core/screen-3d",
+          "component": "screen-3d",
           "props": {
            "device": "laptop",
            "deviceColor": "#c9ced6",
@@ -8814,7 +8814,7 @@
   }
  },
  {
-  "type": "fx.core.shapes-3d",
+  "type": "fx.shapes-3d",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -8844,7 +8844,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/shapes-3d",
+        "component": "shapes-3d",
         "props": {
          "count": 14.0,
          "palette": [
@@ -8890,7 +8890,7 @@
   }
  },
  {
-  "type": "fx.core.shapes-3d",
+  "type": "fx.shapes-3d",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -8920,7 +8920,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/shapes-3d",
+        "component": "shapes-3d",
         "props": {
          "count": 14.0,
          "palette": [
@@ -8966,7 +8966,7 @@
   }
  },
  {
-  "type": "fx.remocn.soft-blur-in",
+  "type": "fx.soft-blur-in",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -8996,7 +8996,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/soft-blur-in",
+        "component": "soft-blur-in",
         "props": {
          "text": "Made for every take.",
          "blur": 12.0,
@@ -9028,7 +9028,7 @@
   }
  },
  {
-  "type": "fx.remocn.soft-blur-in",
+  "type": "fx.soft-blur-in",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -9058,7 +9058,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/soft-blur-in",
+        "component": "soft-blur-in",
         "props": {
          "text": "Made for every take.",
          "blur": 12.0,
@@ -9090,7 +9090,7 @@
   }
  },
  {
-  "type": "fx.remocn.typewriter",
+  "type": "fx.typewriter",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -9120,7 +9120,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/typewriter",
+        "component": "typewriter",
         "props": {
          "text": "console.log('hello, world')",
          "cursor": true,
@@ -9154,7 +9154,7 @@
   }
  },
  {
-  "type": "fx.remocn.typewriter",
+  "type": "fx.typewriter",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -9184,7 +9184,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/typewriter",
+        "component": "typewriter",
         "props": {
          "text": "console.log('hello, world')",
          "cursor": true,
@@ -9218,7 +9218,7 @@
   }
  },
  {
-  "type": "fx.remocn.shimmer-sweep",
+  "type": "fx.shimmer-sweep",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -9248,7 +9248,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shimmer-sweep",
+        "component": "shimmer-sweep",
         "props": {
          "text": "Generating",
          "baseColor": "#3f3f46",
@@ -9280,7 +9280,7 @@
   }
  },
  {
-  "type": "fx.remocn.shimmer-sweep",
+  "type": "fx.shimmer-sweep",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -9310,7 +9310,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shimmer-sweep",
+        "component": "shimmer-sweep",
         "props": {
          "text": "Generating",
          "baseColor": "#3f3f46",
@@ -9342,7 +9342,7 @@
   }
  },
  {
-  "type": "fx.remocn.matrix-decode",
+  "type": "fx.matrix-decode",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -9372,7 +9372,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/matrix-decode",
+        "component": "matrix-decode",
         "props": {
          "text": "DECRYPTED",
          "charset": "!@#$%^&*()_+-=<>?/\\|",
@@ -9405,7 +9405,7 @@
   }
  },
  {
-  "type": "fx.remocn.matrix-decode",
+  "type": "fx.matrix-decode",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -9435,7 +9435,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/matrix-decode",
+        "component": "matrix-decode",
         "props": {
          "text": "DECRYPTED",
          "charset": "!@#$%^&*()_+-=<>?/\\|",
@@ -9468,7 +9468,7 @@
   }
  },
  {
-  "type": "fx.remocn.slot-machine-roll",
+  "type": "fx.slot-machine-roll",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -9498,7 +9498,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/slot-machine-roll",
+        "component": "slot-machine-roll",
         "props": {
          "from": "$99",
          "to": "$199",
@@ -9526,7 +9526,7 @@
   }
  },
  {
-  "type": "fx.remocn.slot-machine-roll",
+  "type": "fx.slot-machine-roll",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -9556,7 +9556,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/slot-machine-roll",
+        "component": "slot-machine-roll",
         "props": {
          "from": "$99",
          "to": "$199",
@@ -9584,7 +9584,7 @@
   }
  },
  {
-  "type": "fx.remocn.staggered-fade-up",
+  "type": "fx.staggered-fade-up",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -9614,7 +9614,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/staggered-fade-up",
+        "component": "staggered-fade-up",
         "props": {
          "text": "Ship your demo in minutes",
          "staggerDelay": 4.0,
@@ -9647,7 +9647,7 @@
   }
  },
  {
-  "type": "fx.remocn.staggered-fade-up",
+  "type": "fx.staggered-fade-up",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -9677,7 +9677,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/staggered-fade-up",
+        "component": "staggered-fade-up",
         "props": {
          "text": "Ship your demo in minutes",
          "staggerDelay": 4.0,
@@ -9710,7 +9710,7 @@
   }
  },
  {
-  "type": "fx.remocn.kinetic-center-build",
+  "type": "fx.kinetic-center-build",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -9744,7 +9744,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/kinetic-center-build",
+        "component": "kinetic-center-build",
         "props": {
          "text": "Words push left.",
          "entryOffset": 88.0,
@@ -9776,7 +9776,7 @@
   }
  },
  {
-  "type": "fx.remocn.kinetic-center-build",
+  "type": "fx.kinetic-center-build",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -9810,7 +9810,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/kinetic-center-build",
+        "component": "kinetic-center-build",
         "props": {
          "text": "Words push left.",
          "entryOffset": 88.0,
@@ -9842,7 +9842,7 @@
   }
  },
  {
-  "type": "fx.remocn.mask-reveal-up",
+  "type": "fx.mask-reveal-up",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -9872,7 +9872,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/mask-reveal-up",
+        "component": "mask-reveal-up",
         "props": {
          "text": "Designed to move.\nBuilt to focus.",
          "distance": 30.0,
@@ -9904,7 +9904,7 @@
   }
  },
  {
-  "type": "fx.remocn.mask-reveal-up",
+  "type": "fx.mask-reveal-up",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -9934,7 +9934,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/mask-reveal-up",
+        "component": "mask-reveal-up",
         "props": {
          "text": "Designed to move.\nBuilt to focus.",
          "distance": 30.0,
@@ -9966,7 +9966,7 @@
   }
  },
  {
-  "type": "fx.remocn.tracking-in",
+  "type": "fx.tracking-in",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -10000,7 +10000,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/tracking-in",
+        "component": "tracking-in",
         "props": {
          "text": "tracking in",
          "startTracking": 0.5,
@@ -10033,7 +10033,7 @@
   }
  },
  {
-  "type": "fx.remocn.tracking-in",
+  "type": "fx.tracking-in",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -10067,7 +10067,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/tracking-in",
+        "component": "tracking-in",
         "props": {
          "text": "tracking in",
          "startTracking": 0.5,
@@ -10100,7 +10100,7 @@
   }
  },
  {
-  "type": "fx.remocn.word-push",
+  "type": "fx.word-push",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -10134,7 +10134,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/word-push",
+        "component": "word-push",
         "props": {
          "text": "move at your own pace",
          "fontSize": 72.0,
@@ -10167,7 +10167,7 @@
   }
  },
  {
-  "type": "fx.remocn.word-push",
+  "type": "fx.word-push",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -10201,7 +10201,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/word-push",
+        "component": "word-push",
         "props": {
          "text": "move at your own pace",
          "fontSize": 72.0,
@@ -10234,7 +10234,7 @@
   }
  },
  {
-  "type": "fx.remocn.rgb-glitch-text",
+  "type": "fx.rgb-glitch-text",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -10264,7 +10264,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/rgb-glitch-text",
+        "component": "rgb-glitch-text",
         "props": {
          "text": "GLITCH",
          "fontSize": 96.0,
@@ -10315,7 +10315,7 @@
   }
  },
  {
-  "type": "fx.remocn.rgb-glitch-text",
+  "type": "fx.rgb-glitch-text",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -10345,7 +10345,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/rgb-glitch-text",
+        "component": "rgb-glitch-text",
         "props": {
          "text": "GLITCH",
          "fontSize": 96.0,
@@ -10396,7 +10396,7 @@
   }
  },
  {
-  "type": "fx.remocn.gradient-scale-cut-text",
+  "type": "fx.gradient-scale-cut-text",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -10430,7 +10430,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/gradient-scale-cut-text",
+        "component": "gradient-scale-cut-text",
         "props": {
          "text": "Introducing",
          "giantFontSize": 520.0,
@@ -10470,7 +10470,7 @@
   }
  },
  {
-  "type": "fx.remocn.gradient-scale-cut-text",
+  "type": "fx.gradient-scale-cut-text",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -10504,7 +10504,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/gradient-scale-cut-text",
+        "component": "gradient-scale-cut-text",
         "props": {
          "text": "Introducing",
          "giantFontSize": 520.0,
@@ -10544,7 +10544,7 @@
   }
  },
  {
-  "type": "fx.remocn.strikethrough-replace",
+  "type": "fx.strikethrough-replace",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -10578,7 +10578,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/strikethrough-replace",
+        "component": "strikethrough-replace",
         "props": {
          "from": "$49/mo",
          "to": "Free",
@@ -10607,7 +10607,7 @@
   }
  },
  {
-  "type": "fx.remocn.strikethrough-replace",
+  "type": "fx.strikethrough-replace",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -10641,7 +10641,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/strikethrough-replace",
+        "component": "strikethrough-replace",
         "props": {
          "from": "$49/mo",
          "to": "Free",
@@ -10670,7 +10670,7 @@
   }
  },
  {
-  "type": "fx.remocn.line-by-line-slide",
+  "type": "fx.line-by-line-slide",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -10700,7 +10700,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/line-by-line-slide",
+        "component": "line-by-line-slide",
         "props": {
          "text": "Record once.\nShare everywhere.",
          "distance": 48.0,
@@ -10732,7 +10732,7 @@
   }
  },
  {
-  "type": "fx.remocn.line-by-line-slide",
+  "type": "fx.line-by-line-slide",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -10762,7 +10762,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/line-by-line-slide",
+        "component": "line-by-line-slide",
         "props": {
          "text": "Record once.\nShare everywhere.",
          "distance": 48.0,
@@ -10794,7 +10794,7 @@
   }
  },
  {
-  "type": "fx.remocn.marker-highlight",
+  "type": "fx.marker-highlight",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -10824,7 +10824,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/marker-highlight",
+        "component": "marker-highlight",
         "props": {
          "before": "Made for ",
          "highlight": "builders",
@@ -10855,7 +10855,7 @@
   }
  },
  {
-  "type": "fx.remocn.marker-highlight",
+  "type": "fx.marker-highlight",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -10885,7 +10885,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/marker-highlight",
+        "component": "marker-highlight",
         "props": {
          "before": "Made for ",
          "highlight": "builders",
@@ -10916,7 +10916,7 @@
   }
  },
  {
-  "type": "fx.remocn.inline-highlight",
+  "type": "fx.inline-highlight",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -10946,7 +10946,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/inline-highlight",
+        "component": "inline-highlight",
         "props": {
          "before": "Ship faster with ",
          "highlight": "Acme",
@@ -10976,7 +10976,7 @@
   }
  },
  {
-  "type": "fx.remocn.inline-highlight",
+  "type": "fx.inline-highlight",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -11006,7 +11006,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/inline-highlight",
+        "component": "inline-highlight",
         "props": {
          "before": "Ship faster with ",
          "highlight": "Acme",
@@ -11036,7 +11036,7 @@
   }
  },
  {
-  "type": "fx.remocn.ink-underline",
+  "type": "fx.ink-underline",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -11070,7 +11070,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/ink-underline",
+        "component": "ink-underline",
         "props": {
          "width": 420.0,
          "color": "#6f7f35",
@@ -11102,7 +11102,7 @@
   }
  },
  {
-  "type": "fx.remocn.ink-underline",
+  "type": "fx.ink-underline",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -11136,7 +11136,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/ink-underline",
+        "component": "ink-underline",
         "props": {
          "width": 420.0,
          "color": "#6f7f35",
@@ -11168,7 +11168,7 @@
   }
  },
  {
-  "type": "fx.remocn.scribble-circle",
+  "type": "fx.scribble-circle",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -11202,7 +11202,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/scribble-circle",
+        "component": "scribble-circle",
         "props": {
          "laps": 1.15,
          "strokeWidth": 14.0,
@@ -11236,7 +11236,7 @@
   }
  },
  {
-  "type": "fx.remocn.scribble-circle",
+  "type": "fx.scribble-circle",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -11270,7 +11270,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/scribble-circle",
+        "component": "scribble-circle",
         "props": {
          "laps": 1.15,
          "strokeWidth": 14.0,
@@ -11304,7 +11304,7 @@
   }
  },
  {
-  "type": "fx.remocn.ink-arrow",
+  "type": "fx.ink-arrow",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -11338,7 +11338,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/ink-arrow",
+        "component": "ink-arrow",
         "props": {
          "curvature": 0.35,
          "strokeWidth": 8.0,
@@ -11374,7 +11374,7 @@
   }
  },
  {
-  "type": "fx.remocn.ink-arrow",
+  "type": "fx.ink-arrow",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -11408,7 +11408,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/ink-arrow",
+        "component": "ink-arrow",
         "props": {
          "curvature": 0.35,
          "strokeWidth": 8.0,
@@ -11444,7 +11444,7 @@
   }
  },
  {
-  "type": "fx.remocn.keystroke",
+  "type": "fx.keystroke",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -11474,7 +11474,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/keystroke",
+        "component": "keystroke",
         "props": {
          "platform": "mac",
          "theme": "light",
@@ -11517,7 +11517,7 @@
   }
  },
  {
-  "type": "fx.remocn.keystroke",
+  "type": "fx.keystroke",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -11547,7 +11547,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/keystroke",
+        "component": "keystroke",
         "props": {
          "platform": "mac",
          "theme": "light",
@@ -11590,7 +11590,7 @@
   }
  },
  {
-  "type": "fx.remocn.confetti",
+  "type": "fx.confetti",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -11624,7 +11624,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/confetti",
+        "component": "confetti",
         "props": {
          "particleCount": 140.0,
          "power": 17.0,
@@ -11674,7 +11674,7 @@
   }
  },
  {
-  "type": "fx.remocn.confetti",
+  "type": "fx.confetti",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -11708,7 +11708,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/confetti",
+        "component": "confetti",
         "props": {
          "particleCount": 140.0,
          "power": 17.0,
@@ -11758,7 +11758,7 @@
   }
  },
  {
-  "type": "fx.remocn.radial-burst",
+  "type": "fx.radial-burst",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -11788,7 +11788,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/radial-burst",
+        "component": "radial-burst",
         "props": {
          "segments": 8.0,
          "radius": 210.0,
@@ -11821,7 +11821,7 @@
   }
  },
  {
-  "type": "fx.remocn.radial-burst",
+  "type": "fx.radial-burst",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -11851,7 +11851,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/radial-burst",
+        "component": "radial-burst",
         "props": {
          "segments": 8.0,
          "radius": 210.0,
@@ -11884,7 +11884,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-mesh-gradient",
+  "type": "fx.shader-mesh-gradient",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -11914,7 +11914,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-mesh-gradient",
+        "component": "shader-mesh-gradient",
         "props": {
          "speed": 1.0,
          "distortion": 0.6,
@@ -11955,7 +11955,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-mesh-gradient",
+  "type": "fx.shader-mesh-gradient",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -11985,7 +11985,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-mesh-gradient",
+        "component": "shader-mesh-gradient",
         "props": {
          "speed": 1.0,
          "distortion": 0.6,
@@ -12026,7 +12026,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-grain-gradient",
+  "type": "fx.shader-grain-gradient",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -12056,7 +12056,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-grain-gradient",
+        "component": "shader-grain-gradient",
         "props": {
          "speed": 1.0,
          "softness": 0.6,
@@ -12100,7 +12100,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-grain-gradient",
+  "type": "fx.shader-grain-gradient",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -12130,7 +12130,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-grain-gradient",
+        "component": "shader-grain-gradient",
         "props": {
          "speed": 1.0,
          "softness": 0.6,
@@ -12174,7 +12174,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-warp",
+  "type": "fx.shader-warp",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -12204,7 +12204,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-warp",
+        "component": "shader-warp",
         "props": {
          "speed": 1.0,
          "distortion": 0.2,
@@ -12247,7 +12247,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-warp",
+  "type": "fx.shader-warp",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -12277,7 +12277,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-warp",
+        "component": "shader-warp",
         "props": {
          "speed": 1.0,
          "distortion": 0.2,
@@ -12320,7 +12320,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-swirl",
+  "type": "fx.shader-swirl",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -12350,7 +12350,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-swirl",
+        "component": "shader-swirl",
         "props": {
          "speed": 1.0,
          "bandCount": 4.0,
@@ -12391,7 +12391,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-swirl",
+  "type": "fx.shader-swirl",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -12421,7 +12421,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-swirl",
+        "component": "shader-swirl",
         "props": {
          "speed": 1.0,
          "bandCount": 4.0,
@@ -12462,7 +12462,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-god-rays",
+  "type": "fx.shader-god-rays",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -12492,7 +12492,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-god-rays",
+        "component": "shader-god-rays",
         "props": {
          "speed": 1.0,
          "intensity": 0.8,
@@ -12536,7 +12536,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-god-rays",
+  "type": "fx.shader-god-rays",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -12566,7 +12566,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-god-rays",
+        "component": "shader-god-rays",
         "props": {
          "speed": 1.0,
          "intensity": 0.8,
@@ -12610,7 +12610,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-perlin-noise",
+  "type": "fx.shader-perlin-noise",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -12640,7 +12640,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-perlin-noise",
+        "component": "shader-perlin-noise",
         "props": {
          "speed": 1.0,
          "proportion": 0.35,
@@ -12666,7 +12666,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-perlin-noise",
+  "type": "fx.shader-perlin-noise",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -12696,7 +12696,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-perlin-noise",
+        "component": "shader-perlin-noise",
         "props": {
          "speed": 1.0,
          "proportion": 0.35,
@@ -12722,7 +12722,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-dithering",
+  "type": "fx.shader-dithering",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -12752,7 +12752,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-dithering",
+        "component": "shader-dithering",
         "props": {
          "speed": 1.0,
          "size": 2.0,
@@ -12779,7 +12779,7 @@
   }
  },
  {
-  "type": "fx.remocn.shader-dithering",
+  "type": "fx.shader-dithering",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -12809,7 +12809,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/shader-dithering",
+        "component": "shader-dithering",
         "props": {
          "speed": 1.0,
          "size": 2.0,
@@ -12836,7 +12836,7 @@
   }
  },
  {
-  "type": "fx.remocn.crt-screen",
+  "type": "fx.crt-screen",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -12866,7 +12866,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/crt-screen",
+        "component": "crt-screen",
         "props": {
          "curvature": 1.0,
          "scanlines": 1.0,
@@ -12892,7 +12892,7 @@
   }
  },
  {
-  "type": "fx.remocn.crt-screen",
+  "type": "fx.crt-screen",
   "filled": true,
   "inputs": {
    "clip": {
@@ -12907,7 +12907,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -12987,7 +12987,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -13008,7 +13008,7 @@
           }
          ],
          "wrapper": {
-          "component": "remocn/crt-screen",
+          "component": "crt-screen",
           "props": {
            "curvature": 1.0,
            "scanlines": 1.0,
@@ -13036,7 +13036,7 @@
   }
  },
  {
-  "type": "fx.remocn.vhs-filter",
+  "type": "fx.vhs-filter",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -13066,7 +13066,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/vhs-filter",
+        "component": "vhs-filter",
         "props": {
          "bleed": 1.0,
          "wobble": 1.0,
@@ -13092,7 +13092,7 @@
   }
  },
  {
-  "type": "fx.remocn.vhs-filter",
+  "type": "fx.vhs-filter",
   "filled": true,
   "inputs": {
    "clip": {
@@ -13107,7 +13107,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -13187,7 +13187,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -13208,7 +13208,7 @@
           }
          ],
          "wrapper": {
-          "component": "remocn/vhs-filter",
+          "component": "vhs-filter",
           "props": {
            "bleed": 1.0,
            "wobble": 1.0,
@@ -13236,7 +13236,7 @@
   }
  },
  {
-  "type": "fx.remocn.halftone-print",
+  "type": "fx.halftone-print",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -13266,7 +13266,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/halftone-print",
+        "component": "halftone-print",
         "props": {
          "dotSize": 10.0,
          "angle": 0.0,
@@ -13292,7 +13292,7 @@
   }
  },
  {
-  "type": "fx.remocn.halftone-print",
+  "type": "fx.halftone-print",
   "filled": true,
   "inputs": {
    "clip": {
@@ -13307,7 +13307,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -13387,7 +13387,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -13408,7 +13408,7 @@
           }
          ],
          "wrapper": {
-          "component": "remocn/halftone-print",
+          "component": "halftone-print",
           "props": {
            "dotSize": 10.0,
            "angle": 0.0,
@@ -13436,7 +13436,7 @@
   }
  },
  {
-  "type": "fx.remocn.camera-lens",
+  "type": "fx.camera-lens",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -13466,7 +13466,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/camera-lens",
+        "component": "camera-lens",
         "props": {
          "softness": 0.5,
          "bloom": 0.5,
@@ -13493,7 +13493,7 @@
   }
  },
  {
-  "type": "fx.remocn.camera-lens",
+  "type": "fx.camera-lens",
   "filled": true,
   "inputs": {
    "clip": {
@@ -13508,7 +13508,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -13588,7 +13588,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -13609,7 +13609,7 @@
           }
          ],
          "wrapper": {
-          "component": "remocn/camera-lens",
+          "component": "camera-lens",
           "props": {
            "softness": 0.5,
            "bloom": 0.5,
@@ -13638,7 +13638,7 @@
   }
  },
  {
-  "type": "fx.remocn.polaroid",
+  "type": "fx.polaroid",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -13668,7 +13668,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/polaroid",
+        "component": "polaroid",
         "props": {
          "caption": "first light",
          "captionAt": 0.0,
@@ -13696,7 +13696,7 @@
   }
  },
  {
-  "type": "fx.remocn.polaroid",
+  "type": "fx.polaroid",
   "filled": true,
   "inputs": {
    "clip": {
@@ -13711,7 +13711,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -13791,7 +13791,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -13812,7 +13812,7 @@
           }
          ],
          "wrapper": {
-          "component": "remocn/polaroid",
+          "component": "polaroid",
           "props": {
            "caption": "first light",
            "captionAt": 0.0,
@@ -13842,7 +13842,7 @@
   }
  },
  {
-  "type": "fx.remocn.tv-power-off",
+  "type": "fx.tv-power-off",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -13872,7 +13872,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/tv-power-off",
+        "component": "tv-power-off",
         "props": {
          "durationInFrames": 18.0,
          "gain": 1.0,
@@ -13898,7 +13898,7 @@
   }
  },
  {
-  "type": "fx.remocn.tv-power-off",
+  "type": "fx.tv-power-off",
   "filled": true,
   "inputs": {
    "clip": {
@@ -13913,7 +13913,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -13993,7 +13993,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -14014,7 +14014,7 @@
           }
          ],
          "wrapper": {
-          "component": "remocn/tv-power-off",
+          "component": "tv-power-off",
           "props": {
            "durationInFrames": 18.0,
            "gain": 1.0,
@@ -14042,7 +14042,7 @@
   }
  },
  {
-  "type": "fx.remocn.speed-lines",
+  "type": "fx.speed-lines",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -14072,7 +14072,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/speed-lines",
+        "component": "speed-lines",
         "props": {
          "children": null,
          "mode": "trail",
@@ -14106,7 +14106,7 @@
   }
  },
  {
-  "type": "fx.remocn.speed-lines",
+  "type": "fx.speed-lines",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -14136,7 +14136,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/speed-lines",
+        "component": "speed-lines",
         "props": {
          "children": null,
          "mode": "trail",
@@ -14170,7 +14170,7 @@
   }
  },
  {
-  "type": "fx.remocn.spring-settle",
+  "type": "fx.spring-settle",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -14203,7 +14203,7 @@
   }
  },
  {
-  "type": "fx.remocn.spring-settle",
+  "type": "fx.spring-settle",
   "filled": true,
   "inputs": {
    "in1": {
@@ -14218,7 +14218,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in1",
@@ -14260,7 +14260,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in2",
@@ -14302,7 +14302,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in3",
@@ -14344,7 +14344,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in4",
@@ -14386,7 +14386,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in5",
@@ -14428,7 +14428,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in6",
@@ -14536,7 +14536,7 @@
                          "unit": "frames"
                         }
                        },
-                       "component": "core/title",
+                       "component": "title",
                        "props": {
                         "eyebrow": "",
                         "title": "Clip in1",
@@ -14600,7 +14600,7 @@
                          "unit": "frames"
                         }
                        },
-                       "component": "core/title",
+                       "component": "title",
                        "props": {
                         "eyebrow": "",
                         "title": "Clip in2",
@@ -14664,7 +14664,7 @@
                          "unit": "frames"
                         }
                        },
-                       "component": "core/title",
+                       "component": "title",
                        "props": {
                         "eyebrow": "",
                         "title": "Clip in3",
@@ -14728,7 +14728,7 @@
                          "unit": "frames"
                         }
                        },
-                       "component": "core/title",
+                       "component": "title",
                        "props": {
                         "eyebrow": "",
                         "title": "Clip in4",
@@ -14792,7 +14792,7 @@
                          "unit": "frames"
                         }
                        },
-                       "component": "core/title",
+                       "component": "title",
                        "props": {
                         "eyebrow": "",
                         "title": "Clip in5",
@@ -14856,7 +14856,7 @@
                          "unit": "frames"
                         }
                        },
-                       "component": "core/title",
+                       "component": "title",
                        "props": {
                         "eyebrow": "",
                         "title": "Clip in6",
@@ -14887,7 +14887,7 @@
           }
          ],
          "sequencer": {
-          "component": "remocn/spring-settle",
+          "component": "spring-settle",
           "props": {
            "enterScale": 1.24,
            "enterStagger": 3.0,
@@ -14932,7 +14932,7 @@
   }
  },
  {
-  "type": "fx.remocn.terminal-simulator",
+  "type": "fx.terminal-simulator",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -14962,7 +14962,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/terminal-simulator",
+        "component": "terminal-simulator",
         "props": {
          "prompt": "$",
          "title": "~/projects/acme",
@@ -15032,7 +15032,7 @@
   }
  },
  {
-  "type": "fx.remocn.terminal-simulator",
+  "type": "fx.terminal-simulator",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -15062,7 +15062,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/terminal-simulator",
+        "component": "terminal-simulator",
         "props": {
          "prompt": "$",
          "title": "~/projects/acme",
@@ -15132,7 +15132,7 @@
   }
  },
  {
-  "type": "fx.remocn.glass-code-block",
+  "type": "fx.glass-code-block",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -15162,7 +15162,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/glass-code-block",
+        "component": "glass-code-block",
         "props": {
          "title": "hero.tsx",
          "width": 760.0,
@@ -15197,7 +15197,7 @@
   }
  },
  {
-  "type": "fx.remocn.glass-code-block",
+  "type": "fx.glass-code-block",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -15227,7 +15227,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/glass-code-block",
+        "component": "glass-code-block",
         "props": {
          "title": "hero.tsx",
          "width": 760.0,
@@ -15262,7 +15262,7 @@
   }
  },
  {
-  "type": "fx.remocn.code-morph",
+  "type": "fx.code-morph",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -15292,7 +15292,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/code-morph",
+        "component": "code-morph",
         "props": {
          "filename": "invoices.tsx",
          "theme": "dark",
@@ -15332,7 +15332,7 @@
   }
  },
  {
-  "type": "fx.remocn.code-morph",
+  "type": "fx.code-morph",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -15362,7 +15362,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/code-morph",
+        "component": "code-morph",
         "props": {
          "filename": "invoices.tsx",
          "theme": "dark",
@@ -15402,7 +15402,7 @@
   }
  },
  {
-  "type": "fx.remocn.logo-enter",
+  "type": "fx.logo-enter",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -15436,7 +15436,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/logo-enter",
+        "component": "logo-enter",
         "props": {
          "diameter": 118.0,
          "overlap": 38.0,
@@ -15481,7 +15481,7 @@
   }
  },
  {
-  "type": "fx.remocn.logo-enter",
+  "type": "fx.logo-enter",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -15515,7 +15515,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/logo-enter",
+        "component": "logo-enter",
         "props": {
          "diameter": 118.0,
          "overlap": 38.0,
@@ -15560,7 +15560,7 @@
   }
  },
  {
-  "type": "fx.remocn.check-list",
+  "type": "fx.check-list",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -15590,7 +15590,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/check-list",
+        "component": "check-list",
         "props": {
          "fontSize": 40.0,
          "itemGap": 18.0,
@@ -15638,7 +15638,7 @@
   }
  },
  {
-  "type": "fx.remocn.check-list",
+  "type": "fx.check-list",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -15668,7 +15668,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/check-list",
+        "component": "check-list",
         "props": {
          "fontSize": 40.0,
          "itemGap": 18.0,
@@ -15716,7 +15716,7 @@
   }
  },
  {
-  "type": "fx.remocn.search-reveal",
+  "type": "fx.search-reveal",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -15746,7 +15746,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/search-reveal",
+        "component": "search-reveal",
         "props": {
          "text": "acme",
          "fieldWidth": 464.0,
@@ -15785,7 +15785,7 @@
   }
  },
  {
-  "type": "fx.remocn.search-reveal",
+  "type": "fx.search-reveal",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -15815,7 +15815,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/search-reveal",
+        "component": "search-reveal",
         "props": {
          "text": "acme",
          "fieldWidth": 464.0,
@@ -15854,7 +15854,7 @@
   }
  },
  {
-  "type": "fx.remocn.agent-run",
+  "type": "fx.agent-run",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -15884,7 +15884,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/agent-run",
+        "component": "agent-run",
         "props": {
          "theme": "light",
          "accentColor": "#2563eb",
@@ -15957,7 +15957,7 @@
   }
  },
  {
-  "type": "fx.remocn.agent-run",
+  "type": "fx.agent-run",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -15987,7 +15987,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/agent-run",
+        "component": "agent-run",
         "props": {
          "theme": "light",
          "accentColor": "#2563eb",
@@ -16060,7 +16060,7 @@
   }
  },
  {
-  "type": "fx.remocn.animated-bar-chart",
+  "type": "fx.animated-bar-chart",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -16094,7 +16094,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/animated-bar-chart",
+        "component": "animated-bar-chart",
         "props": {
          "barColor": "#0ea5e9",
          "gap": 16.0,
@@ -16157,7 +16157,7 @@
   }
  },
  {
-  "type": "fx.remocn.animated-bar-chart",
+  "type": "fx.animated-bar-chart",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -16191,7 +16191,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/animated-bar-chart",
+        "component": "animated-bar-chart",
         "props": {
          "barColor": "#0ea5e9",
          "gap": 16.0,
@@ -16254,7 +16254,7 @@
   }
  },
  {
-  "type": "fx.remocn.animated-line-chart",
+  "type": "fx.animated-line-chart",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -16284,7 +16284,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/animated-line-chart",
+        "component": "animated-line-chart",
         "props": {
          "strokeColor": "#22c55e",
          "strokeWidth": 4.0,
@@ -16323,7 +16323,7 @@
   }
  },
  {
-  "type": "fx.remocn.animated-line-chart",
+  "type": "fx.animated-line-chart",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -16353,7 +16353,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/animated-line-chart",
+        "component": "animated-line-chart",
         "props": {
          "strokeColor": "#22c55e",
          "strokeWidth": 4.0,
@@ -16392,7 +16392,7 @@
   }
  },
  {
-  "type": "fx.remocn.rolling-number",
+  "type": "fx.rolling-number",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -16426,7 +16426,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/rolling-number",
+        "component": "rolling-number",
         "props": {
          "from": 0.0,
          "to": 24813.0,
@@ -16453,7 +16453,7 @@
   }
  },
  {
-  "type": "fx.remocn.rolling-number",
+  "type": "fx.rolling-number",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -16487,7 +16487,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remocn/rolling-number",
+        "component": "rolling-number",
         "props": {
          "from": 0.0,
          "to": 24813.0,
@@ -16514,7 +16514,7 @@
   }
  },
  {
-  "type": "fx.remocn.signup-flow",
+  "type": "fx.signup-flow",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -16549,7 +16549,7 @@
          "height": 720,
          "exact": true
         },
-        "component": "remocn/signup-flow",
+        "component": "signup-flow",
         "props": {
          "theme": {
           "mode": "light",
@@ -16589,7 +16589,7 @@
   }
  },
  {
-  "type": "fx.remocn.signup-flow",
+  "type": "fx.signup-flow",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -16624,7 +16624,7 @@
          "height": 720,
          "exact": true
         },
-        "component": "remocn/signup-flow",
+        "component": "signup-flow",
         "props": {
          "theme": {
           "mode": "light",
@@ -16664,7 +16664,7 @@
   }
  },
  {
-  "type": "fx.remocn.ai-prompt-flow",
+  "type": "fx.ai-prompt-flow",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -16699,7 +16699,7 @@
          "height": 720,
          "exact": true
         },
-        "component": "remocn/ai-prompt-flow",
+        "component": "ai-prompt-flow",
         "props": {
          "theme": {
           "mode": "light",
@@ -16736,7 +16736,7 @@
   }
  },
  {
-  "type": "fx.remocn.ai-prompt-flow",
+  "type": "fx.ai-prompt-flow",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -16771,7 +16771,7 @@
          "height": 720,
          "exact": true
         },
-        "component": "remocn/ai-prompt-flow",
+        "component": "ai-prompt-flow",
         "props": {
          "theme": {
           "mode": "light",
@@ -16808,7 +16808,7 @@
   }
  },
  {
-  "type": "fx.remocn.command-menu",
+  "type": "fx.command-menu",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -16843,7 +16843,7 @@
          "height": 720,
          "exact": true
         },
-        "component": "remocn/command-menu",
+        "component": "command-menu",
         "props": {
          "state": "opened",
          "query": "new",
@@ -16899,7 +16899,7 @@
   }
  },
  {
-  "type": "fx.remocn.command-menu",
+  "type": "fx.command-menu",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -16934,7 +16934,7 @@
          "height": 720,
          "exact": true
         },
-        "component": "remocn/command-menu",
+        "component": "command-menu",
         "props": {
          "state": "opened",
          "query": "new",
@@ -16990,7 +16990,7 @@
   }
  },
  {
-  "type": "fx.remocn.release-teaser",
+  "type": "fx.release-teaser",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -17020,7 +17020,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/release-teaser",
+        "component": "release-teaser",
         "props": {
          "brandName": "Orvio",
          "release": "2",
@@ -17054,7 +17054,7 @@
   }
  },
  {
-  "type": "fx.remocn.release-teaser",
+  "type": "fx.release-teaser",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -17084,7 +17084,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/release-teaser",
+        "component": "release-teaser",
         "props": {
          "brandName": "Orvio",
          "release": "2",
@@ -17118,7 +17118,7 @@
   }
  },
  {
-  "type": "fx.remocn.launch-anything",
+  "type": "fx.launch-anything",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -17148,7 +17148,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/launch-anything",
+        "component": "launch-anything",
         "props": {
          "opening": "Good",
          "subject": "ideas",
@@ -17198,7 +17198,7 @@
   }
  },
  {
-  "type": "fx.remocn.launch-anything",
+  "type": "fx.launch-anything",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -17228,7 +17228,7 @@
           "unit": "frames"
          }
         },
-        "component": "remocn/launch-anything",
+        "component": "launch-anything",
         "props": {
          "opening": "Good",
          "subject": "ideas",
@@ -17278,7 +17278,7 @@
   }
  },
  {
-  "type": "fx.snapcn.laptop-frame",
+  "type": "fx.laptop-frame",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -17312,7 +17312,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "snapcn/laptop-frame",
+        "component": "laptop-frame",
         "props": {
          "screenSrc": "app:placeholders/screen-wide.svg",
          "entrance": "open",
@@ -17362,7 +17362,7 @@
   }
  },
  {
-  "type": "fx.snapcn.laptop-frame",
+  "type": "fx.laptop-frame",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -17396,7 +17396,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "snapcn/laptop-frame",
+        "component": "laptop-frame",
         "props": {
          "screenSrc": "app:placeholders/screen-wide.svg",
          "entrance": "open",
@@ -17446,7 +17446,7 @@
   }
  },
  {
-  "type": "fx.snapcn.phone-frame",
+  "type": "fx.phone-frame",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -17480,7 +17480,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "snapcn/phone-frame",
+        "component": "phone-frame",
         "props": {
          "variant": "showcase",
          "entrance": "float",
@@ -17528,7 +17528,7 @@
   }
  },
  {
-  "type": "fx.snapcn.phone-frame",
+  "type": "fx.phone-frame",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -17562,7 +17562,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "snapcn/phone-frame",
+        "component": "phone-frame",
         "props": {
          "variant": "showcase",
          "entrance": "float",
@@ -17610,7 +17610,7 @@
   }
  },
  {
-  "type": "fx.snapcn.screen-recording",
+  "type": "fx.screen-recording",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -17640,7 +17640,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/screen-recording",
+        "component": "screen-recording",
         "props": {
          "src": "app:placeholders/screen-wide.svg",
          "cropTop": 0.0,
@@ -17701,7 +17701,7 @@
   }
  },
  {
-  "type": "fx.snapcn.screen-recording",
+  "type": "fx.screen-recording",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -17731,7 +17731,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/screen-recording",
+        "component": "screen-recording",
         "props": {
          "src": "app:placeholders/screen-wide.svg",
          "cropTop": 0.0,
@@ -17792,7 +17792,7 @@
   }
  },
  {
-  "type": "fx.snapcn.announce-title",
+  "type": "fx.announce-title",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -17822,7 +17822,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/announce-title",
+        "component": "announce-title",
         "props": {
          "eyebrow": "Introducing",
          "title": "Acme 2.0",
@@ -17863,7 +17863,7 @@
   }
  },
  {
-  "type": "fx.snapcn.announce-title",
+  "type": "fx.announce-title",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -17893,7 +17893,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/announce-title",
+        "component": "announce-title",
         "props": {
          "eyebrow": "Introducing",
          "title": "Acme 2.0",
@@ -17934,7 +17934,7 @@
   }
  },
  {
-  "type": "fx.snapcn.punch-lines",
+  "type": "fx.punch-lines",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -17964,7 +17964,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/punch-lines",
+        "component": "punch-lines",
         "props": {
          "script": "Record it. / Edit it. | One take. | Ship.",
          "styles": "slide,punch",
@@ -18021,7 +18021,7 @@
   }
  },
  {
-  "type": "fx.snapcn.punch-lines",
+  "type": "fx.punch-lines",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -18051,7 +18051,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/punch-lines",
+        "component": "punch-lines",
         "props": {
          "script": "Record it. / Edit it. | One take. | Ship.",
          "styles": "slide,punch",
@@ -18108,7 +18108,7 @@
   }
  },
  {
-  "type": "fx.snapcn.text-highlight",
+  "type": "fx.text-highlight",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -18138,7 +18138,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/text-highlight",
+        "component": "text-highlight",
         "props": {
          "before": "Powered by ",
          "highlight": "Northwind",
@@ -18194,7 +18194,7 @@
   }
  },
  {
-  "type": "fx.snapcn.text-highlight",
+  "type": "fx.text-highlight",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -18224,7 +18224,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/text-highlight",
+        "component": "text-highlight",
         "props": {
          "before": "Powered by ",
          "highlight": "Northwind",
@@ -18280,7 +18280,7 @@
   }
  },
  {
-  "type": "fx.snapcn.status-cycle",
+  "type": "fx.status-cycle",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -18310,7 +18310,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/status-cycle",
+        "component": "status-cycle",
         "props": {
          "prefix": "Acme is",
          "statuses": "recording, editing, exporting, live",
@@ -18354,7 +18354,7 @@
   }
  },
  {
-  "type": "fx.snapcn.status-cycle",
+  "type": "fx.status-cycle",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -18384,7 +18384,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/status-cycle",
+        "component": "status-cycle",
         "props": {
          "prefix": "Acme is",
          "statuses": "recording, editing, exporting, live",
@@ -18428,7 +18428,7 @@
   }
  },
  {
-  "type": "fx.snapcn.logo-assemble",
+  "type": "fx.logo-assemble",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -18458,7 +18458,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/logo-assemble",
+        "component": "logo-assemble",
         "props": {
          "brandName": "Acme",
          "middleText": "Product demos, made simple",
@@ -18523,7 +18523,7 @@
   }
  },
  {
-  "type": "fx.snapcn.logo-assemble",
+  "type": "fx.logo-assemble",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -18553,7 +18553,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/logo-assemble",
+        "component": "logo-assemble",
         "props": {
          "brandName": "Acme",
          "middleText": "Product demos, made simple",
@@ -18618,7 +18618,7 @@
   }
  },
  {
-  "type": "fx.snapcn.logo-drift",
+  "type": "fx.logo-drift",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -18648,7 +18648,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/logo-drift",
+        "component": "logo-drift",
         "props": {
          "headline": "Built for the stack you already use.",
          "pullback": 0.1762,
@@ -18761,7 +18761,7 @@
   }
  },
  {
-  "type": "fx.snapcn.logo-drift",
+  "type": "fx.logo-drift",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -18791,7 +18791,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/logo-drift",
+        "component": "logo-drift",
         "props": {
          "headline": "Built for the stack you already use.",
          "pullback": 0.1762,
@@ -18904,7 +18904,7 @@
   }
  },
  {
-  "type": "fx.snapcn.hero-launch",
+  "type": "fx.hero-launch",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -18934,7 +18934,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/hero-launch",
+        "component": "hero-launch",
         "props": {
          "image1": "app:placeholders/screen-wide.svg",
          "image2": "app:backdrops/aurora.jpg",
@@ -18975,7 +18975,7 @@
   }
  },
  {
-  "type": "fx.snapcn.hero-launch",
+  "type": "fx.hero-launch",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -19005,7 +19005,7 @@
           "unit": "frames"
          }
         },
-        "component": "snapcn/hero-launch",
+        "component": "hero-launch",
         "props": {
          "image1": "app:placeholders/screen-wide.svg",
          "image2": "app:backdrops/aurora.jpg",
@@ -19046,7 +19046,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.stat-card",
+  "type": "fx.stat-card",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -19076,7 +19076,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/stat-card",
+        "component": "stat-card",
         "props": {
          "value": 98.0,
          "suffix": "%",
@@ -19113,7 +19113,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.stat-card",
+  "type": "fx.stat-card",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -19143,7 +19143,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/stat-card",
+        "component": "stat-card",
         "props": {
          "value": 98.0,
          "suffix": "%",
@@ -19180,7 +19180,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.metric-ticker",
+  "type": "fx.metric-ticker",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -19210,7 +19210,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/metric-ticker",
+        "component": "metric-ticker",
         "props": {
          "metrics": [
           {
@@ -19284,7 +19284,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.metric-ticker",
+  "type": "fx.metric-ticker",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -19314,7 +19314,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/metric-ticker",
+        "component": "metric-ticker",
         "props": {
          "metrics": [
           {
@@ -19388,7 +19388,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.funnel-chart",
+  "type": "fx.funnel-chart",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -19422,7 +19422,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remotion-ui/funnel-chart",
+        "component": "funnel-chart",
         "props": {
          "stages": [
           {
@@ -19477,7 +19477,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.funnel-chart",
+  "type": "fx.funnel-chart",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -19511,7 +19511,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remotion-ui/funnel-chart",
+        "component": "funnel-chart",
         "props": {
          "stages": [
           {
@@ -19566,7 +19566,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.donut-chart",
+  "type": "fx.donut-chart",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -19600,7 +19600,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remotion-ui/donut-chart",
+        "component": "donut-chart",
         "props": {
          "segments": [
           {
@@ -19668,7 +19668,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.donut-chart",
+  "type": "fx.donut-chart",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -19702,7 +19702,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remotion-ui/donut-chart",
+        "component": "donut-chart",
         "props": {
          "segments": [
           {
@@ -19770,7 +19770,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.comparison-bars",
+  "type": "fx.comparison-bars",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -19804,7 +19804,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remotion-ui/comparison-bars",
+        "component": "comparison-bars",
         "props": {
          "rows": [
           {
@@ -19864,7 +19864,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.comparison-bars",
+  "type": "fx.comparison-bars",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -19898,7 +19898,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remotion-ui/comparison-bars",
+        "component": "comparison-bars",
         "props": {
          "rows": [
           {
@@ -19958,7 +19958,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.bar-chart-race",
+  "type": "fx.bar-chart-race",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -19992,7 +19992,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remotion-ui/bar-chart-race",
+        "component": "bar-chart-race",
         "props": {
          "series": [
           {
@@ -20120,7 +20120,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.bar-chart-race",
+  "type": "fx.bar-chart-race",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -20154,7 +20154,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remotion-ui/bar-chart-race",
+        "component": "bar-chart-race",
         "props": {
          "series": [
           {
@@ -20282,7 +20282,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.gauge-dial",
+  "type": "fx.gauge-dial",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -20312,7 +20312,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/gauge-dial",
+        "component": "gauge-dial",
         "props": {
          "value": 78.0,
          "min": 0.0,
@@ -20351,7 +20351,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.gauge-dial",
+  "type": "fx.gauge-dial",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -20381,7 +20381,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/gauge-dial",
+        "component": "gauge-dial",
         "props": {
          "value": 78.0,
          "min": 0.0,
@@ -20420,7 +20420,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.data-story",
+  "type": "fx.data-story",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -20450,7 +20450,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/data-story",
+        "component": "data-story",
         "props": {
          "title": "Quarterly reach by channel",
          "subtitle": "Short-form climbed while long-form held attention",
@@ -20569,7 +20569,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.data-story",
+  "type": "fx.data-story",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -20599,7 +20599,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/data-story",
+        "component": "data-story",
         "props": {
          "title": "Quarterly reach by channel",
          "subtitle": "Short-form climbed while long-form held attention",
@@ -20718,7 +20718,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.logo-reveal",
+  "type": "fx.logo-reveal",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -20748,7 +20748,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/logo-reveal",
+        "component": "logo-reveal",
         "props": {
          "pathD": "M 100 20 L 170 60 L 170 140 L 100 180 L 30 140 L 30 60 Z M 100 64 L 138 86 L 138 130 L 100 152 L 62 130 L 62 86 Z",
          "wordmark": "Acme",
@@ -20775,7 +20775,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.logo-reveal",
+  "type": "fx.logo-reveal",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -20805,7 +20805,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/logo-reveal",
+        "component": "logo-reveal",
         "props": {
          "pathD": "M 100 20 L 170 60 L 170 140 L 100 180 L 30 140 L 30 60 Z M 100 64 L 138 86 L 138 130 L 100 152 L 62 130 L 62 86 Z",
          "wordmark": "Acme",
@@ -20832,7 +20832,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.pricing-card",
+  "type": "fx.pricing-card",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -20862,7 +20862,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/pricing-card",
+        "component": "pricing-card",
         "props": {
          "tier": "Studio",
          "price": 32.0,
@@ -20904,7 +20904,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.pricing-card",
+  "type": "fx.pricing-card",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -20934,7 +20934,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/pricing-card",
+        "component": "pricing-card",
         "props": {
          "tier": "Studio",
          "price": 32.0,
@@ -20976,7 +20976,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.comparison-table",
+  "type": "fx.comparison-table",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -21006,7 +21006,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/comparison-table",
+        "component": "comparison-table",
         "props": {
          "columns": [
           "Free",
@@ -21094,7 +21094,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.comparison-table",
+  "type": "fx.comparison-table",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -21124,7 +21124,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/comparison-table",
+        "component": "comparison-table",
         "props": {
          "columns": [
           "Free",
@@ -21212,7 +21212,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.changelog-entry",
+  "type": "fx.changelog-entry",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -21242,7 +21242,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/changelog-entry",
+        "component": "changelog-entry",
         "props": {
          "changes": [
           {
@@ -21292,7 +21292,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.changelog-entry",
+  "type": "fx.changelog-entry",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -21322,7 +21322,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/changelog-entry",
+        "component": "changelog-entry",
         "props": {
          "changes": [
           {
@@ -21372,7 +21372,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.logo-wall",
+  "type": "fx.logo-wall",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -21402,7 +21402,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/logo-wall",
+        "component": "logo-wall",
         "props": {
          "logos": [
           {
@@ -21471,7 +21471,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.logo-wall",
+  "type": "fx.logo-wall",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -21501,7 +21501,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/logo-wall",
+        "component": "logo-wall",
         "props": {
          "logos": [
           {
@@ -21570,7 +21570,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.end-card",
+  "type": "fx.end-card",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -21600,7 +21600,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/end-card",
+        "component": "end-card",
         "props": {
          "title": "Ready to try it?",
          "subtitle": "Start free. No credit card needed.",
@@ -21638,7 +21638,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.end-card",
+  "type": "fx.end-card",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -21668,7 +21668,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/end-card",
+        "component": "end-card",
         "props": {
          "title": "Ready to try it?",
          "subtitle": "Start free. No credit card needed.",
@@ -21706,7 +21706,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.code-reveal",
+  "type": "fx.code-reveal",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -21736,7 +21736,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/code-reveal",
+        "component": "code-reveal",
         "props": {
          "code": "export async function checkout(cart: Cart) {\n  const total = cart.items.reduce((sum, item) => sum + item.price, 0);\n  const order = await api.orders.create({ items: cart.items, total });\n\n  return order.id;\n}",
          "highlightedLines": [
@@ -21772,7 +21772,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.code-reveal",
+  "type": "fx.code-reveal",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -21802,7 +21802,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/code-reveal",
+        "component": "code-reveal",
         "props": {
          "code": "export async function checkout(cart: Cart) {\n  const total = cart.items.reduce((sum, item) => sum + item.price, 0);\n  const order = await api.orders.create({ items: cart.items, total });\n\n  return order.id;\n}",
          "highlightedLines": [
@@ -21838,7 +21838,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.code-diff-wipe",
+  "type": "fx.code-diff-wipe",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -21868,7 +21868,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/code-diff-wipe",
+        "component": "code-diff-wipe",
         "props": {
          "before": "export function render(scene) {\n  const frames = scene.frames;\n  return frames.map(draw);\n}",
          "after": "export function render(scene, options) {\n  const frames = scene.frames;\n  const scale = options.scale ?? 1;\n  return frames.map((frame) => draw(frame, scale));\n}",
@@ -21900,7 +21900,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.code-diff-wipe",
+  "type": "fx.code-diff-wipe",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -21930,7 +21930,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/code-diff-wipe",
+        "component": "code-diff-wipe",
         "props": {
          "before": "export function render(scene) {\n  const frames = scene.frames;\n  return frames.map(draw);\n}",
          "after": "export function render(scene, options) {\n  const frames = scene.frames;\n  const scale = options.scale ?? 1;\n  return frames.map((frame) => draw(frame, scale));\n}",
@@ -21962,7 +21962,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.kanban-move",
+  "type": "fx.kanban-move",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -21992,7 +21992,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/kanban-move",
+        "component": "kanban-move",
         "props": {
          "columns": [
           "Backlog",
@@ -22065,7 +22065,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.kanban-move",
+  "type": "fx.kanban-move",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -22095,7 +22095,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/kanban-move",
+        "component": "kanban-move",
         "props": {
          "columns": [
           "Backlog",
@@ -22168,7 +22168,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.file-tree-reveal",
+  "type": "fx.file-tree-reveal",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -22198,7 +22198,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/file-tree-reveal",
+        "component": "file-tree-reveal",
         "props": {
          "nodes": [
           "src/components/cart.tsx",
@@ -22238,7 +22238,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.file-tree-reveal",
+  "type": "fx.file-tree-reveal",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -22268,7 +22268,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/file-tree-reveal",
+        "component": "file-tree-reveal",
         "props": {
          "nodes": [
           "src/components/cart.tsx",
@@ -22308,7 +22308,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.drag-drop-flow",
+  "type": "fx.drag-drop-flow",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -22338,7 +22338,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/drag-drop-flow",
+        "component": "drag-drop-flow",
         "props": {
          "fileName": "hero-take.mp4",
          "fileSize": "48.2 MB",
@@ -22378,7 +22378,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.drag-drop-flow",
+  "type": "fx.drag-drop-flow",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -22408,7 +22408,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/drag-drop-flow",
+        "component": "drag-drop-flow",
         "props": {
          "fileName": "hero-take.mp4",
          "fileSize": "48.2 MB",
@@ -22448,7 +22448,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.commit-graph",
+  "type": "fx.commit-graph",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -22478,7 +22478,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/commit-graph",
+        "component": "commit-graph",
         "props": {
          "commits": [
           {
@@ -22557,7 +22557,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.commit-graph",
+  "type": "fx.commit-graph",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -22587,7 +22587,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/commit-graph",
+        "component": "commit-graph",
         "props": {
          "commits": [
           {
@@ -22666,7 +22666,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.notification-stack",
+  "type": "fx.notification-stack",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -22696,7 +22696,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/notification-stack",
+        "component": "notification-stack",
         "props": {
          "toasts": [
           {
@@ -22751,7 +22751,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.notification-stack",
+  "type": "fx.notification-stack",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -22781,7 +22781,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/notification-stack",
+        "component": "notification-stack",
         "props": {
          "toasts": [
           {
@@ -22836,7 +22836,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.device-mockup-zoom",
+  "type": "fx.device-mockup-zoom",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -22866,7 +22866,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/device-mockup-zoom",
+        "component": "device-mockup-zoom",
         "props": {
          "textColor": "#f8fafc",
          "title": "",
@@ -22894,7 +22894,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.device-mockup-zoom",
+  "type": "fx.device-mockup-zoom",
   "filled": true,
   "inputs": {
    "clip": {
@@ -22909,7 +22909,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -22989,7 +22989,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -23010,7 +23010,7 @@
           }
          ],
          "wrapper": {
-          "component": "remotion-ui/device-mockup-zoom",
+          "component": "device-mockup-zoom",
           "props": {
            "textColor": "#f8fafc",
            "title": "",
@@ -23041,7 +23041,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.multi-device-lineup",
+  "type": "fx.multi-device-lineup",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -23075,7 +23075,7 @@
          "width": 1920,
          "height": 1080
         },
-        "component": "remotion-ui/multi-device-lineup",
+        "component": "multi-device-lineup",
         "props": {
          "scale": 1.6,
          "staggerInFrames": 9.0,
@@ -23105,7 +23105,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.multi-device-lineup",
+  "type": "fx.multi-device-lineup",
   "filled": true,
   "inputs": {
    "clip": {
@@ -23120,7 +23120,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -23200,7 +23200,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -23221,7 +23221,7 @@
           }
          ],
          "wrapper": {
-          "component": "remotion-ui/multi-device-lineup",
+          "component": "multi-device-lineup",
           "props": {
            "scale": 1.6,
            "staggerInFrames": 9.0,
@@ -23257,7 +23257,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.handwriting-text",
+  "type": "fx.handwriting-text",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -23287,7 +23287,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/handwriting-text",
+        "component": "handwriting-text",
         "props": {
          "text": "Signed by hand",
          "penSize": 0.14,
@@ -23321,7 +23321,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.handwriting-text",
+  "type": "fx.handwriting-text",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -23351,7 +23351,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/handwriting-text",
+        "component": "handwriting-text",
         "props": {
          "text": "Signed by hand",
          "penSize": 0.14,
@@ -23385,7 +23385,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.neon-flicker-text",
+  "type": "fx.neon-flicker-text",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -23415,7 +23415,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/neon-flicker-text",
+        "component": "neon-flicker-text",
         "props": {
          "text": "Open all night",
          "glowColor": "#f472b6",
@@ -23452,7 +23452,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.neon-flicker-text",
+  "type": "fx.neon-flicker-text",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -23482,7 +23482,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/neon-flicker-text",
+        "component": "neon-flicker-text",
         "props": {
          "text": "Open all night",
          "glowColor": "#f472b6",
@@ -23519,7 +23519,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.text-mask-video",
+  "type": "fx.text-mask-video",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -23549,7 +23549,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/text-mask-video",
+        "component": "text-mask-video",
         "props": {
          "text": "LAUNCH\nDAY",
          "lineHeight": 0.98,
@@ -23593,7 +23593,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.text-mask-video",
+  "type": "fx.text-mask-video",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -23623,7 +23623,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/text-mask-video",
+        "component": "text-mask-video",
         "props": {
          "text": "LAUNCH\nDAY",
          "lineHeight": 0.98,
@@ -23667,7 +23667,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.aurora-bg",
+  "type": "fx.aurora-bg",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -23697,7 +23697,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/aurora-bg",
+        "component": "aurora-bg",
         "props": {
          "backgroundColor": "#050505",
          "colors": [
@@ -23745,7 +23745,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.aurora-bg",
+  "type": "fx.aurora-bg",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -23775,7 +23775,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/aurora-bg",
+        "component": "aurora-bg",
         "props": {
          "backgroundColor": "#050505",
          "colors": [
@@ -23823,7 +23823,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.particle-field",
+  "type": "fx.particle-field",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -23853,7 +23853,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/particle-field",
+        "component": "particle-field",
         "props": {
          "backgroundColor": "#05070f",
          "color": "#e8b86d",
@@ -23886,7 +23886,7 @@
   }
  },
  {
-  "type": "fx.remotion-ui.particle-field",
+  "type": "fx.particle-field",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -23916,7 +23916,7 @@
           "unit": "frames"
          }
         },
-        "component": "remotion-ui/particle-field",
+        "component": "particle-field",
         "props": {
          "backgroundColor": "#05070f",
          "color": "#e8b86d",
@@ -23949,7 +23949,7 @@
   }
  },
  {
-  "type": "transition.core.fade",
+  "type": "transition.fade",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -23970,7 +23970,7 @@
   }
  },
  {
-  "type": "transition.core.fade",
+  "type": "transition.fade",
   "filled": true,
   "inputs": {
    "a": {
@@ -23985,7 +23985,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -24027,7 +24027,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -24084,7 +24084,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15,
          "params": {}
         },
@@ -24110,7 +24110,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -24138,7 +24138,7 @@
         "from": 60,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15,
          "params": {}
         },
@@ -24164,7 +24164,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -24203,7 +24203,7 @@
   }
  },
  {
-  "type": "transition.core.slide",
+  "type": "transition.slide",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -24224,7 +24224,7 @@
   }
  },
  {
-  "type": "transition.core.slide",
+  "type": "transition.slide",
   "filled": true,
   "inputs": {
    "a": {
@@ -24239,7 +24239,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -24281,7 +24281,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -24338,7 +24338,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "core/slide",
+         "kind": "slide",
          "durationInFrames": 20,
          "params": {
           "direction": "from-right"
@@ -24366,7 +24366,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -24394,7 +24394,7 @@
         "from": 55,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/slide",
+         "kind": "slide",
          "durationInFrames": 20,
          "params": {
           "direction": "from-right"
@@ -24422,7 +24422,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -24461,7 +24461,7 @@
   }
  },
  {
-  "type": "transition.core.wipe",
+  "type": "transition.wipe",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -24482,7 +24482,7 @@
   }
  },
  {
-  "type": "transition.core.wipe",
+  "type": "transition.wipe",
   "filled": true,
   "inputs": {
    "a": {
@@ -24497,7 +24497,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -24539,7 +24539,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -24596,7 +24596,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "core/wipe",
+         "kind": "wipe",
          "durationInFrames": 20,
          "params": {
           "direction": "from-left"
@@ -24624,7 +24624,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -24652,7 +24652,7 @@
         "from": 55,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/wipe",
+         "kind": "wipe",
          "durationInFrames": 20,
          "params": {
           "direction": "from-left"
@@ -24680,7 +24680,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -24719,7 +24719,7 @@
   }
  },
  {
-  "type": "transition.core.flip",
+  "type": "transition.flip",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -24740,7 +24740,7 @@
   }
  },
  {
-  "type": "transition.core.flip",
+  "type": "transition.flip",
   "filled": true,
   "inputs": {
    "a": {
@@ -24755,7 +24755,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -24797,7 +24797,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -24854,7 +24854,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "core/flip",
+         "kind": "flip",
          "durationInFrames": 24,
          "params": {
           "direction": "from-right"
@@ -24882,7 +24882,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -24910,7 +24910,7 @@
         "from": 51,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/flip",
+         "kind": "flip",
          "durationInFrames": 24,
          "params": {
           "direction": "from-right"
@@ -24938,7 +24938,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -24977,7 +24977,7 @@
   }
  },
  {
-  "type": "transition.core.clock-wipe",
+  "type": "transition.clock-wipe",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -24998,7 +24998,7 @@
   }
  },
  {
-  "type": "transition.core.clock-wipe",
+  "type": "transition.clock-wipe",
   "filled": true,
   "inputs": {
    "a": {
@@ -25013,7 +25013,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -25055,7 +25055,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -25112,7 +25112,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "core/clock-wipe",
+         "kind": "clock-wipe",
          "durationInFrames": 24,
          "params": {}
         },
@@ -25138,7 +25138,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -25166,7 +25166,7 @@
         "from": 51,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/clock-wipe",
+         "kind": "clock-wipe",
          "durationInFrames": 24,
          "params": {}
         },
@@ -25192,7 +25192,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -25231,7 +25231,7 @@
   }
  },
  {
-  "type": "transition.core.iris",
+  "type": "transition.iris",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -25252,7 +25252,7 @@
   }
  },
  {
-  "type": "transition.core.iris",
+  "type": "transition.iris",
   "filled": true,
   "inputs": {
    "a": {
@@ -25267,7 +25267,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -25309,7 +25309,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -25366,7 +25366,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "core/iris",
+         "kind": "iris",
          "durationInFrames": 24,
          "params": {}
         },
@@ -25392,7 +25392,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -25420,7 +25420,7 @@
         "from": 51,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/iris",
+         "kind": "iris",
          "durationInFrames": 24,
          "params": {}
         },
@@ -25446,7 +25446,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -25485,7 +25485,7 @@
   }
  },
  {
-  "type": "transition.remocn.whip-pan",
+  "type": "transition.whip-pan",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -25506,7 +25506,7 @@
   }
  },
  {
-  "type": "transition.remocn.whip-pan",
+  "type": "transition.whip-pan",
   "filled": true,
   "inputs": {
    "a": {
@@ -25521,7 +25521,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -25563,7 +25563,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -25620,7 +25620,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/whip-pan",
+         "kind": "whip-pan",
          "durationInFrames": 74,
          "params": {
           "direction": "left",
@@ -25649,7 +25649,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -25677,7 +25677,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/whip-pan",
+         "kind": "whip-pan",
          "durationInFrames": 74,
          "params": {
           "direction": "left",
@@ -25706,7 +25706,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -25751,7 +25751,7 @@
   }
  },
  {
-  "type": "transition.remocn.push-through",
+  "type": "transition.push-through",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -25772,7 +25772,7 @@
   }
  },
  {
-  "type": "transition.remocn.push-through",
+  "type": "transition.push-through",
   "filled": true,
   "inputs": {
    "a": {
@@ -25787,7 +25787,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -25829,7 +25829,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -25886,7 +25886,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/push-through",
+         "kind": "push-through",
          "durationInFrames": 74,
          "params": {
           "zoom": 2.4,
@@ -25915,7 +25915,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -25943,7 +25943,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/push-through",
+         "kind": "push-through",
          "durationInFrames": 74,
          "params": {
           "zoom": 2.4,
@@ -25972,7 +25972,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -26017,7 +26017,7 @@
   }
  },
  {
-  "type": "transition.remocn.zoom-blur",
+  "type": "transition.zoom-blur",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -26038,7 +26038,7 @@
   }
  },
  {
-  "type": "transition.remocn.zoom-blur",
+  "type": "transition.zoom-blur",
   "filled": true,
   "inputs": {
    "a": {
@@ -26053,7 +26053,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -26095,7 +26095,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -26152,7 +26152,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/zoom-blur",
+         "kind": "zoom-blur",
          "durationInFrames": 74,
          "params": {
           "blur": 16.0,
@@ -26181,7 +26181,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -26209,7 +26209,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/zoom-blur",
+         "kind": "zoom-blur",
          "durationInFrames": 74,
          "params": {
           "blur": 16.0,
@@ -26238,7 +26238,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -26283,7 +26283,7 @@
   }
  },
  {
-  "type": "transition.remocn.focus-pull",
+  "type": "transition.focus-pull",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -26304,7 +26304,7 @@
   }
  },
  {
-  "type": "transition.remocn.focus-pull",
+  "type": "transition.focus-pull",
   "filled": true,
   "inputs": {
    "a": {
@@ -26319,7 +26319,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -26361,7 +26361,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -26418,7 +26418,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/focus-pull",
+         "kind": "focus-pull",
          "durationInFrames": 74,
          "params": {
           "blur": 16.0
@@ -26446,7 +26446,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -26474,7 +26474,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/focus-pull",
+         "kind": "focus-pull",
          "durationInFrames": 74,
          "params": {
           "blur": 16.0
@@ -26502,7 +26502,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -26547,7 +26547,7 @@
   }
  },
  {
-  "type": "transition.remocn.lens-zoom",
+  "type": "transition.lens-zoom",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -26568,7 +26568,7 @@
   }
  },
  {
-  "type": "transition.remocn.lens-zoom",
+  "type": "transition.lens-zoom",
   "filled": true,
   "inputs": {
    "a": {
@@ -26583,7 +26583,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -26625,7 +26625,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -26682,7 +26682,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/lens-zoom",
+         "kind": "lens-zoom",
          "durationInFrames": 74,
          "params": {
           "lensSteps": 9.0,
@@ -26714,7 +26714,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -26742,7 +26742,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/lens-zoom",
+         "kind": "lens-zoom",
          "durationInFrames": 74,
          "params": {
           "lensSteps": 9.0,
@@ -26774,7 +26774,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -26819,7 +26819,7 @@
   }
  },
  {
-  "type": "transition.remocn.ripple-zoom",
+  "type": "transition.ripple-zoom",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -26840,7 +26840,7 @@
   }
  },
  {
-  "type": "transition.remocn.ripple-zoom",
+  "type": "transition.ripple-zoom",
   "filled": true,
   "inputs": {
    "a": {
@@ -26855,7 +26855,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -26897,7 +26897,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -26954,7 +26954,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/ripple-zoom",
+         "kind": "ripple-zoom",
          "durationInFrames": 74,
          "params": {
           "zoom": 4.0,
@@ -26992,7 +26992,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -27020,7 +27020,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/ripple-zoom",
+         "kind": "ripple-zoom",
          "durationInFrames": 74,
          "params": {
           "zoom": 4.0,
@@ -27058,7 +27058,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -27103,7 +27103,7 @@
   }
  },
  {
-  "type": "transition.remocn.wave-wipe",
+  "type": "transition.wave-wipe",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -27124,7 +27124,7 @@
   }
  },
  {
-  "type": "transition.remocn.wave-wipe",
+  "type": "transition.wave-wipe",
   "filled": true,
   "inputs": {
    "a": {
@@ -27139,7 +27139,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -27181,7 +27181,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -27238,7 +27238,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/wave-wipe",
+         "kind": "wave-wipe",
          "durationInFrames": 74,
          "params": {
           "intensity": 0.2,
@@ -27276,7 +27276,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -27304,7 +27304,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/wave-wipe",
+         "kind": "wave-wipe",
          "durationInFrames": 74,
          "params": {
           "intensity": 0.2,
@@ -27342,7 +27342,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -27387,7 +27387,7 @@
   }
  },
  {
-  "type": "transition.remocn.smoke-dissolve",
+  "type": "transition.smoke-dissolve",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -27408,7 +27408,7 @@
   }
  },
  {
-  "type": "transition.remocn.smoke-dissolve",
+  "type": "transition.smoke-dissolve",
   "filled": true,
   "inputs": {
    "a": {
@@ -27423,7 +27423,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -27465,7 +27465,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -27522,7 +27522,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/smoke-dissolve",
+         "kind": "smoke-dissolve",
          "durationInFrames": 74,
          "params": {
           "ringColor": "#8f88ae",
@@ -27555,7 +27555,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -27583,7 +27583,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/smoke-dissolve",
+         "kind": "smoke-dissolve",
          "durationInFrames": 74,
          "params": {
           "ringColor": "#8f88ae",
@@ -27616,7 +27616,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -27661,7 +27661,7 @@
   }
  },
  {
-  "type": "transition.remocn.glitch-cut",
+  "type": "transition.glitch-cut",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -27682,7 +27682,7 @@
   }
  },
  {
-  "type": "transition.remocn.glitch-cut",
+  "type": "transition.glitch-cut",
   "filled": true,
   "inputs": {
    "a": {
@@ -27697,7 +27697,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -27739,7 +27739,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -27796,7 +27796,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/glitch-cut",
+         "kind": "glitch-cut",
          "durationInFrames": 74,
          "params": {
           "intensity": 1.0,
@@ -27827,7 +27827,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -27855,7 +27855,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/glitch-cut",
+         "kind": "glitch-cut",
          "durationInFrames": 74,
          "params": {
           "intensity": 1.0,
@@ -27886,7 +27886,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -27931,7 +27931,7 @@
   }
  },
  {
-  "type": "transition.remocn.page-turn",
+  "type": "transition.page-turn",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -27952,7 +27952,7 @@
   }
  },
  {
-  "type": "transition.remocn.page-turn",
+  "type": "transition.page-turn",
   "filled": true,
   "inputs": {
    "a": {
@@ -27967,7 +27967,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -28009,7 +28009,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -28066,7 +28066,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/page-turn",
+         "kind": "page-turn",
          "durationInFrames": 74,
          "params": {
           "angle": -7.0,
@@ -28095,7 +28095,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -28123,7 +28123,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/page-turn",
+         "kind": "page-turn",
          "durationInFrames": 74,
          "params": {
           "angle": -7.0,
@@ -28152,7 +28152,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -28197,7 +28197,7 @@
   }
  },
  {
-  "type": "transition.remocn.grain-dissolve",
+  "type": "transition.grain-dissolve",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -28218,7 +28218,7 @@
   }
  },
  {
-  "type": "transition.remocn.grain-dissolve",
+  "type": "transition.grain-dissolve",
   "filled": true,
   "inputs": {
    "a": {
@@ -28233,7 +28233,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -28275,7 +28275,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -28332,7 +28332,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/grain-dissolve",
+         "kind": "grain-dissolve",
          "durationInFrames": 74,
          "params": {
           "shape": "blob",
@@ -28369,7 +28369,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -28397,7 +28397,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/grain-dissolve",
+         "kind": "grain-dissolve",
          "durationInFrames": 74,
          "params": {
           "shape": "blob",
@@ -28434,7 +28434,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -28479,7 +28479,7 @@
   }
  },
  {
-  "type": "transition.remocn.dither-dissolve",
+  "type": "transition.dither-dissolve",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -28500,7 +28500,7 @@
   }
  },
  {
-  "type": "transition.remocn.dither-dissolve",
+  "type": "transition.dither-dissolve",
   "filled": true,
   "inputs": {
    "a": {
@@ -28515,7 +28515,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -28557,7 +28557,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -28614,7 +28614,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/dither-dissolve",
+         "kind": "dither-dissolve",
          "durationInFrames": 74,
          "params": {
           "shape": "simplex",
@@ -28645,7 +28645,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -28673,7 +28673,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/dither-dissolve",
+         "kind": "dither-dissolve",
          "durationInFrames": 74,
          "params": {
           "shape": "simplex",
@@ -28704,7 +28704,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -28749,7 +28749,7 @@
   }
  },
  {
-  "type": "transition.remocn.swirl-dissolve",
+  "type": "transition.swirl-dissolve",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -28770,7 +28770,7 @@
   }
  },
  {
-  "type": "transition.remocn.swirl-dissolve",
+  "type": "transition.swirl-dissolve",
   "filled": true,
   "inputs": {
    "a": {
@@ -28785,7 +28785,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -28827,7 +28827,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -28884,7 +28884,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/swirl-dissolve",
+         "kind": "swirl-dissolve",
          "durationInFrames": 74,
          "params": {
           "bandCount": 10.0,
@@ -28920,7 +28920,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -28948,7 +28948,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/swirl-dissolve",
+         "kind": "swirl-dissolve",
          "durationInFrames": 74,
          "params": {
           "bandCount": 10.0,
@@ -28984,7 +28984,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -29029,7 +29029,7 @@
   }
  },
  {
-  "type": "transition.remocn.particle-dissolve",
+  "type": "transition.particle-dissolve",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -29050,7 +29050,7 @@
   }
  },
  {
-  "type": "transition.remocn.particle-dissolve",
+  "type": "transition.particle-dissolve",
   "filled": true,
   "inputs": {
    "a": {
@@ -29065,7 +29065,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -29107,7 +29107,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -29164,7 +29164,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/particle-dissolve",
+         "kind": "particle-dissolve",
          "durationInFrames": 74,
          "params": {
           "particleSize": 4.0,
@@ -29197,7 +29197,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -29225,7 +29225,7 @@
         "from": 1,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/particle-dissolve",
+         "kind": "particle-dissolve",
          "durationInFrames": 74,
          "params": {
           "particleSize": 4.0,
@@ -29258,7 +29258,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -29303,7 +29303,7 @@
   }
  },
  {
-  "type": "transition.remotion-ui.grid-pixelate-wipe",
+  "type": "transition.grid-pixelate-wipe",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -29324,7 +29324,7 @@
   }
  },
  {
-  "type": "transition.remotion-ui.grid-pixelate-wipe",
+  "type": "transition.grid-pixelate-wipe",
   "filled": true,
   "inputs": {
    "a": {
@@ -29339,7 +29339,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -29381,7 +29381,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -29438,7 +29438,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remotion-ui/grid-pixelate-wipe",
+         "kind": "grid-pixelate-wipe",
          "durationInFrames": 26,
          "params": {
           "cols": 12.0,
@@ -29470,7 +29470,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -29498,7 +29498,7 @@
         "from": 49,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remotion-ui/grid-pixelate-wipe",
+         "kind": "grid-pixelate-wipe",
          "durationInFrames": 26,
          "params": {
           "cols": 12.0,
@@ -29530,7 +29530,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -29569,7 +29569,7 @@
   }
  },
  {
-  "type": "transition.remotion-ui.frosted-glass-wipe",
+  "type": "transition.frosted-glass-wipe",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -29590,7 +29590,7 @@
   }
  },
  {
-  "type": "transition.remotion-ui.frosted-glass-wipe",
+  "type": "transition.frosted-glass-wipe",
   "filled": true,
   "inputs": {
    "a": {
@@ -29605,7 +29605,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -29647,7 +29647,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -29704,7 +29704,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remotion-ui/frosted-glass-wipe",
+         "kind": "frosted-glass-wipe",
          "durationInFrames": 24,
          "params": {
           "blur": 20.0,
@@ -29735,7 +29735,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -29763,7 +29763,7 @@
         "from": 51,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remotion-ui/frosted-glass-wipe",
+         "kind": "frosted-glass-wipe",
          "durationInFrames": 24,
          "params": {
           "blur": 20.0,
@@ -29794,7 +29794,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -29833,7 +29833,7 @@
   }
  },
  {
-  "type": "transition.remotion-ui.chromatic-aberration-wipe",
+  "type": "transition.chromatic-aberration-wipe",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -29854,7 +29854,7 @@
   }
  },
  {
-  "type": "transition.remotion-ui.chromatic-aberration-wipe",
+  "type": "transition.chromatic-aberration-wipe",
   "filled": true,
   "inputs": {
    "a": {
@@ -29869,7 +29869,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -29911,7 +29911,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -29968,7 +29968,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remotion-ui/chromatic-aberration-wipe",
+         "kind": "chromatic-aberration-wipe",
          "durationInFrames": 14,
          "params": {
           "intensity": 12.0,
@@ -29998,7 +29998,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -30026,7 +30026,7 @@
         "from": 61,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remotion-ui/chromatic-aberration-wipe",
+         "kind": "chromatic-aberration-wipe",
          "durationInFrames": 14,
          "params": {
           "intensity": 12.0,
@@ -30056,7 +30056,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -30095,7 +30095,7 @@
   }
  },
  {
-  "type": "transition.remotion-ui.transition-blinds",
+  "type": "transition.transition-blinds",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -30116,7 +30116,7 @@
   }
  },
  {
-  "type": "transition.remotion-ui.transition-blinds",
+  "type": "transition.transition-blinds",
   "filled": true,
   "inputs": {
    "a": {
@@ -30131,7 +30131,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -30173,7 +30173,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -30230,7 +30230,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remotion-ui/transition-blinds",
+         "kind": "transition-blinds",
          "durationInFrames": 24,
          "params": {
           "orientation": "horizontal",
@@ -30262,7 +30262,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -30290,7 +30290,7 @@
         "from": 51,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remotion-ui/transition-blinds",
+         "kind": "transition-blinds",
          "durationInFrames": 24,
          "params": {
           "orientation": "horizontal",
@@ -30322,7 +30322,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -30361,7 +30361,7 @@
   }
  },
  {
-  "type": "transition.remotion-ui.transition-morph-shape",
+  "type": "transition.transition-morph-shape",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -30382,7 +30382,7 @@
   }
  },
  {
-  "type": "transition.remotion-ui.transition-morph-shape",
+  "type": "transition.transition-morph-shape",
   "filled": true,
   "inputs": {
    "a": {
@@ -30397,7 +30397,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -30439,7 +30439,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -30496,7 +30496,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remotion-ui/transition-morph-shape",
+         "kind": "transition-morph-shape",
          "durationInFrames": 24,
          "params": {
           "from": "circle",
@@ -30528,7 +30528,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip a",
@@ -30556,7 +30556,7 @@
         "from": 51,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remotion-ui/transition-morph-shape",
+         "kind": "transition-morph-shape",
          "durationInFrames": 24,
          "params": {
           "from": "circle",
@@ -30588,7 +30588,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip b",
@@ -30663,7 +30663,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -30705,7 +30705,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -30793,7 +30793,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "core/title",
+                  "component": "title",
                   "props": {
                    "eyebrow": "",
                    "title": "Clip a",
@@ -30842,7 +30842,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "core/title",
+                  "component": "title",
                   "props": {
                    "eyebrow": "",
                    "title": "Clip b",
@@ -30890,7 +30890,7 @@
              "from": 0,
              "durationInFrames": 30,
              "nodeId": "n:leak",
-             "component": "core/light-leak",
+             "component": "light-leak",
              "props": {
               "seed": 3,
               "hueShift": 0.0
@@ -31179,7 +31179,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -31254,7 +31254,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -31343,7 +31343,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in1",
@@ -31385,7 +31385,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in2",
@@ -31427,7 +31427,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in3",
@@ -31469,7 +31469,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in4",
@@ -31511,7 +31511,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in5",
@@ -31553,7 +31553,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in6",
@@ -31618,7 +31618,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15
         },
         "slot": {
@@ -31643,7 +31643,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in1",
@@ -31671,11 +31671,11 @@
         "from": 60,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15
         },
         "exit": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15
         },
         "slot": {
@@ -31700,7 +31700,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in2",
@@ -31728,11 +31728,11 @@
         "from": 120,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15
         },
         "exit": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15
         },
         "slot": {
@@ -31757,7 +31757,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in3",
@@ -31785,11 +31785,11 @@
         "from": 180,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15
         },
         "exit": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15
         },
         "slot": {
@@ -31814,7 +31814,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in4",
@@ -31842,11 +31842,11 @@
         "from": 240,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15
         },
         "exit": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15
         },
         "slot": {
@@ -31871,7 +31871,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in5",
@@ -31899,7 +31899,7 @@
         "from": 300,
         "durationInFrames": 75,
         "enter": {
-         "kind": "core/fade",
+         "kind": "fade",
          "durationInFrames": 15
         },
         "slot": {
@@ -31924,7 +31924,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in6",
@@ -32015,7 +32015,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in1",
@@ -32057,7 +32057,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in2",
@@ -32099,7 +32099,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in3",
@@ -32141,7 +32141,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in4",
@@ -32183,7 +32183,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in5",
@@ -32225,7 +32225,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip in6",
@@ -32319,7 +32319,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in1",
@@ -32382,7 +32382,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in2",
@@ -32445,7 +32445,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in3",
@@ -32508,7 +32508,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in4",
@@ -32571,7 +32571,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in5",
@@ -32634,7 +32634,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip in6",
@@ -32714,7 +32714,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -32806,7 +32806,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -32882,7 +32882,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -32955,7 +32955,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -33031,7 +33031,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -33110,7 +33110,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -33185,7 +33185,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -33265,7 +33265,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -33354,7 +33354,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -33440,7 +33440,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Clip clip",
@@ -33529,7 +33529,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip a",
@@ -33571,7 +33571,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -33635,7 +33635,7 @@
           "unit": "frames"
          }
         },
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip b",
@@ -33696,7 +33696,7 @@
          "from": 0,
          "durationInFrames": 75,
          "kind": "element",
-         "component": "core/title",
+         "component": "title",
          "props": {
           "eyebrow": "",
           "title": "Clip out-clip",
@@ -33755,7 +33755,7 @@
         "from": 0,
         "durationInFrames": 150,
         "nodeId": "n",
-        "component": "core/placeholder",
+        "component": "placeholder",
         "props": {
          "title": "No file chosen",
          "subtitle": ""
@@ -33806,7 +33806,7 @@
          "from": 0,
          "durationInFrames": 75,
          "kind": "element",
-         "component": "core/title",
+         "component": "title",
          "props": {
           "eyebrow": "",
           "title": "Clip out-clip",
@@ -33865,7 +33865,7 @@
         "from": 0,
         "durationInFrames": 150,
         "nodeId": "n",
-        "component": "core/placeholder",
+        "component": "placeholder",
         "props": {
          "title": "No file chosen",
          "subtitle": ""
@@ -33912,7 +33912,7 @@
         "from": 0,
         "durationInFrames": 150,
         "nodeId": "n",
-        "component": "core/placeholder",
+        "component": "placeholder",
         "props": {
          "title": "No file connected",
          "subtitle": "Connect a file to use it as a clip"
@@ -33970,7 +33970,7 @@
         "from": 0,
         "durationInFrames": 120,
         "nodeId": "n",
-        "component": "core/video",
+        "component": "video",
         "props": {
          "src": "project:.opsis/out/media.mp4",
          "fit": "contain",
@@ -35438,7 +35438,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",
@@ -35587,7 +35587,7 @@
         "from": 0,
         "durationInFrames": 75,
         "kind": "element",
-        "component": "core/title",
+        "component": "title",
         "props": {
          "eyebrow": "",
          "title": "Clip clip",

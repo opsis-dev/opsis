@@ -365,86 +365,93 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<TerminalSimulator>(
             element(
                 ElementKind::Component,
-                "remocn/terminal-simulator",
+                "terminal-simulator",
                 "Terminal simulator",
                 "Terminal window that types out commands and rolls old lines off the top.",
                 C::Ui,
                 240,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/terminal-simulator", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:square-terminal")),
         ),
         meta::<GlassCodeBlock>(
             element(
                 ElementKind::Component,
-                "remocn/glass-code-block",
+                "glass-code-block",
                 "Glass code block",
                 "A frosted-glass code editor that reveals the code line by line.",
                 C::Ui,
                 180,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/glass-code-block", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:square-code")),
         ),
         meta::<CodeMorph>(
             element(
                 ElementKind::Component,
-                "remocn/code-morph",
+                "code-morph",
                 "Code morph",
                 "A flat code editor that morphs between versions of a file, gliding each surviving token to its new line and column while removed code dissolves and new code fades in.",
                 C::Ui,
                 138,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/code-morph", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:code-xml").morphs("lucide:braces")),
         ),
         meta::<LogoEnter>(
             element(
                 ElementKind::Component,
-                "remocn/logo-enter",
+                "logo-enter",
                 "Logo enter",
                 "A stacked group of round brand chips that spring in one-by-one, then hold. Swap the logos to feature any set of marks.",
                 C::Ui,
                 90,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/logo-enter", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:layout-grid-circles")),
         ),
         meta::<CheckList>(
             element(
                 ElementKind::Component,
-                "remocn/check-list",
+                "check-list",
                 "Check list",
                 "A handwritten checklist that writes itself out in full, then ticks and strikes through every done item, one at a time.",
                 C::Ui,
                 360,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/check-list", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:list-checks")),
         ),
         meta::<SearchReveal>(
             element(
                 ElementKind::Component,
-                "remocn/search-reveal",
+                "search-reveal",
                 "Search reveal",
                 "Expanding construction circles snap into a search pill, type editable text, and reveal an abstract graphic panel.",
                 C::Ui,
                 108,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/search-reveal", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:search")),
         ),
         meta::<AgentRun>(
             element(
                 ElementKind::Component,
-                "remocn/agent-run",
+                "agent-run",
                 "Agent run",
                 "An AI assistant working through a plan, ticking off each step.",
                 C::Ui,
                 355,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/agent-run", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:bot")),
         ),
     ]

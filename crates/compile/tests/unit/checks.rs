@@ -164,7 +164,7 @@ fn reads_timeline_items_by_kind_and_refuses_props_that_dont_fit() {
     };
     let recording = with(json!({ "kind": "recording", "props": recording_props() }));
     let element =
-        with(json!({ "kind": "element", "component": "core/title", "props": { "title": "Hi" } }));
+        with(json!({ "kind": "element", "component": "title", "props": { "title": "Hi" } }));
     let group = with(
         json!({ "kind": "group", "props": { "tracks": [{ "id": "n", "items": [recording] }] } }),
     );
@@ -186,7 +186,7 @@ fn reads_timeline_items_by_kind_and_refuses_props_that_dont_fit() {
     )));
     assert!(!accepts(with(json!({ "kind": "element", "props": {} }))));
     assert!(!accepts(with(
-        json!({ "component": "core/group", "props": { "tracks": [] } })
+        json!({ "component": "group", "props": { "tracks": [] } })
     )));
     let bad = with(json!({ "kind": "recording", "props": bad_style }));
     assert!(!accepts(with(

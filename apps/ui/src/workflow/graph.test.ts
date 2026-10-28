@@ -10,7 +10,7 @@ const workflow = {
   id: "wf",
   name: "Test",
   nodes: [
-    node("title", "fx.core.title"),
+    node("title", "fx.title"),
     node("seq", "timeline.sequence"),
     node("file", "media.import"),
   ],

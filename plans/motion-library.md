@@ -74,7 +74,7 @@ Left out on purpose because Opsis already has them: number tickers (Rolling Numb
 In place:
 
 - `ElementMeta` (`crates/compile/src/elements/mod.rs`) has `source: ElementSource { registry, url, license }`; registry elements set it with `.source(…)` on their entries, core ones use `registry: "Opsis"`.
-- `elements()` chains `core::core_elements()` and the registry list into one catalogue; every entry becomes a node (`element_node_type`: `fx.<group>.<name>`) with its card, length handle and envelope. A third list is all these elements need on the Rust side.
+- `elements()` chains `core::core_elements()` and the registry list into one catalogue; every entry becomes a node (`element_node_type`: `fx.<name>`) with its card, length handle and envelope. A third list is all these elements need on the Rust side.
 - Settings structs: core elements are structs with `schemars` attributes collected in `CoreElementProps`, exported to `packages/video/src/generated/spec.ts`, so components get typed props. The `font` widget (`x-widget = "font"`) and `font_stack` (`crates/compile/src/fonts/mod.rs`) turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
 - Lazy loading: `loadElement` in `packages/video/src/registry/index.ts` finds a module through `lazyLoaderOf`, which looks in `generatedElementLoaders` (`components.generated.ts`) and `LAZY_CORE_ELEMENTS` (the 3D elements), and loads it under `delayRender`.
 - Framing helpers in `packages/video/src/registry/framing.tsx`: `centered`, `fitScreen`, `placedAt` (spot placement for the `spot` widget), `pointsFromSpots`, `painted`, `playsAtEnd`.
@@ -91,7 +91,7 @@ Missing:
 
 1. **Where code goes.**
    - Components: `packages/video/src/motion/<source>/<name>.tsx`, with `<source>` one of `magicui`, `motion-primitives`, `cult-ui`, `smoothui`, `lucide-animated`. Each source folder holds its `LICENSE.<source>` file (the upstream licence text, as `packages/video/src/camera/LICENSE.programatic-demo` does), since source files can't carry a licence header comment.
-   - Settings: `crates/compile/src/elements/motion.rs`, one struct per element like `core.rs`, collected in `MotionElementProps` and exported with the other spec types; `motion_elements()` joins `elements()` between the core and registry lists. Keys are `<source>/<name>` (node type `fx.<source>.<name>`); `source` is `{ registry: "Magic UI", url: "<the component's docs page>", license: "MIT" }`.
+   - Settings: `crates/compile/src/elements/motion.rs`, one struct per element like `core.rs`, collected in `MotionElementProps` and exported with the other spec types; `motion_elements()` joins `elements()` between the core and registry lists. Keys are the element's name (node type `fx.<name>`), like every other element; `source` is `{ registry: "Magic UI", url: "<the component's docs page>", license: "MIT" }`.
    - Loaders: `packages/video/src/registry/motion.ts` exporting `motionElementLoaders` (dynamic `import()` plus the framing helper, the same shape as `generatedElementLoaders`); `lazyLoaderOf` looks in it too.
    - Looks: each element's `.look(…)` in `motion.rs`, as `core.rs` does, then `bun run glyphs:bundle`.
 2. **Recipe** (one checklist per element, in the change description):
@@ -167,7 +167,7 @@ Missing:
 
 ### Work
 
-1. **Settings.** `core/liquid-contours` in `core.rs` (`ElementCategory::Background`, 150 frames): `first_color`, `second_color`, `spacing`, `scale`, `complexity`, `smoothness` (advanced), `seed` (min 1), `flow` (how much `phase` moves over the element, default 1), with `design` at 1920×1080.
+1. **Settings.** `liquid-contours` in `core.rs` (`ElementCategory::Background`, 150 frames): `first_color`, `second_color`, `spacing`, `scale`, `complexity`, `smoothness` (advanced), `seed` (min 1), `flow` (how much `phase` moves over the element, default 1), with `design` at 1920×1080.
 2. **Component.** `LiquidContours` in `packages/video/src/core/liquid-contours.tsx` draws `<Solid color={secondColor} effects={[liquidContours({ …, phase: 3.23 + flow * frame / durationInFrames })]} />`. It goes in `LAZY_CORE_ELEMENTS`, so projects without it never load the effects package.
 3. **Copy.** "Liquid contours", "A flowing background of two-colour bands."
 4. **Check.** Export a still and a video with the default drawing and with Software, 9:16.
@@ -245,7 +245,7 @@ Use Remotion's `<RemotionRiveCanvas>` and download nothing at run time: both bun
 1. **Dependencies.** In `packages/video`: `bun add --exact @remotion/rive@<the Remotion version>`, and `bun add --exact @rive-app/canvas-advanced@<the version it pins>` because Opsis imports it directly.
 2. **Bundled runtime.** `scripts/rive-runtime.ts` (`bun run rive:runtime`) copies `rive.wasm` from the installed package to `public/rive/rive.wasm`, like `fonts:bundle` copies fonts; add the row to the generated-files table in `AGENTS.md`. A test checks the copy matches the installed package byte for byte, so a version bump can't leave an old runtime behind. `rive_fallback.wasm` isn't needed: the advanced runtime never names it.
 3. **Runtime redirect.** `packages/video/src/rive/runtime.ts` imports the real `canvas_advanced.mjs` and exports a default function that calls it with `locateFile: () => staticFile("rive/rive.wasm")`, whatever `locateFile` the caller passed. The Vite plugin and the Rspack hook resolve the bare `@rive-app/canvas-advanced` to that module, next to the font redirect; the `.mjs` subpath is left alone, so the wrapper doesn't redirect to itself. A test bundles a module that imports the bare name and checks it resolves to the wrapper in both bundlers.
-4. **Settings.** `core/rive` in `core.rs`: `src` (`asset`, `x-accept = ".riv"`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`; 90 frames.
+4. **Settings.** `rive` in `core.rs`: `src` (`asset`, `x-accept = ".riv"`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`; 90 frames.
 5. **Component.** `packages/video/src/core/rive.tsx`, in `LAZY_CORE_ELEMENTS`, renders `<RemotionRiveCanvas src={…} artboard={…} animation={…} fit={…} enableRiveAssetCdn={false} />`, with `src` resolved like Lottie's.
 6. **Copy.** Title "Rive animation", description in the Lottie element's style: "Plays an animation made in Rive (.riv)."
 7. **Licences.** `THIRD_PARTY_NOTICES.md`: `@rive-app/canvas-advanced` (MIT), including the bundled `rive.wasm`. `@remotion/rive` is under the Remotion licence, covered by the existing notice.
@@ -292,7 +292,7 @@ Missing:
 
 ### Work
 
-1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element including core ones, overlays and text over a neutral dark `core/solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Swangle`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat` and the sidecar's still job).
+1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element including core ones, overlays and text over a neutral dark `solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Swangle`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat` and the sidecar's still job).
 2. **Storage.** `apps/ui/src/editor/element-stills/<key with "/" as "--">.webp`, editor-only, loaded with `import.meta.glob("./element-stills/*.webp", { query: "?url", import: "default", eager: true })` in a small `element-stills.ts` next to `palette.tsx`. Add the folder and its command to the generated-files table in `AGENTS.md`; run it after changing or adding an element. Remove `ElementMeta.thumbnail`.
 3. **Budget.** At most 24 KB per still and 3.5 MB in all (about 140 elements today, 160 with the web motion components, × 15–20 KB); the binary fails above either.
 4. **Hover card.** `NodePreview` shows the still of the hovered element at the top.

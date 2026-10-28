@@ -41,7 +41,7 @@ export const emphasisedWords = (text: string): EmphasisedWord[] =>
       em: w.startsWith("*") || w.endsWith("*"),
     }));
 
-export const KineticHeadline: React.FC<CoreElementProps["core/kinetic-headline"]> = ({
+export const KineticHeadline: React.FC<CoreElementProps["kinetic-headline"]> = ({
   text,
   color,
   emphasisColor,

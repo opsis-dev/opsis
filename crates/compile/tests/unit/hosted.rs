@@ -5,7 +5,7 @@ use opsis_types::timeline::TimelineSpec;
 use serde_json::{Value, json};
 
 fn element(id: &str, props: Value) -> Value {
-    json!({ "id": id, "from": 0, "durationInFrames": 30, "kind": "element", "component": "core/title", "props": props })
+    json!({ "id": id, "from": 0, "durationInFrames": 30, "kind": "element", "component": "title", "props": props })
 }
 
 fn spec(base: &str, versions: Value, fonts: Value) -> TimelineSpec {
@@ -31,7 +31,7 @@ fn spec(base: &str, versions: Value, fonts: Value) -> TimelineSpec {
                     "durationInFrames": 30,
                     "kind": "group",
                     "props": {
-                        "wrapper": { "component": "core/frame", "props": { "backdrop": "project:assets/bg.jpg" } },
+                        "wrapper": { "component": "frame", "props": { "backdrop": "project:assets/bg.jpg" } },
                         "tracks": [{ "id": "i", "items": [element("b", json!({ "src": "project:assets/inner.mp4" }))] }],
                     },
                 },
@@ -150,7 +150,7 @@ fn a_film_preloads_its_role_fonts_and_every_font_its_items_name() {
                 "durationInFrames": 10,
                 "kind": "group",
                 "props": {
-                    "wrapper": { "component": "snapcn/laptop-frame", "props": { "fontFamily": "\"Outfit\", sans-serif" } },
+                    "wrapper": { "component": "laptop-frame", "props": { "fontFamily": "\"Outfit\", sans-serif" } },
                     "tracks": [{ "id": "i", "items": [element("c", json!({ "fontFamily": "Manrope" }))] }],
                 },
             },

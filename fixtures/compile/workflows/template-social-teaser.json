@@ -117,7 +117,7 @@
    },
    {
     "id": "hook",
-    "type": "fx.remocn.kinetic-center-build",
+    "type": "fx.kinetic-center-build",
     "position": {
      "x": 300,
      "y": 340
@@ -143,7 +143,7 @@
      "y": 422
     },
     "params": {
-     "transition": "remocn/push-through",
+     "transition": "push-through",
      "transitionDuration": 15,
      "keepWhole": false,
      "cuts": []
@@ -351,7 +351,7 @@
           "width": 1920,
           "height": 1080
          },
-         "component": "remocn/kinetic-center-build",
+         "component": "kinetic-center-build",
          "props": {
           "text": "Words push left.",
           "entryOffset": 88,
@@ -483,7 +483,7 @@
          "from": 0,
          "durationInFrames": 120,
          "nodeId": "camera",
-         "component": "core/placeholder",
+         "component": "placeholder",
          "props": {
           "title": "Not recorded yet",
           "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -509,7 +509,7 @@
          "from": 0,
          "durationInFrames": 60,
          "exit": {
-          "kind": "remocn/push-through",
+          "kind": "push-through",
           "durationInFrames": 15
          },
          "slot": {
@@ -538,7 +538,7 @@
                "width": 1920,
                "height": 1080
               },
-              "component": "remocn/kinetic-center-build",
+              "component": "kinetic-center-build",
               "props": {
                "text": "Words push left.",
                "entryOffset": 88,
@@ -560,7 +560,7 @@
          "from": 45,
          "durationInFrames": 120,
          "enter": {
-          "kind": "remocn/push-through",
+          "kind": "push-through",
           "durationInFrames": 15
          },
          "slot": {
@@ -578,7 +578,7 @@
               "from": 0,
               "durationInFrames": 120,
               "nodeId": "camera",
-              "component": "core/placeholder",
+              "component": "placeholder",
               "props": {
                "title": "Not recorded yet",
                "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -615,7 +615,7 @@
          "from": 0,
          "durationInFrames": 60,
          "exit": {
-          "kind": "remocn/push-through",
+          "kind": "push-through",
           "durationInFrames": 15
          },
          "slot": {
@@ -644,7 +644,7 @@
                "width": 1920,
                "height": 1080
               },
-              "component": "remocn/kinetic-center-build",
+              "component": "kinetic-center-build",
               "props": {
                "text": "Words push left.",
                "entryOffset": 88,
@@ -666,7 +666,7 @@
          "from": 45,
          "durationInFrames": 120,
          "enter": {
-          "kind": "remocn/push-through",
+          "kind": "push-through",
           "durationInFrames": 15
          },
          "slot": {
@@ -684,7 +684,7 @@
               "from": 0,
               "durationInFrames": 120,
               "nodeId": "camera",
-              "component": "core/placeholder",
+              "component": "placeholder",
               "props": {
                "title": "Not recorded yet",
                "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -878,7 +878,7 @@
        "from": 0,
        "durationInFrames": 60,
        "exit": {
-        "kind": "remocn/push-through",
+        "kind": "push-through",
         "durationInFrames": 15
        },
        "slot": {
@@ -907,7 +907,7 @@
              "width": 1920,
              "height": 1080
             },
-            "component": "remocn/kinetic-center-build",
+            "component": "kinetic-center-build",
             "props": {
              "text": "Words push left.",
              "entryOffset": 88,
@@ -929,7 +929,7 @@
        "from": 45,
        "durationInFrames": 120,
        "enter": {
-        "kind": "remocn/push-through",
+        "kind": "push-through",
         "durationInFrames": 15
        },
        "slot": {
@@ -947,7 +947,7 @@
             "from": 0,
             "durationInFrames": 120,
             "nodeId": "camera",
-            "component": "core/placeholder",
+            "component": "placeholder",
             "props": {
              "title": "Not recorded yet",
              "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1407,7 +1407,7 @@
        "from": 0,
        "durationInFrames": 60,
        "exit": {
-        "kind": "remocn/push-through",
+        "kind": "push-through",
         "durationInFrames": 15
        },
        "slot": {
@@ -1436,7 +1436,7 @@
              "width": 1920,
              "height": 1080
             },
-            "component": "remocn/kinetic-center-build",
+            "component": "kinetic-center-build",
             "props": {
              "text": "Words push left.",
              "entryOffset": 88,
@@ -1458,7 +1458,7 @@
        "from": 45,
        "durationInFrames": 120,
        "enter": {
-        "kind": "remocn/push-through",
+        "kind": "push-through",
         "durationInFrames": 15
        },
        "slot": {
@@ -1476,7 +1476,7 @@
             "from": 0,
             "durationInFrames": 120,
             "nodeId": "camera",
-            "component": "core/placeholder",
+            "component": "placeholder",
             "props": {
              "title": "Not recorded yet",
              "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1920,7 +1920,7 @@
       "itemId": "hook:i",
       "nodeId": "hook",
       "kind": "element",
-      "component": "remocn/kinetic-center-build",
+      "component": "kinetic-center-build",
       "props": {
        "text": "Words push left.",
        "entryOffset": 88,
@@ -1978,7 +1978,7 @@
       "itemId": "camera:i",
       "nodeId": "camera",
       "kind": "element",
-      "component": "core/placeholder",
+      "component": "placeholder",
       "props": {
        "title": "Not recorded yet",
        "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -2028,7 +2028,7 @@
       "itemKey": "/0:sequence:s1",
       "from": 45.0,
       "to": 60.0,
-      "kind": "remocn/push-through",
+      "kind": "push-through",
       "lanes": [
        0,
        1
@@ -2420,7 +2420,7 @@
            "width": 1920,
            "height": 1080
           },
-          "component": "remocn/kinetic-center-build",
+          "component": "kinetic-center-build",
           "props": {
            "text": "Words push left.",
            "entryOffset": 88,
@@ -2776,7 +2776,7 @@
           "from": 0,
           "durationInFrames": 60,
           "exit": {
-           "kind": "remocn/push-through",
+           "kind": "push-through",
            "durationInFrames": 15
           },
           "slot": {
@@ -2805,7 +2805,7 @@
                 "width": 1920,
                 "height": 1080
                },
-               "component": "remocn/kinetic-center-build",
+               "component": "kinetic-center-build",
                "props": {
                 "text": "Words push left.",
                 "entryOffset": 88,
@@ -2827,7 +2827,7 @@
           "from": 45,
           "durationInFrames": 82,
           "enter": {
-           "kind": "remocn/push-through",
+           "kind": "push-through",
            "durationInFrames": 15
           },
           "slot": {
@@ -3026,7 +3026,7 @@
           "from": 0,
           "durationInFrames": 60,
           "exit": {
-           "kind": "remocn/push-through",
+           "kind": "push-through",
            "durationInFrames": 15
           },
           "slot": {
@@ -3055,7 +3055,7 @@
                 "width": 1920,
                 "height": 1080
                },
-               "component": "remocn/kinetic-center-build",
+               "component": "kinetic-center-build",
                "props": {
                 "text": "Words push left.",
                 "entryOffset": 88,
@@ -3077,7 +3077,7 @@
           "from": 45,
           "durationInFrames": 82,
           "enter": {
-           "kind": "remocn/push-through",
+           "kind": "push-through",
            "durationInFrames": 15
           },
           "slot": {
@@ -3451,7 +3451,7 @@
         "from": 0,
         "durationInFrames": 60,
         "exit": {
-         "kind": "remocn/push-through",
+         "kind": "push-through",
          "durationInFrames": 15
         },
         "slot": {
@@ -3480,7 +3480,7 @@
               "width": 1920,
               "height": 1080
              },
-             "component": "remocn/kinetic-center-build",
+             "component": "kinetic-center-build",
              "props": {
               "text": "Words push left.",
               "entryOffset": 88,
@@ -3502,7 +3502,7 @@
         "from": 45,
         "durationInFrames": 82,
         "enter": {
-         "kind": "remocn/push-through",
+         "kind": "push-through",
          "durationInFrames": 15
         },
         "slot": {
@@ -4058,7 +4058,7 @@
         "from": 0,
         "durationInFrames": 60,
         "exit": {
-         "kind": "remocn/push-through",
+         "kind": "push-through",
          "durationInFrames": 15
         },
         "slot": {
@@ -4087,7 +4087,7 @@
               "width": 1920,
               "height": 1080
              },
-             "component": "remocn/kinetic-center-build",
+             "component": "kinetic-center-build",
              "props": {
               "text": "Words push left.",
               "entryOffset": 88,
@@ -4109,7 +4109,7 @@
         "from": 45,
         "durationInFrames": 82,
         "enter": {
-         "kind": "remocn/push-through",
+         "kind": "push-through",
          "durationInFrames": 15
         },
         "slot": {
@@ -4649,7 +4649,7 @@
        "itemId": "hook:i",
        "nodeId": "hook",
        "kind": "element",
-       "component": "remocn/kinetic-center-build",
+       "component": "kinetic-center-build",
        "props": {
         "text": "Words push left.",
         "entryOffset": 88,
@@ -4840,7 +4840,7 @@
        "itemKey": "/0:sequence:s1",
        "from": 45.0,
        "to": 60.0,
-       "kind": "remocn/push-through",
+       "kind": "push-through",
        "lanes": [
         0,
         1

@@ -38,7 +38,7 @@ export function groupCaptions(captions: Caption[]): Caption[][] {
   return lines;
 }
 
-type CaptionStyle = CoreElementProps["core/captions"]["style"];
+type CaptionStyle = CoreElementProps["captions"]["style"];
 
 function isLit(style: CaptionStyle, spoken: boolean, active: boolean): boolean {
   switch (style) {
@@ -85,7 +85,7 @@ const CaptionWord: React.FC<{
   );
 };
 
-export const Captions: React.FC<CoreElementProps["core/captions"] & { captions: Caption[] }> = ({
+export const Captions: React.FC<CoreElementProps["captions"] & { captions: Caption[] }> = ({
   captions,
   style,
   position,

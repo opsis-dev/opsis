@@ -134,7 +134,7 @@ fn adds_camera_keys_where_the_camera_is_and_keeps_dials_in_range() {
     let mut wf = film(|g| {
         g.node(
             "t",
-            "fx.core.logo-3d",
+            "fx.logo-3d",
             json!({ "motion": "keyframes", "camera": { "keys": [
                 { "frame": 0, "yaw": -30, "pitch": 0, "distance": 1, "height": 0, "ease": "linear" },
                 { "frame": 60, "yaw": 30, "pitch": 0, "distance": 1, "height": 0, "ease": "linear" },

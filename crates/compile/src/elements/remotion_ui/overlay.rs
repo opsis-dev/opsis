@@ -72,7 +72,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
     vec![meta::<NotificationStack>(
         element(
             ElementKind::Component,
-            "remotion-ui/notification-stack",
+            "notification-stack",
             "Notification stack",
             "Notifications slide in, stack up and dismiss themselves.",
             C::Overlay,

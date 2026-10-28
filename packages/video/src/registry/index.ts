@@ -34,41 +34,41 @@ import {
 } from "#video/registry/types.ts";
 
 type CoreProps = CoreElementProps & {
-  "core/captions": { captions: CaptionsValue["captions"] };
-  "core/mosaic": { children?: React.ReactNode };
+  captions: { captions: CaptionsValue["captions"] };
+  mosaic: { children?: React.ReactNode };
 };
 
 const LAZY_CORE_ELEMENTS = {
-  "core/logo-3d": () => import("#video/three/logo-3d.tsx").then((m) => component(m.Logo3D)),
-  "core/card-3d": () => import("#video/three/card-3d.tsx").then((m) => component(m.Card3D)),
-  "core/shapes-3d": () => import("#video/three/shapes-3d.tsx").then((m) => component(m.Shapes3D)),
-  "core/text-3d": () => import("#video/three/text-3d.tsx").then((m) => component(m.Text3D)),
-  "core/model-3d": () => import("#video/three/model-3d.tsx").then((m) => component(m.Model3D)),
-  "core/screen-3d": () => import("#video/three/screen-3d.tsx").then((m) => component(m.Screen3D)),
+  "logo-3d": () => import("#video/three/logo-3d.tsx").then((m) => component(m.Logo3D)),
+  "card-3d": () => import("#video/three/card-3d.tsx").then((m) => component(m.Card3D)),
+  "shapes-3d": () => import("#video/three/shapes-3d.tsx").then((m) => component(m.Shapes3D)),
+  "text-3d": () => import("#video/three/text-3d.tsx").then((m) => component(m.Text3D)),
+  "model-3d": () => import("#video/three/model-3d.tsx").then((m) => component(m.Model3D)),
+  "screen-3d": () => import("#video/three/screen-3d.tsx").then((m) => component(m.Screen3D)),
 } satisfies Record<string, () => Promise<ElementImpl>>;
 
 type EagerCoreKey = Exclude<keyof CoreProps, keyof typeof LAZY_CORE_ELEMENTS>;
 
 const CORE_ELEMENTS: { [K in EagerCoreKey]: React.FC<CoreProps[K]> } = {
-  "core/placeholder": Placeholder,
-  "core/still": StillElement,
-  "core/title": Title,
-  "core/kinetic-headline": KineticHeadline,
-  "core/lower-third": LowerThird,
-  "core/callout": Callout,
-  "core/captions": Captions,
-  "core/image": ImageElement,
-  "core/lottie": LottieElement,
-  "core/mosaic": Mosaic,
-  "core/video": VideoElement,
-  "core/video-loop": VideoLoop,
-  "core/solid": Solid,
-  "core/gradient": Gradient,
-  "core/noise": NoiseField,
-  "core/starburst": Starburst,
-  "core/paper": Paper,
-  "core/backdrop": Backdrop,
-  "core/light-leak": LightLeakElement,
+  placeholder: Placeholder,
+  still: StillElement,
+  title: Title,
+  "kinetic-headline": KineticHeadline,
+  "lower-third": LowerThird,
+  callout: Callout,
+  captions: Captions,
+  image: ImageElement,
+  lottie: LottieElement,
+  mosaic: Mosaic,
+  video: VideoElement,
+  "video-loop": VideoLoop,
+  solid: Solid,
+  gradient: Gradient,
+  noise: NoiseField,
+  starburst: Starburst,
+  paper: Paper,
+  backdrop: Backdrop,
+  "light-leak": LightLeakElement,
 };
 
 const core = new Map(

@@ -360,8 +360,8 @@ fn adds_a_node_with_its_defaults_right_of_the_others() {
 
 fn edited_film() -> Workflow {
     let mut g = crate::helpers::Graph::default();
-    g.node("a", "fx.core.solid", json!({}));
-    g.node("b", "fx.core.solid", json!({}));
+    g.node("a", "fx.solid", json!({}));
+    g.node("b", "fx.solid", json!({}));
     g.node("trim", "timeline.trim", json!({}));
     g.node("out", "output.render", json!({}));
     g.link("a", "trim").link("trim", "out");

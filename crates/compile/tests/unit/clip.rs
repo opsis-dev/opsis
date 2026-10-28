@@ -29,7 +29,7 @@ fn props(value: Value) -> Map<String, Value> {
 }
 
 fn solid(id: &str, frames: u32) -> ClipValue {
-    item_clip(id, "core/solid", Map::new(), frames, ItemExtra::default())
+    item_clip(id, "solid", Map::new(), frames, ItemExtra::default())
 }
 
 fn fade(kind: &str, frames: u32, hold: bool) -> Option<TransitionRef> {
@@ -75,7 +75,7 @@ fn clamps_a_transition_to_the_shorter_clip_and_records_spans_per_node() {
     let seq = sequence_clips(
         "s",
         &[solid("a", 10), solid("b", 100)],
-        &[None, fade("core/fade", 30, false)],
+        &[None, fade("fade", 30, false)],
         plain(),
     );
     assert_eq!(
@@ -106,18 +106,14 @@ fn clamps_a_transition_to_the_shorter_clip_and_records_spans_per_node() {
 fn held_transitions_keep_every_clip_whole() {
     let title = |id: &str, f: u32| {
         with_sound(
-            item_clip(id, "core/title", Map::new(), f, ItemExtra::default()),
+            item_clip(id, "title", Map::new(), f, ItemExtra::default()),
             id,
         )
     };
     let seq = sequence_clips(
         "seq",
         &[title("a", 45), title("b", 60), title("c", 30)],
-        &[
-            None,
-            fade("core/fade", 30, true),
-            fade("core/fade", 10, true),
-        ],
+        &[None, fade("fade", 30, true), fade("fade", 10, true)],
         plain(),
     );
     assert_eq!(seq.duration_in_frames, 45 + 30 + 60 + 10 + 30);
@@ -156,7 +152,7 @@ fn held_transitions_delay_a_clips_own_sound_and_are_not_flagged() {
     let video = |id: &str, f: u32| {
         item_clip(
             id,
-            "core/video",
+            "video",
             props(json!({ "src": format!("project:{id}.mp4"), "muted": false })),
             f,
             ItemExtra::default(),
@@ -166,7 +162,7 @@ fn held_transitions_delay_a_clips_own_sound_and_are_not_flagged() {
         let seq = sequence_clips(
             "seq",
             &[video("a", 45), video("b", 60)],
-            &[None, fade("core/fade", 30, hold)],
+            &[None, fade("fade", 30, hold)],
             plain(),
         );
         flatten_spec(&clip_to_spec(&seq, &settings()))
@@ -179,12 +175,12 @@ fn held_transitions_delay_a_clips_own_sound_and_are_not_flagged() {
     assert_eq!(sounds(false), [row("a", 0.0, 45.0), row("b", 15.0, 75.0)]);
     assert_eq!(sounds(true), [row("a", 0.0, 45.0), row("b", 75.0, 135.0)]);
     let parts = [
-        item_clip("a", "core/title", Map::new(), 45, ItemExtra::default()),
-        item_clip("b", "core/title", Map::new(), 45, ItemExtra::default()),
+        item_clip("a", "title", Map::new(), 45, ItemExtra::default()),
+        item_clip("b", "title", Map::new(), 45, ItemExtra::default()),
     ];
     let covers = |hold: bool| {
         flatten_spec(&clip_to_spec(
-            &sequence_clips("seq", &parts, &[None, fade("core/fade", 30, hold)], plain()),
+            &sequence_clips("seq", &parts, &[None, fade("fade", 30, hold)], plain()),
             &settings(),
         ))
         .transitions[0]
@@ -198,7 +194,7 @@ fn held_transitions_delay_a_clips_own_sound_and_are_not_flagged() {
 fn a_speed_change_drops_a_clips_own_sound() {
     let video = item_clip(
         "a",
-        "core/video",
+        "video",
         props(json!({ "src": "project:a.mp4", "muted": false })),
         60,
         ItemExtra::default(),
@@ -230,7 +226,7 @@ fn a_speed_change_drops_a_clips_own_sound() {
 
 fn sequencer() -> SequencerProps {
     SequencerProps {
-        component: "remocn/spring-settle".into(),
+        component: "spring-settle".into(),
         props: Map::new(),
         backgrounds: vec![None, None],
     }
@@ -409,7 +405,7 @@ fn compiles_built_in_items_to_their_kind() {
     assert!(group(&item).is_none());
     let placeholder = item_clip(
         "p",
-        "core/placeholder",
+        "placeholder",
         props(json!({ "title": "T", "subtitle": "S" })),
         30,
         ItemExtra::default(),
@@ -423,7 +419,7 @@ fn compiles_built_in_items_to_their_kind() {
             .all(|i| matches!(i, TimelineItem::Group { .. }))
     );
     assert!(
-        matches!(&placeholder.tracks[0].items[0], TimelineItem::Element { component, .. } if component == "core/placeholder")
+        matches!(&placeholder.tracks[0].items[0], TimelineItem::Element { component, .. } if component == "placeholder")
     );
 }
 

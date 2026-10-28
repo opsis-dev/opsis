@@ -23,6 +23,7 @@ pub struct Entry {
     fixed_props: Values,
     kind_props: IndexMap<String, String>,
     optional_clip: bool,
+    authored_clock: bool,
 }
 
 impl Entry {
@@ -79,6 +80,12 @@ impl Entry {
         self.optional_clip = true;
         self
     }
+
+    #[must_use]
+    pub fn authored_clock(mut self) -> Self {
+        self.authored_clock = true;
+        self
+    }
 }
 
 pub fn element(
@@ -102,6 +109,7 @@ pub fn element(
         fixed_props: Values::new(),
         kind_props: IndexMap::new(),
         optional_clip: false,
+        authored_clock: false,
     }
 }
 
@@ -152,10 +160,12 @@ pub fn presentation(key: &'static str, title: &'static str, frames: u32) -> Entr
 
 fn own_source(e: &Entry) -> ElementSource {
     if e.kind == ElementKind::Presentation {
-        let slug = e.key.trim_start_matches("core/");
         ElementSource {
             registry: "@remotion/transitions".into(),
-            url: format!("https://www.remotion.dev/docs/transitions/presentations/{slug}"),
+            url: format!(
+                "https://www.remotion.dev/docs/transitions/presentations/{}",
+                e.key
+            ),
             license: "Remotion".into(),
         }
     } else {
@@ -185,5 +195,6 @@ pub fn meta<T: JsonSchema + Default + Serialize>(e: Entry) -> ElementMeta {
         optional_clip: e.optional_clip,
         thumbnail: None,
         look: e.look,
+        authored_clock: e.authored_clock,
     }
 }

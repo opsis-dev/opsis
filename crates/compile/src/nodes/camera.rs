@@ -302,8 +302,8 @@ impl Device {
 
     fn component(self) -> &'static str {
         match self {
-            Self::Laptop => "snapcn/laptop-frame",
-            Self::Phone => "snapcn/phone-frame",
+            Self::Laptop => "laptop-frame",
+            Self::Phone => "phone-frame",
         }
     }
 }

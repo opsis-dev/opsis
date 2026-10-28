@@ -63,7 +63,7 @@ fn port_edge(source: &str, source_handle: &str, target: &str, target_handle: &st
 fn solid(id: &str, color: &str) -> Value {
     node(
         id,
-        "fx.core.solid",
+        "fx.solid",
         json!({ "color": color, "clipDuration": SOLID_FRAMES }),
     )
 }
@@ -76,7 +76,7 @@ struct Host {
 
 fn workflow_for(meta: &ElementMeta) -> Workflow {
     let kind = if meta.kind == ElementKind::Presentation {
-        format!("transition.{}", meta.key.replacen('/', ".", 1))
+        format!("transition.{}", meta.key)
     } else if meta.key == CAPTIONS_ELEMENT {
         SHOW_CAPTIONS_TYPE.to_owned()
     } else {
@@ -147,7 +147,7 @@ fn still_for(meta: &ElementMeta, at: f64, host: &Host, out: &Path) -> Result<Sid
         },
         frame: whole((f64::from(clip.duration_in_frames - 1) * at).floor()),
         output: out
-            .join(format!("{}.jpg", meta.key.replacen('/', "--", 1)))
+            .join(format!("{}.jpg", meta.key))
             .to_string_lossy()
             .into_owned(),
         format: StillFormat::Jpeg,

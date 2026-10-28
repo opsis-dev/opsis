@@ -427,9 +427,9 @@ fn splits_in_place_inside_a_sequence_with_a_transition_keeping_each_cut_on_its_c
     let wf = sequence_of(
         &[("a", 60), ("b", 60), ("c", 60)],
         json!({
-            "transition": "core/fade",
+            "transition": "fade",
             "transitionDuration": 10,
-            "cuts": [{ "before": "in3", "transition": "core/wipe", "transitionDuration": 20, "keepWhole": false }],
+            "cuts": [{ "before": "in3", "transition": "wipe", "transitionDuration": 20, "keepWhole": false }],
         }),
     );
     let next = applied(&wf, |e, flat| e.split_bar(bar_of(flat, "a"), 20.0));
@@ -437,7 +437,7 @@ fn splits_in_place_inside_a_sequence_with_a_transition_keeping_each_cut_on_its_c
     assert_eq!(
         param(&next, "timeline.sequence", "cuts"),
         Some(&json!([
-            { "before": "in4", "transition": "core/wipe", "transitionDuration": 20, "keepWhole": false },
+            { "before": "in4", "transition": "wipe", "transitionDuration": 20, "keepWhole": false },
             { "before": "in2", "transition": "none", "transitionDuration": 15, "keepWhole": false },
         ]))
     );
@@ -450,8 +450,8 @@ fn splits_in_place_inside_a_sequence_with_a_transition_keeping_each_cut_on_its_c
     assert_eq!(
         marks,
         [
-            ("core/fade".to_owned(), Some("in3".to_owned())),
-            ("core/wipe".to_owned(), Some("in4".to_owned())),
+            ("fade".to_owned(), Some("in3".to_owned())),
+            ("wipe".to_owned(), Some("in4".to_owned())),
         ]
     );
     assert_eq!(
@@ -464,7 +464,7 @@ fn splits_in_place_inside_a_sequence_with_a_transition_keeping_each_cut_on_its_c
 fn keeps_a_cuts_own_transition_when_rolling_it() {
     let wf = sequence_of(
         &[("a", 60), ("b", 60)],
-        json!({ "cuts": [{ "before": "in2", "transition": "core/wipe", "transitionDuration": 10, "keepWhole": true }] }),
+        json!({ "cuts": [{ "before": "in2", "transition": "wipe", "transitionDuration": 10, "keepWhole": true }] }),
     );
     let next = applied(&wf, |e, flat| {
         e.roll_cut(bar_of(flat, "a"), bar_of(flat, "b"), 12.0)
@@ -476,7 +476,7 @@ fn keeps_a_cuts_own_transition_when_rolling_it() {
         .iter()
         .map(|t| t.kind.clone())
         .collect();
-    assert_eq!(kinds, ["core/wipe"]);
+    assert_eq!(kinds, ["wipe"]);
 }
 
 #[test]
@@ -666,10 +666,7 @@ fn key_frames(flat: &FlatTimeline) -> Vec<f64> {
 
 #[test]
 fn shows_the_keys_of_a_keyframed_3d_element_where_they_play() {
-    let flat = flat_film(&three_film(
-        "fx.core.logo-3d",
-        json!({ "motion": "keyframes" }),
-    ));
+    let flat = flat_film(&three_film("fx.logo-3d", json!({ "motion": "keyframes" })));
     let marks: Vec<(String, u32, f64)> = flat
         .camera_keys
         .iter()
@@ -683,13 +680,13 @@ fn shows_the_keys_of_a_keyframed_3d_element_where_they_play() {
 
 #[test]
 fn shows_no_keys_while_a_preset_move_drives_the_camera() {
-    let flat = flat_film(&three_film("fx.core.logo-3d", json!({ "motion": "spin" })));
+    let flat = flat_film(&three_film("fx.logo-3d", json!({ "motion": "spin" })));
     assert!(flat.camera_keys.is_empty());
 }
 
 #[test]
 fn moves_a_key_by_the_drag_and_lands_where_it_was_dropped() {
-    let wf = three_film("fx.core.logo-3d", json!({ "motion": "keyframes" }));
+    let wf = three_film("fx.logo-3d", json!({ "motion": "keyframes" }));
     let moved = applied(&wf, |e, flat| {
         e.move_camera_key(&flat.camera_keys[1], -15.0)
     });
@@ -702,7 +699,7 @@ fn shows_and_moves_the_keys_of_a_3d_screen_around_a_clip() {
         g.node("intro", TITLE, json!({ "title": "Hi", "clipDuration": 90 }));
         g.node(
             "screen",
-            "fx.core.screen-3d",
+            "fx.screen-3d",
             json!({ "move": "keyframes", "camera": camera_keys() }),
         );
         g.link("intro", "screen");

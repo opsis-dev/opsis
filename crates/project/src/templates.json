@@ -256,7 +256,7 @@
         },
         {
           "id": "intro-bg",
-          "type": "fx.remocn.shader-mesh-gradient",
+          "type": "fx.shader-mesh-gradient",
           "position": {
             "x": 1200,
             "y": 340
@@ -272,7 +272,7 @@
         },
         {
           "id": "intro-title",
-          "type": "fx.remocn.soft-blur-in",
+          "type": "fx.soft-blur-in",
           "position": {
             "x": 1200,
             "y": 540
@@ -305,7 +305,7 @@
         },
         {
           "id": "outro",
-          "type": "fx.core.title",
+          "type": "fx.title",
           "position": {
             "x": 1500,
             "y": 680
@@ -337,7 +337,7 @@
             "y": 422
           },
           "params": {
-            "transition": "remocn/whip-pan",
+            "transition": "whip-pan",
             "transitionDuration": 18,
             "keepWhole": false,
             "cuts": []
@@ -634,7 +634,7 @@
         },
         {
           "id": "headline",
-          "type": "fx.core.kinetic-headline",
+          "type": "fx.kinetic-headline",
           "position": {
             "x": 300,
             "y": 340
@@ -653,7 +653,7 @@
         },
         {
           "id": "outro",
-          "type": "fx.core.title",
+          "type": "fx.title",
           "position": {
             "x": 600,
             "y": 510
@@ -685,7 +685,7 @@
             "y": 422
           },
           "params": {
-            "transition": "remocn/zoom-blur",
+            "transition": "zoom-blur",
             "transitionDuration": 15,
             "keepWhole": false,
             "cuts": []
@@ -814,7 +814,7 @@
       "nodes": [
         {
           "id": "title",
-          "type": "fx.core.title",
+          "type": "fx.title",
           "position": {
             "x": 0,
             "y": 0
@@ -840,7 +840,7 @@
         },
         {
           "id": "terminal",
-          "type": "fx.remocn.terminal-simulator",
+          "type": "fx.terminal-simulator",
           "position": {
             "x": 0,
             "y": 200
@@ -897,7 +897,7 @@
         },
         {
           "id": "chart",
-          "type": "fx.remocn.animated-bar-chart",
+          "type": "fx.animated-bar-chart",
           "position": {
             "x": 0,
             "y": 400
@@ -951,7 +951,7 @@
         },
         {
           "id": "credit",
-          "type": "fx.core.lower-third",
+          "type": "fx.lower-third",
           "position": {
             "x": 300,
             "y": 540
@@ -970,7 +970,7 @@
         },
         {
           "id": "bg",
-          "type": "fx.core.gradient",
+          "type": "fx.gradient",
           "position": {
             "x": 300,
             "y": 340
@@ -1005,7 +1005,7 @@
             "y": 170
           },
           "params": {
-            "transition": "core/slide",
+            "transition": "slide",
             "transitionDuration": 15,
             "keepWhole": false,
             "cuts": []
@@ -1564,7 +1564,7 @@
         },
         {
           "id": "hook",
-          "type": "fx.remocn.kinetic-center-build",
+          "type": "fx.kinetic-center-build",
           "position": {
             "x": 300,
             "y": 340
@@ -1590,7 +1590,7 @@
             "y": 422
           },
           "params": {
-            "transition": "remocn/push-through",
+            "transition": "push-through",
             "transitionDuration": 15,
             "keepWhole": false,
             "cuts": []
@@ -1825,7 +1825,7 @@
         },
         {
           "id": "before-label",
-          "type": "fx.core.lower-third",
+          "type": "fx.lower-third",
           "position": {
             "x": 900,
             "y": 422
@@ -1935,7 +1935,7 @@
         },
         {
           "id": "after-label",
-          "type": "fx.core.lower-third",
+          "type": "fx.lower-third",
           "position": {
             "x": 900,
             "y": 1272
@@ -1967,7 +1967,7 @@
         },
         {
           "id": "wipe",
-          "type": "transition.core.wipe",
+          "type": "transition.wipe",
           "position": {
             "x": 1500,
             "y": 510

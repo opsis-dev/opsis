@@ -28,11 +28,11 @@ fn doubled_text(defaults: &Map<String, Value>, key: &str) -> Value {
 
 fn changes(key: &str, defaults: &Map<String, Value>) -> Value {
     match key {
-        "remocn/word-push" => json!({ "text": "one two three four five six seven eight nine ten" }),
-        "remocn/search-reveal" => {
+        "word-push" => json!({ "text": "one two three four five six seven eight nine ten" }),
+        "search-reveal" => {
             json!({ "text": "a much longer search phrase to type", "framesPerCharacter": 0.2 })
         }
-        "remocn/check-list" => json!({
+        "check-list" => json!({
             "items": [
                 { "text": "Write the script", "checked": true },
                 { "text": "Record every scene in one take", "checked": true },
@@ -42,19 +42,19 @@ fn changes(key: &str, defaults: &Map<String, Value>) -> Value {
             ],
             "itemGap": 0.8
         }),
-        "remocn/code-morph" => json!({
+        "code-morph" => json!({
             "steps": [{ "at": 0, "code": "a" }, { "at": 2, "code": "b" }, { "at": 4, "code": "c" }],
             "morphDuration": 1.5
         }),
-        "remocn/keystroke" => {
+        "keystroke" => {
             json!({ "steps": appended(defaults, "steps", json!({ "at": 9, "keys": "mod+s" })), "linger": 1.5 })
         }
-        "remocn/agent-run" => json!({
+        "agent-run" => json!({
             "runAnswer": doubled_text(defaults, "runAnswer"),
             "runSteps": appended(defaults, "runSteps", json!({ "name": "Write the summary", "duration": 2 }))
         }),
-        "remocn/command-menu" => json!({ "query": "settings" }),
-        "snapcn/punch-lines" => {
+        "command-menu" => json!({ "query": "settings" }),
+        "punch-lines" => {
             json!({ "script": "One. | Two. | Three. | Four. | Five.", "holds": "1.5, 2" })
         }
         _ => json!({}),
@@ -62,14 +62,14 @@ fn changes(key: &str, defaults: &Map<String, Value>) -> Value {
 }
 
 const KEYS: [&str; 8] = [
-    "remocn/word-push",
-    "remocn/search-reveal",
-    "remocn/check-list",
-    "remocn/code-morph",
-    "remocn/keystroke",
-    "remocn/agent-run",
-    "remocn/command-menu",
-    "snapcn/punch-lines",
+    "word-push",
+    "search-reveal",
+    "check-list",
+    "code-morph",
+    "keystroke",
+    "agent-run",
+    "command-menu",
+    "punch-lines",
 ];
 
 fn framed(

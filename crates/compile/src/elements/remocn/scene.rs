@@ -301,7 +301,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<SpringSettle>(
             element(
                 ElementKind::Sequencer,
-                "remocn/spring-settle",
+                "spring-settle",
                 "Spring settle",
                 "Plays clips as scenes: each scene shrinks away, the stage holds empty for a beat, and the next one lands. Connect Layers to make a scene whose layers land one after another.",
                 C::Scene,
@@ -313,46 +313,49 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<SignupFlow>(
             element(
                 ElementKind::Component,
-                "remocn/signup-flow",
+                "signup-flow",
                 "Signup flow",
                 "A sign-up form that fills itself in, step by step.",
                 C::Scene,
                 240,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/signup-flow", "MIT")
+                .authored_clock()
                 .exact_design(1280, 720)
                 .look(NodeLook::of("lucide:user-plus")),
         ),
         meta::<AiPromptFlow>(
             element(
                 ElementKind::Component,
-                "remocn/ai-prompt-flow",
+                "ai-prompt-flow",
                 "AI prompt flow",
                 "An AI prompt composition: a prompt types into the field, the Generate button runs hover → press → loading, a skeleton shimmer reveals, then crossfades into the generated answer, and a ready toast slides in. A pure orchestrator — the shimmer is owned by the skeleton-block motion atom; every other channel comes from a composed primitive's hook.",
                 C::Scene,
                 240,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/ai-prompt-flow", "MIT")
+                .authored_clock()
                 .exact_design(1280, 720)
                 .look(NodeLook::of("lucide:wand-sparkles")),
         ),
         meta::<CommandMenu>(
             element(
                 ElementKind::Component,
-                "remocn/command-menu",
+                "command-menu",
                 "Command menu",
                 "A command palette that opens, filters and picks an item.",
                 C::Scene,
                 240,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/command-menu", "MIT")
+                .authored_clock()
                 .exact_design(1280, 720)
                 .look(NodeLook::of("lucide:search-code")),
         ),
         meta::<ReleaseTeaser>(
             element(
                 ElementKind::Component,
-                "remocn/release-teaser",
+                "release-teaser",
                 "Release teaser",
                 "A 16-second cinematic release teaser with center-out typography, a procedural dimensional mark, moving edge light, and an independent fictional identity.",
                 C::Scene,
@@ -364,7 +367,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<LaunchAnything>(
             element(
                 ElementKind::Component,
-                "remocn/launch-anything",
+                "launch-anything",
                 "Launch anything",
                 "An independent 26.7-second editorial product film with forest-green accents, original photography, seven editable demos, and geometric marks.",
                 C::Scene,

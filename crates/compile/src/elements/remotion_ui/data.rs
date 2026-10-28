@@ -432,7 +432,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<StatCard>(
             element(
                 ElementKind::Component,
-                "remotion-ui/stat-card",
+                "stat-card",
                 "Stat card",
                 "One big number counts up while a ring fills, then its label and the change since last period appear.",
                 C::Data,
@@ -444,7 +444,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<MetricTicker>(
             element(
                 ElementKind::Component,
-                "remotion-ui/metric-ticker",
+                "metric-ticker",
                 "Metric cards",
                 "Key numbers on cards that count up, each with its change and a small trend line.",
                 C::Data,
@@ -456,7 +456,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<FunnelChart>(
             element(
                 ElementKind::Component,
-                "remotion-ui/funnel-chart",
+                "funnel-chart",
                 "Funnel chart",
                 "A bar for each step of a funnel, narrowing to show how many people drop off.",
                 C::Data,
@@ -469,7 +469,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<DonutChart>(
             element(
                 ElementKind::Component,
-                "remotion-ui/donut-chart",
+                "donut-chart",
                 "Donut chart",
                 "A ring chart that fills segment by segment, with a legend and a total.",
                 C::Data,
@@ -482,7 +482,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<ComparisonBars>(
             element(
                 ElementKind::Component,
-                "remotion-ui/comparison-bars",
+                "comparison-bars",
                 "Before and after bars",
                 "Pairs of bars comparing before and after, with the change called out.",
                 C::Data,
@@ -495,7 +495,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<BarChartRace>(
             element(
                 ElementKind::Component,
-                "remotion-ui/bar-chart-race",
+                "bar-chart-race",
                 "Bar chart race",
                 "Ranked bars that grow and swap places as the values change over time.",
                 C::Data,
@@ -508,7 +508,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<GaugeDial>(
             element(
                 ElementKind::Component,
-                "remotion-ui/gauge-dial",
+                "gauge-dial",
                 "Gauge",
                 "A dial whose needle sweeps up to a value.",
                 C::Data,

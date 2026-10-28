@@ -14,7 +14,7 @@ fn sequenced(after: Option<(&'static str, Value)>) -> Workflow {
         g.node(
             "seq",
             "timeline.sequence",
-            json!({ "transition": "core/fade", "transitionDuration": 15 }),
+            json!({ "transition": "fade", "transitionDuration": 15 }),
         );
         g.link_ports("a", "seq", "clip", "in1")
             .link_ports("b", "seq", "clip", "in2");
@@ -112,7 +112,7 @@ fn adds_plain_cuts_when_asked_with_the_variations_own_length() {
             "seq",
             "timeline.sequence",
             json!({
-                "transition": "core/fade", "transitionDuration": 15,
+                "transition": "fade", "transitionDuration": 15,
                 "cuts": [{ "before": "in3", "transition": "none" }]
             }),
         );

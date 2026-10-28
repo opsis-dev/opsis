@@ -14,30 +14,30 @@ type Settings = Record<string, unknown>;
 type Steps<T> = T[];
 
 const OWN_LENGTH: Record<string, (s: Settings) => number> = {
-  "remocn/word-push": (s) => wordPushLength(String(s.text)),
-  "remocn/search-reveal": (s) =>
+  "word-push": (s) => wordPushLength(String(s.text)),
+  "search-reveal": (s) =>
     getSearchRevealDuration({
       text: String(s.text),
       framesPerCharacter: Number(s.framesPerCharacter),
     }),
-  "remocn/check-list": (s) =>
+  "check-list": (s) =>
     checkListDuration(s.items as Steps<{ text: string; checked: boolean }>, {
       step: Number(s.step),
       itemGap: Number(s.itemGap),
       perStep: Number(s.perStep),
       closeGap: Number(s.closeGap),
     }),
-  "remocn/code-morph": (s) =>
+  "code-morph": (s) =>
     getCodeMorphDuration({
       steps: s.steps as Steps<{ at: number; code: string }>,
       morphDuration: Number(s.morphDuration),
     }),
-  "remocn/keystroke": (s) =>
+  keystroke: (s) =>
     getKeystrokeDuration({
       steps: s.steps as Steps<{ at: number; keys: string }>,
       linger: Number(s.linger),
     }),
-  "remocn/agent-run": (s) =>
+  "agent-run": (s) =>
     getAgentRunDuration({
       title: String(s.runTitle),
       prompt: String(s.runPrompt),
@@ -45,17 +45,17 @@ const OWN_LENGTH: Record<string, (s: Settings) => number> = {
       steps: s.runSteps as Steps<{ name: string; duration: number }>,
       answer: String(s.runAnswer),
     }),
-  "remocn/command-menu": (s) => commandMenuPlayEnd(String(s.query)),
-  "snapcn/punch-lines": (s) => punchLinesDuration(String(s.script), String(s.holds)),
+  "command-menu": (s) => commandMenuPlayEnd(String(s.query)),
+  "punch-lines": (s) => punchLinesDuration(String(s.script), String(s.holds)),
 };
 
 const ROUNDED: Record<string, (growth: number) => number> = {
-  "remocn/command-menu": Math.ceil,
+  "command-menu": Math.ceil,
 };
 
 const TOLERANCE: Record<string, (expected: number) => number> = {
-  "remocn/keystroke": () => 4,
-  "remocn/agent-run": (expected) => expected * 0.2,
+  keystroke: () => 4,
+  "agent-run": (expected) => expected * 0.2,
 };
 
 describe("element lengths", () => {

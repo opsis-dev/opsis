@@ -152,7 +152,7 @@ export const GroundShadow: React.FC<{ width: number; y: number }> = ({ width, y 
   );
 };
 
-export const Card3D: React.FC<CoreElementProps["core/card-3d"]> = ({
+export const Card3D: React.FC<CoreElementProps["card-3d"]> = ({
   src,
   cornerRadius,
   tilt,

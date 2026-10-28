@@ -36,7 +36,7 @@ fn shows_sound_files_as_placeholders_mutes_silent_videos_and_gives_images_one_le
     let sound = json!({ "media": media("audio", "project:assets/voice.mp3", None) });
     assert_eq!(
         element_of("media.toClip", json!({}), sound).0,
-        "core/placeholder"
+        "placeholder"
     );
     assert_eq!(
         element_of(
@@ -45,7 +45,7 @@ fn shows_sound_files_as_placeholders_mutes_silent_videos_and_gives_images_one_le
             json!({})
         )
         .0,
-        "core/placeholder"
+        "placeholder"
     );
     let silent = json!({ "media": media("video", "project:out/film.mp4", Some(false)) });
     let loud = json!({ "media": media("video", "project:out/film.mp4", Some(true)) });

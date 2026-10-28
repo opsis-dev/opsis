@@ -70,6 +70,7 @@ pub struct ElementMeta {
     pub optional_clip: bool,
     pub thumbnail: Option<String>,
     pub look: Option<NodeLook>,
+    pub authored_clock: bool,
 }
 
 struct Elements {
@@ -102,5 +103,5 @@ pub fn element_meta(key: &str) -> Option<&'static ElementMeta> {
 }
 
 pub fn element_node_type(key: &str) -> String {
-    format!("fx.{}", key.replacen('/', ".", 1))
+    format!("fx.{key}")
 }

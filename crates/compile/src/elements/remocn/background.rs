@@ -177,85 +177,92 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<ShaderMeshGradient>(
             element(
                 ElementKind::Component,
-                "remocn/shader-mesh-gradient",
+                "shader-mesh-gradient",
                 "Shader mesh gradient",
                 "Soft colour blobs that drift and blend into each other.",
                 C::Background,
                 150,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/shader-mesh-gradient", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:blend")),
         ),
         meta::<ShaderGrainGradient>(
             element(
                 ElementKind::Component,
-                "remocn/shader-grain-gradient",
+                "shader-grain-gradient",
                 "Shader grain gradient",
                 "Grainy multi-stop gradient that drifts slowly with film-grain texture over the blend.",
                 C::Background,
                 150,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/shader-grain-gradient", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("tabler:noise-reduction")),
         ),
         meta::<ShaderWarp>(
             element(
                 ElementKind::Component,
-                "remocn/shader-warp",
+                "shader-warp",
                 "Shader warp",
                 "Domain-warped color field that folds and stretches like liquid.",
                 C::Background,
                 150,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/shader-warp", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:droplets")),
         ),
         meta::<ShaderSwirl>(
             element(
                 ElementKind::Component,
-                "remocn/shader-swirl",
+                "shader-swirl",
                 "Shader swirl",
                 "Concentric bands swirling around a center point.",
                 C::Background,
                 150,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/shader-swirl", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("tabler:spiral")),
         ),
         meta::<ShaderGodRays>(
             element(
                 ElementKind::Component,
-                "remocn/shader-god-rays",
+                "shader-god-rays",
                 "Shader god rays",
                 "Volumetric light rays radiating from an off-screen source.",
                 C::Background,
                 150,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/shader-god-rays", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:sunrise")),
         ),
         meta::<ShaderPerlinNoise>(
             element(
                 ElementKind::Component,
-                "remocn/shader-perlin-noise",
+                "shader-perlin-noise",
                 "Shader perlin noise",
                 "Classic Perlin noise clouds drifting across the frame.",
                 C::Background,
                 150,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/shader-perlin-noise", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:cloudy")),
         ),
         meta::<ShaderDithering>(
             element(
                 ElementKind::Component,
-                "remocn/shader-dithering",
+                "shader-dithering",
                 "Shader dithering",
                 "Ordered-dither shading over an animated gradient field.",
                 C::Background,
                 150,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/shader-dithering", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:grip")),
         ),
     ]

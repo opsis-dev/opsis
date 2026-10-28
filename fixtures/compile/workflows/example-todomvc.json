@@ -212,7 +212,7 @@
    },
    {
     "id": "intro-bg",
-    "type": "fx.remocn.shader-mesh-gradient",
+    "type": "fx.shader-mesh-gradient",
     "position": {
      "x": 1200,
      "y": 340
@@ -233,7 +233,7 @@
    },
    {
     "id": "intro-title",
-    "type": "fx.remocn.soft-blur-in",
+    "type": "fx.soft-blur-in",
     "position": {
      "x": 1200,
      "y": 540
@@ -266,7 +266,7 @@
    },
    {
     "id": "outro",
-    "type": "fx.core.title",
+    "type": "fx.title",
     "position": {
      "x": 1500,
      "y": 680
@@ -298,7 +298,7 @@
      "y": 422
     },
     "params": {
-     "transition": "remocn/whip-pan",
+     "transition": "whip-pan",
      "transitionDuration": 18,
      "keepWhole": false,
      "cuts": []
@@ -684,7 +684,7 @@
            "unit": "frames"
           }
          },
-         "component": "remocn/shader-mesh-gradient",
+         "component": "shader-mesh-gradient",
          "props": {
           "speed": 1,
           "distortion": 0.6,
@@ -724,7 +724,7 @@
            "unit": "frames"
           }
          },
-         "component": "remocn/soft-blur-in",
+         "component": "soft-blur-in",
          "props": {
           "text": "TodoMVC in 20 seconds",
           "blur": 12,
@@ -868,7 +868,7 @@
                 "unit": "frames"
                }
               },
-              "component": "remocn/shader-mesh-gradient",
+              "component": "shader-mesh-gradient",
               "props": {
                "speed": 1,
                "distortion": 0.6,
@@ -927,7 +927,7 @@
                 "unit": "frames"
                }
               },
-              "component": "remocn/soft-blur-in",
+              "component": "soft-blur-in",
               "props": {
                "text": "TodoMVC in 20 seconds",
                "blur": 12,
@@ -971,7 +971,7 @@
            "unit": "frames"
           }
          },
-         "component": "core/title",
+         "component": "title",
          "props": {
           "eyebrow": "Made with",
           "title": "Opsis",
@@ -1266,7 +1266,7 @@
          "from": 0,
          "durationInFrames": 144,
          "nodeId": "camera",
-         "component": "core/placeholder",
+         "component": "placeholder",
          "props": {
           "title": "Not recorded yet",
           "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1292,7 +1292,7 @@
          "from": 0,
          "durationInFrames": 75,
          "exit": {
-          "kind": "remocn/whip-pan",
+          "kind": "whip-pan",
           "durationInFrames": 18
          },
          "slot": {
@@ -1339,7 +1339,7 @@
                      "unit": "frames"
                     }
                    },
-                   "component": "remocn/shader-mesh-gradient",
+                   "component": "shader-mesh-gradient",
                    "props": {
                     "speed": 1,
                     "distortion": 0.6,
@@ -1398,7 +1398,7 @@
                      "unit": "frames"
                     }
                    },
-                   "component": "remocn/soft-blur-in",
+                   "component": "soft-blur-in",
                    "props": {
                     "text": "TodoMVC in 20 seconds",
                     "blur": 12,
@@ -1426,11 +1426,11 @@
          "from": 57,
          "durationInFrames": 144,
          "enter": {
-          "kind": "remocn/whip-pan",
+          "kind": "whip-pan",
           "durationInFrames": 18
          },
          "exit": {
-          "kind": "remocn/whip-pan",
+          "kind": "whip-pan",
           "durationInFrames": 18
          },
          "slot": {
@@ -1448,7 +1448,7 @@
               "from": 0,
               "durationInFrames": 144,
               "nodeId": "camera",
-              "component": "core/placeholder",
+              "component": "placeholder",
               "props": {
                "title": "Not recorded yet",
                "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1465,7 +1465,7 @@
          "from": 183,
          "durationInFrames": 75,
          "enter": {
-          "kind": "remocn/whip-pan",
+          "kind": "whip-pan",
           "durationInFrames": 18
          },
          "slot": {
@@ -1490,7 +1490,7 @@
                 "unit": "frames"
                }
               },
-              "component": "core/title",
+              "component": "title",
               "props": {
                "eyebrow": "Made with",
                "title": "Opsis",
@@ -1823,7 +1823,7 @@
        "from": 0,
        "durationInFrames": 75,
        "exit": {
-        "kind": "remocn/whip-pan",
+        "kind": "whip-pan",
         "durationInFrames": 18
        },
        "slot": {
@@ -1870,7 +1870,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "remocn/shader-mesh-gradient",
+                 "component": "shader-mesh-gradient",
                  "props": {
                   "speed": 1,
                   "distortion": 0.6,
@@ -1929,7 +1929,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "remocn/soft-blur-in",
+                 "component": "soft-blur-in",
                  "props": {
                   "text": "TodoMVC in 20 seconds",
                   "blur": 12,
@@ -1957,11 +1957,11 @@
        "from": 57,
        "durationInFrames": 144,
        "enter": {
-        "kind": "remocn/whip-pan",
+        "kind": "whip-pan",
         "durationInFrames": 18
        },
        "exit": {
-        "kind": "remocn/whip-pan",
+        "kind": "whip-pan",
         "durationInFrames": 18
        },
        "slot": {
@@ -1979,7 +1979,7 @@
             "from": 0,
             "durationInFrames": 144,
             "nodeId": "camera",
-            "component": "core/placeholder",
+            "component": "placeholder",
             "props": {
              "title": "Not recorded yet",
              "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1996,7 +1996,7 @@
        "from": 183,
        "durationInFrames": 75,
        "enter": {
-        "kind": "remocn/whip-pan",
+        "kind": "whip-pan",
         "durationInFrames": 18
        },
        "slot": {
@@ -2021,7 +2021,7 @@
               "unit": "frames"
              }
             },
-            "component": "core/title",
+            "component": "title",
             "props": {
              "eyebrow": "Made with",
              "title": "Opsis",
@@ -2500,7 +2500,7 @@
        "from": 0,
        "durationInFrames": 75,
        "exit": {
-        "kind": "remocn/whip-pan",
+        "kind": "whip-pan",
         "durationInFrames": 18
        },
        "slot": {
@@ -2547,7 +2547,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "remocn/shader-mesh-gradient",
+                 "component": "shader-mesh-gradient",
                  "props": {
                   "speed": 1,
                   "distortion": 0.6,
@@ -2606,7 +2606,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "remocn/soft-blur-in",
+                 "component": "soft-blur-in",
                  "props": {
                   "text": "TodoMVC in 20 seconds",
                   "blur": 12,
@@ -2634,11 +2634,11 @@
        "from": 57,
        "durationInFrames": 144,
        "enter": {
-        "kind": "remocn/whip-pan",
+        "kind": "whip-pan",
         "durationInFrames": 18
        },
        "exit": {
-        "kind": "remocn/whip-pan",
+        "kind": "whip-pan",
         "durationInFrames": 18
        },
        "slot": {
@@ -2656,7 +2656,7 @@
             "from": 0,
             "durationInFrames": 144,
             "nodeId": "camera",
-            "component": "core/placeholder",
+            "component": "placeholder",
             "props": {
              "title": "Not recorded yet",
              "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -2673,7 +2673,7 @@
        "from": 183,
        "durationInFrames": 75,
        "enter": {
-        "kind": "remocn/whip-pan",
+        "kind": "whip-pan",
         "durationInFrames": 18
        },
        "slot": {
@@ -2698,7 +2698,7 @@
               "unit": "frames"
              }
             },
-            "component": "core/title",
+            "component": "title",
             "props": {
              "eyebrow": "Made with",
              "title": "Opsis",
@@ -3153,7 +3153,7 @@
       "itemId": "intro-bg:i",
       "nodeId": "intro-bg",
       "kind": "element",
-      "component": "remocn/shader-mesh-gradient",
+      "component": "shader-mesh-gradient",
       "props": {
        "speed": 1,
        "distortion": 0.6,
@@ -3233,7 +3233,7 @@
       "itemId": "intro-title:i",
       "nodeId": "intro-title",
       "kind": "element",
-      "component": "remocn/soft-blur-in",
+      "component": "soft-blur-in",
       "props": {
        "text": "TodoMVC in 20 seconds",
        "blur": 12,
@@ -3311,7 +3311,7 @@
       "itemId": "camera:i",
       "nodeId": "camera",
       "kind": "element",
-      "component": "core/placeholder",
+      "component": "placeholder",
       "props": {
        "title": "Not recorded yet",
        "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -3357,7 +3357,7 @@
       "itemId": "outro:i",
       "nodeId": "outro",
       "kind": "element",
-      "component": "core/title",
+      "component": "title",
       "props": {
        "eyebrow": "Made with",
        "title": "Opsis",
@@ -3425,7 +3425,7 @@
       "itemKey": "/0:sequence:s1",
       "from": 57.0,
       "to": 75.0,
-      "kind": "remocn/whip-pan",
+      "kind": "whip-pan",
       "lanes": [
        0,
        1,
@@ -3442,7 +3442,7 @@
       "itemKey": "/0:sequence:s2",
       "from": 183.0,
       "to": 201.0,
-      "kind": "remocn/whip-pan",
+      "kind": "whip-pan",
       "lanes": [
        0,
        2
@@ -4058,7 +4058,7 @@
             "unit": "frames"
            }
           },
-          "component": "remocn/shader-mesh-gradient",
+          "component": "shader-mesh-gradient",
           "props": {
            "speed": 1,
            "distortion": 0.6,
@@ -4098,7 +4098,7 @@
             "unit": "frames"
            }
           },
-          "component": "remocn/soft-blur-in",
+          "component": "soft-blur-in",
           "props": {
            "text": "TodoMVC in 20 seconds",
            "blur": 12,
@@ -4242,7 +4242,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "remocn/shader-mesh-gradient",
+               "component": "shader-mesh-gradient",
                "props": {
                 "speed": 1,
                 "distortion": 0.6,
@@ -4301,7 +4301,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "remocn/soft-blur-in",
+               "component": "soft-blur-in",
                "props": {
                 "text": "TodoMVC in 20 seconds",
                 "blur": 12,
@@ -4345,7 +4345,7 @@
             "unit": "frames"
            }
           },
-          "component": "core/title",
+          "component": "title",
           "props": {
            "eyebrow": "Made with",
            "title": "Opsis",
@@ -5088,7 +5088,7 @@
           "from": 0,
           "durationInFrames": 75,
           "exit": {
-           "kind": "remocn/whip-pan",
+           "kind": "whip-pan",
            "durationInFrames": 18
           },
           "slot": {
@@ -5135,7 +5135,7 @@
                       "unit": "frames"
                      }
                     },
-                    "component": "remocn/shader-mesh-gradient",
+                    "component": "shader-mesh-gradient",
                     "props": {
                      "speed": 1,
                      "distortion": 0.6,
@@ -5194,7 +5194,7 @@
                       "unit": "frames"
                      }
                     },
-                    "component": "remocn/soft-blur-in",
+                    "component": "soft-blur-in",
                     "props": {
                      "text": "TodoMVC in 20 seconds",
                      "blur": 12,
@@ -5222,11 +5222,11 @@
           "from": 57,
           "durationInFrames": 185,
           "enter": {
-           "kind": "remocn/whip-pan",
+           "kind": "whip-pan",
            "durationInFrames": 18
           },
           "exit": {
-           "kind": "remocn/whip-pan",
+           "kind": "whip-pan",
            "durationInFrames": 18
           },
           "slot": {
@@ -5419,7 +5419,7 @@
           "from": 224,
           "durationInFrames": 75,
           "enter": {
-           "kind": "remocn/whip-pan",
+           "kind": "whip-pan",
            "durationInFrames": 18
           },
           "slot": {
@@ -5444,7 +5444,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "core/title",
+               "component": "title",
                "props": {
                 "eyebrow": "Made with",
                 "title": "Opsis",
@@ -5933,7 +5933,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/whip-pan",
+         "kind": "whip-pan",
          "durationInFrames": 18
         },
         "slot": {
@@ -5980,7 +5980,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "remocn/shader-mesh-gradient",
+                  "component": "shader-mesh-gradient",
                   "props": {
                    "speed": 1,
                    "distortion": 0.6,
@@ -6039,7 +6039,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "remocn/soft-blur-in",
+                  "component": "soft-blur-in",
                   "props": {
                    "text": "TodoMVC in 20 seconds",
                    "blur": 12,
@@ -6067,11 +6067,11 @@
         "from": 57,
         "durationInFrames": 185,
         "enter": {
-         "kind": "remocn/whip-pan",
+         "kind": "whip-pan",
          "durationInFrames": 18
         },
         "exit": {
-         "kind": "remocn/whip-pan",
+         "kind": "whip-pan",
          "durationInFrames": 18
         },
         "slot": {
@@ -6264,7 +6264,7 @@
         "from": 224,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/whip-pan",
+         "kind": "whip-pan",
          "durationInFrames": 18
         },
         "slot": {
@@ -6289,7 +6289,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "Made with",
               "title": "Opsis",
@@ -6768,7 +6768,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "remocn/whip-pan",
+         "kind": "whip-pan",
          "durationInFrames": 18
         },
         "slot": {
@@ -6815,7 +6815,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "remocn/shader-mesh-gradient",
+                  "component": "shader-mesh-gradient",
                   "props": {
                    "speed": 1,
                    "distortion": 0.6,
@@ -6874,7 +6874,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "remocn/soft-blur-in",
+                  "component": "soft-blur-in",
                   "props": {
                    "text": "TodoMVC in 20 seconds",
                    "blur": 12,
@@ -6902,11 +6902,11 @@
         "from": 57,
         "durationInFrames": 185,
         "enter": {
-         "kind": "remocn/whip-pan",
+         "kind": "whip-pan",
          "durationInFrames": 18
         },
         "exit": {
-         "kind": "remocn/whip-pan",
+         "kind": "whip-pan",
          "durationInFrames": 18
         },
         "slot": {
@@ -7099,7 +7099,7 @@
         "from": 224,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/whip-pan",
+         "kind": "whip-pan",
          "durationInFrames": 18
         },
         "slot": {
@@ -7124,7 +7124,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "Made with",
               "title": "Opsis",
@@ -7579,7 +7579,7 @@
        "itemId": "intro-bg:i",
        "nodeId": "intro-bg",
        "kind": "element",
-       "component": "remocn/shader-mesh-gradient",
+       "component": "shader-mesh-gradient",
        "props": {
         "speed": 1,
         "distortion": 0.6,
@@ -7659,7 +7659,7 @@
        "itemId": "intro-title:i",
        "nodeId": "intro-title",
        "kind": "element",
-       "component": "remocn/soft-blur-in",
+       "component": "soft-blur-in",
        "props": {
         "text": "TodoMVC in 20 seconds",
         "blur": 12,
@@ -7946,7 +7946,7 @@
        "itemId": "outro:i",
        "nodeId": "outro",
        "kind": "element",
-       "component": "core/title",
+       "component": "title",
        "props": {
         "eyebrow": "Made with",
         "title": "Opsis",
@@ -8014,7 +8014,7 @@
        "itemKey": "/0:sequence:s1",
        "from": 57.0,
        "to": 75.0,
-       "kind": "remocn/whip-pan",
+       "kind": "whip-pan",
        "lanes": [
         0,
         1,
@@ -8031,7 +8031,7 @@
        "itemKey": "/0:sequence:s2",
        "from": 224.0,
        "to": 242.0,
-       "kind": "remocn/whip-pan",
+       "kind": "whip-pan",
        "lanes": [
         0,
         2

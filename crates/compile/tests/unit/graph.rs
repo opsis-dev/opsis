@@ -147,7 +147,7 @@ fn ignores_a_connection_from_a_deleted_node_when_counting_connections() {
 #[test]
 fn warns_a_node_fed_by_a_skipped_node_that_has_nothing_to_pass_on() {
     let mut g = Graph::default();
-    g.node("bg", "fx.core.solid", json!({}));
+    g.node("bg", "fx.solid", json!({}));
     g.node("trim", "timeline.trim", json!({}));
     g.node("speed", "timeline.speed", json!({}));
     g.link("bg", "trim").link("trim", "speed");
@@ -349,7 +349,7 @@ fn sorted(mut ids: Vec<String>) -> Vec<String> {
 #[test]
 fn runs_every_export_and_the_nodes_after_one_or_everything_without_an_export() {
     let mut g = Graph::default();
-    g.node("title", "fx.core.title", json!({}));
+    g.node("title", "fx.title", json!({}));
     g.node("film", "output.render", json!({}));
     g.link("title", "film");
     g.node("gif", "media.gif", json!({}));

@@ -52,9 +52,16 @@ const OnScreen: React.FC<{ quad: Point2[]; turn: number; children?: React.ReactN
   );
 };
 
-export const Screen3D: React.FC<
-  CoreElementProps["core/screen-3d"] & { children?: React.ReactNode }
-> = ({ device, deviceColor, move, camera, endFaceOn, lighting, background, children }) => {
+export const Screen3D: React.FC<CoreElementProps["screen-3d"] & { children?: React.ReactNode }> = ({
+  device,
+  deviceColor,
+  move,
+  camera,
+  endFaceOn,
+  lighting,
+  background,
+  children,
+}) => {
   const frame = useCurrentFrame();
   const { width, height, durationInFrames } = useVideoConfig();
   const screen = useMemo(

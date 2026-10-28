@@ -10,7 +10,7 @@ use crate::elements::entry::{component, meta, presentation, wrapper};
 use crate::elements::{ElementCategory, ElementMeta};
 use crate::nodes::capture::StillProps;
 
-pub const CAPTIONS_ELEMENT: &str = "core/captions";
+pub const CAPTIONS_ELEMENT: &str = "captions";
 
 #[derive(
     Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema, specta::Type,
@@ -934,28 +934,28 @@ pub fn core_elements() -> Vec<ElementMeta> {
     use ElementCategory as C;
     vec![
         meta::<Title>(component(
-            "core/title",
+            "title",
             "Title card",
             "A full-screen title with an optional eyebrow and subtitle.",
             C::Text,
             75,
         ).look(NodeLook::of("lucide:heading"))),
         meta::<KineticHeadline>(component(
-            "core/kinetic-headline",
+            "kinetic-headline",
             "Animated headline",
             "A headline that animates in word by word.",
             C::Text,
             90,
         ).look(NodeLook::of("lucide:whole-word"))),
         meta::<LowerThird>(component(
-            "core/lower-third",
+            "lower-third",
             "Lower third",
             "A name or caption bar in the lower part of the screen.",
             C::Overlay,
             120,
         ).look(NodeLook::of("lucide:panel-bottom"))),
         meta::<Callout>(component(
-            "core/callout",
+            "callout",
             "Callout",
             "A short note that points something out.",
             C::Overlay,
@@ -969,190 +969,190 @@ pub fn core_elements() -> Vec<ElementMeta> {
             150,
         )),
         meta::<Image>(component(
-            "core/image",
+            "image",
             "Image",
             "Shows an image from your project.",
             C::Core,
             90,
         ).look(NodeLook::of("lucide:image"))),
         meta::<Mosaic>(wrapper(
-            "core/mosaic",
+            "mosaic",
             "Mosaic",
             "Covers parts of the screen with coarse blocks, to hide keys, emails and personal details.",
             C::Effect,
             90,
         ).look(NodeLook::of("lucide:grid-3x3"))),
         meta::<Lottie>(component(
-            "core/lottie",
+            "lottie",
             "Animation",
             "Plays an animation file from your project, looped or once, at any speed.",
             C::Overlay,
             90,
         ).look(NodeLook::of("lucide:shapes"))),
         meta::<Video>(component(
-            "core/video",
+            "video",
             "Video",
             "Plays a video from your project.",
             C::Core,
             150,
         ).look(NodeLook::of("lucide:video"))),
         meta::<Solid>(component(
-            "core/solid",
+            "solid",
             "Solid colour",
             "A plain colour background.",
             C::Background,
             90,
         ).look(NodeLook::of("lucide:paint-bucket"))),
         meta::<Gradient>(component(
-            "core/gradient",
+            "gradient",
             "Gradient",
             "A gradient background.",
             C::Background,
             90,
         ).look(NodeLook::of("lucide:rainbow"))),
         meta::<Noise>(component(
-            "core/noise",
+            "noise",
             "Noise",
             "A soft moving noise background.",
             C::Background,
             150,
         ).look(NodeLook::of("tabler:grain"))),
         meta::<Starburst>(component(
-            "core/starburst",
+            "starburst",
             "Starburst",
             "Rays spreading from the centre.",
             C::Background,
             150,
         ).look(NodeLook::of("lucide:sun"))),
         meta::<Paper>(component(
-            "core/paper",
+            "paper",
             "Paper",
             "A paper texture background.",
             C::Background,
             150,
         ).look(NodeLook::of("lucide:scroll"))),
         meta::<StudioBackdrop>(component(
-            "core/backdrop",
+            "backdrop",
             "Studio backdrop",
             "A ready-made studio background image.",
             C::Background,
             150,
         ).look(NodeLook::of("lucide:wallpaper"))),
         meta::<VideoLoop>(component(
-            "core/video-loop",
+            "video-loop",
             "Looping video",
             "A video that loops for as long as needed.",
             C::Background,
             150,
         ).look(NodeLook::of("lucide:infinity"))),
         meta::<LightLeak>(component(
-            "core/light-leak",
+            "light-leak",
             "Light leak",
             "A warm light flare over the video.",
             C::Overlay,
             45,
         ).look(NodeLook::of("lucide:sun-dim"))),
         meta::<Logo3d>(component(
-            "core/logo-3d",
+            "logo-3d",
             "3D logo",
             "Your logo in 3D, spinning, tilting in or floating, with studio lighting.",
             C::Scene,
             150,
         ).look(NodeLook::of("lucide:rotate-3d").moves(NodeMotion::Turn))),
         meta::<Card3d>(component(
-            "core/card-3d",
+            "card-3d",
             "3D card",
             "An image on a card with rounded corners and a soft shadow that tilts into place.",
             C::Scene,
             120,
         ).look(NodeLook::of("lucide-lab:copy-image"))),
         meta::<Text3d>(component(
-            "core/text-3d",
+            "text-3d",
             "3D text",
             "Words in solid 3D letters with rounded edges, in any project font.",
             C::Text,
             120,
         ).look(NodeLook::of("lucide:case-sensitive").moves(NodeMotion::Turn))),
         meta::<Model3d>(component(
-            "core/model-3d",
+            "model-3d",
             "3D model",
             "A 3D model from your project on a turntable, with studio lighting and its own animation.",
             C::Scene,
             150,
         ).look(NodeLook::of("lucide:cuboid").moves(NodeMotion::Turn))),
         meta::<Screen3d>(wrapper(
-            "core/screen-3d",
+            "screen-3d",
             "3D screen",
             "Shows a clip on a laptop, monitor, phone or floating screen in 3D, with a camera move.",
             C::Device,
             150,
         ).look(NodeLook::of("iconoir:perspective-view"))),
         meta::<Shapes3d>(component(
-            "core/shapes-3d",
+            "shapes-3d",
             "Floating shapes",
             "Soft 3D spheres, rings and rounded boxes drifting slowly.",
             C::Background,
             150,
         ).look(NodeLook::of("lucide:torus"))),
-        meta::<NoSettings>(presentation("core/fade", "Fade", 15).look(NodeLook::of("lucide:blend").moves(NodeMotion::FadeThrough))),
-        meta::<Slide>(presentation("core/slide", "Slide", 20).look(NodeLook::of("tabler:transition-right").moves(NodeMotion::SlideThrough))),
-        meta::<Wipe>(presentation("core/wipe", "Wipe", 20).look(NodeLook::of("lucide:square-split-horizontal").moves(NodeMotion::WipeReveal))),
-        meta::<Flip>(presentation("core/flip", "Flip", 24).look(NodeLook::of("lucide:triangles-centerline-dashed-horizontal").moves(NodeMotion::Flip))),
-        meta::<NoSettings>(presentation("core/clock-wipe", "Clock wipe", 24).look(NodeLook::of("lucide:clock-fading").moves(NodeMotion::ClockWipe))),
-        meta::<NoSettings>(presentation("core/iris", "Iris", 24).look(NodeLook::of("lucide:aperture").moves(NodeMotion::Iris))),
+        meta::<NoSettings>(presentation("fade", "Fade", 15).look(NodeLook::of("lucide:blend").moves(NodeMotion::FadeThrough))),
+        meta::<Slide>(presentation("slide", "Slide", 20).look(NodeLook::of("tabler:transition-right").moves(NodeMotion::SlideThrough))),
+        meta::<Wipe>(presentation("wipe", "Wipe", 20).look(NodeLook::of("lucide:square-split-horizontal").moves(NodeMotion::WipeReveal))),
+        meta::<Flip>(presentation("flip", "Flip", 24).look(NodeLook::of("lucide:triangles-centerline-dashed-horizontal").moves(NodeMotion::Flip))),
+        meta::<NoSettings>(presentation("clock-wipe", "Clock wipe", 24).look(NodeLook::of("lucide:clock-fading").moves(NodeMotion::ClockWipe))),
+        meta::<NoSettings>(presentation("iris", "Iris", 24).look(NodeLook::of("lucide:aperture").moves(NodeMotion::Iris))),
     ]
 }
 
 #[derive(Debug, Clone, Serialize, specta::Type)]
 pub struct CoreElementProps {
-    #[serde(rename = "core/placeholder")]
+    #[serde(rename = "placeholder")]
     pub placeholder: PlaceholderProps,
-    #[serde(rename = "core/still")]
+    #[serde(rename = "still")]
     pub still: StillProps,
-    #[serde(rename = "core/title")]
+    #[serde(rename = "title")]
     pub title: Title,
-    #[serde(rename = "core/kinetic-headline")]
+    #[serde(rename = "kinetic-headline")]
     pub kinetic_headline: KineticHeadline,
-    #[serde(rename = "core/lower-third")]
+    #[serde(rename = "lower-third")]
     pub lower_third: LowerThird,
-    #[serde(rename = "core/callout")]
+    #[serde(rename = "callout")]
     pub callout: Callout,
-    #[serde(rename = "core/captions")]
+    #[serde(rename = "captions")]
     pub captions: Captions,
-    #[serde(rename = "core/image")]
+    #[serde(rename = "image")]
     pub image: Image,
-    #[serde(rename = "core/mosaic")]
+    #[serde(rename = "mosaic")]
     pub mosaic: Mosaic,
-    #[serde(rename = "core/lottie")]
+    #[serde(rename = "lottie")]
     pub lottie: Lottie,
-    #[serde(rename = "core/video")]
+    #[serde(rename = "video")]
     pub video: Video,
-    #[serde(rename = "core/solid")]
+    #[serde(rename = "solid")]
     pub solid: Solid,
-    #[serde(rename = "core/gradient")]
+    #[serde(rename = "gradient")]
     pub gradient: Gradient,
-    #[serde(rename = "core/noise")]
+    #[serde(rename = "noise")]
     pub noise: Noise,
-    #[serde(rename = "core/starburst")]
+    #[serde(rename = "starburst")]
     pub starburst: Starburst,
-    #[serde(rename = "core/paper")]
+    #[serde(rename = "paper")]
     pub paper: Paper,
-    #[serde(rename = "core/backdrop")]
+    #[serde(rename = "backdrop")]
     pub backdrop: StudioBackdrop,
-    #[serde(rename = "core/video-loop")]
+    #[serde(rename = "video-loop")]
     pub video_loop: VideoLoop,
-    #[serde(rename = "core/light-leak")]
+    #[serde(rename = "light-leak")]
     pub light_leak: LightLeak,
-    #[serde(rename = "core/logo-3d")]
+    #[serde(rename = "logo-3d")]
     pub logo_3d: Logo3d,
-    #[serde(rename = "core/card-3d")]
+    #[serde(rename = "card-3d")]
     pub card_3d: Card3d,
-    #[serde(rename = "core/text-3d")]
+    #[serde(rename = "text-3d")]
     pub text_3d: Text3d,
-    #[serde(rename = "core/model-3d")]
+    #[serde(rename = "model-3d")]
     pub model_3d: Model3d,
-    #[serde(rename = "core/screen-3d")]
+    #[serde(rename = "screen-3d")]
     pub screen_3d: Screen3d,
-    #[serde(rename = "core/shapes-3d")]
+    #[serde(rename = "shapes-3d")]
     pub shapes_3d: Shapes3d,
 }

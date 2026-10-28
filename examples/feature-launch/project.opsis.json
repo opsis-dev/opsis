@@ -136,7 +136,7 @@
     },
     {
       "id": "headline",
-      "type": "fx.core.kinetic-headline",
+      "type": "fx.kinetic-headline",
       "position": {
         "x": 300.0,
         "y": 340.0
@@ -155,7 +155,7 @@
     },
     {
       "id": "outro",
-      "type": "fx.core.title",
+      "type": "fx.title",
       "position": {
         "x": 600.0,
         "y": 510.0
@@ -187,7 +187,7 @@
         "y": 422.0
       },
       "params": {
-        "transition": "remocn/zoom-blur",
+        "transition": "zoom-blur",
         "transitionDuration": 15,
         "keepWhole": false,
         "cuts": []

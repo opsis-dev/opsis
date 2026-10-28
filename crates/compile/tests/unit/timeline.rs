@@ -114,7 +114,7 @@ fn marks_transitions_between_sequenced_clips() {
         g.node(
             "seq",
             "timeline.sequence",
-            json!({ "transition": "core/fade", "transitionDuration": 15 }),
+            json!({ "transition": "fade", "transitionDuration": 15 }),
         );
         g.link_ports("a", "seq", "clip", "in1")
             .link_ports("b", "seq", "clip", "in2");
@@ -132,7 +132,7 @@ fn marks_transitions_between_sequenced_clips() {
             slot.node_id.as_str(),
             slot.port.as_str()
         ),
-        (45.0, 60.0, "core/fade", "seq", "in2")
+        (45.0, 60.0, "fade", "seq", "in2")
     );
 }
 

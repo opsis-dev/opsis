@@ -94,7 +94,7 @@ function dispose(model: Group): void {
 const outlinesFor = (url: string) =>
   url ? loadOutlines(url) : Promise.reject(new Error(FONT_UNREADABLE));
 
-export const Text3D: React.FC<CoreElementProps["core/text-3d"] & Partial<PreparedTypeface>> = ({
+export const Text3D: React.FC<CoreElementProps["text-3d"] & Partial<PreparedTypeface>> = ({
   text,
   fontFamily,
   typeface = "",

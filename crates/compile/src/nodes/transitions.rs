@@ -21,7 +21,7 @@ use crate::nodes::elements::extended_schema;
 use crate::params::{Params, Values, schema_of, whole_number};
 
 pub const NO_TRANSITION: &str = "none";
-pub const DEFAULT_TRANSITION: &str = "core/fade";
+pub const DEFAULT_TRANSITION: &str = "fade";
 
 pub fn transition_title(key: &str) -> String {
     if key == NO_TRANSITION {
@@ -67,7 +67,7 @@ fn ab() -> (Ports, Ports) {
 }
 
 fn transition_node_type(key: &str) -> String {
-    format!("transition.{}", key.replacen('/', ".", 1))
+    format!("transition.{key}")
 }
 
 fn join_clips(inputs: &Inputs, join: impl FnOnce(&ClipValue, &ClipValue) -> ClipValue) -> Outputs {
@@ -234,7 +234,7 @@ fn light_leak() -> NodeDef {
             props.insert("hueShift".into(), Value::from(p.hue_shift));
             let leak = item_clip(
                 &format!("{}:leak", ctx.node_id),
-                "core/light-leak",
+                "light-leak",
                 props,
                 length,
                 ItemExtra::default(),

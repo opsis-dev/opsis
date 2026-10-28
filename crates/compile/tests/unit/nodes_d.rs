@@ -203,17 +203,13 @@ fn shows_a_placeholder_until_the_screenshot_is_taken_then_the_screenshot() {
     let (image, component, _, frames) = still(json!({ "durationMs": 3000 }), None);
     assert_eq!(
         (image, component.as_str(), frames),
-        (
-            json!({ "type": "image", "src": null }),
-            "core/placeholder",
-            90
-        )
+        (json!({ "type": "image", "src": null }), "placeholder", 90)
     );
     let (_, component, props, _) = still(
         json!({ "look": "cutout" }),
         Some(json!({ "src": "project:shot.png", "width": 400, "height": 300, "scale": 2 })),
     );
-    assert_eq!(component, "core/still");
+    assert_eq!(component, "still");
     assert_eq!(
         (
             props["src"].clone(),
@@ -233,7 +229,7 @@ fn shows_a_placeholder_until_the_screenshot_is_taken_then_the_screenshot() {
             props["src"].clone(),
             props.get("shot").cloned().unwrap_or(Value::Null)
         ),
-        ("core/still", json!("project:shot.png"), Value::Null)
+        ("still", json!("project:shot.png"), Value::Null)
     );
 }
 
@@ -276,8 +272,8 @@ fn notes_fast_speeds_and_counts_sequence_cuts() {
     };
     assert_eq!((notes(2.0), notes(4.0)), (0, 1));
     let cuts = json!([
-        { "before": "in3", "transition": "core/wipe", "transitionDuration": 50, "keepWhole": false },
-        { "before": "in5", "transition": "core/iris", "transitionDuration": 10, "keepWhole": false }
+        { "before": "in3", "transition": "wipe", "transitionDuration": 50, "keepWhole": false },
+        { "before": "in5", "transition": "iris", "transitionDuration": 10, "keepWhole": false }
     ]);
     let context = || CardInputs {
         connected: vec!["in1".into(), "in2".into(), "in3".into()],

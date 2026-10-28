@@ -323,49 +323,53 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<AnnounceTitle>(
             element(
                 ElementKind::Component,
-                "snapcn/announce-title",
+                "announce-title",
                 "Announce title",
                 "Launch title animation, product announcement intro with kinetic typography. A four-shot launch title: the eyebrow rushes past the camera on a receding type plane and lands on a colour field, the name assembles word by word on paper, and a macro pan across the tagline cuts wide as the line builds itself last word first while a white sweep drains it out of colour.",
                 C::Text,
                 170,
             )
                 .source("snapcn", "https://snapcn.dev/docs/announce-title", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:megaphone")),
         ),
         meta::<PunchLines>(
             element(
                 ElementKind::Component,
-                "snapcn/punch-lines",
+                "punch-lines",
                 "Punch lines",
                 "Kinetic typography title cards: bold statements that cut hard between beats. A run of full-frame title cards that cut hard between beats.",
                 C::Text,
                 144,
             )
                 .source("snapcn", "https://snapcn.dev/docs/punch-lines", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::HardCut)),
         ),
         meta::<TextHighlight>(
             element(
                 ElementKind::Component,
-                "snapcn/text-highlight",
+                "text-highlight",
                 "Text highlight",
                 "Text highlight animation: marker highlighter, underline, strikethrough and shimmer on a word. Animated emphasis on one span inside a static sentence — marker sweep, color shift, underline, strikethrough-replace, or shimmer.",
                 C::Text,
                 56,
             )
                 .source("snapcn", "https://snapcn.dev/docs/text-highlight", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:baseline")),
         ),
         meta::<StatusCycle>(
             element(
                 ElementKind::Component,
-                "snapcn/status-cycle",
+                "status-cycle",
                 "Status cycle",
                 "Status badge animation: a pill whose label cycles through states. A centred line whose status pill cycles: the label rolls up behind a hard clip while the pill's width springs past its target and back, and the line re-centres around it.",
                 C::Text,
                 198,
             )
                 .source("snapcn", "https://snapcn.dev/docs/status-cycle", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:badge")),
         ),
     ]

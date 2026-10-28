@@ -1,6 +1,6 @@
 [
   {
-    "key": "remocn/word-push",
+    "key": "word-push",
     "usual": {
       "text": "move at your own pace",
       "fontSize": 72.0,
@@ -26,7 +26,7 @@
     "growth": 14
   },
   {
-    "key": "remocn/search-reveal",
+    "key": "search-reveal",
     "usual": {
       "text": "acme",
       "fieldWidth": 464.0,
@@ -64,7 +64,7 @@
     "growth": 184
   },
   {
-    "key": "remocn/check-list",
+    "key": "check-list",
     "usual": {
       "fontSize": 40.0,
       "itemGap": 18.0,
@@ -134,7 +134,7 @@
     "growth": 87
   },
   {
-    "key": "remocn/code-morph",
+    "key": "code-morph",
     "usual": {
       "filename": "invoices.tsx",
       "theme": "dark",
@@ -184,7 +184,7 @@
     "growth": 77
   },
   {
-    "key": "remocn/keystroke",
+    "key": "keystroke",
     "usual": {
       "platform": "mac",
       "theme": "light",
@@ -240,7 +240,7 @@
     "growth": 171
   },
   {
-    "key": "remocn/agent-run",
+    "key": "agent-run",
     "usual": {
       "theme": "light",
       "accentColor": "#2563eb",
@@ -356,7 +356,7 @@
     "growth": 122
   },
   {
-    "key": "remocn/command-menu",
+    "key": "command-menu",
     "usual": {
       "state": "opened",
       "query": "new",
@@ -426,7 +426,7 @@
     "growth": 13
   },
   {
-    "key": "snapcn/punch-lines",
+    "key": "punch-lines",
     "usual": {
       "script": "Record it. / Edit it. | One take. | Ship.",
       "styles": "slide,punch",

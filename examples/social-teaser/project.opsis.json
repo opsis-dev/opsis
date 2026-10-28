@@ -116,7 +116,7 @@
     },
     {
       "id": "hook",
-      "type": "fx.remocn.kinetic-center-build",
+      "type": "fx.kinetic-center-build",
       "position": {
         "x": 300.0,
         "y": 340.0
@@ -142,7 +142,7 @@
         "y": 422.0
       },
       "params": {
-        "transition": "remocn/push-through",
+        "transition": "push-through",
         "transitionDuration": 15,
         "keepWhole": false,
         "cuts": []

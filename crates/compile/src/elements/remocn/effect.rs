@@ -166,7 +166,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<CrtScreen>(
             element(
                 ElementKind::Wrapper,
-                "remocn/crt-screen",
+                "crt-screen",
                 "CRT screen",
                 "Put a scene behind curved glass: the picture bulges out to the corners, an RGB phosphor mask and scanlines ride the curve, bright areas flood the mask, and the tube falls away into darkness at the rim.",
                 C::Effect,
@@ -178,7 +178,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<VhsFilter>(
             element(
                 ElementKind::Wrapper,
-                "remocn/vhs-filter",
+                "vhs-filter",
                 "VHS filter",
                 "Hold a scene under analog tape: chroma bleeds sideways off every edge, rows wobble out of line, the bottom of the frame tears on the head switch, and luma noise settles over all of it.",
                 C::Effect,
@@ -190,7 +190,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<HalftonePrint>(
             element(
                 ElementKind::Wrapper,
-                "remocn/halftone-print",
+                "halftone-print",
                 "Halftone print",
                 "Print a scene onto paper: each colour separates onto its own rotated screen of dots sized by the ink under them, slightly out of register the way a real press runs.",
                 C::Effect,
@@ -202,7 +202,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<CameraLens>(
             element(
                 ElementKind::Wrapper,
-                "remocn/camera-lens",
+                "camera-lens",
                 "Camera lens",
                 "Put a scene behind real glass: resolution falls off toward the corners, highlights bloom through the optics, colour fringes at the edges — a screencast that reads as filmed rather than rendered.",
                 C::Effect,
@@ -214,7 +214,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<Polaroid>(
             element(
                 ElementKind::Wrapper,
-                "remocn/polaroid",
+                "polaroid",
                 "Polaroid",
                 "An instant-photo frame with a handwritten caption for video, images, or live compositions.",
                 C::Effect,
@@ -226,7 +226,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<TvPowerOff>(
             element(
                 ElementKind::Wrapper,
-                "remocn/tv-power-off",
+                "tv-power-off",
                 "TV power off",
                 "End a scene the way a tube does: the picture collapses into a glowing horizontal line, the line pinches to a phosphor dot, the dot decays, and the frame is left dead black.",
                 C::Effect,
@@ -238,13 +238,14 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<SpeedLines>(
             element(
                 ElementKind::Component,
-                "remocn/speed-lines",
+                "speed-lines",
                 "Speed lines",
                 "Streaks shoot across the frame toward a point and die as they land, or radial focus lines rush in from the edges and snap onto one point for an impact frame. Lay it over a clip with Layers.",
                 C::Effect,
                 55,
             )
                 .source("Remocn", "https://remocn.dev/docs/components/speed-lines", "MIT")
+                .authored_clock()
                 .fixed("children", json!(null))
                 .look(NodeLook::of("lucide:chevrons-right")),
         ),

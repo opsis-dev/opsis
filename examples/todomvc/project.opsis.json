@@ -211,7 +211,7 @@
     },
     {
       "id": "intro-bg",
-      "type": "fx.remocn.shader-mesh-gradient",
+      "type": "fx.shader-mesh-gradient",
       "position": {
         "x": 1200.0,
         "y": 340.0
@@ -232,7 +232,7 @@
     },
     {
       "id": "intro-title",
-      "type": "fx.remocn.soft-blur-in",
+      "type": "fx.soft-blur-in",
       "position": {
         "x": 1200.0,
         "y": 540.0
@@ -265,7 +265,7 @@
     },
     {
       "id": "outro",
-      "type": "fx.core.title",
+      "type": "fx.title",
       "position": {
         "x": 1500.0,
         "y": 680.0
@@ -297,7 +297,7 @@
         "y": 422.0
       },
       "params": {
-        "transition": "remocn/whip-pan",
+        "transition": "whip-pan",
         "transitionDuration": 18,
         "keepWhole": false,
         "cuts": []

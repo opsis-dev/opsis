@@ -431,7 +431,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<DataStory>(
             element(
                 ElementKind::Component,
-                "remotion-ui/data-story",
+                "data-story",
                 "Data story",
                 "A whole data story: title, bar chart, key numbers, timeline, takeaway and a closing call to action.",
                 C::Scene,
@@ -443,7 +443,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<LogoReveal>(
             element(
                 ElementKind::Component,
-                "remotion-ui/logo-reveal",
+                "logo-reveal",
                 "Logo reveal",
                 "Draws your logo outline, then brings in the name and a tagline.",
                 C::Scene,
@@ -455,7 +455,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<PricingCard>(
             element(
                 ElementKind::Component,
-                "remotion-ui/pricing-card",
+                "pricing-card",
                 "Pricing card",
                 "A pricing plan card: the price rolls in, then each feature is ticked off.",
                 C::Scene,
@@ -467,7 +467,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<ComparisonTable>(
             element(
                 ElementKind::Component,
-                "remotion-ui/comparison-table",
+                "comparison-table",
                 "Plan comparison table",
                 "A table comparing plans feature by feature, with one plan highlighted.",
                 C::Scene,
@@ -479,7 +479,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<ChangelogEntry>(
             element(
                 ElementKind::Component,
-                "remotion-ui/changelog-entry",
+                "changelog-entry",
                 "Changelog",
                 "A release note: version and date, then each change appears with its own tag.",
                 C::Scene,
@@ -491,7 +491,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<LogoWall>(
             element(
                 ElementKind::Component,
-                "remotion-ui/logo-wall",
+                "logo-wall",
                 "Logo wall",
                 "A grid of customer logos that light up from grey to colour.",
                 C::Scene,
@@ -503,7 +503,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<EndCard>(
             element(
                 ElementKind::Component,
-                "remotion-ui/end-card",
+                "end-card",
                 "End card",
                 "A closing card with a title, a button, your web address and social handles.",
                 C::Scene,

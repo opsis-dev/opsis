@@ -18,7 +18,7 @@ use opsis_types::values::NodeResult;
 use opsis_types::workflow::Workflow;
 use serde_json::json;
 
-pub const TITLE: &str = "fx.core.title";
+pub const TITLE: &str = "fx.title";
 pub const CLIP: &str = "clip";
 pub const SESSION: &str = "session";
 

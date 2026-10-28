@@ -22,7 +22,7 @@
   "nodes": [
    {
     "id": "title",
-    "type": "fx.core.title",
+    "type": "fx.title",
     "position": {
      "x": 0,
      "y": 0
@@ -48,7 +48,7 @@
    },
    {
     "id": "terminal",
-    "type": "fx.remocn.terminal-simulator",
+    "type": "fx.terminal-simulator",
     "position": {
      "x": 0,
      "y": 200
@@ -105,7 +105,7 @@
    },
    {
     "id": "chart",
-    "type": "fx.remocn.animated-bar-chart",
+    "type": "fx.animated-bar-chart",
     "position": {
      "x": 0,
      "y": 400
@@ -159,7 +159,7 @@
    },
    {
     "id": "credit",
-    "type": "fx.core.lower-third",
+    "type": "fx.lower-third",
     "position": {
      "x": 300,
      "y": 540
@@ -178,7 +178,7 @@
    },
    {
     "id": "bg",
-    "type": "fx.core.gradient",
+    "type": "fx.gradient",
     "position": {
      "x": 300,
      "y": 340
@@ -213,7 +213,7 @@
      "y": 170
     },
     "params": {
-     "transition": "core/slide",
+     "transition": "slide",
      "transitionDuration": 15,
      "keepWhole": false,
      "cuts": []
@@ -318,7 +318,7 @@
            "unit": "frames"
           }
          },
-         "component": "core/title",
+         "component": "title",
          "props": {
           "eyebrow": "Changelog",
           "title": "What's new in v2.4",
@@ -362,7 +362,7 @@
            "unit": "frames"
           }
          },
-         "component": "remocn/terminal-simulator",
+         "component": "terminal-simulator",
          "props": {
           "prompt": "$",
           "title": "~/projects/acme",
@@ -442,7 +442,7 @@
           "width": 1920,
           "height": 1080
          },
-         "component": "remocn/animated-bar-chart",
+         "component": "animated-bar-chart",
          "props": {
           "barColor": "#0ea5e9",
           "gap": 16,
@@ -515,7 +515,7 @@
            "unit": "frames"
           }
          },
-         "component": "core/gradient",
+         "component": "gradient",
          "props": {
           "from": "#1e1b4b",
           "to": "#0f172a",
@@ -550,7 +550,7 @@
            "unit": "frames"
           }
          },
-         "component": "core/lower-third",
+         "component": "lower-third",
          "props": {
           "title": "Acme v2.4",
           "subtitle": "Out now",
@@ -609,7 +609,7 @@
                 "unit": "frames"
                }
               },
-              "component": "core/gradient",
+              "component": "gradient",
               "props": {
                "from": "#1e1b4b",
                "to": "#0f172a",
@@ -667,7 +667,7 @@
                "width": 1920,
                "height": 1080
               },
-              "component": "remocn/animated-bar-chart",
+              "component": "animated-bar-chart",
               "props": {
                "barColor": "#0ea5e9",
                "gap": 16,
@@ -759,7 +759,7 @@
                 "unit": "frames"
                }
               },
-              "component": "core/lower-third",
+              "component": "lower-third",
               "props": {
                "title": "Acme v2.4",
                "subtitle": "Out now",
@@ -795,7 +795,7 @@
          "from": 0,
          "durationInFrames": 75,
          "exit": {
-          "kind": "core/slide",
+          "kind": "slide",
           "durationInFrames": 15
          },
          "slot": {
@@ -820,7 +820,7 @@
                 "unit": "frames"
                }
               },
-              "component": "core/title",
+              "component": "title",
               "props": {
                "eyebrow": "Changelog",
                "title": "What's new in v2.4",
@@ -848,11 +848,11 @@
          "from": 60,
          "durationInFrames": 150,
          "enter": {
-          "kind": "core/slide",
+          "kind": "slide",
           "durationInFrames": 15
          },
          "exit": {
-          "kind": "core/slide",
+          "kind": "slide",
           "durationInFrames": 15
          },
          "slot": {
@@ -877,7 +877,7 @@
                 "unit": "frames"
                }
               },
-              "component": "remocn/terminal-simulator",
+              "component": "terminal-simulator",
               "props": {
                "prompt": "$",
                "title": "~/projects/acme",
@@ -937,7 +937,7 @@
          "from": 195,
          "durationInFrames": 120,
          "enter": {
-          "kind": "core/slide",
+          "kind": "slide",
           "durationInFrames": 15
          },
          "slot": {
@@ -984,7 +984,7 @@
                      "unit": "frames"
                     }
                    },
-                   "component": "core/gradient",
+                   "component": "gradient",
                    "props": {
                     "from": "#1e1b4b",
                     "to": "#0f172a",
@@ -1042,7 +1042,7 @@
                     "width": 1920,
                     "height": 1080
                    },
-                   "component": "remocn/animated-bar-chart",
+                   "component": "animated-bar-chart",
                    "props": {
                     "barColor": "#0ea5e9",
                     "gap": 16,
@@ -1134,7 +1134,7 @@
                      "unit": "frames"
                     }
                    },
-                   "component": "core/lower-third",
+                   "component": "lower-third",
                    "props": {
                     "title": "Acme v2.4",
                     "subtitle": "Out now",
@@ -1289,7 +1289,7 @@
        "from": 0,
        "durationInFrames": 75,
        "exit": {
-        "kind": "core/slide",
+        "kind": "slide",
         "durationInFrames": 15
        },
        "slot": {
@@ -1314,7 +1314,7 @@
               "unit": "frames"
              }
             },
-            "component": "core/title",
+            "component": "title",
             "props": {
              "eyebrow": "Changelog",
              "title": "What's new in v2.4",
@@ -1342,11 +1342,11 @@
        "from": 60,
        "durationInFrames": 150,
        "enter": {
-        "kind": "core/slide",
+        "kind": "slide",
         "durationInFrames": 15
        },
        "exit": {
-        "kind": "core/slide",
+        "kind": "slide",
         "durationInFrames": 15
        },
        "slot": {
@@ -1371,7 +1371,7 @@
               "unit": "frames"
              }
             },
-            "component": "remocn/terminal-simulator",
+            "component": "terminal-simulator",
             "props": {
              "prompt": "$",
              "title": "~/projects/acme",
@@ -1431,7 +1431,7 @@
        "from": 195,
        "durationInFrames": 120,
        "enter": {
-        "kind": "core/slide",
+        "kind": "slide",
         "durationInFrames": 15
        },
        "slot": {
@@ -1478,7 +1478,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "core/gradient",
+                 "component": "gradient",
                  "props": {
                   "from": "#1e1b4b",
                   "to": "#0f172a",
@@ -1536,7 +1536,7 @@
                   "width": 1920,
                   "height": 1080
                  },
-                 "component": "remocn/animated-bar-chart",
+                 "component": "animated-bar-chart",
                  "props": {
                   "barColor": "#0ea5e9",
                   "gap": 16,
@@ -1628,7 +1628,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "core/lower-third",
+                 "component": "lower-third",
                  "props": {
                   "title": "Acme v2.4",
                   "subtitle": "Out now",
@@ -2110,7 +2110,7 @@
        "from": 0,
        "durationInFrames": 75,
        "exit": {
-        "kind": "core/slide",
+        "kind": "slide",
         "durationInFrames": 15
        },
        "slot": {
@@ -2135,7 +2135,7 @@
               "unit": "frames"
              }
             },
-            "component": "core/title",
+            "component": "title",
             "props": {
              "eyebrow": "Changelog",
              "title": "What's new in v2.4",
@@ -2163,11 +2163,11 @@
        "from": 60,
        "durationInFrames": 150,
        "enter": {
-        "kind": "core/slide",
+        "kind": "slide",
         "durationInFrames": 15
        },
        "exit": {
-        "kind": "core/slide",
+        "kind": "slide",
         "durationInFrames": 15
        },
        "slot": {
@@ -2192,7 +2192,7 @@
               "unit": "frames"
              }
             },
-            "component": "remocn/terminal-simulator",
+            "component": "terminal-simulator",
             "props": {
              "prompt": "$",
              "title": "~/projects/acme",
@@ -2252,7 +2252,7 @@
        "from": 195,
        "durationInFrames": 120,
        "enter": {
-        "kind": "core/slide",
+        "kind": "slide",
         "durationInFrames": 15
        },
        "slot": {
@@ -2299,7 +2299,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "core/gradient",
+                 "component": "gradient",
                  "props": {
                   "from": "#1e1b4b",
                   "to": "#0f172a",
@@ -2357,7 +2357,7 @@
                   "width": 1920,
                   "height": 1080
                  },
-                 "component": "remocn/animated-bar-chart",
+                 "component": "animated-bar-chart",
                  "props": {
                   "barColor": "#0ea5e9",
                   "gap": 16,
@@ -2449,7 +2449,7 @@
                    "unit": "frames"
                   }
                  },
-                 "component": "core/lower-third",
+                 "component": "lower-third",
                  "props": {
                   "title": "Acme v2.4",
                   "subtitle": "Out now",
@@ -2903,7 +2903,7 @@
       "itemId": "title:i",
       "nodeId": "title",
       "kind": "element",
-      "component": "core/title",
+      "component": "title",
       "props": {
        "eyebrow": "Changelog",
        "title": "What's new in v2.4",
@@ -2967,7 +2967,7 @@
       "itemId": "terminal:i",
       "nodeId": "terminal",
       "kind": "element",
-      "component": "remocn/terminal-simulator",
+      "component": "terminal-simulator",
       "props": {
        "prompt": "$",
        "title": "~/projects/acme",
@@ -3063,7 +3063,7 @@
       "itemId": "bg:i",
       "nodeId": "bg",
       "kind": "element",
-      "component": "core/gradient",
+      "component": "gradient",
       "props": {
        "from": "#1e1b4b",
        "to": "#0f172a",
@@ -3138,7 +3138,7 @@
       "itemId": "chart:i",
       "nodeId": "chart",
       "kind": "element",
-      "component": "remocn/animated-bar-chart",
+      "component": "animated-bar-chart",
       "props": {
        "barColor": "#0ea5e9",
        "gap": 16,
@@ -3251,7 +3251,7 @@
       "itemId": "credit:i",
       "nodeId": "credit",
       "kind": "element",
-      "component": "core/lower-third",
+      "component": "lower-third",
       "props": {
        "title": "Acme v2.4",
        "subtitle": "Out now",
@@ -3332,7 +3332,7 @@
       "itemKey": "/0:sequence:s1",
       "from": 60.0,
       "to": 75.0,
-      "kind": "core/slide",
+      "kind": "slide",
       "lanes": [
        0,
        1
@@ -3348,7 +3348,7 @@
       "itemKey": "/0:sequence:s2",
       "from": 195.0,
       "to": 210.0,
-      "kind": "core/slide",
+      "kind": "slide",
       "lanes": [
        0,
        1,
@@ -3613,7 +3613,7 @@
             "unit": "frames"
            }
           },
-          "component": "core/title",
+          "component": "title",
           "props": {
            "eyebrow": "Changelog",
            "title": "What's new in v2.4",
@@ -3657,7 +3657,7 @@
             "unit": "frames"
            }
           },
-          "component": "remocn/terminal-simulator",
+          "component": "terminal-simulator",
           "props": {
            "prompt": "$",
            "title": "~/projects/acme",
@@ -3737,7 +3737,7 @@
            "width": 1920,
            "height": 1080
           },
-          "component": "remocn/animated-bar-chart",
+          "component": "animated-bar-chart",
           "props": {
            "barColor": "#0ea5e9",
            "gap": 16,
@@ -3810,7 +3810,7 @@
             "unit": "frames"
            }
           },
-          "component": "core/gradient",
+          "component": "gradient",
           "props": {
            "from": "#1e1b4b",
            "to": "#0f172a",
@@ -3845,7 +3845,7 @@
             "unit": "frames"
            }
           },
-          "component": "core/lower-third",
+          "component": "lower-third",
           "props": {
            "title": "Acme v2.4",
            "subtitle": "Out now",
@@ -3904,7 +3904,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "core/gradient",
+               "component": "gradient",
                "props": {
                 "from": "#1e1b4b",
                 "to": "#0f172a",
@@ -3962,7 +3962,7 @@
                 "width": 1920,
                 "height": 1080
                },
-               "component": "remocn/animated-bar-chart",
+               "component": "animated-bar-chart",
                "props": {
                 "barColor": "#0ea5e9",
                 "gap": 16,
@@ -4054,7 +4054,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "core/lower-third",
+               "component": "lower-third",
                "props": {
                 "title": "Acme v2.4",
                 "subtitle": "Out now",
@@ -4090,7 +4090,7 @@
           "from": 0,
           "durationInFrames": 75,
           "exit": {
-           "kind": "core/slide",
+           "kind": "slide",
            "durationInFrames": 15
           },
           "slot": {
@@ -4115,7 +4115,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "core/title",
+               "component": "title",
                "props": {
                 "eyebrow": "Changelog",
                 "title": "What's new in v2.4",
@@ -4143,11 +4143,11 @@
           "from": 60,
           "durationInFrames": 150,
           "enter": {
-           "kind": "core/slide",
+           "kind": "slide",
            "durationInFrames": 15
           },
           "exit": {
-           "kind": "core/slide",
+           "kind": "slide",
            "durationInFrames": 15
           },
           "slot": {
@@ -4172,7 +4172,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "remocn/terminal-simulator",
+               "component": "terminal-simulator",
                "props": {
                 "prompt": "$",
                 "title": "~/projects/acme",
@@ -4232,7 +4232,7 @@
           "from": 195,
           "durationInFrames": 120,
           "enter": {
-           "kind": "core/slide",
+           "kind": "slide",
            "durationInFrames": 15
           },
           "slot": {
@@ -4279,7 +4279,7 @@
                       "unit": "frames"
                      }
                     },
-                    "component": "core/gradient",
+                    "component": "gradient",
                     "props": {
                      "from": "#1e1b4b",
                      "to": "#0f172a",
@@ -4337,7 +4337,7 @@
                      "width": 1920,
                      "height": 1080
                     },
-                    "component": "remocn/animated-bar-chart",
+                    "component": "animated-bar-chart",
                     "props": {
                      "barColor": "#0ea5e9",
                      "gap": 16,
@@ -4429,7 +4429,7 @@
                       "unit": "frames"
                      }
                     },
-                    "component": "core/lower-third",
+                    "component": "lower-third",
                     "props": {
                      "title": "Acme v2.4",
                      "subtitle": "Out now",
@@ -4598,7 +4598,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "core/slide",
+         "kind": "slide",
          "durationInFrames": 15
         },
         "slot": {
@@ -4623,7 +4623,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "Changelog",
               "title": "What's new in v2.4",
@@ -4651,11 +4651,11 @@
         "from": 60,
         "durationInFrames": 150,
         "enter": {
-         "kind": "core/slide",
+         "kind": "slide",
          "durationInFrames": 15
         },
         "exit": {
-         "kind": "core/slide",
+         "kind": "slide",
          "durationInFrames": 15
         },
         "slot": {
@@ -4680,7 +4680,7 @@
                "unit": "frames"
               }
              },
-             "component": "remocn/terminal-simulator",
+             "component": "terminal-simulator",
              "props": {
               "prompt": "$",
               "title": "~/projects/acme",
@@ -4740,7 +4740,7 @@
         "from": 195,
         "durationInFrames": 120,
         "enter": {
-         "kind": "core/slide",
+         "kind": "slide",
          "durationInFrames": 15
         },
         "slot": {
@@ -4787,7 +4787,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "core/gradient",
+                  "component": "gradient",
                   "props": {
                    "from": "#1e1b4b",
                    "to": "#0f172a",
@@ -4845,7 +4845,7 @@
                    "width": 1920,
                    "height": 1080
                   },
-                  "component": "remocn/animated-bar-chart",
+                  "component": "animated-bar-chart",
                   "props": {
                    "barColor": "#0ea5e9",
                    "gap": 16,
@@ -4937,7 +4937,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "core/lower-third",
+                  "component": "lower-third",
                   "props": {
                    "title": "Acme v2.4",
                    "subtitle": "Out now",
@@ -5419,7 +5419,7 @@
         "from": 0,
         "durationInFrames": 75,
         "exit": {
-         "kind": "core/slide",
+         "kind": "slide",
          "durationInFrames": 15
         },
         "slot": {
@@ -5444,7 +5444,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "Changelog",
               "title": "What's new in v2.4",
@@ -5472,11 +5472,11 @@
         "from": 60,
         "durationInFrames": 150,
         "enter": {
-         "kind": "core/slide",
+         "kind": "slide",
          "durationInFrames": 15
         },
         "exit": {
-         "kind": "core/slide",
+         "kind": "slide",
          "durationInFrames": 15
         },
         "slot": {
@@ -5501,7 +5501,7 @@
                "unit": "frames"
               }
              },
-             "component": "remocn/terminal-simulator",
+             "component": "terminal-simulator",
              "props": {
               "prompt": "$",
               "title": "~/projects/acme",
@@ -5561,7 +5561,7 @@
         "from": 195,
         "durationInFrames": 120,
         "enter": {
-         "kind": "core/slide",
+         "kind": "slide",
          "durationInFrames": 15
         },
         "slot": {
@@ -5608,7 +5608,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "core/gradient",
+                  "component": "gradient",
                   "props": {
                    "from": "#1e1b4b",
                    "to": "#0f172a",
@@ -5666,7 +5666,7 @@
                    "width": 1920,
                    "height": 1080
                   },
-                  "component": "remocn/animated-bar-chart",
+                  "component": "animated-bar-chart",
                   "props": {
                    "barColor": "#0ea5e9",
                    "gap": 16,
@@ -5758,7 +5758,7 @@
                     "unit": "frames"
                    }
                   },
-                  "component": "core/lower-third",
+                  "component": "lower-third",
                   "props": {
                    "title": "Acme v2.4",
                    "subtitle": "Out now",
@@ -6212,7 +6212,7 @@
        "itemId": "title:i",
        "nodeId": "title",
        "kind": "element",
-       "component": "core/title",
+       "component": "title",
        "props": {
         "eyebrow": "Changelog",
         "title": "What's new in v2.4",
@@ -6276,7 +6276,7 @@
        "itemId": "terminal:i",
        "nodeId": "terminal",
        "kind": "element",
-       "component": "remocn/terminal-simulator",
+       "component": "terminal-simulator",
        "props": {
         "prompt": "$",
         "title": "~/projects/acme",
@@ -6372,7 +6372,7 @@
        "itemId": "bg:i",
        "nodeId": "bg",
        "kind": "element",
-       "component": "core/gradient",
+       "component": "gradient",
        "props": {
         "from": "#1e1b4b",
         "to": "#0f172a",
@@ -6447,7 +6447,7 @@
        "itemId": "chart:i",
        "nodeId": "chart",
        "kind": "element",
-       "component": "remocn/animated-bar-chart",
+       "component": "animated-bar-chart",
        "props": {
         "barColor": "#0ea5e9",
         "gap": 16,
@@ -6560,7 +6560,7 @@
        "itemId": "credit:i",
        "nodeId": "credit",
        "kind": "element",
-       "component": "core/lower-third",
+       "component": "lower-third",
        "props": {
         "title": "Acme v2.4",
         "subtitle": "Out now",
@@ -6641,7 +6641,7 @@
        "itemKey": "/0:sequence:s1",
        "from": 60.0,
        "to": 75.0,
-       "kind": "core/slide",
+       "kind": "slide",
        "lanes": [
         0,
         1
@@ -6657,7 +6657,7 @@
        "itemKey": "/0:sequence:s2",
        "from": 195.0,
        "to": 210.0,
-       "kind": "core/slide",
+       "kind": "slide",
        "lanes": [
         0,
         1,

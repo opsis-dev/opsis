@@ -82,22 +82,22 @@ fn logo_kind(src: &str) -> PreparedKind {
 
 pub fn prepare_props(key: &str, props: &mut Values, fonts: &ProjectFonts) {
     match key {
-        "core/text-3d" => {
+        "text-3d" => {
             if let Ok(text) = typed_values::<Text3d>(props) {
                 typeface(props, &text, fonts);
             }
         }
-        "core/model-3d" => {
+        "model-3d" => {
             if let Ok(model) = typed_values::<Model3d>(props) {
                 prepare_src(props, &model.src, PreparedKind::Model);
             }
         }
-        "core/card-3d" => {
+        "card-3d" => {
             if let Ok(card) = typed_values::<Card3d>(props) {
                 prepare_src(props, &card.src, PreparedKind::Texture);
             }
         }
-        "core/logo-3d" => {
+        "logo-3d" => {
             if let Ok(logo) = typed_values::<Logo3d>(props) {
                 prepare_src(props, &logo.src, logo_kind(&logo.src));
             }

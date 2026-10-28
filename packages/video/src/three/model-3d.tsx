@@ -79,7 +79,7 @@ const Animated: React.FC<{ placed: Placed; timeS: number }> = ({ placed, timeS }
   return <primitive object={placed.model} />;
 };
 
-export const Model3D: React.FC<CoreElementProps["core/model-3d"]> = ({
+export const Model3D: React.FC<CoreElementProps["model-3d"]> = ({
   src,
   motion,
   camera,

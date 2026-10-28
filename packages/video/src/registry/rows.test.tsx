@@ -34,7 +34,7 @@ const ROW_ELEMENTS: [string, ElementComponent][] = [
 
 function withRepeatedRow(key: string): ElementProps {
   const defaults: Record<string, ElementProps> = DEFAULT_PROPS;
-  const known = defaults[`remotion-ui/${key}`];
+  const known = defaults[key];
   if (!known) throw new Error(key);
   const props: ElementProps = { ...known };
   for (const [name, value] of Object.entries(props))

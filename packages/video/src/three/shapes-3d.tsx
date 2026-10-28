@@ -49,7 +49,7 @@ function geometryFor(kind: Kind): BufferGeometry {
   }
 }
 
-export const Shapes3D: React.FC<CoreElementProps["core/shapes-3d"]> = ({
+export const Shapes3D: React.FC<CoreElementProps["shapes-3d"]> = ({
   count,
   palette,
   seed,

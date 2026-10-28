@@ -256,7 +256,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<WhipPan>(
             element(
                 ElementKind::Presentation,
-                "remocn/whip-pan",
+                "whip-pan",
                 "Whip pan",
                 "A whip-pan transition that flies both scenes through the frame in one move with velocity-based motion blur.",
                 C::Transition,
@@ -268,7 +268,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<PushThrough>(
             element(
                 ElementKind::Presentation,
-                "remocn/push-through",
+                "push-through",
                 "Push through",
                 "A dolly transition that blows the outgoing scene past the camera while the next one approaches from the depth.",
                 C::Transition,
@@ -280,7 +280,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<ZoomBlur>(
             element(
                 ElementKind::Presentation,
-                "remocn/zoom-blur",
+                "zoom-blur",
                 "Zoom blur",
                 "A depth punch-in transition that pushes the outgoing scene through the viewer while the incoming one resolves out of blur.",
                 C::Transition,
@@ -292,7 +292,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<FocusPull>(
             element(
                 ElementKind::Presentation,
-                "remocn/focus-pull",
+                "focus-pull",
                 "Focus pull",
                 "A rack-focus transition that defocuses the outgoing scene into a bright blur and resolves the next one into focus.",
                 C::Transition,
@@ -304,7 +304,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<LensZoom>(
             element(
                 ElementKind::Presentation,
-                "remocn/lens-zoom",
+                "lens-zoom",
                 "Lens zoom",
                 "A hard cut disguised as a lens punch-in: barrel distortion, zoom blur, chromatic split and camera shake around the splice.",
                 C::Transition,
@@ -316,7 +316,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<RippleZoom>(
             element(
                 ElementKind::Presentation,
-                "remocn/ripple-zoom",
+                "ripple-zoom",
                 "Ripple zoom",
                 "A grain-gradient ripple transition that flies the camera through the center of the rings while the next scene approaches from the depth.",
                 C::Transition,
@@ -328,7 +328,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<WaveWipe>(
             element(
                 ElementKind::Presentation,
-                "remocn/wave-wipe",
+                "wave-wipe",
                 "Wave wipe",
                 "A grain-gradient wave that sweeps up across the frame, covering the outgoing scene and revealing the next one from below.",
                 C::Transition,
@@ -340,7 +340,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<SmokeDissolve>(
             element(
                 ElementKind::Presentation,
-                "remocn/smoke-dissolve",
+                "smoke-dissolve",
                 "Smoke dissolve",
                 "A smoke-ring shader transition that expands the ring outward to reveal the next scene.",
                 C::Transition,
@@ -352,7 +352,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<GlitchCut>(
             element(
                 ElementKind::Presentation,
-                "remocn/glitch-cut",
+                "glitch-cut",
                 "Glitch cut",
                 "A broadcast-glitch hard cut: the frame tears into displaced slices with channel split and corrupted blocks, and the incoming scene takes over slice by slice at the peak.",
                 C::Transition,
@@ -364,7 +364,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<PageTurn>(
             element(
                 ElementKind::Presentation,
-                "remocn/page-turn",
+                "page-turn",
                 "Page turn",
                 "The exiting scene swings up and away like a notebook page in stop-motion poses, staying above the scene it reveals.",
                 C::Transition,
@@ -376,7 +376,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<GrainDissolve>(
             element(
                 ElementKind::Presentation,
-                "remocn/grain-dissolve",
+                "grain-dissolve",
                 "Grain dissolve",
                 "A grain-gradient shader transition that disintegrates the outgoing scene into soft grainy shapes and condenses the next scene out of the noise.",
                 C::Transition,
@@ -388,7 +388,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<DitherDissolve>(
             element(
                 ElementKind::Presentation,
-                "remocn/dither-dissolve",
+                "dither-dissolve",
                 "Dither dissolve",
                 "A dithering shader transition that dissolves one scene into the next.",
                 C::Transition,
@@ -400,7 +400,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<SwirlDissolve>(
             element(
                 ElementKind::Presentation,
-                "remocn/swirl-dissolve",
+                "swirl-dissolve",
                 "Swirl dissolve",
                 "A swirl shader transition that unwinds open and winds shut to reveal the next scene.",
                 C::Transition,
@@ -412,7 +412,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<ParticleDissolve>(
             element(
                 ElementKind::Presentation,
-                "remocn/particle-dissolve",
+                "particle-dissolve",
                 "Particle dissolve",
                 "The frame is ground into drifting grey dust whose specks carry real fragments of the picture, and the next scene coalesces back out of the same dust.",
                 C::Transition,

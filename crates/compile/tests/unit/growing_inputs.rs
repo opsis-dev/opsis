@@ -68,7 +68,7 @@ fn shows_one_empty_input_after_the_last_connected_one() {
         ["Layer 1 (back)", "Layer 2", "Layer 3 (front)", "Layer 4"]
     );
     assert_eq!(
-        labels(&shown("fx.remocn.spring-settle", &["in1"])),
+        labels(&shown("fx.spring-settle", &["in1"])),
         ["Scene 1", "Scene 2"]
     );
     let join = shown("media.concat", &["in1", "in2", "in3"]);
@@ -119,9 +119,9 @@ fn plays_a_cuts_own_transition_past_the_sixth_clip() {
         9,
         "timeline.sequence",
         json!({
-            "transition": "core/fade",
+            "transition": "fade",
             "transitionDuration": 10,
-            "cuts": [{ "before": "in8", "transition": "core/wipe", "transitionDuration": 20 }]
+            "cuts": [{ "before": "in8", "transition": "wipe", "transitionDuration": 20 }]
         }),
     );
     let items: Vec<TimelineItem> = export_film(&wf, None, "out").tracks[0].items.clone();
@@ -130,8 +130,8 @@ fn plays_a_cuts_own_transition_past_the_sixth_clip() {
         .iter()
         .map(|i| i.base().enter.as_ref().map(|e| e.kind.clone()))
         .collect();
-    assert_eq!(entered[7].as_deref(), Some("core/wipe"));
-    assert_eq!(entered[8].as_deref(), Some("core/fade"));
+    assert_eq!(entered[7].as_deref(), Some("wipe"));
+    assert_eq!(entered[8].as_deref(), Some("fade"));
 }
 
 #[test]
@@ -179,8 +179,8 @@ fn closes_the_gap_when_a_clip_is_removed_and_renumbers_its_cuts() {
         5,
         "timeline.sequence",
         json!({ "cuts": [
-            { "before": "in2", "transition": "core/slide" },
-            { "before": "in4", "transition": "core/wipe" }
+            { "before": "in2", "transition": "slide" },
+            { "before": "in4", "transition": "wipe" }
         ] }),
     );
     let mut removed = wf.clone();
@@ -198,12 +198,12 @@ fn closes_the_gap_when_a_clip_is_removed_and_renumbers_its_cuts() {
     );
     assert_eq!(
         removed.node("box").unwrap().params["cuts"],
-        json!([{ "before": "in3", "transition": "core/wipe" }])
+        json!([{ "before": "in3", "transition": "wipe" }])
     );
 
     let scenes = clips(
         4,
-        "fx.remocn.spring-settle",
+        "fx.spring-settle",
         json!({ "backgrounds": [{ "scene": "in3", "color": "#112233" }] }),
     );
     let mut removed = scenes.clone();

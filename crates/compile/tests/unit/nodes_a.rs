@@ -187,7 +187,7 @@ fn centres_a_light_leak_on_the_cut_and_keeps_a_long_one_inside_the_film() {
 #[test]
 fn every_transition_passes_a_lone_clip_through_unchanged() {
     let kinds: Vec<String> = presentations()
-        .map(|m| format!("transition.{}", m.key.replacen('/', ".", 1)))
+        .map(|m| format!("transition.{}", m.key))
         .collect();
     assert!(kinds.len() > 10);
     let (first, then) = (empty_clip(40), empty_clip(70));
@@ -983,8 +983,8 @@ fn gives_a_picture_look_only_to_recordings_videos_and_images_and_names_it() {
         look
     );
     for (id, component, src) in [
-        ("v", "core/video", "project:a.mp4"),
-        ("i", "core/image", "project:a.png"),
+        ("v", "video", "project:a.mp4"),
+        ("i", "image", "project:a.png"),
     ] {
         let clip = item_clip(
             id,
@@ -1002,7 +1002,7 @@ fn gives_a_picture_look_only_to_recordings_videos_and_images_and_names_it() {
     }
     let title = item_clip(
         "t",
-        "core/title",
+        "title",
         json!({ "title": "Hi" }).as_object().unwrap().clone(),
         30,
         ItemExtra::default(),

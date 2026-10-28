@@ -102,7 +102,7 @@ const TitleLine: React.FC<TitleLineProps> = ({ look, text, color, fontSize, entr
   );
 };
 
-export const Title: React.FC<CoreElementProps["core/title"]> = ({
+export const Title: React.FC<CoreElementProps["title"]> = ({
   eyebrow,
   title,
   subtitle,

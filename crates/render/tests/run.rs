@@ -49,7 +49,7 @@ fn workflow() -> Workflow {
         node("look", "grade.colour", json!({ "contrast": 1.2 })),
         node("graded", "media.applyGrade", json!({})),
         node("joined", "media.concat", json!({})),
-        node("title", "fx.core.title", json!({})),
+        node("title", "fx.title", json!({})),
         node(
             "click",
             "audio.sfx",

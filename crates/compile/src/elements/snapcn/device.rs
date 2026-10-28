@@ -189,39 +189,42 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<LaptopFrame>(
             element(
                 ElementKind::Component,
-                "snapcn/laptop-frame",
+                "laptop-frame",
                 "Laptop frame",
                 "A laptop that opens, shows a notification in its notch, then moves the camera into the screen until your clip fills the frame.",
                 C::Device,
                 240,
             )
                 .source("snapcn", "https://snapcn.dev/docs/laptop-frame", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:laptop").moves(NodeMotion::Open)),
         ),
         meta::<PhoneFrame>(
             element(
                 ElementKind::Component,
-                "snapcn/phone-frame",
+                "phone-frame",
                 "Phone frame",
                 "A phone frame with a notch and a screen slot for your clip, flat or tilted, with rise, rotate-in or float entrances.",
                 C::Device,
                 240,
             )
                 .source("snapcn", "https://snapcn.dev/docs/phone-frame", "MIT")
+                .authored_clock()
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:smartphone")),
         ),
         meta::<ScreenRecording>(
             element(
                 ElementKind::Component,
-                "snapcn/screen-recording",
+                "screen-recording",
                 "Screen recording",
                 "Screen recording zoom: crop and auto-zoom a product demo capture. Takes a video or a still through the same track.",
                 C::Device,
                 240,
             )
                 .source("snapcn", "https://snapcn.dev/docs/screen-recording", "MIT")
+                .authored_clock()
                 .look(NodeLook::of("lucide:monitor-play")),
         ),
     ]

@@ -67,7 +67,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<DeviceMockupZoom>(
             element(
                 ElementKind::Wrapper,
-                "remotion-ui/device-mockup-zoom",
+                "device-mockup-zoom",
                 "Device mockup",
                 "Shows the clip on a laptop, phone or browser screen while the camera slowly pulls back.",
                 C::Device,
@@ -80,7 +80,7 @@ pub(super) fn elements() -> Vec<ElementMeta> {
         meta::<MultiDeviceLineup>(
             element(
                 ElementKind::Wrapper,
-                "remotion-ui/multi-device-lineup",
+                "multi-device-lineup",
                 "Device lineup",
                 "Shows the clip on a phone, a tablet and a laptop side by side.",
                 C::Device,

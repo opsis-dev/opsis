@@ -21,13 +21,13 @@ use serde_json::{Map, Value, json};
 use tokio_util::sync::CancellationToken;
 
 const STILLS: [&str; 5] = [
-    "core/kinetic-headline",
-    "core/text-3d",
-    "core/shapes-3d",
-    "remocn/shader-grain-gradient",
-    "remocn/grain-dissolve",
+    "kinetic-headline",
+    "text-3d",
+    "shapes-3d",
+    "shader-grain-gradient",
+    "grain-dissolve",
 ];
-const VIDEOS: [&str; 2] = ["core/kinetic-headline", "remocn/shader-grain-gradient"];
+const VIDEOS: [&str; 2] = ["kinetic-headline", "shader-grain-gradient"];
 const RENDERS: &str = "render/renders.json";
 const WHOLE_HASH: usize = 64;
 
@@ -62,7 +62,7 @@ fn existing(path: PathBuf, what: &str) -> PathBuf {
 
 fn solid(id: &str, color: &str) -> CompileValue {
     let props = Map::from_iter([("color".to_owned(), json!(color))]);
-    CompileValue::Clip(item_clip(id, "core/solid", props, 90, ItemExtra::default()))
+    CompileValue::Clip(item_clip(id, "solid", props, 90, ItemExtra::default()))
 }
 
 fn compile_clip(kind: &str, inputs: PortValues) -> ClipValue {
@@ -101,7 +101,7 @@ fn spec_for(key: &str) -> (TimelineSpec, u32) {
     let meta = element_meta(key).unwrap();
     let (kind, inputs) = if meta.kind == ElementKind::Presentation {
         (
-            format!("transition.{}", key.replacen('/', ".", 1)),
+            format!("transition.{key}"),
             PortValues::from_iter([
                 ("a".to_owned(), solid("a", "#334155")),
                 ("b".to_owned(), solid("b", "#7c3aed")),
@@ -202,7 +202,7 @@ impl Setup {
 }
 
 fn file_name(key: &str, ext: &str) -> String {
-    format!("{}.{ext}", key.replacen('/', "--", 1))
+    format!("{key}.{ext}")
 }
 
 #[tokio::test]
@@ -262,7 +262,7 @@ async fn stops_a_render_soon_after_it_is_cancelled() {
     let rendered = setup
         .sidecar
         .call(
-            setup.media("core/text-3d", &setup.out.join("cancelled.mp4")),
+            setup.media("text-3d", &setup.out.join("cancelled.mp4")),
             &cancel,
             None,
         )

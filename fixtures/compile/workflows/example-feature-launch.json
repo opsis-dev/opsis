@@ -137,7 +137,7 @@
    },
    {
     "id": "headline",
-    "type": "fx.core.kinetic-headline",
+    "type": "fx.kinetic-headline",
     "position": {
      "x": 300,
      "y": 340
@@ -156,7 +156,7 @@
    },
    {
     "id": "outro",
-    "type": "fx.core.title",
+    "type": "fx.title",
     "position": {
      "x": 600,
      "y": 510
@@ -188,7 +188,7 @@
      "y": 422
     },
     "params": {
-     "transition": "remocn/zoom-blur",
+     "transition": "zoom-blur",
      "transitionDuration": 15,
      "keepWhole": false,
      "cuts": []
@@ -364,7 +364,7 @@
            "unit": "frames"
           }
          },
-         "component": "core/kinetic-headline",
+         "component": "kinetic-headline",
          "props": {
           "text": "Introducing *Acme*",
           "color": "#fafafa",
@@ -437,7 +437,7 @@
            "unit": "frames"
           }
          },
-         "component": "core/title",
+         "component": "title",
          "props": {
           "eyebrow": "",
           "title": "Try Acme today",
@@ -563,7 +563,7 @@
          "from": 0,
          "durationInFrames": 144,
          "nodeId": "camera",
-         "component": "core/placeholder",
+         "component": "placeholder",
          "props": {
           "title": "Not recorded yet",
           "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -589,7 +589,7 @@
          "from": 0,
          "durationInFrames": 90,
          "exit": {
-          "kind": "remocn/zoom-blur",
+          "kind": "zoom-blur",
           "durationInFrames": 15
          },
          "slot": {
@@ -614,7 +614,7 @@
                 "unit": "frames"
                }
               },
-              "component": "core/kinetic-headline",
+              "component": "kinetic-headline",
               "props": {
                "text": "Introducing *Acme*",
                "color": "#fafafa",
@@ -635,11 +635,11 @@
          "from": 75,
          "durationInFrames": 144,
          "enter": {
-          "kind": "remocn/zoom-blur",
+          "kind": "zoom-blur",
           "durationInFrames": 15
          },
          "exit": {
-          "kind": "remocn/zoom-blur",
+          "kind": "zoom-blur",
           "durationInFrames": 15
          },
          "slot": {
@@ -657,7 +657,7 @@
               "from": 0,
               "durationInFrames": 144,
               "nodeId": "camera",
-              "component": "core/placeholder",
+              "component": "placeholder",
               "props": {
                "title": "Not recorded yet",
                "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -674,7 +674,7 @@
          "from": 204,
          "durationInFrames": 75,
          "enter": {
-          "kind": "remocn/zoom-blur",
+          "kind": "zoom-blur",
           "durationInFrames": 15
          },
          "slot": {
@@ -699,7 +699,7 @@
                 "unit": "frames"
                }
               },
-              "component": "core/title",
+              "component": "title",
               "props": {
                "eyebrow": "",
                "title": "Try Acme today",
@@ -894,7 +894,7 @@
        "from": 0,
        "durationInFrames": 90,
        "exit": {
-        "kind": "remocn/zoom-blur",
+        "kind": "zoom-blur",
         "durationInFrames": 15
        },
        "slot": {
@@ -919,7 +919,7 @@
               "unit": "frames"
              }
             },
-            "component": "core/kinetic-headline",
+            "component": "kinetic-headline",
             "props": {
              "text": "Introducing *Acme*",
              "color": "#fafafa",
@@ -940,11 +940,11 @@
        "from": 75,
        "durationInFrames": 144,
        "enter": {
-        "kind": "remocn/zoom-blur",
+        "kind": "zoom-blur",
         "durationInFrames": 15
        },
        "exit": {
-        "kind": "remocn/zoom-blur",
+        "kind": "zoom-blur",
         "durationInFrames": 15
        },
        "slot": {
@@ -962,7 +962,7 @@
             "from": 0,
             "durationInFrames": 144,
             "nodeId": "camera",
-            "component": "core/placeholder",
+            "component": "placeholder",
             "props": {
              "title": "Not recorded yet",
              "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -979,7 +979,7 @@
        "from": 204,
        "durationInFrames": 75,
        "enter": {
-        "kind": "remocn/zoom-blur",
+        "kind": "zoom-blur",
         "durationInFrames": 15
        },
        "slot": {
@@ -1004,7 +1004,7 @@
               "unit": "frames"
              }
             },
-            "component": "core/title",
+            "component": "title",
             "props": {
              "eyebrow": "",
              "title": "Try Acme today",
@@ -1479,7 +1479,7 @@
        "from": 0,
        "durationInFrames": 90,
        "exit": {
-        "kind": "remocn/zoom-blur",
+        "kind": "zoom-blur",
         "durationInFrames": 15
        },
        "slot": {
@@ -1504,7 +1504,7 @@
               "unit": "frames"
              }
             },
-            "component": "core/kinetic-headline",
+            "component": "kinetic-headline",
             "props": {
              "text": "Introducing *Acme*",
              "color": "#fafafa",
@@ -1525,11 +1525,11 @@
        "from": 75,
        "durationInFrames": 144,
        "enter": {
-        "kind": "remocn/zoom-blur",
+        "kind": "zoom-blur",
         "durationInFrames": 15
        },
        "exit": {
-        "kind": "remocn/zoom-blur",
+        "kind": "zoom-blur",
         "durationInFrames": 15
        },
        "slot": {
@@ -1547,7 +1547,7 @@
             "from": 0,
             "durationInFrames": 144,
             "nodeId": "camera",
-            "component": "core/placeholder",
+            "component": "placeholder",
             "props": {
              "title": "Not recorded yet",
              "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -1564,7 +1564,7 @@
        "from": 204,
        "durationInFrames": 75,
        "enter": {
-        "kind": "remocn/zoom-blur",
+        "kind": "zoom-blur",
         "durationInFrames": 15
        },
        "slot": {
@@ -1589,7 +1589,7 @@
               "unit": "frames"
              }
             },
-            "component": "core/title",
+            "component": "title",
             "props": {
              "eyebrow": "",
              "title": "Try Acme today",
@@ -2044,7 +2044,7 @@
       "itemId": "headline:i",
       "nodeId": "headline",
       "kind": "element",
-      "component": "core/kinetic-headline",
+      "component": "kinetic-headline",
       "props": {
        "text": "Introducing *Acme*",
        "color": "#fafafa",
@@ -2101,7 +2101,7 @@
       "itemId": "camera:i",
       "nodeId": "camera",
       "kind": "element",
-      "component": "core/placeholder",
+      "component": "placeholder",
       "props": {
        "title": "Not recorded yet",
        "subtitle": "Run to record the take. The camera moves appear here afterwards."
@@ -2147,7 +2147,7 @@
       "itemId": "outro:i",
       "nodeId": "outro",
       "kind": "element",
-      "component": "core/title",
+      "component": "title",
       "props": {
        "eyebrow": "",
        "title": "Try Acme today",
@@ -2215,7 +2215,7 @@
       "itemKey": "/0:sequence:s1",
       "from": 75.0,
       "to": 90.0,
-      "kind": "remocn/zoom-blur",
+      "kind": "zoom-blur",
       "lanes": [
        0,
        1
@@ -2231,7 +2231,7 @@
       "itemKey": "/0:sequence:s2",
       "from": 204.0,
       "to": 219.0,
-      "kind": "remocn/zoom-blur",
+      "kind": "zoom-blur",
       "lanes": [
        0,
        1
@@ -2619,7 +2619,7 @@
             "unit": "frames"
            }
           },
-          "component": "core/kinetic-headline",
+          "component": "kinetic-headline",
           "props": {
            "text": "Introducing *Acme*",
            "color": "#fafafa",
@@ -2692,7 +2692,7 @@
             "unit": "frames"
            }
           },
-          "component": "core/title",
+          "component": "title",
           "props": {
            "eyebrow": "",
            "title": "Try Acme today",
@@ -3054,7 +3054,7 @@
           "from": 0,
           "durationInFrames": 90,
           "exit": {
-           "kind": "remocn/zoom-blur",
+           "kind": "zoom-blur",
            "durationInFrames": 15
           },
           "slot": {
@@ -3079,7 +3079,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "core/kinetic-headline",
+               "component": "kinetic-headline",
                "props": {
                 "text": "Introducing *Acme*",
                 "color": "#fafafa",
@@ -3100,11 +3100,11 @@
           "from": 75,
           "durationInFrames": 98,
           "enter": {
-           "kind": "remocn/zoom-blur",
+           "kind": "zoom-blur",
            "durationInFrames": 15
           },
           "exit": {
-           "kind": "remocn/zoom-blur",
+           "kind": "zoom-blur",
            "durationInFrames": 15
           },
           "slot": {
@@ -3229,7 +3229,7 @@
           "from": 158,
           "durationInFrames": 75,
           "enter": {
-           "kind": "remocn/zoom-blur",
+           "kind": "zoom-blur",
            "durationInFrames": 15
           },
           "slot": {
@@ -3254,7 +3254,7 @@
                  "unit": "frames"
                 }
                },
-               "component": "core/title",
+               "component": "title",
                "props": {
                 "eyebrow": "",
                 "title": "Try Acme today",
@@ -3533,7 +3533,7 @@
         "from": 0,
         "durationInFrames": 90,
         "exit": {
-         "kind": "remocn/zoom-blur",
+         "kind": "zoom-blur",
          "durationInFrames": 15
         },
         "slot": {
@@ -3558,7 +3558,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/kinetic-headline",
+             "component": "kinetic-headline",
              "props": {
               "text": "Introducing *Acme*",
               "color": "#fafafa",
@@ -3579,11 +3579,11 @@
         "from": 75,
         "durationInFrames": 98,
         "enter": {
-         "kind": "remocn/zoom-blur",
+         "kind": "zoom-blur",
          "durationInFrames": 15
         },
         "exit": {
-         "kind": "remocn/zoom-blur",
+         "kind": "zoom-blur",
          "durationInFrames": 15
         },
         "slot": {
@@ -3708,7 +3708,7 @@
         "from": 158,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/zoom-blur",
+         "kind": "zoom-blur",
          "durationInFrames": 15
         },
         "slot": {
@@ -3733,7 +3733,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Try Acme today",
@@ -4208,7 +4208,7 @@
         "from": 0,
         "durationInFrames": 90,
         "exit": {
-         "kind": "remocn/zoom-blur",
+         "kind": "zoom-blur",
          "durationInFrames": 15
         },
         "slot": {
@@ -4233,7 +4233,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/kinetic-headline",
+             "component": "kinetic-headline",
              "props": {
               "text": "Introducing *Acme*",
               "color": "#fafafa",
@@ -4254,11 +4254,11 @@
         "from": 75,
         "durationInFrames": 98,
         "enter": {
-         "kind": "remocn/zoom-blur",
+         "kind": "zoom-blur",
          "durationInFrames": 15
         },
         "exit": {
-         "kind": "remocn/zoom-blur",
+         "kind": "zoom-blur",
          "durationInFrames": 15
         },
         "slot": {
@@ -4383,7 +4383,7 @@
         "from": 158,
         "durationInFrames": 75,
         "enter": {
-         "kind": "remocn/zoom-blur",
+         "kind": "zoom-blur",
          "durationInFrames": 15
         },
         "slot": {
@@ -4408,7 +4408,7 @@
                "unit": "frames"
               }
              },
-             "component": "core/title",
+             "component": "title",
              "props": {
               "eyebrow": "",
               "title": "Try Acme today",
@@ -4863,7 +4863,7 @@
        "itemId": "headline:i",
        "nodeId": "headline",
        "kind": "element",
-       "component": "core/kinetic-headline",
+       "component": "kinetic-headline",
        "props": {
         "text": "Introducing *Acme*",
         "color": "#fafafa",
@@ -5061,7 +5061,7 @@
        "itemId": "outro:i",
        "nodeId": "outro",
        "kind": "element",
-       "component": "core/title",
+       "component": "title",
        "props": {
         "eyebrow": "",
         "title": "Try Acme today",
@@ -5129,7 +5129,7 @@
        "itemKey": "/0:sequence:s1",
        "from": 75.0,
        "to": 90.0,
-       "kind": "remocn/zoom-blur",
+       "kind": "zoom-blur",
        "lanes": [
         0,
         1
@@ -5145,7 +5145,7 @@
        "itemKey": "/0:sequence:s2",
        "from": 158.0,
        "to": 173.0,
-       "kind": "remocn/zoom-blur",
+       "kind": "zoom-blur",
        "lanes": [
         0,
         1

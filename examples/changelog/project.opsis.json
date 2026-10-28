@@ -21,7 +21,7 @@
   "nodes": [
     {
       "id": "title",
-      "type": "fx.core.title",
+      "type": "fx.title",
       "position": {
         "x": 0.0,
         "y": 0.0
@@ -47,7 +47,7 @@
     },
     {
       "id": "terminal",
-      "type": "fx.remocn.terminal-simulator",
+      "type": "fx.terminal-simulator",
       "position": {
         "x": 0.0,
         "y": 200.0
@@ -104,7 +104,7 @@
     },
     {
       "id": "chart",
-      "type": "fx.remocn.animated-bar-chart",
+      "type": "fx.animated-bar-chart",
       "position": {
         "x": 0.0,
         "y": 400.0
@@ -158,7 +158,7 @@
     },
     {
       "id": "credit",
-      "type": "fx.core.lower-third",
+      "type": "fx.lower-third",
       "position": {
         "x": 300.0,
         "y": 540.0
@@ -177,7 +177,7 @@
     },
     {
       "id": "bg",
-      "type": "fx.core.gradient",
+      "type": "fx.gradient",
       "position": {
         "x": 300.0,
         "y": 340.0
@@ -212,7 +212,7 @@
         "y": 170.0
       },
       "params": {
-        "transition": "core/slide",
+        "transition": "slide",
         "transitionDuration": 15,
         "keepWhole": false,
         "cuts": []

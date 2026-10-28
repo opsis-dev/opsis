@@ -28,10 +28,10 @@ const directional = <D extends string, P extends Record<string, unknown>>(
   );
 
 export const coreTransitions: Partial<Record<string, PresentationFactory>> = {
-  "core/fade": presentation(() => fade()),
-  "core/slide": directional(slide, EDGES, "from-right"),
-  "core/wipe": directional(wipe, [...EDGES, ...CORNERS], "from-left"),
-  "core/flip": directional(flip, EDGES, "from-right"),
-  "core/clock-wipe": presentation((_props: ElementProps, size: Size) => clockWipe(size)),
-  "core/iris": presentation((_props: ElementProps, size: Size) => iris(size)),
+  fade: presentation(() => fade()),
+  slide: directional(slide, EDGES, "from-right"),
+  wipe: directional(wipe, [...EDGES, ...CORNERS], "from-left"),
+  flip: directional(flip, EDGES, "from-right"),
+  "clock-wipe": presentation((_props: ElementProps, size: Size) => clockWipe(size)),
+  iris: presentation((_props: ElementProps, size: Size) => iris(size)),
 };

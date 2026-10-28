@@ -13,7 +13,7 @@ import { edgeId, randomId } from "@/workflow/ids";
 import { CLIP_PORT, COLUMN_WIDTH, ROW_HEIGHT } from "@/workflow/nodes";
 import { editorData } from "./editor-data";
 
-export const TITLE = "fx.core.title";
+export const TITLE = "fx.title";
 
 const SETTINGS: WorkflowSettings = {
   width: 1920,

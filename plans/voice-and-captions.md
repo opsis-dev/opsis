@@ -118,7 +118,7 @@ In place:
 - Sounds join a clip through Add sound (`audio.mix`, `crates/compile/src/nodes/audio.rs`), which takes any number of `audio` values (`many()`) and places anchored ones at their action's mark with `anchor_sounds` (via `flatten_spec`). Sound effect stores its action through the `action` widget and an offset.
 - `AudioItem` (`crates/types/src/timeline.rs`) carries `channel`, `role` (`AudioRole`: Music, Effect), `length_frames`, `anchor` and `handles`; each `channel` is one Mixer strip.
 - Ducking is a bus setting: `duck_keys_for` (`crates/compile/src/mix/levels.rs`) keys a bus on the buses it names; the mix plan renders it with `sidechaincompress`. A **Voice** strip preset exists in the Mixer (`STRIP_PRESETS`).
-- `CaptionsValue` (`crates/types/src/values.rs`) is a list of `Caption { text, start_ms, end_ms }` per word; Show captions (`text.captions`, `crates/compile/src/nodes/text.rs`) draws it with `core/captions`, whose component groups words into lines of up to six or at sentence ends.
+- `CaptionsValue` (`crates/types/src/values.rs`) is a list of `Caption { text, start_ms, end_ms }` per word; Show captions (`text.captions`, `crates/compile/src/nodes/text.rs`) draws it with `captions`, whose component groups words into lines of up to six or at sentence ends.
 - Media executors run FFmpeg behind `MediaTools` and return files (`crates/media/src/executors.rs`); a compile can read its executor's result.
 
 Missing:
