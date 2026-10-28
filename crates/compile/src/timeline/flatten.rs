@@ -16,7 +16,7 @@ use crate::asset_ref::is_project_ref;
 use crate::audio::{audio_kind, channel_of, sound_length};
 use crate::clip::{IMAGE, STILL};
 use crate::clip::{item_has_sound, video_of, video_props};
-use crate::elements::core::Image;
+use crate::elements::media::image::Image;
 use crate::limits::MAX_REPEATS;
 use crate::nodes::capture::StillProps;
 use crate::params::typed_values;

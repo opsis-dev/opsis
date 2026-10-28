@@ -196,7 +196,7 @@ A sparkles button next to headline text fields (Title card's eyebrow, title and 
 
 In place:
 
-- `title` and `kinetic-headline` (`crates/compile/src/elements/core.rs`); the headline keeps its `*asterisks*` emphasis rule.
+- `title` and `kinetic-headline` (`crates/compile/src/elements/text/title.rs`, `kinetic_headline.rs`); the headline keeps its `*asterisks*` emphasis rule.
 - Fields carry their UI as `x-` keywords in their JSON Schema and the editor builds forms from it (`schema-form.tsx`); `sparkles` is in the card icons.
 
 Missing: a way to mark a field as copy, and the request.

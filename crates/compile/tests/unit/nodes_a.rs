@@ -1,8 +1,8 @@
 use opsis_compile::audio::sound_length;
 use opsis_compile::clip::{ItemExtra, empty_clip, item_clip, recording_props, walk_items};
-use opsis_compile::elements::core::CAPTIONS_ELEMENT;
 use opsis_compile::elements::elements;
 use opsis_compile::elements::introspect::FieldWidget;
+use opsis_compile::elements::overlay::captions::CAPTIONS_ELEMENT;
 use opsis_compile::node::{CardInputs, InputMedia, PortSpec};
 use opsis_compile::nodes::text::{ScriptPace, ends_sentence, script_to_captions};
 use opsis_compile::nodes::transitions::presentations;

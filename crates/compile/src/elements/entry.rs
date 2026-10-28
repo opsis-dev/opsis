@@ -5,10 +5,8 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::elements::{ElementCategory, ElementKind, ElementMeta, ElementSource};
+use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 use crate::params::{ParamSchema, Values, to_values};
-
-const OPSIS_URL: &str = "https://github.com/bismitpanda/opsis";
 
 pub struct Entry {
     key: &'static str,
@@ -18,7 +16,6 @@ pub struct Entry {
     kind: ElementKind,
     frames: u32,
     look: Option<NodeLook>,
-    source: Option<ElementSource>,
     design: Option<Design>,
     fixed_props: Values,
     kind_props: IndexMap<String, String>,
@@ -30,16 +27,6 @@ impl Entry {
     #[must_use]
     pub fn look(mut self, look: NodeLook) -> Self {
         self.look = Some(look);
-        self
-    }
-
-    #[must_use]
-    pub fn source(mut self, registry: &str, url: &str, license: &str) -> Self {
-        self.source = Some(ElementSource {
-            registry: registry.to_owned(),
-            url: url.to_owned(),
-            license: license.to_owned(),
-        });
         self
     }
 
@@ -104,7 +91,6 @@ pub fn element(
         kind,
         frames,
         look: None,
-        source: None,
         design: None,
         fixed_props: Values::new(),
         kind_props: IndexMap::new(),
@@ -113,79 +99,13 @@ pub fn element(
     }
 }
 
-pub fn component(
-    key: &'static str,
-    title: &'static str,
-    description: &'static str,
-    category: ElementCategory,
-    frames: u32,
-) -> Entry {
-    element(
-        ElementKind::Component,
-        key,
-        title,
-        description,
-        category,
-        frames,
-    )
-}
-
-pub fn wrapper(
-    key: &'static str,
-    title: &'static str,
-    description: &'static str,
-    category: ElementCategory,
-    frames: u32,
-) -> Entry {
-    element(
-        ElementKind::Wrapper,
-        key,
-        title,
-        description,
-        category,
-        frames,
-    )
-}
-
-pub fn presentation(key: &'static str, title: &'static str, frames: u32) -> Entry {
-    element(
-        ElementKind::Presentation,
-        key,
-        title,
-        "",
-        ElementCategory::Transition,
-        frames,
-    )
-}
-
-fn own_source(e: &Entry) -> ElementSource {
-    if e.kind == ElementKind::Presentation {
-        ElementSource {
-            registry: "@remotion/transitions".into(),
-            url: format!(
-                "https://www.remotion.dev/docs/transitions/presentations/{}",
-                e.key
-            ),
-            license: "Remotion".into(),
-        }
-    } else {
-        ElementSource {
-            registry: "Opsis".into(),
-            url: OPSIS_URL.into(),
-            license: "GPL-3.0-or-later".into(),
-        }
-    }
-}
-
 pub fn meta<T: JsonSchema + Default + Serialize>(e: Entry) -> ElementMeta {
-    let source = e.source.clone().unwrap_or_else(|| own_source(&e));
     ElementMeta {
         key: e.key.to_owned(),
         title: e.title.to_owned(),
         description: (!e.description.is_empty()).then(|| e.description.to_owned()),
         category: e.category,
         kind: e.kind,
-        source,
         schema: ParamSchema::of::<T>(),
         default_props: to_values(&T::default()),
         fixed_props: e.fixed_props,

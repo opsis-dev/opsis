@@ -1,0 +1,40 @@
+use opsis_types::looks::NodeLook;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
+
+use crate::elements::entry::{element, meta};
+use crate::elements::{ElementCategory, ElementKind, ElementMeta};
+
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
+#[serde(rename_all = "camelCase", default)]
+pub struct VhsFilter {
+    #[default = 1.0]
+    #[schemars(description = "Chroma bleed", range(min = 0, max = 3), extend("x-step" = 0.1))]
+    pub bleed: f64,
+    #[default = 1.0]
+    #[schemars(description = "Tape wobble", range(min = 0, max = 3), extend("x-step" = 0.1))]
+    pub wobble: f64,
+    #[default = 1.0]
+    #[schemars(description = "Noise", range(min = 0, max = 3), extend("x-step" = 0.1))]
+    pub noise: f64,
+    #[default = 1.0]
+    #[schemars(description = "Intensity", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    pub intensity: f64,
+}
+
+pub fn definition() -> ElementMeta {
+    meta::<VhsFilter>(
+            element(
+                ElementKind::Wrapper,
+                "vhs-filter",
+                "VHS filter",
+                "Hold a scene under analog tape: chroma bleeds sideways off every edge, rows wobble out of line, the bottom of the frame tears on the head switch, and luma noise settles over all of it.",
+                ElementCategory::Effect,
+                90,
+            )
+                .look(NodeLook::of("lucide:cassette-tape")),
+        )
+}

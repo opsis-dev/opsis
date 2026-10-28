@@ -2,7 +2,10 @@ use opsis_types::fonts::{FontFaceDef, FontFamilyDef, FontRole, FontStyle, Projec
 use serde_json::Value;
 
 use crate::asset_ref::{PreparedKind, PreparedRef, extension_of};
-use crate::elements::core::{Card3d, Logo3d, Model3d, Text3d};
+use crate::elements::scene::card_3d::Card3d;
+use crate::elements::scene::logo_3d::Logo3d;
+use crate::elements::scene::model_3d::Model3d;
+use crate::elements::text::text_3d::Text3d;
 use crate::fonts::{family_for, first_family};
 use crate::params::{Values, typed_values};
 

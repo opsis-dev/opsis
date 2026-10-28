@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use opsis_compile::clip::clip_to_spec;
 use opsis_compile::compile::compile_workflow;
-use opsis_compile::elements::core::CAPTIONS_ELEMENT;
+use opsis_compile::elements::overlay::captions::CAPTIONS_ELEMENT;
 use opsis_compile::elements::{ElementKind, ElementMeta, element_node_type, elements};
 use opsis_compile::hosted::hosted;
 use opsis_compile::node::CLIP_PORT;

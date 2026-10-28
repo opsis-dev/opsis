@@ -15,11 +15,11 @@ use crate::card::{file_row, frame_secs, quoted, sentence};
 use crate::clip::{
     EMPTY_CLIP_FRAMES, ItemExtra, empty_clip, item_clip, scene_sequence, with_handles, wrap_clip,
 };
-use crate::elements::core::CAPTIONS_ELEMENT;
 use crate::elements::introspect::{
     frames_from_seconds, is_color_schema, map_leaves, widget_keys, widget_of,
 };
 use crate::elements::lengths::{animation_length, fits_its_animation};
+use crate::elements::overlay::captions::CAPTIONS_ELEMENT;
 use crate::elements::prepared::prepare_props;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta, element_node_type, elements};
 use crate::fonts::font_prop;
@@ -94,7 +94,7 @@ struct SequencerFields {
 
 fn node_category(category: ElementCategory) -> Category {
     match category {
-        ElementCategory::Core
+        ElementCategory::Media
         | ElementCategory::Ui
         | ElementCategory::Data
         | ElementCategory::Scene

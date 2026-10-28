@@ -15,7 +15,7 @@ use smart_default::SmartDefault;
 
 use crate::card::{quoted_row, truncate_card};
 use crate::clip::{EMPTY_CLIP_FRAMES, ItemExtra, empty_clip, item_clip, stack_clips};
-use crate::elements::core::{CAPTIONS_ELEMENT, Captions};
+use crate::elements::overlay::captions::{CAPTIONS_ELEMENT, Captions};
 use crate::fonts::font_prop;
 use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Phase, RowExt, opt, outputs, port, row,
