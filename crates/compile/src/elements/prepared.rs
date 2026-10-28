@@ -58,7 +58,7 @@ fn typeface(props: &mut Values, text: &Text3d, fonts: &ProjectFonts) {
     let family = Some(first_family(&text.font_family))
         .filter(|f| !f.is_empty())
         .unwrap_or_else(|| FontRole::Heading.family().to_owned());
-    let weight = text.font_weight;
+    let weight = f64::from(text.font_weight);
     let Some(face) = family_for(&family, fonts).and_then(|def| face_for(def, weight, text.italic))
     else {
         return;

@@ -921,11 +921,11 @@
               "props": {
                "style": "word-by-word",
                "position": "bottom",
-               "fontSize": 56.0,
+               "fontSize": 56,
                "color": "#ffffff",
                "highlightColor": "#facc15",
                "panel": "rgba(0,0,0,0.35)",
-               "fontWeight": 800.0,
+               "fontWeight": 800,
                "captions": [
                 {
                  "text": "Create",
@@ -1237,11 +1237,11 @@
             "props": {
              "style": "word-by-word",
              "position": "bottom",
-             "fontSize": 56.0,
+             "fontSize": 56,
              "color": "#ffffff",
              "highlightColor": "#facc15",
              "panel": "rgba(0,0,0,0.35)",
-             "fontWeight": 800.0,
+             "fontWeight": 800,
              "captions": [
               {
                "text": "Create",
@@ -1791,11 +1791,11 @@
             "props": {
              "style": "word-by-word",
              "position": "bottom",
-             "fontSize": 56.0,
+             "fontSize": 56,
              "color": "#ffffff",
              "highlightColor": "#facc15",
              "panel": "rgba(0,0,0,0.35)",
-             "fontWeight": 800.0,
+             "fontWeight": 800,
              "captions": [
               {
                "text": "Create",
@@ -2321,11 +2321,11 @@
       "props": {
        "style": "word-by-word",
        "position": "bottom",
-       "fontSize": 56.0,
+       "fontSize": 56,
        "color": "#ffffff",
        "highlightColor": "#facc15",
        "panel": "rgba(0,0,0,0.35)",
-       "fontWeight": 800.0,
+       "fontWeight": 800,
        "captions": [
         {
          "text": "Create",
@@ -3870,11 +3870,11 @@
                "props": {
                 "style": "word-by-word",
                 "position": "bottom",
-                "fontSize": 56.0,
+                "fontSize": 56,
                 "color": "#ffffff",
                 "highlightColor": "#facc15",
                 "panel": "rgba(0,0,0,0.35)",
-                "fontWeight": 800.0,
+                "fontWeight": 800,
                 "captions": [
                  {
                   "text": "Create",
@@ -4481,11 +4481,11 @@
              "props": {
               "style": "word-by-word",
               "position": "bottom",
-              "fontSize": 56.0,
+              "fontSize": 56,
               "color": "#ffffff",
               "highlightColor": "#facc15",
               "panel": "rgba(0,0,0,0.35)",
-              "fontWeight": 800.0,
+              "fontWeight": 800,
               "captions": [
                {
                 "text": "Create",
@@ -5192,11 +5192,11 @@
              "props": {
               "style": "word-by-word",
               "position": "bottom",
-              "fontSize": 56.0,
+              "fontSize": 56,
               "color": "#ffffff",
               "highlightColor": "#facc15",
               "panel": "rgba(0,0,0,0.35)",
-              "fontWeight": 800.0,
+              "fontWeight": 800,
               "captions": [
                {
                 "text": "Create",
@@ -5884,11 +5884,11 @@
        "props": {
         "style": "word-by-word",
         "position": "bottom",
-        "fontSize": 56.0,
+        "fontSize": 56,
         "color": "#ffffff",
         "highlightColor": "#facc15",
         "panel": "rgba(0,0,0,0.35)",
-        "fontWeight": 800.0,
+        "fontWeight": 800,
         "captions": [
          {
           "text": "Create",

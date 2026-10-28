@@ -256,12 +256,12 @@ pub struct Title {
     #[default = "transparent"]
     #[schemars(description = "Background (colour, gradient or 'transparent')")]
     pub background: String,
-    #[default = 112.0]
+    #[default = 112]
     #[schemars(description = "Font size", range(min = 24, max = 260), extend("x-step" = 1))]
-    pub font_size: f64,
-    #[default = 760.0]
+    pub font_size: u32,
+    #[default = 760]
     #[schemars(description = "Font weight", range(min = 100, max = 900), extend("x-step" = 10))]
-    pub font_weight: f64,
+    pub font_weight: u32,
     #[schemars(description = "Font", extend("x-widget" = "font", "x-help" = "Project font follows the fonts set for the whole project."))]
     pub font_family: String,
 }
@@ -283,12 +283,12 @@ pub struct KineticHeadline {
     #[default = "transparent"]
     #[schemars(description = "Background")]
     pub background: String,
-    #[default = 104.0]
+    #[default = 104]
     #[schemars(description = "Font size", range(min = 24, max = 240), extend("x-step" = 1))]
-    pub font_size: f64,
-    #[default = 4.0]
+    pub font_size: u32,
+    #[default = 4]
     #[schemars(description = "Time between words", range(min = 1, max = 20), extend("x-step" = 1, "x-unit" = "frames"))]
-    pub word_stagger: f64,
+    pub word_stagger: u32,
     #[schemars(description = "Font", extend("x-widget" = "font", "x-help" = "Project font follows the fonts set for the whole project."))]
     pub font_family: String,
 }
@@ -358,9 +358,9 @@ pub struct Captions {
     #[default(CaptionPosition::Bottom)]
     #[schemars(description = "Position")]
     pub position: CaptionPosition,
-    #[default = 56.0]
+    #[default = 56]
     #[schemars(description = "Font size", range(min = 16, max = 140), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#ffffff"]
     #[schemars(description = "Text colour", extend("x-check" = { "rule": "colour", "message": "Pick a colour" }))]
     pub color: String,
@@ -376,9 +376,9 @@ pub struct Captions {
         )
     )]
     pub panel: String,
-    #[default = 800.0]
+    #[default = 800]
     #[schemars(description = "Font weight", range(min = 100, max = 900), extend("x-step" = 10))]
-    pub font_weight: f64,
+    pub font_weight: u32,
     #[schemars(description = "Font", extend("x-widget" = "font", "x-help" = "Project font follows the fonts set for the whole project."))]
     pub font_family: String,
 }
@@ -431,10 +431,10 @@ pub struct Mosaic {
     )]
     pub boxes: Vec<MosaicBox>,
     #[schemars(description = "Frame to draw on", range(min = 0, max = 3600000), extend("x-step" = 1, "x-unit" = "ms", "x-hidden" = true))]
-    pub frame_ms: f64,
-    #[default = 24.0]
+    pub frame_ms: u32,
+    #[default = 24]
     #[schemars(description = "Block size", range(min = 6, max = 72), extend("x-step" = 2))]
-    pub block_size: f64,
+    pub block_size: u32,
 }
 
 #[derive(
@@ -482,7 +482,7 @@ pub struct Video {
     #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.05))]
     pub playback_rate: f64,
     #[schemars(description = "Start at", range(min = 0, max = 3600000), extend("x-step" = 100, "x-unit" = "ms"))]
-    pub trim_before_ms: f64,
+    pub trim_before_ms: u32,
 }
 
 #[derive(
@@ -506,9 +506,9 @@ pub struct Gradient {
     #[default = "#0f172a"]
     #[schemars(description = "To", extend("x-check" = { "rule": "colour", "message": "Pick a colour" }))]
     pub to: String,
-    #[default = 135.0]
+    #[default = 135]
     #[schemars(description = "Angle", range(min = 0, max = 360), extend("x-step" = 1))]
-    pub angle: f64,
+    pub angle: u32,
     #[default = 0.08]
     #[schemars(description = "Grain", range(min = 0, max = 0.4), extend("x-step" = 0.01))]
     pub grain: f64,
@@ -544,9 +544,9 @@ pub struct Starburst {
     #[default = "#27272a"]
     #[schemars(description = "Ray B", extend("x-check" = { "rule": "colour", "message": "Pick a colour" }))]
     pub color2: String,
-    #[default = 24.0]
+    #[default = 24]
     #[schemars(description = "Rays", range(min = 6, max = 64), extend("x-step" = 1))]
-    pub rays: f64,
+    pub rays: u32,
     #[default = 0.15]
     #[schemars(description = "Rotation speed", range(min = 0, max = 2), extend("x-step" = 0.05, "x-unit" = "°/frame"))]
     pub rotation_speed: f64,
@@ -592,11 +592,11 @@ pub struct VideoLoop {
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LightLeak {
-    #[default = 3.0]
+    #[default = 3]
     #[schemars(description = "Seed", range(min = 0, max = 100), extend("x-step" = 1))]
-    pub seed: f64,
+    pub seed: u32,
     #[schemars(description = "Hue shift", range(min = 0, max = 360), extend("x-step" = 1))]
-    pub hue_shift: f64,
+    pub hue_shift: u32,
 }
 
 #[derive(
@@ -661,13 +661,13 @@ pub struct Card3d {
     #[default = 0.04]
     #[schemars(description = "Thickness", range(min = 0.01, max = 0.3), extend("x-step" = 0.01))]
     pub depth: f64,
-    #[default = 40.0]
+    #[default = 40]
     #[schemars(
         description = "Tilt",
         range(min = 0, max = 80),
         extend("x-step" = 1, "x-unit" = "°", "x-help" = "How far the card is turned before it settles.")
     )]
-    pub tilt: f64,
+    pub tilt: u32,
     #[default(Motion::TiltIn)]
     #[schemars(
         description = "Motion",
@@ -711,9 +711,9 @@ pub struct Text3d {
     pub text: String,
     #[schemars(description = "Font", extend("x-widget" = "font", "x-help" = "Empty uses the project's heading font."))]
     pub font_family: String,
-    #[default = 800.0]
+    #[default = 800]
     #[schemars(description = "Font weight", range(min = 100, max = 900), extend("x-step" = 10))]
-    pub font_weight: f64,
+    pub font_weight: u32,
     #[schemars(description = "Italic")]
     pub italic: bool,
     #[default = 0.35]
@@ -731,13 +731,13 @@ pub struct Text3d {
     #[default(TextAlign::Center)]
     #[schemars(description = "Alignment")]
     pub align: TextAlign,
-    #[default = 16.0]
+    #[default = 16]
     #[schemars(
         description = "Line length",
         range(min = 4, max = 60),
         extend("x-step" = 1, "x-unit" = "letters", "x-help" = "Long text wraps onto a new line after about this many letters.")
     )]
-    pub line_width: f64,
+    pub line_width: u32,
     #[default(Motion::TiltIn)]
     #[schemars(
         description = "Motion",
@@ -869,15 +869,15 @@ pub struct Screen3d {
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Shapes3d {
-    #[default = 14.0]
+    #[default = 14]
     #[schemars(description = "Shapes", range(min = 3, max = 40), extend("x-step" = 1))]
-    pub count: f64,
+    pub count: u32,
     #[default(vec!["#6366f1".into(), "#a78bfa".into(), "#f472b6".into(), "#38bdf8".into()])]
     #[schemars(description = "Colours", length(min = 1, max = 8))]
     pub palette: Vec<Colour>,
-    #[default = 1.0]
+    #[default = 1]
     #[schemars(description = "Arrangement", range(min = 1, max = 100), extend("x-step" = 1))]
-    pub seed: f64,
+    pub seed: u32,
     #[default = 1.0]
     #[schemars(description = "Speed", range(min = 0, max = 3), extend("x-step" = 0.05))]
     pub speed: f64,

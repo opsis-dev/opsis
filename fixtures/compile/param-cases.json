@@ -22341,11 +22341,11 @@
     "data": {
      "style": "word-by-word",
      "position": "bottom",
-     "fontSize": 56.0,
+     "fontSize": 56,
      "color": "#ffffff",
      "highlightColor": "#facc15",
      "panel": "rgba(0,0,0,0.35)",
-     "fontWeight": 800.0,
+     "fontWeight": 800,
      "fontFamily": ""
     }
    }
@@ -22360,11 +22360,11 @@
     "data": {
      "style": "word-by-word",
      "position": "bottom",
-     "fontSize": 56.0,
+     "fontSize": 56,
      "color": "#ffffff",
      "highlightColor": "#facc15",
      "panel": "rgba(0,0,0,0.35)",
-     "fontWeight": 800.0,
+     "fontWeight": 800,
      "fontFamily": ""
     }
    }
@@ -22476,7 +22476,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 56.0,
+    "value": 56,
     "keys": 8
    }
   },
@@ -22525,7 +22525,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 16"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -22854,7 +22854,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 800.0,
+    "value": 800,
     "keys": 8
    }
   },
@@ -22903,7 +22903,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font weight must be at least 100"
+    "problem": "Font weight isn't valid"
    }
   },
   {
@@ -28575,8 +28575,8 @@
      "color": "#fafafa",
      "accent": "#a78bfa",
      "background": "transparent",
-     "fontSize": 112.0,
-     "fontWeight": 760.0,
+     "fontSize": 112,
+     "fontWeight": 760,
      "fontFamily": "",
      "clipDuration": 75,
      "envelope": {}
@@ -28602,8 +28602,8 @@
      "color": "#fafafa",
      "accent": "#a78bfa",
      "background": "transparent",
-     "fontSize": 112.0,
-     "fontWeight": 760.0,
+     "fontSize": 112,
+     "fontWeight": 760,
      "fontFamily": "",
      "clipDuration": 75,
      "envelope": {}
@@ -29466,7 +29466,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 112.0,
+    "value": 112,
     "keys": 16
    }
   },
@@ -29515,7 +29515,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 24"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -29589,7 +29589,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 760.0,
+    "value": 760,
     "keys": 16
    }
   },
@@ -29638,7 +29638,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font weight must be at least 100"
+    "problem": "Font weight isn't valid"
    }
   },
   {
@@ -29977,8 +29977,8 @@
      "color": "#fafafa",
      "emphasisColor": "#facc15",
      "background": "transparent",
-     "fontSize": 104.0,
-     "wordStagger": 4.0,
+     "fontSize": 104,
+     "wordStagger": 4,
      "fontFamily": "",
      "clipDuration": 90,
      "envelope": {}
@@ -29997,8 +29997,8 @@
      "color": "#fafafa",
      "emphasisColor": "#facc15",
      "background": "transparent",
-     "fontSize": 104.0,
-     "wordStagger": 4.0,
+     "fontSize": 104,
+     "wordStagger": 4,
      "fontFamily": "",
      "clipDuration": 90,
      "envelope": {}
@@ -30362,7 +30362,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 104.0,
+    "value": 104,
     "keys": 9
    }
   },
@@ -30411,7 +30411,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 24"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -30485,7 +30485,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 9
    }
   },
@@ -30534,7 +30534,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Time between words is too short"
+    "problem": "Time between words isn't valid"
    }
   },
   {
@@ -32990,8 +32990,8 @@
        "height": 0.08
       }
      ],
-     "frameMs": 0.0,
-     "blockSize": 24.0,
+     "frameMs": 0,
+     "blockSize": 24,
      "clipDuration": 0,
      "envelope": {}
     }
@@ -33013,8 +33013,8 @@
        "height": 0.08
       }
      ],
-     "frameMs": 0.0,
-     "blockSize": 24.0,
+     "frameMs": 0,
+     "blockSize": 24,
      "clipDuration": 0,
      "envelope": {}
     }
@@ -33139,7 +33139,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 5
    }
   },
@@ -33187,9 +33187,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 5
+    "ok": false,
+    "problem": "Frame to draw on isn't valid"
    }
   },
   {
@@ -33263,7 +33262,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 5
    }
   },
@@ -33312,7 +33311,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Block size must be at least 6"
+    "problem": "Block size isn't valid"
    }
   },
   {
@@ -34200,7 +34199,7 @@
      "muted": true,
      "volume": 1.0,
      "playbackRate": 1.0,
-     "trimBeforeMs": 0.0,
+     "trimBeforeMs": 0,
      "clipDuration": 150,
      "envelope": {}
     }
@@ -34220,7 +34219,7 @@
      "muted": true,
      "volume": 1.0,
      "playbackRate": 1.0,
-     "trimBeforeMs": 0.0,
+     "trimBeforeMs": 0,
      "clipDuration": 150,
      "envelope": {}
     }
@@ -34695,7 +34694,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 9
    }
   },
@@ -34743,9 +34742,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 9
+    "ok": false,
+    "problem": "Start at isn't valid"
    }
   },
   {
@@ -35279,7 +35277,7 @@
     "data": {
      "from": "#1e1b4b",
      "to": "#0f172a",
-     "angle": 135.0,
+     "angle": 135,
      "grain": 0.08,
      "clipDuration": 90,
      "envelope": {}
@@ -35296,7 +35294,7 @@
     "data": {
      "from": "#1e1b4b",
      "to": "#0f172a",
-     "angle": 135.0,
+     "angle": 135,
      "grain": 0.08,
      "clipDuration": 90,
      "envelope": {}
@@ -35482,7 +35480,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 135.0,
+    "value": 135,
     "keys": 6
    }
   },
@@ -35530,9 +35528,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 6
+    "ok": false,
+    "problem": "Angle isn't valid"
    }
   },
   {
@@ -36526,7 +36523,7 @@
     "data": {
      "color1": "#18181b",
      "color2": "#27272a",
-     "rays": 24.0,
+     "rays": 24,
      "rotationSpeed": 0.15,
      "clipDuration": 150,
      "envelope": {}
@@ -36543,7 +36540,7 @@
     "data": {
      "color1": "#18181b",
      "color2": "#27272a",
-     "rays": 24.0,
+     "rays": 24,
      "rotationSpeed": 0.15,
      "clipDuration": 150,
      "envelope": {}
@@ -36729,7 +36726,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 6
    }
   },
@@ -36778,7 +36775,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Rays must be at least 6"
+    "problem": "Rays isn't valid"
    }
   },
   {
@@ -38226,8 +38223,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "seed": 3.0,
-     "hueShift": 0.0,
+     "seed": 3,
+     "hueShift": 0,
      "clipDuration": 45,
      "envelope": {}
     }
@@ -38241,8 +38238,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "seed": 3.0,
-     "hueShift": 0.0,
+     "seed": 3,
+     "hueShift": 0,
      "clipDuration": 45,
      "envelope": {}
     }
@@ -38257,7 +38254,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 3.0,
+    "value": 3,
     "keys": 4
    }
   },
@@ -38305,9 +38302,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 4
+    "ok": false,
+    "problem": "Seed isn't valid"
    }
   },
   {
@@ -38381,7 +38377,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 4
    }
   },
@@ -38429,9 +38425,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 4
+    "ok": false,
+    "problem": "Hue shift isn't valid"
    }
   },
   {
@@ -39692,7 +39687,7 @@
      "src": "",
      "cornerRadius": 0.04,
      "depth": 0.04,
-     "tilt": 40.0,
+     "tilt": 40,
      "motion": "tilt-in",
      "camera": {
       "keys": []
@@ -39716,7 +39711,7 @@
      "src": "",
      "cornerRadius": 0.04,
      "depth": 0.04,
-     "tilt": 40.0,
+     "tilt": 40,
      "motion": "tilt-in",
      "camera": {
       "keys": []
@@ -40073,7 +40068,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 40.0,
+    "value": 40,
     "keys": 11
    }
   },
@@ -40121,9 +40116,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 11
+    "ok": false,
+    "problem": "Tilt isn't valid"
    }
   },
   {
@@ -40736,14 +40730,14 @@
     "data": {
      "text": "Ship faster",
      "fontFamily": "",
-     "fontWeight": 800.0,
+     "fontWeight": 800,
      "italic": false,
      "depth": 0.35,
      "bevel": 0.4,
      "color": "#fafafa",
      "metalness": 0.2,
      "align": "center",
-     "lineWidth": 16.0,
+     "lineWidth": 16,
      "motion": "tilt-in",
      "camera": {
       "keys": []
@@ -40766,14 +40760,14 @@
     "data": {
      "text": "Ship faster",
      "fontFamily": "",
-     "fontWeight": 800.0,
+     "fontWeight": 800,
      "italic": false,
      "depth": 0.35,
      "bevel": 0.4,
      "color": "#fafafa",
      "metalness": 0.2,
      "align": "center",
-     "lineWidth": 16.0,
+     "lineWidth": 16,
      "motion": "tilt-in",
      "camera": {
       "keys": []
@@ -40973,7 +40967,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 800.0,
+    "value": 800,
     "keys": 17
    }
   },
@@ -41022,7 +41016,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font weight must be at least 100"
+    "problem": "Font weight isn't valid"
    }
   },
   {
@@ -41639,7 +41633,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 16.0,
+    "value": 16,
     "keys": 17
    }
   },
@@ -41688,7 +41682,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Line length must be at least 4 letters"
+    "problem": "Line length isn't valid"
    }
   },
   {
@@ -44014,14 +44008,14 @@
    "outcome": {
     "ok": true,
     "data": {
-     "count": 14.0,
+     "count": 14,
      "palette": [
       "#6366f1",
       "#a78bfa",
       "#f472b6",
       "#38bdf8"
      ],
-     "seed": 1.0,
+     "seed": 1,
      "speed": 1.0,
      "camera": {
       "keys": []
@@ -44041,14 +44035,14 @@
    "outcome": {
     "ok": true,
     "data": {
-     "count": 14.0,
+     "count": 14,
      "palette": [
       "#6366f1",
       "#a78bfa",
       "#f472b6",
       "#38bdf8"
      ],
-     "seed": 1.0,
+     "seed": 1,
      "speed": 1.0,
      "camera": {
       "keys": []
@@ -44069,7 +44063,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 14.0,
+    "value": 14,
     "keys": 9
    }
   },
@@ -44118,7 +44112,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Shapes must be at least 3"
+    "problem": "Shapes isn't valid"
    }
   },
   {
@@ -44299,7 +44293,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.0,
+    "value": 1,
     "keys": 9
    }
   },
@@ -44348,7 +44342,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Arrangement must be at least 1"
+    "problem": "Arrangement isn't valid"
    }
   },
   {

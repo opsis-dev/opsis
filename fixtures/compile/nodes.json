@@ -2010,11 +2010,11 @@
   "defaults": {
    "style": "word-by-word",
    "position": "bottom",
-   "fontSize": 56.0,
+   "fontSize": 56,
    "color": "#ffffff",
    "highlightColor": "#facc15",
    "panel": "rgba(0,0,0,0.35)",
-   "fontWeight": 800.0,
+   "fontWeight": 800,
    "fontFamily": ""
   }
  },
@@ -2431,8 +2431,8 @@
    "color": "#fafafa",
    "accent": "#a78bfa",
    "background": "transparent",
-   "fontSize": 112.0,
-   "fontWeight": 760.0,
+   "fontSize": 112,
+   "fontWeight": 760,
    "fontFamily": "",
    "clipDuration": 75,
    "envelope": {}
@@ -2472,8 +2472,8 @@
    "color": "#fafafa",
    "emphasisColor": "#facc15",
    "background": "transparent",
-   "fontSize": 104.0,
-   "wordStagger": 4.0,
+   "fontSize": 104,
+   "wordStagger": 4,
    "fontFamily": "",
    "clipDuration": 90,
    "envelope": {}
@@ -2645,8 +2645,8 @@
      "height": 0.08
     }
    ],
-   "frameMs": 0.0,
-   "blockSize": 24.0,
+   "frameMs": 0,
+   "blockSize": 24,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -2727,7 +2727,7 @@
    "muted": true,
    "volume": 1.0,
    "playbackRate": 1.0,
-   "trimBeforeMs": 0.0,
+   "trimBeforeMs": 0,
    "clipDuration": 150,
    "envelope": {}
   }
@@ -2799,7 +2799,7 @@
   "defaults": {
    "from": "#1e1b4b",
    "to": "#0f172a",
-   "angle": 135.0,
+   "angle": 135,
    "grain": 0.08,
    "clipDuration": 90,
    "envelope": {}
@@ -2875,7 +2875,7 @@
   "defaults": {
    "color1": "#18181b",
    "color2": "#27272a",
-   "rays": 24.0,
+   "rays": 24,
    "rotationSpeed": 0.15,
    "clipDuration": 150,
    "envelope": {}
@@ -3018,8 +3018,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "seed": 3.0,
-   "hueShift": 0.0,
+   "seed": 3,
+   "hueShift": 0,
    "clipDuration": 45,
    "envelope": {}
   }
@@ -3102,7 +3102,7 @@
    "src": "",
    "cornerRadius": 0.04,
    "depth": 0.04,
-   "tilt": 40.0,
+   "tilt": 40,
    "motion": "tilt-in",
    "camera": {
     "keys": []
@@ -3146,14 +3146,14 @@
   "defaults": {
    "text": "Ship faster",
    "fontFamily": "",
-   "fontWeight": 800.0,
+   "fontWeight": 800,
    "italic": false,
    "depth": 0.35,
    "bevel": 0.4,
    "color": "#fafafa",
    "metalness": 0.2,
    "align": "center",
-   "lineWidth": 16.0,
+   "lineWidth": 16,
    "motion": "tilt-in",
    "camera": {
     "keys": []
@@ -3293,14 +3293,14 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "count": 14.0,
+   "count": 14,
    "palette": [
     "#6366f1",
     "#a78bfa",
     "#f472b6",
     "#38bdf8"
    ],
-   "seed": 1.0,
+   "seed": 1,
    "speed": 1.0,
    "camera": {
     "keys": []

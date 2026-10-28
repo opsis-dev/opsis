@@ -11,8 +11,8 @@
     "color": "#fafafa",
     "accent": "#a78bfa",
     "background": "transparent",
-    "fontSize": 112.0,
-    "fontWeight": 760.0,
+    "fontSize": 112,
+    "fontWeight": 760,
     "fontFamily": ""
   },
   "kinetic-headline": {
@@ -20,8 +20,8 @@
     "color": "#fafafa",
     "emphasisColor": "#facc15",
     "background": "transparent",
-    "fontSize": 104.0,
-    "wordStagger": 4.0,
+    "fontSize": 104,
+    "wordStagger": 4,
     "fontFamily": ""
   },
   "lower-third": {
@@ -45,11 +45,11 @@
   "captions": {
     "style": "word-by-word",
     "position": "bottom",
-    "fontSize": 56.0,
+    "fontSize": 56,
     "color": "#ffffff",
     "highlightColor": "#facc15",
     "panel": "rgba(0,0,0,0.35)",
-    "fontWeight": 800.0,
+    "fontWeight": 800,
     "fontFamily": ""
   },
   "image": {
@@ -67,8 +67,8 @@
         "height": 0.08
       }
     ],
-    "frameMs": 0.0,
-    "blockSize": 24.0
+    "frameMs": 0,
+    "blockSize": 24
   },
   "lottie": {
     "src": "",
@@ -85,7 +85,7 @@
     "muted": true,
     "volume": 1.0,
     "playbackRate": 1.0,
-    "trimBeforeMs": 0.0
+    "trimBeforeMs": 0
   },
   "solid": {
     "color": "#09090b"
@@ -93,7 +93,7 @@
   "gradient": {
     "from": "#1e1b4b",
     "to": "#0f172a",
-    "angle": 135.0,
+    "angle": 135,
     "grain": 0.08
   },
   "noise": {
@@ -105,7 +105,7 @@
   "starburst": {
     "color1": "#18181b",
     "color2": "#27272a",
-    "rays": 24.0,
+    "rays": 24,
     "rotationSpeed": 0.15
   },
   "paper": {
@@ -120,8 +120,8 @@
     "dim": 0.3
   },
   "light-leak": {
-    "seed": 3.0,
-    "hueShift": 0.0
+    "seed": 3,
+    "hueShift": 0
   },
   "logo-3d": {
     "src": "",
@@ -140,7 +140,7 @@
     "src": "",
     "cornerRadius": 0.04,
     "depth": 0.04,
-    "tilt": 40.0,
+    "tilt": 40,
     "motion": "tilt-in",
     "camera": {
       "keys": []
@@ -152,14 +152,14 @@
   "text-3d": {
     "text": "Ship faster",
     "fontFamily": "",
-    "fontWeight": 800.0,
+    "fontWeight": 800,
     "italic": false,
     "depth": 0.35,
     "bevel": 0.4,
     "color": "#fafafa",
     "metalness": 0.2,
     "align": "center",
-    "lineWidth": 16.0,
+    "lineWidth": 16,
     "motion": "tilt-in",
     "camera": {
       "keys": []
@@ -195,14 +195,14 @@
     "background": "#0b0b10"
   },
   "shapes-3d": {
-    "count": 14.0,
+    "count": 14,
     "palette": [
       "#6366f1",
       "#a78bfa",
       "#f472b6",
       "#38bdf8"
     ],
-    "seed": 1.0,
+    "seed": 1,
     "speed": 1.0,
     "camera": {
       "keys": []

@@ -9709,11 +9709,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 16,
       "maximum": 140,
-      "default": 56.0,
+      "default": 56,
       "x-step": 1
      },
      "color": {
@@ -9746,11 +9746,11 @@
      },
      "fontWeight": {
       "description": "Font weight",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 900,
-      "default": 800.0,
+      "default": 800,
       "x-step": 10
      },
      "fontFamily": {
@@ -9765,11 +9765,11 @@
     "default": {
      "style": "word-by-word",
      "position": "bottom",
-     "fontSize": 56.0,
+     "fontSize": 56,
      "color": "#ffffff",
      "highlightColor": "#facc15",
      "panel": "rgba(0,0,0,0.35)",
-     "fontWeight": 800.0,
+     "fontWeight": 800,
      "fontFamily": ""
     }
    }
@@ -10848,20 +10848,20 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 24,
       "maximum": 260,
-      "default": 112.0,
+      "default": 112,
       "x-step": 1
      },
      "fontWeight": {
       "description": "Font weight",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 900,
-      "default": 760.0,
+      "default": 760,
       "x-step": 10
      },
      "fontFamily": {
@@ -11054,8 +11054,8 @@
      "color": "#fafafa",
      "accent": "#a78bfa",
      "background": "transparent",
-     "fontSize": 112.0,
-     "fontWeight": 760.0,
+     "fontSize": 112,
+     "fontWeight": 760,
      "fontFamily": "",
      "clipDuration": 75,
      "envelope": {}
@@ -11110,20 +11110,20 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 24,
       "maximum": 240,
-      "default": 104.0,
+      "default": 104,
       "x-step": 1
      },
      "wordStagger": {
       "description": "Time between words",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 20,
-      "default": 4.0,
+      "default": 4,
       "x-step": 1,
       "x-unit": "frames"
      },
@@ -11310,8 +11310,8 @@
      "color": "#fafafa",
      "emphasisColor": "#facc15",
      "background": "transparent",
-     "fontSize": 104.0,
-     "wordStagger": 4.0,
+     "fontSize": 104,
+     "wordStagger": 4,
      "fontFamily": "",
      "clipDuration": 90,
      "envelope": {}
@@ -12141,22 +12141,22 @@
      },
      "frameMs": {
       "description": "Frame to draw on",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 3600000,
-      "default": 0.0,
+      "default": 0,
       "x-step": 1,
       "x-unit": "ms",
       "x-hidden": true
      },
      "blockSize": {
       "description": "Block size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 6,
       "maximum": 72,
-      "default": 24.0,
+      "default": 24,
       "x-step": 2
      },
      "clipDuration": {
@@ -12340,8 +12340,8 @@
        "height": 0.08
       }
      ],
-     "frameMs": 0.0,
-     "blockSize": 24.0,
+     "frameMs": 0,
+     "blockSize": 24,
      "clipDuration": 0,
      "envelope": {}
     }
@@ -12657,11 +12657,11 @@
      },
      "trimBeforeMs": {
       "description": "Start at",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 3600000,
-      "default": 0.0,
+      "default": 0,
       "x-step": 100,
       "x-unit": "ms"
      },
@@ -12843,7 +12843,7 @@
      "muted": true,
      "volume": 1.0,
      "playbackRate": 1.0,
-     "trimBeforeMs": 0.0,
+     "trimBeforeMs": 0,
      "clipDuration": 150,
      "envelope": {}
     }
@@ -13092,11 +13092,11 @@
      },
      "angle": {
       "description": "Angle",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 360,
-      "default": 135.0,
+      "default": 135,
       "x-step": 1
      },
      "grain": {
@@ -13282,7 +13282,7 @@
     "default": {
      "from": "#1e1b4b",
      "to": "#0f172a",
-     "angle": 135.0,
+     "angle": 135,
      "grain": 0.08,
      "clipDuration": 90,
      "envelope": {}
@@ -13562,11 +13562,11 @@
      },
      "rays": {
       "description": "Rays",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 6,
       "maximum": 64,
-      "default": 24.0,
+      "default": 24,
       "x-step": 1
      },
      "rotationSpeed": {
@@ -13753,7 +13753,7 @@
     "default": {
      "color1": "#18181b",
      "color2": "#27272a",
-     "rays": 24.0,
+     "rays": 24,
      "rotationSpeed": 0.15,
      "clipDuration": 150,
      "envelope": {}
@@ -14427,20 +14427,20 @@
     "properties": {
      "seed": {
       "description": "Seed",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 100,
-      "default": 3.0,
+      "default": 3,
       "x-step": 1
      },
      "hueShift": {
       "description": "Hue shift",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 360,
-      "default": 0.0,
+      "default": 0,
       "x-step": 1
      },
      "clipDuration": {
@@ -14615,8 +14615,8 @@
     },
     "type": "object",
     "default": {
-     "seed": 3.0,
-     "hueShift": 0.0,
+     "seed": 3,
+     "hueShift": 0,
      "clipDuration": 45,
      "envelope": {}
     }
@@ -15039,11 +15039,11 @@
      },
      "tilt": {
       "description": "Tilt",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 80,
-      "default": 40.0,
+      "default": 40,
       "x-step": 1,
       "x-unit": "°",
       "x-help": "How far the card is turned before it settles."
@@ -15354,7 +15354,7 @@
      "src": "",
      "cornerRadius": 0.04,
      "depth": 0.04,
-     "tilt": 40.0,
+     "tilt": 40,
      "motion": "tilt-in",
      "camera": {
       "keys": []
@@ -15400,11 +15400,11 @@
      },
      "fontWeight": {
       "description": "Font weight",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 900,
-      "default": 800.0,
+      "default": 800,
       "x-step": 10
      },
      "italic": {
@@ -15460,11 +15460,11 @@
      },
      "lineWidth": {
       "description": "Line length",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 4,
       "maximum": 60,
-      "default": 16.0,
+      "default": 16,
       "x-step": 1,
       "x-unit": "letters",
       "x-help": "Long text wraps onto a new line after about this many letters."
@@ -15774,14 +15774,14 @@
     "default": {
      "text": "Ship faster",
      "fontFamily": "",
-     "fontWeight": 800.0,
+     "fontWeight": 800,
      "italic": false,
      "depth": 0.35,
      "bevel": 0.4,
      "color": "#fafafa",
      "metalness": 0.2,
      "align": "center",
-     "lineWidth": 16.0,
+     "lineWidth": 16,
      "motion": "tilt-in",
      "camera": {
       "keys": []
@@ -16559,11 +16559,11 @@
     "properties": {
      "count": {
       "description": "Shapes",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 3,
       "maximum": 40,
-      "default": 14.0,
+      "default": 14,
       "x-step": 1
      },
      "palette": {
@@ -16587,11 +16587,11 @@
      },
      "seed": {
       "description": "Arrangement",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 100,
-      "default": 1.0,
+      "default": 1,
       "x-step": 1
      },
      "speed": {
@@ -16873,14 +16873,14 @@
     },
     "type": "object",
     "default": {
-     "count": 14.0,
+     "count": 14,
      "palette": [
       "#6366f1",
       "#a78bfa",
       "#f472b6",
       "#38bdf8"
      ],
-     "seed": 1.0,
+     "seed": 1,
      "speed": 1.0,
      "camera": {
       "keys": []
