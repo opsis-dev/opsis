@@ -54792,7 +54792,7 @@
       "default": "Before",
       "x-show-if": {
        "labels": [
-        true
+        "true"
        ]
       }
      },
@@ -54802,7 +54802,7 @@
       "default": "After",
       "x-show-if": {
        "labels": [
-        true
+        "true"
        ]
       }
      },
@@ -54814,7 +54814,7 @@
       "x-zero-label": "Main font",
       "x-show-if": {
        "labels": [
-        true
+        "true"
        ]
       }
      },
@@ -54828,7 +54828,7 @@
       "x-step": 100,
       "x-show-if": {
        "labels": [
-        true
+        "true"
        ]
       }
      },
@@ -54843,7 +54843,7 @@
       "x-zero-label": "Fit the picture",
       "x-show-if": {
        "labels": [
-        true
+        "true"
        ]
       }
      },
@@ -54854,7 +54854,7 @@
       "x-widget": "color",
       "x-show-if": {
        "labels": [
-        true
+        "true"
        ]
       }
      },
@@ -54865,7 +54865,7 @@
       "x-widget": "color",
       "x-show-if": {
        "labels": [
-        true
+        "true"
        ]
       }
      }

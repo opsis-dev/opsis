@@ -1501,27 +1501,27 @@ pub struct BeforeAfter {
     #[schemars(description = "Labels")]
     pub labels: bool,
     #[default("Before".to_owned())]
-    #[schemars(description = "Before label", extend("x-show-if" = { "labels": [true] }))]
+    #[schemars(description = "Before label", extend("x-show-if" = { "labels": ["true"] }))]
     pub before_label: String,
     #[default("After".to_owned())]
-    #[schemars(description = "After label", extend("x-show-if" = { "labels": [true] }))]
+    #[schemars(description = "After label", extend("x-show-if" = { "labels": ["true"] }))]
     pub after_label: String,
-    #[schemars(description = "Font", extend("x-widget" = "font", "x-zero-label" = "Main font", "x-show-if" = { "labels": [true] }))]
+    #[schemars(description = "Font", extend("x-widget" = "font", "x-zero-label" = "Main font", "x-show-if" = { "labels": ["true"] }))]
     pub font: String,
     #[default = 600]
-    #[schemars(description = "Weight", range(min = 100, max = 900), extend("x-step" = 100, "x-show-if" = { "labels": [true] }))]
+    #[schemars(description = "Weight", range(min = 100, max = 900), extend("x-step" = 100, "x-show-if" = { "labels": ["true"] }))]
     pub label_weight: u32,
     #[schemars(
         description = "Text size",
         range(min = 0, max = 400),
-        extend("x-unit" = "px", "x-zero-label" = "Fit the picture", "x-show-if" = { "labels": [true] })
+        extend("x-unit" = "px", "x-zero-label" = "Fit the picture", "x-show-if" = { "labels": ["true"] })
     )]
     pub label_size: u32,
     #[default("#ffffff".to_owned())]
-    #[schemars(description = "Text colour", extend("x-widget" = "color", "x-show-if" = { "labels": [true] }))]
+    #[schemars(description = "Text colour", extend("x-widget" = "color", "x-show-if" = { "labels": ["true"] }))]
     pub label_color: String,
     #[default("rgba(0, 0, 0, 0.6)".to_owned())]
-    #[schemars(description = "Label background", extend("x-widget" = "color", "x-show-if" = { "labels": [true] }))]
+    #[schemars(description = "Label background", extend("x-widget" = "color", "x-show-if" = { "labels": ["true"] }))]
     pub label_background: String,
 }
 

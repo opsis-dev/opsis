@@ -27,6 +27,7 @@ export const config: WebdriverIO.Config = {
     "./src/specs/timeline.spec.ts",
     "./src/specs/annotate.spec.ts",
     "./src/specs/export.spec.ts",
+    "./src/specs/inspector.spec.ts",
   ],
   maxInstances: 1,
   services: [

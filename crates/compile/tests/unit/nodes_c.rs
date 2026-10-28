@@ -406,3 +406,38 @@ fn never_builds_more_rows_than_a_card_shows_whatever_its_settings() {
         .collect();
     assert!(over.is_empty(), "{over:?}");
 }
+
+fn show_if_values_that_are_not_text(schema: &Value, at: &str, out: &mut Vec<String>) {
+    match schema {
+        Value::Object(map) => {
+            if let Some(Value::Object(show_if)) = map.get("x-show-if") {
+                for (key, allowed) in show_if {
+                    let all_text = allowed
+                        .as_array()
+                        .is_some_and(|values| values.iter().all(Value::is_string));
+                    if !all_text {
+                        out.push(format!("{at} {key}: {allowed}"));
+                    }
+                }
+            }
+            for (key, value) in map {
+                show_if_values_that_are_not_text(value, &format!("{at}.{key}"), out);
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                show_if_values_that_are_not_text(item, at, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+#[test]
+fn writes_every_show_if_value_as_text_since_the_form_compares_text() {
+    let mut wrong = Vec::new();
+    for def in registry().visible() {
+        show_if_values_that_are_not_text(def.params.json(), &def.kind, &mut wrong);
+    }
+    assert!(wrong.is_empty(), "{wrong:?}");
+}

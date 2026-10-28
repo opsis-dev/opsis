@@ -2,6 +2,7 @@ const APP_CAPABILITIES: &str = "./capabilities/*.json";
 const WITH_E2E_DRIVER: &str = "./capabilities/**/*.json";
 
 fn main() {
+    println!("cargo:rerun-if-changed=capabilities");
     let pattern = if std::env::var_os("CARGO_FEATURE_E2E").is_some() {
         WITH_E2E_DRIVER
     } else {

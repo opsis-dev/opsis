@@ -19,6 +19,10 @@ const marksOf = async (): Promise<Mark[]> => {
 describe("annotate", function () {
   this.timeout(120_000);
 
+  after(async () => {
+    for (const id of ["notes", "shot"]) await api("DELETE", `/project/nodes/${id}`);
+  });
+
   it("draws a box on the picture in the Inspector and saves it as one mark", async () => {
     const dir = path.join(PROJECTS, "changelog");
     fs.copyFileSync(
