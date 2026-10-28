@@ -1190,7 +1190,7 @@ export type Master = {
 	loudness: LoudnessTarget,
 };
 
-export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number } | { type: "file"; bytes: number; fps?: number };
+export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number } | { type: "file"; bytes: number; fps?: number } | { type: "changes"; count: number };
 
 export type MediaKind = "video" | "audio" | "image";
 

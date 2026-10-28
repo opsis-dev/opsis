@@ -5079,6 +5079,41 @@
    }
   },
   {
+   "type": "image.compare",
+   "title": "Compare screenshots",
+   "category": "Image",
+   "description": "Boxes what changed between two captures of the same page, and makes a picture of only the differences. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Before",
+     "optional": false,
+     "many": false
+    },
+    "after": {
+     "type": "media",
+     "label": "After",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Marked",
+     "optional": false,
+     "many": false
+    },
+    "differences": {
+     "type": "image",
+     "label": "Differences",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -54054,6 +54089,99 @@
      "borderWidth": 4,
      "borderColor": "#ffffff",
      "line": true
+    }
+   }
+  },
+  {
+   "type": "image.compare",
+   "title": "Compare screenshots",
+   "category": "Image",
+   "description": "Boxes what changed between two captures of the same page, and makes a picture of only the differences. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Before",
+     "optional": false,
+     "many": false
+    },
+    "after": {
+     "type": "media",
+     "label": "After",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Marked",
+     "optional": false,
+     "many": false
+    },
+    "differences": {
+     "type": "image",
+     "label": "Differences",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "sensitivity": {
+      "description": "Sensitivity",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.5,
+      "x-step": 0.05,
+      "x-help": "Higher marks fainter changes. Lower it when compressed pictures show changes everywhere."
+     },
+     "smallest": {
+      "description": "Smallest change",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 1,
+      "maximum": 400,
+      "default": 4,
+      "x-unit": "px",
+      "x-help": "Changes smaller than this across are left unmarked."
+     },
+     "padding": {
+      "description": "Padding",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 8,
+      "x-unit": "px",
+      "x-help": "Space around each change. Changes whose boxes touch become one box."
+     },
+     "boxWidth": {
+      "description": "Box width",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 1,
+      "maximum": 40,
+      "default": 4,
+      "x-unit": "px"
+     },
+     "boxColor": {
+      "description": "Box colour",
+      "type": "string",
+      "default": "#ef4444",
+      "x-widget": "color"
+     }
+    },
+    "type": "object",
+    "default": {
+     "sensitivity": 0.5,
+     "smallest": 4,
+     "padding": 8,
+     "boxWidth": 4,
+     "boxColor": "#ef4444"
     }
    }
   },

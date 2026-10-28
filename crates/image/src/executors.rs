@@ -1,23 +1,23 @@
 use opsis_compile::nodes::image::{
-    ADJUST_TYPE, BEFORE_AFTER_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE,
-    FRAME_TYPE, GRID_TYPE, LEVELS_TYPE, MAGNIFY_TYPE, OUTLINE_TYPE, PLACE_TYPE, REDACT_TYPE,
-    RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE, TILT_TYPE, TRIM_TYPE,
+    ADJUST_TYPE, BEFORE_AFTER_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, COMPARE_TYPE, CROP_TYPE,
+    FORMAT_TYPE, FRAME_TYPE, GRID_TYPE, LEVELS_TYPE, MAGNIFY_TYPE, OUTLINE_TYPE, PLACE_TYPE,
+    REDACT_TYPE, RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE, TILT_TYPE, TRIM_TYPE,
 };
 use std::path::Path;
 use std::sync::Arc;
 
 use image::DynamicImage;
 use opsis_compile::nodes::image::{
-    AFTER_PORT, AdjustImage, AutoLevels, BeforeAfter, BlurImage, ClearColour, CropImage,
-    FrameScreenshot, IMAGE_PORT, ImageFormat, ImageGrid, Magnify, OVERLAY_PORT, OutlineImage,
-    PlaceImage, RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, SpotlightImage, TiltImage,
-    TrimEdges, resized_size, upscale,
+    AFTER_PORT, AdjustImage, AutoLevels, BeforeAfter, BlurImage, ClearColour, CompareScreenshots,
+    CropImage, DIFFERENCES_PORT, FrameScreenshot, IMAGE_PORT, ImageFormat, ImageGrid, Magnify,
+    OVERLAY_PORT, OutlineImage, PlaceImage, RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE,
+    SpotlightImage, TiltImage, TrimEdges, resized_size, upscale,
 };
 use opsis_engine::files::atomic_write;
 use opsis_media::executors::require_media;
 use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
-use opsis_types::values::{Artifact, ArtifactKind, CompileValue, ImageValue, PortValues};
+use opsis_types::values::{Artifact, ArtifactKind, CompileValue, ImageValue, Measured, PortValues};
 
 use crate::load::load_image;
 use crate::ops;
@@ -334,6 +334,73 @@ async fn magnify(
     saved(&ctx, &out, None)
 }
 
+fn saved_png(
+    ctx: &ExecutorContext,
+    image: &DynamicImage,
+    file: &str,
+    label: &str,
+) -> Result<(CompileValue, Artifact), ExecError> {
+    let bytes = ops::encode(image, None).map_err(exec_error)?;
+    write(&ctx.dir.join(file), &bytes)?;
+    let value = CompileValue::Image(ImageValue {
+        src: Some(ctx.project_file_ref(file)),
+        width: Some(image.width()),
+        height: Some(image.height()),
+        scale: None,
+        body: None,
+    });
+    let artifact = Artifact {
+        kind: ArtifactKind::Image,
+        path: ctx.rel(file),
+        label: Some(label.to_owned()),
+        bytes: None,
+        stamp: None,
+    };
+    Ok((value, artifact))
+}
+
+async fn compare(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: CompareScreenshots = ctx.params()?;
+    let before = input(&ctx, &inputs, IMAGE_PORT).await?;
+    let after = input(&ctx, &inputs, AFTER_PORT).await?;
+    if (before.width(), before.height()) != (after.width(), after.height()) {
+        return Err(ExecError::new(format!(
+            "The two pictures are different sizes ({} × {} and {} × {}). Compare two captures of the same size.",
+            before.width(),
+            before.height(),
+            after.width(),
+            after.height()
+        )));
+    }
+    let found = blocking(move || ops::compare(&before, &after, &p)).await?;
+    let count = u32::try_from(found.boxes.len()).unwrap_or(u32::MAX);
+    ctx.log(
+        LogLevel::Info,
+        match count {
+            0 => "No change found.".to_owned(),
+            1 => "Found 1 change.".to_owned(),
+            n => format!("Found {n} changes."),
+        },
+    );
+    let (marked, marked_file) = saved_png(&ctx, &found.marked, "marked.png", "Marked")?;
+    let (differences, differences_file) =
+        saved_png(&ctx, &found.differences, "differences.png", "Differences")?;
+    Ok(ExecutorOutput {
+        outputs: [
+            (IMAGE_PORT.to_owned(), marked),
+            (DIFFERENCES_PORT.to_owned(), differences),
+        ]
+        .into_iter()
+        .collect(),
+        artifacts: vec![marked_file, differences_file],
+        trace_id: None,
+        measured: vec![Measured::Changes { count }],
+    })
+}
+
 pub fn image_executors() -> Vec<(&'static str, Executor)> {
     vec![
         (RESIZE_TYPE, executor(resize)),
@@ -344,6 +411,7 @@ pub fn image_executors() -> Vec<(&'static str, Executor)> {
         (PLACE_TYPE, executor(place)),
         (BEFORE_AFTER_TYPE, executor(before_after)),
         (MAGNIFY_TYPE, executor(magnify)),
+        (COMPARE_TYPE, executor(compare)),
         (FORMAT_TYPE, executor(format)),
         (REDACT_TYPE, executor(redact)),
         (SPOTLIGHT_TYPE, executor(spotlight)),

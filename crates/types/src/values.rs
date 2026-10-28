@@ -359,6 +359,9 @@ pub enum Measured {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         fps: Option<f64>,
     },
+    Changes {
+        count: u32,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

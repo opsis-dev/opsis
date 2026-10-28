@@ -1,6 +1,6 @@
-use opsis_types::cards::Icon;
+use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
-use opsis_types::values::CompileValue;
+use opsis_types::values::{CompileValue, Measured};
 use opsis_types::workflow::PortType;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -14,6 +14,7 @@ use crate::nodes::camera::BackdropStyle;
 use crate::nodes::effects::Area;
 use crate::params::Params;
 use crate::ports::{IN_PREFIX, in_index};
+use crate::text::plural;
 use opsis_types::numbers::whole;
 
 pub const FRAME_TYPE: &str = "image.frame";
@@ -42,6 +43,8 @@ pub const BEFORE_AFTER_TYPE: &str = "image.beforeAfter";
 
 pub const MAGNIFY_TYPE: &str = "image.magnify";
 
+pub const COMPARE_TYPE: &str = "image.compare";
+
 pub const BLUR_TYPE: &str = "image.blur";
 
 pub const ADJUST_TYPE: &str = "image.adjust";
@@ -55,6 +58,7 @@ pub const RESIZE_TYPE: &str = "image.resize";
 pub const IMAGE_PORT: &str = "image";
 pub const OVERLAY_PORT: &str = "overlay";
 pub const AFTER_PORT: &str = "after";
+pub const DIFFERENCES_PORT: &str = "differences";
 pub const MAX_SIDE: u32 = 16384;
 pub const SOFT_UPSCALE: f64 = 2.0;
 pub const SMALL_CROP: f64 = 64.0;
@@ -1827,6 +1831,92 @@ fn magnify() -> NodeDef {
     })
 }
 
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct CompareScreenshots {
+    #[default = 0.5]
+    #[schemars(
+        description = "Sensitivity",
+        range(min = 0, max = 1),
+        extend("x-step" = 0.05, "x-help" = "Higher marks fainter changes. Lower it when compressed pictures show changes everywhere.")
+    )]
+    pub sensitivity: f64,
+    #[default = 4]
+    #[schemars(
+        description = "Smallest change",
+        range(min = 1, max = 400),
+        extend("x-unit" = "px", "x-help" = "Changes smaller than this across are left unmarked.")
+    )]
+    pub smallest: u32,
+    #[default = 8]
+    #[schemars(
+        description = "Padding",
+        range(min = 0, max = 100),
+        extend("x-unit" = "px", "x-help" = "Space around each change. Changes whose boxes touch become one box.")
+    )]
+    pub padding: u32,
+    #[default = 4]
+    #[schemars(description = "Box width", range(min = 1, max = 40), extend("x-unit" = "px"))]
+    pub box_width: u32,
+    #[default("#ef4444".to_owned())]
+    #[schemars(description = "Box colour", extend("x-widget" = "color"))]
+    pub box_color: String,
+}
+
+impl Params for CompareScreenshots {}
+
+const DIFFERENT_SIZES: &str = "The two pictures are different sizes";
+
+pub fn compare_threshold(sensitivity: f64) -> u8 {
+    (2.0 + 64.0 * (1.0 - sensitivity.clamp(0.0, 1.0))).round() as u8
+}
+
+fn compare() -> NodeDef {
+    image_node::<CompareScreenshots>(
+        COMPARE_TYPE,
+        "Compare screenshots",
+        "Boxes what changed between two captures of the same page, and makes a picture of only the differences.",
+    )
+    .inputs(vec![
+        (IMAGE_PORT, port(PortType::Media, "Before")),
+        (AFTER_PORT, port(PortType::Media, "After")),
+    ])
+    .outputs(vec![
+        (IMAGE_PORT, port(PortType::Image, "Marked")),
+        (DIFFERENCES_PORT, port(PortType::Image, "Differences")),
+    ])
+    .card(|ctx: &CardCtx<'_, CompareScreenshots>| {
+        let changes = ctx.result.and_then(|r| {
+            r.measured.iter().find_map(|m| match m {
+                Measured::Changes { count } => Some(*count),
+                Measured::NoiseLevel { .. } | Measured::File { .. } => None,
+            })
+        });
+        let found = match changes {
+            Some(0) => row(Icon::CircleCheck, "No change"),
+            Some(count) => row(Icon::ScanSearch, plural(f64::from(count), "change")),
+            None => row(Icon::ScanSearch, "Marks what changed").tone(Tone::Muted),
+        };
+        let sizes = (input_size(ctx, IMAGE_PORT), input_size(ctx, AFTER_PORT));
+        vec![
+            Some(found),
+            (!ctx.connected(AFTER_PORT)).then(|| missing(Icon::Image, "Connect the after picture")),
+            matches!(sizes, (Some(a), Some(b)) if a != b)
+                .then(|| missing(Icon::TriangleAlert, DIFFERENT_SIZES)),
+        ]
+    })
+    .compile(|ctx: &Ctx<'_, CompareScreenshots>| {
+        let outputs = [IMAGE_PORT, DIFFERENCES_PORT]
+            .into_iter()
+            .filter_map(|port| {
+                let value = ctx.result?.output(port)?;
+                matches!(value, CompileValue::Image(_)).then(|| (port.to_owned(), value.clone()))
+            })
+            .collect();
+        Ok(Some(outputs))
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -1847,6 +1937,7 @@ pub fn nodes() -> Vec<NodeDef> {
         frame().look(NodeLook::of("hugeicons:image-composition")),
         before_after().look(NodeLook::of("lucide:columns-2")),
         magnify().look(NodeLook::of("tabler:zoom-in-area")),
+        compare().look(NodeLook::of("lucide:diff")),
     ]
     .into_iter()
     .map(|def| def.needs(FileNeed::Image))

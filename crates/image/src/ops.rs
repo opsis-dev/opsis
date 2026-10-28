@@ -6,22 +6,28 @@ use image::codecs::jpeg::JpegEncoder;
 use image::codecs::png::PngEncoder;
 use image::codecs::webp::WebPEncoder;
 use image::{
-    DynamicImage, ImageBuffer, Luma, Pixel, Primitive, Rgba, Rgba32FImage, RgbaImage, imageops,
+    DynamicImage, GrayImage, ImageBuffer, Luma, Pixel, Primitive, Rgba, Rgba32FImage, RgbaImage,
+    imageops,
 };
+use imageproc::distance_transform::Norm;
 use imageproc::distance_transform::euclidean_squared_distance_transform;
 use imageproc::filter::gaussian_blur_f32;
 use imageproc::geometric_transformations::{
     Border, Interpolation, Projection, rotate_about_center, warp_into,
 };
+use imageproc::morphology::dilate;
+use imageproc::region_labelling::{Connectivity, connected_components};
 use num_traits::ToPrimitive;
 use opsis_compile::gradient::{Gradient, GradientKind};
+use opsis_compile::nodes::image::compare_threshold;
 use opsis_compile::nodes::image::{
     AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BeforeAfterPlan, BlurImage,
-    ClearColour, CropImage, FrameScreenshot, ImageFormat, ImageGrid, LevelsMethod, Magnify,
-    MagnifyShape, OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle, Resample, ResizeFit,
-    ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn,
-    area_rect, before_after_plan, crop_rect, framed_placement, grid_plan, label_size, magnify_plan,
-    outline_padding, resized_size, rotated_size, tilt_corners, tilted_size,
+    ClearColour, CompareScreenshots, CropImage, FrameScreenshot, ImageFormat, ImageGrid,
+    LevelsMethod, Magnify, MagnifyShape, OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle,
+    Resample, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage,
+    TrimEdges, Turn, area_rect, before_after_plan, crop_rect, framed_placement, grid_plan,
+    label_size, magnify_plan, outline_padding, resized_size, rotated_size, tilt_corners,
+    tilted_size,
 };
 
 use crate::ImageError;
@@ -1202,5 +1208,119 @@ pub fn magnify(image: &DynamicImage, p: &Magnify) -> Result<DynamicImage, ImageE
         DynamicImage::ImageRgba16(out.to_rgba16())
     } else {
         DynamicImage::ImageRgba8(out.to_rgba8())
+    })
+}
+
+pub struct Comparison {
+    pub boxes: Vec<Rect>,
+    pub marked: DynamicImage,
+    pub differences: DynamicImage,
+}
+
+fn changed_mask(before: &RgbaImage, after: &RgbaImage, threshold: u8) -> GrayImage {
+    GrayImage::from_fn(after.width(), after.height(), |x, y| {
+        let (a, b) = (before.get_pixel(x, y).0, after.get_pixel(x, y).0);
+        let most = (0..4).map(|i| a[i].abs_diff(b[i])).max().unwrap_or(0);
+        Luma([if most > threshold { 255 } else { 0 }])
+    })
+}
+
+pub fn changed_boxes(mask: &GrayImage, p: &CompareScreenshots) -> Vec<Rect> {
+    let padding = p.padding.min(255);
+    let joined = if padding > 0 {
+        dilate(mask, Norm::LInf, u8::try_from(padding).unwrap_or(u8::MAX))
+    } else {
+        mask.clone()
+    };
+    let labels = connected_components(&joined, Connectivity::Eight, Luma([0u8]));
+    let mut found: std::collections::BTreeMap<u32, (u32, u32, u32, u32)> =
+        std::collections::BTreeMap::new();
+    for (x, y, pixel) in mask.enumerate_pixels() {
+        if pixel.0[0] == 0 {
+            continue;
+        }
+        let label = labels.get_pixel(x, y).0[0];
+        let entry = found.entry(label).or_insert((x, y, x, y));
+        *entry = (
+            entry.0.min(x),
+            entry.1.min(y),
+            entry.2.max(x),
+            entry.3.max(y),
+        );
+    }
+    let (w, h) = (f64::from(mask.width()), f64::from(mask.height()));
+    let pad = f64::from(padding);
+    let mut boxes: Vec<Rect> = found
+        .into_values()
+        .filter(|(x0, y0, x1, y1)| (x1 - x0 + 1).max(y1 - y0 + 1) >= p.smallest)
+        .map(|(x0, y0, x1, y1)| {
+            let left = (f64::from(x0) - pad).max(0.0);
+            let top = (f64::from(y0) - pad).max(0.0);
+            let right = (f64::from(x1) + 1.0 + pad).min(w);
+            let bottom = (f64::from(y1) + 1.0 + pad).min(h);
+            Rect {
+                x: left,
+                y: top,
+                width: right - left,
+                height: bottom - top,
+            }
+        })
+        .collect();
+    boxes.sort_by(|a, b| a.y.total_cmp(&b.y).then(a.x.total_cmp(&b.x)));
+    boxes
+}
+
+fn in_band(x: u32, y: u32, rect: Rect, width: f64) -> bool {
+    let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
+    let inside =
+        px >= rect.x && px < rect.x + rect.width && py >= rect.y && py < rect.y + rect.height;
+    let core = px >= rect.x + width
+        && px < rect.x + rect.width - width
+        && py >= rect.y + width
+        && py < rect.y + rect.height - width;
+    inside && !core
+}
+
+pub fn compare(
+    before: &DynamicImage,
+    after: &DynamicImage,
+    p: &CompareScreenshots,
+) -> Result<Comparison, ImageError> {
+    let mask = changed_mask(
+        &before.to_rgba8(),
+        &after.to_rgba8(),
+        compare_threshold(p.sensitivity),
+    );
+    let boxes = changed_boxes(&mask, p);
+    let colour = unit_colour(background_rgba(&p.box_color));
+    let width = f64::from(p.box_width);
+    let picture = after.to_rgba32f();
+    let marked = ImageBuffer::from_fn(picture.width(), picture.height(), |x, y| {
+        let pixel = picture.get_pixel(x, y).0;
+        if boxes.iter().any(|b| in_band(x, y, *b, width)) {
+            Rgba(over(colour, pixel))
+        } else {
+            Rgba(pixel)
+        }
+    });
+    let differences = ImageBuffer::from_fn(picture.width(), picture.height(), |x, y| {
+        if mask.get_pixel(x, y).0[0] == 0 {
+            Rgba([0.0; 4])
+        } else {
+            *picture.get_pixel(x, y)
+        }
+    });
+    let depth = |out: Rgba32FImage| {
+        let out = DynamicImage::ImageRgba32F(out);
+        if is_deep(after) {
+            DynamicImage::ImageRgba16(out.to_rgba16())
+        } else {
+            DynamicImage::ImageRgba8(out.to_rgba8())
+        }
+    };
+    Ok(Comparison {
+        boxes,
+        marked: depth(marked),
+        differences: depth(differences),
     })
 }

@@ -516,6 +516,35 @@ fn says_the_zoom_and_shape_on_the_magnify_card() {
 }
 
 #[test]
+fn counts_the_changes_on_the_compare_card_and_warns_about_different_sizes() {
+    let found = |count: u32| {
+        node_result(json!({ "outputs": {}, "measured": [{ "type": "changes", "count": count }] }))
+    };
+    let mut inputs = CardInputs::default();
+    inputs.connected.push("after".to_owned());
+    let texts =
+        |result: Option<&opsis_types::values::NodeResult>, inputs: CardInputs| -> Vec<String> {
+            node_card_with("image.compare", json!({}), inputs, result)
+                .into_iter()
+                .map(|r| r.text)
+                .collect()
+        };
+    assert_eq!(texts(Some(&found(5)), inputs.clone()), ["5 changes"]);
+    assert_eq!(texts(Some(&found(0)), inputs.clone()), ["No change"]);
+    assert_eq!(texts(None, inputs.clone()), ["Marks what changed"]);
+    inputs.pixels.insert("image".to_owned(), (1280, 720));
+    inputs.pixels.insert("after".to_owned(), (1280, 800));
+    assert_eq!(
+        texts(None, inputs),
+        ["Marks what changed", "The two pictures are different sizes"]
+    );
+    assert_eq!(
+        texts(None, CardInputs::default()),
+        ["Marks what changed", "Connect the after picture"]
+    );
+}
+
+#[test]
 fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
     let song = &builtin_songs()[0];
     match compile_node("audio.music", json!({ "src": song.reference() }), json!({}))

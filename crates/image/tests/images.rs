@@ -7,6 +7,7 @@ use image::{
     RgbaImage,
 };
 use opsis_compile::nodes::effects::Area;
+use opsis_compile::nodes::image::CompareScreenshots;
 use opsis_compile::nodes::image::{
     AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BlurImage, ClearColour, CropImage,
     CropMode, FrameScreenshot, FrameShape, GridFit, GridLayout, ImageFormat, ImageGrid,
@@ -1033,4 +1034,88 @@ fn rounds_the_view_into_a_circle_with_a_border_and_a_line_to_the_spot() {
         "the spot is outlined"
     );
     assert_eq!(rgb_at(&out, 50, 50), RED, "inside the spot stays as it was");
+}
+
+fn painted(base: &RgbImage, rects: &[(u32, u32, u32, u32, [u8; 3])]) -> DynamicImage {
+    let mut picture = base.clone();
+    for &(x, y, w, h, colour) in rects {
+        for px in x..x + w {
+            for py in y..y + h {
+                picture.put_pixel(px, py, Rgb(colour));
+            }
+        }
+    }
+    DynamicImage::ImageRgb8(picture)
+}
+
+fn boxes_of(found: &ops::Comparison) -> Vec<(f64, f64, f64, f64)> {
+    found
+        .boxes
+        .iter()
+        .map(|b| (b.x, b.y, b.width, b.height))
+        .collect()
+}
+
+#[test]
+fn boxes_the_rectangles_that_changed_and_leaves_specks_and_faint_changes() {
+    let base = RgbImage::from_pixel(300, 200, Rgb([120, 120, 120]));
+    let before = DynamicImage::ImageRgb8(base.clone());
+    let after = painted(
+        &base,
+        &[
+            (20, 30, 20, 20, RED),
+            (200, 100, 60, 20, BLUE),
+            (150, 150, 2, 2, RED),
+            (60, 150, 30, 30, [126, 126, 126]),
+        ],
+    );
+    let exact = CompareScreenshots {
+        padding: 0,
+        ..CompareScreenshots::default()
+    };
+    let found = ops::compare(&before, &after, &exact).unwrap();
+    assert_eq!(
+        boxes_of(&found),
+        [(20.0, 30.0, 20.0, 20.0), (200.0, 100.0, 60.0, 20.0)]
+    );
+    let marked = &found.marked;
+    assert_eq!(rgb_at(marked, 21, 31), [239, 68, 68], "the box's edge");
+    assert_eq!(rgb_at(marked, 30, 40), RED, "inside the box is the after");
+    let differences = found.differences.to_rgba8();
+    assert_eq!(differences.get_pixel(30, 40).0, [220, 20, 20, 255]);
+    assert_eq!(
+        differences.get_pixel(100, 100).0[3],
+        0,
+        "unchanged is see-through"
+    );
+    let padded = ops::compare(&before, &after, &CompareScreenshots::default()).unwrap();
+    assert_eq!(
+        boxes_of(&padded),
+        [(12.0, 22.0, 36.0, 36.0), (192.0, 92.0, 76.0, 36.0)]
+    );
+    let none = ops::compare(&before, &before, &CompareScreenshots::default()).unwrap();
+    assert!(none.boxes.is_empty());
+}
+
+#[test]
+fn joins_changes_whose_padded_boxes_touch() {
+    let base = RgbImage::from_pixel(200, 100, Rgb([255, 255, 255]));
+    let after = painted(&base, &[(20, 20, 10, 10, BLUE), (44, 20, 10, 10, BLUE)]);
+    let before = DynamicImage::ImageRgb8(base);
+    let apart = CompareScreenshots {
+        padding: 6,
+        ..CompareScreenshots::default()
+    };
+    assert_eq!(
+        ops::compare(&before, &after, &apart).unwrap().boxes.len(),
+        2
+    );
+    let joined = CompareScreenshots {
+        padding: 8,
+        ..CompareScreenshots::default()
+    };
+    assert_eq!(
+        boxes_of(&ops::compare(&before, &after, &joined).unwrap()),
+        [(12.0, 12.0, 50.0, 26.0)]
+    );
 }

@@ -1,12 +1,12 @@
 # Image and sound nodes
 
-Eight nodes for stills and sound: two that work on images (annotate, compare), two that change a sound file (pitch, voice effects) and four that make sound (transition sounds, generated sounds, risers, music fitted to the film).
+Seven nodes for stills and sound: one that works on images (annotate), two that change a sound file (pitch, voice effects) and four that make sound (transition sounds, generated sounds, risers, music fitted to the film).
 
 Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code, except inside what is combined with Remotion (`packages/video`, `apps/preview`, `apps/sidecar`), where the Remotion permission in `LICENSE` covers only Opsis's own code. None of these nodes needs GPL code there.
 
 ## How to read this plan
 
-- Each section is one node and can be built on its own, except where a section names another it needs (sections 6 and 7 share section 5's sound maker).
+- Each section is one node and can be built on its own, except where a section names another it needs (sections 5 and 6 share section 4's sound maker).
 - Each section has **What it adds**, **In place**, **Work** (numbered), **Licence** and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
@@ -24,16 +24,15 @@ Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (v
 
 ## Summary
 
-| Node                     | What users get                                                | Built with                             | Licence of what's added    | Size   |
-| ------------------------ | ------------------------------------------------------------- | -------------------------------------- | -------------------------- | ------ |
-| 1. Annotate              | Arrows, boxes, ovals, numbered steps and text on a screenshot | `imageproc` drawing, `ab_glyph` text   | none new                   | medium |
-| 2. Compare screenshots   | What changed between two captures, boxed                      | `imageproc` threshold, labelling, hash | none new                   | medium |
-| 3. Change pitch          | Pitch raised or lowered, length kept                          | FFmpeg                                 | none new                   | small  |
-| 4. Voice effects         | Telephone, radio, room and echo                               | FFmpeg, built-in room recordings       | room recordings CC0        | medium |
-| 5. Generated sound       | Whooshes, risers, pops, dings and swells made from settings   | `fundsp`                               | `fundsp` MIT OR Apache-2.0 | medium |
-| 6. Transition sounds     | A whoosh at every transition of a clip                        | section 5, flattened transitions       | none new                   | medium |
-| 7. Riser to a mark       | A build-up that ends exactly on an action or marker           | section 5                              | none new                   | small  |
-| 8. Fit music to the film | A song stretched or looped to end with the film               | FFmpeg                                 | none new                   | medium |
+| Node                     | What users get                                                | Built with                           | Licence of what's added    | Size   |
+| ------------------------ | ------------------------------------------------------------- | ------------------------------------ | -------------------------- | ------ |
+| 1. Annotate              | Arrows, boxes, ovals, numbered steps and text on a screenshot | `imageproc` drawing, `ab_glyph` text | none new                   | medium |
+| 2. Change pitch          | Pitch raised or lowered, length kept                          | FFmpeg                               | none new                   | small  |
+| 3. Voice effects         | Telephone, radio, room and echo                               | FFmpeg, built-in room recordings     | room recordings CC0        | medium |
+| 4. Generated sound       | Whooshes, risers, pops, dings and swells made from settings   | `fundsp`                             | `fundsp` MIT OR Apache-2.0 | medium |
+| 5. Transition sounds     | A whoosh at every transition of a clip                        | section 4, flattened transitions     | none new                   | medium |
+| 6. Riser to a mark       | A build-up that ends exactly on an action or marker           | section 4                            | none new                   | small  |
+| 7. Fit music to the film | A song stretched or looped to end with the film               | FFmpeg                               | none new                   | medium |
 
 Left out: content-aware resize (`imageproc::seam_carving` is called rough by its own documentation), speech made from text and captions from speech (`plans/voice-and-captions.md` covers them).
 
@@ -65,29 +64,7 @@ Nothing new.
 
 - Fonts with variable axes draw at their default instance unless the weight is applied; draw at the chosen weight or limit the font field to static faces.
 
-## 2. Compare screenshots
-
-### What it adds
-
-The areas that changed between two captures of the same page, boxed on the newer one, plus an image of just the differences, for "what's new" stills and for checking that a page didn't change.
-
-### Work
-
-1. **Ports.** **Before** and **After** files; outputs: the marked image and a `file info` with the changed-area count.
-2. **Settings.** Sensitivity, smallest area to mark, box colour and width, padding around each change.
-3. **Operation.** Align sizes, per-pixel difference, `contrast::threshold`, `morphology::dilate` to join nearby changes, `region_labelling::connected_components` to find areas, bounding boxes drawn with `drawing`. `image_hash` gives a quick "unchanged" answer.
-4. **Card.** "5 changes" or "No change".
-5. **Tests.** Two fixtures that differ in known rectangles give those rectangles.
-
-### Risks
-
-- Captures of different sizes or scroll positions differ everywhere; refuse different sizes with a clear message.
-
-### Licence
-
-Nothing new.
-
-## 3. Change pitch
+## 2. Change pitch
 
 ### What it adds
 
@@ -108,7 +85,7 @@ The pitch library is inside the FFmpeg the user downloads; nothing is added to O
 
 - `rubberband` is in the pinned FFmpeg build but not in every FFmpeg a user may choose; check for it like the other required filters, or make it optional with the fallback above.
 
-## 4. Voice effects
+## 3. Voice effects
 
 ### What it adds
 
@@ -127,7 +104,7 @@ A voice or sound made to sound like a telephone, a radio, a small room, a hall o
 
 The impulse responses must be CC0 or compatible and credited in `THIRD_PARTY_NOTICES.md`.
 
-## 5. Generated sound
+## 4. Generated sound
 
 ### What it adds
 
@@ -153,7 +130,7 @@ Whooshes, risers, pops, dings, clicks and swells made from a few settings (lengt
 
 - Sound quality depends on the presets' tuning; ship few, good ones and listen to each before adding it.
 
-## 6. Transition sounds
+## 5. Transition sounds
 
 ### What it adds
 
@@ -166,7 +143,7 @@ A whoosh at every transition in a clip, timed to each transition's middle and sc
 
 ### Work
 
-1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in or section 5's whoosh), volume, vary each hit, skip plain cuts.
+1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in or section 4's whoosh), volume, vary each hit, skip plain cuts.
 2. **Compile.** Flatten the clip, one hit per transition mark at its middle, length from the transition's; hits flagged like Action sounds' so the Timeline shows one bar.
 3. **Card.** "6 transitions · Whoosh".
 4. **Tests.** Hits land at the marks' middles through a trim and a speed change.
@@ -175,7 +152,7 @@ A whoosh at every transition in a clip, timed to each transition's middle and sc
 
 Nothing new.
 
-## 7. Riser to a mark
+## 6. Riser to a mark
 
 ### What it adds
 
@@ -183,8 +160,8 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 
 ### Work
 
-1. **Settings.** Ends on (action, marker, clip end), length before it, preset (section 5's riser, swell), with a short hit at the end on or off.
-2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render via section 5.
+1. **Settings.** Ends on (action, marker, clip end), length before it, preset (section 4's riser, swell), with a short hit at the end on or off.
+2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render via section 4.
 3. **Card.** "Rises 3 s into “Launch”".
 4. **Tests.** The sound ends on the target frame.
 
@@ -192,7 +169,7 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 
 Nothing new.
 
-## 8. Fit music to the film
+## 7. Fit music to the film
 
 ### What it adds
 

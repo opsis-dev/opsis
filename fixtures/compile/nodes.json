@@ -12020,6 +12020,65 @@
   }
  },
  {
+  "type": "image.compare",
+  "title": "Compare screenshots",
+  "category": "Image",
+  "description": "Boxes what changed between two captures of the same page, and makes a picture of only the differences. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "image",
+    "type": "media",
+    "label": "Before",
+    "optional": false,
+    "many": false
+   },
+   {
+    "id": "after",
+    "type": "media",
+    "label": "After",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Marked",
+    "optional": false,
+    "many": false
+   },
+   {
+    "id": "differences",
+    "type": "image",
+    "label": "Differences",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 190.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "sensitivity": 0.5,
+   "smallest": 4,
+   "padding": 8,
+   "boxWidth": 4,
+   "boxColor": "#ef4444"
+  }
+ },
+ {
   "type": "output.render",
   "title": "Export video",
   "category": "Output",

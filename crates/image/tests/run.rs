@@ -158,7 +158,7 @@ fn walk(dir: &std::path::Path) -> Vec<PathBuf> {
     found
 }
 
-async fn run_before_after(params: Value) -> Result<DynamicImage, String> {
+async fn run_two(kind: &str, params: Value, after: (u32, u32)) -> Result<DynamicImage, String> {
     use opsis_compile::vars::Vars;
     use opsis_runner::context::{ExecutorContext, ResultStore};
     let base = tempfile::tempdir().unwrap();
@@ -168,7 +168,7 @@ async fn run_before_after(params: Value) -> Result<DynamicImage, String> {
     RgbImage::from_pixel(400, 200, Rgb([200, 30, 30]))
         .save(project.join("assets/before.png"))
         .unwrap();
-    RgbImage::from_pixel(400, 200, Rgb([30, 30, 200]))
+    RgbImage::from_pixel(after.0, after.1, Rgb([30, 30, 200]))
         .save(project.join("assets/after.png"))
         .unwrap();
     let workflow: Workflow = serde_json::from_value(
@@ -176,12 +176,11 @@ async fn run_before_after(params: Value) -> Result<DynamicImage, String> {
     )
     .unwrap();
     let workflow = Arc::new(workflow);
-    let mut values = opsis_compile::registry::default_params("image.beforeAfter");
+    let mut values = opsis_compile::registry::default_params(kind);
     values.extend(params.as_object().cloned().unwrap_or_default());
     let ctx = ExecutorContext {
         run_id: "run".into(),
-        node: serde_json::from_value(node("compare", "image.beforeAfter", Value::Object(values)))
-            .unwrap(),
+        node: serde_json::from_value(node("compare", kind, Value::Object(values))).unwrap(),
         workflow: Arc::clone(&workflow),
         env: Arc::new(RunEnv {
             app_version: "test".into(),
@@ -207,10 +206,7 @@ async fn run_before_after(params: Value) -> Result<DynamicImage, String> {
     }))
     .unwrap();
     let executors = image_executors();
-    let (_, run) = executors
-        .iter()
-        .find(|(kind, _)| *kind == "image.beforeAfter")
-        .unwrap();
+    let (_, run) = executors.iter().find(|(known, _)| *known == kind).unwrap();
     let out = run
         .run(Arc::new(ctx), inputs)
         .await
@@ -220,9 +216,13 @@ async fn run_before_after(params: Value) -> Result<DynamicImage, String> {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn labels_before_and_after_in_the_projects_main_font() {
-    let out = run_before_after(json!({ "labelSize": 30, "dividerWidth": 0 }))
-        .await
-        .unwrap();
+    let out = run_two(
+        "image.beforeAfter",
+        json!({ "labelSize": 30, "dividerWidth": 0 }),
+        (400, 200),
+    )
+    .await
+    .unwrap();
     assert_eq!(out.dimensions(), (400, 200));
     let whites = (0..400)
         .flat_map(|x| (0..80).map(move |y| (x, y)))
@@ -231,11 +231,34 @@ async fn labels_before_and_after_in_the_projects_main_font() {
     assert!(whites > 200, "the labels are drawn: {whites}");
     assert_eq!(out.get_pixel(100, 150).0, [200, 30, 30, 255]);
     assert_eq!(out.get_pixel(300, 150).0, [30, 30, 200, 255]);
-    let missing = run_before_after(json!({ "font": "No Such Face" }))
-        .await
-        .unwrap_err();
+    let missing = run_two(
+        "image.beforeAfter",
+        json!({ "font": "No Such Face" }),
+        (400, 200),
+    )
+    .await
+    .unwrap_err();
     assert_eq!(
         missing,
         "The font “No Such Face” isn't in this project. Pick another."
+    );
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn refuses_to_compare_pictures_of_different_sizes() {
+    let refused = run_two("image.compare", json!({}), (400, 210))
+        .await
+        .unwrap_err();
+    assert_eq!(
+        refused,
+        "The two pictures are different sizes (400 × 200 and 400 × 210). Compare two captures of the same size."
+    );
+    let marked = run_two("image.compare", json!({ "padding": 0 }), (400, 200))
+        .await
+        .unwrap();
+    assert_eq!(
+        marked.get_pixel(0, 0).0,
+        [239, 68, 68, 255],
+        "the whole picture changed"
     );
 }
