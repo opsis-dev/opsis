@@ -11,12 +11,12 @@ export type { ItemHost } from "./item";
 export { Item, ItemHostProvider } from "./item";
 export type { EasingName, SpringName } from "./motion";
 export { easings, springs } from "./motion";
-export type { SnapCnTheme, SnapCnUIProviderProps } from "./theme";
+export type { WarmTheme, WarmUIProviderProps } from "./theme";
 export {
   defaultDarkTheme,
   defaultLightTheme,
-  SnapCnUIProvider,
-  useSnapCnTheme,
+  WarmUIProvider,
+  useWarmTheme,
 } from "./theme";
 export type { TypewriterOptions, TypewriterState } from "./timeline";
 export {

@@ -28,7 +28,7 @@ export const stagger = (
   base = 5,
   power = 0.8,
   jitter = 1.5,
-  seed = "remocn-stagger",
+  seed = "stagger",
 ): number =>
   Math.max(
     0,

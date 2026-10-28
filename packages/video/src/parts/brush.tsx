@@ -31,7 +31,7 @@ export function brushFilterId(
   strokeWidth: number,
   grain: number,
 ): string {
-  return `remocn-brush-${Math.floor(hash01(`${seed}:${strokeWidth}:${grain}`) * 1e9)}`;
+  return `brush-${Math.floor(hash01(`${seed}:${strokeWidth}:${grain}`) * 1e9)}`;
 }
 
 export function sampleCubic(

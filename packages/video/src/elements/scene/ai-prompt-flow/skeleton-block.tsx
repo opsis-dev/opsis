@@ -1,5 +1,5 @@
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { mixOklch, useRemocnTheme } from "#video/lib/neutral-ui/index.ts";
+import { mixOklch, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
 export interface SkeletonBlockProps {
   width?: number | string;
@@ -24,7 +24,7 @@ export function SkeletonBlock({
   flexShrink,
   className,
 }: SkeletonBlockProps) {
-  const theme = useRemocnTheme();
+  const theme = useNeutralTheme();
   const base = baseColor ?? theme.muted;
   const highlight = highlightColor ?? mixOklch(base, theme.foreground, 0.13);
 

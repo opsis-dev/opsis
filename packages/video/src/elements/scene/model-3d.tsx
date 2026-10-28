@@ -12,7 +12,7 @@ import {
 } from "three";
 import type { GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-import type { CoreElementProps } from "#video/generated/spec.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { GroundShadow } from "#video/elements/scene/card-3d.tsx";
 import { useModel } from "#video/three/load-model.ts";
 import { elementPose } from "#video/three/motion.ts";
@@ -79,7 +79,7 @@ const Animated: React.FC<{ placed: Placed; timeS: number }> = ({ placed, timeS }
   return <primitive object={placed.model} />;
 };
 
-export const Model3D: React.FC<CoreElementProps["model-3d"]> = ({
+export const Model3D: React.FC<ElementSettings["model-3d"]> = ({
   src,
   motion,
   camera,

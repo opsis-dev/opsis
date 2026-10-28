@@ -7,14 +7,18 @@ import { useButtonTransition } from "#video/parts/use-button-transition.ts";
 import { useInputTransition } from "#video/parts/use-input-transition.ts";
 import { useSkeletonTransition } from "#video/elements/scene/ai-prompt-flow/use-skeleton-transition.ts";
 import { useToastTransition } from "#video/parts/use-toast-transition.ts";
-import { type RemocnTheme, useRemocnTheme } from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { NeutralUIProvider, defaultDarkTheme, defaultLightTheme } from "#video/lib/neutral-ui/theme.ts";
+import type React from "react";
 
 export interface AiPromptFlowProps {
   prompt?: string;
   buttonLabel?: string;
   answerLines?: string[];
   toastTitle?: string;
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
 }
 
 const STAGE_W = 1280;
@@ -38,14 +42,14 @@ const DEFAULT_ANSWER = [
   "infra is unblocked before the team scales next quarter.",
 ];
 
-export function AiPromptFlow({
+function AiPromptFlowView({
   prompt = "Summarize this thread",
   buttonLabel = "Generate",
   answerLines = DEFAULT_ANSWER,
   toastTitle = "Response ready",
   theme,
 }: AiPromptFlowProps) {
-  const resolved = useRemocnTheme(theme);
+  const resolved = useNeutralTheme(theme);
   const opts = { theme };
 
   const inputStyle = useInputTransition(
@@ -190,4 +194,11 @@ export function AiPromptFlow({
       </div>
     </div>
   );
+}
+
+export function AiPromptFlow(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <AiPromptFlowView {...(props as unknown as React.ComponentProps<typeof AiPromptFlowView>)} />;
+  const tokens = { ...(theme.mode === "dark" ? defaultDarkTheme : defaultLightTheme), ...themeColors(theme) };
+  return <NeutralUIProvider mode={theme.mode} theme={tokens}><AiPromptFlowView {...(props as unknown as React.ComponentProps<typeof AiPromptFlowView>)} theme={tokens} /></NeutralUIProvider>;
 }

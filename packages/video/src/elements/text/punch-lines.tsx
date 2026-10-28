@@ -10,9 +10,13 @@ import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.
 import {
   Item,
   resolveFont,
-  type SnapCnTheme,
-  useSnapCnTheme,
+  type WarmTheme,
+  useWarmTheme,
 } from "#video/lib/warm-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import type React from "react";
 
 /**
  * A run of full-frame title cards that cut hard between beats.
@@ -149,7 +153,7 @@ export interface PunchLinesProps {
   accentColor?: string;
 
   /** Design-system token overrides. */
-  theme?: Partial<SnapCnTheme>;
+  theme?: Partial<WarmTheme>;
   mode?: "light" | "dark";
   /**
    * The face the cards are set in — a label from `fonts.ts` ("Geist", "Outfit",
@@ -355,8 +359,8 @@ interface FaceMetrics {
   inkDescent: number[];
 }
 
-export function PunchLines({
-  script = "Ready-made scenes / for Remotion. | One command. Own it. | snapcn.",
+function PunchLinesView({
+  script = "Record it. / Edit it. | One take. | Ship.",
   styles = "slide,punch",
   sizes = "1,0.945,2.7",
   holds = "48",
@@ -400,7 +404,7 @@ export function PunchLines({
 }: PunchLinesProps) {
   const frame = useAuthoredFrame() * speed;
   const { width, fps } = useAuthoredConfig();
-  const t = useSnapCnTheme(theme, mode);
+  const t = useWarmTheme(theme, mode);
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
   // A card is a full-bleed page, so it takes the page's own two colours rather
   // than inventing a pair. Pass `mode="dark"` and the whole run inverts.
@@ -863,4 +867,10 @@ function Card({
       </Item>
     </AbsoluteFill>
   );
+}
+
+export function PunchLines(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <PunchLinesView {...(props as unknown as React.ComponentProps<typeof PunchLinesView>)} />;
+  return <WarmUIProvider mode={theme.mode}><PunchLinesView {...(props as unknown as React.ComponentProps<typeof PunchLinesView>)} theme={themeColors(theme)} mode={theme.mode} /></WarmUIProvider>;
 }

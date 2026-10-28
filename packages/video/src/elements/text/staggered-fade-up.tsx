@@ -2,6 +2,7 @@ import { interpolate } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface StaggeredFadeUpProps {
+  background?: string;
   fontFamily?: string;
   text: string;
   staggerDelay?: number;
@@ -23,6 +24,7 @@ export function StaggeredFadeUp({
   fontWeight = 600,
   speed = 1,
   className,
+  background = "transparent",
 }: StaggeredFadeUpProps) {
   const frame = useAuthoredFrame() * speed;
 
@@ -36,7 +38,7 @@ export function StaggeredFadeUp({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background,
       }}
     >
       <span

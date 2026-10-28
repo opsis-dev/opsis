@@ -8,9 +8,6 @@ import {
 import { type LaunchAnythingProps, resolveLaunchProps } from "./content";
 import {
   LAUNCH_FPS,
-  LAUNCH_FRAMES,
-  LAUNCH_HEIGHT,
-  LAUNCH_WIDTH,
   launchTimeline,
 } from "./motion";
 import { Action } from "./scenes/action";
@@ -21,6 +18,8 @@ import { Portal } from "./scenes/portal";
 import { Proof } from "./scenes/proof";
 import { Showcase } from "./scenes/showcase";
 import { Space } from "./scenes/space";
+import type { ElementProps } from "#video/common/spec.ts";
+import { listsFrom, nestedFrom } from "#video/lib/settings/shape.ts";
 
 export { launchMedia } from "./assets";
 export type {
@@ -31,9 +30,6 @@ export type {
 export { launchContent } from "./content";
 export {
   LAUNCH_FPS,
-  LAUNCH_FRAMES,
-  LAUNCH_HEIGHT,
-  LAUNCH_WIDTH,
   launchTimeline,
   showcaseTimeline,
 } from "./motion";
@@ -50,7 +46,7 @@ const scenes = {
   mark: ClosingMark,
 };
 
-export function LaunchAnything(props: LaunchAnythingProps) {
+function LaunchAnythingView(props: LaunchAnythingProps) {
   const frame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
   const scene = resolveLaunchProps(props);
@@ -106,36 +102,7 @@ export function LaunchAnything(props: LaunchAnythingProps) {
   );
 }
 
-export const ProductShowcase = LaunchAnything;
-export type ProductShowcaseProps = LaunchAnythingProps;
-
-export const launchAnythingConfig = {
-  componentName: "ProductShowcase",
-  importPath: "@/components/remocn/templates/launch-anything",
-  controls: {
-    opening: {
-      type: "text-content" as const,
-      default: "Good",
-      description: "First chrome word",
-    },
-    subject: {
-      type: "text-content" as const,
-      default: "ideas",
-      description: "Second chrome word",
-    },
-    brandUrl: {
-      type: "text-content" as const,
-      default: "yourproduct.example",
-      description: "Closing website address",
-    },
-    accentColor: {
-      type: "color" as const,
-      default: "#245744",
-      description: "Product interface accent",
-    },
-  },
-  durationInFrames: LAUNCH_FRAMES,
-  fps: LAUNCH_FPS,
-  compositionWidth: LAUNCH_WIDTH,
-  compositionHeight: LAUNCH_HEIGHT,
-};
+export function LaunchAnything(props: ElementProps) {
+  const settings = nestedFrom(listsFrom(props, {"logoImages":{"image":"logos"}}), {"copyReady":"content.ready","copyNext":"content.next","copyAction":"content.action","copyProof":"content.proof","copyIndustry":"content.industry","copyPromise":"content.promise","copyLaunch":"content.launch","copyShoppers":"content.shoppers","copyShopName":"content.shopName","copyShopHeadline":"content.shopHeadline","copyShopDetail":"content.shopDetail","copyShopAction":"content.shopAction","copyBuilder":"content.builder","copyBuilderPrompt":"content.builderPrompt","copyTrading":"content.trading","copyLoyalty":"content.loyalty","copyLoyaltyPayoff":"content.loyaltyPayoff","copyIntegration":"content.integration","copyConnections":"content.connections","copyIntegrations":"content.integrations","screenDashboard":"screenImages.dashboard","screenShoppers":"screenImages.shoppers","screenExchange":"screenImages.exchange","screenBuilder":"screenImages.builder","screenTrading":"screenImages.trading","screenLoyalty":"screenImages.loyalty","screenIntegrations":"screenImages.integrations","photoDesk":"media.desk","photoHorizon":"media.horizon","photoRocket":"media.rocket","photoEarth":"media.earth"});
+  return <LaunchAnythingView {...(settings as unknown as LaunchAnythingProps)} />;
+}

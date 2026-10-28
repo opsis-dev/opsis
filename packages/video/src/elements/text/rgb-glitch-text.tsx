@@ -2,6 +2,7 @@ import { random } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface RGBGlitchTextProps {
+  background?: string;
   fontFamily?: string;
   text: string;
   fontSize?: number;
@@ -33,6 +34,7 @@ export function RGBGlitchText({
   blend = "multiply",
   speed = 1,
   className,
+  background = "transparent",
 }: RGBGlitchTextProps) {
   const frame = useAuthoredFrame() * speed;
 
@@ -70,7 +72,7 @@ export function RGBGlitchText({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#fafafa",
+        background,
       }}
     >
       <div

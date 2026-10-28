@@ -1,5 +1,5 @@
 import { Spinner } from "#video/parts/spinner.tsx";
-import { mixOklch, type RemocnTheme, useRemocnTheme } from "#video/lib/neutral-ui/index.ts";
+import { mixOklch, type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
 export type ButtonState = "idle" | "hover" | "press" | "loading" | "success";
 
@@ -18,7 +18,7 @@ export interface ButtonProps {
   label?: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   primary?: string;
   speed?: number;
   align?: "start" | "center" | "end";
@@ -53,7 +53,7 @@ interface VariantTokens {
 
 function variantTokens(
   variant: ButtonVariant,
-  theme: RemocnTheme,
+  theme: NeutralTheme,
 ): VariantTokens {
   const variants = {
     secondary: {
@@ -109,7 +109,7 @@ export interface ButtonStyleContext {
 
 export function buttonStyleContext(
   variant: ButtonVariant,
-  theme: RemocnTheme,
+  theme: NeutralTheme,
 ): ButtonStyleContext {
   const tokens = variantTokens(variant, theme);
   const restBg = tokens.bg === "transparent" ? theme.background : tokens.bg;
@@ -189,7 +189,7 @@ export function Button({
   align = "center",
   className,
 }: ButtonProps) {
-  const theme = useRemocnTheme(
+  const theme = useNeutralTheme(
     { ...themeOverride, ...(primary ? { primary } : {}) },
     "light",
   );

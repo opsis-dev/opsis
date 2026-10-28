@@ -10,10 +10,14 @@ import {
 import { Easing, interpolate } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
-  type RemocnTheme,
+  type NeutralTheme,
   revealedText,
-  useRemocnTheme,
+  useNeutralTheme,
 } from "#video/lib/neutral-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { NeutralUIProvider, defaultDarkTheme, defaultLightTheme } from "#video/lib/neutral-ui/theme.ts";
+import type React from "react";
 
 export type CommandMenuState = "opened" | "closed";
 
@@ -33,7 +37,7 @@ export interface CommandMenuProps {
   highlightedIndex?: number;
   pressedIndex?: number;
   itemStyles?: (CommandMenuItemStyle | undefined)[];
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   autoplay?: boolean;
   className?: string;
 }
@@ -107,7 +111,7 @@ export interface CommandMenuStyleContext {
 }
 
 export function commandMenuStyleContext(
-  theme: RemocnTheme,
+  theme: NeutralTheme,
 ): CommandMenuStyleContext {
   return {
     panelBg: theme.popover,
@@ -156,7 +160,7 @@ function rowState(
   return "idle";
 }
 
-export function CommandMenu({
+function CommandMenuView({
   state = "closed",
   style,
   query = "",
@@ -176,7 +180,7 @@ export function CommandMenu({
   className,
 }: CommandMenuProps) {
   const frame = useAuthoredFrame();
-  const theme = useRemocnTheme(themeOverride, "light");
+  const theme = useNeutralTheme(themeOverride, "light");
   const ctx = commandMenuStyleContext(theme);
   const opened = interpolate(frame, [OPEN_AT, OPEN_AT + OPEN_FOR], [0, 1], {
     extrapolateLeft: "clamp",
@@ -335,4 +339,11 @@ export function CommandMenu({
       </div>
     </div>
   );
+}
+
+export function CommandMenu(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <CommandMenuView {...(props as unknown as React.ComponentProps<typeof CommandMenuView>)} />;
+  const tokens = { ...(theme.mode === "dark" ? defaultDarkTheme : defaultLightTheme), ...themeColors(theme) };
+  return <NeutralUIProvider mode={theme.mode} theme={tokens}><CommandMenuView {...(props as unknown as React.ComponentProps<typeof CommandMenuView>)} theme={tokens} /></NeutralUIProvider>;
 }

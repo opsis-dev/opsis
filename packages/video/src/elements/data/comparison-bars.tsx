@@ -1,6 +1,8 @@
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { formatCompactNumber, readDelta } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import type React from "react";
 
 export type ComparisonRowDatum = {
   label: string;
@@ -62,7 +64,7 @@ const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
  * happen to be adjacent, and it is short enough that both are still growing at
  * once.
  */
-export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
+const ComparisonBarsView: React.FC<ComparisonBarsProps> = ({
   rows,
   width = 820,
   rowHeight = 74,
@@ -252,3 +254,7 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
     </div>
   );
 };
+
+export function ComparisonBars(props: ElementProps & { children?: React.ReactNode }) {
+  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><ComparisonBarsView {...(props as unknown as React.ComponentProps<typeof ComparisonBarsView>)} /></AbsoluteFill>;
+}

@@ -1,5 +1,8 @@
 import { spring } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { listsFrom } from "#video/lib/settings/shape.ts";
+import type React from "react";
 
 export interface AnimatedBarChartProps {
   data?: number[];
@@ -15,7 +18,7 @@ export interface AnimatedBarChartProps {
   className?: string;
 }
 
-export function AnimatedBarChart({
+function AnimatedBarChartView({
   data = [35, 60, 45, 80, 55, 70, 90, 65],
   labels,
   width = 1000,
@@ -118,4 +121,8 @@ export function AnimatedBarChart({
       </svg>
     </div>
   );
+}
+
+export function AnimatedBarChart(props: ElementProps & { children?: React.ReactNode }) {
+  return <AnimatedBarChartView {...(listsFrom(props, {"bars":{"label":"labels","value":"data"}}) as unknown as React.ComponentProps<typeof AnimatedBarChartView>)} />;
 }

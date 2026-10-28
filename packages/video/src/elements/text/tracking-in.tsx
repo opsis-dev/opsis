@@ -2,6 +2,7 @@ import { interpolate, spring } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface TrackingInProps {
+  background?: string;
   fontFamily?: string;
   text: string;
   startTracking?: number;
@@ -23,6 +24,7 @@ export function TrackingIn({
   fontWeight = 700,
   speed = 1,
   className,
+  background = "transparent",
 }: TrackingInProps) {
   const frame = useAuthoredFrame() * speed;
   const { fps } = useAuthoredConfig();
@@ -48,7 +50,7 @@ export function TrackingIn({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background,
       }}
     >
       <span

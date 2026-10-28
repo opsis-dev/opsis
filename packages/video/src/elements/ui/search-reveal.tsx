@@ -44,7 +44,7 @@ const tween = (frame: number, start: number, end: number, from = 0, to = 1) =>
   });
 
 function timing(props: SearchRevealProps) {
-  const characters = letters(props.text ?? "remocn");
+  const characters = letters(props.text ?? "acme");
   const step = clamp(finite(props.framesPerCharacter, 4), 1, 12);
   const end = Math.max(searchRevealLength, 54 + characters.length * step + 10);
   return { characters, step, end, speed: Math.max(0, finite(props.speed, 1)) };
@@ -106,7 +106,7 @@ function Cross({ x, y, size = 9 }: { x: number; y: number; size?: number }) {
 
 /** A video scene: expanding construction circles, a search pill, and typed copy. */
 export function SearchReveal({
-  text = "remocn",
+  text = "acme",
   fontFamily = "var(--font-geist-sans), sans-serif",
   fieldWidth = 464,
   fontSize = 34,

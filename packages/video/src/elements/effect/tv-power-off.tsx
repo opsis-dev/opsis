@@ -1,5 +1,5 @@
 import type React from "react";
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, useVideoConfig } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   type CanvasFilterProps,
@@ -7,6 +7,8 @@ import {
   makeFilterShader,
 } from "#video/lib/transitions/canvas-presentation.tsx";
 import { parseColor } from "#video/lib/neutral-ui/color.ts";
+import { numberOr } from "#video/common/math.ts";
+import { type ElementProps } from "#video/common/spec.ts";
 
 export type TvPowerOffProps = {
   durationInFrames?: number;
@@ -213,7 +215,13 @@ const TvPowerOffFallback: React.FC<TvPowerOffProps & CanvasFilterProps> = (
   );
 };
 
-export const TvPowerOff = makeCanvasFilter<TvPowerOffProps>({
+const TvPowerOffView = makeCanvasFilter<TvPowerOffProps>({
   shader,
   fallback: TvPowerOffFallback,
 });
+
+export function TvPowerOff(props: ElementProps & { children?: React.ReactNode }) {
+  const { durationInFrames } = useVideoConfig();
+  const length = numberOr(props.durationInFrames, 0);
+  return <TvPowerOffView {...({ ...props, delay: Math.max(0, durationInFrames - length) } as unknown as React.ComponentProps<typeof TvPowerOffView>)} />;
+}

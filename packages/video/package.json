@@ -9,8 +9,7 @@
     "./root": "./src/index.ts",
     "./player": "./src/player.ts",
     "./common/*": "./src/common/*.ts",
-    "./generated/spec": "./src/generated/spec.ts",
-    "./registry/framing": "./src/registry/framing.tsx"
+    "./generated/spec": "./src/generated/spec.ts"
   },
   "imports": {
     "#video/*": "./src/*"

@@ -4,7 +4,7 @@ import { Box3, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from "three
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { Font, type FontData } from "three/addons/loaders/FontLoader.js";
 import { useHeldLoad } from "#video/core/loading.ts";
-import type { CoreElementProps, PreparedTypeface } from "#video/generated/spec.ts";
+import type { ElementSettings, PreparedTypeface } from "#video/generated/spec.ts";
 import { elementPose } from "#video/three/motion.ts";
 import { FONT_UNREADABLE, loadOutlines, wrapLines } from "#video/three/outlines.ts";
 import { fitToSize } from "#video/three/shapes.ts";
@@ -94,7 +94,7 @@ function dispose(model: Group): void {
 const outlinesFor = (url: string) =>
   url ? loadOutlines(url) : Promise.reject(new Error(FONT_UNREADABLE));
 
-export const Text3D: React.FC<CoreElementProps["text-3d"] & Partial<PreparedTypeface>> = ({
+export const Text3D: React.FC<ElementSettings["text-3d"] & Partial<PreparedTypeface>> = ({
   text,
   fontFamily,
   typeface = "",

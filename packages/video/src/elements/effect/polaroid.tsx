@@ -1,6 +1,8 @@
 import type React from "react";
 import { Handwrite } from "#video/parts/handwrite.tsx";
 import { DEFAULT_STEP } from "#video/lib/motion/stop-motion.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { AbsoluteFill } from "remotion";
 
 const BASE_WIDTH = 652;
 const BASE_PAD = 16;
@@ -43,7 +45,7 @@ export interface PolaroidProps {
   step?: number;
 }
 
-export function Polaroid({
+function PolaroidView({
   children,
   caption,
   captionAt = 0,
@@ -101,4 +103,8 @@ export function Polaroid({
       </div>
     </div>
   );
+}
+
+export function Polaroid(props: ElementProps & { children?: React.ReactNode }) {
+  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><PolaroidView {...(props as unknown as React.ComponentProps<typeof PolaroidView>)} /></AbsoluteFill>;
 }

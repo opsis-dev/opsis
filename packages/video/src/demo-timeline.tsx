@@ -41,7 +41,6 @@ import type {
   TransitionRef,
   VisualEnvelope,
 } from "#video/generated/spec.ts";
-import { PaintRule } from "#video/registry/framing.tsx";
 import {
   getComponent,
   getPresentation,
@@ -67,7 +66,6 @@ export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
           overflow: "hidden",
         }}
       >
-        <PaintRule />
         <FontProvider fonts={spec.fonts}>
           <Tracks tracks={spec.tracks} />
         </FontProvider>

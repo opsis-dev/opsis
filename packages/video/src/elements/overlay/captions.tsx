@@ -3,7 +3,7 @@ import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion"
 import { fontOr } from "#video/common/fonts.ts";
 import { framesToMs, msToFrames } from "#video/common/time.ts";
 import { JUSTIFY_AT, overlayPadding, useOverlayFrame, verticalInsets } from "#video/core/frame.ts";
-import type { CoreElementProps, CaptionsValue } from "#video/generated/spec.ts";
+import type { ElementSettings, CaptionsValue } from "#video/generated/spec.ts";
 
 const MAX_WORDS_PER_LINE = 6;
 const CAPTION_LINGER_MS = 250;
@@ -38,7 +38,7 @@ export function groupCaptions(captions: Caption[]): Caption[][] {
   return lines;
 }
 
-type CaptionStyle = CoreElementProps["captions"]["style"];
+type CaptionStyle = ElementSettings["captions"]["style"];
 
 function isLit(style: CaptionStyle, spoken: boolean, active: boolean): boolean {
   switch (style) {
@@ -85,7 +85,7 @@ const CaptionWord: React.FC<{
   );
 };
 
-export const Captions: React.FC<CoreElementProps["captions"] & { captions: Caption[] }> = ({
+export const Captions: React.FC<ElementSettings["captions"] & { captions: Caption[] }> = ({
   captions,
   style,
   position,

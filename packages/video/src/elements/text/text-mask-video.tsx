@@ -1,11 +1,13 @@
 import { useId } from "react";
 import type { CSSProperties } from "react";
-import { Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
 import { scaleFont } from "#video/lib/layout/layout.ts";
 import {
   useEnterExit,
   type EnterExitOptions,
 } from "#video/lib/motion/motion-primitive.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import type React from "react";
 
 export type TextMaskMedia = "video" | "image" | "gradient";
 
@@ -72,7 +74,7 @@ const REVEAL_INSET: Record<
  * without measuring anything — a measured layout renders differently on frame 0
  * of a headless render than it does on frame 1.
  */
-export const TextMaskVideo: React.FC<TextMaskVideoProps> = ({
+const TextMaskVideoView: React.FC<TextMaskVideoProps> = ({
   text,
   src,
   media,
@@ -219,3 +221,7 @@ export const TextMaskVideo: React.FC<TextMaskVideoProps> = ({
     </div>
   );
 };
+
+export function TextMaskVideo(props: ElementProps & { children?: React.ReactNode }) {
+  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><TextMaskVideoView {...(props as unknown as React.ComponentProps<typeof TextMaskVideoView>)} /></AbsoluteFill>;
+}

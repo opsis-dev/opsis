@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { isLandscape, overlayPadding, useOverlayFrame } from "#video/core/frame.ts";
-import type { CoreElementProps } from "#video/generated/spec.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 const LOWER_THIRD_SPRING = { damping: 200 };
 const LOWER_THIRD_EXIT_FRAMES = 14;
@@ -26,7 +26,7 @@ const LOWER_THIRD = {
 const slideOffset = (enter: number, exit: number, dir: number): number =>
   LOWER_THIRD_SLIDE_PX * dir * (1 - enter + exit);
 
-export const LowerThird: React.FC<CoreElementProps["lower-third"]> = ({
+export const LowerThird: React.FC<ElementSettings["lower-third"]> = ({
   title,
   subtitle,
   position,

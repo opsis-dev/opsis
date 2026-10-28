@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { createContext, createElement, useContext } from "react";
 
-export interface RemocnTheme {
+export interface NeutralTheme {
   background: string;
   foreground: string;
   card: string;
@@ -24,7 +24,7 @@ export interface RemocnTheme {
   radius: number;
 }
 
-export const defaultLightTheme: RemocnTheme = {
+export const defaultLightTheme: NeutralTheme = {
   background: "oklch(1 0 0)",
   foreground: "oklch(0.145 0 0)",
   card: "oklch(1 0 0)",
@@ -47,7 +47,7 @@ export const defaultLightTheme: RemocnTheme = {
   radius: 10,
 };
 
-export const defaultDarkTheme: RemocnTheme = {
+export const defaultDarkTheme: NeutralTheme = {
   background: "oklch(0.145 0 0)",
   foreground: "oklch(0.985 0 0)",
   card: "oklch(0.205 0 0)",
@@ -70,36 +70,36 @@ export const defaultDarkTheme: RemocnTheme = {
   radius: 10,
 };
 
-interface RemocnThemeContextValue {
-  theme?: Partial<RemocnTheme>;
+interface NeutralThemeContextValue {
+  theme?: Partial<NeutralTheme>;
   mode?: "light" | "dark";
 }
 
-const RemocnThemeContext = createContext<RemocnThemeContextValue>({});
+const NeutralThemeContext = createContext<NeutralThemeContextValue>({});
 
-export interface RemocnUIProviderProps {
-  theme?: Partial<RemocnTheme>;
+export interface NeutralUIProviderProps {
+  theme?: Partial<NeutralTheme>;
   mode?: "light" | "dark";
   children: ReactNode;
 }
 
-export function RemocnUIProvider({
+export function NeutralUIProvider({
   theme,
   mode,
   children,
-}: RemocnUIProviderProps) {
+}: NeutralUIProviderProps) {
   return createElement(
-    RemocnThemeContext.Provider,
+    NeutralThemeContext.Provider,
     { value: { theme, mode } },
     children,
   );
 }
 
-export function useRemocnTheme(
-  override?: Partial<RemocnTheme>,
+export function useNeutralTheme(
+  override?: Partial<NeutralTheme>,
   modeOverride?: "light" | "dark",
-): RemocnTheme {
-  const ctx = useContext(RemocnThemeContext);
+): NeutralTheme {
+  const ctx = useContext(NeutralThemeContext);
   const mode = modeOverride ?? ctx.mode ?? "light";
   const base = mode === "dark" ? defaultDarkTheme : defaultLightTheme;
   return { ...base, ...ctx.theme, ...override };

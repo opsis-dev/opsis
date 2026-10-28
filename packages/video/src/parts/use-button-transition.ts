@@ -7,9 +7,9 @@ import {
 import {
   easings,
   mixOklch,
-  type RemocnTheme,
+  type NeutralTheme,
   type Step,
-  useRemocnTheme,
+  useNeutralTheme,
   useStateTransition,
 } from "#video/lib/neutral-ui/index.ts";
 
@@ -33,7 +33,7 @@ export function tweenButtonStyle(
 
 export interface ButtonTransitionOptions {
   variant?: "default" | "secondary" | "destructive" | "outline" | "ghost";
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   mode?: "light" | "dark";
   primary?: string;
   speed?: number;
@@ -52,7 +52,7 @@ export function useButtonTransition(
     speed = 1,
     defaultDuration = DEFAULT_DURATION,
   } = opts;
-  const theme = useRemocnTheme(
+  const theme = useNeutralTheme(
     { ...themeOverride, ...(primary ? { primary } : {}) },
     mode,
   );

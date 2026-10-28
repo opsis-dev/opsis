@@ -4,6 +4,7 @@ import { MAIN_FONT } from "#video/common/fonts.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface WordPushProps {
+  background?: string;
   fontFamily?: string;
   text: string;
   fontSize?: number;
@@ -67,6 +68,7 @@ export function WordPush({
   accel = 0.8,
   speed = 1,
   className,
+  background = "transparent",
 }: WordPushProps) {
   const frame = useAuthoredFrame() * speed;
 
@@ -112,7 +114,7 @@ export function WordPush({
         justifyContent: "center",
         whiteSpace: "nowrap",
         translate: `${lineX}px 0`,
-        background: "transparent",
+        background,
       }}
     >
       <span

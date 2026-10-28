@@ -1,6 +1,8 @@
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { formatCompactNumber } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import type React from "react";
 
 export type RaceSeries = {
   label: string;
@@ -71,7 +73,7 @@ function valueAt(values: number[], time: number): number {
  *
  * Distinct from `animated-bar-chart`, which reveals a single fixed ranking.
  */
-export const BarChartRace: React.FC<BarChartRaceProps> = ({
+const BarChartRaceView: React.FC<BarChartRaceProps> = ({
   series,
   steps,
   framesPerStep = 26,
@@ -243,3 +245,7 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
     </div>
   );
 };
+
+export function BarChartRace(props: ElementProps & { children?: React.ReactNode }) {
+  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><BarChartRaceView {...(props as unknown as React.ComponentProps<typeof BarChartRaceView>)} /></AbsoluteFill>;
+}

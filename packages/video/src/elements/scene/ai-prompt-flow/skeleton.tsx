@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { SkeletonBlock } from "#video/elements/scene/ai-prompt-flow/skeleton-block.tsx";
-import { type RemocnTheme, useRemocnTheme } from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
 export type SkeletonState = "loading" | "loaded";
 
@@ -13,7 +13,7 @@ export interface SkeletonProps {
   placeholder?: ReactNode;
   layout?: SkeletonLayout;
   speed?: number;
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   className?: string;
 }
 
@@ -78,7 +78,7 @@ export function Skeleton({
   theme: themeOverride,
   className,
 }: SkeletonProps) {
-  const theme = useRemocnTheme(themeOverride, "light");
+  const theme = useNeutralTheme(themeOverride, "light");
   const v = style ?? skeletonStyle(state);
 
   const placeholderLayer = placeholder ?? (

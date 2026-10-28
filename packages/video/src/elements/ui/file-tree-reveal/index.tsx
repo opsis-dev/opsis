@@ -8,6 +8,10 @@ import {
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { isString } from "#video/common/guards.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { treeFromPaths } from "#video/lib/settings/shape.ts";
+import type React from "react";
 
 const fontFamily = '"Inter"';
 
@@ -172,7 +176,7 @@ const ChevronGlyph: React.FC<{ size: number; color: string }> = ({ size, color }
  * always on screen before anything inside it — the tree expands, it does not
  * assemble out of order.
  */
-export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
+const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
   nodes = DEFAULT_NODES,
   title = "northstar-studio",
   selectedPath = "src/scenes/lower-third.tsx",
@@ -403,3 +407,7 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
     </AbsoluteFill>
   );
 };
+
+export function FileTreeReveal(props: ElementProps & { children?: React.ReactNode }) {
+  return <FileTreeRevealView {...({ ...props, nodes: treeFromPaths(Array.isArray(props.nodes) ? props.nodes.filter(isString) : []) } as unknown as React.ComponentProps<typeof FileTreeRevealView>)} />;
+}

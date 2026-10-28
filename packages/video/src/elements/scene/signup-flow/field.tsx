@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { type RemocnTheme, useRemocnTheme } from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
 export interface FieldGroupProps {
   children: ReactNode;
@@ -31,12 +31,12 @@ export function Field({ children, gap = 6, style }: FieldProps) {
 
 export interface FieldLabelProps {
   children: ReactNode;
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   style?: CSSProperties;
 }
 
 export function FieldLabel({ children, theme, style }: FieldLabelProps) {
-  const t = useRemocnTheme(theme, "light");
+  const t = useNeutralTheme(theme, "light");
   return (
     <div
       style={{
@@ -56,7 +56,7 @@ export function FieldLabel({ children, theme, style }: FieldLabelProps) {
 export interface FieldDescriptionProps {
   children: ReactNode;
   align?: "start" | "center";
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   style?: CSSProperties;
 }
 
@@ -66,7 +66,7 @@ export function FieldDescription({
   theme,
   style,
 }: FieldDescriptionProps) {
-  const t = useRemocnTheme(theme, "light");
+  const t = useNeutralTheme(theme, "light");
   return (
     <div
       style={{

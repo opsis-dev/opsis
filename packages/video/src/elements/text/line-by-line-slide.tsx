@@ -2,6 +2,7 @@ import { Easing, interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface LineByLineSlideProps {
+  background?: string;
   fontFamily?: string;
   text: string;
   distance?: number;
@@ -21,6 +22,7 @@ export function LineByLineSlide({
   fontWeight = 600,
   speed = 1,
   className,
+  background = "transparent",
 }: LineByLineSlideProps) {
   const frame = useAuthoredFrame() * speed;
   const { durationInFrames: clipFrames } = useAuthoredConfig();
@@ -52,7 +54,7 @@ export function LineByLineSlide({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "transparent",
+        background,
       }}
     >
       <span

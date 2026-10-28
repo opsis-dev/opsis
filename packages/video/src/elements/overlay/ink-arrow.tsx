@@ -9,6 +9,10 @@ import {
   sampleLine,
 } from "#video/parts/brush.tsx";
 import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
+import { numberOr } from "#video/common/math.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { AbsoluteFill, useVideoConfig } from "remotion";
+import type React from "react";
 
 const HEAD_ANGLE = 0.72;
 const SHAFT_SAMPLES = 40;
@@ -129,7 +133,7 @@ export interface InkArrowProps {
   step?: number;
 }
 
-export function InkArrow({
+function InkArrowView({
   from,
   to,
   curvature = 0.35,
@@ -222,4 +226,11 @@ export function InkArrow({
       ) : null}
     </svg>
   );
+}
+
+export function InkArrow(all: ElementProps & { children?: React.ReactNode }) {
+  const { fromX, fromY, toX, toY, ...props } = all;
+  const { width, height } = useVideoConfig();
+  const point = (x: unknown, y: unknown) => ({ x: numberOr(x, 0.5) * width, y: numberOr(y, 0.5) * height });
+  return <AbsoluteFill><InkArrowView {...({ ...props, from: point(fromX, fromY), to: point(toX, toY) } as unknown as React.ComponentProps<typeof InkArrowView>)} /></AbsoluteFill>;
 }

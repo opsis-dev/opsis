@@ -31,7 +31,7 @@ export function parseColor(c: string): Rgb {
   if (s.startsWith("var(")) {
     if (isDev()) {
       console.warn(
-        `[snap-cn-ui] parseColor cannot resolve CSS variable "${s}" under Remotion's per-frame render. ` +
+        `[warm-ui] parseColor cannot resolve CSS variable "${s}" under Remotion's per-frame render. ` +
           "Animated colors must be concrete oklch/hex/rgb values supplied via the theme. " +
           "Falling back to the JS default.",
       );
@@ -43,7 +43,7 @@ export function parseColor(c: string): Rgb {
   if (!rgb) {
     if (isDev()) {
       console.warn(
-        `[snap-cn-ui] parseColor could not parse "${s}"; using black.`,
+        `[warm-ui] parseColor could not parse "${s}"; using black.`,
       );
     }
     return { ...BLACK };
@@ -67,7 +67,7 @@ function resolveColorString(s: string): string {
   if (trimmed.startsWith("var(")) {
     if (isDev()) {
       console.warn(
-        `[snap-cn-ui] mixOklch cannot resolve CSS variable "${trimmed}" under Remotion's per-frame render. ` +
+        `[warm-ui] mixOklch cannot resolve CSS variable "${trimmed}" under Remotion's per-frame render. ` +
           "Animated colors must be concrete oklch/hex/rgb values supplied via the theme. " +
           "Falling back to the JS default.",
       );
@@ -77,7 +77,7 @@ function resolveColorString(s: string): string {
   if (!parse(trimmed)) {
     if (isDev()) {
       console.warn(
-        `[snap-cn-ui] mixOklch could not parse "${trimmed}"; using black.`,
+        `[warm-ui] mixOklch could not parse "${trimmed}"; using black.`,
       );
     }
     return "#000";

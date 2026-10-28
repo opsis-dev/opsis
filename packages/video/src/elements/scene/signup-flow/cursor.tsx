@@ -1,4 +1,4 @@
-import { type RemocnTheme, useRemocnTheme } from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
 export type CursorVariant = "arrow" | "pointer";
 
@@ -15,7 +15,7 @@ export interface CursorProps {
   style?: CursorStyle;
   variant?: CursorVariant;
   size?: number;
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   rippleColor?: string;
   className?: string;
 }
@@ -47,7 +47,7 @@ export function Cursor({
   rippleColor,
   className,
 }: CursorProps) {
-  const theme = useRemocnTheme(themeOverride, "light");
+  const theme = useNeutralTheme(themeOverride, "light");
   const v = style ?? REST;
 
   const press = v.pressScale ?? 1;

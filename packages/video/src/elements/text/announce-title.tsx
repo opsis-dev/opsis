@@ -9,8 +9,8 @@ import {
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   resolveFont,
-  SnapCnUIProvider,
-  useSnapCnTheme,
+  WarmUIProvider,
+  useWarmTheme,
 } from "#video/lib/warm-ui/index.ts";
 
 // Loaded through @remotion/google-fonts, never a CSS variable — a Remotion
@@ -265,7 +265,7 @@ function Line({
   height: number;
   style?: CSSProperties;
 }) {
-  const face = useSnapCnTheme().fontFamily ?? SANS;
+  const face = useWarmTheme().fontFamily ?? SANS;
   return (
     <Stage offset={(baseline - 0.5) * height - BASELINE_DROP * fontSize}>
       <div style={{ ...lineStyle(fontSize, tracking, face), ...style }}>
@@ -329,7 +329,7 @@ function useFitScales(lines: LineFit[]): {
 } {
   // The probe measures in the same face the words paint in — a ruler in a
   // different typeface fits the lines to the wrong width.
-  const face = useSnapCnTheme().fontFamily ?? SANS;
+  const face = useWarmTheme().fontFamily ?? SANS;
   const refs = useRef<(HTMLSpanElement | null)[]>([]);
   const [handle] = useState(() => delayRender("announce-title: measure lines"));
   const [measured, setMeasured] = useState<{
@@ -612,7 +612,7 @@ function RecedingPlane({
   fontSize: number;
   ink: string;
 }) {
-  const face = useSnapCnTheme().fontFamily ?? SANS;
+  const face = useWarmTheme().fontFamily ?? SANS;
   const mag = sample(PLANE_MAG, frame);
   const rake = sample(PLANE_RAKE, frame);
   return (
@@ -876,7 +876,7 @@ function MacroShot({
   height: number;
   ink: string;
 }) {
-  const face = useSnapCnTheme().fontFamily ?? SANS;
+  const face = useWarmTheme().fontFamily ?? SANS;
   const pan = (macroPan(frame) * width) / REF_W;
   const fontSize = MACRO_SIZE * width;
   return (
@@ -1097,7 +1097,7 @@ function ClosingShot({
 
 export function AnnounceTitle({
   eyebrow = "Introducing",
-  title = "snapcn 1.0",
+  title = "Acme 2.0",
   tagline = "Ready-made scenes for Remotion, in one command.",
   voidColor = "#100022",
   fieldColor = "#5600f5",
@@ -1250,11 +1250,11 @@ export function AnnounceTitle({
   };
 
   return (
-    <SnapCnUIProvider theme={{ fontFamily: face }}>
+    <WarmUIProvider theme={{ fontFamily: face }}>
       <AbsoluteFill>
         {probes}
         {shot()}
       </AbsoluteFill>
-    </SnapCnUIProvider>
+    </WarmUIProvider>
   );
 }

@@ -8,6 +8,9 @@ import {
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { ticksFromWords } from "#video/lib/settings/shape.ts";
+import type React from "react";
 
 const fontFamily = '"Inter"';
 
@@ -117,7 +120,7 @@ const Cross: React.FC<{ color: string; size: number; progress: number }> = ({
  * legible at the small sizes a matrix forces — a fading glyph spends most of its
  * entrance as grey mush, a drawing one is sharp from the first frame.
  */
-export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+const ComparisonTableView: React.FC<ComparisonTableProps> = ({
   columns = DEFAULT_COLUMNS,
   rows = DEFAULT_ROWS,
   title = "What you get",
@@ -358,3 +361,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
     </AbsoluteFill>
   );
 };
+
+export function ComparisonTable(props: ElementProps & { children?: React.ReactNode }) {
+  return <ComparisonTableView {...({ ...props, rows: ticksFromWords(props.rows) } as unknown as React.ComponentProps<typeof ComparisonTableView>)} />;
+}

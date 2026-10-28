@@ -19,7 +19,7 @@ export function parseColor(c: string): Rgb {
   if (s.startsWith("var(")) {
     if (process.env.NODE_ENV !== "production") {
       console.warn(
-        `[remocn-ui] parseColor cannot resolve CSS variable "${s}" under Remotion's per-frame render. ` +
+        `[neutral-ui] parseColor cannot resolve CSS variable "${s}" under Remotion's per-frame render. ` +
           "Animated colors must be concrete oklch/hex/rgb values supplied via the theme. " +
           "Falling back to the JS default.",
       );
@@ -31,7 +31,7 @@ export function parseColor(c: string): Rgb {
   if (!rgb) {
     if (process.env.NODE_ENV !== "production") {
       console.warn(
-        `[remocn-ui] parseColor could not parse "${s}"; using black.`,
+        `[neutral-ui] parseColor could not parse "${s}"; using black.`,
       );
     }
     return { ...BLACK };
@@ -55,7 +55,7 @@ function resolveColorString(s: string): string {
   if (trimmed.startsWith("var(")) {
     if (process.env.NODE_ENV !== "production") {
       console.warn(
-        `[remocn-ui] mixOklch cannot resolve CSS variable "${trimmed}" under Remotion's per-frame render. ` +
+        `[neutral-ui] mixOklch cannot resolve CSS variable "${trimmed}" under Remotion's per-frame render. ` +
           "Animated colors must be concrete oklch/hex/rgb values supplied via the theme. " +
           "Falling back to the JS default.",
       );
@@ -65,7 +65,7 @@ function resolveColorString(s: string): string {
   if (!parse(trimmed)) {
     if (process.env.NODE_ENV !== "production") {
       console.warn(
-        `[remocn-ui] mixOklch could not parse "${trimmed}"; using black.`,
+        `[neutral-ui] mixOklch could not parse "${trimmed}"; using black.`,
       );
     }
     return "#000";

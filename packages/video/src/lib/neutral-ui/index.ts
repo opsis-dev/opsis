@@ -7,12 +7,12 @@ export {
 } from "./color";
 export type { EasingName, SpringName } from "./motion";
 export { easings, springs } from "./motion";
-export type { RemocnTheme, RemocnUIProviderProps } from "./theme";
+export type { NeutralTheme, NeutralUIProviderProps } from "./theme";
 export {
   defaultDarkTheme,
   defaultLightTheme,
-  RemocnUIProvider,
-  useRemocnTheme,
+  NeutralUIProvider,
+  useNeutralTheme,
 } from "./theme";
 export type { TypewriterOptions, TypewriterState } from "./timeline";
 export {

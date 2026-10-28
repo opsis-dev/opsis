@@ -6,6 +6,7 @@ import {
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface MarkerHighlightProps {
+  background?: string;
   fontFamily?: string;
   before?: string;
   highlight: string;
@@ -31,6 +32,7 @@ export function MarkerHighlight({
   fontWeight = 600,
   speed = 1,
   className,
+  background = "transparent",
 }: MarkerHighlightProps) {
   const frame = useAuthoredFrame() * speed;
   const { fps } = useAuthoredConfig();
@@ -58,7 +60,7 @@ export function MarkerHighlight({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background,
       }}
     >
       <span

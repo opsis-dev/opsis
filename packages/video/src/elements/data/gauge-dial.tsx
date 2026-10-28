@@ -1,5 +1,7 @@
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import type React from "react";
 
 export type GaugeDialProps = {
   /** Target the needle sweeps to. */
@@ -68,7 +70,7 @@ function decimalsOf(value: number): number {
  * the value itself changing its mind. The readout counts from the same eased
  * progress as the arc, so number and arc always agree.
  */
-export const GaugeDial: React.FC<GaugeDialProps> = ({
+const GaugeDialView: React.FC<GaugeDialProps> = ({
   value,
   min = 0,
   max = 100,
@@ -246,3 +248,7 @@ export const GaugeDial: React.FC<GaugeDialProps> = ({
     </div>
   );
 };
+
+export function GaugeDial(props: ElementProps & { children?: React.ReactNode }) {
+  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><GaugeDialView {...(props as unknown as React.ComponentProps<typeof GaugeDialView>)} /></AbsoluteFill>;
+}

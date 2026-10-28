@@ -1,9 +1,9 @@
 import { Caret } from "#video/parts/caret.tsx";
 import {
   mixOklch,
-  type RemocnTheme,
+  type NeutralTheme,
   revealedText,
-  useRemocnTheme,
+  useNeutralTheme,
 } from "#video/lib/neutral-ui/index.ts";
 
 export type InputState =
@@ -22,7 +22,7 @@ export interface InputProps {
   placeholder?: string;
   value?: string;
   size?: InputSize;
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   primary?: string;
   fullWidth?: boolean;
   className?: string;
@@ -62,7 +62,7 @@ export interface InputStyleContext {
   mutedForeground: string;
 }
 
-export function inputStyleContext(theme: RemocnTheme): InputStyleContext {
+export function inputStyleContext(theme: NeutralTheme): InputStyleContext {
   return {
     idleBorder: theme.input,
     hoverBorder: mixOklch(theme.input, theme.foreground, 0.18),
@@ -149,14 +149,14 @@ export function Input({
   state = "idle",
   style,
   placeholder = "you@example.com",
-  value = "remotion@remocn.dev",
+  value = "m@example.com",
   size = "default",
   theme: themeOverride,
   primary,
   fullWidth = false,
   className,
 }: InputProps) {
-  const theme = useRemocnTheme(
+  const theme = useNeutralTheme(
     { ...themeOverride, ...(primary ? { primary } : {}) },
     "light",
   );

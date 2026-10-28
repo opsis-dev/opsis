@@ -5,6 +5,7 @@ import {
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface InlineHighlightProps {
+  background?: string;
   fontFamily?: string;
   before: string;
   highlight: string;
@@ -28,6 +29,7 @@ export function InlineHighlight({
   fontWeight = 600,
   speed = 1,
   className,
+  background = "transparent",
 }: InlineHighlightProps) {
   const frame = useAuthoredFrame() * speed;
   const { durationInFrames: clipFrames } = useAuthoredConfig();
@@ -54,7 +56,7 @@ export function InlineHighlight({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background,
       }}
     >
       <span

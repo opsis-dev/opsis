@@ -1,10 +1,12 @@
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import {
   formatCompactNumber,
   readDelta,
   type ChartDatum,
 } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import type React from "react";
 
 export type DonutChartProps = {
   segments: ChartDatum[];
@@ -59,7 +61,7 @@ const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
  * the grand total scaled by progress — the number and the ring then agree at
  * every frame instead of only at the end.
  */
-export const DonutChart: React.FC<DonutChartProps> = ({
+const DonutChartView: React.FC<DonutChartProps> = ({
   segments,
   size = 360,
   thickness = 46,
@@ -283,3 +285,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     </div>
   );
 };
+
+export function DonutChart(props: ElementProps & { children?: React.ReactNode }) {
+  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><DonutChartView {...(props as unknown as React.ComponentProps<typeof DonutChartView>)} /></AbsoluteFill>;
+}

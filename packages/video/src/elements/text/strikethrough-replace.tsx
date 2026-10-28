@@ -2,6 +2,7 @@ import { interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface StrikethroughReplaceProps {
+  background?: string;
   fontFamily?: string;
   from: string;
   to: string;
@@ -23,6 +24,7 @@ export function StrikethroughReplace({
   fontWeight = 600,
   speed = 1,
   className,
+  background = "transparent",
 }: StrikethroughReplaceProps) {
   const frame = useAuthoredFrame() * speed;
   const { durationInFrames: clipFrames } = useAuthoredConfig();
@@ -72,7 +74,7 @@ export function StrikethroughReplace({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background,
       }}
     >
       <div

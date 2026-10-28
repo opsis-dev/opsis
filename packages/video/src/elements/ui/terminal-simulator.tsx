@@ -41,7 +41,7 @@ export interface TerminalSimulatorProps {
 const DEFAULT_LINES: TerminalLine[] = [
   { text: "npm run build", type: "command", delay: 0 },
   { text: "Resolving dependencies...", type: "log", delay: 6 },
-  { text: "> remocn@1.0.0 build", type: "log", delay: 4 },
+  { text: "> acme@1.0.0 build", type: "log", delay: 4 },
   { text: "> next build", type: "log", delay: 4 },
   { text: "Compiling...", type: "log", delay: 12 },
   { text: "Compiled successfully in 4.2s", type: "success", delay: 14 },
@@ -81,7 +81,7 @@ function autoPause(line: TerminalLine): number {
 export function TerminalSimulator({
   lines = DEFAULT_LINES,
   prompt = "$",
-  title = "~/projects/remocn",
+  title = "~/projects/acme",
   background = "#0a0a0a",
   chromeColor = "#1a1a1a",
   fontSize = 18,

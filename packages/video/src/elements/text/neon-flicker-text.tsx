@@ -1,9 +1,11 @@
-import { useCurrentFrame } from "remotion";
+import { AbsoluteFill, useCurrentFrame } from "remotion";
 import {
   SplitTextChars,
   type SplitTextCharsProps,
 } from "#video/parts/split-text-chars.tsx";
 import type { SplitUnitState } from "#video/lib/text/text-split.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import type React from "react";
 
 export type NeonFlickerTextProps = Omit<
   SplitTextCharsProps,
@@ -41,7 +43,7 @@ function noise(index: number, beat: number, seed: number): number {
  * A settled state with no hum is what makes a neon effect look like a static
  * PNG two seconds in.
  */
-export const NeonFlickerText: React.FC<NeonFlickerTextProps> = ({
+const NeonFlickerTextView: React.FC<NeonFlickerTextProps> = ({
   glowColor = "#f472b6",
   glowSize = 26,
   offColor: offSetting,
@@ -113,3 +115,7 @@ export const NeonFlickerText: React.FC<NeonFlickerTextProps> = ({
     />
   );
 };
+
+export function NeonFlickerText(props: ElementProps & { children?: React.ReactNode }) {
+  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><NeonFlickerTextView {...(props as unknown as React.ComponentProps<typeof NeonFlickerTextView>)} /></AbsoluteFill>;
+}

@@ -9,6 +9,9 @@ import {
 import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
 import { DURATION, EASING, STAGGER } from "#video/lib/motion/motion-tokens.ts";
 import { springSmooth } from "#video/lib/motion/springs.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { ScreenFit } from "#video/lib/layout/screen-fit.tsx";
+import type React from "react";
 
 const fontFamily = '"Inter"';
 
@@ -750,7 +753,7 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
   );
 };
 
-export const DeviceMockupZoom: React.FC<DeviceMockupZoomProps> = ({
+const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
   src,
   title,
   subtitle,
@@ -947,3 +950,8 @@ export const DeviceMockupZoom: React.FC<DeviceMockupZoomProps> = ({
     </AbsoluteFill>
   );
 };
+
+export function DeviceMockupZoom(all: ElementProps & { children?: React.ReactNode }) {
+  const { children, ...props } = all;
+  return <DeviceMockupZoomView {...(props as unknown as React.ComponentProps<typeof DeviceMockupZoomView>)}>{children ? <ScreenFit>{children}</ScreenFit> : undefined}</DeviceMockupZoomView>;
+}

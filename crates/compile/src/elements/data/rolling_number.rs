@@ -16,9 +16,11 @@ pub struct RollingNumber {
         range(min = 0, max = 999_999_999_999_u64),
         extend("x-step" = 1)
     )]
+    #[specta(type = f64)]
     pub from: u64,
     #[default = 24813]
     #[schemars(description = "To", range(min = 0, max = 999_999_999_999_u64), extend("x-step" = 1))]
+    #[specta(type = f64)]
     pub to: u64,
     #[default = 120]
     #[schemars(description = "Font size", range(min = 24, max = 280), extend("x-step" = 4))]

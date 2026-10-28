@@ -10,7 +10,11 @@ import {
   useVideoConfig,
 } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { type SnapCnTheme, useSnapCnTheme } from "#video/lib/warm-ui/index.ts";
+import { type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import type React from "react";
 
 export type ScreenRecordingFit = "cover" | "contain";
 export type ScreenRecordingEntrance = "fade" | "none";
@@ -164,7 +168,7 @@ export interface ScreenRecordingProps {
    */
   entrance?: ScreenRecordingEntrance;
   /** Design-system token overrides. */
-  theme?: Partial<SnapCnTheme>;
+  theme?: Partial<WarmTheme>;
   mode?: "light" | "dark";
   /**
    * Time multiplier. Every `at` in `camera` is measured against
@@ -435,7 +439,7 @@ function resolveSrc(src: string): string {
 
 // --- Component ------------------------------------------------------------
 
-export function ScreenRecording({
+function ScreenRecordingView({
   src,
   crop,
   cropTop,
@@ -456,7 +460,7 @@ export function ScreenRecording({
   className,
 }: ScreenRecordingProps) {
   const frame = useAuthoredFrame() * speed;
-  const t = useSnapCnTheme(theme, mode);
+  const t = useWarmTheme(theme, mode);
   const { width, height } = useVideoConfig();
   const isRendering = getRemotionEnvironment().isRendering;
 
@@ -577,3 +581,9 @@ export function ScreenRecording({
 // job: a push to a focal point rides the footage by construction, which is
 // exactly what an overlay in frame coordinates cannot do.
 // ponytail: no per-move easing override. Add one when a track needs two feels.
+
+export function ScreenRecording(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <ScreenRecordingView {...(props as unknown as React.ComponentProps<typeof ScreenRecordingView>)} />;
+  return <WarmUIProvider mode={theme.mode}><ScreenRecordingView {...(props as unknown as React.ComponentProps<typeof ScreenRecordingView>)} theme={themeColors(theme)} mode={theme.mode} /></WarmUIProvider>;
+}

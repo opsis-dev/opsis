@@ -12,10 +12,14 @@ import {
   parseColor,
   resolveFont,
   rgbToOklch,
-  type SnapCnTheme,
-  useSnapCnTheme,
+  type WarmTheme,
+  useWarmTheme,
   withAlpha,
 } from "#video/lib/warm-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import type React from "react";
 
 export type TextHighlightPreset =
   | "logo-wipe"
@@ -245,7 +249,7 @@ export interface TextHighlightProps {
   /** Overrides the design system's `primary`. */
   accentColor?: string;
   /** Design-system token overrides. */
-  theme?: Partial<SnapCnTheme>;
+  theme?: Partial<WarmTheme>;
   mode?: "light" | "dark";
   /**
    * The face this scene paints its words in — a label from `fonts.ts`
@@ -369,7 +373,7 @@ export interface TextHighlightProps {
   className?: string;
 }
 
-export function TextHighlight({
+function TextHighlightView({
   before = "",
   highlight,
   after = "",
@@ -404,7 +408,7 @@ export function TextHighlight({
 }: TextHighlightProps) {
   const frame = useAuthoredFrame() * speed;
   const { fps, width, height } = useAuthoredConfig();
-  const t = useSnapCnTheme(theme, mode);
+  const t = useWarmTheme(theme, mode);
   const ground = background ?? t.background;
   const face =
     resolveFont(fontFamily ?? t.fontFamily) ??
@@ -898,4 +902,10 @@ export function TextHighlight({
       </span>
     </div>
   );
+}
+
+export function TextHighlight(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <TextHighlightView {...(props as unknown as React.ComponentProps<typeof TextHighlightView>)} />;
+  return <WarmUIProvider mode={theme.mode}><TextHighlightView {...(props as unknown as React.ComponentProps<typeof TextHighlightView>)} theme={themeColors(theme)} mode={theme.mode} /></WarmUIProvider>;
 }

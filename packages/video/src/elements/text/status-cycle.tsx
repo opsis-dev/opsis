@@ -13,9 +13,13 @@ import {
   Item,
   mixOklch,
   resolveFont,
-  type SnapCnTheme,
-  useSnapCnTheme,
+  type WarmTheme,
+  useWarmTheme,
 } from "#video/lib/warm-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import type React from "react";
 
 const SANS = '"Inter"';
 
@@ -321,7 +325,7 @@ export interface StatusCycleProps {
   /** Playback rate. */
   speed?: number;
   /** Design-system token overrides. */
-  theme?: Partial<SnapCnTheme>;
+  theme?: Partial<WarmTheme>;
   mode?: "light" | "dark";
 }
 
@@ -335,8 +339,8 @@ interface Metrics {
   chipWidths: number[];
 }
 
-export function StatusCycle({
-  prefix = "snapcn is",
+function StatusCycleView({
+  prefix = "Acme is",
   statuses = ["animating", "transitioning", "rendering a scene", "installed"],
   chips = [
     "text-reveal",
@@ -373,7 +377,7 @@ export function StatusCycle({
 }: StatusCycleProps) {
   const frame = useAuthoredFrame() * speed - startAt;
   const { fps, width, height } = useAuthoredConfig();
-  const t = useSnapCnTheme(theme, mode);
+  const t = useWarmTheme(theme, mode);
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
 
   // Memoised because they are `useEffect` dependencies: rebuilt every render,
@@ -1055,4 +1059,10 @@ function Measuring({
       ))}
     </div>
   );
+}
+
+export function StatusCycle(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <StatusCycleView {...(props as unknown as React.ComponentProps<typeof StatusCycleView>)} />;
+  return <WarmUIProvider mode={theme.mode}><StatusCycleView {...(props as unknown as React.ComponentProps<typeof StatusCycleView>)} theme={themeColors(theme)} mode={theme.mode} /></WarmUIProvider>;
 }

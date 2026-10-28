@@ -6,6 +6,10 @@ import {
   useVideoConfig,
 } from "remotion";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import type { ElementProps } from "#video/common/spec.ts";
+import { ScreenFit } from "#video/lib/layout/screen-fit.tsx";
+import { nestedFrom } from "#video/lib/settings/shape.ts";
+import { AbsoluteFill } from "remotion";
 
 const fontFamily = '"Inter"';
 
@@ -66,7 +70,7 @@ type DeviceKind = keyof typeof HARDWARE;
  * scaled three ways — pass the same `children` and whatever you render lays
  * itself out per width, which is the point of showing three devices at all.
  */
-export const MultiDeviceLineup: React.FC<MultiDeviceLineupProps> = ({
+const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
   phone,
   tablet,
   laptop,
@@ -274,3 +278,14 @@ export const MultiDeviceLineup: React.FC<MultiDeviceLineupProps> = ({
     </div>
   );
 };
+
+export function MultiDeviceLineup(all: ElementProps & { children?: React.ReactNode }) {
+  const { children, ...props } = all;
+  return (
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <MultiDeviceLineupView {...(nestedFrom(props, {"phoneLabel":"phone.label","tabletLabel":"tablet.label","laptopLabel":"laptop.label"}) as unknown as MultiDeviceLineupProps)}>
+        {children ? <ScreenFit>{children}</ScreenFit> : undefined}
+      </MultiDeviceLineupView>
+    </AbsoluteFill>
+  );
+}

@@ -10,7 +10,7 @@ import {
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED, exitOpacity } from "#video/core/anim.ts";
 import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
-import type { CoreElementProps } from "#video/generated/spec.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 const WORD_SPRING = { damping: 18, stiffness: 160 };
 const EMPHASIS_SWEEP_FRAMES = [8, 22];
@@ -41,7 +41,7 @@ export const emphasisedWords = (text: string): EmphasisedWord[] =>
       em: w.startsWith("*") || w.endsWith("*"),
     }));
 
-export const KineticHeadline: React.FC<CoreElementProps["kinetic-headline"]> = ({
+export const KineticHeadline: React.FC<ElementSettings["kinetic-headline"]> = ({
   text,
   color,
   emphasisColor,

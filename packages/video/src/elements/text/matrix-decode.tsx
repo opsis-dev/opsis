@@ -2,6 +2,7 @@ import { random } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface MatrixDecodeProps {
+  background?: string;
   fontFamily?: string;
   text: string;
   charset?: string;
@@ -23,6 +24,7 @@ export function MatrixDecode({
   revealDuration = 60,
   speed = 1,
   className,
+  background = "transparent",
 }: MatrixDecodeProps) {
   const frame = useAuthoredFrame() * speed;
   // useVideoConfig kept for consistency with sibling primitives
@@ -50,7 +52,7 @@ export function MatrixDecode({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background,
       }}
     >
       <span

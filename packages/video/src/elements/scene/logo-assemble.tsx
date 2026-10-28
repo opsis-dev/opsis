@@ -10,10 +10,15 @@ import {
   Item,
   mixOklch,
   resolveFont,
-  type SnapCnTheme,
-  useSnapCnTheme,
+  type WarmTheme,
+  useWarmTheme,
   withAlpha,
 } from "#video/lib/warm-ui/index.ts";
+import type { ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { listsFrom } from "#video/lib/settings/shape.ts";
+import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import type React from "react";
 
 /**
  * A logo build: a single ring of image cards revolves around the centre, then
@@ -37,7 +42,7 @@ export interface LogoAssembleProps {
   speed?: number;
   className?: string;
   /** Design-system token overrides. */
-  theme?: Partial<SnapCnTheme>;
+  theme?: Partial<WarmTheme>;
   /**
    * Defaults to `"dark"`: the shipped `logoSrc` is a white mark, so the stage
    * has to be dark for it to read. Pass `"light"` with a dark logo asset.
@@ -185,9 +190,9 @@ function resolveSrc(src: string): string {
   }
 }
 
-export function LogoAssemble({
+function LogoAssembleView({
   logoSrc = "",
-  brandName = "snapcn",
+  brandName = "Acme",
   middleText = "Cinematic components\nfor React",
   images: imageList = DEFAULT_IMAGES,
   count = 10,
@@ -201,7 +206,7 @@ export function LogoAssemble({
   const images = imageList.filter((src) => src.trim() !== "");
   const frame = useAuthoredFrame() * speed;
   const { width, height } = useAuthoredConfig();
-  const t = useSnapCnTheme(theme, mode ?? "dark");
+  const t = useWarmTheme(theme, mode ?? "dark");
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? FONT_FAMILY;
   const stage = background ?? t.background;
   // A shadow is cast in the dark direction whatever the mode, so it is walked
@@ -367,5 +372,19 @@ export function LogoAssemble({
         </div>
       )}
     </div>
+  );
+}
+
+type LogoAssembleViewProps = React.ComponentProps<typeof LogoAssembleView>;
+
+export function LogoAssemble(props: ElementProps) {
+  const { theme } = props;
+  if (!isThemeValue(theme))
+    return <LogoAssembleView {...(listsFrom(props, {"images":{"image":"images"}}) as unknown as LogoAssembleViewProps)} />;
+  const themed = { ...props, theme: themeColors(theme), mode: theme.mode };
+  return (
+    <WarmUIProvider mode={theme.mode}>
+      <LogoAssembleView {...(listsFrom(themed, {"images":{"image":"images"}}) as unknown as LogoAssembleViewProps)} />
+    </WarmUIProvider>
   );
 }

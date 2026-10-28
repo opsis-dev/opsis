@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
-import type { CoreElementProps } from "#video/generated/spec.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { DeviceBody } from "#video/three/devices.tsx";
 import {
   facesCamera,
@@ -52,7 +52,7 @@ const OnScreen: React.FC<{ quad: Point2[]; turn: number; children?: React.ReactN
   );
 };
 
-export const Screen3D: React.FC<CoreElementProps["screen-3d"] & { children?: React.ReactNode }> = ({
+export const Screen3D: React.FC<ElementSettings["screen-3d"] & { children?: React.ReactNode }> = ({
   device,
   deviceColor,
   move,

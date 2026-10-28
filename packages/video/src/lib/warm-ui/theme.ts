@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { createContext, createElement, useContext } from "react";
 
-export interface SnapCnTheme {
+export interface WarmTheme {
   background: string;
   foreground: string;
   card: string;
@@ -28,7 +28,7 @@ export interface SnapCnTheme {
    *
    * Optional and defaulted to nothing on purpose: unset, each component keeps
    * the face it was designed around, so adding this token changed no existing
-   * render. Set it on `SnapCnUIProvider` and one value re-skins a whole
+   * render. Set it on `WarmUIProvider` and one value re-skins a whole
    * timeline — which is the only reason it lives on the theme rather than
    * staying a per-component prop.
    */
@@ -58,14 +58,14 @@ export interface SnapCnTheme {
  * nothing under the headless renderer and cannot be interpolated by `mixOklch`
  * at all (see the guard in `color.ts`). Concrete values are not a shortcut here,
  * they are the only thing that survives a render. Users on a different palette
- * override via `SnapCnUIProvider` or a component's `theme` prop.
+ * override via `WarmUIProvider` or a component's `theme` prop.
  *
  * ## `radius` is the one value that flows the other way
  *
  * `globals.css` sets `--radius: 0.28rem` *so that* its `--radius-3xl` step lands
  * on this 10 — see the note beside it there. It is not drift; do not "fix" it.
  */
-export const defaultLightTheme: SnapCnTheme = {
+export const defaultLightTheme: WarmTheme = {
   background: "#faf9f6", // page — warm off-white
   foreground: "#141414", // text
   card: "#ffffff", // surface on the page
@@ -90,7 +90,7 @@ export const defaultLightTheme: SnapCnTheme = {
   radius: 10,
 };
 
-export const defaultDarkTheme: SnapCnTheme = {
+export const defaultDarkTheme: WarmTheme = {
   background: "#0a0a0b", // page — near-black
   foreground: "#fafafa", // text
   card: "#141417", // surface, a shade above the page
@@ -113,36 +113,36 @@ export const defaultDarkTheme: SnapCnTheme = {
   radius: 10,
 };
 
-interface SnapCnThemeContextValue {
-  theme?: Partial<SnapCnTheme>;
+interface WarmThemeContextValue {
+  theme?: Partial<WarmTheme>;
   mode?: "light" | "dark";
 }
 
-const SnapCnThemeContext = createContext<SnapCnThemeContextValue>({});
+const WarmThemeContext = createContext<WarmThemeContextValue>({});
 
-export interface SnapCnUIProviderProps {
-  theme?: Partial<SnapCnTheme>;
+export interface WarmUIProviderProps {
+  theme?: Partial<WarmTheme>;
   mode?: "light" | "dark";
   children: ReactNode;
 }
 
-export function SnapCnUIProvider({
+export function WarmUIProvider({
   theme,
   mode,
   children,
-}: SnapCnUIProviderProps) {
+}: WarmUIProviderProps) {
   return createElement(
-    SnapCnThemeContext.Provider,
+    WarmThemeContext.Provider,
     { value: { theme, mode } },
     children,
   );
 }
 
-export function useSnapCnTheme(
-  override?: Partial<SnapCnTheme>,
+export function useWarmTheme(
+  override?: Partial<WarmTheme>,
   modeOverride?: "light" | "dark",
-): SnapCnTheme {
-  const ctx = useContext(SnapCnThemeContext);
+): WarmTheme {
+  const ctx = useContext(WarmThemeContext);
   const mode = modeOverride ?? ctx.mode ?? "light";
   const base = mode === "dark" ? defaultDarkTheme : defaultLightTheme;
   return { ...base, ...ctx.theme, ...override };

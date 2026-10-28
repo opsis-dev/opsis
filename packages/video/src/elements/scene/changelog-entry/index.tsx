@@ -8,6 +8,9 @@ import {
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { nestedFrom } from "#video/lib/settings/shape.ts";
+import type React from "react";
 
 const fontFamily = '"Inter"';
 
@@ -84,7 +87,7 @@ const clamp = {
  * sentences share a left edge — a column of ragged text beside ragged tags is
  * the fastest way to make a changelog look unmaintained.
  */
-export const ChangelogEntry: React.FC<ChangelogEntryProps> = ({
+const ChangelogEntryView: React.FC<ChangelogEntryProps> = ({
   version = "v2.4.0",
   date = "16 August",
   summary = "Captions, webhooks, and a queue that stops sulking.",
@@ -285,3 +288,7 @@ export const ChangelogEntry: React.FC<ChangelogEntryProps> = ({
     </AbsoluteFill>
   );
 };
+
+export function ChangelogEntry(props: ElementProps & { children?: React.ReactNode }) {
+  return <ChangelogEntryView {...(nestedFrom(props, {"kindAdded":"kindColors.added","kindFixed":"kindColors.fixed","kindChanged":"kindColors.changed","kindRemoved":"kindColors.removed"}) as unknown as React.ComponentProps<typeof ChangelogEntryView>)} />;
+}

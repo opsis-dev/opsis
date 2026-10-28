@@ -7,7 +7,7 @@ use specta::Types;
 use crate::catalog::{CatalogEntry, CatalogNode};
 use crate::check::CheckResult;
 use crate::compile::{CompileResult, PreviewTarget};
-use crate::elements::props::CoreElementProps;
+use crate::elements::props::ElementSettings;
 use crate::graph::{ConnectionProblem, GraphIssue};
 use crate::mix::plan::MixPlan;
 use crate::timeline::chapters::FilmChapter;
@@ -35,7 +35,7 @@ pub fn spec_types() -> String {
             .register::<TimelineSpec>()
             .register::<CaptionsValue>()
             .register::<ActionLog>()
-            .register::<CoreElementProps>()
+            .register::<ElementSettings>()
             .register::<crate::elements::introspect::FieldWidget>()
             .register::<opsis_types::looks::NodeLook>()
             .register::<crate::elements::text::text_3d::PreparedTypeface>(),

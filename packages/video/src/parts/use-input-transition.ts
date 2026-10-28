@@ -7,9 +7,9 @@ import {
 import {
   easings,
   mixOklch,
-  type RemocnTheme,
+  type NeutralTheme,
   type Step,
-  useRemocnTheme,
+  useNeutralTheme,
   useStateTransition,
 } from "#video/lib/neutral-ui/index.ts";
 
@@ -33,7 +33,7 @@ export function tweenInputStyle(
 }
 
 export interface InputTransitionOptions {
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   mode?: "light" | "dark";
   primary?: string;
   speed?: number;
@@ -51,7 +51,7 @@ export function useInputTransition(
     speed = 1,
     defaultDuration = DEFAULT_DURATION,
   } = opts;
-  const theme = useRemocnTheme(
+  const theme = useNeutralTheme(
     { ...themeOverride, ...(primary ? { primary } : {}) },
     mode,
   );

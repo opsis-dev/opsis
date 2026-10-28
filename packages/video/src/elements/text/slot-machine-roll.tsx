@@ -25,6 +25,7 @@ function columnWidths(
 }
 
 export interface SlotMachineRollProps {
+  background?: string;
   fontFamily?: string;
   from?: string;
   to?: string;
@@ -44,6 +45,7 @@ export function SlotMachineRoll({
   fontWeight = 700,
   speed = 1,
   className,
+  background = "transparent",
 }: SlotMachineRollProps) {
   const frame = useAuthoredFrame() * speed;
   const { fps } = useAuthoredConfig();
@@ -99,7 +101,7 @@ export function SlotMachineRoll({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background,
       }}
     >
       <span

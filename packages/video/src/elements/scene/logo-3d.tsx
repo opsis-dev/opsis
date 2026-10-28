@@ -16,7 +16,7 @@ import {
 } from "three";
 import type { SVGResult } from "three/addons/loaders/SVGLoader.js";
 import { isRecord } from "#video/common/guards.ts";
-import type { CoreElementProps } from "#video/generated/spec.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { Card } from "#video/elements/scene/card-3d.tsx";
 import { isSvg, useSvg, useTexture } from "#video/three/load.ts";
 import { elementPose } from "#video/three/motion.ts";
@@ -116,7 +116,7 @@ const SvgLogo: React.FC<{ svg: SVGResult; look: Look }> = ({ svg, look }) => {
   return <primitive object={model} />;
 };
 
-export const Logo3D: React.FC<CoreElementProps["logo-3d"]> = ({
+export const Logo3D: React.FC<ElementSettings["logo-3d"]> = ({
   src,
   depth,
   color,

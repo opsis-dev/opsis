@@ -1,6 +1,9 @@
 import { type CSSProperties, useMemo } from "react";
 import { Easing, random } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { nestedFrom } from "#video/lib/settings/shape.ts";
+import type React from "react";
 
 export type AgentRunTheme = "light" | "dark";
 
@@ -2550,7 +2553,7 @@ function Tools({
   );
 }
 
-export function AgentRun({
+function AgentRunView({
   run = agentRunDefaults.run,
   theme = agentRunDefaults.theme,
   accentColor = agentRunDefaults.accentColor,
@@ -2633,4 +2636,8 @@ export function AgentRun({
       </div>
     </div>
   );
+}
+
+export function AgentRun(props: ElementProps & { children?: React.ReactNode }) {
+  return <AgentRunView {...(nestedFrom(props, {"runTitle":"run.title","runPrompt":"run.prompt","runPlan":"run.plan","runSteps":"run.steps","runAnswer":"run.answer"}) as unknown as React.ComponentProps<typeof AgentRunView>)} />;
 }

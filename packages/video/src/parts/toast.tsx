@@ -1,4 +1,4 @@
-import { type RemocnTheme, useRemocnTheme } from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
 export type ToastState = "hidden" | "visible";
 
@@ -10,7 +10,7 @@ export interface ToastProps {
   title: string;
   description?: string;
   variant?: ToastVariant;
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   className?: string;
 }
 
@@ -28,7 +28,7 @@ export interface ToastStyleContext {
 
 export function toastStyleContext(
   variant: ToastVariant,
-  theme: RemocnTheme,
+  theme: NeutralTheme,
 ): ToastStyleContext {
   if (variant === "success") return { iconColor: "oklch(0.6 0.17 150)" };
   if (variant === "error") return { iconColor: theme.destructive };
@@ -97,7 +97,7 @@ export function Toast({
   theme: themeOverride,
   className,
 }: ToastProps) {
-  const theme = useRemocnTheme(themeOverride, "light");
+  const theme = useNeutralTheme(themeOverride, "light");
   const ctx = toastStyleContext(variant, theme);
   const v = style ?? toastStyle(state);
 

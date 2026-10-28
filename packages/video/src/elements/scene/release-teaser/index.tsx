@@ -11,24 +11,21 @@ import { type ReleaseTeaserProps, resolveReleaseTeaserProps } from "./content";
 import {
   atFps,
   RELEASE_TEASER_FPS,
-  RELEASE_TEASER_FRAMES,
-  RELEASE_TEASER_HEIGHT,
-  RELEASE_TEASER_WIDTH,
 } from "./motion";
 import { ReleaseLockup } from "./scenes/closing";
 import { Statement } from "./scenes/statement";
+import { type ElementProps } from "#video/common/spec.ts";
+import { nestedFrom } from "#video/lib/settings/shape.ts";
+import type React from "react";
 
 export type { ReleaseTeaserProps, ReleaseTeaserTheme } from "./content";
 export { releaseTeaserStatements, releaseTeaserTheme } from "./content";
 export {
   RELEASE_TEASER_FPS,
-  RELEASE_TEASER_FRAMES,
-  RELEASE_TEASER_HEIGHT,
-  RELEASE_TEASER_WIDTH,
   releaseTeaserTimeline,
 } from "./motion";
 
-export function ReleaseTeaser(props: ReleaseTeaserProps) {
+function ReleaseTeaserView(props: ReleaseTeaserProps) {
   const currentFrame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const frame = (currentFrame / fps) * RELEASE_TEASER_FPS;
@@ -178,40 +175,6 @@ export function ReleaseTeaser(props: ReleaseTeaserProps) {
     </AbsoluteFill>
   );
 }
-
-export const releaseTeaserConfig = {
-  componentName: "ReleaseTeaser",
-  importPath: "@/components/remocn/templates/release-teaser",
-  controls: {
-    brandName: {
-      type: "text-content" as const,
-      default: "Orvio",
-      description: "Name in the final release lockup",
-    },
-    release: {
-      type: "text-content" as const,
-      default: "2",
-      description: "Version suffix; leave empty to hide",
-    },
-    tagline: {
-      type: "text-content" as const,
-      default: "Your next chapter starts here.",
-      description: "Final supporting line",
-    },
-    accentColor: {
-      type: "color" as const,
-      default: "#9BC8DD",
-      description: "Mark and dimensional edge lighting",
-    },
-    reducedMotion: {
-      type: "boolean" as const,
-      default: false,
-      description:
-        "Static mark and complete statements, without camera motion or blur",
-    },
-  },
-  durationInFrames: RELEASE_TEASER_FRAMES,
-  fps: RELEASE_TEASER_FPS,
-  compositionWidth: RELEASE_TEASER_WIDTH,
-  compositionHeight: RELEASE_TEASER_HEIGHT,
-};
+export function ReleaseTeaser(props: ElementProps & { children?: React.ReactNode }) {
+  return <ReleaseTeaserView {...(nestedFrom(props, {"themeBackground":"theme.background","themeSurface":"theme.surface","themeForeground":"theme.foreground","themeMuted":"theme.muted"}) as unknown as React.ComponentProps<typeof ReleaseTeaserView>)} />;
+}

@@ -1,9 +1,11 @@
-import { random } from "remotion";
+import { AbsoluteFill, random } from "remotion";
 import {
   SplitTextChars,
   type SplitTextCharsProps,
 } from "#video/parts/split-text-chars.tsx";
 import type { SplitUnitState } from "#video/lib/text/text-split.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import type React from "react";
 
 export type HandwritingTextProps = Omit<
   SplitTextCharsProps,
@@ -51,7 +53,7 @@ function jitter(seed: string | number, index: number, salt: number): number {
  * result that is identical on every render machine — the generic `cursive`
  * fallback resolves to whatever the host has.
  */
-export const HandwritingText: React.FC<HandwritingTextProps> = ({
+const HandwritingTextView: React.FC<HandwritingTextProps> = ({
   penSize = 0.14,
   penColor,
   inkSoftness = 0.18,
@@ -130,3 +132,7 @@ export const HandwritingText: React.FC<HandwritingTextProps> = ({
     />
   );
 };
+
+export function HandwritingText(props: ElementProps & { children?: React.ReactNode }) {
+  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><HandwritingTextView {...(props as unknown as React.ComponentProps<typeof HandwritingTextView>)} /></AbsoluteFill>;
+}

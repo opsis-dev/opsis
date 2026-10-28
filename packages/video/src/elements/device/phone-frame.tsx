@@ -10,10 +10,14 @@ import {
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   resolveFont,
-  type SnapCnTheme,
-  useSnapCnTheme,
+  type WarmTheme,
+  useWarmTheme,
   withAlpha,
 } from "#video/lib/warm-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import type React from "react";
 
 export type PhoneFrameVariant = "flat" | "tilt" | "showcase";
 export type PhoneFrameEntrance = "rise" | "rotate-in" | "float";
@@ -41,7 +45,7 @@ export interface PhoneFrameProps {
   /** Screen fill behind the children. Defaults to the theme's `card`. */
   screenColor?: string;
   /** Design-system token overrides. */
-  theme?: Partial<SnapCnTheme>;
+  theme?: Partial<WarmTheme>;
   mode?: "light" | "dark";
   /**
    * The face this scene paints its words in — a label from `fonts.ts`
@@ -949,7 +953,7 @@ function ScreenMedia({ src, frame }: { src: string; frame: number }) {
   );
 }
 
-export function PhoneFrame({
+function PhoneFrameView({
   children,
   screenSrc,
   variant = "flat",
@@ -976,9 +980,9 @@ export function PhoneFrame({
   // The screen carries the app, so it follows the app theme. The body and the
   // Dynamic Island are a physical object: they take the dark end of the system
   // whatever mode the screen is in.
-  const t = useSnapCnTheme(theme, mode);
+  const t = useWarmTheme(theme, mode);
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? FONT_FAMILY;
-  const island = useSnapCnTheme(theme, "dark");
+  const island = useWarmTheme(theme, "dark");
   const body = bezelColor ?? t.foreground;
   const glass = screenColor ?? t.card;
   const drop = shadow ?? `0 24px 60px ${withAlpha(t.foreground, 0.18)}`;
@@ -1118,4 +1122,10 @@ export function PhoneFrame({
       </div>
     </div>
   );
+}
+
+export function PhoneFrame(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <PhoneFrameView {...(props as unknown as React.ComponentProps<typeof PhoneFrameView>)} />;
+  return <WarmUIProvider mode={theme.mode}><PhoneFrameView {...(props as unknown as React.ComponentProps<typeof PhoneFrameView>)} theme={themeColors(theme)} mode={theme.mode} /></WarmUIProvider>;
 }

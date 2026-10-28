@@ -1,6 +1,8 @@
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { formatCompactNumber } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import type React from "react";
 
 export type FunnelStage = {
   label: string;
@@ -60,7 +62,7 @@ const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
  * it: the chip is a conclusion about two stages, so it cannot land before both
  * exist.
  */
-export const FunnelChart: React.FC<FunnelChartProps> = ({
+const FunnelChartView: React.FC<FunnelChartProps> = ({
   stages,
   width = 820,
   height = 420,
@@ -230,3 +232,7 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({
     </svg>
   );
 };
+
+export function FunnelChart(props: ElementProps & { children?: React.ReactNode }) {
+  return <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}><FunnelChartView {...(props as unknown as React.ComponentProps<typeof FunnelChartView>)} /></AbsoluteFill>;
+}

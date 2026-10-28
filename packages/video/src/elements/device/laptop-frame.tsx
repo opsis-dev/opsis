@@ -11,10 +11,14 @@ import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.
 import {
   mixOklch,
   resolveFont,
-  type SnapCnTheme,
-  useSnapCnTheme,
+  type WarmTheme,
+  useWarmTheme,
   withAlpha,
 } from "#video/lib/warm-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import type React from "react";
 
 export type LaptopFrameEntrance = "rise" | "open" | "none";
 export type LaptopFrameFinale = "none" | "zoom-to-screen";
@@ -47,7 +51,7 @@ export interface LaptopFrameProps {
   /** Screen fill behind `children`. Defaults to the theme's `card`. */
   screenColor?: string;
   /** Design-system token overrides — applied to the screen's contents. */
-  theme?: Partial<SnapCnTheme>;
+  theme?: Partial<WarmTheme>;
   mode?: "light" | "dark";
   /**
    * The face this scene paints its words in — a label from `fonts.ts`
@@ -349,7 +353,7 @@ export function notchState(
  * filling the frame, not sit as a small card on empty canvas. Elements stagger
  * in during the open, then hold. Pass `imageSrc`/`children` to use your own.
  */
-function PlaceholderScreen({ frame, t }: { frame: number; t: SnapCnTheme }) {
+function PlaceholderScreen({ frame, t }: { frame: number; t: WarmTheme }) {
   const rise = (delay: number) => {
     const r = interpolate(frame, [delay, delay + 14], [0, 1], {
       extrapolateLeft: "clamp",
@@ -604,7 +608,7 @@ function Notch({
   label: string;
   batteryLevel: number;
   /** Resolved in dark mode — the notch is a dark pill whatever the app theme. */
-  t: SnapCnTheme;
+  t: WarmTheme;
   indicatorColor: string;
 }) {
   const state = notchState(frame);
@@ -695,7 +699,7 @@ function Notch({
   );
 }
 
-export function LaptopFrame({
+function LaptopFrameView({
   children,
   screenSrc,
   entrance = "rise",
@@ -722,9 +726,9 @@ export function LaptopFrame({
   // The screen shows an app, so it follows the app theme. The lid, the notch
   // and the drop shadow are a physical object photographed on a desk: they take
   // the dark end of the system whatever mode the screen is in.
-  const t = useSnapCnTheme(theme, mode);
+  const t = useWarmTheme(theme, mode);
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? FONT_FAMILY;
-  const shell = useSnapCnTheme(theme, "dark");
+  const shell = useWarmTheme(theme, "dark");
   const lid = bezelColor ?? mixOklch(shell.background, shell.foreground, 0.09);
   const glass = screenColor ?? t.card;
   const drop = shadow ?? `0 40px 80px ${withAlpha(shell.background, 0.45)}`;
@@ -872,4 +876,10 @@ export function LaptopFrame({
       </div>
     </div>
   );
+}
+
+export function LaptopFrame(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <LaptopFrameView {...(props as unknown as React.ComponentProps<typeof LaptopFrameView>)} />;
+  return <WarmUIProvider mode={theme.mode}><LaptopFrameView {...(props as unknown as React.ComponentProps<typeof LaptopFrameView>)} theme={themeColors(theme)} mode={theme.mode} /></WarmUIProvider>;
 }

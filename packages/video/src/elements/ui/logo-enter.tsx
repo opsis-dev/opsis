@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-} from "remotion";
+import { AbsoluteFill, Img, interpolate, spring } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { isString } from "#video/common/guards.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { rowsOf } from "#video/lib/settings/shape.ts";
+import type React from "react";
 
 export interface Logo {
   mark: ReactNode;
@@ -76,7 +76,7 @@ export const SAMPLE_LOGOS: Logo[] = [
   { mark: <GrokMark />, bg: "#0A0A0A" },
 ];
 
-export function LogoEnter({
+function LogoEnterView({
   logos = SAMPLE_LOGOS,
   diameter = 118,
   overlap = 38,
@@ -152,4 +152,16 @@ export function LogoEnter({
       </div>
     </AbsoluteFill>
   );
+}
+
+export function LogoEnter(props: ElementProps & { children?: React.ReactNode }) {
+  const marks = rowsOf(props.logos).map((row) => ({
+    mark:
+      isString(row.image) && row.image ? (
+        <Img src={row.image} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+      ) : null,
+    ...(isString(row.background) && row.background ? { bg: row.background } : {}),
+  }));
+  const rest = Object.fromEntries(Object.entries(props).filter(([k]) => k !== "logos"));
+  return <LogoEnterView {...({ ...rest, logos: marks } as unknown as React.ComponentProps<typeof LogoEnterView>)} />;
 }

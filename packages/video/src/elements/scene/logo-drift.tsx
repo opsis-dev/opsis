@@ -9,10 +9,14 @@ import {
   Item,
   mixOklch,
   resolveFont,
-  type SnapCnTheme,
-  useSnapCnTheme,
+  type WarmTheme,
+  useWarmTheme,
   withAlpha,
 } from "#video/lib/warm-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import type React from "react";
 
 // Loaded through @remotion/google-fonts, never a CSS variable — a Remotion
 // bundle has none of the app's CSS, so a `var(--font-…)` gets you the right face
@@ -176,7 +180,7 @@ export function wordState(
  * somebody else's marks, and a wordmark tile says "works with this" without
  * borrowing a logo to say it.
  */
-export const SNAPCN_STACK: DriftTile[] = [
+export const WARM_STACK: DriftTile[] = [
   {
     glyph: "Rm",
     label: "Remotion",
@@ -332,7 +336,7 @@ export interface LogoDriftProps {
   glowOpacity?: number;
   /** Accent used for the wash when `glowColor` is not given. */
   accentColor?: string;
-  theme?: Partial<SnapCnTheme>;
+  theme?: Partial<WarmTheme>;
   mode?: "light" | "dark";
   /**
    * The face this scene paints its words in — a label from `fonts.ts`
@@ -380,9 +384,9 @@ export interface LogoDriftProps {
  * borrowed marks, and every tile — glyph, label, colour, position, drift, entry
  * — is a prop.
  */
-export function LogoDrift({
+function LogoDriftView({
   headline = "Built for the stack you already use.",
-  tiles = SNAPCN_STACK,
+  tiles = WARM_STACK,
   pullback = 0.1762,
   tileSpeed = 1,
   tileScale = 1,
@@ -411,7 +415,7 @@ export function LogoDrift({
 }: LogoDriftProps) {
   const frame = useAuthoredFrame();
   const { width, height, fps } = useAuthoredConfig();
-  const t = useSnapCnTheme(theme, mode);
+  const t = useWarmTheme(theme, mode);
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
   const accent = accentColor ?? t.primary;
   const wash = glowColor ?? accent;
@@ -588,5 +592,11 @@ export function LogoDrift({
 }
 
 /** Kept for callers that want the accent-tinted tile default without a theme. */
-export const driftTileTint = (t: SnapCnTheme, amount: number): string =>
+export const driftTileTint = (t: WarmTheme, amount: number): string =>
   mixOklch(t.card, t.primary, amount);
+
+export function LogoDrift(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <LogoDriftView {...(props as unknown as React.ComponentProps<typeof LogoDriftView>)} />;
+  return <WarmUIProvider mode={theme.mode}><LogoDriftView {...(props as unknown as React.ComponentProps<typeof LogoDriftView>)} theme={themeColors(theme)} mode={theme.mode} /></WarmUIProvider>;
+}

@@ -8,7 +8,7 @@ import {
   PlaneGeometry,
   type Texture,
 } from "three";
-import type { CoreElementProps } from "#video/generated/spec.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { useTexture } from "#video/three/load.ts";
 import { elementPose } from "#video/three/motion.ts";
 import { faceGeometry, fittedSize, roundedRect } from "#video/three/shapes.ts";
@@ -152,7 +152,7 @@ export const GroundShadow: React.FC<{ width: number; y: number }> = ({ width, y 
   );
 };
 
-export const Card3D: React.FC<CoreElementProps["card-3d"]> = ({
+export const Card3D: React.FC<ElementSettings["card-3d"]> = ({
   src,
   cornerRadius,
   tilt,

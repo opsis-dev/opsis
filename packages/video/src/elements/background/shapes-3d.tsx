@@ -4,7 +4,7 @@ import { random, useCurrentFrame, useVideoConfig } from "remotion";
 import { MeshStandardMaterial, SphereGeometry, TorusGeometry, type BufferGeometry } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { cameraAt } from "#video/common/camera-path.ts";
-import type { CoreElementProps } from "#video/generated/spec.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { viewPose } from "#video/three/motion.ts";
 import { Posed, Stage3D } from "#video/three/stage.tsx";
 
@@ -49,7 +49,7 @@ function geometryFor(kind: Kind): BufferGeometry {
   }
 }
 
-export const Shapes3D: React.FC<CoreElementProps["shapes-3d"]> = ({
+export const Shapes3D: React.FC<ElementSettings["shapes-3d"]> = ({
   count,
   palette,
   seed,

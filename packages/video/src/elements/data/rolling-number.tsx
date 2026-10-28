@@ -9,6 +9,7 @@ import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.
 const MONO_FAMILY = '"JetBrains Mono"';
 
 export interface RollingNumberProps {
+  background?: string;
   from?: number;
   to?: number;
   fontSize?: number;
@@ -117,6 +118,7 @@ export function RollingNumber({
   fontSize = 120,
   color = "#171717",
   speed = 1,
+  background = "transparent",
 }: RollingNumberProps) {
   const frame = useAuthoredFrame();
   const { durationInFrames: clipFrames } = useAuthoredConfig();
@@ -168,6 +170,7 @@ export function RollingNumber({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        background,
       }}
     >
       <div

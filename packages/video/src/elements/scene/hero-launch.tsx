@@ -14,10 +14,14 @@ import {
   Item,
   mixOklch,
   resolveFont,
-  type SnapCnTheme,
-  useSnapCnTheme,
+  type WarmTheme,
+  useWarmTheme,
   withAlpha,
 } from "#video/lib/warm-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import type React from "react";
 
 const SANS = '"Inter"';
 
@@ -33,7 +37,7 @@ export interface HeroLaunchProps {
   /** Right card media (same rules as `image1`). */
   image2?: string;
   /** Design-system token overrides. */
-  theme?: Partial<SnapCnTheme>;
+  theme?: Partial<WarmTheme>;
   /** Defaults to `"dark"` — the scene is a cinematic stage, lit for dark. */
   mode?: "light" | "dark";
   /**
@@ -53,22 +57,12 @@ const PERSP = 1000;
 const TILT = 17;
 const GAP = 92;
 /** Stand-in for missing media — the page lifted a shade, not a fixed grey. */
-const placeholder = (t: SnapCnTheme) =>
+const placeholder = (t: WarmTheme) =>
   `linear-gradient(135deg,${mixOklch(t.background, t.card, 0.55)},${mixOklch(
     t.background,
     t.card,
     0.2,
   )})`;
-
-// Sample product-reveal clips. Absolute, because these ship as *defaults* into a
-// project that does not have them in its own `public/` — a root-relative default
-// becomes `staticFile()` in a render and 404s the first time anyone renders the
-// component they just installed. Swap them for your own media, root-relative or
-// not; `resolveSrc` handles both.
-const SHOWCASE = [
-  "https://media.snapcn.dev/demos/moodboard-reveal.mp4",
-  "https://media.snapcn.dev/demos/orbit-gallery.mp4",
-];
 
 const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
 const isGradient = (src: string) => src.startsWith("linear-gradient");
@@ -123,7 +117,7 @@ function HeroImage({ src, style }: { src: string; style: CSSProperties }) {
 }
 
 /** Fills a card edge-to-edge with an image, a video, or a gradient. */
-function CardMedia({ src, t }: { src: string; t: SnapCnTheme }) {
+function CardMedia({ src, t }: { src: string; t: WarmTheme }) {
   const media: CSSProperties = {
     position: "absolute",
     inset: 0,
@@ -157,17 +151,17 @@ function CardMedia({ src, t }: { src: string; t: SnapCnTheme }) {
  * Left/right/bottom edges dissolve into black. `image1`/`image2` + `heading`
  * are the props the video editor drives.
  */
-export function HeroLaunch({
-  heading = "npx shadcn add @snapcn",
-  image1 = SHOWCASE[0],
-  image2 = SHOWCASE[1],
+function HeroLaunchView({
+  heading = "Launch day, done right",
+  image1 = "",
+  image2 = "",
   theme,
   mode,
   fontFamily,
 }: HeroLaunchProps) {
   const frame = useAuthoredFrame();
   const { width, height } = useAuthoredConfig();
-  const t = useSnapCnTheme(theme, mode ?? "dark");
+  const t = useWarmTheme(theme, mode ?? "dark");
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
   const s = Math.min(height / 720, width / 1280);
 
@@ -319,7 +313,7 @@ export function HeroLaunch({
 }
 
 /** A single card: one image (or video/gradient) filling it edge-to-edge. */
-function ImageCard({ s, src, t }: { s: number; src: string; t: SnapCnTheme }) {
+function ImageCard({ s, src, t }: { s: number; src: string; t: WarmTheme }) {
   return (
     <div
       style={{
@@ -337,7 +331,7 @@ function ImageCard({ s, src, t }: { s: number; src: string; t: SnapCnTheme }) {
         )}, inset 0 0 0 1px ${withAlpha(t.foreground, 0.22)}`,
       }}
     >
-      <CardMedia src={src} t={t} />
+      {src ? <CardMedia src={src} t={t} /> : null}
       {/* subtle depth: darken the lower edge + a hairline top sheen */}
       <div
         style={{
@@ -364,4 +358,10 @@ function ImageCard({ s, src, t }: { s: number; src: string; t: SnapCnTheme }) {
       />
     </div>
   );
+}
+
+export function HeroLaunch(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <HeroLaunchView {...(props as unknown as React.ComponentProps<typeof HeroLaunchView>)} />;
+  return <WarmUIProvider mode={theme.mode}><HeroLaunchView {...(props as unknown as React.ComponentProps<typeof HeroLaunchView>)} theme={themeColors(theme)} mode={theme.mode} /></WarmUIProvider>;
 }

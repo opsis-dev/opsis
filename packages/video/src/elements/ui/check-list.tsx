@@ -1,3 +1,4 @@
+import { AbsoluteFill } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import { Handwrite, handwriteDuration } from "#video/parts/handwrite.tsx";
 import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
@@ -191,6 +192,7 @@ const strikePath = (
 };
 
 export interface CheckListProps {
+  background?: string;
   items: (string | CheckListItem)[];
   width: number;
   fontSize?: number;
@@ -209,6 +211,7 @@ export interface CheckListProps {
 }
 
 export function CheckList({
+  background = "transparent",
   items,
   width,
   fontSize = 40,
@@ -242,131 +245,135 @@ export function CheckList({
     Math.min(fontSize, labelWidth / Math.max(1, Array.from(text).length * CAVEAT_ADVANCE));
 
   return (
-    <div
-      style={{
-        width: checkListRowWidth(width, fontSize),
-        display: "flex",
-        flexDirection: "column",
-        gap: rowGap ?? fontSize * 0.55,
-      }}
+    <AbsoluteFill
+      style={{ alignItems: "center", justifyContent: "center", textAlign: "center", background }}
     >
-      {entries.map((item, i) => {
-        const beat = schedule[i];
-        const boxProgress = steppedRamp(frame, beat.boxFrom, beat.boxTo, {
-          ease: easeOutCubic,
-          step,
-        });
-        const tickProgress =
-          beat.tickFrom === undefined || beat.tickTo === undefined
-            ? 0
-            : steppedRamp(frame, beat.tickFrom, beat.tickTo, {
-                ease: easeOutCubic,
-                step,
-              });
-        const strikeProgress =
-          beat.strikeFrom === undefined || beat.strikeTo === undefined
-            ? 0
-            : steppedRamp(frame, beat.strikeFrom, beat.strikeTo, {
-                ease: easeOutCubic,
-                step,
-              });
+      <div
+        style={{
+          width: checkListRowWidth(width, fontSize),
+          display: "flex",
+          flexDirection: "column",
+          gap: rowGap ?? fontSize * 0.55,
+        }}
+      >
+        {entries.map((item, i) => {
+          const beat = schedule[i];
+          const boxProgress = steppedRamp(frame, beat.boxFrom, beat.boxTo, {
+            ease: easeOutCubic,
+            step,
+          });
+          const tickProgress =
+            beat.tickFrom === undefined || beat.tickTo === undefined
+              ? 0
+              : steppedRamp(frame, beat.tickFrom, beat.tickTo, {
+                  ease: easeOutCubic,
+                  step,
+                });
+          const strikeProgress =
+            beat.strikeFrom === undefined || beat.strikeTo === undefined
+              ? 0
+              : steppedRamp(frame, beat.strikeFrom, beat.strikeTo, {
+                  ease: easeOutCubic,
+                  step,
+                });
 
-        return (
-          <div
-            key={`${item.text}:${i}`}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: boxGap,
-              height: rowHeight,
-            }}
-          >
-            <svg
-              width={boxSize}
-              height={boxSize}
-              viewBox={`0 0 ${boxSize} ${boxSize}`}
-              style={{ display: "block", overflow: "visible", flexShrink: 0 }}
+          return (
+            <div
+              key={`${item.text}:${i}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: boxGap,
+                height: rowHeight,
+              }}
             >
-              <path
-                d={boxPath(boxSize, seed, i)}
-                stroke={boxColor}
-                strokeWidth={strokeWidth}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-                pathLength={1}
-                strokeDasharray={1}
-                strokeDashoffset={1 - boxProgress}
-                opacity={boxProgress > 0 ? 0.9 : 0}
-              />
-              {item.checked ? (
+              <svg
+                width={boxSize}
+                height={boxSize}
+                viewBox={`0 0 ${boxSize} ${boxSize}`}
+                style={{ display: "block", overflow: "visible", flexShrink: 0 }}
+              >
                 <path
-                  d={tickPath(boxSize)}
-                  stroke={tickColor}
-                  strokeWidth={strokeWidth + 1}
+                  d={boxPath(boxSize, seed, i)}
+                  stroke={boxColor}
+                  strokeWidth={strokeWidth}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   fill="none"
                   pathLength={1}
                   strokeDasharray={1}
-                  strokeDashoffset={1 - tickProgress}
-                  opacity={tickProgress > 0 ? 1 : 0}
+                  strokeDashoffset={1 - boxProgress}
+                  opacity={boxProgress > 0 ? 0.9 : 0}
                 />
-              ) : null}
-            </svg>
-            <div
-              style={{
-                position: "relative",
-                flexShrink: 0,
-                width: labelWidth,
-                height: rowHeight,
-              }}
-            >
-              <Handwrite
-                text={item.text}
-                fontSize={labelSize(item.text)}
-                color={color}
-                delay={beat.labelAt}
-                perStep={perStep}
-                weight={weight}
-                align="left"
-                step={step}
-              />
-              {item.checked ? (
-                <svg
-                  width={labelWidth}
-                  height={rowHeight}
-                  viewBox={`0 0 ${labelWidth} ${rowHeight}`}
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    display: "block",
-                    overflow: "visible",
-                  }}
-                >
+                {item.checked ? (
                   <path
-                    d={strikePath(
-                      checkListStrikeWidth(item.text, labelSize(item.text), labelWidth),
-                      labelSize(item.text),
-                      rowHeight,
-                      seed,
-                      i,
-                    )}
+                    d={tickPath(boxSize)}
                     stroke={tickColor}
-                    strokeWidth={strokeWidth}
+                    strokeWidth={strokeWidth + 1}
                     strokeLinecap="round"
+                    strokeLinejoin="round"
                     fill="none"
                     pathLength={1}
                     strokeDasharray={1}
-                    strokeDashoffset={1 - strikeProgress}
-                    opacity={strikeProgress > 0 ? 0.85 : 0}
+                    strokeDashoffset={1 - tickProgress}
+                    opacity={tickProgress > 0 ? 1 : 0}
                   />
-                </svg>
-              ) : null}
+                ) : null}
+              </svg>
+              <div
+                style={{
+                  position: "relative",
+                  flexShrink: 0,
+                  width: labelWidth,
+                  height: rowHeight,
+                }}
+              >
+                <Handwrite
+                  text={item.text}
+                  fontSize={labelSize(item.text)}
+                  color={color}
+                  delay={beat.labelAt}
+                  perStep={perStep}
+                  weight={weight}
+                  align="left"
+                  step={step}
+                />
+                {item.checked ? (
+                  <svg
+                    width={labelWidth}
+                    height={rowHeight}
+                    viewBox={`0 0 ${labelWidth} ${rowHeight}`}
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "block",
+                      overflow: "visible",
+                    }}
+                  >
+                    <path
+                      d={strikePath(
+                        checkListStrikeWidth(item.text, labelSize(item.text), labelWidth),
+                        labelSize(item.text),
+                        rowHeight,
+                        seed,
+                        i,
+                      )}
+                      stroke={tickColor}
+                      strokeWidth={strokeWidth}
+                      strokeLinecap="round"
+                      fill="none"
+                      pathLength={1}
+                      strokeDasharray={1}
+                      strokeDashoffset={1 - strikeProgress}
+                      opacity={strikeProgress > 0 ? 0.85 : 0}
+                    />
+                  </svg>
+                ) : null}
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </AbsoluteFill>
   );
 }

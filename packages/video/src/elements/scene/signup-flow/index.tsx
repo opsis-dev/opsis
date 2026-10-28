@@ -15,7 +15,11 @@ import { useButtonTransition } from "#video/parts/use-button-transition.ts";
 import { useCursorPath } from "#video/elements/scene/signup-flow/use-cursor-path.ts";
 import { useInputTransition } from "#video/parts/use-input-transition.ts";
 import { useToastTransition } from "#video/parts/use-toast-transition.ts";
-import { type RemocnTheme, useRemocnTheme } from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { type ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { NeutralUIProvider, defaultDarkTheme, defaultLightTheme } from "#video/lib/neutral-ui/theme.ts";
+import type React from "react";
 
 export interface SignupFlowProps {
   title?: string;
@@ -27,7 +31,7 @@ export interface SignupFlowProps {
   googleLabel?: string;
   signinText?: string;
   toastTitle?: string;
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
 }
 
 const STAGE_W = 1280;
@@ -42,7 +46,7 @@ const PASS_Y = 398;
 const CONFIRM_Y = 500;
 const CREATE_Y = 564;
 
-export function SignupFlow({
+function SignupFlowView({
   title = "Create an account",
   description = "Enter your information below to create your account",
   fullName = "John Doe",
@@ -52,7 +56,7 @@ export function SignupFlow({
   toastTitle = "Account created",
   theme,
 }: SignupFlowProps) {
-  const resolved = useRemocnTheme(theme);
+  const resolved = useNeutralTheme(theme);
   const opts = { theme };
 
   const cardEnter = useBlurInTransition(
@@ -282,4 +286,11 @@ export function SignupFlow({
       <Cursor style={cursorStyle} variant="pointer" theme={theme} />
     </div>
   );
+}
+
+export function SignupFlow(props: ElementProps & { children?: React.ReactNode }) {
+  const { theme } = props;
+  if (!isThemeValue(theme)) return <SignupFlowView {...(props as unknown as React.ComponentProps<typeof SignupFlowView>)} />;
+  const tokens = { ...(theme.mode === "dark" ? defaultDarkTheme : defaultLightTheme), ...themeColors(theme) };
+  return <NeutralUIProvider mode={theme.mode} theme={tokens}><SignupFlowView {...(props as unknown as React.ComponentProps<typeof SignupFlowView>)} theme={tokens} /></NeutralUIProvider>;
 }

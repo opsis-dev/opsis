@@ -75,9 +75,9 @@ In place:
 
 - `ElementMeta` (`crates/compile/src/elements/mod.rs`) records nothing about where an element came from; that lives only in `THIRD_PARTY_NOTICES.md`.
 - `elements()` lists every element's `definition()` in one ordered list; every entry becomes a node (`element_node_type`: `fx.<name>`) with its card, length handle and envelope. A file per element and a line in that list is all these elements need on the Rust side.
-- Settings structs: every element's settings are a struct with `schemars` attributes; the ones collected in `CoreElementProps` are exported to `packages/video/src/generated/spec.ts`, so components get typed props. The `font` widget (`x-widget = "font"`) and `font_stack` (`crates/compile/src/fonts/mod.rs`) turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
+- Settings structs: every element's settings are a struct with `schemars` attributes; all of them, collected in `ElementSettings`, are exported to `packages/video/src/generated/spec.ts`, so components get typed props. The `font` widget (`x-widget = "font"`) and `font_stack` (`crates/compile/src/fonts/mod.rs`) turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
 - Loading: `ELEMENTS` (`packages/video/src/elements/index.ts`) imports every element, and `DemoTimeline` looks each up synchronously (`resolveElement`).
-- Framing helpers in `packages/video/src/registry/framing.tsx`: `centered`, `fitScreen`, `placedAt` (spot placement for the `spot` widget), `pointsFromSpots`, `painted`, `playsAtEnd`.
+- Each element places itself: centring, a spot's position (`numberOr(x, 0.5) * width`), screen fitting (`ScreenFit`, `packages/video/src/lib/layout/screen-fit.tsx`) and its background are done inside its own component; `packages/video/src/lib/settings/shape.ts` holds the setting conversions.
 - Guardrails already cover any new folder in `packages/video`: `no-restricted-imports` bans `framer-motion`, `motion`, `gsap` and `useFrame` (`scripts/lib/oxlint-base.ts`), `opsis/no-animate-class` bans Tailwind `animate-*` and `opsis/no-three-clock` bans three.js clocks (`packages/video/oxlint.config.ts`, `scripts/oxlint-plugin-opsis.ts`).
 - Placeholder images in `public/placeholders` (`logo-mark.svg`, `screen-wide.svg`, `screen-tall.svg`) for logo and image defaults.
 

@@ -2,6 +2,7 @@ import { interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface ShimmerSweepProps {
+  background?: string;
   fontFamily?: string;
   text: string;
   baseColor?: string;
@@ -21,6 +22,7 @@ export function ShimmerSweep({
   fontWeight = 700,
   speed = 1,
   className,
+  background = "transparent",
 }: ShimmerSweepProps) {
   const frame = useAuthoredFrame() * speed;
   const { durationInFrames: clipFrames } = useAuthoredConfig();
@@ -50,7 +52,7 @@ export function ShimmerSweep({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background,
       }}
     >
       <div style={{ position: "relative", display: "inline-block" }}>

@@ -2,6 +2,7 @@ import { Caret } from "#video/parts/caret.tsx";
 import { useTypewriter } from "#video/lib/neutral-ui/index.ts";
 
 export interface TypewriterProps {
+  background?: string;
   fontFamily?: string;
   text: string;
   cursor?: boolean;
@@ -25,6 +26,7 @@ export function Typewriter({
   cursorColor = "#171717",
   fontWeight = 600,
   className,
+  background = "transparent",
 }: TypewriterProps) {
   const tw = useTypewriter(text, { cps: charsPerSecond, speed });
 
@@ -36,7 +38,7 @@ export function Typewriter({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background,
       }}
     >
       <span

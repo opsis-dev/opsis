@@ -1,4 +1,4 @@
-import { mixOklch, type RemocnTheme, useRemocnTheme } from "#video/lib/neutral-ui/index.ts";
+import { mixOklch, type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
 export type CommandMenuItemState = "idle" | "hover" | "press" | "selected";
 
@@ -9,7 +9,7 @@ export interface CommandMenuItemProps {
   icon?: CommandMenuIcon;
   shortcut?: string;
   width?: number;
-  theme?: Partial<RemocnTheme>;
+  theme?: Partial<NeutralTheme>;
   className?: string;
 }
 
@@ -39,7 +39,7 @@ export interface CommandMenuItemStyleContext {
 }
 
 export function commandMenuItemStyleContext(
-  theme: RemocnTheme,
+  theme: NeutralTheme,
 ): CommandMenuItemStyleContext {
   return {
     idleBg: theme.popover,
@@ -218,7 +218,7 @@ export function CommandMenuItem({
   theme: themeOverride,
   className,
 }: CommandMenuItemProps) {
-  const theme = useRemocnTheme(themeOverride, "light");
+  const theme = useNeutralTheme(themeOverride, "light");
   const ctx = commandMenuItemStyleContext(theme);
 
   return (

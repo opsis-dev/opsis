@@ -3,7 +3,7 @@ import { AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig } fr
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED, exitOpacity } from "#video/core/anim.ts";
 import { useOverlayFrame } from "#video/core/frame.ts";
-import type { CoreElementProps } from "#video/generated/spec.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 const CALLOUT = {
   drawFrames: 18,
@@ -25,7 +25,7 @@ const CALLOUT_DIRECTION = {
   right: [1, -0.35],
 } as const;
 
-export const Callout: React.FC<CoreElementProps["callout"]> = ({
+export const Callout: React.FC<ElementSettings["callout"]> = ({
   text,
   x,
   y,
