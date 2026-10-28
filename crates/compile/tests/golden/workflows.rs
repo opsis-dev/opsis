@@ -12,6 +12,8 @@ use opsis_types::values::NodeResult;
 use opsis_types::workflow::{Workflow, WorkflowNode};
 use serde_json::{Map, Value, json};
 
+use crate::known::known_types;
+
 const WORKFLOWS: &str = "compile/workflows";
 const PROBLEM_CASES: &str = "compile/problem-cases.json";
 
@@ -105,6 +107,7 @@ fn workflows_compile_check_and_flatten_as_recorded() {
     for name in recorded_workflows() {
         let stored = opsis_golden::read(&name);
         let wf: Workflow = serde_json::from_value(stored["workflow"].clone()).expect("a workflow");
+        known_types(&name, wf.nodes.iter().map(|n| n.kind.as_str()));
         let results: IndexMap<String, NodeResult> =
             serde_json::from_value(stored["run"]["results"].clone()).expect("run results");
         let mut run = Map::new();

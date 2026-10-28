@@ -1,13 +1,20 @@
 use opsis_compile::node::{CardInputs, Ctx, NodeDef};
 use opsis_compile::params::Values;
-use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
 use opsis_types::values::{NodeResult, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use serde_json::{Value, json};
 
+use crate::known::{def_of, known_types};
+
 const PARAM_CASES: &str = "compile/param-cases.json";
 const NODE_CASES: &str = "compile/node-cases.json";
+
+fn case_type(case: &Value) -> &str {
+    case["type"]
+        .as_str()
+        .expect("every case names its node type")
+}
 
 fn changed(defaults: &Values, case: &Value) -> Values {
     let (Some(key), Some(change)) = (case["key"].as_str(), case["change"].as_object()) else {
@@ -42,16 +49,16 @@ fn outcome(def: &NodeDef, values: &Values, key: Option<&str>) -> Value {
 #[test]
 fn settings_parse_as_recorded() {
     let stored = opsis_golden::read(PARAM_CASES);
-    let cases: Vec<Value> = stored["cases"]
-        .as_array()
-        .expect("a case list")
+    let stored = stored["cases"].as_array().expect("a case list");
+    known_types(PARAM_CASES, stored.iter().map(case_type));
+    let cases: Vec<Value> = stored
         .iter()
-        .filter_map(|case| {
-            let def = node_def(case["type"].as_str()?)?;
+        .map(|case| {
+            let def = def_of(case_type(case));
             let values = changed(&def.defaults(), case);
             let mut case = case.clone();
             case["outcome"] = outcome(def, &values, case["key"].as_str());
-            Some(case)
+            case
         })
         .collect();
     opsis_golden::check(PARAM_CASES, &json!({ "cases": cases }));
@@ -126,19 +133,19 @@ fn card(def: &NodeDef, case: &Value) -> Value {
 #[test]
 fn nodes_compile_and_draw_their_cards_as_recorded() {
     let stored = opsis_golden::read(NODE_CASES);
+    let stored = stored.as_array().expect("a case list");
+    known_types(NODE_CASES, stored.iter().map(case_type));
     let cases: Vec<Value> = stored
-        .as_array()
-        .expect("a case list")
         .iter()
-        .filter_map(|case| {
-            let def = node_def(case["type"].as_str()?)?;
+        .map(|case| {
+            let def = def_of(case_type(case));
             let (outputs, error) = compiled(def, case);
             let rows = card(def, case);
             let mut case = case.clone();
             case["outputs"] = outputs;
             case["error"] = error;
             case["card"] = rows;
-            Some(case)
+            case
         })
         .collect();
     opsis_golden::check(NODE_CASES, &Value::Array(cases));
