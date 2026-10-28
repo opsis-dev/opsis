@@ -10,6 +10,7 @@
     "core:window:allow-toggle-maximize",
     "core:window:allow-close",
     "core:window:allow-set-title",
-    "core:webview:allow-set-webview-zoom"
+    "core:webview:allow-set-webview-zoom",
+    "notification:allow-is-permission-granted"
   ]
 }

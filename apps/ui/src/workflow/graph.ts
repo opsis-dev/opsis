@@ -5,6 +5,7 @@ import type {
   EdgeEnds,
   EditorNode,
   Workflow,
+  WorkflowEdge,
 } from "@/generated/bindings";
 import { canConnect, getNodeDef } from "@/store/catalog";
 
@@ -15,6 +16,26 @@ function familyPort(def: EditorNode, handle: string): CatalogPort | undefined {
   const family = def.family;
   if (!family || !inFamily(family, handle)) return undefined;
   return { type: family.type, label: handle, optional: true, many: false };
+}
+
+export function inputsBeforeCompile(
+  def: EditorNode,
+  edges: readonly WorkflowEdge[],
+  nodeId: string,
+): Record<string, CatalogPort> {
+  const family = def.family;
+  if (!family) return def.inputs;
+  const connected = edges
+    .filter((e) => e.target === nodeId && inFamily(family, e.targetHandle))
+    .map((e) => Number(e.targetHandle.slice(family.prefix.length)));
+  if (!connected.length) return def.inputs;
+  const inputs = { ...def.inputs };
+  for (let i = 1; i <= Math.max(...connected) + 1; i++) {
+    const handle = `${family.prefix}${i}`;
+    const port = inputs[handle] ?? familyPort(def, handle);
+    if (port) inputs[handle] = port;
+  }
+  return inputs;
 }
 
 export function portOf(

@@ -371,6 +371,14 @@ pub fn end_gesture(app: AppHandle, state: State<'_, AppState>) {
         }
     }
     announce(&app);
+    let closed = state
+        .editor()
+        .document
+        .as_ref()
+        .is_some_and(|doc| doc.gesture_start().is_none());
+    if closed {
+        crate::compile::request(&app);
+    }
 }
 
 #[tauri::command]

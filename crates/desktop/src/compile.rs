@@ -27,7 +27,7 @@ use tauri_specta::Event;
 
 use crate::error::CommandResult;
 use crate::events::Compiled;
-use crate::node_results::{check_media_files, refresh};
+use crate::node_results::{check_media_files, held, refresh};
 use crate::state::AppState;
 
 #[derive(Debug, Clone, Serialize, Type)]
@@ -57,6 +57,7 @@ struct CompileInput {
     results: IndexMap<String, NodeResult>,
     selected: Option<String>,
     inspected: Option<String>,
+    gesturing: bool,
 }
 
 fn compile_input(state: &AppState) -> Option<CompileInput> {
@@ -68,6 +69,7 @@ fn compile_input(state: &AppState) -> Option<CompileInput> {
         results: editor.results.clone(),
         selected: editor.selected.clone(),
         inspected: editor.inspected.clone(),
+        gesturing: doc.gesture_start().is_some(),
     })
 }
 
@@ -124,7 +126,11 @@ fn editor_compile(input: &CompileInput) -> EditorCompile {
 }
 
 fn refreshed_compile(app: &AppHandle, input: &mut CompileInput) -> EditorCompile {
-    let refreshed = refresh(app, &input.dir, &input.workflow, &mut input.results);
+    let refreshed = if input.gesturing {
+        held(app, &input.dir, &input.results)
+    } else {
+        refresh(app, &input.dir, &input.workflow, &mut input.results)
+    };
     let mut compiled = editor_compile(input);
     compiled.outdated = refreshed.outdated;
     compiled.issues.extend(refreshed.problems);
@@ -165,13 +171,15 @@ pub fn request(app: &AppHandle) {
             let compiled = refreshed_compile(&emitter, &mut input);
             emitter.state::<AppState>().editor().film = film_of(&compiled);
             emit(&emitter, &compiled);
-            check_media_files(
-                &emitter,
-                &input.dir,
-                &input.workflow,
-                &compiled.result,
-                &input.results,
-            );
+            if !input.gesturing {
+                check_media_files(
+                    &emitter,
+                    &input.dir,
+                    &input.workflow,
+                    &compiled.result,
+                    &input.results,
+                );
+            }
             let refs = project_refs_in(&json!([
                 compiled.result.values,
                 input.workflow.settings.fonts.families

@@ -12,7 +12,8 @@ use crate::clip::{input_take, recording_take, scene_item_count};
 use crate::compile::CompileResult;
 use crate::node::{CLIP_PORT, CardInputs, InputMedia};
 use crate::ports::convert_input;
-use crate::registry::node_def;
+use crate::registry::{node_def, node_name};
+use crate::text::format_duration;
 use crate::vars::{Vars, strings_in, workflow_vars};
 
 static FILE_NAME: LazyLock<Regex> =
@@ -45,6 +46,32 @@ fn converted_to_file(
     convert_input(Some(value), Some(spec))
 }
 
+fn picked_names(wf: &Workflow, node: &WorkflowNode) -> IndexMap<String, String> {
+    let Some(def) = node_def(&node.kind) else {
+        return IndexMap::new();
+    };
+    node.params
+        .iter()
+        .filter_map(|(key, value)| {
+            let id = value.as_str().filter(|v| !v.is_empty())?;
+            let field = def.params.field(key)?;
+            let name = match field["x-widget"].as_str()? {
+                "action" => node_name(wf.node(id)?),
+                "marker" => {
+                    let marker = wf.markers.iter().find(|m| m.id == id)?;
+                    if marker.label.is_empty() {
+                        format!("the marker at {}", format_duration(marker.at_ms))
+                    } else {
+                        marker.label.clone()
+                    }
+                }
+                _ => return None,
+            };
+            Some((id.to_owned(), name))
+        })
+        .collect()
+}
+
 pub fn card_inputs(
     wf: &Workflow,
     compiled: &CompileResult,
@@ -66,6 +93,7 @@ pub fn card_inputs(
             .and_then(|a| a.hits),
         ..CardInputs::default()
     };
+    inputs.names = picked_names(wf, node);
     for e in wf.edges.iter().filter(|e| e.target == node.id) {
         inputs.connected.push(e.target_handle.clone());
         let port = e.target_handle.clone();

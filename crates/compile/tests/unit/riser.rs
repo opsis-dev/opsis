@@ -147,3 +147,42 @@ fn ends_on_a_browser_action_even_when_that_is_sooner_than_its_length() {
         "a 3 s riser is trimmed to end on a click 2 s in"
     );
 }
+
+#[test]
+fn names_the_action_or_marker_it_rises_into_on_the_card() {
+    let mut g = Graph::default();
+    let cam = g.recorded_take(&[("save", "browser.click", json!({ "target": "Save" }))]);
+    g.labelled(
+        "rise",
+        "audio.riser",
+        json!({ "atAction": "save" }),
+        "Build-up",
+    );
+    g.node(
+        "marked",
+        "audio.riser",
+        json!({ "endsOn": "marker", "marker": "launch" }),
+    );
+    g.node("beep", "audio.tones", json!({ "atAction": "save" }));
+    g.link(&cam, "rise");
+    let mut wf: Workflow = g.build();
+    wf.markers = vec![Marker {
+        id: "launch".to_owned(),
+        at_ms: 2000.0,
+        label: "Launch".to_owned(),
+    }];
+    let compiled = compile_workflow(&wf, None);
+    let cards = opsis_compile::cards::workflow_cards(
+        &wf,
+        &opsis_compile::cards::CardSources {
+            compiled: &compiled,
+            results: None,
+            secrets: None,
+            gone: &|_| false,
+        },
+    );
+    let save = opsis_compile::registry::node_name(wf.node("save").unwrap());
+    assert_eq!(cards["rise"][0].text, format!("Rises 3 s into “{save}”"));
+    assert_eq!(cards["marked"][0].text, "Rises 3 s into “Launch”");
+    assert_eq!(cards["beep"][1].text, format!("On “{save}”"));
+}

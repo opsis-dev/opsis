@@ -9,7 +9,7 @@ import {
   type LucideIcon,
   RefreshCw,
 } from "lucide-react";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import {
   BaseNode,
   BaseNodeContent,
@@ -24,10 +24,11 @@ import { Progress } from "@/components/ui/progress";
 import type { CatalogPort, EditorNode, NodeRunStatus, WorkflowNode } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { getNodeDef, nodeName } from "@/store/catalog";
+import { inputsBeforeCompile } from "@/workflow/graph";
 import { CARD_WIDTH, groupLook, noteText } from "@/workflow/nodes";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
-import { workflowEdits } from "../store/workflow";
+import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { CardRows, useCardRows } from "./card-rows";
 import { NodeBadge } from "./category-badge";
 import type { CanvasNode } from "./convert";
@@ -161,8 +162,13 @@ function PortHandles({ ports, side }: { ports: Record<string, CatalogPort>; side
   });
 }
 
+const NO_EDGES: [] = [];
+
 function NodePorts({ id, def }: { id: string; def: EditorNode }) {
-  const inputs = useCompiledContext().inputs[id] ?? def.inputs;
+  const compiled = useCompiledContext().inputs[id];
+  const edges = useWorkflowStore((s) => s.workflow?.edges ?? NO_EDGES);
+  const fallback = useMemo(() => inputsBeforeCompile(def, edges, id), [def, edges, id]);
+  const inputs = compiled ?? fallback;
   if (!Object.keys(inputs).length && !Object.keys(def.outputs).length) return null;
   return (
     <div className="grid grid-cols-2 gap-y-1 text-xs">

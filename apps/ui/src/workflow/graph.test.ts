@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { Workflow } from "@/generated/bindings";
-import { connects, portOf } from "./graph";
+import type { Workflow, WorkflowEdge } from "@/generated/bindings";
+import { getNodeDef } from "@/store/catalog";
+import { connects, inputsBeforeCompile, portOf } from "./graph";
 
 const node = (id: string, type: string) => ({ id, type, position: { x: 0, y: 0 }, params: {} });
 
@@ -29,5 +30,30 @@ describe("growing inputs", () => {
     const ends = { sourceHandle: "clip", target: "seq", targetHandle: "in9" };
     expect(connects(workflow, { ...ends, source: "title" })).toBe(true);
     expect(connects(workflow, { ...ends, source: "file", sourceHandle: "media" })).toBe(false);
+  });
+});
+
+describe("inputs before the first compile", () => {
+  it("shows every connected numbered input and one empty one after the last", () => {
+    const def = getNodeDef("timeline.sequence");
+    if (!def) throw new Error("no sequence");
+    const edge = (handle: string): WorkflowEdge =>
+      ({
+        id: handle,
+        source: "a",
+        sourceHandle: "clip",
+        target: "seq",
+        targetHandle: handle,
+      }) as WorkflowEdge;
+    expect(Object.keys(inputsBeforeCompile(def, [], "seq"))).toEqual(Object.keys(def.inputs));
+    const shown = inputsBeforeCompile(def, [edge("in1"), edge("in3")], "seq");
+    expect(Object.keys(shown).filter((k) => k.startsWith("in"))).toEqual([
+      "in1",
+      "in2",
+      "in3",
+      "in4",
+    ]);
+    expect(shown.in4?.type).toBe("clip");
+    expect(inputsBeforeCompile(def, [edge("in3")], "other")).toEqual(def.inputs);
   });
 });

@@ -1308,7 +1308,7 @@ async fn make_transition_sounds(
         .and_then(CompileValue::as_clip)
         .ok_or_else(|| ExecError::new("Connect a clip with transitions."))?;
     let settings = &ctx.workflow.settings;
-    let lengths: std::collections::BTreeSet<u32> = transition_cues(clip, settings)
+    let lengths: std::collections::BTreeSet<u32> = transition_cues(clip, settings, p.at_cuts)
         .iter()
         .map(|cue| p.length_ms(cue, settings.fps))
         .collect();

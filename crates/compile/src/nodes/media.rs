@@ -1354,7 +1354,9 @@ pub fn nodes() -> Vec<NodeDef> {
         })
         .look(NodeLook::of("lucide:scissors-line-dashed"))
         .needs(FileNeed::Moving),
-        join_files().look(NodeLook::of("lucide:combine")),
+        join_files()
+            .look(NodeLook::of("lucide:combine"))
+            .needs(FileNeed::Moving),
         one_file_op::<ChangeSpeed>(
             SPEED_TYPE,
             "Change speed",
@@ -1630,6 +1632,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 length_row(ctx.result, Icon::Clock),
             ]
         })
-        .look(NodeLook::of("lucide:zap")),
+        .look(NodeLook::of("lucide:zap"))
+        .needs(FileNeed::Moving),
     ]
 }

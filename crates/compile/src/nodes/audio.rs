@@ -348,7 +348,11 @@ fn sound_effect() -> NodeDef {
                 } else {
                     row(
                         Icon::MousePointerClick,
-                        format!("On an action{}", offset_label(p.offset_ms)),
+                        format!(
+                            "On {}{}",
+                            picked_name(ctx.inputs, &p.at_action, "an action"),
+                            offset_label(p.offset_ms)
+                        ),
                     )
                 }),
                 p.keep_music.then(|| row(Icon::Music, "Music stays up")),
@@ -584,7 +588,7 @@ fn tones() -> NodeDef {
             };
             vec![
                 Some(row(Icon::Timer, what)),
-                Some(placing_row(&p.placing())),
+                Some(placing_row(&p.placing(), ctx.inputs)),
                 ctx.result.is_none().then(not_made_yet),
             ]
         })
@@ -609,7 +613,14 @@ impl Tones {
     }
 }
 
-fn placing_row(placing: &Placing<'_>) -> CardRow {
+fn picked_name(inputs: &CardInputs, id: &str, unnamed: &str) -> String {
+    inputs
+        .names
+        .get(id)
+        .map_or_else(|| unnamed.to_owned(), |name| quote(name, LABELLED_TEXT_MAX))
+}
+
+fn placing_row(placing: &Placing<'_>, inputs: &CardInputs) -> CardRow {
     if placing.at_action.is_empty() {
         row(
             Icon::Clock,
@@ -618,7 +629,11 @@ fn placing_row(placing: &Placing<'_>) -> CardRow {
     } else {
         row(
             Icon::MousePointerClick,
-            format!("On an action{}", offset_label(placing.offset_ms)),
+            format!(
+                "On {}{}",
+                picked_name(inputs, placing.at_action, "an action"),
+                offset_label(placing.offset_ms)
+            ),
         )
     }
 }
@@ -949,7 +964,7 @@ fn generate() -> NodeDef {
                         format_duration(shape.seconds * 1000.0)
                     ),
                 )),
-                Some(placing_row(&p.placing())),
+                Some(placing_row(&p.placing(), ctx.inputs)),
                 ctx.result.is_none().then(not_made_yet),
             ]
         })
@@ -1268,6 +1283,11 @@ pub struct TransitionSounds {
     #[default("app:sfx/whoosh.wav".to_owned())]
     #[schemars(description = "Sound file", extend("x-widget" = "sound", "x-accept" = "audio/*", "x-show-if" = { "soundFrom": ["file"] }))]
     pub sound: String,
+    #[schemars(
+        description = "Also at plain cuts",
+        extend("x-help" = "Plays the sound where one clip cuts straight to the next too, at the variation's own length.")
+    )]
+    pub at_cuts: bool,
     #[default = true]
     #[schemars(description = "Vary each one", extend("x-help" = "A small change of pitch and level on each, so they don't sound copied."))]
     pub vary: bool,
@@ -1284,15 +1304,28 @@ pub struct TransitionCue {
     pub frames: f64,
 }
 
-pub fn transition_cues(clip: &ClipValue, settings: &WorkflowSettings) -> Vec<TransitionCue> {
-    flatten_spec(&clip_to_spec(clip, settings))
+pub fn transition_cues(
+    clip: &ClipValue,
+    settings: &WorkflowSettings,
+    with_cuts: bool,
+) -> Vec<TransitionCue> {
+    let flat = flatten_spec(&clip_to_spec(clip, settings));
+    let mut cues: Vec<TransitionCue> = flat
         .transitions
         .iter()
         .map(|t| TransitionCue {
             middle: (t.from + t.to) / 2.0,
             frames: t.to - t.from,
         })
-        .collect()
+        .collect();
+    if with_cuts {
+        cues.extend(flat.cuts.iter().map(|&at| TransitionCue {
+            middle: at,
+            frames: 0.0,
+        }));
+        cues.sort_by(|a, b| a.middle.total_cmp(&b.middle));
+    }
+    cues
 }
 
 impl TransitionSounds {
@@ -1308,7 +1341,7 @@ impl TransitionSounds {
     }
 
     pub fn length_ms(&self, cue: &TransitionCue, fps: u32) -> u32 {
-        if self.fit {
+        if self.fit && cue.frames > 0.0 {
             whole(cue.frames * 1000.0 / f64::from(fps.max(1))).max(MIN_TRANSITION_SOUND_MS)
         } else {
             whole(self.shape().seconds * 1000.0)
@@ -1414,9 +1447,12 @@ fn transition_sounds() -> NodeDef {
             vec![
                 Some(row(
                     Icon::Blend,
-                    match count {
-                        Some(n) => format!("{} · {sound}", plural(f64::from(n), "transition")),
-                        None => sound,
+                    match (count, p.at_cuts) {
+                        (Some(n), false) => {
+                            format!("{} · {sound}", plural(f64::from(n), "transition"))
+                        }
+                        (Some(n), true) => format!("{n} at cuts and transitions · {sound}"),
+                        (None, _) => sound,
                     },
                 )),
                 Some(row(Icon::Volume2, percent_text(p.volume, f64::INFINITY))),
@@ -1428,7 +1464,7 @@ fn transition_sounds() -> NodeDef {
             let Some(clip) = ctx.input(CLIP_PORT).and_then(CompileValue::as_clip) else {
                 return silent_audio();
             };
-            let cues = transition_cues(clip, ctx.settings);
+            let cues = transition_cues(clip, ctx.settings, ctx.params.at_cuts);
             let items = cues
                 .iter()
                 .enumerate()
@@ -1668,9 +1704,9 @@ fn riser() -> NodeDef {
         .card(|ctx: &CardCtx<'_, Riser>| {
             let p = &ctx.params;
             let into = match p.ends_on {
-                RiserEnd::Action => "an action",
-                RiserEnd::Marker => "a marker",
-                RiserEnd::ClipEnd => "the end of the clip",
+                RiserEnd::Action => picked_name(ctx.inputs, &p.at_action, "an action"),
+                RiserEnd::Marker => picked_name(ctx.inputs, &p.marker, "a marker"),
+                RiserEnd::ClipEnd => "the end of the clip".to_owned(),
             };
             let unset = match p.ends_on {
                 RiserEnd::Action => p.at_action.is_empty().then_some("Pick the action it ends on"),

@@ -10056,6 +10056,7 @@
    "take": 1,
    "fit": true,
    "sound": "app:sfx/whoosh.wav",
+   "atCuts": false,
    "vary": true,
    "volume": 0.7
   }

@@ -351,6 +351,7 @@ pub struct CardInputs {
     pub grade: IndexMap<String, Vec<StyleEntry>>,
     pub missing_files: Vec<String>,
     pub hits: Option<Hits>,
+    pub names: IndexMap<String, String>,
 }
 
 impl CardInputs {

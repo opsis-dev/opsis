@@ -50405,6 +50405,12 @@
        ]
       }
      },
+     "atCuts": {
+      "description": "Also at plain cuts",
+      "type": "boolean",
+      "default": false,
+      "x-help": "Plays the sound where one clip cuts straight to the next too, at the variation's own length."
+     },
      "vary": {
       "description": "Vary each one",
       "type": "boolean",
@@ -50431,6 +50437,7 @@
      "take": 1,
      "fit": true,
      "sound": "app:sfx/whoosh.wav",
+     "atCuts": false,
      "vary": true,
      "volume": 0.7
     }

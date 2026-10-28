@@ -26,6 +26,8 @@ import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { NodeBadge } from "./category-badge";
+import { AudioFilePlayer } from "./file-player";
+import { fileUrl } from "./file-url";
 import { ProjectInspector } from "./project-inspector";
 import { ReplayButtons } from "./replay-buttons";
 import { startRun } from "./run";
@@ -230,16 +232,20 @@ function ArtifactList({ nodeId }: { nodeId: string }) {
     <FieldSet>
       <FieldLegend variant="label">Files</FieldLegend>
       {nodeResult.artifacts.map((a) => (
-        <Button
-          key={a.path}
-          variant="link"
-          size="sm"
-          className="h-auto justify-start p-0"
-          onClick={() => void commands.revealInFolder(projectDir, a.path)}
-        >
-          <ExternalLink data-icon="inline-start" />
-          {artifactName(a)}
-        </Button>
+        <div key={a.path} className="flex flex-col gap-1">
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto justify-start p-0"
+            onClick={() => void commands.revealInFolder(projectDir, a.path)}
+          >
+            <ExternalLink data-icon="inline-start" />
+            {artifactName(a)}
+          </Button>
+          {a.kind === "audio" ? (
+            <AudioFilePlayer src={fileUrl(a.path)} label={artifactName(a)} />
+          ) : null}
+        </div>
       ))}
     </FieldSet>
   );

@@ -175,6 +175,31 @@ fn unreadable_issues(
         .collect()
 }
 
+pub fn held(app: &AppHandle, dir: &Path, results: &IndexMap<String, NodeResult>) -> Refreshed {
+    let node_keys = app.state::<NodeKeys>();
+    let keyed = node_keys.keyed.lock().expect("node keys");
+    if keyed.dir.as_deref() != Some(dir) {
+        return Refreshed {
+            outdated: Vec::new(),
+            problems: Vec::new(),
+        };
+    }
+    let outdated = results
+        .iter()
+        .filter(|(id, r)| {
+            keyed
+                .current
+                .get(*id)
+                .is_some_and(|k| k != &r.hash && !keyed.checking.contains(k))
+        })
+        .map(|(id, _)| id.clone())
+        .collect();
+    Refreshed {
+        outdated,
+        problems: unreadable_issues(&keyed.current, &keyed.unreadable),
+    }
+}
+
 pub fn file_problems(app: &AppHandle) -> Vec<GraphIssue> {
     let open = app.state::<AppState>().editor().dir();
     let node_keys = app.state::<NodeKeys>();

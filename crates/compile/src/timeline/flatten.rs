@@ -270,6 +270,8 @@ pub struct FlatTimeline {
     pub camera_keys: Vec<CameraKeyMark>,
     #[serde(skip)]
     pub hits: Vec<Hit>,
+    #[serde(skip)]
+    pub cuts: Vec<f64>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -715,6 +717,7 @@ struct Collected {
     marks: Vec<ActionMark>,
     camera_keys: Vec<CameraKeyMark>,
     hits: Vec<Hit>,
+    cuts: Vec<f64>,
 }
 
 fn visit_tracks(acc: &mut Collected, tracks: &[TimelineTrack], walk: &Walk) {
@@ -726,6 +729,15 @@ fn visit_tracks(acc: &mut Collected, tracks: &[TimelineTrack], walk: &Walk) {
             previous_length = p.abs_end - p.abs_start;
             if p.to - p.from < EPSILON {
                 continue;
+            }
+            let entered = p
+                .item
+                .base()
+                .enter
+                .as_ref()
+                .is_some_and(|e| e.duration_in_frames > 0);
+            if before.is_finite() && !entered {
+                acc.cuts.push(p.from);
             }
             visit_item(acc, &p, before);
         }
@@ -974,6 +986,7 @@ pub fn flatten_spec(spec: &TimelineSpec) -> FlatTimeline {
         marks: Vec::new(),
         camera_keys: Vec::new(),
         hits: Vec::new(),
+        cuts: Vec::new(),
     };
     let root = Walk {
         inst: Instance::root(f64::from(spec.duration_in_frames)),
@@ -990,6 +1003,8 @@ pub fn flatten_spec(spec: &TimelineSpec) -> FlatTimeline {
     marks.sort_by(|x, y| x.frame.total_cmp(&y.frame));
     let mut hits = acc.hits;
     hits.sort_by(|x, y| x.frame.total_cmp(&y.frame));
+    let mut cuts = acc.cuts;
+    cuts.sort_by(f64::total_cmp);
     FlatTimeline {
         fps: spec.fps,
         duration_in_frames: spec.duration_in_frames,
@@ -1001,6 +1016,7 @@ pub fn flatten_spec(spec: &TimelineSpec) -> FlatTimeline {
         marks,
         camera_keys: acc.camera_keys,
         hits,
+        cuts,
     }
 }
 
