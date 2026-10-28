@@ -4596,6 +4596,29 @@
    }
   },
   {
+   "type": "media.voiceEffect",
+   "title": "Voice effects",
+   "category": "Media",
+   "description": "Makes a voice or a sound sound like a telephone, a radio, a small room, a hall or an echo. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "media.shortenPauses",
    "title": "Shorten pauses",
    "category": "Media",
@@ -51955,6 +51978,100 @@
     "default": {
      "semitones": 3.0,
      "keepCharacter": true
+    }
+   }
+  },
+  {
+   "type": "media.voiceEffect",
+   "title": "Voice effects",
+   "category": "Media",
+   "description": "Makes a voice or a sound sound like a telephone, a radio, a small room, a hall or an echo. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "effect": {
+      "description": "Effect",
+      "type": "string",
+      "enum": [
+       "telephone",
+       "radio",
+       "small-room",
+       "hall",
+       "echo"
+      ],
+      "default": "telephone",
+      "x-labels": {
+       "telephone": "Telephone",
+       "radio": "Radio",
+       "small-room": "Small room",
+       "hall": "Hall",
+       "echo": "Echo"
+      }
+     },
+     "mix": {
+      "description": "Mix",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 1.0,
+      "x-step": 0.05,
+      "x-help": "How much of the effect against the original. Rooms and echoes sound natural around 0.3."
+     },
+     "delayMs": {
+      "description": "Echo after",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 20,
+      "maximum": 2000,
+      "default": 300,
+      "x-step": 10,
+      "x-unit": "ms",
+      "x-show-if": {
+       "effect": [
+        "echo"
+       ]
+      }
+     },
+     "decay": {
+      "description": "Echo level",
+      "type": "number",
+      "format": "double",
+      "minimum": 0.05,
+      "maximum": 0.9,
+      "default": 0.4,
+      "x-step": 0.05,
+      "x-help": "How loud the echo is against the sound.",
+      "x-show-if": {
+       "effect": [
+        "echo"
+       ]
+      }
+     }
+    },
+    "type": "object",
+    "default": {
+     "effect": "telephone",
+     "mix": 1.0,
+     "delayMs": 300,
+     "decay": 0.4
     }
    }
   },

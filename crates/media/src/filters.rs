@@ -215,6 +215,56 @@ pub fn pitch_filter(
     }
 }
 
+const TELEPHONE: &str = "highpass=f=300,highpass=f=300,lowpass=f=3400,lowpass=f=3400,acrusher=bits=8:mode=log:aa=1:mix=0.3,compand=attacks=0.01:decays=0.2:points=-80/-80|-30/-15|0/-3";
+const RADIO: &str = "highpass=f=200,lowpass=f=5000,acrusher=bits=10:mode=log:aa=1:mix=0.2,compand=attacks=0.01:decays=0.3:points=-80/-80|-35/-20|0/-4";
+
+fn mixed_with_original(chain: &str, mix: f64) -> String {
+    let wet = round_to(mix.clamp(0.0, 1.0), 2);
+    if wet >= 1.0 {
+        return chain.to_owned();
+    }
+    if wet <= 0.0 {
+        return "anull".to_owned();
+    }
+    format!(
+        "[in]asplit[dry][wet];[wet]{chain}[effect];[dry][effect]amix=inputs=2:weights='{} {wet}':normalize=0:duration=first[out]",
+        round_to(1.0 - wet, 2)
+    )
+}
+
+fn in_room(room: &str, mix: f64) -> String {
+    let wet = round_to(mix.clamp(0.0, 1.0), 2);
+    let source = format!("amovie=filename={room}[room]");
+    if wet <= 0.0 {
+        return "anull".to_owned();
+    }
+    if wet >= 1.0 {
+        return format!("{source};[in][room]afir=gtype=none:irnorm=-1[out]");
+    }
+    format!(
+        "{source};[in]asplit[dry][wet];[wet][room]afir=gtype=none:irnorm=-1[effect];[dry][effect]amix=inputs=2:weights='{} {wet}':normalize=0:duration=first[out]",
+        round_to(1.0 - wet, 2)
+    )
+}
+
+pub fn voice_filter(p: &opsis_compile::nodes::media::VoiceEffects, room: Option<&str>) -> String {
+    use opsis_compile::nodes::media::VoiceEffect;
+    match (p.effect, room) {
+        (VoiceEffect::Telephone, _) => mixed_with_original(TELEPHONE, p.mix),
+        (VoiceEffect::Radio, _) => mixed_with_original(RADIO, p.mix),
+        (VoiceEffect::Echo, _) => mixed_with_original(
+            &format!(
+                "aecho=in_gain=1:out_gain=1:delays={}:decays={}",
+                p.delay_ms,
+                round_to(p.decay, 2)
+            ),
+            p.mix,
+        ),
+        (VoiceEffect::SmallRoom | VoiceEffect::Hall, Some(path)) => in_room(path, p.mix),
+        (VoiceEffect::SmallRoom | VoiceEffect::Hall, None) => "anull".to_owned(),
+    }
+}
+
 pub fn hum_filter(hertz: f64, harmonics: u32, width: f64) -> String {
     (1..=harmonics + 1)
         .map(|n| {

@@ -556,6 +556,20 @@ fn says_how_many_semitones_the_pitch_moves() {
 }
 
 #[test]
+fn names_the_voice_effect_and_its_mix() {
+    let texts = |params: Value| card_texts("media.voiceEffect", params, CardInputs::default());
+    assert_eq!(texts(json!({})), ["Telephone · 100 % mixed"]);
+    assert_eq!(
+        texts(json!({ "effect": "hall", "mix": 0.3 })),
+        ["Hall · 30 % mixed"]
+    );
+    assert_eq!(
+        texts(json!({ "effect": "echo", "delayMs": 250, "mix": 0.4 })),
+        ["Echo after 0.25 s · 40 % mixed"]
+    );
+}
+
+#[test]
 fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
     let song = &builtin_songs()[0];
     match compile_node("audio.music", json!({ "src": song.reference() }), json!({}))

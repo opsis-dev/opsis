@@ -896,3 +896,51 @@ async fn changes_pitch_in_one_pass_keeping_the_voice_character_unless_asked() {
         "apad=pad_dur=1,rubberband=pitch=0.5:formant=shifted:pitchq=quality:transients=mixed,atrim=end=4.000"
     );
 }
+
+#[tokio::test]
+async fn makes_a_telephone_or_an_echo_mixed_with_the_original() {
+    let (_, ran) = run(
+        sound_setup("media.voiceEffect", json!({})),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert_eq!(
+        ran[0][3],
+        "highpass=f=300,highpass=f=300,lowpass=f=3400,lowpass=f=3400,acrusher=bits=8:mode=log:aa=1:mix=0.3,compand=attacks=0.01:decays=0.2:points=-80/-80|-30/-15|0/-3"
+    );
+    let (_, ran) = run(
+        sound_setup("media.voiceEffect", json!({ "effect": "echo", "mix": 0.3 })),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert_eq!(
+        ran[0][3],
+        "[in]asplit[dry][wet];[wet]aecho=in_gain=1:out_gain=1:delays=300:decays=0.4[effect];[dry][effect]amix=inputs=2:weights='0.7 0.3':normalize=0:duration=first[out]"
+    );
+}
+
+#[tokio::test]
+async fn writes_the_room_beside_the_result_and_convolves_with_it() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(dir.path().join(".opsis/cache/h")).unwrap();
+    let setup = Setup {
+        kind: "media.voiceEffect",
+        params: json!({ "effect": "hall", "mix": 0.25 }),
+        project_dir: dir.path(),
+        names: &[],
+    };
+    let (result, ran) = run(setup, sound_probe(), voice()).await;
+    result.unwrap();
+    let room = dir.path().join(".opsis/cache/h/room.wav");
+    let spec = hound::WavReader::open(&room).unwrap().spec();
+    assert_eq!((spec.channels, spec.sample_rate), (2, 48000));
+    assert_eq!(
+        ran[0][3],
+        format!(
+            "amovie=filename={}[room];[in]asplit[dry][wet];[wet][room]afir=gtype=none:irnorm=-1[effect];[dry][effect]amix=inputs=2:weights='0.75 0.25':normalize=0:duration=first[out]",
+            room.to_string_lossy()
+        )
+    );
+}

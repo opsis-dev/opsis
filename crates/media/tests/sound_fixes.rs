@@ -2,14 +2,15 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use opsis_compile::nodes::media::{
-    ChangePitch, CleanSpeech, NoiseMethod, SoundPicture, SoundPictureKind,
+    ChangePitch, CleanSpeech, NoiseMethod, SoundPicture, SoundPictureKind, VoiceEffect,
+    VoiceEffects,
 };
 use opsis_compile::nodes::media::{Pause, kept_parts};
 use opsis_media::denoise::denoised;
 use opsis_media::filters::{
     hum_filter, hum_listen_filter, joined_parts_graph, noise_level, noise_level_listen_filter,
     pitch_filter, repair_filter, rms_level, silence_listen_filter, silences, sound_picture_graph,
-    spectral_floor, speech_filter,
+    spectral_floor, speech_filter, voice_filter,
 };
 
 const RATE: u32 = 48_000;
@@ -457,4 +458,104 @@ fn raises_a_tone_an_octave_and_keeps_its_length() {
     let pitch = crossings_per_second(&out);
     assert!((pitch - 880.0).abs() < 10.0, "{pitch} Hz");
     assert!((crossings_per_second(&source) - 440.0).abs() < 5.0);
+}
+
+fn click_at(seconds: f32, at: f32) -> Vec<f32> {
+    let mut samples = vec![0.0f32; (RATE as f32 * seconds) as usize];
+    let start = (RATE as f32 * at) as usize;
+    for (i, s) in samples[start..start + 480].iter_mut().enumerate() {
+        *s = 0.8 * (i as f32 / 480.0 * std::f32::consts::TAU * 5.0).sin();
+    }
+    samples
+}
+
+fn rms_between(samples: &[f32], from: f32, to: f32) -> f32 {
+    let part = &samples[(RATE as f32 * from) as usize..(RATE as f32 * to) as usize];
+    (part.iter().map(|s| s * s).sum::<f32>() / part.len() as f32).sqrt()
+}
+
+fn voiced(dir: &Path, samples: &[f32], p: &VoiceEffects) -> Vec<f32> {
+    let input = dir.join("in.wav");
+    write(&input, samples);
+    let room = opsis_media::generate::room_response(p.effect, 3).map(|channels| {
+        let file = dir.join("room.wav");
+        opsis_media::generate::write_stereo_wav(&file, &channels).unwrap();
+        opsis_media::grade::filter_path(&file.to_string_lossy())
+    });
+    let output = dir.join("out.wav");
+    filtered(&input, &voice_filter(p, room.as_deref()), &output);
+    read(&output)
+}
+
+#[test]
+#[ignore = "needs the dev engine"]
+fn makes_each_voice_effect_at_the_same_length() {
+    let dir = tempfile::tempdir().unwrap();
+    let low_and_high: Vec<f32> = (0..RATE as usize * 2)
+        .map(|i| {
+            let t = i as f32 / RATE as f32;
+            0.3 * (t * 100.0 * std::f32::consts::TAU).sin()
+                + 0.3 * (t * 1000.0 * std::f32::consts::TAU).sin()
+        })
+        .collect();
+    let effect = |effect: VoiceEffect| VoiceEffects {
+        effect,
+        ..VoiceEffects::default()
+    };
+    let phone = voiced(dir.path(), &low_and_high, &effect(VoiceEffect::Telephone));
+    assert_eq!(phone.len(), low_and_high.len());
+    assert!(
+        energy_at(&phone[RATE as usize / 2..], 100.0)
+            < energy_at(&low_and_high[RATE as usize / 2..], 100.0) / 30.0,
+        "the telephone cuts the lows"
+    );
+    assert!(
+        energy_at(&phone[RATE as usize / 2..], 1000.0)
+            > energy_at(&low_and_high[RATE as usize / 2..], 1000.0) / 4.0
+    );
+    let radio = voiced(dir.path(), &low_and_high, &effect(VoiceEffect::Radio));
+    assert_eq!(radio.len(), low_and_high.len());
+
+    let click = click_at(3.0, 0.5);
+    for room in [VoiceEffect::SmallRoom, VoiceEffect::Hall] {
+        let wet = voiced(dir.path(), &click, &effect(room));
+        assert_eq!(wet.len(), click.len());
+        let tail = rms_between(&wet, 0.6, 0.7);
+        assert!(tail > 1e-3, "{room:?} rings after the click: {tail}");
+        assert_eq!(rms_between(&click, 0.6, 0.7), 0.0);
+    }
+    for room in [VoiceEffect::SmallRoom, VoiceEffect::Hall] {
+        let wet = voiced(dir.path(), &low_and_high, &effect(room));
+        let change =
+            20.0 * (rms_between(&wet, 1.0, 1.9) / rms_between(&low_and_high, 1.0, 1.9)).log10();
+        assert!(
+            change.abs() < 6.0,
+            "{room:?} changes a steady sound by {change:.1} dB"
+        );
+    }
+    let small = voiced(dir.path(), &click, &effect(VoiceEffect::SmallRoom));
+    let hall = voiced(dir.path(), &click, &effect(VoiceEffect::Hall));
+    assert!(
+        rms_between(&hall, 1.5, 1.6) > rms_between(&small, 1.5, 1.6) * 10.0,
+        "a hall rings longer"
+    );
+
+    let echo = voiced(
+        dir.path(),
+        &click,
+        &VoiceEffects {
+            effect: VoiceEffect::Echo,
+            delay_ms: 400,
+            decay: 0.5,
+            ..VoiceEffects::default()
+        },
+    );
+    let first = rms_between(&echo, 0.5, 0.51);
+    let repeat = rms_between(&echo, 0.9, 0.91);
+    assert!(
+        (repeat / first - 0.5).abs() < 0.05,
+        "the echo comes back at half: {}",
+        repeat / first
+    );
+    assert!(rms_between(&echo, 0.6, 0.85) < 1e-4);
 }

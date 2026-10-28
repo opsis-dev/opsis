@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use opsis_compile::nodes::audio::{NoiseColour, ToneKind};
+use opsis_compile::nodes::media::VoiceEffect;
 use opsis_types::numbers::whole;
 
 pub const RATE: u32 = 48_000;
@@ -115,6 +116,87 @@ pub fn beeps(p: &Beeps) -> Vec<f32> {
         }
     }
     out
+}
+
+struct Room {
+    seconds: f64,
+    reverb_seconds: f64,
+    reflections: &'static [(f64, f32)],
+}
+
+const SMALL_ROOM: Room = Room {
+    seconds: 0.6,
+    reverb_seconds: 0.35,
+    reflections: &[(0.0053, 0.6), (0.0089, 0.5), (0.0131, 0.4), (0.0177, 0.35)],
+};
+
+const HALL: Room = Room {
+    seconds: 3.0,
+    reverb_seconds: 2.2,
+    reflections: &[
+        (0.019, 0.5),
+        (0.027, 0.45),
+        (0.037, 0.4),
+        (0.053, 0.3),
+        (0.071, 0.25),
+    ],
+};
+
+const SIXTY_DB: f64 = 6.907_755;
+
+fn room_of(effect: VoiceEffect) -> Option<&'static Room> {
+    match effect {
+        VoiceEffect::SmallRoom => Some(&SMALL_ROOM),
+        VoiceEffect::Hall => Some(&HALL),
+        VoiceEffect::Telephone | VoiceEffect::Radio | VoiceEffect::Echo => None,
+    }
+}
+
+fn room_channel(room: &Room, seed: u64) -> Vec<f32> {
+    let count = samples_for(room.seconds);
+    let mut random = Seeded(seed | 1);
+    let mut out = vec![0.0f64; count];
+    let mut damped = 0.0f64;
+    for (i, slot) in out.iter_mut().enumerate() {
+        let t = i as f64 / f64::from(RATE);
+        let decay = (-SIXTY_DB * t / room.reverb_seconds).exp();
+        let darker = (0.2 + 0.75 * t / room.reverb_seconds).min(0.95);
+        damped = damped * darker + random.next() * (1.0 - darker);
+        let level = ((1.0 + darker) / (1.0 - darker)).sqrt();
+        *slot = damped * decay * level;
+    }
+    out[0] = 1.0;
+    for &(at, gain) in room.reflections {
+        let jitter = 1.0 + 0.04 * random.next();
+        if let Some(slot) = out.get_mut(samples_for(at * jitter)) {
+            *slot += f64::from(gain);
+        }
+    }
+    let energy = out.iter().map(|s| s * s).sum::<f64>().sqrt().max(1e-12);
+    out.iter().map(|s| (s / energy) as f32).collect()
+}
+
+pub fn room_response(effect: VoiceEffect, seed: u64) -> Option<[Vec<f32>; 2]> {
+    let room = room_of(effect)?;
+    Some([
+        room_channel(room, seed),
+        room_channel(room, seed.rotate_left(17) ^ 0x9e37),
+    ])
+}
+
+pub fn write_stereo_wav(path: &Path, channels: &[Vec<f32>; 2]) -> Result<(), hound::Error> {
+    let spec = hound::WavSpec {
+        channels: 2,
+        sample_rate: RATE,
+        bits_per_sample: 32,
+        sample_format: hound::SampleFormat::Float,
+    };
+    let mut writer = hound::WavWriter::create(path, spec)?;
+    for (left, right) in channels[0].iter().zip(&channels[1]) {
+        writer.write_sample(*left)?;
+        writer.write_sample(*right)?;
+    }
+    writer.finalize()
 }
 
 pub fn write_wav(path: &Path, samples: &[f32]) -> Result<(), hound::Error> {
@@ -233,5 +315,32 @@ mod tests {
         });
         assert_eq!(length_ms(&single), 150);
         assert!(single.iter().all(|s| s.abs() <= 0.5));
+    }
+
+    #[test]
+    fn makes_rooms_that_die_away_sixty_decibels_over_their_reverb_time() {
+        for (effect, room) in [
+            (VoiceEffect::SmallRoom, &SMALL_ROOM),
+            (VoiceEffect::Hall, &HALL),
+        ] {
+            let [left, right] = room_response(effect, 5).unwrap();
+            assert_eq!(left.len(), samples_for(room.seconds));
+            let energy: f64 = left.iter().map(|s| f64::from(*s).powi(2)).sum();
+            assert!((energy - 1.0).abs() < 1e-3, "{energy}");
+            let window = |at: f64| {
+                let start = samples_for(at);
+                rms(&left[start..start + samples_for(0.02)])
+            };
+            let early = window(room.reverb_seconds * 0.1);
+            let late = window(room.reverb_seconds * 0.9);
+            let fall = decibels(early) - decibels(late);
+            assert!(
+                (fall - 48.0).abs() < 8.0,
+                "{effect:?} falls {fall:.1} dB over 80% of its reverb time"
+            );
+            assert_ne!(left, right);
+            assert_eq!(room_response(effect, 5).unwrap()[0], left);
+        }
+        assert!(room_response(VoiceEffect::Echo, 5).is_none());
     }
 }

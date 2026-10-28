@@ -11066,6 +11066,50 @@
   }
  },
  {
+  "type": "media.voiceEffect",
+  "title": "Voice effects",
+  "category": "Media",
+  "description": "Makes a voice or a sound sound like a telephone, a radio, a small room, a hall or an echo. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "effect": "telephone",
+   "mix": 1.0,
+   "delayMs": 300,
+   "decay": 0.4
+  }
+ },
+ {
   "type": "media.shortenPauses",
   "title": "Shorten pauses",
   "category": "Media",

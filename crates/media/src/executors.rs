@@ -2,7 +2,7 @@ use opsis_compile::nodes::media::{
     APPLY_GRADE_TYPE, CLEAN_SPEECH_TYPE, CONCAT_TYPE, CONVERT_TYPE, EXTRACT_AUDIO_TYPE,
     FASTSTART_TYPE, GIF_TYPE, HUM_TYPE, IMPORT_TYPE, LOUDNORM_TYPE, PAUSES_TYPE, PITCH_TYPE,
     REPAIR_TYPE, REVERSE_TYPE, SCALE_PAD_TYPE, SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE,
-    TRIM_TYPE,
+    TRIM_TYPE, VOICE_TYPE,
 };
 use std::future::Future;
 use std::path::Path;
@@ -15,7 +15,7 @@ use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
     ChangePitch, ChangeSpeed, CleanSpeech, Encoding, EvenOutVolume, ExtractSound, FixClicks,
     GrabFrame, JoinFiles, MakeGif, MediaFile, NoiseMethod, RemoveHum, Resize, SOUND_PICTURE_PORT,
-    ShortenPauses, SoundPicture, TrimFile, joined_files, kept_parts,
+    ShortenPauses, SoundPicture, TrimFile, VoiceEffects, joined_files, kept_parts,
 };
 use opsis_compile::registry::{node_def, node_name};
 use opsis_compile::text::{format_duration, single_quoted};
@@ -39,9 +39,11 @@ use crate::filters::{
     JoinPart, JoinSize, fit_filter, gif_filter, hum_filter, hum_listen_filter, join_filter,
     joined_parts_graph, loudnorm_filter, noise_level, noise_level_listen_filter, pitch_filter,
     repair_filter, rms_level, silence_listen_filter, silences, sound_picture_graph, spectral_floor,
-    speech_filter, speed_args, speed_sound_args,
+    speech_filter, speed_args, speed_sound_args, voice_filter,
 };
-use crate::generate::{Beeps, beeps, length_ms, room_tone, write_wav};
+use crate::generate::{
+    Beeps, beeps, length_ms, room_response, room_tone, write_stereo_wav, write_wav,
+};
 use crate::grade::{GradeError, GradeSize, grade_filters};
 use crate::reverse::{
     PieceBudget, REVERSE_BUDGET_BYTES, ReversePiece, ReversedPart, WHOLE_FILE, frame_bytes,
@@ -1291,6 +1293,30 @@ async fn change_pitch(
     filter_sound(&ctx, &inputs, &*tools, job).await
 }
 
+async fn voice_effects(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: VoiceEffects = ctx.params()?;
+    let room = match room_response(p.effect, seed_of(&ctx.node.id)) {
+        Some(channels) => {
+            let file = ctx.dir.join("room.wav");
+            write_stereo_wav(&file, &channels).map_err(|e| ExecError::new(e.to_string()))?;
+            Some(crate::grade::filter_path(&file.to_string_lossy()))
+        }
+        None => None,
+    };
+    let job = SoundFilter {
+        stem: "voice",
+        label: "Voice effect",
+        silent: "This file has no sound to change.",
+        filter: voice_filter(&p, room.as_deref()),
+        sound: None,
+    };
+    filter_sound(&ctx, &inputs, &*tools, job).await
+}
+
 async fn shorten_pauses(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
@@ -1471,6 +1497,7 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (HUM_TYPE, bind(tools, hum)),
         (PAUSES_TYPE, bind(tools, shorten_pauses)),
         (PITCH_TYPE, bind(tools, change_pitch)),
+        (VOICE_TYPE, bind(tools, voice_effects)),
         (CLEAN_SPEECH_TYPE, bind(tools, clean_speech)),
         (SOUND_PICTURE_TYPE, bind(tools, sound_picture)),
         (THUMBNAIL_TYPE, bind(tools, thumbnail)),

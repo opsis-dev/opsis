@@ -36,6 +36,7 @@ pub const HUM_TYPE: &str = "media.hum";
 pub const CLEAN_SPEECH_TYPE: &str = "media.cleanSpeech";
 pub const PAUSES_TYPE: &str = "media.shortenPauses";
 pub const PITCH_TYPE: &str = "media.pitch";
+pub const VOICE_TYPE: &str = "media.voiceEffect";
 pub const SOUND_PICTURE_TYPE: &str = "media.soundPicture";
 
 pub const EXTRACT_AUDIO_TYPE: &str = "media.extractAudio";
@@ -833,6 +834,58 @@ pub struct ChangePitch {
 
 impl Params for ChangePitch {}
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum VoiceEffect {
+    #[default]
+    Telephone,
+    Radio,
+    SmallRoom,
+    Hall,
+    Echo,
+}
+
+impl VoiceEffect {
+    pub fn word(self) -> &'static str {
+        match self {
+            Self::Telephone => "Telephone",
+            Self::Radio => "Radio",
+            Self::SmallRoom => "Small room",
+            Self::Hall => "Hall",
+            Self::Echo => "Echo",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct VoiceEffects {
+    #[schemars(
+        description = "Effect",
+        extend("x-labels" = { "telephone": "Telephone", "radio": "Radio", "small-room": "Small room", "hall": "Hall", "echo": "Echo" })
+    )]
+    pub effect: VoiceEffect,
+    #[default = 1.0]
+    #[schemars(
+        description = "Mix",
+        range(min = 0, max = 1),
+        extend("x-step" = 0.05, "x-help" = "How much of the effect against the original. Rooms and echoes sound natural around 0.3.")
+    )]
+    pub mix: f64,
+    #[default = 300]
+    #[schemars(description = "Echo after", range(min = 20, max = 2000), extend("x-step" = 10, "x-unit" = "ms", "x-show-if" = { "effect": ["echo"] }))]
+    pub delay_ms: u32,
+    #[default = 0.4]
+    #[schemars(
+        description = "Echo level",
+        range(min = 0.05, max = 0.9),
+        extend("x-step" = 0.05, "x-help" = "How loud the echo is against the sound.", "x-show-if" = { "effect": ["echo"] })
+    )]
+    pub decay: f64,
+}
+
+impl Params for VoiceEffects {}
+
 pub fn pitch_ratio(semitones: f64) -> f64 {
     2f64.powf(semitones / 12.0)
 }
@@ -1353,6 +1406,30 @@ pub fn nodes() -> Vec<NodeDef> {
             ]
         })
         .look(NodeLook::of("tabler:music-up"))
+        .needs(FileNeed::Sound),
+        one_file_op::<VoiceEffects>(
+            VOICE_TYPE,
+            "Voice effects",
+            "Makes a voice or a sound sound like a telephone, a radio, a small room, a hall or an echo.",
+        )
+        .card(|ctx: &CardCtx<'_, VoiceEffects>| {
+            let p = &ctx.params;
+            let what = match p.effect {
+                VoiceEffect::Echo => format!(
+                    "Echo after {}",
+                    format_duration(f64::from(p.delay_ms))
+                ),
+                effect => effect.word().to_owned(),
+            };
+            vec![
+                Some(row(
+                    Icon::AudioLines,
+                    format!("{what} · {} % mixed", (p.mix * 100.0).round() as i64),
+                )),
+                length_row(ctx.result, Icon::Clock),
+            ]
+        })
+        .look(NodeLook::of("lucide:speech"))
         .needs(FileNeed::Sound),
         one_file_op::<ShortenPauses>(
             PAUSES_TYPE,
