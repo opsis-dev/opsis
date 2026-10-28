@@ -427,10 +427,17 @@ pub enum AudioRole {
     Effect,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, Type, schemars::JsonSchema,
+)]
 #[serde(rename_all = "camelCase")]
 pub struct Anchor {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub node_id: String,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub clip_end: bool,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub keep_end: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

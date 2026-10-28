@@ -1089,3 +1089,16 @@ async fn makes_one_sound_for_each_transition_length() {
     .await;
     assert!(result.unwrap().artifacts.is_empty());
 }
+
+#[tokio::test]
+async fn makes_the_riser_at_its_length_and_the_end_hit_only_when_asked() {
+    let (out, samples, _) = made_sound("audio.riser", json!({ "lengthMs": 2000 })).await;
+    assert_eq!((out.artifacts.len(), samples.len()), (1, 2 * 96_000));
+    let (out, _, _) = made_sound("audio.riser", json!({ "endHit": "ding" })).await;
+    let files: Vec<&str> = out
+        .artifacts
+        .iter()
+        .map(|a| a.path.rsplit('/').next().unwrap())
+        .collect();
+    assert_eq!(files, ["riser.wav", "end-hit.wav"]);
+}

@@ -22,6 +22,7 @@ const ctx: FormContext = {
   chooseAsset: () => undefined,
   swatches: [],
   actions: [],
+  markers: [],
   connectedInputs: [],
   ports: [],
   fileKinds: {},

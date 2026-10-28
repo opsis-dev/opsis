@@ -33,6 +33,15 @@ export function actionChoices(ctx: FormContext): SelectChoices {
   };
 }
 
+export function markerChoices(ctx: FormContext): SelectChoices {
+  const names = new Map(ctx.markers.map((m) => [m.id, m.label]));
+  return {
+    options: ctx.markers.map((m) => m.id),
+    format: (v) => names.get(v) ?? "Missing marker",
+    noneLabel: "None",
+  };
+}
+
 export const variableChoices = (ctx: FormContext, value: string): SelectChoices => ({
   options: withCurrent(
     ctx.vars.map((v) => v.name),

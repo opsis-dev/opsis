@@ -200,7 +200,9 @@ export type AnalysisRequest = { kind: "waveform"; projectDir: string; src: strin
 export type AnalysisResult = { kind: "waveform"; waveform: Waveform } | { kind: "filmstrip"; filmstrip: Filmstrip } | { kind: "mix"; mix: MixResult } | { kind: "skipped" } | { kind: "error"; error: string; engineMissing?: boolean };
 
 export type Anchor = {
-	nodeId: string,
+	nodeId?: string,
+	clipEnd?: boolean,
+	keepEnd?: boolean,
 };
 
 export type AnnotationKind = "highlight" | "spotlight" | "tooltip" | "callout";

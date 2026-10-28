@@ -1,3 +1,4 @@
+import { formatDuration } from "@opsis/video/common/format";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { targetRoleKey } from "@/editor/form/schema";
@@ -56,6 +57,10 @@ export function useFormContext(workflow: Workflow, nodeId: string): FormContext 
       vars: inspector?.vars ?? [],
       layers: inspector?.layers ?? 1,
       actions: inspector?.actions ?? [],
+      markers: workflow.markers.map((m) => ({
+        id: m.id,
+        label: m.label || `Marker at ${formatDuration(m.atMs)}`,
+      })),
       spotBackground: spot ? { ...spot, src: fileUrl(spot.src) } : null,
       pickTarget: (key) => void pickTarget(nodeId, inspector?.picker, key),
       chooseAsset: (apply) => void chooseAsset(projectDir, apply),
@@ -64,5 +69,5 @@ export function useFormContext(workflow: Workflow, nodeId: string): FormContext 
       ports: inspector?.ports ?? [],
       fileKinds: inspector?.fileKinds ?? {},
     };
-  }, [inspector, nodeId, projectDir, fps, width, height]);
+  }, [inspector, nodeId, projectDir, fps, width, height, workflow.markers]);
 }

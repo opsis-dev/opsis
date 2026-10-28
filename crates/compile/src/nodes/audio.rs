@@ -377,6 +377,7 @@ fn sound_effect() -> NodeDef {
                     fade_out_frames: None,
                     anchor: on_action.then(|| Anchor {
                         node_id: p.at_action.clone(),
+                        ..Anchor::default()
                     }),
                     length_frames: length_ms.and_then(|ms| frames_if_set(ms, fps)),
                     keep_music: p.keep_music.then_some(true),
@@ -414,6 +415,9 @@ pub const ROOM_TONE_TYPE: &str = "audio.roomTone";
 pub const TONES_TYPE: &str = "audio.tones";
 pub const GENERATE_TYPE: &str = "audio.generate";
 pub const TRANSITION_SOUNDS_TYPE: &str = "audio.transitionSounds";
+pub const RISER_TYPE: &str = "audio.riser";
+pub const RISER_FILE: &str = "riser.wav";
+pub const END_HIT_FILE: &str = "end-hit.wav";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
@@ -638,6 +642,7 @@ fn placed_effect<P>(ctx: &Ctx<'_, P>, placing: &Placing<'_>, volume: f64) -> Out
         fade_out_frames: None,
         anchor: on_action.then(|| Anchor {
             node_id: placing.at_action.to_owned(),
+            ..Anchor::default()
         }),
         length_frames: length_ms.and_then(|ms| frames_if_set(f64::from(ms), fps)),
         keep_music: None,
@@ -968,13 +973,29 @@ fn anchor_sounds(
             let Some(anchor) = &a.anchor else {
                 return Some(a);
             };
-            let mark = marks.iter().find(|m| {
-                m.node_id.as_deref() == Some(anchor.node_id.as_str())
-                    && m.kind != opsis_types::actions::ActionKind::Chapter
-            })?;
-            Some(AudioItem {
-                from: (whole_signed(mark.frame) + a.from).max(0),
-                ..a
+            let at = if anchor.clip_end {
+                f64::from(clip.duration_in_frames)
+            } else {
+                marks
+                    .iter()
+                    .find(|m| {
+                        m.node_id.as_deref() == Some(anchor.node_id.as_str())
+                            && m.kind != opsis_types::actions::ActionKind::Chapter
+                    })?
+                    .frame
+            };
+            let start = whole_signed(at) + a.from;
+            Some(if anchor.keep_end && start < 0 {
+                AudioItem {
+                    from: 0,
+                    trim_before: Some(a.trim_before.unwrap_or(0) + start.unsigned_abs()),
+                    ..a
+                }
+            } else {
+                AudioItem {
+                    from: start.max(0),
+                    ..a
+                }
             })
         })
         .collect()
@@ -1431,6 +1452,277 @@ fn transition_sounds() -> NodeDef {
         })
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum RiserEnd {
+    #[default]
+    Action,
+    Marker,
+    ClipEnd,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum RiserSound {
+    #[default]
+    Riser,
+    Swell,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum RiserVariation {
+    #[default]
+    Picked,
+    AsMade,
+    AnotherTake,
+    Darker,
+    Brighter,
+    Lower,
+    Higher,
+    Custom,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum EndHit {
+    #[default]
+    Off,
+    Pop,
+    Ding,
+    Tap,
+    Click,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Riser {
+    #[schemars(
+        description = "Ends on",
+        extend("x-labels" = { "action": "An action", "marker": "A marker", "clip-end": "The end of the clip" })
+    )]
+    pub ends_on: RiserEnd,
+    #[schemars(
+        description = "Action",
+        extend("x-widget" = "action", "x-help" = "The browser action the sound ends on, in the clip it is added to.", "x-show-if" = { "endsOn": ["action"] })
+    )]
+    pub at_action: String,
+    #[schemars(
+        description = "Marker",
+        extend("x-widget" = "marker", "x-help" = "A Timeline marker. Its time counts from the start of the clip the sound is added to.", "x-show-if" = { "endsOn": ["marker"] })
+    )]
+    pub marker: String,
+    #[default = 3000]
+    #[schemars(description = "Rises for", range(min = 300, max = 30000), extend("x-step" = 100, "x-unit" = "ms"))]
+    pub length_ms: u32,
+    #[schemars(description = "Sound", extend("x-labels" = { "riser": "Riser", "swell": "Swell" }))]
+    pub sound: RiserSound,
+    #[schemars(
+        description = "Variation",
+        extend("x-labels" = {
+            "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
+            "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher", "custom": "Custom"
+        })
+    )]
+    pub variation: RiserVariation,
+    #[schemars(
+        description = "Pitch",
+        range(min = -24, max = 24),
+        extend("x-step" = 0.5, "x-help" = "Semitones up or down.", "x-show-if" = { "variation": ["custom"] })
+    )]
+    pub pitch: f64,
+    #[default = 0.5]
+    #[schemars(description = "Brightness", range(min = 0, max = 1), extend("x-step" = 0.05, "x-show-if" = { "variation": ["custom"] }))]
+    pub brightness: f64,
+    #[default = 1]
+    #[schemars(description = "Take", range(min = 0, max = 1000), extend("x-show-if" = { "variation": ["custom"] }))]
+    pub take: u32,
+    #[schemars(
+        description = "A hit at the end",
+        extend("x-labels" = { "off": "None", "pop": "Pop", "ding": "Ding", "tap": "Tap", "click": "Click" })
+    )]
+    pub end_hit: EndHit,
+    #[default = 0.8]
+    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    pub volume: f64,
+}
+
+impl Params for Riser {}
+
+impl Riser {
+    pub fn shape(&self) -> SoundShape {
+        let variation = match self.variation {
+            RiserVariation::Picked => SoundVariation::Picked,
+            RiserVariation::AsMade => SoundVariation::AsMade,
+            RiserVariation::AnotherTake => SoundVariation::AnotherTake,
+            RiserVariation::Darker => SoundVariation::Darker,
+            RiserVariation::Brighter => SoundVariation::Brighter,
+            RiserVariation::Lower => SoundVariation::Lower,
+            RiserVariation::Higher => SoundVariation::Higher,
+            RiserVariation::Custom => SoundVariation::Custom,
+        };
+        let preset = match self.sound {
+            RiserSound::Riser => SoundPreset::Riser,
+            RiserSound::Swell => SoundPreset::Swell,
+        };
+        SoundShape {
+            seconds: f64::from(self.length_ms) / 1000.0,
+            ..sound_shape(&GenerateSound {
+                preset,
+                variation,
+                pitch: self.pitch,
+                brightness: self.brightness,
+                take: self.take,
+                ..GenerateSound::default()
+            })
+        }
+    }
+
+    pub fn hit_shape(&self) -> Option<SoundShape> {
+        let preset = match self.end_hit {
+            EndHit::Off => return None,
+            EndHit::Pop => SoundPreset::Pop,
+            EndHit::Ding => SoundPreset::Ding,
+            EndHit::Tap => SoundPreset::Tap,
+            EndHit::Click => SoundPreset::Click,
+        };
+        Some(sound_shape(&GenerateSound {
+            preset,
+            ..GenerateSound::default()
+        }))
+    }
+}
+
+fn made_file<P>(ctx: &Ctx<'_, P>, file: &str) -> Option<String> {
+    ctx.result?
+        .artifacts
+        .iter()
+        .find(|a| a.path.ends_with(&format!("/{file}")))
+        .map(|a| project_ref(&a.path))
+}
+
+fn riser_item(
+    ctx: &Ctx<'_, Riser>,
+    src: String,
+    end_frame: Option<i32>,
+    lead_frames: u32,
+    length_frames: u32,
+) -> AudioItem {
+    let p = &ctx.params;
+    let anchor = match p.ends_on {
+        RiserEnd::Action => Some(Anchor {
+            node_id: p.at_action.clone(),
+            keep_end: true,
+            ..Anchor::default()
+        }),
+        RiserEnd::ClipEnd => Some(Anchor {
+            clip_end: true,
+            keep_end: true,
+            ..Anchor::default()
+        }),
+        RiserEnd::Marker => None,
+    };
+    let start = end_frame.unwrap_or(0) - signed(lead_frames);
+    let timing = Timing {
+        from: if anchor.is_some() {
+            -signed(lead_frames)
+        } else {
+            start.max(0)
+        },
+        duration_in_frames: None,
+        looped: None,
+        trim_before: (anchor.is_none() && start < 0).then(|| start.unsigned_abs()),
+        fade_in_frames: None,
+        fade_out_frames: None,
+        anchor,
+        length_frames: Some(length_frames),
+        keep_music: None,
+    };
+    sound_item(
+        ctx.node_id,
+        src,
+        AudioRole::Effect,
+        p.volume,
+        &AudioEnvelope::default(),
+        timing,
+        EditHandles::default(),
+    )
+}
+
+fn marker_frame(ctx: &Ctx<'_, Riser>) -> Option<i32> {
+    let marker = ctx
+        .workflow
+        .markers
+        .iter()
+        .find(|m| m.id == ctx.params.marker)?;
+    Some(whole_signed(
+        marker.at_ms * f64::from(ctx.settings.fps) / 1000.0,
+    ))
+}
+
+fn riser() -> NodeDef {
+    NodeDef::of::<Riser>(RISER_TYPE, "Riser to a mark", Category::Audio, Phase::Media)
+        .describe("A build-up that ends exactly on an action, a marker or the end of a clip, for reveals and launches.")
+        .executes()
+        .outputs(vec![(AUDIO_PORT, port(PortType::Audio, "Sound"))])
+        .card(|ctx: &CardCtx<'_, Riser>| {
+            let p = &ctx.params;
+            let into = match p.ends_on {
+                RiserEnd::Action => "an action",
+                RiserEnd::Marker => "a marker",
+                RiserEnd::ClipEnd => "the end of the clip",
+            };
+            let unset = match p.ends_on {
+                RiserEnd::Action => p.at_action.is_empty().then_some("Pick the action it ends on"),
+                RiserEnd::Marker => p.marker.is_empty().then_some("Pick the marker it ends on"),
+                RiserEnd::ClipEnd => None,
+            };
+            vec![
+                Some(row(
+                    Icon::Sparkles,
+                    format!(
+                        "Rises {} into {into}",
+                        format_duration(f64::from(p.length_ms))
+                    ),
+                )),
+                unset.map(|text| missing(Icon::TriangleAlert, text)),
+                ctx.result.is_none().then(not_made_yet),
+            ]
+        })
+        .compiles(|ctx: &Ctx<'_, Riser>| {
+            let p = &ctx.params;
+            let fps = ctx.settings.fps;
+            let Some(src) = made_file(ctx, RISER_FILE) else {
+                return silent_audio();
+            };
+            let end_frame = match p.ends_on {
+                RiserEnd::Marker => match marker_frame(ctx) {
+                    Some(frame) => Some(frame),
+                    None => return silent_audio(),
+                },
+                RiserEnd::Action if p.at_action.is_empty() => return silent_audio(),
+                RiserEnd::Action | RiserEnd::ClipEnd => None,
+            };
+            let length = ms_to_frames(f64::from(p.length_ms), fps);
+            let mut items = vec![riser_item(ctx, src, end_frame, length, length)];
+            if let (Some(hit), Some(shape)) = (made_file(ctx, END_HIT_FILE), p.hit_shape()) {
+                let hit_frames = ms_to_frames(shape.seconds * 1000.0, fps).max(1);
+                let mut item = riser_item(ctx, hit, end_frame, 0, hit_frames);
+                item.id = format!("{}:hit", ctx.node_id);
+                item.trim_before = None;
+                items.push(item);
+            }
+            outputs([(
+                AUDIO_PORT,
+                CompileValue::Audio(AudioValue {
+                    items,
+                    duration_in_frames: None,
+                    hits: None,
+                }),
+            )])
+        })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         music().look(NodeLook::of("lucide:eighth-notes")),
@@ -1441,5 +1733,6 @@ pub fn nodes() -> Vec<NodeDef> {
         tones().look(NodeLook::of("lucide:bell-ring")),
         generate().look(NodeLook::of("tabler:music-bolt")),
         transition_sounds().look(NodeLook::of("tabler:wind")),
+        riser().look(NodeLook::of("tabler:trending-up-2")),
     ]
 }

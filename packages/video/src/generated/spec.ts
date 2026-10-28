@@ -37,7 +37,9 @@ export type Action = {
 export type AddressMode = "fixed" | "host";
 
 export type Anchor = {
-	nodeId: string,
+	nodeId?: string,
+	clipEnd?: boolean,
+	keepEnd?: boolean,
 };
 
 export type AnimationFit = "contain" | "cover";
@@ -253,7 +255,7 @@ export type ElementRef = {
 
 export type Entrance = "rise" | "fade" | "blur" | "scale" | "none";
 
-export type FieldWidget = "action" | "asset" | "backdrop" | "boxes" | "camera" | "code" | "color" | "cut" | "datetime" | "envelope" | "font" | "gradient" | "keys" | "loudness" | "marks" | "multiselect" | "music" | "offsets" | "port" | "quality" | "sound" | "spot" | "target" | "textarea" | "theme" | "timezone" | "transition" | "variable";
+export type FieldWidget = "action" | "asset" | "backdrop" | "boxes" | "camera" | "code" | "color" | "cut" | "datetime" | "envelope" | "font" | "gradient" | "keys" | "loudness" | "marker" | "marks" | "multiselect" | "music" | "offsets" | "port" | "quality" | "sound" | "spot" | "target" | "textarea" | "theme" | "timezone" | "transition" | "variable";
 
 export type FilmFonts = {
 	families: { [key in string]: FontFamilyDef },

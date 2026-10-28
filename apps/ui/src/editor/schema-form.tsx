@@ -51,6 +51,7 @@ import {
   actionChoices,
   anyPortChoices,
   cutChoices,
+  markerChoices,
   AssetField,
   backdropChoices,
   CodeField,
@@ -94,6 +95,7 @@ const presetsWidget = (presets: () => Array<[string, number]>): Widget => ({
 
 const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
   action: selectWidget(actionChoices),
+  marker: selectWidget(markerChoices),
   cut: selectWidget(cutChoices),
   port: selectWidget(anyPortChoices),
   variable: selectWidget(variableChoices),

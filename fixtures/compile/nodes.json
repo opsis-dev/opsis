@@ -10061,6 +10061,49 @@
   }
  },
  {
+  "type": "audio.riser",
+  "title": "Riser to a mark",
+  "category": "Audio",
+  "description": "A build-up that ends exactly on an action, a marker or the end of a clip, for reveals and launches.",
+  "phase": "media",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "audio",
+    "type": "audio",
+    "label": "Sound",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "endsOn": "action",
+   "atAction": "",
+   "marker": "",
+   "lengthMs": 3000,
+   "sound": "riser",
+   "variation": "picked",
+   "pitch": 0.0,
+   "brightness": 0.5,
+   "take": 1,
+   "endHit": "off",
+   "volume": 0.8
+  }
+ },
+ {
   "type": "timeline.sequence",
   "title": "Sequence",
   "category": "Timeline",

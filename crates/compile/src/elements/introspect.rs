@@ -23,6 +23,7 @@ pub enum FieldWidget {
     Gradient,
     Keys,
     Loudness,
+    Marker,
     Marks,
     Multiselect,
     Music,

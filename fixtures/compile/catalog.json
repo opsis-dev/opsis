@@ -4010,6 +4010,22 @@
    }
   },
   {
+   "type": "audio.riser",
+   "title": "Riser to a mark",
+   "category": "Sound",
+   "description": "A build-up that ends exactly on an action, a marker or the end of a clip, for reveals and launches.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "timeline.sequence",
    "title": "Sequence",
    "category": "Timeline",
@@ -50417,6 +50433,198 @@
      "sound": "app:sfx/whoosh.wav",
      "vary": true,
      "volume": 0.7
+    }
+   }
+  },
+  {
+   "type": "audio.riser",
+   "title": "Riser to a mark",
+   "category": "Sound",
+   "description": "A build-up that ends exactly on an action, a marker or the end of a clip, for reveals and launches.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "endsOn": {
+      "description": "Ends on",
+      "type": "string",
+      "enum": [
+       "action",
+       "marker",
+       "clip-end"
+      ],
+      "default": "action",
+      "x-labels": {
+       "action": "An action",
+       "marker": "A marker",
+       "clip-end": "The end of the clip"
+      }
+     },
+     "atAction": {
+      "description": "Action",
+      "type": "string",
+      "default": "",
+      "x-widget": "action",
+      "x-help": "The browser action the sound ends on, in the clip it is added to.",
+      "x-show-if": {
+       "endsOn": [
+        "action"
+       ]
+      }
+     },
+     "marker": {
+      "description": "Marker",
+      "type": "string",
+      "default": "",
+      "x-widget": "marker",
+      "x-help": "A Timeline marker. Its time counts from the start of the clip the sound is added to.",
+      "x-show-if": {
+       "endsOn": [
+        "marker"
+       ]
+      }
+     },
+     "lengthMs": {
+      "description": "Rises for",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 300,
+      "maximum": 30000,
+      "default": 3000,
+      "x-step": 100,
+      "x-unit": "ms"
+     },
+     "sound": {
+      "description": "Sound",
+      "type": "string",
+      "enum": [
+       "riser",
+       "swell"
+      ],
+      "default": "riser",
+      "x-labels": {
+       "riser": "Riser",
+       "swell": "Swell"
+      }
+     },
+     "variation": {
+      "description": "Variation",
+      "type": "string",
+      "enum": [
+       "picked",
+       "as-made",
+       "another-take",
+       "darker",
+       "brighter",
+       "lower",
+       "higher",
+       "custom"
+      ],
+      "default": "picked",
+      "x-labels": {
+       "picked": "Default",
+       "as-made": "As first made",
+       "another-take": "Another take",
+       "darker": "Darker",
+       "brighter": "Brighter",
+       "lower": "5 semitones lower",
+       "higher": "5 semitones higher",
+       "custom": "Custom"
+      }
+     },
+     "pitch": {
+      "description": "Pitch",
+      "type": "number",
+      "format": "double",
+      "minimum": -24,
+      "maximum": 24,
+      "default": 0.0,
+      "x-step": 0.5,
+      "x-help": "Semitones up or down.",
+      "x-show-if": {
+       "variation": [
+        "custom"
+       ]
+      }
+     },
+     "brightness": {
+      "description": "Brightness",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.5,
+      "x-step": 0.05,
+      "x-show-if": {
+       "variation": [
+        "custom"
+       ]
+      }
+     },
+     "take": {
+      "description": "Take",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 1000,
+      "default": 1,
+      "x-show-if": {
+       "variation": [
+        "custom"
+       ]
+      }
+     },
+     "endHit": {
+      "description": "A hit at the end",
+      "type": "string",
+      "enum": [
+       "off",
+       "pop",
+       "ding",
+       "tap",
+       "click"
+      ],
+      "default": "off",
+      "x-labels": {
+       "off": "None",
+       "pop": "Pop",
+       "ding": "Ding",
+       "tap": "Tap",
+       "click": "Click"
+      }
+     },
+     "volume": {
+      "description": "Volume",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 2,
+      "default": 0.8,
+      "x-step": 0.05
+     }
+    },
+    "type": "object",
+    "default": {
+     "endsOn": "action",
+     "atAction": "",
+     "marker": "",
+     "lengthMs": 3000,
+     "sound": "riser",
+     "variation": "picked",
+     "pitch": 0.0,
+     "brightness": 0.5,
+     "take": 1,
+     "endHit": "off",
+     "volume": 0.8
     }
    }
   },

@@ -12,9 +12,9 @@ use std::sync::Arc;
 use futures::future::try_join_all;
 use opsis_compile::asset_ref::{kind_from_path, project_ref};
 use opsis_compile::nodes::audio::{
-    GENERATE_TYPE, GenerateSound, ROOM_TONE_TYPE, RoomTone, TONES_TYPE, TRANSITION_SOUNDS_TYPE,
-    Tones, TransitionSoundFrom, TransitionSounds, sound_shape, transition_cues,
-    transition_sound_file,
+    END_HIT_FILE, GENERATE_TYPE, GenerateSound, RISER_FILE, RISER_TYPE, ROOM_TONE_TYPE, Riser,
+    RoomTone, TONES_TYPE, TRANSITION_SOUNDS_TYPE, Tones, TransitionSoundFrom, TransitionSounds,
+    sound_shape, transition_cues, transition_sound_file,
 };
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
@@ -1338,6 +1338,30 @@ async fn make_transition_sounds(
     })
 }
 
+async fn make_riser(
+    ctx: Arc<ExecutorContext>,
+    _inputs: PortValues,
+    _tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: Riser = ctx.params()?;
+    let mut artifacts = Vec::new();
+    for (file, shape) in [(RISER_FILE, Some(p.shape())), (END_HIT_FILE, p.hit_shape())] {
+        let Some(shape) = shape else {
+            continue;
+        };
+        let channels = tokio::task::spawn_blocking(move || crate::sound_maker::make(&shape))
+            .await
+            .map_err(|e| ExecError::new(e.to_string()))?;
+        crate::generate::write_stereo_pcm(&ctx.dir.join(file), &channels)
+            .map_err(|e| ExecError::new(e.to_string()))?;
+        artifacts.push(artifact(&ctx, ArtifactKind::Audio, file, "Riser"));
+    }
+    Ok(ExecutorOutput {
+        artifacts,
+        ..ExecutorOutput::default()
+    })
+}
+
 async fn logged(
     ctx: &ExecutorContext,
     tools: &dyn MediaTools,
@@ -1646,5 +1670,6 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (TONES_TYPE, bind(tools, make_tones)),
         (GENERATE_TYPE, bind(tools, make_generated)),
         (TRANSITION_SOUNDS_TYPE, bind(tools, make_transition_sounds)),
+        (RISER_TYPE, bind(tools, make_riser)),
     ]
 }
