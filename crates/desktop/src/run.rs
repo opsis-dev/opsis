@@ -197,7 +197,7 @@ impl LiveFeed for AppLive {
     }
 }
 
-fn executors(app: &AppHandle) -> Executors {
+pub fn executors(app: &AppHandle) -> Executors {
     let state = app.state::<AppState>();
     let tools = engine_tools(&state);
     let engine = Arc::new(RenderEngine {

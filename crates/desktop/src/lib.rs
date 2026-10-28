@@ -17,6 +17,7 @@ mod gradients;
 mod menu;
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 mod native_menu;
+mod node_results;
 mod page_log;
 mod paths;
 mod projects;
@@ -94,6 +95,7 @@ async fn open(
     app.manage(Exit::default());
     app.manage(Views::default());
     app.manage(Mixes::default());
+    app.manage(node_results::NodeKeys::default());
     app.manage(WindowRuntime::default());
     app.manage(api::Api::new(app));
     api::follow_setting(app);

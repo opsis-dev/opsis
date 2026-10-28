@@ -3309,6 +3309,11 @@
      "icon": "file-video",
      "text": "talk.mp4",
      "title": "clips/talk.mp4"
+    },
+    {
+     "icon": "info",
+     "text": "Not read yet",
+     "tone": "muted"
     }
    ]
   },
@@ -6574,7 +6579,7 @@
     "outputs": {
      "media": {
       "type": "media",
-      "src": "project:.opsis/out/talk.mp4",
+      "src": "project:clips/talk.mp4",
       "kind": "video",
       "durationMs": 4000,
       "width": 1920,
@@ -6654,7 +6659,7 @@
     "talk": {
      "media": {
       "type": "media",
-      "src": "project:.opsis/out/talk.mp4",
+      "src": "project:clips/talk.mp4",
       "kind": "video",
       "durationMs": 4000,
       "width": 1920,
@@ -6676,7 +6681,7 @@
           "nodeId": "talk",
           "component": "core/video",
           "props": {
-           "src": "project:.opsis/out/talk.mp4",
+           "src": "project:clips/talk.mp4",
            "fit": "contain",
            "muted": false
           }
@@ -6703,7 +6708,7 @@
           "nodeId": "talk-clip",
           "component": "core/video",
           "props": {
-           "src": "project:.opsis/out/talk.mp4",
+           "src": "project:clips/talk.mp4",
            "fit": "contain",
            "muted": false
           }
@@ -9097,7 +9102,7 @@
                "nodeId": "talk-clip",
                "component": "core/video",
                "props": {
-                "src": "project:.opsis/out/talk.mp4",
+                "src": "project:clips/talk.mp4",
                 "fit": "contain",
                 "muted": false
                }
@@ -9707,7 +9712,7 @@
                "nodeId": "talk-clip",
                "component": "core/video",
                "props": {
-                "src": "project:.opsis/out/talk.mp4",
+                "src": "project:clips/talk.mp4",
                 "fit": "contain",
                 "muted": false
                }
@@ -10327,6 +10332,10 @@
       "title": "clips/talk.mp4"
      },
      {
+      "icon": "film",
+      "text": "MP4 · 1920 × 1080"
+     },
+     {
       "icon": "clock",
       "text": "4 s"
      }
@@ -10891,7 +10900,7 @@
              "nodeId": "talk-clip",
              "component": "core/video",
              "props": {
-              "src": "project:.opsis/out/talk.mp4",
+              "src": "project:clips/talk.mp4",
               "fit": "contain",
               "muted": false
              }
@@ -11948,7 +11957,7 @@
              "nodeId": "talk-clip",
              "component": "core/video",
              "props": {
-              "src": "project:.opsis/out/talk.mp4",
+              "src": "project:clips/talk.mp4",
               "fit": "contain",
               "muted": false
              }
@@ -13049,13 +13058,13 @@
        "kind": "element",
        "component": "core/video",
        "props": {
-        "src": "project:.opsis/out/talk.mp4",
+        "src": "project:clips/talk.mp4",
         "fit": "contain",
         "muted": false
        },
        "thumbnail": {
         "kind": "filmstrip",
-        "src": "project:.opsis/out/talk.mp4",
+        "src": "project:clips/talk.mp4",
         "speed": 1.0,
         "trimMs": 0.0
        },
@@ -13407,7 +13416,7 @@
        "id": "/1:layers:l1:g/0:talk-clip:i",
        "nodeId": "talk-clip",
        "channel": "talk-clip",
-       "src": "project:.opsis/out/talk.mp4",
+       "src": "project:clips/talk.mp4",
        "role": "clip",
        "from": 12.0,
        "to": 132.0,
@@ -13423,13 +13432,13 @@
         "kind": "element",
         "component": "core/video",
         "props": {
-         "src": "project:.opsis/out/talk.mp4",
+         "src": "project:clips/talk.mp4",
          "fit": "contain",
          "muted": false
         },
         "thumbnail": {
          "kind": "filmstrip",
-         "src": "project:.opsis/out/talk.mp4",
+         "src": "project:clips/talk.mp4",
          "speed": 1.0,
          "trimMs": 0.0
         },
@@ -13897,7 +13906,7 @@
        },
        "sounds": [
         {
-         "src": "project:.opsis/out/talk.mp4",
+         "src": "project:clips/talk.mp4",
          "at": 12,
          "offset": 0,
          "length": 120,

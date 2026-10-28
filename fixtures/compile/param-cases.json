@@ -187880,26 +187880,6 @@
    }
   },
   {
-   "type": "media.probe",
-   "label": "defaults",
-   "key": null,
-   "change": null,
-   "outcome": {
-    "ok": true,
-    "data": {}
-   }
-  },
-  {
-   "type": "media.probe",
-   "label": "empty",
-   "key": null,
-   "change": null,
-   "outcome": {
-    "ok": true,
-    "data": {}
-   }
-  },
-  {
    "type": "output.render",
    "label": "defaults",
    "key": null,

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::compile::{CompileResult, compile_workflow};
 use crate::node::{Claim, NodeDef, PortSpec, SESSION_PORT};
-use crate::ports::can_connect;
+use crate::ports::{can_connect, convert_input};
 use crate::registry::{is_output_type, node_def, node_name};
 use crate::vars::{interpolate_map, unknown_variables, workflow_vars};
 
@@ -571,6 +571,24 @@ fn reload_issues(wf: &Workflow, compiled: &CompileResult) -> Vec<GraphIssue> {
         .collect()
 }
 
+fn file_need_issues(wf: &Workflow, compiled: &CompileResult) -> Vec<GraphIssue> {
+    let by_id = nodes_by_id(wf);
+    let mut seen: HashSet<(&str, &str)> = HashSet::new();
+    wf.edges
+        .iter()
+        .filter_map(|e| {
+            let target = by_id.get(e.target.as_str()).filter(|t| !t.is_disabled())?;
+            let spec = node_def(&target.kind)?.input(&e.target_handle)?;
+            let need = spec.need?;
+            let value = compiled.values.get(&e.source)?.get(&e.source_handle)?;
+            let media = convert_input(Some(value), Some(spec))?;
+            let refused = media.as_media().is_some_and(|m| need.refuses(m));
+            (refused && seen.insert((target.id.as_str(), need.message())))
+                .then(|| warning(&target.id, need.message()))
+        })
+        .collect()
+}
+
 pub fn validate_workflow(wf: &Workflow, compiled: Option<&CompileResult>) -> Vec<GraphIssue> {
     let owned;
     let compiled = match compiled {
@@ -588,6 +606,7 @@ pub fn validate_workflow(wf: &Workflow, compiled: Option<&CompileResult>) -> Vec
         anchor_issues(wf),
         claim_clashes(wf),
         skipped_source_issues(wf),
+        file_need_issues(wf, compiled),
     ]
     .into_iter()
     .flatten()

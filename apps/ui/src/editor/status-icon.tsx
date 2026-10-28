@@ -1,11 +1,11 @@
-import { Circle, CircleCheck, CircleSlash, CircleX, History, Radio } from "lucide-react";
+import { Circle, CircleCheck, CircleSlash, CircleX, History, Radio, RefreshCw } from "lucide-react";
 import type { ComponentProps, ComponentType } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import type { NodeRunStatus } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { WithTooltip } from "./with-tooltip";
 
-export type RowState = NodeRunStatus | "failedBefore" | "fromLastRun";
+export type RowState = NodeRunStatus | "failedBefore" | "fromLastRun" | "changed";
 
 type StatusLook = {
   icon: ComponentType<ComponentProps<"svg">>;
@@ -25,6 +25,11 @@ export const STATUS_LOOKS: Record<RowState | "live", StatusLook> = {
   error: { icon: CircleX, word: "Failed", className: "text-destructive", badge: "destructive" },
   failedBefore: { icon: CircleX, word: "Failed last time", className: "text-destructive/60" },
   fromLastRun: { icon: History, word: "From last run", className: "text-muted-foreground" },
+  changed: {
+    icon: RefreshCw,
+    word: "Changed since the last run",
+    className: "text-muted-foreground",
+  },
   live: { icon: Radio, word: "Recording", short: "Live", badge: "default" },
 };
 

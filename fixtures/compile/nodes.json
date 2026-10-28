@@ -11148,52 +11148,6 @@
   "defaults": {}
  },
  {
-  "type": "media.probe",
-  "title": "File info",
-  "category": "Media",
-  "description": "Shows a file's length, size, frame rate and format.",
-  "phase": "media",
-  "inputs": [
-   {
-    "id": "media",
-    "type": "media",
-    "label": "File",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "info",
-    "type": "file-info",
-    "label": "Info",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "media",
-    "type": "media",
-    "label": "File",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": true,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {}
- },
- {
   "type": "image.resize",
   "title": "Resize image",
   "category": "Image",

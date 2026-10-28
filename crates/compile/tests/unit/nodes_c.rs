@@ -126,7 +126,7 @@ fn sums_up_media_nodes_on_their_cards() {
         (
             "media.import",
             json!({ "path": "assets/a.mp4" }),
-            vec!["a.mp4"],
+            vec!["a.mp4", "Not read yet"],
         ),
         (
             "media.trim",

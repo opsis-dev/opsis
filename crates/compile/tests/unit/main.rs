@@ -3,6 +3,7 @@ mod checks;
 mod clip;
 mod compile;
 mod edits;
+mod files;
 mod graph;
 mod growing_inputs;
 mod helpers;

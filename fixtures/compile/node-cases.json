@@ -33739,16 +33739,12 @@
   "outputs": {
    "media": {
     "type": "media",
-    "src": "project:.opsis/out/out-media.mp4",
-    "kind": "video",
-    "durationMs": 4000,
-    "width": 1920,
-    "height": 1080,
-    "hasAudio": true
+    "src": null,
+    "kind": "video"
    },
    "clip": {
     "type": "clip",
-    "durationInFrames": 120,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -33757,13 +33753,12 @@
         "kind": "element",
         "id": "n:i",
         "from": 0,
-        "durationInFrames": 120,
+        "durationInFrames": 150,
         "nodeId": "n",
-        "component": "core/video",
+        "component": "core/placeholder",
         "props": {
-         "src": "project:.opsis/out/out-media.mp4",
-         "fit": "contain",
-         "muted": false
+         "title": "No file chosen",
+         "subtitle": ""
         }
        }
       ]
@@ -33779,10 +33774,6 @@
      "icon": "file-video",
      "text": "Choose a file",
      "tone": "warn"
-    },
-    {
-     "icon": "clock",
-     "text": "4 s"
     }
    ]
   }
@@ -33858,16 +33849,12 @@
   "outputs": {
    "media": {
     "type": "media",
-    "src": "project:.opsis/out/out-media.mp4",
-    "kind": "video",
-    "durationMs": 4000,
-    "width": 1920,
-    "height": 1080,
-    "hasAudio": true
+    "src": null,
+    "kind": "video"
    },
    "clip": {
     "type": "clip",
-    "durationInFrames": 120,
+    "durationInFrames": 150,
     "tracks": [
      {
       "id": "n:t",
@@ -33876,13 +33863,12 @@
         "kind": "element",
         "id": "n:i",
         "from": 0,
-        "durationInFrames": 120,
+        "durationInFrames": 150,
         "nodeId": "n",
-        "component": "core/video",
+        "component": "core/placeholder",
         "props": {
-         "src": "project:.opsis/out/out-media.mp4",
-         "fit": "contain",
-         "muted": false
+         "title": "No file chosen",
+         "subtitle": ""
         }
        }
       ]
@@ -33898,10 +33884,6 @@
      "icon": "file-video",
      "text": "Choose a file",
      "tone": "warn"
-    },
-    {
-     "icon": "clock",
-     "text": "4 s"
     }
    ]
   }
@@ -35380,128 +35362,6 @@
     },
     {
      "icon": "clock",
-     "text": "4 s"
-    }
-   ]
-  }
- },
- {
-  "type": "media.probe",
-  "filled": false,
-  "inputs": {},
-  "result": {
-   "hash": "case",
-   "outputs": {
-    "info": {
-     "type": "file-info",
-     "src": "project:out-info.json"
-    },
-    "media": {
-     "type": "media",
-     "src": "project:.opsis/out/out-media.mp4",
-     "kind": "video",
-     "durationMs": 4000,
-     "width": 1920,
-     "height": 1080,
-     "hasAudio": true
-    }
-   },
-   "artifacts": [],
-   "finishedAt": 0,
-   "durationMs": 0
-  },
-  "secrets": [
-   "Main account"
-  ],
-  "connected": [],
-  "inputFrames": {},
-  "outputs": {
-   "info": {
-    "type": "file-info",
-    "src": "project:out-info.json"
-   },
-   "media": {
-    "type": "media",
-    "src": "project:.opsis/out/out-media.mp4",
-    "kind": "video",
-    "durationMs": 4000,
-    "width": 1920,
-    "height": 1080,
-    "hasAudio": true
-   }
-  },
-  "error": null,
-  "card": {
-   "rows": [
-    {
-     "icon": "info",
-     "text": "4 s"
-    }
-   ]
-  }
- },
- {
-  "type": "media.probe",
-  "filled": true,
-  "inputs": {
-   "media": {
-    "type": "media",
-    "src": "project:.opsis/out/media.mp4",
-    "kind": "video",
-    "durationMs": 4000,
-    "width": 1920,
-    "height": 1080,
-    "hasAudio": true
-   }
-  },
-  "result": {
-   "hash": "case",
-   "outputs": {
-    "info": {
-     "type": "file-info",
-     "src": "project:out-info.json"
-    },
-    "media": {
-     "type": "media",
-     "src": "project:.opsis/out/out-media.mp4",
-     "kind": "video",
-     "durationMs": 4000,
-     "width": 1920,
-     "height": 1080,
-     "hasAudio": true
-    }
-   },
-   "artifacts": [],
-   "finishedAt": 0,
-   "durationMs": 0
-  },
-  "secrets": [
-   "Main account"
-  ],
-  "connected": [
-   "media"
-  ],
-  "inputFrames": {},
-  "outputs": {
-   "info": {
-    "type": "file-info",
-    "src": "project:out-info.json"
-   },
-   "media": {
-    "type": "media",
-    "src": "project:.opsis/out/out-media.mp4",
-    "kind": "video",
-    "durationMs": 4000,
-    "width": 1920,
-    "height": 1080,
-    "hasAudio": true
-   }
-  },
-  "error": null,
-  "card": {
-   "rows": [
-    {
-     "icon": "info",
      "text": "4 s"
     }
    ]

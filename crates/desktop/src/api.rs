@@ -6,11 +6,14 @@ use opsis_api::address::{API_SOCKET_ENV, Host, api_address};
 use opsis_api::openapi::{ProjectState, RunState};
 use opsis_api::routes::{ApiHost, HostError, HostResult};
 use opsis_api::server::ApiServer;
+use opsis_compile::check::workflow_problems_with;
 use opsis_compile::edits::EditError;
+use opsis_compile::graph::GraphIssue;
 use opsis_document::Document;
 use opsis_types::edits::{Edited, WorkflowEdit};
 use opsis_types::events::{RunEvent, RunTargets};
 use opsis_types::shell::ApiServerStatus;
+use opsis_types::workflow::Workflow;
 use tauri::{AppHandle, Manager, State};
 use tauri_specta::Event;
 use tokio::sync::broadcast;
@@ -112,6 +115,13 @@ struct AppApi {
 impl ApiHost for AppApi {
     fn version(&self) -> String {
         self.app.package_info().version.to_string()
+    }
+
+    fn problems(&self, workflow: &Workflow) -> Vec<GraphIssue> {
+        let results = self.app.state::<AppState>().editor().results.clone();
+        let mut problems = workflow_problems_with(workflow, Some(&results));
+        problems.extend(crate::node_results::file_problems(&self.app));
+        problems
     }
 
     fn project(&self) -> HostResult<ProjectState> {

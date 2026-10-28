@@ -97,6 +97,7 @@ fn send_status(app: &AppHandle) {
     if let Err(error) = EngineChanged(status).emit(app) {
         log::warn!("sending the engine status: {error}");
     }
+    crate::compile::request(app);
 }
 
 async fn save(

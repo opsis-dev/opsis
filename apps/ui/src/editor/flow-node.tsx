@@ -7,6 +7,7 @@ import {
   CircleX,
   Clock,
   type LucideIcon,
+  RefreshCw,
 } from "lucide-react";
 import { memo } from "react";
 import {
@@ -49,6 +50,10 @@ const STATUS: Partial<Record<NodeRunStatus, StatusBadge>> = {
   error: { label: "Failed", icon: CircleX, variant: "destructive" },
 };
 
+const CHANGED: StatusBadge = { label: "Changed", icon: RefreshCw, variant: "outline" };
+
+const SETTLED: ReadonlySet<NodeRunStatus | undefined> = new Set([undefined, "done", "cached"]);
+
 const INDICATOR: Partial<Record<NodeRunStatus, NodeStatus>> = {
   running: "loading",
   error: "error",
@@ -84,8 +89,9 @@ function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: Edi
   const active = useUiStore((s) => s.activeIds.includes(id));
   const rows = useCardRows(node);
   const { errors, warnings } = useNodeProblems(id);
+  const changed = useCompiledContext().outdated.includes(id) && SETTLED.has(status);
   const indicator = (status && INDICATOR[status]) ?? "initial";
-  const succeeded = status === "done" || status === "cached";
+  const succeeded = !changed && (status === "done" || status === "cached");
 
   return (
     <NodeStatusIndicator status={indicator} variant="border">
@@ -95,7 +101,7 @@ function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: Edi
         className={cn(node.disabled && "opacity-50", active && "ring-primary/70 ring-2")}
         style={{ width: CARD_WIDTH }}
       >
-        <NodeHeader title={nodeName(node)} def={def} status={status} />
+        <NodeHeader title={nodeName(node)} def={def} status={status} changed={changed} />
         <BaseNodeContent className="gap-1.5 px-0 py-2">
           <NodePorts id={id} def={def} />
           <CardRows rows={rows} />
@@ -111,21 +117,25 @@ function NodeHeader({
   title,
   def,
   status,
+  changed,
 }: {
   title: string;
   def: EditorNode;
   status: NodeRunStatus | undefined;
+  changed: boolean;
 }) {
-  const badge = status ? STATUS[status] : undefined;
+  const badge = changed ? CHANGED : status ? STATUS[status] : undefined;
+  const tip = changed
+    ? "Changed since the last run"
+    : status === "skipped"
+      ? "Something before it failed"
+      : undefined;
   return (
     <BaseNodeHeader className="border-b">
       <NodeBadge def={def} size="md" />
       <BaseNodeHeaderTitle className="truncate text-sm">{title}</BaseNodeHeaderTitle>
       {badge ? (
-        <Badge
-          variant={badge.variant}
-          title={status === "skipped" ? "Something before it failed" : undefined}
-        >
+        <Badge variant={badge.variant} title={tip}>
           <badge.icon data-icon="inline-start" />
           {badge.label}
         </Badge>

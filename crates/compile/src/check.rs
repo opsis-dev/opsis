@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use indexmap::IndexMap;
+use opsis_types::values::NodeResult;
 use opsis_types::workflow::Workflow;
 use serde::Serialize;
 use serde_json::Value;
@@ -25,7 +27,14 @@ pub struct CheckResult {
 }
 
 pub fn workflow_problems(wf: &Workflow) -> Vec<GraphIssue> {
-    let compiled = compile_workflow(wf, None);
+    workflow_problems_with(wf, None)
+}
+
+pub fn workflow_problems_with(
+    wf: &Workflow,
+    results: Option<&IndexMap<String, NodeResult>>,
+) -> Vec<GraphIssue> {
+    let compiled = compile_workflow(wf, results);
     let mut problems = validate_workflow(wf, Some(&compiled));
     let flagged: HashSet<Option<String>> = problems
         .iter()

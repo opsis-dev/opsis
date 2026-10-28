@@ -597,8 +597,6 @@ export type CompileValue = {
 } & ImageValue | {
 	type: "media",
 } & MediaValue | {
-	type: "file-info",
-} & SrcValue | {
 	type: "clip",
 } & ClipValue | {
 	type: "audio",
@@ -731,6 +729,7 @@ export type EditorCompile = {
 	localFrames: { [key in string]: LocalFrames },
 	mix: Mix,
 	solo: boolean,
+	outdated: string[],
 };
 
 export type EditorNode = {
@@ -1191,7 +1190,7 @@ export type Master = {
 	loudness: LoudnessTarget,
 };
 
-export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number };
+export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number } | { type: "file"; bytes: number; fps?: number };
 
 export type MediaKind = "video" | "audio" | "image";
 
@@ -1431,7 +1430,7 @@ export type PortLink = {
 	to: PortType,
 };
 
-export type PortType = "browser-session" | "recording" | "recording-style" | "grade" | "clip" | "audio" | "captions" | "image" | "media" | "file-info";
+export type PortType = "browser-session" | "recording" | "recording-style" | "grade" | "clip" | "audio" | "captions" | "image" | "media";
 
 export type Position = {
 	x: number,
@@ -1706,10 +1705,6 @@ export type SpotBackground = {
 	timeMs: number,
 	durationMs: number,
 	still: boolean,
-};
-
-export type SrcValue = {
-	src: string | null,
 };
 
 export type StartOption = "start-screen" | "last-project" | "new-project";

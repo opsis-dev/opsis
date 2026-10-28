@@ -12,8 +12,11 @@ import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { RunningLabel, StopRunButton } from "./run-controls";
 import { StatusIcon, type RowState } from "./status-icon";
+import { useCompiledContext } from "./use-compiled";
 
 const FAILURE_LINE = "text-destructive px-2 pb-2 text-xs";
+
+const SETTLED = new Set<RowState>(["done", "cached", "fromLastRun"]);
 
 function FailureLinks({ failed, nameOf }: { failed: string[]; nameOf: (id: string) => string }) {
   const select = (id: string) => useUiStore.getState().setSelected([id]);
@@ -85,7 +88,9 @@ function NodeRow({ node, active }: { node: WorkflowNode; active: boolean }) {
   const status = useRunStore((s) => s.statuses[node.id]);
   const failedBefore = useRunStore((s) => !!s.errors[node.id]);
   const progress = useRunStore((s) => s.progress[node.id]?.value);
-  const state: RowState = status ?? (failedBefore ? "failedBefore" : "fromLastRun");
+  const changed = useCompiledContext().outdated.includes(node.id);
+  const shown: RowState = status ?? (failedBefore ? "failedBefore" : "fromLastRun");
+  const state: RowState = changed && SETTLED.has(shown) ? "changed" : shown;
   return (
     <button
       type="button"

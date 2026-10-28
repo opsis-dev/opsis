@@ -5,14 +5,15 @@ use std::sync::{Arc, Mutex};
 use opsis_compile::registry::default_params;
 use opsis_compile::vars::Vars;
 use opsis_media::executors::{
-    LinkedMedia, Tools, media_executors, media_has_sound, thumbnail_time,
+    FileCheckError, LinkedMedia, Tools, check_media_file, media_executors, media_has_sound,
+    thumbnail_time,
 };
 use opsis_media::ffmpeg::{
     AudioInfo, FramePipe, MediaTools, ProbeResult, RunOptions, ToolError, ToolFuture, VideoInfo,
 };
 use opsis_runner::context::{ExecError, ExecutorContext, ExecutorOutput, ResultStore, RunEnv};
 use opsis_types::settings::AppSettings;
-use opsis_types::values::{ArtifactKind, PortValues};
+use opsis_types::values::{ArtifactKind, Measured, MediaKind, PortValues};
 use opsis_types::workflow::Workflow;
 use pretty_assertions::assert_eq;
 use serde_json::{Map, Value, json};
@@ -407,7 +408,7 @@ async fn has_sound(tools: &FakeTools, media: &LinkedMedia) -> bool {
         .unwrap(),
     );
     let node = serde_json::from_value(
-        json!({ "id": "n", "type": "media.probe", "position": { "x": 0, "y": 0 } }),
+        json!({ "id": "n", "type": "media.trim", "position": { "x": 0, "y": 0 } }),
     )
     .unwrap();
     let ctx = ExecutorContext {
@@ -773,4 +774,92 @@ async fn cleans_speech_the_learned_way_and_puts_the_cleaned_voice_back_under_the
     assert!(ran[2].windows(2).any(|w| w == ["-c:v", "copy"]));
     assert!(!cache.join("voice-in.wav").exists());
     assert!(!cache.join("voice.wav").exists());
+}
+
+#[tokio::test]
+async fn checks_a_media_file_for_its_kind_size_and_frame_rate_or_says_it_is_gone() {
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("clip.mp4");
+    std::fs::write(&file, vec![0u8; 3000]).unwrap();
+    let tools = FakeTools {
+        probe: film_probe(None),
+        ran: Mutex::new(Vec::new()),
+    };
+    let checked = check_media_file(&tools, &file, "project:assets/clip.mp4")
+        .await
+        .unwrap();
+    assert_eq!(
+        (
+            checked.media.kind,
+            checked.media.has_audio,
+            checked.media.duration_ms,
+            checked.measured
+        ),
+        (
+            MediaKind::Video,
+            Some(false),
+            Some(4000),
+            Measured::File {
+                bytes: 3000,
+                fps: Some(30.0)
+            }
+        )
+    );
+    let quiet = FakeTools {
+        probe: probing(true).probe,
+        ran: Mutex::new(Vec::new()),
+    };
+    let sound = check_media_file(&quiet, &file, "project:assets/clip.mp4")
+        .await
+        .unwrap();
+    assert_eq!(
+        (sound.media.kind, sound.measured),
+        (
+            MediaKind::Audio,
+            Measured::File {
+                bytes: 3000,
+                fps: None
+            }
+        )
+    );
+    let gone = check_media_file(
+        &tools,
+        &dir.path().join("gone.mp4"),
+        "project:assets/gone.mp4",
+    )
+    .await
+    .err()
+    .unwrap();
+    assert!(matches!(gone, FileCheckError::Missing), "{gone:?}");
+    let folder = check_media_file(&tools, dir.path(), "project:assets")
+        .await
+        .err()
+        .unwrap();
+    assert_eq!(folder.to_string(), "This is a folder, not a file.");
+}
+
+#[cfg(unix)]
+#[tokio::test]
+async fn says_a_file_it_cannot_open_without_naming_its_path() {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("locked.mp4");
+    std::fs::write(&file, vec![0u8; 10]).unwrap();
+    std::fs::set_permissions(&file, std::fs::Permissions::from_mode(0o000)).unwrap();
+    let tools = FakeTools {
+        probe: film_probe(None),
+        ran: Mutex::new(Vec::new()),
+    };
+    let locked = check_media_file(&tools, &file, "project:assets/locked.mp4")
+        .await
+        .err()
+        .unwrap();
+    assert_eq!(
+        locked.to_string(),
+        "Can't open this file: permission denied."
+    );
+    assert!(matches!(
+        locked,
+        FileCheckError::Unopenable(std::io::ErrorKind::PermissionDenied)
+    ));
 }

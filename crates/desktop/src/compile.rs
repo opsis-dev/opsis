@@ -27,6 +27,7 @@ use tauri_specta::Event;
 
 use crate::error::CommandResult;
 use crate::events::Compiled;
+use crate::node_results::{check_media_files, refresh};
 use crate::state::AppState;
 
 #[derive(Debug, Clone, Serialize, Type)]
@@ -45,6 +46,7 @@ pub struct EditorCompile {
     pub local_frames: IndexMap<String, LocalFrames>,
     pub mix: Mix,
     pub solo: bool,
+    pub outdated: Vec<String>,
 }
 
 static COMPILES: AtomicU64 = AtomicU64::new(0);
@@ -109,6 +111,7 @@ fn editor_compile(input: &CompileInput) -> EditorCompile {
         seq,
         result,
         issues,
+        outdated: Vec::new(),
         preview,
         flat,
         plan,
@@ -118,6 +121,14 @@ fn editor_compile(input: &CompileInput) -> EditorCompile {
         inspector,
         local_frames,
     }
+}
+
+fn refreshed_compile(app: &AppHandle, input: &mut CompileInput) -> EditorCompile {
+    let refreshed = refresh(app, &input.dir, &input.workflow, &mut input.results);
+    let mut compiled = editor_compile(input);
+    compiled.outdated = refreshed.outdated;
+    compiled.issues.extend(refreshed.problems);
+    compiled
 }
 
 fn film_of(compiled: &EditorCompile) -> Option<Film> {
@@ -146,14 +157,21 @@ pub fn request(app: &AppHandle) {
         let state = app.state::<AppState>();
         let _turn = state.compiles.turn.lock().await;
         state.compiles.waiting.store(false, Ordering::Release);
-        let Some(input) = compile_input(&state) else {
+        let Some(mut input) = compile_input(&state) else {
             return;
         };
         let emitter = app.clone();
         let compiled = tauri::async_runtime::spawn_blocking(move || {
-            let compiled = editor_compile(&input);
+            let compiled = refreshed_compile(&emitter, &mut input);
             emitter.state::<AppState>().editor().film = film_of(&compiled);
             emit(&emitter, &compiled);
+            check_media_files(
+                &emitter,
+                &input.dir,
+                &input.workflow,
+                &compiled.result,
+                &input.results,
+            );
             let refs = project_refs_in(&json!([
                 compiled.result.values,
                 input.workflow.settings.fonts.families
@@ -188,12 +206,15 @@ pub fn set_compile_focus(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn latest_compile(state: State<'_, AppState>) -> CommandResult<Option<EditorCompile>> {
-    let Some(input) = compile_input(&state) else {
+pub async fn latest_compile(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> CommandResult<Option<EditorCompile>> {
+    let Some(mut input) = compile_input(&state) else {
         return Ok(None);
     };
     Ok(Some(
-        tauri::async_runtime::spawn_blocking(move || editor_compile(&input)).await?,
+        tauri::async_runtime::spawn_blocking(move || refreshed_compile(&app, &mut input)).await?,
     ))
 }
 

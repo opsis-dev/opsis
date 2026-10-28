@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use indexmap::IndexMap;
 use opsis_types::cards::CardRow;
 use opsis_types::values::{CompileValue, NodeResult};
-use opsis_types::workflow::{Workflow, WorkflowNode};
+use opsis_types::workflow::{PortType, Workflow, WorkflowNode};
 use regex::Regex;
 use serde_json::Value;
 
@@ -11,6 +11,7 @@ use crate::asset_ref::project_rel_path;
 use crate::clip::{input_take, recording_take, scene_item_count};
 use crate::compile::CompileResult;
 use crate::node::{CLIP_PORT, CardInputs, InputMedia};
+use crate::ports::convert_input;
 use crate::registry::node_def;
 use crate::vars::{Vars, strings_in, workflow_vars};
 
@@ -28,6 +29,20 @@ pub fn named_project_files(params: &Value) -> Vec<String> {
         .into_iter()
         .filter(|v| project_rel_path(v.trim()).is_some())
         .collect()
+}
+
+fn converted_to_file(
+    node: &WorkflowNode,
+    port: &str,
+    value: &CompileValue,
+) -> Option<CompileValue> {
+    if matches!(value, CompileValue::Media(_)) {
+        return None;
+    }
+    let spec = node_def(&node.kind)?
+        .input(port)
+        .filter(|s| s.kind == PortType::Media)?;
+    convert_input(Some(value), Some(spec))
 }
 
 pub fn card_inputs(
@@ -61,6 +76,15 @@ pub fn card_inputs(
         else {
             continue;
         };
+        if let Some(CompileValue::Media(m)) = converted_to_file(node, &port, v) {
+            inputs.media.insert(
+                port.clone(),
+                InputMedia {
+                    kind: m.kind,
+                    has_audio: m.has_audio,
+                },
+            );
+        }
         match v {
             CompileValue::Media(m) => {
                 if let (Some(w), Some(h)) = (m.width, m.height) {

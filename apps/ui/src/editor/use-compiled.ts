@@ -23,6 +23,7 @@ const EMPTY: Compiled = {
   localFrames: {},
   mix: null,
   solo: false,
+  outdated: [],
 };
 
 function useLatest(): [Compiled, (compiled: EditorCompile) => void] {

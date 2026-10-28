@@ -88,6 +88,7 @@ fn spec(kind: PortType, label: Option<&'static str>) -> PortSpec {
         label: label.map(Into::into),
         optional: false,
         many: false,
+        need: None,
     }
 }
 
@@ -103,7 +104,6 @@ fn connects_the_same_resource_and_converts_images_and_recordings_to_files() {
     );
     for (from, to) in [
         (PortType::Media, PortType::Audio),
-        (PortType::FileInfo, PortType::Media),
         (PortType::Recording, PortType::Clip),
     ] {
         assert!(!can_connect(from, to), "{from:?} -> {to:?}");

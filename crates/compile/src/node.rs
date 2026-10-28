@@ -6,8 +6,8 @@ use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::recording::RecordingProps;
 use opsis_types::values::{
-    BrowserAction, ClipValue, CompileValue, EntriesValue, Hits, MediaKind, NodeResult, PortValues,
-    StyleEntry,
+    BrowserAction, ClipValue, CompileValue, EntriesValue, Hits, MediaKind, MediaValue, NodeResult,
+    PortValues, StyleEntry,
 };
 use opsis_types::workflow::{PortType, Workflow, WorkflowSettings};
 use serde::de::DeserializeOwned;
@@ -113,12 +113,46 @@ pub enum Phase {
     Post,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FileNeed {
+    Image,
+    Picture,
+    Moving,
+    Sound,
+    SoundFile,
+}
+
+impl FileNeed {
+    pub fn refuses(self, media: &MediaValue) -> bool {
+        match self {
+            Self::Image => media.kind != MediaKind::Image,
+            Self::Picture => media.kind == MediaKind::Audio,
+            Self::Moving => media.kind == MediaKind::Image,
+            Self::Sound => media.kind == MediaKind::Image || media.has_audio == Some(false),
+            Self::SoundFile => media.kind != MediaKind::Audio,
+        }
+    }
+
+    pub fn message(self) -> &'static str {
+        match self {
+            Self::Image => "The connected file isn't an image.",
+            Self::Picture => "The connected file is only sound, with no picture.",
+            Self::Moving => "The connected file is a still image, with nothing that plays.",
+            Self::Sound => "The connected file has no sound.",
+            Self::SoundFile => {
+                "This works on sound files, so a video doesn't lose its sync. Take the sound out with Extract sound first."
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PortSpec {
     pub kind: PortType,
     pub label: Option<Cow<'static, str>>,
     pub optional: bool,
     pub many: bool,
+    pub need: Option<FileNeed>,
 }
 
 impl PortSpec {
@@ -143,6 +177,12 @@ impl PortSpec {
             ..self
         }
     }
+
+    fn needing(&mut self, need: FileNeed) {
+        if self.kind == PortType::Media {
+            self.need = Some(need);
+        }
+    }
 }
 
 pub fn port(kind: PortType, label: impl Into<Cow<'static, str>>) -> PortSpec {
@@ -151,6 +191,7 @@ pub fn port(kind: PortType, label: impl Into<Cow<'static, str>>) -> PortSpec {
         label: Some(label.into()),
         optional: false,
         many: false,
+        need: None,
     }
 }
 
@@ -192,6 +233,7 @@ impl PortFamily {
             label: None,
             optional: false,
             many: false,
+            need: None,
         };
         Self {
             prefix,
@@ -512,6 +554,17 @@ impl NodeDef {
 
     pub fn family(mut self, family: PortFamily) -> Self {
         self.family = Some(family);
+        self
+    }
+
+    pub fn needs(mut self, need: FileNeed) -> Self {
+        for (_, spec) in &mut self.inputs {
+            spec.needing(need);
+        }
+        if let Some(family) = &mut self.family {
+            family.required_spec.needing(need);
+            family.optional_spec.needing(need);
+        }
         self
     }
 

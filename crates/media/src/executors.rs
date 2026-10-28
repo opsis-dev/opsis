@@ -1,8 +1,7 @@
 use opsis_compile::nodes::media::{
     APPLY_GRADE_TYPE, CLEAN_SPEECH_TYPE, CONCAT_TYPE, CONVERT_TYPE, EXTRACT_AUDIO_TYPE,
-    FASTSTART_TYPE, GIF_TYPE, HUM_TYPE, IMPORT_TYPE, LOUDNORM_TYPE, PAUSES_TYPE, PROBE_TYPE,
-    REPAIR_TYPE, REVERSE_TYPE, SCALE_PAD_TYPE, SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE,
-    TRIM_TYPE,
+    FASTSTART_TYPE, GIF_TYPE, HUM_TYPE, IMPORT_TYPE, LOUDNORM_TYPE, PAUSES_TYPE, REPAIR_TYPE,
+    REVERSE_TYPE, SCALE_PAD_TYPE, SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE, TRIM_TYPE,
 };
 use std::future::Future;
 use std::path::Path;
@@ -18,12 +17,12 @@ use opsis_compile::nodes::media::{
     ShortenPauses, SoundPicture, TrimFile, joined_files, kept_parts,
 };
 use opsis_compile::registry::{node_def, node_name};
-use opsis_compile::text::{format_duration, format_precise_duration, single_quoted};
+use opsis_compile::text::{format_duration, single_quoted};
 use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
 use opsis_types::values::{
     Artifact, ArtifactKind, CompileValue, ImageValue, Measured, MediaKind, MediaValue, PortValues,
-    SrcValue, StyleEntry,
+    StyleEntry,
 };
 use opsis_types::workflow::DEFAULT_STILL_MS;
 
@@ -61,6 +60,27 @@ pub type Tools = Arc<dyn MediaTools>;
 impl From<GradeError> for ExecError {
     fn from(error: GradeError) -> Self {
         ExecError::new(error.to_string())
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum FileCheckError {
+    #[error("This file isn't in the project folder any more.")]
+    Missing,
+    #[error("This is a folder, not a file.")]
+    Folder,
+    #[error("Can't open this file: {0}.")]
+    Unopenable(std::io::ErrorKind),
+    #[error(transparent)]
+    Tool(#[from] ToolError),
+}
+
+impl From<FileCheckError> for ExecError {
+    fn from(error: FileCheckError) -> Self {
+        match error {
+            FileCheckError::Tool(tool) => tool_error(tool),
+            other => ExecError::new(other.to_string()),
+        }
     }
 }
 
@@ -251,33 +271,6 @@ fn concat_list(paths: &[String]) -> String {
         .join("\n")
 }
 
-fn probe_summary(probe: &ProbeResult) -> String {
-    let picture = probe.video.as_ref().map_or_else(
-        || "no video".to_owned(),
-        |v| {
-            let rate = v
-                .fps
-                .map_or_else(|| "unknown".to_owned(), |f| format!("{f:.2}"));
-            format!("{} {}×{} @ {rate}fps", v.codec, v.width, v.height)
-        },
-    );
-    let sound = probe.audio.as_ref().map_or_else(
-        || "no audio".to_owned(),
-        |a| match a.sample_rate {
-            Some(rate) => format!("{} {rate}Hz", a.codec),
-            None => a.codec.clone(),
-        },
-    );
-    format!(
-        "{} · {} · {picture} · {sound}",
-        probe.format,
-        probe.duration_ms.map_or_else(
-            || "unknown length".to_owned(),
-            |ms| format_precise_duration(f64::from(ms))
-        )
-    )
-}
-
 async fn import_media(
     ctx: Arc<ExecutorContext>,
     _: PortValues,
@@ -287,18 +280,56 @@ async fn import_media(
     if p.path.is_empty() {
         return Err(ExecError::new("Choose a file."));
     }
-    let probe = tools
-        .probe(&ctx.ref_to_path(&p.path)?)
-        .await
-        .map_err(tool_error)?;
     let src = project_ref(&p.path);
-    let mut media = media_value_from(&probe, &src, media_kind(&probe, &src));
+    let checked = check_media_file(&*tools, &ctx.ref_to_path(&src)?, &src).await?;
+    Ok(ExecutorOutput {
+        outputs: output(MEDIA_PORT, CompileValue::Media(checked.media)),
+        measured: vec![checked.measured],
+        ..ExecutorOutput::default()
+    })
+}
+
+pub struct CheckedFile {
+    pub media: MediaValue,
+    pub measured: Measured,
+}
+
+fn opening_error(error: &std::io::Error) -> FileCheckError {
+    match error.kind() {
+        std::io::ErrorKind::NotFound => FileCheckError::Missing,
+        std::io::ErrorKind::IsADirectory => FileCheckError::Folder,
+        kind => FileCheckError::Unopenable(kind),
+    }
+}
+
+pub async fn check_media_file(
+    tools: &dyn MediaTools,
+    file: &Path,
+    src: &str,
+) -> Result<CheckedFile, FileCheckError> {
+    let meta = tokio::fs::metadata(file)
+        .await
+        .map_err(|e| opening_error(&e))?;
+    if !meta.is_file() {
+        return Err(FileCheckError::Folder);
+    }
+    tokio::fs::File::open(file)
+        .await
+        .map_err(|e| opening_error(&e))?;
+    let bytes = meta.len();
+    let probe = tools.probe(file).await?;
+    let mut media = media_value_from(&probe, src, media_kind(&probe, src));
     if media.kind == MediaKind::Image {
         media.duration_ms = None;
     }
-    Ok(ExecutorOutput {
-        outputs: output(MEDIA_PORT, CompileValue::Media(media)),
-        ..ExecutorOutput::default()
+    let fps = probe
+        .video
+        .as_ref()
+        .and_then(|v| v.fps)
+        .filter(|_| media.kind == MediaKind::Video);
+    Ok(CheckedFile {
+        media,
+        measured: Measured::File { bytes, fps },
     })
 }
 
@@ -1392,37 +1423,6 @@ async fn faststart(
     .await
 }
 
-async fn probe(
-    ctx: Arc<ExecutorContext>,
-    inputs: PortValues,
-    tools: Tools,
-) -> Result<ExecutorOutput, ExecError> {
-    let input = require_media(inputs.get(MEDIA_PORT))?;
-    let probe = tools
-        .probe(&ctx.ref_to_path(&input.src)?)
-        .await
-        .map_err(tool_error)?;
-    let file = "probe.json";
-    opsis_engine::files::write_json(&ctx.dir.join(file), &probe.raw)?;
-    ctx.log(LogLevel::Info, probe_summary(&probe));
-    let mut outputs = output(
-        "info",
-        CompileValue::FileInfo(SrcValue {
-            src: Some(ctx.project_file_ref(file)),
-        }),
-    );
-    outputs.insert(
-        MEDIA_PORT.to_owned(),
-        CompileValue::Media(media_value_from(&probe, &input.src, input.value.kind)),
-    );
-    Ok(ExecutorOutput {
-        outputs,
-        artifacts: vec![artifact(&ctx, ArtifactKind::Json, file, "Probe")],
-        trace_id: None,
-        measured: Vec::new(),
-    })
-}
-
 fn bind<F, Fut>(tools: &Tools, run: F) -> Executor
 where
     F: Fn(Arc<ExecutorContext>, PortValues, Tools) -> Fut + Send + Sync + 'static,
@@ -1452,7 +1452,6 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (SOUND_PICTURE_TYPE, bind(tools, sound_picture)),
         (THUMBNAIL_TYPE, bind(tools, thumbnail)),
         (FASTSTART_TYPE, bind(tools, faststart)),
-        (PROBE_TYPE, bind(tools, probe)),
         (ROOM_TONE_TYPE, bind(tools, make_room_tone)),
         (TONES_TYPE, bind(tools, make_tones)),
     ]

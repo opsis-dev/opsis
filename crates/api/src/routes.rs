@@ -11,7 +11,7 @@ use futures::StreamExt;
 use futures::future::BoxFuture;
 use opsis_compile::catalog::{catalog_entry, node_catalog};
 use opsis_compile::check::{ApiProblem, check_workflow, workflow_problems};
-use opsis_compile::graph::{IssueLevel, connection_problem};
+use opsis_compile::graph::{GraphIssue, IssueLevel, connection_problem};
 use opsis_compile::registry::node_def;
 use opsis_types::edits::{Edited, WorkflowEdit};
 use opsis_types::events::RunTargets;
@@ -58,6 +58,9 @@ pub trait ApiHost: Send + Sync + 'static {
     fn run(&self, targets: RunTargets) -> BoxFuture<'static, HostResult<RunState>>;
     fn stop(&self) -> RunState;
     fn run_events(&self) -> tokio::sync::broadcast::Receiver<String>;
+    fn problems(&self, workflow: &Workflow) -> Vec<GraphIssue> {
+        workflow_problems(workflow)
+    }
 }
 
 type Host = Arc<dyn ApiHost>;
@@ -113,8 +116,8 @@ fn body_of<T: DeserializeOwned>(bytes: &Bytes, required: bool) -> Result<T, Box<
         .map_err(|e| Box::new(failure(StatusCode::BAD_REQUEST, &e)))
 }
 
-fn problems_of(workflow: &Workflow) -> Vec<ApiProblem> {
-    workflow_problems(workflow)
+fn problems_of(host: &Host, workflow: &Workflow) -> Vec<ApiProblem> {
+    host.problems(workflow)
         .into_iter()
         .map(|issue| ApiProblem { issue, path: None })
         .collect()
@@ -127,7 +130,7 @@ fn edited_reply(host: &Host, id: Option<String>, revision: u64) -> Response {
             &EditedReply {
                 id,
                 revision,
-                problems: problems_of(&project.workflow),
+                problems: problems_of(host, &project.workflow),
             },
         ),
         Err(error) => host_failure(&error),
@@ -366,7 +369,7 @@ async fn variables(State(host): State<Host>, bytes: Bytes) -> Response {
 async fn problems(State(host): State<Host>) -> Response {
     match host.project() {
         Ok(project) => {
-            let problems = problems_of(&project.workflow);
+            let problems = problems_of(&host, &project.workflow);
             let ok = !problems.iter().any(|p| p.issue.level == IssueLevel::Error);
             json_reply(StatusCode::OK, &Check { ok, problems })
         }

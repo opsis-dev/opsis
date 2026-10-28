@@ -310,7 +310,7 @@ fn reads_every_saved_output_kind_and_rejects_mismatched_ones() {
     let outputs = json!({
         "media": { "type": "media", "src": "project:a.mp4", "kind": "video", "durationMs": 1200 },
         "image": { "type": "image", "src": null, "width": 640, "height": 360, "scale": 2 },
-        "info": { "type": "file-info", "src": "project:probe.json" },
+        "captions": { "type": "captions", "captions": [{ "text": "Hi", "startMs": 0, "endMs": 900 }] },
         "recording": {
             "type": "recording", "src": "project:r.mp4", "log": null, "durationMs": 5000,
             "viewport": { "width": 1920, "height": 1080 }, "nodeId": "record",
@@ -341,7 +341,7 @@ fn reads_every_saved_output_kind_and_rejects_mismatched_ones() {
 
 #[test]
 fn keeps_the_readable_node_results_when_one_entry_is_damaged() {
-    let parsed = LastRun::parse(&json!({ "updatedAt": 1, "nodes": { "good": result(json!({})), "bad": result(json!({ "info": { "type": "file-info" } })) } })).unwrap();
+    let parsed = LastRun::parse(&json!({ "updatedAt": 1, "nodes": { "good": result(json!({})), "bad": result(json!({ "media": { "type": "media", "src": 3 } })) } })).unwrap();
     assert_eq!(parsed.nodes.keys().collect::<Vec<_>>(), ["good"]);
 }
 

@@ -12,21 +12,19 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::asset_ref::{kind_from_path, project_ref};
+use crate::asset_ref::{extension_of, kind_from_path, project_ref};
 use crate::card::{file_row, range_row, truncate_card};
 use crate::clip::{IMAGE, ItemExtra, VIDEO, item_clip, placeholder_clip};
 use crate::errors::SettingsError;
 use crate::node::{
-    CardCtx, Category, Ctx, GRADE_PORT, Inputs, NodeDef, Outputs, Phase, PortFamily, Ports, RowExt,
-    missing, port, row,
+    CardCtx, Category, Ctx, FileNeed, GRADE_PORT, Inputs, NodeDef, Outputs, Phase, PortFamily,
+    Ports, RowExt, missing, port, row,
 };
 use crate::nodes::grade::{grade_changes_nothing, grade_needs_video, grade_step_title};
 use crate::params::{Params, to_values};
 use crate::ports::{IN_PREFIX, in_index};
-use crate::text::{format_duration, plural, signed_text};
+use crate::text::{format_bytes, format_duration, grouped, plural, signed_text};
 use crate::time::ms_to_frames;
-
-pub const PROBE_TYPE: &str = "media.probe";
 
 pub const FASTSTART_TYPE: &str = "media.faststart";
 
@@ -215,6 +213,49 @@ fn media_of(result: Option<&NodeResult>, port: &str) -> Option<MediaValue> {
         .cloned()
 }
 
+fn checked_media(result: Option<&NodeResult>, path: &str) -> Option<MediaValue> {
+    media_of(result, MEDIA_PORT)
+        .filter(|m| !path.is_empty() && m.src.as_deref() == Some(project_ref(path).as_str()))
+}
+
+fn file_measured(result: Option<&NodeResult>) -> Option<(u64, Option<f64>)> {
+    result?.measured.iter().find_map(|m| match m {
+        Measured::File { bytes, fps } => Some((*bytes, *fps)),
+        Measured::NoiseLevel { .. } => None,
+    })
+}
+
+fn file_details_row(media: &MediaValue, path: &str, fps: Option<f64>) -> CardRow {
+    let mut parts: Vec<String> = Some(extension_of(path).to_uppercase())
+        .filter(|f| !f.is_empty())
+        .into_iter()
+        .collect();
+    if let (Some(w), Some(h)) = (media.width, media.height) {
+        parts.push(format!("{w} × {h}"));
+    }
+    if let Some(fps) = fps {
+        parts.push(format!("{} fps", grouped(fps, 2)));
+    }
+    let icon = match media.kind {
+        MediaKind::Video => Icon::Film,
+        MediaKind::Image => Icon::Image,
+        MediaKind::Audio => {
+            parts.push("Sound".to_owned());
+            Icon::AudioLines
+        }
+    };
+    row(icon, parts.join(" · "))
+}
+
+fn file_size_row(media: &MediaValue, bytes: u64) -> CardRow {
+    let size = format_bytes(bytes);
+    match (media.kind, media.has_audio) {
+        (MediaKind::Video, Some(false)) => row(Icon::VolumeX, format!("{size} · No sound")),
+        (MediaKind::Video, Some(true)) => row(Icon::HardDrive, format!("{size} · With sound")),
+        _ => row(Icon::HardDrive, size),
+    }
+}
+
 fn length_row(result: Option<&NodeResult>, icon: Icon) -> Option<CardRow> {
     let duration = media_of(result, MEDIA_PORT)?
         .duration_ms
@@ -378,22 +419,43 @@ fn import() -> NodeDef {
     ])
     .card(|ctx: &CardCtx<'_, MediaFile>| {
         let p = &ctx.params;
+        if p.path.is_empty() {
+            return vec![Some(missing(Icon::FileVideo, "Choose a file"))];
+        }
+        let name = Some(file_row(Icon::FileVideo, &p.path));
+        if ctx.inputs.missing_files.contains(&p.path) {
+            return vec![
+                name,
+                Some(missing(Icon::TriangleAlert, "Not in the project folder")),
+            ];
+        }
+        let Some(media) = checked_media(ctx.result, &p.path) else {
+            return vec![
+                name,
+                Some(row(Icon::Info, "Not read yet").tone(Tone::Muted)),
+                (kind_from_path(&p.path) == MediaKind::Image)
+                    .then(|| row(Icon::Clock, format_duration(f64::from(p.still_ms)))),
+            ];
+        };
+        let measured = file_measured(ctx.result);
+        let length = match media.kind {
+            MediaKind::Image => Some(f64::from(p.still_ms)),
+            _ => media.duration_ms.filter(|d| *d != 0).map(f64::from),
+        };
         vec![
-            Some(if p.path.is_empty() {
-                missing(Icon::FileVideo, "Choose a file")
-            } else {
-                file_row(Icon::FileVideo, &p.path)
-            }),
-            if !p.path.is_empty() && kind_from_path(&p.path) == MediaKind::Image {
-                Some(row(Icon::Clock, format_duration(f64::from(p.still_ms))))
-            } else {
-                length_row(ctx.result, Icon::Clock)
-            },
+            name,
+            Some(file_details_row(
+                &media,
+                &p.path,
+                measured.and_then(|m| m.1),
+            )),
+            length.map(|ms| row(Icon::Clock, format_duration(ms))),
+            measured.map(|(bytes, _)| file_size_row(&media, bytes)),
         ]
     })
     .compiles(|ctx: &Ctx<'_, MediaFile>| {
         let p = &ctx.params;
-        let media = media_of(ctx.result, MEDIA_PORT).unwrap_or_else(|| MediaValue {
+        let media = checked_media(ctx.result, &p.path).unwrap_or_else(|| MediaValue {
             src: (!p.path.is_empty()).then(|| project_ref(&p.path)),
             kind: kind_from_path(&p.path),
             duration_ms: None,
@@ -810,19 +872,16 @@ fn clean_speech_steps(p: &CleanSpeech) -> String {
 }
 
 fn noise_level_row(result: Option<&NodeResult>) -> Option<CardRow> {
-    result?
-        .measured
-        .iter()
-        .map(|m| match m {
-            Measured::NoiseLevel {
-                before_db,
-                after_db,
-            } => row(
-                Icon::Volume2,
-                format!("Noise {before_db:.0} dB → {after_db:.0} dB"),
-            ),
-        })
-        .next()
+    result?.measured.iter().find_map(|m| match m {
+        Measured::NoiseLevel {
+            before_db,
+            after_db,
+        } => Some(row(
+            Icon::Volume2,
+            format!("Noise {before_db:.0} dB → {after_db:.0} dB"),
+        )),
+        Measured::File { .. } => None,
+    })
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -1034,36 +1093,6 @@ fn apply_grade() -> NodeDef {
     })
 }
 
-fn probe() -> NodeDef {
-    file_op::<NoSettings>(
-        PROBE_TYPE,
-        "File info",
-        "Shows a file's length, size, frame rate and format.",
-    )
-    .inputs(vec![(MEDIA_PORT, port(PortType::Media, "File"))])
-    .outputs(vec![
-        ("info", port(PortType::FileInfo, "Info")),
-        (MEDIA_PORT, port(PortType::Media, "File")),
-    ])
-    .card(|ctx: &CardCtx<'_, NoSettings>| {
-        vec![Some(length_row(ctx.result, Icon::Info).unwrap_or_else(
-            || row(Icon::Info, "Run to read the file").tone(Tone::Muted),
-        ))]
-    })
-    .compile(|ctx: &Ctx<'_, NoSettings>| {
-        let mut out = Outputs::new();
-        if let Some(info) = ctx
-            .result
-            .and_then(|r| r.output("info"))
-            .filter(|v| matches!(v, CompileValue::FileInfo(_)))
-        {
-            out.insert("info".into(), info.clone());
-        }
-        out.extend(pass_media(ctx.result, ctx.inputs, MEDIA_PORT));
-        Ok(Some(out))
-    })
-}
-
 fn thumbnail() -> NodeDef {
     file_op::<GrabFrame>(
         THUMBNAIL_TYPE,
@@ -1116,7 +1145,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 length_row(ctx.result, Icon::Clock),
             ]
         })
-        .look(NodeLook::of("lucide:scissors-line-dashed")),
+        .look(NodeLook::of("lucide:scissors-line-dashed"))
+        .needs(FileNeed::Moving),
         join_files().look(NodeLook::of("lucide:combine")),
         one_file_op::<ChangeSpeed>(
             SPEED_TYPE,
@@ -1135,7 +1165,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 }),
             ]
         })
-        .look(NodeLook::of("lucide:fast-forward")),
+        .look(NodeLook::of("lucide:fast-forward"))
+        .needs(FileNeed::Moving),
         one_file_op::<NoSettings>(REVERSE_TYPE, "Reverse", "Plays a file backwards.")
             .uses_project_size()
             .card(|ctx: &CardCtx<'_, NoSettings>| {
@@ -1144,7 +1175,8 @@ pub fn nodes() -> Vec<NodeDef> {
                     length_row(ctx.result, Icon::Clock),
                 ]
             })
-            .look(NodeLook::of("lucide:rewind")),
+            .look(NodeLook::of("lucide:rewind"))
+            .needs(FileNeed::Moving),
         one_file_op::<Resize>(
             SCALE_PAD_TYPE,
             "Resize",
@@ -1157,7 +1189,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 Some(row(Icon::Maximize, p.mode.row())),
             ]
         })
-        .look(NodeLook::of("lucide:scaling")),
+        .look(NodeLook::of("lucide:scaling"))
+        .needs(FileNeed::Picture),
         one_file_op::<Encoding>(
             CONVERT_TYPE,
             "Convert",
@@ -1167,7 +1200,9 @@ pub fn nodes() -> Vec<NodeDef> {
             vec![Some(format_row(ctx.params.codec, ctx.params.crf))]
         })
         .look(NodeLook::of("lucide:file-cog")),
-        apply_grade().look(NodeLook::of("lucide:swatch-book")),
+        apply_grade()
+            .look(NodeLook::of("lucide:swatch-book"))
+            .needs(FileNeed::Picture),
         one_file_op::<MakeGif>(
             GIF_TYPE,
             "Make GIF",
@@ -1183,7 +1218,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 p.r#loop.then(|| row(Icon::Repeat, "Loops")),
             ]
         })
-        .look(NodeLook::of("lucide:image-play")),
+        .look(NodeLook::of("lucide:image-play"))
+        .needs(FileNeed::Picture),
         one_file_op::<ExtractSound>(
             EXTRACT_AUDIO_TYPE,
             "Extract sound",
@@ -1196,7 +1232,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 .unwrap_or_default();
             vec![Some(row(Icon::AudioLines, format))]
         })
-        .look(NodeLook::of("lucide:file-music")),
+        .look(NodeLook::of("lucide:file-music"))
+        .needs(FileNeed::Sound),
         one_file_op::<EvenOutVolume>(
             LOUDNORM_TYPE,
             "Even out volume",
@@ -1208,7 +1245,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 loudness_name(ctx.params.integrated),
             ))]
         })
-        .look(NodeLook::of("lucide:volume-2")),
+        .look(NodeLook::of("lucide:volume-2"))
+        .needs(FileNeed::Sound),
         one_file_op::<FixClicks>(
             REPAIR_TYPE,
             "Fix clicks and clipping",
@@ -1224,7 +1262,8 @@ pub fn nodes() -> Vec<NodeDef> {
             };
             vec![Some(what), length_row(ctx.result, Icon::Clock)]
         })
-        .look(NodeLook::of("lucide:bandage")),
+        .look(NodeLook::of("lucide:bandage"))
+        .needs(FileNeed::Sound),
         one_file_op::<RemoveHum>(
             HUM_TYPE,
             "Remove hum",
@@ -1244,8 +1283,11 @@ pub fn nodes() -> Vec<NodeDef> {
                 length_row(ctx.result, Icon::Clock),
             ]
         })
-        .look(NodeLook::of("iconoir:sine-wave")),
-        sound_picture().look(NodeLook::of("lucide:chart-no-axes-column")),
+        .look(NodeLook::of("iconoir:sine-wave"))
+        .needs(FileNeed::Sound),
+        sound_picture()
+            .look(NodeLook::of("lucide:chart-no-axes-column"))
+            .needs(FileNeed::Sound),
         one_file_op::<CleanSpeech>(
             CLEAN_SPEECH_TYPE,
             "Clean speech",
@@ -1261,7 +1303,8 @@ pub fn nodes() -> Vec<NodeDef> {
                 length_row(ctx.result, Icon::Clock),
             ]
         })
-        .look(NodeLook::of("lucide:mic-vocal")),
+        .look(NodeLook::of("lucide:mic-vocal"))
+        .needs(FileNeed::Sound),
         one_file_op::<ShortenPauses>(
             PAUSES_TYPE,
             "Shorten pauses",
@@ -1281,8 +1324,11 @@ pub fn nodes() -> Vec<NodeDef> {
                 length_row(ctx.result, Icon::Clock),
             ]
         })
-        .look(NodeLook::of("lucide:fold-horizontal")),
-        thumbnail().look(NodeLook::of("tabler:photo-scan")),
+        .look(NodeLook::of("lucide:fold-horizontal"))
+        .needs(FileNeed::SoundFile),
+        thumbnail()
+            .look(NodeLook::of("tabler:photo-scan"))
+            .needs(FileNeed::Picture),
         one_file_op::<NoSettings>(
             FASTSTART_TYPE,
             "Web-ready",
@@ -1295,6 +1341,5 @@ pub fn nodes() -> Vec<NodeDef> {
             ]
         })
         .look(NodeLook::of("lucide:zap")),
-        probe().look(NodeLook::of("lucide:info")),
     ]
 }

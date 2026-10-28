@@ -82,13 +82,6 @@ pub struct MediaValue {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
-pub struct SrcValue {
-    #[serde(deserialize_with = "Option::deserialize")]
-    #[specta(type = Option<String>)]
-    pub src: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ClipValue {
     pub duration_in_frames: u32,
@@ -218,7 +211,6 @@ pub enum CompileValue {
     Grade(EntriesValue),
     Image(ImageValue),
     Media(MediaValue),
-    FileInfo(SrcValue),
     Clip(ClipValue),
     Audio(AudioValue),
     Captions(CaptionsValue),
@@ -234,7 +226,6 @@ impl CompileValue {
             Self::Grade(_) => PortType::Grade,
             Self::Image(_) => PortType::Image,
             Self::Media(_) => PortType::Media,
-            Self::FileInfo(_) => PortType::FileInfo,
             Self::Clip(_) => PortType::Clip,
             Self::Audio(_) => PortType::Audio,
             Self::Captions(_) => PortType::Captions,
@@ -309,7 +300,6 @@ impl CompileValue {
             Self::Recording(v) => v.src.as_deref(),
             Self::Image(v) => v.src.as_deref(),
             Self::Media(v) => v.src.as_deref(),
-            Self::FileInfo(v) => v.src.as_deref(),
             _ => None,
         }
     }
@@ -360,7 +350,15 @@ pub type PortValues = IndexMap<String, CompileValue>;
     rename_all_fields = "camelCase"
 )]
 pub enum Measured {
-    NoiseLevel { before_db: f64, after_db: f64 },
+    NoiseLevel {
+        before_db: f64,
+        after_db: f64,
+    },
+    File {
+        bytes: u64,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        fps: Option<f64>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

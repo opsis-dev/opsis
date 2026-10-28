@@ -12,14 +12,18 @@ use opsis_api::address::ApiAddress;
 use opsis_api::openapi::{ProjectState, RunState};
 use opsis_api::routes::{ApiHost, HostError, HostResult};
 use opsis_api::server::ApiServer;
+use opsis_compile::check::workflow_problems;
+use opsis_compile::graph::{GraphIssue, IssueLevel};
 use opsis_types::edits::{Edited, WorkflowEdit};
 use opsis_types::events::RunTargets;
+use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
 use tokio::sync::broadcast;
 
 struct FakeEditor {
     asked: Mutex<Vec<WorkflowEdit>>,
     events: broadcast::Sender<String>,
+    noted: Mutex<Vec<GraphIssue>>,
 }
 
 fn demo() -> ProjectState {
@@ -89,6 +93,12 @@ impl ApiHost for FakeEditor {
     fn run_events(&self) -> broadcast::Receiver<String> {
         self.events.subscribe()
     }
+
+    fn problems(&self, workflow: &Workflow) -> Vec<GraphIssue> {
+        let mut problems = workflow_problems(workflow);
+        problems.extend(self.noted.lock().unwrap().clone());
+        problems
+    }
 }
 
 struct Served {
@@ -104,6 +114,7 @@ async fn serve() -> Served {
     let editor = Arc::new(FakeEditor {
         asked: Mutex::default(),
         events: broadcast::Sender::new(8),
+        noted: Mutex::default(),
     });
     let server = ApiServer::new(ApiAddress {
         address: socket.clone(),
@@ -424,6 +435,7 @@ async fn never_deletes_a_file_that_isnt_a_socket() {
     let editor = Arc::new(FakeEditor {
         asked: Mutex::default(),
         events: broadcast::Sender::new(8),
+        noted: Mutex::default(),
     });
     let server = ApiServer::new(ApiAddress {
         address: file.to_string_lossy().into_owned(),
@@ -432,4 +444,26 @@ async fn never_deletes_a_file_that_isnt_a_socket() {
     let status = server.set_enabled(true, editor).await;
     assert!(status.error.unwrap().contains("isn't Opsis's API"));
     assert_eq!(std::fs::read_to_string(Path::new(&file)).unwrap(), "mine");
+}
+
+#[tokio::test]
+async fn answers_with_the_problems_the_app_knows_from_runs_and_file_checks() {
+    let served = serve().await;
+    served.editor.noted.lock().unwrap().push(GraphIssue {
+        level: IssueLevel::Warning,
+        message: "This file can't be read as a video, an image or a sound.".into(),
+        node_id: Some("clip".into()),
+        edge_id: None,
+    });
+    let (code, check) = call(&served.socket, "GET", "/project/problems", None).await;
+    assert_eq!(
+        (code, &check["ok"], &check["problems"]),
+        (
+            200,
+            &json!(true),
+            &json!([{ "level": "warning", "message": "This file can't be read as a video, an image or a sound.", "nodeId": "clip" }])
+        )
+    );
+    let (_, edited) = call(&served.socket, "POST", "/project/undo", None).await;
+    assert_eq!(edited["problems"][0]["nodeId"], "clip", "{edited}");
 }

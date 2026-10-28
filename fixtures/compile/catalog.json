@@ -4642,35 +4642,6 @@
    }
   },
   {
-   "type": "media.probe",
-   "title": "File info",
-   "category": "Media",
-   "description": "Shows a file's length, size, frame rate and format.",
-   "runs": true,
-   "inputs": {
-    "media": {
-     "type": "media",
-     "label": "File",
-     "optional": false,
-     "many": false
-    }
-   },
-   "outputs": {
-    "info": {
-     "type": "file-info",
-     "label": "Info",
-     "optional": false,
-     "many": false
-    },
-    "media": {
-     "type": "media",
-     "label": "File",
-     "optional": false,
-     "many": false
-    }
-   }
-  },
-  {
    "type": "image.resize",
    "title": "Resize image",
    "category": "Image",
@@ -51989,39 +51960,6 @@
     }
    },
    "outputs": {
-    "media": {
-     "type": "media",
-     "label": "File",
-     "optional": false,
-     "many": false
-    }
-   },
-   "params": {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "type": "object"
-   }
-  },
-  {
-   "type": "media.probe",
-   "title": "File info",
-   "category": "Media",
-   "description": "Shows a file's length, size, frame rate and format.",
-   "runs": true,
-   "inputs": {
-    "media": {
-     "type": "media",
-     "label": "File",
-     "optional": false,
-     "many": false
-    }
-   },
-   "outputs": {
-    "info": {
-     "type": "file-info",
-     "label": "Info",
-     "optional": false,
-     "many": false
-    },
     "media": {
      "type": "media",
      "label": "File",

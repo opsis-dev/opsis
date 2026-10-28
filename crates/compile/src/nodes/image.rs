@@ -7,7 +7,9 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::errors::SettingsError;
-use crate::node::{CardCtx, Category, Ctx, NodeDef, Phase, PortFamily, RowExt, missing, port, row};
+use crate::node::{
+    CardCtx, Category, Ctx, FileNeed, NodeDef, Phase, PortFamily, RowExt, missing, port, row,
+};
 use crate::nodes::camera::BackdropStyle;
 use crate::nodes::effects::Area;
 use crate::params::Params;
@@ -1644,4 +1646,7 @@ pub fn nodes() -> Vec<NodeDef> {
         frame().look(NodeLook::of("hugeicons:image-composition")),
         before_after().look(NodeLook::of("lucide:columns-2")),
     ]
+    .into_iter()
+    .map(|def| def.needs(FileNeed::Image))
+    .collect()
 }
