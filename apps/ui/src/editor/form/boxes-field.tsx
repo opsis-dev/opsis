@@ -1,6 +1,6 @@
 import { formatDuration, percent } from "@opsis/video/common/format";
-import type { Bounds } from "@opsis/video/common/geometry";
 import { numberOr } from "@opsis/video/common/math";
+import type { Bounds } from "@opsis/video/generated/spec";
 import { X } from "lucide-react";
 import { SingleSlider } from "@/app/single-slider";
 import { FieldDescription } from "@/components/ui/field";

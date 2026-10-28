@@ -8,6 +8,7 @@ use opsis_types::timeline::{CameraPath, ParamRef, ParamUnit, Sign};
 use opsis_types::workflow::{PortType, Position, Workflow, WorkflowEdge, WorkflowNode};
 use serde_json::{Map, Value, json};
 
+use crate::edits::EditError;
 use crate::edits::workflow::{absolute_position, remove_nodes};
 use crate::graph::upstream_of;
 use crate::ids::{Ids, node_id_prefix};
@@ -27,8 +28,6 @@ const DELAY_TYPE: &str = "timeline.delay";
 const TRIM_TYPE: &str = "timeline.trim";
 const SPEED_TYPE: &str = "timeline.speed";
 
-const NEEDS_A_FRAME: &str = "A clip needs at least one frame.";
-const PLAYHEAD_OUTSIDE_CLIP: &str = "Put the playhead inside the clip.";
 const AT_START: &str = "That's the start of the clip.";
 const TOO_EARLY: &str = "It can't start any earlier.";
 const NEW_NODE_OFFSET: Position = Position { x: 60.0, y: 170.0 };
@@ -47,7 +46,47 @@ pub struct Done {
     pub message: Option<String>,
 }
 
-pub type Outcome = Result<Done, String>;
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum TimelineEditError {
+    #[error("A clip needs at least one frame.")]
+    NeedsAFrame,
+    #[error("A sound needs at least one frame.")]
+    SoundNeedsAFrame,
+    #[error("Put the playhead inside the clip.")]
+    PlayheadOutsideClip,
+    #[error("Put the playhead over a clip to split it.")]
+    NoClipUnderPlayhead,
+    #[error("{AT_START}")]
+    AtStart,
+    #[error("That's the end of the clip.")]
+    AtEnd,
+    #[error("In a sequence a clip starts when the one before it ends. Shorten that one instead.")]
+    StartsAfterTheOneBefore,
+    #[error("It already starts at the beginning.")]
+    AtBeginning,
+    #[error("Connect this clip to an export or a sequence to {0} here.")]
+    NotConnected(&'static str),
+    #[error("This sound can't be moved here.")]
+    SoundStaysPut,
+    #[error("Sound effects play in full. Move it instead.")]
+    EffectStartPlaysInFull,
+    #[error("Sound effects play in full.")]
+    EffectPlaysInFull,
+    #[error("This sound's volume is set in the mixer.")]
+    VolumeInMixer,
+    #[error("This node's camera keys can't be read. Check them in the Inspector.")]
+    UnreadableCameraKeys,
+    #[error("That camera key is gone.")]
+    CameraKeyGone,
+    #[error("That clip is no longer on the timeline.")]
+    ClipGone,
+    #[error("That sound is no longer on the timeline.")]
+    SoundGone,
+    #[error(transparent)]
+    Keyframes(#[from] EditError),
+}
+
+pub type Outcome = Result<Done, TimelineEditError>;
 
 fn done() -> Outcome {
     Ok(Done::default())
@@ -57,8 +96,8 @@ fn said(message: Option<String>) -> Outcome {
     Ok(Done { message })
 }
 
-fn not_connected(doing: &str) -> String {
-    format!("Connect this clip to an export or a sequence to {doing} here.")
+fn not_connected(doing: &'static str) -> TimelineEditError {
+    TimelineEditError::NotConnected(doing)
 }
 
 pub struct TimelineEdits<'a> {
@@ -525,11 +564,10 @@ impl TimelineEdits<'_> {
                 .and_then(|id| self.workflow.node(id))
                 .is_some_and(|n| n.kind == SEQUENCE_TYPE);
             return Err(if in_sequence {
-                "In a sequence a clip starts when the one before it ends. Shorten that one instead."
+                TimelineEditError::StartsAfterTheOneBefore
             } else {
-                "It already starts at the beginning."
-            }
-            .to_owned());
+                TimelineEditError::AtBeginning
+            });
         }
         let edge = self
             .slot_edge(bar)
@@ -544,7 +582,7 @@ impl TimelineEdits<'_> {
             return self.shift_owned(link, &r, delta, AT_START);
         }
         if delta < 0.0 {
-            return Err(AT_START.to_owned());
+            return Err(TimelineEditError::AtStart);
         }
         let edge = self
             .edge_out_of_clip(bar)
@@ -561,20 +599,20 @@ impl TimelineEdits<'_> {
         if let Some((link, r)) = self.owned(bar, HandleKind::TrimEnd) {
             let length = link.end + delta * link.rate_end;
             if length < 1.0 {
-                return Err(NEEDS_A_FRAME.to_owned());
+                return Err(TimelineEditError::NeedsAFrame);
             }
             set_length(&mut self.workflow, &r, length, self.fps);
             return done();
         }
         if delta > 0.0 {
-            return Err("That's the end of the clip.".to_owned());
+            return Err(TimelineEditError::AtEnd);
         }
         let edge = self
             .edge_out_of_clip(bar)
             .ok_or_else(|| not_connected("trim it"))?;
         let keep = (bar.content_end - bar.content_start + delta * bar.rate).round();
         if keep < 1.0 {
-            return Err(NEEDS_A_FRAME.to_owned());
+            return Err(TimelineEditError::NeedsAFrame);
         }
         self.add_trim(bar, &edge, bar.content_start.round(), keep)
     }
@@ -608,7 +646,7 @@ impl TimelineEdits<'_> {
             return shift_to(&mut self.workflow, &alone, content, fps, AT_START);
         }
         if content < 0.0 {
-            return Err(AT_START.to_owned());
+            return Err(TimelineEditError::AtStart);
         }
         let edge = self
             .edge_out_of_clip(bar)
@@ -634,7 +672,7 @@ impl TimelineEdits<'_> {
             .or_else(|| bar.chain.last());
         let current = span.map_or(0.0, |s| s.to - s.from);
         if new_length < 1.0 || current < 1.0 {
-            return Err(NEEDS_A_FRAME.to_owned());
+            return Err(TimelineEditError::NeedsAFrame);
         }
         let factor = current / new_length;
         if let Some((_, r)) = owned {
@@ -751,7 +789,7 @@ impl TimelineEdits<'_> {
 
     pub fn split_bar(&mut self, bar: &VideoBar, at: f64) -> Outcome {
         if at <= bar.from + HALF_FRAME || at >= bar.to - HALF_FRAME {
-            return Err(PLAYHEAD_OUTSIDE_CLIP.to_owned());
+            return Err(TimelineEditError::PlayheadOutsideClip);
         }
         let edge = self
             .slot_edge(bar)
@@ -759,7 +797,7 @@ impl TimelineEdits<'_> {
         let (from, rate) = slot_link(bar).map_or((0.0, 1.0), |l| (l.from, l.rate));
         let offset = ((at - from) * rate).round();
         if offset < 1.0 {
-            return Err(PLAYHEAD_OUTSIDE_CLIP.to_owned());
+            return Err(TimelineEditError::PlayheadOutsideClip);
         }
         let name = self.clip_name(&bar.node_id);
         let parts = self.split_parts(&edge, offset);
@@ -787,7 +825,7 @@ impl TimelineEdits<'_> {
             .handles
             .as_ref()
             .and_then(|h| h.move_to.as_ref())
-            .ok_or("This sound can't be moved here.")?;
+            .ok_or(TimelineEditError::SoundStaysPut)?;
         let fps = self.fps;
         shift_to(&mut self.workflow, r, delta.round(), fps, TOO_EARLY)
     }
@@ -804,7 +842,7 @@ impl TimelineEdits<'_> {
         if at_start {
             let r = handles
                 .and_then(|h| h.trim_start.as_ref())
-                .ok_or("Sound effects play in full. Move it instead.")?;
+                .ok_or(TimelineEditError::EffectStartPlaysInFull)?;
             return shift_to(
                 &mut self.workflow,
                 r,
@@ -815,10 +853,10 @@ impl TimelineEdits<'_> {
         }
         let r = handles
             .and_then(|h| h.trim_end.as_ref())
-            .ok_or("Sound effects play in full.")?;
+            .ok_or(TimelineEditError::EffectPlaysInFull)?;
         let length = bar.to - bar.from + delta;
         if length < 1.0 {
-            return Err("A sound needs at least one frame.".to_owned());
+            return Err(TimelineEditError::SoundNeedsAFrame);
         }
         set_length(&mut self.workflow, r, length, fps);
         done()
@@ -839,7 +877,7 @@ impl TimelineEdits<'_> {
             .handles
             .as_ref()
             .and_then(|h| h.volume.as_ref())
-            .ok_or("This sound's volume is set in the mixer.")?;
+            .ok_or(TimelineEditError::VolumeInMixer)?;
         write_param(&mut self.workflow, &ParamAt::from(r), v);
         done()
     }
@@ -955,21 +993,24 @@ impl TimelineEdits<'_> {
         if no_move(delta) {
             return done();
         }
-        let unreadable =
-            || "This node's camera keys can't be read. Check them in the Inspector.".to_owned();
-        let node = self.workflow.node(&mark.node_id).ok_or_else(unreadable)?;
+        let node = self
+            .workflow
+            .node(&mark.node_id)
+            .ok_or(TimelineEditError::UnreadableCameraKeys)?;
         let path: CameraPath = node
             .params
             .get("camera")
             .cloned()
             .and_then(|v| serde_json::from_value(v).ok())
-            .ok_or_else(unreadable)?;
+            .ok_or(TimelineEditError::UnreadableCameraKeys)?;
         let mut keys = sorted_camera_keys(Some(&path));
         let index = mark.index as usize;
-        let key = keys.get_mut(index).ok_or("That camera key is gone.")?;
+        let key = keys
+            .get_mut(index)
+            .ok_or(TimelineEditError::CameraKeyGone)?;
         key.frame = (key.frame + delta).round().max(0.0);
         keys.sort_by(|a, b| a.frame.total_cmp(&b.frame));
-        let camera = serde_json::to_value(CameraPath { keys }).map_err(|e| e.to_string())?;
+        let camera = serde_json::to_value(CameraPath { keys }).expect("camera keys serialize");
         if let Some(node) = self
             .workflow
             .nodes
@@ -1140,18 +1181,18 @@ pub struct Film {
     pub source: Option<String>,
 }
 
-fn video_bar<'a>(flat: &'a FlatTimeline, key: &str) -> Result<&'a VideoBar, String> {
+fn video_bar<'a>(flat: &'a FlatTimeline, key: &str) -> Result<&'a VideoBar, TimelineEditError> {
     flat.bars
         .iter()
         .find(|b| b.key == key)
-        .ok_or_else(|| "That clip is no longer on the timeline.".to_owned())
+        .ok_or(TimelineEditError::ClipGone)
 }
 
-fn audio_bar<'a>(flat: &'a FlatTimeline, key: &str) -> Result<&'a AudioBar, String> {
+fn audio_bar<'a>(flat: &'a FlatTimeline, key: &str) -> Result<&'a AudioBar, TimelineEditError> {
     flat.audio
         .iter()
         .find(|b| b.key == key)
-        .ok_or_else(|| "That sound is no longer on the timeline.".to_owned())
+        .ok_or(TimelineEditError::SoundGone)
 }
 
 fn neighbour<'a>(flat: &'a FlatTimeline, bar: &VideoBar, right: bool) -> Option<&'a VideoBar> {
@@ -1320,8 +1361,8 @@ impl TimelineEdits<'_> {
                 self.set_audio_volume(audio_bar(flat, &bar)?, volume)
             }
             TimelineEdit::Split { at, selected } => {
-                let bar = bar_under(flat, at, &selected)
-                    .ok_or("Put the playhead over a clip to split it.")?;
+                let bar =
+                    bar_under(flat, at, &selected).ok_or(TimelineEditError::NoClipUnderPlayhead)?;
                 self.split_bar(bar, at)
             }
             TimelineEdit::SplitBar { bar, at } => self.split_bar(video_bar(flat, &bar)?, at),
@@ -1330,12 +1371,11 @@ impl TimelineEdits<'_> {
                     .camera_keys
                     .iter()
                     .find(|m| m.key == key)
-                    .ok_or("That camera key is gone.")?;
+                    .ok_or(TimelineEditError::CameraKeyGone)?;
                 self.move_camera_key(mark, delta)
             }
             TimelineEdit::Keyframes { edit } => {
-                super::keyframes::apply_keyframe_edit(&mut self.workflow, edit)
-                    .map_err(|e| e.to_string())?;
+                super::keyframes::apply_keyframe_edit(&mut self.workflow, edit)?;
                 done()
             }
         }
@@ -1378,7 +1418,7 @@ pub fn timeline_reply(outcome: &Outcome) -> TimelineReply {
             message: done.message.clone(),
         },
         Err(error) => TimelineReply {
-            error: Some(error.clone()),
+            error: Some(error.to_string()),
             ..TimelineReply::default()
         },
     }

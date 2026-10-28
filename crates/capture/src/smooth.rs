@@ -4,6 +4,7 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 use opsis_compile::nodes::capture::FramePicture;
 use opsis_types::actions::Viewport;
+use opsis_types::numbers;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use tokio::sync::Mutex;
@@ -43,7 +44,7 @@ struct Added {
 }
 
 pub fn page_ms(frame: u64, frame_ms: f64) -> f64 {
-    let at = |n: u64| (n as f64 * frame_ms).round();
+    let at = |n: u64| (numbers::float_wide(n) * frame_ms).round();
     at(frame) - at(frame.saturating_sub(1))
 }
 

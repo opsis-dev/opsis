@@ -152,11 +152,17 @@ pub fn builder() -> Builder<tauri::Wry> {
         .error_handling(ErrorHandlingMode::Throw)
 }
 
-pub fn bindings() -> Result<String, String> {
-    let file = tempfile::NamedTempFile::new().map_err(|e| e.to_string())?;
-    builder()
-        .export(specta_typescript::Typescript::default(), file.path())
-        .map_err(|e| e.to_string())?;
-    let text = std::fs::read_to_string(file.path()).map_err(|e| e.to_string())?;
+#[derive(Debug, thiserror::Error)]
+pub enum BindingsError {
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Export(#[from] specta_typescript::Error),
+}
+
+pub fn bindings() -> Result<String, BindingsError> {
+    let file = tempfile::NamedTempFile::new()?;
+    builder().export(specta_typescript::Typescript::default(), file.path())?;
+    let text = std::fs::read_to_string(file.path())?;
     Ok(tidy_export(&text))
 }

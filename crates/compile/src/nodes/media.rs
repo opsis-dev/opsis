@@ -3,6 +3,7 @@ use std::collections::BTreeSet;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::mix::LOUDNESS_TARGETS;
+use opsis_types::numbers;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
 use opsis_types::values::{
     ClipValue, CompileValue, Measured, MediaKind, MediaValue, NodeResult, PortValues,
@@ -13,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::asset_ref::{extension_of, kind_from_path, project_ref};
-use crate::card::{file_row, range_row, truncate_card};
+use crate::card_rows::{file_row, range_row, truncate_card};
 use crate::clip::{IMAGE, ItemExtra, VIDEO, item_clip, placeholder_clip};
 use crate::errors::SettingsError;
 use crate::node::{
@@ -23,7 +24,7 @@ use crate::node::{
 use crate::nodes::grade::{grade_changes_nothing, grade_needs_video, grade_step_title};
 use crate::params::{Params, to_values};
 use crate::ports::{IN_PREFIX, in_index};
-use crate::text::{format_bytes, format_duration, grouped, plural, signed_text};
+use crate::text::{format_bytes, format_duration, grouped, percent_text, plural, signed_text};
 use crate::time::ms_to_frames;
 
 pub const FASTSTART_TYPE: &str = "media.faststart";
@@ -610,7 +611,7 @@ fn join_files() -> NodeDef {
                 Some(match n {
                     0 => missing(Icon::Combine, "Connect two files"),
                     1 => missing(Icon::Combine, "Connect one more file"),
-                    n => row(Icon::Combine, plural(n as f64, "file")),
+                    n => row(Icon::Combine, plural(numbers::float(n), "file")),
                 }),
                 length_row(ctx.result, Icon::Clock),
             ]
@@ -984,7 +985,7 @@ pub fn fit_plan(song_ms: f64, target_ms: f64, p: &FitMusic) -> FitPlan {
         from_ms = 0.0;
     }
     let step = (to_ms - from_ms - crossfade).max(SHORTEST_LOOP_MS);
-    let repeats = ((target_ms - to_ms) / step).ceil().max(1.0) as u32;
+    let repeats = numbers::truncate::<u32>(((target_ms - to_ms) / step).ceil().max(1.0));
     FitPlan::Loop {
         from_ms,
         to_ms,
@@ -995,11 +996,14 @@ pub fn fit_plan(song_ms: f64, target_ms: f64, p: &FitMusic) -> FitPlan {
 fn fitted_row(result: Option<&NodeResult>) -> Option<CardRow> {
     result?.measured.iter().find_map(|m| match m {
         Measured::Fitted { tempo: Some(t), .. } => {
-            let change = ((1.0 / t - 1.0) * 100.0).round() as i64;
-            Some(match change {
-                0 => row(Icon::Music, "Already fits"),
-                c if c > 0 => row(Icon::Music, format!("Stretched {c} %")),
-                c => row(Icon::FastForward, format!("Sped up {} %", -c)),
+            let change = 1.0 / t - 1.0;
+            let shown = percent_text(change.abs(), f64::INFINITY);
+            Some(if shown == "0%" {
+                row(Icon::Music, "Already fits")
+            } else if change > 0.0 {
+                row(Icon::Music, format!("Stretched {shown}"))
+            } else {
+                row(Icon::FastForward, format!("Sped up {shown}"))
             })
         }
         Measured::Fitted { loops, .. } if *loops > 0 => Some(row(
@@ -1285,7 +1289,7 @@ fn apply_grade() -> NodeDef {
         let has = entries.is_some_and(|e| !e.is_empty());
         vec![
             Some(if has {
-                row(Icon::Palette, truncate_card(&format!("{}: {}", plural(entries.map_or(0, Vec::len) as f64, "step"), titles.join(", "))))
+                row(Icon::Palette, truncate_card(&format!("{}: {}", plural(numbers::float(entries.map_or(0, Vec::len)), "step"), titles.join(", "))))
             } else {
                 missing(Icon::Palette, "Connect a grade")
             }),
@@ -1555,7 +1559,7 @@ pub fn nodes() -> Vec<NodeDef> {
             vec![
                 Some(row(
                     Icon::AudioLines,
-                    format!("{what} · {} % mixed", (p.mix * 100.0).round() as i64),
+                    format!("{what} · {} mixed", percent_text(p.mix, f64::INFINITY)),
                 )),
                 length_row(ctx.result, Icon::Clock),
             ]

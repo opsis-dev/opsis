@@ -10,7 +10,7 @@ import {
   spring,
 } from "remotion";
 import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   Item,
@@ -740,7 +740,7 @@ function Measuring({
 
 export function StatusCycle(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme))
+  if (!isTheme(theme))
     return (
       <StatusCycleView {...(props as unknown as React.ComponentProps<typeof StatusCycleView>)} />
     );

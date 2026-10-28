@@ -2,6 +2,7 @@ use std::path::Path;
 
 use opsis_compile::nodes::audio::{NoiseColour, ToneKind};
 use opsis_compile::nodes::media::VoiceEffect;
+use opsis_types::numbers;
 use opsis_types::numbers::whole;
 
 pub const RATE: u32 = 48_000;
@@ -17,12 +18,12 @@ impl Seeded {
         self.0 ^= self.0 << 13;
         self.0 ^= self.0 >> 7;
         self.0 ^= self.0 << 17;
-        (self.0 >> 11) as f64 / (1u64 << 53) as f64 * 2.0 - 1.0
+        numbers::float_wide(self.0 >> 11) / numbers::float_wide(1u64 << 53) * 2.0 - 1.0
     }
 }
 
 fn samples_for(seconds: f64) -> usize {
-    (seconds * f64::from(RATE)).round() as usize
+    numbers::truncate::<usize>((seconds * f64::from(RATE)).round())
 }
 
 pub fn decibels(rms: f64) -> f64 {
@@ -30,8 +31,9 @@ pub fn decibels(rms: f64) -> f64 {
 }
 
 pub fn rms(samples: &[f32]) -> f64 {
-    (samples.iter().map(|s| f64::from(*s).powi(2)).sum::<f64>() / samples.len().max(1) as f64)
-        .sqrt()
+    (samples.iter().map(|s| f64::from(*s).powi(2)).sum::<f64>()
+        / numbers::float(samples.len().max(1)))
+    .sqrt()
 }
 
 fn coloured(colour: NoiseColour, count: usize, seed: u64) -> Vec<f64> {
@@ -69,12 +71,12 @@ pub fn room_tone(colour: NoiseColour, level_db: f64, seed: u64) -> Vec<f32> {
     let raw = coloured(colour, length + seam, seed);
     let mut looped: Vec<f64> = raw[..length].to_vec();
     for i in 0..seam {
-        let k = i as f64 / seam as f64;
+        let k = numbers::float(i) / numbers::float(seam);
         looped[i] = looped[i] * k + raw[length + i] * (1.0 - k);
     }
-    let current = (looped.iter().map(|s| s * s).sum::<f64>() / length as f64).sqrt();
+    let current = (looped.iter().map(|s| s * s).sum::<f64>() / numbers::float(length)).sqrt();
     let gain = 10f64.powf(level_db / 20.0) / current.max(1e-12);
-    looped.iter().map(|s| (s * gain) as f32).collect()
+    looped.iter().map(|s| numbers::narrow(s * gain)).collect()
 }
 
 fn beep(pitch: f64, seconds: f64) -> Vec<f32> {
@@ -82,9 +84,9 @@ fn beep(pitch: f64, seconds: f64) -> Vec<f32> {
     let edge = samples_for(EDGE_SECONDS).min(count / 2).max(1);
     (0..count)
         .map(|i| {
-            let shape = (i.min(count - 1 - i) as f64 / edge as f64).min(1.0);
-            let phase = i as f64 / f64::from(RATE) * pitch * std::f64::consts::TAU;
-            (phase.sin() * shape * 0.5) as f32
+            let shape = (numbers::float(i.min(count - 1 - i)) / numbers::float(edge)).min(1.0);
+            let phase = numbers::float(i) / f64::from(RATE) * pitch * std::f64::consts::TAU;
+            numbers::narrow(phase.sin() * shape * 0.5)
         })
         .collect()
 }
@@ -158,7 +160,7 @@ fn room_channel(room: &Room, seed: u64) -> Vec<f32> {
     let mut out = vec![0.0f64; count];
     let mut damped = 0.0f64;
     for (i, slot) in out.iter_mut().enumerate() {
-        let t = i as f64 / f64::from(RATE);
+        let t = numbers::float(i) / f64::from(RATE);
         let decay = (-SIXTY_DB * t / room.reverb_seconds).exp();
         let darker = (0.2 + 0.75 * t / room.reverb_seconds).min(0.95);
         damped = damped * darker + random.next() * (1.0 - darker);
@@ -173,7 +175,7 @@ fn room_channel(room: &Room, seed: u64) -> Vec<f32> {
         }
     }
     let energy = out.iter().map(|s| s * s).sum::<f64>().sqrt().max(1e-12);
-    out.iter().map(|s| (s / energy) as f32).collect()
+    out.iter().map(|s| numbers::narrow(s / energy)).collect()
 }
 
 pub fn room_response(effect: VoiceEffect, seed: u64) -> Option<[Vec<f32>; 2]> {
@@ -207,7 +209,8 @@ pub fn write_stereo_pcm(path: &Path, channels: &[Vec<f32>; 2]) -> Result<(), hou
         sample_format: hound::SampleFormat::Int,
     };
     let mut writer = hound::WavWriter::create(path, spec)?;
-    let pcm = |s: f32| (s.clamp(-1.0, 1.0) * f32::from(i16::MAX)) as i16;
+    let pcm =
+        |s: f32| numbers::truncate::<i16>(f64::from(s.clamp(-1.0, 1.0) * f32::from(i16::MAX)));
     for (left, right) in channels[0].iter().zip(&channels[1]) {
         writer.write_sample(pcm(*left))?;
         writer.write_sample(pcm(*right))?;
@@ -224,7 +227,7 @@ pub fn write_wav(path: &Path, samples: &[f32]) -> Result<(), hound::Error> {
     };
     let mut writer = hound::WavWriter::create(path, spec)?;
     for s in samples {
-        let value = (s.clamp(-1.0, 1.0) * f32::from(i16::MAX)) as i16;
+        let value = numbers::truncate::<i16>(f64::from(s.clamp(-1.0, 1.0) * f32::from(i16::MAX)));
         writer.write_sample(value)?;
         writer.write_sample(value)?;
     }
@@ -232,7 +235,7 @@ pub fn write_wav(path: &Path, samples: &[f32]) -> Result<(), hound::Error> {
 }
 
 pub fn length_ms(samples: &[f32]) -> u32 {
-    whole(samples.len() as f64 * 1000.0 / f64::from(RATE))
+    whole(numbers::float(samples.len()) * 1000.0 / f64::from(RATE))
 }
 
 #[cfg(test)]
@@ -242,12 +245,13 @@ mod tests {
     fn band(samples: &[f32], low_hz: f64, high_hz: f64) -> f64 {
         let n = 4096;
         let mut total = 0.0;
-        for k in (low_hz * n as f64 / f64::from(RATE)) as usize
-            ..(high_hz * n as f64 / f64::from(RATE)) as usize
+        for k in numbers::truncate::<usize>(low_hz * numbers::float(n) / f64::from(RATE))
+            ..numbers::truncate::<usize>(high_hz * numbers::float(n) / f64::from(RATE))
         {
             let (mut re, mut im) = (0.0, 0.0);
             for (i, s) in samples[..n].iter().enumerate() {
-                let phase = std::f64::consts::TAU * k as f64 * i as f64 / n as f64;
+                let phase = std::f64::consts::TAU * numbers::float(k) * numbers::float(i)
+                    / numbers::float(n);
                 re += f64::from(*s) * phase.cos();
                 im += f64::from(*s) * phase.sin();
             }
@@ -263,7 +267,7 @@ mod tests {
             assert_eq!(tone.len(), samples_for(LOOP_SECONDS));
             assert!((decibels(rms(&tone)) + 45.0).abs() < 0.01, "{colour:?}");
             let jump = (tone[0] - tone[tone.len() - 1]).abs();
-            let typical = rms(&tone) as f32 * 4.0;
+            let typical = numbers::narrow(rms(&tone)) * 4.0;
             assert!(jump < typical, "{colour:?} jumps {jump} at the loop");
         }
         assert_eq!(
@@ -321,7 +325,7 @@ mod tests {
         let starts = onsets(&sound);
         assert_eq!(starts.len(), 4, "{starts:?}");
         for pair in starts.windows(2) {
-            let gap = (pair[1] - pair[0]) as f64 / f64::from(RATE);
+            let gap = numbers::float(pair[1] - pair[0]) / f64::from(RATE);
             assert!((gap - 1.0).abs() < 0.005, "{gap}");
         }
         assert_eq!(length_ms(&sound), 3000 + 450);

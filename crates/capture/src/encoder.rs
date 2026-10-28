@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use opsis_media::codecs::{H264, h264_args, strings};
 use opsis_media::ffmpeg::{FramePipe, MediaTools, ToolError};
+use opsis_types::numbers;
 use tokio::io::AsyncWriteExt;
 use tokio::sync::mpsc;
 use tokio::task::JoinHandle;
@@ -124,7 +125,7 @@ impl Writer {
             return Ok(());
         };
         loop {
-            let at = origin + self.tick as f64 * self.frame_ms;
+            let at = origin + numbers::float_wide(self.tick) * self.frame_ms;
             if !(if inclusive { at <= t } else { at < t }) {
                 return Ok(());
             }
@@ -168,7 +169,7 @@ impl Writer {
                     done.await?;
                     return Ok(Encoded {
                         frames: self.tick,
-                        duration_ms: self.tick as f64 * self.frame_ms,
+                        duration_ms: numbers::float_wide(self.tick) * self.frame_ms,
                         origin_ms: self.origin,
                     });
                 }

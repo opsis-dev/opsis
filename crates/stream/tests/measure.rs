@@ -11,6 +11,7 @@ use opsis_stream::host::ViewEnv;
 use opsis_stream::preview::{Preview, PreviewDirs};
 use opsis_stream::view::{StreamView, ViewEvent, ViewInput, ViewSink, ViewSize};
 use opsis_types::actions::MouseButton;
+use opsis_types::numbers;
 use opsis_types::timeline::{PreviewQuality, TimelineSpec};
 use opsis_types::workflow::Workflow;
 use serde_json::Value;
@@ -218,11 +219,14 @@ async fn stream_rate_while_playing() {
             let elapsed = started.elapsed().as_secs_f64();
             let cpu = (cpu_ticks(&setup.env.temp_dir) - ticks) / CLOCK_TICKS / elapsed * 100.0;
             let delivered = meter.frames.lock().unwrap()[before..].to_vec();
-            let bytes = delivered.iter().map(|(_, b)| *b as f64).sum::<f64>()
-                / delivered.len().max(1) as f64;
+            let bytes = delivered
+                .iter()
+                .map(|(_, b)| numbers::float(*b))
+                .sum::<f64>()
+                / numbers::float(delivered.len().max(1));
             eprintln!(
                 "RATE {width}x{height} q{quality}: {:.1} frames/s, {:.0} KB a frame, browser CPU {cpu:.0}% of one core, film frame {}",
-                delivered.len() as f64 / elapsed,
+                numbers::float(delivered.len()) / elapsed,
                 bytes / 1024.0,
                 *preview.frames().borrow()
             );

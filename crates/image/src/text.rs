@@ -1,5 +1,6 @@
 use ab_glyph::{Font, FontVec, PxScale, ScaleFont, VariableFont, point};
 use image::{Rgba, Rgba32FImage};
+use opsis_types::numbers;
 
 use crate::ImageError;
 
@@ -21,7 +22,7 @@ pub fn load_font(bytes: Vec<u8>, weight: f64) -> Result<FontVec, ImageError> {
         _ => bytes,
     };
     let mut font = FontVec::try_from_vec(sfnt).map_err(unreadable)?;
-    font.set_variation(b"wght", weight as f32);
+    font.set_variation(b"wght", numbers::narrow(weight));
     Ok(font)
 }
 
@@ -32,7 +33,7 @@ pub struct TextBox {
 }
 
 pub fn measure(font: &FontVec, size: f64, text: &str) -> TextBox {
-    let scaled = font.as_scaled(PxScale::from(size as f32));
+    let scaled = font.as_scaled(PxScale::from(numbers::narrow(size)));
     let mut width = 0.0f32;
     let mut previous = None;
     for c in text.chars() {
@@ -58,9 +59,9 @@ pub fn draw_text(
     text: &str,
     colour: [f32; 4],
 ) {
-    let scaled = font.as_scaled(PxScale::from(size as f32));
-    let baseline = origin.1 as f32 + scaled.ascent();
-    let mut caret = origin.0 as f32;
+    let scaled = font.as_scaled(PxScale::from(numbers::narrow(size)));
+    let baseline = numbers::narrow(origin.1) + scaled.ascent();
+    let mut caret = numbers::narrow(origin.0);
     let mut previous = None;
     for c in text.chars() {
         let id = scaled.glyph_id(c);
@@ -75,8 +76,8 @@ pub fn draw_text(
         };
         let bounds = outlined.px_bounds();
         outlined.draw(|gx, gy, coverage| {
-            let x = i64::from(gx) + bounds.min.x as i64;
-            let y = i64::from(gy) + bounds.min.y as i64;
+            let x = i64::from(gx) + numbers::truncate::<i64>(f64::from(bounds.min.x));
+            let y = i64::from(gy) + numbers::truncate::<i64>(f64::from(bounds.min.y));
             let (Ok(x), Ok(y)) = (u32::try_from(x), u32::try_from(y)) else {
                 return;
             };

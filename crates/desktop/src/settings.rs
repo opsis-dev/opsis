@@ -1,5 +1,7 @@
 use std::path::{Path, PathBuf};
 
+use opsis_capture::executors::SignInStore;
+use opsis_capture::take::SignInError;
 use opsis_compile::asset_ref::{RefTarget, ref_target};
 use opsis_engine::licences::{
     LicenceKind, LicenceSource, is_licence_file, list_licences as licence_entries, shipped_credits,
@@ -201,16 +203,23 @@ pub struct ProjectSignIns {
     pub app: AppHandle,
 }
 
-impl opsis_capture::executors::SignInStore for ProjectSignIns {
-    fn read(&self, project_dir: &Path, name: &str) -> Result<Option<String>, String> {
+impl SignInStore for ProjectSignIns {
+    fn read(&self, project_dir: &Path, name: &str) -> Result<Option<String>, SignInError> {
         let state = self.app.state::<AppState>();
-        let keys = state.keys().map_err(ToString::to_string)?;
-        read_secret(keys, project_dir, name).map_err(|e| e.to_string())
+        Ok(read_secret(
+            state.keys().map_err(Clone::clone)?,
+            project_dir,
+            name,
+        )?)
     }
 
-    fn write(&self, project_dir: &Path, name: &str, value: &str) -> Result<(), String> {
+    fn write(&self, project_dir: &Path, name: &str, value: &str) -> Result<(), SignInError> {
         let state = self.app.state::<AppState>();
-        let keys = state.keys().map_err(ToString::to_string)?;
-        write_secret(keys, project_dir, name, value).map_err(|e| e.to_string())
+        Ok(write_secret(
+            state.keys().map_err(Clone::clone)?,
+            project_dir,
+            name,
+            value,
+        )?)
     }
 }

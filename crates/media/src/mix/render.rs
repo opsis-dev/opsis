@@ -12,6 +12,7 @@ use opsis_engine::files::{
 };
 use opsis_engine::hash::versioned_hash;
 use opsis_types::mix::{Loudness, MasterStem, MixLevels, MixReduction, MixResult, StemLevels};
+use opsis_types::numbers;
 use opsis_types::project::MIX_DIR;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -248,7 +249,10 @@ struct Ticker<'a> {
 impl Ticker<'_> {
     fn tick(&mut self, message: &str) {
         if let Some(progress) = self.deps.on_progress {
-            progress(self.done as f64 / self.steps as f64, message);
+            progress(
+                numbers::float(self.done) / numbers::float(self.steps),
+                message,
+            );
         }
         self.done += 1;
     }

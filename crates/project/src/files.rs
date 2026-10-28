@@ -21,7 +21,10 @@ pub enum ProjectError {
     #[error("There's no Opsis project in {}.", .0.display())]
     NoProject(PathBuf),
     #[error("The project in {} can't be read ({problem}).", .dir.display())]
-    Unreadable { dir: PathBuf, problem: String },
+    Unreadable {
+        dir: PathBuf,
+        problem: WorkflowTextError,
+    },
     #[error("Choose a full folder path for the project.")]
     NotAbsolute,
     #[error("{} already contains a project.", .0.display())]
@@ -62,14 +65,22 @@ pub fn read_project_file(dir: &Path) -> std::io::Result<Option<ProjectFile>> {
     )
 }
 
-pub fn parse_workflow_text(text: &str) -> Result<Workflow, String> {
+#[derive(Debug, thiserror::Error)]
+pub enum WorkflowTextError {
+    #[error("the file is damaged")]
+    Damaged,
+    #[error("{} at {}", .0.inner(), .0.path())]
+    Shape(serde_path_to_error::Error<serde_json::Error>),
+}
+
+pub fn parse_workflow_text(text: &str) -> Result<Workflow, WorkflowTextError> {
     let mut json = serde_json::Deserializer::from_str(text);
     match serde_path_to_error::deserialize::<_, Workflow>(&mut json) {
         Ok(workflow) => Ok(workflow.normalized()),
         Err(error) if error.inner().is_syntax() || error.inner().is_eof() => {
-            Err("the file is damaged".to_owned())
+            Err(WorkflowTextError::Damaged)
         }
-        Err(error) => Err(format!("{} at {}", error.inner(), error.path())),
+        Err(error) => Err(WorkflowTextError::Shape(error)),
     }
 }
 

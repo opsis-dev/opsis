@@ -4,6 +4,7 @@ use std::sync::Arc;
 use indexmap::IndexMap;
 use opsis_types::actions::{Action, ActionKind};
 use opsis_types::mix::ChannelKind;
+use opsis_types::numbers;
 use opsis_types::numbers::whole;
 use opsis_types::recording::RecordingProps;
 use opsis_types::timeline::{
@@ -391,10 +392,11 @@ fn group_instances(
     let max_r = remap
         .as_ref()
         .map_or(duration, |m| remap_frame(m, duration));
-    let count = clamp((max_r / looped).ceil(), 1.0, f64::from(MAX_REPEATS)) as usize;
+    let count =
+        numbers::truncate::<usize>(clamp((max_r / looped).ceil(), 1.0, f64::from(MAX_REPEATS)));
     (0..count)
         .map(|k| {
-            let k = k as f64;
+            let k = numbers::float(k);
             let start = to_outer(inv(k * looped, RemapSide::Start), RemapSide::Start);
             let end = to_outer(inv((k + 1.0) * looped, RemapSide::End), RemapSide::End);
             parent.inside(step(k), lo.max(start), hi.min(end))
@@ -703,7 +705,7 @@ fn camera_key_marks(p: &Placed<'_>) -> Vec<CameraKeyMark> {
                 key: format!("{}:camera:{index}", p.key),
                 item_id: base.id.clone(),
                 node_id: node_id.clone(),
-                index: index as u32,
+                index: numbers::count(index),
                 frame,
             })
         })
@@ -753,7 +755,7 @@ fn visit_item(acc: &mut Collected, p: &Placed<'_>, previous_length: f64) {
     match p.item {
         TimelineItem::Group { props, .. } => visit_group(acc, p, props, link),
         TimelineItem::Recording { props, .. } => {
-            let order = acc.bars.len() as u32;
+            let order = numbers::count(acc.bars.len());
             acc.bars.push(leaf_bar(p, link, order));
             let marks = recording_marks(p, props, acc.fps);
             acc.marks.extend(marks);
@@ -761,7 +763,7 @@ fn visit_item(acc: &mut Collected, p: &Placed<'_>, previous_length: f64) {
             acc.hits.extend(hits);
         }
         TimelineItem::Element { .. } => {
-            let order = acc.bars.len() as u32;
+            let order = numbers::count(acc.bars.len());
             acc.bars.push(leaf_bar(p, link, order));
         }
     }
@@ -790,7 +792,11 @@ fn visit_group(acc: &mut Collected, p: &Placed<'_>, group: &GroupProps, link: Ch
                 p.key.clone()
             },
             chain: chain.clone(),
-            repeat: if looped { k as u32 } else { p.walk.repeat },
+            repeat: if looped {
+                numbers::count(k)
+            } else {
+                p.walk.repeat
+            },
             timing: timing_with(p.walk.timing, non_empty_remap(group)),
         };
         visit_tracks(acc, &group.tracks, &walk);
@@ -841,10 +847,10 @@ fn pack_audio(audio: Vec<AudioBar>) -> (Vec<AudioBar>, u32) {
         } else {
             ends[lane] = a.to;
         }
-        a.lane = lane as u32;
+        a.lane = numbers::count(lane);
         placed.push(a);
     }
-    let lanes = ends.len() as u32;
+    let lanes = numbers::count(ends.len());
     (placed, lanes)
 }
 
@@ -882,7 +888,7 @@ fn hits_bar(items: &[&AudioItem], duration: u32) -> Option<AudioBar> {
     let first = bars.first()?;
     let from = bars.iter().map(|b| b.from).fold(f64::INFINITY, f64::min);
     let to = bars.iter().map(|b| b.to).fold(f64::NEG_INFINITY, f64::max);
-    let volume = bars.iter().map(|b| b.volume).sum::<f64>() / bars.len() as f64;
+    let volume = bars.iter().map(|b| b.volume).sum::<f64>() / numbers::float(bars.len());
     Some(AudioBar {
         key: format!("hits:{}", first.channel),
         id: first.channel.clone(),

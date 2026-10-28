@@ -552,6 +552,42 @@ fn every_elements_defaults_pass_its_own_schema() {
     assert!(failing.is_empty(), "{failing:?}");
 }
 
+fn text_leaves(value: &Value, out: &mut Vec<String>) {
+    match value {
+        Value::String(text) => out.push(text.clone()),
+        Value::Array(items) => items.iter().for_each(|item| text_leaves(item, out)),
+        Value::Object(map) => map.values().for_each(|item| text_leaves(item, out)),
+        _ => {}
+    }
+}
+
+#[test]
+fn no_element_default_loads_from_the_internet_or_names_a_library() {
+    let banned = regex::Regex::new(
+        r"(?i)https?://|\b(playwright|remotion|chromium|ffmpeg|lottie|three\.js|react|tailwind|shadcn|framer|gsap|remocn|snapcn|fontsource)\b",
+    )
+    .unwrap();
+    let found: Vec<String> = elements()
+        .iter()
+        .flat_map(|meta| {
+            let mut texts = Vec::new();
+            text_leaves(
+                &serde_json::to_value(&meta.default_props).unwrap(),
+                &mut texts,
+            );
+            text_leaves(
+                &serde_json::to_value(&meta.fixed_props).unwrap(),
+                &mut texts,
+            );
+            texts
+                .into_iter()
+                .filter(|text| banned.is_match(text))
+                .map(move |text| format!("{}: {text}", meta.key))
+        })
+        .collect();
+    assert!(found.is_empty(), "{found:#?}");
+}
+
 #[test]
 fn plays_element_music_through_the_mix_as_the_nodes_own_channel() {
     let clip = compile_clip(

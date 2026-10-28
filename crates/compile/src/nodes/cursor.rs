@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::card::{LABELLED_TEXT_MAX, join_parts, quote, quoted, toggle_row};
+use crate::card_rows::{LABELLED_TEXT_MAX, join_parts, quote, quoted, toggle_row};
 use crate::color::color_or;
 use crate::fonts::font_prop;
 use crate::node::{CardCtx, Category, NodeDef, RowExt, row};

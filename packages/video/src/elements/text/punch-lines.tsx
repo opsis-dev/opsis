@@ -8,7 +8,7 @@ import {
   getRemotionEnvironment,
 } from "remotion";
 import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import { Item, resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
@@ -542,7 +542,7 @@ function Card({
 
 export function PunchLines(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme))
+  if (!isTheme(theme))
     return (
       <PunchLinesView {...(props as unknown as React.ComponentProps<typeof PunchLinesView>)} />
     );

@@ -375,7 +375,7 @@ fn says_how_before_and_after_lays_out_and_the_size_it_will_make() {
     inputs.connected.push("after".to_owned());
     assert_eq!(
         card_texts("image.beforeAfter", json!({}), inputs.clone()),
-        ["Split at 50 % · “Before” and “After”", "1200 × 800 px"]
+        ["Split at 50% · “Before” and “After”", "1200 × 800 px"]
     );
     assert_eq!(
         card_texts(
@@ -392,7 +392,7 @@ fn says_how_before_and_after_lays_out_and_the_size_it_will_make() {
             CardInputs::default()
         )[..2],
         [
-            "Split at 30 %, turned 12° · “Before” and “After”",
+            "Split at 30%, turned 12° · “Before” and “After”",
             "Connect the after picture"
         ]
     );
@@ -558,14 +558,14 @@ fn says_how_many_semitones_the_pitch_moves() {
 #[test]
 fn names_the_voice_effect_and_its_mix() {
     let texts = |params: Value| card_texts("media.voiceEffect", params, CardInputs::default());
-    assert_eq!(texts(json!({})), ["Telephone · 100 % mixed"]);
+    assert_eq!(texts(json!({})), ["Telephone · 100% mixed"]);
     assert_eq!(
         texts(json!({ "effect": "hall", "mix": 0.3 })),
-        ["Hall · 30 % mixed"]
+        ["Hall · 30% mixed"]
     );
     assert_eq!(
         texts(json!({ "effect": "echo", "delayMs": 250, "mix": 0.4 })),
-        ["Echo after 0.25 s · 40 % mixed"]
+        ["Echo after 0.25 s · 40% mixed"]
     );
 }
 
@@ -636,11 +636,11 @@ fn says_how_the_song_was_fitted() {
     };
     assert_eq!(
         after(json!({ "type": "fitted", "tempo": 0.96, "loops": 0 })),
-        ["From the connected file", "Stretched 4 %"]
+        ["From the connected file", "Stretched 4%"]
     );
     assert_eq!(
         after(json!({ "type": "fitted", "tempo": 1.05, "loops": 0 }))[1],
-        "Sped up 5 %"
+        "Sped up 5%"
     );
     assert_eq!(
         after(json!({ "type": "fitted", "loops": 2 }))[1],

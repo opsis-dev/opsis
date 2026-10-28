@@ -7,6 +7,22 @@ const ESCAPED: [char; 14] = [
 ];
 const OPAQUE_SCHEMES: [&str; 5] = ["about:", "data:", "chrome:", "edge:", "file:"];
 
+#[derive(Debug, thiserror::Error)]
+pub enum GlobError {
+    #[error("Invalid glob pattern {0}: nested '{{' is not supported")]
+    Nested(String),
+    #[error("Invalid glob pattern {0}: unmatched '}}'")]
+    UnmatchedClose(String),
+    #[error("Invalid glob pattern {0}: unmatched '{{'")]
+    UnmatchedOpen(String),
+    #[error(transparent)]
+    Regex(#[from] regex::Error),
+}
+
+fn quoted(glob: &str) -> String {
+    serde_json::to_string(glob).expect("strings serialize")
+}
+
 fn escaped(c: char) -> String {
     if ESCAPED.contains(&c) {
         format!("\\{c}")
@@ -15,7 +31,7 @@ fn escaped(c: char) -> String {
     }
 }
 
-pub fn glob_to_regex_pattern(glob: &str) -> Result<String, String> {
+pub fn glob_to_regex_pattern(glob: &str) -> Result<String, GlobError> {
     let chars: Vec<char> = glob.chars().collect();
     let mut tokens = vec!["^".to_owned()];
     let mut in_group = false;
@@ -58,20 +74,14 @@ pub fn glob_to_regex_pattern(glob: &str) -> Result<String, String> {
         match c {
             '{' => {
                 if in_group {
-                    return Err(format!(
-                        "Invalid glob pattern {}: nested '{{' is not supported",
-                        serde_json::to_string(glob).expect("strings serialize")
-                    ));
+                    return Err(GlobError::Nested(quoted(glob)));
                 }
                 in_group = true;
                 tokens.push("(".to_owned());
             }
             '}' => {
                 if !in_group {
-                    return Err(format!(
-                        "Invalid glob pattern {}: unmatched '}}'",
-                        serde_json::to_string(glob).expect("strings serialize")
-                    ));
+                    return Err(GlobError::UnmatchedClose(quoted(glob)));
                 }
                 in_group = false;
                 tokens.push(")".to_owned());
@@ -86,10 +96,7 @@ pub fn glob_to_regex_pattern(glob: &str) -> Result<String, String> {
         i += 1;
     }
     if in_group {
-        return Err(format!(
-            "Invalid glob pattern {}: unmatched '{{'",
-            serde_json::to_string(glob).expect("strings serialize")
-        ));
+        return Err(GlobError::UnmatchedOpen(quoted(glob)));
     }
     tokens.push("$".to_owned());
     Ok(tokens.concat())
@@ -161,11 +168,11 @@ fn resolve_glob_base(glob: &str) -> String {
     resolved
 }
 
-pub fn url_matches(url: &str, glob: &str) -> Result<bool, String> {
+pub fn url_matches(url: &str, glob: &str) -> Result<bool, GlobError> {
     if glob.is_empty() {
         return Ok(true);
     }
     let pattern = glob_to_regex_pattern(&resolve_glob_base(glob))?;
-    let regex = Regex::new(&pattern).map_err(|e| e.to_string())?;
+    let regex = Regex::new(&pattern)?;
     Ok(regex.is_match(url))
 }

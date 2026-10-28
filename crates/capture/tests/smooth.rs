@@ -3,13 +3,14 @@ use std::sync::{Arc, Mutex};
 
 use image::RgbImage;
 use opsis_capture::encoder::{Encoded, FrameEncoder, FrameImage};
-use opsis_capture::take::{Recording, SignIns, TakeEnv, record_take};
+use opsis_capture::take::{Recording, SignInError, SignIns, TakeEnv, record_take};
 use opsis_compile::nodes::browser::OPEN_BROWSER_TYPE;
 use opsis_compile::nodes::capture::{FramePicture, Record, Timing};
 use opsis_compile::registry::default_params;
 use opsis_engine::paths::downloaded_browser;
 use opsis_media::ffmpeg::{FramePipe, MediaTools, ProbeResult, RunOptions, ToolError, ToolFuture};
 use opsis_types::actions::{ActionKind, ActionLog};
+use opsis_types::numbers;
 use opsis_types::values::{BrowserAction, BrowserSessionValue, SessionBrowser, SessionStep};
 use serde_json::{Value, json};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -61,7 +62,7 @@ document.getElementById("field").addEventListener("input", () => {
 struct NoSignIns;
 
 impl SignIns for NoSignIns {
-    fn read(&self, _: &str) -> Result<Option<String>, String> {
+    fn read(&self, _: &str) -> Result<Option<String>, SignInError> {
         Ok(None)
     }
 }
@@ -271,7 +272,10 @@ async fn gives_every_frame_its_own_picture_of_the_page_one_frame_on() {
 
     assert_eq!(frames.len() as u64, encoded.frames);
     assert!((encoded.duration_ms - log.duration_ms).abs() < 1e-6);
-    assert_eq!(encoded.duration_ms, encoded.frames as f64 * frame_ms);
+    assert_eq!(
+        encoded.duration_ms,
+        numbers::float_wide(encoded.frames) * frame_ms
+    );
 
     let typed = log
         .actions
@@ -291,7 +295,7 @@ async fn gives_every_frame_its_own_picture_of_the_page_one_frame_on() {
         );
     }
 
-    let first_key = (key_times[0] / frame_ms).round() as usize;
+    let first_key = numbers::truncate::<usize>((key_times[0] / frame_ms).round());
     let edges: Vec<Vec<Option<i64>>> = frames
         .iter()
         .map(|frame| ROWS.iter().map(|&(_, y)| left_edge(frame, y)).collect())
@@ -320,7 +324,8 @@ async fn gives_every_frame_its_own_picture_of_the_page_one_frame_on() {
     );
     let total: i64 = on_animation_frames.iter().sum();
     assert!(
-        (total - PX_PER_FRAME * on_animation_frames.len() as i64).abs() <= 2 * PX_PER_FRAME,
+        (total - PX_PER_FRAME * i64::try_from(on_animation_frames.len()).unwrap()).abs()
+            <= 2 * PX_PER_FRAME,
         "{on_animation_frames:?}"
     );
     let shown = edges

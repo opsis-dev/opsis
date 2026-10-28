@@ -26,6 +26,7 @@ use opsis_compile::registry::{node_def, node_name};
 use opsis_compile::text::{format_duration, single_quoted};
 use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
+use opsis_types::numbers;
 use opsis_types::values::{
     Artifact, ArtifactKind, CompileValue, ImageValue, Measured, MediaKind, MediaValue, PortValues,
     StyleEntry,
@@ -1520,7 +1521,7 @@ async fn shorten_pauses(
         format!(
             "Saved {} from {}.",
             format_duration(duration_ms - kept),
-            opsis_compile::text::plural(shortened as f64, "pause")
+            opsis_compile::text::plural(numbers::float(shortened), "pause")
         ),
     );
     let format = audio_format_for(ext_of(&input.src).trim_start_matches('.'));

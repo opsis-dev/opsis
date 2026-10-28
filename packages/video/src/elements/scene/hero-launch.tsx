@@ -11,7 +11,7 @@ import {
   staticFile,
 } from "remotion";
 import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   Item,
@@ -271,7 +271,7 @@ function ImageCard({ s, src, t }: { s: number; src: string; t: WarmTheme }) {
 
 export function HeroLaunch(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme))
+  if (!isTheme(theme))
     return (
       <HeroLaunchView {...(props as unknown as React.ComponentProps<typeof HeroLaunchView>)} />
     );

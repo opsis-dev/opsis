@@ -40,6 +40,12 @@ jobs:
       - run: bun run lint
       - run: bun run format
       - run: bun run test
+      - name: Install the end-to-end suite
+        working-directory: e2e
+        run: bun install --frozen-lockfile
+      - name: Check the end-to-end suite
+        working-directory: e2e
+        run: bun run typecheck && bun run lint && bun run format
 
   build:
     name: Build · ${{ matrix.os }}

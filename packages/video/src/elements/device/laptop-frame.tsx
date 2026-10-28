@@ -9,7 +9,7 @@ import {
   staticFile,
 } from "remotion";
 import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   mixOklch,
@@ -714,7 +714,7 @@ function LaptopFrameView({
 
 export function LaptopFrame(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme))
+  if (!isTheme(theme))
     return (
       <LaptopFrameView {...(props as unknown as React.ComponentProps<typeof LaptopFrameView>)} />
     );

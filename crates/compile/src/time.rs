@@ -1,3 +1,4 @@
+use opsis_types::numbers;
 use opsis_types::numbers::{whole, whole_signed};
 
 pub const EPSILON: f64 = 1e-6;
@@ -63,7 +64,7 @@ fn clock(total_seconds: u64) -> (u64, u64, u64) {
 }
 
 pub fn chapter_time(ms: f64) -> String {
-    let (h, m, s) = clock((ms / 1000.0).floor().max(0.0) as u64);
+    let (h, m, s) = clock(numbers::truncate::<u64>((ms / 1000.0).floor().max(0.0)));
     if h > 0 {
         format!("{h}:{m:02}:{s:02}")
     } else {

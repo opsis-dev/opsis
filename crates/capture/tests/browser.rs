@@ -65,6 +65,6 @@ async fn finds_a_role_through_the_page_script() {
         .unwrap();
     assert!(visible);
     let width: f64 = session.tab.evaluate_main("innerWidth").await.unwrap();
-    assert_eq!(width, params.viewport_width as f64);
+    assert_eq!(width, f64::from(params.viewport_width));
     session.close().await;
 }

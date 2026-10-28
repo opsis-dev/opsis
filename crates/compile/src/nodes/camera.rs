@@ -1,6 +1,7 @@
 use opsis_types::actions::{Action, ActionKind, Point, Rect};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::numbers;
 use opsis_types::recording::{
     AddressMode, CameraStyle, CameraTuning, FrameTheme, RecordingProps, WindowStyle,
 };
@@ -14,7 +15,7 @@ use smart_default::SmartDefault;
 
 use crate::asset_ref::base_name;
 use crate::backdrops::Backdrop;
-use crate::card::toggle_row;
+use crate::card_rows::toggle_row;
 use crate::clip::{
     ItemExtra, clip_frame_of_recording, patch_recordings, placeholder_clip, recording_clip,
     wrap_clip,
@@ -688,7 +689,11 @@ fn apply_style() -> NodeDef {
         let entries = ctx.inputs.style.get(STYLE_PORT).map_or(0, Vec::len);
         vec![
             Some(
-                row(Icon::Palette, plural(entries as f64, "style setting")).muted_if(entries == 0),
+                row(
+                    Icon::Palette,
+                    plural(numbers::float(entries), "style setting"),
+                )
+                .muted_if(entries == 0),
             ),
             matches!(ctx.inputs.takes.get(CLIP_PORT), Some(None)).then(|| {
                 row(Icon::TriangleAlert, "No recording in this clip")
@@ -778,7 +783,7 @@ fn pan() -> NodeDef {
                     format!(
                         "{} → {}",
                         format_duration(f64::from(p.at_ms)),
-                        format_duration((p.at_ms + p.duration_ms) as f64)
+                        format_duration(f64::from(p.at_ms + p.duration_ms))
                     ),
                 )),
                 Some(row(Icon::ZoomIn, format!("{}×", p.scale))),
@@ -882,7 +887,7 @@ fn speed_ramp() -> NodeDef {
         .card(|ctx: &CardCtx<'_, SpeedRamp>| {
             let parts = ctx.params.segments.len();
             vec![Some(
-                row(Icon::Gauge, plural(parts as f64, "part")).muted_if(parts == 0),
+                row(Icon::Gauge, plural(numbers::float(parts), "part")).muted_if(parts == 0),
             )]
         })
         .retime(|clip: ClipValue, p: &SpeedRamp, at| {

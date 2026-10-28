@@ -1,5 +1,6 @@
 use std::collections::BTreeSet;
 
+use opsis_types::numbers;
 use opsis_types::numbers::whole;
 use serde_json::{Map, Value};
 
@@ -58,7 +59,7 @@ fn field_str<'a>(row: &'a Value, key: &str) -> &'a str {
 }
 
 fn last_index(count: usize) -> f64 {
-    count.saturating_sub(1) as f64
+    numbers::float(count.saturating_sub(1))
 }
 
 fn characters(text: &str) -> usize {
@@ -93,7 +94,7 @@ fn word_push_end(text: &str, word_gap: f64, accel: f64) -> f64 {
     if count == 0 {
         return 0.0;
     }
-    let index = (count - 1) as f64;
+    let index = numbers::float(count - 1);
     let reveal = if accel == 1.0 {
         index * word_gap
     } else {
@@ -127,7 +128,7 @@ fn terminal_end(s: &Settings) -> f64 {
             None if text.trim_end().ends_with("...") => TERMINAL_ELLIPSIS_PAUSE,
             None => 0.0,
         };
-        let typing = (text.encode_utf16().count() as f64 / per_frame).ceil();
+        let typing = (numbers::float(text.encode_utf16().count()) / per_frame).ceil();
         end + field_num(line, "delay", TERMINAL_DELAY) + typing + pause
     })
 }
@@ -162,7 +163,7 @@ fn code_morph_end(s: &Settings) -> f64 {
 }
 
 fn handwrite_frames(text: &str, per_step: f64, step: f64) -> f64 {
-    (characters(text) as f64 / per_step).ceil() * step + step
+    (numbers::float(characters(text)) / per_step).ceil() * step + step
 }
 
 fn check_list_end(s: &Settings) -> f64 {
@@ -181,11 +182,11 @@ fn check_list_end(s: &Settings) -> f64 {
         })
         .collect();
     let enter_end = max_of(items.iter().enumerate().map(|(i, (text, _))| {
-        i as f64 * item_gap + step * 2.0 + handwrite_frames(text, per_step, step)
+        numbers::float(i) * item_gap + step * 2.0 + handwrite_frames(text, per_step, step)
     }));
     let checked = items.iter().filter(|(_, c)| *c).count();
     let strike_end = if checked > 0 {
-        enter_end + (checked - 1) as f64 * close_gap + step * 4.0
+        enter_end + numbers::float(checked - 1) * close_gap + step * 4.0
     } else {
         0.0
     };
@@ -204,7 +205,7 @@ fn agent_run_end(s: &Settings) -> f64 {
         .collect();
     let plan = plan.join("\n");
     let answer = text(s, "runAnswer");
-    let think = 16.0 + 14.0 + words(&plan) as f64 * AGENT_PLAN_PER_WORD + 8.0;
+    let think = 16.0 + 14.0 + numbers::float(words(&plan)) * AGENT_PLAN_PER_WORD + 8.0;
     let tools: f64 = list(s, "runSteps")
         .iter()
         .map(|step| {
@@ -213,17 +214,17 @@ fn agent_run_end(s: &Settings) -> f64 {
                 .clamp(12.0, 120.0)
         })
         .sum();
-    let answering =
-        words(answer) as f64 * AGENT_ANSWER_PER_WORD + lines(answer) as f64 * AGENT_ANSWER_PER_LINE;
+    let answering = numbers::float(words(answer)) * AGENT_ANSWER_PER_WORD
+        + numbers::float(lines(answer)) * AGENT_ANSWER_PER_LINE;
     think + tools + 8.0 + answering + 16.0
 }
 
 fn logo_wall_end(s: &Settings) -> f64 {
     let count = list(s, "logos").len();
-    let columns = num(s, "columns", 4.0).round().max(1.0) as usize;
+    let columns = numbers::truncate::<usize>(num(s, "columns", 4.0).round().max(1.0));
     let start_at = num(s, "startAtSeconds", 0.32);
     let diagonal = (0..count)
-        .map(|i| (i / columns + i % columns) as f64)
+        .map(|i| numbers::float(i / columns + i % columns))
         .fold(0.0, f64::max);
     let arrived = start_at + last_index(count) * num(s, "arriveStaggerSeconds", 0.06) + 0.36;
     let warmed =
@@ -244,7 +245,7 @@ fn end_card_end(s: &Settings) -> f64 {
         if url.is_empty() {
             0.0
         } else {
-            1.24 + url.encode_utf16().count() as f64 / 26.0
+            1.24 + numbers::float(url.encode_utf16().count()) / 26.0
         },
         if list(s, "handles").is_empty() {
             0.0
@@ -267,7 +268,7 @@ fn code_reveal_end(s: &Settings) -> f64 {
         .iter()
         .map(|r| r.trim_start().encode_utf16().count())
         .sum();
-    0.4 + typed as f64 / 55.0 + last_index(rows.len()) * 0.07 + 0.84
+    0.4 + numbers::float(typed) / 55.0 + last_index(rows.len()) * 0.07 + 0.84
 }
 
 fn file_tree_rows(paths: &[&str]) -> usize {
@@ -289,7 +290,7 @@ fn notification_end(s: &Settings) -> f64 {
         .iter()
         .enumerate()
         .fold(0.0, |end, (i, toast)| {
-            let spawn = field_num(toast, "atSeconds", start_at + stagger * i as f64);
+            let spawn = field_num(toast, "atSeconds", start_at + stagger * numbers::float(i));
             end.max(spawn + field_num(toast, "holdFor", life) + 0.3)
         })
 }
@@ -351,7 +352,7 @@ fn element_timing(key: &str) -> Option<Timing> {
     Some(match key {
         "soft-blur-in" => authored(|s| last_index(characters(text(s, "text"))) + 27.0),
         "typewriter" => authored(|s| {
-            characters(text(s, "text")) as f64 / num(s, "charsPerSecond", 22.0).max(0.1)
+            numbers::float(characters(text(s, "text"))) / num(s, "charsPerSecond", 22.0).max(0.1)
                 * f64::from(AUTHORED_FPS)
         }),
         "matrix-decode" => authored(|s| num(s, "revealDuration", 60.0)),
@@ -393,7 +394,7 @@ fn element_timing(key: &str) -> Option<Timing> {
         "check-list" => authored(check_list_end),
         "search-reveal" => authored(|s| {
             let step = num(s, "framesPerCharacter", 4.0).clamp(1.0, 12.0);
-            (54.0 + characters(text(s, "text")) as f64 * step + 10.0).max(90.0)
+            (54.0 + numbers::float(characters(text(s, "text"))) * step + 10.0).max(90.0)
         }),
         "agent-run" => authored(agent_run_end),
         "signup-flow" => authored(|_| 348.0),
@@ -401,7 +402,7 @@ fn element_timing(key: &str) -> Option<Timing> {
             if s.get("autoplay") == Some(&Value::Bool(false)) {
                 0.0
             } else {
-                24.0 + characters(text(s, "query")) as f64 * 2.5 + 8.0 + 18.0 + 6.0
+                24.0 + numbers::float(characters(text(s, "query"))) * 2.5 + 8.0 + 18.0 + 6.0
             }
         }),
         "release-teaser" => seconds(|_| RELEASE_TEASER_SECONDS),
@@ -410,7 +411,7 @@ fn element_timing(key: &str) -> Option<Timing> {
             authored(|s| last_index(list(s, "bars").len()) * num(s, "staggerFrames", 6.0))
         }
         "metric-ticker" => frames(|s| {
-            (list(s, "metrics").len() as f64).min(num(s, "maxCards", 4.0).max(1.0)) * 8.0
+            numbers::float(list(s, "metrics").len()).min(num(s, "maxCards", 4.0).max(1.0)) * 8.0
         }),
         "funnel-chart" => frames(|s| {
             last_index(list(s, "stages").len()) * num(s, "staggerInFrames", 12.0)
@@ -505,7 +506,8 @@ fn element_timing(key: &str) -> Option<Timing> {
         }),
         "commit-graph" => seconds(|s| {
             num(s, "startAtSeconds", 0.34)
-                + (list(s, "commits").len() as f64 - 1.0).max(1.0) * num(s, "stepSeconds", 0.36)
+                + (numbers::float(list(s, "commits").len()) - 1.0).max(1.0)
+                    * num(s, "stepSeconds", 0.36)
         }),
         "notification-stack" => seconds(notification_end),
         "punch-lines" => authored(punch_lines_end),

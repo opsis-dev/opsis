@@ -36,3 +36,6 @@ zbus-secret-service-keyring-store = { version = "1.0.1", features = ["rt-tokio-c
 
 [dev-dependencies]
 tokio = { version = "1.54.1", features = ["rt", "macros"] }
+
+[lints]
+workspace = true

@@ -34,7 +34,7 @@ pub enum CaptureError {
     Script(String),
     #[error("{0}")]
     Failed(String),
-    #[error("Couldn't find the element on the page within {}.", format_duration(.0.as_millis() as f64))]
+    #[error("Couldn't find the element on the page within {}.", format_duration(opsis_types::numbers::millis(*.0)))]
     NotFoundWithin(std::time::Duration),
     #[error("The browser closed before the action finished.")]
     Closed,
@@ -42,6 +42,8 @@ pub enum CaptureError {
     Cancelled,
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Glob(#[from] crate::url_match::GlobError),
 }
 
 impl CaptureError {

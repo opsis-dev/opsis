@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::card::truncate_card;
+use crate::card_rows::truncate_card;
 use crate::graph::{GROUP_TYPE, NOTE_TYPE};
 use crate::node::{CardCtx, Category, NodeDef, Phase, missing, row};
 use crate::params::Params;

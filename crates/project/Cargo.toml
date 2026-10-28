@@ -26,3 +26,6 @@ url = "2.5.8"
 filetime = "0.2.29"
 indexmap = "2.14.2"
 tempfile = "3.27.0"
+
+[lints]
+workspace = true

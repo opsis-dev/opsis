@@ -29,6 +29,7 @@ use opsis_compile::nodes::image::{
     label_size, magnify_plan, outline_padding, resized_size, rotated_size, tilt_corners,
     tilted_size,
 };
+use opsis_types::numbers;
 
 use crate::ImageError;
 use crate::text::{draw_text, measure};
@@ -73,12 +74,22 @@ pub fn resize(image: &DynamicImage, p: &ResizeImage) -> Result<DynamicImage, Ima
     if p.width > 0 && p.height > 0 && p.fit == ResizeFit::Cover {
         options = options.fit_into_destination(Some((0.5, 0.5)));
     }
-    resized_to(image, w as u32, h as u32, &options)
+    resized_to(
+        image,
+        numbers::truncate::<u32>(w),
+        numbers::truncate::<u32>(h),
+        &options,
+    )
 }
 
 pub fn crop(image: &DynamicImage, p: &CropImage) -> DynamicImage {
     let r = crop_rect(size_of(image), p);
-    image.crop_imm(r.x as u32, r.y as u32, r.width as u32, r.height as u32)
+    image.crop_imm(
+        numbers::truncate::<u32>(r.x),
+        numbers::truncate::<u32>(r.y),
+        numbers::truncate::<u32>(r.width),
+        numbers::truncate::<u32>(r.height),
+    )
 }
 
 fn tilted<P>(
@@ -91,14 +102,17 @@ where
     P: Pixel + Send + Sync,
     P::Subpixel: Send + Sync + Into<f32> + imageproc::definitions::Clamp<f32>,
 {
-    let (w, h) = (size.0 as u32, size.1 as u32);
+    let (w, h) = (
+        numbers::truncate::<u32>(size.0),
+        numbers::truncate::<u32>(size.1),
+    );
     let mut canvas = ImageBuffer::from_pixel(w, h, background);
     let x = i64::from(w.saturating_sub(image.width()) / 2);
     let y = i64::from(h.saturating_sub(image.height()) / 2);
     imageops::replace(&mut canvas, image, x, y);
     rotate_about_center(
         &canvas,
-        (angle as f32).to_radians(),
+        numbers::narrow(angle).to_radians(),
         Interpolation::Bicubic,
         Border::Constant(background),
     )
@@ -164,11 +178,12 @@ fn hue_matrix(degrees: f32) -> [[f32; 3]; 3] {
 
 fn adjust_pixel(rgb: [f32; 3], p: &AdjustImage, hue: &[[f32; 3]; 3]) -> [f32; 3] {
     let contrast = if p.contrast >= 0.0 {
-        1.0 + p.contrast as f32 * CONTRAST_GAIN
+        1.0 + numbers::narrow(p.contrast) * CONTRAST_GAIN
     } else {
-        1.0 + p.contrast as f32
+        1.0 + numbers::narrow(p.contrast)
     };
-    let mut c = rgb.map(|v| (v - 0.5) * contrast + 0.5 + p.brightness as f32 * BRIGHTNESS_SPAN);
+    let mut c =
+        rgb.map(|v| (v - 0.5) * contrast + 0.5 + numbers::narrow(p.brightness) * BRIGHTNESS_SPAN);
     if p.hue != 0.0 {
         c = [0, 1, 2].map(|i| hue[i][0] * c[0] + hue[i][1] * c[1] + hue[i][2] * c[2]);
     }
@@ -176,7 +191,7 @@ fn adjust_pixel(rgb: [f32; 3], p: &AdjustImage, hue: &[[f32; 3]; 3]) -> [f32; 3]
     let saturation = if p.grayscale {
         0.0
     } else {
-        1.0 + p.saturation as f32
+        1.0 + numbers::narrow(p.saturation)
     };
     c = c.map(|v| luma + (v - luma) * saturation);
     if p.invert {
@@ -186,7 +201,7 @@ fn adjust_pixel(rgb: [f32; 3], p: &AdjustImage, hue: &[[f32; 3]; 3]) -> [f32; 3]
 }
 
 pub fn adjust(image: &DynamicImage, p: &AdjustImage) -> DynamicImage {
-    let hue = hue_matrix(p.hue as f32);
+    let hue = hue_matrix(numbers::narrow(p.hue));
     let deep = is_deep(image);
     let mut pixels = image.to_rgba32f();
     for pixel in pixels.pixels_mut() {
@@ -204,12 +219,12 @@ pub fn adjust(image: &DynamicImage, p: &AdjustImage) -> DynamicImage {
 
 pub fn blur(image: &DynamicImage, p: &BlurImage) -> DynamicImage {
     let mut out = if p.blur > 0.0 {
-        image.fast_blur(p.blur as f32)
+        image.fast_blur(numbers::narrow(p.blur))
     } else {
         image.clone()
     };
     if p.sharpen > 0.0 {
-        out = out.unsharpen(p.sharpen as f32, p.threshold as i32);
+        out = out.unsharpen(numbers::narrow(p.sharpen), numbers::signed(p.threshold));
     }
     out
 }
@@ -226,17 +241,17 @@ pub fn place(
     let options = ResizeOptions::new().resize_alg(algorithm(Resample::Sharp));
     let sized = resized_to(
         &DynamicImage::ImageRgba8(overlay.to_rgba8()),
-        width as u32,
-        height as u32,
+        numbers::truncate::<u32>(width),
+        numbers::truncate::<u32>(height),
         &options,
     )?;
     let mut top: RgbaImage = sized.to_rgba8();
     let opacity = p.opacity.clamp(0.0, 1.0);
     for pixel in top.pixels_mut() {
-        pixel.0[3] = (f64::from(pixel.0[3]) * opacity).round() as u8;
+        pixel.0[3] = numbers::truncate::<u8>((f64::from(pixel.0[3]) * opacity).round());
     }
-    let x = (f64::from(image.width()) * p.x - width / 2.0).round() as i64;
-    let y = (f64::from(image.height()) * p.y - height / 2.0).round() as i64;
+    let x = numbers::truncate::<i64>((f64::from(image.width()) * p.x - width / 2.0).round());
+    let y = numbers::truncate::<i64>((f64::from(image.height()) * p.y - height / 2.0).round());
     let mut base = image.to_rgba8();
     imageops::overlay(&mut base, &top, x, y);
     Ok(DynamicImage::ImageRgba8(base))
@@ -331,10 +346,10 @@ fn colour_in<P: Pixel>(rgba: [u8; 4]) -> P {
 
 fn pixel_bounds(rect: Rect) -> (u32, u32, u32, u32) {
     (
-        rect.x as u32,
-        rect.y as u32,
-        (rect.x + rect.width) as u32,
-        (rect.y + rect.height) as u32,
+        numbers::truncate::<u32>(rect.x),
+        numbers::truncate::<u32>(rect.y),
+        numbers::truncate::<u32>(rect.x + rect.width),
+        numbers::truncate::<u32>(rect.y + rect.height),
     )
 }
 
@@ -373,7 +388,7 @@ where
 {
     let (left, top, right, bottom) = pixel_bounds(rect);
     let part = imageops::crop_imm(picture, left, top, right - left, bottom - top).to_image();
-    let blurred = gaussian_blur_f32(&part, sigma.max(0.1) as f32);
+    let blurred = gaussian_blur_f32(&part, numbers::narrow(sigma.max(0.1)));
     imageops::replace(picture, &blurred, i64::from(left), i64::from(top));
 }
 
@@ -450,7 +465,7 @@ pub fn lit_mask(
         }])
     });
     if softness > 0.0 {
-        gaussian_blur_f32(&mask, (softness / 2.0) as f32)
+        gaussian_blur_f32(&mask, numbers::narrow(softness / 2.0))
     } else {
         mask
     }
@@ -471,12 +486,12 @@ pub fn spotlight(image: &DynamicImage, p: &SpotlightImage) -> DynamicImage {
     let source = image.to_rgba32f();
     let rest = if p.blur > 0.0 {
         DynamicImage::ImageRgba32F(source.clone())
-            .fast_blur(p.blur as f32)
+            .fast_blur(numbers::narrow(p.blur))
             .to_rgba32f()
     } else {
         source.clone()
     };
-    let keep = 1.0 - p.dim.clamp(0.0, 1.0) as f32;
+    let keep = 1.0 - numbers::narrow(p.dim.clamp(0.0, 1.0));
     let out = ImageBuffer::from_fn(source.width(), source.height(), |x, y| {
         let lit = mask.get_pixel(x, y).0[0].clamp(0.0, 1.0);
         let [r, g, b, a] = source.get_pixel(x, y).0;
@@ -527,7 +542,12 @@ pub fn trim(image: &DynamicImage, p: &TrimEdges) -> DynamicImage {
     let y = (content.y - pad).max(0.0);
     let right = (content.x + content.width + pad).min(w);
     let bottom = (content.y + content.height + pad).min(h);
-    image.crop_imm(x as u32, y as u32, (right - x) as u32, (bottom - y) as u32)
+    image.crop_imm(
+        numbers::truncate::<u32>(x),
+        numbers::truncate::<u32>(y),
+        numbers::truncate::<u32>(right - x),
+        numbers::truncate::<u32>(bottom - y),
+    )
 }
 
 fn rgb_distance(a: [f32; 4], b: [f32; 4]) -> f32 {
@@ -586,8 +606,8 @@ pub fn clear_colour(image: &DynamicImage, p: &ClearColour) -> DynamicImage {
     } else {
         background_rgba(&p.color).map(|v| f32::from(v) / 255.0)
     };
-    let tolerance = p.tolerance.clamp(0.0, 100.0) as f32;
-    let softness = p.softness.clamp(0.0, 100.0) as f32;
+    let tolerance = numbers::narrow(p.tolerance.clamp(0.0, 100.0));
+    let softness = numbers::narrow(p.softness.clamp(0.0, 100.0));
     let distance = |x: u32, y: u32| rgb_distance(pixels.get_pixel(x, y).0, target);
     let reached = if p.edges_only {
         Some(touching_edges(width, height, |x, y| {
@@ -635,7 +655,7 @@ pub fn has_see_through(image: &DynamicImage) -> bool {
 
 fn soften(mask: ImageBuffer<Luma<f32>, Vec<f32>>, sigma: f64) -> ImageBuffer<Luma<f32>, Vec<f32>> {
     if sigma > 0.0 {
-        gaussian_blur_f32(&mask, sigma as f32)
+        gaussian_blur_f32(&mask, numbers::narrow(sigma))
     } else {
         mask
     }
@@ -645,7 +665,7 @@ const SHADOW_ALPHA: f32 = 0.35;
 
 pub fn outline(image: &DynamicImage, p: &OutlineImage) -> DynamicImage {
     let source = image.to_rgba32f();
-    let pad = outline_padding(p) as u32;
+    let pad = numbers::truncate::<u32>(outline_padding(p));
     let (w, h) = (source.width() + 2 * pad, source.height() + 2 * pad);
     let at = |x: u32, y: u32| {
         if x >= pad && y >= pad && x < pad + source.width() && y < pad + source.height() {
@@ -659,11 +679,11 @@ pub fn outline(image: &DynamicImage, p: &OutlineImage) -> DynamicImage {
     let width = p.width.max(0.0);
     let ring = ImageBuffer::from_fn(w, h, |x, y| {
         let d = distance.get_pixel(x, y).0[0].sqrt();
-        Luma([(width + 0.5 - d).clamp(0.0, 1.0) as f32])
+        Luma([numbers::narrow((width + 0.5 - d).clamp(0.0, 1.0))])
     });
     let ring = soften(ring, p.softness / 2.0);
     let shadow = p.shadow.then(|| soften(ring.clone(), width));
-    let drop = (width / 2.0).round() as u32;
+    let drop = numbers::whole(width / 2.0);
     let [r, g, b, a] = background_rgba(&p.color).map(|v| f32::from(v) / 255.0);
     let out = ImageBuffer::from_fn(w, h, |x, y| {
         let mut pixel = [0.0; 4];
@@ -694,11 +714,12 @@ const TILT_SHADOW_SOFTNESS: f64 = 0.02;
 pub fn tilt(image: &DynamicImage, p: &TiltImage) -> Result<DynamicImage, ImageError> {
     let size = size_of(image);
     let (w, h) = tilted_size(size, p);
-    let from = [(0.0, 0.0), (size.0, 0.0), size, (0.0, size.1)].map(|(x, y)| (x as f32, y as f32));
-    let to = tilt_corners(size, p).map(|(x, y)| (x as f32, y as f32));
+    let from = [(0.0, 0.0), (size.0, 0.0), size, (0.0, size.1)]
+        .map(|(x, y)| (numbers::narrow(x), numbers::narrow(y)));
+    let to = tilt_corners(size, p).map(|(x, y)| (numbers::narrow(x), numbers::narrow(y)));
     let projection = Projection::from_control_points(from, to)
         .ok_or_else(|| ImageError::Failed("That angle folds the picture away.".to_owned()))?;
-    let mut warped = ImageBuffer::new(w as u32, h as u32);
+    let mut warped = ImageBuffer::new(numbers::truncate::<u32>(w), numbers::truncate::<u32>(h));
     warp_into(
         &image.to_rgba16(),
         projection,
@@ -714,7 +735,7 @@ pub fn tilt(image: &DynamicImage, p: &TiltImage) -> Result<DynamicImage, ImageEr
         });
         soften(alpha, soft)
     });
-    let drop = soft.round() as u32;
+    let drop = numbers::whole(soft);
     let background = background_rgba(&p.background).map(|v| f32::from(v) / 255.0);
     let out = ImageBuffer::from_fn(warped.width(), warped.height(), |x, y| {
         let mut pixel = background;
@@ -737,7 +758,9 @@ pub fn tilt(image: &DynamicImage, p: &TiltImage) -> Result<DynamicImage, ImageEr
 const LEVEL_BINS: usize = 1024;
 
 fn bin(v: f32) -> usize {
-    ((v.clamp(0.0, 1.0) * (LEVEL_BINS - 1) as f32).round()) as usize
+    numbers::truncate::<usize>(f64::from(
+        (v.clamp(0.0, 1.0) * numbers::narrow(numbers::float(LEVEL_BINS - 1))).round(),
+    ))
 }
 
 fn histogram(values: impl Iterator<Item = f32>) -> Vec<f64> {
@@ -753,7 +776,8 @@ fn level_at(counts: &[f64], reached: impl Fn(f64) -> bool) -> f32 {
     for (i, count) in counts.iter().enumerate() {
         seen += count;
         if reached(seen) {
-            return i as f32 / (LEVEL_BINS - 1) as f32;
+            return numbers::narrow(numbers::float(i))
+                / numbers::narrow(numbers::float(LEVEL_BINS - 1));
         }
     }
     1.0
@@ -775,7 +799,7 @@ fn equalize_map(counts: &[f64]) -> impl Fn(f32) -> f32 + use<> {
         .iter()
         .map(|c| {
             running += c;
-            (running / total) as f32
+            numbers::narrow(running / total)
         })
         .collect();
     move |v| cdf[bin(v)]
@@ -783,7 +807,7 @@ fn equalize_map(counts: &[f64]) -> impl Fn(f32) -> f32 + use<> {
 
 pub fn auto_levels(image: &DynamicImage, p: &AutoLevels) -> DynamicImage {
     let mut pixels = image.to_rgba32f();
-    let strength = p.strength.clamp(0.0, 1.0) as f32;
+    let strength = numbers::narrow(p.strength.clamp(0.0, 1.0));
     let maps: Vec<Box<dyn Fn(f32) -> f32>> = (0..3)
         .map(|channel| {
             let values: Vec<f32> = if p.per_channel {
@@ -818,8 +842,8 @@ pub fn grid(images: &[DynamicImage], p: &ImageGrid) -> Result<DynamicImage, Imag
     let [r, g, b, a] = background_rgba(&p.background);
     let wide = |v: u8| u16::from(v) * 257;
     let mut canvas: ImageBuffer<Rgba<u16>, Vec<u16>> = ImageBuffer::from_pixel(
-        plan.canvas.0 as u32,
-        plan.canvas.1 as u32,
+        numbers::truncate::<u32>(plan.canvas.0),
+        numbers::truncate::<u32>(plan.canvas.1),
         Rgba([wide(r), wide(g), wide(b), wide(a)]),
     );
     let options = ResizeOptions::new().resize_alg(algorithm(Resample::Sharp));
@@ -829,16 +853,16 @@ pub fn grid(images: &[DynamicImage], p: &ImageGrid) -> Result<DynamicImage, Imag
         } else {
             resized_to(
                 &DynamicImage::ImageRgba16(image.to_rgba16()),
-                cell.width as u32,
-                cell.height as u32,
+                numbers::truncate::<u32>(cell.width),
+                numbers::truncate::<u32>(cell.height),
                 &options,
             )?
         };
         imageops::overlay(
             &mut canvas,
             &sized.to_rgba16(),
-            cell.x as i64,
-            cell.y as i64,
+            numbers::truncate::<i64>(cell.x),
+            numbers::truncate::<i64>(cell.y),
         );
     }
     let deep = images.iter().any(is_deep);
@@ -873,7 +897,7 @@ fn along(gradient: &Gradient, t: f64) -> [f32; 4] {
         let ((a, ca), (b, cb)) = (pair[0], pair[1]);
         if t <= b {
             let k = if b > a {
-                ((t - a) / (b - a)) as f32
+                numbers::narrow((t - a) / (b - a))
             } else {
                 1.0
             };
@@ -926,7 +950,7 @@ fn rounded_distance(px: f64, py: f64, rect: Rect, radius: f64) -> f64 {
 }
 
 fn rounded_cover(px: f64, py: f64, rect: Rect, radius: f64) -> f32 {
-    (0.5 - rounded_distance(px, py, rect, radius)).clamp(0.0, 1.0) as f32
+    numbers::narrow((0.5 - rounded_distance(px, py, rect, radius)).clamp(0.0, 1.0))
 }
 
 pub fn frame(
@@ -936,7 +960,7 @@ pub fn frame(
 ) -> Result<DynamicImage, ImageError> {
     let source = size_of(image);
     let ((w, h), (x0, y0)) = framed_placement(source, p);
-    let size = (w as u32, h as u32);
+    let size = (numbers::truncate::<u32>(w), numbers::truncate::<u32>(h));
     let base = match paint {
         Paint::Colour(rgba) => {
             ImageBuffer::from_pixel(size.0, size.1, Rgba(rgba.map(|v| f32::from(v) / 255.0)))
@@ -959,7 +983,7 @@ pub fn frame(
         });
         soften(mask, p.shadow_softness / 2.0)
     });
-    let opacity = p.shadow_opacity.clamp(0.0, 1.0) as f32;
+    let opacity = numbers::narrow(p.shadow_opacity.clamp(0.0, 1.0));
     let out = ImageBuffer::from_fn(size.0, size.1, |x, y| {
         let mut pixel = base.get_pixel(x, y).0;
         if let Some(shadow) = &shadow {
@@ -971,7 +995,10 @@ pub fn frame(
         let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
         let cover = rounded_cover(px, py, rect, p.radius);
         if cover > 0.0 {
-            let (ix, iy) = ((f64::from(x) - x0) as u32, (f64::from(y) - y0) as u32);
+            let (ix, iy) = (
+                numbers::truncate::<u32>(f64::from(x) - x0),
+                numbers::truncate::<u32>(f64::from(y) - y0),
+            );
             if ix < picture.width() && iy < picture.height() {
                 let mut top = picture.get_pixel(ix, iy).0;
                 top[3] *= cover;
@@ -1012,10 +1039,10 @@ fn split_pictures(
     ImageBuffer::from_fn(w, h, |x, y| {
         let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
         let d = (px - centre.0) * cos + (py - centre.1) * sin;
-        let share = (d + 0.5).clamp(0.0, 1.0) as f32;
+        let share = numbers::narrow((d + 0.5).clamp(0.0, 1.0));
         let mut pixel = lerp(before.get_pixel(x, y).0, after.get_pixel(x, y).0, share);
         if half > 0.0 {
-            let cover = (half - d.abs() + 0.5).clamp(0.0, 1.0) as f32;
+            let cover = numbers::narrow((half - d.abs() + 0.5).clamp(0.0, 1.0));
             let mut line = divider;
             line[3] *= cover;
             pixel = over(line, pixel);
@@ -1145,7 +1172,7 @@ fn segment_distance(point: (f64, f64), from: (f64, f64), to: (f64, f64)) -> f64 
 }
 
 fn ring(distance: f64, half: f64) -> f32 {
-    (half - distance.abs() + 0.5).clamp(0.0, 1.0) as f32
+    numbers::narrow((half - distance.abs() + 0.5).clamp(0.0, 1.0))
 }
 
 fn tinted(pixel: [f32; 4], colour: [f32; 4], cover: f32) -> [f32; 4] {
@@ -1186,11 +1213,11 @@ pub fn magnify(image: &DynamicImage, p: &Magnify) -> Result<DynamicImage, ImageE
         let to_shown = shape_distance(px, py, shown, p);
         if p.line && p.border_width > 0 {
             let along = segment_distance((px, py), ends.0, ends.1);
-            let outside = (0.5 + to_area).clamp(0.0, 1.0) as f32;
+            let outside = numbers::narrow((0.5 + to_area).clamp(0.0, 1.0));
             pixel = tinted(pixel, border, ring(along, thin) * outside);
             pixel = tinted(pixel, border, ring(to_area, thin));
         }
-        let inside = (0.5 - to_shown).clamp(0.0, 1.0) as f32;
+        let inside = numbers::narrow((0.5 - to_shown).clamp(0.0, 1.0));
         if inside > 0.0 {
             let vx = whole(px - shown.x - 0.5).min(view.width() - 1);
             let vy = whole(py - shown.y - 0.5).min(view.height() - 1);

@@ -113,7 +113,7 @@ fn read_json(bytes: &Bytes, required: bool) -> Result<Value, Box<Response>> {
 
 fn body_of<T: DeserializeOwned>(bytes: &Bytes, required: bool) -> Result<T, Box<Response>> {
     parse_body(&read_json(bytes, required)?)
-        .map_err(|e| Box::new(failure(StatusCode::BAD_REQUEST, &e)))
+        .map_err(|e| Box::new(failure(StatusCode::BAD_REQUEST, &e.to_string())))
 }
 
 fn problems_of(host: &Host, workflow: &Workflow) -> Vec<ApiProblem> {
@@ -196,7 +196,8 @@ async fn validate(bytes: Bytes) -> Response {
 
 async fn open(State(host): State<Host>, bytes: Bytes) -> Response {
     let body = match read_json(&bytes, true).and_then(|b| {
-        parse_body::<OpenBody>(&b).map_err(|e| Box::new(failure(StatusCode::BAD_REQUEST, &e)))
+        parse_body::<OpenBody>(&b)
+            .map_err(|e| Box::new(failure(StatusCode::BAD_REQUEST, &e.to_string())))
     }) {
         Ok(body) => body,
         Err(response) => return *response,

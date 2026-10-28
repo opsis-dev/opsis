@@ -26,7 +26,7 @@ fn scalar(bytes: &[u8], kind: ComponentType, normalized: bool) -> f64 {
             f64::from(u16::from_le_bytes(bytes.try_into().unwrap())),
             65535.0,
         ),
-        ComponentType::I8 => (f64::from(bytes[0] as i8), 127.0),
+        ComponentType::I8 => (f64::from(i8::from_ne_bytes([bytes[0]])), 127.0),
         ComponentType::U8 => (f64::from(bytes[0]), 255.0),
         other => panic!("positions as {other:?}"),
     };
@@ -86,7 +86,7 @@ fn decodes_every_model_to_the_same_geometry_without_extensions_the_loader_needs(
         );
         assert_eq!(
             root["animations"].as_array().map(Vec::len),
-            Some(want["animations"].as_u64().unwrap() as usize),
+            Some(usize::try_from(want["animations"].as_u64().unwrap()).unwrap()),
             "{name}"
         );
         let scene = draco_gltf::import_slice(&made, None).unwrap();

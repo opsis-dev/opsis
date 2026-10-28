@@ -38,7 +38,7 @@ tauri-plugin-dialog = "2.8.3"
 tauri-plugin-notification = "2.7.0"
 tauri-plugin-opener = "2.7.2"
 tauri-plugin-wdio-webdriver = { version = "1.5.1", optional = true }
-tauri-specta = { version = "2.0.0-rc.26", features = ["derive", "typescript"] }
+tauri-specta = { version = "=2.0.0-rc.26", features = ["derive", "typescript"] }
 tempfile = "3.27.0"
 thiserror = "2.0.21"
 tokio = { version = "1.54.1", features = [
@@ -64,3 +64,6 @@ export-bindings = []
 name = "export-bindings"
 path = "src/bin/export-bindings.rs"
 required-features = ["export-bindings"]
+
+[lints]
+workspace = true

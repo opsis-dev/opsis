@@ -1,4 +1,4 @@
-import type { Bounds } from "@opsis/video/common/geometry";
+import type { Bounds } from "@opsis/video/generated/spec";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { boxHandle, useBoxDrag } from "./use-box-drag";

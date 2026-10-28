@@ -1,4 +1,5 @@
 use crate::errors::WallTimeError;
+use opsis_types::numbers;
 pub const MINUS: &str = "\u{2212}";
 
 pub fn round_to(value: f64, digits: i32) -> f64 {
@@ -13,7 +14,7 @@ pub fn decimals(value: f64, digits: i32) -> String {
 pub fn grouped(value: f64, max_digits: i32) -> String {
     use num_format::{Locale, ToFormattedString};
     let rounded = round_to(value.abs(), max_digits);
-    let whole = (rounded.trunc() as u64).to_formatted_string(&Locale::en);
+    let whole = numbers::truncate::<u64>(rounded.trunc()).to_formatted_string(&Locale::en);
     match decimals(rounded.fract(), max_digits).strip_prefix("0.") {
         Some(rest) => format!("{whole}.{rest}"),
         None => whole,
@@ -119,7 +120,7 @@ pub fn percent_text(fraction: f64, max: f64) -> String {
 
 pub fn format_bytes(n: u64) -> String {
     const UNITS: [&str; 4] = ["B", "KB", "MB", "GB"];
-    let mut value = n as f64;
+    let mut value = numbers::float_wide(n);
     let mut unit = 0;
     while value >= 1024.0 && unit < UNITS.len() - 1 {
         value /= 1024.0;

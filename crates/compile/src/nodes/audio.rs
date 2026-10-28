@@ -1,5 +1,6 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
+use opsis_types::numbers;
 use opsis_types::numbers::{signed, whole, whole_signed};
 use opsis_types::timeline::{
     Anchor, AudioEnvelope, AudioItem, AudioRole, EditHandles, LinkedParam, ParamRef, ParamUnit,
@@ -12,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::asset_ref::{base_name, project_ref};
-use crate::card::{LABELLED_TEXT_MAX, named_file_row, quote};
+use crate::card_rows::{LABELLED_TEXT_MAX, named_file_row, quote};
 use crate::clip::clip_to_spec;
 use crate::envelope::has_audio_keys;
 use crate::node::{
@@ -1028,7 +1029,7 @@ fn add_sound() -> NodeDef {
         .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
         .card(|ctx: &CardCtx<'_, AddSound>| {
             let n = ctx.inputs.connected.iter().filter(|p| *p == SOUNDS_PORT).count();
-            vec![Some(row(Icon::Volume2, plural(n as f64, "sound")).warn_if(n == 0))]
+            vec![Some(row(Icon::Volume2, plural(numbers::float(n), "sound")).warn_if(n == 0))]
         })
         .compiles(|ctx: &Ctx<'_, AddSound>| {
             with_clip(ctx, |clip| {

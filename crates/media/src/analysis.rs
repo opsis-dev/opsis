@@ -9,6 +9,7 @@ use opsis_project::paths::{
     ProjectPaths, WebAddress, is_inside, project_paths, ref_to_path, to_project_ref,
 };
 use opsis_types::analysis::{Filmstrip, Waveform, WaveformLevel};
+use opsis_types::numbers;
 use opsis_types::numbers::whole;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -53,8 +54,8 @@ fn round3(value: f64) -> f64 {
 fn windows(count: usize, size: f64, total: usize) -> impl Iterator<Item = (usize, usize)> {
     (0..count).map(move |i| {
         (
-            (i as f64 * size).floor() as usize,
-            (((i + 1) as f64 * size).floor() as usize).min(total),
+            numbers::truncate::<usize>((numbers::float(i) * size).floor()),
+            numbers::truncate::<usize>((numbers::float(i + 1) * size).floor()).min(total),
         )
     })
 }
@@ -64,7 +65,7 @@ pub fn waveform_levels(samples: &[f32], rate: f64) -> Vec<WaveformLevel> {
         .iter()
         .map(|&r| {
             let per = rate / r;
-            let count = (samples.len() as f64 / per).ceil() as usize;
+            let count = numbers::truncate::<usize>((numbers::float(samples.len()) / per).ceil());
             let (mut min, mut max) = (Vec::with_capacity(count), Vec::with_capacity(count));
             for (a, b) in windows(count, per, samples.len()) {
                 let (mut lo, mut hi) = (0f64, 0f64);
@@ -81,7 +82,7 @@ pub fn waveform_levels(samples: &[f32], rate: f64) -> Vec<WaveformLevel> {
 }
 
 fn onset_envelope(samples: &[f32], rate: f64) -> Vec<f32> {
-    let hop = (rate / ONSETS_PER_SECOND).round() as usize;
+    let hop = numbers::truncate::<usize>((rate / ONSETS_PER_SECOND).round());
     let frames = samples.len() / hop;
     let energy: Vec<f32> = (0..frames)
         .map(|f| {
@@ -89,25 +90,28 @@ fn onset_envelope(samples: &[f32], rate: f64) -> Vec<f32> {
                 .iter()
                 .map(|&s| f64::from(s) * f64::from(s))
                 .sum();
-            (ONSET_LOG_GAIN * (squares / hop as f64).sqrt()).ln_1p() as f32
+            numbers::narrow((ONSET_LOG_GAIN * (squares / numbers::float(hop)).sqrt()).ln_1p())
         })
         .collect();
     let mut onset = vec![0f32; frames];
     for f in 1..frames {
-        onset[f] = f64::max(0.0, f64::from(energy[f]) - f64::from(energy[f - 1])) as f32;
+        onset[f] = numbers::narrow(f64::max(
+            0.0,
+            f64::from(energy[f]) - f64::from(energy[f - 1]),
+        ));
     }
     onset
 }
 
 fn tempo_prior(lag: usize) -> f64 {
-    let bpm = ONSETS_PER_MINUTE / lag as f64;
+    let bpm = ONSETS_PER_MINUTE / numbers::float(lag);
     let octaves = (bpm / PRIOR_BPM).log2() / PRIOR_WIDTH_OCTAVES;
     PRIOR_FLOOR + PRIOR_WEIGHT * (-0.5 * octaves.powi(2)).exp()
 }
 
 fn beat_period(onset: &[f32]) -> Option<usize> {
-    let min_lag = (ONSETS_PER_MINUTE / MAX_BPM).floor() as usize;
-    let max_lag = (ONSETS_PER_MINUTE / MIN_BPM).ceil() as usize;
+    let min_lag = numbers::truncate::<usize>((ONSETS_PER_MINUTE / MAX_BPM).floor());
+    let max_lag = numbers::truncate::<usize>((ONSETS_PER_MINUTE / MIN_BPM).ceil());
     let mut correlations = Vec::new();
     let (mut best_lag, mut best) = (0usize, 0f64);
     for lag in min_lag..=max_lag {
@@ -157,7 +161,7 @@ pub fn detect_beats(samples: &[f32], rate: f64) -> Beats {
     if onset.len() < MIN_BEAT_FRAMES {
         return none;
     }
-    let mean = onset.iter().map(|&o| o as f64).sum::<f64>() / onset.len() as f64;
+    let mean = onset.iter().map(|&o| f64::from(o)).sum::<f64>() / numbers::float(onset.len());
     if mean <= EPSILON {
         return none;
     }
@@ -174,12 +178,12 @@ pub fn detect_beats(samples: &[f32], rate: f64) -> Beats {
                 peak = k;
             }
         }
-        beats.push(round3(peak as f64 / ONSETS_PER_SECOND));
+        beats.push(round3(numbers::float(peak) / ONSETS_PER_SECOND));
         f += period;
     }
     Beats {
         beats,
-        bpm: Some((ONSETS_PER_MINUTE / period as f64).round()),
+        bpm: Some((ONSETS_PER_MINUTE / numbers::float(period)).round()),
     }
 }
 
@@ -302,7 +306,7 @@ async fn decode_waveform(raw: &Path) -> Result<SavedWaveform, AnalysisError> {
         let samples = float_samples(&bytes);
         let Beats { beats, bpm } = detect_beats(&samples, DECODE_RATE);
         SavedWaveform {
-            duration_ms: whole(samples.len() as f64 / DECODE_RATE * 1000.0),
+            duration_ms: whole(numbers::float(samples.len()) / DECODE_RATE * 1000.0),
             levels: waveform_levels(&samples, DECODE_RATE),
             beats,
             bpm,
@@ -448,19 +452,21 @@ mod tests {
 
     fn clicks(bpm: f64, seconds: f64, offset: f64) -> Vec<f32> {
         let mut seed: u64 = 1;
-        let mut samples: Vec<f32> = (0..(RATE * seconds) as usize)
+        let mut samples: Vec<f32> = (0..numbers::truncate::<usize>(RATE * seconds))
             .map(|_| {
                 seed = (seed * 16_807) % 2_147_483_647;
-                ((seed as f64 / 2_147_483_647.0 - 0.5) * 0.05) as f32
+                numbers::narrow((numbers::float_wide(seed) / 2_147_483_647.0 - 0.5) * 0.05)
             })
             .collect();
         let gap = 60.0 / bpm;
         let mut t = offset;
         while t < seconds {
-            let start = (t * RATE).round() as usize;
+            let start = numbers::truncate::<usize>((t * RATE).round());
             for i in 0..200 {
                 if let Some(s) = samples.get_mut(start + i) {
-                    *s += ((i as f64 / 3.0).sin() * (-(i as f64) / 60.0).exp()) as f32;
+                    *s += numbers::narrow(
+                        (numbers::float(i) / 3.0).sin() * (-numbers::float(i) / 60.0).exp(),
+                    );
                 }
             }
             t += gap;
@@ -490,7 +496,10 @@ mod tests {
             beats: Vec::new(),
             bpm: None,
         };
-        assert_eq!(detect_beats(&vec![0.0; (RATE * 12.0) as usize], RATE), none);
+        assert_eq!(
+            detect_beats(&vec![0.0; numbers::truncate::<usize>(RATE * 12.0)], RATE),
+            none
+        );
         assert_eq!(detect_beats(&clicks(120.0, 2.0, 0.25), RATE), none);
     }
 

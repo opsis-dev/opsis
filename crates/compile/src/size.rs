@@ -1,4 +1,5 @@
 use crate::node::{MAX_CARD_ROWS, NodeDef};
+use opsis_types::numbers;
 
 pub const CARD_WIDTH: f64 = 256.0;
 pub const CARD_GAP: f64 = 32.0;
@@ -18,9 +19,9 @@ pub fn estimate_card_height(def: Option<&NodeDef>) -> f64 {
         return height;
     }
     let inputs = def.input_ports(std::iter::empty()).len();
-    let ports = inputs.max(def.outputs.len()) as f64;
+    let ports = numbers::float(inputs.max(def.outputs.len()));
     let rows = if def.has_card() {
-        MAX_CARD_ROWS as f64
+        numbers::float(MAX_CARD_ROWS)
     } else {
         0.0
     };

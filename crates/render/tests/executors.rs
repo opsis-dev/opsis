@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use opsis_capture::executors::{CaptureDeps, Login, LoginRequest, SignInStore, capture_executors};
+use opsis_capture::take::SignInError;
 use opsis_compile::registry::{node_def, registry};
 use opsis_engine::tools::EngineFiles;
 use opsis_media::executors::{Tools, media_executors};
@@ -13,11 +14,11 @@ use tokio_util::sync::CancellationToken;
 struct NoSignIns;
 
 impl SignInStore for NoSignIns {
-    fn read(&self, _: &std::path::Path, _: &str) -> Result<Option<String>, String> {
+    fn read(&self, _: &std::path::Path, _: &str) -> Result<Option<String>, SignInError> {
         Ok(None)
     }
 
-    fn write(&self, _: &std::path::Path, _: &str, _: &str) -> Result<(), String> {
+    fn write(&self, _: &std::path::Path, _: &str, _: &str) -> Result<(), SignInError> {
         Ok(())
     }
 }

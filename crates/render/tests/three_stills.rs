@@ -13,6 +13,7 @@ use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_render::protocol::{COMPOSITION_ID, RenderTarget, SidecarCall, StillJob};
 use opsis_render::sidecar::{Sidecar, SidecarCommand};
+use opsis_types::numbers;
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::{CompileValue, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
@@ -175,7 +176,7 @@ fn share_alike(made: &Path, baseline: &Path) -> Result<(), String> {
                 .all(|(x, y)| x.abs_diff(*y) <= CHANNEL_SLACK)
         })
         .count();
-    let share = close as f64 / f64::from(a.width() * a.height());
+    let share = numbers::float(close) / f64::from(a.width() * a.height());
     if share >= MOSTLY_SAME {
         Ok(())
     } else {

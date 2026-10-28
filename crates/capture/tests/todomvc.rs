@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use opsis_capture::executors::{CaptureDeps, Login, LoginRequest, SignInStore, capture_executors};
+use opsis_capture::take::SignInError;
 use opsis_engine::tools::EngineFiles;
 use opsis_media::executors::Tools;
 use opsis_media::ffmpeg::Ffmpeg;
@@ -9,6 +10,7 @@ use opsis_runner::context::{BoxFuture, ExecError, Executors, RunEnv};
 use opsis_runner::runner::{RunDeps, run_workflow};
 use opsis_types::actions::ActionLog;
 use opsis_types::events::{RunEvent, RunRequest};
+use opsis_types::numbers;
 use opsis_types::settings::AppSettings;
 use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
@@ -20,11 +22,11 @@ const FRAME_SLACK: f64 = 0.05;
 struct NoSignIns;
 
 impl SignInStore for NoSignIns {
-    fn read(&self, _: &Path, _: &str) -> Result<Option<String>, String> {
+    fn read(&self, _: &Path, _: &str) -> Result<Option<String>, SignInError> {
         Ok(None)
     }
 
-    fn write(&self, _: &Path, _: &str, _: &str) -> Result<(), String> {
+    fn write(&self, _: &Path, _: &str, _: &str) -> Result<(), SignInError> {
         Ok(())
     }
 }
@@ -212,7 +214,7 @@ async fn screenshots_one_element_with_space_around_it() {
         .join(image.src.unwrap().trim_start_matches("project:"));
     let size = imagesize::size(file).unwrap();
     assert_eq!(
-        size.width as f64,
+        numbers::float(size.width),
         (f64::from(image.width.unwrap()) * image.scale.unwrap()).round()
     );
 }

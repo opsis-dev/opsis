@@ -71,7 +71,7 @@ async fn sized_box(
     for _ in 0..SIZE_TRIES {
         match found {
             Some(rect) if rect.w < 1.0 || rect.h < 1.0 => {
-                tokio::time::sleep(SIZE_POLL).await;
+                tab.clock().wait(SIZE_POLL).await;
                 found = tab.bounding_box(handle).await?;
             }
             _ => break,

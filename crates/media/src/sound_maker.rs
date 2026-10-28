@@ -8,12 +8,13 @@ use fundsp::prelude32::{
 use crate::generate::RATE;
 
 use opsis_compile::nodes::audio::{SoundPreset, SoundShape};
+use opsis_types::numbers;
 
 const PEAK: f32 = 0.7;
 const EDGE_SECONDS: f64 = 0.005;
 
 fn count(seconds: f64) -> usize {
-    (seconds * f64::from(RATE)).round() as usize
+    numbers::truncate::<usize>((seconds * f64::from(RATE)).round())
 }
 
 fn pulled(mut node: impl AudioUnit, seconds: f64) -> Vec<f32> {
@@ -36,8 +37,9 @@ fn whoosh(s: &SoundShape) -> Vec<f32> {
     let factor = 2f64.powf(s.pitch / 12.0);
     let low = 300.0 * factor;
     let high = (1500.0 + 5000.0 * s.brightness) * factor;
-    let centre = envelope(move |t: f32| (low + (high - low) * hump(f64::from(t) / d, 0.55)) as f32);
-    let loudness = envelope(move |t: f32| hump(f64::from(t) / d, 0.6) as f32);
+    let centre =
+        envelope(move |t: f32| numbers::narrow(low + (high - low) * hump(f64::from(t) / d, 0.55)));
+    let loudness = envelope(move |t: f32| numbers::narrow(hump(f64::from(t) / d, 0.6)));
     let graph = ((noise().seed(s.seed) | centre | dc(1.2)) >> bandpass()) * loudness;
     pulled(graph, d)
 }
@@ -47,10 +49,11 @@ fn riser(s: &SoundShape) -> Vec<f32> {
     let factor = 2f64.powf(s.pitch / 12.0);
     let top = (2000.0 + 6000.0 * s.brightness) * factor;
     let sweep = envelope(move |t: f32| {
-        (200.0 * factor * (top / (200.0 * factor)).powf(f64::from(t) / d)) as f32
+        numbers::narrow(200.0 * factor * (top / (200.0 * factor)).powf(f64::from(t) / d))
     });
-    let tone = envelope(move |t: f32| (110.0 * factor * 4f64.powf(f64::from(t) / d)) as f32);
-    let loudness = envelope(move |t: f32| (f64::from(t) / d).powi(2) as f32);
+    let tone =
+        envelope(move |t: f32| numbers::narrow(110.0 * factor * 4f64.powf(f64::from(t) / d)));
+    let loudness = envelope(move |t: f32| numbers::narrow((f64::from(t) / d).powi(2)));
     let air = (noise().seed(s.seed) | sweep | dc(2.0)) >> bandpass();
     let graph = (air * 0.8 + (tone >> saw() >> lowpass_hz(1800.0, 0.7)) * 0.25) * loudness;
     pulled(graph, d)
@@ -58,10 +61,10 @@ fn riser(s: &SoundShape) -> Vec<f32> {
 
 fn pop(s: &SoundShape) -> Vec<f32> {
     let d = s.seconds;
-    let factor = (2f64.powf(s.pitch / 12.0)) as f32;
+    let factor = numbers::narrow(2f64.powf(s.pitch / 12.0));
     let fall = envelope(move |t: f32| factor * (160.0 + 800.0 * (-t / 0.015).exp()));
-    let decay = envelope(move |t: f32| (-t / (0.05 * (d as f32) / 0.15)).exp());
-    let snap = (s.brightness * 0.4) as f32;
+    let decay = envelope(move |t: f32| (-t / (0.05 * numbers::narrow(d) / 0.15)).exp());
+    let snap = numbers::narrow(s.brightness * 0.4);
     let crack = (noise().seed(s.seed) >> highpass_hz(3000.0, 0.7))
         * envelope(move |t: f32| snap * (-t / 0.003).exp());
     let graph = (fall >> sine()) * decay + crack;
@@ -74,9 +77,9 @@ const BELL_DECAYS: [f32; 5] = [1.2, 0.9, 0.6, 0.35, 0.2];
 
 fn ding(s: &SoundShape) -> Vec<f32> {
     let d = s.seconds;
-    let base = (880.0 * 2f64.powf(s.pitch / 12.0)) as f32;
-    let stretch = (d / 1.5) as f32;
-    let bright = s.brightness as f32;
+    let base = numbers::narrow(880.0 * 2f64.powf(s.pitch / 12.0));
+    let stretch = numbers::narrow(d / 1.5);
+    let bright = numbers::narrow(s.brightness);
     let mut out = vec![0.0f32; count(d)];
     for (i, ratio) in BELL_RATIOS.iter().enumerate() {
         let level = BELL_LEVELS[i] * if i >= 3 { 0.3 + 1.4 * bright } else { 1.0 };
@@ -92,8 +95,8 @@ fn ding(s: &SoundShape) -> Vec<f32> {
 
 fn tap(s: &SoundShape) -> Vec<f32> {
     let d = s.seconds;
-    let factor = 2f64.powf(s.pitch / 12.0) as f32;
-    let centre = (2000.0 + 4000.0 * s.brightness as f32) * factor;
+    let factor = numbers::narrow(2f64.powf(s.pitch / 12.0));
+    let centre = (2000.0 + 4000.0 * numbers::narrow(s.brightness)) * factor;
     let tap = (noise().seed(s.seed) >> bandpass_hz(centre, 2.0))
         * envelope(move |t: f32| (-t / 0.004).exp());
     let tick = sine_hz(1500.0 * factor) * envelope(move |t: f32| 0.5 * (-t / 0.01).exp());
@@ -114,9 +117,9 @@ fn burst(t: f32, at: f32) -> f32 {
 }
 
 fn click(s: &SoundShape) -> Vec<f32> {
-    let factor = 2f64.powf(s.pitch / 12.0) as f32;
-    let bright = s.brightness as f32;
-    let gap = 0.03 + 0.03 * (s.seed % 5) as f32 / 4.0;
+    let factor = numbers::narrow(2f64.powf(s.pitch / 12.0));
+    let bright = numbers::narrow(s.brightness);
+    let gap = 0.03 + 0.03 * numbers::narrow(numbers::float_wide(s.seed % 5)) / 4.0;
     let ring = (3500.0 + 3500.0 * bright) * factor;
     let mut source = noise().seed(s.seed);
     let mut snap = highpass_hz((1500.0 + 2500.0 * bright) * factor, 0.7);
@@ -133,7 +136,7 @@ fn click(s: &SoundShape) -> Vec<f32> {
     }
     (0..count(s.seconds))
         .map(|i| {
-            let t = i as f32 / RATE as f32;
+            let t = numbers::narrow(numbers::float(i)) / numbers::narrow(f64::from(RATE));
             let n = source.get_mono();
             let first = burst(t, PRESS_AT);
             let second = burst(t, PRESS_AT + gap) * RELEASE_LEVEL;
@@ -146,12 +149,13 @@ fn click(s: &SoundShape) -> Vec<f32> {
 
 fn swell(s: &SoundShape) -> Vec<f32> {
     let d = s.seconds;
-    let factor = 2f64.powf(s.pitch / 12.0) as f32;
-    let drift = 1.0 + (s.seed % 7) as f32 * 0.001;
-    let open = (1000.0 + 4000.0 * s.brightness) as f32;
-    let cutoff =
-        envelope(move |t: f32| 300.0 + (open - 300.0) * hump(f64::from(t) / d, 0.7) as f32);
-    let loudness = envelope(move |t: f32| hump(f64::from(t) / d, 0.75) as f32);
+    let factor = numbers::narrow(2f64.powf(s.pitch / 12.0));
+    let drift = 1.0 + numbers::narrow(numbers::float_wide(s.seed % 7)) * 0.001;
+    let open = numbers::narrow(1000.0 + 4000.0 * s.brightness);
+    let cutoff = envelope(move |t: f32| {
+        300.0 + (open - 300.0) * numbers::narrow(hump(f64::from(t) / d, 0.7))
+    });
+    let loudness = envelope(move |t: f32| numbers::narrow(hump(f64::from(t) / d, 0.75)));
     let voices = saw_hz(220.0 * factor)
         + saw_hz(220.0 * factor * 1.005 * drift)
         + saw_hz(220.0 * factor * 0.995)
@@ -164,7 +168,7 @@ fn finished(mut samples: Vec<f32>, edge_seconds: f64) -> Vec<f32> {
     let edge = count(edge_seconds).min(samples.len() / 2).max(1);
     let len = samples.len();
     for i in 0..edge {
-        let gain = i as f32 / edge as f32;
+        let gain = numbers::narrow(numbers::float(i)) / numbers::narrow(numbers::float(edge));
         samples[i] *= gain;
         samples[len - 1 - i] *= gain;
     }
@@ -197,15 +201,15 @@ pub fn make(shape: &SoundShape) -> [Vec<f32>; 2] {
     if shape.preset != SoundPreset::Whoosh {
         return [mono.clone(), mono];
     }
-    let len = mono.len().max(1) as f64;
+    let len = numbers::float(mono.len().max(1));
     let (mut left, mut right) = (
         Vec::with_capacity(mono.len()),
         Vec::with_capacity(mono.len()),
     );
     for (i, v) in mono.iter().enumerate() {
-        let angle = (0.15 + 0.7 * i as f64 / len) * PI / 2.0;
-        left.push(v * angle.cos() as f32 * 1.4);
-        right.push(v * angle.sin() as f32 * 1.4);
+        let angle = (0.15 + 0.7 * numbers::float(i) / len) * PI / 2.0;
+        left.push(v * numbers::narrow(angle.cos()) * 1.4);
+        right.push(v * numbers::narrow(angle.sin()) * 1.4);
     }
     [left, right]
 }
@@ -261,7 +265,8 @@ mod clicks {
         };
         let [samples, _] = make(&shape);
         let loudest = |from: f32, to: f32| {
-            samples[(from * RATE as f32) as usize..(to * RATE as f32) as usize]
+            samples[numbers::truncate::<usize>(f64::from(from * numbers::narrow(f64::from(RATE))))
+                ..numbers::truncate::<usize>(f64::from(to * numbers::narrow(f64::from(RATE))))]
                 .iter()
                 .fold(0.0f32, |m, v| m.max(v.abs()))
         };

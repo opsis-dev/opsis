@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use smart_default::SmartDefault;
 
-use crate::card::{quoted_row, truncate_card};
+use crate::card_rows::{quoted_row, truncate_card};
 use crate::clip::{EMPTY_CLIP_FRAMES, ItemExtra, empty_clip, item_clip, stack_clips};
 use crate::elements::overlay::captions::{CAPTIONS_ELEMENT, Captions};
 use crate::fonts::font_prop;

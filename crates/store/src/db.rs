@@ -22,8 +22,10 @@ pub enum StoreError {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
-    #[error("{0}")]
-    Invalid(String),
+    #[error(transparent)]
+    Settings(#[from] crate::settings::SettingsError),
+    #[error("An in-memory database can't hold another schema")]
+    InMemorySchema,
 }
 
 pub type Result<T> = std::result::Result<T, StoreError>;
@@ -121,9 +123,7 @@ impl Database {
             return Ok(Self { pool });
         }
         let Some(file) = file else {
-            return Err(StoreError::Invalid(
-                "An in-memory database can't hold another schema".into(),
-            ));
+            return Err(StoreError::InMemorySchema);
         };
         log::warn!(
             "{} was made for another schema and was replaced",

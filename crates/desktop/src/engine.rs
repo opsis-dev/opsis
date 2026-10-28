@@ -262,7 +262,17 @@ fn downloaded_tools(dir: &Path, platform: ShellPlatform) -> [(EngineTool, Option
     ]
 }
 
-async fn download_and_check(app: &AppHandle) -> Result<(), String> {
+#[derive(Debug, thiserror::Error)]
+enum SetupError {
+    #[error(transparent)]
+    Install(#[from] opsis_engine::install::InstallError),
+    #[error("The {} wasn't in the download.", .0.label())]
+    Missing(EngineTool),
+    #[error(transparent)]
+    Check(#[from] ToolProblem),
+}
+
+async fn download_and_check(app: &AppHandle) -> Result<(), SetupError> {
     let state = app.state::<AppState>();
     let dir = download_dir(&state.paths.user_data);
     let emitter = app.clone();
@@ -278,13 +288,10 @@ async fn download_and_check(app: &AppHandle) -> Result<(), String> {
         &mut report,
         &CancellationToken::new(),
     )
-    .await
-    .map_err(|e| e.to_string())?;
+    .await?;
     for (tool, path) in downloaded_tools(&dir, state.paths.platform) {
-        let path = path.ok_or_else(|| format!("The {} wasn't in the download.", tool.label()))?;
-        check_and_save(app, tool, &path)
-            .await
-            .map_err(|e| e.to_string())?;
+        let path = path.ok_or(SetupError::Missing(tool))?;
+        check_and_save(app, tool, &path).await?;
     }
     Ok(())
 }
@@ -295,7 +302,7 @@ pub async fn install_engine(app: AppHandle, state: State<'_, AppState>) -> Comma
     state.tasks.begin(ENGINE_TASK);
     let result = download_and_check(&app).await;
     state.tasks.end(ENGINE_TASK);
-    let error = result.as_ref().err().cloned();
+    let error = result.as_ref().err().map(ToString::to_string);
     let finished = EngineInstallUpdate {
         part: EnginePart::HeadlessShell,
         step: "done".to_owned(),
@@ -307,7 +314,7 @@ pub async fn install_engine(app: AppHandle, state: State<'_, AppState>) -> Comma
     {
         log::warn!("sending engine progress: {problem}");
     }
-    result.map_err(CommandError)
+    Ok(result?)
 }
 
 async fn pick_file(app: &AppHandle, tool: EngineTool) -> Option<PathBuf> {

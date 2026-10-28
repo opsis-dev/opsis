@@ -1,3 +1,4 @@
+use opsis_types::numbers;
 use opsis_types::timeline::{AudioEnvelope, Ease, EnvelopeKey, Keyframe, VisualEnvelope};
 use serde::Serialize;
 use specta::Type;
@@ -92,7 +93,9 @@ pub fn sample_points(keys: &[Keyframe]) -> Vec<(f64, f64)> {
             Ease::Linear => {}
             _ => {
                 for s in 1..STEPS_PER_SEGMENT {
-                    let frame = a.frame + (b.frame - a.frame) * s as f64 / STEPS_PER_SEGMENT as f64;
+                    let frame = a.frame
+                        + (b.frame - a.frame) * numbers::float(s)
+                            / numbers::float(STEPS_PER_SEGMENT);
                     out.push((frame, sorted_envelope_at(&sorted, frame, a.value)));
                 }
             }

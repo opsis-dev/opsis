@@ -38,7 +38,7 @@ pub enum SidecarError {
     Failed(String),
 }
 
-type Reply = Result<(), String>;
+type Reply = Result<(), SidecarError>;
 
 struct Waiting {
     reply: oneshot::Sender<Reply>,
@@ -88,7 +88,7 @@ fn deliver(pending: &Pending, line: &str, on_log: &OnLine) {
         }
         SidecarMessage::Failed { id, error } => {
             if let Some(job) = waiting.remove(&id) {
-                hand_over(job.reply.send(Err(error.message)), id);
+                hand_over(job.reply.send(Err(SidecarError::Failed(error.message))), id);
             }
         }
         SidecarMessage::Done { id, .. } => {
@@ -221,7 +221,7 @@ impl Sidecar {
                     return match answer {
                         _ if cancelled => Err(SidecarError::Cancelled),
                         Ok(Ok(())) => Ok(()),
-                        Ok(Err(message)) => Err(SidecarError::Failed(message)),
+                        Ok(Err(error)) => Err(error),
                         Err(_) => Err(SidecarError::Stopped),
                     };
                 }

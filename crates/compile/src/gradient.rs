@@ -1,5 +1,6 @@
 use std::sync::LazyLock;
 
+use opsis_types::numbers;
 use opsis_types::numbers::whole;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -122,13 +123,13 @@ pub fn parse_gradient(text: &str) -> Option<Gradient> {
     }
     let stops: Option<Vec<(String, Option<f64>)>> = parts.iter().map(|p| parse_stop(p)).collect();
     let stops = stops.filter(|s| s.len() >= MIN_STOPS)?;
-    let last = (stops.len() - 1).max(1) as f64;
+    let last = numbers::float((stops.len() - 1).max(1));
     let stops = stops
         .into_iter()
         .enumerate()
         .map(|(i, (color, at))| GradientStop {
             color,
-            at: at.unwrap_or_else(|| (i as f64 / last * 100.0).round()),
+            at: at.unwrap_or_else(|| (numbers::float(i) / last * 100.0).round()),
         })
         .collect();
     Some(Gradient { kind, angle, stops })

@@ -1,4 +1,4 @@
-use opsis_compile::card::{element_row, sentence};
+use opsis_compile::card_rows::{element_row, sentence};
 use opsis_compile::compile::interpolated_params;
 use opsis_compile::node::{CardCtx, CardInputs, MAX_CARD_ROWS, NodeDef};
 use opsis_compile::registry::{node_def, registry};

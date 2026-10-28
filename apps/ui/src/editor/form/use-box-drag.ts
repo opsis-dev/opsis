@@ -1,5 +1,5 @@
-import type { Bounds } from "@opsis/video/common/geometry";
 import { clamp, round3 } from "@opsis/video/common/math";
+import type { Bounds } from "@opsis/video/generated/spec";
 import { useRef, useState, type PointerEvent } from "react";
 import { fractionIn } from "@/lib/dom";
 import { usePointerDrag } from "@/lib/use-pointer-drag";

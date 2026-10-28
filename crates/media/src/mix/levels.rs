@@ -2,6 +2,7 @@ use std::path::Path;
 
 use opsis_compile::text::round_to;
 use opsis_types::mix::{SILENCE_DB, StemLevels};
+use opsis_types::numbers;
 
 const EPSILON: f64 = 1e-6;
 
@@ -34,8 +35,12 @@ pub fn frame_levels(
         rms: Vec::with_capacity(frames),
     };
     for i in 0..frames {
-        let start = ((i as f64) * per).floor() as usize;
-        let end = (((i + 1) as f64) * per).floor().min(pcm.frames as f64) as usize;
+        let start = numbers::truncate::<usize>((numbers::float(i) * per).floor());
+        let end = numbers::truncate::<usize>(
+            (numbers::float(i + 1) * per)
+                .floor()
+                .min(numbers::float(pcm.frames)),
+        );
         while at < start {
             samples.by_ref().take(pcm.channels).for_each(drop);
             at += 1;
@@ -52,7 +57,7 @@ pub fn frame_levels(
         }
         levels.peak.push(to_db(peak));
         levels.rms.push(to_db(if count > 0 {
-            (squares / count as f64).sqrt()
+            (squares / numbers::float(count)).sqrt()
         } else {
             0.0
         }));
@@ -86,7 +91,7 @@ pub fn wav_levels(file: &Path, fps: f64, frames: usize) -> Result<StemLevels, Wa
             let samples = reader
                 .samples::<i32>()
                 .map_while(Result::ok)
-                .map(move |s| (f64::from(s) / scale) as f32);
+                .map(move |s| numbers::narrow(f64::from(s) / scale));
             frame_levels(&pcm, samples, fps, frames)
         }
     })
@@ -101,7 +106,9 @@ mod tests {
         for s in samples {
             match spec.sample_format {
                 hound::SampleFormat::Float => writer.write_sample(*s).unwrap(),
-                hound::SampleFormat::Int => writer.write_sample((*s * 32768.0) as i16).unwrap(),
+                hound::SampleFormat::Int => writer
+                    .write_sample(numbers::truncate::<i16>(f64::from(*s * 32768.0)))
+                    .unwrap(),
             }
         }
         writer.finalize().unwrap();

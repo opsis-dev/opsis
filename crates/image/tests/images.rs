@@ -17,6 +17,7 @@ use opsis_compile::nodes::image::{
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
+use opsis_types::numbers;
 
 const CELL: u32 = 16;
 const COLOURS: [[u8; 3]; 6] = [
@@ -93,8 +94,8 @@ fn turns_every_exif_orientation_upright() {
         );
         for (i, colour) in COLOURS.iter().enumerate() {
             let (x, y) = (
-                (i as u32 % 3) * CELL + CELL / 2,
-                (i as u32 / 3) * CELL + CELL / 2,
+                (numbers::count(i) % 3) * CELL + CELL / 2,
+                (numbers::count(i) / 3) * CELL + CELL / 2,
             );
             let got = loaded.get_pixel(x, y).0;
             assert!(
@@ -131,7 +132,7 @@ fn p3_to_srgb(p3: [u8; 3]) -> [u8; 3] {
     let linear = p3.map(|v| decode_srgb(f64::from(v) / 255.0));
     [0, 1, 2].map(|i| {
         let mixed = m[i][0] * linear[0] + m[i][1] * linear[1] + m[i][2] * linear[2];
-        (encode_srgb(mixed) * 255.0).round() as u8
+        numbers::truncate::<u8>((encode_srgb(mixed) * 255.0).round())
     })
 }
 
@@ -358,7 +359,7 @@ fn saves_every_format_so_it_opens_again() {
 
 fn noise(width: u32, height: u32) -> RgbaImage {
     RgbaImage::from_fn(width, height, |x, y| {
-        let v = ((x * 37 + y * 91) % 256) as u8;
+        let v = u8::try_from((x * 37 + y * 91) % 256).unwrap();
         Rgba([v, v.wrapping_mul(3), 255 - v, 255])
     })
 }
@@ -612,12 +613,18 @@ fn tilts_the_corners_to_where_the_plan_puts_them() {
     };
     let out = ops::tilt(&red, &p).unwrap().to_rgba8();
     let (w, h) = tilted_size((100.0, 60.0), &p);
-    assert_eq!(out.dimensions(), (w as u32, h as u32));
+    assert_eq!(
+        out.dimensions(),
+        (numbers::truncate::<u32>(w), numbers::truncate::<u32>(h))
+    );
     let corners = tilt_corners((100.0, 60.0), &p);
     let centre = corners
         .iter()
         .fold((0.0, 0.0), |a, c| (a.0 + c.0 / 4.0, a.1 + c.1 / 4.0));
-    let at = |x: f64, y: f64| out.get_pixel(x as u32, y as u32).0;
+    let at = |x: f64, y: f64| {
+        out.get_pixel(numbers::truncate::<u32>(x), numbers::truncate::<u32>(y))
+            .0
+    };
     assert_eq!(at(centre.0, centre.1), [220, 20, 20, 255]);
     for (x, y) in corners {
         let inside = (x + (centre.0 - x) * 0.08, y + (centre.1 - y) * 0.08);
@@ -640,7 +647,7 @@ fn tilts_the_corners_to_where_the_plan_puts_them() {
 #[test]
 fn stretches_dull_levels_to_black_and_white() {
     let dull = RgbImage::from_fn(64, 16, |x, _| {
-        let v = 80 + (x * 2) as u8;
+        let v = 80 + u8::try_from(x * 2).unwrap();
         Rgb([v, v, v + 10])
     });
     let image = DynamicImage::ImageRgb8(dull);
@@ -735,8 +742,8 @@ fn lays_images_out_in_rows_columns_and_cells() {
         .zip([[220, 20, 20], [20, 200, 20], [20, 20, 220]])
     {
         let middle = out.get_pixel(
-            (cell.x + cell.width / 2.0) as u32,
-            (cell.y + cell.height / 2.0) as u32,
+            numbers::truncate::<u32>(cell.x + cell.width / 2.0),
+            numbers::truncate::<u32>(cell.y + cell.height / 2.0),
         );
         assert_eq!(middle.0, colour);
     }
@@ -761,7 +768,10 @@ fn frames_a_picture_with_round_corners_and_a_shadow_on_a_background() {
     let paint = ops::Paint::Colour([40, 80, 160, 255]);
     let out = ops::frame(&shot, &paint, &p).unwrap().to_rgba8();
     let ((w, h), (x, y)) = framed_placement((100.0, 50.0), &p);
-    assert_eq!(out.dimensions(), (w as u32, h as u32));
+    assert_eq!(
+        out.dimensions(),
+        (numbers::truncate::<u32>(w), numbers::truncate::<u32>(h))
+    );
     assert_eq!((w, h, x, y), (120.0, 70.0, 10.0, 10.0));
     assert_eq!(
         out.get_pixel(10, 10).0,

@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use opsis_types::numbers;
 use serde_json::{Map, Value, json};
 use skrifa::instance::{Location, Size};
 use skrifa::outline::{DrawSettings, OutlinePen};
@@ -208,7 +209,7 @@ fn family_name(font: &FontRef<'_>) -> String {
 fn location_at(font: &FontRef<'_>, weight: f64) -> Location {
     let has_weight = font.axes().iter().any(|axis| axis.tag() == WEIGHT_AXIS);
     if has_weight {
-        font.axes().location([("wght", weight as f32)])
+        font.axes().location([("wght", numbers::narrow(weight))])
     } else {
         font.axes().location(std::iter::empty::<(&str, f32)>())
     }

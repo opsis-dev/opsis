@@ -1,12 +1,13 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
+use opsis_types::numbers;
 use opsis_types::values::StyleEntry;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::asset_ref::base_name;
-use crate::card::{file_row, truncate_card};
+use crate::card_rows::{file_row, truncate_card};
 use crate::color::{color_or, rgb_of};
 use crate::node::{CardCtx, Category, NodeDef, RowExt, missing, row};
 use crate::params::Params;
@@ -32,7 +33,7 @@ fn changes_row(icon: Icon, changes: &[Change]) -> CardRow {
             icon,
             truncate_card(&format!(
                 "{} · {}",
-                plural(names.len() as f64, "change"),
+                plural(numbers::float(names.len()), "change"),
                 names.join(", ")
             )),
         )

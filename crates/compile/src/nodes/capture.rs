@@ -1,6 +1,7 @@
 use opsis_types::actions::Bounds;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
+use opsis_types::numbers;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
 use opsis_types::values::{BrowserAction, CompileValue, ImageValue, RecordingValue};
 use opsis_types::workflow::{DEFAULT_TAKE_MS, DEFAULT_VIEWPORT, PortType};
@@ -8,7 +9,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::card::element_row;
+use crate::card_rows::element_row;
 use crate::clip::{ItemExtra, STILL, item_clip, placeholder_clip};
 use crate::errors::SettingsError;
 use crate::node::{
@@ -279,7 +280,7 @@ fn record() -> NodeDef {
                         format!(
                             "{} · {}",
                             format_duration(r.duration_ms),
-                            plural(log.actions.len() as f64, "action")
+                            plural(numbers::float(log.actions.len()), "action")
                         ),
                     )
                 }),

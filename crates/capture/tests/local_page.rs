@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use opsis_capture::take::{SignIns, TakeEnv, play_take};
+use opsis_capture::take::{SignInError, SignIns, TakeEnv, play_take};
 use opsis_compile::nodes::browser::OPEN_BROWSER_TYPE;
 use opsis_compile::registry::default_params;
 use opsis_engine::paths::downloaded_browser;
@@ -24,7 +24,7 @@ folder.addEventListener("contextmenu", (e) => { e.preventDefault(); n.menu++; sh
 struct NoSignIns;
 
 impl SignIns for NoSignIns {
-    fn read(&self, _: &str) -> Result<Option<String>, String> {
+    fn read(&self, _: &str) -> Result<Option<String>, SignInError> {
         Ok(None)
     }
 }

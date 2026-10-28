@@ -1,5 +1,6 @@
 use opsis_media::analysis::{detect_beats, waveform_levels};
 use opsis_media::mix::levels::{Pcm, frame_levels};
+use opsis_types::numbers;
 use serde_json::{Value, json};
 
 use crate::common::{cases, number, with};
@@ -15,7 +16,7 @@ impl Lcg {
 
 fn click_track(rate: usize, seconds: usize, bpm: f64, seed: u32) -> Vec<f32> {
     let mut next = Lcg(seed);
-    let beat = (rate as f64 * 60.0 / bpm).round() as usize;
+    let beat = numbers::truncate::<usize>((numbers::float(rate) * 60.0 / bpm).round());
     (0..rate * seconds)
         .map(|i| {
             let since = i % beat;
@@ -24,23 +25,25 @@ fn click_track(rate: usize, seconds: usize, bpm: f64, seed: u32) -> Vec<f32> {
             } else {
                 0.0
             };
-            (click + (next.next() - 0.5) * 0.02) as f32
+            numbers::narrow(click + (next.next() - 0.5) * 0.02)
         })
         .collect()
 }
 
 fn signal(s: &Value) -> Vec<f32> {
     let (rate, seconds, bpm, seed) = (
-        number(&s["rate"]) as usize,
-        number(&s["seconds"]) as usize,
+        numbers::truncate::<usize>(number(&s["rate"])),
+        numbers::truncate::<usize>(number(&s["seconds"])),
         number(&s["bpm"]),
-        number(&s["seed"]) as u32,
+        numbers::truncate::<u32>(number(&s["seed"])),
     );
     if bpm > 0.0 {
         click_track(rate, seconds, bpm, seed)
     } else {
         let mut next = Lcg(seed);
-        (0..rate * seconds).map(|_| next.next() as f32).collect()
+        (0..rate * seconds)
+            .map(|_| numbers::narrow(next.next()))
+            .collect()
     }
 }
 
@@ -49,17 +52,18 @@ const ANALYSIS: &str = "media/analysis.json";
 fn stem_levels(s: &Value) -> Value {
     let (sample_rate, channels, fps, frames, gain) = (
         number(&s["sampleRate"]),
-        number(&s["channels"]) as usize,
+        numbers::truncate::<usize>(number(&s["channels"])),
         number(&s["fps"]),
-        number(&s["frames"]) as usize,
+        numbers::truncate::<usize>(number(&s["frames"])),
         number(&s["gain"]),
     );
-    let mut next = Lcg(number(&s["seed"]) as u32);
-    let count = (sample_rate * (frames as f64 - 2.0) / fps).floor() as usize;
+    let mut next = Lcg(numbers::truncate::<u32>(number(&s["seed"])));
+    let count =
+        numbers::truncate::<usize>((sample_rate * (numbers::float(frames) - 2.0) / fps).floor());
     let data: Vec<Vec<f32>> = (0..channels)
         .map(|_| {
             (0..count)
-                .map(|_| ((next.next() * 2.0 - 1.0) * gain) as f32)
+                .map(|_| numbers::narrow((next.next() * 2.0 - 1.0) * gain))
                 .collect()
         })
         .collect();

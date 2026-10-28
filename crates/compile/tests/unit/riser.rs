@@ -1,6 +1,7 @@
 use indexmap::IndexMap;
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::node::CardInputs;
+use opsis_types::numbers;
 use opsis_types::timeline::AudioItem;
 use opsis_types::values::{CompileValue, NodeResult};
 use opsis_types::workflow::{Marker, Workflow};
@@ -141,7 +142,7 @@ fn ends_on_a_browser_action_even_when_that_is_sooner_than_its_length() {
         .find(|m| m.node_id.as_deref() == Some("launch"))
         .expect("the click's mark");
     let riser = &clip.audio[0];
-    assert_eq!(ends(riser), mark.frame.round() as i32);
+    assert_eq!(ends(riser), numbers::whole_signed(mark.frame));
     assert!(
         riser.trim_before.is_some(),
         "a 3 s riser is trimmed to end on a click 2 s in"

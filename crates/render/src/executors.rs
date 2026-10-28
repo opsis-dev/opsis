@@ -22,6 +22,7 @@ use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_project::paths::to_posix_rel;
 use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
+use opsis_types::numbers;
 use opsis_types::numbers::whole;
 use opsis_types::timeline::{ReframeMode, SpecAssets, TimelineSpec};
 use opsis_types::values::{
@@ -319,7 +320,7 @@ async fn export_video(
     ctx.progress(0.0, Some("Preparing render engine"));
     let server = asset_server(&ctx).await?;
     let chapters = chapters_for(&ctx, &spec, &p).await?;
-    let count = p.variants.len() as f64;
+    let count = numbers::float(p.variants.len());
     let mut artifacts = Vec::new();
     for (i, (variant, name)) in p.variants.iter().zip(&names).enumerate() {
         let size = variant_size(*variant, &ctx.workflow.settings);
@@ -336,7 +337,11 @@ async fn export_video(
         let message = format!("Rendering {}", variant.id());
         let progress = |x: f64| {
             ctx.progress(
-                lerp(RENDER_STAGE.0, RENDER_STAGE.1, (i as f64 + x) / count),
+                lerp(
+                    RENDER_STAGE.0,
+                    RENDER_STAGE.1,
+                    (numbers::float(i) + x) / count,
+                ),
                 Some(&message),
             )
         };
@@ -384,13 +389,13 @@ async fn export_images(
     let names = still_file_names(&export_base_name(&p.file_name), &p.presets, p.format);
     ctx.progress(0.0, Some("Preparing render engine"));
     let server = asset_server(&ctx).await?;
-    let count = p.presets.len() as f64;
+    let count = numbers::float(p.presets.len());
     let mut artifacts = Vec::new();
     for (i, (preset, name)) in p.presets.iter().zip(&names).enumerate() {
         let size = preset.size();
         let out = ctx.out_dir.join(name);
         ctx.progress(
-            lerp(RENDER_STAGE.0, RENDER_STAGE.1, i as f64 / count),
+            lerp(RENDER_STAGE.0, RENDER_STAGE.1, numbers::float(i) / count),
             Some(&format!("Still {}", preset.id())),
         );
         let still = StillJob {

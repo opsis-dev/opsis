@@ -14,7 +14,7 @@ use opsis_engine::http_files::FileServer;
 use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_render::protocol::{COMPOSITION_ID, RenderTarget, SidecarCall, StillJob};
-use opsis_render::sidecar::{Sidecar, SidecarCommand};
+use opsis_render::sidecar::{Sidecar, SidecarCommand, SidecarError};
 use opsis_types::numbers::whole;
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::CompileValue;
@@ -114,18 +114,33 @@ fn workflow_for(meta: &ElementMeta) -> Workflow {
     serde_json::from_value(json!({ "version": 1, "id": "elements", "name": "Elements", "nodes": nodes, "edges": links, "markers": [] })).expect("a workflow")
 }
 
-fn still_for(meta: &ElementMeta, at: f64, host: &Host, out: &Path) -> Result<SidecarCall, String> {
+#[derive(Debug, thiserror::Error)]
+enum StillError {
+    #[error("{0}")]
+    Compile(String),
+    #[error("no clip")]
+    NoClip,
+    #[error(transparent)]
+    Render(#[from] SidecarError),
+}
+
+fn still_for(
+    meta: &ElementMeta,
+    at: f64,
+    host: &Host,
+    out: &Path,
+) -> Result<SidecarCall, StillError> {
     let settings = WorkflowSettings::default();
     let compiled = compile_workflow(&workflow_for(meta), None);
     if let Some(error) = compiled.errors.get(ELEMENT_NODE) {
-        return Err(error.clone());
+        return Err(StillError::Compile(error.clone()));
     }
     let Some(CompileValue::Clip(clip)) = compiled
         .values
         .get(ELEMENT_NODE)
         .and_then(|v| v.get(CLIP_PORT))
     else {
-        return Err("no clip".to_owned());
+        return Err(StillError::NoClip);
     };
     let spec = hosted(&TimelineSpec {
         assets: Some(SpecAssets {
@@ -213,7 +228,7 @@ async fn main() {
             Ok(call) => sidecar
                 .call(call, &never, None)
                 .await
-                .map_err(|e| e.to_string()),
+                .map_err(StillError::from),
             Err(error) => Err(error),
         };
         match done {

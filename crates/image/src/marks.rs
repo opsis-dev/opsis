@@ -4,6 +4,7 @@ use ab_glyph::FontVec;
 use image::{DynamicImage, Rgba, Rgba32FImage};
 use opsis_compile::nodes::image::{Mark, MarkKind};
 
+use opsis_types::numbers;
 use opsis_types::numbers::whole;
 
 use crate::ops::{background_rgba, is_deep, over};
@@ -42,7 +43,7 @@ fn unit_colour(css: &str) -> [f32; 4] {
 }
 
 fn coverage(distance: f64) -> f32 {
-    (0.5 - distance).clamp(0.0, 1.0) as f32
+    numbers::narrow((0.5 - distance).clamp(0.0, 1.0))
 }
 
 fn segment_distance(point: (f64, f64), from: (f64, f64), to: (f64, f64)) -> f64 {

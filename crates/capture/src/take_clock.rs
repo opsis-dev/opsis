@@ -3,6 +3,8 @@ use std::pin::Pin;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
 
+use opsis_types::numbers;
+
 use crate::clock::wall_ms;
 
 const SAME_TIME_MS: f64 = 1e-6;
@@ -41,7 +43,7 @@ impl Mode {
 }
 
 pub fn frame_time(origin: f64, frame: u64, frame_ms: f64) -> f64 {
-    origin + frame as f64 * frame_ms
+    origin + numbers::float_wide(frame) * frame_ms
 }
 
 #[derive(Clone)]

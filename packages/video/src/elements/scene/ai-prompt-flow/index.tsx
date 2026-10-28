@@ -1,6 +1,6 @@
 import type React from "react";
 import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { isTheme, themeColors } from "#video/common/theme.ts";
 import { SkeletonBlock } from "#video/elements/scene/ai-prompt-flow/skeleton-block.tsx";
 import { Skeleton } from "#video/elements/scene/ai-prompt-flow/skeleton.tsx";
 import { useSkeletonTransition } from "#video/elements/scene/ai-prompt-flow/use-skeleton-transition.ts";
@@ -187,7 +187,7 @@ function AiPromptFlowView({
 
 export function AiPromptFlow(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme))
+  if (!isTheme(theme))
     return (
       <AiPromptFlowView {...(props as unknown as React.ComponentProps<typeof AiPromptFlowView>)} />
     );

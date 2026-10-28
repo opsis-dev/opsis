@@ -5,6 +5,7 @@ use std::sync::LazyLock;
 use futures::future::BoxFuture;
 use opsis_engine::paths::EngineMissing;
 use opsis_engine::tools::EngineFiles;
+use opsis_types::numbers;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -117,7 +118,8 @@ struct RawProbe {
 fn seconds_to_ms(text: &str) -> Option<u32> {
     let seconds: f64 = text.trim().parse().ok()?;
     let ms = (seconds * 1000.0).round();
-    (ms.is_finite() && ms > 0.0 && ms <= f64::from(u32::MAX)).then_some(ms as u32)
+    (ms.is_finite() && ms > 0.0 && ms <= f64::from(u32::MAX))
+        .then_some(numbers::truncate::<u32>(ms))
 }
 
 fn frame_rate(rate: &str) -> Option<f64> {

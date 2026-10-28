@@ -9,7 +9,7 @@ import {
   staticFile,
 } from "remotion";
 import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import { resolveFont, type WarmTheme, useWarmTheme, withAlpha } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
@@ -966,7 +966,7 @@ function PhoneFrameView({
 
 export function PhoneFrame(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme))
+  if (!isTheme(theme))
     return (
       <PhoneFrameView {...(props as unknown as React.ComponentProps<typeof PhoneFrameView>)} />
     );

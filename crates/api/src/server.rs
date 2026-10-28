@@ -7,7 +7,31 @@ use tokio_util::sync::CancellationToken;
 use crate::address::{API_SOCKET_ENV, ApiAddress};
 use crate::routes::{ApiHost, routes};
 
-const IN_USE: &str = "Another copy of Opsis is already using this address.";
+#[derive(Debug, thiserror::Error)]
+enum ListenError {
+    #[error("Another copy of Opsis is already using this address.")]
+    InUse,
+    #[cfg(unix)]
+    #[error(
+        "The folder {folder} doesn't exist. Create it, or set {env} to a path in a folder that does, and restart Opsis.",
+        env = API_SOCKET_ENV
+    )]
+    NoFolder { folder: String },
+    #[cfg(unix)]
+    #[error(
+        "Opsis can't create files in {folder}. Set {env} to a path in a folder you own, and restart Opsis.",
+        env = API_SOCKET_ENV
+    )]
+    NotWritable { folder: String },
+    #[cfg(unix)]
+    #[error(
+        "A file that isn't Opsis's API is already at {address}. Move it, or set {env} to another path, and restart Opsis.",
+        env = API_SOCKET_ENV
+    )]
+    Occupied { address: String },
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+}
 
 struct Running {
     stop: CancellationToken,
@@ -20,22 +44,20 @@ pub struct ApiServer {
 }
 
 #[cfg(unix)]
-fn listen_error(error: &std::io::Error, address: &str) -> String {
-    let folder = std::path::Path::new(address)
-        .parent()
-        .map(|p| p.to_string_lossy().into_owned())
-        .unwrap_or_default();
+fn listen_error(error: std::io::Error, address: &str) -> ListenError {
+    let folder = || {
+        std::path::Path::new(address)
+            .parent()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_default()
+    };
     match error.kind() {
-        ErrorKind::NotFound => format!(
-            "The folder {folder} doesn't exist. Create it, or set {API_SOCKET_ENV} to a path in a folder that does, and restart Opsis."
-        ),
-        ErrorKind::PermissionDenied => format!(
-            "Opsis can't create files in {folder}. Set {API_SOCKET_ENV} to a path in a folder you own, and restart Opsis."
-        ),
-        ErrorKind::AddrInUse => format!(
-            "A file that isn't Opsis's API is already at {address}. Move it, or set {API_SOCKET_ENV} to another path, and restart Opsis."
-        ),
-        _ => error.to_string(),
+        ErrorKind::NotFound => ListenError::NoFolder { folder: folder() },
+        ErrorKind::PermissionDenied => ListenError::NotWritable { folder: folder() },
+        ErrorKind::AddrInUse => ListenError::Occupied {
+            address: address.to_owned(),
+        },
+        _ => ListenError::Io(error),
     }
 }
 
@@ -44,19 +66,18 @@ async fn serve(
     address: &str,
     host: Arc<dyn ApiHost>,
     stop: CancellationToken,
-) -> Result<(), String> {
+) -> Result<(), ListenError> {
     use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 
     if tokio::net::UnixStream::connect(address).await.is_ok() {
-        return Err(IN_USE.to_owned());
+        return Err(ListenError::InUse);
     }
     if std::fs::symlink_metadata(address).is_ok_and(|m| m.file_type().is_socket()) {
-        std::fs::remove_file(address).map_err(|e| listen_error(&e, address))?;
+        std::fs::remove_file(address).map_err(|e| listen_error(e, address))?;
     }
-    let listener =
-        tokio::net::UnixListener::bind(address).map_err(|e| listen_error(&e, address))?;
+    let listener = tokio::net::UnixListener::bind(address).map_err(|e| listen_error(e, address))?;
     std::fs::set_permissions(address, std::fs::Permissions::from_mode(0o600))
-        .map_err(|e| listen_error(&e, address))?;
+        .map_err(|e| listen_error(e, address))?;
     let path = address.to_owned();
     tokio::spawn(async move {
         let served = axum::serve(listener, routes(host))
@@ -79,7 +100,7 @@ async fn serve(
     address: &str,
     host: Arc<dyn ApiHost>,
     stop: CancellationToken,
-) -> Result<(), String> {
+) -> Result<(), ListenError> {
     use hyper_util::rt::{TokioExecutor, TokioIo};
     use hyper_util::server::conn::auto::Builder;
     use hyper_util::service::TowerToHyperService;
@@ -90,9 +111,9 @@ async fn serve(
         .create(address)
         .map_err(|e| {
             if e.kind() == ErrorKind::PermissionDenied {
-                IN_USE.to_owned()
+                ListenError::InUse
             } else {
-                e.to_string()
+                ListenError::Io(e)
             }
         })?;
     let address = address.to_owned();
@@ -183,7 +204,7 @@ impl ApiServer {
                 *self.running.lock().expect("API server") = Some(Running { stop });
                 self.set_status(true, true, None)
             }
-            Err(error) => self.set_status(false, true, Some(error)),
+            Err(error) => self.set_status(false, true, Some(error.to_string())),
         }
     }
 }

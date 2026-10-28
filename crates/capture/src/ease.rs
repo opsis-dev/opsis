@@ -1,9 +1,11 @@
+use opsis_types::numbers;
+
 const NEWTON_ITERATIONS: usize = 4;
 const NEWTON_MIN_SLOPE: f64 = 0.001;
 const SUBDIVISION_PRECISION: f64 = 0.000_000_1;
 const SUBDIVISION_MAX_ITERATIONS: usize = 10;
 const SPLINE_TABLE_SIZE: usize = 11;
-const SAMPLE_STEP: f64 = 1.0 / (SPLINE_TABLE_SIZE - 1) as f64;
+const SAMPLE_STEP: f64 = 1.0 / numbers::float(SPLINE_TABLE_SIZE - 1);
 const CAMERA: Bezier = Bezier::new(0.2, 0.2, 0.15, 1.0);
 
 fn coefficients(a1: f64, a2: f64) -> (f64, f64, f64) {
@@ -33,7 +35,9 @@ impl Bezier {
     }
 
     fn samples(&self) -> [f32; SPLINE_TABLE_SIZE] {
-        std::array::from_fn(|i| calc(i as f64 * SAMPLE_STEP, self.x1, self.x2) as f32)
+        std::array::from_fn(|i| {
+            numbers::narrow(calc(numbers::float(i) * SAMPLE_STEP, self.x1, self.x2))
+        })
     }
 
     fn subdivide(&self, x: f64, mut lo: f64, mut hi: f64) -> f64 {

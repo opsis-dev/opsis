@@ -3,6 +3,7 @@ use std::sync::Arc;
 use jsonschema::error::{TypeKind, ValidationErrorKind};
 use jsonschema::paths::{Location, LocationSegment};
 use jsonschema::{JsonType, Keyword, ValidationError, Validator};
+use opsis_types::numbers;
 use schemars::JsonSchema;
 use schemars::generate::SchemaSettings;
 use serde::Serialize;
@@ -390,7 +391,7 @@ fn whole_numbers(value: Value) -> Value {
     match value {
         Value::Number(n) => match n.as_f64() {
             Some(f) if n.is_f64() && f.fract() == 0.0 && f.abs() <= f64::from(u32::MAX) => {
-                Value::from(f as i64)
+                Value::from(numbers::truncate::<i64>(f))
             }
             _ => Value::Number(n),
         },

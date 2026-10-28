@@ -1,7 +1,7 @@
 import type React from "react";
 import { Easing, getRemotionEnvironment, Img, interpolate, staticFile } from "remotion";
 import type { ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import { listsFrom } from "#video/lib/settings/shape.ts";
 import {
@@ -294,7 +294,7 @@ type LogoAssembleViewProps = React.ComponentProps<typeof LogoAssembleView>;
 
 export function LogoAssemble(props: ElementProps) {
   const { theme } = props;
-  if (!isThemeValue(theme))
+  if (!isTheme(theme))
     return (
       <LogoAssembleView
         {...(listsFrom(props, { images: { image: "images" } }) as unknown as LogoAssembleViewProps)}

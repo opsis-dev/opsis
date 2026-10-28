@@ -2,14 +2,21 @@ use garde::Validate;
 use opsis_types::settings::{AppSettings, SETTINGS_SECTIONS};
 use serde_json::{Map, Value};
 
-use crate::db::{Database, Result, StoreError};
+use crate::db::{Database, Result};
 
 pub type SettingsPatch = Map<String, Value>;
 
-fn parsed(object: Map<String, Value>) -> std::result::Result<AppSettings, String> {
-    let settings: AppSettings =
-        serde_json::from_value(Value::Object(object)).map_err(|e| e.to_string())?;
-    settings.validate().map_err(|e| e.to_string())?;
+#[derive(Debug, thiserror::Error)]
+pub enum SettingsError {
+    #[error(transparent)]
+    Unreadable(#[from] serde_json::Error),
+    #[error(transparent)]
+    Invalid(#[from] garde::Report),
+}
+
+fn parsed(object: Map<String, Value>) -> std::result::Result<AppSettings, SettingsError> {
+    let settings: AppSettings = serde_json::from_value(Value::Object(object))?;
+    settings.validate()?;
     Ok(settings)
 }
 
@@ -23,7 +30,7 @@ pub fn merged_settings(current: &AppSettings, patch: &SettingsPatch) -> Result<A
         }
         merged.insert(section.to_owned(), Value::Object(fields));
     }
-    let mut next = parsed(merged).map_err(StoreError::Invalid)?;
+    let mut next = parsed(merged)?;
     if next.projects.default_dir != current.projects.default_dir
         && !next.projects.last_dir.is_empty()
     {

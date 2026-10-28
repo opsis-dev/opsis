@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use smart_default::SmartDefault;
 
-use crate::card::{
+use crate::card_rows::{
     cover, cover_row, frame_secs, sentence, squeezed_too_much, transition_length_text,
 };
 use crate::clip::{ItemExtra, SequenceSlots, item_clip, sequence_clips, stack_clips};

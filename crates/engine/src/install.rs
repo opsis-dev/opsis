@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 use futures_util::StreamExt;
 use humansize::{FormatSizeOptions, WINDOWS, format_size};
 use opsis_types::engine::{EngineInstallUpdate, EnginePart};
+use opsis_types::numbers;
 use sha2::{Digest, Sha256};
 use tokio_util::sync::CancellationToken;
 
@@ -45,7 +46,9 @@ pub struct CalmProgress {
 impl CalmProgress {
     pub fn should_report(&mut self, update: &EngineInstallUpdate, now: Instant) -> bool {
         let current = format!("{:?}|{}", update.part, update.step);
-        let percent = update.progress.map(|p| (p * 100.0).floor() as i64);
+        let percent = update
+            .progress
+            .map(|p| numbers::truncate::<i64>((p * 100.0).floor()));
         let recent = self.last_at.is_some_and(|t| now.duration_since(t) < CALM);
         if current == self.step && percent == self.shown && recent {
             return false;
@@ -213,7 +216,7 @@ pub async fn install_ffmpeg(
             progress.send(
                 EnginePart::Ffmpeg,
                 &step,
-                total.map(|t| got as f64 / t as f64),
+                total.map(|t| numbers::float_wide(got) / numbers::float_wide(t)),
                 format!(
                     "Downloading the video tools ({} of {}) · {}",
                     i + 1,
@@ -303,7 +306,7 @@ pub async fn install_headless_shell(
         progress.send(
             EnginePart::HeadlessShell,
             "download",
-            total.map(|t| got as f64 / t as f64),
+            total.map(|t| numbers::float_wide(got) / numbers::float_wide(t)),
             format!(
                 "Downloading the recording browser · {}",
                 downloaded_text(got, total)

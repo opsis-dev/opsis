@@ -3,6 +3,7 @@ use std::sync::LazyLock;
 use opsis_types::actions::{ClickButton, Point};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::numbers;
 use opsis_types::values::{
     BrowserAction, BrowserSessionValue, CompileValue, SessionBrowser, SessionStep,
 };
@@ -14,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::asset_ref::mime_subtype;
-use crate::card::{
+use crate::card_rows::{
     CODE_TEXT_MAX, LABELLED_TEXT_MAX, TAG_TEXT_MAX, element_row, element_row_or, file_row,
     join_parts, quote, quoted, quoted_row, quoted_row_with,
 };
@@ -970,7 +971,7 @@ fn drop_row(p: &Drag) -> CardRow {
         DragMode::Path => match read_path(&p.path) {
             Ok(points) => row(
                 Icon::Spline,
-                format!("Along {}", plural(points.len() as f64, "point")),
+                format!("Along {}", plural(numbers::float(points.len()), "point")),
             ),
             Err(problem) => missing(Icon::Spline, problem.to_string()),
         },

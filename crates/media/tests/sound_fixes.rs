@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use opsis_types::numbers;
+
 use opsis_compile::nodes::media::{
     ChangePitch, CleanSpeech, NoiseMethod, SoundPicture, SoundPictureKind, VoiceEffect,
     VoiceEffects,
@@ -31,7 +33,9 @@ fn write(path: &Path, samples: &[f32]) {
     let mut writer = hound::WavWriter::create(path, spec).unwrap();
     for s in samples {
         writer
-            .write_sample((s.clamp(-1.0, 1.0) * f32::from(i16::MAX)) as i16)
+            .write_sample(numbers::truncate::<i16>(f64::from(
+                s.clamp(-1.0, 1.0) * f32::from(i16::MAX),
+            )))
             .unwrap();
     }
     writer.finalize().unwrap();
@@ -57,8 +61,13 @@ fn filtered(input: &Path, filter: &str, output: &Path) {
 }
 
 fn tone(seconds: f32) -> Vec<f32> {
-    (0..(RATE as f32 * seconds) as usize)
-        .map(|i| 0.2 * (i as f32 / RATE as f32 * 440.0 * std::f32::consts::TAU).sin())
+    (0..numbers::truncate::<usize>(f64::from(numbers::narrow(f64::from(RATE)) * seconds)))
+        .map(|i| {
+            0.2 * (numbers::narrow(numbers::float(i)) / numbers::narrow(f64::from(RATE))
+                * 440.0
+                * std::f32::consts::TAU)
+                .sin()
+        })
         .collect()
 }
 
@@ -87,11 +96,13 @@ fn takes_a_click_out_of_a_tone() {
 fn energy_at(samples: &[f32], hertz: f32) -> f32 {
     let (mut re, mut im) = (0.0f32, 0.0f32);
     for (i, s) in samples.iter().enumerate() {
-        let phase = i as f32 / RATE as f32 * hertz * std::f32::consts::TAU;
+        let phase = numbers::narrow(numbers::float(i)) / numbers::narrow(f64::from(RATE))
+            * hertz
+            * std::f32::consts::TAU;
         re += s * phase.cos();
         im += s * phase.sin();
     }
-    (re * re + im * im).sqrt() / samples.len() as f32
+    (re * re + im * im).sqrt() / numbers::narrow(numbers::float(samples.len()))
 }
 
 #[test]
@@ -102,7 +113,7 @@ fn takes_mains_hum_out_and_leaves_the_voice() {
         .iter()
         .enumerate()
         .map(|(i, s)| {
-            let t = i as f32 / RATE as f32;
+            let t = numbers::narrow(numbers::float(i)) / numbers::narrow(f64::from(RATE));
             s + 0.1 * (t * 50.0 * std::f32::consts::TAU).sin()
                 + 0.05 * (t * 100.0 * std::f32::consts::TAU).sin()
         })
@@ -150,7 +161,13 @@ fn hears_which_mains_hum_a_recording_has() {
     let samples: Vec<f32> = tone(2.0)
         .iter()
         .enumerate()
-        .map(|(i, s)| s + 0.1 * (i as f32 / RATE as f32 * 60.0 * std::f32::consts::TAU).sin())
+        .map(|(i, s)| {
+            s + 0.1
+                * (numbers::narrow(numbers::float(i)) / numbers::narrow(f64::from(RATE))
+                    * 60.0
+                    * std::f32::consts::TAU)
+                    .sin()
+        })
         .collect();
     write(&dir.path().join("in.wav"), &samples);
     let fifty = listened(&dir.path().join("in.wav"), 50.0).expect("a level at 50 Hz");
@@ -270,7 +287,7 @@ fn shortens_known_gaps_to_the_expected_length() {
         .status()
         .unwrap();
     assert!(status.success());
-    let seconds = read(&dir.path().join("out.wav")).len() as f64 / f64::from(RATE);
+    let seconds = numbers::float(read(&dir.path().join("out.wav")).len()) / f64::from(RATE);
     assert!(
         (seconds - (3.0 + 2.0 * 0.4 - 2.0 * 0.01)).abs() < 0.05,
         "{seconds} s"
@@ -284,13 +301,16 @@ fn voice_in_hiss() -> (Vec<f32>, Vec<f32>) {
             x ^= x << 13;
             x ^= x >> 7;
             x ^= x << 17;
-            let t = i as f32 / RATE as f32;
+            let t = numbers::narrow(numbers::float(i)) / numbers::narrow(f64::from(RATE));
             let syllables = (t * 3.0 * std::f32::consts::TAU).sin().max(0.0);
             let voice = 0.3
                 * syllables
                 * ((t * 180.0 * std::f32::consts::TAU).sin()
                     + 0.5 * (t * 360.0 * std::f32::consts::TAU).sin());
-            let hiss = ((x >> 40) as f32 / (1u64 << 24) as f32 - 0.5) * 0.03;
+            let hiss = (numbers::narrow(numbers::float_wide(x >> 40))
+                / numbers::narrow(numbers::float_wide(1u64 << 24))
+                - 0.5)
+                * 0.03;
             (voice, voice + hiss)
         })
         .unzip()
@@ -301,7 +321,7 @@ fn gap_power(voice: &[f32], sound: &[f32]) -> f32 {
         .filter(|&i| voice[i - 2400..=i].iter().all(|s| *s == 0.0))
         .map(|i| sound[i] * sound[i])
         .collect();
-    gaps.iter().sum::<f32>() / gaps.len() as f32
+    gaps.iter().sum::<f32>() / numbers::narrow(numbers::float(gaps.len()))
 }
 
 fn noise_of(input: &Path) -> f64 {
@@ -333,7 +353,7 @@ fn cleans_hiss_out_of_speech_both_ways() {
     assert_eq!(p.method, NoiseMethod::Learned);
     let whole: Vec<i16> = noisy
         .iter()
-        .map(|s| (s * f32::from(i16::MAX)) as i16)
+        .map(|s| numbers::truncate::<i16>(f64::from(s * f32::from(i16::MAX))))
         .collect();
     let cleaned: Vec<f32> = denoised(&whole, p.noise)
         .iter()
@@ -378,10 +398,16 @@ fn cleans_hiss_out_of_speech_both_ways() {
     );
     let speech = |sound: &[f32]| {
         let loud: Vec<f32> = (0..voice.len().min(sound.len()))
-            .filter(|&i| (i as f32 / RATE as f32 * 3.0 * std::f32::consts::TAU).sin() > 0.5)
+            .filter(|&i| {
+                (numbers::narrow(numbers::float(i)) / numbers::narrow(f64::from(RATE))
+                    * 3.0
+                    * std::f32::consts::TAU)
+                    .sin()
+                    > 0.5
+            })
             .map(|i| sound[i] * sound[i])
             .collect();
-        10.0 * (loud.iter().sum::<f32>() / loud.len() as f32).log10()
+        10.0 * (loud.iter().sum::<f32>() / numbers::narrow(numbers::float(loud.len()))).log10()
     };
     let kept = (
         speech(&learned) - speech(&noisy),
@@ -424,7 +450,8 @@ fn crossings_per_second(samples: &[f32]) -> f32 {
         .windows(2)
         .filter(|w| w[0] < 0.0 && w[1] >= 0.0)
         .count();
-    rising as f32 / (middle.len() as f32 / RATE as f32)
+    numbers::narrow(numbers::float(rising))
+        / (numbers::narrow(numbers::float(middle.len())) / numbers::narrow(f64::from(RATE)))
 }
 
 #[test]
@@ -450,7 +477,10 @@ fn raises_a_tone_an_octave_and_keeps_its_length() {
         out.len(),
         source.len()
     );
-    let level = |part: &[f32]| (part.iter().map(|s| s * s).sum::<f32>() / part.len() as f32).sqrt();
+    let level = |part: &[f32]| {
+        (part.iter().map(|s| s * s).sum::<f32>() / numbers::narrow(numbers::float(part.len())))
+            .sqrt()
+    };
     let opening = level(&out[RATE as usize / 20..RATE as usize / 5]);
     let steady = level(&out[RATE as usize..RATE as usize * 3 / 2]);
     assert!(
@@ -463,17 +493,23 @@ fn raises_a_tone_an_octave_and_keeps_its_length() {
 }
 
 fn click_at(seconds: f32, at: f32) -> Vec<f32> {
-    let mut samples = vec![0.0f32; (RATE as f32 * seconds) as usize];
-    let start = (RATE as f32 * at) as usize;
+    let mut samples =
+        vec![
+            0.0f32;
+            numbers::truncate::<usize>(f64::from(numbers::narrow(f64::from(RATE)) * seconds))
+        ];
+    let start = numbers::truncate::<usize>(f64::from(numbers::narrow(f64::from(RATE)) * at));
     for (i, s) in samples[start..start + 480].iter_mut().enumerate() {
-        *s = 0.8 * (i as f32 / 480.0 * std::f32::consts::TAU * 5.0).sin();
+        *s = 0.8 * (numbers::narrow(numbers::float(i)) / 480.0 * std::f32::consts::TAU * 5.0).sin();
     }
     samples
 }
 
 fn rms_between(samples: &[f32], from: f32, to: f32) -> f32 {
-    let part = &samples[(RATE as f32 * from) as usize..(RATE as f32 * to) as usize];
-    (part.iter().map(|s| s * s).sum::<f32>() / part.len() as f32).sqrt()
+    let part =
+        &samples[numbers::truncate::<usize>(f64::from(numbers::narrow(f64::from(RATE)) * from))
+            ..numbers::truncate::<usize>(f64::from(numbers::narrow(f64::from(RATE)) * to))];
+    (part.iter().map(|s| s * s).sum::<f32>() / numbers::narrow(numbers::float(part.len()))).sqrt()
 }
 
 fn voiced(dir: &Path, samples: &[f32], p: &VoiceEffects) -> Vec<f32> {
@@ -495,7 +531,7 @@ fn makes_each_voice_effect_at_the_same_length() {
     let dir = tempfile::tempdir().unwrap();
     let low_and_high: Vec<f32> = (0..RATE as usize * 2)
         .map(|i| {
-            let t = i as f32 / RATE as f32;
+            let t = numbers::narrow(numbers::float(i)) / numbers::narrow(f64::from(RATE));
             0.3 * (t * 100.0 * std::f32::consts::TAU).sin()
                 + 0.3 * (t * 1000.0 * std::f32::consts::TAU).sin()
         })
@@ -602,7 +638,7 @@ fn fits_a_song_to_within_a_frame_of_the_film_each_way() {
             .unwrap();
         assert!(status.success(), "{plan:?}");
         let out = read(&output);
-        let want = (target_ms / 1000.0 * f64::from(RATE)) as usize;
+        let want = numbers::truncate::<usize>(target_ms / 1000.0 * f64::from(RATE));
         assert!(
             out.len().abs_diff(want) <= frame,
             "{plan:?}: {} samples against {want}",

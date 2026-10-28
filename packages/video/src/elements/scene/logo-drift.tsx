@@ -1,7 +1,7 @@
 import type React from "react";
 import { AbsoluteFill, Easing, getRemotionEnvironment, interpolate } from "remotion";
 import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   Item,
@@ -456,7 +456,7 @@ export const driftTileTint = (t: WarmTheme, amount: number): string =>
 
 export function LogoDrift(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme))
+  if (!isTheme(theme))
     return <LogoDriftView {...(props as unknown as React.ComponentProps<typeof LogoDriftView>)} />;
   return (
     <WarmUIProvider mode={theme.mode}>

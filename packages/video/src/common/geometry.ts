@@ -1,8 +1,6 @@
 import { isRecord } from "#video/common/guards.ts";
 import { lerp } from "#video/common/math.ts";
-import type { Point, Rect } from "#video/generated/spec.ts";
-
-export type Bounds = { x: number; y: number; width: number; height: number };
+import type { Bounds, Point, Rect } from "#video/generated/spec.ts";
 
 export const boundsFromRect = (r: Rect): Bounds => ({ x: r.x, y: r.y, width: r.w, height: r.h });
 

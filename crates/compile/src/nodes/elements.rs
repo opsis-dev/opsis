@@ -1,4 +1,5 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::numbers;
 use opsis_types::timeline::{
     AudioItem, AudioRole, CameraPath, EditHandles, ElementRef, GroupProps, ParamRef, ParamUnit,
     SequencerProps, VisualEnvelope,
@@ -11,7 +12,7 @@ use serde_json::{Map, Value, json};
 use smart_default::SmartDefault;
 
 use crate::asset_ref::{kind_from_path, project_ref};
-use crate::card::{file_row, frame_secs, quoted, sentence};
+use crate::card_rows::{file_row, frame_secs, quoted, sentence};
 use crate::clip::{
     EMPTY_CLIP_FRAMES, ItemExtra, empty_clip, item_clip, scene_sequence, with_handles, wrap_clip,
 };
@@ -351,9 +352,12 @@ fn palette_row(colors: &Value) -> Option<CardRow> {
     let colors: Option<Vec<String>> = list.iter().map(|c| c.as_str().map(str::to_owned)).collect();
     let colors = colors?;
     Some(
-        row(Icon::Palette, plural(colors.len() as f64, "colour"))
-            .titled(colors.join(", "))
-            .swatches(colors),
+        row(
+            Icon::Palette,
+            plural(numbers::float(colors.len()), "colour"),
+        )
+        .titled(colors.join(", "))
+        .swatches(colors),
     )
 }
 
@@ -401,7 +405,7 @@ fn theme_row(value: &Value) -> Option<CardRow> {
             icon,
             format!(
                 "{mode} · {} changed",
-                plural(changed.len() as f64, "colour")
+                plural(numbers::float(changed.len()), "colour")
             ),
         )
         .swatches(changed)
@@ -564,7 +568,11 @@ fn sequencer_card(ctx: &CardCtx<'_, Values>) -> Vec<Option<CardRow>> {
         .unwrap_or(0);
     vec![
         Some(
-            row(Icon::Clapperboard, plural(ports.len() as f64, "scene")).warn_if(ports.is_empty()),
+            row(
+                Icon::Clapperboard,
+                plural(numbers::float(ports.len()), "scene"),
+            )
+            .warn_if(ports.is_empty()),
         ),
         items.iter().any(|n| *n > 1).then(|| {
             let shown: Vec<String> = items.iter().map(|n| (*n).to_string()).collect();

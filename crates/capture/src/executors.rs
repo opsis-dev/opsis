@@ -21,6 +21,7 @@ use opsis_runner::context::{
 use opsis_traces::{TakeFrame, TraceMeta, TraceTake, apply_retention, store_trace};
 use opsis_types::actions::Viewport;
 use opsis_types::events::{LogLevel, RunEvent};
+use opsis_types::numbers;
 use opsis_types::numbers::whole;
 use opsis_types::secrets::{secret_file, secret_name};
 use opsis_types::settings::TraceRetention;
@@ -36,7 +37,9 @@ use crate::encoder::{EncodeError, Encoded, FrameEncoder, FrameImage};
 use crate::live::{LiveFeed, LiveSink, NodeLive};
 use crate::still::{Shot, StillRequest, still_take};
 use crate::still_layout::Size;
-use crate::take::{Played, Recording, SignIns, StepError, StepStatus, TakeEnv, record_take};
+use crate::take::{
+    Played, Recording, SignInError, SignIns, StepError, StepStatus, TakeEnv, record_take,
+};
 use crate::trace::FRAME_GAP_MS;
 
 const RECORDING_FILE: &str = "recording.mp4";
@@ -52,8 +55,8 @@ const TRACE_FRAME_WIDTH: u32 = 960;
 const TRACE_FRAME_QUALITY: &str = "5";
 
 pub trait SignInStore: Send + Sync {
-    fn read(&self, project_dir: &Path, name: &str) -> Result<Option<String>, String>;
-    fn write(&self, project_dir: &Path, name: &str, value: &str) -> Result<(), String>;
+    fn read(&self, project_dir: &Path, name: &str) -> Result<Option<String>, SignInError>;
+    fn write(&self, project_dir: &Path, name: &str, value: &str) -> Result<(), SignInError>;
 }
 
 pub struct LoginRequest {
@@ -85,7 +88,7 @@ struct ProjectSignIns {
 }
 
 impl SignIns for ProjectSignIns {
-    fn read(&self, name: &str) -> Result<Option<String>, String> {
+    fn read(&self, name: &str) -> Result<Option<String>, SignInError> {
         self.store.read(&self.project_dir, name)
     }
 }
@@ -212,9 +215,9 @@ async fn recording_frames(
         };
         frames.push(TakeFrame {
             jpeg,
-            time: origin_ms + k as f64 * FRAME_GAP_MS,
-            width: size.width as u32,
-            height: size.height as u32,
+            time: origin_ms + numbers::float(k) * FRAME_GAP_MS,
+            width: numbers::count(size.width),
+            height: numbers::count(size.height),
         });
     }
     Ok(frames)
@@ -393,8 +396,8 @@ async fn record(
         format!(
             "Recorded {}, {}, {}",
             format_duration(log.duration_ms),
-            plural(frames as f64, "frame"),
-            plural(log.actions.len() as f64, "action")
+            plural(numbers::float_wide(frames), "frame"),
+            plural(numbers::float(log.actions.len()), "action")
         ),
     );
     let recording = RecordingValue {
@@ -479,7 +482,7 @@ async fn sign_in(
         && deps
             .sign_ins
             .read(&ctx.project_dir, &name)
-            .map_err(ExecError::new)?
+            .map_err(|e| ExecError::new(e.to_string()))?
             .is_some()
     {
         ctx.log(LogLevel::Info, format!("Using the saved sign-in “{name}”."));
@@ -512,7 +515,7 @@ async fn sign_in(
         .await?;
     deps.sign_ins
         .write(&ctx.project_dir, &name, &state)
-        .map_err(ExecError::new)?;
+        .map_err(|e| ExecError::new(e.to_string()))?;
     ctx.log(LogLevel::Info, format!("Saved the sign-in as “{name}”."));
     Ok(ExecutorOutput::default())
 }

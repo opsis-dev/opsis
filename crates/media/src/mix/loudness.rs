@@ -3,6 +3,7 @@ use std::path::Path;
 use ebur128::{EbuR128, Mode};
 use opsis_compile::text::round_to;
 use opsis_types::mix::{Loudness, SILENCE_DB};
+use opsis_types::numbers;
 
 const LOUDNESS_FLOOR_DB: f64 = -70.0;
 const BLOCK_FRAMES: usize = 4096;
@@ -62,7 +63,7 @@ impl Meter {
     }
 
     fn frame_end(&self, frame: usize) -> usize {
-        ((frame + 1) as f64 * self.per_frame).round() as usize
+        numbers::truncate::<usize>((numbers::float(frame + 1) * self.per_frame).round())
     }
 
     pub fn feed(&mut self, interleaved: &[f32]) -> Result<(), LoudnessError> {
@@ -142,7 +143,7 @@ pub fn wav_loudness(file: &Path, fps: f64, frames: usize) -> Result<Loudness, Lo
         }
         hound::SampleFormat::Int => {
             for sample in reader.samples::<i32>() {
-                push(sample? as f32 / scale, &mut meter)?;
+                push(numbers::narrow(f64::from(sample?)) / scale, &mut meter)?;
             }
         }
     }
@@ -165,8 +166,9 @@ mod tests {
         };
         let mut writer = hound::WavWriter::create(file, spec).unwrap();
         let amplitude = 10f64.powf(db / 20.0);
-        for i in 0..(48_000.0 * seconds) as usize {
-            let v = (amplitude * (TAU * 1000.0 * i as f64 / 48_000.0).sin()) as f32;
+        for i in 0..numbers::truncate::<usize>(48_000.0 * seconds) {
+            let v =
+                numbers::narrow(amplitude * (TAU * 1000.0 * numbers::float(i) / 48_000.0).sin());
             writer.write_sample(v).unwrap();
             writer.write_sample(v).unwrap();
         }

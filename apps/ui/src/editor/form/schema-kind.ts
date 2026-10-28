@@ -1,4 +1,4 @@
-import { isBoundsList, type Bounds } from "@opsis/video/common/geometry";
+import { isBoundsList } from "@opsis/video/common/geometry";
 import {
   isBoolean,
   isNumber,
@@ -7,7 +7,8 @@ import {
   isStringOrNumber,
 } from "@opsis/video/common/guards";
 import type { MinMax } from "@opsis/video/common/math";
-import { isThemeValue, type ThemeValue } from "@opsis/video/common/theme";
+import { isTheme } from "@opsis/video/common/theme";
+import type { Bounds, Theme } from "@opsis/video/generated/spec";
 import {
   baseType,
   fieldMeta,
@@ -47,7 +48,7 @@ type FieldKind =
 type FieldValue = {
   color: string;
   gradient: string;
-  theme: ThemeValue;
+  theme: Theme;
   stringList: string[];
   numberList: number[];
   colorList: string[];
@@ -123,7 +124,7 @@ export function typedField(schema: JsonSchema, raw: unknown): TypedField | null 
   const { widget } = fieldMeta(schema);
   if (isColorSchema(schema)) return typed({ kind: "color" }, value ?? "", isString);
   if (widget === "gradient") return typed({ kind: "gradient" }, value ?? "", isString);
-  if (widget === "theme") return typed({ kind: "theme" }, value ?? undefined, isThemeValue);
+  if (widget === "theme") return typed({ kind: "theme" }, value ?? undefined, isTheme);
   if (widget === "boxes") return typed({ kind: "boxes" }, value ?? [], isBoundsList);
   if (widget === "marks" && schema.items)
     return typed({ kind: "marks", item: schema.items }, value ?? [], isRecordList);

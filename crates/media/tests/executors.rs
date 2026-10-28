@@ -12,6 +12,7 @@ use opsis_media::ffmpeg::{
     AudioInfo, FramePipe, MediaTools, ProbeResult, RunOptions, ToolError, ToolFuture, VideoInfo,
 };
 use opsis_runner::context::{ExecError, ExecutorContext, ExecutorOutput, ResultStore, RunEnv};
+use opsis_types::numbers;
 use opsis_types::settings::AppSettings;
 use opsis_types::values::{ArtifactKind, Measured, MediaKind, PortValues};
 use opsis_types::workflow::Workflow;
@@ -619,7 +620,7 @@ fn level_db(samples: &[i16]) -> f64 {
         .iter()
         .map(|s| (f64::from(*s) / f64::from(i16::MAX)).powi(2))
         .sum::<f64>()
-        / samples.len() as f64;
+        / numbers::float(samples.len());
     10.0 * mean.log10()
 }
 
@@ -721,7 +722,9 @@ async fn cleans_speech_the_learned_way_and_puts_the_cleaned_voice_back_under_the
     };
     let mut writer = hound::WavWriter::create(cache.join("voice-in.wav"), spec).unwrap();
     for i in 0..4800 {
-        writer.write_sample(((i % 97) * 50) as i16).unwrap();
+        writer
+            .write_sample(i16::try_from((i % 97) * 50).unwrap())
+            .unwrap();
     }
     writer.finalize().unwrap();
     let setup = Setup {

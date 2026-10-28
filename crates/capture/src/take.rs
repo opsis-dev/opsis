@@ -21,6 +21,7 @@ use opsis_traces::TraceTake;
 use opsis_types::actions::{Action, ActionKind, ActionLog, CursorSample, Point};
 use opsis_types::events::LogLevel;
 use opsis_types::live::{LiveEvent, LiveStep, LiveStepStatus};
+use opsis_types::numbers;
 use opsis_types::secrets::{StorageState, secret_name};
 use opsis_types::values::{BrowserAction, BrowserSessionValue, SessionStep};
 use serde::de::DeserializeOwned;
@@ -72,8 +73,10 @@ pub enum StepStatus {
     Error,
 }
 
+pub type SignInError = Box<dyn std::error::Error + Send + Sync>;
+
 pub trait SignIns: Send + Sync {
-    fn read(&self, name: &str) -> Result<Option<String>, String>;
+    fn read(&self, name: &str) -> Result<Option<String>, SignInError>;
 }
 
 pub type LogFn = Arc<dyn Fn(LogLevel, &str) + Send + Sync>;
@@ -171,7 +174,7 @@ fn plain_message(error: &StepError, step: &SessionStep) -> String {
             );
             format!(
                 "Couldn't find {what} on the page within {}.",
-                opsis_compile::text::format_duration(after.as_millis() as f64)
+                opsis_compile::text::format_duration(opsis_types::numbers::millis(*after))
             )
         }
         other => other.to_string(),
@@ -481,7 +484,7 @@ impl<'e> TakeRun<'e> {
                         format!(
                             "Wait {}",
                             opsis_compile::text::format_precise_duration(
-                                duration.as_millis() as f64
+                                opsis_types::numbers::millis(duration)
                             )
                         ),
                     )
@@ -926,7 +929,7 @@ impl<'e> TakeRun<'e> {
             ScrollMode::By => {
                 let ticks = (f64::from(p.duration_ms) / SCROLL_TICK_MS).round().max(1.0);
                 let start = self.tab().clock().now();
-                for tick in 1..=ticks as u32 {
+                for tick in 1..=numbers::truncate::<u32>(ticks) {
                     self.input
                         .wheel(self.tab(), 0.0, f64::from(p.delta_y) / ticks)
                         .await?;
@@ -1231,7 +1234,7 @@ impl<'e> TakeRun<'e> {
             .env
             .sign_ins
             .read(&name)
-            .map_err(failed)?
+            .map_err(|e| failed(e.to_string()))?
             .ok_or_else(|| {
                 failed(format!(
                     "The sign-in “{name}” isn't saved yet. Run “{node}” first."

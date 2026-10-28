@@ -1,5 +1,6 @@
 use opsis_compile::time::{EPSILON, clamp};
 use opsis_types::actions::{Point, Rect, Viewport};
+use opsis_types::numbers;
 
 const GLIDE_PX_PER_MS: f64 = 0.55;
 const GLIDE_MIN_MS: f64 = 450.0;
@@ -160,8 +161,10 @@ pub fn thin_path(points: &[Point]) -> Vec<Point> {
     }
     (0..MAX_PATH_POINTS)
         .map(|i| {
-            rounded
-                [((i * (rounded.len() - 1)) as f64 / (MAX_PATH_POINTS - 1) as f64).round() as usize]
+            rounded[numbers::truncate::<usize>(
+                (numbers::float(i * (rounded.len() - 1)) / numbers::float(MAX_PATH_POINTS - 1))
+                    .round(),
+            )]
         })
         .collect()
 }

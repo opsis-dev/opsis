@@ -1,6 +1,5 @@
 import { isRecord, isString } from "@opsis/video/common/guards";
-import type { ThemeMode } from "@opsis/video/common/theme";
-import type { FieldWidget } from "@opsis/video/generated/spec";
+import type { FieldWidget, ThemeMode } from "@opsis/video/generated/spec";
 
 type FieldPreset = { label: string; values: Record<string, unknown> };
 

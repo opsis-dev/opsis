@@ -1,6 +1,6 @@
 import type React from "react";
 import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { isTheme, themeColors } from "#video/common/theme.ts";
 import { BlurIn } from "#video/elements/scene/signup-flow/blur-in.tsx";
 import { Cursor } from "#video/elements/scene/signup-flow/cursor.tsx";
 import {
@@ -250,7 +250,7 @@ function SignupFlowView({
 
 export function SignupFlow(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme))
+  if (!isTheme(theme))
     return (
       <SignupFlowView {...(props as unknown as React.ComponentProps<typeof SignupFlowView>)} />
     );

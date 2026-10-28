@@ -1,5 +1,6 @@
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::numbers;
 use opsis_types::values::{CompileValue, Measured};
 use opsis_types::workflow::PortType;
 use schemars::JsonSchema;
@@ -14,7 +15,7 @@ use crate::nodes::camera::BackdropStyle;
 use crate::nodes::effects::Area;
 use crate::params::Params;
 use crate::ports::{IN_PREFIX, in_index};
-use crate::text::plural;
+use crate::text::{percent_text, plural};
 use opsis_types::numbers::whole;
 
 pub const FRAME_TYPE: &str = "image.frame";
@@ -783,8 +784,8 @@ pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
                 .fold(0.0, f64::max)
         })
         .collect();
-    let left = |c: usize| pad + column_widths[..c].iter().sum::<f64>() + gap * c as f64;
-    let top = |r: usize| pad + row_heights[..r].iter().sum::<f64>() + gap * r as f64;
+    let left = |c: usize| pad + column_widths[..c].iter().sum::<f64>() + gap * numbers::float(c);
+    let top = |r: usize| pad + row_heights[..r].iter().sum::<f64>() + gap * numbers::float(r);
     let cells = (0..n)
         .map(|i| {
             let (c, r) = place(i);
@@ -929,8 +930,8 @@ pub fn crop_rect(source: (f64, f64), p: &CropImage) -> Rect {
         CropMode::Margins => Rect {
             x: f64::from(p.left),
             y: f64::from(p.top),
-            width: sw - (p.left + p.right) as f64,
-            height: sh - (p.top + p.bottom) as f64,
+            width: sw - f64::from(p.left + p.right),
+            height: sh - f64::from(p.top + p.bottom),
         },
     };
     inside(source, rect)
@@ -952,7 +953,11 @@ pub fn rotated_size(source: (f64, f64), p: &RotateImage) -> (f64, f64) {
 }
 
 fn pixels(width: f64, height: f64) -> String {
-    format!("{} × {} px", width as i64, height as i64)
+    format!(
+        "{} × {} px",
+        numbers::truncate::<i64>(width),
+        numbers::truncate::<i64>(height)
+    )
 }
 
 fn result_size<P>(ctx: &CardCtx<'_, P>) -> Option<(f64, f64)> {
@@ -1059,7 +1064,10 @@ fn crop() -> NodeDef {
             if r.width.min(r.height) < SMALL_CROP {
                 rows.push(Some(missing(
                     Icon::TriangleAlert,
-                    format!("Only {} px is left", r.width.min(r.height) as i64),
+                    format!(
+                        "Only {} px is left",
+                        numbers::truncate::<i64>(r.width.min(r.height))
+                    ),
                 )));
             }
         }
@@ -1094,7 +1102,10 @@ fn rotate() -> NodeDef {
         let what = if parts.is_empty() {
             row(Icon::RefreshCw, "No change").muted_if(true)
         } else {
-            row(Icon::RefreshCw, crate::card::sentence(&parts.join(", ")))
+            row(
+                Icon::RefreshCw,
+                crate::card_rows::sentence(&parts.join(", ")),
+            )
         };
         vec![Some(what), size_row(ctx, |s| rotated_size(s, p))]
     })
@@ -1112,7 +1123,7 @@ fn adjust() -> NodeDef {
             format!(
                 "{}{}",
                 if v > 0.0 { "+" } else { "" },
-                (v * 100.0).round() as i64
+                numbers::truncate::<i64>((v * 100.0).round())
             )
         };
         let mut parts = Vec::new();
@@ -1137,7 +1148,7 @@ fn adjust() -> NodeDef {
         let what = if parts.is_empty() {
             row(Icon::Sun, "No change").muted_if(true)
         } else {
-            row(Icon::Sun, crate::card::sentence(&parts.join(", ")))
+            row(Icon::Sun, crate::card_rows::sentence(&parts.join(", ")))
         };
         vec![Some(what), size_row(ctx, |s| s)]
     })
@@ -1161,7 +1172,7 @@ fn blur() -> NodeDef {
         let what = if parts.is_empty() {
             row(Icon::Wind, "No change").muted_if(true)
         } else {
-            row(Icon::Wind, crate::card::sentence(&parts.join(", ")))
+            row(Icon::Wind, crate::card_rows::sentence(&parts.join(", ")))
         };
         vec![Some(what), size_row(ctx, |s| s)]
     })
@@ -1182,12 +1193,12 @@ fn place() -> NodeDef {
         let mut rows = vec![Some(row(
             Icon::Layers,
             format!(
-                "{} % wide at {} %, {} %{}",
-                p.size.round() as i64,
-                (p.x * 100.0).round() as i64,
-                (p.y * 100.0).round() as i64,
+                "{} wide at {}, {}{}",
+                percent_text(p.size / 100.0, f64::INFINITY),
+                percent_text(p.x, f64::INFINITY),
+                percent_text(p.y, f64::INFINITY),
                 if p.opacity < 1.0 {
-                    format!(" · {} % opaque", (p.opacity * 100.0).round() as i64)
+                    format!(" · {} opaque", percent_text(p.opacity, f64::INFINITY))
                 } else {
                     String::new()
                 }
@@ -1232,7 +1243,7 @@ fn redact() -> NodeDef {
                 Icon::EyeOff,
                 format!(
                     "{} · {}",
-                    crate::text::plural(p.areas.len() as f64, "area"),
+                    crate::text::plural(numbers::float(p.areas.len()), "area"),
                     p.style.word()
                 ),
             )),
@@ -1250,9 +1261,9 @@ fn spotlight() -> NodeDef {
     .card(|ctx: &CardCtx<'_, SpotlightImage>| {
         let p = &ctx.params;
         let mut text = format!(
-            "{} · darkens {} %",
-            crate::text::plural(p.areas.len() as f64, "area"),
-            (p.dim * 100.0).round() as i64
+            "{} · darkens {}",
+            crate::text::plural(numbers::float(p.areas.len()), "area"),
+            percent_text(p.dim, f64::INFINITY)
         );
         if p.blur > 0.0 {
             text.push_str(&format!(" · blurs {} px", p.blur));
@@ -1352,7 +1363,10 @@ fn tilt() -> NodeDef {
         let what = if parts.is_empty() {
             row(Icon::RefreshCw, "Flat").muted_if(true)
         } else {
-            row(Icon::RefreshCw, crate::card::sentence(&parts.join(", ")))
+            row(
+                Icon::RefreshCw,
+                crate::card_rows::sentence(&parts.join(", ")),
+            )
         };
         vec![Some(what), size_row(ctx, |s| tilted_size(s, p))]
     })
@@ -1374,7 +1388,7 @@ fn levels() -> NodeDef {
             text.push_str(" · each colour");
         }
         if p.strength < 1.0 {
-            text.push_str(&format!(" · {} %", (p.strength * 100.0).round() as i64));
+            text.push_str(&format!(" · {}", percent_text(p.strength, f64::INFINITY)));
         }
         vec![
             Some(row(Icon::Sun, text).muted_if(p.strength <= 0.0)),
@@ -1424,7 +1438,7 @@ fn grid() -> NodeDef {
                     Icon::Columns2,
                     format!(
                         "{} · {columns} × {rows}",
-                        crate::text::plural(n as f64, "image")
+                        crate::text::plural(numbers::float(n), "image")
                     ),
                 )
             }
@@ -1602,11 +1616,11 @@ fn before_after() -> NodeDef {
         let p = &ctx.params;
         let layout = match p.layout {
             BeforeAfterLayout::Split => {
-                let at = format!("Split at {} %", (p.position * 100.0).round() as i64);
+                let at = format!("Split at {}", percent_text(p.position, f64::INFINITY));
                 if p.angle == 0.0 {
                     at
                 } else {
-                    format!("{at}, turned {}°", p.angle.round() as i64)
+                    format!("{at}, turned {}°", numbers::truncate::<i64>(p.angle.round()))
                 }
             }
             BeforeAfterLayout::SideBySide => "Side by side".to_owned(),
@@ -1870,7 +1884,7 @@ impl Params for CompareScreenshots {}
 const DIFFERENT_SIZES: &str = "The two pictures are different sizes";
 
 pub fn compare_threshold(sensitivity: f64) -> u8 {
-    (2.0 + 64.0 * (1.0 - sensitivity.clamp(0.0, 1.0))).round() as u8
+    numbers::truncate::<u8>((2.0 + 64.0 * (1.0 - sensitivity.clamp(0.0, 1.0))).round())
 }
 
 fn compare() -> NodeDef {
@@ -2014,10 +2028,10 @@ fn annotate() -> NodeDef {
         let steps = marks.iter().filter(|m| m.kind == MarkKind::Step).count();
         let summary = match (marks.len(), steps) {
             (0, _) => row(Icon::Shapes, "Draw marks on the picture").tone(Tone::Muted),
-            (n, 0) => row(Icon::Shapes, plural(n as f64, "mark")),
+            (n, 0) => row(Icon::Shapes, plural(numbers::float(n), "mark")),
             (n, s) => row(
                 Icon::Shapes,
-                format!("{} · {}", plural(n as f64, "mark"), plural(s as f64, "step")),
+                format!("{} · {}", plural(numbers::float(n), "mark"), plural(numbers::float(s), "step")),
             ),
         };
         let empty = marks

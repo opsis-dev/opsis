@@ -7,7 +7,7 @@ use futures::StreamExt;
 use serde_json::{Value, json};
 use tokio::task::JoinHandle;
 
-use crate::cdp::{CaptureError, Result, Tab};
+use crate::cdp::{Result, Tab};
 use crate::url_match::url_matches;
 
 #[derive(Debug, Clone)]
@@ -42,7 +42,7 @@ fn fulfilled(id: &str, mock: &MockResponse) -> Value {
 
 impl Routes {
     pub async fn add(&mut self, tab: &Arc<Tab>, mock: MockResponse) -> Result<()> {
-        url_matches("", &mock.url).map_err(CaptureError::Failed)?;
+        url_matches("", &mock.url)?;
         self.list.lock().expect("routes").push(mock);
         if self.listener.is_some() {
             return Ok(());

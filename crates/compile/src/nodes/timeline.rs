@@ -1,5 +1,6 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::numbers;
 use opsis_types::timeline::{
     EditHandles, GroupProps, ItemBase, LinkedParam, ParamRef, ParamUnit, Sign, TimelineTrack,
     TransitionRef,
@@ -11,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use smart_default::SmartDefault;
 
-use crate::card::{
+use crate::card_rows::{
     Cover, TAG_TEXT_MAX, cover, cover_row, frame_secs, quote, range_row, transition_length_text,
 };
 use crate::clip::{
@@ -215,7 +216,7 @@ fn sequence() -> NodeDef {
             Some(
                 row(
                     Icon::ListVideo,
-                    format!("{}{length}", plural(ports.len() as f64, "clip")),
+                    format!("{}{length}", plural(numbers::float(ports.len()), "clip")),
                 )
                 .warn_if(ports.is_empty()),
             ),
@@ -234,7 +235,7 @@ fn sequence() -> NodeDef {
                     Icon::ArrowRightLeft,
                     format!(
                         "{} {} own transition",
-                        plural(own as f64, "cut"),
+                        plural(numbers::float(own), "cut"),
                         if own == 1 { "uses its" } else { "use their" }
                     ),
                 )
@@ -357,7 +358,7 @@ fn layers() -> NodeDef {
     .card(|ctx: &CardCtx<'_, Layers>| {
         let layers = connected_ports(&ctx.inputs.connected).len();
         vec![
-            Some(row(Icon::Layers, plural(layers as f64, "layer")).warn_if(layers == 0)),
+            Some(row(Icon::Layers, plural(numbers::float(layers), "layer")).warn_if(layers == 0)),
             Some(row(Icon::Clock, ctx.params.duration.row())),
             ctx.inputs
                 .clip_frames
@@ -425,7 +426,7 @@ fn trim() -> NodeDef {
                 .get(CLIP_PORT)
                 .filter(|f| **f != 0)
                 .map(|f| frames_to_ms(*f, ctx.fps()));
-            let end = (p.duration_ms != 0).then(|| (p.start_ms + p.duration_ms) as f64);
+            let end = (p.duration_ms != 0).then(|| f64::from(p.start_ms + p.duration_ms));
             vec![
                 Some(range_row(f64::from(p.start_ms), end)),
                 clip_ms

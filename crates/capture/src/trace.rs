@@ -12,6 +12,7 @@ use futures::StreamExt;
 use indexmap::IndexMap;
 use opsis_traces::{TakeFrame, TraceTake};
 use opsis_types::actions::{Bounds, Point, Viewport};
+use opsis_types::numbers;
 use opsis_types::trace::{ConsoleLevel, TraceAction, TraceConsole, TraceError, TraceRequest};
 use tokio::task::JoinHandle;
 
@@ -384,8 +385,8 @@ impl Trace {
         state.frames.push(TakeFrame {
             jpeg: jpeg.to_vec(),
             time,
-            width: size.width as u32,
-            height: size.height as u32,
+            width: numbers::count(size.width),
+            height: numbers::count(size.height),
         });
     }
 

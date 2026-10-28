@@ -1,5 +1,6 @@
 use std::sync::LazyLock;
 
+use opsis_types::numbers;
 use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
 use regex::Regex;
 use serde_json::Value;
@@ -164,7 +165,7 @@ pub struct PreparedRef {
 
 fn weight_text(weight: f64) -> String {
     if weight.fract() == 0.0 {
-        format!("{}", weight as i64)
+        format!("{}", numbers::truncate::<i64>(weight))
     } else {
         format!("{weight}")
     }

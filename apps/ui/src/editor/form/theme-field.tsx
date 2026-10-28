@@ -1,7 +1,7 @@
 import { humanize } from "@opsis/video/common/format";
 import { isOneOf } from "@opsis/video/common/guards";
-import type { ThemeValue } from "@opsis/video/common/theme";
 import { THEME_MODES } from "@opsis/video/common/theme";
+import type { Theme } from "@opsis/video/generated/spec";
 import { ChevronRight, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -13,7 +13,7 @@ import type { FieldProps } from "./types";
 
 const MODE_LABELS = { light: "Light", dark: "Dark" } as const;
 
-export function ThemeField({ id, label, meta, value, onChange, ctx }: FieldProps<ThemeValue>) {
+export function ThemeField({ id, label, meta, value, onChange, ctx }: FieldProps<Theme>) {
   const preset = meta.themes?.[value.mode] ?? {};
   const tokens = Object.keys(preset);
   const changed = Object.values(value.colors).filter((c) => c.trim()).length;

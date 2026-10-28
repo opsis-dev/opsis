@@ -82,7 +82,7 @@ fn lifecycle_name(wait_until: WaitUntil) -> &'static str {
 fn didnt_respond(timeout: Duration) -> CaptureError {
     CaptureError::failed(format!(
         "The page didn't respond within {}.",
-        format_duration(timeout.as_millis() as f64)
+        format_duration(opsis_types::numbers::millis(timeout))
     ))
 }
 
@@ -303,7 +303,7 @@ impl Lifecycle {
     }
 
     async fn waited_for_url(&self, glob: &str, timeout: Duration) -> Result<()> {
-        url_matches("", glob).map_err(CaptureError::Failed)?;
+        url_matches("", glob)?;
         let start = self.clock.now();
         self.until(timeout, |page| {
             url_matches(&page.url, glob).unwrap_or(false)

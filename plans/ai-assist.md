@@ -228,7 +228,7 @@ After picking an element, the Inspector shows a suggestion when the picked name 
 In place:
 
 - The picker is a streamed view of the headless shell (`crates/stream/src/picker.rs` with its page script `picker.js`), returning `PickResult` (the target name, its role, a CSS fallback). A nameless element falls back to `css=…`.
-- The Inspector's target field stores the name and its role; cards show it through `element_name` (`crates/compile/src/card.rs`).
+- The Inspector's target field stores the name and its role; cards show it through `element_name` (`crates/compile/src/card_rows.rs`).
 
 Missing: alternative names, how many elements share each, nearby context.
 

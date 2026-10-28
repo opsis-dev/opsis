@@ -10,7 +10,7 @@ pub const SERVICE: &str = "Opsis";
 const SIGN_IN_KEY: &str = "sign-ins";
 const NONCE_LEN: usize = 12;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Clone, thiserror::Error)]
 pub enum KeyError {
     #[error(
         "This computer has no keyring to protect keys, so they can't be saved. Set up a keyring and try again."

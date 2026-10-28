@@ -1,5 +1,6 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
+use opsis_types::numbers;
 use opsis_types::recording::{BlurArea, PictureLook, RecordingProps};
 use opsis_types::timeline::TimelineItem;
 use opsis_types::values::ClipValue;
@@ -105,7 +106,7 @@ fn times_text(from_ms: Option<u32>, until_ms: Option<u32>) -> Option<String> {
         (None, None) => None,
         (from, None) => Some(format!(
             "From {}",
-            format_duration(from.unwrap_or(0) as f64)
+            format_duration(f64::from(from.unwrap_or(0)))
         )),
         (None, Some(until)) => Some(format!("Until {}", format_duration(f64::from(until)))),
         (Some(from), Some(until)) => Some(format!(
@@ -140,7 +141,7 @@ fn blur_areas() -> NodeDef {
                 Some(if p.areas.is_empty() {
                     missing(Icon::EyeOff, "Draw an area to blur")
                 } else {
-                    row(Icon::EyeOff, format!("{} · {} strength", plural(p.areas.len() as f64, "area"), percent_text(p.strength, f64::INFINITY)))
+                    row(Icon::EyeOff, format!("{} · {} strength", plural(numbers::float(p.areas.len()), "area"), percent_text(p.strength, f64::INFINITY)))
                 }),
                 times_text(p.from_ms, p.until_ms).map(|t| row(Icon::Clock, t)),
                 after_take_row(take, p.from_ms),
@@ -270,7 +271,7 @@ fn picture_look() -> NodeDef {
             let changed = values.iter().zip(NEUTRAL).filter(|(v, n)| **v != *n).count();
             vec![Some(match preset {
                 Some(label) => row(Icon::Sparkles, label).muted_if(label == "Natural"),
-                None => row(Icon::Sparkles, plural(changed as f64, "change")),
+                None => row(Icon::Sparkles, plural(numbers::float(changed), "change")),
             })]
         })
         .compiles(|ctx: &Ctx<'_, Look>| with_clip(ctx, |clip| with_look(clip, &changed_look(&ctx.params))))

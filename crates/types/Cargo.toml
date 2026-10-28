@@ -20,3 +20,6 @@ specta-typescript = "=0.0.13"
 
 [dev-dependencies]
 opsis-golden = { path = "../golden" }
+
+[lints]
+workspace = true

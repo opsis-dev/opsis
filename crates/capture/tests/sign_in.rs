@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use opsis_capture::executors::sign_in_stamp;
-use opsis_capture::take::{SignIns, StepError, TakeEnv, play_take};
+use opsis_capture::take::{SignInError, SignIns, StepError, TakeEnv, play_take};
 use opsis_compile::nodes::browser::OPEN_BROWSER_TYPE;
 use opsis_compile::registry::default_params;
 use opsis_engine::paths::downloaded_browser;
@@ -16,7 +16,7 @@ const PAGE: &str = "<!doctype html><body><script>const runs = localStorage.getIt
 struct Saved(Option<String>);
 
 impl SignIns for Saved {
-    fn read(&self, _: &str) -> Result<Option<String>, String> {
+    fn read(&self, _: &str) -> Result<Option<String>, SignInError> {
         Ok(self.0.clone())
     }
 }

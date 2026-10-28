@@ -1,4 +1,5 @@
 use nnnoiseless::DenoiseState;
+use opsis_types::numbers;
 
 pub const DENOISE_RATE: u32 = 48_000;
 const FRAME: usize = DenoiseState::FRAME_SIZE;
@@ -29,9 +30,11 @@ pub fn denoised(samples: &[i16], strength: f64) -> Vec<i16> {
         .zip(&wet[FRAME..])
         .map(|(dry, wet)| {
             let mixed = f64::from(*dry) * dry_share + f64::from(*wet) * (1.0 - dry_share);
-            mixed
-                .round()
-                .clamp(f64::from(i16::MIN), f64::from(i16::MAX)) as i16
+            numbers::truncate::<i16>(
+                mixed
+                    .round()
+                    .clamp(f64::from(i16::MIN), f64::from(i16::MAX)),
+            )
         })
         .collect()
 }
@@ -42,26 +45,27 @@ mod tests {
 
     fn voice_in_hiss(seconds: f64) -> (Vec<i16>, Vec<i16>) {
         let mut x: u64 = 99;
-        let count = (seconds * f64::from(DENOISE_RATE)) as usize;
+        let count = numbers::truncate::<usize>(seconds * f64::from(DENOISE_RATE));
         let (mut voice, mut noisy) = (Vec::new(), Vec::new());
         for i in 0..count {
             x ^= x << 13;
             x ^= x >> 7;
             x ^= x << 17;
-            let t = i as f64 / f64::from(DENOISE_RATE);
+            let t = numbers::float(i) / f64::from(DENOISE_RATE);
             let syllables = (t * 3.0 * std::f64::consts::TAU).sin().max(0.0);
             let tone = (t * 220.0 * std::f64::consts::TAU).sin()
                 + 0.5 * (t * 440.0 * std::f64::consts::TAU).sin();
             let clean = tone * syllables * 0.3;
-            let hiss = ((x >> 11) as f64 / (1u64 << 53) as f64 - 0.5) * 0.03;
-            voice.push((clean * 32767.0) as i16);
-            noisy.push(((clean + hiss) * 32767.0) as i16);
+            let hiss =
+                (numbers::float_wide(x >> 11) / numbers::float_wide(1u64 << 53) - 0.5) * 0.03;
+            voice.push(numbers::truncate::<i16>(clean * 32767.0));
+            noisy.push(numbers::truncate::<i16>((clean + hiss) * 32767.0));
         }
         (voice, noisy)
     }
 
     fn power(samples: &[i16]) -> f64 {
-        samples.iter().map(|s| f64::from(*s).powi(2)).sum::<f64>() / samples.len() as f64
+        samples.iter().map(|s| f64::from(*s).powi(2)).sum::<f64>() / numbers::float(samples.len())
     }
 
     #[test]
@@ -74,7 +78,7 @@ mod tests {
                 let c = |lag: i32| -> f64 {
                     (1000..40_000usize)
                         .map(|i| {
-                            let j = (i as i32 + lag) as usize;
+                            let j = usize::try_from(i32::try_from(i).unwrap() + lag).unwrap();
                             f64::from(noisy[i]) * f64::from(out[j])
                         })
                         .sum()

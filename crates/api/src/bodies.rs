@@ -101,9 +101,19 @@ fn missing_field(message: &str) -> Option<&str> {
         .and_then(|rest| rest.split('`').next())
 }
 
-pub fn parse_body<T: DeserializeOwned>(body: &Value) -> Result<T, String> {
+#[derive(Debug, thiserror::Error)]
+pub enum BodyError {
+    #[error("The request body must be a JSON object.")]
+    NotAnObject,
+    #[error("{text}")]
+    Whole { text: String },
+    #[error("{path}: {text}")]
+    Field { path: String, text: String },
+}
+
+pub fn parse_body<T: DeserializeOwned>(body: &Value) -> Result<T, BodyError> {
     if !body.is_object() {
-        return Err("The request body must be a JSON object.".to_owned());
+        return Err(BodyError::NotAnObject);
     }
     serde_path_to_error::deserialize::<_, T>(body).map_err(|error| {
         let message = error.inner().to_string();
@@ -116,9 +126,9 @@ pub fn parse_body<T: DeserializeOwned>(body: &Value) -> Result<T, String> {
         };
         let text = friendly(&message);
         if path.is_empty() {
-            text
+            BodyError::Whole { text }
         } else {
-            format!("{path}: {text}")
+            BodyError::Field { path, text }
         }
     })
 }

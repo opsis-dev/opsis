@@ -2,6 +2,7 @@ use std::sync::Mutex;
 use std::time::Duration;
 
 use opsis_store::windows::Bounds;
+use opsis_types::numbers;
 use opsis_types::shell::{DockPanelName, SettingsPage, WindowRole, WindowState};
 use serde::Deserialize;
 use serde_json::{Map, Value, json};
@@ -72,7 +73,10 @@ fn visible_bounds(app: &AppHandle, b: Bounds) -> Option<Bounds> {
     let fits = monitors.iter().any(|m| {
         let area = m.work_area();
         let (x, y) = (area.position.x, area.position.y);
-        let (w, h) = (area.size.width as i32, area.size.height as i32);
+        let (w, h) = (
+            numbers::signed(area.size.width),
+            numbers::signed(area.size.height),
+        );
         let across = b.x < x + w - MIN_VISIBLE_PX && b.x + b.width > x + MIN_VISIBLE_PX;
         let reachable = b.y >= y - ABOVE_WORK_AREA_PX && b.y < y + h - MIN_VISIBLE_PX;
         across && reachable
@@ -85,8 +89,8 @@ fn place(window: &WebviewWindow, bounds: Bounds) {
         bounds.x, bounds.y,
     )));
     let sized = window.set_size(Size::Physical(PhysicalSize::new(
-        bounds.width as u32,
-        bounds.height as u32,
+        u32::try_from(bounds.width).unwrap_or(0),
+        u32::try_from(bounds.height).unwrap_or(0),
     )));
     if let Err(error) = moved.and(sized) {
         log::warn!("placing a window: {error}");
@@ -99,8 +103,8 @@ fn bounds_of(window: &Window) -> Option<Bounds> {
     Some(Bounds {
         x: position.x,
         y: position.y,
-        width: size.width as i32,
-        height: size.height as i32,
+        width: numbers::signed(size.width),
+        height: numbers::signed(size.height),
     })
 }
 

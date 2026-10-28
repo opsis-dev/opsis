@@ -9,7 +9,7 @@ import {
   staticFile,
 } from "remotion";
 import { type ElementProps } from "#video/common/spec.ts";
-import { isThemeValue, themeColors } from "#video/common/theme.ts";
+import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   parseColor,
@@ -562,7 +562,7 @@ function TextHighlightView({
 
 export function TextHighlight(props: ElementProps & { children?: React.ReactNode }) {
   const { theme } = props;
-  if (!isThemeValue(theme))
+  if (!isTheme(theme))
     return (
       <TextHighlightView
         {...(props as unknown as React.ComponentProps<typeof TextHighlightView>)}

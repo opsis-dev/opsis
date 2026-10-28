@@ -3,6 +3,7 @@ use opsis_compile::nodes::media::{Dither, ScaleMode};
 
 use crate::codecs::{edit_video, even_down, ffmpeg_seconds, serde_name, with_even_frame};
 use opsis_compile::text::round_to;
+use opsis_types::numbers;
 
 const JOIN_AUDIO: &str = "aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo";
 
@@ -391,7 +392,7 @@ pub fn noise_level(lines: &[String]) -> Option<f64> {
         .filter(|db| db.is_finite())
         .collect();
     levels.sort_by(f64::total_cmp);
-    let at = (levels.len() as f64 * QUIET_SHARE) as usize;
+    let at = numbers::truncate::<usize>(numbers::float(levels.len()) * QUIET_SHARE);
     levels.get(at).map(|db| round_to(*db, 1))
 }
 
