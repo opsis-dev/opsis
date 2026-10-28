@@ -1,12 +1,12 @@
 # Image and sound nodes
 
-Four nodes for stills and sound: one that works on images (annotate) and three that make sound (transition sounds, generated sounds, risers).
+Three nodes that make sound: transition sounds, generated sounds and risers.
 
 Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code, except inside what is combined with Remotion (`packages/video`, `apps/preview`, `apps/sidecar`), where the Remotion permission in `LICENSE` covers only Opsis's own code. None of these nodes needs GPL code there.
 
 ## How to read this plan
 
-- Each section is one node and can be built on its own, except where a section names another it needs (sections 3 and 4 share section 2's sound maker).
+- Each section is one node and can be built on its own, except where a section names another it needs (sections 2 and 3 share section 1's sound maker).
 - Each section has **What it adds**, **In place**, **Work** (numbered), **Licence** and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
@@ -24,44 +24,15 @@ Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (v
 
 ## Summary
 
-| Node                 | What users get                                                | Built with                           | Licence of what's added    | Size   |
-| -------------------- | ------------------------------------------------------------- | ------------------------------------ | -------------------------- | ------ |
-| 1. Annotate          | Arrows, boxes, ovals, numbered steps and text on a screenshot | `imageproc` drawing, `ab_glyph` text | none new                   | medium |
-| 2. Generated sound   | Whooshes, risers, pops, dings and swells made from settings   | `fundsp`                             | `fundsp` MIT OR Apache-2.0 | medium |
-| 3. Transition sounds | A whoosh at every transition of a clip                        | section 2, flattened transitions     | none new                   | medium |
-| 4. Riser to a mark   | A build-up that ends exactly on an action or marker           | section 2                            | none new                   | small  |
+| Node                 | What users get                                              | Built with                       | Licence of what's added    | Size   |
+| -------------------- | ----------------------------------------------------------- | -------------------------------- | -------------------------- | ------ |
+| 1. Generated sound   | Whooshes, risers, pops, dings and swells made from settings | `fundsp`                         | `fundsp` MIT OR Apache-2.0 | medium |
+| 2. Transition sounds | A whoosh at every transition of a clip                      | section 1, flattened transitions | none new                   | medium |
+| 3. Riser to a mark   | A build-up that ends exactly on an action or marker         | section 1                        | none new                   | small  |
 
 Left out: content-aware resize (`imageproc::seam_carving` is called rough by its own documentation), speech made from text and captions from speech (`plans/voice-and-captions.md` covers them).
 
-## 1. Annotate
-
-### What it adds
-
-Arrows, rectangles, ovals, numbered step badges and text drawn on a screenshot, each in the project's colours and fonts, so a still explains itself. Screenshot tools lead with this (Xnapper's text, arrows, rectangles and ovals; Better Shot's numbered labels).
-
-### In place
-
-- The `boxes` widget draws areas over an image (Crop image's **Area to keep**).
-- The video's annotation nodes (Tooltip, Callout arrow, Highlight box) draw on recordings, not on image files.
-- Project fonts are files in `assets/fonts/<id>/`, read by `opsis-fonts` with `skrifa`.
-
-### Work
-
-1. **Settings.** A list of marks (rows): kind (arrow, rectangle, oval, step number, text), its area or two ends (`boxes`), colour (`color`, project swatches), line width, text, font (`font` widget), text size. Step numbers count up in list order.
-2. **Drawing.** `imageproc::drawing`: thick lines and arrow heads as filled polygons, hollow rectangles and ellipses drawn several times for width, filled circles for steps; anti-aliased with `draw_antialiased_line_segment` and `draw_polygon` at 2× then scaled down, like the sizes in place.
-3. **Text.** Drawn as Before and after draws its labels: the face is picked like 3D text picks it (`family_for`, `face_for`), loaded at the chosen weight with WOFF and WOFF2 unwrapped (`load_font`), measured and drawn with `ab_glyph` (`measure`, `draw_text` in `crates/image/src/text.rs`), and the node keys on the project fonts (`uses_project_fonts`).
-4. **Card.** "3 marks · 2 steps"; a warning when a mark's text is empty.
-5. **Tests.** Pixel tests of each mark kind on a blank image against golden PNGs in `fixtures/image/`.
-
-### Licence
-
-Nothing new.
-
-### Risks
-
-- Fonts with variable axes draw at their default instance unless the weight is applied; draw at the chosen weight or limit the font field to static faces.
-
-## 2. Generated sound
+## 1. Generated sound
 
 ### What it adds
 
@@ -87,7 +58,7 @@ Whooshes, risers, pops, dings, clicks and swells made from a few settings (lengt
 
 - Sound quality depends on the presets' tuning; ship few, good ones and listen to each before adding it.
 
-## 3. Transition sounds
+## 2. Transition sounds
 
 ### What it adds
 
@@ -100,7 +71,7 @@ A whoosh at every transition in a clip, timed to each transition's middle and sc
 
 ### Work
 
-1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in or section 2's whoosh), volume, vary each hit, skip plain cuts.
+1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in or section 1's whoosh), volume, vary each hit, skip plain cuts.
 2. **Compile.** Flatten the clip, one hit per transition mark at its middle, length from the transition's; hits flagged like Action sounds' so the Timeline shows one bar.
 3. **Card.** "6 transitions · Whoosh".
 4. **Tests.** Hits land at the marks' middles through a trim and a speed change.
@@ -109,7 +80,7 @@ A whoosh at every transition in a clip, timed to each transition's middle and sc
 
 Nothing new.
 
-## 4. Riser to a mark
+## 3. Riser to a mark
 
 ### What it adds
 
@@ -117,8 +88,8 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 
 ### Work
 
-1. **Settings.** Ends on (action, marker, clip end), length before it, preset (section 2's riser, swell), with a short hit at the end on or off.
-2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render via section 2.
+1. **Settings.** Ends on (action, marker, clip end), length before it, preset (section 1's riser, swell), with a short hit at the end on or off.
+2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render via section 1.
 3. **Card.** "Rises 3 s into “Launch”".
 4. **Tests.** The sound ends on the target frame.
 

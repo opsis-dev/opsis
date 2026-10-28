@@ -38,7 +38,7 @@ fn failed<E: std::fmt::Display>(error: E) -> ImageError {
     ImageError::Failed(error.to_string())
 }
 
-fn is_deep(image: &DynamicImage) -> bool {
+pub(crate) fn is_deep(image: &DynamicImage) -> bool {
     image.color().bytes_per_pixel() / image.color().channel_count() > 1
 }
 

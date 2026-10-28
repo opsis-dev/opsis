@@ -5189,6 +5189,29 @@
    }
   },
   {
+   "type": "image.annotate",
+   "title": "Annotate",
+   "category": "Image",
+   "description": "Draws arrows, boxes, ovals, numbered steps and text on a picture, so a still explains itself. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -54542,6 +54565,190 @@
      "padding": 8,
      "boxWidth": 4,
      "boxColor": "#ef4444"
+    }
+   }
+  },
+  {
+   "type": "image.annotate",
+   "title": "Annotate",
+   "category": "Image",
+   "description": "Draws arrows, boxes, ovals, numbered steps and text on a picture, so a still explains itself. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "marks": {
+      "description": "Marks",
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "kind": {
+         "description": "Kind",
+         "type": "string",
+         "enum": [
+          "arrow",
+          "rectangle",
+          "oval",
+          "step",
+          "text"
+         ],
+         "default": "arrow",
+         "x-labels": {
+          "arrow": "Arrow",
+          "rectangle": "Box",
+          "oval": "Oval",
+          "step": "Step number",
+          "text": "Text"
+         }
+        },
+        "x": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1,
+         "default": 0.3,
+         "x-hidden": true
+        },
+        "y": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1,
+         "default": 0.3,
+         "x-hidden": true
+        },
+        "x2": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1,
+         "default": 0.5,
+         "x-hidden": true
+        },
+        "y2": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1,
+         "default": 0.5,
+         "x-hidden": true
+        },
+        "color": {
+         "description": "Colour",
+         "type": "string",
+         "default": "#ef4444",
+         "x-widget": "color"
+        },
+        "lineWidth": {
+         "description": "Line width",
+         "type": "integer",
+         "format": "uint32",
+         "minimum": 1,
+         "maximum": 60,
+         "default": 6,
+         "x-unit": "px",
+         "x-show-if": {
+          "kind": [
+           "arrow",
+           "rectangle",
+           "oval"
+          ]
+         }
+        },
+        "text": {
+         "description": "Text",
+         "type": "string",
+         "default": "",
+         "x-show-if": {
+          "kind": [
+           "text"
+          ]
+         }
+        },
+        "size": {
+         "description": "Size",
+         "type": "integer",
+         "format": "uint32",
+         "minimum": 8,
+         "maximum": 400,
+         "default": 32,
+         "x-unit": "px",
+         "x-show-if": {
+          "kind": [
+           "step",
+           "text"
+          ]
+         }
+        },
+        "font": {
+         "description": "Font",
+         "type": "string",
+         "default": "",
+         "x-widget": "font",
+         "x-zero-label": "Main font",
+         "x-show-if": {
+          "kind": [
+           "step",
+           "text"
+          ]
+         }
+        },
+        "weight": {
+         "description": "Weight",
+         "type": "integer",
+         "format": "uint32",
+         "minimum": 100,
+         "maximum": 900,
+         "default": 700,
+         "x-step": 100,
+         "x-show-if": {
+          "kind": [
+           "step",
+           "text"
+          ]
+         }
+        }
+       },
+       "default": {
+        "kind": "arrow",
+        "x": 0.3,
+        "y": 0.3,
+        "x2": 0.5,
+        "y2": 0.5,
+        "color": "#ef4444",
+        "lineWidth": 6,
+        "text": "",
+        "size": 32,
+        "font": "",
+        "weight": 700
+       }
+      },
+      "maxItems": 50,
+      "default": [],
+      "x-widget": "marks",
+      "x-help": "Pick a kind and drag on the picture. Step numbers count up in the order they're listed."
+     }
+    },
+    "type": "object",
+    "default": {
+     "marks": []
     }
    }
   },

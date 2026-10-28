@@ -39,6 +39,7 @@ import {
   StringListField,
 } from "./form/list-fields";
 import type { LengthLimits } from "./form/list-values";
+import { MarksField } from "./form/marks-field";
 import { NumberField, PresetNumber } from "./form/number-field";
 import { OffsetsField } from "./form/offsets-field";
 import { Presets } from "./form/presets";
@@ -231,6 +232,23 @@ function plainBody(field: TypedField, props: ParamFieldProps<unknown>): ReactNod
       return <ColorField {...props} value={field.value} />;
     case "boxes":
       return <BoxesField {...props} value={field.value} />;
+    case "marks":
+      return (
+        <MarksField
+          {...props}
+          value={field.value}
+          item={field.item}
+          renderMark={(mark, onPatch) => (
+            <SchemaForm
+              idPrefix={`${props.id}-mark`}
+              schema={field.item}
+              value={mark}
+              ctx={props.ctx}
+              onChange={onPatch}
+            />
+          )}
+        />
+      );
     case "camera":
       return <CameraField {...props} value={field.value} />;
     case "envelope":

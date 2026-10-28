@@ -26,6 +26,7 @@ use opsis_compile::elements::prepared::face_for;
 use opsis_compile::fonts::family_for;
 use opsis_compile::gradient::parse_gradient;
 use opsis_compile::nodes::camera::BackdropKind;
+use opsis_compile::nodes::image::{ANNOTATE_TYPE, Annotate};
 use opsis_types::fonts::FontRole;
 
 fn exec_error(error: crate::ImageError) -> ExecError {
@@ -293,11 +294,19 @@ async fn label_font(
     if !p.labels {
         return Ok(None);
     }
-    let name = match p.font.trim() {
+    font_named(ctx, &p.font, p.label_weight).await.map(Some)
+}
+
+async fn font_named(
+    ctx: &ExecutorContext,
+    font: &str,
+    weight: u32,
+) -> Result<ab_glyph::FontVec, ExecError> {
+    let name = match font.trim() {
         "" => FontRole::Main.family(),
         name => name,
     };
-    let weight = f64::from(p.label_weight);
+    let weight = f64::from(weight);
     let face = family_for(name, &ctx.workflow.settings.fonts)
         .and_then(|def| face_for(def, weight, false))
         .ok_or_else(|| {
@@ -309,7 +318,25 @@ async fn label_font(
     let bytes = tokio::fs::read(&path)
         .await
         .map_err(|e| ExecError::new(format!("Couldn't read {}: {e}", path.display())))?;
-    blocking(move || load_font(bytes, weight)).await.map(Some)
+    blocking(move || load_font(bytes, weight)).await
+}
+
+async fn annotate(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: Annotate = ctx.params()?;
+    let image = input(&ctx, &inputs, IMAGE_PORT).await?;
+    let mut fonts = crate::marks::MarkFonts::new();
+    for mark in p.marks.iter().filter(|m| m.kind.has_text()) {
+        if let std::collections::hash_map::Entry::Vacant(slot) =
+            fonts.entry((mark.font.clone(), mark.weight))
+        {
+            slot.insert(font_named(&ctx, &mark.font, mark.weight).await?);
+        }
+    }
+    let out = blocking(move || Ok(crate::marks::annotate(&image, &p.marks, &fonts))).await?;
+    saved(&ctx, &out, None)
 }
 
 async fn before_after(
@@ -412,6 +439,7 @@ pub fn image_executors() -> Vec<(&'static str, Executor)> {
         (BEFORE_AFTER_TYPE, executor(before_after)),
         (MAGNIFY_TYPE, executor(magnify)),
         (COMPARE_TYPE, executor(compare)),
+        (ANNOTATE_TYPE, executor(annotate)),
         (FORMAT_TYPE, executor(format)),
         (REDACT_TYPE, executor(redact)),
         (SPOTLIGHT_TYPE, executor(spotlight)),

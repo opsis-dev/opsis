@@ -40,6 +40,7 @@ type FieldKind =
   | { kind: "gradient" }
   | { kind: "theme" }
   | { kind: "boxes" }
+  | { kind: "marks"; item: JsonSchema }
   | { kind: "camera" }
   | { kind: "envelope"; tracks: EnvelopeKey[] };
 
@@ -51,6 +52,7 @@ type FieldValue = {
   numberList: number[];
   colorList: string[];
   boxes: Bounds[];
+  marks: ParamValues[];
   camera: CameraPath;
   envelope: Envelope;
   boolean: boolean;
@@ -123,6 +125,8 @@ export function typedField(schema: JsonSchema, raw: unknown): TypedField | null 
   if (widget === "gradient") return typed({ kind: "gradient" }, value ?? "", isString);
   if (widget === "theme") return typed({ kind: "theme" }, value ?? undefined, isThemeValue);
   if (widget === "boxes") return typed({ kind: "boxes" }, value ?? [], isBoundsList);
+  if (widget === "marks" && schema.items)
+    return typed({ kind: "marks", item: schema.items }, value ?? [], isRecordList);
   if (widget === "camera") return typed({ kind: "camera" }, value ?? { keys: [] }, isCameraPath);
   if (widget === "envelope")
     return typed({ kind: "envelope", tracks: envelopeTracks(schema) }, value ?? {}, isEnvelope);

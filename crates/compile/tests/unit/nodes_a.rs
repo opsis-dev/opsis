@@ -657,6 +657,26 @@ fn says_how_the_song_was_fitted() {
 }
 
 #[test]
+fn counts_the_marks_and_steps_and_warns_about_empty_text() {
+    let texts = |marks: Value| {
+        card_texts(
+            "image.annotate",
+            json!({ "marks": marks }),
+            CardInputs::default(),
+        )
+    };
+    assert_eq!(texts(json!([])), ["Draw marks on the picture"]);
+    assert_eq!(
+        texts(json!([{ "kind": "step" }, { "kind": "arrow" }, { "kind": "step" }])),
+        ["3 marks · 2 steps"]
+    );
+    assert_eq!(
+        texts(json!([{ "kind": "text", "text": " " }])),
+        ["1 mark", "A text mark has no text"]
+    );
+}
+
+#[test]
 fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
     let song = &builtin_songs()[0];
     match compile_node("audio.music", json!({ "src": song.reference() }), json!({}))

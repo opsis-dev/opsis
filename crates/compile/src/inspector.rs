@@ -220,9 +220,11 @@ fn picker_target(wf: &Workflow, compiled: &CompileResult, node_id: &str) -> Pick
 }
 
 fn has_boxes(params: &Value) -> bool {
-    params["properties"]
-        .as_object()
-        .is_some_and(|fields| fields.values().any(|f| f["x-widget"] == "boxes"))
+    params["properties"].as_object().is_some_and(|fields| {
+        fields
+            .values()
+            .any(|f| f["x-widget"] == "boxes" || f["x-widget"] == "marks")
+    })
 }
 
 pub fn inspector_context(

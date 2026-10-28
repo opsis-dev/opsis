@@ -12219,6 +12219,47 @@
   }
  },
  {
+  "type": "image.annotate",
+  "title": "Annotate",
+  "category": "Image",
+  "description": "Draws arrows, boxes, ovals, numbered steps and text on a picture, so a still explains itself. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "image",
+    "type": "media",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "marks": []
+  }
+ },
+ {
   "type": "output.render",
   "title": "Export video",
   "category": "Output",

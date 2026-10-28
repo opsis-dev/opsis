@@ -45,6 +45,8 @@ pub const MAGNIFY_TYPE: &str = "image.magnify";
 
 pub const COMPARE_TYPE: &str = "image.compare";
 
+pub const ANNOTATE_TYPE: &str = "image.annotate";
+
 pub const BLUR_TYPE: &str = "image.blur";
 
 pub const ADJUST_TYPE: &str = "image.adjust";
@@ -1917,6 +1919,118 @@ fn compare() -> NodeDef {
     })
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum MarkKind {
+    #[default]
+    Arrow,
+    Rectangle,
+    Oval,
+    Step,
+    Text,
+}
+
+impl MarkKind {
+    pub fn has_text(self) -> bool {
+        matches!(self, Self::Step | Self::Text)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Mark {
+    #[schemars(
+        description = "Kind",
+        extend("x-labels" = { "arrow": "Arrow", "rectangle": "Box", "oval": "Oval", "step": "Step number", "text": "Text" })
+    )]
+    pub kind: MarkKind,
+    #[default = 0.3]
+    #[schemars(range(min = 0, max = 1), extend("x-hidden" = true))]
+    pub x: f64,
+    #[default = 0.3]
+    #[schemars(range(min = 0, max = 1), extend("x-hidden" = true))]
+    pub y: f64,
+    #[default = 0.5]
+    #[schemars(range(min = 0, max = 1), extend("x-hidden" = true))]
+    pub x2: f64,
+    #[default = 0.5]
+    #[schemars(range(min = 0, max = 1), extend("x-hidden" = true))]
+    pub y2: f64,
+    #[default("#ef4444".to_owned())]
+    #[schemars(description = "Colour", extend("x-widget" = "color"))]
+    pub color: String,
+    #[default = 6]
+    #[schemars(
+        description = "Line width",
+        range(min = 1, max = 60),
+        extend("x-unit" = "px", "x-show-if" = { "kind": ["arrow", "rectangle", "oval"] })
+    )]
+    pub line_width: u32,
+    #[schemars(description = "Text", extend("x-show-if" = { "kind": ["text"] }))]
+    pub text: String,
+    #[default = 32]
+    #[schemars(
+        description = "Size",
+        range(min = 8, max = 400),
+        extend("x-unit" = "px", "x-show-if" = { "kind": ["step", "text"] })
+    )]
+    pub size: u32,
+    #[schemars(
+        description = "Font",
+        extend("x-widget" = "font", "x-zero-label" = "Main font", "x-show-if" = { "kind": ["step", "text"] })
+    )]
+    pub font: String,
+    #[default = 700]
+    #[schemars(
+        description = "Weight",
+        range(min = 100, max = 900),
+        extend("x-step" = 100, "x-show-if" = { "kind": ["step", "text"] })
+    )]
+    pub weight: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Annotate {
+    #[schemars(
+        description = "Marks",
+        length(max = 50),
+        extend("x-widget" = "marks", "x-help" = "Pick a kind and drag on the picture. Step numbers count up in the order they're listed.")
+    )]
+    pub marks: Vec<Mark>,
+}
+
+impl Params for Annotate {}
+
+fn annotate() -> NodeDef {
+    image_node::<Annotate>(
+        ANNOTATE_TYPE,
+        "Annotate",
+        "Draws arrows, boxes, ovals, numbered steps and text on a picture, so a still explains itself.",
+    )
+    .uses_project_fonts()
+    .card(|ctx: &CardCtx<'_, Annotate>| {
+        let marks = &ctx.params.marks;
+        let steps = marks.iter().filter(|m| m.kind == MarkKind::Step).count();
+        let summary = match (marks.len(), steps) {
+            (0, _) => row(Icon::Shapes, "Draw marks on the picture").tone(Tone::Muted),
+            (n, 0) => row(Icon::Shapes, plural(n as f64, "mark")),
+            (n, s) => row(
+                Icon::Shapes,
+                format!("{} · {}", plural(n as f64, "mark"), plural(s as f64, "step")),
+            ),
+        };
+        let empty = marks
+            .iter()
+            .any(|m| m.kind == MarkKind::Text && m.text.trim().is_empty());
+        vec![
+            Some(summary),
+            empty.then(|| missing(Icon::TriangleAlert, "A text mark has no text")),
+            size_row(ctx, |s| s),
+        ]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -1938,6 +2052,7 @@ pub fn nodes() -> Vec<NodeDef> {
         before_after().look(NodeLook::of("lucide:columns-2")),
         magnify().look(NodeLook::of("tabler:zoom-in-area")),
         compare().look(NodeLook::of("lucide:diff")),
+        annotate().look(NodeLook::of("tabler:arrow-up-right-circle")),
     ]
     .into_iter()
     .map(|def| def.needs(FileNeed::Image))
