@@ -203,7 +203,7 @@ Missing: a way to mark a field as copy, and the request.
 
 ### Work
 
-1. **Mark fields.** An `x-suggest` keyword (`headline`, `subtitle`, `eyebrow`) on the core elements' fields; registry text elements get it through a rule in `scripts/registry-ingest.list.ts` and `bun run registry:ingest -- --no-add`.
+1. **Mark fields.** An `x-suggest` keyword (`headline`, `subtitle`, `eyebrow`) on the core elements' fields; registry text elements get it on their fields in `crates/compile/src/elements/registry.generated.json`.
 2. **Request.** Schema `{ variants: Vec<String> }`. Input: the current text, the field's role, the tone, the project name, the site address, chapter titles and action names. Variants stay within the current length plus a margin, checked after parsing; the asterisks rule only for the headline.
 3. **UI.** A button on fields with `x-suggest` when the assistant is on; a popover list; applying writes the setting like a typed edit.
 4. **Tests.** The prompt includes the asterisks rule only for the headline; over-long variants are dropped.

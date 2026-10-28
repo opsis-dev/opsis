@@ -54,21 +54,20 @@ The app never includes the recording browser or our FFmpeg; users download them 
 
 ## Scripts
 
-| Script                    | What it does                                                               |
-| ------------------------- | -------------------------------------------------------------------------- |
-| `bun start`               | Run the app in development                                                 |
-| `bun run typecheck`       | `tsc --noEmit` everywhere                                                  |
-| `bun run lint:fix`        | oxlint and `cargo clippy`                                                  |
-| `bun run format:fix`      | oxfmt and `cargo fmt`                                                      |
-| `bun run test`            | vitest and `cargo test`                                                    |
-| `bun run test:e2e`        | The app driven by WebdriverIO in a virtual display (needs `xvfb`)          |
-| `bun run types:export`    | Write the TypeScript types and bindings from the Rust code                 |
-| `bun run video:bundle`    | Build the video code for exports and the preview                           |
-| `bun run registry:ingest` | Re-install the curated registry elements and regenerate their manifests    |
-| `bun run fonts:bundle`    | Copy the bundled fonts from their Fontsource packages                      |
-| `bun run brand:icons`     | Render `brand/logo.svg` to PNGs; `bun run app:icons` makes the app's icons |
-| `bun run routes`          | Regenerate the TanStack Router route tree                                  |
-| `bun run examples`        | Rewrite `examples/*/project.opsis.json` from the templates                 |
+| Script                 | What it does                                                               |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `bun start`            | Run the app in development                                                 |
+| `bun run typecheck`    | `tsc --noEmit` everywhere                                                  |
+| `bun run lint:fix`     | oxlint and `cargo clippy`                                                  |
+| `bun run format:fix`   | oxfmt and `cargo fmt`                                                      |
+| `bun run test`         | vitest and `cargo test`                                                    |
+| `bun run test:e2e`     | The app driven by WebdriverIO in a virtual display (needs `xvfb`)          |
+| `bun run types:export` | Write the TypeScript types and bindings from the Rust code                 |
+| `bun run video:bundle` | Build the video code for exports and the preview                           |
+| `bun run fonts:bundle` | Copy the bundled fonts from their Fontsource packages                      |
+| `bun run brand:icons`  | Render `brand/logo.svg` to PNGs; `bun run app:icons` makes the app's icons |
+| `bun run routes`       | Regenerate the TanStack Router route tree                                  |
+| `bun run examples`     | Rewrite `examples/*/project.opsis.json` from the templates                 |
 
 ## Architecture
 
@@ -95,7 +94,7 @@ apps/preview the preview page the headless shell plays
 apps/sidecar Remotion renders on Bun
 e2e/         end-to-end tests (outside the workspace, own install)
 packages/video  Remotion root: DemoTimeline, registry, core elements, fonts, camera, registry elements
-scripts/     registry ingest, fonts, icons, engine downloads, packaging stage
+scripts/     fonts, icons, engine downloads, packaging stage
 ```
 
 Contributor rules (no code comments, kebab-case files, pinned versions, what must not regress) are in [AGENTS.md](./AGENTS.md).

@@ -73,7 +73,7 @@ Left out on purpose because Opsis already has them: number tickers (Rolling Numb
 
 In place:
 
-- `ElementMeta` (`crates/compile/src/elements/mod.rs`) has `source: ElementSource { registry, url, license }`; registry elements fill it from the ingest, core ones use `registry: "Opsis"`.
+- `ElementMeta` (`crates/compile/src/elements/mod.rs`) has `source: ElementSource { registry, url, license }`; registry elements carry it in `registry.generated.json`, core ones use `registry: "Opsis"`.
 - `elements()` chains `core::core_elements()` and the registry list into one catalogue; every entry becomes a node (`element_node_type`: `fx.<group>.<name>`) with its card, length handle and envelope. A third list is all these elements need on the Rust side.
 - Settings structs: core elements are structs with `schemars` attributes collected in `CoreElementProps`, exported to `packages/video/src/generated/spec.ts`, so components get typed props. The `font` widget (`x-widget = "font"`) and `font_stack` (`crates/compile/src/fonts/mod.rs`) turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
 - Lazy loading: `loadElement` in `packages/video/src/registry/index.ts` finds a module through `lazyLoaderOf`, which looks in `generatedElementLoaders` (`components.generated.ts`) and `LAZY_CORE_ELEMENTS` (the 3D elements), and loads it under `delayRender`.
@@ -92,8 +92,8 @@ Missing:
 1. **Where code goes.**
    - Components: `packages/video/src/motion/<source>/<name>.tsx`, with `<source>` one of `magicui`, `motion-primitives`, `cult-ui`, `smoothui`, `lucide-animated`. Each source folder holds its `LICENSE.<source>` file (the upstream licence text, as `packages/video/src/camera/LICENSE.programatic-demo` does), since source files can't carry a licence header comment.
    - Settings: `crates/compile/src/elements/motion.rs`, one struct per element like `core.rs`, collected in `MotionElementProps` and exported with the other spec types; `motion_elements()` joins `elements()` between the core and registry lists. Keys are `<source>/<name>` (node type `fx.<source>.<name>`); `source` is `{ registry: "Magic UI", url: "<the component's docs page>", license: "MIT" }`.
-   - Loaders: `packages/video/src/registry/motion.ts` exporting `motionElementLoaders` (dynamic `import()` plus the framing helper, the same shape as `generatedElementLoaders`); `lazyLoaderOf` looks in it too. `registry:ingest` never touches these files.
-   - Looks: one `LOOKS` entry per element (`scripts/registry-ingest.list.ts`), then `bun run registry:ingest -- --no-add` and `bun run glyphs:bundle`.
+   - Loaders: `packages/video/src/registry/motion.ts` exporting `motionElementLoaders` (dynamic `import()` plus the framing helper, the same shape as `generatedElementLoaders`); `lazyLoaderOf` looks in it too.
+   - Looks: each element's `.look(…)` in `motion.rs`, as `core.rs` does, then `bun run glyphs:bundle`.
 2. **Recipe** (one checklist per element, in the change description):
    - Copy the upstream file once into the target folder, then rewrite it. Delete `"use client"`, `cn()` imports from the web app and every comment.
    - `motion.div` with `initial` / `animate` / `transition` → a plain element whose style comes from `interpolate(frame, [start, end], [from, to], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing })` or `spring({ frame, fps, config })`. Keyframe arrays (`rotate: [0, -10, 10, -10, 0]`) → `interpolate` with as many input points, spread over the original `duration` in frames. Motion `ease` names map to `Easing.bezier` with the same control points.
@@ -293,7 +293,7 @@ Missing:
 ### Work
 
 1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element including core ones, overlays and text over a neutral dark `core/solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Swangle`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat` and the sidecar's still job).
-2. **Storage.** `apps/ui/src/editor/element-stills/<key with "/" as "--">.webp`, editor-only, loaded with `import.meta.glob("./element-stills/*.webp", { query: "?url", import: "default", eager: true })` in a small `element-stills.ts` next to `palette.tsx`. Add the folder and its command to the generated-files table in `AGENTS.md`; run it after `registry:ingest` and after adding an element. Remove `ElementMeta.thumbnail`.
+2. **Storage.** `apps/ui/src/editor/element-stills/<key with "/" as "--">.webp`, editor-only, loaded with `import.meta.glob("./element-stills/*.webp", { query: "?url", import: "default", eager: true })` in a small `element-stills.ts` next to `palette.tsx`. Add the folder and its command to the generated-files table in `AGENTS.md`; run it after changing or adding an element. Remove `ElementMeta.thumbnail`.
 3. **Budget.** At most 24 KB per still and 3.5 MB in all (about 140 elements today, 160 with the web motion components, × 15–20 KB); the binary fails above either.
 4. **Hover card.** `NodePreview` shows the still of the hovered element at the top.
 5. **Check.** Offline, every element in the list shows a still.
@@ -335,7 +335,7 @@ Missing:
 ### Work
 
 1. **Compare mode.** `render-elements --check` renders every element as in the thumbnails section into `~/.cache/opsis-element-stills/` and compares each with its stored still with the engine's FFmpeg `ssim` filter (no new dependency). It fails when SSIM is below a threshold (start at 0.97; measure the spread across a few runs first), when an element has no stored still, or when a still has no element, and writes a side-by-side image (`hstack`: stored | new) for each failure.
-2. **Workflow.** A job `elements` in `build.yml`, `needs: checks`, Linux, only when the change touches `packages/video/**`, `crates/compile/src/elements/**`, `scripts/registry-ingest*`, `public/fonts/**`, `package.json`, `packages/video/package.json` or `bun.lock` (a paths check step, since `build.yml` runs on several events). Steps as in `e2e` (engine cache, `install-engine`, `video:bundle`), then `bun run elements:render -- --check`, uploading the side-by-side images on failure. Check the workflow with `actionlint`.
+2. **Workflow.** A job `elements` in `build.yml`, `needs: checks`, Linux, only when the change touches `packages/video/**`, `crates/compile/src/elements/**`, `public/fonts/**`, `package.json`, `packages/video/package.json` or `bun.lock` (a paths check step, since `build.yml` runs on several events). Steps as in `e2e` (engine cache, `install-engine`, `video:bundle`), then `bun run elements:render -- --check`, uploading the side-by-side images on failure. Check the workflow with `actionlint`.
 3. **Updating references.** A `workflow_dispatch` input `update-stills` runs the binary in write mode and uploads the stills as an artifact, so references come from the same machine type as the check. Locally on Linux x64, `bun run elements:render -- --thumbnails` writes them directly.
 4. **Check.** Break one element on purpose (change a default colour); the job fails with its side-by-side image. Revert; it passes twice in a row.
 
