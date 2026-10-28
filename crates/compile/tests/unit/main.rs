@@ -23,3 +23,4 @@ mod small;
 mod time;
 mod timeline;
 mod timeline_edits;
+mod transition_sounds;

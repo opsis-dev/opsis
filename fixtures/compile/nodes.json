@@ -10011,6 +10011,56 @@
   }
  },
  {
+  "type": "audio.transitionSounds",
+  "title": "Transition sounds",
+  "category": "Audio",
+  "description": "A whoosh at every transition in a clip, timed to its middle and fitted to its length, on one Mixer channel.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "audio",
+    "type": "audio",
+    "label": "Sound",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "soundFrom": "generated",
+   "preset": "whoosh",
+   "variation": "picked",
+   "pitch": 0.0,
+   "brightness": 0.5,
+   "take": 1,
+   "fit": true,
+   "sound": "app:sfx/whoosh.wav",
+   "vary": true,
+   "volume": 0.7
+  }
+ },
+ {
   "type": "timeline.sequence",
   "title": "Sequence",
   "category": "Timeline",

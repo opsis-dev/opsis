@@ -68,7 +68,14 @@ fn froms(audio: &AudioValue) -> Vec<i32> {
 #[test]
 fn sounds_every_click_and_keystroke_except_silent_actions() {
     let audio = sounds(&take(&[]), json!({}));
-    assert_eq!(audio.hits, Some(Hits { clicks: 4, keys: 4 }));
+    assert_eq!(
+        audio.hits,
+        Some(Hits {
+            clicks: 4,
+            keys: 4,
+            transitions: 0
+        })
+    );
     let click = |item: &AudioItem| item.src == "app:sfx/mouse-click.wav";
     assert_eq!(audio.items.iter().filter(|i| click(i)).count(), 4);
     assert_eq!(
@@ -118,12 +125,26 @@ fn puts_every_hit_on_one_quiet_effects_channel_that_never_ducks_the_music() {
 #[test]
 fn turns_clicks_or_keys_off_and_uses_the_chosen_sounds() {
     let keys_only = sounds(&take(&[]), json!({ "clicks": false }));
-    assert_eq!(keys_only.hits, Some(Hits { clicks: 0, keys: 4 }));
+    assert_eq!(
+        keys_only.hits,
+        Some(Hits {
+            clicks: 0,
+            keys: 4,
+            transitions: 0
+        })
+    );
     let clicks_only = sounds(
         &take(&[]),
         json!({ "keys": false, "clickSound": "assets/tap.wav", "clickSoundMs": 100 }),
     );
-    assert_eq!(clicks_only.hits, Some(Hits { clicks: 4, keys: 0 }));
+    assert_eq!(
+        clicks_only.hits,
+        Some(Hits {
+            clicks: 4,
+            keys: 0,
+            transitions: 0
+        })
+    );
     assert!(
         clicks_only
             .items
@@ -179,7 +200,14 @@ fn says_how_many_clicks_and_keys_it_sounds_on_its_card() {
     let compiled = opsis_compile::compile::compile_workflow(&wf, Some(&results));
     let node = wf.nodes.iter().find(|n| n.id == "sounds").unwrap();
     let inputs = opsis_compile::cards::card_inputs(&wf, &compiled, node, None);
-    assert_eq!(inputs.hits, Some(Hits { clicks: 4, keys: 4 }));
+    assert_eq!(
+        inputs.hits,
+        Some(Hits {
+            clicks: 4,
+            keys: 4,
+            transitions: 0
+        })
+    );
     let rows = card_texts("audio.actionSounds", json!({ "keys": false }), inputs);
     assert_eq!(rows[0], "4 clicks · Mouse click");
     assert_eq!(rows[1], "No keys");

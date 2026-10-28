@@ -1,6 +1,6 @@
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
-use opsis_types::numbers::{signed, whole_signed};
+use opsis_types::numbers::{signed, whole, whole_signed};
 use opsis_types::timeline::{
     Anchor, AudioEnvelope, AudioItem, AudioRole, EditHandles, LinkedParam, ParamRef, ParamUnit,
     Sign,
@@ -413,6 +413,7 @@ fn sound_effect() -> NodeDef {
 pub const ROOM_TONE_TYPE: &str = "audio.roomTone";
 pub const TONES_TYPE: &str = "audio.tones";
 pub const GENERATE_TYPE: &str = "audio.generate";
+pub const TRANSITION_SOUNDS_TYPE: &str = "audio.transitionSounds";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
@@ -1161,7 +1162,11 @@ fn action_sounds() -> NodeDef {
                 return silent_audio();
             };
             let flat = flatten_spec(&clip_to_spec(clip, ctx.settings));
-            let mut hits = Hits { clicks: 0, keys: 0 };
+            let mut hits = Hits {
+                clicks: 0,
+                keys: 0,
+                transitions: 0,
+            };
             let mut items = Vec::new();
             for (index, hit) in flat.hits.iter().enumerate() {
                 let Some((src, ms)) = ctx.params.sound_of(hit.kind) else {
@@ -1184,6 +1189,248 @@ fn action_sounds() -> NodeDef {
         })
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum TransitionSoundFrom {
+    #[default]
+    Generated,
+    File,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct TransitionSounds {
+    #[schemars(description = "Sound", extend("x-labels" = { "generated": "A generated sound", "file": "A sound file" }))]
+    pub sound_from: TransitionSoundFrom,
+    #[schemars(
+        description = "Generated sound",
+        extend(
+            "x-labels" = { "whoosh": "Whoosh", "riser": "Riser", "pop": "Pop", "ding": "Ding", "tap": "Tap", "swell": "Swell", "click": "Click" },
+            "x-show-if" = { "soundFrom": ["generated"] }
+        )
+    )]
+    pub preset: SoundPreset,
+    #[schemars(
+        description = "Variation",
+        extend(
+            "x-labels" = {
+                "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
+                "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher",
+                "shorter": "Shorter", "longer": "Longer", "custom": "Custom"
+            },
+            "x-show-if" = { "soundFrom": ["generated"] }
+        )
+    )]
+    pub variation: SoundVariation,
+    #[schemars(
+        description = "Pitch",
+        range(min = -24, max = 24),
+        extend("x-step" = 0.5, "x-help" = "Semitones up or down.", "x-show-if" = { "soundFrom": ["generated"], "variation": ["custom"] })
+    )]
+    pub pitch: f64,
+    #[default = 0.5]
+    #[schemars(
+        description = "Brightness",
+        range(min = 0, max = 1),
+        extend("x-step" = 0.05, "x-show-if" = { "soundFrom": ["generated"], "variation": ["custom"] })
+    )]
+    pub brightness: f64,
+    #[default = 1]
+    #[schemars(description = "Take", range(min = 0, max = 1000), extend("x-show-if" = { "soundFrom": ["generated"], "variation": ["custom"] }))]
+    pub take: u32,
+    #[default = true]
+    #[schemars(
+        description = "Fit each sound to its transition",
+        extend("x-help" = "Makes each sound as long as its transition. Off, every sound has the variation's own length.", "x-show-if" = { "soundFrom": ["generated"] })
+    )]
+    pub fit: bool,
+    #[default("app:sfx/whoosh.wav".to_owned())]
+    #[schemars(description = "Sound file", extend("x-widget" = "sound", "x-accept" = "audio/*", "x-show-if" = { "soundFrom": ["file"] }))]
+    pub sound: String,
+    #[default = true]
+    #[schemars(description = "Vary each one", extend("x-help" = "A small change of pitch and level on each, so they don't sound copied."))]
+    pub vary: bool,
+    #[default = 0.7]
+    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    pub volume: f64,
+}
+
+impl Params for TransitionSounds {}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TransitionCue {
+    pub middle: f64,
+    pub frames: f64,
+}
+
+pub fn transition_cues(clip: &ClipValue, settings: &WorkflowSettings) -> Vec<TransitionCue> {
+    flatten_spec(&clip_to_spec(clip, settings))
+        .transitions
+        .iter()
+        .map(|t| TransitionCue {
+            middle: (t.from + t.to) / 2.0,
+            frames: t.to - t.from,
+        })
+        .collect()
+}
+
+impl TransitionSounds {
+    pub fn shape(&self) -> SoundShape {
+        sound_shape(&GenerateSound {
+            preset: self.preset,
+            variation: self.variation,
+            pitch: self.pitch,
+            brightness: self.brightness,
+            take: self.take,
+            ..GenerateSound::default()
+        })
+    }
+
+    pub fn length_ms(&self, cue: &TransitionCue, fps: u32) -> u32 {
+        if self.fit {
+            whole(cue.frames * 1000.0 / f64::from(fps.max(1))).max(MIN_TRANSITION_SOUND_MS)
+        } else {
+            whole(self.shape().seconds * 1000.0)
+        }
+    }
+}
+
+const MIN_TRANSITION_SOUND_MS: u32 = 50;
+
+pub fn transition_sound_file(length_ms: u32) -> String {
+    format!("transition-{length_ms}.wav")
+}
+
+fn transition_source(
+    ctx: &Ctx<'_, TransitionSounds>,
+    cue: &TransitionCue,
+) -> Option<(String, Option<f64>)> {
+    let p = &ctx.params;
+    match p.sound_from {
+        TransitionSoundFrom::File => {
+            let src = project_ref(&p.sound);
+            let length = builtin_sound(&src).map(|s| f64::from(s.duration_ms));
+            (!p.sound.is_empty()).then_some((src, length))
+        }
+        TransitionSoundFrom::Generated => {
+            let ms = p.length_ms(cue, ctx.settings.fps);
+            let file = transition_sound_file(ms);
+            let made = ctx
+                .result?
+                .artifacts
+                .iter()
+                .find(|a| a.path.ends_with(&format!("/{file}")))?;
+            Some((project_ref(&made.path), Some(f64::from(ms))))
+        }
+    }
+}
+
+fn transition_item(
+    ctx: &Ctx<'_, TransitionSounds>,
+    index: usize,
+    cue: &TransitionCue,
+    src: String,
+    length_ms: Option<f64>,
+) -> AudioItem {
+    let p = &ctx.params;
+    let fps = ctx.settings.fps;
+    let length_frames = length_ms.and_then(|ms| frames_if_set(ms, fps));
+    let half = f64::from(length_frames.unwrap_or(0)) / 2.0;
+    let seed = seed_of(ctx.node_id) ^ u64::try_from(index).unwrap_or(0).wrapping_mul(2);
+    let (pitch, level) = if p.vary {
+        (
+            1.0 + PITCH_SPREAD * spread(seed),
+            1.0 + LEVEL_SPREAD * spread(seed + 1),
+        )
+    } else {
+        (1.0, 1.0)
+    };
+    let timing = Timing {
+        from: whole_signed(cue.middle - half),
+        duration_in_frames: None,
+        looped: None,
+        trim_before: None,
+        fade_in_frames: None,
+        fade_out_frames: None,
+        anchor: None,
+        length_frames,
+        keep_music: Some(true),
+    };
+    let mut item = sound_item(
+        ctx.node_id,
+        src,
+        AudioRole::Effect,
+        p.volume * level,
+        &AudioEnvelope::default(),
+        timing,
+        EditHandles::default(),
+    );
+    item.id = format!("{}:{index}", ctx.node_id);
+    item.pitch = p.vary.then_some(pitch);
+    item.hit = Some(true);
+    item
+}
+
+fn transition_sounds() -> NodeDef {
+    NodeDef::of::<TransitionSounds>(TRANSITION_SOUNDS_TYPE, "Transition sounds", Category::Audio, Phase::Media)
+        .describe("A whoosh at every transition in a clip, timed to its middle and fitted to its length, on one Mixer channel.")
+        .executes()
+        .inputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
+        .outputs(vec![(AUDIO_PORT, port(PortType::Audio, "Sound"))])
+        .card(|ctx: &CardCtx<'_, TransitionSounds>| {
+            let p = &ctx.params;
+            if !ctx.inputs.is_connected(CLIP_PORT) {
+                return vec![Some(missing(Icon::Film, "Connect a clip with transitions"))];
+            }
+            let sound = match p.sound_from {
+                TransitionSoundFrom::Generated => {
+                    format!("{}, {}", p.preset.word(), p.variation.word())
+                }
+                TransitionSoundFrom::File => builtin_label(&project_ref(&p.sound))
+                    .map_or_else(|| base_name(&p.sound), str::to_owned),
+            };
+            let count = ctx.inputs.hits.map(|h| h.transitions);
+            vec![
+                Some(row(
+                    Icon::Blend,
+                    match count {
+                        Some(n) => format!("{} · {sound}", plural(f64::from(n), "transition")),
+                        None => sound,
+                    },
+                )),
+                Some(row(Icon::Volume2, percent_text(p.volume, f64::INFINITY))),
+                (p.sound_from == TransitionSoundFrom::Generated && ctx.result.is_none())
+                    .then(not_made_yet),
+            ]
+        })
+        .compiles(|ctx: &Ctx<'_, TransitionSounds>| {
+            let Some(clip) = ctx.input(CLIP_PORT).and_then(CompileValue::as_clip) else {
+                return silent_audio();
+            };
+            let cues = transition_cues(clip, ctx.settings);
+            let items = cues
+                .iter()
+                .enumerate()
+                .filter_map(|(index, cue)| {
+                    let (src, length) = transition_source(ctx, cue)?;
+                    Some(transition_item(ctx, index, cue, src, length))
+                })
+                .collect();
+            outputs([(
+                AUDIO_PORT,
+                CompileValue::Audio(AudioValue {
+                    items,
+                    duration_in_frames: None,
+                    hits: Some(Hits {
+                        clicks: 0,
+                        keys: 0,
+                        transitions: u32::try_from(cues.len()).unwrap_or(u32::MAX),
+                    }),
+                }),
+            )])
+        })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         music().look(NodeLook::of("lucide:eighth-notes")),
@@ -1193,5 +1440,6 @@ pub fn nodes() -> Vec<NodeDef> {
         room_tone().look(NodeLook::of("iconoir:sound-low")),
         tones().look(NodeLook::of("lucide:bell-ring")),
         generate().look(NodeLook::of("tabler:music-bolt")),
+        transition_sounds().look(NodeLook::of("tabler:wind")),
     ]
 }

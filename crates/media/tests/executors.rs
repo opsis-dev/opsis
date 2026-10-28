@@ -1036,3 +1036,56 @@ async fn generates_each_variation_at_its_own_length() {
     .await;
     assert_eq!(longer.len(), 2 * 288_000);
 }
+
+fn sequence_with_two_fades() -> Value {
+    let node = |id: &str, kind: &str, params: Value| json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 }, "params": params });
+    let edge = |source: &str, target: &str, port: &str| json!({ "id": format!("{source}-{port}"), "source": source, "sourceHandle": "clip", "target": target, "targetHandle": port });
+    let wf: Workflow = serde_json::from_value(json!({
+        "version": 1, "id": "x", "name": "x",
+        "nodes": [
+            node("a", "fx.core.title", json!({ "clipDuration": 60 })),
+            node("b", "fx.core.title", json!({ "clipDuration": 60 })),
+            node("c", "fx.core.title", json!({ "clipDuration": 60 })),
+            node("seq", "timeline.sequence", json!({
+                "transition": "core/fade", "transitionDuration": 15,
+                "cuts": [{ "before": "in3", "transition": "core/fade", "transitionDuration": 30 }]
+            }))
+        ],
+        "edges": [edge("a", "seq", "in1"), edge("b", "seq", "in2"), edge("c", "seq", "in3")]
+    }))
+    .unwrap();
+    let compiled = opsis_compile::compile::compile_workflow(&wf, None);
+    json!({ "clip": compiled.values["seq"]["clip"] })
+}
+
+#[tokio::test]
+async fn makes_one_sound_for_each_transition_length() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(dir.path().join(".opsis/cache/h")).unwrap();
+    let setup = |params: Value| Setup {
+        kind: "audio.transitionSounds",
+        params,
+        project_dir: dir.path(),
+        names: &[],
+    };
+    let (result, ran) = run(setup(json!({})), sound_probe(), sequence_with_two_fades()).await;
+    assert!(ran.is_empty());
+    let mut files: Vec<String> = result
+        .unwrap()
+        .artifacts
+        .iter()
+        .map(|a| a.path.rsplit('/').next().unwrap().to_owned())
+        .collect();
+    files.sort();
+    assert_eq!(files, ["transition-1000.wav", "transition-500.wav"]);
+    let reader =
+        hound::WavReader::open(dir.path().join(".opsis/cache/h/transition-500.wav")).unwrap();
+    assert_eq!(reader.duration(), 24_000);
+    let (result, _) = run(
+        setup(json!({ "soundFrom": "file" })),
+        sound_probe(),
+        sequence_with_two_fades(),
+    )
+    .await;
+    assert!(result.unwrap().artifacts.is_empty());
+}

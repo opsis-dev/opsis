@@ -1,12 +1,12 @@
 # Image and sound nodes
 
-Two nodes that make sound: transition sounds and risers.
+One node that makes sound: a riser that ends on a mark.
 
 Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code, except inside what is combined with Remotion (`packages/video`, `apps/preview`, `apps/sidecar`), where the Remotion permission in `LICENSE` covers only Opsis's own code. None of these nodes needs GPL code there.
 
 ## How to read this plan
 
-- Each section is one node and can be built on its own. Both use Generated sound's sounds (`audio.generate`: its presets and variations, `sound_shape`, made by `crates/media/src/sound_maker.rs`).
+- The section is one node. It uses Generated sound's sounds (`audio.generate`: its presets and variations, `sound_shape`, made by `crates/media/src/sound_maker.rs`).
 - Each section has **What it adds**, **In place**, **Work** (numbered), **Licence** and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
@@ -24,36 +24,13 @@ Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (v
 
 ## Summary
 
-| Node                 | What users get                                      | Built with                             | Licence of what's added | Size   |
-| -------------------- | --------------------------------------------------- | -------------------------------------- | ----------------------- | ------ |
-| 1. Transition sounds | A whoosh at every transition of a clip              | Generated sound, flattened transitions | none new                | medium |
-| 2. Riser to a mark   | A build-up that ends exactly on an action or marker | Generated sound                        | none new                | small  |
+| Node               | What users get                                      | Built with      | Licence of what's added | Size  |
+| ------------------ | --------------------------------------------------- | --------------- | ----------------------- | ----- |
+| 1. Riser to a mark | A build-up that ends exactly on an action or marker | Generated sound | none new                | small |
 
 Left out: content-aware resize (`imageproc::seam_carving` is called rough by its own documentation), speech made from text and captions from speech (`plans/voice-and-captions.md` covers them).
 
-## 1. Transition sounds
-
-### What it adds
-
-A whoosh at every transition in a clip, timed to each transition's middle and scaled to its length, as one Mixer channel, the way Action sounds puts a click at every click.
-
-### In place
-
-- Transition marks come from `flatten_spec` (`TransitionMark` with `from`, `to`, `kind`, `crates/compile/src/timeline/flatten.rs`).
-- Action sounds (`audio.actionSounds`) shows how a node turns a clip's moments into hits on one channel, drawn as one Timeline bar.
-
-### Work
-
-1. **Node.** `audio.transitionSounds`: input `clip`, output `sound`; settings: sound (built-in, or Generated sound's whoosh with its variation), volume, vary each hit, skip plain cuts.
-2. **Compile.** Flatten the clip, one hit per transition mark at its middle, length from the transition's; hits flagged like Action sounds' so the Timeline shows one bar.
-3. **Card.** "6 transitions · Whoosh".
-4. **Tests.** Hits land at the marks' middles through a trim and a speed change.
-
-### Licence
-
-Nothing new.
-
-## 2. Riser to a mark
+## 1. Riser to a mark
 
 ### What it adds
 

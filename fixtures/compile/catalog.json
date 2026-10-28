@@ -3987,6 +3987,29 @@
    }
   },
   {
+   "type": "audio.transitionSounds",
+   "title": "Transition sounds",
+   "category": "Sound",
+   "description": "A whoosh at every transition in a clip, timed to its middle and fitted to its length, on one Mixer channel.",
+   "runs": true,
+   "inputs": {
+    "clip": {
+     "type": "clip",
+     "label": "Clip",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "timeline.sequence",
    "title": "Sequence",
    "category": "Timeline",
@@ -50189,6 +50212,211 @@
      "atMs": 0,
      "offsetMs": 0,
      "volume": 0.8
+    }
+   }
+  },
+  {
+   "type": "audio.transitionSounds",
+   "title": "Transition sounds",
+   "category": "Sound",
+   "description": "A whoosh at every transition in a clip, timed to its middle and fitted to its length, on one Mixer channel.",
+   "runs": true,
+   "inputs": {
+    "clip": {
+     "type": "clip",
+     "label": "Clip",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "audio": {
+     "type": "audio",
+     "label": "Sound",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "soundFrom": {
+      "description": "Sound",
+      "type": "string",
+      "enum": [
+       "generated",
+       "file"
+      ],
+      "default": "generated",
+      "x-labels": {
+       "generated": "A generated sound",
+       "file": "A sound file"
+      }
+     },
+     "preset": {
+      "description": "Generated sound",
+      "type": "string",
+      "enum": [
+       "whoosh",
+       "riser",
+       "pop",
+       "ding",
+       "tap",
+       "swell",
+       "click"
+      ],
+      "default": "whoosh",
+      "x-labels": {
+       "whoosh": "Whoosh",
+       "riser": "Riser",
+       "pop": "Pop",
+       "ding": "Ding",
+       "tap": "Tap",
+       "swell": "Swell",
+       "click": "Click"
+      },
+      "x-show-if": {
+       "soundFrom": [
+        "generated"
+       ]
+      }
+     },
+     "variation": {
+      "description": "Variation",
+      "type": "string",
+      "enum": [
+       "picked",
+       "as-made",
+       "another-take",
+       "darker",
+       "brighter",
+       "lower",
+       "higher",
+       "shorter",
+       "longer",
+       "custom"
+      ],
+      "default": "picked",
+      "x-labels": {
+       "picked": "Default",
+       "as-made": "As first made",
+       "another-take": "Another take",
+       "darker": "Darker",
+       "brighter": "Brighter",
+       "lower": "5 semitones lower",
+       "higher": "5 semitones higher",
+       "shorter": "Shorter",
+       "longer": "Longer",
+       "custom": "Custom"
+      },
+      "x-show-if": {
+       "soundFrom": [
+        "generated"
+       ]
+      }
+     },
+     "pitch": {
+      "description": "Pitch",
+      "type": "number",
+      "format": "double",
+      "minimum": -24,
+      "maximum": 24,
+      "default": 0.0,
+      "x-step": 0.5,
+      "x-help": "Semitones up or down.",
+      "x-show-if": {
+       "soundFrom": [
+        "generated"
+       ],
+       "variation": [
+        "custom"
+       ]
+      }
+     },
+     "brightness": {
+      "description": "Brightness",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.5,
+      "x-step": 0.05,
+      "x-show-if": {
+       "soundFrom": [
+        "generated"
+       ],
+       "variation": [
+        "custom"
+       ]
+      }
+     },
+     "take": {
+      "description": "Take",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 1000,
+      "default": 1,
+      "x-show-if": {
+       "soundFrom": [
+        "generated"
+       ],
+       "variation": [
+        "custom"
+       ]
+      }
+     },
+     "fit": {
+      "description": "Fit each sound to its transition",
+      "type": "boolean",
+      "default": true,
+      "x-help": "Makes each sound as long as its transition. Off, every sound has the variation's own length.",
+      "x-show-if": {
+       "soundFrom": [
+        "generated"
+       ]
+      }
+     },
+     "sound": {
+      "description": "Sound file",
+      "type": "string",
+      "default": "app:sfx/whoosh.wav",
+      "x-widget": "sound",
+      "x-accept": "audio/*",
+      "x-show-if": {
+       "soundFrom": [
+        "file"
+       ]
+      }
+     },
+     "vary": {
+      "description": "Vary each one",
+      "type": "boolean",
+      "default": true,
+      "x-help": "A small change of pitch and level on each, so they don't sound copied."
+     },
+     "volume": {
+      "description": "Volume",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 2,
+      "default": 0.7,
+      "x-step": 0.05
+     }
+    },
+    "type": "object",
+    "default": {
+     "soundFrom": "generated",
+     "preset": "whoosh",
+     "variation": "picked",
+     "pitch": 0.0,
+     "brightness": 0.5,
+     "take": 1,
+     "fit": true,
+     "sound": "app:sfx/whoosh.wav",
+     "vary": true,
+     "volume": 0.7
     }
    }
   },

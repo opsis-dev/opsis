@@ -105,6 +105,8 @@ pub struct AudioValue {
 pub struct Hits {
     pub clicks: u32,
     pub keys: u32,
+    #[serde(default)]
+    pub transitions: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

@@ -12,7 +12,9 @@ use std::sync::Arc;
 use futures::future::try_join_all;
 use opsis_compile::asset_ref::{kind_from_path, project_ref};
 use opsis_compile::nodes::audio::{
-    GENERATE_TYPE, GenerateSound, ROOM_TONE_TYPE, RoomTone, TONES_TYPE, Tones, sound_shape,
+    GENERATE_TYPE, GenerateSound, ROOM_TONE_TYPE, RoomTone, TONES_TYPE, TRANSITION_SOUNDS_TYPE,
+    Tones, TransitionSoundFrom, TransitionSounds, sound_shape, transition_cues,
+    transition_sound_file,
 };
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
@@ -1292,6 +1294,50 @@ async fn make_generated(
     })
 }
 
+async fn make_transition_sounds(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    _tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: TransitionSounds = ctx.params()?;
+    if p.sound_from == TransitionSoundFrom::File {
+        return Ok(ExecutorOutput::default());
+    }
+    let clip = inputs
+        .get(opsis_compile::node::CLIP_PORT)
+        .and_then(CompileValue::as_clip)
+        .ok_or_else(|| ExecError::new("Connect a clip with transitions."))?;
+    let settings = &ctx.workflow.settings;
+    let lengths: std::collections::BTreeSet<u32> = transition_cues(clip, settings)
+        .iter()
+        .map(|cue| p.length_ms(cue, settings.fps))
+        .collect();
+    let base = p.shape();
+    let mut artifacts = Vec::new();
+    for ms in lengths {
+        let shape = opsis_compile::nodes::audio::SoundShape {
+            seconds: f64::from(ms) / 1000.0,
+            ..base
+        };
+        let channels = tokio::task::spawn_blocking(move || crate::sound_maker::make(&shape))
+            .await
+            .map_err(|e| ExecError::new(e.to_string()))?;
+        let file = transition_sound_file(ms);
+        crate::generate::write_stereo_pcm(&ctx.dir.join(&file), &channels)
+            .map_err(|e| ExecError::new(e.to_string()))?;
+        artifacts.push(artifact(
+            &ctx,
+            ArtifactKind::Audio,
+            &file,
+            "Transition sound",
+        ));
+    }
+    Ok(ExecutorOutput {
+        artifacts,
+        ..ExecutorOutput::default()
+    })
+}
+
 async fn logged(
     ctx: &ExecutorContext,
     tools: &dyn MediaTools,
@@ -1599,5 +1645,6 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (ROOM_TONE_TYPE, bind(tools, make_room_tone)),
         (TONES_TYPE, bind(tools, make_tones)),
         (GENERATE_TYPE, bind(tools, make_generated)),
+        (TRANSITION_SOUNDS_TYPE, bind(tools, make_transition_sounds)),
     ]
 }
