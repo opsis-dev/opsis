@@ -2014,7 +2014,7 @@ export type Waveform = {
 	durationMs: number,
 	levels: WaveformLevel[],
 	beats: (number)[],
-	bpm: number,
+	bpm?: number,
 };
 
 export type WholeRange = {

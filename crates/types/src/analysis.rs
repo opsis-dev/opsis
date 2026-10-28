@@ -15,8 +15,7 @@ pub struct Waveform {
     pub duration_ms: u32,
     pub levels: Vec<WaveformLevel>,
     pub beats: Vec<f64>,
-    #[serde(deserialize_with = "Option::deserialize")]
-    #[specta(type = Option<f64>)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bpm: Option<f64>,
 }
 
