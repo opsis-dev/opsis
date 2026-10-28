@@ -256,6 +256,7 @@ pub fn definition() -> ElementMeta {
                 ElementCategory::Scene,
                 600,
             )
+                .fonts(&["Manrope"])
                 .look(NodeLook::of("lucide:film")),
         )
 }

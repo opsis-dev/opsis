@@ -123,6 +123,7 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Data,
             120,
         )
+        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:trending-up")),
     )
 }

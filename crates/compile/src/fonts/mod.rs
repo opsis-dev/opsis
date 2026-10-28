@@ -9,6 +9,7 @@ use opsis_types::timeline::{TimelineItem, TimelineTrack};
 use serde_json::{Map, Value};
 
 use crate::clip::walk_items;
+use crate::elements::element_meta;
 
 static BUNDLED: LazyLock<Vec<FontFamilyDef>> = LazyLock::new(|| {
     serde_json::from_str(include_str!("bundled.generated.json")).expect("bundled font list parses")
@@ -105,12 +106,20 @@ fn font_family_of(props: &Map<String, Value>) -> Option<String> {
 fn used_font_names(tracks: &[TimelineTrack]) -> BTreeSet<String> {
     let mut used = BTreeSet::new();
     walk_items(tracks, &mut |item| {
-        let props = match item {
-            TimelineItem::Element { props, .. } => Some(props),
-            TimelineItem::Group { props, .. } => props.wrapper.as_ref().map(|w| &w.props),
-            TimelineItem::Recording { .. } => None,
+        let (component, props) = match item {
+            TimelineItem::Element {
+                component, props, ..
+            } => (Some(component), Some(props)),
+            TimelineItem::Group { props, .. } => props
+                .wrapper
+                .as_ref()
+                .map_or((None, None), |w| (Some(&w.component), Some(&w.props))),
+            TimelineItem::Recording { .. } => (None, None),
         };
         used.extend(props.and_then(font_family_of));
+        if let Some(meta) = component.and_then(|c| element_meta(c)) {
+            used.extend(meta.fonts.iter().cloned());
+        }
     });
     used
 }

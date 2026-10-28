@@ -107,6 +107,7 @@ pub fn definition() -> ElementMeta {
                 170,
             )
                 .authored_clock()
+                .fonts(&["Geist", "Google Sans", "Instrument Serif", "Inter", "Montserrat", "Outfit", "Space Grotesk"])
                 .look(NodeLook::of("lucide:megaphone")),
         )
 }

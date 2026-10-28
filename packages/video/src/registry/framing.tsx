@@ -11,8 +11,8 @@ import {
   defaultDarkTheme,
   defaultLightTheme,
   RemocnUIProvider,
-} from "#video/lib/remocn-ui/theme.ts";
-import { SnapCnUIProvider } from "#video/lib/snap-cn-ui/theme.ts";
+} from "#video/lib/neutral-ui/theme.ts";
+import { SnapCnUIProvider } from "#video/lib/warm-ui/theme.ts";
 import type {
   ElementComponent,
   Presentation,

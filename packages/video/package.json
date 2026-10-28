@@ -10,7 +10,6 @@
     "./player": "./src/player.ts",
     "./common/*": "./src/common/*.ts",
     "./generated/spec": "./src/generated/spec.ts",
-    "./fonts/google-font-imports": "./src/fonts/google-font-imports.ts",
     "./registry/framing": "./src/registry/framing.tsx"
   },
   "imports": {
@@ -23,13 +22,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@fontsource/inter": "^5.3.0",
-    "@fontsource/manrope": "^5.3.0",
     "@paper-design/shaders": "^0.0.82",
     "@paper-design/shaders-react": "^0.0.82",
     "@react-three/fiber": "^9.8.2",
     "@remotion/effects": "4.0.537",
-    "@remotion/google-fonts": "4.0.537",
     "@remotion/layout-utils": "4.0.537",
     "@remotion/light-leaks": "4.0.537",
     "@remotion/lottie": "4.0.537",

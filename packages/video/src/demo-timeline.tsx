@@ -46,8 +46,7 @@ import {
   getComponent,
   getPresentation,
   getSequencer,
-  useElement,
-  useResolvedElement,
+  resolveElement,
 } from "#video/registry/index.ts";
 
 const ELEMENT_FONTS: React.CSSProperties &
@@ -135,7 +134,7 @@ const ItemContent: React.FC<{ item: TimelineItem }> = ({ item }) => {
 };
 
 const Element: React.FC<{ item: ElementItem }> = ({ item }) => {
-  const element = useResolvedElement(item.component, getComponent);
+  const element = resolveElement(item.component, getComponent);
   if (element?.status === "unknown") return <MissingElement name={item.component} />;
   return element?.status === "ready" ? (
     <DesignBox design={item.design} fill={!item.design?.exact}>
@@ -152,7 +151,7 @@ const SceneSequence: React.FC<{ sequencer: SequencerProps; tracks: TimelineTrack
   sequencer,
   tracks,
 }) => {
-  const element = useResolvedElement(sequencer.component, getSequencer);
+  const element = resolveElement(sequencer.component, getSequencer);
   if (element?.status === "unknown") return <MissingElement name={sequencer.component} />;
   if (element?.status !== "ready") return null;
   const { Scenes, Item } = element.impl;
@@ -250,8 +249,8 @@ const CropBox: Wrap<{ crop: Rect }> = ({ crop, children }) => {
 };
 
 const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children }) => {
-  const element = useResolvedElement(wrapper?.component, getComponent);
-  if (!wrapper || element?.status === "loading") return <>{children}</>;
+  const element = resolveElement(wrapper?.component, getComponent);
+  if (!wrapper) return <>{children}</>;
   if (element?.status !== "ready")
     return (
       <>
@@ -299,8 +298,6 @@ const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
   const board = useCutBoard();
-  useElement(item.enter?.kind);
-  useElement(item.exit?.kind);
   const active = activeTransition(item, frame);
   if (!active) return <>{children}</>;
   const presentation = getPresentation(active.ref.kind, active.ref.params ?? {}, { width, height });

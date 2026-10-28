@@ -160,6 +160,7 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Overlay,
             120,
         )
+        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:bell")),
     )
 }

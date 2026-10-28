@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { getAgentRunDuration } from "#video/elements/remocn/agent-run.tsx";
-import { checkListDuration } from "#video/elements/remocn/check-list.tsx";
-import { getCodeMorphDuration } from "#video/elements/remocn/code-morph.tsx";
-import { commandMenuPlayEnd } from "#video/elements/remocn/command-menu.tsx";
-import { getKeystrokeDuration } from "#video/elements/remocn/keystroke.tsx";
-import { getSearchRevealDuration } from "#video/elements/remocn/search-reveal.tsx";
-import { wordPushLength } from "#video/elements/remocn/word-push.tsx";
-import { punchLinesDuration } from "#video/elements/snap-cn/punch-lines.tsx";
+import { getKeystrokeDuration } from "#video/elements/overlay/keystroke.tsx";
+import { commandMenuPlayEnd } from "#video/elements/scene/command-menu/index.tsx";
+import { punchLinesDuration } from "#video/elements/text/punch-lines.tsx";
+import { wordPushLength } from "#video/elements/text/word-push.tsx";
+import { getAgentRunDuration } from "#video/elements/ui/agent-run.tsx";
+import { checkListDuration } from "#video/elements/ui/check-list.tsx";
+import { getCodeMorphDuration } from "#video/elements/ui/code-morph.tsx";
+import { getSearchRevealDuration } from "#video/elements/ui/search-reveal.tsx";
 import CASES from "#video/registry/length-cases.generated.json";
 
 type Settings = Record<string, unknown>;

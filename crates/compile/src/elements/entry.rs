@@ -21,6 +21,7 @@ pub struct Entry {
     kind_props: IndexMap<String, String>,
     optional_clip: bool,
     authored_clock: bool,
+    fonts: Vec<String>,
 }
 
 impl Entry {
@@ -69,6 +70,12 @@ impl Entry {
     }
 
     #[must_use]
+    pub fn fonts(mut self, families: &[&str]) -> Self {
+        self.fonts = families.iter().map(|f| (*f).to_owned()).collect();
+        self
+    }
+
+    #[must_use]
     pub fn authored_clock(mut self) -> Self {
         self.authored_clock = true;
         self
@@ -96,6 +103,7 @@ pub fn element(
         kind_props: IndexMap::new(),
         optional_clip: false,
         authored_clock: false,
+        fonts: Vec::new(),
     }
 }
 
@@ -116,5 +124,6 @@ pub fn meta<T: JsonSchema + Default + Serialize>(e: Entry) -> ElementMeta {
         thumbnail: None,
         look: e.look,
         authored_clock: e.authored_clock,
+        fonts: e.fonts,
     }
 }

@@ -15,8 +15,8 @@ import { logTimeS, zoomAt } from "#video/camera/lib/zoom.ts";
 import { RimLight, Stage } from "#video/camera/stage.tsx";
 import { CHROME_H, WindowFrame } from "#video/camera/window-frame.tsx";
 import { percent } from "#video/common/format.ts";
-import { Backdrop } from "#video/core/backgrounds.tsx";
 import type { Size } from "#video/core/still-layout.ts";
+import { Backdrop } from "#video/elements/background/backdrop.tsx";
 import type {
   CursorLook,
   RecordingProps,

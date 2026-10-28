@@ -2,7 +2,39 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-const DIRS = ["core", "camera", "three"];
+const DIRS = ["core", "camera", "three", "lib/backgrounds"];
+
+const ELEMENT_FILES = [
+  "elements/background/backdrop.tsx",
+  "elements/background/gradient.tsx",
+  "elements/background/noise.tsx",
+  "elements/background/paper.tsx",
+  "elements/background/shapes-3d.tsx",
+  "elements/background/solid.tsx",
+  "elements/background/starburst.tsx",
+  "elements/background/video-loop.tsx",
+  "elements/device/screen-3d.tsx",
+  "elements/effect/mosaic/index.tsx",
+  "elements/media/image.tsx",
+  "elements/media/video.tsx",
+  "elements/overlay/callout.tsx",
+  "elements/overlay/captions.tsx",
+  "elements/overlay/light-leak.tsx",
+  "elements/overlay/lottie.tsx",
+  "elements/overlay/lower-third.tsx",
+  "elements/scene/card-3d.tsx",
+  "elements/scene/logo-3d.tsx",
+  "elements/scene/model-3d.tsx",
+  "elements/text/kinetic-headline.tsx",
+  "elements/text/text-3d.tsx",
+  "elements/text/title.tsx",
+  "elements/transition/clock-wipe.ts",
+  "elements/transition/fade.ts",
+  "elements/transition/flip.ts",
+  "elements/transition/iris.ts",
+  "elements/transition/slide.ts",
+  "elements/transition/wipe.ts",
+];
 
 const COLOR_LITERAL = /#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)|oklch\([^)]*\)/g;
 
@@ -43,22 +75,20 @@ const ALLOWED: Record<string, Record<string, string>> = {
     "#fff": "window body behind the page",
     "rgba(255,255,255,0.9)": "window top highlight",
   },
-  "core/captions.tsx": { "rgba(0,0,0,0.55)": "caption text shadow" },
-  "core/media.tsx": {
-    "rgba(0,0,0,0.45)": "cut-out screenshot shadow",
-    "rgba(0,0,0,${dim})": "the video loop's dim setting",
-  },
+  "elements/overlay/captions.tsx": { "rgba(0,0,0,0.55)": "caption text shadow" },
+  "core/still.tsx": { "rgba(0,0,0,0.45)": "cut-out screenshot shadow" },
+  "elements/background/video-loop.tsx": { "rgba(0,0,0,${dim})": "the video loop's dim setting" },
   "core/placeholder.tsx": {
     "rgba(255,255,255,0.05)": "empty clip sweep, never in a finished film",
     "rgba(255,255,255,0.18)": "empty clip border, never in a finished film",
   },
   "core/recording-clip.tsx": { "rgba(0,0,0,0.35)": "typed text chip shadow" },
   "three/devices.tsx": { "#0a0a0c": "3D device bezel and screen glass" },
-  "three/screen-3d.tsx": {
+  "elements/device/screen-3d.tsx": {
     "rgba(255,255,255,${GLARE.strongest})": "3D screen glare",
     "rgba(255,255,255,0)": "3D screen glare fading out",
   },
-  "three/card-3d.tsx": {
+  "elements/scene/card-3d.tsx": {
     "rgba(0,0,0,0.55)": "3D card's soft shadow",
     "rgba(0,0,0,0)": "3D card's soft shadow fading out",
   },
@@ -67,11 +97,14 @@ const ALLOWED: Record<string, Record<string, string>> = {
 const root = import.meta.dirname;
 
 function sourceFiles(): string[] {
-  return DIRS.flatMap((dir) =>
-    readdirSync(path.join(root, dir), { recursive: true, withFileTypes: true })
-      .filter((e) => e.isFile() && /\.tsx?$/.test(e.name) && !/\.test\.tsx?$/.test(e.name))
-      .map((e) => path.relative(root, path.join(e.parentPath, e.name)).split(path.sep).join("/")),
-  );
+  return [
+    ...ELEMENT_FILES,
+    ...DIRS.flatMap((dir) =>
+      readdirSync(path.join(root, dir), { recursive: true, withFileTypes: true })
+        .filter((e) => e.isFile() && /\.tsx?$/.test(e.name) && !/\.test\.tsx?$/.test(e.name))
+        .map((e) => path.relative(root, path.join(e.parentPath, e.name)).split(path.sep).join("/")),
+    ),
+  ];
 }
 
 const literalsIn = (file: string): string[] => [

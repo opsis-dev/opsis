@@ -138,7 +138,7 @@ fn a_spec_without_fonts_gets_the_default_project_fonts() {
 }
 
 #[test]
-fn a_film_preloads_its_role_fonts_and_every_font_its_items_name() {
+fn a_film_preloads_its_role_fonts_every_font_its_items_name_and_the_fonts_its_elements_draw_with() {
     let tracks: Vec<opsis_types::timeline::TimelineTrack> = serde_json::from_value(json!([{
         "id": "t",
         "items": [
@@ -168,8 +168,12 @@ fn a_film_preloads_its_role_fonts_and_every_font_its_items_name() {
             "Inter",
             "JetBrains Mono",
             "Fraunces",
+            "Geist",
+            "Instrument Serif",
             "Manrope",
-            "Outfit"
+            "Montserrat",
+            "Outfit",
+            "Space Grotesk"
         ]
     );
     assert_eq!(

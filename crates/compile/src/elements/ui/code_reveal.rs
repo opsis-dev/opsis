@@ -87,6 +87,7 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Ui,
             165,
         )
+        .fonts(&["JetBrains Mono"])
         .look(NodeLook::of("lucide:code")),
     )
 }

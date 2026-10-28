@@ -134,6 +134,7 @@ pub fn definition() -> ElementMeta {
                 360,
             )
                 .authored_clock()
+                .fonts(&["Caveat"])
                 .look(NodeLook::of("lucide:list-checks")),
         )
 }

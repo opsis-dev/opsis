@@ -114,6 +114,7 @@ pub fn definition() -> ElementMeta {
             )
                 .authored_clock()
                 .design(1920, 1080)
+                .fonts(&["Geist", "Instrument Serif", "Inter", "Montserrat", "Outfit", "Space Grotesk"])
                 .look(NodeLook::of("lucide:laptop").moves(NodeMotion::Open)),
         )
 }

@@ -138,6 +138,7 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Scene,
             120,
         )
+        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:badge-dollar-sign")),
     )
 }

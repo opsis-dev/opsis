@@ -55,6 +55,7 @@ pub fn definition() -> ElementMeta {
             )
                 .authored_clock()
                 .design(1920, 1080)
+                .fonts(&["JetBrains Mono"])
                 .look(NodeLook::of("lucide:hash").moves(NodeMotion::Roll)),
         )
 }

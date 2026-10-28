@@ -2,21 +2,15 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
-  readFileSync,
   rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import {
-  googleFontModuleFile,
-  googleImportName,
-  GOOGLE_SHIM_SEGMENTS,
-} from "@opsis/video/fonts/google-font-imports";
 import type { FontCategory, FontFamilyDef } from "@opsis/video/generated/spec";
 import { z } from "zod";
 import { readJsonWith } from "./lib/read-json";
-import { ROOT, VIDEO_DIR } from "./lib/tool-config";
+import { ROOT } from "./lib/tool-config";
 import { walkFiles } from "./lib/walk";
 
 const OUT = path.join(ROOT, "public", "fonts", "bundled");
@@ -28,34 +22,27 @@ const RUST_META_OUT = path.join(
   "fonts",
   "bundled.generated.json",
 );
-const SHIM_DIR = path.join(VIDEO_DIR, ...GOOGLE_SHIM_SEGMENTS);
 
-type BundledFont = { pkg: string; googleFamily?: string };
+type BundledFont = { pkg: string };
 
 const FONTS: BundledFont[] = [
-  { pkg: "@fontsource-variable/inter", googleFamily: "Inter" },
-  { pkg: "@fontsource-variable/geist", googleFamily: "Geist" },
+  { pkg: "@fontsource-variable/inter" },
+  { pkg: "@fontsource-variable/geist" },
   { pkg: "@fontsource-variable/geist-mono" },
-  { pkg: "@fontsource-variable/jetbrains-mono", googleFamily: "JetBrains Mono" },
+  { pkg: "@fontsource-variable/jetbrains-mono" },
   { pkg: "@fontsource-variable/manrope" },
   { pkg: "@fontsource-variable/dm-sans" },
-  { pkg: "@fontsource-variable/space-grotesk", googleFamily: "Space Grotesk" },
-  { pkg: "@fontsource-variable/outfit", googleFamily: "Outfit" },
-  { pkg: "@fontsource-variable/montserrat", googleFamily: "Montserrat" },
+  { pkg: "@fontsource-variable/space-grotesk" },
+  { pkg: "@fontsource-variable/outfit" },
+  { pkg: "@fontsource-variable/montserrat" },
   { pkg: "@fontsource-variable/plus-jakarta-sans" },
   { pkg: "@fontsource-variable/ibm-plex-sans" },
   { pkg: "@fontsource-variable/playfair-display" },
   { pkg: "@fontsource-variable/fraunces" },
-  { pkg: "@fontsource-variable/caveat", googleFamily: "Caveat" },
-  { pkg: "@fontsource-variable/google-sans-flex", googleFamily: "Google Sans" },
-  { pkg: "@fontsource/instrument-serif", googleFamily: "Instrument Serif" },
+  { pkg: "@fontsource-variable/caveat" },
+  { pkg: "@fontsource-variable/google-sans-flex" },
+  { pkg: "@fontsource/instrument-serif" },
 ];
-
-const GOOGLE_IMPORTS = new Map(
-  FONTS.flatMap(({ googleFamily }) =>
-    googleFamily ? [[googleImportName(googleFamily), googleFamily] as const] : [],
-  ),
-);
 
 const STYLE_ORDER = ["normal", "italic"] as const;
 
@@ -113,20 +100,6 @@ function copyFontFiles({ pkg }: BundledFont): FontFamilyDef {
   };
 }
 
-function checkImports(): void {
-  const used = new Set<string>();
-  for (const file of walkFiles(VIDEO_DIR)) {
-    if (!/\.tsx?$/.test(file) || file.startsWith(SHIM_DIR)) continue;
-    for (const m of readFileSync(file, "utf8").matchAll(/@remotion\/google-fonts\/([A-Za-z]+)/g))
-      used.add(m[1]);
-  }
-  const missing = [...used].filter((name) => !GOOGLE_IMPORTS.has(name));
-  if (missing.length)
-    throw new Error(
-      `Elements load fonts that aren't bundled: ${missing.join(", ")}. Add them to FONTS with their googleFamily.`,
-    );
-}
-
 function writeBundle(): void {
   rmSync(OUT, { recursive: true, force: true });
   mkdirSync(OUT, { recursive: true });
@@ -135,20 +108,8 @@ function writeBundle(): void {
   writeFileSync(RUST_META_OUT, `${JSON.stringify(defs, null, 2)}\n`);
 }
 
-function writeShims(): void {
-  rmSync(SHIM_DIR, { recursive: true, force: true });
-  mkdirSync(SHIM_DIR, { recursive: true });
-  for (const [name, family] of GOOGLE_IMPORTS)
-    writeFileSync(
-      path.join(SHIM_DIR, googleFontModuleFile(name)),
-      `import { googleFont } from "#video/fonts/google-font.ts";\n\nexport const { loadFont, getInfo } = googleFont(${JSON.stringify(family)});\n`,
-    );
-}
-
 function main(): void {
-  checkImports();
   writeBundle();
-  writeShims();
   const bytes = walkFiles(OUT)
     .filter((f) => f.endsWith(".woff2"))
     .reduce((n, f) => n + statSync(f).size, 0);

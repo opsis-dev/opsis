@@ -111,6 +111,7 @@ pub fn definition() -> ElementMeta {
                 ElementCategory::Data,
                 123,
             )
+                .fonts(&["Inter"])
                 .look(NodeLook::of("lucide:circle-gauge")),
         )
 }

@@ -84,6 +84,7 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Scene,
             150,
         )
+        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:flag")),
     )
 }

@@ -441,3 +441,17 @@ fn writes_every_show_if_value_as_text_since_the_form_compares_text() {
     }
     assert!(wrong.is_empty(), "{wrong:?}");
 }
+
+#[test]
+fn every_font_an_element_declares_is_bundled() {
+    let missing: Vec<String> = opsis_compile::elements::elements()
+        .iter()
+        .flat_map(|meta| {
+            meta.fonts
+                .iter()
+                .filter(|family| opsis_compile::fonts::find_family(family, &[]).is_none())
+                .map(move |family| format!("{}: {family}", meta.key))
+        })
+        .collect();
+    assert!(missing.is_empty(), "{missing:?}");
+}

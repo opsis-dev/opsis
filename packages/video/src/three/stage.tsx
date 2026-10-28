@@ -4,8 +4,8 @@ import React, { useEffect, useMemo } from "react";
 import { useVideoConfig } from "remotion";
 import { PMREMGenerator } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { Backgrounded } from "#video/core/backgrounds.tsx";
 import type { Lighting } from "#video/generated/spec.ts";
+import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
 import { boxDistance, fitDistance, type Pose, type Vec3 } from "#video/three/motion.ts";
 
 const FOV = 30;

@@ -93,6 +93,7 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Scene,
             120,
         )
+        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:pen-tool").moves(NodeMotion::Draw)),
     )
 }

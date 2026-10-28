@@ -76,6 +76,7 @@ pub fn definition() -> ElementMeta {
                 180,
             )
                 .authored_clock()
+                .fonts(&["Geist", "Instrument Serif", "Inter", "Montserrat", "Outfit", "Space Grotesk"])
                 .look(NodeLook::of("lucide:orbit")),
         )
 }

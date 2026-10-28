@@ -93,7 +93,7 @@ apps/ui/     the editor
 apps/preview the preview page the headless shell plays
 apps/sidecar Remotion renders on Bun
 e2e/         end-to-end tests (outside the workspace, own install)
-packages/video  Remotion root: DemoTimeline, registry, core elements, fonts, camera, registry elements
+packages/video  Remotion root: DemoTimeline, elements, parts, lib, fonts, camera, 3D
 scripts/     fonts, icons, engine downloads, packaging stage
 ```
 

@@ -78,6 +78,7 @@ pub fn definition() -> ElementMeta {
                 ElementCategory::Ui,
                 135,
             )
+                .fonts(&["JetBrains Mono"])
                 .look(NodeLook::of("lucide:file-diff")),
         )
 }

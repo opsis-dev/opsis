@@ -2,7 +2,128 @@
 
 Opsis vendors source from the registries and projects below. Their licences require the notices to be kept.
 
-## Remocn — packages/video/src/elements/remocn, packages/video/src/lib/remocn*
+## Remocn
+
+These files in `packages/video/src` started as Remocn components and are maintained as part of Opsis:
+
+- `elements/background/shader-dithering.tsx`
+- `elements/background/shader-god-rays.tsx`
+- `elements/background/shader-grain-gradient.tsx`
+- `elements/background/shader-mesh-gradient.tsx`
+- `elements/background/shader-perlin-noise.tsx`
+- `elements/background/shader-swirl.tsx`
+- `elements/background/shader-warp.tsx`
+- `elements/data/animated-bar-chart.tsx`
+- `elements/data/animated-line-chart.tsx`
+- `elements/data/rolling-number.tsx`
+- `elements/effect/camera-lens.tsx`
+- `elements/effect/crt-screen.tsx`
+- `elements/effect/halftone-print.tsx`
+- `elements/effect/mosaic/pixelate-region.tsx`
+- `elements/effect/polaroid.tsx`
+- `elements/effect/speed-lines.tsx`
+- `elements/effect/tv-power-off.tsx`
+- `elements/effect/vhs-filter.tsx`
+- `elements/overlay/confetti.tsx`
+- `elements/overlay/ink-arrow.tsx`
+- `elements/overlay/ink-underline.tsx`
+- `elements/overlay/inline-highlight.tsx`
+- `elements/overlay/keystroke.tsx`
+- `elements/overlay/marker-highlight.tsx`
+- `elements/overlay/radial-burst.tsx`
+- `elements/overlay/scribble-circle.tsx`
+- `elements/scene/ai-prompt-flow/index.tsx`
+- `elements/scene/ai-prompt-flow/skeleton-block.tsx`
+- `elements/scene/ai-prompt-flow/skeleton.tsx`
+- `elements/scene/ai-prompt-flow/use-skeleton-transition.ts`
+- `elements/scene/command-menu/command-menu-item.tsx`
+- `elements/scene/command-menu/index.tsx`
+- `elements/scene/launch-anything/assets.ts`
+- `elements/scene/launch-anything/content.ts`
+- `elements/scene/launch-anything/index.tsx`
+- `elements/scene/launch-anything/motion.ts`
+- `elements/scene/launch-anything/scenes/action-frame.tsx`
+- `elements/scene/launch-anything/scenes/action.tsx`
+- `elements/scene/launch-anything/scenes/closing.tsx`
+- `elements/scene/launch-anything/scenes/industry.tsx`
+- `elements/scene/launch-anything/scenes/opening.tsx`
+- `elements/scene/launch-anything/scenes/portal.tsx`
+- `elements/scene/launch-anything/scenes/proof.tsx`
+- `elements/scene/launch-anything/scenes/showcase.tsx`
+- `elements/scene/launch-anything/scenes/space.tsx`
+- `elements/scene/launch-anything/screens.tsx`
+- `elements/scene/launch-anything/shader-text-reveal.tsx`
+- `elements/scene/launch-anything/ui.tsx`
+- `elements/scene/release-teaser/background.tsx`
+- `elements/scene/release-teaser/content.ts`
+- `elements/scene/release-teaser/geometry.ts`
+- `elements/scene/release-teaser/index.tsx`
+- `elements/scene/release-teaser/motion.ts`
+- `elements/scene/release-teaser/scenes/closing.tsx`
+- `elements/scene/release-teaser/scenes/statement.tsx`
+- `elements/scene/release-teaser/ui.tsx`
+- `elements/scene/signup-flow/blur-in.tsx`
+- `elements/scene/signup-flow/cursor.tsx`
+- `elements/scene/signup-flow/field.tsx`
+- `elements/scene/signup-flow/index.tsx`
+- `elements/scene/signup-flow/use-blur-in-transition.ts`
+- `elements/scene/signup-flow/use-cursor-path.ts`
+- `elements/scene/spring-settle/index.tsx`
+- `elements/scene/spring-settle/scene-motion.ts`
+- `elements/text/gradient-scale-cut-text.tsx`
+- `elements/text/kinetic-center-build.tsx`
+- `elements/text/line-by-line-slide.tsx`
+- `elements/text/mask-reveal-up.tsx`
+- `elements/text/matrix-decode.tsx`
+- `elements/text/rgb-glitch-text.tsx`
+- `elements/text/shimmer-sweep.tsx`
+- `elements/text/slot-machine-roll.tsx`
+- `elements/text/soft-blur-in.tsx`
+- `elements/text/staggered-fade-up.tsx`
+- `elements/text/strikethrough-replace.tsx`
+- `elements/text/tracking-in.tsx`
+- `elements/text/typewriter.tsx`
+- `elements/text/word-push.tsx`
+- `elements/transition/dither-dissolve.tsx`
+- `elements/transition/focus-pull.tsx`
+- `elements/transition/glitch-cut.tsx`
+- `elements/transition/grain-dissolve.tsx`
+- `elements/transition/lens-zoom.tsx`
+- `elements/transition/page-turn.tsx`
+- `elements/transition/particle-dissolve.tsx`
+- `elements/transition/push-through.tsx`
+- `elements/transition/ripple-zoom.tsx`
+- `elements/transition/smoke-dissolve/index.tsx`
+- `elements/transition/smoke-dissolve/shader-smoke-ring.tsx`
+- `elements/transition/swirl-dissolve.tsx`
+- `elements/transition/wave-wipe.tsx`
+- `elements/transition/whip-pan.tsx`
+- `elements/transition/zoom-blur.tsx`
+- `elements/ui/agent-run.tsx`
+- `elements/ui/check-list.tsx`
+- `elements/ui/code-morph.tsx`
+- `elements/ui/glass-code-block.tsx`
+- `elements/ui/logo-enter.tsx`
+- `elements/ui/search-reveal.tsx`
+- `elements/ui/terminal-simulator.tsx`
+- `lib/motion/stop-motion.ts`
+- `lib/neutral-ui/color.ts`
+- `lib/neutral-ui/index.ts`
+- `lib/neutral-ui/motion.ts`
+- `lib/neutral-ui/theme.ts`
+- `lib/neutral-ui/timeline.ts`
+- `lib/neutral-ui/types.ts`
+- `lib/transitions/canvas-presentation.tsx`
+- `parts/brush.tsx`
+- `parts/button.tsx`
+- `parts/caret.tsx`
+- `parts/handwrite.tsx`
+- `parts/input.tsx`
+- `parts/spinner.tsx`
+- `parts/toast.tsx`
+- `parts/use-button-transition.ts`
+- `parts/use-input-transition.ts`
+- `parts/use-toast-transition.ts`
 
 ```
 MIT License
@@ -28,7 +149,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## snapcn — packages/video/src/elements/snap-cn, packages/video/src/lib/snap-cn-ui
+## snapcn
+
+These files in `packages/video/src` started as snapcn components and are maintained as part of Opsis:
+
+- `elements/device/laptop-frame.tsx`
+- `elements/device/phone-frame.tsx`
+- `elements/device/screen-recording.tsx`
+- `elements/scene/hero-launch.tsx`
+- `elements/scene/logo-assemble.tsx`
+- `elements/scene/logo-drift.tsx`
+- `elements/text/announce-title.tsx`
+- `elements/text/punch-lines.tsx`
+- `elements/text/status-cycle.tsx`
+- `elements/text/text-highlight.tsx`
+- `lib/warm-ui/color.ts`
+- `lib/warm-ui/fonts.ts`
+- `lib/warm-ui/index.ts`
+- `lib/warm-ui/item.tsx`
+- `lib/warm-ui/motion.ts`
+- `lib/warm-ui/theme.ts`
+- `lib/warm-ui/timeline.ts`
+- `lib/warm-ui/types.ts`
 
 ```
 MIT License
@@ -54,7 +196,66 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## RemotionUI — packages/video/src/elements/remotion-ui, packages/video/src/lib/remotion-ui
+## RemotionUI
+
+These files in `packages/video/src` started as RemotionUI components and are maintained as part of Opsis:
+
+- `elements/background/aurora-bg.tsx`
+- `elements/background/particle-field.tsx`
+- `elements/data/bar-chart-race.tsx`
+- `elements/data/comparison-bars.tsx`
+- `elements/data/donut-chart.tsx`
+- `elements/data/funnel-chart.tsx`
+- `elements/data/gauge-dial.tsx`
+- `elements/data/metric-ticker/index.tsx`
+- `elements/data/stat-card/index.tsx`
+- `elements/device/device-mockup-zoom/index.tsx`
+- `elements/device/multi-device-lineup.tsx`
+- `elements/overlay/notification-stack/index.tsx`
+- `elements/scene/changelog-entry/index.tsx`
+- `elements/scene/comparison-table/index.tsx`
+- `elements/scene/data-story/animated-bar-chart/index.tsx`
+- `elements/scene/data-story/auto-fit-title/index.tsx`
+- `elements/scene/data-story/caption-bumper/index.tsx`
+- `elements/scene/data-story/index.tsx`
+- `elements/scene/data-story/text-fit-utils.ts`
+- `elements/scene/data-story/timeline-steps/index.tsx`
+- `elements/scene/data-story/transition-fade.tsx`
+- `elements/scene/end-card/index.tsx`
+- `elements/scene/logo-reveal/index.tsx`
+- `elements/scene/logo-reveal/path-draw.tsx`
+- `elements/scene/logo-wall/index.tsx`
+- `elements/scene/pricing-card/index.tsx`
+- `elements/text/handwriting-text.tsx`
+- `elements/text/neon-flicker-text.tsx`
+- `elements/text/text-mask-video.tsx`
+- `elements/transition/chromatic-aberration-wipe.tsx`
+- `elements/transition/frosted-glass-wipe.tsx`
+- `elements/transition/grid-pixelate-wipe.tsx`
+- `elements/transition/transition-blinds.tsx`
+- `elements/transition/transition-morph-shape/displacement-presentation.tsx`
+- `elements/transition/transition-morph-shape/displacement-transition.ts`
+- `elements/transition/transition-morph-shape/index.tsx`
+- `elements/transition/transition-morph-shape/path-morph.ts`
+- `elements/ui/code-diff-wipe/index.tsx`
+- `elements/ui/code-reveal/index.tsx`
+- `elements/ui/commit-graph/index.tsx`
+- `elements/ui/drag-drop-flow/index.tsx`
+- `elements/ui/file-tree-reveal/index.tsx`
+- `elements/ui/kanban-move/index.tsx`
+- `lib/charts/chart-utils.ts`
+- `lib/code/code-syntax.tsx`
+- `lib/layout/layout.ts`
+- `lib/motion/motion-primitive.ts`
+- `lib/motion/motion-tokens.ts`
+- `lib/motion/springs.ts`
+- `lib/motion/timing.ts`
+- `lib/paths/path-utils.ts`
+- `lib/text/ai-composer-utils.tsx`
+- `lib/text/text-split.ts`
+- `lib/transitions/transition-timing.ts`
+- `parts/line-chart-draw.tsx`
+- `parts/split-text-chars.tsx`
 
 From https://github.com/riaz37/remotion-ui (commit b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f), installed from the https://remotionui.com registry.
 

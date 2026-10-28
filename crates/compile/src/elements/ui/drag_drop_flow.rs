@@ -91,6 +91,7 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Ui,
             150,
         )
+        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:cloud-upload")),
     )
 }

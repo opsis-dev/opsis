@@ -3,7 +3,6 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { localFonts } from "../../scripts/lib/vite-local-fonts.ts";
 
 const UI_DIR = import.meta.dirname;
 const UI_DEV_PORT = 5173;
@@ -18,7 +17,6 @@ export default defineConfig({
       routesDirectory: path.join(UI_DIR, "src", "routes"),
       generatedRouteTree: path.join(UI_DIR, "src", "routeTree.gen.ts"),
     }),
-    localFonts(),
     react(),
     tailwindcss(),
   ],

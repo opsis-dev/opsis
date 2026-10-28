@@ -92,6 +92,7 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Ui,
             120,
         )
+        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:folder-tree")),
     )
 }

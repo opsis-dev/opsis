@@ -70,6 +70,7 @@ pub struct ElementMeta {
     pub thumbnail: Option<String>,
     pub look: Option<NodeLook>,
     pub authored_clock: bool,
+    pub fonts: Vec<String>,
 }
 
 struct Elements {

@@ -42,7 +42,7 @@ export async function bundleRemotionProject({
     publicDir: path.join(projectRoot, "public"),
     rspack: true,
     rspackOverride: async (config) => {
-      const base = await makeBundlerOverride(path.join(projectRoot, ...VIDEO_SOURCE))(config);
+      const base = await makeBundlerOverride()(config);
       const stub = path.join(import.meta.dirname, "no-studio.ts");
       const overridden = { ...base, plugins: [...(base.plugins ?? []), withoutStudio(stub)] };
       if (sourceMaps) return overridden;

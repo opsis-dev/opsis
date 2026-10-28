@@ -73,6 +73,7 @@ pub fn definition() -> ElementMeta {
             120,
         )
         .design(1920, 1080)
+        .fonts(&["Inter"])
         .look(NodeLook::of("tabler:devices")),
     )
 }

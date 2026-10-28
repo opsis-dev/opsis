@@ -97,6 +97,7 @@ pub fn definition() -> ElementMeta {
                 ElementCategory::Scene,
                 300,
             )
+                .fonts(&["Inter"])
                 .look(NodeLook::of("lucide:rocket")),
         )
 }

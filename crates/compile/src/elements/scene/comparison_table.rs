@@ -136,6 +136,7 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Scene,
             120,
         )
+        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:table-2")),
     )
 }

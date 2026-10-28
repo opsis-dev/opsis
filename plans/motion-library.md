@@ -76,7 +76,7 @@ In place:
 - `ElementMeta` (`crates/compile/src/elements/mod.rs`) records nothing about where an element came from; that lives only in `THIRD_PARTY_NOTICES.md`.
 - `elements()` lists every element's `definition()` in one ordered list; every entry becomes a node (`element_node_type`: `fx.<name>`) with its card, length handle and envelope. A file per element and a line in that list is all these elements need on the Rust side.
 - Settings structs: every element's settings are a struct with `schemars` attributes; the ones collected in `CoreElementProps` are exported to `packages/video/src/generated/spec.ts`, so components get typed props. The `font` widget (`x-widget = "font"`) and `font_stack` (`crates/compile/src/fonts/mod.rs`) turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
-- Lazy loading: `loadElement` in `packages/video/src/registry/index.ts` finds a module through `lazyLoaderOf`, which looks in `generatedElementLoaders` (`components.generated.ts`) and `LAZY_CORE_ELEMENTS` (the 3D elements), and loads it under `delayRender`.
+- Loading: `ELEMENTS` (`packages/video/src/elements/index.ts`) imports every element, and `DemoTimeline` looks each up synchronously (`resolveElement`).
 - Framing helpers in `packages/video/src/registry/framing.tsx`: `centered`, `fitScreen`, `placedAt` (spot placement for the `spot` widget), `pointsFromSpots`, `painted`, `playsAtEnd`.
 - Guardrails already cover any new folder in `packages/video`: `no-restricted-imports` bans `framer-motion`, `motion`, `gsap` and `useFrame` (`scripts/lib/oxlint-base.ts`), `opsis/no-animate-class` bans Tailwind `animate-*` and `opsis/no-three-clock` bans three.js clocks (`packages/video/oxlint.config.ts`, `scripts/oxlint-plugin-opsis.ts`).
 - Placeholder images in `public/placeholders` (`logo-mark.svg`, `screen-wide.svg`, `screen-tall.svg`) for logo and image defaults.
@@ -90,9 +90,9 @@ Missing:
 ### Work
 
 1. **Where code goes.**
-   - Components: `packages/video/src/motion/<source>/<name>.tsx`, with `<source>` one of `magicui`, `motion-primitives`, `cult-ui`, `smoothui`, `lucide-animated`. Each source folder holds its `LICENSE.<source>` file (the upstream licence text, as `packages/video/src/camera/LICENSE.programatic-demo` does), since source files can't carry a licence header comment.
+   - Components: `packages/video/src/elements/<category>/<name>.tsx`, like every other element; nothing in a path or name says where a component came from.
    - Settings: one file per element under `crates/compile/src/elements/<category>/`, like every other element, listed in `elements()` and added to the props map exported with the other spec types. Keys are the element's name (node type `fx.<name>`), like every other element; where it came from goes in `THIRD_PARTY_NOTICES.md` only.
-   - Loaders: `packages/video/src/registry/motion.ts` exporting `motionElementLoaders` (dynamic `import()` plus the framing helper, the same shape as `generatedElementLoaders`); `lazyLoaderOf` looks in it too.
+   - Loading: one entry each in `ELEMENTS` (`packages/video/src/elements/index.ts`).
    - Looks: each element's `.look(…)` in its `definition()`, then `bun run glyphs:bundle`.
 2. **Recipe** (one checklist per element, in the change description):
    - Copy the upstream file once into the target folder, then rewrite it. Delete `"use client"`, `cn()` imports from the web app and every comment.
@@ -107,7 +107,7 @@ Missing:
    - Length: an `element_timing` entry (`crates/compile/src/elements/lengths.rs`) when the animation has an end, so Length defaults to "Fit the animation".
 3. **First batch** (one of each kind, to prove the recipe): Running border (6), Morphing words (1), Flickering grid (14), Animated icon (18) with five icons. Check, then do the rest in two batches.
 4. **Copy.** Titles and descriptions in sentence case without source names (the table titles are drafts). `crates/compile/tests/unit/nodes_c.rs` checks the new elements' descriptions and banned words automatically.
-5. **Licences.** One `THIRD_PARTY_NOTICES.md` section per source, headed `<Source> — packages/video/src/motion/<source>` like the Remocn entry, with the upstream copyright line, licence text and the upstream commit, plus Lucide (ISC) for the icon shapes. Settings → Licences shows the file.
+5. **Licences.** One `THIRD_PARTY_NOTICES.md` section per source, listing the Opsis files that started from it like the Remocn entry, with the upstream copyright line, licence text and the upstream commit, plus Lucide (ISC) for the icon shapes. Settings → Licences shows the file.
 6. **Tests.** Vitest for the pure timing helpers (keyframe table → value, orbit angle, flicker slot); the existing test that every element's defaults pass its own schema covers the settings. Add each element to the visual check (last section).
 7. **Check.** Each element at its default length and at half length in 16:9 and 9:16; scrub backwards; export equals Preview; a second render of the same frame is pixel-identical.
 
@@ -158,7 +158,7 @@ In place:
 
 - The Remotion Elements page is example source, not a registry: it gives no install command and no package (checked 2026-10-16). The example is a few lines around `liquidContours()` from `@remotion/effects/liquid-contours`, applied to Remotion's `<Solid>` through its `effects` prop, with `phase` interpolated from the frame.
 - `@remotion/effects@4.0.537` is a dependency of `packages/video` (Blur areas and Picture look use it) and exports `./liquid-contours`; its options are `firstColor`, `secondColor`, `spacing` (2–300), `scale` (20–1000), `complexity` (0–1), `smoothness` (0–1), `seed`, `offsetX`, `offsetY`, `phase` (`dist/liquid-contours.d.ts`). It draws with a WebGL2 shader and fetches nothing.
-- Background elements live in `packages/video/src/core/backgrounds.tsx`, with settings in `crates/compile/src/elements/background/`.
+- Background elements live in `packages/video/src/elements/background/`, one file each, with settings in `crates/compile/src/elements/background/`.
 - Export's **Draw with** setting (`Gl` in `crates/compile/src/nodes/output.rs`) chooses software drawing (`swangle`).
 
 Missing:
@@ -168,7 +168,7 @@ Missing:
 ### Work
 
 1. **Settings.** `crates/compile/src/elements/background/liquid_contours.rs` (`ElementCategory::Background`, 150 frames): `first_color`, `second_color`, `spacing`, `scale`, `complexity`, `smoothness` (advanced), `seed` (min 1), `flow` (how much `phase` moves over the element, default 1), with `design` at 1920×1080.
-2. **Component.** `LiquidContours` in `packages/video/src/core/liquid-contours.tsx` draws `<Solid color={secondColor} effects={[liquidContours({ …, phase: 3.23 + flow * frame / durationInFrames })]} />`. It goes in `LAZY_CORE_ELEMENTS`, so projects without it never load the effects package.
+2. **Component.** `LiquidContours` in `packages/video/src/core/liquid-contours.tsx` draws `<Solid color={secondColor} effects={[liquidContours({ …, phase: 3.23 + flow * frame / durationInFrames })]} />`. It goes in `ELEMENTS` like every other element.
 3. **Copy.** "Liquid contours", "A flowing background of two-colour bands."
 4. **Check.** Export a still and a video with the default drawing and with Software, 9:16.
 
@@ -224,10 +224,10 @@ A **Rive animation** element that plays a `.riv` file from the project: pick the
 
 In place:
 
-- `LottieElement` (`packages/video/src/core/lottie.tsx`) is the pattern: an `asset` setting given the host's project address by `hosted`, `fetch()` under `delayRender`, `cancelRender` on failure; its settings accept `.json,.lottie` through `x-accept`.
+- `LottieElement` (`packages/video/src/elements/overlay/lottie.tsx`) is the pattern: an `asset` setting given the host's project address by `hosted`, `fetch()` under `delayRender`, `cancelRender` on failure; its settings accept `.json,.lottie` through `x-accept`.
 - `import_assets` (`crates/project/src/import.rs`) copies any file into `assets/`; the file servers are `tower-http`'s `ServeDir` (`crates/engine/src/http_files.rs`), whose MIME table already maps `.wasm` to `application/wasm` and serves unknown types such as `.riv` as `application/octet-stream`.
 - Video code runs only in the headless shell (the preview page, `apps/preview`, and the render bundle), never in the editor's webview, so the editor's CSP doesn't apply; the preview page sets none.
-- Both video bundlers already swap one import for Opsis's own module: the font redirect (`localFonts` in `scripts/lib/vite-local-fonts.ts` for `apps/preview`, the Rspack hook in `apps/sidecar/src/bundler-override.ts`). Rive's runtime uses the same mechanism.
+- No bundler swaps an import today; the sidecar's Rspack override takes aliases (`makeBundlerOverride` in `apps/sidecar/src/bundler-override.ts`), and `apps/preview`'s Vite config can take a `resolve.alias`. Rive's runtime goes through those.
 
 What the packages do (from the tarballs of `@remotion/rive` and `@rive-app/canvas-advanced@2.31.5`, checked 2026-10-19; `@remotion/rive@4.0.537` still pins 2.31.5, checked 2026-10-26):
 
@@ -246,7 +246,7 @@ Use Remotion's `<RemotionRiveCanvas>` and download nothing at run time: both bun
 2. **Bundled runtime.** `scripts/rive-runtime.ts` (`bun run rive:runtime`) copies `rive.wasm` from the installed package to `public/rive/rive.wasm`, like `fonts:bundle` copies fonts; add the row to the generated-files table in `AGENTS.md`. A test checks the copy matches the installed package byte for byte, so a version bump can't leave an old runtime behind. `rive_fallback.wasm` isn't needed: the advanced runtime never names it.
 3. **Runtime redirect.** `packages/video/src/rive/runtime.ts` imports the real `canvas_advanced.mjs` and exports a default function that calls it with `locateFile: () => staticFile("rive/rive.wasm")`, whatever `locateFile` the caller passed. The Vite plugin and the Rspack hook resolve the bare `@rive-app/canvas-advanced` to that module, next to the font redirect; the `.mjs` subpath is left alone, so the wrapper doesn't redirect to itself. A test bundles a module that imports the bare name and checks it resolves to the wrapper in both bundlers.
 4. **Settings.** `rive` in its own file under `crates/compile/src/elements/`: `src` (`asset`, `x-accept = ".riv"`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`; 90 frames.
-5. **Component.** `packages/video/src/core/rive.tsx`, in `LAZY_CORE_ELEMENTS`, renders `<RemotionRiveCanvas src={…} artboard={…} animation={…} fit={…} enableRiveAssetCdn={false} />`, with `src` resolved like Lottie's.
+5. **Component.** `packages/video/src/elements/<category>/rive.tsx`, in `ELEMENTS`, renders `<RemotionRiveCanvas src={…} artboard={…} animation={…} fit={…} enableRiveAssetCdn={false} />`, with `src` resolved like Lottie's.
 6. **Copy.** Title "Rive animation", description in the Lottie element's style: "Plays an animation made in Rive (.riv)."
 7. **Licences.** `THIRD_PARTY_NOTICES.md`: `@rive-app/canvas-advanced` (MIT), including the bundled `rive.wasm`. `@remotion/rive` is under the Remotion licence, covered by the existing notice.
 8. **Check.**

@@ -156,6 +156,7 @@ pub fn definition() -> ElementMeta {
                 144,
             )
                 .authored_clock()
+                .fonts(&["Geist", "Instrument Serif", "Inter", "Montserrat", "Outfit", "Space Grotesk"])
                 .look(NodeLook::of("lucide:type").moves(NodeMotion::HardCut)),
         )
 }

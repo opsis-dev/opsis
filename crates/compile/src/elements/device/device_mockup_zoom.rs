@@ -87,6 +87,7 @@ pub fn definition() -> ElementMeta {
                 90,
             )
                 .optional_clip()
+                .fonts(&["Inter"])
                 .look(NodeLook::of("lucide:laptop-minimal")),
         )
 }

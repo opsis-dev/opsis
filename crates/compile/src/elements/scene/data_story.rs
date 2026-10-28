@@ -216,6 +216,7 @@ pub fn definition() -> ElementMeta {
                 ElementCategory::Scene,
                 420,
             )
+                .fonts(&["Inter"])
                 .look(NodeLook::of("lucide:chart-area")),
         )
 }

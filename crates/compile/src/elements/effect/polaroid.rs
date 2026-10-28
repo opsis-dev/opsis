@@ -63,6 +63,7 @@ pub fn definition() -> ElementMeta {
                 ElementCategory::Effect,
                 150,
             )
+                .fonts(&["Caveat"])
                 .look(NodeLook::of("tabler:polaroid")),
         )
 }
