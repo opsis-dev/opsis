@@ -17,11 +17,11 @@ use num_traits::ToPrimitive;
 use opsis_compile::gradient::{Gradient, GradientKind};
 use opsis_compile::nodes::image::{
     AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BeforeAfterPlan, BlurImage,
-    ClearColour, CropImage, FrameScreenshot, ImageFormat, ImageGrid, LevelsMethod, OutlineImage,
-    PlaceImage, Rect, RedactImage, RedactStyle, Resample, ResizeFit, ResizeImage, RotateImage,
-    SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn, area_rect, before_after_plan,
-    crop_rect, framed_placement, grid_plan, label_size, outline_padding, resized_size,
-    rotated_size, tilt_corners, tilted_size,
+    ClearColour, CropImage, FrameScreenshot, ImageFormat, ImageGrid, LevelsMethod, Magnify,
+    MagnifyShape, OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle, Resample, ResizeFit,
+    ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn,
+    area_rect, before_after_plan, crop_rect, framed_placement, grid_plan, label_size, magnify_plan,
+    outline_padding, resized_size, rotated_size, tilt_corners, tilted_size,
 };
 
 use crate::ImageError;
@@ -910,14 +910,17 @@ fn covering(picture: &DynamicImage, size: (u32, u32)) -> Result<Rgba32FImage, Im
     .to_rgba32f())
 }
 
-fn rounded_cover(px: f64, py: f64, rect: Rect, radius: f64) -> f32 {
+fn rounded_distance(px: f64, py: f64, rect: Rect, radius: f64) -> f64 {
     let r = radius.min(rect.width / 2.0).min(rect.height / 2.0).max(0.0);
     let (cx, cy) = (rect.x + rect.width / 2.0, rect.y + rect.height / 2.0);
     let qx = (px - cx).abs() - (rect.width / 2.0 - r);
     let qy = (py - cy).abs() - (rect.height / 2.0 - r);
     let outside = qx.max(0.0).hypot(qy.max(0.0));
-    let distance = outside + qx.max(qy).min(0.0) - r;
-    (0.5 - distance).clamp(0.0, 1.0) as f32
+    outside + qx.max(qy).min(0.0) - r
+}
+
+fn rounded_cover(px: f64, py: f64, rect: Rect, radius: f64) -> f32 {
+    (0.5 - rounded_distance(px, py, rect, radius)).clamp(0.0, 1.0) as f32
 }
 
 pub fn frame(
@@ -1110,6 +1113,92 @@ pub fn before_after(
     }
     let out = DynamicImage::ImageRgba32F(out);
     Ok(if is_deep(before) || is_deep(after) {
+        DynamicImage::ImageRgba16(out.to_rgba16())
+    } else {
+        DynamicImage::ImageRgba8(out.to_rgba8())
+    })
+}
+
+fn shape_distance(px: f64, py: f64, rect: Rect, p: &Magnify) -> f64 {
+    let corner = match p.shape {
+        MagnifyShape::Circle => rect.width.min(rect.height) / 2.0,
+        MagnifyShape::Rounded => f64::from(p.radius),
+    };
+    rounded_distance(px, py, rect, corner)
+}
+
+fn segment_distance(point: (f64, f64), from: (f64, f64), to: (f64, f64)) -> f64 {
+    let (dx, dy) = (to.0 - from.0, to.1 - from.1);
+    let length = dx * dx + dy * dy;
+    let t = if length > 0.0 {
+        (((point.0 - from.0) * dx + (point.1 - from.1) * dy) / length).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+    (point.0 - from.0 - t * dx).hypot(point.1 - from.1 - t * dy)
+}
+
+fn ring(distance: f64, half: f64) -> f32 {
+    (half - distance.abs() + 0.5).clamp(0.0, 1.0) as f32
+}
+
+fn tinted(pixel: [f32; 4], colour: [f32; 4], cover: f32) -> [f32; 4] {
+    let mut top = colour;
+    top[3] *= cover;
+    over(top, pixel)
+}
+
+pub fn magnify(image: &DynamicImage, p: &Magnify) -> Result<DynamicImage, ImageError> {
+    let plan = magnify_plan(size_of(image), p);
+    let (area, shown) = (plan.area, plan.shown);
+    let cut = image.crop_imm(
+        whole(area.x),
+        whole(area.y),
+        whole(area.width).max(1),
+        whole(area.height).max(1),
+    );
+    let options = ResizeOptions::new().resize_alg(algorithm(Resample::Smooth));
+    let view = resized_to(
+        &DynamicImage::ImageRgba16(cut.to_rgba16()),
+        whole(shown.width).max(1),
+        whole(shown.height).max(1),
+        &options,
+    )?
+    .to_rgba32f();
+    let picture = image.to_rgba32f();
+    let border = unit_colour(background_rgba(&p.border_color));
+    let half = f64::from(p.border_width) / 2.0;
+    let thin = (half / 2.0).max(0.5);
+    let ends = (
+        (area.x + area.width / 2.0, area.y + area.height / 2.0),
+        (shown.x + shown.width / 2.0, shown.y + shown.height / 2.0),
+    );
+    let out = ImageBuffer::from_fn(picture.width(), picture.height(), |x, y| {
+        let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
+        let mut pixel = picture.get_pixel(x, y).0;
+        let to_area = shape_distance(px, py, area, p);
+        let to_shown = shape_distance(px, py, shown, p);
+        if p.line && p.border_width > 0 {
+            let along = segment_distance((px, py), ends.0, ends.1);
+            let outside = (0.5 + to_area).clamp(0.0, 1.0) as f32;
+            pixel = tinted(pixel, border, ring(along, thin) * outside);
+            pixel = tinted(pixel, border, ring(to_area, thin));
+        }
+        let inside = (0.5 - to_shown).clamp(0.0, 1.0) as f32;
+        if inside > 0.0 {
+            let vx = whole(px - shown.x - 0.5).min(view.width() - 1);
+            let vy = whole(py - shown.y - 0.5).min(view.height() - 1);
+            let mut top = view.get_pixel(vx, vy).0;
+            top[3] *= inside;
+            pixel = over(top, pixel);
+        }
+        if p.border_width > 0 {
+            pixel = tinted(pixel, border, ring(to_shown, half));
+        }
+        Rgba(pixel)
+    });
+    let out = DynamicImage::ImageRgba32F(out);
+    Ok(if is_deep(image) {
         DynamicImage::ImageRgba16(out.to_rgba16())
     } else {
         DynamicImage::ImageRgba8(out.to_rgba8())

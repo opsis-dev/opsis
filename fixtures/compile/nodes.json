@@ -11957,6 +11957,69 @@
   }
  },
  {
+  "type": "image.magnify",
+  "title": "Magnify",
+  "category": "Image",
+  "description": "Shows one part of an image enlarged in a circle or a rounded box beside it, joined to the spot by a line, so small text reads. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "image",
+    "type": "media",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "image",
+    "type": "image",
+    "label": "Image",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "sizeFrom": "two-boxes",
+   "area": [
+    {
+     "x": 0.15,
+     "y": 0.2,
+     "width": 0.12,
+     "height": 0.12
+    }
+   ],
+   "shown": [
+    {
+     "x": 0.55,
+     "y": 0.35,
+     "width": 0.3,
+     "height": 0.3
+    }
+   ],
+   "zoom": 2.5,
+   "shape": "circle",
+   "radius": 16,
+   "borderWidth": 4,
+   "borderColor": "#ffffff",
+   "line": true
+  }
+ },
+ {
   "type": "output.render",
   "title": "Export video",
   "category": "Output",

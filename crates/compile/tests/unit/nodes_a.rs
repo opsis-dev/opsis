@@ -398,6 +398,123 @@ fn says_how_before_and_after_lays_out_and_the_size_it_will_make() {
     );
 }
 
+fn magnify_with(params: Value) -> opsis_compile::nodes::image::Magnify {
+    typed(crate::helpers::defaults_with("image.magnify", params))
+}
+
+#[test]
+fn sizes_the_magnified_view_from_whichever_two_settings_the_mode_names() {
+    use opsis_compile::nodes::image::{Rect, magnify_plan};
+    let source = (1000.0, 500.0);
+    let boxes = json!({
+        "area": [{ "x": 0.1, "y": 0.1, "width": 0.1, "height": 0.2 }],
+        "shown": [{ "x": 0.5, "y": 0.2, "width": 0.3, "height": 0.6 }],
+        "zoom": 2.0
+    });
+    let two = magnify_plan(source, &magnify_with(boxes.clone()));
+    assert_eq!(
+        two.area,
+        Rect {
+            x: 100.0,
+            y: 50.0,
+            width: 100.0,
+            height: 100.0
+        }
+    );
+    assert_eq!(
+        two.shown,
+        Rect {
+            x: 500.0,
+            y: 100.0,
+            width: 300.0,
+            height: 300.0
+        }
+    );
+    assert_eq!(two.zoom, 3.0);
+    let mut by_area = boxes.clone();
+    by_area["sizeFrom"] = json!("area-and-zoom");
+    let area_zoom = magnify_plan(source, &magnify_with(by_area));
+    assert_eq!(
+        area_zoom.shown,
+        Rect {
+            x: 550.0,
+            y: 150.0,
+            width: 200.0,
+            height: 200.0
+        }
+    );
+    assert_eq!(area_zoom.zoom, 2.0);
+    let mut by_shown = boxes.clone();
+    by_shown["sizeFrom"] = json!("shown-and-zoom");
+    let shown_zoom = magnify_plan(source, &magnify_with(by_shown));
+    assert_eq!(
+        shown_zoom.area,
+        Rect {
+            x: 75.0,
+            y: 25.0,
+            width: 150.0,
+            height: 150.0
+        }
+    );
+    assert_eq!(shown_zoom.zoom, 2.0);
+    let edge = magnify_plan(
+        source,
+        &magnify_with(json!({
+            "sizeFrom": "area-and-zoom",
+            "area": [{ "x": 0.0, "y": 0.0, "width": 0.1, "height": 0.2 }],
+            "shown": [{ "x": 0.9, "y": 0.9, "width": 0.1, "height": 0.1 }],
+            "zoom": 4.0
+        })),
+    );
+    assert_eq!(
+        edge.shown,
+        Rect {
+            x: 600.0,
+            y: 100.0,
+            width: 400.0,
+            height: 400.0
+        },
+        "kept inside the picture"
+    );
+    let rounded = magnify_plan(
+        source,
+        &magnify_with(
+            json!({ "shape": "rounded", "area": [{ "x": 0.1, "y": 0.1, "width": 0.1, "height": 0.1 }], "shown": [{ "x": 0.5, "y": 0.2, "width": 0.4, "height": 0.2 }] }),
+        ),
+    );
+    assert_eq!(
+        (rounded.area.width, rounded.area.height, rounded.zoom),
+        (200.0, 50.0, 2.0),
+        "the area takes the shape of the view"
+    );
+}
+
+#[test]
+fn says_the_zoom_and_shape_on_the_magnify_card() {
+    let mut inputs = CardInputs::default();
+    inputs.pixels.insert("image".to_owned(), (1000, 500));
+    assert_eq!(
+        card_texts(
+            "image.magnify",
+            json!({ "area": [{ "x": 0.1, "y": 0.1, "width": 0.1, "height": 0.2 }], "shown": [{ "x": 0.5, "y": 0.2, "width": 0.3, "height": 0.6 }] }),
+            inputs
+        ),
+        ["3× · circle", "1000 × 500 px"]
+    );
+    assert_eq!(
+        card_texts(
+            "image.magnify",
+            json!({ "sizeFrom": "shown-and-zoom", "shape": "rounded" }),
+            CardInputs::default()
+        ),
+        ["2.5× · rounded box"]
+    );
+    assert_eq!(
+        card_texts("image.magnify", json!({}), CardInputs::default()),
+        ["Two boxes · circle"]
+    );
+}
+
 #[test]
 fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
     let song = &builtin_songs()[0];

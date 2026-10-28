@@ -40,6 +40,8 @@ pub const PLACE_TYPE: &str = "image.place";
 
 pub const BEFORE_AFTER_TYPE: &str = "image.beforeAfter";
 
+pub const MAGNIFY_TYPE: &str = "image.magnify";
+
 pub const BLUR_TYPE: &str = "image.blur";
 
 pub const ADJUST_TYPE: &str = "image.adjust";
@@ -1626,6 +1628,205 @@ fn before_after() -> NodeDef {
     })
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum MagnifySize {
+    #[default]
+    TwoBoxes,
+    AreaAndZoom,
+    ShownAndZoom,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum MagnifyShape {
+    #[default]
+    Circle,
+    Rounded,
+}
+
+fn magnify_area() -> Vec<Area> {
+    vec![Area {
+        x: 0.15,
+        y: 0.2,
+        width: 0.12,
+        height: 0.12,
+    }]
+}
+
+fn magnify_shown() -> Vec<Area> {
+    vec![Area {
+        x: 0.55,
+        y: 0.35,
+        width: 0.3,
+        height: 0.3,
+    }]
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Magnify {
+    #[schemars(
+        description = "Size from",
+        extend(
+            "x-labels" = { "two-boxes": "The two boxes", "area-and-zoom": "The area and a zoom", "shown-and-zoom": "Where it shows and a zoom" },
+            "x-help" = "Any two of the area, where it shows and the zoom decide the third."
+        )
+    )]
+    pub size_from: MagnifySize,
+    #[default(magnify_area())]
+    #[schemars(
+        description = "Area to enlarge",
+        length(min = 1, max = 1),
+        extend(
+            "x-widget" = "boxes",
+            "x-help" = "Drag on the picture over the part to enlarge. With Where it shows and a zoom, only its middle counts."
+        )
+    )]
+    pub area: Vec<Area>,
+    #[default(magnify_shown())]
+    #[schemars(
+        description = "Where it shows",
+        length(min = 1, max = 1),
+        extend(
+            "x-widget" = "boxes",
+            "x-help" = "Drag where the enlarged view goes. With The area and a zoom, only its middle counts."
+        )
+    )]
+    pub shown: Vec<Area>,
+    #[default = 2.5]
+    #[schemars(
+        description = "Zoom",
+        range(min = 1, max = 10),
+        extend("x-step" = 0.1, "x-unit" = "×", "x-show-if" = { "sizeFrom": ["area-and-zoom", "shown-and-zoom"] })
+    )]
+    pub zoom: f64,
+    #[schemars(description = "Shape", extend("x-labels" = { "circle": "Circle", "rounded": "Rounded box" }))]
+    pub shape: MagnifyShape,
+    #[default = 16]
+    #[schemars(description = "Corner radius", range(min = 0, max = 400), extend("x-unit" = "px", "x-show-if" = { "shape": ["rounded"] }))]
+    pub radius: u32,
+    #[default = 4]
+    #[schemars(description = "Border width", range(min = 0, max = 40), extend("x-unit" = "px"))]
+    pub border_width: u32,
+    #[default("#ffffff".to_owned())]
+    #[schemars(description = "Border colour", extend("x-widget" = "color"))]
+    pub border_color: String,
+    #[default = true]
+    #[schemars(description = "Line to the spot", extend("x-help" = "Outlines the enlarged part and joins it to the view."))]
+    pub line: bool,
+}
+
+impl Params for Magnify {}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MagnifyPlan {
+    pub area: Rect,
+    pub shown: Rect,
+    pub zoom: f64,
+}
+
+fn middle(rect: Rect) -> (f64, f64) {
+    (rect.x + rect.width / 2.0, rect.y + rect.height / 2.0)
+}
+
+fn around(centre: (f64, f64), size: (f64, f64)) -> Rect {
+    Rect {
+        x: centre.0 - size.0 / 2.0,
+        y: centre.1 - size.1 / 2.0,
+        width: size.0,
+        height: size.1,
+    }
+}
+
+fn kept_in(source: (f64, f64), rect: Rect) -> Rect {
+    let (width, height) = (rect.width.min(source.0), rect.height.min(source.1));
+    Rect {
+        x: rect.x.clamp(0.0, source.0 - width),
+        y: rect.y.clamp(0.0, source.1 - height),
+        width,
+        height,
+    }
+}
+
+fn shaped(rect: Rect, shape: MagnifyShape, covering: bool) -> Rect {
+    match shape {
+        MagnifyShape::Circle => {
+            let side = if covering {
+                rect.width.max(rect.height)
+            } else {
+                rect.width.min(rect.height)
+            };
+            around(middle(rect), (side, side))
+        }
+        MagnifyShape::Rounded => rect,
+    }
+}
+
+fn first_box(source: (f64, f64), areas: &[Area]) -> Rect {
+    areas.first().map_or(
+        Rect {
+            x: 0.0,
+            y: 0.0,
+            width: source.0,
+            height: source.1,
+        },
+        |area| area_rect(source, area),
+    )
+}
+
+pub fn magnify_plan(source: (f64, f64), p: &Magnify) -> MagnifyPlan {
+    let area_box = shaped(first_box(source, &p.area), p.shape, true);
+    let shown_box = shaped(first_box(source, &p.shown), p.shape, false);
+    let zoom = p.zoom.max(1.0);
+    let area_box = kept_in(source, area_box);
+    let (area, shown) = match p.size_from {
+        MagnifySize::TwoBoxes => {
+            let scale = (shown_box.width / area_box.width).min(shown_box.height / area_box.height);
+            let size = (shown_box.width / scale, shown_box.height / scale);
+            (kept_in(source, around(middle(area_box), size)), shown_box)
+        }
+        MagnifySize::AreaAndZoom => {
+            let size = (area_box.width * zoom, area_box.height * zoom);
+            (area_box, kept_in(source, around(middle(shown_box), size)))
+        }
+        MagnifySize::ShownAndZoom => {
+            let size = (shown_box.width / zoom, shown_box.height / zoom);
+            (kept_in(source, around(middle(area_box), size)), shown_box)
+        }
+    };
+    MagnifyPlan {
+        area,
+        shown,
+        zoom: shown.width / area.width.max(1.0),
+    }
+}
+
+fn magnify() -> NodeDef {
+    image_node::<Magnify>(
+        MAGNIFY_TYPE,
+        "Magnify",
+        "Shows one part of an image enlarged in a circle or a rounded box beside it, joined to the spot by a line, so small text reads.",
+    )
+    .card(|ctx: &CardCtx<'_, Magnify>| {
+        let p = &ctx.params;
+        let shape = match p.shape {
+            MagnifyShape::Circle => "circle",
+            MagnifyShape::Rounded => "rounded box",
+        };
+        let zoom = match (input_size(ctx, IMAGE_PORT), p.size_from) {
+            (Some(source), _) => Some(magnify_plan(source, p).zoom),
+            (None, MagnifySize::TwoBoxes) => None,
+            (None, _) => Some(p.zoom),
+        };
+        let text = zoom.map_or_else(
+            || format!("Two boxes · {shape}"),
+            |z| format!("{}× · {shape}", (z * 10.0).round() / 10.0),
+        );
+        vec![Some(row(Icon::ZoomIn, text)), size_row(ctx, |s| s)]
+    })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         resize().look(NodeLook::of("lucide:image-upscale")),
@@ -1645,6 +1846,7 @@ pub fn nodes() -> Vec<NodeDef> {
         grid().look(NodeLook::of("tabler:layout-collage")),
         frame().look(NodeLook::of("hugeicons:image-composition")),
         before_after().look(NodeLook::of("lucide:columns-2")),
+        magnify().look(NodeLook::of("tabler:zoom-in-area")),
     ]
     .into_iter()
     .map(|def| def.needs(FileNeed::Image))

@@ -1,7 +1,7 @@
 use opsis_compile::nodes::image::{
     ADJUST_TYPE, BEFORE_AFTER_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, CROP_TYPE, FORMAT_TYPE,
-    FRAME_TYPE, GRID_TYPE, LEVELS_TYPE, OUTLINE_TYPE, PLACE_TYPE, REDACT_TYPE, RESIZE_TYPE,
-    ROTATE_TYPE, SPOTLIGHT_TYPE, TILT_TYPE, TRIM_TYPE,
+    FRAME_TYPE, GRID_TYPE, LEVELS_TYPE, MAGNIFY_TYPE, OUTLINE_TYPE, PLACE_TYPE, REDACT_TYPE,
+    RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE, TILT_TYPE, TRIM_TYPE,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -9,9 +9,9 @@ use std::sync::Arc;
 use image::DynamicImage;
 use opsis_compile::nodes::image::{
     AFTER_PORT, AdjustImage, AutoLevels, BeforeAfter, BlurImage, ClearColour, CropImage,
-    FrameScreenshot, IMAGE_PORT, ImageFormat, ImageGrid, OVERLAY_PORT, OutlineImage, PlaceImage,
-    RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, SpotlightImage, TiltImage, TrimEdges,
-    resized_size, upscale,
+    FrameScreenshot, IMAGE_PORT, ImageFormat, ImageGrid, Magnify, OVERLAY_PORT, OutlineImage,
+    PlaceImage, RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, SpotlightImage, TiltImage,
+    TrimEdges, resized_size, upscale,
 };
 use opsis_engine::files::atomic_write;
 use opsis_media::executors::require_media;
@@ -324,6 +324,16 @@ async fn before_after(
     saved(&ctx, &out, None)
 }
 
+async fn magnify(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: Magnify = ctx.params()?;
+    let image = input(&ctx, &inputs, IMAGE_PORT).await?;
+    let out = blocking(move || ops::magnify(&image, &p)).await?;
+    saved(&ctx, &out, None)
+}
+
 pub fn image_executors() -> Vec<(&'static str, Executor)> {
     vec![
         (RESIZE_TYPE, executor(resize)),
@@ -333,6 +343,7 @@ pub fn image_executors() -> Vec<(&'static str, Executor)> {
         (BLUR_TYPE, executor(blur)),
         (PLACE_TYPE, executor(place)),
         (BEFORE_AFTER_TYPE, executor(before_after)),
+        (MAGNIFY_TYPE, executor(magnify)),
         (FORMAT_TYPE, executor(format)),
         (REDACT_TYPE, executor(redact)),
         (SPOTLIGHT_TYPE, executor(spotlight)),

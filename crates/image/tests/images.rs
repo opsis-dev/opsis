@@ -10,9 +10,9 @@ use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
     AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BlurImage, ClearColour, CropImage,
     CropMode, FrameScreenshot, FrameShape, GridFit, GridLayout, ImageFormat, ImageGrid,
-    LevelsMethod, OutlineImage, PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage,
-    RotateImage, SpotlightImage, StillFileFormat, TiltImage, TrimEdges, Turn, framed_placement,
-    grid_plan, tilt_corners, tilted_size,
+    LevelsMethod, Magnify, MagnifyShape, MagnifySize, OutlineImage, PlaceImage, RedactImage,
+    RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage,
+    TrimEdges, Turn, framed_placement, grid_plan, tilt_corners, tilted_size,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -946,4 +946,91 @@ fn labels_each_side_in_its_corner_with_the_chosen_weight() {
     let only_after =
         ops::before_after(&before, &after, Some(&bundled_font(600.0)), &quiet).unwrap();
     assert_eq!(rgb_at(&only_after, 40, 40), [60, 60, 60]);
+}
+
+fn quarters() -> DynamicImage {
+    let mut picture = RgbImage::from_pixel(400, 200, Rgb([128, 128, 128]));
+    for x in 40..80 {
+        for y in 40..80 {
+            let colour = if x < 60 && y < 60 { RED } else { BLUE };
+            picture.put_pixel(x, y, Rgb(colour));
+        }
+    }
+    DynamicImage::ImageRgb8(picture)
+}
+
+fn magnify_quarters(shape: MagnifyShape, border: u32, line: bool) -> DynamicImage {
+    let p = Magnify {
+        size_from: MagnifySize::AreaAndZoom,
+        area: vec![Area {
+            x: 0.1,
+            y: 0.2,
+            width: 0.1,
+            height: 0.2,
+        }],
+        shown: vec![Area {
+            x: 0.5,
+            y: 0.2,
+            width: 0.3,
+            height: 0.6,
+        }],
+        zoom: 3.0,
+        shape,
+        radius: 0,
+        border_width: border,
+        line,
+        ..Magnify::default()
+    };
+    ops::magnify(&quarters(), &p).unwrap()
+}
+
+#[test]
+fn shows_the_area_enlarged_by_the_zoom_where_it_was_put() {
+    let out = magnify_quarters(MagnifyShape::Rounded, 0, false);
+    assert_eq!(out.dimensions(), (400, 200));
+    let (left, top) = (260 - 60, 100 - 60);
+    for (dx, dy, want) in [
+        (15, 15, RED),
+        (45, 15, RED),
+        (55, 55, RED),
+        (75, 15, BLUE),
+        (15, 75, BLUE),
+        (100, 100, BLUE),
+    ] {
+        assert_eq!(
+            rgb_at(&out, left + dx, top + dy),
+            want,
+            "view at {dx}, {dy}"
+        );
+    }
+    assert_eq!(rgb_at(&out, 50, 50), RED, "the source is left as it was");
+    assert_eq!(rgb_at(&out, 390, 190), [128, 128, 128]);
+}
+
+#[test]
+fn rounds_the_view_into_a_circle_with_a_border_and_a_line_to_the_spot() {
+    let out = magnify_quarters(MagnifyShape::Circle, 6, true);
+    assert_eq!(
+        rgb_at(&out, 202, 42),
+        [128, 128, 128],
+        "outside the circle's corner"
+    );
+    assert_eq!(
+        rgb_at(&out, 260, 41),
+        [255, 255, 255],
+        "the border at the top of the circle"
+    );
+    assert_eq!(rgb_at(&out, 230, 70), RED, "the view inside the circle");
+    assert_eq!(
+        rgb_at(&out, 150, 78),
+        [255, 255, 255],
+        "the line between the spot and the view"
+    );
+    assert_eq!(rgb_at(&out, 150, 85), [128, 128, 128], "only a thin line");
+    assert_eq!(
+        rgb_at(&out, 40, 60),
+        [255, 255, 255],
+        "the spot is outlined"
+    );
+    assert_eq!(rgb_at(&out, 50, 50), RED, "inside the spot stays as it was");
 }

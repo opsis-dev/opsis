@@ -5056,6 +5056,29 @@
    }
   },
   {
+   "type": "image.magnify",
+   "title": "Magnify",
+   "category": "Image",
+   "description": "Shows one part of an image enlarged in a circle or a rounded box beside it, joined to the spot by a line, so small text reads. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "output.render",
    "title": "Export video",
    "category": "Export",
@@ -53793,6 +53816,244 @@
      "labelSize": 0,
      "labelColor": "#ffffff",
      "labelBackground": "rgba(0, 0, 0, 0.6)"
+    }
+   }
+  },
+  {
+   "type": "image.magnify",
+   "title": "Magnify",
+   "category": "Image",
+   "description": "Shows one part of an image enlarged in a circle or a rounded box beside it, joined to the spot by a line, so small text reads. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "image": {
+     "type": "media",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "image": {
+     "type": "image",
+     "label": "Image",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "sizeFrom": {
+      "description": "Size from",
+      "type": "string",
+      "enum": [
+       "two-boxes",
+       "area-and-zoom",
+       "shown-and-zoom"
+      ],
+      "default": "two-boxes",
+      "x-labels": {
+       "two-boxes": "The two boxes",
+       "area-and-zoom": "The area and a zoom",
+       "shown-and-zoom": "Where it shows and a zoom"
+      },
+      "x-help": "Any two of the area, where it shows and the zoom decide the third."
+     },
+     "area": {
+      "description": "Area to enlarge",
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "x": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "y": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "width": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "height": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        }
+       },
+       "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+       ],
+       "default": {}
+      },
+      "minItems": 1,
+      "maxItems": 1,
+      "default": [
+       {
+        "x": 0.15,
+        "y": 0.2,
+        "width": 0.12,
+        "height": 0.12
+       }
+      ],
+      "x-widget": "boxes",
+      "x-help": "Drag on the picture over the part to enlarge. With Where it shows and a zoom, only its middle counts."
+     },
+     "shown": {
+      "description": "Where it shows",
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "x": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "y": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "width": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "height": {
+         "type": "number",
+         "format": "double",
+         "minimum": 0,
+         "maximum": 1
+        }
+       },
+       "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+       ],
+       "default": {}
+      },
+      "minItems": 1,
+      "maxItems": 1,
+      "default": [
+       {
+        "x": 0.55,
+        "y": 0.35,
+        "width": 0.3,
+        "height": 0.3
+       }
+      ],
+      "x-widget": "boxes",
+      "x-help": "Drag where the enlarged view goes. With The area and a zoom, only its middle counts."
+     },
+     "zoom": {
+      "description": "Zoom",
+      "type": "number",
+      "format": "double",
+      "minimum": 1,
+      "maximum": 10,
+      "default": 2.5,
+      "x-step": 0.1,
+      "x-unit": "×",
+      "x-show-if": {
+       "sizeFrom": [
+        "area-and-zoom",
+        "shown-and-zoom"
+       ]
+      }
+     },
+     "shape": {
+      "description": "Shape",
+      "type": "string",
+      "enum": [
+       "circle",
+       "rounded"
+      ],
+      "default": "circle",
+      "x-labels": {
+       "circle": "Circle",
+       "rounded": "Rounded box"
+      }
+     },
+     "radius": {
+      "description": "Corner radius",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 400,
+      "default": 16,
+      "x-unit": "px",
+      "x-show-if": {
+       "shape": [
+        "rounded"
+       ]
+      }
+     },
+     "borderWidth": {
+      "description": "Border width",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 40,
+      "default": 4,
+      "x-unit": "px"
+     },
+     "borderColor": {
+      "description": "Border colour",
+      "type": "string",
+      "default": "#ffffff",
+      "x-widget": "color"
+     },
+     "line": {
+      "description": "Line to the spot",
+      "type": "boolean",
+      "default": true,
+      "x-help": "Outlines the enlarged part and joins it to the view."
+     }
+    },
+    "type": "object",
+    "default": {
+     "sizeFrom": "two-boxes",
+     "area": [
+      {
+       "x": 0.15,
+       "y": 0.2,
+       "width": 0.12,
+       "height": 0.12
+      }
+     ],
+     "shown": [
+      {
+       "x": 0.55,
+       "y": 0.35,
+       "width": 0.3,
+       "height": 0.3
+      }
+     ],
+     "zoom": 2.5,
+     "shape": "circle",
+     "radius": 16,
+     "borderWidth": 4,
+     "borderColor": "#ffffff",
+     "line": true
     }
    }
   },

@@ -228,4 +228,5 @@ export const NODE_GLYPHS: Record<string, ReadonlyArray<readonly [string, Record<
   "tabler:texture": [["path",{"d":"M6 3l-3 3"}],["path",{"d":"M21 18l-3 3"}],["path",{"d":"M11 3l-8 8"}],["path",{"d":"M16 3l-13 13"}],["path",{"d":"M21 3l-18 18"}],["path",{"d":"M21 8l-13 13"}],["path",{"d":"M21 13l-8 8"}]],
   "tabler:transition-right": [["path",{"d":"M18 3a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3"}],["path",{"d":"M3 18v-12a3 3 0 1 1 6 0v12a3 3 0 0 1 -6 0"}],["path",{"d":"M9 12h8"}],["path",{"d":"M14 15l3 -3l-3 -3"}]],
   "tabler:wave-sine": [["path",{"d":"M21 12h-2c-.894 0 -1.662 -.857 -1.761 -2c-.296 -3.45 -.749 -6 -2.749 -6s-2.5 3.582 -2.5 8s-.5 8 -2.5 8s-2.452 -2.547 -2.749 -6c-.1 -1.147 -.867 -2 -1.763 -2h-2"}]],
+  "tabler:zoom-in-area": [["path",{"d":"M15 13v4"}],["path",{"d":"M13 15h4"}],["path",{"d":"M10 15a5 5 0 1 0 10 0a5 5 0 1 0 -10 0"}],["path",{"d":"M22 22l-3 -3"}],["path",{"d":"M6 18h-1a2 2 0 0 1 -2 -2v-1"}],["path",{"d":"M3 11v-1"}],["path",{"d":"M3 6v-1a2 2 0 0 1 2 -2h1"}],["path",{"d":"M10 3h1"}],["path",{"d":"M15 3h1a2 2 0 0 1 2 2v1"}]],
 };
