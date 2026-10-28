@@ -265,6 +265,67 @@ pub fn voice_filter(p: &opsis_compile::nodes::media::VoiceEffects, room: Option<
     }
 }
 
+pub fn fit_inputs(plan: opsis_compile::nodes::media::FitPlan) -> u32 {
+    match plan {
+        opsis_compile::nodes::media::FitPlan::Loop { repeats, .. } => repeats + 1,
+        _ => 1,
+    }
+}
+
+pub fn fit_graph(
+    plan: opsis_compile::nodes::media::FitPlan,
+    target_ms: f64,
+    p: &opsis_compile::nodes::media::FitMusic,
+) -> String {
+    use opsis_compile::nodes::media::FitPlan;
+    let end = ffmpeg_seconds(target_ms);
+    let fade = f64::from(p.fade_out_ms).min(target_ms);
+    let ending = if fade > 0.0 {
+        format!(
+            ",afade=t=out:st={}:d={}",
+            ffmpeg_seconds(target_ms - fade),
+            ffmpeg_seconds(fade)
+        )
+    } else {
+        String::new()
+    };
+    match plan {
+        FitPlan::Stretch { tempo } => format!(
+            "[0:a]apad=pad_dur={PITCH_TAIL_S},rubberband=tempo={}:pitchq=quality:transients=mixed,atrim=end={end}{ending}[out]",
+            round_to(tempo, 6)
+        ),
+        FitPlan::Cut => format!("[0:a]atrim=end={end}{ending}[out]"),
+        FitPlan::Loop {
+            from_ms,
+            to_ms,
+            repeats,
+        } => {
+            let pieces = repeats + 1;
+            let mut parts = vec![format!(
+                "[0:a]atrim=end={},asetpts=PTS-STARTPTS[p0]",
+                ffmpeg_seconds(to_ms)
+            )];
+            for i in 1..pieces {
+                parts.push(format!(
+                    "[{i}:a]atrim=start={}:end={},asetpts=PTS-STARTPTS[p{i}]",
+                    ffmpeg_seconds(from_ms),
+                    ffmpeg_seconds(to_ms)
+                ));
+            }
+            let mut last = "p0".to_owned();
+            for i in 1..pieces {
+                parts.push(format!(
+                    "[{last}][p{i}]acrossfade=d={}:c1=qsin:c2=qsin[x{i}]",
+                    ffmpeg_seconds(f64::from(p.crossfade_ms))
+                ));
+                last = format!("x{i}");
+            }
+            parts.push(format!("[{last}]atrim=end={end}{ending}[out]"));
+            parts.join(";")
+        }
+    }
+}
+
 pub fn hum_filter(hertz: f64, harmonics: u32, width: f64) -> String {
     (1..=harmonics + 1)
         .map(|n| {

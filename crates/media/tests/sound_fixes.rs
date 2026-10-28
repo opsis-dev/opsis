@@ -5,8 +5,10 @@ use opsis_compile::nodes::media::{
     ChangePitch, CleanSpeech, NoiseMethod, SoundPicture, SoundPictureKind, VoiceEffect,
     VoiceEffects,
 };
+use opsis_compile::nodes::media::{FitMusic, FitWay, fit_plan};
 use opsis_compile::nodes::media::{Pause, kept_parts};
 use opsis_media::denoise::denoised;
+use opsis_media::filters::{fit_graph, fit_inputs};
 use opsis_media::filters::{
     hum_filter, hum_listen_filter, joined_parts_graph, noise_level, noise_level_listen_filter,
     pitch_filter, repair_filter, rms_level, silence_listen_filter, silences, sound_picture_graph,
@@ -558,4 +560,58 @@ fn makes_each_voice_effect_at_the_same_length() {
         repeat / first
     );
     assert!(rms_between(&echo, 0.6, 0.85) < 1e-4);
+}
+
+#[test]
+#[ignore = "needs the dev engine"]
+fn fits_a_song_to_within_a_frame_of_the_film_each_way() {
+    let dir = tempfile::tempdir().unwrap();
+    let song = tone(20.0);
+    let input = dir.path().join("song.wav");
+    write(&input, &song);
+    let frame = RATE as usize / 30;
+    for (way, target_ms) in [
+        (FitWay::Both, 21_000.0),
+        (FitWay::Both, 50_000.0),
+        (FitWay::Both, 10_000.0),
+        (FitWay::Stretch, 15_000.0),
+        (FitWay::Loop, 33_000.0),
+    ] {
+        let p = FitMusic {
+            way,
+            loop_from_ms: 5_000,
+            loop_to_ms: 15_000,
+            ..FitMusic::default()
+        };
+        let plan = fit_plan(20_000.0, target_ms, &p);
+        let output = dir.path().join("out.wav");
+        let mut command = Command::new(ffmpeg());
+        command.args(["-v", "error", "-y"]);
+        for _ in 0..fit_inputs(plan) {
+            command.arg("-i").arg(&input);
+        }
+        let status = command
+            .args([
+                "-filter_complex",
+                &fit_graph(plan, target_ms, &p),
+                "-map",
+                "[out]",
+            ])
+            .arg(&output)
+            .status()
+            .unwrap();
+        assert!(status.success(), "{plan:?}");
+        let out = read(&output);
+        let want = (target_ms / 1000.0 * f64::from(RATE)) as usize;
+        assert!(
+            out.len().abs_diff(want) <= frame,
+            "{plan:?}: {} samples against {want}",
+            out.len()
+        );
+        let tail = &out[out.len() - 480..];
+        assert!(
+            tail.iter().all(|s| s.abs() < 0.01),
+            "{plan:?} fades out at the end"
+        );
+    }
 }

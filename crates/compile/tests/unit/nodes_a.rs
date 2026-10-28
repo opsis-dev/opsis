@@ -570,6 +570,93 @@ fn names_the_voice_effect_and_its_mix() {
 }
 
 #[test]
+fn stretches_a_song_within_the_limit_and_loops_or_cuts_it_otherwise() {
+    use opsis_compile::nodes::media::{FitPlan, fit_plan};
+    let fit = |params: Value| {
+        typed::<opsis_compile::nodes::media::FitMusic>(crate::helpers::defaults_with(
+            "media.fitMusic",
+            params,
+        ))
+    };
+    assert_eq!(
+        fit_plan(100_000.0, 105_000.0, &fit(json!({}))),
+        FitPlan::Stretch {
+            tempo: 100.0 / 105.0
+        }
+    );
+    assert_eq!(
+        fit_plan(
+            100_000.0,
+            250_000.0,
+            &fit(json!({ "loopFromMs": 20_000, "loopToMs": 80_000 }))
+        ),
+        FitPlan::Loop {
+            from_ms: 20_000.0,
+            to_ms: 80_000.0,
+            repeats: 3
+        }
+    );
+    assert_eq!(fit_plan(100_000.0, 60_000.0, &fit(json!({}))), FitPlan::Cut);
+    assert_eq!(
+        fit_plan(100_000.0, 60_000.0, &fit(json!({ "way": "stretch" }))),
+        FitPlan::Stretch {
+            tempo: 100.0 / 60.0
+        }
+    );
+    assert_eq!(
+        fit_plan(100_000.0, 103_000.0, &fit(json!({ "way": "loop" }))),
+        FitPlan::Loop {
+            from_ms: 0.0,
+            to_ms: 100_000.0,
+            repeats: 1
+        }
+    );
+    assert_eq!(
+        fit_plan(10_000.0, 30_000.0, &fit(json!({ "loopFromMs": 9_800 }))),
+        FitPlan::Loop {
+            from_ms: 0.0,
+            to_ms: 10_000.0,
+            repeats: 3
+        },
+        "a loop too short for its crossfade takes the whole song"
+    );
+}
+
+#[test]
+fn says_how_the_song_was_fitted() {
+    let after = |measured: Value| {
+        let result = node_result(json!({ "outputs": {}, "measured": [measured] }));
+        let mut inputs = CardInputs::default();
+        inputs.connected.push("clip".to_owned());
+        inputs.connected.push("media".to_owned());
+        node_card_with("media.fitMusic", json!({}), inputs, Some(&result))
+            .into_iter()
+            .map(|r| r.text)
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(
+        after(json!({ "type": "fitted", "tempo": 0.96, "loops": 0 })),
+        ["From the connected file", "Stretched 4 %"]
+    );
+    assert_eq!(
+        after(json!({ "type": "fitted", "tempo": 1.05, "loops": 0 }))[1],
+        "Sped up 5 %"
+    );
+    assert_eq!(
+        after(json!({ "type": "fitted", "loops": 2 }))[1],
+        "Looped twice"
+    );
+    assert_eq!(
+        after(json!({ "type": "fitted", "loops": 0 }))[1],
+        "Cut and faded"
+    );
+    assert_eq!(
+        card_texts("media.fitMusic", json!({}), CardInputs::default()),
+        ["Choose a song", "Connect the film for its length"]
+    );
+}
+
+#[test]
 fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
     let song = &builtin_songs()[0];
     match compile_node("audio.music", json!({ "src": song.reference() }), json!({}))

@@ -11110,6 +11110,60 @@
   }
  },
  {
+  "type": "media.fitMusic",
+  "title": "Fit music to the film",
+  "category": "Media",
+  "description": "Makes a song end with the film: stretched a little, or looped with a crossfade, then faded. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Film",
+    "optional": false,
+    "many": false
+   },
+   {
+    "id": "media",
+    "type": "media",
+    "label": "Song file",
+    "optional": true,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": true,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 190.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "src": "",
+   "way": "both",
+   "maxStretch": 8.0,
+   "loopFromMs": 0,
+   "loopToMs": 0,
+   "crossfadeMs": 1000,
+   "fadeOutMs": 2000
+  }
+ },
+ {
   "type": "media.shortenPauses",
   "title": "Shorten pauses",
   "category": "Media",

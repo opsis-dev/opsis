@@ -37,6 +37,7 @@ pub const CLEAN_SPEECH_TYPE: &str = "media.cleanSpeech";
 pub const PAUSES_TYPE: &str = "media.shortenPauses";
 pub const PITCH_TYPE: &str = "media.pitch";
 pub const VOICE_TYPE: &str = "media.voiceEffect";
+pub const FIT_MUSIC_TYPE: &str = "media.fitMusic";
 pub const SOUND_PICTURE_TYPE: &str = "media.soundPicture";
 
 pub const EXTRACT_AUDIO_TYPE: &str = "media.extractAudio";
@@ -223,7 +224,7 @@ fn checked_media(result: Option<&NodeResult>, path: &str) -> Option<MediaValue> 
 fn file_measured(result: Option<&NodeResult>) -> Option<(u64, Option<f64>)> {
     result?.measured.iter().find_map(|m| match m {
         Measured::File { bytes, fps } => Some((*bytes, *fps)),
-        Measured::NoiseLevel { .. } | Measured::Changes { .. } => None,
+        Measured::NoiseLevel { .. } | Measured::Changes { .. } | Measured::Fitted { .. } => None,
     })
 }
 
@@ -886,6 +887,134 @@ pub struct VoiceEffects {
 
 impl Params for VoiceEffects {}
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum FitWay {
+    #[default]
+    Both,
+    Stretch,
+    Loop,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct FitMusic {
+    #[schemars(
+        description = "Song",
+        extend("x-widget" = "music", "x-accept" = "audio/*", "x-help" = "A connected sound file takes its place.")
+    )]
+    pub src: String,
+    #[schemars(
+        description = "Way",
+        extend(
+            "x-labels" = { "both": "Stretch, or loop when that's too far", "stretch": "Stretch only", "loop": "Loop only" },
+            "x-help" = "Stretching changes the tempo a little and keeps the song whole. Looping repeats a part of it with a crossfade."
+        )
+    )]
+    pub way: FitWay,
+    #[default = 8.0]
+    #[schemars(
+        description = "Largest stretch",
+        range(min = 1, max = 25),
+        extend("x-step" = 1, "x-unit" = "%", "x-show-if" = { "way": ["both"] })
+    )]
+    pub max_stretch: f64,
+    #[schemars(
+        description = "Loop from",
+        range(min = 0, max = 3600000),
+        extend("x-step" = 100, "x-unit" = "ms", "x-show-if" = { "way": ["both", "loop"] })
+    )]
+    pub loop_from_ms: u32,
+    #[schemars(
+        description = "Loop to",
+        range(min = 0, max = 3600000),
+        extend("x-step" = 100, "x-unit" = "ms", "x-zero-label" = "The end of the song", "x-show-if" = { "way": ["both", "loop"] })
+    )]
+    pub loop_to_ms: u32,
+    #[default = 1000]
+    #[schemars(
+        description = "Crossfade",
+        range(min = 10, max = 10000),
+        extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "way": ["both", "loop"] })
+    )]
+    pub crossfade_ms: u32,
+    #[default = 2000]
+    #[schemars(description = "Fade at the end", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
+    pub fade_out_ms: u32,
+}
+
+impl Params for FitMusic {}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum FitPlan {
+    Stretch {
+        tempo: f64,
+    },
+    Loop {
+        from_ms: f64,
+        to_ms: f64,
+        repeats: u32,
+    },
+    Cut,
+}
+
+const SHORTEST_LOOP_MS: f64 = 500.0;
+
+pub fn fit_plan(song_ms: f64, target_ms: f64, p: &FitMusic) -> FitPlan {
+    let tempo = song_ms / target_ms.max(1.0);
+    let change = (target_ms / song_ms.max(1.0) - 1.0).abs() * 100.0;
+    let stretch = match p.way {
+        FitWay::Stretch => true,
+        FitWay::Both => change <= p.max_stretch,
+        FitWay::Loop => false,
+    };
+    if stretch {
+        return FitPlan::Stretch { tempo };
+    }
+    if target_ms <= song_ms {
+        return FitPlan::Cut;
+    }
+    let crossfade = f64::from(p.crossfade_ms);
+    let to_ms = match p.loop_to_ms {
+        0 => song_ms,
+        to => f64::from(to).min(song_ms),
+    };
+    let mut from_ms = f64::from(p.loop_from_ms).min(to_ms);
+    if to_ms - from_ms < crossfade + SHORTEST_LOOP_MS {
+        from_ms = 0.0;
+    }
+    let step = (to_ms - from_ms - crossfade).max(SHORTEST_LOOP_MS);
+    let repeats = ((target_ms - to_ms) / step).ceil().max(1.0) as u32;
+    FitPlan::Loop {
+        from_ms,
+        to_ms,
+        repeats,
+    }
+}
+
+fn fitted_row(result: Option<&NodeResult>) -> Option<CardRow> {
+    result?.measured.iter().find_map(|m| match m {
+        Measured::Fitted { tempo: Some(t), .. } => {
+            let change = ((1.0 / t - 1.0) * 100.0).round() as i64;
+            Some(match change {
+                0 => row(Icon::Music, "Already fits"),
+                c if c > 0 => row(Icon::Music, format!("Stretched {c} %")),
+                c => row(Icon::FastForward, format!("Sped up {} %", -c)),
+            })
+        }
+        Measured::Fitted { loops, .. } if *loops > 0 => Some(row(
+            Icon::Repeat,
+            match loops {
+                1 => "Looped once".to_owned(),
+                2 => "Looped twice".to_owned(),
+                n => format!("Looped {n} times"),
+            },
+        )),
+        Measured::Fitted { .. } => Some(row(Icon::Scissors, "Cut and faded")),
+        Measured::NoiseLevel { .. } | Measured::File { .. } | Measured::Changes { .. } => None,
+    })
+}
+
 pub fn pitch_ratio(semitones: f64) -> f64 {
     2f64.powf(semitones / 12.0)
 }
@@ -958,7 +1087,7 @@ fn noise_level_row(result: Option<&NodeResult>) -> Option<CardRow> {
             Icon::Volume2,
             format!("Noise {before_db:.0} dB → {after_db:.0} dB"),
         )),
-        Measured::File { .. } | Measured::Changes { .. } => None,
+        Measured::File { .. } | Measured::Changes { .. } | Measured::Fitted { .. } => None,
     })
 }
 
@@ -1431,6 +1560,41 @@ pub fn nodes() -> Vec<NodeDef> {
         })
         .look(NodeLook::of("lucide:speech"))
         .needs(FileNeed::Sound),
+        file_op::<FitMusic>(
+            FIT_MUSIC_TYPE,
+            "Fit music to the film",
+            format!(
+                "Makes a song end with the film: stretched a little, or looped with a crossfade, then faded.{NEW_FILE}"
+            ),
+        )
+        .uses_project_size()
+        .inputs(vec![
+            (crate::node::CLIP_PORT, port(PortType::Clip, "Film")),
+            (MEDIA_PORT, port(PortType::Media, "Song file").optional()),
+        ])
+        .outputs(vec![(MEDIA_PORT, port(PortType::Media, "File"))])
+        .card(|ctx: &CardCtx<'_, FitMusic>| {
+            let p = &ctx.params;
+            let song = if ctx.connected(MEDIA_PORT) {
+                Some(row(Icon::Music, "From the connected file"))
+            } else if p.src.is_empty() {
+                Some(missing(Icon::Music, "Choose a song"))
+            } else {
+                Some(crate::sounds::builtin_label(&p.src).map_or_else(
+                    || file_row(Icon::Music, &p.src),
+                    |label| row(Icon::Music, label),
+                ))
+            };
+            vec![
+                song,
+                (!ctx.connected(crate::node::CLIP_PORT))
+                    .then(|| missing(Icon::Film, "Connect the film for its length")),
+                fitted_row(ctx.result),
+                length_row(ctx.result, Icon::Clock),
+            ]
+        })
+        .look(NodeLook::of("tabler:arrows-horizontal"))
+        .needs(FileNeed::SoundFile),
         one_file_op::<ShortenPauses>(
             PAUSES_TYPE,
             "Shorten pauses",

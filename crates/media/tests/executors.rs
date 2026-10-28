@@ -944,3 +944,79 @@ async fn writes_the_room_beside_the_result_and_convolves_with_it() {
         )
     );
 }
+
+fn film_clip(frames: u32) -> Value {
+    json!({ "type": "clip", "durationInFrames": frames, "tracks": [], "audio": [] })
+}
+
+#[tokio::test]
+async fn fits_a_song_to_the_films_length_by_stretching_or_looping_it() {
+    let inputs = |frames: u32| json!({ "clip": film_clip(frames), "media": { "type": "media", "kind": "audio", "src": "project:assets/song.m4a", "durationMs": 4000 } });
+    let (result, ran) = run(
+        sound_setup("media.fitMusic", json!({})),
+        sound_probe(),
+        inputs(126),
+    )
+    .await;
+    assert_eq!(
+        ran[0][..6],
+        [
+            "-i",
+            "/p/assets/song.m4a",
+            "-filter_complex",
+            "[0:a]apad=pad_dur=1,rubberband=tempo=0.952381:pitchq=quality:transients=mixed,atrim=end=4.200,afade=t=out:st=2.200:d=2.000[out]",
+            "-map",
+            "[out]"
+        ]
+    );
+    assert!(ran[0].last().unwrap().ends_with("fitted.m4a"));
+    assert_eq!(
+        result.unwrap().measured,
+        [Measured::Fitted {
+            tempo: Some(4000.0 / 4200.0),
+            loops: 0
+        }]
+    );
+    let (result, ran) = run(
+        sound_setup(
+            "media.fitMusic",
+            json!({ "crossfadeMs": 500, "fadeOutMs": 0 }),
+        ),
+        sound_probe(),
+        inputs(300),
+    )
+    .await;
+    assert_eq!(
+        ran[0][..7],
+        [
+            "-i",
+            "/p/assets/song.m4a",
+            "-i",
+            "/p/assets/song.m4a",
+            "-i",
+            "/p/assets/song.m4a",
+            "-filter_complex"
+        ]
+    );
+    assert_eq!(
+        ran[0][7],
+        "[0:a]atrim=end=4.000,asetpts=PTS-STARTPTS[p0];[1:a]atrim=start=0.000:end=4.000,asetpts=PTS-STARTPTS[p1];[2:a]atrim=start=0.000:end=4.000,asetpts=PTS-STARTPTS[p2];[p0][p1]acrossfade=d=0.500:c1=qsin:c2=qsin[x1];[x1][p2]acrossfade=d=0.500:c1=qsin:c2=qsin[x2];[x2]atrim=end=10.000[out]"
+    );
+    assert_eq!(
+        result.unwrap().measured,
+        [Measured::Fitted {
+            tempo: None,
+            loops: 2
+        }]
+    );
+    let (result, _) = run(
+        sound_setup("media.fitMusic", json!({})),
+        sound_probe(),
+        json!({ "media": { "type": "media", "kind": "audio", "src": "project:assets/song.m4a" } }),
+    )
+    .await;
+    assert_eq!(
+        message(result),
+        "Connect the film, so the song knows how long to be."
+    );
+}

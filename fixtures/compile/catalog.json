@@ -4619,6 +4619,35 @@
    }
   },
   {
+   "type": "media.fitMusic",
+   "title": "Fit music to the film",
+   "category": "Media",
+   "description": "Makes a song end with the film: stretched a little, or looped with a crossfade, then faded. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "clip": {
+     "type": "clip",
+     "label": "Film",
+     "optional": false,
+     "many": false
+    },
+    "media": {
+     "type": "media",
+     "label": "Song file",
+     "optional": true,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "media.shortenPauses",
    "title": "Shorten pauses",
    "category": "Media",
@@ -52072,6 +52101,148 @@
      "mix": 1.0,
      "delayMs": 300,
      "decay": 0.4
+    }
+   }
+  },
+  {
+   "type": "media.fitMusic",
+   "title": "Fit music to the film",
+   "category": "Media",
+   "description": "Makes a song end with the film: stretched a little, or looped with a crossfade, then faded. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "clip": {
+     "type": "clip",
+     "label": "Film",
+     "optional": false,
+     "many": false
+    },
+    "media": {
+     "type": "media",
+     "label": "Song file",
+     "optional": true,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "src": {
+      "description": "Song",
+      "type": "string",
+      "default": "",
+      "x-widget": "music",
+      "x-accept": "audio/*",
+      "x-help": "A connected sound file takes its place."
+     },
+     "way": {
+      "description": "Way",
+      "type": "string",
+      "enum": [
+       "both",
+       "stretch",
+       "loop"
+      ],
+      "default": "both",
+      "x-labels": {
+       "both": "Stretch, or loop when that's too far",
+       "stretch": "Stretch only",
+       "loop": "Loop only"
+      },
+      "x-help": "Stretching changes the tempo a little and keeps the song whole. Looping repeats a part of it with a crossfade."
+     },
+     "maxStretch": {
+      "description": "Largest stretch",
+      "type": "number",
+      "format": "double",
+      "minimum": 1,
+      "maximum": 25,
+      "default": 8.0,
+      "x-step": 1,
+      "x-unit": "%",
+      "x-show-if": {
+       "way": [
+        "both"
+       ]
+      }
+     },
+     "loopFromMs": {
+      "description": "Loop from",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 3600000,
+      "default": 0,
+      "x-step": 100,
+      "x-unit": "ms",
+      "x-show-if": {
+       "way": [
+        "both",
+        "loop"
+       ]
+      }
+     },
+     "loopToMs": {
+      "description": "Loop to",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 3600000,
+      "default": 0,
+      "x-step": 100,
+      "x-unit": "ms",
+      "x-zero-label": "The end of the song",
+      "x-show-if": {
+       "way": [
+        "both",
+        "loop"
+       ]
+      }
+     },
+     "crossfadeMs": {
+      "description": "Crossfade",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 10,
+      "maximum": 10000,
+      "default": 1000,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-show-if": {
+       "way": [
+        "both",
+        "loop"
+       ]
+      }
+     },
+     "fadeOutMs": {
+      "description": "Fade at the end",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 20000,
+      "default": 2000,
+      "x-step": 50,
+      "x-unit": "ms"
+     }
+    },
+    "type": "object",
+    "default": {
+     "src": "",
+     "way": "both",
+     "maxStretch": 8.0,
+     "loopFromMs": 0,
+     "loopToMs": 0,
+     "crossfadeMs": 1000,
+     "fadeOutMs": 2000
     }
    }
   },

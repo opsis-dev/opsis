@@ -362,6 +362,11 @@ pub enum Measured {
     Changes {
         count: u32,
     },
+    Fitted {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        tempo: Option<f64>,
+        loops: u32,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

@@ -1,6 +1,6 @@
 # Image and sound nodes
 
-Five nodes for stills and sound: one that works on images (annotate) and four that make sound (transition sounds, generated sounds, risers, music fitted to the film).
+Four nodes for stills and sound: one that works on images (annotate) and three that make sound (transition sounds, generated sounds, risers).
 
 Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (version 3 or later), so GPL code may be used as well as MIT, BSD, ISC, Zlib, MPL-2.0 and Apache-2.0 code, except inside what is combined with Remotion (`packages/video`, `apps/preview`, `apps/sidecar`), where the Remotion permission in `LICENSE` covers only Opsis's own code. None of these nodes needs GPL code there.
 
@@ -24,13 +24,12 @@ Status: plan only. Nothing here is built yet. Opsis is licensed under the GPL (v
 
 ## Summary
 
-| Node                     | What users get                                                | Built with                           | Licence of what's added    | Size   |
-| ------------------------ | ------------------------------------------------------------- | ------------------------------------ | -------------------------- | ------ |
-| 1. Annotate              | Arrows, boxes, ovals, numbered steps and text on a screenshot | `imageproc` drawing, `ab_glyph` text | none new                   | medium |
-| 2. Generated sound       | Whooshes, risers, pops, dings and swells made from settings   | `fundsp`                             | `fundsp` MIT OR Apache-2.0 | medium |
-| 3. Transition sounds     | A whoosh at every transition of a clip                        | section 2, flattened transitions     | none new                   | medium |
-| 4. Riser to a mark       | A build-up that ends exactly on an action or marker           | section 2                            | none new                   | small  |
-| 5. Fit music to the film | A song stretched or looped to end with the film               | FFmpeg                               | none new                   | medium |
+| Node                 | What users get                                                | Built with                           | Licence of what's added    | Size   |
+| -------------------- | ------------------------------------------------------------- | ------------------------------------ | -------------------------- | ------ |
+| 1. Annotate          | Arrows, boxes, ovals, numbered steps and text on a screenshot | `imageproc` drawing, `ab_glyph` text | none new                   | medium |
+| 2. Generated sound   | Whooshes, risers, pops, dings and swells made from settings   | `fundsp`                             | `fundsp` MIT OR Apache-2.0 | medium |
+| 3. Transition sounds | A whoosh at every transition of a clip                        | section 2, flattened transitions     | none new                   | medium |
+| 4. Riser to a mark   | A build-up that ends exactly on an action or marker           | section 2                            | none new                   | small  |
 
 Left out: content-aware resize (`imageproc::seam_carving` is called rough by its own documentation), speech made from text and captions from speech (`plans/voice-and-captions.md` covers them).
 
@@ -122,29 +121,6 @@ A build-up sound that ends exactly on a chosen action, marker or the end of a cl
 2. **Compile.** Find the target frame (actions through `anchor_sounds`, markers by id), start the sound its length before; render via section 2.
 3. **Card.** "Rises 3 s into “Launch”".
 4. **Tests.** The sound ends on the target frame.
-
-### Licence
-
-Nothing new.
-
-## 5. Fit music to the film
-
-### What it adds
-
-A song made to end with the film: stretched slightly in tempo, or looped at a chosen point with a crossfade and faded at the end, so the music doesn't cut off or stop early.
-
-### In place
-
-- Music (`audio.music`) loops a file from its start and fades at the end of the clip.
-- Built-in music has a length (`music.json`).
-
-### Work
-
-1. **Settings.** Way (stretch, loop, both), largest stretch allowed (percent), loop from and to (seconds), crossfade length, ending fade.
-2. **Operation.** Stretch with `rubberband=tempo=` (a required filter, padded with a second of silence and trimmed back as Change pitch does, with `transients=mixed`) when the needed change is within the limit; otherwise loop the chosen section with `acrossfade` until the length is reached, then fade. The target length comes from the connected clip.
-3. **Node.** Input `clip` (for the length) and `media`; output a new file that Music plays.
-4. **Card.** "Stretched 4%" or "Looped twice".
-5. **Tests.** Output length equals the clip's within a frame for each way.
 
 ### Licence
 

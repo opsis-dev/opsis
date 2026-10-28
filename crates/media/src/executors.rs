@@ -4,6 +4,7 @@ use opsis_compile::nodes::media::{
     REPAIR_TYPE, REVERSE_TYPE, SCALE_PAD_TYPE, SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE,
     TRIM_TYPE, VOICE_TYPE,
 };
+use opsis_compile::nodes::media::{FIT_MUSIC_TYPE, FitMusic, FitPlan, fit_plan};
 use std::future::Future;
 use std::path::Path;
 use std::sync::Arc;
@@ -41,6 +42,7 @@ use crate::filters::{
     repair_filter, rms_level, silence_listen_filter, silences, sound_picture_graph, spectral_floor,
     speech_filter, speed_args, speed_sound_args, voice_filter,
 };
+use crate::filters::{fit_graph, fit_inputs};
 use crate::generate::{
     Beeps, beeps, length_ms, room_response, room_tone, write_stereo_wav, write_wav,
 };
@@ -1317,6 +1319,66 @@ async fn voice_effects(
     filter_sound(&ctx, &inputs, &*tools, job).await
 }
 
+async fn fit_music(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: FitMusic = ctx.params()?;
+    let clip = inputs
+        .get(opsis_compile::node::CLIP_PORT)
+        .and_then(CompileValue::as_clip)
+        .ok_or_else(|| ExecError::new("Connect the film, so the song knows how long to be."))?;
+    let target_ms =
+        f64::from(clip.duration_in_frames) * 1000.0 / f64::from(ctx.workflow.settings.fps.max(1));
+    let src = match inputs
+        .get(MEDIA_PORT)
+        .and_then(CompileValue::as_media)
+        .and_then(|m| m.src.clone())
+    {
+        Some(src) => src,
+        None if !p.src.is_empty() => project_ref(&p.src),
+        None => return Err(ExecError::new("Choose a song or connect a sound file.")),
+    };
+    let source = ctx.ref_to_path(&src)?;
+    let probe = tools.probe(&source).await.map_err(tool_error)?;
+    if probe.audio.is_none() {
+        return Err(ExecError::new("This file has no sound to fit."));
+    }
+    let song_ms = probe
+        .duration_ms
+        .map(f64::from)
+        .ok_or_else(|| ExecError::new("This file's length can't be read."))?;
+    let plan = fit_plan(song_ms, target_ms, &p);
+    let (tempo, loops) = match plan {
+        FitPlan::Stretch { tempo } => (Some(tempo), 0),
+        FitPlan::Loop { repeats, .. } => (None, repeats),
+        FitPlan::Cut => (None, 0),
+    };
+    let file = sound_file(&ext_of(&src));
+    let out = format!("fitted{}", file.ext);
+    let mut args = Vec::new();
+    for _ in 0..fit_inputs(plan) {
+        args.extend(["-i".to_owned(), source.to_string_lossy().into_owned()]);
+    }
+    args.extend([
+        "-filter_complex".to_owned(),
+        fit_graph(plan, target_ms, &p),
+        "-map".to_owned(),
+        "[out]".to_owned(),
+    ]);
+    args.extend(file.codecs);
+    args.push(ctx.dir.join(&out).to_string_lossy().into_owned());
+    let progress = |done: f64| ctx.progress(done, None);
+    tools
+        .run(&args, run_options(&ctx, Some(target_ms), Some(&progress)))
+        .await
+        .map_err(tool_error)?;
+    let mut result = media_result(&ctx, &*tools, &out, "Fitted music").await?;
+    result.measured.push(Measured::Fitted { tempo, loops });
+    Ok(result)
+}
+
 async fn shorten_pauses(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
@@ -1498,6 +1560,7 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (PAUSES_TYPE, bind(tools, shorten_pauses)),
         (PITCH_TYPE, bind(tools, change_pitch)),
         (VOICE_TYPE, bind(tools, voice_effects)),
+        (FIT_MUSIC_TYPE, bind(tools, fit_music)),
         (CLEAN_SPEECH_TYPE, bind(tools, clean_speech)),
         (SOUND_PICTURE_TYPE, bind(tools, sound_picture)),
         (THUMBNAIL_TYPE, bind(tools, thumbnail)),
