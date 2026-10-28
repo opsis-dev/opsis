@@ -38,9 +38,9 @@ pub struct MultiDeviceLineup {
     #[default = 1.6]
     #[schemars(description = "Scale", range(min = 0.4, max = 2), extend("x-step" = 0.1, "x-help" = "Overall size of the lineup."))]
     pub scale: f64,
-    #[default = 9.0]
+    #[default = 9]
     #[schemars(description = "Stagger", extend("x-unit" = "frames", "x-help" = "Frames between devices.", "x-advanced" = true))]
-    pub stagger_in_frames: f64,
+    pub stagger_in_frames: u32,
     #[default = "#15171D"]
     #[schemars(description = "Bezel color", extend("x-help" = "Device body.", "x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub bezel_color: String,

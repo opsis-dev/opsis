@@ -42,9 +42,9 @@ pub struct MarkerHighlight {
     #[default = "#171717"]
     #[schemars(description = "Highlighted text color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub highlighted_text_color: String,
-    #[default = 72.0]
+    #[default = 72]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default(FontWeight::W600)]
     #[schemars(description = "Font weight")]
     pub font_weight: FontWeight,
@@ -76,9 +76,9 @@ pub struct InlineHighlight {
     #[default = "#ff5e3a"]
     #[schemars(description = "Highlight color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub highlight_color: String,
-    #[default = 72.0]
+    #[default = 72]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default(FontWeight::W600)]
     #[schemars(description = "Font weight")]
     pub font_weight: FontWeight,
@@ -95,15 +95,15 @@ pub struct InlineHighlight {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct InkUnderline {
-    #[default = 420.0]
+    #[default = 420]
     #[schemars(description = "Width", range(min = 100, max = 800), extend("x-step" = 10))]
-    pub width: f64,
+    pub width: u32,
     #[default = "#6f7f35"]
     #[schemars(description = "Ink color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
-    #[default = 9.0]
+    #[default = 9]
     #[schemars(description = "Brush width", range(min = 2, max = 24), extend("x-step" = 1))]
-    pub thickness: f64,
+    pub thickness: u32,
     #[default = 1.0]
     #[schemars(description = "Opening pressure", range(min = 0.05, max = 1), extend("x-step" = 0.05))]
     pub pressure: f64,
@@ -113,9 +113,9 @@ pub struct InkUnderline {
     #[default = 1.0]
     #[schemars(description = "Grain", range(min = 0, max = 2), extend("x-step" = 0.1))]
     pub grain: f64,
-    #[default = 5.0]
+    #[default = 5]
     #[schemars(description = "Poses to draw", range(min = 2, max = 10), extend("x-step" = 1))]
-    pub duration_steps: f64,
+    pub duration_steps: u32,
     #[default = "ink"]
     #[schemars(description = "Seed")]
     pub seed: String,
@@ -136,18 +136,18 @@ pub struct ScribbleCircle {
     #[default = 1.15]
     #[schemars(description = "Laps", range(min = 0.5, max = 3), extend("x-step" = 0.05))]
     pub laps: f64,
-    #[default = 14.0]
+    #[default = 14]
     #[schemars(description = "Brush width", range(min = 4, max = 32), extend("x-step" = 1))]
-    pub stroke_width: f64,
+    pub stroke_width: u32,
     #[default = 0.2]
     #[schemars(description = "Opening pressure", range(min = 0.05, max = 1), extend("x-step" = 0.05))]
     pub pressure: f64,
     #[default = 1.0]
     #[schemars(description = "Grain", range(min = 0, max = 2), extend("x-step" = 0.1))]
     pub grain: f64,
-    #[default = 10.0]
+    #[default = 10]
     #[schemars(description = "Poses to draw", range(min = 2, max = 20), extend("x-step" = 1))]
-    pub duration_steps: f64,
+    pub duration_steps: u32,
     #[default = "#6f7f35"]
     #[schemars(description = "Ink color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -163,12 +163,12 @@ pub struct ScribbleCircle {
     #[default = 0.5]
     #[schemars(description = "Around vertical", range(min = 0, max = 1), extend("x-step" = 0.01, "x-hidden" = true))]
     pub y: f64,
-    #[default = 420.0]
+    #[default = 420]
     #[schemars(description = "Width", range(min = 20, max = 3840), extend("x-step" = 10, "x-unit" = "px"))]
-    pub width: f64,
-    #[default = 220.0]
+    pub width: u32,
+    #[default = 220]
     #[schemars(description = "Height", range(min = 20, max = 2160), extend("x-step" = 10, "x-unit" = "px"))]
-    pub height: f64,
+    pub height: u32,
     #[default = 1.0]
     #[schemars(description = "Closing pressure", range(min = 0.05, max = 1), extend("x-step" = 0.05))]
     pub release: f64,
@@ -180,9 +180,9 @@ pub struct InkArrow {
     #[default = 0.35]
     #[schemars(description = "Curvature", range(min = -1, max = 1), extend("x-step" = 0.05))]
     pub curvature: f64,
-    #[default = 8.0]
+    #[default = 8]
     #[schemars(description = "Brush width", range(min = 2, max = 24), extend("x-step" = 1))]
-    pub stroke_width: f64,
+    pub stroke_width: u32,
     #[default = 0.2]
     #[schemars(description = "Opening pressure", range(min = 0.05, max = 1), extend("x-step" = 0.05))]
     pub pressure: f64,
@@ -192,9 +192,9 @@ pub struct InkArrow {
     #[default = 1.0]
     #[schemars(description = "Grain", range(min = 0, max = 2), extend("x-step" = 0.1))]
     pub grain: f64,
-    #[default = 24.0]
+    #[default = 24]
     #[schemars(description = "Head size", range(min = 8, max = 48), extend("x-step" = 1))]
-    pub head_size: f64,
+    pub head_size: u32,
     #[default = 1.2]
     #[schemars(description = "Draw time", range(min = 0.4, max = 3), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub draw_dur: f64,
@@ -236,9 +236,9 @@ pub struct Keystroke {
     #[default = "#0a84ff"]
     #[schemars(description = "Accent", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub accent: String,
-    #[default = 64.0]
+    #[default = 64]
     #[schemars(description = "Key size", range(min = 32, max = 128), extend("x-step" = 1))]
-    pub size: f64,
+    pub size: u32,
     #[default = 1.0]
     #[schemars(description = "Linger", range(min = 0, max = 3), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub linger: f64,
@@ -263,21 +263,21 @@ pub struct Keystroke {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Confetti {
-    #[default = 140.0]
+    #[default = 140]
     #[schemars(description = "Particles", range(min = 10, max = 400), extend("x-step" = 10))]
-    pub particle_count: f64,
-    #[default = 17.0]
+    pub particle_count: u32,
+    #[default = 17]
     #[schemars(description = "Power", range(min = 4, max = 40), extend("x-step" = 1))]
-    pub power: f64,
+    pub power: u32,
     #[default = 0.45]
     #[schemars(description = "Gravity", range(min = 0, max = 1.5), extend("x-step" = 0.05))]
     pub gravity: f64,
-    #[default = 13.0]
+    #[default = 13]
     #[schemars(description = "Size", range(min = 4, max = 30), extend("x-step" = 1))]
-    pub size: f64,
-    #[default = 1.0]
+    pub size: u32,
+    #[default = 1]
     #[schemars(description = "Seed", range(min = 1), extend("x-step" = 1))]
-    pub seed: f64,
+    pub seed: u32,
     #[default(vec!["#1d9bf0".into(), "#ff5da2".into(), "#ffd23f".into(), "#22c55e".into(), "#a855f7".into(), "#ff7a45".into()])]
     #[schemars(description = "Colours", length(min = 1, max = 12))]
     pub colors: Vec<Colour>,
@@ -295,27 +295,27 @@ pub struct Confetti {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct RadialBurst {
-    #[default = 8.0]
+    #[default = 8]
     #[schemars(description = "Segments", range(min = 4, max = 16), extend("x-step" = 1))]
-    pub segments: f64,
-    #[default = 210.0]
+    pub segments: u32,
+    #[default = 210]
     #[schemars(description = "Burst radius", range(min = 100, max = 280), extend("x-step" = 5))]
-    pub radius: f64,
-    #[default = 30.0]
+    pub radius: u32,
+    #[default = 30]
     #[schemars(description = "Thickness", range(min = 8, max = 60), extend("x-step" = 1))]
-    pub thickness: f64,
-    #[default = 135.0]
+    pub thickness: u32,
+    #[default = 135]
     #[schemars(description = "Rotation", range(min = -360, max = 360), extend("x-step" = 15))]
-    pub rotation: f64,
+    pub rotation: i32,
     #[default = 1.0]
     #[schemars(description = "Intensity", range(min = 0, max = 1.5), extend("x-step" = 0.1))]
     pub intensity: f64,
-    #[default = 110.0]
+    #[default = 110]
     #[schemars(description = "Ribbon twist", range(min = -180, max = 180), extend("x-step" = 10))]
-    pub twist: f64,
-    #[default = 3.0]
+    pub twist: i32,
+    #[default = 3]
     #[schemars(description = "Contour echoes", range(min = 0, max = 5), extend("x-step" = 1))]
-    pub echoes: f64,
+    pub echoes: u32,
     #[default = "#ffffff"]
     #[schemars(description = "Shape color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,

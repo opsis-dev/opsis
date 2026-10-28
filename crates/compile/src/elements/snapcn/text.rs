@@ -77,12 +77,12 @@ pub struct PunchLines {
     #[default = "1.6"]
     #[schemars(description = "Card lengths", extend("x-frames-at" = 30))]
     pub holds: String,
-    #[default = 3.0]
+    #[default = 3]
     #[schemars(description = "Accent card", range(min = 0, max = 8), extend("x-step" = 1))]
-    pub accent_beat: f64,
-    #[default = 93.0]
+    pub accent_beat: u32,
+    #[default = 93]
     #[schemars(description = "Font size", range(min = 24, max = 200), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default(FontWeight::W600)]
     #[schemars(description = "Font weight")]
     pub font_weight: FontWeight,
@@ -190,9 +190,9 @@ pub struct TextHighlight {
     #[default = 0.4667]
     #[schemars(description = "Draw time", range(min = 0.1667, max = 4), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub draw_duration: f64,
-    #[default = 4.0]
+    #[default = 4]
     #[schemars(description = "Line thickness", range(min = 1, max = 20), extend("x-step" = 1))]
-    pub thickness: f64,
+    pub thickness: u32,
     #[default = "#FAFAFA"]
     #[schemars(description = "Shine color (shimmer)", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub shine_color: String,
@@ -211,9 +211,9 @@ pub struct TextHighlight {
     #[default = 0.8]
     #[schemars(description = "Rush time", range(min = 0.2, max = 2.6667), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub rush_duration: f64,
-    #[default = 42.0]
+    #[default = 42]
     #[schemars(description = "Rush scale (× mark)", range(min = 2, max = 80), extend("x-step" = 1))]
-    pub rush_scale: f64,
+    pub rush_scale: u32,
     #[default = 0.55]
     #[schemars(description = "Swing across (× width)", range(min = -0.8, max = 0.8), extend("x-step" = 0.05))]
     pub rush_drift: f64,
@@ -223,9 +223,9 @@ pub struct TextHighlight {
     #[default = "#266DF0"]
     #[schemars(description = "Ink color (end of rush)", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub cover_color: String,
-    #[default = 56.0]
+    #[default = 56]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default(FontWeight::W600)]
     #[schemars(description = "Font weight")]
     pub font_weight: FontWeight,
@@ -277,12 +277,12 @@ pub struct StatusCycle {
     #[default(FontWeight::W400)]
     #[schemars(description = "Chip font weight")]
     pub chip_font_weight: FontWeight,
-    #[default = 63.0]
+    #[default = 63]
     #[schemars(description = "Status size", range(min = 24, max = 140), extend("x-step" = 1))]
-    pub font_size: f64,
-    #[default = 160.0]
+    pub font_size: u32,
+    #[default = 160]
     #[schemars(description = "Chip size", range(min = 48, max = 260), extend("x-step" = 2))]
-    pub chip_font_size: f64,
+    pub chip_font_size: u32,
     #[default = 0.8]
     #[schemars(description = "Intro length", range(min = 0.2667, max = 2), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub intro_frames: f64,
@@ -302,11 +302,11 @@ pub struct StatusCycle {
     #[schemars(description = "Theme", extend("x-widget" = "theme"))]
     pub theme: Theme,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Status corner radius", range(min = 0, max = 200), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "x-advanced" = true, "type" = "number"))]
-    pub pill_radius: Option<f64>,
+    #[schemars(description = "Status corner radius", range(min = 0, max = 200), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "x-advanced" = true, "type" = "integer"))]
+    pub pill_radius: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Chip corner radius", range(min = 0, max = 200), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "x-advanced" = true, "type" = "number"))]
-    pub chip_radius: Option<f64>,
+    #[schemars(description = "Chip corner radius", range(min = 0, max = 200), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "x-advanced" = true, "type" = "integer"))]
+    pub chip_radius: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(description = "Chip border width", range(min = 0, max = 20), extend("x-zero-label" = "Auto", "x-step" = 0.5, "x-unit" = "px", "x-advanced" = true, "type" = "number"))]
     pub chip_border_width: Option<f64>,

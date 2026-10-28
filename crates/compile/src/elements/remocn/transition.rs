@@ -16,9 +16,9 @@ pub struct WhipPan {
     #[default(WhipDirection::Left)]
     #[schemars(description = "Direction")]
     pub direction: WhipDirection,
-    #[default = 24.0]
+    #[default = 24]
     #[schemars(description = "Blur", range(min = 0, max = 48), extend("x-step" = 2))]
-    pub blur: f64,
+    pub blur: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -27,44 +27,44 @@ pub struct PushThrough {
     #[default = 2.4]
     #[schemars(description = "Zoom", range(min = 1.5, max = 4), extend("x-step" = 0.1))]
     pub zoom: f64,
-    #[default = 14.0]
+    #[default = 14]
     #[schemars(description = "Blur", range(min = 0, max = 30), extend("x-step" = 1))]
-    pub blur: f64,
+    pub blur: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ZoomBlur {
-    #[default = 16.0]
+    #[default = 16]
     #[schemars(description = "Blur", range(min = 0, max = 40), extend("x-step" = 2))]
-    pub blur: f64,
+    pub blur: u32,
     #[schemars(description = "Rise", range(min = 0, max = 160), extend("x-step" = 10))]
-    pub rise: f64,
+    pub rise: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct FocusPull {
-    #[default = 16.0]
+    #[default = 16]
     #[schemars(description = "Blur", range(min = 4, max = 32), extend("x-step" = 1))]
-    pub blur: f64,
+    pub blur: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LensZoom {
-    #[default = 9.0]
+    #[default = 9]
     #[schemars(description = "Lens steps", range(min = 4, max = 12), extend("x-step" = 1))]
-    pub lens_steps: f64,
-    #[default = 7.0]
+    pub lens_steps: u32,
+    #[default = 7]
     #[schemars(description = "Blur samples", range(min = 2, max = 12), extend("x-step" = 1))]
-    pub blur_samples: f64,
-    #[default = 50.0]
+    pub blur_samples: u32,
+    #[default = 50]
     #[schemars(description = "Shake amount", range(min = 0, max = 300), extend("x-step" = 5))]
-    pub shake_amount: f64,
-    #[default = 73.0]
+    pub shake_amount: u32,
+    #[default = 73]
     #[schemars(description = "Shake travel (px)", range(min = 0, max = 80), extend("x-step" = 1))]
-    pub shake_translate_px: f64,
+    pub shake_translate_px: u32,
     #[default = true]
     #[schemars(description = "Colour fringe", extend("x-help" = "Splits the colours at the edges. Off draws the transition a third as often, for heavy scenes.", "x-advanced" = true))]
     pub color_split: bool,
@@ -145,9 +145,9 @@ pub struct GlitchCut {
     #[default = 1.0]
     #[schemars(description = "Intensity", range(min = 0, max = 2), extend("x-step" = 0.1))]
     pub intensity: f64,
-    #[default = 24.0]
+    #[default = 24]
     #[schemars(description = "Slices", range(min = 8, max = 64), extend("x-step" = 2))]
-    pub slices: f64,
+    pub slices: u32,
     #[default = 1.0]
     #[schemars(description = "RGB split", range(min = 0, max = 2), extend("x-step" = 0.1))]
     pub rgb_split: f64,
@@ -159,12 +159,12 @@ pub struct GlitchCut {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct PageTurn {
-    #[default(-7.0)]
+    #[default(-7)]
     #[schemars(description = "Angle", range(min = -20, max = 20), extend("x-step" = 1))]
-    pub angle: f64,
-    #[default = 8.0]
+    pub angle: i32,
+    #[default = 8]
     #[schemars(description = "Poses", range(min = 2, max = 16), extend("x-step" = 1))]
-    pub poses: f64,
+    pub poses: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -210,9 +210,9 @@ pub struct DitherDissolve {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SwirlDissolve {
-    #[default = 10.0]
+    #[default = 10]
     #[schemars(description = "Bands", range(min = 1, max = 12), extend("x-step" = 1))]
-    pub band_count: f64,
+    pub band_count: u32,
     #[default = 0.35]
     #[schemars(description = "Softness", range(min = 0, max = 1), extend("x-step" = 0.05))]
     pub softness: f64,
@@ -230,9 +230,9 @@ pub struct SwirlDissolve {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ParticleDissolve {
-    #[default = 4.0]
+    #[default = 4]
     #[schemars(description = "Grain size", range(min = 1, max = 16), extend("x-step" = 1))]
-    pub particle_size: f64,
+    pub particle_size: u32,
     #[default = 0.08]
     #[schemars(description = "Scatter", range(min = 0.01, max = 0.4), extend("x-step" = 0.01))]
     pub scatter: f64,

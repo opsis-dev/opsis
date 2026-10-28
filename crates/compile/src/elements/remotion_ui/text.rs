@@ -25,9 +25,9 @@ pub struct HandwritingText {
     #[default = 1.6]
     #[schemars(description = "Wobble", extend("x-step" = 0.1, "x-help" = "Per-character tilt and baseline drift, in degrees. Fixed, not animated.", "x-advanced" = true))]
     pub wobble: f64,
-    #[default = 3.0]
+    #[default = 3]
     #[schemars(description = "Stagger", extend("x-unit" = "frames", "x-help" = "Frames between one character and the next. This is the writing speed.", "x-advanced" = true))]
-    pub stagger_in_frames: f64,
+    pub stagger_in_frames: u32,
     #[schemars(description = "Font", extend("x-widget" = "font", "x-help" = "Project font follows the fonts set for the whole project."))]
     pub font_family: String,
     #[default = "handwriting"]
@@ -37,8 +37,8 @@ pub struct HandwritingText {
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Font size", range(min = 12, max = 600), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "x-help" = "Leave empty to size the text to the frame.", "type" = "number"))]
-    pub font_size: Option<f64>,
+    #[schemars(description = "Font size", range(min = 12, max = 600), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "x-help" = "Leave empty to size the text to the frame.", "type" = "integer"))]
+    pub font_size: Option<u32>,
     #[default(FontWeight::W600)]
     #[schemars(description = "Font weight")]
     pub font_weight: FontWeight,
@@ -71,18 +71,18 @@ pub struct NeonFlickerText {
     #[default(FlickerOrder::Start)]
     #[schemars(description = "Order", extend("x-help" = "Which tube strikes first."))]
     pub order: FlickerOrder,
-    #[default = 2.0]
+    #[default = 2]
     #[schemars(description = "Stagger", extend("x-unit" = "frames", "x-help" = "Frames between one tube striking and the next.", "x-advanced" = true))]
-    pub stagger_in_frames: f64,
-    #[default = 1.0]
+    pub stagger_in_frames: u32,
+    #[default = 1]
     #[schemars(description = "Variation", extend("x-advanced" = true))]
-    pub seed: f64,
+    pub seed: u32,
     #[default = "#fdf2f8"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Font size", range(min = 12, max = 600), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "x-help" = "Leave empty to size the text to the frame.", "type" = "number"))]
-    pub font_size: Option<f64>,
+    #[schemars(description = "Font size", range(min = 12, max = 600), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "x-help" = "Leave empty to size the text to the frame.", "type" = "integer"))]
+    pub font_size: Option<u32>,
     #[default(FontWeight::W600)]
     #[schemars(description = "Font weight")]
     pub font_weight: FontWeight,
@@ -110,14 +110,14 @@ pub struct TextMaskVideo {
     #[default = 0.12]
     #[schemars(description = "Zoom", extend("x-step" = 0.01, "x-help" = "Extra scale the media breathes through. 0 holds it still.", "x-advanced" = true))]
     pub zoom: f64,
-    #[default = 30.0]
+    #[default = 30]
     #[schemars(description = "Animation length", range(min = 1, max = 300), extend("x-step" = 1, "x-unit" = "frames", "x-help" = "Length of the reveal.", "x-advanced" = true))]
-    pub duration_in_frames: f64,
+    pub duration_in_frames: u32,
     #[schemars(description = "Font", extend("x-widget" = "font", "x-help" = "Project font follows the fonts set for the whole project."))]
     pub font_family: String,
-    #[default = 800.0]
+    #[default = 800]
     #[schemars(description = "Font weight")]
-    pub font_weight: f64,
+    pub font_weight: u32,
     #[schemars(description = "Letter spacing")]
     pub letter_spacing: f64,
     #[default = 0.98]

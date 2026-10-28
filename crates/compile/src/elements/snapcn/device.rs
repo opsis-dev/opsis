@@ -47,30 +47,30 @@ pub struct LaptopFrame {
     #[default = true]
     #[schemars(description = "Notch")]
     pub show_notch: bool,
-    #[default = 85.0]
+    #[default = 85]
     #[schemars(description = "Battery level", range(min = 0, max = 100), extend("x-step" = 1))]
-    pub battery_level: f64,
+    pub battery_level: u32,
     #[default = "#1D1D1F"]
     #[schemars(description = "Bezel color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub bezel_color: String,
     #[default = "#FFFFFF"]
     #[schemars(description = "Screen color", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
     pub screen_color: String,
-    #[default = 18.0]
+    #[default = 18]
     #[schemars(description = "Lid tilt", range(min = 0, max = 45), extend("x-step" = 1))]
-    pub rest_tilt: f64,
-    #[default = 22.0]
+    pub rest_tilt: u32,
+    #[default = 22]
     #[schemars(description = "Lid radius", range(min = 8, max = 40), extend("x-step" = 1))]
-    pub radius: f64,
+    pub radius: u32,
     #[default = 0.85]
     #[schemars(description = "Scale", range(min = 0.4, max = 1.4), extend("x-step" = 0.05))]
     pub scale: f64,
     #[default = true]
     #[schemars(description = "Float loop")]
     pub float_loop: bool,
-    #[default = 4.0]
+    #[default = 4]
     #[schemars(description = "Float amplitude", range(min = 0, max = 16), extend("x-step" = 1))]
-    pub float_amplitude: f64,
+    pub float_amplitude: u32,
     #[default = "0 40px 80px rgba(10,12,20,0.45)"]
     #[schemars(description = "Shadow")]
     pub shadow: String,
@@ -106,26 +106,26 @@ pub struct PhoneFrame {
     #[default = "#0A0A0B"]
     #[schemars(description = "Screen color", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
     pub screen_color: String,
-    #[default = 53.0]
+    #[default = 53]
     #[schemars(description = "Body radius", range(min = 24, max = 90), extend("x-step" = 1))]
-    pub radius: f64,
-    #[default = 41.0]
+    pub radius: u32,
+    #[default = 41]
     #[schemars(description = "Screen radius", range(min = 12, max = 78), extend("x-step" = 1))]
-    pub screen_radius: f64,
+    pub screen_radius: u32,
     #[default = 0.92]
     #[schemars(description = "Scale", range(min = 0.4, max = 1.5), extend("x-step" = 0.05))]
     pub scale: f64,
-    #[default(-12.0)]
+    #[default(-12)]
     #[schemars(description = "Tilt angle", range(min = -30, max = 30), extend("x-step" = 1))]
-    pub tilt_angle: f64,
+    pub tilt_angle: i32,
     #[default = true]
     #[schemars(description = "Dynamic island")]
     pub show_dynamic_island: bool,
     #[schemars(description = "Float loop")]
     pub float_loop: bool,
-    #[default = 6.0]
+    #[default = 6]
     #[schemars(description = "Float amplitude", range(min = 0, max = 20), extend("x-step" = 1))]
-    pub float_amplitude: f64,
+    pub float_amplitude: u32,
     #[default = "0 30px 70px rgba(16,24,40,0.28)"]
     #[schemars(description = "Shadow")]
     pub shadow: String,
@@ -163,9 +163,9 @@ pub struct ScreenRecording {
     #[schemars(description = "Entrance")]
     pub entrance: RecordingEntrance,
     #[schemars(description = "Corner radius", range(min = 0, max = 48), extend("x-step" = 1))]
-    pub radius: f64,
+    pub radius: u32,
     #[schemars(description = "Trim in", range(min = 0, max = 300), extend("x-step" = 1))]
-    pub trim_before: f64,
+    pub trim_before: u32,
     #[schemars(description = "Audio")]
     pub audio: bool,
     #[default(Theme::of(ThemeMode::Dark))]

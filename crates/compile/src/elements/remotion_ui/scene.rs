@@ -185,8 +185,8 @@ pub struct LogoReveal {
     #[schemars(description = "Outline area", extend("x-zero-label" = "Fit", "x-help" = "Leave empty to fit the outline.", "x-advanced" = true))]
     pub view_box: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Logo size", range(min = 20, max = 2000), extend("x-zero-label" = "Auto", "x-step" = 10, "x-unit" = "px", "type" = "number"))]
-    pub size: Option<f64>,
+    #[schemars(description = "Logo size", range(min = 20, max = 2000), extend("x-zero-label" = "Auto", "x-step" = 10, "x-unit" = "px", "type" = "integer"))]
+    pub size: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(description = "Line width", range(min = 1, max = 40), extend("x-zero-label" = "Auto", "x-step" = 0.5, "x-unit" = "px", "x-advanced" = true, "type" = "number"))]
     pub stroke_width: Option<f64>,
@@ -245,8 +245,8 @@ pub struct PricingCard {
     #[schemars(description = "Background", extend("x-widget" = "color", "x-zero-label" = "Theme", "x-help" = "Leave empty to follow the theme."))]
     pub background_color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Old price", range(min = 0, max = 1000000), extend("x-zero-label" = "None", "x-step" = 1, "x-help" = "Shown struck out next to the price.", "type" = "number"))]
-    pub was_price: Option<f64>,
+    #[schemars(description = "Old price", range(min = 0, max = 1000000), extend("x-zero-label" = "None", "x-step" = 1, "x-help" = "Shown struck out next to the price.", "type" = "integer"))]
+    pub was_price: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -268,9 +268,9 @@ pub struct ComparisonTable {
     #[default = "What you get"]
     #[schemars(description = "Title", extend("x-help" = "Heading above the table. Omit to drop it."))]
     pub title: String,
-    #[default = 1.0]
+    #[default = 1]
     #[schemars(description = "Highlighted column", extend("x-help" = "Column kept lit throughout. Pass -1 for a table with no favourite."))]
-    pub highlight_column: f64,
+    pub highlight_column: u32,
     #[default = "Most picked"]
     #[schemars(description = "Highlight badge", extend("x-help" = "Chip pinned beside the title, above the highlighted column."))]
     pub highlight_label: String,
@@ -359,9 +359,9 @@ pub struct LogoWall {
     #[default = "Teams that ship with us"]
     #[schemars(description = "Title", extend("x-help" = "Heading above the wall. Omit to drop it."))]
     pub title: String,
-    #[default = 4.0]
+    #[default = 4]
     #[schemars(description = "Columns", range(min = 1), extend("x-step" = 1, "x-help" = "Tiles per row."))]
-    pub columns: f64,
+    pub columns: u32,
     #[default = 0.32]
     #[schemars(description = "Start at (seconds)", extend("x-step" = 0.01, "x-help" = "Second the first tile arrives.", "x-advanced" = true))]
     pub start_at_seconds: f64,
@@ -421,8 +421,8 @@ pub struct EndCard {
     #[schemars(description = "Background", extend("x-widget" = "color", "x-zero-label" = "Theme", "x-help" = "Leave empty to follow the theme."))]
     pub background_color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Logo size", range(min = 10, max = 600), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "type" = "number"))]
-    pub logo_size: Option<f64>,
+    #[schemars(description = "Logo size", range(min = 10, max = 600), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "type" = "integer"))]
+    pub logo_size: Option<u32>,
 }
 
 pub(super) fn elements() -> Vec<ElementMeta> {

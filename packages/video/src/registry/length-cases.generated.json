@@ -3,8 +3,8 @@
     "key": "word-push",
     "usual": {
       "text": "move at your own pace",
-      "fontSize": 72.0,
-      "wordGap": 10.0,
+      "fontSize": 72,
+      "wordGap": 10,
       "accel": 0.8,
       "color": "#171717",
       "fontWeight": "400",
@@ -14,8 +14,8 @@
     },
     "settings": {
       "text": "one two three four five six seven eight nine ten",
-      "fontSize": 72.0,
-      "wordGap": 10.0,
+      "fontSize": 72,
+      "wordGap": 10,
       "accel": 0.8,
       "color": "#171717",
       "fontWeight": "400",
@@ -29,8 +29,8 @@
     "key": "search-reveal",
     "usual": {
       "text": "acme",
-      "fieldWidth": 464.0,
-      "fontSize": 34.0,
+      "fieldWidth": 464,
+      "fontSize": 34,
       "framesPerCharacter": 4.0,
       "showPanel": true,
       "showGuides": true,
@@ -46,8 +46,8 @@
     },
     "settings": {
       "text": "a much longer search phrase to type",
-      "fieldWidth": 464.0,
-      "fontSize": 34.0,
+      "fieldWidth": 464,
+      "fontSize": 34,
       "framesPerCharacter": 6.0,
       "showPanel": true,
       "showGuides": true,
@@ -66,11 +66,11 @@
   {
     "key": "check-list",
     "usual": {
-      "fontSize": 40.0,
+      "fontSize": 40,
       "itemGap": 18.0,
       "closeGap": 9.0,
       "perStep": 1.6,
-      "strokeWidth": 3.0,
+      "strokeWidth": 3,
       "color": "#26242c",
       "tickColor": "#6f7f35",
       "step": 3.0,
@@ -88,18 +88,18 @@
           "checked": false
         }
       ],
-      "width": 720.0,
+      "width": 720,
       "boxColor": "#26242c",
       "weight": "600",
       "seed": "checklist",
       "background": "white"
     },
     "settings": {
-      "fontSize": 40.0,
+      "fontSize": 40,
       "itemGap": 24.0,
       "closeGap": 9.0,
       "perStep": 1.6,
-      "strokeWidth": 3.0,
+      "strokeWidth": 3,
       "color": "#26242c",
       "tickColor": "#6f7f35",
       "step": 3.0,
@@ -125,7 +125,7 @@
           "checked": true
         }
       ],
-      "width": 720.0,
+      "width": 720,
       "boxColor": "#26242c",
       "weight": "600",
       "seed": "checklist",
@@ -140,7 +140,7 @@
       "theme": "dark",
       "accentColor": "#0ea5e9",
       "morphDuration": 36.0,
-      "fontSize": 20.0,
+      "fontSize": 20,
       "highlight": true,
       "lineNumbers": true,
       "windowDots": true,
@@ -161,7 +161,7 @@
       "theme": "dark",
       "accentColor": "#0ea5e9",
       "morphDuration": 45.0,
-      "fontSize": 20.0,
+      "fontSize": 20,
       "highlight": true,
       "lineNumbers": true,
       "windowDots": true,
@@ -189,7 +189,7 @@
       "platform": "mac",
       "theme": "light",
       "accent": "#0a84ff",
-      "size": 64.0,
+      "size": 64,
       "linger": 30.0,
       "x": 0.5,
       "y": 0.86,
@@ -213,7 +213,7 @@
       "platform": "mac",
       "theme": "light",
       "accent": "#0a84ff",
-      "size": 64.0,
+      "size": 64,
       "linger": 45.0,
       "x": 0.5,
       "y": 0.86,
@@ -245,7 +245,7 @@
       "theme": "light",
       "accentColor": "#2563eb",
       "compression": 3.0,
-      "seed": 1.0,
+      "seed": 1,
       "runTitle": "Checkout conversion drop",
       "runPrompt": "Why did checkout conversion drop last week?",
       "runPlan": [
@@ -299,7 +299,7 @@
       "theme": "light",
       "accentColor": "#2563eb",
       "compression": 3.0,
-      "seed": 1.0,
+      "seed": 1,
       "runTitle": "Checkout conversion drop",
       "runPrompt": "Why did checkout conversion drop last week?",
       "runPlan": [
@@ -360,8 +360,8 @@
     "usual": {
       "state": "opened",
       "query": "new",
-      "selectedIndex": -1.0,
-      "highlightedIndex": -1.0,
+      "selectedIndex": -1,
+      "highlightedIndex": -1,
       "theme": {
         "mode": "light",
         "colors": {}
@@ -388,13 +388,13 @@
         }
       ],
       "autoplay": true,
-      "pressedIndex": -1.0
+      "pressedIndex": -1
     },
     "settings": {
       "state": "opened",
       "query": "settings",
-      "selectedIndex": -1.0,
-      "highlightedIndex": -1.0,
+      "selectedIndex": -1,
+      "highlightedIndex": -1,
       "theme": {
         "mode": "light",
         "colors": {}
@@ -421,7 +421,7 @@
         }
       ],
       "autoplay": true,
-      "pressedIndex": -1.0
+      "pressedIndex": -1
     },
     "growth": 13
   },
@@ -432,8 +432,8 @@
       "styles": "slide,punch",
       "sizes": "1,0.945,2.7",
       "holds": "48",
-      "accentBeat": 3.0,
-      "fontSize": 93.0,
+      "accentBeat": 3,
+      "fontSize": 93,
       "fontWeight": "600",
       "lineHeight": 0.89,
       "letterSpacing": "-0.022em",
@@ -469,8 +469,8 @@
       "styles": "slide,punch",
       "sizes": "1,0.945,2.7",
       "holds": "45, 60",
-      "accentBeat": 3.0,
-      "fontSize": 93.0,
+      "accentBeat": 3,
+      "fontSize": 93,
       "fontWeight": "600",
       "lineHeight": 0.89,
       "letterSpacing": "-0.022em",

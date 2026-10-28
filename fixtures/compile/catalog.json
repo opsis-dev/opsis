@@ -16917,20 +16917,20 @@
      },
      "blur": {
       "description": "Blur",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 30,
-      "default": 12.0,
+      "default": 12,
       "x-step": 1
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 72.0,
+      "default": 72,
       "x-step": 1
      },
      "color": {
@@ -17153,8 +17153,8 @@
     "type": "object",
     "default": {
      "text": "Made for every take.",
-     "blur": 12.0,
-     "fontSize": 72.0,
+     "blur": 12,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -17196,20 +17196,20 @@
      },
      "charsPerSecond": {
       "description": "Chars / sec",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 4,
       "maximum": 60,
-      "default": 22.0,
+      "default": 22,
       "x-step": 1
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 72.0,
+      "default": 72,
       "x-step": 1
      },
      "color": {
@@ -17442,8 +17442,8 @@
     "default": {
      "text": "console.log('hello, world')",
      "cursor": true,
-     "charsPerSecond": 22.0,
-     "fontSize": 72.0,
+     "charsPerSecond": 22,
+     "fontSize": 72,
      "color": "#171717",
      "cursorColor": "#171717",
      "fontWeight": "600",
@@ -17498,11 +17498,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 200,
-      "default": 96.0,
+      "default": 96,
       "x-step": 1
      },
      "fontWeight": {
@@ -17718,7 +17718,7 @@
      "text": "Generating",
      "baseColor": "#3f3f46",
      "shineColor": "#fafafa",
-     "fontSize": 96.0,
+     "fontSize": 96,
      "fontWeight": "700",
      "background": "white",
      "fontFamily": "",
@@ -17760,11 +17760,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 72.0,
+      "default": 72,
       "x-step": 1
      },
      "color": {
@@ -17999,7 +17999,7 @@
     "default": {
      "text": "DECRYPTED",
      "charset": "!@#$%^&*()_+-=<>?/\\|",
-     "fontSize": 72.0,
+     "fontSize": 72,
      "color": "#22c55e",
      "fontWeight": "600",
      "revealDuration": 2.0,
@@ -18041,11 +18041,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 240,
-      "default": 120.0,
+      "default": 120,
       "x-step": 1
      },
      "color": {
@@ -18269,7 +18269,7 @@
     "default": {
      "from": "$99",
      "to": "$199",
-     "fontSize": 120.0,
+     "fontSize": 120,
      "color": "#171717",
      "fontWeight": "700",
      "background": "white",
@@ -18316,20 +18316,20 @@
      },
      "distance": {
       "description": "Distance",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 120,
-      "default": 20.0,
+      "default": 20,
       "x-step": 1
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 72.0,
+      "default": 72,
       "x-step": 1
      },
      "color": {
@@ -18553,8 +18553,8 @@
     "default": {
      "text": "Ship your demo in minutes",
      "staggerDelay": 0.1333,
-     "distance": 20.0,
-     "fontSize": 72.0,
+     "distance": 20,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -18590,20 +18590,20 @@
      },
      "entryOffset": {
       "description": "Entry offset",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 20,
       "maximum": 160,
-      "default": 88.0,
+      "default": 88,
       "x-step": 1
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 72.0,
+      "default": 72,
       "x-step": 1
      },
      "color": {
@@ -18826,8 +18826,8 @@
     "type": "object",
     "default": {
      "text": "Words push left.",
-     "entryOffset": 88.0,
-     "fontSize": 72.0,
+     "entryOffset": 88,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -18864,20 +18864,20 @@
      },
      "distance": {
       "description": "Distance",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 120,
-      "default": 30.0,
+      "default": 30,
       "x-step": 1
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 72.0,
+      "default": 72,
       "x-step": 1
      },
      "color": {
@@ -19100,8 +19100,8 @@
     "type": "object",
     "default": {
      "text": "Designed to move.\nBuilt to focus.",
-     "distance": 30.0,
-     "fontSize": 72.0,
+     "distance": 30,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -19146,20 +19146,20 @@
      },
      "startBlur": {
       "description": "Start blur",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 40,
-      "default": 12.0,
+      "default": 12,
       "x-step": 1
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 200,
-      "default": 96.0,
+      "default": 96,
       "x-step": 1
      },
      "color": {
@@ -19383,8 +19383,8 @@
     "default": {
      "text": "tracking in",
      "startTracking": 0.5,
-     "startBlur": 12.0,
-     "fontSize": 96.0,
+     "startBlur": 12,
+     "fontSize": 96,
      "color": "#171717",
      "fontWeight": "700",
      "background": "white",
@@ -19420,20 +19420,20 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 72.0,
+      "default": 72,
       "x-step": 1
      },
      "wordGap": {
       "description": "Frames / word",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 3,
       "maximum": 30,
-      "default": 10.0,
+      "default": 10,
       "x-step": 1
      },
      "accel": {
@@ -19665,8 +19665,8 @@
     "type": "object",
     "default": {
      "text": "move at your own pace",
-     "fontSize": 72.0,
-     "wordGap": 10.0,
+     "fontSize": 72,
+     "wordGap": 10,
      "accel": 0.8,
      "color": "#171717",
      "fontWeight": "400",
@@ -19703,11 +19703,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 200,
-      "default": 96.0,
+      "default": 96,
       "x-step": 1
      },
      "color": {
@@ -19754,11 +19754,11 @@
      },
      "intensity": {
       "description": "Intensity (px)",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 30,
-      "default": 6.0,
+      "default": 6,
       "x-step": 1
      },
      "seed": {
@@ -20001,12 +20001,12 @@
     "type": "object",
     "default": {
      "text": "GLITCH",
-     "fontSize": 96.0,
+     "fontSize": 96,
      "color": "#171717",
      "fontWeight": "700",
      "glitchAt": 0.6667,
      "glitchDuration": 0.2667,
-     "intensity": 6.0,
+     "intensity": 6,
      "seed": "glitch",
      "glitchColors": [
       "#ff0040",
@@ -20047,47 +20047,47 @@
      },
      "giantFontSize": {
       "description": "Giant font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 160,
       "maximum": 720,
-      "default": 520.0,
+      "default": 520,
       "x-step": 4
      },
      "compactFontSize": {
       "description": "Compact font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 40,
       "maximum": 240,
-      "default": 132.0,
+      "default": 132,
       "x-step": 2
      },
      "anchorOffsetX": {
       "description": "Final horizontal anchor offset",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "int32",
       "minimum": -400,
       "maximum": 400,
-      "default": -16.0,
+      "default": -16,
       "x-step": 4
      },
      "giantTravel": {
       "description": "Giant phase left travel",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 800,
-      "default": 400.0,
+      "default": 400,
       "x-step": 4
      },
      "settleTravel": {
       "description": "Compact entrance travel",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 400,
-      "default": 160.0,
+      "default": 160,
       "x-step": 4
      },
      "cutFrame": {
@@ -20103,20 +20103,20 @@
      },
      "revealSoftness": {
       "description": "Reveal edge softness",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 40,
-      "default": 14.0,
+      "default": 14,
       "x-step": 1
      },
      "compactBlur": {
       "description": "Blur after the cut",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 40,
-      "default": 12.0,
+      "default": 12,
       "x-step": 1
      },
      "gradientStart": {
@@ -20356,14 +20356,14 @@
     "type": "object",
     "default": {
      "text": "Introducing",
-     "giantFontSize": 520.0,
-     "compactFontSize": 132.0,
-     "anchorOffsetX": -16.0,
-     "giantTravel": 400.0,
-     "settleTravel": 160.0,
+     "giantFontSize": 520,
+     "compactFontSize": 132,
+     "anchorOffsetX": -16,
+     "giantTravel": 400,
+     "settleTravel": 160,
      "cutFrame": 0.4333,
-     "revealSoftness": 14.0,
-     "compactBlur": 12.0,
+     "revealSoftness": 14,
+     "compactBlur": 12,
      "gradientStart": "#f04a14",
      "gradientEnd": "#f3f1f1",
      "ghostColor": "#170b0a",
@@ -20415,11 +20415,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 96.0,
+      "default": 96,
       "x-step": 1
      },
      "color": {
@@ -20644,7 +20644,7 @@
      "from": "$49/mo",
      "to": "Free",
      "lineColor": "#ff5e3a",
-     "fontSize": 96.0,
+     "fontSize": 96,
      "color": "#171717",
      "fontWeight": "700",
      "background": "white",
@@ -20681,20 +20681,20 @@
      },
      "distance": {
       "description": "Distance",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 160,
-      "default": 48.0,
+      "default": 48,
       "x-step": 1
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 72.0,
+      "default": 72,
       "x-step": 1
      },
      "color": {
@@ -20917,8 +20917,8 @@
     "type": "object",
     "default": {
      "text": "Record once.\nShare everywhere.",
-     "distance": 48.0,
-     "fontSize": 72.0,
+     "distance": 48,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -20991,11 +20991,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 72.0,
+      "default": 72,
       "x-step": 1
      },
      "fontWeight": {
@@ -21214,7 +21214,7 @@
      "markerColor": "#facc15",
      "baseColor": "#171717",
      "highlightedTextColor": "#171717",
-     "fontSize": 72.0,
+     "fontSize": 72,
      "fontWeight": "600",
      "background": "white",
      "fontFamily": "",
@@ -21277,11 +21277,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 72.0,
+      "default": 72,
       "x-step": 1
      },
      "fontWeight": {
@@ -21499,7 +21499,7 @@
      "after": ".",
      "baseColor": "#171717",
      "highlightColor": "#ff5e3a",
-     "fontSize": 72.0,
+     "fontSize": 72,
      "fontWeight": "600",
      "background": "white",
      "fontFamily": "",
@@ -21529,11 +21529,11 @@
     "properties": {
      "width": {
       "description": "Width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 800,
-      "default": 420.0,
+      "default": 420,
       "x-step": 10
      },
      "color": {
@@ -21547,11 +21547,11 @@
      },
      "thickness": {
       "description": "Brush width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 2,
       "maximum": 24,
-      "default": 9.0,
+      "default": 9,
       "x-step": 1
      },
      "pressure": {
@@ -21583,11 +21583,11 @@
      },
      "durationSteps": {
       "description": "Poses to draw",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 2,
       "maximum": 10,
-      "default": 5.0,
+      "default": 5,
       "x-step": 1
      },
      "seed": {
@@ -21800,13 +21800,13 @@
     },
     "type": "object",
     "default": {
-     "width": 420.0,
+     "width": 420,
      "color": "#6f7f35",
-     "thickness": 9.0,
+     "thickness": 9,
      "pressure": 1.0,
      "release": 0.15,
      "grain": 1.0,
-     "durationSteps": 5.0,
+     "durationSteps": 5,
      "seed": "ink",
      "step": 0.1,
      "x": 0.5,
@@ -21845,11 +21845,11 @@
      },
      "strokeWidth": {
       "description": "Brush width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 4,
       "maximum": 32,
-      "default": 14.0,
+      "default": 14,
       "x-step": 1
      },
      "pressure": {
@@ -21872,11 +21872,11 @@
      },
      "durationSteps": {
       "description": "Poses to draw",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 2,
       "maximum": 20,
-      "default": 10.0,
+      "default": 10,
       "x-step": 1
      },
      "color": {
@@ -21927,21 +21927,21 @@
      },
      "width": {
       "description": "Width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 20,
       "maximum": 3840,
-      "default": 420.0,
+      "default": 420,
       "x-step": 10,
       "x-unit": "px"
      },
      "height": {
       "description": "Height",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 20,
       "maximum": 2160,
-      "default": 220.0,
+      "default": 220,
       "x-step": 10,
       "x-unit": "px"
      },
@@ -22128,17 +22128,17 @@
     "type": "object",
     "default": {
      "laps": 1.15,
-     "strokeWidth": 14.0,
+     "strokeWidth": 14,
      "pressure": 0.2,
      "grain": 1.0,
-     "durationSteps": 10.0,
+     "durationSteps": 10,
      "color": "#6f7f35",
      "seed": "scribble",
      "step": 0.1,
      "x": 0.5,
      "y": 0.5,
-     "width": 420.0,
-     "height": 220.0,
+     "width": 420,
+     "height": 220,
      "release": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -22174,11 +22174,11 @@
      },
      "strokeWidth": {
       "description": "Brush width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 2,
       "maximum": 24,
-      "default": 8.0,
+      "default": 8,
       "x-step": 1
      },
      "pressure": {
@@ -22210,11 +22210,11 @@
      },
      "headSize": {
       "description": "Head size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 8,
       "maximum": 48,
-      "default": 24.0,
+      "default": 24,
       "x-step": 1
      },
      "drawDur": {
@@ -22480,11 +22480,11 @@
     "type": "object",
     "default": {
      "curvature": 0.35,
-     "strokeWidth": 8.0,
+     "strokeWidth": 8,
      "pressure": 0.2,
      "release": 1.0,
      "grain": 1.0,
-     "headSize": 24.0,
+     "headSize": 24,
      "drawDur": 1.2,
      "headDur": 0.4,
      "color": "#26242c",
@@ -22546,11 +22546,11 @@
      },
      "size": {
       "description": "Key size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 32,
       "maximum": 128,
-      "default": 64.0,
+      "default": 64,
       "x-step": 1
      },
      "linger": {
@@ -22825,7 +22825,7 @@
      "platform": "mac",
      "theme": "light",
      "accent": "#0a84ff",
-     "size": 64.0,
+     "size": 64,
      "linger": 1.0,
      "x": 0.5,
      "y": 0.86,
@@ -22869,20 +22869,20 @@
     "properties": {
      "particleCount": {
       "description": "Particles",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 10,
       "maximum": 400,
-      "default": 140.0,
+      "default": 140,
       "x-step": 10
      },
      "power": {
       "description": "Power",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 4,
       "maximum": 40,
-      "default": 17.0,
+      "default": 17,
       "x-step": 1
      },
      "gravity": {
@@ -22896,19 +22896,19 @@
      },
      "size": {
       "description": "Size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 4,
       "maximum": 30,
-      "default": 13.0,
+      "default": 13,
       "x-step": 1
      },
      "seed": {
       "description": "Seed",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
-      "default": 1.0,
+      "default": 1,
       "x-step": 1
      },
      "colors": {
@@ -23137,11 +23137,11 @@
     },
     "type": "object",
     "default": {
-     "particleCount": 140.0,
-     "power": 17.0,
+     "particleCount": 140,
+     "power": 17,
      "gravity": 0.45,
-     "size": 13.0,
-     "seed": 1.0,
+     "size": 13,
+     "seed": 1,
      "colors": [
       "#1d9bf0",
       "#ff5da2",
@@ -23178,38 +23178,38 @@
     "properties": {
      "segments": {
       "description": "Segments",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 4,
       "maximum": 16,
-      "default": 8.0,
+      "default": 8,
       "x-step": 1
      },
      "radius": {
       "description": "Burst radius",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 280,
-      "default": 210.0,
+      "default": 210,
       "x-step": 5
      },
      "thickness": {
       "description": "Thickness",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 8,
       "maximum": 60,
-      "default": 30.0,
+      "default": 30,
       "x-step": 1
      },
      "rotation": {
       "description": "Rotation",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "int32",
       "minimum": -360,
       "maximum": 360,
-      "default": 135.0,
+      "default": 135,
       "x-step": 15
      },
      "intensity": {
@@ -23223,20 +23223,20 @@
      },
      "twist": {
       "description": "Ribbon twist",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "int32",
       "minimum": -180,
       "maximum": 180,
-      "default": 110.0,
+      "default": 110,
       "x-step": 10
      },
      "echoes": {
       "description": "Contour echoes",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 5,
-      "default": 3.0,
+      "default": 3,
       "x-step": 1
      },
      "color": {
@@ -23453,13 +23453,13 @@
     },
     "type": "object",
     "default": {
-     "segments": 8.0,
-     "radius": 210.0,
-     "thickness": 30.0,
-     "rotation": 135.0,
+     "segments": 8,
+     "radius": 210,
+     "thickness": 30,
+     "rotation": 135,
      "intensity": 1.0,
-     "twist": 110.0,
-     "echoes": 3.0,
+     "twist": 110,
+     "echoes": 3,
      "color": "#ffffff",
      "accentColor": "#f4e4a7",
      "backgroundColor": "#a800b7",
@@ -23829,11 +23829,11 @@
      },
      "rotation": {
       "description": "Turn",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 360,
-      "default": 0.0,
+      "default": 0,
       "x-step": 1,
       "x-unit": "°",
       "x-help": "Turns the pattern around the middle of the frame.",
@@ -24024,7 +24024,7 @@
      ],
      "shape": "corners",
      "scale": 1.0,
-     "rotation": 0.0,
+     "rotation": 0,
      "clipDuration": 0,
      "envelope": {}
     }
@@ -24330,11 +24330,11 @@
      },
      "bandCount": {
       "description": "Bands",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 12,
-      "default": 4.0,
+      "default": 4,
       "x-step": 1
      },
      "twist": {
@@ -24556,7 +24556,7 @@
     "type": "object",
     "default": {
      "speed": 1.0,
-     "bandCount": 4.0,
+     "bandCount": 4,
      "twist": 0.1,
      "softness": 0.2,
      "colorBack": "#12121a",
@@ -25126,11 +25126,11 @@
      },
      "size": {
       "description": "Dot Size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 8,
-      "default": 2.0,
+      "default": 2,
       "x-step": 1
      },
      "colorBack": {
@@ -25358,7 +25358,7 @@
     "type": "object",
     "default": {
      "speed": 1.0,
-     "size": 2.0,
+     "size": 2,
      "colorBack": "#12121a",
      "colorFront": "#6a6a85",
      "shape": "wave",
@@ -25413,11 +25413,11 @@
      },
      "maskScale": {
       "description": "Mask pitch",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 6,
-      "default": 2.0,
+      "default": 2,
       "x-step": 1
      },
      "vignette": {
@@ -25604,7 +25604,7 @@
     "default": {
      "curvature": 1.0,
      "scanlines": 1.0,
-     "maskScale": 2.0,
+     "maskScale": 2,
      "vignette": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -25881,20 +25881,20 @@
     "properties": {
      "dotSize": {
       "description": "Dot size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 4,
       "maximum": 32,
-      "default": 10.0,
+      "default": 10,
       "x-step": 1
      },
      "angle": {
       "description": "Screen angle",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 90,
-      "default": 0.0,
+      "default": 0,
       "x-step": 1
      },
      "misregistration": {
@@ -26088,8 +26088,8 @@
     },
     "type": "object",
     "default": {
-     "dotSize": 10.0,
-     "angle": 0.0,
+     "dotSize": 10,
+     "angle": 0,
      "misregistration": 1.2,
      "paperTint": "#f4efe4",
      "clipDuration": 0,
@@ -26382,26 +26382,26 @@
      },
      "captionAt": {
       "description": "Caption starts",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 60,
-      "default": 0.0,
+      "default": 0,
       "x-step": 1
      },
      "width": {
       "description": "Card width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 320,
       "maximum": 900,
-      "default": 652.0,
+      "default": 652,
       "x-step": 4
      },
      "captionSize": {
       "description": "Caption size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 56,
       "x-zero-label": "Fit",
@@ -26612,8 +26612,8 @@
     "type": "object",
     "default": {
      "caption": "first light",
-     "captionAt": 0.0,
-     "width": 652.0,
+     "captionAt": 0,
+     "width": 652,
      "step": 0.1,
      "frameColor": "#fdfcf8",
      "captionColor": "#26242c",
@@ -26649,11 +26649,11 @@
     "properties": {
      "durationInFrames": {
       "description": "Duration",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 8,
       "maximum": 30,
-      "default": 18.0,
+      "default": 18,
       "x-step": 1
      },
      "gain": {
@@ -26856,7 +26856,7 @@
     },
     "type": "object",
     "default": {
-     "durationInFrames": 18.0,
+     "durationInFrames": 18,
      "gain": 1.0,
      "afterglow": 1.0,
      "phosphor": "#d8ecff",
@@ -26894,11 +26894,11 @@
      },
      "count": {
       "description": "Lines",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 3,
       "maximum": 32,
-      "default": 12.0,
+      "default": 12,
       "x-step": 1
      },
      "weight": {
@@ -26912,20 +26912,20 @@
      },
      "spread": {
       "description": "Spread",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 16,
       "maximum": 320,
-      "default": 96.0,
+      "default": 96,
       "x-step": 4
      },
      "duration": {
       "description": "Travel frames",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 6,
       "maximum": 40,
-      "default": 14.0,
+      "default": 14,
       "x-step": 1
      },
      "bounce": {
@@ -26957,11 +26957,11 @@
      },
      "delay": {
       "description": "Delay",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 60,
-      "default": 0.0,
+      "default": 0,
       "x-step": 1
      },
      "color": {
@@ -26975,10 +26975,10 @@
      },
      "seed": {
       "description": "Seed",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
-      "default": 1.0,
+      "default": 1,
       "x-step": 1
      },
      "speed": {
@@ -27164,16 +27164,16 @@
     "type": "object",
     "default": {
      "mode": "trail",
-     "count": 12.0,
+     "count": 12,
      "weight": 2.0,
-     "spread": 96.0,
-     "duration": 14.0,
+     "spread": 96,
+     "duration": 14,
      "bounce": 0.5,
      "x": 0.5,
      "y": 0.5,
-     "delay": 0.0,
+     "delay": 0,
      "color": "#ffffff",
-     "seed": 1.0,
+     "seed": 1,
      "speed": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -27228,11 +27228,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 10,
       "maximum": 32,
-      "default": 18.0,
+      "default": 18,
       "x-step": 1
      },
      "charsPerFrame": {
@@ -27246,11 +27246,11 @@
      },
      "chunkSize": {
       "description": "Chunk size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 20,
-      "default": 1.0,
+      "default": 1,
       "x-step": 1
      },
      "lines": {
@@ -27518,9 +27518,9 @@
      "title": "~/projects/acme",
      "background": "#0a0a0a",
      "chromeColor": "#1a1a1a",
-     "fontSize": 18.0,
+     "fontSize": 18,
      "charsPerFrame": 1.0,
-     "chunkSize": 1.0,
+     "chunkSize": 1,
      "lines": [
       {
        "text": "deploy --production",
@@ -27589,29 +27589,29 @@
      },
      "width": {
       "description": "Width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 300,
       "maximum": 1100,
-      "default": 760.0,
+      "default": 760,
       "x-step": 10
      },
      "height": {
       "description": "Height",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 200,
       "maximum": 700,
-      "default": 460.0,
+      "default": 460,
       "x-step": 10
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 10,
       "maximum": 28,
-      "default": 16.0,
+      "default": 16,
       "x-step": 1
      },
      "glassColor": {
@@ -27833,9 +27833,9 @@
     "type": "object",
     "default": {
      "title": "hero.tsx",
-     "width": 760.0,
-     "height": 460.0,
-     "fontSize": 16.0,
+     "width": 760,
+     "height": 460,
+     "fontSize": 16,
      "glassColor": "rgba(10, 10, 10, 0.6)",
      "staggerFrames": 0.1333,
      "showTrafficLights": true,
@@ -27901,11 +27901,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 32,
-      "default": 20.0,
+      "default": 20,
       "x-step": 1
      },
      "highlight": {
@@ -28150,7 +28150,7 @@
      "theme": "dark",
      "accentColor": "#0ea5e9",
      "morphDuration": 1.2,
-     "fontSize": 20.0,
+     "fontSize": 20,
      "highlight": true,
      "lineNumbers": true,
      "windowDots": true,
@@ -28190,21 +28190,21 @@
     "properties": {
      "diameter": {
       "description": "Diameter",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 48,
       "maximum": 320,
-      "default": 118.0,
+      "default": 118,
       "x-step": 1,
       "x-unit": "px"
      },
      "overlap": {
       "description": "Overlap",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 200,
-      "default": 38.0,
+      "default": 38,
       "x-step": 1,
       "x-unit": "px"
      },
@@ -28467,8 +28467,8 @@
     },
     "type": "object",
     "default": {
-     "diameter": 118.0,
-     "overlap": 38.0,
+     "diameter": 118,
+     "overlap": 38,
      "ringColor": "#fff",
      "orientation": "horizontal",
      "stagger": 0.2333,
@@ -28516,11 +28516,11 @@
     "properties": {
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 24,
       "maximum": 64,
-      "default": 40.0,
+      "default": 40,
       "x-step": 2
      },
      "itemGap": {
@@ -28556,11 +28556,11 @@
      },
      "strokeWidth": {
       "description": "Stroke width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 8,
-      "default": 3.0,
+      "default": 3,
       "x-step": 1
      },
      "color": {
@@ -28631,11 +28631,11 @@
      },
      "width": {
       "description": "Width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 200,
       "maximum": 1800,
-      "default": 720.0,
+      "default": 720,
       "x-step": 10,
       "x-unit": "px"
      },
@@ -28661,8 +28661,8 @@
      },
      "rowGap": {
       "description": "Row gap",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 200,
       "x-zero-label": "Auto",
@@ -28860,11 +28860,11 @@
     },
     "type": "object",
     "default": {
-     "fontSize": 40.0,
+     "fontSize": 40,
      "itemGap": 0.6,
      "closeGap": 0.3,
      "perStep": 1.6,
-     "strokeWidth": 3.0,
+     "strokeWidth": 3,
      "color": "#26242c",
      "tickColor": "#6f7f35",
      "step": 0.1,
@@ -28882,7 +28882,7 @@
        "checked": false
       }
      ],
-     "width": 720.0,
+     "width": 720,
      "boxColor": "#26242c",
      "weight": "600",
      "seed": "checklist",
@@ -28917,20 +28917,20 @@
      },
      "fieldWidth": {
       "description": "Field width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 320,
       "maximum": 640,
-      "default": 464.0,
+      "default": 464,
       "x-step": 8
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 18,
       "maximum": 54,
-      "default": 34.0,
+      "default": 34,
       "x-step": 1
      },
      "framesPerCharacter": {
@@ -29203,8 +29203,8 @@
     "type": "object",
     "default": {
      "text": "acme",
-     "fieldWidth": 464.0,
-     "fontSize": 34.0,
+     "fieldWidth": 464,
+     "fontSize": 34,
      "framesPerCharacter": 0.1333,
      "showPanel": true,
      "showGuides": true,
@@ -29269,11 +29269,11 @@
      },
      "seed": {
       "description": "Seed",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 99,
-      "default": 1.0,
+      "default": 1,
       "x-step": 1
      },
      "runTitle": {
@@ -29581,7 +29581,7 @@
      "theme": "light",
      "accentColor": "#2563eb",
      "compression": 3.0,
-     "seed": 1.0,
+     "seed": 1,
      "runTitle": "Checkout conversion drop",
      "runPrompt": "Why did checkout conversion drop last week?",
      "runPlan": [
@@ -29664,11 +29664,11 @@
      },
      "gap": {
       "description": "Gap",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 80,
-      "default": 16.0,
+      "default": 16,
       "x-step": 2
      },
      "staggerFrames": {
@@ -29695,17 +29695,17 @@
         },
         "value": {
          "description": "Value",
-         "type": "number",
-         "format": "double",
+         "type": "integer",
+         "format": "uint32",
          "minimum": 0,
          "maximum": 1000000,
-         "default": 50.0,
+         "default": 50,
          "x-step": 1
         }
        },
        "default": {
         "label": "",
-        "value": 50.0
+        "value": 50
        }
       },
       "minItems": 1,
@@ -29713,56 +29713,56 @@
       "default": [
        {
         "label": "",
-        "value": 35.0
+        "value": 35
        },
        {
         "label": "",
-        "value": 60.0
+        "value": 60
        },
        {
         "label": "",
-        "value": 45.0
+        "value": 45
        },
        {
         "label": "",
-        "value": 80.0
+        "value": 80
        },
        {
         "label": "",
-        "value": 55.0
+        "value": 55
        },
        {
         "label": "",
-        "value": 70.0
+        "value": 70
        },
        {
         "label": "",
-        "value": 90.0
+        "value": 90
        },
        {
         "label": "",
-        "value": 65.0
+        "value": 65
        }
       ],
       "x-help": "Leave every label empty to draw the bars without labels."
      },
      "width": {
       "description": "Width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 200,
       "maximum": 1920,
-      "default": 1000.0,
+      "default": 1000,
       "x-step": 10,
       "x-advanced": true
      },
      "height": {
       "description": "Height",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 1080,
-      "default": 500.0,
+      "default": 500,
       "x-step": 10,
       "x-advanced": true
      },
@@ -29967,44 +29967,44 @@
     "type": "object",
     "default": {
      "barColor": "#0ea5e9",
-     "gap": 16.0,
+     "gap": 16,
      "staggerFrames": 0.2,
      "bars": [
       {
        "label": "",
-       "value": 35.0
+       "value": 35
       },
       {
        "label": "",
-       "value": 60.0
+       "value": 60
       },
       {
        "label": "",
-       "value": 45.0
+       "value": 45
       },
       {
        "label": "",
-       "value": 80.0
+       "value": 80
       },
       {
        "label": "",
-       "value": 55.0
+       "value": 55
       },
       {
        "label": "",
-       "value": 70.0
+       "value": 70
       },
       {
        "label": "",
-       "value": 90.0
+       "value": 90
       },
       {
        "label": "",
-       "value": 65.0
+       "value": 65
       }
      ],
-     "width": 1000.0,
-     "height": 500.0,
+     "width": 1000,
+     "height": 500,
      "baselineColor": "#27272a",
      "labelColor": "#a1a1aa",
      "speed": 1.0,
@@ -30042,11 +30042,11 @@
      },
      "strokeWidth": {
       "description": "Stroke width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 16,
-      "default": 4.0,
+      "default": 4,
       "x-step": 1
      },
      "gridColor": {
@@ -30086,21 +30086,21 @@
      },
      "width": {
       "description": "Width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 200,
       "maximum": 3840,
-      "default": 1000.0,
+      "default": 1000,
       "x-step": 10,
       "x-advanced": true
      },
      "height": {
       "description": "Height",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 100,
       "maximum": 2160,
-      "default": 500.0,
+      "default": 500,
       "x-step": 10,
       "x-advanced": true
      },
@@ -30287,7 +30287,7 @@
     "type": "object",
     "default": {
      "strokeColor": "#22c55e",
-     "strokeWidth": 4.0,
+     "strokeWidth": 4,
      "gridColor": "#27272a",
      "showDot": true,
      "data": [
@@ -30301,8 +30301,8 @@
       25.0,
       32.0
      ],
-     "width": 1000.0,
-     "height": 500.0,
+     "width": 1000,
+     "height": 500,
      "speed": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -30329,29 +30329,29 @@
     "properties": {
      "from": {
       "description": "From",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint64",
       "minimum": 0,
-      "maximum": 999999999999.0,
-      "default": 0.0,
+      "maximum": 999999999999,
+      "default": 0,
       "x-step": 1
      },
      "to": {
       "description": "To",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint64",
       "minimum": 0,
-      "maximum": 999999999999.0,
-      "default": 24813.0,
+      "maximum": 999999999999,
+      "default": 24813,
       "x-step": 1
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 24,
       "maximum": 280,
-      "default": 120.0,
+      "default": 120,
       "x-step": 4
      },
      "color": {
@@ -30555,9 +30555,9 @@
     },
     "type": "object",
     "default": {
-     "from": 0.0,
-     "to": 24813.0,
-     "fontSize": 120.0,
+     "from": 0,
+     "to": 24813,
+     "fontSize": 120,
      "color": "#171717",
      "background": "white",
      "speed": 1.0,
@@ -30633,54 +30633,54 @@
      },
      "exitFrames": {
       "description": "Exit time",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 2,
       "maximum": 24,
-      "default": 6.0,
+      "default": 6,
       "x-step": 1,
       "x-unit": "frames"
      },
      "enterFadeFrames": {
       "description": "Fade-in time",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 30,
-      "default": 5.0,
+      "default": 5,
       "x-step": 1,
       "x-unit": "frames",
       "x-advanced": true
      },
      "springDamping": {
       "description": "Spring damping",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 100,
-      "default": 30.0,
+      "default": 30,
       "x-step": 1,
       "x-help": "Lower values bounce more as items land.",
       "x-advanced": true
      },
      "springStiffness": {
       "description": "Spring stiffness",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 10,
       "maximum": 1000,
-      "default": 320.0,
+      "default": 320,
       "x-step": 10,
       "x-help": "Higher values land faster.",
       "x-advanced": true
      },
      "bgFadeFrames": {
       "description": "Background fade",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 30,
-      "default": 4.0,
+      "default": 4,
       "x-step": 1,
       "x-unit": "frames",
       "x-advanced": true
@@ -30897,11 +30897,11 @@
      "enterScale": 1.24,
      "enterStagger": 3.0,
      "exitScale": 0.84,
-     "exitFrames": 6.0,
-     "enterFadeFrames": 5.0,
-     "springDamping": 30.0,
-     "springStiffness": 320.0,
-     "bgFadeFrames": 4.0,
+     "exitFrames": 6,
+     "enterFadeFrames": 5,
+     "springDamping": 30,
+     "springStiffness": 320,
+     "bgFadeFrames": 4,
      "loop": false,
      "gapFrames": 1,
      "backgrounds": [],
@@ -31580,8 +31580,8 @@
      },
      "revealCount": {
       "description": "Letters typed",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 200,
       "x-zero-label": "All",
@@ -31594,11 +31594,11 @@
      },
      "selectedIndex": {
       "description": "Selected item",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "int32",
       "minimum": -1,
       "maximum": 20,
-      "default": -1.0,
+      "default": -1,
       "x-step": 1,
       "x-help": "Counting from 0. -1 selects none.",
       "x-show-if": {
@@ -31609,11 +31609,11 @@
      },
      "highlightedIndex": {
       "description": "Hovered item",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "int32",
       "minimum": -1,
       "maximum": 20,
-      "default": -1.0,
+      "default": -1,
       "x-step": 1,
       "x-help": "Counting from 0. -1 hovers none.",
       "x-show-if": {
@@ -31757,11 +31757,11 @@
      },
      "pressedIndex": {
       "description": "Press item",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "int32",
       "minimum": -1,
       "maximum": 20,
-      "default": -1.0,
+      "default": -1,
       "x-step": 1,
       "x-help": "The item that gets pressed, counting from 0. -1 presses none.",
       "x-show-if": {
@@ -31945,8 +31945,8 @@
     "default": {
      "state": "opened",
      "query": "new",
-     "selectedIndex": -1.0,
-     "highlightedIndex": -1.0,
+     "selectedIndex": -1,
+     "highlightedIndex": -1,
      "theme": {
       "mode": "light",
       "colors": {}
@@ -31973,7 +31973,7 @@
       }
      ],
      "autoplay": true,
-     "pressedIndex": -1.0,
+     "pressedIndex": -1,
      "clipDuration": 0,
      "envelope": {}
     }
@@ -32904,11 +32904,11 @@
      },
      "batteryLevel": {
       "description": "Battery level",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 100,
-      "default": 85.0,
+      "default": 85,
       "x-step": 1
      },
      "bezelColor": {
@@ -32929,20 +32929,20 @@
      },
      "restTilt": {
       "description": "Lid tilt",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 45,
-      "default": 18.0,
+      "default": 18,
       "x-step": 1
      },
      "radius": {
       "description": "Lid radius",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 8,
       "maximum": 40,
-      "default": 22.0,
+      "default": 22,
       "x-step": 1
      },
      "scale": {
@@ -32961,11 +32961,11 @@
      },
      "floatAmplitude": {
       "description": "Float amplitude",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 16,
-      "default": 4.0,
+      "default": 4,
       "x-step": 1
      },
      "shadow": {
@@ -33251,14 +33251,14 @@
      "finale": "zoom-to-screen",
      "notchLabel": "Recording started",
      "showNotch": true,
-     "batteryLevel": 85.0,
+     "batteryLevel": 85,
      "bezelColor": "#1D1D1F",
      "screenColor": "#FFFFFF",
-     "restTilt": 18.0,
-     "radius": 22.0,
+     "restTilt": 18,
+     "radius": 22,
      "scale": 0.85,
      "floatLoop": true,
-     "floatAmplitude": 4.0,
+     "floatAmplitude": 4,
      "shadow": "0 40px 80px rgba(10,12,20,0.45)",
      "theme": {
       "mode": "dark",
@@ -33332,20 +33332,20 @@
      },
      "radius": {
       "description": "Body radius",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 24,
       "maximum": 90,
-      "default": 53.0,
+      "default": 53,
       "x-step": 1
      },
      "screenRadius": {
       "description": "Screen radius",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 78,
-      "default": 41.0,
+      "default": 41,
       "x-step": 1
      },
      "scale": {
@@ -33359,11 +33359,11 @@
      },
      "tiltAngle": {
       "description": "Tilt angle",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "int32",
       "minimum": -30,
       "maximum": 30,
-      "default": -12.0,
+      "default": -12,
       "x-step": 1
      },
      "showDynamicIsland": {
@@ -33378,11 +33378,11 @@
      },
      "floatAmplitude": {
       "description": "Float amplitude",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 20,
-      "default": 6.0,
+      "default": 6,
       "x-step": 1
      },
      "shadow": {
@@ -33659,13 +33659,13 @@
      "screenSrc": "app:placeholders/screen-tall.svg",
      "bezelColor": "#C7C9CE",
      "screenColor": "#0A0A0B",
-     "radius": 53.0,
-     "screenRadius": 41.0,
+     "radius": 53,
+     "screenRadius": 41,
      "scale": 0.92,
-     "tiltAngle": -12.0,
+     "tiltAngle": -12,
      "showDynamicIsland": true,
      "floatLoop": false,
-     "floatAmplitude": 6.0,
+     "floatAmplitude": 6,
      "shadow": "0 30px 70px rgba(16,24,40,0.28)",
      "theme": {
       "mode": "dark",
@@ -33765,20 +33765,20 @@
      },
      "radius": {
       "description": "Corner radius",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 48,
-      "default": 0.0,
+      "default": 0,
       "x-step": 1
      },
      "trimBefore": {
       "description": "Trim in",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 300,
-      "default": 0.0,
+      "default": 0,
       "x-step": 1
      },
      "audio": {
@@ -34134,8 +34134,8 @@
      "fit": "cover",
      "backdropColor": "",
      "entrance": "fade",
-     "radius": 0.0,
-     "trimBefore": 0.0,
+     "radius": 0,
+     "trimBefore": 0,
      "audio": false,
      "theme": {
       "mode": "dark",
@@ -34558,20 +34558,20 @@
      },
      "accentBeat": {
       "description": "Accent card",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 8,
-      "default": 3.0,
+      "default": 3,
       "x-step": 1
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 24,
       "maximum": 200,
-      "default": 93.0,
+      "default": 93,
       "x-step": 1
      },
      "fontWeight": {
@@ -35051,8 +35051,8 @@
      "styles": "slide,punch",
      "sizes": "1,0.945,2.7",
      "holds": "1.6",
-     "accentBeat": 3.0,
-     "fontSize": 93.0,
+     "accentBeat": 3,
+     "fontSize": 93,
      "fontWeight": "600",
      "lineHeight": 0.89,
      "letterSpacing": "-0.022em",
@@ -35201,11 +35201,11 @@
      },
      "thickness": {
       "description": "Line thickness",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 20,
-      "default": 4.0,
+      "default": 4,
       "x-step": 1
      },
      "shineColor": {
@@ -35267,11 +35267,11 @@
      },
      "rushScale": {
       "description": "Rush scale (× mark)",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 2,
       "maximum": 80,
-      "default": 42.0,
+      "default": 42,
       "x-step": 1
      },
      "rushDrift": {
@@ -35303,11 +35303,11 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 160,
-      "default": 56.0,
+      "default": 56,
       "x-step": 1
      },
      "fontWeight": {
@@ -35603,18 +35603,18 @@
      "replaceWith": "Acme",
      "startAt": 0.2,
      "drawDuration": 0.4667,
-     "thickness": 4.0,
+     "thickness": 4,
      "shineColor": "#FAFAFA",
      "logoSrc": "app:placeholders/logo-mark.svg",
      "logoScale": 1.05,
      "spinTurns": 1.0,
      "holdDuration": 0.4,
      "rushDuration": 0.8,
-     "rushScale": 42.0,
+     "rushScale": 42,
      "rushDrift": 0.55,
      "swingOut": 0.25,
      "coverColor": "#266DF0",
-     "fontSize": 56.0,
+     "fontSize": 56,
      "fontWeight": "600",
      "theme": {
       "mode": "dark",
@@ -35751,20 +35751,20 @@
      },
      "fontSize": {
       "description": "Status size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 24,
       "maximum": 140,
-      "default": 63.0,
+      "default": 63,
       "x-step": 1
      },
      "chipFontSize": {
       "description": "Chip size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 48,
       "maximum": 260,
-      "default": 160.0,
+      "default": 160,
       "x-step": 2
      },
      "introFrames": {
@@ -35897,8 +35897,8 @@
      },
      "pillRadius": {
       "description": "Status corner radius",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 200,
       "x-zero-label": "Auto",
@@ -35908,8 +35908,8 @@
      },
      "chipRadius": {
       "description": "Chip corner radius",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 200,
       "x-zero-label": "Auto",
@@ -36130,8 +36130,8 @@
      "chipBorderColor": "rgb(160, 160, 160)",
      "fontWeight": "400",
      "chipFontWeight": "400",
-     "fontSize": 63.0,
-     "chipFontSize": 160.0,
+     "fontSize": 63,
+     "chipFontSize": 160,
      "introFrames": 0.8,
      "statusHold": 1.0,
      "chipStagger": 0.2667,
@@ -36184,11 +36184,11 @@
      },
      "count": {
       "description": "Ring images",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 5,
       "maximum": 16,
-      "default": 10.0,
+      "default": 10,
       "x-step": 1
      },
      "background": {
@@ -36511,7 +36511,7 @@
      "brandName": "Acme",
      "middleText": "Product demos, made simple",
      "logoSrc": "app:placeholders/logo-mark.svg",
-     "count": 10.0,
+     "count": 10,
      "background": "",
      "theme": {
       "mode": "dark",
@@ -36838,51 +36838,51 @@
         },
         "x": {
          "description": "Start across",
-         "type": "number",
-         "format": "double",
+         "type": "integer",
+         "format": "int32",
          "minimum": -1200,
          "maximum": 1200,
-         "default": 0.0,
+         "default": 0,
          "x-step": 1,
          "x-advanced": true
         },
         "y": {
          "description": "Start down",
-         "type": "number",
-         "format": "double",
+         "type": "integer",
+         "format": "int32",
          "minimum": -800,
          "maximum": 800,
-         "default": 0.0,
+         "default": 0,
          "x-step": 1,
          "x-advanced": true
         },
         "vx": {
          "description": "Drift across",
-         "type": "number",
-         "format": "double",
+         "type": "integer",
+         "format": "int32",
          "minimum": -200,
          "maximum": 200,
-         "default": 0.0,
+         "default": 0,
          "x-step": 1,
          "x-advanced": true
         },
         "vy": {
          "description": "Drift down",
-         "type": "number",
-         "format": "double",
+         "type": "integer",
+         "format": "int32",
          "minimum": -200,
          "maximum": 200,
-         "default": 0.0,
+         "default": 0,
          "x-step": 1,
          "x-advanced": true
         },
         "size": {
          "description": "Size",
-         "type": "number",
-         "format": "double",
+         "type": "integer",
+         "format": "uint32",
          "minimum": 20,
          "maximum": 400,
-         "default": 140.0,
+         "default": 140,
          "x-step": 1,
          "x-advanced": true
         },
@@ -36901,11 +36901,11 @@
         "glyph": "Ab",
         "background": "#1f2430",
         "color": "",
-        "x": 0.0,
-        "y": 0.0,
-        "vx": 0.0,
-        "vy": 0.0,
-        "size": 140.0,
+        "x": 0,
+        "y": 0,
+        "vx": 0,
+        "vy": 0,
+        "size": 140,
         "at": 1.0
        }
       },
@@ -36915,11 +36915,11 @@
         "label": "Record",
         "background": "#1f2430",
         "color": "#ffffff",
-        "x": 163.0,
-        "y": 232.0,
-        "vx": -54.0,
-        "vy": 12.0,
-        "size": 109.0,
+        "x": 163,
+        "y": 232,
+        "vx": -54,
+        "vy": 12,
+        "size": 109,
         "at": 0.28
        },
        {
@@ -36927,11 +36927,11 @@
         "label": "Edit",
         "background": "#f2f4f7",
         "color": "#16181d",
-        "x": 128.0,
-        "y": -209.0,
-        "vx": 81.0,
-        "vy": 32.0,
-        "size": 122.0,
+        "x": 128,
+        "y": -209,
+        "vx": 81,
+        "vy": 32,
+        "size": 122,
         "at": 0.48
        },
        {
@@ -36939,11 +36939,11 @@
         "label": "Zoom",
         "background": "#10131a",
         "color": "#7dd3fc",
-        "x": -384.0,
-        "y": 344.0,
-        "vx": -27.0,
-        "vy": -68.0,
-        "size": 200.0,
+        "x": -384,
+        "y": 344,
+        "vx": -27,
+        "vy": -68,
+        "size": 200,
         "at": 0.95
        },
        {
@@ -36951,11 +36951,11 @@
         "label": "Captions",
         "background": "#e7e8ea",
         "color": "#16181d",
-        "x": 519.0,
-        "y": 45.0,
-        "vx": -31.0,
-        "vy": 64.0,
-        "size": 144.0,
+        "x": 519,
+        "y": 45,
+        "vx": -31,
+        "vy": 64,
+        "size": 144,
         "at": 1.51
        },
        {
@@ -36963,11 +36963,11 @@
         "label": "Mix",
         "background": "#f1ece2",
         "color": "#8a5a2b",
-        "x": -692.0,
-        "y": -125.0,
-        "vx": 41.0,
-        "vy": -71.0,
-        "size": 214.0,
+        "x": -692,
+        "y": -125,
+        "vx": 41,
+        "vy": -71,
+        "size": 214,
         "at": 1.55
        }
       ]
@@ -37190,11 +37190,11 @@
        "label": "Record",
        "background": "#1f2430",
        "color": "#ffffff",
-       "x": 163.0,
-       "y": 232.0,
-       "vx": -54.0,
-       "vy": 12.0,
-       "size": 109.0,
+       "x": 163,
+       "y": 232,
+       "vx": -54,
+       "vy": 12,
+       "size": 109,
        "at": 0.28
       },
       {
@@ -37202,11 +37202,11 @@
        "label": "Edit",
        "background": "#f2f4f7",
        "color": "#16181d",
-       "x": 128.0,
-       "y": -209.0,
-       "vx": 81.0,
-       "vy": 32.0,
-       "size": 122.0,
+       "x": 128,
+       "y": -209,
+       "vx": 81,
+       "vy": 32,
+       "size": 122,
        "at": 0.48
       },
       {
@@ -37214,11 +37214,11 @@
        "label": "Zoom",
        "background": "#10131a",
        "color": "#7dd3fc",
-       "x": -384.0,
-       "y": 344.0,
-       "vx": -27.0,
-       "vy": -68.0,
-       "size": 200.0,
+       "x": -384,
+       "y": 344,
+       "vx": -27,
+       "vy": -68,
+       "size": 200,
        "at": 0.95
       },
       {
@@ -37226,11 +37226,11 @@
        "label": "Captions",
        "background": "#e7e8ea",
        "color": "#16181d",
-       "x": 519.0,
-       "y": 45.0,
-       "vx": -31.0,
-       "vy": 64.0,
-       "size": 144.0,
+       "x": 519,
+       "y": 45,
+       "vx": -31,
+       "vy": 64,
+       "size": 144,
        "at": 1.51
       },
       {
@@ -37238,11 +37238,11 @@
        "label": "Mix",
        "background": "#f1ece2",
        "color": "#8a5a2b",
-       "x": -692.0,
-       "y": -125.0,
-       "vx": 41.0,
-       "vy": -71.0,
-       "size": 214.0,
+       "x": -692,
+       "y": -125,
+       "vx": 41,
+       "vy": -71,
+       "size": 214,
        "at": 1.55
       }
      ],
@@ -37595,11 +37595,11 @@
      },
      "decimals": {
       "description": "Decimals",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 6,
-      "default": 0.0,
+      "default": 0,
       "x-step": 1,
       "x-help": "Decimal places while counting and at rest.",
       "x-advanced": true
@@ -37618,11 +37618,11 @@
      },
      "delta": {
       "description": "Change",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "int32",
       "minimum": -1000000,
       "maximum": 1000000,
-      "default": 4.0,
+      "default": 4,
       "x-step": 1,
       "x-help": "Change against the previous period; lands after the number settles.",
       "x-show-if": {
@@ -37687,8 +37687,8 @@
      },
      "max": {
       "description": "Ring full at",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 1000000000,
       "x-zero-label": "Full ring",
@@ -37870,10 +37870,10 @@
      "value": 98.0,
      "suffix": "%",
      "prefix": "",
-     "decimals": 0.0,
+     "decimals": 0,
      "label": "Satisfaction",
      "caption": "Customer survey, last 30 days",
-     "delta": 4.0,
+     "delta": 4,
      "deltaSuffix": "%",
      "accentColor": "#2DD4BF",
      "theme": "dark",
@@ -38018,9 +38018,10 @@
      },
      "maxCards": {
       "description": "Most cards",
-      "type": "number",
-      "format": "double",
-      "default": 4.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 4,
       "x-help": "Cards beyond this count are dropped rather than squeezed."
      },
      "accentColor": {
@@ -38269,7 +38270,7 @@
      ],
      "title": "Growth this quarter",
      "eyebrow": "Quarter recap",
-     "maxCards": 4.0,
+     "maxCards": 4,
      "accentColor": "",
      "backgroundColor": "",
      "theme": "dark",
@@ -38309,11 +38310,11 @@
         },
         "value": {
          "description": "Value",
-         "type": "number",
-         "format": "double",
+         "type": "integer",
+         "format": "uint32",
          "minimum": 0,
          "maximum": 1000000000,
-         "default": 1750.0,
+         "default": 1750,
          "x-step": 1
         },
         "color": {
@@ -38325,30 +38326,30 @@
        },
        "default": {
         "label": "Upgraded",
-        "value": 1750.0
+        "value": 1750
        }
       },
       "minItems": 1,
       "default": [
        {
         "label": "Visited the site",
-        "value": 42800.0
+        "value": 42800
        },
        {
         "label": "Signed up",
-        "value": 18600.0
+        "value": 18600
        },
        {
         "label": "Created a project",
-        "value": 9400.0
+        "value": 9400
        },
        {
         "label": "Invited a teammate",
-        "value": 4100.0
+        "value": 4100
        },
        {
         "label": "Upgraded",
-        "value": 1750.0
+        "value": 1750
        }
       ]
      },
@@ -38397,11 +38398,11 @@
      },
      "durationInFrames": {
       "description": "Animation length",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 300,
-      "default": 22.0,
+      "default": 22,
       "x-step": 1,
       "x-unit": "frames",
       "x-help": "Length of one band's wipe.",
@@ -38409,9 +38410,10 @@
      },
      "staggerInFrames": {
       "description": "Stagger",
-      "type": "number",
-      "format": "double",
-      "default": 12.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 12,
       "x-unit": "frames",
       "x-help": "Frames between one band and the next.",
       "x-advanced": true
@@ -38454,8 +38456,8 @@
      },
      "labelWidth": {
       "description": "Label width",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 2000,
       "x-zero-label": "Auto",
@@ -38639,23 +38641,23 @@
      "stages": [
       {
        "label": "Visited the site",
-       "value": 42800.0
+       "value": 42800
       },
       {
        "label": "Signed up",
-       "value": 18600.0
+       "value": 18600
       },
       {
        "label": "Created a project",
-       "value": 9400.0
+       "value": 9400
       },
       {
        "label": "Invited a teammate",
-       "value": 4100.0
+       "value": 4100
       },
       {
        "label": "Upgraded",
-       "value": 1750.0
+       "value": 1750
       }
      ],
      "width": 1100.0,
@@ -38664,8 +38666,8 @@
      "tailOpacity": 0.5,
      "showDropoff": true,
      "showConversion": false,
-     "durationInFrames": 22.0,
-     "staggerInFrames": 12.0,
+     "durationInFrames": 22,
+     "staggerInFrames": 12,
      "color": "#e8b86d",
      "inkColor": "#fafafa",
      "labelColor": "rgba(250,250,250,0.55)",
@@ -38797,11 +38799,11 @@
      },
      "durationInFrames": {
       "description": "Animation length",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 300,
-      "default": 26.0,
+      "default": 26,
       "x-step": 1,
       "x-unit": "frames",
       "x-help": "Length of one segment's sweep.",
@@ -38809,9 +38811,10 @@
      },
      "staggerInFrames": {
       "description": "Stagger",
-      "type": "number",
-      "format": "double",
-      "default": 9.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 9,
       "x-unit": "frames",
       "x-help": "Frames between one segment and the next.",
       "x-advanced": true
@@ -39063,8 +39066,8 @@
      "showLegend": true,
      "showTotal": true,
      "totalLabel": "Sessions",
-     "durationInFrames": 26.0,
-     "staggerInFrames": 9.0,
+     "durationInFrames": 26,
+     "staggerInFrames": 9,
      "trackColor": "rgba(250,250,250,0.08)",
      "labelColor": "rgba(250,250,250,0.58)",
      "inkColor": "#fafafa",
@@ -39233,11 +39236,11 @@
      },
      "durationInFrames": {
       "description": "Animation length",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 300,
-      "default": 30.0,
+      "default": 30,
       "x-step": 1,
       "x-unit": "frames",
       "x-help": "Length of one bar's growth.",
@@ -39245,18 +39248,20 @@
      },
      "staggerInFrames": {
       "description": "Stagger",
-      "type": "number",
-      "format": "double",
-      "default": 12.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 12,
       "x-unit": "frames",
       "x-help": "Frames between one row and the next.",
       "x-advanced": true
      },
      "pairOffsetInFrames": {
       "description": "Pair offset",
-      "type": "number",
-      "format": "double",
-      "default": 6.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 6,
       "x-unit": "frames",
       "x-help": "Frames the second bar trails the first by.",
       "x-advanced": true
@@ -39486,9 +39491,9 @@
       "After"
      ],
      "showDelta": true,
-     "durationInFrames": 30.0,
-     "staggerInFrames": 12.0,
-     "pairOffsetInFrames": 6.0,
+     "durationInFrames": 30,
+     "staggerInFrames": 12,
+     "pairOffsetInFrames": 6,
      "barInkColor": "#0b0b10",
      "labelColor": "rgba(250,250,250,0.55)",
      "clipDuration": 0,
@@ -39633,11 +39638,11 @@
      },
      "framesPerStep": {
       "description": "Time per step",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 300,
-      "default": 18.0,
+      "default": 18,
       "x-step": 1,
       "x-unit": "frames",
       "x-help": "Frames spent travelling between two keyframes.",
@@ -39645,11 +39650,11 @@
      },
      "visibleRows": {
       "description": "Visible rows",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 20,
-      "default": 6.0,
+      "default": 6,
       "x-step": 1,
       "x-help": "How many rows stay on the board. Below that, series fade out.",
       "x-advanced": true
@@ -39987,8 +39992,8 @@
       "Q5",
       "Q6"
      ],
-     "framesPerStep": 18.0,
-     "visibleRows": 6.0,
+     "framesPerStep": 18,
+     "visibleRows": 6,
      "width": 1200.0,
      "rowHeight": 76.0,
      "gap": 14.0,
@@ -40065,11 +40070,11 @@
      },
      "sweepInDegrees": {
       "description": "Sweep angle",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 10,
       "maximum": 360,
-      "default": 250.0,
+      "default": 250,
       "x-step": 1,
       "x-help": "Total travel, centred on twelve o'clock. 180 gives a half-moon meter.",
       "x-advanced": true
@@ -40088,22 +40093,22 @@
      },
      "tickCount": {
       "description": "Tick count",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 60,
-      "default": 9.0,
+      "default": 9,
       "x-step": 1,
       "x-help": "Tick marks around the arc. 0 hides them.",
       "x-advanced": true
      },
      "durationInFrames": {
       "description": "Animation length",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 300,
-      "default": 44.0,
+      "default": 44,
       "x-step": 1,
       "x-unit": "frames",
       "x-help": "Length of the sweep.",
@@ -40323,11 +40328,11 @@
      "max": 100.0,
      "size": 480.0,
      "thickness": 26.0,
-     "sweepInDegrees": 250.0,
+     "sweepInDegrees": 250,
      "label": "Weekly goal",
      "unit": "%",
-     "tickCount": 9.0,
-     "durationInFrames": 44.0,
+     "tickCount": 9,
+     "durationInFrames": 44,
      "color": "#e8b86d",
      "trackColor": "rgba(250,250,250,0.10)",
      "inkColor": "#fafafa",
@@ -40989,8 +40994,8 @@
      },
      "size": {
       "description": "Logo size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 20,
       "maximum": 2000,
       "x-zero-label": "Auto",
@@ -41354,8 +41359,8 @@
      },
      "wasPrice": {
       "description": "Old price",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 1000000,
       "x-zero-label": "None",
@@ -41687,9 +41692,10 @@
      },
      "highlightColumn": {
       "description": "Highlighted column",
-      "type": "number",
-      "format": "double",
-      "default": 1.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 1,
       "x-help": "Column kept lit throughout. Pass -1 for a table with no favourite."
      },
      "highlightLabel": {
@@ -41983,7 +41989,7 @@
       }
      ],
      "title": "What you get",
-     "highlightColumn": 1.0,
+     "highlightColumn": 1,
      "highlightLabel": "Most picked",
      "startAtSeconds": 0.5,
      "rowStaggerSeconds": 0.26,
@@ -42471,10 +42477,10 @@
      },
      "columns": {
       "description": "Columns",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
-      "default": 4.0,
+      "default": 4,
       "x-step": 1,
       "x-help": "Tiles per row."
      },
@@ -42763,7 +42769,7 @@
      ],
      "eyebrow": "Trusted by",
      "title": "Teams that ship with us",
-     "columns": 4.0,
+     "columns": 4,
      "startAtSeconds": 0.32,
      "arriveStaggerSeconds": 0.06,
      "staggerSeconds": 0.24,
@@ -42884,8 +42890,8 @@
      },
      "logoSize": {
       "description": "Logo size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 10,
       "maximum": 600,
       "x-zero-label": "Auto",
@@ -43136,9 +43142,10 @@
      },
      "startLine": {
       "description": "Start line",
-      "type": "number",
-      "format": "double",
-      "default": 1.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 1,
       "x-help": "First line number in the gutter, for excerpts.",
       "x-advanced": true
      },
@@ -43365,7 +43372,7 @@
      ],
      "title": "checkout.ts",
      "language": "tsx",
-     "startLine": 1.0,
+     "startLine": 1,
      "showLineNumbers": true,
      "accentColor": "#E8B86D",
      "theme": "dark",
@@ -43697,9 +43704,10 @@
         },
         "column": {
          "description": "Column",
-         "type": "number",
-         "format": "double",
-         "default": 2.0
+         "type": "integer",
+         "format": "uint32",
+         "minimum": 0,
+         "default": 2
         },
         "tint": {
          "description": "Tint",
@@ -43709,8 +43717,9 @@
         },
         "moveTo": {
          "description": "Move to",
-         "type": "number",
-         "format": "double"
+         "type": "integer",
+         "format": "uint32",
+         "minimum": 0
         },
         "moveAtSeconds": {
          "description": "Move at seconds",
@@ -43720,48 +43729,48 @@
        },
        "default": {
         "title": "CSV export",
-        "column": 2.0
+        "column": 2
        }
       },
       "default": [
        {
         "title": "Onboarding checklist",
         "meta": "APP-218 · Ana",
-        "column": 0.0,
+        "column": 0,
         "tint": "#8FB8F0"
        },
        {
         "title": "Retry failed payments",
         "meta": "APP-204 · Piotr",
-        "column": 0.0,
+        "column": 0,
         "tint": "#E8B86D",
-        "moveTo": 1.0,
+        "moveTo": 1,
         "moveAtSeconds": 0.95
        },
        {
         "title": "Dark mode",
         "meta": "APP-231 · Dai",
-        "column": 0.0,
+        "column": 0,
         "tint": "#C99BE8"
        },
        {
         "title": "Search filters",
         "meta": "APP-190 · Ana",
-        "column": 1.0,
+        "column": 1,
         "tint": "#7DD3E8",
-        "moveTo": 2.0,
+        "moveTo": 2,
         "moveAtSeconds": 1.72
        },
        {
         "title": "Team invites",
         "meta": "APP-177 · Kit",
-        "column": 1.0,
+        "column": 1,
         "tint": "#9BD4A0"
        },
        {
         "title": "CSV export",
         "meta": "APP-166 · Dai",
-        "column": 2.0,
+        "column": 2,
         "tint": "#9BD4A0"
        }
       ],
@@ -44007,41 +44016,41 @@
       {
        "title": "Onboarding checklist",
        "meta": "APP-218 · Ana",
-       "column": 0.0,
+       "column": 0,
        "tint": "#8FB8F0"
       },
       {
        "title": "Retry failed payments",
        "meta": "APP-204 · Piotr",
-       "column": 0.0,
+       "column": 0,
        "tint": "#E8B86D",
-       "moveTo": 1.0,
+       "moveTo": 1,
        "moveAtSeconds": 0.95
       },
       {
        "title": "Dark mode",
        "meta": "APP-231 · Dai",
-       "column": 0.0,
+       "column": 0,
        "tint": "#C99BE8"
       },
       {
        "title": "Search filters",
        "meta": "APP-190 · Ana",
-       "column": 1.0,
+       "column": 1,
        "tint": "#7DD3E8",
-       "moveTo": 2.0,
+       "moveTo": 2,
        "moveAtSeconds": 1.72
       },
       {
        "title": "Team invites",
        "meta": "APP-177 · Kit",
-       "column": 1.0,
+       "column": 1,
        "tint": "#9BD4A0"
       },
       {
        "title": "CSV export",
        "meta": "APP-166 · Dai",
-       "column": 2.0,
+       "column": 2,
        "tint": "#9BD4A0"
       }
      ],
@@ -44689,18 +44698,21 @@
         },
         "lane": {
          "description": "Lane",
-         "type": "number",
-         "format": "double"
+         "type": "integer",
+         "format": "uint32",
+         "minimum": 0
         },
         "parent": {
          "description": "Parent",
-         "type": "number",
-         "format": "double"
+         "type": "integer",
+         "format": "uint32",
+         "minimum": 0
         },
         "mergeFrom": {
          "description": "Merge from",
-         "type": "number",
-         "format": "double"
+         "type": "integer",
+         "format": "uint32",
+         "minimum": 0
         },
         "ref": {
          "description": "Ref",
@@ -44724,26 +44736,26 @@
        {
         "message": "Branch: retry backoff",
         "hash": "d0e91c4",
-        "lane": 1.0,
-        "parent": 1.0
+        "lane": 1,
+        "parent": 1
        },
        {
         "message": "Cap retries at five",
         "hash": "51b2fa8",
-        "lane": 1.0
+        "lane": 1
        },
        {
         "message": "Ship caption presets",
         "hash": "7f30dd1",
-        "lane": 0.0,
-        "parent": 1.0
+        "lane": 0,
+        "parent": 1
        },
        {
         "message": "Merge retry backoff",
         "hash": "b8c4e05",
-        "lane": 0.0,
-        "parent": 4.0,
-        "mergeFrom": 3.0,
+        "lane": 0,
+        "parent": 4,
+        "mergeFrom": 3,
         "ref": "main"
        }
       ]
@@ -45016,26 +45028,26 @@
       {
        "message": "Branch: retry backoff",
        "hash": "d0e91c4",
-       "lane": 1.0,
-       "parent": 1.0
+       "lane": 1,
+       "parent": 1
       },
       {
        "message": "Cap retries at five",
        "hash": "51b2fa8",
-       "lane": 1.0
+       "lane": 1
       },
       {
        "message": "Ship caption presets",
        "hash": "7f30dd1",
-       "lane": 0.0,
-       "parent": 1.0
+       "lane": 0,
+       "parent": 1
       },
       {
        "message": "Merge retry backoff",
        "hash": "b8c4e05",
-       "lane": 0.0,
-       "parent": 4.0,
-       "mergeFrom": 3.0,
+       "lane": 0,
+       "parent": 4,
+       "mergeFrom": 3,
        "ref": "main"
       }
      ],
@@ -45747,9 +45759,10 @@
      },
      "staggerInFrames": {
       "description": "Stagger",
-      "type": "number",
-      "format": "double",
-      "default": 9.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 9,
       "x-unit": "frames",
       "x-help": "Frames between devices.",
       "x-advanced": true
@@ -45973,7 +45986,7 @@
     "type": "object",
     "default": {
      "scale": 1.6,
-     "staggerInFrames": 9.0,
+     "staggerInFrames": 9,
      "bezelColor": "#15171D",
      "screenColor": "#0B0C11",
      "labelColor": "#7A828F",
@@ -46048,9 +46061,10 @@
      },
      "staggerInFrames": {
       "description": "Stagger",
-      "type": "number",
-      "format": "double",
-      "default": 3.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 3,
       "x-unit": "frames",
       "x-help": "Frames between one character and the next. This is the writing speed.",
       "x-advanced": true
@@ -46079,8 +46093,8 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 600,
       "x-zero-label": "Auto",
@@ -46277,7 +46291,7 @@
      "penColor": "#e8b86d",
      "inkSoftness": 0.18,
      "wobble": 1.6,
-     "staggerInFrames": 3.0,
+     "staggerInFrames": 3,
      "fontFamily": "",
      "seed": "handwriting",
      "color": "#f4f4f5",
@@ -46376,18 +46390,20 @@
      },
      "staggerInFrames": {
       "description": "Stagger",
-      "type": "number",
-      "format": "double",
-      "default": 2.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 2,
       "x-unit": "frames",
       "x-help": "Frames between one tube striking and the next.",
       "x-advanced": true
      },
      "seed": {
       "description": "Variation",
-      "type": "number",
-      "format": "double",
-      "default": 1.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 1,
       "x-advanced": true
      },
      "color": {
@@ -46401,8 +46417,8 @@
      },
      "fontSize": {
       "description": "Font size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 12,
       "maximum": 600,
       "x-zero-label": "Auto",
@@ -46610,8 +46626,8 @@
      "buzz": 0.06,
      "flickerOnExit": true,
      "order": "start",
-     "staggerInFrames": 2.0,
-     "seed": 1.0,
+     "staggerInFrames": 2,
+     "seed": 1,
      "color": "#fdf2f8",
      "fontWeight": "600",
      "offColor": "",
@@ -46696,11 +46712,11 @@
      },
      "durationInFrames": {
       "description": "Animation length",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 300,
-      "default": 30.0,
+      "default": 30,
       "x-step": 1,
       "x-unit": "frames",
       "x-help": "Length of the reveal.",
@@ -46715,9 +46731,10 @@
      },
      "fontWeight": {
       "description": "Font weight",
-      "type": "number",
-      "format": "double",
-      "default": 800.0
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 800
      },
      "letterSpacing": {
       "description": "Letter spacing",
@@ -46922,9 +46939,9 @@
      "reveal": "left",
      "drift": 26.0,
      "zoom": 0.12,
-     "durationInFrames": 30.0,
+     "durationInFrames": 30,
      "fontFamily": "",
-     "fontWeight": 800.0,
+     "fontWeight": 800,
      "letterSpacing": 0.0,
      "lineHeight": 0.98,
      "clipDuration": 0,
@@ -46980,11 +46997,11 @@
      },
      "ribbonCount": {
       "description": "Ribbon count",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 12,
-      "default": 4.0,
+      "default": 4,
       "x-step": 1,
       "x-help": "How many curtains."
      },
@@ -47060,9 +47077,10 @@
      },
      "seed": {
       "description": "Variation",
-      "type": "number",
-      "format": "double",
-      "default": 1.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 1,
       "x-advanced": true
      },
      "clipDuration": {
@@ -47243,7 +47261,7 @@
       "#e07a5f",
       "#c2557a"
      ],
-     "ribbonCount": 4.0,
+     "ribbonCount": 4,
      "amplitude": 9.0,
      "thickness": 15.0,
      "centerY": 46.0,
@@ -47253,7 +47271,7 @@
      "intensity": 1.3,
      "horizonGlow": 0.5,
      "striation": 0.55,
-     "seed": 1.0,
+     "seed": 1,
      "clipDuration": 120,
      "envelope": {}
     }
@@ -47299,11 +47317,11 @@
      },
      "count": {
       "description": "Particles",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 400,
-      "default": 70.0,
+      "default": 70,
       "x-step": 1,
       "x-help": "How many particles."
      },
@@ -47370,9 +47388,10 @@
      },
      "seed": {
       "description": "Variation",
-      "type": "number",
-      "format": "double",
-      "default": 1.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 1,
       "x-advanced": true
      },
      "clipDuration": {
@@ -47549,7 +47568,7 @@
     "default": {
      "backgroundColor": "#05070f",
      "color": "#e8b86d",
-     "count": 70.0,
+     "count": 70,
      "angle": 8.0,
      "speed": 1.0,
      "size": 14.0,
@@ -47558,7 +47577,7 @@
      "drift": 4.0,
      "intensity": 1.0,
      "glow": 1.6,
-     "seed": 1.0,
+     "seed": 1,
      "clipDuration": 120,
      "envelope": {}
     }
@@ -47972,11 +47991,11 @@
      },
      "blur": {
       "description": "Blur",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 48,
-      "default": 24.0,
+      "default": 24,
       "x-step": 2
      },
      "durationInFrames": {
@@ -47998,7 +48017,7 @@
     "type": "object",
     "default": {
      "direction": "left",
-     "blur": 24.0,
+     "blur": 24,
      "durationInFrames": 114,
      "keepWhole": false
     }
@@ -48046,11 +48065,11 @@
      },
      "blur": {
       "description": "Blur",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 30,
-      "default": 14.0,
+      "default": 14,
       "x-step": 1
      },
      "durationInFrames": {
@@ -48072,7 +48091,7 @@
     "type": "object",
     "default": {
      "zoom": 2.4,
-     "blur": 14.0,
+     "blur": 14,
      "durationInFrames": 112,
      "keepWhole": false
     }
@@ -48111,20 +48130,20 @@
     "properties": {
      "blur": {
       "description": "Blur",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 40,
-      "default": 16.0,
+      "default": 16,
       "x-step": 2
      },
      "rise": {
       "description": "Rise",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 160,
-      "default": 0.0,
+      "default": 0,
       "x-step": 10
      },
      "durationInFrames": {
@@ -48145,8 +48164,8 @@
     },
     "type": "object",
     "default": {
-     "blur": 16.0,
-     "rise": 0.0,
+     "blur": 16,
+     "rise": 0,
      "durationInFrames": 114,
      "keepWhole": false
     }
@@ -48185,11 +48204,11 @@
     "properties": {
      "blur": {
       "description": "Blur",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 4,
       "maximum": 32,
-      "default": 16.0,
+      "default": 16,
       "x-step": 1
      },
      "durationInFrames": {
@@ -48210,7 +48229,7 @@
     },
     "type": "object",
     "default": {
-     "blur": 16.0,
+     "blur": 16,
      "durationInFrames": 114,
      "keepWhole": false
     }
@@ -48249,38 +48268,38 @@
     "properties": {
      "lensSteps": {
       "description": "Lens steps",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 4,
       "maximum": 12,
-      "default": 9.0,
+      "default": 9,
       "x-step": 1
      },
      "blurSamples": {
       "description": "Blur samples",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 2,
       "maximum": 12,
-      "default": 7.0,
+      "default": 7,
       "x-step": 1
      },
      "shakeAmount": {
       "description": "Shake amount",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 300,
-      "default": 50.0,
+      "default": 50,
       "x-step": 5
      },
      "shakeTranslatePx": {
       "description": "Shake travel (px)",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0,
       "maximum": 80,
-      "default": 73.0,
+      "default": 73,
       "x-step": 1
      },
      "colorSplit": {
@@ -48308,10 +48327,10 @@
     },
     "type": "object",
     "default": {
-     "lensSteps": 9.0,
-     "blurSamples": 7.0,
-     "shakeAmount": 50.0,
-     "shakeTranslatePx": 73.0,
+     "lensSteps": 9,
+     "blurSamples": 7,
+     "shakeAmount": 50,
+     "shakeTranslatePx": 73,
      "colorSplit": true,
      "durationInFrames": 112,
      "keepWhole": false
@@ -48743,11 +48762,11 @@
      },
      "slices": {
       "description": "Slices",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 8,
       "maximum": 64,
-      "default": 24.0,
+      "default": 24,
       "x-step": 2
      },
      "rgbSplit": {
@@ -48787,7 +48806,7 @@
     "type": "object",
     "default": {
      "intensity": 1.0,
-     "slices": 24.0,
+     "slices": 24,
      "rgbSplit": 1.0,
      "blockNoise": 0.6,
      "durationInFrames": 78,
@@ -48828,20 +48847,20 @@
     "properties": {
      "angle": {
       "description": "Angle",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "int32",
       "minimum": -20,
       "maximum": 20,
-      "default": -7.0,
+      "default": -7,
       "x-step": 1
      },
      "poses": {
       "description": "Poses",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 2,
       "maximum": 16,
-      "default": 8.0,
+      "default": 8,
       "x-step": 1
      },
      "durationInFrames": {
@@ -48862,8 +48881,8 @@
     },
     "type": "object",
     "default": {
-     "angle": -7.0,
-     "poses": 8.0,
+     "angle": -7,
+     "poses": 8,
      "durationInFrames": 128,
      "keepWhole": false
     }
@@ -49135,11 +49154,11 @@
     "properties": {
      "bandCount": {
       "description": "Bands",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 12,
-      "default": 10.0,
+      "default": 10,
       "x-step": 1
      },
      "softness": {
@@ -49206,7 +49225,7 @@
     },
     "type": "object",
     "default": {
-     "bandCount": 10.0,
+     "bandCount": 10,
      "softness": 0.35,
      "colorBack": "#141318",
      "colors": [
@@ -49253,11 +49272,11 @@
     "properties": {
      "particleSize": {
       "description": "Grain size",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 16,
-      "default": 4.0,
+      "default": 4,
       "x-step": 1
      },
      "scatter": {
@@ -49326,7 +49345,7 @@
     },
     "type": "object",
     "default": {
-     "particleSize": 4.0,
+     "particleSize": 4,
      "scatter": 0.08,
      "shimmer": 0.6,
      "aberration": 0.5,
@@ -49370,21 +49389,21 @@
     "properties": {
      "cols": {
       "description": "Columns",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 48,
-      "default": 12.0,
+      "default": 12,
       "x-step": 1,
       "x-help": "Grid column count."
      },
      "rows": {
       "description": "Rows",
-      "type": "number",
-      "format": "double",
+      "type": "integer",
+      "format": "uint32",
       "minimum": 1,
       "maximum": 48,
-      "default": 8.0,
+      "default": 8,
       "x-step": 1,
       "x-help": "Grid row count."
      },
@@ -49439,8 +49458,8 @@
     },
     "type": "object",
     "default": {
-     "cols": 12.0,
-     "rows": 8.0,
+     "cols": 12,
+     "rows": 8,
      "order": "from-left",
      "shape": "square",
      "stagger": 0.82,
@@ -49669,9 +49688,10 @@
      },
      "slats": {
       "description": "Slats",
-      "type": "number",
-      "format": "double",
-      "default": 12.0,
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "default": 12,
       "x-help": "Number of slats. Above ~24 it stops reading as slats at 1080p."
      },
      "stagger": {
@@ -49717,7 +49737,7 @@
     "type": "object",
     "default": {
      "orientation": "horizontal",
-     "slats": 12.0,
+     "slats": 12,
      "stagger": 0.45,
      "alternate": false,
      "edgeSoftness": 0.06,

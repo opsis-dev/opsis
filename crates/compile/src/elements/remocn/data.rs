@@ -11,9 +11,9 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 pub struct AnimatedBarChartBar {
     #[schemars(description = "Label")]
     pub label: String,
-    #[default = 50.0]
+    #[default = 50]
     #[schemars(description = "Value", range(min = 0, max = 1000000), extend("x-step" = 1))]
-    pub value: f64,
+    pub value: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -22,30 +22,30 @@ pub struct AnimatedBarChart {
     #[default = "#0ea5e9"]
     #[schemars(description = "Bar color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub bar_color: String,
-    #[default = 16.0]
+    #[default = 16]
     #[schemars(description = "Gap", range(min = 0, max = 80), extend("x-step" = 2))]
-    pub gap: f64,
+    pub gap: u32,
     #[default = 0.2]
     #[schemars(description = "Stagger", range(min = 0, max = 1), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub stagger_frames: f64,
     #[default(vec![
-        AnimatedBarChartBar { value: 35.0, ..Default::default() },
-        AnimatedBarChartBar { value: 60.0, ..Default::default() },
-        AnimatedBarChartBar { value: 45.0, ..Default::default() },
-        AnimatedBarChartBar { value: 80.0, ..Default::default() },
-        AnimatedBarChartBar { value: 55.0, ..Default::default() },
-        AnimatedBarChartBar { value: 70.0, ..Default::default() },
-        AnimatedBarChartBar { value: 90.0, ..Default::default() },
-        AnimatedBarChartBar { value: 65.0, ..Default::default() },
+        AnimatedBarChartBar { value: 35, ..Default::default() },
+        AnimatedBarChartBar { value: 60, ..Default::default() },
+        AnimatedBarChartBar { value: 45, ..Default::default() },
+        AnimatedBarChartBar { value: 80, ..Default::default() },
+        AnimatedBarChartBar { value: 55, ..Default::default() },
+        AnimatedBarChartBar { value: 70, ..Default::default() },
+        AnimatedBarChartBar { value: 90, ..Default::default() },
+        AnimatedBarChartBar { value: 65, ..Default::default() },
     ])]
     #[schemars(description = "Bars", length(min = 1, max = 60), extend("x-help" = "Leave every label empty to draw the bars without labels."))]
     pub bars: Vec<AnimatedBarChartBar>,
-    #[default = 1000.0]
+    #[default = 1000]
     #[schemars(description = "Width", range(min = 200, max = 1920), extend("x-step" = 10, "x-advanced" = true))]
-    pub width: f64,
-    #[default = 500.0]
+    pub width: u32,
+    #[default = 500]
     #[schemars(description = "Height", range(min = 100, max = 1080), extend("x-step" = 10, "x-advanced" = true))]
-    pub height: f64,
+    pub height: u32,
     #[default = "#27272a"]
     #[schemars(description = "Baseline colour", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub baseline_color: String,
@@ -63,9 +63,9 @@ pub struct AnimatedLineChart {
     #[default = "#22c55e"]
     #[schemars(description = "Stroke color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub stroke_color: String,
-    #[default = 4.0]
+    #[default = 4]
     #[schemars(description = "Stroke width", range(min = 1, max = 16), extend("x-step" = 1))]
-    pub stroke_width: f64,
+    pub stroke_width: u32,
     #[default = "#27272a"]
     #[schemars(description = "Grid color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub grid_color: String,
@@ -75,12 +75,12 @@ pub struct AnimatedLineChart {
     #[default(vec![12.0, 19.0, 8.0, 15.0, 22.0, 18.0, 28.0, 25.0, 32.0])]
     #[schemars(description = "Values", length(min = 2), extend("x-help" = "Paste a column from a spreadsheet to fill the list."))]
     pub data: Vec<f64>,
-    #[default = 1000.0]
+    #[default = 1000]
     #[schemars(description = "Width", range(min = 200, max = 3840), extend("x-step" = 10, "x-advanced" = true))]
-    pub width: f64,
-    #[default = 500.0]
+    pub width: u32,
+    #[default = 500]
     #[schemars(description = "Height", range(min = 100, max = 2160), extend("x-step" = 10, "x-advanced" = true))]
-    pub height: f64,
+    pub height: u32,
     #[default = 1.0]
     #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
     pub speed: f64,
@@ -89,14 +89,14 @@ pub struct AnimatedLineChart {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct RollingNumber {
-    #[schemars(description = "From", range(min = 0, max = 999999999999.0), extend("x-step" = 1))]
-    pub from: f64,
-    #[default = 24813.0]
-    #[schemars(description = "To", range(min = 0, max = 999999999999.0), extend("x-step" = 1))]
-    pub to: f64,
-    #[default = 120.0]
+    #[schemars(description = "From", range(min = 0, max = 999_999_999_999_u64), extend("x-step" = 1))]
+    pub from: u64,
+    #[default = 24813]
+    #[schemars(description = "To", range(min = 0, max = 999_999_999_999_u64), extend("x-step" = 1))]
+    pub to: u64,
+    #[default = 120]
     #[schemars(description = "Font size", range(min = 24, max = 280), extend("x-step" = 4))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,

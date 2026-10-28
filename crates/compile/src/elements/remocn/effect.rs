@@ -17,9 +17,9 @@ pub struct CrtScreen {
     #[default = 1.0]
     #[schemars(description = "Scanlines", range(min = 0, max = 1.5), extend("x-step" = 0.05))]
     pub scanlines: f64,
-    #[default = 2.0]
+    #[default = 2]
     #[schemars(description = "Mask pitch", range(min = 1, max = 6), extend("x-step" = 1))]
-    pub mask_scale: f64,
+    pub mask_scale: u32,
     #[default = 1.0]
     #[schemars(description = "Vignette", range(min = 0, max = 1.5), extend("x-step" = 0.05))]
     pub vignette: f64,
@@ -45,11 +45,11 @@ pub struct VhsFilter {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct HalftonePrint {
-    #[default = 10.0]
+    #[default = 10]
     #[schemars(description = "Dot size", range(min = 4, max = 32), extend("x-step" = 1))]
-    pub dot_size: f64,
+    pub dot_size: u32,
     #[schemars(description = "Screen angle", range(min = 0, max = 90), extend("x-step" = 1))]
-    pub angle: f64,
+    pub angle: u32,
     #[default = 1.2]
     #[schemars(description = "Misregistration", range(min = 0, max = 6), extend("x-step" = 0.2))]
     pub misregistration: f64,
@@ -85,13 +85,13 @@ pub struct Polaroid {
     #[schemars(description = "Caption")]
     pub caption: String,
     #[schemars(description = "Caption starts", range(min = 0, max = 60), extend("x-step" = 1))]
-    pub caption_at: f64,
-    #[default = 652.0]
+    pub caption_at: u32,
+    #[default = 652]
     #[schemars(description = "Card width", range(min = 320, max = 900), extend("x-step" = 4))]
-    pub width: f64,
+    pub width: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Caption size", range(min = 12, max = 56), extend("x-zero-label" = "Fit", "x-step" = 1, "x-unit" = "px", "x-help" = "Leave empty to size the caption with the card.", "type" = "number"))]
-    pub caption_size: Option<f64>,
+    #[schemars(description = "Caption size", range(min = 12, max = 56), extend("x-zero-label" = "Fit", "x-step" = 1, "x-unit" = "px", "x-help" = "Leave empty to size the caption with the card.", "type" = "integer"))]
+    pub caption_size: Option<u32>,
     #[default = 0.1]
     #[schemars(description = "Time per pose", range(min = 0.0333, max = 0.2), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub step: f64,
@@ -106,9 +106,9 @@ pub struct Polaroid {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct TvPowerOff {
-    #[default = 18.0]
+    #[default = 18]
     #[schemars(description = "Duration", range(min = 8, max = 30), extend("x-step" = 1))]
-    pub duration_in_frames: f64,
+    pub duration_in_frames: u32,
     #[default = 1.0]
     #[schemars(description = "Surge", range(min = 0, max = 2), extend("x-step" = 0.05))]
     pub gain: f64,
@@ -126,18 +126,18 @@ pub struct SpeedLines {
     #[default(SpeedLinesMode::Trail)]
     #[schemars(description = "Mode")]
     pub mode: SpeedLinesMode,
-    #[default = 12.0]
+    #[default = 12]
     #[schemars(description = "Lines", range(min = 3, max = 32), extend("x-step" = 1))]
-    pub count: f64,
+    pub count: u32,
     #[default = 2.0]
     #[schemars(description = "Stroke weight", range(min = 1, max = 8), extend("x-step" = 0.5))]
     pub weight: f64,
-    #[default = 96.0]
+    #[default = 96]
     #[schemars(description = "Spread", range(min = 16, max = 320), extend("x-step" = 4))]
-    pub spread: f64,
-    #[default = 14.0]
+    pub spread: u32,
+    #[default = 14]
     #[schemars(description = "Travel frames", range(min = 6, max = 40), extend("x-step" = 1))]
-    pub duration: f64,
+    pub duration: u32,
     #[default = 0.5]
     #[schemars(description = "Bounce", range(min = 0, max = 1), extend("x-step" = 0.05))]
     pub bounce: f64,
@@ -148,13 +148,13 @@ pub struct SpeedLines {
     #[schemars(description = "Point y", range(min = 0, max = 1), extend("x-step" = 0.01))]
     pub y: f64,
     #[schemars(description = "Delay", range(min = 0, max = 60), extend("x-step" = 1))]
-    pub delay: f64,
+    pub delay: u32,
     #[default = "#ffffff"]
     #[schemars(description = "Line color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
-    #[default = 1.0]
+    #[default = 1]
     #[schemars(description = "Seed", range(min = 1), extend("x-step" = 1))]
-    pub seed: f64,
+    pub seed: u32,
     #[default = 1.0]
     #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
     pub speed: f64,

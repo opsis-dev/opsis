@@ -43,9 +43,9 @@ pub struct FunnelChartStage {
     #[default = "Upgraded"]
     #[schemars(description = "Label")]
     pub label: String,
-    #[default = 1750.0]
+    #[default = 1750]
     #[schemars(description = "Value", range(min = 0, max = 1000000000), extend("x-step" = 1))]
-    pub value: f64,
+    pub value: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(description = "Color", extend("x-widget" = "color", "x-zero-label" = "None", "type" = "string"))]
     pub color: Option<String>,
@@ -110,16 +110,16 @@ pub struct StatCard {
     #[schemars(description = "Prefix", extend("x-help" = "Unit before the number."))]
     pub prefix: String,
     #[schemars(description = "Decimals", range(min = 0, max = 6), extend("x-step" = 1, "x-help" = "Decimal places while counting and at rest.", "x-advanced" = true))]
-    pub decimals: f64,
+    pub decimals: u32,
     #[default = "Satisfaction"]
     #[schemars(description = "Label", extend("x-help" = "Metric label."))]
     pub label: String,
     #[default = "Customer survey, last 30 days"]
     #[schemars(description = "Caption", extend("x-help" = "Line under the label (source, window, cohort)."))]
     pub caption: String,
-    #[default = 4.0]
+    #[default = 4]
     #[schemars(description = "Change", range(min = -1000000, max = 1000000), extend("x-step" = 1, "x-help" = "Change against the previous period; lands after the number settles.", "x-show-if" = {"showDelta":["true"]}))]
-    pub delta: f64,
+    pub delta: i32,
     #[default = "%"]
     #[schemars(description = "Change suffix", extend("x-help" = "Unit on the delta chip.", "x-show-if" = {"showDelta":["true"]}))]
     pub delta_suffix: String,
@@ -138,8 +138,8 @@ pub struct StatCard {
     #[schemars(description = "Background", extend("x-widget" = "color", "x-zero-label" = "Theme", "x-help" = "Leave empty to follow the theme."))]
     pub background_color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Ring full at", range(min = 0, max = 1000000000), extend("x-zero-label" = "Full ring", "x-step" = 1, "x-help" = "The ring fills to the value out of this. Leave empty for a full ring.", "type" = "number"))]
-    pub max: Option<f64>,
+    #[schemars(description = "Ring full at", range(min = 0, max = 1000000000), extend("x-zero-label" = "Full ring", "x-step" = 1, "x-help" = "The ring fills to the value out of this. Leave empty for a full ring.", "type" = "integer"))]
+    pub max: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -158,9 +158,9 @@ pub struct MetricTicker {
     #[default = "Quarter recap"]
     #[schemars(description = "Small heading", extend("x-help" = "Short label above the title."))]
     pub eyebrow: String,
-    #[default = 4.0]
+    #[default = 4]
     #[schemars(description = "Most cards", extend("x-help" = "Cards beyond this count are dropped rather than squeezed."))]
-    pub max_cards: f64,
+    pub max_cards: u32,
     #[schemars(description = "Accent color", extend("x-widget" = "color", "x-zero-label" = "Theme", "x-help" = "Value colour, overridable per metric. Leave empty to follow the theme."))]
     pub accent_color: String,
     #[schemars(description = "Background", extend("x-widget" = "color", "x-zero-label" = "Theme", "x-help" = "Leave empty to follow the theme."))]
@@ -174,10 +174,10 @@ pub struct MetricTicker {
 #[serde(rename_all = "camelCase", default)]
 pub struct FunnelChart {
     #[default(vec![
-        FunnelChartStage { label: "Visited the site".into(), value: 42800.0, ..Default::default() },
-        FunnelChartStage { label: "Signed up".into(), value: 18600.0, ..Default::default() },
-        FunnelChartStage { label: "Created a project".into(), value: 9400.0, ..Default::default() },
-        FunnelChartStage { label: "Invited a teammate".into(), value: 4100.0, ..Default::default() },
+        FunnelChartStage { label: "Visited the site".into(), value: 42800, ..Default::default() },
+        FunnelChartStage { label: "Signed up".into(), value: 18600, ..Default::default() },
+        FunnelChartStage { label: "Created a project".into(), value: 9400, ..Default::default() },
+        FunnelChartStage { label: "Invited a teammate".into(), value: 4100, ..Default::default() },
         FunnelChartStage::default(),
     ])]
     #[schemars(description = "Stages", length(min = 1))]
@@ -199,12 +199,12 @@ pub struct FunnelChart {
     pub show_dropoff: bool,
     #[schemars(description = "Show conversion", extend("x-help" = "Share of the first stage, printed beside each value."))]
     pub show_conversion: bool,
-    #[default = 22.0]
+    #[default = 22]
     #[schemars(description = "Animation length", range(min = 1, max = 300), extend("x-step" = 1, "x-unit" = "frames", "x-help" = "Length of one band's wipe.", "x-advanced" = true))]
-    pub duration_in_frames: f64,
-    #[default = 12.0]
+    pub duration_in_frames: u32,
+    #[default = 12]
     #[schemars(description = "Stagger", extend("x-unit" = "frames", "x-help" = "Frames between one band and the next.", "x-advanced" = true))]
-    pub stagger_in_frames: f64,
+    pub stagger_in_frames: u32,
     #[default = "#e8b86d"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -218,8 +218,8 @@ pub struct FunnelChart {
     #[schemars(description = "Drop-off color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub dropoff_color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Label width", range(min = 0, max = 2000), extend("x-zero-label" = "Auto", "x-step" = 10, "x-unit" = "px", "x-advanced" = true, "type" = "number"))]
-    pub label_width: Option<f64>,
+    #[schemars(description = "Label width", range(min = 0, max = 2000), extend("x-zero-label" = "Auto", "x-step" = 10, "x-unit" = "px", "x-advanced" = true, "type" = "integer"))]
+    pub label_width: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -251,12 +251,12 @@ pub struct DonutChart {
     #[default = "Sessions"]
     #[schemars(description = "Total label", extend("x-help" = "Caption under the total."))]
     pub total_label: String,
-    #[default = 26.0]
+    #[default = 26]
     #[schemars(description = "Animation length", range(min = 1, max = 300), extend("x-step" = 1, "x-unit" = "frames", "x-help" = "Length of one segment's sweep.", "x-advanced" = true))]
-    pub duration_in_frames: f64,
-    #[default = 9.0]
+    pub duration_in_frames: u32,
+    #[default = 9]
     #[schemars(description = "Stagger", extend("x-unit" = "frames", "x-help" = "Frames between one segment and the next.", "x-advanced" = true))]
-    pub stagger_in_frames: f64,
+    pub stagger_in_frames: u32,
     #[default = "rgba(250,250,250,0.08)"]
     #[schemars(description = "Track color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub track_color: String,
@@ -312,15 +312,15 @@ pub struct ComparisonBars {
     #[default = true]
     #[schemars(description = "Show change", extend("x-help" = "Percentage-change chip at the end of the second bar."))]
     pub show_delta: bool,
-    #[default = 30.0]
+    #[default = 30]
     #[schemars(description = "Animation length", range(min = 1, max = 300), extend("x-step" = 1, "x-unit" = "frames", "x-help" = "Length of one bar's growth.", "x-advanced" = true))]
-    pub duration_in_frames: f64,
-    #[default = 12.0]
+    pub duration_in_frames: u32,
+    #[default = 12]
     #[schemars(description = "Stagger", extend("x-unit" = "frames", "x-help" = "Frames between one row and the next.", "x-advanced" = true))]
-    pub stagger_in_frames: f64,
-    #[default = 6.0]
+    pub stagger_in_frames: u32,
+    #[default = 6]
     #[schemars(description = "Pair offset", extend("x-unit" = "frames", "x-help" = "Frames the second bar trails the first by.", "x-advanced" = true))]
-    pub pair_offset_in_frames: f64,
+    pub pair_offset_in_frames: u32,
     #[default = "#0b0b10"]
     #[schemars(description = "Bar text color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub bar_ink_color: String,
@@ -345,12 +345,12 @@ pub struct BarChartRace {
     #[default(vec!["Q1".into(), "Q2".into(), "Q3".into(), "Q4".into(), "Q5".into(), "Q6".into()])]
     #[schemars(description = "Steps", extend("x-help" = "Keyframe captions, e.g. years. Shown as the running clock."))]
     pub steps: Vec<String>,
-    #[default = 18.0]
+    #[default = 18]
     #[schemars(description = "Time per step", range(min = 1, max = 300), extend("x-step" = 1, "x-unit" = "frames", "x-help" = "Frames spent travelling between two keyframes.", "x-advanced" = true))]
-    pub frames_per_step: f64,
-    #[default = 6.0]
+    pub frames_per_step: u32,
+    #[default = 6]
     #[schemars(description = "Visible rows", range(min = 1, max = 20), extend("x-step" = 1, "x-help" = "How many rows stay on the board. Below that, series fade out.", "x-advanced" = true))]
-    pub visible_rows: f64,
+    pub visible_rows: u32,
     #[default = 1200.0]
     #[schemars(description = "Width", extend("x-help" = "Overall width, label column included."))]
     pub width: f64,
@@ -397,21 +397,21 @@ pub struct GaugeDial {
     #[default = 26.0]
     #[schemars(description = "Thickness", extend("x-help" = "Track and fill thickness."))]
     pub thickness: f64,
-    #[default = 250.0]
+    #[default = 250]
     #[schemars(description = "Sweep angle", range(min = 10, max = 360), extend("x-step" = 1, "x-help" = "Total travel, centred on twelve o'clock. 180 gives a half-moon meter.", "x-advanced" = true))]
-    pub sweep_in_degrees: f64,
+    pub sweep_in_degrees: u32,
     #[default = "Weekly goal"]
     #[schemars(description = "Label", extend("x-help" = "Caption under the readout."))]
     pub label: String,
     #[default = "%"]
     #[schemars(description = "Unit", extend("x-help" = "Suffix on the readout."))]
     pub unit: String,
-    #[default = 9.0]
+    #[default = 9]
     #[schemars(description = "Tick count", range(min = 0, max = 60), extend("x-step" = 1, "x-help" = "Tick marks around the arc. 0 hides them.", "x-advanced" = true))]
-    pub tick_count: f64,
-    #[default = 44.0]
+    pub tick_count: u32,
+    #[default = 44]
     #[schemars(description = "Animation length", range(min = 1, max = 300), extend("x-step" = 1, "x-unit" = "frames", "x-help" = "Length of the sweep.", "x-advanced" = true))]
-    pub duration_in_frames: f64,
+    pub duration_in_frames: u32,
     #[default = "#e8b86d"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,

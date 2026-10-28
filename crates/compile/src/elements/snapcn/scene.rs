@@ -31,16 +31,16 @@ pub struct LogoDriftTile {
     #[schemars(description = "Text colour", extend("x-widget" = "color", "x-zero-label" = "Default"))]
     pub color: String,
     #[schemars(description = "Start across", range(min = -1200, max = 1200), extend("x-step" = 1, "x-advanced" = true))]
-    pub x: f64,
+    pub x: i32,
     #[schemars(description = "Start down", range(min = -800, max = 800), extend("x-step" = 1, "x-advanced" = true))]
-    pub y: f64,
+    pub y: i32,
     #[schemars(description = "Drift across", range(min = -200, max = 200), extend("x-step" = 1, "x-advanced" = true))]
-    pub vx: f64,
+    pub vx: i32,
     #[schemars(description = "Drift down", range(min = -200, max = 200), extend("x-step" = 1, "x-advanced" = true))]
-    pub vy: f64,
-    #[default = 140.0]
+    pub vy: i32,
+    #[default = 140]
     #[schemars(description = "Size", range(min = 20, max = 400), extend("x-step" = 1, "x-advanced" = true))]
-    pub size: f64,
+    pub size: u32,
     #[default = 1.0]
     #[schemars(description = "Appears at", range(min = 0, max = 10), extend("x-step" = 0.01, "x-advanced" = true))]
     pub at: f64,
@@ -58,9 +58,9 @@ pub struct LogoAssemble {
     #[default = "app:placeholders/logo-mark.svg"]
     #[schemars(description = "Logo (simple, monochrome)", extend("x-widget" = "asset"))]
     pub logo_src: String,
-    #[default = 10.0]
+    #[default = 10]
     #[schemars(description = "Ring images", range(min = 5, max = 16), extend("x-step" = 1))]
-    pub count: f64,
+    pub count: u32,
     #[schemars(description = "Background", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
     pub background: String,
     #[default(Theme::of(ThemeMode::Dark))]
@@ -148,11 +148,11 @@ pub struct LogoDrift {
     #[schemars(description = "Glow colour", extend("x-widget" = "color", "x-zero-label" = "Accent"))]
     pub glow_color: String,
     #[default(vec![
-        LogoDriftTile { glyph: "Rc".into(), label: Some("Record".into()), color: "#ffffff".into(), x: 163.0, y: 232.0, vx: -54.0, vy: 12.0, size: 109.0, at: 0.28, ..Default::default() },
-        LogoDriftTile { glyph: "Ed".into(), label: Some("Edit".into()), background: "#f2f4f7".into(), color: "#16181d".into(), x: 128.0, y: -209.0, vx: 81.0, vy: 32.0, size: 122.0, at: 0.48 },
-        LogoDriftTile { glyph: "Zm".into(), label: Some("Zoom".into()), background: "#10131a".into(), color: "#7dd3fc".into(), x: -384.0, y: 344.0, vx: -27.0, vy: -68.0, size: 200.0, at: 0.95 },
-        LogoDriftTile { glyph: "Cc".into(), label: Some("Captions".into()), background: "#e7e8ea".into(), color: "#16181d".into(), x: 519.0, y: 45.0, vx: -31.0, vy: 64.0, size: 144.0, at: 1.51 },
-        LogoDriftTile { glyph: "Mx".into(), label: Some("Mix".into()), background: "#f1ece2".into(), color: "#8a5a2b".into(), x: -692.0, y: -125.0, vx: 41.0, vy: -71.0, size: 214.0, at: 1.55 },
+        LogoDriftTile { glyph: "Rc".into(), label: Some("Record".into()), color: "#ffffff".into(), x: 163, y: 232, vx: -54, vy: 12, size: 109, at: 0.28, ..Default::default() },
+        LogoDriftTile { glyph: "Ed".into(), label: Some("Edit".into()), background: "#f2f4f7".into(), color: "#16181d".into(), x: 128, y: -209, vx: 81, vy: 32, size: 122, at: 0.48 },
+        LogoDriftTile { glyph: "Zm".into(), label: Some("Zoom".into()), background: "#10131a".into(), color: "#7dd3fc".into(), x: -384, y: 344, vx: -27, vy: -68, size: 200, at: 0.95 },
+        LogoDriftTile { glyph: "Cc".into(), label: Some("Captions".into()), background: "#e7e8ea".into(), color: "#16181d".into(), x: 519, y: 45, vx: -31, vy: 64, size: 144, at: 1.51 },
+        LogoDriftTile { glyph: "Mx".into(), label: Some("Mix".into()), background: "#f1ece2".into(), color: "#8a5a2b".into(), x: -692, y: -125, vx: 41, vy: -71, size: 214, at: 1.55 },
     ])]
     #[schemars(description = "Tiles")]
     pub tiles: Vec<LogoDriftTile>,

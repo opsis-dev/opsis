@@ -44907,8 +44907,8 @@
     "ok": true,
     "data": {
      "text": "Made for every take.",
-     "blur": 12.0,
-     "fontSize": 72.0,
+     "blur": 12,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -44928,8 +44928,8 @@
     "ok": true,
     "data": {
      "text": "Made for every take.",
-     "blur": 12.0,
-     "fontSize": 72.0,
+     "blur": 12,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -45038,7 +45038,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 12.0,
+    "value": 12,
     "keys": 10
    }
   },
@@ -45087,7 +45087,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Blur must be at least 1"
+    "problem": "Blur isn't valid"
    }
   },
   {
@@ -45161,7 +45161,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 72.0,
+    "value": 72,
     "keys": 10
    }
   },
@@ -45210,7 +45210,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -45890,8 +45890,8 @@
     "data": {
      "text": "console.log('hello, world')",
      "cursor": true,
-     "charsPerSecond": 22.0,
-     "fontSize": 72.0,
+     "charsPerSecond": 22,
+     "fontSize": 72,
      "color": "#171717",
      "cursorColor": "#171717",
      "fontWeight": "600",
@@ -45913,8 +45913,8 @@
     "data": {
      "text": "console.log('hello, world')",
      "cursor": true,
-     "charsPerSecond": 22.0,
-     "fontSize": 72.0,
+     "charsPerSecond": 22,
+     "fontSize": 72,
      "color": "#171717",
      "cursorColor": "#171717",
      "fontWeight": "600",
@@ -46061,7 +46061,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 22.0,
+    "value": 22,
     "keys": 12
    }
   },
@@ -46110,7 +46110,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Chars / sec must be at least 4"
+    "problem": "Chars / sec isn't valid"
    }
   },
   {
@@ -46184,7 +46184,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 72.0,
+    "value": 72,
     "keys": 12
    }
   },
@@ -46233,7 +46233,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -46999,7 +46999,7 @@
      "text": "Generating",
      "baseColor": "#3f3f46",
      "shineColor": "#fafafa",
-     "fontSize": 96.0,
+     "fontSize": 96,
      "fontWeight": "700",
      "background": "white",
      "fontFamily": "",
@@ -47020,7 +47020,7 @@
      "text": "Generating",
      "baseColor": "#3f3f46",
      "shineColor": "#fafafa",
-     "fontSize": 96.0,
+     "fontSize": 96,
      "fontWeight": "700",
      "background": "white",
      "fontFamily": "",
@@ -47298,7 +47298,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 96.0,
+    "value": 96,
     "keys": 10
    }
   },
@@ -47347,7 +47347,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -47942,7 +47942,7 @@
     "data": {
      "text": "DECRYPTED",
      "charset": "!@#$%^&*()_+-=<>?/\\|",
-     "fontSize": 72.0,
+     "fontSize": 72,
      "color": "#22c55e",
      "fontWeight": "600",
      "revealDuration": 2.0,
@@ -47964,7 +47964,7 @@
     "data": {
      "text": "DECRYPTED",
      "charset": "!@#$%^&*()_+-=<>?/\\|",
-     "fontSize": 72.0,
+     "fontSize": 72,
      "color": "#22c55e",
      "fontWeight": "600",
      "revealDuration": 2.0,
@@ -48163,7 +48163,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 72.0,
+    "value": 72,
     "keys": 11
    }
   },
@@ -48212,7 +48212,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -49016,7 +49016,7 @@
     "data": {
      "from": "$99",
      "to": "$199",
-     "fontSize": 120.0,
+     "fontSize": 120,
      "color": "#171717",
      "fontWeight": "700",
      "background": "white",
@@ -49037,7 +49037,7 @@
     "data": {
      "from": "$99",
      "to": "$199",
-     "fontSize": 120.0,
+     "fontSize": 120,
      "color": "#171717",
      "fontWeight": "700",
      "background": "white",
@@ -49235,7 +49235,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 120.0,
+    "value": 120,
     "keys": 10
    }
   },
@@ -49284,7 +49284,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -49964,8 +49964,8 @@
     "data": {
      "text": "Ship your demo in minutes",
      "staggerDelay": 0.1333,
-     "distance": 20.0,
-     "fontSize": 72.0,
+     "distance": 20,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -49986,8 +49986,8 @@
     "data": {
      "text": "Ship your demo in minutes",
      "staggerDelay": 0.1333,
-     "distance": 20.0,
-     "fontSize": 72.0,
+     "distance": 20,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -50220,7 +50220,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 20.0,
+    "value": 20,
     "keys": 11
    }
   },
@@ -50268,9 +50268,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 11
+    "ok": false,
+    "problem": "Distance isn't valid"
    }
   },
   {
@@ -50344,7 +50343,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 72.0,
+    "value": 72,
     "keys": 11
    }
   },
@@ -50393,7 +50392,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -51072,8 +51071,8 @@
     "ok": true,
     "data": {
      "text": "Words push left.",
-     "entryOffset": 88.0,
-     "fontSize": 72.0,
+     "entryOffset": 88,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -51093,8 +51092,8 @@
     "ok": true,
     "data": {
      "text": "Words push left.",
-     "entryOffset": 88.0,
-     "fontSize": 72.0,
+     "entryOffset": 88,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -51203,7 +51202,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 88.0,
+    "value": 88,
     "keys": 10
    }
   },
@@ -51252,7 +51251,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Entry offset must be at least 20"
+    "problem": "Entry offset isn't valid"
    }
   },
   {
@@ -51326,7 +51325,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 72.0,
+    "value": 72,
     "keys": 10
    }
   },
@@ -51375,7 +51374,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -52054,8 +52053,8 @@
     "ok": true,
     "data": {
      "text": "Designed to move.\nBuilt to focus.",
-     "distance": 30.0,
-     "fontSize": 72.0,
+     "distance": 30,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -52075,8 +52074,8 @@
     "ok": true,
     "data": {
      "text": "Designed to move.\nBuilt to focus.",
-     "distance": 30.0,
-     "fontSize": 72.0,
+     "distance": 30,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -52185,7 +52184,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 30.0,
+    "value": 30,
     "keys": 10
    }
   },
@@ -52233,9 +52232,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
+    "ok": false,
+    "problem": "Distance isn't valid"
    }
   },
   {
@@ -52309,7 +52307,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 72.0,
+    "value": 72,
     "keys": 10
    }
   },
@@ -52358,7 +52356,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -53038,8 +53036,8 @@
     "data": {
      "text": "tracking in",
      "startTracking": 0.5,
-     "startBlur": 12.0,
-     "fontSize": 96.0,
+     "startBlur": 12,
+     "fontSize": 96,
      "color": "#171717",
      "fontWeight": "700",
      "background": "white",
@@ -53060,8 +53058,8 @@
     "data": {
      "text": "tracking in",
      "startTracking": 0.5,
-     "startBlur": 12.0,
-     "fontSize": 96.0,
+     "startBlur": 12,
+     "fontSize": 96,
      "color": "#171717",
      "fontWeight": "700",
      "background": "white",
@@ -53294,7 +53292,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 12.0,
+    "value": 12,
     "keys": 11
    }
   },
@@ -53342,9 +53340,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 11
+    "ok": false,
+    "problem": "Start blur isn't valid"
    }
   },
   {
@@ -53418,7 +53415,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 96.0,
+    "value": 96,
     "keys": 11
    }
   },
@@ -53467,7 +53464,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -54146,8 +54143,8 @@
     "ok": true,
     "data": {
      "text": "move at your own pace",
-     "fontSize": 72.0,
-     "wordGap": 10.0,
+     "fontSize": 72,
+     "wordGap": 10,
      "accel": 0.8,
      "color": "#171717",
      "fontWeight": "400",
@@ -54168,8 +54165,8 @@
     "ok": true,
     "data": {
      "text": "move at your own pace",
-     "fontSize": 72.0,
-     "wordGap": 10.0,
+     "fontSize": 72,
+     "wordGap": 10,
      "accel": 0.8,
      "color": "#171717",
      "fontWeight": "400",
@@ -54279,7 +54276,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 72.0,
+    "value": 72,
     "keys": 11
    }
   },
@@ -54328,7 +54325,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -54402,7 +54399,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 10.0,
+    "value": 10,
     "keys": 11
    }
   },
@@ -54451,7 +54448,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Frames / word must be at least 3"
+    "problem": "Frames / word isn't valid"
    }
   },
   {
@@ -55254,12 +55251,12 @@
     "ok": true,
     "data": {
      "text": "GLITCH",
-     "fontSize": 96.0,
+     "fontSize": 96,
      "color": "#171717",
      "fontWeight": "700",
      "glitchAt": 0.6667,
      "glitchDuration": 0.2667,
-     "intensity": 6.0,
+     "intensity": 6,
      "seed": "glitch",
      "glitchColors": [
       "#ff0040",
@@ -55284,12 +55281,12 @@
     "ok": true,
     "data": {
      "text": "GLITCH",
-     "fontSize": 96.0,
+     "fontSize": 96,
      "color": "#171717",
      "fontWeight": "700",
      "glitchAt": 0.6667,
      "glitchDuration": 0.2667,
-     "intensity": 6.0,
+     "intensity": 6,
      "seed": "glitch",
      "glitchColors": [
       "#ff0040",
@@ -55403,7 +55400,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 96.0,
+    "value": 96,
     "keys": 15
    }
   },
@@ -55452,7 +55449,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -55908,7 +55905,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 6.0,
+    "value": 6,
     "keys": 15
    }
   },
@@ -55956,9 +55953,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 15
+    "ok": false,
+    "problem": "Intensity (px) isn't valid"
    }
   },
   {
@@ -56747,14 +56743,14 @@
     "ok": true,
     "data": {
      "text": "Introducing",
-     "giantFontSize": 520.0,
-     "compactFontSize": 132.0,
-     "anchorOffsetX": -16.0,
-     "giantTravel": 400.0,
-     "settleTravel": 160.0,
+     "giantFontSize": 520,
+     "compactFontSize": 132,
+     "anchorOffsetX": -16,
+     "giantTravel": 400,
+     "settleTravel": 160,
      "cutFrame": 0.4333,
-     "revealSoftness": 14.0,
-     "compactBlur": 12.0,
+     "revealSoftness": 14,
+     "compactBlur": 12,
      "gradientStart": "#f04a14",
      "gradientEnd": "#f3f1f1",
      "ghostColor": "#170b0a",
@@ -56776,14 +56772,14 @@
     "ok": true,
     "data": {
      "text": "Introducing",
-     "giantFontSize": 520.0,
-     "compactFontSize": 132.0,
-     "anchorOffsetX": -16.0,
-     "giantTravel": 400.0,
-     "settleTravel": 160.0,
+     "giantFontSize": 520,
+     "compactFontSize": 132,
+     "anchorOffsetX": -16,
+     "giantTravel": 400,
+     "settleTravel": 160,
      "cutFrame": 0.4333,
-     "revealSoftness": 14.0,
-     "compactBlur": 12.0,
+     "revealSoftness": 14,
+     "compactBlur": 12,
      "gradientStart": "#f04a14",
      "gradientEnd": "#f3f1f1",
      "ghostColor": "#170b0a",
@@ -56894,7 +56890,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 520.0,
+    "value": 520,
     "keys": 18
    }
   },
@@ -56943,7 +56939,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Giant font size must be at least 160"
+    "problem": "Giant font size isn't valid"
    }
   },
   {
@@ -57017,7 +57013,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 132.0,
+    "value": 132,
     "keys": 18
    }
   },
@@ -57066,7 +57062,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Compact font size must be at least 40"
+    "problem": "Compact font size isn't valid"
    }
   },
   {
@@ -57140,7 +57136,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": -16.0,
+    "value": -16,
     "keys": 18
    }
   },
@@ -57188,9 +57184,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 18
+    "ok": false,
+    "problem": "Final horizontal anchor offset isn't valid"
    }
   },
   {
@@ -57264,7 +57259,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 400.0,
+    "value": 400,
     "keys": 18
    }
   },
@@ -57312,9 +57307,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 18
+    "ok": false,
+    "problem": "Giant phase left travel isn't valid"
    }
   },
   {
@@ -57388,7 +57382,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 160.0,
+    "value": 160,
     "keys": 18
    }
   },
@@ -57436,9 +57430,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 18
+    "ok": false,
+    "problem": "Compact entrance travel isn't valid"
    }
   },
   {
@@ -57636,7 +57629,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 14.0,
+    "value": 14,
     "keys": 18
    }
   },
@@ -57684,9 +57677,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 18
+    "ok": false,
+    "problem": "Reveal edge softness isn't valid"
    }
   },
   {
@@ -57760,7 +57752,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 12.0,
+    "value": 12,
     "keys": 18
    }
   },
@@ -57808,9 +57800,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 18
+    "ok": false,
+    "problem": "Blur after the cut isn't valid"
    }
   },
   {
@@ -58661,7 +58652,7 @@
      "from": "$49/mo",
      "to": "Free",
      "lineColor": "#ff5e3a",
-     "fontSize": 96.0,
+     "fontSize": 96,
      "color": "#171717",
      "fontWeight": "700",
      "background": "white",
@@ -58683,7 +58674,7 @@
      "from": "$49/mo",
      "to": "Free",
      "lineColor": "#ff5e3a",
-     "fontSize": 96.0,
+     "fontSize": 96,
      "color": "#171717",
      "fontWeight": "700",
      "background": "white",
@@ -58966,7 +58957,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 96.0,
+    "value": 96,
     "keys": 11
    }
   },
@@ -59015,7 +59006,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -59694,8 +59685,8 @@
     "ok": true,
     "data": {
      "text": "Record once.\nShare everywhere.",
-     "distance": 48.0,
-     "fontSize": 72.0,
+     "distance": 48,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -59715,8 +59706,8 @@
     "ok": true,
     "data": {
      "text": "Record once.\nShare everywhere.",
-     "distance": 48.0,
-     "fontSize": 72.0,
+     "distance": 48,
+     "fontSize": 72,
      "color": "#171717",
      "fontWeight": "600",
      "background": "white",
@@ -59825,7 +59816,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 48.0,
+    "value": 48,
     "keys": 10
    }
   },
@@ -59873,9 +59864,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
+    "ok": false,
+    "problem": "Distance isn't valid"
    }
   },
   {
@@ -59949,7 +59939,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 72.0,
+    "value": 72,
     "keys": 10
    }
   },
@@ -59998,7 +59988,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -60682,7 +60672,7 @@
      "markerColor": "#facc15",
      "baseColor": "#171717",
      "highlightedTextColor": "#171717",
-     "fontSize": 72.0,
+     "fontSize": 72,
      "fontWeight": "600",
      "background": "white",
      "fontFamily": "",
@@ -60706,7 +60696,7 @@
      "markerColor": "#facc15",
      "baseColor": "#171717",
      "highlightedTextColor": "#171717",
-     "fontSize": 72.0,
+     "fontSize": 72,
      "fontWeight": "600",
      "background": "white",
      "fontFamily": "",
@@ -61247,7 +61237,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 72.0,
+    "value": 72,
     "keys": 13
    }
   },
@@ -61296,7 +61286,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -61894,7 +61884,7 @@
      "after": ".",
      "baseColor": "#171717",
      "highlightColor": "#ff5e3a",
-     "fontSize": 72.0,
+     "fontSize": 72,
      "fontWeight": "600",
      "background": "white",
      "fontFamily": "",
@@ -61917,7 +61907,7 @@
      "after": ".",
      "baseColor": "#171717",
      "highlightColor": "#ff5e3a",
-     "fontSize": 72.0,
+     "fontSize": 72,
      "fontWeight": "600",
      "background": "white",
      "fontFamily": "",
@@ -62373,7 +62363,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 72.0,
+    "value": 72,
     "keys": 12
    }
   },
@@ -62422,7 +62412,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -63015,13 +63005,13 @@
    "outcome": {
     "ok": true,
     "data": {
-     "width": 420.0,
+     "width": 420,
      "color": "#6f7f35",
-     "thickness": 9.0,
+     "thickness": 9,
      "pressure": 1.0,
      "release": 0.15,
      "grain": 1.0,
-     "durationSteps": 5.0,
+     "durationSteps": 5,
      "seed": "ink",
      "step": 0.1,
      "x": 0.5,
@@ -63039,13 +63029,13 @@
    "outcome": {
     "ok": true,
     "data": {
-     "width": 420.0,
+     "width": 420,
      "color": "#6f7f35",
-     "thickness": 9.0,
+     "thickness": 9,
      "pressure": 1.0,
      "release": 0.15,
      "grain": 1.0,
-     "durationSteps": 5.0,
+     "durationSteps": 5,
      "seed": "ink",
      "step": 0.1,
      "x": 0.5,
@@ -63064,7 +63054,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 420.0,
+    "value": 420,
     "keys": 13
    }
   },
@@ -63113,7 +63103,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Width must be at least 100"
+    "problem": "Width isn't valid"
    }
   },
   {
@@ -63272,7 +63262,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 9.0,
+    "value": 9,
     "keys": 13
    }
   },
@@ -63321,7 +63311,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Brush width must be at least 2"
+    "problem": "Brush width isn't valid"
    }
   },
   {
@@ -63767,7 +63757,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 5.0,
+    "value": 5,
     "keys": 13
    }
   },
@@ -63816,7 +63806,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Poses to draw must be at least 2"
+    "problem": "Poses to draw isn't valid"
    }
   },
   {
@@ -64523,17 +64513,17 @@
     "ok": true,
     "data": {
      "laps": 1.15,
-     "strokeWidth": 14.0,
+     "strokeWidth": 14,
      "pressure": 0.2,
      "grain": 1.0,
-     "durationSteps": 10.0,
+     "durationSteps": 10,
      "color": "#6f7f35",
      "seed": "scribble",
      "step": 0.1,
      "x": 0.5,
      "y": 0.5,
-     "width": 420.0,
-     "height": 220.0,
+     "width": 420,
+     "height": 220,
      "release": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -64549,17 +64539,17 @@
     "ok": true,
     "data": {
      "laps": 1.15,
-     "strokeWidth": 14.0,
+     "strokeWidth": 14,
      "pressure": 0.2,
      "grain": 1.0,
-     "durationSteps": 10.0,
+     "durationSteps": 10,
      "color": "#6f7f35",
      "seed": "scribble",
      "step": 0.1,
      "x": 0.5,
      "y": 0.5,
-     "width": 420.0,
-     "height": 220.0,
+     "width": 420,
+     "height": 220,
      "release": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -64699,7 +64689,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 14.0,
+    "value": 14,
     "keys": 15
    }
   },
@@ -64748,7 +64738,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Brush width must be at least 4"
+    "problem": "Brush width isn't valid"
    }
   },
   {
@@ -65070,7 +65060,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 10.0,
+    "value": 10,
     "keys": 15
    }
   },
@@ -65119,7 +65109,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Poses to draw must be at least 2"
+    "problem": "Poses to draw isn't valid"
    }
   },
   {
@@ -65738,7 +65728,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 420.0,
+    "value": 420,
     "keys": 15
    }
   },
@@ -65787,7 +65777,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Width must be at least 20 px"
+    "problem": "Width isn't valid"
    }
   },
   {
@@ -65861,7 +65851,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 220.0,
+    "value": 220,
     "keys": 15
    }
   },
@@ -65910,7 +65900,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Height must be at least 20 px"
+    "problem": "Height isn't valid"
    }
   },
   {
@@ -66281,11 +66271,11 @@
     "ok": true,
     "data": {
      "curvature": 0.35,
-     "strokeWidth": 8.0,
+     "strokeWidth": 8,
      "pressure": 0.2,
      "release": 1.0,
      "grain": 1.0,
-     "headSize": 24.0,
+     "headSize": 24,
      "drawDur": 1.2,
      "headDur": 0.4,
      "color": "#26242c",
@@ -66309,11 +66299,11 @@
     "ok": true,
     "data": {
      "curvature": 0.35,
-     "strokeWidth": 8.0,
+     "strokeWidth": 8,
      "pressure": 0.2,
      "release": 1.0,
      "grain": 1.0,
-     "headSize": 24.0,
+     "headSize": 24,
      "drawDur": 1.2,
      "headDur": 0.4,
      "color": "#26242c",
@@ -66461,7 +66451,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 8.0,
+    "value": 8,
     "keys": 17
    }
   },
@@ -66510,7 +66500,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Brush width must be at least 2"
+    "problem": "Brush width isn't valid"
    }
   },
   {
@@ -66956,7 +66946,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 17
    }
   },
@@ -67005,7 +66995,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Head size must be at least 8"
+    "problem": "Head size isn't valid"
    }
   },
   {
@@ -68295,7 +68285,7 @@
      "platform": "mac",
      "theme": "light",
      "accent": "#0a84ff",
-     "size": 64.0,
+     "size": 64,
      "linger": 1.0,
      "x": 0.5,
      "y": 0.86,
@@ -68330,7 +68320,7 @@
      "platform": "mac",
      "theme": "light",
      "accent": "#0a84ff",
-     "size": 64.0,
+     "size": 64,
      "linger": 1.0,
      "x": 0.5,
      "y": 0.86,
@@ -68546,7 +68536,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 64.0,
+    "value": 64,
     "keys": 11
    }
   },
@@ -68595,7 +68585,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Key size must be at least 32"
+    "problem": "Key size isn't valid"
    }
   },
   {
@@ -69615,11 +69605,11 @@
    "outcome": {
     "ok": true,
     "data": {
-     "particleCount": 140.0,
-     "power": 17.0,
+     "particleCount": 140,
+     "power": 17,
      "gravity": 0.45,
-     "size": 13.0,
-     "seed": 1.0,
+     "size": 13,
+     "seed": 1,
      "colors": [
       "#1d9bf0",
       "#ff5da2",
@@ -69644,11 +69634,11 @@
    "outcome": {
     "ok": true,
     "data": {
-     "particleCount": 140.0,
-     "power": 17.0,
+     "particleCount": 140,
+     "power": 17,
      "gravity": 0.45,
-     "size": 13.0,
-     "seed": 1.0,
+     "size": 13,
+     "seed": 1,
      "colors": [
       "#1d9bf0",
       "#ff5da2",
@@ -69674,7 +69664,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 140.0,
+    "value": 140,
     "keys": 11
    }
   },
@@ -69723,7 +69713,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Particles must be at least 10"
+    "problem": "Particles isn't valid"
    }
   },
   {
@@ -69797,7 +69787,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 17.0,
+    "value": 17,
     "keys": 11
    }
   },
@@ -69846,7 +69836,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Power must be at least 4"
+    "problem": "Power isn't valid"
    }
   },
   {
@@ -70044,7 +70034,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 13.0,
+    "value": 13,
     "keys": 11
    }
   },
@@ -70093,7 +70083,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Size must be at least 4"
+    "problem": "Size isn't valid"
    }
   },
   {
@@ -70167,7 +70157,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.0,
+    "value": 1,
     "keys": 11
    }
   },
@@ -70216,7 +70206,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Seed must be at least 1"
+    "problem": "Seed isn't valid"
    }
   },
   {
@@ -70919,13 +70909,13 @@
    "outcome": {
     "ok": true,
     "data": {
-     "segments": 8.0,
-     "radius": 210.0,
-     "thickness": 30.0,
-     "rotation": 135.0,
+     "segments": 8,
+     "radius": 210,
+     "thickness": 30,
+     "rotation": 135,
      "intensity": 1.0,
-     "twist": 110.0,
-     "echoes": 3.0,
+     "twist": 110,
+     "echoes": 3,
      "color": "#ffffff",
      "accentColor": "#f4e4a7",
      "backgroundColor": "#a800b7",
@@ -70944,13 +70934,13 @@
    "outcome": {
     "ok": true,
     "data": {
-     "segments": 8.0,
-     "radius": 210.0,
-     "thickness": 30.0,
-     "rotation": 135.0,
+     "segments": 8,
+     "radius": 210,
+     "thickness": 30,
+     "rotation": 135,
      "intensity": 1.0,
-     "twist": 110.0,
-     "echoes": 3.0,
+     "twist": 110,
+     "echoes": 3,
      "color": "#ffffff",
      "accentColor": "#f4e4a7",
      "backgroundColor": "#a800b7",
@@ -70970,7 +70960,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 8.0,
+    "value": 8,
     "keys": 14
    }
   },
@@ -71019,7 +71009,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Segments must be at least 4"
+    "problem": "Segments isn't valid"
    }
   },
   {
@@ -71093,7 +71083,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 210.0,
+    "value": 210,
     "keys": 14
    }
   },
@@ -71142,7 +71132,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Burst radius must be at least 100"
+    "problem": "Burst radius isn't valid"
    }
   },
   {
@@ -71216,7 +71206,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 30.0,
+    "value": 30,
     "keys": 14
    }
   },
@@ -71265,7 +71255,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Thickness must be at least 8"
+    "problem": "Thickness isn't valid"
    }
   },
   {
@@ -71339,7 +71329,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 135.0,
+    "value": 135,
     "keys": 14
    }
   },
@@ -71387,9 +71377,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 14
+    "ok": false,
+    "problem": "Rotation isn't valid"
    }
   },
   {
@@ -71587,7 +71576,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 110.0,
+    "value": 110,
     "keys": 14
    }
   },
@@ -71635,9 +71624,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 14
+    "ok": false,
+    "problem": "Ribbon twist isn't valid"
    }
   },
   {
@@ -71711,7 +71699,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 3.0,
+    "value": 3,
     "keys": 14
    }
   },
@@ -71759,9 +71747,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 14
+    "ok": false,
+    "problem": "Contour echoes isn't valid"
    }
   },
   {
@@ -73131,7 +73118,7 @@
      ],
      "shape": "corners",
      "scale": 1.0,
-     "rotation": 0.0,
+     "rotation": 0,
      "clipDuration": 0,
      "envelope": {}
     }
@@ -73157,7 +73144,7 @@
      ],
      "shape": "corners",
      "scale": 1.0,
-     "rotation": 0.0,
+     "rotation": 0,
      "clipDuration": 0,
      "envelope": {}
     }
@@ -74980,7 +74967,7 @@
     "ok": true,
     "data": {
      "speed": 1.0,
-     "bandCount": 4.0,
+     "bandCount": 4,
      "twist": 0.1,
      "softness": 0.2,
      "colorBack": "#12121a",
@@ -75003,7 +74990,7 @@
     "ok": true,
     "data": {
      "speed": 1.0,
-     "bandCount": 4.0,
+     "bandCount": 4,
      "twist": 0.1,
      "softness": 0.2,
      "colorBack": "#12121a",
@@ -75150,7 +75137,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 8
    }
   },
@@ -75199,7 +75186,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Bands must be at least 1"
+    "problem": "Bands isn't valid"
    }
   },
   {
@@ -77632,7 +77619,7 @@
     "ok": true,
     "data": {
      "speed": 1.0,
-     "size": 2.0,
+     "size": 2,
      "colorBack": "#12121a",
      "colorFront": "#6a6a85",
      "shape": "wave",
@@ -77651,7 +77638,7 @@
     "ok": true,
     "data": {
      "speed": 1.0,
-     "size": 2.0,
+     "size": 2,
      "colorBack": "#12121a",
      "colorFront": "#6a6a85",
      "shape": "wave",
@@ -77794,7 +77781,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 2.0,
+    "value": 2,
     "keys": 8
    }
   },
@@ -77843,7 +77830,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Dot Size must be at least 1"
+    "problem": "Dot Size isn't valid"
    }
   },
   {
@@ -78359,7 +78346,7 @@
     "data": {
      "curvature": 1.0,
      "scanlines": 1.0,
-     "maskScale": 2.0,
+     "maskScale": 2,
      "vignette": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -78376,7 +78363,7 @@
     "data": {
      "curvature": 1.0,
      "scanlines": 1.0,
-     "maskScale": 2.0,
+     "maskScale": 2,
      "vignette": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -78640,7 +78627,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 2.0,
+    "value": 2,
     "keys": 6
    }
   },
@@ -78689,7 +78676,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Mask pitch must be at least 1"
+    "problem": "Mask pitch isn't valid"
    }
   },
   {
@@ -79762,8 +79749,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "dotSize": 10.0,
-     "angle": 0.0,
+     "dotSize": 10,
+     "angle": 0,
      "misregistration": 1.2,
      "paperTint": "#f4efe4",
      "clipDuration": 0,
@@ -79779,8 +79766,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "dotSize": 10.0,
-     "angle": 0.0,
+     "dotSize": 10,
+     "angle": 0,
      "misregistration": 1.2,
      "paperTint": "#f4efe4",
      "clipDuration": 0,
@@ -79797,7 +79784,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 10.0,
+    "value": 10,
     "keys": 6
    }
   },
@@ -79846,7 +79833,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Dot size must be at least 4"
+    "problem": "Dot size isn't valid"
    }
   },
   {
@@ -79920,7 +79907,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 6
    }
   },
@@ -79968,9 +79955,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 6
+    "ok": false,
+    "problem": "Screen angle isn't valid"
    }
   },
   {
@@ -81255,8 +81241,8 @@
     "ok": true,
     "data": {
      "caption": "first light",
-     "captionAt": 0.0,
-     "width": 652.0,
+     "captionAt": 0,
+     "width": 652,
      "step": 0.1,
      "frameColor": "#fdfcf8",
      "captionColor": "#26242c",
@@ -81274,8 +81260,8 @@
     "ok": true,
     "data": {
      "caption": "first light",
-     "captionAt": 0.0,
-     "width": 652.0,
+     "captionAt": 0,
+     "width": 652,
      "step": 0.1,
      "frameColor": "#fdfcf8",
      "captionColor": "#26242c",
@@ -81382,7 +81368,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 8
    }
   },
@@ -81430,9 +81416,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 8
+    "ok": false,
+    "problem": "Caption starts isn't valid"
    }
   },
   {
@@ -81506,7 +81491,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 652.0,
+    "value": 652,
     "keys": 8
    }
   },
@@ -81555,7 +81540,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Card width must be at least 320"
+    "problem": "Card width isn't valid"
    }
   },
   {
@@ -81678,7 +81663,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Caption size must be at least 12 px"
+    "problem": "Caption size isn't valid"
    }
   },
   {
@@ -82217,7 +82202,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "durationInFrames": 18.0,
+     "durationInFrames": 18,
      "gain": 1.0,
      "afterglow": 1.0,
      "phosphor": "#d8ecff",
@@ -82234,7 +82219,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "durationInFrames": 18.0,
+     "durationInFrames": 18,
      "gain": 1.0,
      "afterglow": 1.0,
      "phosphor": "#d8ecff",
@@ -82252,7 +82237,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 18.0,
+    "value": 18,
     "keys": 6
    }
   },
@@ -82301,7 +82286,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Duration must be at least 8"
+    "problem": "Duration isn't valid"
    }
   },
   {
@@ -82881,16 +82866,16 @@
     "ok": true,
     "data": {
      "mode": "trail",
-     "count": 12.0,
+     "count": 12,
      "weight": 2.0,
-     "spread": 96.0,
-     "duration": 14.0,
+     "spread": 96,
+     "duration": 14,
      "bounce": 0.5,
      "x": 0.5,
      "y": 0.5,
-     "delay": 0.0,
+     "delay": 0,
      "color": "#ffffff",
-     "seed": 1.0,
+     "seed": 1,
      "speed": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -82906,16 +82891,16 @@
     "ok": true,
     "data": {
      "mode": "trail",
-     "count": 12.0,
+     "count": 12,
      "weight": 2.0,
-     "spread": 96.0,
-     "duration": 14.0,
+     "spread": 96,
+     "duration": 14,
      "bounce": 0.5,
      "x": 0.5,
      "y": 0.5,
-     "delay": 0.0,
+     "delay": 0,
      "color": "#ffffff",
-     "seed": 1.0,
+     "seed": 1,
      "speed": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -82980,7 +82965,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 12.0,
+    "value": 12,
     "keys": 14
    }
   },
@@ -83029,7 +83014,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Lines must be at least 3"
+    "problem": "Lines isn't valid"
    }
   },
   {
@@ -83226,7 +83211,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 96.0,
+    "value": 96,
     "keys": 14
    }
   },
@@ -83275,7 +83260,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Spread must be at least 16"
+    "problem": "Spread isn't valid"
    }
   },
   {
@@ -83349,7 +83334,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 14.0,
+    "value": 14,
     "keys": 14
    }
   },
@@ -83398,7 +83383,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Travel frames must be at least 6"
+    "problem": "Travel frames isn't valid"
    }
   },
   {
@@ -83844,7 +83829,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 14
    }
   },
@@ -83892,9 +83877,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 14
+    "ok": false,
+    "problem": "Delay isn't valid"
    }
   },
   {
@@ -84053,7 +84037,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.0,
+    "value": 1,
     "keys": 14
    }
   },
@@ -84102,7 +84086,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Seed must be at least 1"
+    "problem": "Seed isn't valid"
    }
   },
   {
@@ -84451,11 +84435,11 @@
      "enterScale": 1.24,
      "enterStagger": 3.0,
      "exitScale": 0.84,
-     "exitFrames": 6.0,
-     "enterFadeFrames": 5.0,
-     "springDamping": 30.0,
-     "springStiffness": 320.0,
-     "bgFadeFrames": 4.0,
+     "exitFrames": 6,
+     "enterFadeFrames": 5,
+     "springDamping": 30,
+     "springStiffness": 320,
+     "bgFadeFrames": 4,
      "loop": false,
      "gapFrames": 1,
      "backgrounds": [],
@@ -84474,11 +84458,11 @@
      "enterScale": 1.24,
      "enterStagger": 3.0,
      "exitScale": 0.84,
-     "exitFrames": 6.0,
-     "enterFadeFrames": 5.0,
-     "springDamping": 30.0,
-     "springStiffness": 320.0,
-     "bgFadeFrames": 4.0,
+     "exitFrames": 6,
+     "enterFadeFrames": 5,
+     "springDamping": 30,
+     "springStiffness": 320,
+     "bgFadeFrames": 4,
      "loop": false,
      "gapFrames": 1,
      "backgrounds": [],
@@ -84866,7 +84850,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 6.0,
+    "value": 6,
     "keys": 12
    }
   },
@@ -84915,7 +84899,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Exit time is too short"
+    "problem": "Exit time isn't valid"
    }
   },
   {
@@ -84989,7 +84973,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 5.0,
+    "value": 5,
     "keys": 12
    }
   },
@@ -85037,9 +85021,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 12
+    "ok": false,
+    "problem": "Fade-in time isn't valid"
    }
   },
   {
@@ -85113,7 +85096,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 30.0,
+    "value": 30,
     "keys": 12
    }
   },
@@ -85162,7 +85145,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Spring damping must be at least 1"
+    "problem": "Spring damping isn't valid"
    }
   },
   {
@@ -85236,7 +85219,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 320.0,
+    "value": 320,
     "keys": 12
    }
   },
@@ -85285,7 +85268,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Spring stiffness must be at least 10"
+    "problem": "Spring stiffness isn't valid"
    }
   },
   {
@@ -85359,7 +85342,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 12
    }
   },
@@ -85407,9 +85390,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 12
+    "ok": false,
+    "problem": "Background fade isn't valid"
    }
   },
   {
@@ -85961,9 +85943,9 @@
      "title": "~/projects/acme",
      "background": "#0a0a0a",
      "chromeColor": "#1a1a1a",
-     "fontSize": 18.0,
+     "fontSize": 18,
      "charsPerFrame": 1.0,
-     "chunkSize": 1.0,
+     "chunkSize": 1,
      "lines": [
       {
        "text": "deploy --production",
@@ -86019,9 +86001,9 @@
      "title": "~/projects/acme",
      "background": "#0a0a0a",
      "chromeColor": "#1a1a1a",
-     "fontSize": 18.0,
+     "fontSize": 18,
      "charsPerFrame": 1.0,
-     "chunkSize": 1.0,
+     "chunkSize": 1,
      "lines": [
       {
        "text": "deploy --production",
@@ -86422,7 +86404,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 18.0,
+    "value": 18,
     "keys": 11
    }
   },
@@ -86471,7 +86453,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 10"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -86669,7 +86651,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.0,
+    "value": 1,
     "keys": 11
    }
   },
@@ -86718,7 +86700,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Chunk size must be at least 1"
+    "problem": "Chunk size isn't valid"
    }
   },
   {
@@ -87430,9 +87412,9 @@
     "ok": true,
     "data": {
      "title": "hero.tsx",
-     "width": 760.0,
-     "height": 460.0,
-     "fontSize": 16.0,
+     "width": 760,
+     "height": 460,
+     "fontSize": 16,
      "glassColor": "rgba(10, 10, 10, 0.6)",
      "staggerFrames": 0.1333,
      "showTrafficLights": true,
@@ -87453,9 +87435,9 @@
     "ok": true,
     "data": {
      "title": "hero.tsx",
-     "width": 760.0,
-     "height": 460.0,
-     "fontSize": 16.0,
+     "width": 760,
+     "height": 460,
+     "fontSize": 16,
      "glassColor": "rgba(10, 10, 10, 0.6)",
      "staggerFrames": 0.1333,
      "showTrafficLights": true,
@@ -87565,7 +87547,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 760.0,
+    "value": 760,
     "keys": 12
    }
   },
@@ -87614,7 +87596,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Width must be at least 300"
+    "problem": "Width isn't valid"
    }
   },
   {
@@ -87688,7 +87670,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 460.0,
+    "value": 460,
     "keys": 12
    }
   },
@@ -87737,7 +87719,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Height must be at least 200"
+    "problem": "Height isn't valid"
    }
   },
   {
@@ -87811,7 +87793,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 16.0,
+    "value": 16,
     "keys": 12
    }
   },
@@ -87860,7 +87842,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 10"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -88606,7 +88588,7 @@
      "theme": "dark",
      "accentColor": "#0ea5e9",
      "morphDuration": 1.2,
-     "fontSize": 20.0,
+     "fontSize": 20,
      "highlight": true,
      "lineNumbers": true,
      "windowDots": true,
@@ -88638,7 +88620,7 @@
      "theme": "dark",
      "accentColor": "#0ea5e9",
      "morphDuration": 1.2,
-     "fontSize": 20.0,
+     "fontSize": 20,
      "highlight": true,
      "lineNumbers": true,
      "windowDots": true,
@@ -89014,7 +88996,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 20.0,
+    "value": 20,
     "keys": 12
    }
   },
@@ -89063,7 +89045,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -89818,8 +89800,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "diameter": 118.0,
-     "overlap": 38.0,
+     "diameter": 118,
+     "overlap": 38,
      "ringColor": "#fff",
      "orientation": "horizontal",
      "stagger": 0.2333,
@@ -89855,8 +89837,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "diameter": 118.0,
-     "overlap": 38.0,
+     "diameter": 118,
+     "overlap": 38,
      "ringColor": "#fff",
      "orientation": "horizontal",
      "stagger": 0.2333,
@@ -89893,7 +89875,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 118.0,
+    "value": 118,
     "keys": 9
    }
   },
@@ -89942,7 +89924,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Diameter must be at least 48 px"
+    "problem": "Diameter isn't valid"
    }
   },
   {
@@ -90016,7 +89998,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 38.0,
+    "value": 38,
     "keys": 9
    }
   },
@@ -90064,9 +90046,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 9
+    "ok": false,
+    "problem": "Overlap isn't valid"
    }
   },
   {
@@ -90789,11 +90770,11 @@
    "outcome": {
     "ok": true,
     "data": {
-     "fontSize": 40.0,
+     "fontSize": 40,
      "itemGap": 0.6,
      "closeGap": 0.3,
      "perStep": 1.6,
-     "strokeWidth": 3.0,
+     "strokeWidth": 3,
      "color": "#26242c",
      "tickColor": "#6f7f35",
      "step": 0.1,
@@ -90811,7 +90792,7 @@
        "checked": false
       }
      ],
-     "width": 720.0,
+     "width": 720,
      "boxColor": "#26242c",
      "weight": "600",
      "seed": "checklist",
@@ -90829,11 +90810,11 @@
    "outcome": {
     "ok": true,
     "data": {
-     "fontSize": 40.0,
+     "fontSize": 40,
      "itemGap": 0.6,
      "closeGap": 0.3,
      "perStep": 1.6,
-     "strokeWidth": 3.0,
+     "strokeWidth": 3,
      "color": "#26242c",
      "tickColor": "#6f7f35",
      "step": 0.1,
@@ -90851,7 +90832,7 @@
        "checked": false
       }
      ],
-     "width": 720.0,
+     "width": 720,
      "boxColor": "#26242c",
      "weight": "600",
      "seed": "checklist",
@@ -90870,7 +90851,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 40.0,
+    "value": 40,
     "keys": 16
    }
   },
@@ -90919,7 +90900,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 24"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -91364,7 +91345,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 3.0,
+    "value": 3,
     "keys": 16
    }
   },
@@ -91413,7 +91394,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Stroke width must be at least 1"
+    "problem": "Stroke width isn't valid"
    }
   },
   {
@@ -92058,7 +92039,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 720.0,
+    "value": 720,
     "keys": 16
    }
   },
@@ -92107,7 +92088,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Width must be at least 200 px"
+    "problem": "Width isn't valid"
    }
   },
   {
@@ -92363,9 +92344,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 17
+    "ok": false,
+    "problem": "Row gap isn't valid"
    }
   },
   {
@@ -92786,8 +92766,8 @@
     "ok": true,
     "data": {
      "text": "acme",
-     "fieldWidth": 464.0,
-     "fontSize": 34.0,
+     "fieldWidth": 464,
+     "fontSize": 34,
      "framesPerCharacter": 0.1333,
      "showPanel": true,
      "showGuides": true,
@@ -92814,8 +92794,8 @@
     "ok": true,
     "data": {
      "text": "acme",
-     "fieldWidth": 464.0,
-     "fontSize": 34.0,
+     "fieldWidth": 464,
+     "fontSize": 34,
      "framesPerCharacter": 0.1333,
      "showPanel": true,
      "showGuides": true,
@@ -92931,7 +92911,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 464.0,
+    "value": 464,
     "keys": 17
    }
   },
@@ -92980,7 +92960,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Field width must be at least 320"
+    "problem": "Field width isn't valid"
    }
   },
   {
@@ -93054,7 +93034,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 34.0,
+    "value": 34,
     "keys": 17
    }
   },
@@ -93103,7 +93083,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 18"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -94309,7 +94289,7 @@
      "theme": "light",
      "accentColor": "#2563eb",
      "compression": 3.0,
-     "seed": 1.0,
+     "seed": 1,
      "runTitle": "Checkout conversion drop",
      "runPrompt": "Why did checkout conversion drop last week?",
      "runPlan": [
@@ -94374,7 +94354,7 @@
      "theme": "light",
      "accentColor": "#2563eb",
      "compression": 3.0,
-     "seed": 1.0,
+     "seed": 1,
      "runTitle": "Checkout conversion drop",
      "runPrompt": "Why did checkout conversion drop last week?",
      "runPlan": [
@@ -94694,7 +94674,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.0,
+    "value": 1,
     "keys": 12
    }
   },
@@ -94743,7 +94723,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Seed must be at least 1"
+    "problem": "Seed isn't valid"
    }
   },
   {
@@ -95791,44 +95771,44 @@
     "ok": true,
     "data": {
      "barColor": "#0ea5e9",
-     "gap": 16.0,
+     "gap": 16,
      "staggerFrames": 0.2,
      "bars": [
       {
        "label": "",
-       "value": 35.0
+       "value": 35
       },
       {
        "label": "",
-       "value": 60.0
+       "value": 60
       },
       {
        "label": "",
-       "value": 45.0
+       "value": 45
       },
       {
        "label": "",
-       "value": 80.0
+       "value": 80
       },
       {
        "label": "",
-       "value": 55.0
+       "value": 55
       },
       {
        "label": "",
-       "value": 70.0
+       "value": 70
       },
       {
        "label": "",
-       "value": 90.0
+       "value": 90
       },
       {
        "label": "",
-       "value": 65.0
+       "value": 65
       }
      ],
-     "width": 1000.0,
-     "height": 500.0,
+     "width": 1000,
+     "height": 500,
      "baselineColor": "#27272a",
      "labelColor": "#a1a1aa",
      "speed": 1.0,
@@ -95846,44 +95826,44 @@
     "ok": true,
     "data": {
      "barColor": "#0ea5e9",
-     "gap": 16.0,
+     "gap": 16,
      "staggerFrames": 0.2,
      "bars": [
       {
        "label": "",
-       "value": 35.0
+       "value": 35
       },
       {
        "label": "",
-       "value": 60.0
+       "value": 60
       },
       {
        "label": "",
-       "value": 45.0
+       "value": 45
       },
       {
        "label": "",
-       "value": 80.0
+       "value": 80
       },
       {
        "label": "",
-       "value": 55.0
+       "value": 55
       },
       {
        "label": "",
-       "value": 70.0
+       "value": 70
       },
       {
        "label": "",
-       "value": 90.0
+       "value": 90
       },
       {
        "label": "",
-       "value": 65.0
+       "value": 65
       }
      ],
-     "width": 1000.0,
-     "height": 500.0,
+     "width": 1000,
+     "height": 500,
      "baselineColor": "#27272a",
      "labelColor": "#a1a1aa",
      "speed": 1.0,
@@ -95986,7 +95966,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 16.0,
+    "value": 16,
     "keys": 11
    }
   },
@@ -96034,9 +96014,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 11
+    "ok": false,
+    "problem": "Gap isn't valid"
    }
   },
   {
@@ -96237,35 +96216,35 @@
     "value": [
      {
       "label": "",
-      "value": 35.0
+      "value": 35
      },
      {
       "label": "",
-      "value": 60.0
+      "value": 60
      },
      {
       "label": "",
-      "value": 45.0
+      "value": 45
      },
      {
       "label": "",
-      "value": 80.0
+      "value": 80
      },
      {
       "label": "",
-      "value": 55.0
+      "value": 55
      },
      {
       "label": "",
-      "value": 70.0
+      "value": 70
      },
      {
       "label": "",
-      "value": 90.0
+      "value": 90
      },
      {
       "label": "",
-      "value": 65.0
+      "value": 65
      }
     ],
     "keys": 11
@@ -96360,163 +96339,163 @@
     "value": [
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      },
      {
       "label": "",
-      "value": 50.0
+      "value": 50
      }
     ],
     "keys": 11
@@ -96531,7 +96510,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1000.0,
+    "value": 1000,
     "keys": 11
    }
   },
@@ -96580,7 +96559,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Width must be at least 200"
+    "problem": "Width isn't valid"
    }
   },
   {
@@ -96654,7 +96633,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 500.0,
+    "value": 500,
     "keys": 11
    }
   },
@@ -96703,7 +96682,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Height must be at least 100"
+    "problem": "Height isn't valid"
    }
   },
   {
@@ -97244,7 +97223,7 @@
     "ok": true,
     "data": {
      "strokeColor": "#22c55e",
-     "strokeWidth": 4.0,
+     "strokeWidth": 4,
      "gridColor": "#27272a",
      "showDot": true,
      "data": [
@@ -97258,8 +97237,8 @@
       25.0,
       32.0
      ],
-     "width": 1000.0,
-     "height": 500.0,
+     "width": 1000,
+     "height": 500,
      "speed": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -97275,7 +97254,7 @@
     "ok": true,
     "data": {
      "strokeColor": "#22c55e",
-     "strokeWidth": 4.0,
+     "strokeWidth": 4,
      "gridColor": "#27272a",
      "showDot": true,
      "data": [
@@ -97289,8 +97268,8 @@
       25.0,
       32.0
      ],
-     "width": 1000.0,
-     "height": 500.0,
+     "width": 1000,
+     "height": 500,
      "speed": 1.0,
      "clipDuration": 0,
      "envelope": {}
@@ -97391,7 +97370,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 10
    }
   },
@@ -97440,7 +97419,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Stroke width must be at least 1"
+    "problem": "Stroke width isn't valid"
    }
   },
   {
@@ -97748,7 +97727,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1000.0,
+    "value": 1000,
     "keys": 10
    }
   },
@@ -97797,7 +97776,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Width must be at least 200"
+    "problem": "Width isn't valid"
    }
   },
   {
@@ -97871,7 +97850,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 500.0,
+    "value": 500,
     "keys": 10
    }
   },
@@ -97920,7 +97899,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Height must be at least 100"
+    "problem": "Height isn't valid"
    }
   },
   {
@@ -98290,9 +98269,9 @@
    "outcome": {
     "ok": true,
     "data": {
-     "from": 0.0,
-     "to": 24813.0,
-     "fontSize": 120.0,
+     "from": 0,
+     "to": 24813,
+     "fontSize": 120,
      "color": "#171717",
      "background": "white",
      "speed": 1.0,
@@ -98309,9 +98288,9 @@
    "outcome": {
     "ok": true,
     "data": {
-     "from": 0.0,
-     "to": 24813.0,
-     "fontSize": 120.0,
+     "from": 0,
+     "to": 24813,
+     "fontSize": 120,
      "color": "#171717",
      "background": "white",
      "speed": 1.0,
@@ -98329,7 +98308,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 8
    }
   },
@@ -98377,9 +98356,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 8
+    "ok": false,
+    "problem": "From isn't valid"
    }
   },
   {
@@ -98453,7 +98431,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24813.0,
+    "value": 24813,
     "keys": 8
    }
   },
@@ -98501,9 +98479,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 8
+    "ok": false,
+    "problem": "To isn't valid"
    }
   },
   {
@@ -98577,7 +98554,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 120.0,
+    "value": 120,
     "keys": 8
    }
   },
@@ -98626,7 +98603,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 24"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -100713,8 +100690,8 @@
     "data": {
      "state": "opened",
      "query": "new",
-     "selectedIndex": -1.0,
-     "highlightedIndex": -1.0,
+     "selectedIndex": -1,
+     "highlightedIndex": -1,
      "theme": {
       "mode": "light",
       "colors": {}
@@ -100741,7 +100718,7 @@
       }
      ],
      "autoplay": true,
-     "pressedIndex": -1.0,
+     "pressedIndex": -1,
      "clipDuration": 0,
      "envelope": {}
     }
@@ -100757,8 +100734,8 @@
     "data": {
      "state": "opened",
      "query": "new",
-     "selectedIndex": -1.0,
-     "highlightedIndex": -1.0,
+     "selectedIndex": -1,
+     "highlightedIndex": -1,
      "theme": {
       "mode": "light",
       "colors": {}
@@ -100785,7 +100762,7 @@
       }
      ],
      "autoplay": true,
-     "pressedIndex": -1.0,
+     "pressedIndex": -1,
      "clipDuration": 0,
      "envelope": {}
     }
@@ -100986,9 +100963,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 11
+    "ok": false,
+    "problem": "Letters typed isn't valid"
    }
   },
   {
@@ -101062,7 +101038,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": -1.0,
+    "value": -1,
     "keys": 10
    }
   },
@@ -101110,9 +101086,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
+    "ok": false,
+    "problem": "Selected item isn't valid"
    }
   },
   {
@@ -101186,7 +101161,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": -1.0,
+    "value": -1,
     "keys": 10
    }
   },
@@ -101234,9 +101209,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
+    "ok": false,
+    "problem": "Hovered item isn't valid"
    }
   },
   {
@@ -101644,7 +101618,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": -1.0,
+    "value": -1,
     "keys": 10
    }
   },
@@ -101692,9 +101666,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
+    "ok": false,
+    "problem": "Press item isn't valid"
    }
   },
   {
@@ -107404,14 +107377,14 @@
      "finale": "zoom-to-screen",
      "notchLabel": "Recording started",
      "showNotch": true,
-     "batteryLevel": 85.0,
+     "batteryLevel": 85,
      "bezelColor": "#1D1D1F",
      "screenColor": "#FFFFFF",
-     "restTilt": 18.0,
-     "radius": 22.0,
+     "restTilt": 18,
+     "radius": 22,
      "scale": 0.85,
      "floatLoop": true,
-     "floatAmplitude": 4.0,
+     "floatAmplitude": 4,
      "shadow": "0 40px 80px rgba(10,12,20,0.45)",
      "theme": {
       "mode": "dark",
@@ -107438,14 +107411,14 @@
      "finale": "zoom-to-screen",
      "notchLabel": "Recording started",
      "showNotch": true,
-     "batteryLevel": 85.0,
+     "batteryLevel": 85,
      "bezelColor": "#1D1D1F",
      "screenColor": "#FFFFFF",
-     "restTilt": 18.0,
-     "radius": 22.0,
+     "restTilt": 18,
+     "radius": 22,
      "scale": 0.85,
      "floatLoop": true,
-     "floatAmplitude": 4.0,
+     "floatAmplitude": 4,
      "shadow": "0 40px 80px rgba(10,12,20,0.45)",
      "theme": {
       "mode": "dark",
@@ -107781,7 +107754,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 85.0,
+    "value": 85,
     "keys": 20
    }
   },
@@ -107829,9 +107802,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 20
+    "ok": false,
+    "problem": "Battery level isn't valid"
    }
   },
   {
@@ -108079,7 +108051,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 18.0,
+    "value": 18,
     "keys": 20
    }
   },
@@ -108127,9 +108099,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 20
+    "ok": false,
+    "problem": "Lid tilt isn't valid"
    }
   },
   {
@@ -108203,7 +108174,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 22.0,
+    "value": 22,
     "keys": 20
    }
   },
@@ -108252,7 +108223,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Lid radius must be at least 8"
+    "problem": "Lid radius isn't valid"
    }
   },
   {
@@ -108487,7 +108458,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 20
    }
   },
@@ -108535,9 +108506,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 20
+    "ok": false,
+    "problem": "Float amplitude isn't valid"
    }
   },
   {
@@ -109227,13 +109197,13 @@
      "screenSrc": "app:placeholders/screen-tall.svg",
      "bezelColor": "#C7C9CE",
      "screenColor": "#0A0A0B",
-     "radius": 53.0,
-     "screenRadius": 41.0,
+     "radius": 53,
+     "screenRadius": 41,
      "scale": 0.92,
-     "tiltAngle": -12.0,
+     "tiltAngle": -12,
      "showDynamicIsland": true,
      "floatLoop": false,
-     "floatAmplitude": 6.0,
+     "floatAmplitude": 6,
      "shadow": "0 30px 70px rgba(16,24,40,0.28)",
      "theme": {
       "mode": "dark",
@@ -109259,13 +109229,13 @@
      "screenSrc": "app:placeholders/screen-tall.svg",
      "bezelColor": "#C7C9CE",
      "screenColor": "#0A0A0B",
-     "radius": 53.0,
-     "screenRadius": 41.0,
+     "radius": 53,
+     "screenRadius": 41,
      "scale": 0.92,
-     "tiltAngle": -12.0,
+     "tiltAngle": -12,
      "showDynamicIsland": true,
      "floatLoop": false,
-     "floatAmplitude": 6.0,
+     "floatAmplitude": 6,
      "shadow": "0 30px 70px rgba(16,24,40,0.28)",
      "theme": {
       "mode": "dark",
@@ -109652,7 +109622,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 53.0,
+    "value": 53,
     "keys": 18
    }
   },
@@ -109701,7 +109671,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Body radius must be at least 24"
+    "problem": "Body radius isn't valid"
    }
   },
   {
@@ -109775,7 +109745,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 41.0,
+    "value": 41,
     "keys": 18
    }
   },
@@ -109824,7 +109794,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Screen radius must be at least 12"
+    "problem": "Screen radius isn't valid"
    }
   },
   {
@@ -110022,7 +109992,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": -12.0,
+    "value": -12,
     "keys": 18
    }
   },
@@ -110070,9 +110040,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 18
+    "ok": false,
+    "problem": "Tilt angle isn't valid"
    }
   },
   {
@@ -110220,7 +110189,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 6.0,
+    "value": 6,
     "keys": 18
    }
   },
@@ -110268,9 +110237,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 18
+    "ok": false,
+    "problem": "Float amplitude isn't valid"
    }
   },
   {
@@ -110878,8 +110846,8 @@
      "fit": "cover",
      "backdropColor": "",
      "entrance": "fade",
-     "radius": 0.0,
-     "trimBefore": 0.0,
+     "radius": 0,
+     "trimBefore": 0,
      "audio": false,
      "theme": {
       "mode": "dark",
@@ -110923,8 +110891,8 @@
      "fit": "cover",
      "backdropColor": "",
      "entrance": "fade",
-     "radius": 0.0,
-     "trimBefore": 0.0,
+     "radius": 0,
+     "trimBefore": 0,
      "audio": false,
      "theme": {
       "mode": "dark",
@@ -111729,7 +111697,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 16
    }
   },
@@ -111777,9 +111745,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 16
+    "ok": false,
+    "problem": "Corner radius isn't valid"
    }
   },
   {
@@ -111853,7 +111820,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 16
    }
   },
@@ -111901,9 +111868,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 16
+    "ok": false,
+    "problem": "Trim in isn't valid"
    }
   },
   {
@@ -114598,8 +114564,8 @@
      "styles": "slide,punch",
      "sizes": "1,0.945,2.7",
      "holds": "1.6",
-     "accentBeat": 3.0,
-     "fontSize": 93.0,
+     "accentBeat": 3,
+     "fontSize": 93,
      "fontWeight": "600",
      "lineHeight": 0.89,
      "letterSpacing": "-0.022em",
@@ -114646,8 +114612,8 @@
      "styles": "slide,punch",
      "sizes": "1,0.945,2.7",
      "holds": "1.6",
-     "accentBeat": 3.0,
-     "fontSize": 93.0,
+     "accentBeat": 3,
+     "fontSize": 93,
      "fontWeight": "600",
      "lineHeight": 0.89,
      "letterSpacing": "-0.022em",
@@ -115047,7 +115013,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 3.0,
+    "value": 3,
     "keys": 34
    }
   },
@@ -115095,9 +115061,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 34
+    "ok": false,
+    "problem": "Accent card isn't valid"
    }
   },
   {
@@ -115171,7 +115136,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 93.0,
+    "value": 93,
     "keys": 34
    }
   },
@@ -115220,7 +115185,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 24"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -118336,18 +118301,18 @@
      "replaceWith": "Acme",
      "startAt": 0.2,
      "drawDuration": 0.4667,
-     "thickness": 4.0,
+     "thickness": 4,
      "shineColor": "#FAFAFA",
      "logoSrc": "app:placeholders/logo-mark.svg",
      "logoScale": 1.05,
      "spinTurns": 1.0,
      "holdDuration": 0.4,
      "rushDuration": 0.8,
-     "rushScale": 42.0,
+     "rushScale": 42,
      "rushDrift": 0.55,
      "swingOut": 0.25,
      "coverColor": "#266DF0",
-     "fontSize": 56.0,
+     "fontSize": 56,
      "fontWeight": "600",
      "theme": {
       "mode": "dark",
@@ -118379,18 +118344,18 @@
      "replaceWith": "Acme",
      "startAt": 0.2,
      "drawDuration": 0.4667,
-     "thickness": 4.0,
+     "thickness": 4,
      "shineColor": "#FAFAFA",
      "logoSrc": "app:placeholders/logo-mark.svg",
      "logoScale": 1.05,
      "spinTurns": 1.0,
      "holdDuration": 0.4,
      "rushDuration": 0.8,
-     "rushScale": 42.0,
+     "rushScale": 42,
      "rushDrift": 0.55,
      "swingOut": 0.25,
      "coverColor": "#266DF0",
-     "fontSize": 56.0,
+     "fontSize": 56,
      "fontWeight": "600",
      "theme": {
       "mode": "dark",
@@ -119333,7 +119298,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 29
    }
   },
@@ -119382,7 +119347,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Line thickness must be at least 1"
+    "problem": "Line thickness isn't valid"
    }
   },
   {
@@ -120126,7 +120091,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 42.0,
+    "value": 42,
     "keys": 29
    }
   },
@@ -120175,7 +120140,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Rush scale (× mark) must be at least 2"
+    "problem": "Rush scale (× mark) isn't valid"
    }
   },
   {
@@ -120581,7 +120546,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 56.0,
+    "value": 56,
     "keys": 29
    }
   },
@@ -120630,7 +120595,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -121292,8 +121257,8 @@
      "chipBorderColor": "rgb(160, 160, 160)",
      "fontWeight": "400",
      "chipFontWeight": "400",
-     "fontSize": 63.0,
-     "chipFontSize": 160.0,
+     "fontSize": 63,
+     "chipFontSize": 160,
      "introFrames": 0.8,
      "statusHold": 1.0,
      "chipStagger": 0.2667,
@@ -121331,8 +121296,8 @@
      "chipBorderColor": "rgb(160, 160, 160)",
      "fontWeight": "400",
      "chipFontWeight": "400",
-     "fontSize": 63.0,
-     "chipFontSize": 160.0,
+     "fontSize": 63,
+     "chipFontSize": 160,
      "introFrames": 0.8,
      "statusHold": 1.0,
      "chipStagger": 0.2667,
@@ -122445,7 +122410,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 63.0,
+    "value": 63,
     "keys": 25
    }
   },
@@ -122494,7 +122459,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Status size must be at least 24"
+    "problem": "Status size isn't valid"
    }
   },
   {
@@ -122568,7 +122533,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 160.0,
+    "value": 160,
     "keys": 25
    }
   },
@@ -122617,7 +122582,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Chip size must be at least 48"
+    "problem": "Chip size isn't valid"
    }
   },
   {
@@ -123411,9 +123376,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 26
+    "ok": false,
+    "problem": "Status corner radius isn't valid"
    }
   },
   {
@@ -123535,9 +123499,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 26
+    "ok": false,
+    "problem": "Chip corner radius isn't valid"
    }
   },
   {
@@ -124123,7 +124086,7 @@
      "brandName": "Acme",
      "middleText": "Product demos, made simple",
      "logoSrc": "app:placeholders/logo-mark.svg",
-     "count": 10.0,
+     "count": 10,
      "background": "",
      "theme": {
       "mode": "dark",
@@ -124173,7 +124136,7 @@
      "brandName": "Acme",
      "middleText": "Product demos, made simple",
      "logoSrc": "app:placeholders/logo-mark.svg",
-     "count": 10.0,
+     "count": 10,
      "background": "",
      "theme": {
       "mode": "dark",
@@ -124488,7 +124451,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 10.0,
+    "value": 10,
     "keys": 11
    }
   },
@@ -124537,7 +124500,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Ring images must be at least 5"
+    "problem": "Ring images isn't valid"
    }
   },
   {
@@ -125415,11 +125378,11 @@
        "label": "Record",
        "background": "#1f2430",
        "color": "#ffffff",
-       "x": 163.0,
-       "y": 232.0,
-       "vx": -54.0,
-       "vy": 12.0,
-       "size": 109.0,
+       "x": 163,
+       "y": 232,
+       "vx": -54,
+       "vy": 12,
+       "size": 109,
        "at": 0.28
       },
       {
@@ -125427,11 +125390,11 @@
        "label": "Edit",
        "background": "#f2f4f7",
        "color": "#16181d",
-       "x": 128.0,
-       "y": -209.0,
-       "vx": 81.0,
-       "vy": 32.0,
-       "size": 122.0,
+       "x": 128,
+       "y": -209,
+       "vx": 81,
+       "vy": 32,
+       "size": 122,
        "at": 0.48
       },
       {
@@ -125439,11 +125402,11 @@
        "label": "Zoom",
        "background": "#10131a",
        "color": "#7dd3fc",
-       "x": -384.0,
-       "y": 344.0,
-       "vx": -27.0,
-       "vy": -68.0,
-       "size": 200.0,
+       "x": -384,
+       "y": 344,
+       "vx": -27,
+       "vy": -68,
+       "size": 200,
        "at": 0.95
       },
       {
@@ -125451,11 +125414,11 @@
        "label": "Captions",
        "background": "#e7e8ea",
        "color": "#16181d",
-       "x": 519.0,
-       "y": 45.0,
-       "vx": -31.0,
-       "vy": 64.0,
-       "size": 144.0,
+       "x": 519,
+       "y": 45,
+       "vx": -31,
+       "vy": 64,
+       "size": 144,
        "at": 1.51
       },
       {
@@ -125463,11 +125426,11 @@
        "label": "Mix",
        "background": "#f1ece2",
        "color": "#8a5a2b",
-       "x": -692.0,
-       "y": -125.0,
-       "vx": 41.0,
-       "vy": -71.0,
-       "size": 214.0,
+       "x": -692,
+       "y": -125,
+       "vx": 41,
+       "vy": -71,
+       "size": 214,
        "at": 1.55
       }
      ],
@@ -125515,11 +125478,11 @@
        "label": "Record",
        "background": "#1f2430",
        "color": "#ffffff",
-       "x": 163.0,
-       "y": 232.0,
-       "vx": -54.0,
-       "vy": 12.0,
-       "size": 109.0,
+       "x": 163,
+       "y": 232,
+       "vx": -54,
+       "vy": 12,
+       "size": 109,
        "at": 0.28
       },
       {
@@ -125527,11 +125490,11 @@
        "label": "Edit",
        "background": "#f2f4f7",
        "color": "#16181d",
-       "x": 128.0,
-       "y": -209.0,
-       "vx": 81.0,
-       "vy": 32.0,
-       "size": 122.0,
+       "x": 128,
+       "y": -209,
+       "vx": 81,
+       "vy": 32,
+       "size": 122,
        "at": 0.48
       },
       {
@@ -125539,11 +125502,11 @@
        "label": "Zoom",
        "background": "#10131a",
        "color": "#7dd3fc",
-       "x": -384.0,
-       "y": 344.0,
-       "vx": -27.0,
-       "vy": -68.0,
-       "size": 200.0,
+       "x": -384,
+       "y": 344,
+       "vx": -27,
+       "vy": -68,
+       "size": 200,
        "at": 0.95
       },
       {
@@ -125551,11 +125514,11 @@
        "label": "Captions",
        "background": "#e7e8ea",
        "color": "#16181d",
-       "x": 519.0,
-       "y": 45.0,
-       "vx": -31.0,
-       "vy": 64.0,
-       "size": 144.0,
+       "x": 519,
+       "y": 45,
+       "vx": -31,
+       "vy": 64,
+       "size": 144,
        "at": 1.51
       },
       {
@@ -125563,11 +125526,11 @@
        "label": "Mix",
        "background": "#f1ece2",
        "color": "#8a5a2b",
-       "x": -692.0,
-       "y": -125.0,
-       "vx": 41.0,
-       "vy": -71.0,
-       "size": 214.0,
+       "x": -692,
+       "y": -125,
+       "vx": 41,
+       "vy": -71,
+       "size": 214,
        "at": 1.55
       }
      ],
@@ -127732,11 +127695,11 @@
       "label": "Record",
       "background": "#1f2430",
       "color": "#ffffff",
-      "x": 163.0,
-      "y": 232.0,
-      "vx": -54.0,
-      "vy": 12.0,
-      "size": 109.0,
+      "x": 163,
+      "y": 232,
+      "vx": -54,
+      "vy": 12,
+      "size": 109,
       "at": 0.28
      },
      {
@@ -127744,11 +127707,11 @@
       "label": "Edit",
       "background": "#f2f4f7",
       "color": "#16181d",
-      "x": 128.0,
-      "y": -209.0,
-      "vx": 81.0,
-      "vy": 32.0,
-      "size": 122.0,
+      "x": 128,
+      "y": -209,
+      "vx": 81,
+      "vy": 32,
+      "size": 122,
       "at": 0.48
      },
      {
@@ -127756,11 +127719,11 @@
       "label": "Zoom",
       "background": "#10131a",
       "color": "#7dd3fc",
-      "x": -384.0,
-      "y": 344.0,
-      "vx": -27.0,
-      "vy": -68.0,
-      "size": 200.0,
+      "x": -384,
+      "y": 344,
+      "vx": -27,
+      "vy": -68,
+      "size": 200,
       "at": 0.95
      },
      {
@@ -127768,11 +127731,11 @@
       "label": "Captions",
       "background": "#e7e8ea",
       "color": "#16181d",
-      "x": 519.0,
-      "y": 45.0,
-      "vx": -31.0,
-      "vy": 64.0,
-      "size": 144.0,
+      "x": 519,
+      "y": 45,
+      "vx": -31,
+      "vy": 64,
+      "size": 144,
       "at": 1.51
      },
      {
@@ -127780,11 +127743,11 @@
       "label": "Mix",
       "background": "#f1ece2",
       "color": "#8a5a2b",
-      "x": -692.0,
-      "y": -125.0,
-      "vx": 41.0,
-      "vy": -71.0,
-      "size": 214.0,
+      "x": -692,
+      "y": -125,
+      "vx": 41,
+      "vy": -71,
+      "size": 214,
       "at": 1.55
      }
     ],
@@ -127883,440 +127846,440 @@
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      },
      {
       "glyph": "Ab",
       "background": "#1f2430",
       "color": "",
-      "x": 0.0,
-      "y": 0.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "size": 140.0,
+      "x": 0,
+      "y": 0,
+      "vx": 0,
+      "vy": 0,
+      "size": 140,
       "at": 1.0
      }
     ],
@@ -129343,10 +129306,10 @@
      "value": 98.0,
      "suffix": "%",
      "prefix": "",
-     "decimals": 0.0,
+     "decimals": 0,
      "label": "Satisfaction",
      "caption": "Customer survey, last 30 days",
-     "delta": 4.0,
+     "delta": 4,
      "deltaSuffix": "%",
      "accentColor": "#2DD4BF",
      "theme": "dark",
@@ -129369,10 +129332,10 @@
      "value": 98.0,
      "suffix": "%",
      "prefix": "",
-     "decimals": 0.0,
+     "decimals": 0,
      "label": "Satisfaction",
      "caption": "Customer survey, last 30 days",
-     "delta": 4.0,
+     "delta": 4,
      "deltaSuffix": "%",
      "accentColor": "#2DD4BF",
      "theme": "dark",
@@ -129646,7 +129609,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 15
    }
   },
@@ -129694,9 +129657,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 15
+    "ok": false,
+    "problem": "Decimals isn't valid"
    }
   },
   {
@@ -129948,7 +129910,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 15
    }
   },
@@ -129996,9 +129958,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 15
+    "ok": false,
+    "problem": "Change isn't valid"
    }
   },
   {
@@ -130593,9 +130554,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 16
+    "ok": false,
+    "problem": "Ring full at isn't valid"
    }
   },
   {
@@ -130888,7 +130848,7 @@
      ],
      "title": "Growth this quarter",
      "eyebrow": "Quarter recap",
-     "maxCards": 4.0,
+     "maxCards": 4,
      "accentColor": "",
      "backgroundColor": "",
      "theme": "dark",
@@ -130952,7 +130912,7 @@
      ],
      "title": "Growth this quarter",
      "eyebrow": "Quarter recap",
-     "maxCards": 4.0,
+     "maxCards": 4,
      "accentColor": "",
      "backgroundColor": "",
      "theme": "dark",
@@ -131457,7 +131417,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 9
    }
   },
@@ -131505,9 +131465,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 9
+    "ok": false,
+    "problem": "Most cards isn't valid"
    }
   },
   {
@@ -131934,23 +131893,23 @@
      "stages": [
       {
        "label": "Visited the site",
-       "value": 42800.0
+       "value": 42800
       },
       {
        "label": "Signed up",
-       "value": 18600.0
+       "value": 18600
       },
       {
        "label": "Created a project",
-       "value": 9400.0
+       "value": 9400
       },
       {
        "label": "Invited a teammate",
-       "value": 4100.0
+       "value": 4100
       },
       {
        "label": "Upgraded",
-       "value": 1750.0
+       "value": 1750
       }
      ],
      "width": 1100.0,
@@ -131959,8 +131918,8 @@
      "tailOpacity": 0.5,
      "showDropoff": true,
      "showConversion": false,
-     "durationInFrames": 22.0,
-     "staggerInFrames": 12.0,
+     "durationInFrames": 22,
+     "staggerInFrames": 12,
      "color": "#e8b86d",
      "inkColor": "#fafafa",
      "labelColor": "rgba(250,250,250,0.55)",
@@ -131981,23 +131940,23 @@
      "stages": [
       {
        "label": "Visited the site",
-       "value": 42800.0
+       "value": 42800
       },
       {
        "label": "Signed up",
-       "value": 18600.0
+       "value": 18600
       },
       {
        "label": "Created a project",
-       "value": 9400.0
+       "value": 9400
       },
       {
        "label": "Invited a teammate",
-       "value": 4100.0
+       "value": 4100
       },
       {
        "label": "Upgraded",
-       "value": 1750.0
+       "value": 1750
       }
      ],
      "width": 1100.0,
@@ -132006,8 +131965,8 @@
      "tailOpacity": 0.5,
      "showDropoff": true,
      "showConversion": false,
-     "durationInFrames": 22.0,
-     "staggerInFrames": 12.0,
+     "durationInFrames": 22,
+     "staggerInFrames": 12,
      "color": "#e8b86d",
      "inkColor": "#fafafa",
      "labelColor": "rgba(250,250,250,0.55)",
@@ -132029,23 +131988,23 @@
     "value": [
      {
       "label": "Visited the site",
-      "value": 42800.0
+      "value": 42800
      },
      {
       "label": "Signed up",
-      "value": 18600.0
+      "value": 18600
      },
      {
       "label": "Created a project",
-      "value": 9400.0
+      "value": 9400
      },
      {
       "label": "Invited a teammate",
-      "value": 4100.0
+      "value": 4100
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      }
     ],
     "keys": 15
@@ -132140,163 +132099,163 @@
     "value": [
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      },
      {
       "label": "Upgraded",
-      "value": 1750.0
+      "value": 1750
      }
     ],
     "keys": 15
@@ -132685,7 +132644,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 22.0,
+    "value": 22,
     "keys": 15
    }
   },
@@ -132734,7 +132693,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Animation length is too short"
+    "problem": "Animation length isn't valid"
    }
   },
   {
@@ -132808,7 +132767,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 12.0,
+    "value": 12,
     "keys": 15
    }
   },
@@ -132856,9 +132815,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 15
+    "ok": false,
+    "problem": "Stagger isn't valid"
    }
   },
   {
@@ -133271,9 +133229,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 16
+    "ok": false,
+    "problem": "Label width isn't valid"
    }
   },
   {
@@ -133548,8 +133505,8 @@
      "showLegend": true,
      "showTotal": true,
      "totalLabel": "Sessions",
-     "durationInFrames": 26.0,
-     "staggerInFrames": 9.0,
+     "durationInFrames": 26,
+     "staggerInFrames": 9,
      "trackColor": "rgba(250,250,250,0.08)",
      "labelColor": "rgba(250,250,250,0.58)",
      "inkColor": "#fafafa",
@@ -133597,8 +133554,8 @@
      "showLegend": true,
      "showTotal": true,
      "totalLabel": "Sessions",
-     "durationInFrames": 26.0,
-     "staggerInFrames": 9.0,
+     "durationInFrames": 26,
+     "staggerInFrames": 9,
      "trackColor": "rgba(250,250,250,0.08)",
      "labelColor": "rgba(250,250,250,0.58)",
      "inkColor": "#fafafa",
@@ -134320,7 +134277,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 26.0,
+    "value": 26,
     "keys": 16
    }
   },
@@ -134369,7 +134326,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Animation length is too short"
+    "problem": "Animation length isn't valid"
    }
   },
   {
@@ -134443,7 +134400,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 9.0,
+    "value": 9,
     "keys": 16
    }
   },
@@ -134491,9 +134448,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 16
+    "ok": false,
+    "problem": "Stagger isn't valid"
    }
   },
   {
@@ -135149,9 +135105,9 @@
       "After"
      ],
      "showDelta": true,
-     "durationInFrames": 30.0,
-     "staggerInFrames": 12.0,
-     "pairOffsetInFrames": 6.0,
+     "durationInFrames": 30,
+     "staggerInFrames": 12,
+     "pairOffsetInFrames": 6,
      "barInkColor": "#0b0b10",
      "labelColor": "rgba(250,250,250,0.55)",
      "clipDuration": 0,
@@ -135201,9 +135157,9 @@
       "After"
      ],
      "showDelta": true,
-     "durationInFrames": 30.0,
-     "staggerInFrames": 12.0,
-     "pairOffsetInFrames": 6.0,
+     "durationInFrames": 30,
+     "staggerInFrames": 12,
+     "pairOffsetInFrames": 6,
      "barInkColor": "#0b0b10",
      "labelColor": "rgba(250,250,250,0.55)",
      "clipDuration": 0,
@@ -136244,7 +136200,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 30.0,
+    "value": 30,
     "keys": 17
    }
   },
@@ -136293,7 +136249,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Animation length is too short"
+    "problem": "Animation length isn't valid"
    }
   },
   {
@@ -136367,7 +136323,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 12.0,
+    "value": 12,
     "keys": 17
    }
   },
@@ -136415,9 +136371,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 17
+    "ok": false,
+    "problem": "Stagger isn't valid"
    }
   },
   {
@@ -136442,7 +136397,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 6.0,
+    "value": 6,
     "keys": 17
    }
   },
@@ -136490,9 +136445,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 17
+    "ok": false,
+    "problem": "Pair offset isn't valid"
    }
   },
   {
@@ -136935,8 +136889,8 @@
       "Q5",
       "Q6"
      ],
-     "framesPerStep": 18.0,
-     "visibleRows": 6.0,
+     "framesPerStep": 18,
+     "visibleRows": 6,
      "width": 1200.0,
      "rowHeight": 76.0,
      "gap": 14.0,
@@ -137042,8 +136996,8 @@
       "Q5",
       "Q6"
      ],
-     "framesPerStep": 18.0,
-     "visibleRows": 6.0,
+     "framesPerStep": 18,
+     "visibleRows": 6,
      "width": 1200.0,
      "rowHeight": 76.0,
      "gap": 14.0,
@@ -137516,7 +137470,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 18.0,
+    "value": 18,
     "keys": 15
    }
   },
@@ -137565,7 +137519,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Time per step is too short"
+    "problem": "Time per step isn't valid"
    }
   },
   {
@@ -137639,7 +137593,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 6.0,
+    "value": 6,
     "keys": 15
    }
   },
@@ -137688,7 +137642,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Visible rows must be at least 1"
+    "problem": "Visible rows isn't valid"
    }
   },
   {
@@ -138640,11 +138594,11 @@
      "max": 100.0,
      "size": 480.0,
      "thickness": 26.0,
-     "sweepInDegrees": 250.0,
+     "sweepInDegrees": 250,
      "label": "Weekly goal",
      "unit": "%",
-     "tickCount": 9.0,
-     "durationInFrames": 44.0,
+     "tickCount": 9,
+     "durationInFrames": 44,
      "color": "#e8b86d",
      "trackColor": "rgba(250,250,250,0.10)",
      "inkColor": "#fafafa",
@@ -138667,11 +138621,11 @@
      "max": 100.0,
      "size": 480.0,
      "thickness": 26.0,
-     "sweepInDegrees": 250.0,
+     "sweepInDegrees": 250,
      "label": "Weekly goal",
      "unit": "%",
-     "tickCount": 9.0,
-     "durationInFrames": 44.0,
+     "tickCount": 9,
+     "durationInFrames": 44,
      "color": "#e8b86d",
      "trackColor": "rgba(250,250,250,0.10)",
      "inkColor": "#fafafa",
@@ -139065,7 +139019,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 250.0,
+    "value": 250,
     "keys": 16
    }
   },
@@ -139114,7 +139068,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Sweep angle must be at least 10"
+    "problem": "Sweep angle isn't valid"
    }
   },
   {
@@ -139366,7 +139320,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 9.0,
+    "value": 9,
     "keys": 16
    }
   },
@@ -139414,9 +139368,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 16
+    "ok": false,
+    "problem": "Tick count isn't valid"
    }
   },
   {
@@ -139490,7 +139443,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 44.0,
+    "value": 44,
     "keys": 16
    }
   },
@@ -139539,7 +139492,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Animation length is too short"
+    "problem": "Animation length isn't valid"
    }
   },
   {
@@ -143364,7 +143317,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Logo size must be at least 20 px"
+    "problem": "Logo size isn't valid"
    }
   },
   {
@@ -145355,9 +145308,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 19
+    "ok": false,
+    "problem": "Old price isn't valid"
    }
   },
   {
@@ -145659,7 +145611,7 @@
       }
      ],
      "title": "What you get",
-     "highlightColumn": 1.0,
+     "highlightColumn": 1,
      "highlightLabel": "Most picked",
      "startAtSeconds": 0.5,
      "rowStaggerSeconds": 0.26,
@@ -145736,7 +145688,7 @@
       }
      ],
      "title": "What you get",
-     "highlightColumn": 1.0,
+     "highlightColumn": 1,
      "highlightLabel": "Most picked",
      "startAtSeconds": 0.5,
      "rowStaggerSeconds": 0.26,
@@ -146427,7 +146379,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.0,
+    "value": 1,
     "keys": 13
    }
   },
@@ -146475,9 +146427,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 13
+    "ok": false,
+    "problem": "Highlighted column isn't valid"
    }
   },
   {
@@ -148884,7 +148835,7 @@
      ],
      "eyebrow": "Trusted by",
      "title": "Teams that ship with us",
-     "columns": 4.0,
+     "columns": 4,
      "startAtSeconds": 0.32,
      "arriveStaggerSeconds": 0.06,
      "staggerSeconds": 0.24,
@@ -148942,7 +148893,7 @@
      ],
      "eyebrow": "Trusted by",
      "title": "Teams that ship with us",
-     "columns": 4.0,
+     "columns": 4,
      "startAtSeconds": 0.32,
      "arriveStaggerSeconds": 0.06,
      "staggerSeconds": 0.24,
@@ -149401,7 +149352,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 14
    }
   },
@@ -149450,7 +149401,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Columns must be at least 1"
+    "problem": "Columns isn't valid"
    }
   },
   {
@@ -151459,7 +151410,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Logo size must be at least 10 px"
+    "problem": "Logo size isn't valid"
    }
   },
   {
@@ -151711,7 +151662,7 @@
      ],
      "title": "checkout.ts",
      "language": "tsx",
-     "startLine": 1.0,
+     "startLine": 1,
      "showLineNumbers": true,
      "accentColor": "#E8B86D",
      "theme": "dark",
@@ -151736,7 +151687,7 @@
      ],
      "title": "checkout.ts",
      "language": "tsx",
-     "startLine": 1.0,
+     "startLine": 1,
      "showLineNumbers": true,
      "accentColor": "#E8B86D",
      "theme": "dark",
@@ -152128,7 +152079,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.0,
+    "value": 1,
     "keys": 12
    }
   },
@@ -152176,9 +152127,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 12
+    "ok": false,
+    "problem": "Start line isn't valid"
    }
   },
   {
@@ -153721,41 +153671,41 @@
       {
        "title": "Onboarding checklist",
        "meta": "APP-218 · Ana",
-       "column": 0.0,
+       "column": 0,
        "tint": "#8FB8F0"
       },
       {
        "title": "Retry failed payments",
        "meta": "APP-204 · Piotr",
-       "column": 0.0,
+       "column": 0,
        "tint": "#E8B86D",
-       "moveTo": 1.0,
+       "moveTo": 1,
        "moveAtSeconds": 0.95
       },
       {
        "title": "Dark mode",
        "meta": "APP-231 · Dai",
-       "column": 0.0,
+       "column": 0,
        "tint": "#C99BE8"
       },
       {
        "title": "Search filters",
        "meta": "APP-190 · Ana",
-       "column": 1.0,
+       "column": 1,
        "tint": "#7DD3E8",
-       "moveTo": 2.0,
+       "moveTo": 2,
        "moveAtSeconds": 1.72
       },
       {
        "title": "Team invites",
        "meta": "APP-177 · Kit",
-       "column": 1.0,
+       "column": 1,
        "tint": "#9BD4A0"
       },
       {
        "title": "CSV export",
        "meta": "APP-166 · Dai",
-       "column": 2.0,
+       "column": 2,
        "tint": "#9BD4A0"
       }
      ],
@@ -153787,41 +153737,41 @@
       {
        "title": "Onboarding checklist",
        "meta": "APP-218 · Ana",
-       "column": 0.0,
+       "column": 0,
        "tint": "#8FB8F0"
       },
       {
        "title": "Retry failed payments",
        "meta": "APP-204 · Piotr",
-       "column": 0.0,
+       "column": 0,
        "tint": "#E8B86D",
-       "moveTo": 1.0,
+       "moveTo": 1,
        "moveAtSeconds": 0.95
       },
       {
        "title": "Dark mode",
        "meta": "APP-231 · Dai",
-       "column": 0.0,
+       "column": 0,
        "tint": "#C99BE8"
       },
       {
        "title": "Search filters",
        "meta": "APP-190 · Ana",
-       "column": 1.0,
+       "column": 1,
        "tint": "#7DD3E8",
-       "moveTo": 2.0,
+       "moveTo": 2,
        "moveAtSeconds": 1.72
       },
       {
        "title": "Team invites",
        "meta": "APP-177 · Kit",
-       "column": 1.0,
+       "column": 1,
        "tint": "#9BD4A0"
       },
       {
        "title": "CSV export",
        "meta": "APP-166 · Dai",
-       "column": 2.0,
+       "column": 2,
        "tint": "#9BD4A0"
       }
      ],
@@ -153956,41 +153906,41 @@
      {
       "title": "Onboarding checklist",
       "meta": "APP-218 · Ana",
-      "column": 0.0,
+      "column": 0,
       "tint": "#8FB8F0"
      },
      {
       "title": "Retry failed payments",
       "meta": "APP-204 · Piotr",
-      "column": 0.0,
+      "column": 0,
       "tint": "#E8B86D",
-      "moveTo": 1.0,
+      "moveTo": 1,
       "moveAtSeconds": 0.95
      },
      {
       "title": "Dark mode",
       "meta": "APP-231 · Dai",
-      "column": 0.0,
+      "column": 0,
       "tint": "#C99BE8"
      },
      {
       "title": "Search filters",
       "meta": "APP-190 · Ana",
-      "column": 1.0,
+      "column": 1,
       "tint": "#7DD3E8",
-      "moveTo": 2.0,
+      "moveTo": 2,
       "moveAtSeconds": 1.72
      },
      {
       "title": "Team invites",
       "meta": "APP-177 · Kit",
-      "column": 1.0,
+      "column": 1,
       "tint": "#9BD4A0"
      },
      {
       "title": "CSV export",
       "meta": "APP-166 · Dai",
-      "column": 2.0,
+      "column": 2,
       "tint": "#9BD4A0"
      }
     ],
@@ -154087,163 +154037,163 @@
     "value": [
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      },
      {
       "title": "CSV export",
-      "column": 2.0
+      "column": 2
      }
     ],
     "keys": 10
@@ -157326,26 +157276,26 @@
       {
        "message": "Branch: retry backoff",
        "hash": "d0e91c4",
-       "lane": 1.0,
-       "parent": 1.0
+       "lane": 1,
+       "parent": 1
       },
       {
        "message": "Cap retries at five",
        "hash": "51b2fa8",
-       "lane": 1.0
+       "lane": 1
       },
       {
        "message": "Ship caption presets",
        "hash": "7f30dd1",
-       "lane": 0.0,
-       "parent": 1.0
+       "lane": 0,
+       "parent": 1
       },
       {
        "message": "Merge retry backoff",
        "hash": "b8c4e05",
-       "lane": 0.0,
-       "parent": 4.0,
-       "mergeFrom": 3.0,
+       "lane": 0,
+       "parent": 4,
+       "mergeFrom": 3,
        "ref": "main"
       }
      ],
@@ -157387,26 +157337,26 @@
       {
        "message": "Branch: retry backoff",
        "hash": "d0e91c4",
-       "lane": 1.0,
-       "parent": 1.0
+       "lane": 1,
+       "parent": 1
       },
       {
        "message": "Cap retries at five",
        "hash": "51b2fa8",
-       "lane": 1.0
+       "lane": 1
       },
       {
        "message": "Ship caption presets",
        "hash": "7f30dd1",
-       "lane": 0.0,
-       "parent": 1.0
+       "lane": 0,
+       "parent": 1
       },
       {
        "message": "Merge retry backoff",
        "hash": "b8c4e05",
-       "lane": 0.0,
-       "parent": 4.0,
-       "mergeFrom": 3.0,
+       "lane": 0,
+       "parent": 4,
+       "mergeFrom": 3,
        "ref": "main"
       }
      ],
@@ -157449,26 +157399,26 @@
      {
       "message": "Branch: retry backoff",
       "hash": "d0e91c4",
-      "lane": 1.0,
-      "parent": 1.0
+      "lane": 1,
+      "parent": 1
      },
      {
       "message": "Cap retries at five",
       "hash": "51b2fa8",
-      "lane": 1.0
+      "lane": 1
      },
      {
       "message": "Ship caption presets",
       "hash": "7f30dd1",
-      "lane": 0.0,
-      "parent": 1.0
+      "lane": 0,
+      "parent": 1
      },
      {
       "message": "Merge retry backoff",
       "hash": "b8c4e05",
-      "lane": 0.0,
-      "parent": 4.0,
-      "mergeFrom": 3.0,
+      "lane": 0,
+      "parent": 4,
+      "mergeFrom": 3,
       "ref": "main"
      }
     ],
@@ -160612,7 +160562,7 @@
     "ok": true,
     "data": {
      "scale": 1.6,
-     "staggerInFrames": 9.0,
+     "staggerInFrames": 9,
      "bezelColor": "#15171D",
      "screenColor": "#0B0C11",
      "labelColor": "#7A828F",
@@ -160633,7 +160583,7 @@
     "ok": true,
     "data": {
      "scale": 1.6,
-     "staggerInFrames": 9.0,
+     "staggerInFrames": 9,
      "bezelColor": "#15171D",
      "screenColor": "#0B0C11",
      "labelColor": "#7A828F",
@@ -160778,7 +160728,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 9.0,
+    "value": 9,
     "keys": 10
    }
   },
@@ -160826,9 +160776,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
+    "ok": false,
+    "problem": "Stagger isn't valid"
    }
   },
   {
@@ -161552,7 +161501,7 @@
      "penColor": "#e8b86d",
      "inkSoftness": 0.18,
      "wobble": 1.6,
-     "staggerInFrames": 3.0,
+     "staggerInFrames": 3,
      "fontFamily": "",
      "seed": "handwriting",
      "color": "#f4f4f5",
@@ -161575,7 +161524,7 @@
      "penColor": "#e8b86d",
      "inkSoftness": 0.18,
      "wobble": 1.6,
-     "staggerInFrames": 3.0,
+     "staggerInFrames": 3,
      "fontFamily": "",
      "seed": "handwriting",
      "color": "#f4f4f5",
@@ -161993,7 +161942,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 3.0,
+    "value": 3,
     "keys": 12
    }
   },
@@ -162041,9 +161990,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 12
+    "ok": false,
+    "problem": "Stagger isn't valid"
    }
   },
   {
@@ -162380,7 +162328,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12 px"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -162683,8 +162631,8 @@
      "buzz": 0.06,
      "flickerOnExit": true,
      "order": "start",
-     "staggerInFrames": 2.0,
-     "seed": 1.0,
+     "staggerInFrames": 2,
+     "seed": 1,
      "color": "#fdf2f8",
      "fontWeight": "600",
      "offColor": "",
@@ -162709,8 +162657,8 @@
      "buzz": 0.06,
      "flickerOnExit": true,
      "order": "start",
-     "staggerInFrames": 2.0,
-     "seed": 1.0,
+     "staggerInFrames": 2,
+     "seed": 1,
      "color": "#fdf2f8",
      "fontWeight": "600",
      "offColor": "",
@@ -163288,7 +163236,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 2.0,
+    "value": 2,
     "keys": 15
    }
   },
@@ -163336,9 +163284,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 15
+    "ok": false,
+    "problem": "Stagger isn't valid"
    }
   },
   {
@@ -163363,7 +163310,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.0,
+    "value": 1,
     "keys": 15
    }
   },
@@ -163411,9 +163358,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 15
+    "ok": false,
+    "problem": "Variation isn't valid"
    }
   },
   {
@@ -163572,7 +163518,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Font size must be at least 12 px"
+    "problem": "Font size isn't valid"
    }
   },
   {
@@ -163962,9 +163908,9 @@
      "reveal": "left",
      "drift": 26.0,
      "zoom": 0.12,
-     "durationInFrames": 30.0,
+     "durationInFrames": 30,
      "fontFamily": "",
-     "fontWeight": 800.0,
+     "fontWeight": 800,
      "letterSpacing": 0.0,
      "lineHeight": 0.98,
      "clipDuration": 0,
@@ -163986,9 +163932,9 @@
      "reveal": "left",
      "drift": 26.0,
      "zoom": 0.12,
-     "durationInFrames": 30.0,
+     "durationInFrames": 30,
      "fontFamily": "",
-     "fontWeight": 800.0,
+     "fontWeight": 800,
      "letterSpacing": 0.0,
      "lineHeight": 0.98,
      "clipDuration": 0,
@@ -164471,7 +164417,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 30.0,
+    "value": 30,
     "keys": 13
    }
   },
@@ -164520,7 +164466,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Animation length is too short"
+    "problem": "Animation length isn't valid"
    }
   },
   {
@@ -164683,7 +164629,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 800.0,
+    "value": 800,
     "keys": 13
    }
   },
@@ -164731,9 +164677,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 13
+    "ok": false,
+    "problem": "Font weight isn't valid"
    }
   },
   {
@@ -165209,7 +165154,7 @@
       "#e07a5f",
       "#c2557a"
      ],
-     "ribbonCount": 4.0,
+     "ribbonCount": 4,
      "amplitude": 9.0,
      "thickness": 15.0,
      "centerY": 46.0,
@@ -165219,7 +165164,7 @@
      "intensity": 1.3,
      "horizonGlow": 0.5,
      "striation": 0.55,
-     "seed": 1.0,
+     "seed": 1,
      "clipDuration": 120,
      "envelope": {}
     }
@@ -165239,7 +165184,7 @@
       "#e07a5f",
       "#c2557a"
      ],
-     "ribbonCount": 4.0,
+     "ribbonCount": 4,
      "amplitude": 9.0,
      "thickness": 15.0,
      "centerY": 46.0,
@@ -165249,7 +165194,7 @@
      "intensity": 1.3,
      "horizonGlow": 0.5,
      "striation": 0.55,
-     "seed": 1.0,
+     "seed": 1,
      "clipDuration": 120,
      "envelope": {}
     }
@@ -165455,7 +165400,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 15
    }
   },
@@ -165504,7 +165449,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Ribbon count must be at least 1"
+    "problem": "Ribbon count isn't valid"
    }
   },
   {
@@ -166302,7 +166247,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.0,
+    "value": 1,
     "keys": 15
    }
   },
@@ -166350,9 +166295,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 15
+    "ok": false,
+    "problem": "Variation isn't valid"
    }
   },
   {
@@ -166551,7 +166495,7 @@
     "data": {
      "backgroundColor": "#05070f",
      "color": "#e8b86d",
-     "count": 70.0,
+     "count": 70,
      "angle": 8.0,
      "speed": 1.0,
      "size": 14.0,
@@ -166560,7 +166504,7 @@
      "drift": 4.0,
      "intensity": 1.0,
      "glow": 1.6,
-     "seed": 1.0,
+     "seed": 1,
      "clipDuration": 120,
      "envelope": {}
     }
@@ -166576,7 +166520,7 @@
     "data": {
      "backgroundColor": "#05070f",
      "color": "#e8b86d",
-     "count": 70.0,
+     "count": 70,
      "angle": 8.0,
      "speed": 1.0,
      "size": 14.0,
@@ -166585,7 +166529,7 @@
      "drift": 4.0,
      "intensity": 1.0,
      "glow": 1.6,
-     "seed": 1.0,
+     "seed": 1,
      "clipDuration": 120,
      "envelope": {}
     }
@@ -166770,7 +166714,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 70.0,
+    "value": 70,
     "keys": 14
    }
   },
@@ -166819,7 +166763,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Particles must be at least 1"
+    "problem": "Particles isn't valid"
    }
   },
   {
@@ -167542,7 +167486,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.0,
+    "value": 1,
     "keys": 14
    }
   },
@@ -167590,9 +167534,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 14
+    "ok": false,
+    "problem": "Variation isn't valid"
    }
   },
   {
@@ -169059,7 +169002,7 @@
     "ok": true,
     "data": {
      "direction": "left",
-     "blur": 24.0,
+     "blur": 24,
      "durationInFrames": 114,
      "keepWhole": false
     }
@@ -169074,7 +169017,7 @@
     "ok": true,
     "data": {
      "direction": "left",
-     "blur": 24.0,
+     "blur": 24,
      "durationInFrames": 114,
      "keepWhole": false
     }
@@ -169138,7 +169081,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 4
    }
   },
@@ -169186,9 +169129,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 4
+    "ok": false,
+    "problem": "Blur isn't valid"
    }
   },
   {
@@ -169422,7 +169364,7 @@
     "ok": true,
     "data": {
      "zoom": 2.4,
-     "blur": 14.0,
+     "blur": 14,
      "durationInFrames": 112,
      "keepWhole": false
     }
@@ -169437,7 +169379,7 @@
     "ok": true,
     "data": {
      "zoom": 2.4,
-     "blur": 14.0,
+     "blur": 14,
      "durationInFrames": 112,
      "keepWhole": false
     }
@@ -169575,7 +169517,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 14.0,
+    "value": 14,
     "keys": 4
    }
   },
@@ -169623,9 +169565,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 4
+    "ok": false,
+    "problem": "Blur isn't valid"
    }
   },
   {
@@ -169858,8 +169799,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "blur": 16.0,
-     "rise": 0.0,
+     "blur": 16,
+     "rise": 0,
      "durationInFrames": 114,
      "keepWhole": false
     }
@@ -169873,8 +169814,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "blur": 16.0,
-     "rise": 0.0,
+     "blur": 16,
+     "rise": 0,
      "durationInFrames": 114,
      "keepWhole": false
     }
@@ -169889,7 +169830,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 16.0,
+    "value": 16,
     "keys": 4
    }
   },
@@ -169937,9 +169878,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 4
+    "ok": false,
+    "problem": "Blur isn't valid"
    }
   },
   {
@@ -170013,7 +169953,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": 0,
     "keys": 4
    }
   },
@@ -170061,9 +170001,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 4
+    "ok": false,
+    "problem": "Rise isn't valid"
    }
   },
   {
@@ -170296,7 +170235,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "blur": 16.0,
+     "blur": 16,
      "durationInFrames": 114,
      "keepWhole": false
     }
@@ -170310,7 +170249,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "blur": 16.0,
+     "blur": 16,
      "durationInFrames": 114,
      "keepWhole": false
     }
@@ -170325,7 +170264,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 16.0,
+    "value": 16,
     "keys": 3
    }
   },
@@ -170374,7 +170313,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Blur must be at least 4"
+    "problem": "Blur isn't valid"
    }
   },
   {
@@ -170607,10 +170546,10 @@
    "outcome": {
     "ok": true,
     "data": {
-     "lensSteps": 9.0,
-     "blurSamples": 7.0,
-     "shakeAmount": 50.0,
-     "shakeTranslatePx": 73.0,
+     "lensSteps": 9,
+     "blurSamples": 7,
+     "shakeAmount": 50,
+     "shakeTranslatePx": 73,
      "colorSplit": true,
      "durationInFrames": 112,
      "keepWhole": false
@@ -170625,10 +170564,10 @@
    "outcome": {
     "ok": true,
     "data": {
-     "lensSteps": 9.0,
-     "blurSamples": 7.0,
-     "shakeAmount": 50.0,
-     "shakeTranslatePx": 73.0,
+     "lensSteps": 9,
+     "blurSamples": 7,
+     "shakeAmount": 50,
+     "shakeTranslatePx": 73,
      "colorSplit": true,
      "durationInFrames": 112,
      "keepWhole": false
@@ -170644,7 +170583,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 9.0,
+    "value": 9,
     "keys": 7
    }
   },
@@ -170693,7 +170632,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Lens steps must be at least 4"
+    "problem": "Lens steps isn't valid"
    }
   },
   {
@@ -170767,7 +170706,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 7.0,
+    "value": 7,
     "keys": 7
    }
   },
@@ -170816,7 +170755,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Blur samples must be at least 2"
+    "problem": "Blur samples isn't valid"
    }
   },
   {
@@ -170890,7 +170829,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 50.0,
+    "value": 50,
     "keys": 7
    }
   },
@@ -170938,9 +170877,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 7
+    "ok": false,
+    "problem": "Shake amount isn't valid"
    }
   },
   {
@@ -171014,7 +170952,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 73.0,
+    "value": 73,
     "keys": 7
    }
   },
@@ -171062,9 +171000,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 7
+    "ok": false,
+    "problem": "Shake travel (px) isn't valid"
    }
   },
   {
@@ -173968,7 +173905,7 @@
     "ok": true,
     "data": {
      "intensity": 1.0,
-     "slices": 24.0,
+     "slices": 24,
      "rgbSplit": 1.0,
      "blockNoise": 0.6,
      "durationInFrames": 78,
@@ -173985,7 +173922,7 @@
     "ok": true,
     "data": {
      "intensity": 1.0,
-     "slices": 24.0,
+     "slices": 24,
      "rgbSplit": 1.0,
      "blockNoise": 0.6,
      "durationInFrames": 78,
@@ -174126,7 +174063,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 24.0,
+    "value": 24,
     "keys": 6
    }
   },
@@ -174175,7 +174112,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Slices must be at least 8"
+    "problem": "Slices isn't valid"
    }
   },
   {
@@ -174656,8 +174593,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "angle": -7.0,
-     "poses": 8.0,
+     "angle": -7,
+     "poses": 8,
      "durationInFrames": 128,
      "keepWhole": false
     }
@@ -174671,8 +174608,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "angle": -7.0,
-     "poses": 8.0,
+     "angle": -7,
+     "poses": 8,
      "durationInFrames": 128,
      "keepWhole": false
     }
@@ -174687,7 +174624,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": -7.0,
+    "value": -7,
     "keys": 4
    }
   },
@@ -174735,9 +174672,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 4
+    "ok": false,
+    "problem": "Angle isn't valid"
    }
   },
   {
@@ -174811,7 +174747,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 8.0,
+    "value": 8,
     "keys": 4
    }
   },
@@ -174860,7 +174796,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Poses must be at least 2"
+    "problem": "Poses isn't valid"
    }
   },
   {
@@ -176448,7 +176384,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "bandCount": 10.0,
+     "bandCount": 10,
      "softness": 0.35,
      "colorBack": "#141318",
      "colors": [
@@ -176470,7 +176406,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "bandCount": 10.0,
+     "bandCount": 10,
      "softness": 0.35,
      "colorBack": "#141318",
      "colors": [
@@ -176493,7 +176429,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 10.0,
+    "value": 10,
     "keys": 7
    }
   },
@@ -176542,7 +176478,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Bands must be at least 1"
+    "problem": "Bands isn't valid"
    }
   },
   {
@@ -177214,7 +177150,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "particleSize": 4.0,
+     "particleSize": 4,
      "scatter": 0.08,
      "shimmer": 0.6,
      "aberration": 0.5,
@@ -177233,7 +177169,7 @@
    "outcome": {
     "ok": true,
     "data": {
-     "particleSize": 4.0,
+     "particleSize": 4,
      "scatter": 0.08,
      "shimmer": 0.6,
      "aberration": 0.5,
@@ -177253,7 +177189,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 4.0,
+    "value": 4,
     "keys": 8
    }
   },
@@ -177302,7 +177238,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Grain size must be at least 1"
+    "problem": "Grain size isn't valid"
    }
   },
   {
@@ -178079,8 +178015,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "cols": 12.0,
-     "rows": 8.0,
+     "cols": 12,
+     "rows": 8,
      "order": "from-left",
      "shape": "square",
      "stagger": 0.82,
@@ -178097,8 +178033,8 @@
    "outcome": {
     "ok": true,
     "data": {
-     "cols": 12.0,
-     "rows": 8.0,
+     "cols": 12,
+     "rows": 8,
      "order": "from-left",
      "shape": "square",
      "stagger": 0.82,
@@ -178116,7 +178052,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 12.0,
+    "value": 12,
     "keys": 7
    }
   },
@@ -178165,7 +178101,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Columns must be at least 1"
+    "problem": "Columns isn't valid"
    }
   },
   {
@@ -178239,7 +178175,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 8.0,
+    "value": 8,
     "keys": 7
    }
   },
@@ -178288,7 +178224,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Rows must be at least 1"
+    "problem": "Rows isn't valid"
    }
   },
   {
@@ -179613,7 +179549,7 @@
     "ok": true,
     "data": {
      "orientation": "horizontal",
-     "slats": 12.0,
+     "slats": 12,
      "stagger": 0.45,
      "alternate": false,
      "edgeSoftness": 0.06,
@@ -179631,7 +179567,7 @@
     "ok": true,
     "data": {
      "orientation": "horizontal",
-     "slats": 12.0,
+     "slats": 12,
      "stagger": 0.45,
      "alternate": false,
      "edgeSoftness": 0.06,
@@ -179698,7 +179634,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 12.0,
+    "value": 12,
     "keys": 7
    }
   },
@@ -179746,9 +179682,8 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 7
+    "ok": false,
+    "problem": "Slats isn't valid"
    }
   },
   {

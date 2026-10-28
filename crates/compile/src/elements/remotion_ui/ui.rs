@@ -17,15 +17,15 @@ pub struct KanbanMoveCard {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(description = "Meta", extend("type" = "string"))]
     pub meta: Option<String>,
-    #[default = 2.0]
+    #[default = 2]
     #[schemars(description = "Column")]
-    pub column: f64,
+    pub column: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(description = "Tint", extend("x-widget" = "color", "x-zero-label" = "None", "type" = "string"))]
     pub tint: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Move to", extend("type" = "number"))]
-    pub move_to: Option<f64>,
+    #[schemars(description = "Move to", extend("type" = "integer"))]
+    pub move_to: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(description = "Move at seconds", extend("type" = "number"))]
     pub move_at_seconds: Option<f64>,
@@ -41,14 +41,14 @@ pub struct CommitGraphCommit {
     #[schemars(description = "Hash")]
     pub hash: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Lane", extend("type" = "number"))]
-    pub lane: Option<f64>,
+    #[schemars(description = "Lane", extend("type" = "integer"))]
+    pub lane: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Parent", extend("type" = "number"))]
-    pub parent: Option<f64>,
+    #[schemars(description = "Parent", extend("type" = "integer"))]
+    pub parent: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Merge from", extend("type" = "number"))]
-    pub merge_from: Option<f64>,
+    #[schemars(description = "Merge from", extend("type" = "integer"))]
+    pub merge_from: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(description = "Ref", extend("type" = "string"))]
     pub r#ref: Option<String>,
@@ -69,9 +69,9 @@ pub struct CodeReveal {
     #[default = "tsx"]
     #[schemars(description = "Language", extend("x-help" = "Language badge on the right of the header.", "x-advanced" = true))]
     pub language: String,
-    #[default = 1.0]
+    #[default = 1]
     #[schemars(description = "Start line", extend("x-help" = "First line number in the gutter, for excerpts.", "x-advanced" = true))]
-    pub start_line: f64,
+    pub start_line: u32,
     #[default = true]
     #[schemars(description = "Line numbers", extend("x-help" = "Shows the gutter."))]
     pub show_line_numbers: bool,
@@ -123,11 +123,11 @@ pub struct KanbanMove {
     #[schemars(description = "Columns", extend("x-help" = "Column headings, left to right. Cards address columns by index."))]
     pub columns: Vec<String>,
     #[default(vec![
-        KanbanMoveCard { title: "Onboarding checklist".into(), meta: Some("APP-218 · Ana".into()), column: 0.0, tint: Some("#8FB8F0".into()), ..Default::default() },
-        KanbanMoveCard { title: "Retry failed payments".into(), meta: Some("APP-204 · Piotr".into()), column: 0.0, tint: Some("#E8B86D".into()), move_to: Some(1.0), move_at_seconds: Some(0.95) },
-        KanbanMoveCard { title: "Dark mode".into(), meta: Some("APP-231 · Dai".into()), column: 0.0, tint: Some("#C99BE8".into()), ..Default::default() },
-        KanbanMoveCard { title: "Search filters".into(), meta: Some("APP-190 · Ana".into()), column: 1.0, tint: Some("#7DD3E8".into()), move_to: Some(2.0), move_at_seconds: Some(1.72) },
-        KanbanMoveCard { title: "Team invites".into(), meta: Some("APP-177 · Kit".into()), column: 1.0, tint: Some("#9BD4A0".into()), ..Default::default() },
+        KanbanMoveCard { title: "Onboarding checklist".into(), meta: Some("APP-218 · Ana".into()), column: 0, tint: Some("#8FB8F0".into()), ..Default::default() },
+        KanbanMoveCard { title: "Retry failed payments".into(), meta: Some("APP-204 · Piotr".into()), column: 0, tint: Some("#E8B86D".into()), move_to: Some(1), move_at_seconds: Some(0.95) },
+        KanbanMoveCard { title: "Dark mode".into(), meta: Some("APP-231 · Dai".into()), column: 0, tint: Some("#C99BE8".into()), ..Default::default() },
+        KanbanMoveCard { title: "Search filters".into(), meta: Some("APP-190 · Ana".into()), column: 1, tint: Some("#7DD3E8".into()), move_to: Some(2), move_at_seconds: Some(1.72) },
+        KanbanMoveCard { title: "Team invites".into(), meta: Some("APP-177 · Kit".into()), column: 1, tint: Some("#9BD4A0".into()), ..Default::default() },
         KanbanMoveCard { meta: Some("APP-166 · Dai".into()), tint: Some("#9BD4A0".into()), ..Default::default() },
     ])]
     #[schemars(description = "Cards", extend("x-help" = "Title, meta line, starting column, rail tint, and the one move the card makes."))]
@@ -228,10 +228,10 @@ pub struct CommitGraph {
     #[default(vec![
         CommitGraphCommit { message: "Seed the registry manifest".into(), hash: "9c41f0a".into(), ..Default::default() },
         CommitGraphCommit { message: "Add render queue worker".into(), hash: "3ab77e2".into(), ..Default::default() },
-        CommitGraphCommit { message: "Branch: retry backoff".into(), hash: "d0e91c4".into(), lane: Some(1.0), parent: Some(1.0), ..Default::default() },
-        CommitGraphCommit { message: "Cap retries at five".into(), hash: "51b2fa8".into(), lane: Some(1.0), ..Default::default() },
-        CommitGraphCommit { message: "Ship caption presets".into(), hash: "7f30dd1".into(), lane: Some(0.0), parent: Some(1.0), ..Default::default() },
-        CommitGraphCommit { lane: Some(0.0), parent: Some(4.0), merge_from: Some(3.0), r#ref: Some("main".into()), ..Default::default() },
+        CommitGraphCommit { message: "Branch: retry backoff".into(), hash: "d0e91c4".into(), lane: Some(1), parent: Some(1), ..Default::default() },
+        CommitGraphCommit { message: "Cap retries at five".into(), hash: "51b2fa8".into(), lane: Some(1), ..Default::default() },
+        CommitGraphCommit { message: "Ship caption presets".into(), hash: "7f30dd1".into(), lane: Some(0), parent: Some(1), ..Default::default() },
+        CommitGraphCommit { lane: Some(0), parent: Some(4), merge_from: Some(3), r#ref: Some("main".into()), ..Default::default() },
     ])]
     #[schemars(description = "Commits")]
     pub commits: Vec<CommitGraphCommit>,

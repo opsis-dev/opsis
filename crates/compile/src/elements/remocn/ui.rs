@@ -89,15 +89,15 @@ pub struct TerminalSimulator {
     #[default = "#1a1a1a"]
     #[schemars(description = "Title bar colour", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub chrome_color: String,
-    #[default = 18.0]
+    #[default = 18]
     #[schemars(description = "Font size", range(min = 10, max = 32), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = 1.0]
     #[schemars(description = "Chars / frame", range(min = 0.25, max = 6), extend("x-step" = 0.25))]
     pub chars_per_frame: f64,
-    #[default = 1.0]
+    #[default = 1]
     #[schemars(description = "Chunk size", range(min = 1, max = 20), extend("x-step" = 1))]
-    pub chunk_size: f64,
+    pub chunk_size: u32,
     #[default(vec![
         TerminalSimulatorLine { text: "deploy --production".into(), r#type: TerminalLineKind::Command, delay: 0.0 },
         TerminalSimulatorLine { text: "Running tests...".into(), delay: 0.2, ..Default::default() },
@@ -120,15 +120,15 @@ pub struct GlassCodeBlock {
     #[default = "hero.tsx"]
     #[schemars(description = "Title")]
     pub title: String,
-    #[default = 760.0]
+    #[default = 760]
     #[schemars(description = "Width", range(min = 300, max = 1100), extend("x-step" = 10))]
-    pub width: f64,
-    #[default = 460.0]
+    pub width: u32,
+    #[default = 460]
     #[schemars(description = "Height", range(min = 200, max = 700), extend("x-step" = 10))]
-    pub height: f64,
-    #[default = 16.0]
+    pub height: u32,
+    #[default = 16]
     #[schemars(description = "Font size", range(min = 10, max = 28), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "rgba(10, 10, 10, 0.6)"]
     #[schemars(description = "Glass color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub glass_color: String,
@@ -163,9 +163,9 @@ pub struct CodeMorph {
     #[default = 1.2]
     #[schemars(description = "Morph time", range(min = 0.4, max = 3), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub morph_duration: f64,
-    #[default = 20.0]
+    #[default = 20]
     #[schemars(description = "Font size", range(min = 12, max = 32), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = true]
     #[schemars(description = "Highlight changes")]
     pub highlight: bool,
@@ -189,12 +189,12 @@ pub struct CodeMorph {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LogoEnter {
-    #[default = 118.0]
+    #[default = 118]
     #[schemars(description = "Diameter", range(min = 48, max = 320), extend("x-step" = 1, "x-unit" = "px"))]
-    pub diameter: f64,
-    #[default = 38.0]
+    pub diameter: u32,
+    #[default = 38]
     #[schemars(description = "Overlap", range(min = 0, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
-    pub overlap: f64,
+    pub overlap: u32,
     #[default = "#fff"]
     #[schemars(description = "Ring", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub ring_color: String,
@@ -220,9 +220,9 @@ pub struct LogoEnter {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct CheckList {
-    #[default = 40.0]
+    #[default = 40]
     #[schemars(description = "Font size", range(min = 24, max = 64), extend("x-step" = 2))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = 0.6]
     #[schemars(description = "Time between items", range(min = 0.2, max = 1.6), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub item_gap: f64,
@@ -232,9 +232,9 @@ pub struct CheckList {
     #[default = 1.6]
     #[schemars(description = "Letters / pose", range(min = 0.8, max = 3), extend("x-step" = 0.2))]
     pub per_step: f64,
-    #[default = 3.0]
+    #[default = 3]
     #[schemars(description = "Stroke width", range(min = 1, max = 8), extend("x-step" = 1))]
-    pub stroke_width: f64,
+    pub stroke_width: u32,
     #[default = "#26242c"]
     #[schemars(description = "Label color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -251,9 +251,9 @@ pub struct CheckList {
     ])]
     #[schemars(description = "Items")]
     pub items: Vec<CheckListItem>,
-    #[default = 720.0]
+    #[default = 720]
     #[schemars(description = "Width", range(min = 200, max = 1800), extend("x-step" = 10, "x-unit" = "px"))]
-    pub width: f64,
+    pub width: u32,
     #[default = "#26242c"]
     #[schemars(description = "Box colour", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub box_color: String,
@@ -261,8 +261,8 @@ pub struct CheckList {
     #[schemars(description = "Font weight")]
     pub weight: FontWeight,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Row gap", range(min = 0, max = 200), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "x-advanced" = true, "type" = "number"))]
-    pub row_gap: Option<f64>,
+    #[schemars(description = "Row gap", range(min = 0, max = 200), extend("x-zero-label" = "Auto", "x-step" = 1, "x-unit" = "px", "x-advanced" = true, "type" = "integer"))]
+    pub row_gap: Option<u32>,
     #[default = "checklist"]
     #[schemars(description = "Variation", extend("x-help" = "Change it to draw the handwriting a little differently.", "x-advanced" = true))]
     pub seed: String,
@@ -277,12 +277,12 @@ pub struct SearchReveal {
     #[default = "acme"]
     #[schemars(description = "Search text")]
     pub text: String,
-    #[default = 464.0]
+    #[default = 464]
     #[schemars(description = "Field width", range(min = 320, max = 640), extend("x-step" = 8))]
-    pub field_width: f64,
-    #[default = 34.0]
+    pub field_width: u32,
+    #[default = 34]
     #[schemars(description = "Font size", range(min = 18, max = 54), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = 0.1333]
     #[schemars(description = "Time per letter", range(min = 0.0333, max = 0.4), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub frames_per_character: f64,
@@ -331,9 +331,9 @@ pub struct AgentRun {
     #[default = 3.0]
     #[schemars(description = "Compression", range(min = 1, max = 8), extend("x-step" = 0.5))]
     pub compression: f64,
-    #[default = 1.0]
+    #[default = 1]
     #[schemars(description = "Seed", range(min = 1, max = 99), extend("x-step" = 1))]
-    pub seed: f64,
+    pub seed: u32,
     #[default = "Checkout conversion drop"]
     #[schemars(description = "Title")]
     pub run_title: String,

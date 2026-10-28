@@ -10,12 +10,12 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct GridPixelateWipe {
-    #[default = 12.0]
+    #[default = 12]
     #[schemars(description = "Columns", range(min = 1, max = 48), extend("x-step" = 1, "x-help" = "Grid column count."))]
-    pub cols: f64,
-    #[default = 8.0]
+    pub cols: u32,
+    #[default = 8]
     #[schemars(description = "Rows", range(min = 1, max = 48), extend("x-step" = 1, "x-help" = "Grid row count."))]
-    pub rows: f64,
+    pub rows: u32,
     #[default(PixelateOrder::FromLeft)]
     #[schemars(description = "Order", extend("x-help" = "Which axis or point the cells light up from."))]
     pub order: PixelateOrder,
@@ -64,9 +64,9 @@ pub struct TransitionBlinds {
     #[default(Orientation::Horizontal)]
     #[schemars(description = "Orientation", extend("x-help" = "Horizontal slats stack top to bottom and sweep sideways."))]
     pub orientation: Orientation,
-    #[default = 12.0]
+    #[default = 12]
     #[schemars(description = "Slats", extend("x-help" = "Number of slats. Above ~24 it stops reading as slats at 1080p."))]
-    pub slats: f64,
+    pub slats: u32,
     #[default = 0.45]
     #[schemars(description = "Stagger", extend("x-step" = 0.01, "x-help" = "Share of the window the cascade spans. 0 opens every slat together.", "x-advanced" = true))]
     pub stagger: f64,

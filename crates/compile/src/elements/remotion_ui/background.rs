@@ -16,9 +16,9 @@ pub struct AuroraBg {
     #[default(vec!["#e4ac59".into(), "#e07a5f".into(), "#c2557a".into()])]
     #[schemars(description = "Colors", length(min = 1), extend("x-help" = "Curtain colours, cycled."))]
     pub colors: Vec<Colour>,
-    #[default = 4.0]
+    #[default = 4]
     #[schemars(description = "Ribbon count", range(min = 1, max = 12), extend("x-step" = 1, "x-help" = "How many curtains."))]
-    pub ribbon_count: f64,
+    pub ribbon_count: u32,
     #[default = 9.0]
     #[schemars(description = "Amplitude", extend("x-help" = "Vertical travel of a fold, in percent of the frame."))]
     pub amplitude: f64,
@@ -46,9 +46,9 @@ pub struct AuroraBg {
     #[default = 0.55]
     #[schemars(description = "Striation", extend("x-step" = 0.01, "x-help" = "Vertical ray structure through the curtains, 0-1.", "x-advanced" = true))]
     pub striation: f64,
-    #[default = 1.0]
+    #[default = 1]
     #[schemars(description = "Variation", extend("x-advanced" = true))]
-    pub seed: f64,
+    pub seed: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -60,9 +60,9 @@ pub struct ParticleField {
     #[default = "#e8b86d"]
     #[schemars(description = "Color", extend("x-help" = "Particle colour.", "x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
-    #[default = 70.0]
+    #[default = 70]
     #[schemars(description = "Particles", range(min = 1, max = 400), extend("x-step" = 1, "x-help" = "How many particles."))]
-    pub count: f64,
+    pub count: u32,
     #[default = 8.0]
     #[schemars(description = "Direction", extend("x-help" = "Direction of travel in degrees. 0 drifts straight up."))]
     pub angle: f64,
@@ -87,9 +87,9 @@ pub struct ParticleField {
     #[default = 1.6]
     #[schemars(description = "Glow", extend("x-step" = 0.1, "x-help" = "Halo per particle, as a multiple of its size. 0 draws hard dots."))]
     pub glow: f64,
-    #[default = 1.0]
+    #[default = 1]
     #[schemars(description = "Variation", extend("x-advanced" = true))]
-    pub seed: f64,
+    pub seed: u32,
 }
 
 pub(super) fn elements() -> Vec<ElementMeta> {

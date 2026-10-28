@@ -42,21 +42,21 @@ pub struct SpringSettle {
     #[default = 0.84]
     #[schemars(description = "Exit scale", range(min = 0.5, max = 1), extend("x-step" = 0.02))]
     pub exit_scale: f64,
-    #[default = 6.0]
+    #[default = 6]
     #[schemars(description = "Exit time", range(min = 2, max = 24), extend("x-step" = 1, "x-unit" = "frames"))]
-    pub exit_frames: f64,
-    #[default = 5.0]
+    pub exit_frames: u32,
+    #[default = 5]
     #[schemars(description = "Fade-in time", range(min = 0, max = 30), extend("x-step" = 1, "x-unit" = "frames", "x-advanced" = true))]
-    pub enter_fade_frames: f64,
-    #[default = 30.0]
+    pub enter_fade_frames: u32,
+    #[default = 30]
     #[schemars(description = "Spring damping", range(min = 1, max = 100), extend("x-step" = 1, "x-help" = "Lower values bounce more as items land.", "x-advanced" = true))]
-    pub spring_damping: f64,
-    #[default = 320.0]
+    pub spring_damping: u32,
+    #[default = 320]
     #[schemars(description = "Spring stiffness", range(min = 10, max = 1000), extend("x-step" = 10, "x-help" = "Higher values land faster.", "x-advanced" = true))]
-    pub spring_stiffness: f64,
-    #[default = 4.0]
+    pub spring_stiffness: u32,
+    #[default = 4]
     #[schemars(description = "Background fade", range(min = 0, max = 30), extend("x-step" = 1, "x-unit" = "frames", "x-advanced" = true))]
-    pub bg_fade_frames: f64,
+    pub bg_fade_frames: u32,
     #[schemars(description = "Loop", extend("x-help" = "Start again from the first scene after the last."))]
     pub r#loop: bool,
 }
@@ -120,14 +120,14 @@ pub struct CommandMenu {
     #[schemars(description = "Search")]
     pub query: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Letters typed", range(min = 0, max = 200), extend("x-zero-label" = "All", "x-step" = 1, "x-show-if" = {"autoplay":["false"]}, "type" = "number"))]
-    pub reveal_count: Option<f64>,
-    #[default(-1.0)]
+    #[schemars(description = "Letters typed", range(min = 0, max = 200), extend("x-zero-label" = "All", "x-step" = 1, "x-show-if" = {"autoplay":["false"]}, "type" = "integer"))]
+    pub reveal_count: Option<u32>,
+    #[default(-1)]
     #[schemars(description = "Selected item", range(min = -1, max = 20), extend("x-step" = 1, "x-help" = "Counting from 0. -1 selects none.", "x-show-if" = {"autoplay":["false"]}))]
-    pub selected_index: f64,
-    #[default(-1.0)]
+    pub selected_index: i32,
+    #[default(-1)]
     #[schemars(description = "Hovered item", range(min = -1, max = 20), extend("x-step" = 1, "x-help" = "Counting from 0. -1 hovers none.", "x-show-if" = {"autoplay":["false"]}))]
-    pub highlighted_index: f64,
+    pub highlighted_index: i32,
     #[schemars(transform = super::remocn_themes)]
     #[schemars(description = "Theme", extend("x-widget" = "theme"))]
     pub theme: Theme,
@@ -142,9 +142,9 @@ pub struct CommandMenu {
     #[default = true]
     #[schemars(description = "Play it out", extend("x-help" = "Opens the menu, types the search, then picks the first match. Off shows one moment you set below."))]
     pub autoplay: bool,
-    #[default(-1.0)]
+    #[default(-1)]
     #[schemars(description = "Press item", range(min = -1, max = 20), extend("x-step" = 1, "x-help" = "The item that gets pressed, counting from 0. -1 presses none.", "x-show-if" = {"autoplay":["false"]}))]
-    pub pressed_index: f64,
+    pub pressed_index: i32,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]

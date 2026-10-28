@@ -53,7 +53,7 @@ pub struct ShaderGrainGradient {
     #[schemars(description = "Scale", range(min = 0.1, max = 4), extend("x-step" = 0.05, "x-help" = "How large the pattern is in the frame.", "x-advanced" = true))]
     pub scale: f64,
     #[schemars(description = "Turn", range(min = 0, max = 360), extend("x-step" = 1, "x-unit" = "°", "x-help" = "Turns the pattern around the middle of the frame.", "x-advanced" = true))]
-    pub rotation: f64,
+    pub rotation: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -85,9 +85,9 @@ pub struct ShaderSwirl {
     #[default = 1.0]
     #[schemars(description = "Speed", range(min = 0.1, max = 4), extend("x-step" = 0.1))]
     pub speed: f64,
-    #[default = 4.0]
+    #[default = 4]
     #[schemars(description = "Bands", range(min = 1, max = 12), extend("x-step" = 1))]
-    pub band_count: f64,
+    pub band_count: u32,
     #[default = 0.1]
     #[schemars(description = "Twist", range(min = 0, max = 1), extend("x-step" = 0.05))]
     pub twist: f64,
@@ -154,9 +154,9 @@ pub struct ShaderDithering {
     #[default = 1.0]
     #[schemars(description = "Speed", range(min = 0.1, max = 4), extend("x-step" = 0.1))]
     pub speed: f64,
-    #[default = 2.0]
+    #[default = 2]
     #[schemars(description = "Dot Size", range(min = 1, max = 8), extend("x-step" = 1))]
-    pub size: f64,
+    pub size: u32,
     #[default = "#12121a"]
     #[schemars(description = "Background", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color_back: String,

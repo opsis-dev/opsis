@@ -14,12 +14,12 @@ pub struct SoftBlurIn {
     #[default = "Made for every take."]
     #[schemars(description = "Text")]
     pub text: String,
-    #[default = 12.0]
+    #[default = 12]
     #[schemars(description = "Blur", range(min = 1, max = 30), extend("x-step" = 1))]
-    pub blur: f64,
-    #[default = 72.0]
+    pub blur: u32,
+    #[default = 72]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -45,12 +45,12 @@ pub struct Typewriter {
     #[default = true]
     #[schemars(description = "Show cursor")]
     pub cursor: bool,
-    #[default = 22.0]
+    #[default = 22]
     #[schemars(description = "Chars / sec", range(min = 4, max = 60), extend("x-step" = 1))]
-    pub chars_per_second: f64,
-    #[default = 72.0]
+    pub chars_per_second: u32,
+    #[default = 72]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -82,9 +82,9 @@ pub struct ShimmerSweep {
     #[default = "#fafafa"]
     #[schemars(description = "Shine color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub shine_color: String,
-    #[default = 96.0]
+    #[default = 96]
     #[schemars(description = "Font size", range(min = 12, max = 200), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default(FontWeight::W700)]
     #[schemars(description = "Font weight")]
     pub font_weight: FontWeight,
@@ -107,9 +107,9 @@ pub struct MatrixDecode {
     #[default = "!@#$%^&*()_+-=<>?/\\|"]
     #[schemars(description = "Scramble characters", extend("x-zero-label" = "Built-in", "x-help" = "Characters the text flickers through before it settles."))]
     pub charset: String,
-    #[default = 72.0]
+    #[default = 72]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#22c55e"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -138,9 +138,9 @@ pub struct SlotMachineRoll {
     #[default = "$199"]
     #[schemars(description = "To")]
     pub to: String,
-    #[default = 120.0]
+    #[default = 120]
     #[schemars(description = "Font size", range(min = 12, max = 240), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -166,12 +166,12 @@ pub struct StaggeredFadeUp {
     #[default = 0.1333]
     #[schemars(description = "Stagger", range(min = 0, max = 1), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub stagger_delay: f64,
-    #[default = 20.0]
+    #[default = 20]
     #[schemars(description = "Distance", range(min = 0, max = 120), extend("x-step" = 1))]
-    pub distance: f64,
-    #[default = 72.0]
+    pub distance: u32,
+    #[default = 72]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -194,12 +194,12 @@ pub struct KineticCenterBuild {
     #[default = "Words push left."]
     #[schemars(description = "Text")]
     pub text: String,
-    #[default = 88.0]
+    #[default = 88]
     #[schemars(description = "Entry offset", range(min = 20, max = 160), extend("x-step" = 1))]
-    pub entry_offset: f64,
-    #[default = 72.0]
+    pub entry_offset: u32,
+    #[default = 72]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -222,12 +222,12 @@ pub struct MaskRevealUp {
     #[default = "Designed to move.\nBuilt to focus."]
     #[schemars(description = "Text", extend("x-widget" = "textarea"))]
     pub text: String,
-    #[default = 30.0]
+    #[default = 30]
     #[schemars(description = "Distance", range(min = 0, max = 120), extend("x-step" = 1))]
-    pub distance: f64,
-    #[default = 72.0]
+    pub distance: u32,
+    #[default = 72]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -253,12 +253,12 @@ pub struct TrackingIn {
     #[default = 0.5]
     #[schemars(description = "Start tracking (em)", range(min = 0, max = 2), extend("x-step" = 0.05))]
     pub start_tracking: f64,
-    #[default = 12.0]
+    #[default = 12]
     #[schemars(description = "Start blur", range(min = 0, max = 40), extend("x-step" = 1))]
-    pub start_blur: f64,
-    #[default = 96.0]
+    pub start_blur: u32,
+    #[default = 96]
     #[schemars(description = "Font size", range(min = 12, max = 200), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -281,12 +281,12 @@ pub struct WordPush {
     #[default = "move at your own pace"]
     #[schemars(description = "Text")]
     pub text: String,
-    #[default = 72.0]
+    #[default = 72]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
-    #[default = 10.0]
+    pub font_size: u32,
+    #[default = 10]
     #[schemars(description = "Frames / word", range(min = 3, max = 30), extend("x-step" = 1))]
-    pub word_gap: f64,
+    pub word_gap: u32,
     #[default = 0.8]
     #[schemars(description = "Gap shrink / word", range(min = 0.5, max = 1), extend("x-step" = 0.05))]
     pub accel: f64,
@@ -312,9 +312,9 @@ pub struct RgbGlitchText {
     #[default = "GLITCH"]
     #[schemars(description = "Text")]
     pub text: String,
-    #[default = 96.0]
+    #[default = 96]
     #[schemars(description = "Font size", range(min = 12, max = 200), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -327,9 +327,9 @@ pub struct RgbGlitchText {
     #[default = 0.2667]
     #[schemars(description = "Glitch length", range(min = 0.0333, max = 2), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub glitch_duration: f64,
-    #[default = 6.0]
+    #[default = 6]
     #[schemars(description = "Intensity (px)", range(min = 0, max = 30), extend("x-step" = 1))]
-    pub intensity: f64,
+    pub intensity: u32,
     #[default = "glitch"]
     #[schemars(description = "Seed")]
     pub seed: String,
@@ -355,30 +355,30 @@ pub struct GradientScaleCutText {
     #[default = "Introducing"]
     #[schemars(description = "Text")]
     pub text: String,
-    #[default = 520.0]
+    #[default = 520]
     #[schemars(description = "Giant font size", range(min = 160, max = 720), extend("x-step" = 4))]
-    pub giant_font_size: f64,
-    #[default = 132.0]
+    pub giant_font_size: u32,
+    #[default = 132]
     #[schemars(description = "Compact font size", range(min = 40, max = 240), extend("x-step" = 2))]
-    pub compact_font_size: f64,
-    #[default(-16.0)]
+    pub compact_font_size: u32,
+    #[default(-16)]
     #[schemars(description = "Final horizontal anchor offset", range(min = -400, max = 400), extend("x-step" = 4))]
-    pub anchor_offset_x: f64,
-    #[default = 400.0]
+    pub anchor_offset_x: i32,
+    #[default = 400]
     #[schemars(description = "Giant phase left travel", range(min = 0, max = 800), extend("x-step" = 4))]
-    pub giant_travel: f64,
-    #[default = 160.0]
+    pub giant_travel: u32,
+    #[default = 160]
     #[schemars(description = "Compact entrance travel", range(min = 0, max = 400), extend("x-step" = 4))]
-    pub settle_travel: f64,
+    pub settle_travel: u32,
     #[default = 0.4333]
     #[schemars(description = "Hard cut at", range(min = 0.1333, max = 0.8), extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30))]
     pub cut_frame: f64,
-    #[default = 14.0]
+    #[default = 14]
     #[schemars(description = "Reveal edge softness", range(min = 0, max = 40), extend("x-step" = 1))]
-    pub reveal_softness: f64,
-    #[default = 12.0]
+    pub reveal_softness: u32,
+    #[default = 12]
     #[schemars(description = "Blur after the cut", range(min = 0, max = 40), extend("x-step" = 1))]
-    pub compact_blur: f64,
+    pub compact_blur: u32,
     #[default = "#f04a14"]
     #[schemars(description = "Gradient start", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub gradient_start: String,
@@ -413,9 +413,9 @@ pub struct StrikethroughReplace {
     #[default = "#ff5e3a"]
     #[schemars(description = "Line color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub line_color: String,
-    #[default = 96.0]
+    #[default = 96]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
@@ -438,12 +438,12 @@ pub struct LineByLineSlide {
     #[default = "Record once.\nShare everywhere."]
     #[schemars(description = "Text", extend("x-widget" = "textarea"))]
     pub text: String,
-    #[default = 48.0]
+    #[default = 48]
     #[schemars(description = "Distance", range(min = 0, max = 160), extend("x-step" = 1))]
-    pub distance: f64,
-    #[default = 72.0]
+    pub distance: u32,
+    #[default = 72]
     #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
-    pub font_size: f64,
+    pub font_size: u32,
     #[default = "#171717"]
     #[schemars(description = "Color", extend("x-check" = {"rule":"colour","message":"Pick a colour"}))]
     pub color: String,
