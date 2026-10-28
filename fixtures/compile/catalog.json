@@ -4573,6 +4573,29 @@
    }
   },
   {
+   "type": "media.pitch",
+   "title": "Change pitch",
+   "category": "Media",
+   "description": "Raises or lowers a sound's pitch in semitones while its length stays, to fit a song's key or make a playful voice. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "media.shortenPauses",
    "title": "Shorten pauses",
    "category": "Media",
@@ -51883,6 +51906,55 @@
      "softenS": 0.5,
      "evenLevel": true,
      "method": "learned"
+    }
+   }
+  },
+  {
+   "type": "media.pitch",
+   "title": "Change pitch",
+   "category": "Media",
+   "description": "Raises or lowers a sound's pitch in semitones while its length stays, to fit a song's key or make a playful voice. Makes a new file.",
+   "runs": true,
+   "inputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "semitones": {
+      "description": "Semitones",
+      "type": "number",
+      "format": "double",
+      "minimum": -24,
+      "maximum": 24,
+      "default": 3.0,
+      "x-step": 0.5,
+      "x-help": "Up or down, 12 to an octave. The length stays the same."
+     },
+     "keepCharacter": {
+      "description": "Keep the voice's character",
+      "type": "boolean",
+      "default": true,
+      "x-help": "Keeps a voice sounding like the same person. Turn it off for a cartoon or a deep voice."
+     }
+    },
+    "type": "object",
+    "default": {
+     "semitones": 3.0,
+     "keepCharacter": true
     }
    }
   },

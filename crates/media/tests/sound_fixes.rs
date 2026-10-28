@@ -1,13 +1,15 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use opsis_compile::nodes::media::{CleanSpeech, NoiseMethod, SoundPicture, SoundPictureKind};
+use opsis_compile::nodes::media::{
+    ChangePitch, CleanSpeech, NoiseMethod, SoundPicture, SoundPictureKind,
+};
 use opsis_compile::nodes::media::{Pause, kept_parts};
 use opsis_media::denoise::denoised;
 use opsis_media::filters::{
     hum_filter, hum_listen_filter, joined_parts_graph, noise_level, noise_level_listen_filter,
-    repair_filter, rms_level, silence_listen_filter, silences, sound_picture_graph, spectral_floor,
-    speech_filter,
+    pitch_filter, repair_filter, rms_level, silence_listen_filter, silences, sound_picture_graph,
+    spectral_floor, speech_filter,
 };
 
 const RATE: u32 = 48_000;
@@ -411,4 +413,48 @@ fn reads_the_noise_level_from_the_quietest_tenth_of_short_windows() {
         ),
         (-50.0, -38.4, -20.0, -80.0)
     );
+}
+
+fn crossings_per_second(samples: &[f32]) -> f32 {
+    let middle = &samples[samples.len() / 4..samples.len() * 3 / 4];
+    let rising = middle
+        .windows(2)
+        .filter(|w| w[0] < 0.0 && w[1] >= 0.0)
+        .count();
+    rising as f32 / (middle.len() as f32 / RATE as f32)
+}
+
+#[test]
+#[ignore = "needs the dev engine"]
+fn raises_a_tone_an_octave_and_keeps_its_length() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = tone(2.0);
+    write(&dir.path().join("in.wav"), &source);
+    let up = ChangePitch {
+        semitones: 12.0,
+        keep_character: false,
+    };
+    filtered(
+        &dir.path().join("in.wav"),
+        &pitch_filter(&up, Some(2000)),
+        &dir.path().join("out.wav"),
+    );
+    let out = read(&dir.path().join("out.wav"));
+    let frame = RATE as usize / 30;
+    assert!(
+        out.len().abs_diff(source.len()) <= frame,
+        "{} samples against {}",
+        out.len(),
+        source.len()
+    );
+    let level = |part: &[f32]| (part.iter().map(|s| s * s).sum::<f32>() / part.len() as f32).sqrt();
+    let opening = level(&out[RATE as usize / 20..RATE as usize / 5]);
+    let steady = level(&out[RATE as usize..RATE as usize * 3 / 2]);
+    assert!(
+        opening > steady * 0.8,
+        "the start is as loud as the rest: {opening} against {steady}"
+    );
+    let pitch = crossings_per_second(&out);
+    assert!((pitch - 880.0).abs() < 10.0, "{pitch} Hz");
+    assert!((crossings_per_second(&source) - 440.0).abs() < 5.0);
 }

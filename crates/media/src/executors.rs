@@ -1,7 +1,8 @@
 use opsis_compile::nodes::media::{
     APPLY_GRADE_TYPE, CLEAN_SPEECH_TYPE, CONCAT_TYPE, CONVERT_TYPE, EXTRACT_AUDIO_TYPE,
-    FASTSTART_TYPE, GIF_TYPE, HUM_TYPE, IMPORT_TYPE, LOUDNORM_TYPE, PAUSES_TYPE, REPAIR_TYPE,
-    REVERSE_TYPE, SCALE_PAD_TYPE, SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE, TRIM_TYPE,
+    FASTSTART_TYPE, GIF_TYPE, HUM_TYPE, IMPORT_TYPE, LOUDNORM_TYPE, PAUSES_TYPE, PITCH_TYPE,
+    REPAIR_TYPE, REVERSE_TYPE, SCALE_PAD_TYPE, SOUND_PICTURE_TYPE, SPEED_TYPE, THUMBNAIL_TYPE,
+    TRIM_TYPE,
 };
 use std::future::Future;
 use std::path::Path;
@@ -12,8 +13,8 @@ use opsis_compile::asset_ref::{kind_from_path, project_ref};
 use opsis_compile::nodes::audio::{ROOM_TONE_TYPE, RoomTone, TONES_TYPE, Tones};
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
-    ChangeSpeed, CleanSpeech, Encoding, EvenOutVolume, ExtractSound, FixClicks, GrabFrame,
-    JoinFiles, MakeGif, MediaFile, NoiseMethod, RemoveHum, Resize, SOUND_PICTURE_PORT,
+    ChangePitch, ChangeSpeed, CleanSpeech, Encoding, EvenOutVolume, ExtractSound, FixClicks,
+    GrabFrame, JoinFiles, MakeGif, MediaFile, NoiseMethod, RemoveHum, Resize, SOUND_PICTURE_PORT,
     ShortenPauses, SoundPicture, TrimFile, joined_files, kept_parts,
 };
 use opsis_compile::registry::{node_def, node_name};
@@ -36,9 +37,9 @@ use crate::denoise::{DENOISE_RATE, denoised};
 use crate::ffmpeg::{MediaTools, OnProgress, ProbeResult, RunOptions, ToolError, can_stream_copy};
 use crate::filters::{
     JoinPart, JoinSize, fit_filter, gif_filter, hum_filter, hum_listen_filter, join_filter,
-    joined_parts_graph, loudnorm_filter, noise_level, noise_level_listen_filter, repair_filter,
-    rms_level, silence_listen_filter, silences, sound_picture_graph, spectral_floor, speech_filter,
-    speed_args, speed_sound_args,
+    joined_parts_graph, loudnorm_filter, noise_level, noise_level_listen_filter, pitch_filter,
+    repair_filter, rms_level, silence_listen_filter, silences, sound_picture_graph, spectral_floor,
+    speech_filter, speed_args, speed_sound_args,
 };
 use crate::generate::{Beeps, beeps, length_ms, room_tone, write_wav};
 use crate::grade::{GradeError, GradeSize, grade_filters};
@@ -1269,6 +1270,27 @@ async fn logged(
     Ok(lines.into_inner().expect("log lines"))
 }
 
+async fn change_pitch(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: ChangePitch = ctx.params()?;
+    let input = require_media(inputs.get(MEDIA_PORT))?;
+    let probe = tools
+        .probe(&ctx.ref_to_path(&input.src)?)
+        .await
+        .map_err(tool_error)?;
+    let job = SoundFilter {
+        stem: "pitch",
+        label: "Pitch changed",
+        silent: "This file has no sound to change.",
+        filter: pitch_filter(&p, probe.duration_ms),
+        sound: None,
+    };
+    filter_sound(&ctx, &inputs, &*tools, job).await
+}
+
 async fn shorten_pauses(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
@@ -1448,6 +1470,7 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (REPAIR_TYPE, bind(tools, repair)),
         (HUM_TYPE, bind(tools, hum)),
         (PAUSES_TYPE, bind(tools, shorten_pauses)),
+        (PITCH_TYPE, bind(tools, change_pitch)),
         (CLEAN_SPEECH_TYPE, bind(tools, clean_speech)),
         (SOUND_PICTURE_TYPE, bind(tools, sound_picture)),
         (THUMBNAIL_TYPE, bind(tools, thumbnail)),

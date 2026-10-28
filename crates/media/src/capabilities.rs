@@ -34,7 +34,7 @@ pub const REQUIRED_FORMATS: [&str; 10] = [
     "webm",
 ];
 
-pub const REQUIRED_FILTERS: [&str; 80] = [
+pub const REQUIRED_FILTERS: [&str; 81] = [
     "acompressor",
     "acrossfade",
     "adeclick",
@@ -100,6 +100,7 @@ pub const REQUIRED_FILTERS: [&str; 80] = [
     "paletteuse",
     "pan",
     "reverse",
+    "rubberband",
     "rgbashift",
     "scale",
     "setpts",

@@ -1,7 +1,7 @@
 use opsis_compile::color::css_hex;
 use opsis_compile::nodes::media::{Dither, ScaleMode};
 
-use crate::codecs::{edit_video, even_down, serde_name, with_even_frame};
+use crate::codecs::{edit_video, even_down, ffmpeg_seconds, serde_name, with_even_frame};
 use opsis_compile::text::round_to;
 
 const JOIN_AUDIO: &str = "aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo";
@@ -190,7 +190,30 @@ const SPEECH_NOISE_REDUCTION_DB: f64 = 40.0;
 const SPEECH_NOISE_FLOOR_DB: f64 = -50.0;
 const FLOOR_ABOVE_NOISE_DB: f64 = 3.0;
 const QUIET_SHARE: f64 = 0.1;
+const PITCH_TAIL_S: u32 = 1;
 const SPEECH_LEVEL: &str = "speechnorm=e=6.25:r=0.00001:l=1:t=0.01";
+
+pub fn pitch_filter(
+    p: &opsis_compile::nodes::media::ChangePitch,
+    length_ms: Option<u32>,
+) -> String {
+    let formant = if p.keep_character {
+        "preserved"
+    } else {
+        "shifted"
+    };
+    let pitch = format!(
+        "rubberband=pitch={}:formant={formant}:pitchq=quality:transients=mixed",
+        round_to(opsis_compile::nodes::media::pitch_ratio(p.semitones), 6)
+    );
+    match length_ms {
+        Some(ms) => format!(
+            "apad=pad_dur={PITCH_TAIL_S},{pitch},atrim=end={}",
+            ffmpeg_seconds(f64::from(ms))
+        ),
+        None => pitch,
+    }
+}
 
 pub fn hum_filter(hertz: f64, harmonics: u32, width: f64) -> String {
     (1..=harmonics + 1)

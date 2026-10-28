@@ -35,6 +35,7 @@ pub const REPAIR_TYPE: &str = "media.repair";
 pub const HUM_TYPE: &str = "media.hum";
 pub const CLEAN_SPEECH_TYPE: &str = "media.cleanSpeech";
 pub const PAUSES_TYPE: &str = "media.shortenPauses";
+pub const PITCH_TYPE: &str = "media.pitch";
 pub const SOUND_PICTURE_TYPE: &str = "media.soundPicture";
 
 pub const EXTRACT_AUDIO_TYPE: &str = "media.extractAudio";
@@ -812,6 +813,30 @@ pub struct RemoveHum {
 
 impl Params for RemoveHum {}
 
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ChangePitch {
+    #[default = 3.0]
+    #[schemars(
+        description = "Semitones",
+        range(min = -24, max = 24),
+        extend("x-step" = 0.5, "x-help" = "Up or down, 12 to an octave. The length stays the same.")
+    )]
+    pub semitones: f64,
+    #[default = true]
+    #[schemars(
+        description = "Keep the voice's character",
+        extend("x-help" = "Keeps a voice sounding like the same person. Turn it off for a cartoon or a deep voice.")
+    )]
+    pub keep_character: bool,
+}
+
+impl Params for ChangePitch {}
+
+pub fn pitch_ratio(semitones: f64) -> f64 {
+    2f64.powf(semitones / 12.0)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum NoiseMethod {
@@ -1304,6 +1329,30 @@ pub fn nodes() -> Vec<NodeDef> {
             ]
         })
         .look(NodeLook::of("lucide:mic-vocal"))
+        .needs(FileNeed::Sound),
+        one_file_op::<ChangePitch>(
+            PITCH_TYPE,
+            "Change pitch",
+            "Raises or lowers a sound's pitch in semitones while its length stays, to fit a song's key or make a playful voice.",
+        )
+        .card(|ctx: &CardCtx<'_, ChangePitch>| {
+            let p = &ctx.params;
+            let steps = if p.semitones == 0.0 {
+                "No change".to_owned()
+            } else {
+                format!(
+                    "{} {}",
+                    signed_text(p.semitones, None, true),
+                    if p.semitones.abs() == 1.0 { "semitone" } else { "semitones" }
+                )
+            };
+            vec![
+                Some(row(Icon::Music, steps)),
+                (!p.keep_character).then(|| row(Icon::AudioLines, "The voice's character changes too")),
+                length_row(ctx.result, Icon::Clock),
+            ]
+        })
+        .look(NodeLook::of("tabler:music-up"))
         .needs(FileNeed::Sound),
         one_file_op::<ShortenPauses>(
             PAUSES_TYPE,

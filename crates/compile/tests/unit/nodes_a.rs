@@ -545,6 +545,17 @@ fn counts_the_changes_on_the_compare_card_and_warns_about_different_sizes() {
 }
 
 #[test]
+fn says_how_many_semitones_the_pitch_moves() {
+    let texts = |params: Value| card_texts("media.pitch", params, CardInputs::default());
+    assert_eq!(texts(json!({})), ["+3 semitones"]);
+    assert_eq!(
+        texts(json!({ "semitones": -1, "keepCharacter": false })),
+        ["−1 semitone", "The voice's character changes too"]
+    );
+    assert_eq!(texts(json!({ "semitones": 0 })), ["No change"]);
+}
+
+#[test]
 fn plays_a_built_in_song_for_its_listed_length_and_names_it_on_the_card() {
     let song = &builtin_songs()[0];
     match compile_node("audio.music", json!({ "src": song.reference() }), json!({}))

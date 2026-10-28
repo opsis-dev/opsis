@@ -11024,6 +11024,48 @@
   }
  },
  {
+  "type": "media.pitch",
+  "title": "Change pitch",
+  "category": "Media",
+  "description": "Raises or lowers a sound's pitch in semitones while its length stays, to fit a song's key or make a playful voice. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "semitones": 3.0,
+   "keepCharacter": true
+  }
+ },
+ {
   "type": "media.shortenPauses",
   "title": "Shorten pauses",
   "category": "Media",

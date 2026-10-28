@@ -863,3 +863,36 @@ async fn says_a_file_it_cannot_open_without_naming_its_path() {
         FileCheckError::Unopenable(std::io::ErrorKind::PermissionDenied)
     ));
 }
+
+#[tokio::test]
+async fn changes_pitch_in_one_pass_keeping_the_voice_character_unless_asked() {
+    let (result, ran) = run(
+        sound_setup("media.pitch", json!({})),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert!(result.is_ok());
+    assert_eq!(
+        ran[0][..4],
+        [
+            "-i",
+            "/p/assets/voice.wav",
+            "-af",
+            "apad=pad_dur=1,rubberband=pitch=1.189207:formant=preserved:pitchq=quality:transients=mixed,atrim=end=4.000"
+        ]
+    );
+    let (_, ran) = run(
+        sound_setup(
+            "media.pitch",
+            json!({ "semitones": -12, "keepCharacter": false }),
+        ),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert_eq!(
+        ran[0][3],
+        "apad=pad_dur=1,rubberband=pitch=0.5:formant=shifted:pitchq=quality:transients=mixed,atrim=end=4.000"
+    );
+}
