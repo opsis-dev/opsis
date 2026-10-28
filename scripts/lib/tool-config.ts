@@ -17,7 +17,6 @@ export const IGNORED_PATHS = [
   ".sqlx/**",
   "fixtures/**",
   "examples/**",
-  "crates/compile/src/elements/registry.generated.json",
   "crates/compile/src/fonts/bundled.generated.json",
   "crates/engine/src/downloads.generated.json",
   "crates/capture/src/playwright/*.generated.*",
@@ -38,4 +37,5 @@ export const IGNORED_PATHS = [
   "packages/video/src/registry/components.generated.ts",
   "packages/video/src/generated/**",
   "packages/video/src/registry/length-cases.generated.json",
+  "packages/video/src/registry/default-props.generated.json",
 ];

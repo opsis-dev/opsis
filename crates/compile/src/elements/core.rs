@@ -1,4 +1,3 @@
-use indexmap::IndexMap;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::CameraPath;
 use schemars::JsonSchema;
@@ -7,9 +6,9 @@ use smart_default::SmartDefault;
 
 use crate::backdrops::Backdrop;
 use crate::clip::PlaceholderProps;
-use crate::elements::{ElementCategory, ElementKind, ElementMeta, ElementSource};
+use crate::elements::entry::{component, meta, presentation, wrapper};
+use crate::elements::{ElementCategory, ElementMeta};
 use crate::nodes::capture::StillProps;
-use crate::params::{ParamSchema, Values, to_values};
 
 pub const CAPTIONS_ELEMENT: &str = "core/captions";
 
@@ -929,108 +928,6 @@ pub struct Flip {
     #[default(Direction::FromRight)]
     #[schemars(description = "Direction")]
     pub direction: Direction,
-}
-
-const OPSIS_URL: &str = "https://github.com/bismitpanda/opsis";
-
-struct Entry {
-    key: &'static str,
-    title: &'static str,
-    description: &'static str,
-    category: ElementCategory,
-    kind: ElementKind,
-    frames: u32,
-    look: Option<NodeLook>,
-}
-
-impl Entry {
-    fn look(mut self, look: NodeLook) -> Self {
-        self.look = Some(look);
-        self
-    }
-}
-
-fn meta<T: JsonSchema + Default + Serialize>(e: Entry) -> ElementMeta {
-    let presentation = e.kind == ElementKind::Presentation;
-    let slug = e.key.trim_start_matches("core/");
-    let source = if presentation {
-        ElementSource {
-            registry: "@remotion/transitions".into(),
-            url: format!("https://www.remotion.dev/docs/transitions/presentations/{slug}"),
-            license: "Remotion".into(),
-        }
-    } else {
-        ElementSource {
-            registry: "Opsis".into(),
-            url: OPSIS_URL.into(),
-            license: "GPL-3.0-or-later".into(),
-        }
-    };
-    ElementMeta {
-        key: e.key.to_owned(),
-        title: e.title.to_owned(),
-        description: (!e.description.is_empty()).then(|| e.description.to_owned()),
-        category: e.category,
-        kind: e.kind,
-        source,
-        schema: ParamSchema::of::<T>(),
-        default_props: to_values(&T::default()),
-        fixed_props: Values::new(),
-        kind_props: IndexMap::new(),
-        default_duration_in_frames: e.frames,
-        design: None,
-        optional_clip: false,
-        thumbnail: None,
-        look: e.look,
-    }
-}
-
-fn component(
-    key: &'static str,
-    title: &'static str,
-    description: &'static str,
-    category: ElementCategory,
-    frames: u32,
-) -> Entry {
-    Entry {
-        key,
-        title,
-        description,
-        category,
-        kind: ElementKind::Component,
-        frames,
-        look: None,
-    }
-}
-
-fn wrapper(
-    key: &'static str,
-    title: &'static str,
-    description: &'static str,
-    category: ElementCategory,
-    frames: u32,
-) -> Entry {
-    Entry {
-        key,
-        title,
-        description,
-        category,
-        kind: ElementKind::Wrapper,
-        frames,
-        look: None,
-    }
-}
-
-fn presentation(key: &'static str, title: &'static str, frames: u32) -> Entry {
-    Entry {
-        key,
-        title,
-        description: "",
-        category: ElementCategory::Transition,
-        kind: ElementKind::Presentation,
-        frames,
-        look: None,
-    }
 }
 
 pub fn core_elements() -> Vec<ElementMeta> {

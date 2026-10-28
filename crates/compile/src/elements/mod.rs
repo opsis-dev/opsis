@@ -1,8 +1,15 @@
+pub mod choices;
 pub mod core;
+pub mod default_props;
+pub mod entry;
 pub mod introspect;
 pub mod length_cases;
 pub mod lengths;
 pub mod prepared;
+pub mod remocn;
+pub mod remotion_ui;
+pub mod snapcn;
+pub mod theme;
 
 use std::collections::HashMap;
 use std::sync::LazyLock;
@@ -12,7 +19,6 @@ use indexmap::IndexMap;
 use opsis_types::looks::NodeLook;
 use opsis_types::timeline::Design;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::params::{ParamSchema, Values};
 
@@ -66,70 +72,19 @@ pub struct ElementMeta {
     pub look: Option<NodeLook>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ElementEntry {
-    key: String,
-    title: String,
-    #[serde(default)]
-    description: Option<String>,
-    category: ElementCategory,
-    kind: ElementKind,
-    source: ElementSource,
-    schema: Value,
-    default_props: Values,
-    fixed_props: Values,
-    #[serde(default)]
-    kind_props: IndexMap<String, String>,
-    default_duration_in_frames: u32,
-    #[serde(default)]
-    design: Option<Design>,
-    #[serde(default)]
-    optional_clip: bool,
-    #[serde(default)]
-    thumbnail: Option<String>,
-    #[serde(default)]
-    look: Option<NodeLook>,
-}
-
-impl From<ElementEntry> for ElementMeta {
-    fn from(e: ElementEntry) -> Self {
-        Self {
-            key: e.key,
-            title: e.title,
-            description: e.description,
-            category: e.category,
-            kind: e.kind,
-            source: e.source,
-            schema: ParamSchema::new(e.schema),
-            default_props: e.default_props,
-            fixed_props: e.fixed_props,
-            kind_props: e.kind_props,
-            default_duration_in_frames: e.default_duration_in_frames,
-            design: e.design,
-            optional_clip: e.optional_clip,
-            thumbnail: e.thumbnail,
-            look: e.look,
-        }
-    }
-}
-
-fn registry_elements() -> Vec<ElementMeta> {
-    let entries: Vec<ElementEntry> = serde_json::from_str(include_str!("registry.generated.json"))
-        .expect("registry element list parses");
-    entries.into_iter().map(ElementMeta::from).collect()
-}
-
 struct Elements {
     list: Vec<ElementMeta>,
     by_key: HashMap<String, usize>,
 }
 
 static ELEMENTS: LazyLock<Elements> = LazyLock::new(|| {
-    let list: Vec<ElementMeta> = core::core_elements()
-        .into_iter()
-        .chain(registry_elements())
-        .collect();
+    let list: Vec<ElementMeta> = [
+        core::core_elements(),
+        remocn::elements(),
+        snapcn::elements(),
+        remotion_ui::elements(),
+    ]
+    .concat();
     let by_key = list
         .iter()
         .enumerate()

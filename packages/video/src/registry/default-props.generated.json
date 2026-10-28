@@ -1,0 +1,2417 @@
+{
+  "core/title": {
+    "eyebrow": "",
+    "title": "Sign up in 10 seconds",
+    "subtitle": "",
+    "mark": "",
+    "markLook": "underline",
+    "markColor": "#facc15",
+    "align": "center",
+    "entrance": "rise",
+    "color": "#fafafa",
+    "accent": "#a78bfa",
+    "background": "transparent",
+    "fontSize": 112.0,
+    "fontWeight": 760.0,
+    "fontFamily": ""
+  },
+  "core/kinetic-headline": {
+    "text": "Ship *faster* with demos that *move*",
+    "color": "#fafafa",
+    "emphasisColor": "#facc15",
+    "background": "transparent",
+    "fontSize": 104.0,
+    "wordStagger": 4.0,
+    "fontFamily": ""
+  },
+  "core/lower-third": {
+    "title": "Ada Lovelace",
+    "subtitle": "Founder, Acme",
+    "position": "bottom-left",
+    "accent": "#a78bfa",
+    "color": "#fafafa",
+    "panel": "rgba(10,10,12,0.72)",
+    "fontFamily": ""
+  },
+  "core/callout": {
+    "text": "Click here",
+    "x": 0.5,
+    "y": 0.5,
+    "side": "top",
+    "color": "#fafafa",
+    "accent": "#f43f5e",
+    "fontFamily": ""
+  },
+  "core/captions": {
+    "style": "word-by-word",
+    "position": "bottom",
+    "fontSize": 56.0,
+    "color": "#ffffff",
+    "highlightColor": "#facc15",
+    "panel": "rgba(0,0,0,0.35)",
+    "fontWeight": 800.0,
+    "fontFamily": ""
+  },
+  "core/image": {
+    "src": "",
+    "fit": "contain",
+    "background": "transparent",
+    "kenBurns": false
+  },
+  "core/mosaic": {
+    "boxes": [
+      {
+        "x": 0.62,
+        "y": 0.06,
+        "width": 0.3,
+        "height": 0.08
+      }
+    ],
+    "frameMs": 0.0,
+    "blockSize": 24.0
+  },
+  "core/lottie": {
+    "src": "",
+    "loop": true,
+    "speed": 1.0,
+    "backwards": false,
+    "fit": "contain",
+    "background": "transparent"
+  },
+  "core/video": {
+    "src": "",
+    "fit": "cover",
+    "loop": false,
+    "muted": true,
+    "volume": 1.0,
+    "playbackRate": 1.0,
+    "trimBeforeMs": 0.0
+  },
+  "core/solid": {
+    "color": "#09090b"
+  },
+  "core/gradient": {
+    "from": "#1e1b4b",
+    "to": "#0f172a",
+    "angle": 135.0,
+    "grain": 0.08
+  },
+  "core/noise": {
+    "color1": "#0b1020",
+    "color2": "#4f46e5",
+    "scale": 0.004,
+    "speed": 0.004
+  },
+  "core/starburst": {
+    "color1": "#18181b",
+    "color2": "#27272a",
+    "rays": 24.0,
+    "rotationSpeed": 0.15
+  },
+  "core/paper": {
+    "color": "#f5f1e8",
+    "grain": 0.18
+  },
+  "core/backdrop": {
+    "name": "glaze"
+  },
+  "core/video-loop": {
+    "src": "",
+    "dim": 0.3
+  },
+  "core/light-leak": {
+    "seed": 3.0,
+    "hueShift": 0.0
+  },
+  "core/logo-3d": {
+    "src": "",
+    "depth": 0.25,
+    "color": "",
+    "metalness": 0.3,
+    "motion": "spin",
+    "camera": {
+      "keys": []
+    },
+    "speed": 1.0,
+    "lighting": "studio",
+    "background": "transparent"
+  },
+  "core/card-3d": {
+    "src": "",
+    "cornerRadius": 0.04,
+    "depth": 0.04,
+    "tilt": 40.0,
+    "motion": "tilt-in",
+    "camera": {
+      "keys": []
+    },
+    "speed": 1.0,
+    "lighting": "soft",
+    "background": "transparent"
+  },
+  "core/text-3d": {
+    "text": "Ship faster",
+    "fontFamily": "",
+    "fontWeight": 800.0,
+    "italic": false,
+    "depth": 0.35,
+    "bevel": 0.4,
+    "color": "#fafafa",
+    "metalness": 0.2,
+    "align": "center",
+    "lineWidth": 16.0,
+    "motion": "tilt-in",
+    "camera": {
+      "keys": []
+    },
+    "speed": 1.0,
+    "lighting": "studio",
+    "background": "transparent"
+  },
+  "core/model-3d": {
+    "src": "",
+    "motion": "spin",
+    "camera": {
+      "keys": []
+    },
+    "speed": 1.0,
+    "animation": "",
+    "animationSpeed": 1.0,
+    "loop": true,
+    "zoom": 1.0,
+    "lighting": "studio",
+    "shadow": true,
+    "background": "transparent"
+  },
+  "core/screen-3d": {
+    "device": "laptop",
+    "deviceColor": "#c9ced6",
+    "move": "push-in",
+    "camera": {
+      "keys": []
+    },
+    "endFaceOn": true,
+    "lighting": "studio",
+    "background": "#0b0b10"
+  },
+  "core/shapes-3d": {
+    "count": 14.0,
+    "palette": [
+      "#6366f1",
+      "#a78bfa",
+      "#f472b6",
+      "#38bdf8"
+    ],
+    "seed": 1.0,
+    "speed": 1.0,
+    "camera": {
+      "keys": []
+    },
+    "lighting": "studio",
+    "background": "#0b1020"
+  },
+  "core/fade": {},
+  "core/slide": {
+    "direction": "from-right"
+  },
+  "core/wipe": {
+    "direction": "from-left"
+  },
+  "core/flip": {
+    "direction": "from-right"
+  },
+  "core/clock-wipe": {},
+  "core/iris": {},
+  "remocn/soft-blur-in": {
+    "text": "Made for every take.",
+    "blur": 12.0,
+    "fontSize": 72.0,
+    "color": "#171717",
+    "fontWeight": "600",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/typewriter": {
+    "text": "console.log('hello, world')",
+    "cursor": true,
+    "charsPerSecond": 22.0,
+    "fontSize": 72.0,
+    "color": "#171717",
+    "cursorColor": "#171717",
+    "fontWeight": "600",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/shimmer-sweep": {
+    "text": "Generating",
+    "baseColor": "#3f3f46",
+    "shineColor": "#fafafa",
+    "fontSize": 96.0,
+    "fontWeight": "700",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/matrix-decode": {
+    "text": "DECRYPTED",
+    "charset": "!@#$%^&*()_+-=<>?/\\|",
+    "fontSize": 72.0,
+    "color": "#22c55e",
+    "fontWeight": "600",
+    "revealDuration": 2.0,
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/slot-machine-roll": {
+    "from": "$99",
+    "to": "$199",
+    "fontSize": 120.0,
+    "color": "#171717",
+    "fontWeight": "700",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/staggered-fade-up": {
+    "text": "Ship your demo in minutes",
+    "staggerDelay": 0.1333,
+    "distance": 20.0,
+    "fontSize": 72.0,
+    "color": "#171717",
+    "fontWeight": "600",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/kinetic-center-build": {
+    "text": "Words push left.",
+    "entryOffset": 88.0,
+    "fontSize": 72.0,
+    "color": "#171717",
+    "fontWeight": "600",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/mask-reveal-up": {
+    "text": "Designed to move.\nBuilt to focus.",
+    "distance": 30.0,
+    "fontSize": 72.0,
+    "color": "#171717",
+    "fontWeight": "600",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/tracking-in": {
+    "text": "tracking in",
+    "startTracking": 0.5,
+    "startBlur": 12.0,
+    "fontSize": 96.0,
+    "color": "#171717",
+    "fontWeight": "700",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/word-push": {
+    "text": "move at your own pace",
+    "fontSize": 72.0,
+    "wordGap": 10.0,
+    "accel": 0.8,
+    "color": "#171717",
+    "fontWeight": "400",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/rgb-glitch-text": {
+    "text": "GLITCH",
+    "fontSize": 96.0,
+    "color": "#171717",
+    "fontWeight": "700",
+    "glitchAt": 0.6667,
+    "glitchDuration": 0.2667,
+    "intensity": 6.0,
+    "seed": "glitch",
+    "glitchColors": [
+      "#ff0040",
+      "#00ff80",
+      "#0080ff"
+    ],
+    "blend": "multiply",
+    "background": "#fafafa",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/gradient-scale-cut-text": {
+    "text": "Introducing",
+    "giantFontSize": 520.0,
+    "compactFontSize": 132.0,
+    "anchorOffsetX": -16.0,
+    "giantTravel": 400.0,
+    "settleTravel": 160.0,
+    "cutFrame": 0.4333,
+    "revealSoftness": 14.0,
+    "compactBlur": 12.0,
+    "gradientStart": "#f04a14",
+    "gradientEnd": "#f3f1f1",
+    "ghostColor": "#170b0a",
+    "backgroundColor": "#000000",
+    "fontWeight": "700",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/strikethrough-replace": {
+    "from": "$49/mo",
+    "to": "Free",
+    "lineColor": "#ff5e3a",
+    "fontSize": 96.0,
+    "color": "#171717",
+    "fontWeight": "700",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/line-by-line-slide": {
+    "text": "Record once.\nShare everywhere.",
+    "distance": 48.0,
+    "fontSize": 72.0,
+    "color": "#171717",
+    "fontWeight": "600",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/marker-highlight": {
+    "before": "Made for ",
+    "highlight": "builders",
+    "after": ".",
+    "markerColor": "#facc15",
+    "baseColor": "#171717",
+    "highlightedTextColor": "#171717",
+    "fontSize": 72.0,
+    "fontWeight": "600",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/inline-highlight": {
+    "before": "Ship faster with ",
+    "highlight": "Acme",
+    "after": ".",
+    "baseColor": "#171717",
+    "highlightColor": "#ff5e3a",
+    "fontSize": 72.0,
+    "fontWeight": "600",
+    "background": "white",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/ink-underline": {
+    "width": 420.0,
+    "color": "#6f7f35",
+    "thickness": 9.0,
+    "pressure": 1.0,
+    "release": 0.15,
+    "grain": 1.0,
+    "durationSteps": 5.0,
+    "seed": "ink",
+    "step": 0.1,
+    "x": 0.5,
+    "y": 0.62
+  },
+  "remocn/scribble-circle": {
+    "laps": 1.15,
+    "strokeWidth": 14.0,
+    "pressure": 0.2,
+    "grain": 1.0,
+    "durationSteps": 10.0,
+    "color": "#6f7f35",
+    "seed": "scribble",
+    "step": 0.1,
+    "x": 0.5,
+    "y": 0.5,
+    "width": 420.0,
+    "height": 220.0,
+    "release": 1.0
+  },
+  "remocn/ink-arrow": {
+    "curvature": 0.35,
+    "strokeWidth": 8.0,
+    "pressure": 0.2,
+    "release": 1.0,
+    "grain": 1.0,
+    "headSize": 24.0,
+    "drawDur": 1.2,
+    "headDur": 0.4,
+    "color": "#26242c",
+    "seed": "arrow",
+    "step": 0.1,
+    "fromX": 0.3,
+    "fromY": 0.72,
+    "toX": 0.48,
+    "toY": 0.5
+  },
+  "remocn/keystroke": {
+    "platform": "mac",
+    "theme": "light",
+    "accent": "#0a84ff",
+    "size": 64.0,
+    "linger": 1.0,
+    "x": 0.5,
+    "y": 0.86,
+    "steps": [
+      {
+        "keys": "mod+k",
+        "at": 0.6667
+      },
+      {
+        "keys": "g i",
+        "at": 2.6
+      },
+      {
+        "keys": "shift+mod+p",
+        "at": 3.8
+      }
+    ],
+    "speed": 1.0
+  },
+  "remocn/confetti": {
+    "particleCount": 140.0,
+    "power": 17.0,
+    "gravity": 0.45,
+    "size": 13.0,
+    "seed": 1.0,
+    "colors": [
+      "#1d9bf0",
+      "#ff5da2",
+      "#ffd23f",
+      "#22c55e",
+      "#a855f7",
+      "#ff7a45"
+    ],
+    "originX": 0.5,
+    "originY": 0.5,
+    "lifetime": 3.0
+  },
+  "remocn/radial-burst": {
+    "segments": 8.0,
+    "radius": 210.0,
+    "thickness": 30.0,
+    "rotation": 135.0,
+    "intensity": 1.0,
+    "twist": 110.0,
+    "echoes": 3.0,
+    "color": "#ffffff",
+    "accentColor": "#f4e4a7",
+    "backgroundColor": "#a800b7",
+    "loop": false,
+    "speed": 1.0
+  },
+  "remocn/whip-pan": {
+    "direction": "left",
+    "blur": 24.0
+  },
+  "remocn/push-through": {
+    "zoom": 2.4,
+    "blur": 14.0
+  },
+  "remocn/zoom-blur": {
+    "blur": 16.0,
+    "rise": 0.0
+  },
+  "remocn/focus-pull": {
+    "blur": 16.0
+  },
+  "remocn/lens-zoom": {
+    "lensSteps": 9.0,
+    "blurSamples": 7.0,
+    "shakeAmount": 50.0,
+    "shakeTranslatePx": 73.0,
+    "colorSplit": true
+  },
+  "remocn/ripple-zoom": {
+    "zoom": 4.0,
+    "intensity": 0.5,
+    "softness": 0.5,
+    "colorBack": "#141318",
+    "colors": [
+      "#3a3a52",
+      "#4a4a68",
+      "#8f88ae"
+    ],
+    "speed": 1.0,
+    "noise": 0.5
+  },
+  "remocn/wave-wipe": {
+    "intensity": 0.2,
+    "softness": 0.7,
+    "noise": 0.4,
+    "colorBack": "#141318",
+    "colors": [
+      "#3a3a52",
+      "#4a4a68",
+      "#8f88ae"
+    ],
+    "speed": 1.0,
+    "zoom": 1.16
+  },
+  "remocn/smoke-dissolve": {
+    "ringColor": "#8f88ae",
+    "colorBack": "#141318",
+    "colors": [
+      "#8f88ae"
+    ],
+    "speed": 1.0
+  },
+  "remocn/glitch-cut": {
+    "intensity": 1.0,
+    "slices": 24.0,
+    "rgbSplit": 1.0,
+    "blockNoise": 0.6
+  },
+  "remocn/page-turn": {
+    "angle": -7.0,
+    "poses": 8.0
+  },
+  "remocn/grain-dissolve": {
+    "shape": "blob",
+    "noise": 0.3,
+    "zoom": 2.0,
+    "colorBack": "#141318",
+    "colors": [
+      "#3a3a52",
+      "#4a4a68",
+      "#8f88ae"
+    ],
+    "speed": 1.0
+  },
+  "remocn/dither-dissolve": {
+    "shape": "simplex",
+    "colorBack": "#141318",
+    "colorFront": "#8f88ae",
+    "speed": 1.5
+  },
+  "remocn/swirl-dissolve": {
+    "bandCount": 10.0,
+    "softness": 0.35,
+    "colorBack": "#141318",
+    "colors": [
+      "#1f1d29",
+      "#413d56",
+      "#8f88ae"
+    ],
+    "speed": 1.0
+  },
+  "remocn/particle-dissolve": {
+    "particleSize": 4.0,
+    "scatter": 0.08,
+    "shimmer": 0.6,
+    "aberration": 0.5,
+    "direction": "reveal",
+    "stagger": 0.55
+  },
+  "remocn/shader-mesh-gradient": {
+    "speed": 1.0,
+    "distortion": 0.6,
+    "swirl": 0.1,
+    "colors": [
+      "#12121a",
+      "#232338",
+      "#3a3a5c",
+      "#52527a"
+    ]
+  },
+  "remocn/shader-grain-gradient": {
+    "speed": 1.0,
+    "softness": 0.6,
+    "intensity": 0.2,
+    "noise": 0.15,
+    "colorBack": "#12121a",
+    "colors": [
+      "#3a3a52",
+      "#4a4a68",
+      "#5a5a7e"
+    ],
+    "shape": "corners",
+    "scale": 1.0,
+    "rotation": 0.0
+  },
+  "remocn/shader-warp": {
+    "speed": 1.0,
+    "distortion": 0.2,
+    "swirl": 0.4,
+    "softness": 1.0,
+    "proportion": 0.5,
+    "colors": [
+      "#12121a",
+      "#3a3a5c",
+      "#12121a",
+      "#52527a"
+    ]
+  },
+  "remocn/shader-swirl": {
+    "speed": 1.0,
+    "bandCount": 4.0,
+    "twist": 0.1,
+    "softness": 0.2,
+    "colorBack": "#12121a",
+    "colors": [
+      "#52527a",
+      "#3a3a5c",
+      "#232338"
+    ]
+  },
+  "remocn/shader-god-rays": {
+    "speed": 1.0,
+    "intensity": 0.8,
+    "density": 0.3,
+    "bloom": 0.4,
+    "colorBack": "#12121a",
+    "colors": [
+      "#5a5a7e",
+      "#8a8a95",
+      "#ffffff",
+      "#3a3a5c"
+    ],
+    "colorBloom": "#3a3a5c"
+  },
+  "remocn/shader-perlin-noise": {
+    "speed": 1.0,
+    "proportion": 0.35,
+    "softness": 0.1,
+    "colorBack": "#12121a",
+    "colorFront": "#6a6a85"
+  },
+  "remocn/shader-dithering": {
+    "speed": 1.0,
+    "size": 2.0,
+    "colorBack": "#12121a",
+    "colorFront": "#6a6a85",
+    "shape": "wave",
+    "type": "4x4"
+  },
+  "remocn/crt-screen": {
+    "curvature": 1.0,
+    "scanlines": 1.0,
+    "maskScale": 2.0,
+    "vignette": 1.0
+  },
+  "remocn/vhs-filter": {
+    "bleed": 1.0,
+    "wobble": 1.0,
+    "noise": 1.0,
+    "intensity": 1.0
+  },
+  "remocn/halftone-print": {
+    "dotSize": 10.0,
+    "angle": 0.0,
+    "misregistration": 1.2,
+    "paperTint": "#f4efe4"
+  },
+  "remocn/camera-lens": {
+    "softness": 0.5,
+    "bloom": 0.5,
+    "aberration": 0.5,
+    "vignette": 0.5,
+    "distortion": 0.05
+  },
+  "remocn/polaroid": {
+    "caption": "first light",
+    "captionAt": 0.0,
+    "width": 652.0,
+    "step": 0.1,
+    "frameColor": "#fdfcf8",
+    "captionColor": "#26242c"
+  },
+  "remocn/tv-power-off": {
+    "durationInFrames": 18.0,
+    "gain": 1.0,
+    "afterglow": 1.0,
+    "phosphor": "#d8ecff"
+  },
+  "remocn/speed-lines": {
+    "mode": "trail",
+    "count": 12.0,
+    "weight": 2.0,
+    "spread": 96.0,
+    "duration": 14.0,
+    "bounce": 0.5,
+    "x": 0.5,
+    "y": 0.5,
+    "delay": 0.0,
+    "color": "#ffffff",
+    "seed": 1.0,
+    "speed": 1.0,
+    "children": null
+  },
+  "remocn/terminal-simulator": {
+    "prompt": "$",
+    "title": "~/projects/acme",
+    "background": "#0a0a0a",
+    "chromeColor": "#1a1a1a",
+    "fontSize": 18.0,
+    "charsPerFrame": 1.0,
+    "chunkSize": 1.0,
+    "lines": [
+      {
+        "text": "deploy --production",
+        "type": "command",
+        "delay": 0.0
+      },
+      {
+        "text": "Running tests...",
+        "type": "log",
+        "delay": 0.2
+      },
+      {
+        "text": "128 tests passed",
+        "type": "success",
+        "delay": 0.3333
+      },
+      {
+        "text": "Building the image...",
+        "type": "log",
+        "delay": 0.2667
+      },
+      {
+        "text": "Image ready in 41s",
+        "type": "success",
+        "delay": 0.3333
+      },
+      {
+        "text": "Rolling out to everyone...",
+        "type": "log",
+        "delay": 0.2667
+      },
+      {
+        "text": "Live in production",
+        "type": "success",
+        "delay": 0.4
+      }
+    ],
+    "speed": 1.0
+  },
+  "remocn/glass-code-block": {
+    "title": "hero.tsx",
+    "width": 760.0,
+    "height": 460.0,
+    "fontSize": 16.0,
+    "glassColor": "rgba(10, 10, 10, 0.6)",
+    "staggerFrames": 0.1333,
+    "showTrafficLights": true,
+    "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
+    "aura": false,
+    "speed": 1.0
+  },
+  "remocn/code-morph": {
+    "filename": "invoices.tsx",
+    "theme": "dark",
+    "accentColor": "#0ea5e9",
+    "morphDuration": 1.2,
+    "fontSize": 20.0,
+    "highlight": true,
+    "lineNumbers": true,
+    "windowDots": true,
+    "steps": [
+      {
+        "code": "import { loadInvoices } from \"./api\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  const invoices = await loadInvoices();\n  list.textContent = \"\";\n  for (const invoice of invoices) {\n    const row = document.createElement(\"li\");\n    row.textContent = invoice.title;\n    list.append(row);\n  }\n}",
+        "at": 0.0
+      },
+      {
+        "code": "import { loadInvoices } from \"./api\";\nimport { renderRows } from \"./rows\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  renderRows(list, await loadInvoices());\n}",
+        "at": 1.6
+      }
+    ],
+    "speed": 1.0
+  },
+  "remocn/logo-enter": {
+    "diameter": 118.0,
+    "overlap": 38.0,
+    "ringColor": "#fff",
+    "orientation": "horizontal",
+    "stagger": 0.2333,
+    "logos": [
+      {
+        "image": "app:placeholders/logo-mark.svg",
+        "background": "#2563eb"
+      },
+      {
+        "image": "app:placeholders/logo-mark.svg",
+        "background": "#0f766e"
+      },
+      {
+        "image": "app:placeholders/logo-mark.svg",
+        "background": "#b45309"
+      },
+      {
+        "image": "app:placeholders/logo-mark.svg",
+        "background": "#7c3aed"
+      }
+    ],
+    "speed": 1.0
+  },
+  "remocn/check-list": {
+    "fontSize": 40.0,
+    "itemGap": 0.6,
+    "closeGap": 0.3,
+    "perStep": 1.6,
+    "strokeWidth": 3.0,
+    "color": "#26242c",
+    "tickColor": "#6f7f35",
+    "step": 0.1,
+    "items": [
+      {
+        "text": "Record the walkthrough",
+        "checked": true
+      },
+      {
+        "text": "Add captions and zooms",
+        "checked": true
+      },
+      {
+        "text": "Export for the launch",
+        "checked": false
+      }
+    ],
+    "width": 720.0,
+    "boxColor": "#26242c",
+    "weight": "600",
+    "seed": "checklist",
+    "background": "white"
+  },
+  "remocn/search-reveal": {
+    "text": "acme",
+    "fieldWidth": 464.0,
+    "fontSize": 34.0,
+    "framesPerCharacter": 0.1333,
+    "showPanel": true,
+    "showGuides": true,
+    "color": "#26232b",
+    "fieldColor": "#ffffff",
+    "ringColor": "#cbc5cf",
+    "panelColor": "#a800b7",
+    "accentColor": "#e8f99a",
+    "backgroundColor": "#f5f1f5",
+    "reducedMotion": false,
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "remocn/agent-run": {
+    "theme": "light",
+    "accentColor": "#2563eb",
+    "compression": 3.0,
+    "seed": 1.0,
+    "runTitle": "Checkout conversion drop",
+    "runPrompt": "Why did checkout conversion drop last week?",
+    "runPlan": [
+      "Compare the checkout funnel with the week before",
+      "Break the drop down by device and step",
+      "Check what shipped and what the error logs say"
+    ],
+    "runSteps": [
+      {
+        "name": "Query analytics",
+        "detail": "checkout funnel, last 7 days vs prior 7",
+        "duration": 1.4,
+        "icon": "chart"
+      },
+      {
+        "name": "Run a query",
+        "detail": "conversion by device and step",
+        "duration": 2.3,
+        "icon": "database"
+      },
+      {
+        "name": "Search logs",
+        "detail": "card payment errors on tablets",
+        "duration": 1.1,
+        "icon": "search"
+      },
+      {
+        "name": "Read 12 sources",
+        "duration": 3.2,
+        "icon": "book",
+        "sources": [
+          "Checkout funnel",
+          "Device report",
+          "Release 4.12",
+          "Change #2186",
+          "Payments guide",
+          "Error log",
+          "Incident notes",
+          "Runbook",
+          "Support tickets",
+          "Status page",
+          "Team notes",
+          "Design spec"
+        ]
+      }
+    ],
+    "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
+    "speed": 1.0
+  },
+  "remocn/animated-bar-chart": {
+    "barColor": "#0ea5e9",
+    "gap": 16.0,
+    "staggerFrames": 0.2,
+    "bars": [
+      {
+        "label": "",
+        "value": 35.0
+      },
+      {
+        "label": "",
+        "value": 60.0
+      },
+      {
+        "label": "",
+        "value": 45.0
+      },
+      {
+        "label": "",
+        "value": 80.0
+      },
+      {
+        "label": "",
+        "value": 55.0
+      },
+      {
+        "label": "",
+        "value": 70.0
+      },
+      {
+        "label": "",
+        "value": 90.0
+      },
+      {
+        "label": "",
+        "value": 65.0
+      }
+    ],
+    "width": 1000.0,
+    "height": 500.0,
+    "baselineColor": "#27272a",
+    "labelColor": "#a1a1aa",
+    "speed": 1.0
+  },
+  "remocn/animated-line-chart": {
+    "strokeColor": "#22c55e",
+    "strokeWidth": 4.0,
+    "gridColor": "#27272a",
+    "showDot": true,
+    "data": [
+      12.0,
+      19.0,
+      8.0,
+      15.0,
+      22.0,
+      18.0,
+      28.0,
+      25.0,
+      32.0
+    ],
+    "width": 1000.0,
+    "height": 500.0,
+    "speed": 1.0
+  },
+  "remocn/rolling-number": {
+    "from": 0.0,
+    "to": 24813.0,
+    "fontSize": 120.0,
+    "color": "#171717",
+    "background": "white",
+    "speed": 1.0
+  },
+  "remocn/spring-settle": {
+    "enterScale": 1.24,
+    "enterStagger": 3.0,
+    "exitScale": 0.84,
+    "exitFrames": 6.0,
+    "enterFadeFrames": 5.0,
+    "springDamping": 30.0,
+    "springStiffness": 320.0,
+    "bgFadeFrames": 4.0,
+    "loop": false
+  },
+  "remocn/signup-flow": {
+    "theme": {
+      "mode": "light",
+      "colors": {}
+    },
+    "title": "Create an account",
+    "description": "Enter your information below to create your account",
+    "fullName": "John Doe",
+    "email": "m@example.com",
+    "password": "••••••••",
+    "createLabel": "Create account",
+    "toastTitle": "Account created"
+  },
+  "remocn/ai-prompt-flow": {
+    "theme": {
+      "mode": "light",
+      "colors": {}
+    },
+    "prompt": "Summarize this thread",
+    "buttonLabel": "Generate",
+    "answerLines": [
+      "The thread debates the Q3 roadmap: ship the editor first,",
+      "defer billing to Q4, and pull the migration forward so",
+      "infra is unblocked before the team scales next quarter."
+    ],
+    "toastTitle": "Response ready"
+  },
+  "remocn/command-menu": {
+    "state": "opened",
+    "query": "new",
+    "selectedIndex": -1.0,
+    "highlightedIndex": -1.0,
+    "theme": {
+      "mode": "light",
+      "colors": {}
+    },
+    "items": [
+      {
+        "icon": "user",
+        "label": "Profile",
+        "shortcut": "⌘ P"
+      },
+      {
+        "icon": "settings",
+        "label": "Settings",
+        "shortcut": "⌘ S"
+      },
+      {
+        "icon": "file",
+        "label": "New File",
+        "shortcut": "⌘ N"
+      },
+      {
+        "icon": "search",
+        "label": "Search docs"
+      }
+    ],
+    "autoplay": true,
+    "pressedIndex": -1.0
+  },
+  "remocn/release-teaser": {
+    "brandName": "Orvio",
+    "release": "2",
+    "tagline": "Your next chapter starts here.",
+    "accentColor": "#9BC8DD",
+    "reducedMotion": false,
+    "statements": [
+      "Start with an idea",
+      "Make room\nfor better work",
+      "Bring every detail to life",
+      "Move together.\nGo further.",
+      "A fresh chapter.\nNo starting over."
+    ],
+    "logoSrc": "",
+    "themeBackground": "",
+    "themeSurface": "",
+    "themeForeground": "",
+    "themeMuted": "",
+    "lightIntensity": 1.0,
+    "music": "",
+    "musicVolume": 1.0
+  },
+  "remocn/launch-anything": {
+    "opening": "Good",
+    "subject": "ideas",
+    "brandUrl": "yourproduct.example",
+    "accentColor": "#245744",
+    "copyReady": "deserve a stage",
+    "copyNext": "Let’s make",
+    "copyAction": "them real",
+    "copyProof": "Your work.\nA clearer view.",
+    "copyIndustry": "Built around you",
+    "copyPromise": "Made to be yours.",
+    "copyLaunch": "Begin",
+    "copyShoppers": "Small things. Well made.",
+    "copyShopName": "Object Study",
+    "copyShopHeadline": "Everyday, considered.",
+    "copyShopDetail": "Useful objects. Quiet details.",
+    "copyShopAction": "Explore the objects",
+    "copyBuilder": "Turn a brief into a workspace",
+    "copyBuilderPrompt": "Create a workspace for our next product release",
+    "copyTrading": "Review once.\nMove forward.",
+    "copyLoyalty": "A place for every idea",
+    "copyLoyaltyPayoff": "Room for the next one",
+    "copyIntegration": "Bring your work together",
+    "copyConnections": "Connect your tools.\nKeep work moving.",
+    "copyIntegrations": [
+      "Files",
+      "Messages",
+      "Calendar"
+    ],
+    "screenDashboard": "",
+    "screenShoppers": "",
+    "screenExchange": "",
+    "screenBuilder": "",
+    "screenTrading": "",
+    "screenLoyalty": "",
+    "screenIntegrations": "",
+    "photoDesk": "",
+    "photoHorizon": "",
+    "photoRocket": "",
+    "photoEarth": "",
+    "logoImages": [],
+    "logoSrc": "",
+    "music": "",
+    "musicVolume": 1.0
+  },
+  "snapcn/laptop-frame": {
+    "screenSrc": "app:placeholders/screen-wide.svg",
+    "entrance": "open",
+    "finale": "zoom-to-screen",
+    "notchLabel": "Recording started",
+    "showNotch": true,
+    "batteryLevel": 85.0,
+    "bezelColor": "#1D1D1F",
+    "screenColor": "#FFFFFF",
+    "restTilt": 18.0,
+    "radius": 22.0,
+    "scale": 0.85,
+    "floatLoop": true,
+    "floatAmplitude": 4.0,
+    "shadow": "0 40px 80px rgba(10,12,20,0.45)",
+    "theme": {
+      "mode": "dark",
+      "colors": {}
+    },
+    "indicatorColor": "#30D158",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "snapcn/phone-frame": {
+    "variant": "showcase",
+    "entrance": "float",
+    "screenSrc": "app:placeholders/screen-tall.svg",
+    "bezelColor": "#C7C9CE",
+    "screenColor": "#0A0A0B",
+    "radius": 53.0,
+    "screenRadius": 41.0,
+    "scale": 0.92,
+    "tiltAngle": -12.0,
+    "showDynamicIsland": true,
+    "floatLoop": false,
+    "floatAmplitude": 6.0,
+    "shadow": "0 30px 70px rgba(16,24,40,0.28)",
+    "theme": {
+      "mode": "dark",
+      "colors": {}
+    },
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "snapcn/screen-recording": {
+    "src": "app:placeholders/screen-wide.svg",
+    "cropTop": 0.0,
+    "cropRight": 0.0,
+    "cropBottom": 0.0,
+    "cropLeft": 0.0,
+    "fit": "cover",
+    "backdropColor": "",
+    "entrance": "fade",
+    "radius": 0.0,
+    "trimBefore": 0.0,
+    "audio": false,
+    "theme": {
+      "mode": "dark",
+      "colors": {}
+    },
+    "camera": [
+      {
+        "at": 1.1333,
+        "duration": 0.8333,
+        "zoom": 1.6,
+        "x": 0.36,
+        "y": 0.42
+      },
+      {
+        "at": 3.2,
+        "duration": 0.8333,
+        "zoom": 1.0,
+        "x": 0.5,
+        "y": 0.5
+      }
+    ],
+    "speed": 1.0
+  },
+  "snapcn/announce-title": {
+    "eyebrow": "Introducing",
+    "title": "Acme 2.0",
+    "tagline": "Everything your team needs to ship, in one place.",
+    "symbolPath": "",
+    "symbolColors": [],
+    "symbolScale": 1.0,
+    "fieldColor": "#5600f5",
+    "titleColor": "#4800c9",
+    "paperColor": "#fcfcfa",
+    "voidColor": "#100022",
+    "nightColor": "#000028",
+    "glowColor": "#08ff4b",
+    "glowStrength": 0.139,
+    "taglineColor": "#f2f8ff",
+    "inkColor": "#ffffff",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "snapcn/punch-lines": {
+    "script": "Record it. / Edit it. | One take. | Ship.",
+    "styles": "slide,punch",
+    "sizes": "1,0.945,2.7",
+    "holds": "1.6",
+    "accentBeat": 3.0,
+    "fontSize": 93.0,
+    "fontWeight": "600",
+    "lineHeight": 0.89,
+    "letterSpacing": "-0.022em",
+    "wordSpacing": "-0.02em",
+    "ground": "",
+    "ink": "",
+    "accentColor": "#ff1c8e",
+    "lead": 0.1333,
+    "slideFrom": -0.737,
+    "slideKick": 7.34,
+    "slideSettle": 2.846,
+    "lineStagger": 0.1167,
+    "slideDrop": 0.313,
+    "motionBlur": 1.0,
+    "punchFrom": 0.32,
+    "punchFrames": 0.5,
+    "wordStagger": 0.0933,
+    "pushFrom": 0.778,
+    "pushRate": 0.205,
+    "rushLead": 0.4067,
+    "rushFrames": 0.6,
+    "rushTravel": 0.85,
+    "fit": 0.92,
+    "theme": {
+      "mode": "light",
+      "colors": {}
+    },
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "snapcn/text-highlight": {
+    "before": "Powered by ",
+    "highlight": "Northwind",
+    "after": "",
+    "preset": "logo-wipe",
+    "baseColor": "",
+    "accentColor": "#266DF0",
+    "highlightedTextColor": "",
+    "replaceWith": "Acme",
+    "startAt": 0.2,
+    "drawDuration": 0.4667,
+    "thickness": 4.0,
+    "shineColor": "#FAFAFA",
+    "logoSrc": "app:placeholders/logo-mark.svg",
+    "logoScale": 1.05,
+    "spinTurns": 1.0,
+    "holdDuration": 0.4,
+    "rushDuration": 0.8,
+    "rushScale": 42.0,
+    "rushDrift": 0.55,
+    "swingOut": 0.25,
+    "coverColor": "#266DF0",
+    "fontSize": 56.0,
+    "fontWeight": "600",
+    "theme": {
+      "mode": "dark",
+      "colors": {}
+    },
+    "background": "",
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "snapcn/status-cycle": {
+    "prefix": "Acme is",
+    "statuses": "recording, editing, exporting, live",
+    "chips": "Record, Auto zoom, Captions, Export, Share",
+    "fieldColor": "",
+    "pageColor": "",
+    "pillColor": "",
+    "pillLabelColor": "",
+    "prefixColor": "",
+    "chipFills": [],
+    "chipTextColor": "",
+    "chipBorderColor": "rgb(160, 160, 160)",
+    "fontWeight": "400",
+    "chipFontWeight": "400",
+    "fontSize": 63.0,
+    "chipFontSize": 160.0,
+    "introFrames": 0.8,
+    "statusHold": 1.0,
+    "chipStagger": 0.2667,
+    "pillCenterY": 0.516,
+    "startAt": 0.0,
+    "theme": {
+      "mode": "dark",
+      "colors": {}
+    },
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "snapcn/logo-assemble": {
+    "brandName": "Acme",
+    "middleText": "Product demos, made simple",
+    "logoSrc": "app:placeholders/logo-mark.svg",
+    "count": 10.0,
+    "background": "",
+    "theme": {
+      "mode": "dark",
+      "colors": {}
+    },
+    "images": [
+      {
+        "image": "app:backdrops/aurora.jpg"
+      },
+      {
+        "image": "app:backdrops/bloom.jpg"
+      },
+      {
+        "image": "app:backdrops/canyon.jpg"
+      },
+      {
+        "image": "app:backdrops/chalk.jpg"
+      },
+      {
+        "image": "app:backdrops/cobalt.jpg"
+      },
+      {
+        "image": "app:backdrops/dusk.jpg"
+      },
+      {
+        "image": "app:backdrops/ember.jpg"
+      },
+      {
+        "image": "app:backdrops/flare.jpg"
+      }
+    ],
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "snapcn/logo-drift": {
+    "headline": "Built for the stack you already use.",
+    "pullback": 0.1762,
+    "tileSpeed": 1.0,
+    "tileScale": 1.0,
+    "tileFade": 0.4,
+    "tileRadius": 0.02,
+    "glyphScale": 0.34,
+    "wordStagger": 0.15,
+    "wordDuration": 0.14,
+    "wordScale": 1.216,
+    "wordBlur": 4.3,
+    "exitAt": 3.13,
+    "exitDuration": 0.34,
+    "fontSize": 20.0,
+    "glow": true,
+    "glowOpacity": 0.07,
+    "accentColor": "",
+    "theme": {
+      "mode": "light",
+      "colors": {}
+    },
+    "fontWeight": "500",
+    "glowColor": "",
+    "tiles": [
+      {
+        "glyph": "Rc",
+        "label": "Record",
+        "background": "#1f2430",
+        "color": "#ffffff",
+        "x": 163.0,
+        "y": 232.0,
+        "vx": -54.0,
+        "vy": 12.0,
+        "size": 109.0,
+        "at": 0.28
+      },
+      {
+        "glyph": "Ed",
+        "label": "Edit",
+        "background": "#f2f4f7",
+        "color": "#16181d",
+        "x": 128.0,
+        "y": -209.0,
+        "vx": 81.0,
+        "vy": 32.0,
+        "size": 122.0,
+        "at": 0.48
+      },
+      {
+        "glyph": "Zm",
+        "label": "Zoom",
+        "background": "#10131a",
+        "color": "#7dd3fc",
+        "x": -384.0,
+        "y": 344.0,
+        "vx": -27.0,
+        "vy": -68.0,
+        "size": 200.0,
+        "at": 0.95
+      },
+      {
+        "glyph": "Cc",
+        "label": "Captions",
+        "background": "#e7e8ea",
+        "color": "#16181d",
+        "x": 519.0,
+        "y": 45.0,
+        "vx": -31.0,
+        "vy": 64.0,
+        "size": 144.0,
+        "at": 1.51
+      },
+      {
+        "glyph": "Mx",
+        "label": "Mix",
+        "background": "#f1ece2",
+        "color": "#8a5a2b",
+        "x": -692.0,
+        "y": -125.0,
+        "vx": 41.0,
+        "vy": -71.0,
+        "size": 214.0,
+        "at": 1.55
+      }
+    ],
+    "fontFamily": "",
+    "speed": 1.0
+  },
+  "snapcn/hero-launch": {
+    "image1": "app:placeholders/screen-wide.svg",
+    "image2": "app:backdrops/aurora.jpg",
+    "heading": "Launch day, done right",
+    "theme": {
+      "mode": "dark",
+      "colors": {}
+    },
+    "fontFamily": ""
+  },
+  "remotion-ui/grid-pixelate-wipe": {
+    "cols": 12.0,
+    "rows": 8.0,
+    "order": "from-left",
+    "shape": "square",
+    "stagger": 0.82
+  },
+  "remotion-ui/frosted-glass-wipe": {
+    "blur": 20.0,
+    "panelWidth": 0.14,
+    "direction": "from-left",
+    "frostColor": "rgba(255,255,255,0.12)"
+  },
+  "remotion-ui/chromatic-aberration-wipe": {
+    "intensity": 12.0,
+    "axis": "horizontal",
+    "slide": 1.0
+  },
+  "remotion-ui/transition-blinds": {
+    "orientation": "horizontal",
+    "slats": 12.0,
+    "stagger": 0.45,
+    "alternate": false,
+    "edgeSoftness": 0.06
+  },
+  "remotion-ui/transition-morph-shape": {
+    "from": "circle",
+    "to": "squircle",
+    "originX": 0.5,
+    "originY": 0.5,
+    "warp": 0.0
+  },
+  "remotion-ui/stat-card": {
+    "value": 98.0,
+    "suffix": "%",
+    "prefix": "",
+    "decimals": 0.0,
+    "label": "Satisfaction",
+    "caption": "Customer survey, last 30 days",
+    "delta": 4.0,
+    "deltaSuffix": "%",
+    "accentColor": "#2DD4BF",
+    "theme": "dark",
+    "speed": 1.0,
+    "showDelta": true,
+    "backgroundColor": ""
+  },
+  "remotion-ui/metric-ticker": {
+    "metrics": [
+      {
+        "label": "Sign-ups",
+        "value": 12400.0,
+        "delta": "+18%",
+        "trend": [
+          62.0,
+          71.0,
+          68.0,
+          84.0,
+          96.0,
+          112.0,
+          124.0
+        ]
+      },
+      {
+        "label": "Avg. session",
+        "value": 48.0,
+        "delta": "+6%",
+        "trend": [
+          39.0,
+          41.0,
+          40.0,
+          43.0,
+          45.0,
+          44.0,
+          48.0
+        ],
+        "suffix": "min"
+      },
+      {
+        "label": "Support tickets",
+        "value": 320.0,
+        "delta": "-4%",
+        "trend": [
+          36.0,
+          35.0,
+          37.0,
+          34.0,
+          33.0,
+          33.5,
+          32.0
+        ]
+      }
+    ],
+    "title": "Growth this quarter",
+    "eyebrow": "Quarter recap",
+    "maxCards": 4.0,
+    "accentColor": "",
+    "backgroundColor": "",
+    "theme": "dark"
+  },
+  "remotion-ui/funnel-chart": {
+    "stages": [
+      {
+        "label": "Visited the site",
+        "value": 42800.0
+      },
+      {
+        "label": "Signed up",
+        "value": 18600.0
+      },
+      {
+        "label": "Created a project",
+        "value": 9400.0
+      },
+      {
+        "label": "Invited a teammate",
+        "value": 4100.0
+      },
+      {
+        "label": "Upgraded",
+        "value": 1750.0
+      }
+    ],
+    "width": 1100.0,
+    "height": 560.0,
+    "gap": 10.0,
+    "tailOpacity": 0.5,
+    "showDropoff": true,
+    "showConversion": false,
+    "durationInFrames": 22.0,
+    "staggerInFrames": 12.0,
+    "color": "#e8b86d",
+    "inkColor": "#fafafa",
+    "labelColor": "rgba(250,250,250,0.55)",
+    "dropoffColor": "#f472b6"
+  },
+  "remotion-ui/donut-chart": {
+    "segments": [
+      {
+        "label": "Direct",
+        "value": 4820.0
+      },
+      {
+        "label": "Search",
+        "value": 3140.0
+      },
+      {
+        "label": "Social",
+        "value": 1960.0
+      },
+      {
+        "label": "Referral",
+        "value": 880.0
+      }
+    ],
+    "size": 520.0,
+    "thickness": 46.0,
+    "colors": [
+      "#e8b86d",
+      "#2dd4bf",
+      "#f472b6",
+      "#8b8bf5"
+    ],
+    "showLegend": true,
+    "showTotal": true,
+    "totalLabel": "Sessions",
+    "durationInFrames": 26.0,
+    "staggerInFrames": 9.0,
+    "trackColor": "rgba(250,250,250,0.08)",
+    "labelColor": "rgba(250,250,250,0.58)",
+    "inkColor": "#fafafa",
+    "upColor": "#2dd4bf",
+    "downColor": "#f87171"
+  },
+  "remotion-ui/comparison-bars": {
+    "rows": [
+      {
+        "label": "Setup time (min)",
+        "before": 240.0,
+        "after": 96.0
+      },
+      {
+        "label": "Tickets closed / week",
+        "before": 120.0,
+        "after": 310.0
+      },
+      {
+        "label": "Active teams",
+        "before": 34.0,
+        "after": 88.0
+      },
+      {
+        "label": "Manual steps",
+        "before": 62.0,
+        "after": 18.0
+      }
+    ],
+    "width": 1100.0,
+    "rowHeight": 84.0,
+    "gap": 26.0,
+    "labelWidth": 280.0,
+    "beforeColor": "rgba(250,250,250,0.22)",
+    "afterColor": "#e8b86d",
+    "downColor": "#f472b6",
+    "seriesLabels": [
+      "Before",
+      "After"
+    ],
+    "showDelta": true,
+    "durationInFrames": 30.0,
+    "staggerInFrames": 12.0,
+    "pairOffsetInFrames": 6.0,
+    "barInkColor": "#0b0b10",
+    "labelColor": "rgba(250,250,250,0.55)"
+  },
+  "remotion-ui/bar-chart-race": {
+    "series": [
+      {
+        "label": "Mobile",
+        "values": [
+          42.0,
+          58.0,
+          66.0,
+          72.0,
+          78.0,
+          84.0
+        ]
+      },
+      {
+        "label": "Web",
+        "values": [
+          18.0,
+          34.0,
+          57.0,
+          76.0,
+          92.0,
+          108.0
+        ]
+      },
+      {
+        "label": "Desktop",
+        "values": [
+          30.0,
+          40.0,
+          47.0,
+          52.0,
+          57.0,
+          61.0
+        ]
+      },
+      {
+        "label": "API",
+        "values": [
+          12.0,
+          22.0,
+          36.0,
+          50.0,
+          63.0,
+          79.0
+        ]
+      },
+      {
+        "label": "Email",
+        "values": [
+          24.0,
+          28.0,
+          31.0,
+          35.0,
+          38.0,
+          42.0
+        ]
+      },
+      {
+        "label": "Partners",
+        "values": [
+          8.0,
+          12.0,
+          17.0,
+          21.0,
+          26.0,
+          30.0
+        ]
+      }
+    ],
+    "steps": [
+      "Q1",
+      "Q2",
+      "Q3",
+      "Q4",
+      "Q5",
+      "Q6"
+    ],
+    "framesPerStep": 18.0,
+    "visibleRows": 6.0,
+    "width": 1200.0,
+    "rowHeight": 76.0,
+    "gap": 14.0,
+    "labelWidth": 240.0,
+    "showStepLabel": true,
+    "colors": [
+      "#e8b86d",
+      "#2dd4bf",
+      "#f472b6",
+      "#8b8bf5",
+      "#f59e0b",
+      "#5eead4"
+    ],
+    "inkColor": "#fafafa",
+    "barInkColor": "#0b0b10",
+    "labelColor": "rgba(250,250,250,0.55)"
+  },
+  "remotion-ui/gauge-dial": {
+    "value": 78.0,
+    "min": 0.0,
+    "max": 100.0,
+    "size": 480.0,
+    "thickness": 26.0,
+    "sweepInDegrees": 250.0,
+    "label": "Weekly goal",
+    "unit": "%",
+    "tickCount": 9.0,
+    "durationInFrames": 44.0,
+    "color": "#e8b86d",
+    "trackColor": "rgba(250,250,250,0.10)",
+    "inkColor": "#fafafa",
+    "labelColor": "rgba(250,250,250,0.58)"
+  },
+  "remotion-ui/data-story": {
+    "title": "Quarterly reach by channel",
+    "subtitle": "Short-form climbed while long-form held attention",
+    "barData": [
+      {
+        "label": "Mobile",
+        "value": 124000.0,
+        "delta": "+32%"
+      },
+      {
+        "label": "Web",
+        "value": 82000.0,
+        "delta": "+11%"
+      },
+      {
+        "label": "Desktop",
+        "value": 64000.0,
+        "delta": "+4%"
+      },
+      {
+        "label": "API",
+        "value": 48000.0,
+        "delta": "-6%"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Sign-ups",
+        "value": 12400.0,
+        "delta": "+18%",
+        "trend": [
+          62.0,
+          71.0,
+          68.0,
+          84.0,
+          96.0,
+          112.0,
+          124.0
+        ]
+      },
+      {
+        "label": "Avg. session",
+        "value": 48.0,
+        "delta": "+6%",
+        "trend": [
+          39.0,
+          41.0,
+          40.0,
+          43.0,
+          45.0,
+          44.0,
+          48.0
+        ],
+        "suffix": "min"
+      },
+      {
+        "label": "Support tickets",
+        "value": 320.0,
+        "delta": "-4%",
+        "trend": [
+          36.0,
+          35.0,
+          37.0,
+          34.0,
+          33.0,
+          33.5,
+          32.0
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "title": "Hook",
+        "description": "Lead with the sharpest insight."
+      },
+      {
+        "title": "Proof",
+        "description": "Show the chart and the numbers."
+      },
+      {
+        "title": "Next step",
+        "description": "Close with one clear call to action."
+      }
+    ],
+    "chartTitle": "Views by format",
+    "metricsTitle": "Signals that mattered",
+    "timelineTitle": "How we read the quarter",
+    "insight": "Short-form drove reach; long-form kept attention.",
+    "insightEyebrow": "Takeaway",
+    "ctaTitle": "Turn your data into motion",
+    "ctaLabel": "Get started",
+    "theme": "dark",
+    "accentColor": "#e8b86d",
+    "dataColor": "#2dd4bf",
+    "timelineColor": "#f59e0b",
+    "backgroundColor": ""
+  },
+  "remotion-ui/logo-reveal": {
+    "pathD": "M 100 20 L 170 60 L 170 140 L 100 180 L 30 140 L 30 60 Z M 100 64 L 138 86 L 138 130 L 100 152 L 62 130 L 62 86 Z",
+    "wordmark": "Acme",
+    "tagline": "Ship your next release faster",
+    "stroke": "#e8b86d",
+    "backgroundColor": "#080810",
+    "textColor": "#f4f4f5",
+    "viewBox": "",
+    "fill": ""
+  },
+  "remotion-ui/pricing-card": {
+    "tier": "Studio",
+    "price": 32.0,
+    "currency": "$",
+    "period": "/mo",
+    "badge": "Most picked",
+    "note": "Billed annually. Cancel whenever.",
+    "features": [
+      "2,000 render minutes a month",
+      "4K exports, no watermark",
+      "9 team seats",
+      "Render API and webhooks",
+      "Priority render queue"
+    ],
+    "ctaLabel": "Start rendering",
+    "priceAtSeconds": 0.42,
+    "rollSeconds": 0.9,
+    "featuresAtSeconds": 1.05,
+    "featureStaggerSeconds": 0.22,
+    "accentColor": "#E8B86D",
+    "theme": "dark",
+    "speed": 1.0,
+    "backgroundColor": ""
+  },
+  "remotion-ui/comparison-table": {
+    "columns": [
+      "Free",
+      "Studio",
+      "Scale"
+    ],
+    "rows": [
+      {
+        "label": "Render minutes",
+        "cells": [
+          "60",
+          "2,000",
+          "Unlimited"
+        ]
+      },
+      {
+        "label": "1080p exports",
+        "cells": [
+          "yes",
+          "yes",
+          "yes"
+        ]
+      },
+      {
+        "label": "4K exports",
+        "cells": [
+          "no",
+          "yes",
+          "yes"
+        ]
+      },
+      {
+        "label": "Team seats",
+        "cells": [
+          "1",
+          "9",
+          "Unlimited"
+        ]
+      },
+      {
+        "label": "Render API",
+        "cells": [
+          "no",
+          "yes",
+          "yes"
+        ]
+      },
+      {
+        "label": "Priority queue",
+        "cells": [
+          "no",
+          "no",
+          "yes"
+        ]
+      }
+    ],
+    "title": "What you get",
+    "highlightColumn": 1.0,
+    "highlightLabel": "Most picked",
+    "startAtSeconds": 0.5,
+    "rowStaggerSeconds": 0.26,
+    "accentColor": "#E8B86D",
+    "theme": "dark",
+    "speed": 1.0,
+    "backgroundColor": ""
+  },
+  "remotion-ui/changelog-entry": {
+    "changes": [
+      {
+        "kind": "added",
+        "text": "Caption presets for nine languages"
+      },
+      {
+        "kind": "added",
+        "text": "Render API webhooks on job completion"
+      },
+      {
+        "kind": "fixed",
+        "text": "Retry backoff no longer stalls the queue"
+      },
+      {
+        "kind": "changed",
+        "text": "Theme tokens moved to a single source"
+      },
+      {
+        "kind": "removed",
+        "text": "Legacy waveform atom"
+      }
+    ],
+    "version": "v2.4.0",
+    "date": "16 August",
+    "summary": "Captions, webhooks, and a queue that stops sulking.",
+    "startAtSeconds": 0.66,
+    "staggerSeconds": 0.28,
+    "theme": "dark",
+    "speed": 1.0,
+    "backgroundColor": "",
+    "kindAdded": "",
+    "kindFixed": "",
+    "kindChanged": "",
+    "kindRemoved": ""
+  },
+  "remotion-ui/logo-wall": {
+    "logos": [
+      {
+        "name": "Northstar",
+        "color": "#E8B86D"
+      },
+      {
+        "name": "Halcyon",
+        "color": "#7DD3E8"
+      },
+      {
+        "name": "Fernweh",
+        "color": "#9BD4A0"
+      },
+      {
+        "name": "Orbital",
+        "color": "#C99BE8"
+      },
+      {
+        "name": "Lumen",
+        "color": "#8FB8F0"
+      },
+      {
+        "name": "Tidewater",
+        "color": "#E89B9B"
+      },
+      {
+        "name": "Kestrel",
+        "color": "#E8B86D"
+      },
+      {
+        "name": "Marrow",
+        "color": "#7DD3E8"
+      }
+    ],
+    "eyebrow": "Trusted by",
+    "title": "Teams that ship with us",
+    "columns": 4.0,
+    "startAtSeconds": 0.32,
+    "arriveStaggerSeconds": 0.06,
+    "staggerSeconds": 0.24,
+    "warmSeconds": 0.6,
+    "accentColor": "#E8B86D",
+    "theme": "dark",
+    "speed": 1.0,
+    "backgroundColor": ""
+  },
+  "remotion-ui/end-card": {
+    "title": "Ready to try it?",
+    "subtitle": "Start free. No credit card needed.",
+    "eyebrow": "",
+    "cta": "Start free trial",
+    "url": "example.com/signup",
+    "handles": [
+      "@acme",
+      "acme.example/blog"
+    ],
+    "logoSrc": "",
+    "accentColor": "#E8B86D",
+    "theme": "dark",
+    "speed": 1.0,
+    "backgroundColor": ""
+  },
+  "remotion-ui/code-reveal": {
+    "code": "export async function checkout(cart: Cart) {\n  const total = cart.items.reduce((sum, item) => sum + item.price, 0);\n  const order = await api.orders.create({ items: cart.items, total });\n\n  return order.id;\n}",
+    "highlightedLines": [
+      3.0
+    ],
+    "title": "checkout.ts",
+    "language": "tsx",
+    "startLine": 1.0,
+    "showLineNumbers": true,
+    "accentColor": "#E8B86D",
+    "theme": "dark",
+    "speed": 1.0,
+    "backgroundColor": ""
+  },
+  "remotion-ui/code-diff-wipe": {
+    "before": "export function render(scene) {\n  const frames = scene.frames;\n  return frames.map(draw);\n}",
+    "after": "export function render(scene, options) {\n  const frames = scene.frames;\n  const scale = options.scale ?? 1;\n  return frames.map((frame) => draw(frame, scale));\n}",
+    "title": "render.ts",
+    "wipeSeconds": 1.7,
+    "accentColor": "#E8B86D",
+    "theme": "dark",
+    "speed": 1.0,
+    "backgroundColor": ""
+  },
+  "remotion-ui/kanban-move": {
+    "columns": [
+      "Backlog",
+      "In progress",
+      "Shipped"
+    ],
+    "cards": [
+      {
+        "title": "Onboarding checklist",
+        "meta": "APP-218 · Ana",
+        "column": 0.0,
+        "tint": "#8FB8F0"
+      },
+      {
+        "title": "Retry failed payments",
+        "meta": "APP-204 · Piotr",
+        "column": 0.0,
+        "tint": "#E8B86D",
+        "moveTo": 1.0,
+        "moveAtSeconds": 0.95
+      },
+      {
+        "title": "Dark mode",
+        "meta": "APP-231 · Dai",
+        "column": 0.0,
+        "tint": "#C99BE8"
+      },
+      {
+        "title": "Search filters",
+        "meta": "APP-190 · Ana",
+        "column": 1.0,
+        "tint": "#7DD3E8",
+        "moveTo": 2.0,
+        "moveAtSeconds": 1.72
+      },
+      {
+        "title": "Team invites",
+        "meta": "APP-177 · Kit",
+        "column": 1.0,
+        "tint": "#9BD4A0"
+      },
+      {
+        "title": "CSV export",
+        "meta": "APP-166 · Dai",
+        "column": 2.0,
+        "tint": "#9BD4A0"
+      }
+    ],
+    "moveSeconds": 0.62,
+    "dealStaggerSeconds": 0.08,
+    "accentColor": "#E8B86D",
+    "theme": "dark",
+    "speed": 1.0,
+    "backgroundColor": ""
+  },
+  "remotion-ui/file-tree-reveal": {
+    "nodes": [
+      "src/components/cart.tsx",
+      "src/components/checkout.tsx",
+      "src/lib/api.ts",
+      "src/index.ts",
+      "public/logo.svg",
+      "README.md",
+      "package.json"
+    ],
+    "title": "acme-app",
+    "selectedPath": "src/components/checkout.tsx",
+    "rowStagger": 0.18,
+    "accentColor": "#E8B86D",
+    "theme": "dark",
+    "speed": 1.0,
+    "backgroundColor": ""
+  },
+  "remotion-ui/drag-drop-flow": {
+    "fileName": "hero-take.mp4",
+    "fileSize": "48.2 MB",
+    "siblings": [
+      "b-roll-rooftop.mov",
+      "interview-cam-b.mp4"
+    ],
+    "sourceLabel": "Media library",
+    "label": "Drop your clip",
+    "hint": "MP4 or MOV, up to 2 GB",
+    "activeLabel": "Release to upload",
+    "doneLabel": "Uploaded",
+    "accentColor": "#E8B86D",
+    "theme": "dark",
+    "speed": 1.0,
+    "uploadingLabel": "Uploading",
+    "backgroundColor": ""
+  },
+  "remotion-ui/commit-graph": {
+    "commits": [
+      {
+        "message": "Seed the registry manifest",
+        "hash": "9c41f0a"
+      },
+      {
+        "message": "Add render queue worker",
+        "hash": "3ab77e2"
+      },
+      {
+        "message": "Branch: retry backoff",
+        "hash": "d0e91c4",
+        "lane": 1.0,
+        "parent": 1.0
+      },
+      {
+        "message": "Cap retries at five",
+        "hash": "51b2fa8",
+        "lane": 1.0
+      },
+      {
+        "message": "Ship caption presets",
+        "hash": "7f30dd1",
+        "lane": 0.0,
+        "parent": 1.0
+      },
+      {
+        "message": "Merge retry backoff",
+        "hash": "b8c4e05",
+        "lane": 0.0,
+        "parent": 4.0,
+        "mergeFrom": 3.0,
+        "ref": "main"
+      }
+    ],
+    "windowTitle": "git log --graph --oneline",
+    "startAtSeconds": 0.34,
+    "stepSeconds": 0.36,
+    "accentColor": "#E8B86D",
+    "laneColors": [
+      "#7DD3E8",
+      "#C99BE8",
+      "#9BD4A0",
+      "#E8B86D"
+    ],
+    "theme": "dark",
+    "speed": 1.0,
+    "backgroundColor": ""
+  },
+  "remotion-ui/notification-stack": {
+    "toasts": [
+      {
+        "title": "Render finished",
+        "body": "launch-teaser.mp4 · 1080p",
+        "tone": "success",
+        "meta": "now"
+      },
+      {
+        "title": "3 new comments",
+        "body": "Mina left notes on scene 4",
+        "tone": "info",
+        "meta": "1m"
+      },
+      {
+        "title": "Storage at 86%",
+        "body": "Archive old renders to free space",
+        "tone": "warn",
+        "meta": "2m"
+      },
+      {
+        "title": "Upload failed",
+        "body": "b-roll-rooftop.mov · retrying",
+        "tone": "error",
+        "meta": "2m"
+      }
+    ],
+    "align": "top-right",
+    "startAtSeconds": 0.3,
+    "staggerSeconds": 0.62,
+    "lifeSeconds": 2.3,
+    "showProgress": true,
+    "accentColor": "#E8B86D",
+    "theme": "dark",
+    "speed": 1.0
+  },
+  "remotion-ui/device-mockup-zoom": {
+    "src": "",
+    "title": "",
+    "subtitle": "",
+    "eyebrow": "",
+    "device": "laptop",
+    "backgroundColor": "#080810",
+    "accentColor": "#e8b86d",
+    "textColor": "#f8fafc"
+  },
+  "remotion-ui/multi-device-lineup": {
+    "scale": 1.6,
+    "staggerInFrames": 9.0,
+    "bezelColor": "#15171D",
+    "screenColor": "#0B0C11",
+    "labelColor": "#7A828F",
+    "phoneLabel": "Phone",
+    "tabletLabel": "Tablet",
+    "laptopLabel": "Laptop"
+  },
+  "remotion-ui/handwriting-text": {
+    "text": "Signed by hand",
+    "penSize": 0.14,
+    "penColor": "#e8b86d",
+    "inkSoftness": 0.18,
+    "wobble": 1.6,
+    "staggerInFrames": 3.0,
+    "fontFamily": "",
+    "seed": "handwriting",
+    "color": "#f4f4f5",
+    "fontWeight": "600"
+  },
+  "remotion-ui/neon-flicker-text": {
+    "text": "Open all night",
+    "glowColor": "#f472b6",
+    "glowSize": 26.0,
+    "offLevel": 0.14,
+    "hum": 0.12,
+    "buzz": 0.06,
+    "flickerOnExit": true,
+    "order": "start",
+    "staggerInFrames": 2.0,
+    "seed": 1.0,
+    "color": "#fdf2f8",
+    "fontWeight": "600",
+    "offColor": ""
+  },
+  "remotion-ui/text-mask-video": {
+    "text": "LAUNCH\nDAY",
+    "src": "",
+    "gradient": "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)",
+    "reveal": "left",
+    "drift": 26.0,
+    "zoom": 0.12,
+    "durationInFrames": 30.0,
+    "fontFamily": "",
+    "fontWeight": 800.0,
+    "letterSpacing": 0.0,
+    "lineHeight": 0.98
+  },
+  "remotion-ui/aurora-bg": {
+    "backgroundColor": "#050505",
+    "colors": [
+      "#e4ac59",
+      "#e07a5f",
+      "#c2557a"
+    ],
+    "ribbonCount": 4.0,
+    "amplitude": 9.0,
+    "thickness": 15.0,
+    "centerY": 46.0,
+    "spread": 34.0,
+    "speed": 1.0,
+    "blur": 14.0,
+    "intensity": 1.3,
+    "horizonGlow": 0.5,
+    "striation": 0.55,
+    "seed": 1.0
+  },
+  "remotion-ui/particle-field": {
+    "backgroundColor": "#05070f",
+    "color": "#e8b86d",
+    "count": 70.0,
+    "angle": 8.0,
+    "speed": 1.0,
+    "size": 14.0,
+    "minSize": 2.0,
+    "depthBlur": 3.0,
+    "drift": 4.0,
+    "intensity": 1.0,
+    "glow": 1.6,
+    "seed": 1.0
+  }
+}

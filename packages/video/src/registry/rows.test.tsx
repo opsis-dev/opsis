@@ -14,8 +14,8 @@ import { KanbanMove } from "#video/elements/remotion-ui/kanban-move/index.tsx";
 import { LogoWall } from "#video/elements/remotion-ui/logo-wall/index.tsx";
 import { MetricTicker } from "#video/elements/remotion-ui/metric-ticker/index.tsx";
 import { PricingCard } from "#video/elements/remotion-ui/pricing-card/index.tsx";
+import DEFAULT_PROPS from "#video/registry/default-props.generated.json";
 import type { ElementComponent } from "#video/registry/types.ts";
-import ELEMENTS from "../../../../crates/compile/src/elements/registry.generated.json";
 
 const ROW_ELEMENTS: [string, ElementComponent][] = [
   ["bar-chart-race", BarChartRace as ElementComponent],
@@ -33,9 +33,10 @@ const ROW_ELEMENTS: [string, ElementComponent][] = [
 ];
 
 function withRepeatedRow(key: string): ElementProps {
-  const meta = ELEMENTS.find((e) => e.key === `remotion-ui/${key}`);
-  if (!meta) throw new Error(key);
-  const props: ElementProps = { ...meta.defaultProps, ...meta.fixedProps };
+  const defaults: Record<string, ElementProps> = DEFAULT_PROPS;
+  const known = defaults[`remotion-ui/${key}`];
+  if (!known) throw new Error(key);
+  const props: ElementProps = { ...known };
   for (const [name, value] of Object.entries(props))
     if (Array.isArray(value) && value.length > 0) props[name] = [...value, value[0]];
   if (key === "comparison-bars") props.afterColor = props.beforeColor;

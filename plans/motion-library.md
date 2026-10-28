@@ -16,7 +16,7 @@ Status: plan only. Nothing here is built yet.
 These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins:
 
 - Every `remotion` / `@remotion/*` package stays at one exact version (today `4.0.537`, `bun add --exact`). Other packages through `bun add` / `cargo add`, latest release.
-- Never hand-edit `packages/video/src/elements/**`, `lib/**`, `hooks/**`, `registry.generated.json` or any `*.generated.*`. Code written from an upstream component is Opsis's own and never goes there.
+- Never hand-edit `packages/video/src/elements/**`, `lib/**`, `hooks/**` or any `*.generated.*`. Code written from an upstream component is Opsis's own and never goes there.
 - Element settings are Rust structs in `opsis-compile` with `schemars` attributes (`x-` keywords); components are TS in `packages/video`, keyed separately.
 - Every animation in `packages/video` is a pure function of `useCurrentFrame()`; randomness through `random(seed)`; async through `delayRender`. Nothing loads from the internet at preview or render time.
 - No library, tool or format names in titles, descriptions, labels or errors (the Lottie element's description is the one precedent for naming the tool that made a file).
@@ -44,7 +44,7 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins:
 
 Opsis's own frame-driven versions of components from web motion libraries. The originals run on Framer Motion (`motion/react`), CSS keyframes, `requestAnimationFrame`, timers and `Math.random()`, none of which survive a render; Opsis's version keeps the look and takes its time from the frame.
 
-For users, 18 elements that product demos use often and that Opsis doesn't have yet (each checked against the core elements in `crates/compile/src/elements/core.rs` and the registry elements in `registry.generated.json`):
+For users, 18 elements that product demos use often and that Opsis doesn't have yet (each checked against the core elements in `crates/compile/src/elements/core.rs` and the registry elements in `crates/compile/src/elements/{remocn,snapcn,remotion_ui}`):
 
 | #   | Title (draft)         | Source file                                                                                                                                                                                                                                             | Category     | What the original does to time, and Opsis's version                                                                                                                                                         |
 | --- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -73,7 +73,7 @@ Left out on purpose because Opsis already has them: number tickers (Rolling Numb
 
 In place:
 
-- `ElementMeta` (`crates/compile/src/elements/mod.rs`) has `source: ElementSource { registry, url, license }`; registry elements carry it in `registry.generated.json`, core ones use `registry: "Opsis"`.
+- `ElementMeta` (`crates/compile/src/elements/mod.rs`) has `source: ElementSource { registry, url, license }`; registry elements set it with `.source(…)` on their entries, core ones use `registry: "Opsis"`.
 - `elements()` chains `core::core_elements()` and the registry list into one catalogue; every entry becomes a node (`element_node_type`: `fx.<group>.<name>`) with its card, length handle and envelope. A third list is all these elements need on the Rust side.
 - Settings structs: core elements are structs with `schemars` attributes collected in `CoreElementProps`, exported to `packages/video/src/generated/spec.ts`, so components get typed props. The `font` widget (`x-widget = "font"`) and `font_stack` (`crates/compile/src/fonts/mod.rs`) turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
 - Lazy loading: `loadElement` in `packages/video/src/registry/index.ts` finds a module through `lazyLoaderOf`, which looks in `generatedElementLoaders` (`components.generated.ts`) and `LAZY_CORE_ELEMENTS` (the 3D elements), and loads it under `delayRender`.

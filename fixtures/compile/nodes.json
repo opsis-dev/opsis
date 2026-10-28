@@ -3342,13 +3342,13 @@
   "hostDefaults": null,
   "defaults": {
    "text": "Made for every take.",
-   "blur": 12,
-   "fontSize": 72,
+   "blur": 12.0,
+   "fontSize": 72.0,
    "color": "#171717",
    "fontWeight": "600",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3385,14 +3385,14 @@
   "defaults": {
    "text": "console.log('hello, world')",
    "cursor": true,
-   "charsPerSecond": 22,
-   "fontSize": 72,
+   "charsPerSecond": 22.0,
+   "fontSize": 72.0,
    "color": "#171717",
    "cursorColor": "#171717",
    "fontWeight": "600",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3430,11 +3430,11 @@
    "text": "Generating",
    "baseColor": "#3f3f46",
    "shineColor": "#fafafa",
-   "fontSize": 96,
+   "fontSize": 96.0,
    "fontWeight": "700",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3471,13 +3471,13 @@
   "defaults": {
    "text": "DECRYPTED",
    "charset": "!@#$%^&*()_+-=<>?/\\|",
-   "fontSize": 72,
+   "fontSize": 72.0,
    "color": "#22c55e",
    "fontWeight": "600",
-   "revealDuration": 2,
+   "revealDuration": 2.0,
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3514,12 +3514,12 @@
   "defaults": {
    "from": "$99",
    "to": "$199",
-   "fontSize": 120,
+   "fontSize": 120.0,
    "color": "#171717",
    "fontWeight": "700",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3556,13 +3556,13 @@
   "defaults": {
    "text": "Ship your demo in minutes",
    "staggerDelay": 0.1333,
-   "distance": 20,
-   "fontSize": 72,
+   "distance": 20.0,
+   "fontSize": 72.0,
    "color": "#171717",
    "fontWeight": "600",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3598,13 +3598,13 @@
   "hostDefaults": null,
   "defaults": {
    "text": "Words push left.",
-   "entryOffset": 88,
-   "fontSize": 72,
+   "entryOffset": 88.0,
+   "fontSize": 72.0,
    "color": "#171717",
    "fontWeight": "600",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3640,13 +3640,13 @@
   "hostDefaults": null,
   "defaults": {
    "text": "Designed to move.\nBuilt to focus.",
-   "distance": 30,
-   "fontSize": 72,
+   "distance": 30.0,
+   "fontSize": 72.0,
    "color": "#171717",
    "fontWeight": "600",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3683,13 +3683,13 @@
   "defaults": {
    "text": "tracking in",
    "startTracking": 0.5,
-   "startBlur": 12,
-   "fontSize": 96,
+   "startBlur": 12.0,
+   "fontSize": 96.0,
    "color": "#171717",
    "fontWeight": "700",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3725,14 +3725,14 @@
   "hostDefaults": null,
   "defaults": {
    "text": "move at your own pace",
-   "fontSize": 72,
-   "wordGap": 10,
+   "fontSize": 72.0,
+   "wordGap": 10.0,
    "accel": 0.8,
    "color": "#171717",
    "fontWeight": "400",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3768,12 +3768,12 @@
   "hostDefaults": null,
   "defaults": {
    "text": "GLITCH",
-   "fontSize": 96,
+   "fontSize": 96.0,
    "color": "#171717",
    "fontWeight": "700",
    "glitchAt": 0.6667,
    "glitchDuration": 0.2667,
-   "intensity": 6,
+   "intensity": 6.0,
    "seed": "glitch",
    "glitchColors": [
     "#ff0040",
@@ -3783,7 +3783,7 @@
    "blend": "multiply",
    "background": "#fafafa",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3819,21 +3819,21 @@
   "hostDefaults": null,
   "defaults": {
    "text": "Introducing",
-   "giantFontSize": 520,
-   "compactFontSize": 132,
-   "anchorOffsetX": -16,
-   "giantTravel": 400,
-   "settleTravel": 160,
+   "giantFontSize": 520.0,
+   "compactFontSize": 132.0,
+   "anchorOffsetX": -16.0,
+   "giantTravel": 400.0,
+   "settleTravel": 160.0,
    "cutFrame": 0.4333,
-   "revealSoftness": 14,
-   "compactBlur": 12,
+   "revealSoftness": 14.0,
+   "compactBlur": 12.0,
    "gradientStart": "#f04a14",
    "gradientEnd": "#f3f1f1",
    "ghostColor": "#170b0a",
    "backgroundColor": "#000000",
    "fontWeight": "700",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3871,12 +3871,12 @@
    "from": "$49/mo",
    "to": "Free",
    "lineColor": "#ff5e3a",
-   "fontSize": 96,
+   "fontSize": 96.0,
    "color": "#171717",
    "fontWeight": "700",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3912,13 +3912,13 @@
   "hostDefaults": null,
   "defaults": {
    "text": "Record once.\nShare everywhere.",
-   "distance": 48,
-   "fontSize": 72,
+   "distance": 48.0,
+   "fontSize": 72.0,
    "color": "#171717",
    "fontWeight": "600",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3959,11 +3959,11 @@
    "markerColor": "#facc15",
    "baseColor": "#171717",
    "highlightedTextColor": "#171717",
-   "fontSize": 72,
+   "fontSize": 72.0,
    "fontWeight": "600",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4003,11 +4003,11 @@
    "after": ".",
    "baseColor": "#171717",
    "highlightColor": "#ff5e3a",
-   "fontSize": 72,
+   "fontSize": 72.0,
    "fontWeight": "600",
    "background": "white",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4042,13 +4042,13 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "width": 420,
+   "width": 420.0,
    "color": "#6f7f35",
-   "thickness": 9,
-   "pressure": 1,
+   "thickness": 9.0,
+   "pressure": 1.0,
    "release": 0.15,
-   "grain": 1,
-   "durationSteps": 5,
+   "grain": 1.0,
+   "durationSteps": 5.0,
    "seed": "ink",
    "step": 0.1,
    "x": 0.5,
@@ -4088,18 +4088,18 @@
   "hostDefaults": null,
   "defaults": {
    "laps": 1.15,
-   "strokeWidth": 14,
+   "strokeWidth": 14.0,
    "pressure": 0.2,
-   "grain": 1,
-   "durationSteps": 10,
+   "grain": 1.0,
+   "durationSteps": 10.0,
    "color": "#6f7f35",
    "seed": "scribble",
    "step": 0.1,
    "x": 0.5,
    "y": 0.5,
-   "width": 420,
-   "height": 220,
-   "release": 1,
+   "width": 420.0,
+   "height": 220.0,
+   "release": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4135,11 +4135,11 @@
   "hostDefaults": null,
   "defaults": {
    "curvature": 0.35,
-   "strokeWidth": 8,
+   "strokeWidth": 8.0,
    "pressure": 0.2,
-   "release": 1,
-   "grain": 1,
-   "headSize": 24,
+   "release": 1.0,
+   "grain": 1.0,
+   "headSize": 24.0,
    "drawDur": 1.2,
    "headDur": 0.4,
    "color": "#26242c",
@@ -4186,25 +4186,25 @@
    "platform": "mac",
    "theme": "light",
    "accent": "#0a84ff",
-   "size": 64,
-   "linger": 1,
+   "size": 64.0,
+   "linger": 1.0,
    "x": 0.5,
    "y": 0.86,
    "steps": [
     {
-     "at": 0.6667,
-     "keys": "mod+k"
+     "keys": "mod+k",
+     "at": 0.6667
     },
     {
-     "at": 2.6,
-     "keys": "g i"
+     "keys": "g i",
+     "at": 2.6
     },
     {
-     "at": 3.8,
-     "keys": "shift+mod+p"
+     "keys": "shift+mod+p",
+     "at": 3.8
     }
    ],
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4239,11 +4239,11 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "particleCount": 140,
-   "power": 17,
+   "particleCount": 140.0,
+   "power": 17.0,
    "gravity": 0.45,
-   "size": 13,
-   "seed": 1,
+   "size": 13.0,
+   "seed": 1.0,
    "colors": [
     "#1d9bf0",
     "#ff5da2",
@@ -4254,7 +4254,7 @@
    ],
    "originX": 0.5,
    "originY": 0.5,
-   "lifetime": 3,
+   "lifetime": 3.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4289,18 +4289,18 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "segments": 8,
-   "radius": 210,
-   "thickness": 30,
-   "rotation": 135,
-   "intensity": 1,
-   "twist": 110,
-   "echoes": 3,
+   "segments": 8.0,
+   "radius": 210.0,
+   "thickness": 30.0,
+   "rotation": 135.0,
+   "intensity": 1.0,
+   "twist": 110.0,
+   "echoes": 3.0,
    "color": "#ffffff",
    "accentColor": "#f4e4a7",
    "backgroundColor": "#a800b7",
    "loop": false,
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4335,7 +4335,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "speed": 1,
+   "speed": 1.0,
    "distortion": 0.6,
    "swirl": 0.1,
    "colors": [
@@ -4378,7 +4378,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "speed": 1,
+   "speed": 1.0,
    "softness": 0.6,
    "intensity": 0.2,
    "noise": 0.15,
@@ -4389,8 +4389,8 @@
     "#5a5a7e"
    ],
    "shape": "corners",
-   "scale": 1,
-   "rotation": 0,
+   "scale": 1.0,
+   "rotation": 0.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4425,10 +4425,10 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "speed": 1,
+   "speed": 1.0,
    "distortion": 0.2,
    "swirl": 0.4,
-   "softness": 1,
+   "softness": 1.0,
    "proportion": 0.5,
    "colors": [
     "#12121a",
@@ -4470,8 +4470,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "speed": 1,
-   "bandCount": 4,
+   "speed": 1.0,
+   "bandCount": 4.0,
    "twist": 0.1,
    "softness": 0.2,
    "colorBack": "#12121a",
@@ -4514,7 +4514,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "speed": 1,
+   "speed": 1.0,
    "intensity": 0.8,
    "density": 0.3,
    "bloom": 0.4,
@@ -4560,7 +4560,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "speed": 1,
+   "speed": 1.0,
    "proportion": 0.35,
    "softness": 0.1,
    "colorBack": "#12121a",
@@ -4599,8 +4599,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "speed": 1,
-   "size": 2,
+   "speed": 1.0,
+   "size": 2.0,
    "colorBack": "#12121a",
    "colorFront": "#6a6a85",
    "shape": "wave",
@@ -4647,10 +4647,10 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "curvature": 1,
-   "scanlines": 1,
-   "maskScale": 2,
-   "vignette": 1,
+   "curvature": 1.0,
+   "scanlines": 1.0,
+   "maskScale": 2.0,
+   "vignette": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4693,10 +4693,10 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "bleed": 1,
-   "wobble": 1,
-   "noise": 1,
-   "intensity": 1,
+   "bleed": 1.0,
+   "wobble": 1.0,
+   "noise": 1.0,
+   "intensity": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4739,8 +4739,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "dotSize": 10,
-   "angle": 0,
+   "dotSize": 10.0,
+   "angle": 0.0,
    "misregistration": 1.2,
    "paperTint": "#f4efe4",
    "clipDuration": 0,
@@ -4833,8 +4833,8 @@
   "hostDefaults": null,
   "defaults": {
    "caption": "first light",
-   "captionAt": 0,
-   "width": 652,
+   "captionAt": 0.0,
+   "width": 652.0,
    "step": 0.1,
    "frameColor": "#fdfcf8",
    "captionColor": "#26242c",
@@ -4880,9 +4880,9 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "durationInFrames": 18,
-   "gain": 1,
-   "afterglow": 1,
+   "durationInFrames": 18.0,
+   "gain": 1.0,
+   "afterglow": 1.0,
    "phosphor": "#d8ecff",
    "clipDuration": 0,
    "envelope": {}
@@ -4919,17 +4919,615 @@
   "hostDefaults": null,
   "defaults": {
    "mode": "trail",
-   "count": 12,
-   "weight": 2,
-   "spread": 96,
-   "duration": 14,
+   "count": 12.0,
+   "weight": 2.0,
+   "spread": 96.0,
+   "duration": 14.0,
    "bounce": 0.5,
    "x": 0.5,
    "y": 0.5,
-   "delay": 0,
+   "delay": 0.0,
    "color": "#ffffff",
-   "seed": 1,
-   "speed": 1,
+   "seed": 1.0,
+   "speed": 1.0,
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.remocn.terminal-simulator",
+  "title": "Terminal simulator",
+  "category": "Elements",
+  "description": "Terminal window that types out commands and rolls old lines off the top.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": "remocn/terminal-simulator",
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "prompt": "$",
+   "title": "~/projects/acme",
+   "background": "#0a0a0a",
+   "chromeColor": "#1a1a1a",
+   "fontSize": 18.0,
+   "charsPerFrame": 1.0,
+   "chunkSize": 1.0,
+   "lines": [
+    {
+     "text": "deploy --production",
+     "type": "command",
+     "delay": 0.0
+    },
+    {
+     "text": "Running tests...",
+     "type": "log",
+     "delay": 0.2
+    },
+    {
+     "text": "128 tests passed",
+     "type": "success",
+     "delay": 0.3333
+    },
+    {
+     "text": "Building the image...",
+     "type": "log",
+     "delay": 0.2667
+    },
+    {
+     "text": "Image ready in 41s",
+     "type": "success",
+     "delay": 0.3333
+    },
+    {
+     "text": "Rolling out to everyone...",
+     "type": "log",
+     "delay": 0.2667
+    },
+    {
+     "text": "Live in production",
+     "type": "success",
+     "delay": 0.4
+    }
+   ],
+   "speed": 1.0,
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.remocn.glass-code-block",
+  "title": "Glass code block",
+  "category": "Elements",
+  "description": "A frosted-glass code editor that reveals the code line by line.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": "remocn/glass-code-block",
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "title": "hero.tsx",
+   "width": 760.0,
+   "height": 460.0,
+   "fontSize": 16.0,
+   "glassColor": "rgba(10, 10, 10, 0.6)",
+   "staggerFrames": 0.1333,
+   "showTrafficLights": true,
+   "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
+   "aura": false,
+   "speed": 1.0,
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.remocn.code-morph",
+  "title": "Code morph",
+  "category": "Elements",
+  "description": "A flat code editor that morphs between versions of a file, gliding each surviving token to its new line and column while removed code dissolves and new code fades in.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": "remocn/code-morph",
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "filename": "invoices.tsx",
+   "theme": "dark",
+   "accentColor": "#0ea5e9",
+   "morphDuration": 1.2,
+   "fontSize": 20.0,
+   "highlight": true,
+   "lineNumbers": true,
+   "windowDots": true,
+   "steps": [
+    {
+     "code": "import { loadInvoices } from \"./api\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  const invoices = await loadInvoices();\n  list.textContent = \"\";\n  for (const invoice of invoices) {\n    const row = document.createElement(\"li\");\n    row.textContent = invoice.title;\n    list.append(row);\n  }\n}",
+     "at": 0.0
+    },
+    {
+     "code": "import { loadInvoices } from \"./api\";\nimport { renderRows } from \"./rows\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  renderRows(list, await loadInvoices());\n}",
+     "at": 1.6
+    }
+   ],
+   "speed": 1.0,
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.remocn.logo-enter",
+  "title": "Logo enter",
+  "category": "Elements",
+  "description": "A stacked group of round brand chips that spring in one-by-one, then hold. Swap the logos to feature any set of marks.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": "remocn/logo-enter",
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "diameter": 118.0,
+   "overlap": 38.0,
+   "ringColor": "#fff",
+   "orientation": "horizontal",
+   "stagger": 0.2333,
+   "logos": [
+    {
+     "image": "app:placeholders/logo-mark.svg",
+     "background": "#2563eb"
+    },
+    {
+     "image": "app:placeholders/logo-mark.svg",
+     "background": "#0f766e"
+    },
+    {
+     "image": "app:placeholders/logo-mark.svg",
+     "background": "#b45309"
+    },
+    {
+     "image": "app:placeholders/logo-mark.svg",
+     "background": "#7c3aed"
+    }
+   ],
+   "speed": 1.0,
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.remocn.check-list",
+  "title": "Check list",
+  "category": "Elements",
+  "description": "A handwritten checklist that writes itself out in full, then ticks and strikes through every done item, one at a time.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": "remocn/check-list",
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "fontSize": 40.0,
+   "itemGap": 0.6,
+   "closeGap": 0.3,
+   "perStep": 1.6,
+   "strokeWidth": 3.0,
+   "color": "#26242c",
+   "tickColor": "#6f7f35",
+   "step": 0.1,
+   "items": [
+    {
+     "text": "Record the walkthrough",
+     "checked": true
+    },
+    {
+     "text": "Add captions and zooms",
+     "checked": true
+    },
+    {
+     "text": "Export for the launch",
+     "checked": false
+    }
+   ],
+   "width": 720.0,
+   "boxColor": "#26242c",
+   "weight": "600",
+   "seed": "checklist",
+   "background": "white",
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.remocn.search-reveal",
+  "title": "Search reveal",
+  "category": "Elements",
+  "description": "Expanding construction circles snap into a search pill, type editable text, and reveal an abstract graphic panel.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": "remocn/search-reveal",
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "text": "acme",
+   "fieldWidth": 464.0,
+   "fontSize": 34.0,
+   "framesPerCharacter": 0.1333,
+   "showPanel": true,
+   "showGuides": true,
+   "color": "#26232b",
+   "fieldColor": "#ffffff",
+   "ringColor": "#cbc5cf",
+   "panelColor": "#a800b7",
+   "accentColor": "#e8f99a",
+   "backgroundColor": "#f5f1f5",
+   "reducedMotion": false,
+   "fontFamily": "",
+   "speed": 1.0,
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.remocn.agent-run",
+  "title": "Agent run",
+  "category": "Elements",
+  "description": "An AI assistant working through a plan, ticking off each step.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": "remocn/agent-run",
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "theme": "light",
+   "accentColor": "#2563eb",
+   "compression": 3.0,
+   "seed": 1.0,
+   "runTitle": "Checkout conversion drop",
+   "runPrompt": "Why did checkout conversion drop last week?",
+   "runPlan": [
+    "Compare the checkout funnel with the week before",
+    "Break the drop down by device and step",
+    "Check what shipped and what the error logs say"
+   ],
+   "runSteps": [
+    {
+     "name": "Query analytics",
+     "detail": "checkout funnel, last 7 days vs prior 7",
+     "duration": 1.4,
+     "icon": "chart"
+    },
+    {
+     "name": "Run a query",
+     "detail": "conversion by device and step",
+     "duration": 2.3,
+     "icon": "database"
+    },
+    {
+     "name": "Search logs",
+     "detail": "card payment errors on tablets",
+     "duration": 1.1,
+     "icon": "search"
+    },
+    {
+     "name": "Read 12 sources",
+     "duration": 3.2,
+     "icon": "book",
+     "sources": [
+      "Checkout funnel",
+      "Device report",
+      "Release 4.12",
+      "Change #2186",
+      "Payments guide",
+      "Error log",
+      "Incident notes",
+      "Runbook",
+      "Support tickets",
+      "Status page",
+      "Team notes",
+      "Design spec"
+     ]
+    }
+   ],
+   "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
+   "speed": 1.0,
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.remocn.animated-bar-chart",
+  "title": "Animated bar chart",
+  "category": "Elements",
+  "description": "Bars spring up from the baseline in a staggered cascade.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": "remocn/animated-bar-chart",
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "barColor": "#0ea5e9",
+   "gap": 16.0,
+   "staggerFrames": 0.2,
+   "bars": [
+    {
+     "label": "",
+     "value": 35.0
+    },
+    {
+     "label": "",
+     "value": 60.0
+    },
+    {
+     "label": "",
+     "value": 45.0
+    },
+    {
+     "label": "",
+     "value": 80.0
+    },
+    {
+     "label": "",
+     "value": 55.0
+    },
+    {
+     "label": "",
+     "value": 70.0
+    },
+    {
+     "label": "",
+     "value": 90.0
+    },
+    {
+     "label": "",
+     "value": 65.0
+    }
+   ],
+   "width": 1000.0,
+   "height": 500.0,
+   "baselineColor": "#27272a",
+   "labelColor": "#a1a1aa",
+   "speed": 1.0,
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.remocn.animated-line-chart",
+  "title": "Animated line chart",
+  "category": "Elements",
+  "description": "Line chart whose SVG path draws on from left to right with a leading dot.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": "remocn/animated-line-chart",
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "strokeColor": "#22c55e",
+   "strokeWidth": 4.0,
+   "gridColor": "#27272a",
+   "showDot": true,
+   "data": [
+    12.0,
+    19.0,
+    8.0,
+    15.0,
+    22.0,
+    18.0,
+    28.0,
+    25.0,
+    32.0
+   ],
+   "width": 1000.0,
+   "height": 500.0,
+   "speed": 1.0,
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.remocn.rolling-number",
+  "title": "Rolling number",
+  "category": "Elements",
+  "description": "Odometer where every place rolls at its own speed, new places rising into view, settling exactly on the target value.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": "remocn/rolling-number",
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "from": 0.0,
+   "to": 24813.0,
+   "fontSize": 120.0,
+   "color": "#171717",
+   "background": "white",
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4981,614 +5579,16 @@
   "hostDefaults": null,
   "defaults": {
    "enterScale": 1.24,
-   "enterStagger": 3,
+   "enterStagger": 3.0,
    "exitScale": 0.84,
-   "exitFrames": 6,
-   "enterFadeFrames": 5,
-   "springDamping": 30,
-   "springStiffness": 320,
-   "bgFadeFrames": 4,
+   "exitFrames": 6.0,
+   "enterFadeFrames": 5.0,
+   "springDamping": 30.0,
+   "springStiffness": 320.0,
+   "bgFadeFrames": 4.0,
    "loop": false,
    "gapFrames": 1,
    "backgrounds": [],
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.remocn.terminal-simulator",
-  "title": "Terminal simulator",
-  "category": "Elements",
-  "description": "Terminal window that types out commands and rolls old lines off the top.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "remocn/terminal-simulator",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "prompt": "$",
-   "title": "~/projects/acme",
-   "background": "#0a0a0a",
-   "chromeColor": "#1a1a1a",
-   "fontSize": 18,
-   "charsPerFrame": 1,
-   "chunkSize": 1,
-   "lines": [
-    {
-     "text": "deploy --production",
-     "type": "command",
-     "delay": 0
-    },
-    {
-     "text": "Running tests...",
-     "type": "log",
-     "delay": 0.2
-    },
-    {
-     "text": "128 tests passed",
-     "type": "success",
-     "delay": 0.3333
-    },
-    {
-     "text": "Building the image...",
-     "type": "log",
-     "delay": 0.2667
-    },
-    {
-     "text": "Image ready in 41s",
-     "type": "success",
-     "delay": 0.3333
-    },
-    {
-     "text": "Rolling out to everyone...",
-     "type": "log",
-     "delay": 0.2667
-    },
-    {
-     "text": "Live in production",
-     "type": "success",
-     "delay": 0.4
-    }
-   ],
-   "speed": 1,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.remocn.glass-code-block",
-  "title": "Glass code block",
-  "category": "Elements",
-  "description": "A frosted-glass code editor that reveals the code line by line.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "remocn/glass-code-block",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "title": "hero.tsx",
-   "width": 760,
-   "height": 460,
-   "fontSize": 16,
-   "glassColor": "rgba(10, 10, 10, 0.6)",
-   "staggerFrames": 0.1333,
-   "showTrafficLights": true,
-   "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
-   "aura": false,
-   "speed": 1,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.remocn.code-morph",
-  "title": "Code morph",
-  "category": "Elements",
-  "description": "A flat code editor that morphs between versions of a file, gliding each surviving token to its new line and column while removed code dissolves and new code fades in.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "remocn/code-morph",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "filename": "invoices.tsx",
-   "theme": "dark",
-   "accentColor": "#0ea5e9",
-   "morphDuration": 1.2,
-   "fontSize": 20,
-   "highlight": true,
-   "lineNumbers": true,
-   "windowDots": true,
-   "steps": [
-    {
-     "at": 0,
-     "code": "import { loadInvoices } from \"./api\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  const invoices = await loadInvoices();\n  list.textContent = \"\";\n  for (const invoice of invoices) {\n    const row = document.createElement(\"li\");\n    row.textContent = invoice.title;\n    list.append(row);\n  }\n}"
-    },
-    {
-     "at": 1.6,
-     "code": "import { loadInvoices } from \"./api\";\nimport { renderRows } from \"./rows\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  renderRows(list, await loadInvoices());\n}"
-    }
-   ],
-   "speed": 1,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.remocn.logo-enter",
-  "title": "Logo enter",
-  "category": "Elements",
-  "description": "A stacked group of round brand chips that spring in one-by-one, then hold. Swap the logos to feature any set of marks.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "remocn/logo-enter",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "diameter": 118,
-   "overlap": 38,
-   "ringColor": "#fff",
-   "orientation": "horizontal",
-   "stagger": 0.2333,
-   "logos": [
-    {
-     "image": "app:placeholders/logo-mark.svg",
-     "background": "#2563eb"
-    },
-    {
-     "image": "app:placeholders/logo-mark.svg",
-     "background": "#0f766e"
-    },
-    {
-     "image": "app:placeholders/logo-mark.svg",
-     "background": "#b45309"
-    },
-    {
-     "image": "app:placeholders/logo-mark.svg",
-     "background": "#7c3aed"
-    }
-   ],
-   "speed": 1,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.remocn.check-list",
-  "title": "Check list",
-  "category": "Elements",
-  "description": "A handwritten checklist that writes itself out in full, then ticks and strikes through every done item, one at a time.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "remocn/check-list",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "fontSize": 40,
-   "itemGap": 0.6,
-   "closeGap": 0.3,
-   "perStep": 1.6,
-   "strokeWidth": 3,
-   "color": "#26242c",
-   "tickColor": "#6f7f35",
-   "step": 0.1,
-   "items": [
-    {
-     "text": "Record the walkthrough",
-     "checked": true
-    },
-    {
-     "text": "Add captions and zooms",
-     "checked": true
-    },
-    {
-     "text": "Export for the launch",
-     "checked": false
-    }
-   ],
-   "width": 720,
-   "boxColor": "#26242c",
-   "weight": "600",
-   "seed": "checklist",
-   "background": "white",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.remocn.search-reveal",
-  "title": "Search reveal",
-  "category": "Elements",
-  "description": "Expanding construction circles snap into a search pill, type editable text, and reveal an abstract graphic panel.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "remocn/search-reveal",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "acme",
-   "fieldWidth": 464,
-   "fontSize": 34,
-   "framesPerCharacter": 0.1333,
-   "showPanel": true,
-   "showGuides": true,
-   "color": "#26232b",
-   "fieldColor": "#ffffff",
-   "ringColor": "#cbc5cf",
-   "panelColor": "#a800b7",
-   "accentColor": "#e8f99a",
-   "backgroundColor": "#f5f1f5",
-   "reducedMotion": false,
-   "fontFamily": "",
-   "speed": 1,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.remocn.agent-run",
-  "title": "Agent run",
-  "category": "Elements",
-  "description": "An AI assistant working through a plan, ticking off each step.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "remocn/agent-run",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "theme": "light",
-   "accentColor": "#2563eb",
-   "compression": 3,
-   "seed": 1,
-   "runTitle": "Checkout conversion drop",
-   "runPrompt": "Why did checkout conversion drop last week?",
-   "runPlan": [
-    "Compare the checkout funnel with the week before",
-    "Break the drop down by device and step",
-    "Check what shipped and what the error logs say"
-   ],
-   "runSteps": [
-    {
-     "icon": "chart",
-     "name": "Query analytics",
-     "detail": "checkout funnel, last 7 days vs prior 7",
-     "duration": 1.4
-    },
-    {
-     "icon": "database",
-     "name": "Run a query",
-     "detail": "conversion by device and step",
-     "duration": 2.3
-    },
-    {
-     "icon": "search",
-     "name": "Search logs",
-     "detail": "card payment errors on tablets",
-     "duration": 1.1
-    },
-    {
-     "icon": "book",
-     "name": "Read 12 sources",
-     "duration": 3.2,
-     "sources": [
-      "Checkout funnel",
-      "Device report",
-      "Release 4.12",
-      "Change #2186",
-      "Payments guide",
-      "Error log",
-      "Incident notes",
-      "Runbook",
-      "Support tickets",
-      "Status page",
-      "Team notes",
-      "Design spec"
-     ]
-    }
-   ],
-   "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
-   "speed": 1,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.remocn.animated-bar-chart",
-  "title": "Animated bar chart",
-  "category": "Elements",
-  "description": "Bars spring up from the baseline in a staggered cascade.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "remocn/animated-bar-chart",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "barColor": "#0ea5e9",
-   "gap": 16,
-   "staggerFrames": 0.2,
-   "bars": [
-    {
-     "label": "",
-     "value": 35
-    },
-    {
-     "label": "",
-     "value": 60
-    },
-    {
-     "label": "",
-     "value": 45
-    },
-    {
-     "label": "",
-     "value": 80
-    },
-    {
-     "label": "",
-     "value": 55
-    },
-    {
-     "label": "",
-     "value": 70
-    },
-    {
-     "label": "",
-     "value": 90
-    },
-    {
-     "label": "",
-     "value": 65
-    }
-   ],
-   "width": 1000,
-   "height": 500,
-   "baselineColor": "#27272a",
-   "labelColor": "#a1a1aa",
-   "speed": 1,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.remocn.animated-line-chart",
-  "title": "Animated line chart",
-  "category": "Elements",
-  "description": "Line chart whose SVG path draws on from left to right with a leading dot.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "remocn/animated-line-chart",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "strokeColor": "#22c55e",
-   "strokeWidth": 4,
-   "gridColor": "#27272a",
-   "showDot": true,
-   "data": [
-    12,
-    19,
-    8,
-    15,
-    22,
-    18,
-    28,
-    25,
-    32
-   ],
-   "width": 1000,
-   "height": 500,
-   "speed": 1,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.remocn.rolling-number",
-  "title": "Rolling number",
-  "category": "Elements",
-  "description": "Odometer where every place rolls at its own speed, new places rising into view, settling exactly on the target value.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "remocn/rolling-number",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "from": 0,
-   "to": 24813,
-   "fontSize": 120,
-   "color": "#171717",
-   "background": "white",
-   "speed": 1,
-   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5715,8 +5715,8 @@
   "defaults": {
    "state": "opened",
    "query": "new",
-   "selectedIndex": -1,
-   "highlightedIndex": -1,
+   "selectedIndex": -1.0,
+   "highlightedIndex": -1.0,
    "theme": {
     "mode": "light",
     "colors": {}
@@ -5743,7 +5743,7 @@
     }
    ],
    "autoplay": true,
-   "pressedIndex": -1,
+   "pressedIndex": -1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5795,9 +5795,9 @@
    "themeSurface": "",
    "themeForeground": "",
    "themeMuted": "",
-   "lightIntensity": 1,
+   "lightIntensity": 1.0,
    "music": "",
-   "musicVolume": 1,
+   "musicVolume": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5874,7 +5874,7 @@
    "logoImages": [],
    "logoSrc": "",
    "music": "",
-   "musicVolume": 1,
+   "musicVolume": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5914,14 +5914,14 @@
    "finale": "zoom-to-screen",
    "notchLabel": "Recording started",
    "showNotch": true,
-   "batteryLevel": 85,
+   "batteryLevel": 85.0,
    "bezelColor": "#1D1D1F",
    "screenColor": "#FFFFFF",
-   "restTilt": 18,
-   "radius": 22,
+   "restTilt": 18.0,
+   "radius": 22.0,
    "scale": 0.85,
    "floatLoop": true,
-   "floatAmplitude": 4,
+   "floatAmplitude": 4.0,
    "shadow": "0 40px 80px rgba(10,12,20,0.45)",
    "theme": {
     "mode": "dark",
@@ -5929,7 +5929,7 @@
    },
    "indicatorColor": "#30D158",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5969,20 +5969,20 @@
    "screenSrc": "app:placeholders/screen-tall.svg",
    "bezelColor": "#C7C9CE",
    "screenColor": "#0A0A0B",
-   "radius": 53,
-   "screenRadius": 41,
+   "radius": 53.0,
+   "screenRadius": 41.0,
    "scale": 0.92,
-   "tiltAngle": -12,
+   "tiltAngle": -12.0,
    "showDynamicIsland": true,
    "floatLoop": false,
-   "floatAmplitude": 6,
+   "floatAmplitude": 6.0,
    "shadow": "0 30px 70px rgba(16,24,40,0.28)",
    "theme": {
     "mode": "dark",
     "colors": {}
    },
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6018,15 +6018,15 @@
   "hostDefaults": null,
   "defaults": {
    "src": "app:placeholders/screen-wide.svg",
-   "cropTop": 0,
-   "cropRight": 0,
-   "cropBottom": 0,
-   "cropLeft": 0,
+   "cropTop": 0.0,
+   "cropRight": 0.0,
+   "cropBottom": 0.0,
+   "cropLeft": 0.0,
    "fit": "cover",
    "backdropColor": "",
    "entrance": "fade",
-   "radius": 0,
-   "trimBefore": 0,
+   "radius": 0.0,
+   "trimBefore": 0.0,
    "audio": false,
    "theme": {
     "mode": "dark",
@@ -6043,12 +6043,12 @@
     {
      "at": 3.2,
      "duration": 0.8333,
-     "zoom": 1,
+     "zoom": 1.0,
      "x": 0.5,
      "y": 0.5
     }
    ],
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6088,7 +6088,7 @@
    "tagline": "Everything your team needs to ship, in one place.",
    "symbolPath": "",
    "symbolColors": [],
-   "symbolScale": 1,
+   "symbolScale": 1.0,
    "fieldColor": "#5600f5",
    "titleColor": "#4800c9",
    "paperColor": "#fcfcfa",
@@ -6099,7 +6099,7 @@
    "taglineColor": "#f2f8ff",
    "inkColor": "#ffffff",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6138,8 +6138,8 @@
    "styles": "slide,punch",
    "sizes": "1,0.945,2.7",
    "holds": "1.6",
-   "accentBeat": 3,
-   "fontSize": 93,
+   "accentBeat": 3.0,
+   "fontSize": 93.0,
    "fontWeight": "600",
    "lineHeight": 0.89,
    "letterSpacing": "-0.022em",
@@ -6153,7 +6153,7 @@
    "slideSettle": 2.846,
    "lineStagger": 0.1167,
    "slideDrop": 0.313,
-   "motionBlur": 1,
+   "motionBlur": 1.0,
    "punchFrom": 0.32,
    "punchFrames": 0.5,
    "wordStagger": 0.0933,
@@ -6168,7 +6168,7 @@
     "colors": {}
    },
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6213,18 +6213,18 @@
    "replaceWith": "Acme",
    "startAt": 0.2,
    "drawDuration": 0.4667,
-   "thickness": 4,
+   "thickness": 4.0,
    "shineColor": "#FAFAFA",
    "logoSrc": "app:placeholders/logo-mark.svg",
    "logoScale": 1.05,
-   "spinTurns": 1,
+   "spinTurns": 1.0,
    "holdDuration": 0.4,
    "rushDuration": 0.8,
-   "rushScale": 42,
+   "rushScale": 42.0,
    "rushDrift": 0.55,
    "swingOut": 0.25,
    "coverColor": "#266DF0",
-   "fontSize": 56,
+   "fontSize": 56.0,
    "fontWeight": "600",
    "theme": {
     "mode": "dark",
@@ -6232,7 +6232,7 @@
    },
    "background": "",
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6280,19 +6280,19 @@
    "chipBorderColor": "rgb(160, 160, 160)",
    "fontWeight": "400",
    "chipFontWeight": "400",
-   "fontSize": 63,
-   "chipFontSize": 160,
+   "fontSize": 63.0,
+   "chipFontSize": 160.0,
    "introFrames": 0.8,
-   "statusHold": 1,
+   "statusHold": 1.0,
    "chipStagger": 0.2667,
    "pillCenterY": 0.516,
-   "startAt": 0,
+   "startAt": 0.0,
    "theme": {
     "mode": "dark",
     "colors": {}
    },
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6330,7 +6330,7 @@
    "brandName": "Acme",
    "middleText": "Product demos, made simple",
    "logoSrc": "app:placeholders/logo-mark.svg",
-   "count": 10,
+   "count": 10.0,
    "background": "",
    "theme": {
     "mode": "dark",
@@ -6363,7 +6363,7 @@
     }
    ],
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6400,8 +6400,8 @@
   "defaults": {
    "headline": "Built for the stack you already use.",
    "pullback": 0.1762,
-   "tileSpeed": 1,
-   "tileScale": 1,
+   "tileSpeed": 1.0,
+   "tileScale": 1.0,
    "tileFade": 0.4,
    "tileRadius": 0.02,
    "glyphScale": 0.34,
@@ -6411,7 +6411,7 @@
    "wordBlur": 4.3,
    "exitAt": 3.13,
    "exitDuration": 0.34,
-   "fontSize": 20,
+   "fontSize": 20.0,
    "glow": true,
    "glowOpacity": 0.07,
    "accentColor": "",
@@ -6427,11 +6427,11 @@
      "label": "Record",
      "background": "#1f2430",
      "color": "#ffffff",
-     "x": 163,
-     "y": 232,
-     "vx": -54,
-     "vy": 12,
-     "size": 109,
+     "x": 163.0,
+     "y": 232.0,
+     "vx": -54.0,
+     "vy": 12.0,
+     "size": 109.0,
      "at": 0.28
     },
     {
@@ -6439,11 +6439,11 @@
      "label": "Edit",
      "background": "#f2f4f7",
      "color": "#16181d",
-     "x": 128,
-     "y": -209,
-     "vx": 81,
-     "vy": 32,
-     "size": 122,
+     "x": 128.0,
+     "y": -209.0,
+     "vx": 81.0,
+     "vy": 32.0,
+     "size": 122.0,
      "at": 0.48
     },
     {
@@ -6451,11 +6451,11 @@
      "label": "Zoom",
      "background": "#10131a",
      "color": "#7dd3fc",
-     "x": -384,
-     "y": 344,
-     "vx": -27,
-     "vy": -68,
-     "size": 200,
+     "x": -384.0,
+     "y": 344.0,
+     "vx": -27.0,
+     "vy": -68.0,
+     "size": 200.0,
      "at": 0.95
     },
     {
@@ -6463,11 +6463,11 @@
      "label": "Captions",
      "background": "#e7e8ea",
      "color": "#16181d",
-     "x": 519,
-     "y": 45,
-     "vx": -31,
-     "vy": 64,
-     "size": 144,
+     "x": 519.0,
+     "y": 45.0,
+     "vx": -31.0,
+     "vy": 64.0,
+     "size": 144.0,
      "at": 1.51
     },
     {
@@ -6475,16 +6475,16 @@
      "label": "Mix",
      "background": "#f1ece2",
      "color": "#8a5a2b",
-     "x": -692,
-     "y": -125,
-     "vx": 41,
-     "vy": -71,
-     "size": 214,
+     "x": -692.0,
+     "y": -125.0,
+     "vx": 41.0,
+     "vy": -71.0,
+     "size": 214.0,
      "at": 1.55
     }
    ],
    "fontFamily": "",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6561,17 +6561,17 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "value": 98,
+   "value": 98.0,
    "suffix": "%",
    "prefix": "",
-   "decimals": 0,
+   "decimals": 0.0,
    "label": "Satisfaction",
    "caption": "Customer survey, last 30 days",
-   "delta": 4,
+   "delta": 4.0,
    "deltaSuffix": "%",
    "accentColor": "#2DD4BF",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "showDelta": true,
    "backgroundColor": "",
    "clipDuration": 123,
@@ -6611,51 +6611,51 @@
    "metrics": [
     {
      "label": "Sign-ups",
-     "value": 12400,
+     "value": 12400.0,
      "delta": "+18%",
      "trend": [
-      62,
-      71,
-      68,
-      84,
-      96,
-      112,
-      124
+      62.0,
+      71.0,
+      68.0,
+      84.0,
+      96.0,
+      112.0,
+      124.0
      ]
     },
     {
      "label": "Avg. session",
-     "value": 48,
-     "suffix": "min",
+     "value": 48.0,
      "delta": "+6%",
      "trend": [
-      39,
-      41,
-      40,
-      43,
-      45,
-      44,
-      48
-     ]
+      39.0,
+      41.0,
+      40.0,
+      43.0,
+      45.0,
+      44.0,
+      48.0
+     ],
+     "suffix": "min"
     },
     {
      "label": "Support tickets",
-     "value": 320,
+     "value": 320.0,
      "delta": "-4%",
      "trend": [
-      36,
-      35,
-      37,
-      34,
-      33,
+      36.0,
+      35.0,
+      37.0,
+      34.0,
+      33.0,
       33.5,
-      32
+      32.0
      ]
     }
    ],
    "title": "Growth this quarter",
    "eyebrow": "Quarter recap",
-   "maxCards": 4,
+   "maxCards": 4.0,
    "accentColor": "",
    "backgroundColor": "",
    "theme": "dark",
@@ -6696,33 +6696,33 @@
    "stages": [
     {
      "label": "Visited the site",
-     "value": 42800
+     "value": 42800.0
     },
     {
      "label": "Signed up",
-     "value": 18600
+     "value": 18600.0
     },
     {
      "label": "Created a project",
-     "value": 9400
+     "value": 9400.0
     },
     {
      "label": "Invited a teammate",
-     "value": 4100
+     "value": 4100.0
     },
     {
      "label": "Upgraded",
-     "value": 1750
+     "value": 1750.0
     }
    ],
-   "width": 1100,
-   "height": 560,
-   "gap": 10,
+   "width": 1100.0,
+   "height": 560.0,
+   "gap": 10.0,
    "tailOpacity": 0.5,
    "showDropoff": true,
    "showConversion": false,
-   "durationInFrames": 22,
-   "staggerInFrames": 12,
+   "durationInFrames": 22.0,
+   "staggerInFrames": 12.0,
    "color": "#e8b86d",
    "inkColor": "#fafafa",
    "labelColor": "rgba(250,250,250,0.55)",
@@ -6764,23 +6764,23 @@
    "segments": [
     {
      "label": "Direct",
-     "value": 4820
+     "value": 4820.0
     },
     {
      "label": "Search",
-     "value": 3140
+     "value": 3140.0
     },
     {
      "label": "Social",
-     "value": 1960
+     "value": 1960.0
     },
     {
      "label": "Referral",
-     "value": 880
+     "value": 880.0
     }
    ],
-   "size": 520,
-   "thickness": 46,
+   "size": 520.0,
+   "thickness": 46.0,
    "colors": [
     "#e8b86d",
     "#2dd4bf",
@@ -6790,8 +6790,8 @@
    "showLegend": true,
    "showTotal": true,
    "totalLabel": "Sessions",
-   "durationInFrames": 26,
-   "staggerInFrames": 9,
+   "durationInFrames": 26.0,
+   "staggerInFrames": 9.0,
    "trackColor": "rgba(250,250,250,0.08)",
    "labelColor": "rgba(250,250,250,0.58)",
    "inkColor": "#fafafa",
@@ -6834,29 +6834,29 @@
    "rows": [
     {
      "label": "Setup time (min)",
-     "before": 240,
-     "after": 96
+     "before": 240.0,
+     "after": 96.0
     },
     {
      "label": "Tickets closed / week",
-     "before": 120,
-     "after": 310
+     "before": 120.0,
+     "after": 310.0
     },
     {
      "label": "Active teams",
-     "before": 34,
-     "after": 88
+     "before": 34.0,
+     "after": 88.0
     },
     {
      "label": "Manual steps",
-     "before": 62,
-     "after": 18
+     "before": 62.0,
+     "after": 18.0
     }
    ],
-   "width": 1100,
-   "rowHeight": 84,
-   "gap": 26,
-   "labelWidth": 280,
+   "width": 1100.0,
+   "rowHeight": 84.0,
+   "gap": 26.0,
+   "labelWidth": 280.0,
    "beforeColor": "rgba(250,250,250,0.22)",
    "afterColor": "#e8b86d",
    "downColor": "#f472b6",
@@ -6865,9 +6865,9 @@
     "After"
    ],
    "showDelta": true,
-   "durationInFrames": 30,
-   "staggerInFrames": 12,
-   "pairOffsetInFrames": 6,
+   "durationInFrames": 30.0,
+   "staggerInFrames": 12.0,
+   "pairOffsetInFrames": 6.0,
    "barInkColor": "#0b0b10",
    "labelColor": "rgba(250,250,250,0.55)",
    "clipDuration": 0,
@@ -6908,67 +6908,67 @@
     {
      "label": "Mobile",
      "values": [
-      42,
-      58,
-      66,
-      72,
-      78,
-      84
+      42.0,
+      58.0,
+      66.0,
+      72.0,
+      78.0,
+      84.0
      ]
     },
     {
      "label": "Web",
      "values": [
-      18,
-      34,
-      57,
-      76,
-      92,
-      108
+      18.0,
+      34.0,
+      57.0,
+      76.0,
+      92.0,
+      108.0
      ]
     },
     {
      "label": "Desktop",
      "values": [
-      30,
-      40,
-      47,
-      52,
-      57,
-      61
+      30.0,
+      40.0,
+      47.0,
+      52.0,
+      57.0,
+      61.0
      ]
     },
     {
      "label": "API",
      "values": [
-      12,
-      22,
-      36,
-      50,
-      63,
-      79
+      12.0,
+      22.0,
+      36.0,
+      50.0,
+      63.0,
+      79.0
      ]
     },
     {
      "label": "Email",
      "values": [
-      24,
-      28,
-      31,
-      35,
-      38,
-      42
+      24.0,
+      28.0,
+      31.0,
+      35.0,
+      38.0,
+      42.0
      ]
     },
     {
      "label": "Partners",
      "values": [
-      8,
-      12,
-      17,
-      21,
-      26,
-      30
+      8.0,
+      12.0,
+      17.0,
+      21.0,
+      26.0,
+      30.0
      ]
     }
    ],
@@ -6980,12 +6980,12 @@
     "Q5",
     "Q6"
    ],
-   "framesPerStep": 18,
-   "visibleRows": 6,
-   "width": 1200,
-   "rowHeight": 76,
-   "gap": 14,
-   "labelWidth": 240,
+   "framesPerStep": 18.0,
+   "visibleRows": 6.0,
+   "width": 1200.0,
+   "rowHeight": 76.0,
+   "gap": 14.0,
+   "labelWidth": 240.0,
    "showStepLabel": true,
    "colors": [
     "#e8b86d",
@@ -7032,16 +7032,16 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "value": 78,
-   "min": 0,
-   "max": 100,
-   "size": 480,
-   "thickness": 26,
-   "sweepInDegrees": 250,
+   "value": 78.0,
+   "min": 0.0,
+   "max": 100.0,
+   "size": 480.0,
+   "thickness": 26.0,
+   "sweepInDegrees": 250.0,
    "label": "Weekly goal",
    "unit": "%",
-   "tickCount": 9,
-   "durationInFrames": 44,
+   "tickCount": 9.0,
+   "durationInFrames": 44.0,
    "color": "#e8b86d",
    "trackColor": "rgba(250,250,250,0.10)",
    "inkColor": "#fafafa",
@@ -7085,67 +7085,67 @@
    "barData": [
     {
      "label": "Mobile",
-     "value": 124000,
+     "value": 124000.0,
      "delta": "+32%"
     },
     {
      "label": "Web",
-     "value": 82000,
+     "value": 82000.0,
      "delta": "+11%"
     },
     {
      "label": "Desktop",
-     "value": 64000,
+     "value": 64000.0,
      "delta": "+4%"
     },
     {
      "label": "API",
-     "value": 48000,
+     "value": 48000.0,
      "delta": "-6%"
     }
    ],
    "metrics": [
     {
      "label": "Sign-ups",
-     "value": 12400,
+     "value": 12400.0,
      "delta": "+18%",
      "trend": [
-      62,
-      71,
-      68,
-      84,
-      96,
-      112,
-      124
+      62.0,
+      71.0,
+      68.0,
+      84.0,
+      96.0,
+      112.0,
+      124.0
      ]
     },
     {
      "label": "Avg. session",
-     "value": 48,
-     "suffix": "min",
+     "value": 48.0,
      "delta": "+6%",
      "trend": [
-      39,
-      41,
-      40,
-      43,
-      45,
-      44,
-      48
-     ]
+      39.0,
+      41.0,
+      40.0,
+      43.0,
+      45.0,
+      44.0,
+      48.0
+     ],
+     "suffix": "min"
     },
     {
      "label": "Support tickets",
-     "value": 320,
+     "value": 320.0,
      "delta": "-4%",
      "trend": [
-      36,
-      35,
-      37,
-      34,
-      33,
+      36.0,
+      35.0,
+      37.0,
+      34.0,
+      33.0,
       33.5,
-      32
+      32.0
      ]
     }
    ],
@@ -7252,7 +7252,7 @@
   "hostDefaults": null,
   "defaults": {
    "tier": "Studio",
-   "price": 32,
+   "price": 32.0,
    "currency": "$",
    "period": "/mo",
    "badge": "Most picked",
@@ -7271,7 +7271,7 @@
    "featureStaggerSeconds": 0.22,
    "accentColor": "#E8B86D",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "backgroundColor": "",
    "clipDuration": 0,
    "envelope": {}
@@ -7363,13 +7363,13 @@
     }
    ],
    "title": "What you get",
-   "highlightColumn": 1,
+   "highlightColumn": 1.0,
    "highlightLabel": "Most picked",
    "startAtSeconds": 0.5,
    "rowStaggerSeconds": 0.26,
    "accentColor": "#E8B86D",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "backgroundColor": "",
    "clipDuration": 0,
    "envelope": {}
@@ -7433,7 +7433,7 @@
    "startAtSeconds": 0.66,
    "staggerSeconds": 0.28,
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "backgroundColor": "",
    "kindAdded": "",
    "kindFixed": "",
@@ -7509,14 +7509,14 @@
    ],
    "eyebrow": "Trusted by",
    "title": "Teams that ship with us",
-   "columns": 4,
+   "columns": 4.0,
    "startAtSeconds": 0.32,
    "arriveStaggerSeconds": 0.06,
    "staggerSeconds": 0.24,
    "warmSeconds": 0.6,
    "accentColor": "#E8B86D",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "backgroundColor": "",
    "clipDuration": 0,
    "envelope": {}
@@ -7564,7 +7564,7 @@
    "logoSrc": "",
    "accentColor": "#E8B86D",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "backgroundColor": "",
    "clipDuration": 0,
    "envelope": {}
@@ -7602,15 +7602,15 @@
   "defaults": {
    "code": "export async function checkout(cart: Cart) {\n  const total = cart.items.reduce((sum, item) => sum + item.price, 0);\n  const order = await api.orders.create({ items: cart.items, total });\n\n  return order.id;\n}",
    "highlightedLines": [
-    3
+    3.0
    ],
    "title": "checkout.ts",
    "language": "tsx",
-   "startLine": 1,
+   "startLine": 1.0,
    "showLineNumbers": true,
    "accentColor": "#E8B86D",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "backgroundColor": "",
    "clipDuration": 0,
    "envelope": {}
@@ -7652,7 +7652,7 @@
    "wipeSeconds": 1.7,
    "accentColor": "#E8B86D",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "backgroundColor": "",
    "clipDuration": 0,
    "envelope": {}
@@ -7697,41 +7697,41 @@
     {
      "title": "Onboarding checklist",
      "meta": "APP-218 · Ana",
-     "column": 0,
+     "column": 0.0,
      "tint": "#8FB8F0"
     },
     {
      "title": "Retry failed payments",
      "meta": "APP-204 · Piotr",
-     "column": 0,
+     "column": 0.0,
      "tint": "#E8B86D",
-     "moveTo": 1,
+     "moveTo": 1.0,
      "moveAtSeconds": 0.95
     },
     {
      "title": "Dark mode",
      "meta": "APP-231 · Dai",
-     "column": 0,
+     "column": 0.0,
      "tint": "#C99BE8"
     },
     {
      "title": "Search filters",
      "meta": "APP-190 · Ana",
-     "column": 1,
+     "column": 1.0,
      "tint": "#7DD3E8",
-     "moveTo": 2,
+     "moveTo": 2.0,
      "moveAtSeconds": 1.72
     },
     {
      "title": "Team invites",
      "meta": "APP-177 · Kit",
-     "column": 1,
+     "column": 1.0,
      "tint": "#9BD4A0"
     },
     {
      "title": "CSV export",
      "meta": "APP-166 · Dai",
-     "column": 2,
+     "column": 2.0,
      "tint": "#9BD4A0"
     }
    ],
@@ -7739,7 +7739,7 @@
    "dealStaggerSeconds": 0.08,
    "accentColor": "#E8B86D",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "backgroundColor": "",
    "clipDuration": 0,
    "envelope": {}
@@ -7789,7 +7789,7 @@
    "rowStagger": 0.18,
    "accentColor": "#E8B86D",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "backgroundColor": "",
    "clipDuration": 0,
    "envelope": {}
@@ -7838,7 +7838,7 @@
    "doneLabel": "Uploaded",
    "accentColor": "#E8B86D",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "uploadingLabel": "Uploading",
    "backgroundColor": "",
    "clipDuration": 150,
@@ -7887,26 +7887,26 @@
     {
      "message": "Branch: retry backoff",
      "hash": "d0e91c4",
-     "lane": 1,
-     "parent": 1
+     "lane": 1.0,
+     "parent": 1.0
     },
     {
      "message": "Cap retries at five",
      "hash": "51b2fa8",
-     "lane": 1
+     "lane": 1.0
     },
     {
      "message": "Ship caption presets",
      "hash": "7f30dd1",
-     "lane": 0,
-     "parent": 1
+     "lane": 0.0,
+     "parent": 1.0
     },
     {
      "message": "Merge retry backoff",
      "hash": "b8c4e05",
-     "lane": 0,
-     "parent": 4,
-     "mergeFrom": 3,
+     "lane": 0.0,
+     "parent": 4.0,
+     "mergeFrom": 3.0,
      "ref": "main"
     }
    ],
@@ -7921,7 +7921,7 @@
     "#E8B86D"
    ],
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "backgroundColor": "",
    "clipDuration": 0,
    "envelope": {}
@@ -7990,7 +7990,7 @@
    "showProgress": true,
    "accentColor": "#E8B86D",
    "theme": "dark",
-   "speed": 1,
+   "speed": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -8084,7 +8084,7 @@
   "hostDefaults": null,
   "defaults": {
    "scale": 1.6,
-   "staggerInFrames": 9,
+   "staggerInFrames": 9.0,
    "bezelColor": "#15171D",
    "screenColor": "#0B0C11",
    "labelColor": "#7A828F",
@@ -8130,7 +8130,7 @@
    "penColor": "#e8b86d",
    "inkSoftness": 0.18,
    "wobble": 1.6,
-   "staggerInFrames": 3,
+   "staggerInFrames": 3.0,
    "fontFamily": "",
    "seed": "handwriting",
    "color": "#f4f4f5",
@@ -8171,14 +8171,14 @@
   "defaults": {
    "text": "Open all night",
    "glowColor": "#f472b6",
-   "glowSize": 26,
+   "glowSize": 26.0,
    "offLevel": 0.14,
    "hum": 0.12,
    "buzz": 0.06,
    "flickerOnExit": true,
    "order": "start",
-   "staggerInFrames": 2,
-   "seed": 1,
+   "staggerInFrames": 2.0,
+   "seed": 1.0,
    "color": "#fdf2f8",
    "fontWeight": "600",
    "offColor": "",
@@ -8220,12 +8220,12 @@
    "src": "",
    "gradient": "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)",
    "reveal": "left",
-   "drift": 26,
+   "drift": 26.0,
    "zoom": 0.12,
-   "durationInFrames": 30,
+   "durationInFrames": 30.0,
    "fontFamily": "",
-   "fontWeight": 800,
-   "letterSpacing": 0,
+   "fontWeight": 800.0,
+   "letterSpacing": 0.0,
    "lineHeight": 0.98,
    "clipDuration": 0,
    "envelope": {}
@@ -8267,17 +8267,17 @@
     "#e07a5f",
     "#c2557a"
    ],
-   "ribbonCount": 4,
-   "amplitude": 9,
-   "thickness": 15,
-   "centerY": 46,
-   "spread": 34,
-   "speed": 1,
-   "blur": 14,
+   "ribbonCount": 4.0,
+   "amplitude": 9.0,
+   "thickness": 15.0,
+   "centerY": 46.0,
+   "spread": 34.0,
+   "speed": 1.0,
+   "blur": 14.0,
    "intensity": 1.3,
    "horizonGlow": 0.5,
    "striation": 0.55,
-   "seed": 1,
+   "seed": 1.0,
    "clipDuration": 120,
    "envelope": {}
   }
@@ -8314,16 +8314,16 @@
   "defaults": {
    "backgroundColor": "#05070f",
    "color": "#e8b86d",
-   "count": 70,
-   "angle": 8,
-   "speed": 1,
-   "size": 14,
-   "minSize": 2,
-   "depthBlur": 3,
-   "drift": 4,
-   "intensity": 1,
+   "count": 70.0,
+   "angle": 8.0,
+   "speed": 1.0,
+   "size": 14.0,
+   "minSize": 2.0,
+   "depthBlur": 3.0,
+   "drift": 4.0,
+   "intensity": 1.0,
    "glow": 1.6,
-   "seed": 1,
+   "seed": 1.0,
    "clipDuration": 120,
    "envelope": {}
   }
@@ -8671,7 +8671,7 @@
   "hostDefaults": null,
   "defaults": {
    "direction": "left",
-   "blur": 24,
+   "blur": 24.0,
    "durationInFrames": 114,
    "keepWhole": false
   }
@@ -8722,7 +8722,7 @@
   "hostDefaults": null,
   "defaults": {
    "zoom": 2.4,
-   "blur": 14,
+   "blur": 14.0,
    "durationInFrames": 112,
    "keepWhole": false
   }
@@ -8772,8 +8772,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "blur": 16,
-   "rise": 0,
+   "blur": 16.0,
+   "rise": 0.0,
    "durationInFrames": 114,
    "keepWhole": false
   }
@@ -8823,7 +8823,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "blur": 16,
+   "blur": 16.0,
    "durationInFrames": 114,
    "keepWhole": false
   }
@@ -8873,10 +8873,10 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "lensSteps": 9,
-   "blurSamples": 7,
-   "shakeAmount": 50,
-   "shakeTranslatePx": 73,
+   "lensSteps": 9.0,
+   "blurSamples": 7.0,
+   "shakeAmount": 50.0,
+   "shakeTranslatePx": 73.0,
    "colorSplit": true,
    "durationInFrames": 112,
    "keepWhole": false
@@ -8927,7 +8927,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "zoom": 4,
+   "zoom": 4.0,
    "intensity": 0.5,
    "softness": 0.5,
    "colorBack": "#141318",
@@ -8936,7 +8936,7 @@
     "#4a4a68",
     "#8f88ae"
    ],
-   "speed": 1,
+   "speed": 1.0,
    "noise": 0.5,
    "durationInFrames": 116,
    "keepWhole": false
@@ -8996,7 +8996,7 @@
     "#4a4a68",
     "#8f88ae"
    ],
-   "speed": 1,
+   "speed": 1.0,
    "zoom": 1.16,
    "durationInFrames": 116,
    "keepWhole": false
@@ -9052,7 +9052,7 @@
    "colors": [
     "#8f88ae"
    ],
-   "speed": 1,
+   "speed": 1.0,
    "durationInFrames": 116,
    "keepWhole": false
   }
@@ -9102,9 +9102,9 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "intensity": 1,
-   "slices": 24,
-   "rgbSplit": 1,
+   "intensity": 1.0,
+   "slices": 24.0,
+   "rgbSplit": 1.0,
    "blockNoise": 0.6,
    "durationInFrames": 78,
    "keepWhole": false
@@ -9155,8 +9155,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "angle": -7,
-   "poses": 8,
+   "angle": -7.0,
+   "poses": 8.0,
    "durationInFrames": 128,
    "keepWhole": false
   }
@@ -9208,14 +9208,14 @@
   "defaults": {
    "shape": "blob",
    "noise": 0.3,
-   "zoom": 2,
+   "zoom": 2.0,
    "colorBack": "#141318",
    "colors": [
     "#3a3a52",
     "#4a4a68",
     "#8f88ae"
    ],
-   "speed": 1,
+   "speed": 1.0,
    "durationInFrames": 116,
    "keepWhole": false
   }
@@ -9318,7 +9318,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "bandCount": 10,
+   "bandCount": 10.0,
    "softness": 0.35,
    "colorBack": "#141318",
    "colors": [
@@ -9326,7 +9326,7 @@
     "#413d56",
     "#8f88ae"
    ],
-   "speed": 1,
+   "speed": 1.0,
    "durationInFrames": 116,
    "keepWhole": false
   }
@@ -9376,7 +9376,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "particleSize": 4,
+   "particleSize": 4.0,
    "scatter": 0.08,
    "shimmer": 0.6,
    "aberration": 0.5,
@@ -9431,8 +9431,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "cols": 12,
-   "rows": 8,
+   "cols": 12.0,
+   "rows": 8.0,
    "order": "from-left",
    "shape": "square",
    "stagger": 0.82,
@@ -9485,7 +9485,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "blur": 20,
+   "blur": 20.0,
    "panelWidth": 0.14,
    "direction": "from-left",
    "frostColor": "rgba(255,255,255,0.12)",
@@ -9538,9 +9538,9 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "intensity": 12,
+   "intensity": 12.0,
    "axis": "horizontal",
-   "slide": 1,
+   "slide": 1.0,
    "durationInFrames": 14,
    "keepWhole": false
   }
@@ -9591,7 +9591,7 @@
   "hostDefaults": null,
   "defaults": {
    "orientation": "horizontal",
-   "slats": 12,
+   "slats": 12.0,
    "stagger": 0.45,
    "alternate": false,
    "edgeSoftness": 0.06,
@@ -9648,7 +9648,7 @@
    "to": "squircle",
    "originX": 0.5,
    "originY": 0.5,
-   "warp": 0,
+   "warp": 0.0,
    "durationInFrames": 24,
    "keepWhole": false
   }

@@ -3,25 +3,25 @@
     "key": "remocn/word-push",
     "usual": {
       "text": "move at your own pace",
-      "fontSize": 72,
-      "wordGap": 10,
+      "fontSize": 72.0,
+      "wordGap": 10.0,
       "accel": 0.8,
       "color": "#171717",
       "fontWeight": "400",
       "background": "white",
       "fontFamily": "",
-      "speed": 1
+      "speed": 1.0
     },
     "settings": {
       "text": "one two three four five six seven eight nine ten",
-      "fontSize": 72,
-      "wordGap": 10,
+      "fontSize": 72.0,
+      "wordGap": 10.0,
       "accel": 0.8,
       "color": "#171717",
       "fontWeight": "400",
       "background": "white",
       "fontFamily": "",
-      "speed": 1
+      "speed": 1.0
     },
     "growth": 14
   },
@@ -29,8 +29,8 @@
     "key": "remocn/search-reveal",
     "usual": {
       "text": "acme",
-      "fieldWidth": 464,
-      "fontSize": 34,
+      "fieldWidth": 464.0,
+      "fontSize": 34.0,
       "framesPerCharacter": 4.0,
       "showPanel": true,
       "showGuides": true,
@@ -42,12 +42,12 @@
       "backgroundColor": "#f5f1f5",
       "reducedMotion": false,
       "fontFamily": "",
-      "speed": 1
+      "speed": 1.0
     },
     "settings": {
       "text": "a much longer search phrase to type",
-      "fieldWidth": 464,
-      "fontSize": 34,
+      "fieldWidth": 464.0,
+      "fontSize": 34.0,
       "framesPerCharacter": 6.0,
       "showPanel": true,
       "showGuides": true,
@@ -59,18 +59,18 @@
       "backgroundColor": "#f5f1f5",
       "reducedMotion": false,
       "fontFamily": "",
-      "speed": 1
+      "speed": 1.0
     },
     "growth": 184
   },
   {
     "key": "remocn/check-list",
     "usual": {
-      "fontSize": 40,
+      "fontSize": 40.0,
       "itemGap": 18.0,
       "closeGap": 9.0,
       "perStep": 1.6,
-      "strokeWidth": 3,
+      "strokeWidth": 3.0,
       "color": "#26242c",
       "tickColor": "#6f7f35",
       "step": 3.0,
@@ -88,18 +88,18 @@
           "checked": false
         }
       ],
-      "width": 720,
+      "width": 720.0,
       "boxColor": "#26242c",
       "weight": "600",
       "seed": "checklist",
       "background": "white"
     },
     "settings": {
-      "fontSize": 40,
+      "fontSize": 40.0,
       "itemGap": 24.0,
       "closeGap": 9.0,
       "perStep": 1.6,
-      "strokeWidth": 3,
+      "strokeWidth": 3.0,
       "color": "#26242c",
       "tickColor": "#6f7f35",
       "step": 3.0,
@@ -125,7 +125,7 @@
           "checked": true
         }
       ],
-      "width": 720,
+      "width": 720.0,
       "boxColor": "#26242c",
       "weight": "600",
       "seed": "checklist",
@@ -140,28 +140,28 @@
       "theme": "dark",
       "accentColor": "#0ea5e9",
       "morphDuration": 36.0,
-      "fontSize": 20,
+      "fontSize": 20.0,
       "highlight": true,
       "lineNumbers": true,
       "windowDots": true,
       "steps": [
         {
-          "at": 0.0,
-          "code": "import { loadInvoices } from \"./api\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  const invoices = await loadInvoices();\n  list.textContent = \"\";\n  for (const invoice of invoices) {\n    const row = document.createElement(\"li\");\n    row.textContent = invoice.title;\n    list.append(row);\n  }\n}"
+          "code": "import { loadInvoices } from \"./api\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  const invoices = await loadInvoices();\n  list.textContent = \"\";\n  for (const invoice of invoices) {\n    const row = document.createElement(\"li\");\n    row.textContent = invoice.title;\n    list.append(row);\n  }\n}",
+          "at": 0.0
         },
         {
-          "at": 48.0,
-          "code": "import { loadInvoices } from \"./api\";\nimport { renderRows } from \"./rows\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  renderRows(list, await loadInvoices());\n}"
+          "code": "import { loadInvoices } from \"./api\";\nimport { renderRows } from \"./rows\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  renderRows(list, await loadInvoices());\n}",
+          "at": 48.0
         }
       ],
-      "speed": 1
+      "speed": 1.0
     },
     "settings": {
       "filename": "invoices.tsx",
       "theme": "dark",
       "accentColor": "#0ea5e9",
       "morphDuration": 45.0,
-      "fontSize": 20,
+      "fontSize": 20.0,
       "highlight": true,
       "lineNumbers": true,
       "windowDots": true,
@@ -179,7 +179,7 @@
           "code": "c"
         }
       ],
-      "speed": 1
+      "speed": 1.0
     },
     "growth": 77
   },
@@ -189,53 +189,53 @@
       "platform": "mac",
       "theme": "light",
       "accent": "#0a84ff",
-      "size": 64,
+      "size": 64.0,
       "linger": 30.0,
       "x": 0.5,
       "y": 0.86,
       "steps": [
         {
-          "at": 20.0,
-          "keys": "mod+k"
+          "keys": "mod+k",
+          "at": 20.0
         },
         {
-          "at": 78.0,
-          "keys": "g i"
+          "keys": "g i",
+          "at": 78.0
         },
         {
-          "at": 114.0,
-          "keys": "shift+mod+p"
+          "keys": "shift+mod+p",
+          "at": 114.0
         }
       ],
-      "speed": 1
+      "speed": 1.0
     },
     "settings": {
       "platform": "mac",
       "theme": "light",
       "accent": "#0a84ff",
-      "size": 64,
+      "size": 64.0,
       "linger": 45.0,
       "x": 0.5,
       "y": 0.86,
       "steps": [
         {
-          "at": 20.0,
-          "keys": "mod+k"
+          "keys": "mod+k",
+          "at": 20.0
         },
         {
-          "at": 78.0,
-          "keys": "g i"
+          "keys": "g i",
+          "at": 78.0
         },
         {
-          "at": 114.0,
-          "keys": "shift+mod+p"
+          "keys": "shift+mod+p",
+          "at": 114.0
         },
         {
           "at": 270.0,
           "keys": "mod+s"
         }
       ],
-      "speed": 1
+      "speed": 1.0
     },
     "growth": 171
   },
@@ -244,8 +244,8 @@
     "usual": {
       "theme": "light",
       "accentColor": "#2563eb",
-      "compression": 3,
-      "seed": 1,
+      "compression": 3.0,
+      "seed": 1.0,
       "runTitle": "Checkout conversion drop",
       "runPrompt": "Why did checkout conversion drop last week?",
       "runPlan": [
@@ -255,27 +255,27 @@
       ],
       "runSteps": [
         {
-          "icon": "chart",
           "name": "Query analytics",
           "detail": "checkout funnel, last 7 days vs prior 7",
-          "duration": 1.4
+          "duration": 1.4,
+          "icon": "chart"
         },
         {
-          "icon": "database",
           "name": "Run a query",
           "detail": "conversion by device and step",
-          "duration": 2.3
+          "duration": 2.3,
+          "icon": "database"
         },
         {
-          "icon": "search",
           "name": "Search logs",
           "detail": "card payment errors on tablets",
-          "duration": 1.1
+          "duration": 1.1,
+          "icon": "search"
         },
         {
-          "icon": "book",
           "name": "Read 12 sources",
           "duration": 3.2,
+          "icon": "book",
           "sources": [
             "Checkout funnel",
             "Device report",
@@ -293,13 +293,13 @@
         }
       ],
       "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
-      "speed": 1
+      "speed": 1.0
     },
     "settings": {
       "theme": "light",
       "accentColor": "#2563eb",
-      "compression": 3,
-      "seed": 1,
+      "compression": 3.0,
+      "seed": 1.0,
       "runTitle": "Checkout conversion drop",
       "runPrompt": "Why did checkout conversion drop last week?",
       "runPlan": [
@@ -309,27 +309,27 @@
       ],
       "runSteps": [
         {
-          "icon": "chart",
           "name": "Query analytics",
           "detail": "checkout funnel, last 7 days vs prior 7",
-          "duration": 1.4
+          "duration": 1.4,
+          "icon": "chart"
         },
         {
-          "icon": "database",
           "name": "Run a query",
           "detail": "conversion by device and step",
-          "duration": 2.3
+          "duration": 2.3,
+          "icon": "database"
         },
         {
-          "icon": "search",
           "name": "Search logs",
           "detail": "card payment errors on tablets",
-          "duration": 1.1
+          "duration": 1.1,
+          "icon": "search"
         },
         {
-          "icon": "book",
           "name": "Read 12 sources",
           "duration": 3.2,
+          "icon": "book",
           "sources": [
             "Checkout funnel",
             "Device report",
@@ -351,7 +351,7 @@
         }
       ],
       "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.\n\n## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
-      "speed": 1
+      "speed": 1.0
     },
     "growth": 122
   },
@@ -360,8 +360,8 @@
     "usual": {
       "state": "opened",
       "query": "new",
-      "selectedIndex": -1,
-      "highlightedIndex": -1,
+      "selectedIndex": -1.0,
+      "highlightedIndex": -1.0,
       "theme": {
         "mode": "light",
         "colors": {}
@@ -388,13 +388,13 @@
         }
       ],
       "autoplay": true,
-      "pressedIndex": -1
+      "pressedIndex": -1.0
     },
     "settings": {
       "state": "opened",
       "query": "settings",
-      "selectedIndex": -1,
-      "highlightedIndex": -1,
+      "selectedIndex": -1.0,
+      "highlightedIndex": -1.0,
       "theme": {
         "mode": "light",
         "colors": {}
@@ -421,7 +421,7 @@
         }
       ],
       "autoplay": true,
-      "pressedIndex": -1
+      "pressedIndex": -1.0
     },
     "growth": 13
   },
@@ -432,8 +432,8 @@
       "styles": "slide,punch",
       "sizes": "1,0.945,2.7",
       "holds": "48",
-      "accentBeat": 3,
-      "fontSize": 93,
+      "accentBeat": 3.0,
+      "fontSize": 93.0,
       "fontWeight": "600",
       "lineHeight": 0.89,
       "letterSpacing": "-0.022em",
@@ -447,7 +447,7 @@
       "slideSettle": 2.846,
       "lineStagger": 3.5,
       "slideDrop": 0.313,
-      "motionBlur": 1,
+      "motionBlur": 1.0,
       "punchFrom": 0.32,
       "punchFrames": 15.0,
       "wordStagger": 2.8,
@@ -462,15 +462,15 @@
         "colors": {}
       },
       "fontFamily": "",
-      "speed": 1
+      "speed": 1.0
     },
     "settings": {
       "script": "One. | Two. | Three. | Four. | Five.",
       "styles": "slide,punch",
       "sizes": "1,0.945,2.7",
       "holds": "45, 60",
-      "accentBeat": 3,
-      "fontSize": 93,
+      "accentBeat": 3.0,
+      "fontSize": 93.0,
       "fontWeight": "600",
       "lineHeight": 0.89,
       "letterSpacing": "-0.022em",
@@ -484,7 +484,7 @@
       "slideSettle": 2.846,
       "lineStagger": 3.5,
       "slideDrop": 0.313,
-      "motionBlur": 1,
+      "motionBlur": 1.0,
       "punchFrom": 0.32,
       "punchFrames": 15.0,
       "wordStagger": 2.8,
@@ -499,7 +499,7 @@
         "colors": {}
       },
       "fontFamily": "",
-      "speed": 1
+      "speed": 1.0
     },
     "growth": 141
   }
