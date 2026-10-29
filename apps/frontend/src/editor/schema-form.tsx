@@ -4,10 +4,11 @@ import type { FieldWidget } from "@opsis/video/generated/spec";
 import { cn } from "cn";
 import { ChevronRight, Copy, Plus, Trash2 } from "lucide-react";
 import { useState, type ComponentType, type ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ANY_VALUE,
   asSchema,
@@ -120,9 +121,6 @@ export const widgetTakes = (widget: FieldWidget, kind: TypedField["kind"]): bool
   return !entry || Object.hasOwn(entry, kind);
 };
 
-const COLLAPSING =
-  "h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-200 ease-out data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0";
-
 function fileKindsMatch(meta: FieldMeta, ctx: FormContext): boolean {
   return Object.entries(meta.showIfFile ?? {}).every(([k, kinds]) => {
     const kind = ctx.fileKinds[k];
@@ -145,12 +143,14 @@ export function SchemaForm({
   onChange,
   ctx,
   idPrefix = "f",
+  tabs = false,
 }: {
   schema: unknown;
   value: ParamValues;
   onChange: (patch: ParamValues) => void;
   ctx: FormContext;
   idPrefix?: string;
+  tabs?: boolean;
 }) {
   const schema = asSchema(raw);
   const values = withDefaults(schema, value);
@@ -178,32 +178,35 @@ export function SchemaForm({
         }}
       />
     ));
+  if (!tabs || advanced.length === 0)
+    return (
+      <FieldGroup className="gap-4">
+        {render(basic)}
+        {render(advanced)}
+      </FieldGroup>
+    );
   return (
-    <FieldGroup className="gap-4">
-      {render(basic)}
-      {advanced.length ? <AdvancedSection>{render(advanced)}</AdvancedSection> : null}
-    </FieldGroup>
-  );
-}
-
-function AdvancedSection({ children }: { children: ReactNode }) {
-  return (
-    <Collapsible>
-      <CollapsibleTrigger
-        render={
-          <Button variant="ghost" size="sm" className="group/adv text-muted-foreground -ml-2 w-fit">
-            <ChevronRight
-              data-icon="inline-start"
-              className="transition-transform group-data-[panel-open]/adv:rotate-90"
-            />
-            Advanced
-          </Button>
-        }
-      />
-      <CollapsibleContent className={COLLAPSING}>
-        <FieldGroup className="gap-4 pt-3">{children}</FieldGroup>
-      </CollapsibleContent>
-    </Collapsible>
+    <Tabs defaultValue="basic" className="gap-4">
+      <TabsList className="w-full">
+        <TabsTrigger value="basic">Basic</TabsTrigger>
+        <TabsTrigger value="advanced">
+          Advanced
+          <Badge variant="secondary">{advanced.length}</Badge>
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="basic">
+        {basic.length ? (
+          <FieldGroup className="gap-4">{render(basic)}</FieldGroup>
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            Every setting of this node is in Advanced.
+          </p>
+        )}
+      </TabsContent>
+      <TabsContent value="advanced">
+        <FieldGroup className="gap-4">{render(advanced)}</FieldGroup>
+      </TabsContent>
+    </Tabs>
   );
 }
 

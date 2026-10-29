@@ -74,6 +74,8 @@ function NodeDetails({
       <NodeMetaFields node={node} def={def} />
       <Separator />
       <SchemaForm
+        key={node.id}
+        tabs
         schema={def.params}
         value={node.params}
         onChange={(patch) => updateParams(node.id, patch)}
