@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -16,94 +17,86 @@ pub enum KeyboardPlatform {
     Windows,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct KeystrokeStep {
-    #[default = "mod+k"]
-    #[schemars(description = "Keys")]
+    #[setting("Keys", default = "mod+k")]
     pub keys: String,
-    #[schemars(
-        description = "At",
+    #[setting(
+        "At",
         range(min = 0, max = 120),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub at: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Hold",
+    #[setting(
+        "Hold",
         range(min = 0.0333, max = 20),
-        extend(
-            "x-zero-label" = "Auto",
-            "x-step" = 0.01,
-            "x-unit" = "s",
-            "x-frames-at" = 30,
-            "type" = "number"
-        )
+        zero_label = "Auto",
+        step = 0.01,
+        unit = "s",
+        frames_at = 30,
+        "type" = "number"
     )]
     pub hold: Option<f64>,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Keystroke {
-    #[default(KeyboardPlatform::Mac)]
-    #[schemars(description = "Platform")]
+    #[setting("Platform", default = KeyboardPlatform::Mac)]
     pub platform: KeyboardPlatform,
-    #[default(LightOrDark::Light)]
-    #[schemars(description = "Theme")]
+    #[setting("Theme", default = LightOrDark::Light)]
     pub theme: LightOrDark,
-    #[default = "#0a84ff"]
-    #[schemars(
-        description = "Accent",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Accent", default = "#0a84ff", check = colour)]
     pub accent: String,
-    #[default = 64]
-    #[schemars(description = "Key size", range(min = 32, max = 128), extend("x-step" = 1))]
+    #[setting("Key size", default = 64, range(min = 32, max = 128), step = 1)]
     pub size: u32,
-    #[default = 1.0]
-    #[schemars(
-        description = "Linger",
+    #[setting(
+        "Linger",
+        default = 1.0,
         range(min = 0, max = 3),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub linger: f64,
-    #[default = 0.5]
-    #[schemars(
-        description = "Where",
+    #[setting(
+        "Where",
+        default = 0.5,
         range(min = 0, max = 1),
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Click the frame to choose the spot.",
-            "x-widget" = "spot"
-        )
+        step = 0.01,
+        help = "Click the frame to choose the spot.",
+        widget = "spot"
     )]
     pub x: f64,
-    #[default = 0.86]
-    #[schemars(
-        description = "Where vertical",
+    #[setting(
+        "Where vertical",
+        default = 0.86,
         range(min = 0, max = 1),
-        extend("x-step" = 0.01, "x-hidden" = true)
+        step = 0.01,
+        hidden
     )]
     pub y: f64,
-    #[default(vec![
-        KeystrokeStep { at: 0.6667, ..Default::default() },
-        KeystrokeStep { at: 2.6, keys: "g i".into(), ..Default::default() },
-        KeystrokeStep { at: 3.8, keys: "shift+mod+p".into(), ..Default::default() },
-    ])]
-    #[schemars(
-        description = "Keys",
-        extend(
-            "x-help" = "Join keys pressed together with +, like mod+k. Separate keys pressed one after another with a space."
-        )
+    #[setting(
+        "Keys",
+        default = vec![
+            KeystrokeStep { at: 0.6667, ..Default::default() },
+            KeystrokeStep { at: 2.6, keys: "g i".into(), ..Default::default() },
+            KeystrokeStep { at: 3.8, keys: "shift+mod+p".into(), ..Default::default() },
+        ],
+        help = "Join keys pressed together with +, like mod+k. Separate keys pressed one after another with a space."
     )]
     pub steps: Vec<KeystrokeStep>,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

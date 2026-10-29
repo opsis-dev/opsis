@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -19,60 +20,52 @@ pub enum MorphShape {
     Blob,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct TransitionMorphShape {
-    #[default(MorphShape::Circle)]
-    #[schemars(
-        description = "From",
-        extend("x-help" = "Shape the reveal starts as, at zero size. A raw path d also works.")
+    #[setting(
+        "From",
+        default = MorphShape::Circle,
+        help = "Shape the reveal starts as, at zero size. A raw path d also works."
     )]
     pub from: MorphShape,
-    #[default(MorphShape::Squircle)]
-    #[schemars(
-        description = "To",
-        extend("x-help" = "Shape it has become once it covers the frame.")
+    #[setting(
+        "To",
+        default = MorphShape::Squircle,
+        help = "Shape it has become once it covers the frame."
     )]
     pub to: MorphShape,
-    #[default = 0.5]
-    #[schemars(
-        description = "Horizontal origin",
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Where the shape grows from, 0→1 of the frame width.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Horizontal origin",
+        default = 0.5,
+        step = 0.01,
+        help = "Where the shape grows from, 0→1 of the frame width.",
+        advanced
     )]
     pub origin_x: f64,
-    #[default = 0.5]
-    #[schemars(
-        description = "Vertical origin",
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Where the shape grows from, 0→1 of the frame height.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Vertical origin",
+        default = 0.5,
+        step = 0.01,
+        help = "Where the shape grows from, 0→1 of the frame height.",
+        advanced
     )]
     pub origin_y: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Overshoot",
+    #[setting(
+        "Overshoot",
         range(min = 0.8, max = 3),
-        extend(
-            "x-zero-label" = "Fit the shape",
-            "x-step" = 0.05,
-            "x-help" = "Final size as a multiple of the frame diagonal. Leave empty to grow each shape until it covers the frame.",
-            "x-advanced" = true,
-            "type" = "number"
-        )
+        zero_label = "Fit the shape",
+        step = 0.05,
+        help = "Final size as a multiple of the frame diagonal. Leave empty to grow each shape until it covers the frame.",
+        advanced,
+        "type" = "number"
     )]
     pub overshoot: Option<f64>,
-    #[schemars(
-        description = "Warp",
-        extend("x-help" = "0 keeps the silhouette crisp.", "x-advanced" = true)
-    )]
+    #[setting("Warp", help = "0 keeps the silhouette crisp.", advanced)]
     pub warp: f64,
 }
 

@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,45 +7,37 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct KineticHeadline {
-    #[default = "Ship *faster* with demos that *move*"]
-    #[schemars(description = "Text — wrap words in *asterisks* to emphasise")]
+    #[setting(
+        "Text — wrap words in *asterisks* to emphasise",
+        default = "Ship *faster* with demos that *move*"
+    )]
     pub text: String,
-    #[default = "#fafafa"]
-    #[schemars(
-        description = "Text colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Text colour", default = "#fafafa", check = colour)]
     pub color: String,
-    #[default = "#facc15"]
-    #[schemars(
-        description = "Emphasis colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Emphasis colour", default = "#facc15", check = colour)]
     pub emphasis_color: String,
-    #[default = "transparent"]
-    #[schemars(description = "Background")]
+    #[setting("Background", default = "transparent")]
     pub background: String,
-    #[default = 104]
-    #[schemars(description = "Font size", range(min = 24, max = 240), extend("x-step" = 1))]
+    #[setting("Font size", default = 104, range(min = 24, max = 240), step = 1)]
     pub font_size: u32,
-    #[default = 4]
-    #[schemars(
-        description = "Time between words",
+    #[setting(
+        "Time between words",
+        default = 4,
         range(min = 1, max = 20),
-        extend("x-step" = 1, "x-unit" = "frames")
+        step = 1,
+        unit = "frames"
     )]
     pub word_stagger: u32,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
 }

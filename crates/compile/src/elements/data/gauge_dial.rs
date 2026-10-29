@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,88 +7,61 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct GaugeDial {
-    #[default = 78.0]
-    #[schemars(description = "Value", extend("x-help" = "Target the needle sweeps to."))]
+    #[setting("Value", default = 78.0, help = "Target the needle sweeps to.")]
     pub value: f64,
-    #[schemars(description = "Min", extend("x-help" = "Value at the start of the arc."))]
+    #[setting("Min", help = "Value at the start of the arc.")]
     pub min: f64,
-    #[default = 100.0]
-    #[schemars(description = "Max", extend("x-help" = "Value at the end of the arc."))]
+    #[setting("Max", default = 100.0, help = "Value at the end of the arc.")]
     pub max: f64,
-    #[default = 480.0]
-    #[schemars(description = "Size", extend("x-help" = "Type scales off it."))]
+    #[setting("Size", default = 480.0, help = "Type scales off it.")]
     pub size: f64,
-    #[default = 26.0]
-    #[schemars(description = "Thickness", extend("x-help" = "Track and fill thickness."))]
+    #[setting("Thickness", default = 26.0, help = "Track and fill thickness.")]
     pub thickness: f64,
-    #[default = 250]
-    #[schemars(
-        description = "Sweep angle",
+    #[setting(
+        "Sweep angle",
+        default = 250,
         range(min = 10, max = 360),
-        extend(
-            "x-step" = 1,
-            "x-help" = "Total travel, centred on twelve o'clock. 180 gives a half-moon meter.",
-            "x-advanced" = true
-        )
+        step = 1,
+        help = "Total travel, centred on twelve o'clock. 180 gives a half-moon meter.",
+        advanced
     )]
     pub sweep_in_degrees: u32,
-    #[default = "Weekly goal"]
-    #[schemars(description = "Label", extend("x-help" = "Caption under the readout."))]
+    #[setting("Label", default = "Weekly goal", help = "Caption under the readout.")]
     pub label: String,
-    #[default = "%"]
-    #[schemars(description = "Unit", extend("x-help" = "Suffix on the readout."))]
+    #[setting("Unit", default = "%", help = "Suffix on the readout.")]
     pub unit: String,
-    #[default = 9]
-    #[schemars(
-        description = "Tick count",
+    #[setting(
+        "Tick count",
+        default = 9,
         range(min = 0, max = 60),
-        extend(
-            "x-step" = 1,
-            "x-help" = "Tick marks around the arc. 0 hides them.",
-            "x-advanced" = true
-        )
+        step = 1,
+        help = "Tick marks around the arc. 0 hides them.",
+        advanced
     )]
     pub tick_count: u32,
-    #[default = 44]
-    #[schemars(
-        description = "Animation length",
+    #[setting(
+        "Animation length",
+        default = 44,
         range(min = 1, max = 300),
-        extend(
-            "x-step" = 1,
-            "x-unit" = "frames",
-            "x-help" = "Length of the sweep.",
-            "x-advanced" = true
-        )
+        step = 1,
+        unit = "frames",
+        help = "Length of the sweep.",
+        advanced
     )]
     pub duration_in_frames: u32,
-    #[default = "#e8b86d"]
-    #[schemars(
-        description = "Color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Color", default = "#e8b86d", check = colour)]
     pub color: String,
-    #[default = "rgba(250,250,250,0.10)"]
-    #[schemars(
-        description = "Track color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Track color", default = "rgba(250,250,250,0.10)", check = colour)]
     pub track_color: String,
-    #[default = "#fafafa"]
-    #[schemars(
-        description = "Text color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Text color", default = "#fafafa", check = colour)]
     pub ink_color: String,
-    #[default = "rgba(250,250,250,0.58)"]
-    #[schemars(
-        description = "Label color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Label color", default = "rgba(250,250,250,0.58)", check = colour)]
     pub label_color: String,
 }
 

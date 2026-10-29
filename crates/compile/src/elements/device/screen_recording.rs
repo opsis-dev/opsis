@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -25,84 +26,86 @@ pub enum RecordingEntrance {
     None,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ScreenRecordingCamera {
-    #[schemars(
-        description = "At",
+    #[setting(
+        "At",
         range(min = 0, max = 120),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub at: f64,
-    #[default = 0.8333]
-    #[schemars(
-        description = "Length",
+    #[setting(
+        "Length",
+        default = 0.8333,
         range(min = 0.0333, max = 20),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub duration: f64,
-    #[default = 1.6]
-    #[schemars(
-        description = "Zoom",
-        range(min = 1, max = 6),
-        extend("x-step" = 0.1, "x-unit" = "×")
-    )]
+    #[setting("Zoom", default = 1.6, range(min = 1, max = 6), step = 0.1, unit = "×")]
     pub zoom: f64,
-    #[default = 0.5]
-    #[schemars(description = "Across", range(min = 0, max = 1), extend("x-step" = 0.01))]
+    #[setting("Across", default = 0.5, range(min = 0, max = 1), step = 0.01)]
     pub x: f64,
-    #[default = 0.5]
-    #[schemars(description = "Down", range(min = 0, max = 1), extend("x-step" = 0.01))]
+    #[setting("Down", default = 0.5, range(min = 0, max = 1), step = 0.01)]
     pub y: f64,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ScreenRecording {
-    #[default = "app:placeholders/screen-wide.svg"]
-    #[schemars(description = "Recording", extend("x-widget" = "asset"))]
+    #[setting(
+        "Recording",
+        default = "app:placeholders/screen-wide.svg",
+        widget = "asset"
+    )]
     pub src: String,
-    #[schemars(description = "Crop top", range(min = 0, max = 0.4), extend("x-step" = 0.005))]
+    #[setting("Crop top", range(min = 0, max = 0.4), step = 0.005)]
     pub crop_top: f64,
-    #[schemars(description = "Crop right", range(min = 0, max = 0.4), extend("x-step" = 0.005))]
+    #[setting("Crop right", range(min = 0, max = 0.4), step = 0.005)]
     pub crop_right: f64,
-    #[schemars(description = "Crop bottom", range(min = 0, max = 0.4), extend("x-step" = 0.005))]
+    #[setting("Crop bottom", range(min = 0, max = 0.4), step = 0.005)]
     pub crop_bottom: f64,
-    #[schemars(description = "Crop left", range(min = 0, max = 0.4), extend("x-step" = 0.005))]
+    #[setting("Crop left", range(min = 0, max = 0.4), step = 0.005)]
     pub crop_left: f64,
-    #[default(RecordingFit::Cover)]
-    #[schemars(description = "Fit")]
+    #[setting("Fit", default = RecordingFit::Cover)]
     pub fit: RecordingFit,
-    #[schemars(description = "Letterbox", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
+    #[setting("Letterbox", widget = "color", zero_label = "Theme")]
     pub backdrop_color: String,
-    #[default(RecordingEntrance::Fade)]
-    #[schemars(description = "Entrance")]
+    #[setting("Entrance", default = RecordingEntrance::Fade)]
     pub entrance: RecordingEntrance,
-    #[schemars(description = "Corner radius", range(min = 0, max = 48), extend("x-step" = 1))]
+    #[setting("Corner radius", range(min = 0, max = 48), step = 1)]
     pub radius: u32,
-    #[schemars(description = "Trim in", range(min = 0, max = 300), extend("x-step" = 1))]
+    #[setting("Trim in", range(min = 0, max = 300), step = 1)]
     pub trim_before: u32,
-    #[schemars(description = "Audio")]
+    #[setting("Audio")]
     pub audio: bool,
-    #[default(Theme::of(ThemeMode::Dark))]
-    #[schemars(transform = warm_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = warm_themes,
+        widget = "theme"
+    )]
     pub theme: Theme,
-    #[default(vec![
-        ScreenRecordingCamera { at: 1.1333, x: 0.36, y: 0.42, ..Default::default() },
-        ScreenRecordingCamera { at: 3.2, zoom: 1.0, ..Default::default() },
-    ])]
-    #[schemars(
-        description = "Camera moves",
-        extend("x-help" = "Each move zooms to a spot. Leave the list empty for a still shot.")
+    #[setting(
+        "Camera moves",
+        default = vec![
+            ScreenRecordingCamera { at: 1.1333, x: 0.36, y: 0.42, ..Default::default() },
+            ScreenRecordingCamera { at: 3.2, zoom: 1.0, ..Default::default() },
+        ],
+        help = "Each move zooms to a spot. Leave the list empty for a still shot."
     )]
     pub camera: Vec<ScreenRecordingCamera>,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

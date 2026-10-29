@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -15,32 +16,27 @@ pub enum AnimationFit {
     Cover,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Lottie {
-    #[schemars(
-        description = "Animation file",
-        extend("x-widget" = "asset", "x-accept" = ".json,.lottie")
-    )]
+    #[setting("Animation file", widget = "asset", accept = ".json,.lottie")]
     pub src: String,
-    #[default = true]
-    #[schemars(description = "Loop")]
+    #[setting("Loop", default = true)]
     pub r#loop: bool,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
-    #[schemars(description = "Play backwards")]
+    #[setting("Play backwards")]
     pub backwards: bool,
-    #[default(AnimationFit::Contain)]
-    #[schemars(
-        description = "Fit",
-        extend("x-labels" = { "contain": "Show all", "cover": "Fill the frame" })
+    #[setting(
+        "Fit",
+        default = AnimationFit::Contain,
+        labels = { "contain": "Show all", "cover": "Fill the frame" }
     )]
     pub fit: AnimationFit,
-    #[default = "transparent"]
-    #[schemars(description = "Background")]
+    #[setting("Background", default = "transparent")]
     pub background: String,
 }
 

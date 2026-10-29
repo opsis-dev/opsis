@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,29 +8,29 @@ use crate::elements::entry::{element, meta};
 use crate::elements::theme::{Theme, neutral_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct AiPromptFlow {
-    #[schemars(transform = neutral_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
+    #[setting("Theme", transform = neutral_themes, widget = "theme")]
     pub theme: Theme,
-    #[default = "Summarize this thread"]
-    #[schemars(description = "Prompt")]
+    #[setting("Prompt", default = "Summarize this thread")]
     pub prompt: String,
-    #[default = "Generate"]
-    #[schemars(description = "Button label")]
+    #[setting("Button label", default = "Generate")]
     pub button_label: String,
-    #[default(vec![
-        "The thread debates the Q3 roadmap: ship the editor first,".into(),
-        "defer billing to Q4, and pull the migration forward so".into(),
-        "infra is unblocked before the team scales next quarter.".into(),
-    ])]
-    #[schemars(description = "Answer", extend("x-help" = "One line of the answer per item."))]
+    #[setting(
+        "Answer",
+        default = vec![
+            "The thread debates the Q3 roadmap: ship the editor first,".into(),
+            "defer billing to Q4, and pull the migration forward so".into(),
+            "infra is unblocked before the team scales next quarter.".into(),
+        ],
+        help = "One line of the answer per item."
+    )]
     pub answer_lines: Vec<String>,
-    #[default = "Response ready"]
-    #[schemars(description = "Notice")]
+    #[setting("Notice", default = "Response ready")]
     pub toast_title: String,
 }
 

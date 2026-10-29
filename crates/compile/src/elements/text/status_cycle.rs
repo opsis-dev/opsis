@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -8,152 +9,141 @@ use crate::elements::shared::{Colour, FontWeight};
 use crate::elements::theme::{Theme, ThemeMode, warm_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct StatusCycle {
-    #[default = "Acme is"]
-    #[schemars(description = "Prefix")]
+    #[setting("Prefix", default = "Acme is")]
     pub prefix: String,
-    #[default = "recording, editing, exporting, live"]
-    #[schemars(description = "Statuses (comma-separated)")]
+    #[setting(
+        "Statuses (comma-separated)",
+        default = "recording, editing, exporting, live"
+    )]
     pub statuses: String,
-    #[default = "Record, Auto zoom, Captions, Export, Share"]
-    #[schemars(description = "Chips (comma-separated)")]
+    #[setting(
+        "Chips (comma-separated)",
+        default = "Record, Auto zoom, Captions, Export, Share"
+    )]
     pub chips: String,
-    #[schemars(
-        description = "Field (act 1)",
-        extend("x-widget" = "color", "x-zero-label" = "Theme")
-    )]
+    #[setting("Field (act 1)", widget = "color", zero_label = "Theme")]
     pub field_color: String,
-    #[schemars(
-        description = "Page (act 2)",
-        extend("x-widget" = "color", "x-zero-label" = "Theme")
-    )]
+    #[setting("Page (act 2)", widget = "color", zero_label = "Theme")]
     pub page_color: String,
-    #[schemars(description = "Pill", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
+    #[setting("Pill", widget = "color", zero_label = "Theme")]
     pub pill_color: String,
-    #[schemars(
-        description = "Pill label",
-        extend("x-widget" = "color", "x-zero-label" = "Default")
-    )]
+    #[setting("Pill label", widget = "color", zero_label = "Default")]
     pub pill_label_color: String,
-    #[schemars(description = "Prefix ink", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
+    #[setting("Prefix ink", widget = "color", zero_label = "Theme")]
     pub prefix_color: String,
-    #[schemars(
-        description = "Chip fills",
+    #[setting(
+        "Chip fills",
         length(min = 0, max = 8),
-        extend("x-help" = "Leave empty for the theme's chip colours.")
+        help = "Leave empty for the theme's chip colours."
     )]
     pub chip_fills: Vec<Colour>,
-    #[schemars(description = "Chip ink", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
+    #[setting("Chip ink", widget = "color", zero_label = "Theme")]
     pub chip_text_color: String,
-    #[default = "rgb(160, 160, 160)"]
-    #[schemars(
-        description = "Chip hairline",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Chip hairline", default = "rgb(160, 160, 160)", check = colour)]
     pub chip_border_color: String,
-    #[default(FontWeight::W400)]
-    #[schemars(description = "Font weight")]
+    #[setting("Font weight", default = FontWeight::W400)]
     pub font_weight: FontWeight,
-    #[default(FontWeight::W400)]
-    #[schemars(description = "Chip font weight")]
+    #[setting("Chip font weight", default = FontWeight::W400)]
     pub chip_font_weight: FontWeight,
-    #[default = 63]
-    #[schemars(description = "Status size", range(min = 24, max = 140), extend("x-step" = 1))]
+    #[setting("Status size", default = 63, range(min = 24, max = 140), step = 1)]
     pub font_size: u32,
-    #[default = 160]
-    #[schemars(description = "Chip size", range(min = 48, max = 260), extend("x-step" = 2))]
+    #[setting("Chip size", default = 160, range(min = 48, max = 260), step = 2)]
     pub chip_font_size: u32,
-    #[default = 0.8]
-    #[schemars(
-        description = "Intro length",
+    #[setting(
+        "Intro length",
+        default = 0.8,
         range(min = 0.2667, max = 2),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub intro_frames: f64,
-    #[default = 1.0]
-    #[schemars(
-        description = "Status hold",
+    #[setting(
+        "Status hold",
+        default = 1.0,
         range(min = 0.3333, max = 2),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub status_hold: f64,
-    #[default = 0.2667]
-    #[schemars(
-        description = "Chip stagger",
+    #[setting(
+        "Chip stagger",
+        default = 0.2667,
         range(min = 0.1333, max = 1),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub chip_stagger: f64,
-    #[default = 0.516]
-    #[schemars(
-        description = "Lockup height",
+    #[setting(
+        "Lockup height",
+        default = 0.516,
         range(min = 0.2, max = 0.8),
-        extend("x-step" = 0.004)
+        step = 0.004
     )]
     pub pill_center_y: f64,
-    #[schemars(
-        description = "Start at",
+    #[setting(
+        "Start at",
         range(min = 0, max = 2),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub start_at: f64,
-    #[default(Theme::of(ThemeMode::Dark))]
-    #[schemars(transform = warm_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = warm_themes,
+        widget = "theme"
+    )]
     pub theme: Theme,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Status corner radius",
+    #[setting(
+        "Status corner radius",
         range(min = 0, max = 200),
-        extend(
-            "x-zero-label" = "Auto",
-            "x-step" = 1,
-            "x-unit" = "px",
-            "x-advanced" = true,
-            "type" = "integer"
-        )
+        zero_label = "Auto",
+        step = 1,
+        unit = "px",
+        advanced,
+        "type" = "integer"
     )]
     pub pill_radius: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Chip corner radius",
+    #[setting(
+        "Chip corner radius",
         range(min = 0, max = 200),
-        extend(
-            "x-zero-label" = "Auto",
-            "x-step" = 1,
-            "x-unit" = "px",
-            "x-advanced" = true,
-            "type" = "integer"
-        )
+        zero_label = "Auto",
+        step = 1,
+        unit = "px",
+        advanced,
+        "type" = "integer"
     )]
     pub chip_radius: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Chip border width",
+    #[setting(
+        "Chip border width",
         range(min = 0, max = 20),
-        extend(
-            "x-zero-label" = "Auto",
-            "x-step" = 0.5,
-            "x-unit" = "px",
-            "x-advanced" = true,
-            "type" = "number"
-        )
+        zero_label = "Auto",
+        step = 0.5,
+        unit = "px",
+        advanced,
+        "type" = "number"
     )]
     pub chip_border_width: Option<f64>,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

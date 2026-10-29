@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -19,106 +20,89 @@ pub enum FlickerOrder {
     Random,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct NeonFlickerText {
-    #[default = "Open all night"]
-    #[schemars(description = "Text", extend("x-help" = "The sign."))]
+    #[setting("Text", default = "Open all night", help = "The sign.")]
     pub text: String,
-    #[default = "#f472b6"]
-    #[schemars(
-        description = "Glow color",
-        extend(
-            "x-help" = "Colour of the halo around the tube.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Glow color",
+        default = "#f472b6",
+        help = "Colour of the halo around the tube.",
+        check = colour
     )]
     pub glow_color: String,
-    #[default = 26.0]
-    #[schemars(
-        description = "Glow size",
-        extend("x-help" = "Four stacked shadows, so it stays soft.")
+    #[setting(
+        "Glow size",
+        default = 26.0,
+        help = "Four stacked shadows, so it stays soft."
     )]
     pub glow_size: f64,
-    #[default = 0.14]
-    #[schemars(
-        description = "Unlit brightness",
-        extend("x-step" = 0.01, "x-help" = "Brightness of an unlit tube, 0–1.", "x-advanced" = true)
+    #[setting(
+        "Unlit brightness",
+        default = 0.14,
+        step = 0.01,
+        help = "Brightness of an unlit tube, 0–1.",
+        advanced
     )]
     pub off_level: f64,
-    #[default = 0.12]
-    #[schemars(
-        description = "Hum",
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Depth of the mains hum once the sign has settled.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Hum",
+        default = 0.12,
+        step = 0.01,
+        help = "Depth of the mains hum once the sign has settled.",
+        advanced
     )]
     pub hum: f64,
-    #[default = 0.06]
-    #[schemars(
-        description = "Buzz",
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Chance per beat that a settled tube stutters. 0 disables it.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Buzz",
+        default = 0.06,
+        step = 0.01,
+        help = "Chance per beat that a settled tube stutters. 0 disables it.",
+        advanced
     )]
     pub buzz: f64,
-    #[default = true]
-    #[schemars(
-        description = "Flicker on exit",
-        extend("x-help" = "Stutter back off instead of fading cleanly.")
+    #[setting(
+        "Flicker on exit",
+        default = true,
+        help = "Stutter back off instead of fading cleanly."
     )]
     pub flicker_on_exit: bool,
-    #[default(FlickerOrder::Start)]
-    #[schemars(description = "Order", extend("x-help" = "Which tube strikes first."))]
+    #[setting("Order", default = FlickerOrder::Start, help = "Which tube strikes first.")]
     pub order: FlickerOrder,
-    #[default = 2]
-    #[schemars(
-        description = "Stagger",
-        extend(
-            "x-unit" = "frames",
-            "x-help" = "Frames between one tube striking and the next.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Stagger",
+        default = 2,
+        unit = "frames",
+        help = "Frames between one tube striking and the next.",
+        advanced
     )]
     pub stagger_in_frames: u32,
-    #[default = 1]
-    #[schemars(description = "Variation", extend("x-advanced" = true))]
+    #[setting("Variation", default = 1, advanced)]
     pub seed: u32,
-    #[default = "#fdf2f8"]
-    #[schemars(
-        description = "Color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Color", default = "#fdf2f8", check = colour)]
     pub color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Font size",
+    #[setting(
+        "Font size",
         range(min = 12, max = 600),
-        extend(
-            "x-zero-label" = "Auto",
-            "x-step" = 1,
-            "x-unit" = "px",
-            "x-help" = "Leave empty to size the text to the frame.",
-            "type" = "integer"
-        )
+        zero_label = "Auto",
+        step = 1,
+        unit = "px",
+        help = "Leave empty to size the text to the frame.",
+        "type" = "integer"
     )]
     pub font_size: Option<u32>,
-    #[default(FontWeight::W600)]
-    #[schemars(description = "Font weight")]
+    #[setting("Font weight", default = FontWeight::W600)]
     pub font_weight: FontWeight,
-    #[schemars(
-        description = "Unlit color",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "From the glow",
-            "x-help" = "The tube with no gas lit: cold glass, not invisible. Leave empty for a faint glow colour."
-        )
+    #[setting(
+        "Unlit color",
+        widget = "color",
+        zero_label = "From the glow",
+        help = "The tube with no gas lit: cold glass, not invisible. Leave empty for a faint glow colour."
     )]
     pub off_color: String,
 }

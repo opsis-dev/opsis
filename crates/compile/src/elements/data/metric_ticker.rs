@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,108 +8,101 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::DarkOrLight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct MetricTickerMetric {
-    #[default = "Support tickets"]
-    #[schemars(description = "Label")]
+    #[setting("Label", default = "Support tickets")]
     pub label: String,
-    #[default = 320.0]
-    #[schemars(description = "Value")]
+    #[setting("Value", default = 320.0)]
     pub value: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Delta", extend("type" = "string"))]
+    #[setting("Delta", "type" = "string")]
     pub delta: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Trend", extend("type" = "array"))]
+    #[setting("Trend", "type" = "array")]
     pub trend: Option<Vec<f64>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Suffix", extend("type" = "string"))]
+    #[setting("Suffix", "type" = "string")]
     pub suffix: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "From", extend("type" = "number"))]
+    #[setting("From", "type" = "number")]
     pub from: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Prefix", extend("type" = "string"))]
+    #[setting("Prefix", "type" = "string")]
     pub prefix: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Color",
-        extend("x-widget" = "color", "x-zero-label" = "None", "type" = "string")
-    )]
+    #[setting("Color", widget = "color", zero_label = "None", "type" = "string")]
     pub color: Option<String>,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct MetricTicker {
-    #[default(vec![
-        MetricTickerMetric {
-            label: "Sign-ups".into(),
-            value: 12400.0,
-            delta: Some("+18%".into()),
-            trend: Some(vec![62.0, 71.0, 68.0, 84.0, 96.0, 112.0, 124.0]),
-            ..Default::default()
-        },
-        MetricTickerMetric {
-            label: "Avg. session".into(),
-            value: 48.0,
-            suffix: Some("min".into()),
-            delta: Some("+6%".into()),
-            trend: Some(vec![39.0, 41.0, 40.0, 43.0, 45.0, 44.0, 48.0]),
-            ..Default::default()
-        },
-        MetricTickerMetric {
-            delta: Some("-4%".into()),
-            trend: Some(vec![36.0, 35.0, 37.0, 34.0, 33.0, 33.5, 32.0]),
-            ..Default::default()
-        },
-    ])]
-    #[schemars(
-        description = "Metrics",
-        extend(
-            "x-help" = "Metric cards: label, value, and optional from, prefix, suffix, delta, trend, color. Set from above value for a metric that counts down."
-        )
+    #[setting(
+        "Metrics",
+        default = vec![
+            MetricTickerMetric {
+                label: "Sign-ups".into(),
+                value: 12400.0,
+                delta: Some("+18%".into()),
+                trend: Some(vec![62.0, 71.0, 68.0, 84.0, 96.0, 112.0, 124.0]),
+                ..Default::default()
+            },
+            MetricTickerMetric {
+                label: "Avg. session".into(),
+                value: 48.0,
+                suffix: Some("min".into()),
+                delta: Some("+6%".into()),
+                trend: Some(vec![39.0, 41.0, 40.0, 43.0, 45.0, 44.0, 48.0]),
+                ..Default::default()
+            },
+            MetricTickerMetric {
+                delta: Some("-4%".into()),
+                trend: Some(vec![36.0, 35.0, 37.0, 34.0, 33.0, 33.5, 32.0]),
+                ..Default::default()
+            },
+        ],
+        help = "Metric cards: label, value, and optional from, prefix, suffix, delta, trend, color. Set from above value for a metric that counts down."
     )]
     pub metrics: Vec<MetricTickerMetric>,
-    #[default = "Growth this quarter"]
-    #[schemars(description = "Title", extend("x-help" = "Scene title."))]
+    #[setting("Title", default = "Growth this quarter", help = "Scene title.")]
     pub title: String,
-    #[default = "Quarter recap"]
-    #[schemars(description = "Small heading", extend("x-help" = "Short label above the title."))]
+    #[setting(
+        "Small heading",
+        default = "Quarter recap",
+        help = "Short label above the title."
+    )]
     pub eyebrow: String,
-    #[default = 4]
-    #[schemars(
-        description = "Most cards",
-        extend("x-help" = "Cards beyond this count are dropped rather than squeezed.")
+    #[setting(
+        "Most cards",
+        default = 4,
+        help = "Cards beyond this count are dropped rather than squeezed."
     )]
     pub max_cards: u32,
-    #[schemars(
-        description = "Accent color",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Theme",
-            "x-help" = "Value colour, overridable per metric. Leave empty to follow the theme."
-        )
+    #[setting(
+        "Accent color",
+        widget = "color",
+        zero_label = "Theme",
+        help = "Value colour, overridable per metric. Leave empty to follow the theme."
     )]
     pub accent_color: String,
-    #[schemars(
-        description = "Background",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Theme",
-            "x-help" = "Leave empty to follow the theme."
-        )
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "Theme",
+        help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
-    #[default(DarkOrLight::Dark)]
-    #[schemars(
-        description = "Theme",
-        extend("x-help" = "Surface palette: text, cards and the change colours.")
+    #[setting(
+        "Theme",
+        default = DarkOrLight::Dark,
+        help = "Surface palette: text, cards and the change colours."
     )]
     pub theme: DarkOrLight,
 }

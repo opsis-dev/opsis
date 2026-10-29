@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -21,157 +22,145 @@ pub enum HighlightPreset {
     Shimmer,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct TextHighlight {
-    #[default = "Powered by "]
-    #[schemars(
-        description = "Before",
-        extend(
-            "x-show-if" = { "preset": ["marker", "color", "underline", "strikethrough", "shimmer"] }
-        )
+    #[setting(
+        "Before",
+        default = "Powered by ",
+        show_if = { "preset": ["marker", "color", "underline", "strikethrough", "shimmer"] }
     )]
     pub before: String,
-    #[default = "Northwind"]
-    #[schemars(description = "Highlight / wordmark")]
+    #[setting("Highlight / wordmark", default = "Northwind")]
     pub highlight: String,
-    #[schemars(
-        description = "After",
-        extend(
-            "x-show-if" = { "preset": ["marker", "color", "underline", "strikethrough", "shimmer"] }
-        )
+    #[setting(
+        "After",
+        show_if = { "preset": ["marker", "color", "underline", "strikethrough", "shimmer"] }
     )]
     pub after: String,
-    #[default(HighlightPreset::LogoWipe)]
-    #[schemars(description = "Preset")]
+    #[setting("Preset", default = HighlightPreset::LogoWipe)]
     pub preset: HighlightPreset,
-    #[schemars(description = "Base color", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
+    #[setting("Base color", widget = "color", zero_label = "Theme")]
     pub base_color: String,
-    #[default = "#266DF0"]
-    #[schemars(
-        description = "Accent color",
-        extend("x-widget" = "color", "x-zero-label" = "Theme")
+    #[setting(
+        "Accent color",
+        default = "#266DF0",
+        widget = "color",
+        zero_label = "Theme"
     )]
     pub accent_color: String,
-    #[schemars(
-        description = "Highlighted text colour",
-        extend("x-widget" = "color", "x-zero-label" = "Auto")
-    )]
+    #[setting("Highlighted text colour", widget = "color", zero_label = "Auto")]
     pub highlighted_text_color: String,
-    #[default = "Acme"]
-    #[schemars(description = "Replace with (strikethrough)")]
+    #[setting("Replace with (strikethrough)", default = "Acme")]
     pub replace_with: String,
-    #[default = 0.2]
-    #[schemars(
-        description = "Start at",
+    #[setting(
+        "Start at",
+        default = 0.2,
         range(min = 0, max = 4),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub start_at: f64,
-    #[default = 0.4667]
-    #[schemars(
-        description = "Draw time",
+    #[setting(
+        "Draw time",
+        default = 0.4667,
         range(min = 0.1667, max = 4),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub draw_duration: f64,
-    #[default = 4]
-    #[schemars(description = "Line thickness", range(min = 1, max = 20), extend("x-step" = 1))]
+    #[setting("Line thickness", default = 4, range(min = 1, max = 20), step = 1)]
     pub thickness: u32,
-    #[default = "#FAFAFA"]
-    #[schemars(
-        description = "Shine color (shimmer)",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Shine color (shimmer)", default = "#FAFAFA", check = colour)]
     pub shine_color: String,
-    #[default = "app:placeholders/logo-mark.svg"]
-    #[schemars(
-        description = "Logo",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-help" = "The mark the logo wipe uses."
-        )
+    #[setting(
+        "Logo",
+        default = "app:placeholders/logo-mark.svg",
+        widget = "asset",
+        accept = "image/*",
+        help = "The mark the logo wipe uses."
     )]
     pub logo_src: String,
-    #[default = 1.05]
-    #[schemars(
-        description = "Mark size (× font)",
+    #[setting(
+        "Mark size (× font)",
+        default = 1.05,
         range(min = 0.4, max = 3),
-        extend("x-step" = 0.05)
+        step = 0.05
     )]
     pub logo_scale: f64,
-    #[default = 1.0]
-    #[schemars(description = "Mark spin (turns)", range(min = 0, max = 4), extend("x-step" = 0.25))]
+    #[setting(
+        "Mark spin (turns)",
+        default = 1.0,
+        range(min = 0, max = 4),
+        step = 0.25
+    )]
     pub spin_turns: f64,
-    #[default = 0.4]
-    #[schemars(
-        description = "Lockup hold",
+    #[setting(
+        "Lockup hold",
+        default = 0.4,
         range(min = 0, max = 2),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub hold_duration: f64,
-    #[default = 0.8]
-    #[schemars(
-        description = "Rush time",
+    #[setting(
+        "Rush time",
+        default = 0.8,
         range(min = 0.2, max = 2.6667),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub rush_duration: f64,
-    #[default = 42]
-    #[schemars(description = "Rush scale (× mark)", range(min = 2, max = 80), extend("x-step" = 1))]
-    pub rush_scale: u32,
-    #[default = 0.55]
-    #[schemars(
-        description = "Swing across (× width)",
-        range(min = -0.8, max = 0.8),
-        extend("x-step" = 0.05)
+    #[setting(
+        "Rush scale (× mark)",
+        default = 42,
+        range(min = 2, max = 80),
+        step = 1
     )]
+    pub rush_scale: u32,
+    #[setting("Swing across (× width)", default = 0.55, range(min = -0.8, max = 0.8), step = 0.05)]
     pub rush_drift: f64,
-    #[default = 0.25]
-    #[schemars(
-        description = "Swing arc (× width)",
+    #[setting(
+        "Swing arc (× width)",
+        default = 0.25,
         range(min = 0, max = 0.33),
-        extend("x-step" = 0.01)
+        step = 0.01
     )]
     pub swing_out: f64,
-    #[default = "#266DF0"]
-    #[schemars(
-        description = "Ink color (end of rush)",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Ink color (end of rush)", default = "#266DF0", check = colour)]
     pub cover_color: String,
-    #[default = 56]
-    #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
+    #[setting("Font size", default = 56, range(min = 12, max = 160), step = 1)]
     pub font_size: u32,
-    #[default(FontWeight::W600)]
-    #[schemars(description = "Font weight")]
+    #[setting("Font weight", default = FontWeight::W600)]
     pub font_weight: FontWeight,
-    #[default(Theme::of(ThemeMode::Dark))]
-    #[schemars(transform = warm_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = warm_themes,
+        widget = "theme"
+    )]
     pub theme: Theme,
-    #[schemars(
-        description = "Background",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Theme",
-            "x-help" = "Set it to transparent to lay the text over other layers."
-        )
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "Theme",
+        help = "Set it to transparent to lay the text over other layers."
     )]
     pub background: String,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -16,48 +17,35 @@ pub enum SpeedLinesMode {
     Focus,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct SpeedLines {
-    #[default(SpeedLinesMode::Trail)]
-    #[schemars(description = "Mode")]
+    #[setting("Mode", default = SpeedLinesMode::Trail)]
     pub mode: SpeedLinesMode,
-    #[default = 12]
-    #[schemars(description = "Lines", range(min = 3, max = 32), extend("x-step" = 1))]
+    #[setting("Lines", default = 12, range(min = 3, max = 32), step = 1)]
     pub count: u32,
-    #[default = 2.0]
-    #[schemars(description = "Stroke weight", range(min = 1, max = 8), extend("x-step" = 0.5))]
+    #[setting("Stroke weight", default = 2.0, range(min = 1, max = 8), step = 0.5)]
     pub weight: f64,
-    #[default = 96]
-    #[schemars(description = "Spread", range(min = 16, max = 320), extend("x-step" = 4))]
+    #[setting("Spread", default = 96, range(min = 16, max = 320), step = 4)]
     pub spread: u32,
-    #[default = 14]
-    #[schemars(description = "Travel frames", range(min = 6, max = 40), extend("x-step" = 1))]
+    #[setting("Travel frames", default = 14, range(min = 6, max = 40), step = 1)]
     pub duration: u32,
-    #[default = 0.5]
-    #[schemars(description = "Bounce", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Bounce", default = 0.5, range(min = 0, max = 1), step = 0.05)]
     pub bounce: f64,
-    #[default = 0.5]
-    #[schemars(description = "Point x", range(min = 0, max = 1), extend("x-step" = 0.01))]
+    #[setting("Point x", default = 0.5, range(min = 0, max = 1), step = 0.01)]
     pub x: f64,
-    #[default = 0.5]
-    #[schemars(description = "Point y", range(min = 0, max = 1), extend("x-step" = 0.01))]
+    #[setting("Point y", default = 0.5, range(min = 0, max = 1), step = 0.01)]
     pub y: f64,
-    #[schemars(description = "Delay", range(min = 0, max = 60), extend("x-step" = 1))]
+    #[setting("Delay", range(min = 0, max = 60), step = 1)]
     pub delay: u32,
-    #[default = "#ffffff"]
-    #[schemars(
-        description = "Line color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Line color", default = "#ffffff", check = colour)]
     pub color: String,
-    #[default = 1]
-    #[schemars(description = "Seed", range(min = 1), extend("x-step" = 1))]
+    #[setting("Seed", default = 1, range(min = 1), step = 1)]
     pub seed: u32,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

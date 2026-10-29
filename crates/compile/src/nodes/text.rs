@@ -2,6 +2,7 @@ use std::sync::LazyLock;
 
 use icu_segmenter::WordSegmenter;
 use icu_segmenter::options::WordBreakInvariantOptions;
+use opsis_macros::settings;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::recording::{AnnotationKind, HighlightLook};
@@ -106,61 +107,82 @@ pub fn script_to_captions(script: &str, pace: ScriptPace) -> Vec<Caption> {
 
 macro_rules! labelled_annotation {
     ($name:ident, text = $text:literal, color = $color:literal, font_size = $size:literal $(, text_color = $text_color:literal)?) => {
+        #[settings]
         #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
         #[serde(rename_all = "camelCase", default)]
         pub struct $name {
             #[serde(rename = "match")]
-            #[schemars(
-                description = "Show on actions named",
-                extend("x-help" = "Leave empty to show on every click, typing, hover and drag. Matches part of an action's name.")
+            #[setting(
+                "Show on actions named",
+                help = "Leave empty to show on every click, typing, hover and drag. Matches part of an action's name."
             )]
             pub match_text: String,
-            #[default = $text]
-            #[schemars(description = "Text", extend("x-check" = { "rule": "not-blank", "message": "Add the text to show" }))]
+            #[setting(
+                "Text",
+                default = $text,
+                check = { "rule": "not-blank", "message": "Add the text to show" }
+            )]
             pub text: String,
-            #[default = $color]
-            #[schemars(
-                description = "Colour",
-                extend("x-widget" = "color", "x-zero-label" = "Default", "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" })
+            #[setting(
+                "Colour",
+                default = $color,
+                widget = "color",
+                zero_label = "Default",
+                check = colour_or_empty
             )]
             pub color: String,
-            #[default = 10]
-            #[schemars(description = "Space around", range(min = 0, max = 80), extend("x-unit" = "px"))]
+            #[setting("Space around", default = 10, range(min = 0, max = 80), unit = "px")]
             pub padding: u32,
-            #[default = 250]
-            #[schemars(description = "Appear early by", range(min = 0, max = 5000), extend("x-step" = 50, "x-unit" = "ms"))]
+            #[setting(
+                "Appear early by",
+                default = 250,
+                range(min = 0, max = 5000),
+                step = 50,
+                unit = "ms"
+            )]
             pub lead_ms: u32,
-            #[default = 1400]
-            #[schemars(description = "Stay for", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+            #[setting(
+                "Stay for",
+                default = 1400,
+                range(min = 0, max = 10000),
+                step = 50,
+                unit = "ms"
+            )]
             pub hold_ms: u32,
             $(
-                #[default = $text_color]
-                #[schemars(
-                    description = "Text colour",
-                    extend("x-widget" = "color", "x-zero-label" = "Default", "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" })
+                #[setting(
+                    "Text colour",
+                    default = $text_color,
+                    widget = "color",
+                    zero_label = "Default",
+                    check = colour_or_empty
                 )]
                 pub text_color: String,
             )?
-            #[default = $size]
-            #[schemars(description = "Font size", range(min = 8, max = 160), extend("x-unit" = "px"))]
+            #[setting("Font size", default = $size, range(min = 8, max = 160), unit = "px")]
             pub font_size: u32,
-            #[schemars(description = "Font", extend("x-widget" = "font", "x-help" = "Project font follows the fonts set for the whole project."))]
+            #[setting(
+                "Font",
+                widget = "font",
+                help = "Project font follows the fonts set for the whole project."
+            )]
             pub font: String,
-            #[default(HighlightLook::Clean)]
-            #[schemars(
-                description = "Look",
-                extend(
-                    "x-labels" = { "clean": "Clean", "box": "Hand-drawn box", "circle": "Circle", "underline": "Underline", "marker": "Marker" },
-                    "x-help" = "The hand-drawn looks draw themselves in as the action starts.",
-                    "x-hidden" = true
-                )
+            #[setting(
+                "Look",
+                default = HighlightLook::Clean,
+                labels = { "clean": "Clean", "box": "Hand-drawn box", "circle": "Circle", "underline": "Underline", "marker": "Marker" },
+                help = "The hand-drawn looks draw themselves in as the action starts.",
+                hidden
             )]
             pub look: HighlightLook,
-            #[default = 1.0]
-            #[schemars(
-                description = "Sketchiness",
+            #[setting(
+                "Sketchiness",
+                default = 1.0,
                 range(min = 0, max = 3),
-                extend("x-step" = 0.1, "x-advanced" = true, "x-hidden" = true, "x-show-if" = { "look": ["box", "circle", "underline", "marker"] })
+                step = 0.1,
+                advanced,
+                hidden,
+                show_if = { "look": ["box", "circle", "underline", "marker"] }
             )]
             pub roughness: f64,
         }
@@ -228,19 +250,33 @@ impl Annotation for CalloutArrow {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct CaptionsFromScript {
-    #[default = "Record a real flow. Turn it into a cinematic demo."]
-    #[schemars(description = "Script", extend("x-widget" = "textarea", "x-check" = { "rule": "not-blank", "message": "Write a script" }))]
+    #[setting(
+        "Script",
+        default = "Record a real flow. Turn it into a cinematic demo.",
+        widget = "textarea",
+        check = { "rule": "not-blank", "message": "Write a script" }
+    )]
     pub script: String,
-    #[default = 165]
-    #[schemars(description = "Speaking pace", range(min = 60, max = 400), extend("x-unit" = "words/min"))]
+    #[setting(
+        "Speaking pace",
+        default = 165,
+        range(min = 60, max = 400),
+        unit = "words/min"
+    )]
     pub words_per_minute: u32,
-    #[schemars(description = "Start at", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting("Start at", range(min = 0, max = 600000), step = 50, unit = "ms")]
     pub start_ms: u32,
-    #[default = 350]
-    #[schemars(description = "Pause between sentences", range(min = 0, max = 5000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Pause between sentences",
+        default = 350,
+        range(min = 0, max = 5000),
+        step = 50,
+        unit = "ms"
+    )]
     pub line_pause_ms: u32,
 }
 

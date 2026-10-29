@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,25 +7,19 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct TvPowerOff {
-    #[default = 18]
-    #[schemars(description = "Duration", range(min = 8, max = 30), extend("x-step" = 1))]
+    #[setting("Duration", default = 18, range(min = 8, max = 30), step = 1)]
     pub duration_in_frames: u32,
-    #[default = 1.0]
-    #[schemars(description = "Surge", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Surge", default = 1.0, range(min = 0, max = 2), step = 0.05)]
     pub gain: f64,
-    #[default = 1.0]
-    #[schemars(description = "Afterglow", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Afterglow", default = 1.0, range(min = 0, max = 2), step = 0.05)]
     pub afterglow: f64,
-    #[default = "#d8ecff"]
-    #[schemars(
-        description = "Phosphor",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Phosphor", default = "#d8ecff", check = colour)]
     pub phosphor: String,
 }
 

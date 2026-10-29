@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::actions::Bounds;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
@@ -60,57 +61,63 @@ impl Cursor {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Record {
-    #[default = 30]
-    #[schemars(description = "Frame rate", extend("enum" = [25, 30, 60], "x-unit" = "fps"))]
+    #[setting("Frame rate", default = 30, "enum" = [25, 30, 60], unit = "fps")]
     pub fps: u32,
-    #[schemars(
-        description = "Timing",
-        extend(
-            "x-labels" = { "real": "Real time", "smooth": "Smooth (slower)" },
-            "x-help" = "Smooth gives every frame its own picture, however busy the computer is. It takes longer to record than the take lasts."
-        )
+    #[setting(
+        "Timing",
+        labels = { "real": "Real time", "smooth": "Smooth (slower)" },
+        help = "Smooth gives every frame its own picture, however busy the computer is. It takes longer to record than the take lasts."
     )]
     pub timing: Timing,
-    #[schemars(
-        description = "Frame pictures",
-        extend(
-            "x-labels" = { "standard": "Standard", "lossless": "Lossless", "full-detail": "Full detail" },
-            "x-help" = "Standard matches real-time takes. Lossless keeps every pixel exact and takes about 70% longer to record. Full detail uses every pixel of a high-density screen: sharper, with twice the width and height, but about four times as long to record.",
-            "x-show-if" = { "timing": ["smooth"] }
-        )
+    #[setting(
+        "Frame pictures",
+        labels = { "standard": "Standard", "lossless": "Lossless", "full-detail": "Full detail" },
+        help = "Standard matches real-time takes. Lossless keeps every pixel exact and takes about 70% longer to record. Full detail uses every pixel of a high-density screen: sharper, with twice the width and height, but about four times as long to record.",
+        show_if = { "timing": ["smooth"] }
     )]
     pub pictures: FramePicture,
-    #[default = 90]
-    #[schemars(
-        description = "Recording quality",
+    #[setting(
+        "Recording quality",
+        default = 90,
         range(min = 10, max = 100),
-        extend("x-step" = 5, "x-unit" = "%", "x-advanced" = true)
+        step = 5,
+        unit = "%",
+        advanced
     )]
     pub quality: u32,
-    #[default = 700]
-    #[schemars(description = "Pause before the first action", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
-    pub establish_ms: u32,
-    #[default = 2500]
-    #[schemars(
-        description = "Keep recording after the last action",
+    #[setting(
+        "Pause before the first action",
+        default = 700,
         range(min = 0, max = 600000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-help" = "Gives the camera time to settle at the end.")
+        step = 50,
+        unit = "ms"
+    )]
+    pub establish_ms: u32,
+    #[setting(
+        "Keep recording after the last action",
+        default = 2500,
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms",
+        help = "Gives the camera time to settle at the end."
     )]
     pub end_tail_ms: u32,
-    #[default(Cursor::Synthetic)]
-    #[schemars(description = "Cursor", extend("x-labels" = { "synthetic": "Smooth", "baked": "As on screen", "none": "None" }))]
+    #[setting(
+        "Cursor",
+        default = Cursor::Synthetic,
+        labels = { "synthetic": "Smooth", "baked": "As on screen", "none": "None" }
+    )]
     pub cursor: Cursor,
-    #[schemars(description = "Quick mode: show action labels on the video")]
+    #[setting("Quick mode: show action labels on the video")]
     pub show_actions: bool,
-    #[schemars(
-        description = "Don't record at the same time as",
-        extend(
-            "x-help" = "Takes that share this name run one after another, e.g. when they change the same account.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Don't record at the same time as",
+        help = "Takes that share this name run one after another, e.g. when they change the same account.",
+        advanced
     )]
     pub mutates: String,
 }
@@ -145,42 +152,49 @@ pub enum StillLook {
     Bleed,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Still {
-    #[default(Region::Viewport)]
-    #[schemars(
-        description = "Capture",
-        extend("x-labels" = { "viewport": "Visible part", "full-page": "Whole page", "element": "One element" })
+    #[setting(
+        "Capture",
+        default = Region::Viewport,
+        labels = { "viewport": "Visible part", "full-page": "Whole page", "element": "One element" }
     )]
     pub region: Region,
-    #[schemars(description = "Element", extend("x-widget" = "target", "x-show-if" = { "region": ["element"] }))]
+    #[setting("Element", widget = "target", show_if = { "region": ["element"] })]
     pub target: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Role of the picked element", extend("x-hidden" = true))]
+    #[setting("Role of the picked element", hidden)]
     pub target_role: Option<String>,
-    #[default = 24]
-    #[schemars(
-        description = "Space around",
+    #[setting(
+        "Space around",
+        default = 24,
         range(min = 0, max = 400),
-        extend("x-unit" = "px", "x-show-if" = { "region": ["element"] })
+        unit = "px",
+        show_if = { "region": ["element"] }
     )]
     pub padding: u32,
-    #[default(StillLook::Window)]
-    #[schemars(description = "Style", extend("x-labels" = { "window": "Window", "cutout": "Cut-out", "bleed": "Full bleed" }))]
+    #[setting(
+        "Style",
+        default = StillLook::Window,
+        labels = { "window": "Window", "cutout": "Cut-out", "bleed": "Full bleed" }
+    )]
     pub look: StillLook,
-    #[default = "glaze"]
-    #[schemars(description = "Backdrop", extend("x-widget" = "backdrop"))]
+    #[setting("Backdrop", default = "glaze", widget = "backdrop")]
     pub backdrop: String,
-    #[default = 3000]
-    #[schemars(description = "Length", range(min = 100, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Length",
+        default = 3000,
+        range(min = 100, max = 600000),
+        step = 50,
+        unit = "ms"
+    )]
     pub duration_ms: u32,
-    #[schemars(
-        description = "Keyframes",
-        extend(
-            "x-help" = "Change opacity, position and size over time. Edit them here or on the timeline.",
-            "x-widget" = "envelope"
-        )
+    #[setting(
+        "Keyframes",
+        help = "Change opacity, position and size over time. Edit them here or on the timeline.",
+        widget = "envelope"
     )]
     pub envelope: VisualEnvelope,
 }

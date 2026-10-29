@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,59 +7,49 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct MultiDeviceLineup {
-    #[default = 1.6]
-    #[schemars(
-        description = "Scale",
+    #[setting(
+        "Scale",
+        default = 1.6,
         range(min = 0.4, max = 2),
-        extend("x-step" = 0.1, "x-help" = "Overall size of the lineup.")
+        step = 0.1,
+        help = "Overall size of the lineup."
     )]
     pub scale: f64,
-    #[default = 9]
-    #[schemars(
-        description = "Stagger",
-        extend("x-unit" = "frames", "x-help" = "Frames between devices.", "x-advanced" = true)
+    #[setting(
+        "Stagger",
+        default = 9,
+        unit = "frames",
+        help = "Frames between devices.",
+        advanced
     )]
     pub stagger_in_frames: u32,
-    #[default = "#15171D"]
-    #[schemars(
-        description = "Bezel color",
-        extend(
-            "x-help" = "Device body.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
-    )]
+    #[setting("Bezel color", default = "#15171D", help = "Device body.", check = colour)]
     pub bezel_color: String,
-    #[default = "#0B0C11"]
-    #[schemars(
-        description = "Screen color",
-        extend(
-            "x-help" = "Screen behind your content.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Screen color",
+        default = "#0B0C11",
+        help = "Screen behind your content.",
+        check = colour
     )]
     pub screen_color: String,
-    #[default = "#7A828F"]
-    #[schemars(
-        description = "Label color",
-        extend(
-            "x-help" = "Captions under the devices.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Label color",
+        default = "#7A828F",
+        help = "Captions under the devices.",
+        check = colour
     )]
     pub label_color: String,
-    #[default = "Phone"]
-    #[schemars(description = "Phone label")]
+    #[setting("Phone label", default = "Phone")]
     pub phone_label: String,
-    #[default = "Tablet"]
-    #[schemars(description = "Tablet label")]
+    #[setting("Tablet label", default = "Tablet")]
     pub tablet_label: String,
-    #[default = "Laptop"]
-    #[schemars(description = "Laptop label")]
+    #[setting("Laptop label", default = "Laptop")]
     pub laptop_label: String,
 }
 

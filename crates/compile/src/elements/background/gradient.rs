@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,28 +7,19 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Gradient {
-    #[default = "#1e1b4b"]
-    #[schemars(
-        description = "From",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("From", default = "#1e1b4b", check = colour)]
     pub from: String,
-    #[default = "#0f172a"]
-    #[schemars(
-        description = "To",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("To", default = "#0f172a", check = colour)]
     pub to: String,
-    #[default = 135]
-    #[schemars(description = "Angle", range(min = 0, max = 360), extend("x-step" = 1))]
+    #[setting("Angle", default = 135, range(min = 0, max = 360), step = 1)]
     pub angle: u32,
-    #[default = 0.08]
-    #[schemars(description = "Grain", range(min = 0, max = 0.4), extend("x-step" = 0.01))]
+    #[setting("Grain", default = 0.08, range(min = 0, max = 0.4), step = 0.01)]
     pub grain: f64,
 }
 

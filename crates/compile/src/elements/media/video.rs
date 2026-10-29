@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,32 +8,25 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Fit;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Video {
-    #[schemars(description = "Video", extend("x-widget" = "asset", "x-accept" = "video/*"))]
+    #[setting("Video", widget = "asset", accept = "video/*")]
     pub src: String,
-    #[default(Fit::Cover)]
-    #[schemars(description = "Fit")]
+    #[setting("Fit", default = Fit::Cover)]
     pub fit: Fit,
-    #[schemars(description = "Loop")]
+    #[setting("Loop")]
     pub r#loop: bool,
-    #[default = true]
-    #[schemars(description = "Muted")]
+    #[setting("Muted", default = true)]
     pub muted: bool,
-    #[default = 1.0]
-    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Volume", default = 1.0, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.05))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.05)]
     pub playback_rate: f64,
-    #[schemars(
-        description = "Start at",
-        range(min = 0, max = 3600000),
-        extend("x-step" = 100, "x-unit" = "ms")
-    )]
+    #[setting("Start at", range(min = 0, max = 3600000), step = 100, unit = "ms")]
     pub trim_before_ms: u32,
 }
 

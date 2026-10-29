@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,22 +7,19 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct VhsFilter {
-    #[default = 1.0]
-    #[schemars(description = "Chroma bleed", range(min = 0, max = 3), extend("x-step" = 0.1))]
+    #[setting("Chroma bleed", default = 1.0, range(min = 0, max = 3), step = 0.1)]
     pub bleed: f64,
-    #[default = 1.0]
-    #[schemars(description = "Tape wobble", range(min = 0, max = 3), extend("x-step" = 0.1))]
+    #[setting("Tape wobble", default = 1.0, range(min = 0, max = 3), step = 0.1)]
     pub wobble: f64,
-    #[default = 1.0]
-    #[schemars(description = "Noise", range(min = 0, max = 3), extend("x-step" = 0.1))]
+    #[setting("Noise", default = 1.0, range(min = 0, max = 3), step = 0.1)]
     pub noise: f64,
-    #[default = 1.0]
-    #[schemars(description = "Intensity", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Intensity", default = 1.0, range(min = 0, max = 1), step = 0.05)]
     pub intensity: f64,
 }
 

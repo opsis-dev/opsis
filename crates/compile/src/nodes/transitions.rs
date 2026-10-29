@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::TransitionRef;
@@ -100,14 +101,13 @@ fn speed_row(length: u32, designed: u32, fps: u32) -> Option<CardRow> {
     )
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 struct KeepWholeField {
-    #[schemars(
-        description = "Keep both clips whole",
-        extend(
-            "x-help" = "The transition plays over a still of the last and first frames, so neither clip loses screen time. The result gets longer by the transition."
-        )
+    #[setting(
+        "Keep both clips whole",
+        help = "The transition plays over a still of the last and first frames, so neither clip loses screen time. The result gets longer by the transition."
     )]
     keep_whole: bool,
 }
@@ -167,16 +167,21 @@ fn presentation_node(meta: &'static ElementMeta) -> NodeDef {
         })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LightLeakCut {
-    #[default = 30]
-    #[schemars(description = "Length", range(min = 1, max = 108000), extend("x-step" = 1, "x-unit" = "frames"))]
+    #[setting(
+        "Length",
+        default = 30,
+        range(min = 1, max = 108000),
+        step = 1,
+        unit = "frames"
+    )]
     pub duration_in_frames: u32,
-    #[default = 3]
-    #[schemars(description = "Variation", range(min = 0, max = 100))]
+    #[setting("Variation", default = 3, range(min = 0, max = 100))]
     pub seed: u32,
-    #[schemars(description = "Colour shift", range(min = 0, max = 360), extend("x-unit" = "°"))]
+    #[setting("Colour shift", range(min = 0, max = 360), unit = "°")]
     pub hue_shift: f64,
 }
 

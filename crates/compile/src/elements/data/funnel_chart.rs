@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,129 +7,107 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct FunnelChartStage {
-    #[default = "Upgraded"]
-    #[schemars(description = "Label")]
+    #[setting("Label", default = "Upgraded")]
     pub label: String,
-    #[default = 1750]
-    #[schemars(description = "Value", range(min = 0, max = 1000000000), extend("x-step" = 1))]
+    #[setting("Value", default = 1750, range(min = 0, max = 1000000000), step = 1)]
     pub value: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Color",
-        extend("x-widget" = "color", "x-zero-label" = "None", "type" = "string")
-    )]
+    #[setting("Color", widget = "color", zero_label = "None", "type" = "string")]
     pub color: Option<String>,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct FunnelChart {
-    #[default(vec![
-        FunnelChartStage { label: "Visited the site".into(), value: 42800, ..Default::default() },
-        FunnelChartStage { label: "Signed up".into(), value: 18600, ..Default::default() },
-        FunnelChartStage { label: "Created a project".into(), value: 9400, ..Default::default() },
-        FunnelChartStage { label: "Invited a teammate".into(), value: 4100, ..Default::default() },
-        FunnelChartStage::default(),
-    ])]
-    #[schemars(description = "Stages", length(min = 1))]
+    #[setting(
+        "Stages",
+        default = vec![
+            FunnelChartStage { label: "Visited the site".into(), value: 42800, ..Default::default() },
+            FunnelChartStage { label: "Signed up".into(), value: 18600, ..Default::default() },
+            FunnelChartStage { label: "Created a project".into(), value: 9400, ..Default::default() },
+            FunnelChartStage { label: "Invited a teammate".into(), value: 4100, ..Default::default() },
+            FunnelChartStage::default(),
+        ],
+        length(min = 1)
+    )]
     pub stages: Vec<FunnelChartStage>,
-    #[default = 1100.0]
-    #[schemars(
-        description = "Width",
-        extend("x-help" = "Overall width: label gutter, funnel and drop-off gutter.")
+    #[setting(
+        "Width",
+        default = 1100.0,
+        help = "Overall width: label gutter, funnel and drop-off gutter."
     )]
     pub width: f64,
-    #[default = 560.0]
-    #[schemars(description = "Height", extend("x-help" = "Overall height. Bands split it evenly."))]
+    #[setting(
+        "Height",
+        default = 560.0,
+        help = "Overall height. Bands split it evenly."
+    )]
     pub height: f64,
-    #[default = 10.0]
-    #[schemars(description = "Gap", extend("x-help" = "Space between bands.", "x-advanced" = true))]
+    #[setting("Gap", default = 10.0, help = "Space between bands.", advanced)]
     pub gap: f64,
-    #[default = 0.5]
-    #[schemars(
-        description = "Last bar opacity",
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Opacity of the last band; earlier bands ramp toward 1.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Last bar opacity",
+        default = 0.5,
+        step = 0.01,
+        help = "Opacity of the last band; earlier bands ramp toward 1.",
+        advanced
     )]
     pub tail_opacity: f64,
-    #[default = true]
-    #[schemars(
-        description = "Show drop-off",
-        extend("x-help" = "Drop-off chip between consecutive stages.")
+    #[setting(
+        "Show drop-off",
+        default = true,
+        help = "Drop-off chip between consecutive stages."
     )]
     pub show_dropoff: bool,
-    #[schemars(
-        description = "Show conversion",
-        extend("x-help" = "Share of the first stage, printed beside each value.")
+    #[setting(
+        "Show conversion",
+        help = "Share of the first stage, printed beside each value."
     )]
     pub show_conversion: bool,
-    #[default = 22]
-    #[schemars(
-        description = "Animation length",
+    #[setting(
+        "Animation length",
+        default = 22,
         range(min = 1, max = 300),
-        extend(
-            "x-step" = 1,
-            "x-unit" = "frames",
-            "x-help" = "Length of one band's wipe.",
-            "x-advanced" = true
-        )
+        step = 1,
+        unit = "frames",
+        help = "Length of one band's wipe.",
+        advanced
     )]
     pub duration_in_frames: u32,
-    #[default = 12]
-    #[schemars(
-        description = "Stagger",
-        extend(
-            "x-unit" = "frames",
-            "x-help" = "Frames between one band and the next.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Stagger",
+        default = 12,
+        unit = "frames",
+        help = "Frames between one band and the next.",
+        advanced
     )]
     pub stagger_in_frames: u32,
-    #[default = "#e8b86d"]
-    #[schemars(
-        description = "Color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Color", default = "#e8b86d", check = colour)]
     pub color: String,
-    #[default = "#fafafa"]
-    #[schemars(
-        description = "Text color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Text color", default = "#fafafa", check = colour)]
     pub ink_color: String,
-    #[default = "rgba(250,250,250,0.55)"]
-    #[schemars(
-        description = "Label color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Label color", default = "rgba(250,250,250,0.55)", check = colour)]
     pub label_color: String,
-    #[default = "#f472b6"]
-    #[schemars(
-        description = "Drop-off color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Drop-off color", default = "#f472b6", check = colour)]
     pub dropoff_color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Label width",
+    #[setting(
+        "Label width",
         range(min = 0, max = 2000),
-        extend(
-            "x-zero-label" = "Auto",
-            "x-step" = 10,
-            "x-unit" = "px",
-            "x-advanced" = true,
-            "type" = "integer"
-        )
+        zero_label = "Auto",
+        step = 10,
+        unit = "px",
+        advanced,
+        "type" = "integer"
     )]
     pub label_width: Option<u32>,
 }

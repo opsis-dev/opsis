@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use opsis_macros::settings;
 use schemars::{JsonSchema, Schema};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -23,10 +24,11 @@ pub enum ThemeMode {
     Dark,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema, specta::Type)]
 pub struct Theme {
     pub mode: ThemeMode,
-    #[schemars(extend("propertyNames" = { "type": "string" }))]
+    #[setting("propertyNames" = { "type": "string" })]
     pub colors: IndexMap<String, String>,
 }
 

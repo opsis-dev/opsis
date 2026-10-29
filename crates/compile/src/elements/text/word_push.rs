@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,55 +8,43 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::FontWeight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct WordPush {
-    #[default = "move at your own pace"]
-    #[schemars(description = "Text")]
+    #[setting("Text", default = "move at your own pace")]
     pub text: String,
-    #[default = 72]
-    #[schemars(description = "Font size", range(min = 12, max = 160), extend("x-step" = 1))]
+    #[setting("Font size", default = 72, range(min = 12, max = 160), step = 1)]
     pub font_size: u32,
-    #[default = 10]
-    #[schemars(description = "Frames / word", range(min = 3, max = 30), extend("x-step" = 1))]
+    #[setting("Frames / word", default = 10, range(min = 3, max = 30), step = 1)]
     pub word_gap: u32,
-    #[default = 0.8]
-    #[schemars(
-        description = "Gap shrink / word",
+    #[setting(
+        "Gap shrink / word",
+        default = 0.8,
         range(min = 0.5, max = 1),
-        extend("x-step" = 0.05)
+        step = 0.05
     )]
     pub accel: f64,
-    #[default = "#171717"]
-    #[schemars(
-        description = "Color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Color", default = "#171717", check = colour)]
     pub color: String,
-    #[default(FontWeight::W400)]
-    #[schemars(description = "Font weight")]
+    #[setting("Font weight", default = FontWeight::W400)]
     pub font_weight: FontWeight,
-    #[default = "white"]
-    #[schemars(
-        description = "Background",
-        extend(
-            "x-help" = "Set it to transparent to lay the text over other layers.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Background",
+        default = "white",
+        help = "Set it to transparent to lay the text over other layers.",
+        check = colour
     )]
     pub background: String,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,30 +8,37 @@ use crate::elements::entry::{element, meta};
 use crate::elements::theme::{Theme, ThemeMode, warm_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct HeroLaunch {
-    #[default = "app:placeholders/screen-wide.svg"]
-    #[schemars(description = "Left card (image/video)", extend("x-widget" = "asset"))]
+    #[setting(
+        "Left card (image/video)",
+        default = "app:placeholders/screen-wide.svg",
+        widget = "asset"
+    )]
     pub image1: String,
-    #[default = "app:backdrops/aurora.jpg"]
-    #[schemars(description = "Right card (image/video)", extend("x-widget" = "asset"))]
+    #[setting(
+        "Right card (image/video)",
+        default = "app:backdrops/aurora.jpg",
+        widget = "asset"
+    )]
     pub image2: String,
-    #[default = "Launch day, done right"]
-    #[schemars(description = "Headline")]
+    #[setting("Headline", default = "Launch day, done right")]
     pub heading: String,
-    #[default(Theme::of(ThemeMode::Dark))]
-    #[schemars(transform = warm_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = warm_themes,
+        widget = "theme"
+    )]
     pub theme: Theme,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
 }

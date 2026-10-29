@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,67 +8,70 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Orientation;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LogoEnterLogo {
-    #[default = "app:placeholders/logo-mark.svg"]
-    #[schemars(description = "Image", extend("x-widget" = "asset", "x-accept" = "image/*"))]
-    pub image: String,
-    #[default = "#2563eb"]
-    #[schemars(
-        description = "Background",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
+    #[setting(
+        "Image",
+        default = "app:placeholders/logo-mark.svg",
+        widget = "asset",
+        accept = "image/*"
     )]
+    pub image: String,
+    #[setting("Background", default = "#2563eb", check = colour)]
     pub background: String,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LogoEnter {
-    #[default = 118]
-    #[schemars(
-        description = "Diameter",
+    #[setting(
+        "Diameter",
+        default = 118,
         range(min = 48, max = 320),
-        extend("x-step" = 1, "x-unit" = "px")
+        step = 1,
+        unit = "px"
     )]
     pub diameter: u32,
-    #[default = 38]
-    #[schemars(
-        description = "Overlap",
+    #[setting(
+        "Overlap",
+        default = 38,
         range(min = 0, max = 200),
-        extend("x-step" = 1, "x-unit" = "px")
+        step = 1,
+        unit = "px"
     )]
     pub overlap: u32,
-    #[default = "#fff"]
-    #[schemars(
-        description = "Ring",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Ring", default = "#fff", check = colour)]
     pub ring_color: String,
-    #[default(Orientation::Horizontal)]
-    #[schemars(description = "Orientation")]
+    #[setting("Orientation", default = Orientation::Horizontal)]
     pub orientation: Orientation,
-    #[default = 0.2333]
-    #[schemars(
-        description = "Stagger",
+    #[setting(
+        "Stagger",
+        default = 0.2333,
         range(min = 0),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub stagger: f64,
-    #[default(vec![
-        LogoEnterLogo::default(),
-        LogoEnterLogo { background: "#0f766e".into(), ..Default::default() },
-        LogoEnterLogo { background: "#b45309".into(), ..Default::default() },
-        LogoEnterLogo { background: "#7c3aed".into(), ..Default::default() },
-    ])]
-    #[schemars(description = "Logos", length(min = 1, max = 16))]
+    #[setting(
+        "Logos",
+        default = vec![
+            LogoEnterLogo::default(),
+            LogoEnterLogo { background: "#0f766e".into(), ..Default::default() },
+            LogoEnterLogo { background: "#b45309".into(), ..Default::default() },
+            LogoEnterLogo { background: "#7c3aed".into(), ..Default::default() },
+        ],
+        length(min = 1, max = 16)
+    )]
     pub logos: Vec<LogoEnterLogo>,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

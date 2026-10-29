@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,59 +8,59 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Confetti {
-    #[default = 140]
-    #[schemars(description = "Particles", range(min = 10, max = 400), extend("x-step" = 10))]
+    #[setting("Particles", default = 140, range(min = 10, max = 400), step = 10)]
     pub particle_count: u32,
-    #[default = 17]
-    #[schemars(description = "Power", range(min = 4, max = 40), extend("x-step" = 1))]
+    #[setting("Power", default = 17, range(min = 4, max = 40), step = 1)]
     pub power: u32,
-    #[default = 0.45]
-    #[schemars(description = "Gravity", range(min = 0, max = 1.5), extend("x-step" = 0.05))]
+    #[setting("Gravity", default = 0.45, range(min = 0, max = 1.5), step = 0.05)]
     pub gravity: f64,
-    #[default = 13]
-    #[schemars(description = "Size", range(min = 4, max = 30), extend("x-step" = 1))]
+    #[setting("Size", default = 13, range(min = 4, max = 30), step = 1)]
     pub size: u32,
-    #[default = 1]
-    #[schemars(description = "Seed", range(min = 1), extend("x-step" = 1))]
+    #[setting("Seed", default = 1, range(min = 1), step = 1)]
     pub seed: u32,
-    #[default(vec![
-        "#1d9bf0".into(),
-        "#ff5da2".into(),
-        "#ffd23f".into(),
-        "#22c55e".into(),
-        "#a855f7".into(),
-        "#ff7a45".into(),
-    ])]
-    #[schemars(description = "Colours", length(min = 1, max = 12))]
+    #[setting(
+        "Colours",
+        default = vec![
+            "#1d9bf0".into(),
+            "#ff5da2".into(),
+            "#ffd23f".into(),
+            "#22c55e".into(),
+            "#a855f7".into(),
+            "#ff7a45".into(),
+        ],
+        length(min = 1, max = 12)
+    )]
     pub colors: Vec<Colour>,
-    #[default = 0.5]
-    #[schemars(
-        description = "Burst from",
+    #[setting(
+        "Burst from",
+        default = 0.5,
         range(min = 0, max = 1),
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Click the frame to choose the spot.",
-            "x-widget" = "spot"
-        )
+        step = 0.01,
+        help = "Click the frame to choose the spot.",
+        widget = "spot"
     )]
     pub origin_x: f64,
-    #[default = 0.5]
-    #[schemars(
-        description = "Burst from vertical",
+    #[setting(
+        "Burst from vertical",
+        default = 0.5,
         range(min = 0, max = 1),
-        extend("x-step" = 0.01, "x-hidden" = true)
+        step = 0.01,
+        hidden
     )]
     pub origin_y: f64,
-    #[default = 3.0]
-    #[schemars(
-        description = "How long pieces last",
+    #[setting(
+        "How long pieces last",
+        default = 3.0,
         range(min = 0.3333, max = 20),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub lifetime: f64,
 }

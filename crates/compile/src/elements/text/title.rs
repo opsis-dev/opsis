@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -39,76 +40,58 @@ pub enum Entrance {
     None,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Title {
-    #[schemars(description = "Eyebrow")]
+    #[setting("Eyebrow")]
     pub eyebrow: String,
-    #[default = "Sign up in 10 seconds"]
-    #[schemars(description = "Title")]
+    #[setting("Title", default = "Sign up in 10 seconds")]
     pub title: String,
-    #[schemars(description = "Subtitle")]
+    #[setting("Subtitle")]
     pub subtitle: String,
-    #[schemars(
-        description = "Mark a word",
-        extend("x-help" = "Words from the title to draw a hand-drawn mark on, after the title comes in. Leave empty for none.")
+    #[setting(
+        "Mark a word",
+        help = "Words from the title to draw a hand-drawn mark on, after the title comes in. Leave empty for none."
     )]
     pub mark: String,
-    #[default(MarkLook::Underline)]
-    #[schemars(
-        description = "Mark",
-        extend(
-            "x-labels" = {
-                "underline": "Underline",
-                "circle": "Circle",
-                "box": "Box",
-                "marker": "Marker",
-                "crossed-off": "Crossed out"
-            }
-        )
+    #[setting(
+        "Mark",
+        default = MarkLook::Underline,
+        labels = {
+            "underline": "Underline",
+            "circle": "Circle",
+            "box": "Box",
+            "marker": "Marker",
+            "crossed-off": "Crossed out"
+        }
     )]
     pub mark_look: MarkLook,
-    #[default = "#facc15"]
-    #[schemars(
-        description = "Mark colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Mark colour", default = "#facc15", check = colour)]
     pub mark_color: String,
-    #[default(TitleAlign::Center)]
-    #[schemars(description = "Alignment")]
+    #[setting("Alignment", default = TitleAlign::Center)]
     pub align: TitleAlign,
-    #[default(Entrance::Rise)]
-    #[schemars(description = "Entrance")]
+    #[setting("Entrance", default = Entrance::Rise)]
     pub entrance: Entrance,
-    #[default = "#fafafa"]
-    #[schemars(
-        description = "Text colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Text colour", default = "#fafafa", check = colour)]
     pub color: String,
-    #[default = "#a78bfa"]
-    #[schemars(
-        description = "Accent",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Accent", default = "#a78bfa", check = colour)]
     pub accent: String,
-    #[default = "transparent"]
-    #[schemars(description = "Background (colour, gradient or 'transparent')")]
+    #[setting(
+        "Background (colour, gradient or 'transparent')",
+        default = "transparent"
+    )]
     pub background: String,
-    #[default = 112]
-    #[schemars(description = "Font size", range(min = 24, max = 260), extend("x-step" = 1))]
+    #[setting("Font size", default = 112, range(min = 24, max = 260), step = 1)]
     pub font_size: u32,
-    #[default = 760]
-    #[schemars(description = "Font weight", range(min = 100, max = 900), extend("x-step" = 10))]
+    #[setting("Font weight", default = 760, range(min = 100, max = 900), step = 10)]
     pub font_weight: u32,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
 }

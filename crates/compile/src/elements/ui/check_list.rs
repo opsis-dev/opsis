@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,118 +8,105 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::FontWeight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct CheckListItem {
-    #[default = "New item"]
-    #[schemars(description = "Text")]
+    #[setting("Text", default = "New item")]
     pub text: String,
-    #[default = true]
-    #[schemars(description = "Ticked")]
+    #[setting("Ticked", default = true)]
     pub checked: bool,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct CheckList {
-    #[default = 40]
-    #[schemars(description = "Font size", range(min = 24, max = 64), extend("x-step" = 2))]
+    #[setting("Font size", default = 40, range(min = 24, max = 64), step = 2)]
     pub font_size: u32,
-    #[default = 0.6]
-    #[schemars(
-        description = "Time between items",
+    #[setting(
+        "Time between items",
+        default = 0.6,
         range(min = 0.2, max = 1.6),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub item_gap: f64,
-    #[default = 0.3]
-    #[schemars(
-        description = "Time between ticks",
+    #[setting(
+        "Time between ticks",
+        default = 0.3,
         range(min = 0.1, max = 0.8),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub close_gap: f64,
-    #[default = 1.6]
-    #[schemars(description = "Letters / pose", range(min = 0.8, max = 3), extend("x-step" = 0.2))]
+    #[setting("Letters / pose", default = 1.6, range(min = 0.8, max = 3), step = 0.2)]
     pub per_step: f64,
-    #[default = 3]
-    #[schemars(description = "Stroke width", range(min = 1, max = 8), extend("x-step" = 1))]
+    #[setting("Stroke width", default = 3, range(min = 1, max = 8), step = 1)]
     pub stroke_width: u32,
-    #[default = "#26242c"]
-    #[schemars(
-        description = "Label color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Label color", default = "#26242c", check = colour)]
     pub color: String,
-    #[default = "#6f7f35"]
-    #[schemars(
-        description = "Tick color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Tick color", default = "#6f7f35", check = colour)]
     pub tick_color: String,
-    #[default = 0.1]
-    #[schemars(
-        description = "Time per pose",
+    #[setting(
+        "Time per pose",
+        default = 0.1,
         range(min = 0.0333, max = 0.2),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub step: f64,
-    #[default(vec![
-        CheckListItem { text: "Record the walkthrough".into(), ..Default::default() },
-        CheckListItem { text: "Add captions and zooms".into(), ..Default::default() },
-        CheckListItem { text: "Export for the launch".into(), checked: false },
-    ])]
-    #[schemars(description = "Items")]
+    #[setting(
+        "Items",
+        default = vec![
+            CheckListItem { text: "Record the walkthrough".into(), ..Default::default() },
+            CheckListItem { text: "Add captions and zooms".into(), ..Default::default() },
+            CheckListItem { text: "Export for the launch".into(), checked: false },
+        ]
+    )]
     pub items: Vec<CheckListItem>,
-    #[default = 720]
-    #[schemars(
-        description = "Width",
+    #[setting(
+        "Width",
+        default = 720,
         range(min = 200, max = 1800),
-        extend("x-step" = 10, "x-unit" = "px")
+        step = 10,
+        unit = "px"
     )]
     pub width: u32,
-    #[default = "#26242c"]
-    #[schemars(
-        description = "Box colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Box colour", default = "#26242c", check = colour)]
     pub box_color: String,
-    #[default(FontWeight::W600)]
-    #[schemars(description = "Font weight")]
+    #[setting("Font weight", default = FontWeight::W600)]
     pub weight: FontWeight,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Row gap",
+    #[setting(
+        "Row gap",
         range(min = 0, max = 200),
-        extend(
-            "x-zero-label" = "Auto",
-            "x-step" = 1,
-            "x-unit" = "px",
-            "x-advanced" = true,
-            "type" = "integer"
-        )
+        zero_label = "Auto",
+        step = 1,
+        unit = "px",
+        advanced,
+        "type" = "integer"
     )]
     pub row_gap: Option<u32>,
-    #[default = "checklist"]
-    #[schemars(
-        description = "Variation",
-        extend(
-            "x-help" = "Change it to draw the handwriting a little differently.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Variation",
+        default = "checklist",
+        help = "Change it to draw the handwriting a little differently.",
+        advanced
     )]
     pub seed: String,
-    #[default = "white"]
-    #[schemars(
-        description = "Background",
-        extend(
-            "x-help" = "Set it to transparent to lay the text over other layers.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Background",
+        default = "white",
+        help = "Set it to transparent to lay the text over other layers.",
+        check = colour
     )]
     pub background: String,
 }

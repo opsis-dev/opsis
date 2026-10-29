@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,31 +8,27 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ShaderSwirl {
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.1, max = 4), extend("x-step" = 0.1))]
+    #[setting("Speed", default = 1.0, range(min = 0.1, max = 4), step = 0.1)]
     pub speed: f64,
-    #[default = 4]
-    #[schemars(description = "Bands", range(min = 1, max = 12), extend("x-step" = 1))]
+    #[setting("Bands", default = 4, range(min = 1, max = 12), step = 1)]
     pub band_count: u32,
-    #[default = 0.1]
-    #[schemars(description = "Twist", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Twist", default = 0.1, range(min = 0, max = 1), step = 0.05)]
     pub twist: f64,
-    #[default = 0.2]
-    #[schemars(description = "Softness", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Softness", default = 0.2, range(min = 0, max = 1), step = 0.05)]
     pub softness: f64,
-    #[default = "#12121a"]
-    #[schemars(
-        description = "Background",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background", default = "#12121a", check = colour)]
     pub color_back: String,
-    #[default(vec!["#52527a".into(), "#3a3a5c".into(), "#232338".into()])]
-    #[schemars(description = "Colours", length(min = 2, max = 10))]
+    #[setting(
+        "Colours",
+        default = vec!["#52527a".into(), "#3a3a5c".into(), "#232338".into()],
+        length(min = 2, max = 10)
+    )]
     pub colors: Vec<Colour>,
 }
 

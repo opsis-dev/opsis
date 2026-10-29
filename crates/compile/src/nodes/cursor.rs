@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::recording::{
@@ -54,98 +55,121 @@ impl CursorShape {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct CursorStyle {
-    #[default = true]
-    #[schemars(description = "Show the cursor")]
+    #[setting("Show the cursor", default = true)]
     pub visible: bool,
-    #[default(CursorShape::Arrow)]
-    #[schemars(
-        description = "Look",
-        extend(
-            "x-labels" = { "arrow": "Simple arrow", "mac": "Mac" },
-            "x-help" = "Mac turns into a pointing hand over links and buttons and a text cursor over fields, as the page asks."
-        )
+    #[setting(
+        "Look",
+        default = CursorShape::Arrow,
+        labels = { "arrow": "Simple arrow", "mac": "Mac" },
+        help = "Mac turns into a pointing hand over links and buttons and a text cursor over fields, as the page asks."
     )]
     pub look: CursorShape,
-    #[default = 1.0]
-    #[schemars(description = "Size", range(min = 0.4, max = 3), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Size",
+        default = 1.0,
+        range(min = 0.4, max = 3),
+        step = 0.05,
+        unit = "×"
+    )]
     pub size: f64,
-    #[default = "#111418"]
-    #[schemars(
-        description = "Colour",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Default",
-            "x-show-if" = { "look": ["arrow"] },
-            "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Colour",
+        default = "#111418",
+        widget = "color",
+        zero_label = "Default",
+        show_if = { "look": ["arrow"] },
+        check = colour_or_empty
     )]
     pub color: String,
-    #[default = "#ffffff"]
-    #[schemars(
-        description = "Outline colour",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Default",
-            "x-show-if" = { "look": ["arrow"] },
-            "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Outline colour",
+        default = "#ffffff",
+        widget = "color",
+        zero_label = "Default",
+        show_if = { "look": ["arrow"] },
+        check = colour_or_empty
     )]
     pub outline: String,
 }
 
 impl Params for CursorStyle {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ClickRipple {
-    #[default = true]
-    #[schemars(description = "Ripple on every click")]
+    #[setting("Ripple on every click", default = true)]
     pub enabled: bool,
-    #[default = "#0f172a"]
-    #[schemars(
-        description = "Colour",
-        extend("x-widget" = "color", "x-zero-label" = "Default", "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" })
+    #[setting(
+        "Colour",
+        default = "#0f172a",
+        widget = "color",
+        zero_label = "Default",
+        check = colour_or_empty
     )]
     pub color: String,
-    #[default = 1.0]
-    #[schemars(description = "Size", range(min = 0.3, max = 4), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Size",
+        default = 1.0,
+        range(min = 0.3, max = 4),
+        step = 0.05,
+        unit = "×"
+    )]
     pub size: f64,
-    #[default = 2.0]
-    #[schemars(description = "Ring width", range(min = 0.5, max = 12), extend("x-step" = 0.5, "x-unit" = "px", "x-advanced" = true))]
+    #[setting(
+        "Ring width",
+        default = 2.0,
+        range(min = 0.5, max = 12),
+        step = 0.5,
+        unit = "px",
+        advanced
+    )]
     pub width: f64,
 }
 
 impl Params for ClickRipple {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct KeystrokeChips {
-    #[default(KeystrokePosition::Bottom)]
-    #[schemars(description = "Position", extend("x-labels" = { "bottom": "Bottom", "top": "Top" }))]
+    #[setting(
+        "Position",
+        default = KeystrokePosition::Bottom,
+        labels = { "bottom": "Bottom", "top": "Top" }
+    )]
     pub position: KeystrokePosition,
-    #[default = true]
-    #[schemars(description = "Show typed text")]
+    #[setting("Show typed text", default = true)]
     pub typed: bool,
-    #[default = true]
-    #[schemars(description = "Show shortcuts")]
+    #[setting("Show shortcuts", default = true)]
     pub chords: bool,
-    #[default = "#0a0a0a"]
-    #[schemars(
-        description = "Keycap colour",
-        extend("x-widget" = "color", "x-zero-label" = "Default", "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" })
+    #[setting(
+        "Keycap colour",
+        default = "#0a0a0a",
+        widget = "color",
+        zero_label = "Default",
+        check = colour_or_empty
     )]
     pub keycap: String,
-    #[default = "#ffffff"]
-    #[schemars(
-        description = "Text colour",
-        extend("x-widget" = "color", "x-zero-label" = "Default", "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" })
+    #[setting(
+        "Text colour",
+        default = "#ffffff",
+        widget = "color",
+        zero_label = "Default",
+        check = colour_or_empty
     )]
     pub ink: String,
-    #[default = 1.0]
-    #[schemars(description = "Size", range(min = 0.4, max = 3), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Size",
+        default = 1.0,
+        range(min = 0.4, max = 3),
+        step = 0.05,
+        unit = "×"
+    )]
     pub size: f64,
 }
 
@@ -186,52 +210,60 @@ pub trait Annotation: Params {
 
 macro_rules! annotation_params {
     ($name:ident, look_hidden = $hidden:literal, color = $color:literal) => {
+        #[settings]
         #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
         #[serde(rename_all = "camelCase", default)]
         pub struct $name {
             #[serde(rename = "match")]
-            #[schemars(
-                description = "Show on actions named",
-                extend("x-help" = "Leave empty to show on every click, typing, hover and drag. Matches part of an action's name.")
+            #[setting(
+                "Show on actions named",
+                help = "Leave empty to show on every click, typing, hover and drag. Matches part of an action's name."
             )]
             pub match_text: String,
-            #[schemars(description = "Text", extend("x-hidden" = true))]
+            #[setting("Text", hidden)]
             pub text: String,
-            #[default = $color]
-            #[schemars(
-                description = "Colour",
-                extend("x-widget" = "color", "x-zero-label" = "Default", "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" })
+            #[setting(
+                "Colour",
+                default = $color,
+                widget = "color",
+                zero_label = "Default",
+                check = colour_or_empty
             )]
             pub color: String,
-            #[default = 10]
-            #[schemars(description = "Space around", range(min = 0, max = 80), extend("x-unit" = "px"))]
+            #[setting("Space around", default = 10, range(min = 0, max = 80), unit = "px")]
             pub padding: u32,
-            #[default = 250]
-            #[schemars(description = "Appear early by", range(min = 0, max = 5000), extend("x-step" = 50, "x-unit" = "ms"))]
+            #[setting(
+                "Appear early by",
+                default = 250,
+                range(min = 0, max = 5000),
+                step = 50,
+                unit = "ms"
+            )]
             pub lead_ms: u32,
-            #[default = 1400]
-            #[schemars(description = "Stay for", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+            #[setting(
+                "Stay for",
+                default = 1400,
+                range(min = 0, max = 10000),
+                step = 50,
+                unit = "ms"
+            )]
             pub hold_ms: u32,
-            #[default(HighlightLook::Clean)]
-            #[schemars(
-                description = "Look",
-                extend(
-                    "x-labels" = { "clean": "Clean", "box": "Hand-drawn box", "circle": "Circle", "underline": "Underline", "marker": "Marker" },
-                    "x-help" = "The hand-drawn looks draw themselves in as the action starts.",
-                    "x-hidden" = $hidden
-                )
+            #[setting(
+                "Look",
+                default = HighlightLook::Clean,
+                labels = { "clean": "Clean", "box": "Hand-drawn box", "circle": "Circle", "underline": "Underline", "marker": "Marker" },
+                help = "The hand-drawn looks draw themselves in as the action starts.",
+                hidden = $hidden
             )]
             pub look: HighlightLook,
-            #[default = 1.0]
-            #[schemars(
-                description = "Sketchiness",
+            #[setting(
+                "Sketchiness",
+                default = 1.0,
                 range(min = 0, max = 3),
-                extend(
-                    "x-step" = 0.1,
-                    "x-advanced" = true,
-                    "x-hidden" = $hidden,
-                    "x-show-if" = { "look": ["box", "circle", "underline", "marker"] }
-                )
+                step = 0.1,
+                advanced,
+                hidden = $hidden,
+                show_if = { "look": ["box", "circle", "underline", "marker"] }
             )]
             pub roughness: f64,
         }

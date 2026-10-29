@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,13 +8,13 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Direction;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Flip {
-    #[default(Direction::FromRight)]
-    #[schemars(description = "Direction")]
+    #[setting("Direction", default = Direction::FromRight)]
     pub direction: Direction,
 }
 

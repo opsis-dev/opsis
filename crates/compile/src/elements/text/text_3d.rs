@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::CameraPath;
 use schemars::JsonSchema;
@@ -25,89 +26,73 @@ pub struct PreparedTypeface {
     pub typeface_italic: bool,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Text3d {
-    #[default = "Ship faster"]
-    #[schemars(description = "Text", extend("x-widget" = "textarea"))]
+    #[setting("Text", default = "Ship faster", widget = "textarea")]
     pub text: String,
-    #[schemars(
-        description = "Font",
-        extend("x-widget" = "font", "x-help" = "Empty uses the project's heading font.")
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Empty uses the project's heading font."
     )]
     pub font_family: String,
-    #[default = 800]
-    #[schemars(description = "Font weight", range(min = 100, max = 900), extend("x-step" = 10))]
+    #[setting("Font weight", default = 800, range(min = 100, max = 900), step = 10)]
     pub font_weight: u32,
-    #[schemars(description = "Italic")]
+    #[setting("Italic")]
     pub italic: bool,
-    #[default = 0.35]
-    #[schemars(description = "Depth", range(min = 0.05, max = 1), extend("x-step" = 0.05))]
+    #[setting("Depth", default = 0.35, range(min = 0.05, max = 1), step = 0.05)]
     pub depth: f64,
-    #[default = 0.4]
-    #[schemars(description = "Rounded edges", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Rounded edges", default = 0.4, range(min = 0, max = 1), step = 0.05)]
     pub bevel: f64,
-    #[default = "#fafafa"]
-    #[schemars(
-        description = "Colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Colour", default = "#fafafa", check = colour)]
     pub color: String,
-    #[default = 0.2]
-    #[schemars(description = "Metal", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Metal", default = 0.2, range(min = 0, max = 1), step = 0.05)]
     pub metalness: f64,
-    #[default(TextAlign::Center)]
-    #[schemars(description = "Alignment")]
+    #[setting("Alignment", default = TextAlign::Center)]
     pub align: TextAlign,
-    #[default = 16]
-    #[schemars(
-        description = "Line length",
+    #[setting(
+        "Line length",
+        default = 16,
         range(min = 4, max = 60),
-        extend(
-            "x-step" = 1,
-            "x-unit" = "letters",
-            "x-help" = "Long text wraps onto a new line after about this many letters."
-        )
+        step = 1,
+        unit = "letters",
+        help = "Long text wraps onto a new line after about this many letters."
     )]
     pub line_width: u32,
-    #[default(Motion::TiltIn)]
-    #[schemars(
-        description = "Motion",
-        extend(
-            "x-labels" = {
-                "spin": "Spin",
-                "tilt-in": "Tilt in",
-                "float": "Float",
-                "orbit": "Orbit",
-                "swing": "Swing",
-                "still": "Still",
-                "keyframes": "Keyframes"
-            }
-        )
+    #[setting(
+        "Motion",
+        default = Motion::TiltIn,
+        labels = {
+            "spin": "Spin",
+            "tilt-in": "Tilt in",
+            "float": "Float",
+            "orbit": "Orbit",
+            "swing": "Swing",
+            "still": "Still",
+            "keyframes": "Keyframes"
+        }
     )]
     pub motion: Motion,
-    #[schemars(
-        description = "Camera keyframes",
-        extend(
-            "x-help" = "Turn, raise and move the camera at chosen moments. Add a key at the playhead, then set it. Drag keys on the timeline to move them.",
-            "x-widget" = "camera",
-            "x-show-if" = { "motion": ["keyframes"] }
-        )
+    #[setting(
+        "Camera keyframes",
+        help = "Turn, raise and move the camera at chosen moments. Add a key at the playhead, then set it. Drag keys on the timeline to move them.",
+        widget = "camera",
+        show_if = { "motion": ["keyframes"] }
     )]
     pub camera: CameraPath,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 3), extend("x-step" = 0.05))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 3), step = 0.05)]
     pub speed: f64,
-    #[default(Lighting::Studio)]
-    #[schemars(
-        description = "Lighting",
-        extend("x-labels" = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" })
+    #[setting(
+        "Lighting",
+        default = Lighting::Studio,
+        labels = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" }
     )]
     pub lighting: Lighting,
-    #[default = "transparent"]
-    #[schemars(description = "Background")]
+    #[setting("Background", default = "transparent")]
     pub background: String,
 }
 

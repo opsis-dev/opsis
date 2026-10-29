@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -21,55 +22,46 @@ pub enum GrainGradientShape {
     Sphere,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ShaderGrainGradient {
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.1, max = 4), extend("x-step" = 0.1))]
+    #[setting("Speed", default = 1.0, range(min = 0.1, max = 4), step = 0.1)]
     pub speed: f64,
-    #[default = 0.6]
-    #[schemars(description = "Softness", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Softness", default = 0.6, range(min = 0, max = 1), step = 0.05)]
     pub softness: f64,
-    #[default = 0.2]
-    #[schemars(description = "Intensity", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Intensity", default = 0.2, range(min = 0, max = 1), step = 0.05)]
     pub intensity: f64,
-    #[default = 0.15]
-    #[schemars(description = "Noise", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Noise", default = 0.15, range(min = 0, max = 1), step = 0.05)]
     pub noise: f64,
-    #[default = "#12121a"]
-    #[schemars(
-        description = "Background",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background", default = "#12121a", check = colour)]
     pub color_back: String,
-    #[default(vec!["#3a3a52".into(), "#4a4a68".into(), "#5a5a7e".into()])]
-    #[schemars(description = "Colours", length(min = 2, max = 7))]
+    #[setting(
+        "Colours",
+        default = vec!["#3a3a52".into(), "#4a4a68".into(), "#5a5a7e".into()],
+        length(min = 2, max = 7)
+    )]
     pub colors: Vec<Colour>,
-    #[default(GrainGradientShape::Corners)]
-    #[schemars(description = "Pattern")]
+    #[setting("Pattern", default = GrainGradientShape::Corners)]
     pub shape: GrainGradientShape,
-    #[default = 1.0]
-    #[schemars(
-        description = "Scale",
+    #[setting(
+        "Scale",
+        default = 1.0,
         range(min = 0.1, max = 4),
-        extend(
-            "x-step" = 0.05,
-            "x-help" = "How large the pattern is in the frame.",
-            "x-advanced" = true
-        )
+        step = 0.05,
+        help = "How large the pattern is in the frame.",
+        advanced
     )]
     pub scale: f64,
-    #[schemars(
-        description = "Turn",
+    #[setting(
+        "Turn",
         range(min = 0, max = 360),
-        extend(
-            "x-step" = 1,
-            "x-unit" = "°",
-            "x-help" = "Turns the pattern around the middle of the frame.",
-            "x-advanced" = true
-        )
+        step = 1,
+        unit = "°",
+        help = "Turns the pattern around the middle of the frame.",
+        advanced
     )]
     pub rotation: u32,
 }

@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -16,63 +17,40 @@ pub enum MockupDevice {
     Laptop,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct DeviceMockupZoom {
-    #[schemars(
-        description = "Media",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in screen",
-            "x-help" = "Shown on the screen when no clip is connected. Leave empty for a built-in demo screen."
-        )
+    #[setting(
+        "Media",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in screen",
+        help = "Shown on the screen when no clip is connected. Leave empty for a built-in demo screen."
     )]
     pub src: String,
-    #[schemars(
-        description = "Title",
-        extend(
-            "x-help" = "Optional headline. When omitted, the device remains the sole focal point."
-        )
+    #[setting(
+        "Title",
+        help = "Optional headline. When omitted, the device remains the sole focal point."
     )]
     pub title: String,
-    #[schemars(
-        description = "Subtitle",
-        extend("x-help" = "Optional supporting line under the headline.")
-    )]
+    #[setting("Subtitle", help = "Optional supporting line under the headline.")]
     pub subtitle: String,
-    #[schemars(
-        description = "Small heading",
-        extend("x-help" = "Optional accent label above the headline.")
-    )]
+    #[setting("Small heading", help = "Optional accent label above the headline.")]
     pub eyebrow: String,
-    #[default(MockupDevice::Laptop)]
-    #[schemars(
-        description = "Device",
-        extend(
-            "x-help" = "Mockup shell. Laptop includes a physical base, browser renders chrome only, phone renders a handheld frame."
-        )
+    #[setting(
+        "Device",
+        default = MockupDevice::Laptop,
+        help = "Mockup shell. Laptop includes a physical base, browser renders chrome only, phone renders a handheld frame."
     )]
     pub device: MockupDevice,
-    #[default = "#080810"]
-    #[schemars(
-        description = "Background color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background color", default = "#080810", check = colour)]
     pub background_color: String,
-    #[default = "#e8b86d"]
-    #[schemars(
-        description = "Accent color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Accent color", default = "#e8b86d", check = colour)]
     pub accent_color: String,
-    #[default = "#f8fafc"]
-    #[schemars(
-        description = "Text color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Text color", default = "#f8fafc", check = colour)]
     pub text_color: String,
 }
 

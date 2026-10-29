@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,113 +8,87 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct DonutChartSegment {
-    #[default = "Referral"]
-    #[schemars(description = "Label")]
+    #[setting("Label", default = "Referral")]
     pub label: String,
-    #[default = 880.0]
-    #[schemars(description = "Value")]
+    #[setting("Value", default = 880.0)]
     pub value: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Color",
-        extend("x-widget" = "color", "x-zero-label" = "None", "type" = "string")
-    )]
+    #[setting("Color", widget = "color", zero_label = "None", "type" = "string")]
     pub color: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Delta", extend("type" = "string"))]
+    #[setting("Delta", "type" = "string")]
     pub delta: Option<String>,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct DonutChart {
-    #[default(vec![
-        DonutChartSegment { label: "Direct".into(), value: 4820.0, ..Default::default() },
-        DonutChartSegment { label: "Search".into(), value: 3140.0, ..Default::default() },
-        DonutChartSegment { label: "Social".into(), value: 1960.0, ..Default::default() },
-        DonutChartSegment::default(),
-    ])]
-    #[schemars(description = "Segments")]
+    #[setting(
+        "Segments",
+        default = vec![
+            DonutChartSegment { label: "Direct".into(), value: 4820.0, ..Default::default() },
+            DonutChartSegment { label: "Search".into(), value: 3140.0, ..Default::default() },
+            DonutChartSegment { label: "Social".into(), value: 1960.0, ..Default::default() },
+            DonutChartSegment::default(),
+        ]
+    )]
     pub segments: Vec<DonutChartSegment>,
-    #[default = 520.0]
-    #[schemars(description = "Size", extend("x-help" = "All type scales off it."))]
+    #[setting("Size", default = 520.0, help = "All type scales off it.")]
     pub size: f64,
-    #[default = 46.0]
-    #[schemars(description = "Thickness", extend("x-help" = "Ring thickness."))]
+    #[setting("Thickness", default = 46.0, help = "Ring thickness.")]
     pub thickness: f64,
-    #[default(vec!["#e8b86d".into(), "#2dd4bf".into(), "#f472b6".into(), "#8b8bf5".into()])]
-    #[schemars(description = "Colors", length(min = 1))]
+    #[setting(
+        "Colors",
+        default = vec!["#e8b86d".into(), "#2dd4bf".into(), "#f472b6".into(), "#8b8bf5".into()],
+        length(min = 1)
+    )]
     pub colors: Vec<Colour>,
-    #[default = true]
-    #[schemars(
-        description = "Show legend",
-        extend("x-help" = "Legend rows beside the ring, arriving with their own slice.")
+    #[setting(
+        "Show legend",
+        default = true,
+        help = "Legend rows beside the ring, arriving with their own slice."
     )]
     pub show_legend: bool,
-    #[default = true]
-    #[schemars(description = "Show total", extend("x-help" = "Running total in the hole."))]
+    #[setting("Show total", default = true, help = "Running total in the hole.")]
     pub show_total: bool,
-    #[default = "Sessions"]
-    #[schemars(description = "Total label", extend("x-help" = "Caption under the total."))]
+    #[setting("Total label", default = "Sessions", help = "Caption under the total.")]
     pub total_label: String,
-    #[default = 26]
-    #[schemars(
-        description = "Animation length",
+    #[setting(
+        "Animation length",
+        default = 26,
         range(min = 1, max = 300),
-        extend(
-            "x-step" = 1,
-            "x-unit" = "frames",
-            "x-help" = "Length of one segment's sweep.",
-            "x-advanced" = true
-        )
+        step = 1,
+        unit = "frames",
+        help = "Length of one segment's sweep.",
+        advanced
     )]
     pub duration_in_frames: u32,
-    #[default = 9]
-    #[schemars(
-        description = "Stagger",
-        extend(
-            "x-unit" = "frames",
-            "x-help" = "Frames between one segment and the next.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Stagger",
+        default = 9,
+        unit = "frames",
+        help = "Frames between one segment and the next.",
+        advanced
     )]
     pub stagger_in_frames: u32,
-    #[default = "rgba(250,250,250,0.08)"]
-    #[schemars(
-        description = "Track color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Track color", default = "rgba(250,250,250,0.08)", check = colour)]
     pub track_color: String,
-    #[default = "rgba(250,250,250,0.58)"]
-    #[schemars(
-        description = "Label color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Label color", default = "rgba(250,250,250,0.58)", check = colour)]
     pub label_color: String,
-    #[default = "#fafafa"]
-    #[schemars(
-        description = "Text color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Text color", default = "#fafafa", check = colour)]
     pub ink_color: String,
-    #[default = "#2dd4bf"]
-    #[schemars(
-        description = "Increase color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Increase color", default = "#2dd4bf", check = colour)]
     pub up_color: String,
-    #[default = "#f87171"]
-    #[schemars(
-        description = "Decrease color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Decrease color", default = "#f87171", check = colour)]
     pub down_color: String,
 }
 

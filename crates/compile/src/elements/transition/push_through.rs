@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,16 +7,15 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct PushThrough {
-    #[default = 2.4]
-    #[schemars(description = "Zoom", range(min = 1.5, max = 4), extend("x-step" = 0.1))]
+    #[setting("Zoom", default = 2.4, range(min = 1.5, max = 4), step = 0.1)]
     pub zoom: f64,
-    #[default = 14]
-    #[schemars(description = "Blur", range(min = 0, max = 30), extend("x-step" = 1))]
+    #[setting("Blur", default = 14, range(min = 0, max = 30), step = 1)]
     pub blur: u32,
 }
 

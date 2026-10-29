@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,96 +8,84 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::DarkOrLight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct StatCard {
-    #[default = 98.0]
-    #[schemars(description = "Value", extend("x-help" = "Number the counter lands on."))]
+    #[setting("Value", default = 98.0, help = "Number the counter lands on.")]
     pub value: f64,
-    #[default = "%"]
-    #[schemars(description = "Suffix", extend("x-help" = "Unit after the number."))]
+    #[setting("Suffix", default = "%", help = "Unit after the number.")]
     pub suffix: String,
-    #[schemars(description = "Prefix", extend("x-help" = "Unit before the number."))]
+    #[setting("Prefix", help = "Unit before the number.")]
     pub prefix: String,
-    #[schemars(
-        description = "Decimals",
+    #[setting(
+        "Decimals",
         range(min = 0, max = 6),
-        extend(
-            "x-step" = 1,
-            "x-help" = "Decimal places while counting and at rest.",
-            "x-advanced" = true
-        )
+        step = 1,
+        help = "Decimal places while counting and at rest.",
+        advanced
     )]
     pub decimals: u32,
-    #[default = "Satisfaction"]
-    #[schemars(description = "Label", extend("x-help" = "Metric label."))]
+    #[setting("Label", default = "Satisfaction", help = "Metric label.")]
     pub label: String,
-    #[default = "Customer survey, last 30 days"]
-    #[schemars(
-        description = "Caption",
-        extend("x-help" = "Line under the label (source, window, cohort).")
+    #[setting(
+        "Caption",
+        default = "Customer survey, last 30 days",
+        help = "Line under the label (source, window, cohort)."
     )]
     pub caption: String,
-    #[default = 4]
-    #[schemars(
-        description = "Change",
+    #[setting(
+        "Change",
+        default = 4,
         range(min = -1000000, max = 1000000),
-        extend(
-            "x-step" = 1,
-            "x-help" = "Change against the previous period; lands after the number settles.",
-            "x-show-if" = { "showDelta": ["true"] }
-        )
+        step = 1,
+        help = "Change against the previous period; lands after the number settles.",
+        show_if = { "showDelta": ["true"] }
     )]
     pub delta: i32,
-    #[default = "%"]
-    #[schemars(
-        description = "Change suffix",
-        extend("x-help" = "Unit on the delta chip.", "x-show-if" = { "showDelta": ["true"] })
+    #[setting(
+        "Change suffix",
+        default = "%",
+        help = "Unit on the delta chip.",
+        show_if = { "showDelta": ["true"] }
     )]
     pub delta_suffix: String,
-    #[default = "#2DD4BF"]
-    #[schemars(
-        description = "Accent color",
-        extend(
-            "x-help" = "Ring, suffix, and delta colour.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Accent color",
+        default = "#2DD4BF",
+        help = "Ring, suffix, and delta colour.",
+        check = colour
     )]
     pub accent_color: String,
-    #[default(DarkOrLight::Dark)]
-    #[schemars(description = "Theme", extend("x-help" = "Surface palette."))]
+    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
     pub theme: DarkOrLight,
-    #[default = 1.0]
-    #[schemars(
-        description = "Speed",
+    #[setting(
+        "Speed",
+        default = 1.0,
         range(min = 0.25, max = 4),
-        extend("x-step" = 0.25, "x-help" = "Animation speed multiplier.")
+        step = 0.25,
+        help = "Animation speed multiplier."
     )]
     pub speed: f64,
-    #[default = true]
-    #[schemars(description = "Show change")]
+    #[setting("Show change", default = true)]
     pub show_delta: bool,
-    #[schemars(
-        description = "Background",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Theme",
-            "x-help" = "Leave empty to follow the theme."
-        )
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "Theme",
+        help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Ring full at",
+    #[setting(
+        "Ring full at",
         range(min = 0, max = 1000000000),
-        extend(
-            "x-zero-label" = "Full ring",
-            "x-step" = 1,
-            "x-help" = "The ring fills to the value out of this. Leave empty for a full ring.",
-            "type" = "integer"
-        )
+        zero_label = "Full ring",
+        step = 1,
+        help = "The ring fills to the value out of this. Leave empty for a full ring.",
+        "type" = "integer"
     )]
     pub max: Option<u32>,
 }

@@ -4860,6 +4860,7 @@ dependencies = [
  "nanoid",
  "num-format",
  "opsis-golden",
+ "opsis-macros",
  "opsis-types",
  "percent-encoding",
  "proptest",
@@ -5019,6 +5020,16 @@ dependencies = [
  "tokio",
  "tokio-util",
  "wuff",
+]
+
+[[package]]
+name = "opsis-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "proptest",
+ "quote",
+ "syn 3.0.9",
 ]
 
 [[package]]

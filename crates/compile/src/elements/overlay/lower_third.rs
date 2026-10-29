@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -17,44 +18,28 @@ pub enum Corner {
     TopRight,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LowerThird {
-    #[default = "Ada Lovelace"]
-    #[schemars(description = "Title")]
+    #[setting("Title", default = "Ada Lovelace")]
     pub title: String,
-    #[default = "Founder, Acme"]
-    #[schemars(description = "Subtitle")]
+    #[setting("Subtitle", default = "Founder, Acme")]
     pub subtitle: String,
-    #[default(Corner::BottomLeft)]
-    #[schemars(description = "Position")]
+    #[setting("Position", default = Corner::BottomLeft)]
     pub position: Corner,
-    #[default = "#a78bfa"]
-    #[schemars(
-        description = "Accent",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Accent", default = "#a78bfa", check = colour)]
     pub accent: String,
-    #[default = "#fafafa"]
-    #[schemars(
-        description = "Text colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Text colour", default = "#fafafa", check = colour)]
     pub color: String,
-    #[default = "rgba(10,10,12,0.72)"]
-    #[schemars(
-        description = "Panel colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Panel colour", default = "rgba(10,10,12,0.72)", check = colour)]
     pub panel: String,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
 }

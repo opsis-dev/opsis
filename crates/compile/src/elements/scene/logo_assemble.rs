@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,61 +8,70 @@ use crate::elements::entry::{element, meta};
 use crate::elements::theme::{Theme, ThemeMode, warm_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LogoAssembleImage {
-    #[default = "app:backdrops/aurora.jpg"]
-    #[schemars(description = "Image", extend("x-widget" = "asset", "x-accept" = "image/*"))]
+    #[setting(
+        "Image",
+        default = "app:backdrops/aurora.jpg",
+        widget = "asset",
+        accept = "image/*"
+    )]
     pub image: String,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LogoAssemble {
-    #[default = "Acme"]
-    #[schemars(description = "Brand name")]
+    #[setting("Brand name", default = "Acme")]
     pub brand_name: String,
-    #[default = "Product demos, made simple"]
-    #[schemars(description = "Center text")]
+    #[setting("Center text", default = "Product demos, made simple")]
     pub middle_text: String,
-    #[default = "app:placeholders/logo-mark.svg"]
-    #[schemars(description = "Logo (simple, monochrome)", extend("x-widget" = "asset"))]
+    #[setting(
+        "Logo (simple, monochrome)",
+        default = "app:placeholders/logo-mark.svg",
+        widget = "asset"
+    )]
     pub logo_src: String,
-    #[default = 10]
-    #[schemars(description = "Ring images", range(min = 5, max = 16), extend("x-step" = 1))]
+    #[setting("Ring images", default = 10, range(min = 5, max = 16), step = 1)]
     pub count: u32,
-    #[schemars(description = "Background", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
+    #[setting("Background", widget = "color", zero_label = "Theme")]
     pub background: String,
-    #[default(Theme::of(ThemeMode::Dark))]
-    #[schemars(transform = warm_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = warm_themes,
+        widget = "theme"
+    )]
     pub theme: Theme,
-    #[default(vec![
-        LogoAssembleImage::default(),
-        LogoAssembleImage { image: "app:backdrops/bloom.jpg".into() },
-        LogoAssembleImage { image: "app:backdrops/canyon.jpg".into() },
-        LogoAssembleImage { image: "app:backdrops/chalk.jpg".into() },
-        LogoAssembleImage { image: "app:backdrops/cobalt.jpg".into() },
-        LogoAssembleImage { image: "app:backdrops/dusk.jpg".into() },
-        LogoAssembleImage { image: "app:backdrops/ember.jpg".into() },
-        LogoAssembleImage { image: "app:backdrops/flare.jpg".into() },
-    ])]
-    #[schemars(description = "Images", length(min = 1))]
+    #[setting(
+        "Images",
+        default = vec![
+            LogoAssembleImage::default(),
+            LogoAssembleImage { image: "app:backdrops/bloom.jpg".into() },
+            LogoAssembleImage { image: "app:backdrops/canyon.jpg".into() },
+            LogoAssembleImage { image: "app:backdrops/chalk.jpg".into() },
+            LogoAssembleImage { image: "app:backdrops/cobalt.jpg".into() },
+            LogoAssembleImage { image: "app:backdrops/dusk.jpg".into() },
+            LogoAssembleImage { image: "app:backdrops/ember.jpg".into() },
+            LogoAssembleImage { image: "app:backdrops/flare.jpg".into() },
+        ],
+        length(min = 1)
+    )]
     pub images: Vec<LogoAssembleImage>,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

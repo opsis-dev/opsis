@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,243 +7,230 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LaunchAnythingLogoImage {
-    #[default = "app:placeholders/logo-mark.svg"]
-    #[schemars(description = "Image", extend("x-widget" = "asset", "x-accept" = "image/*"))]
+    #[setting(
+        "Image",
+        default = "app:placeholders/logo-mark.svg",
+        widget = "asset",
+        accept = "image/*"
+    )]
     pub image: String,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LaunchAnything {
-    #[default = "Good"]
-    #[schemars(description = "Opening: first word")]
+    #[setting("Opening: first word", default = "Good")]
     pub opening: String,
-    #[default = "ideas"]
-    #[schemars(description = "Opening: second word")]
+    #[setting("Opening: second word", default = "ideas")]
     pub subject: String,
-    #[default = "yourproduct.example"]
-    #[schemars(description = "Closing: web address")]
+    #[setting("Closing: web address", default = "yourproduct.example")]
     pub brand_url: String,
-    #[default = "#245744"]
-    #[schemars(
-        description = "Accent colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Accent colour", default = "#245744", check = colour)]
     pub accent_color: String,
-    #[default = "deserve a stage"]
-    #[schemars(description = "Opening: after the subject", extend("x-advanced" = true))]
+    #[setting("Opening: after the subject", default = "deserve a stage", advanced)]
     pub copy_ready: String,
-    #[default = "Let’s make"]
-    #[schemars(description = "Action: lead-in", extend("x-advanced" = true))]
+    #[setting("Action: lead-in", default = "Let’s make", advanced)]
     pub copy_next: String,
-    #[default = "them real"]
-    #[schemars(description = "Action: button text", extend("x-advanced" = true))]
+    #[setting("Action: button text", default = "them real", advanced)]
     pub copy_action: String,
-    #[default = "Your work.\nA clearer view."]
-    #[schemars(
-        description = "Proof: headline",
-        extend("x-widget" = "textarea", "x-advanced" = true)
+    #[setting(
+        "Proof: headline",
+        default = "Your work.\nA clearer view.",
+        widget = "textarea",
+        advanced
     )]
     pub copy_proof: String,
-    #[default = "Built around you"]
-    #[schemars(description = "Industry: headline", extend("x-advanced" = true))]
+    #[setting("Industry: headline", default = "Built around you", advanced)]
     pub copy_industry: String,
-    #[default = "Made to be yours."]
-    #[schemars(description = "Industry: promise", extend("x-advanced" = true))]
+    #[setting("Industry: promise", default = "Made to be yours.", advanced)]
     pub copy_promise: String,
-    #[default = "Begin"]
-    #[schemars(description = "Closing: call to action", extend("x-advanced" = true))]
+    #[setting("Closing: call to action", default = "Begin", advanced)]
     pub copy_launch: String,
-    #[default = "Small things. Well made."]
-    #[schemars(description = "Shop screen: headline", extend("x-advanced" = true))]
+    #[setting(
+        "Shop screen: headline",
+        default = "Small things. Well made.",
+        advanced
+    )]
     pub copy_shoppers: String,
-    #[default = "Object Study"]
-    #[schemars(description = "Shop screen: shop name", extend("x-advanced" = true))]
+    #[setting("Shop screen: shop name", default = "Object Study", advanced)]
     pub copy_shop_name: String,
-    #[default = "Everyday, considered."]
-    #[schemars(description = "Shop screen: shop headline", extend("x-advanced" = true))]
+    #[setting(
+        "Shop screen: shop headline",
+        default = "Everyday, considered.",
+        advanced
+    )]
     pub copy_shop_headline: String,
-    #[default = "Useful objects. Quiet details."]
-    #[schemars(description = "Shop screen: shop detail", extend("x-advanced" = true))]
+    #[setting(
+        "Shop screen: shop detail",
+        default = "Useful objects. Quiet details.",
+        advanced
+    )]
     pub copy_shop_detail: String,
-    #[default = "Explore the objects"]
-    #[schemars(description = "Shop screen: shop button", extend("x-advanced" = true))]
+    #[setting("Shop screen: shop button", default = "Explore the objects", advanced)]
     pub copy_shop_action: String,
-    #[default = "Turn a brief into a workspace"]
-    #[schemars(description = "Builder screen: headline", extend("x-advanced" = true))]
+    #[setting(
+        "Builder screen: headline",
+        default = "Turn a brief into a workspace",
+        advanced
+    )]
     pub copy_builder: String,
-    #[default = "Create a workspace for our next product release"]
-    #[schemars(description = "Builder screen: prompt", extend("x-advanced" = true))]
+    #[setting(
+        "Builder screen: prompt",
+        default = "Create a workspace for our next product release",
+        advanced
+    )]
     pub copy_builder_prompt: String,
-    #[default = "Review once.\nMove forward."]
-    #[schemars(
-        description = "Review screen: headline",
-        extend("x-widget" = "textarea", "x-advanced" = true)
+    #[setting(
+        "Review screen: headline",
+        default = "Review once.\nMove forward.",
+        widget = "textarea",
+        advanced
     )]
     pub copy_trading: String,
-    #[default = "A place for every idea"]
-    #[schemars(description = "Ideas screen: headline", extend("x-advanced" = true))]
+    #[setting("Ideas screen: headline", default = "A place for every idea", advanced)]
     pub copy_loyalty: String,
-    #[default = "Room for the next one"]
-    #[schemars(description = "Ideas screen: payoff", extend("x-advanced" = true))]
+    #[setting("Ideas screen: payoff", default = "Room for the next one", advanced)]
     pub copy_loyalty_payoff: String,
-    #[default = "Bring your work together"]
-    #[schemars(description = "Tools screen: headline", extend("x-advanced" = true))]
+    #[setting(
+        "Tools screen: headline",
+        default = "Bring your work together",
+        advanced
+    )]
     pub copy_integration: String,
-    #[default = "Connect your tools.\nKeep work moving."]
-    #[schemars(
-        description = "Tools screen: closing line",
-        extend("x-widget" = "textarea", "x-advanced" = true)
+    #[setting(
+        "Tools screen: closing line",
+        default = "Connect your tools.\nKeep work moving.",
+        widget = "textarea",
+        advanced
     )]
     pub copy_connections: String,
-    #[default(vec!["Files".into(), "Messages".into(), "Calendar".into()])]
-    #[schemars(description = "Tools screen: tools", extend("x-advanced" = true))]
+    #[setting(
+        "Tools screen: tools",
+        default = vec!["Files".into(), "Messages".into(), "Calendar".into()],
+        advanced
+    )]
     pub copy_integrations: Vec<String>,
-    #[schemars(
-        description = "Screen: dashboard",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in screen",
-            "x-help" = "Shown on the laptop for this part. Leave empty for the built-in screen.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Screen: dashboard",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in screen",
+        help = "Shown on the laptop for this part. Leave empty for the built-in screen.",
+        advanced
     )]
     pub screen_dashboard: String,
-    #[schemars(
-        description = "Screen: shoppers",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in screen",
-            "x-help" = "Shown on the laptop for this part. Leave empty for the built-in screen.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Screen: shoppers",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in screen",
+        help = "Shown on the laptop for this part. Leave empty for the built-in screen.",
+        advanced
     )]
     pub screen_shoppers: String,
-    #[schemars(
-        description = "Screen: exchange",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in screen",
-            "x-help" = "Shown on the laptop for this part. Leave empty for the built-in screen.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Screen: exchange",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in screen",
+        help = "Shown on the laptop for this part. Leave empty for the built-in screen.",
+        advanced
     )]
     pub screen_exchange: String,
-    #[schemars(
-        description = "Screen: builder",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in screen",
-            "x-help" = "Shown on the laptop for this part. Leave empty for the built-in screen.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Screen: builder",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in screen",
+        help = "Shown on the laptop for this part. Leave empty for the built-in screen.",
+        advanced
     )]
     pub screen_builder: String,
-    #[schemars(
-        description = "Screen: trading",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in screen",
-            "x-help" = "Shown on the laptop for this part. Leave empty for the built-in screen.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Screen: trading",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in screen",
+        help = "Shown on the laptop for this part. Leave empty for the built-in screen.",
+        advanced
     )]
     pub screen_trading: String,
-    #[schemars(
-        description = "Screen: loyalty",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in screen",
-            "x-help" = "Shown on the laptop for this part. Leave empty for the built-in screen.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Screen: loyalty",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in screen",
+        help = "Shown on the laptop for this part. Leave empty for the built-in screen.",
+        advanced
     )]
     pub screen_loyalty: String,
-    #[schemars(
-        description = "Screen: integrations",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in screen",
-            "x-help" = "Shown on the laptop for this part. Leave empty for the built-in screen.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Screen: integrations",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in screen",
+        help = "Shown on the laptop for this part. Leave empty for the built-in screen.",
+        advanced
     )]
     pub screen_integrations: String,
-    #[schemars(
-        description = "Photo: desk",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in photo",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Photo: desk",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in photo",
+        advanced
     )]
     pub photo_desk: String,
-    #[schemars(
-        description = "Photo: horizon",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in photo",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Photo: horizon",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in photo",
+        advanced
     )]
     pub photo_horizon: String,
-    #[schemars(
-        description = "Photo: rocket",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in photo",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Photo: rocket",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in photo",
+        advanced
     )]
     pub photo_rocket: String,
-    #[schemars(
-        description = "Photo: earth",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Built-in photo",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Photo: earth",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in photo",
+        advanced
     )]
     pub photo_earth: String,
-    #[schemars(
-        description = "Logos",
-        extend("x-help" = "Marks for the floating grid in the proof scene.")
-    )]
+    #[setting("Logos", help = "Marks for the floating grid in the proof scene.")]
     pub logo_images: Vec<LaunchAnythingLogoImage>,
-    #[schemars(
-        description = "Logo",
-        extend("x-widget" = "asset", "x-accept" = "image/*", "x-zero-label" = "Built-in mark")
+    #[setting(
+        "Logo",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Built-in mark"
     )]
     pub logo_src: String,
-    #[schemars(
-        description = "Music",
-        extend(
-            "x-zero-label" = "None",
-            "x-help" = "Plays through the Mixer like any other music.",
-            "x-widget" = "sound"
-        )
+    #[setting(
+        "Music",
+        zero_label = "None",
+        help = "Plays through the Mixer like any other music.",
+        widget = "sound"
     )]
     pub music: String,
-    #[default = 1.0]
-    #[schemars(description = "Music volume", range(min = 0, max = 1), extend("x-step" = 0.01))]
+    #[setting("Music volume", default = 1.0, range(min = 0, max = 1), step = 0.01)]
     pub music_volume: f64,
 }
 

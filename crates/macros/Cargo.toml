@@ -1,0 +1,20 @@
+[package]
+name = "opsis-macros"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.107"
+quote = "1.0.47"
+syn = { version = "3.0.9", features = ["full"] }
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+proptest = "1.12.0"

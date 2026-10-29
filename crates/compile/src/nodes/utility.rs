@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::cards::Icon;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
@@ -9,24 +10,23 @@ use crate::graph::{GROUP_TYPE, NOTE_TYPE};
 use crate::node::{CardCtx, Category, NodeDef, Phase, missing, row};
 use crate::params::Params;
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Group {
-    #[default = "Group"]
-    #[schemars(description = "Title")]
+    #[setting("Title", default = "Group")]
     pub title: String,
-    #[default = "#a78bfa"]
-    #[schemars(description = "Colour", extend("x-widget" = "color"))]
+    #[setting("Colour", default = "#a78bfa", widget = "color")]
     pub color: String,
 }
 
 impl Params for Group {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Note {
-    #[default = "Notes…"]
-    #[schemars(description = "Text", extend("x-widget" = "textarea"))]
+    #[setting("Text", default = "Notes…", widget = "textarea")]
     pub text: String,
 }
 

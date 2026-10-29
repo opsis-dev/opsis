@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,27 +8,25 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Orientation;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ChromaticAberrationWipe {
-    #[default = 12.0]
-    #[schemars(description = "Intensity")]
+    #[setting("Intensity", default = 12.0)]
     pub intensity: f64,
-    #[default(Orientation::Horizontal)]
-    #[schemars(
-        description = "Axis",
-        extend("x-help" = "Axis the scenes slide along and the channels separate on.")
+    #[setting(
+        "Axis",
+        default = Orientation::Horizontal,
+        help = "Axis the scenes slide along and the channels separate on."
     )]
     pub axis: Orientation,
-    #[default = 1.0]
-    #[schemars(
-        description = "Slide distance",
-        extend(
-            "x-help" = "Share of the frame the scenes travel. Below 1 shows background.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Slide distance",
+        default = 1.0,
+        help = "Share of the frame the scenes travel. Below 1 shows background.",
+        advanced
     )]
     pub slide: f64,
 }

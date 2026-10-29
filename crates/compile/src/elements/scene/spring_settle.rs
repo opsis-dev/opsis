@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,71 +7,70 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct SpringSettle {
-    #[default = 1.24]
-    #[schemars(description = "Enter scale", range(min = 1, max = 1.8), extend("x-step" = 0.02))]
+    #[setting("Enter scale", default = 1.24, range(min = 1, max = 1.8), step = 0.02)]
     pub enter_scale: f64,
-    #[default = 3.0]
-    #[schemars(
-        description = "Time between items",
+    #[setting(
+        "Time between items",
+        default = 3.0,
         range(min = 0, max = 10),
-        extend(
-            "x-step" = 0.5,
-            "x-unit" = "frames",
-            "x-help" = "How long each item in a scene waits after the one before it."
-        )
+        step = 0.5,
+        unit = "frames",
+        help = "How long each item in a scene waits after the one before it."
     )]
     pub enter_stagger: f64,
-    #[default = 0.84]
-    #[schemars(description = "Exit scale", range(min = 0.5, max = 1), extend("x-step" = 0.02))]
+    #[setting("Exit scale", default = 0.84, range(min = 0.5, max = 1), step = 0.02)]
     pub exit_scale: f64,
-    #[default = 6]
-    #[schemars(
-        description = "Exit time",
+    #[setting(
+        "Exit time",
+        default = 6,
         range(min = 2, max = 24),
-        extend("x-step" = 1, "x-unit" = "frames")
+        step = 1,
+        unit = "frames"
     )]
     pub exit_frames: u32,
-    #[default = 5]
-    #[schemars(
-        description = "Fade-in time",
+    #[setting(
+        "Fade-in time",
+        default = 5,
         range(min = 0, max = 30),
-        extend("x-step" = 1, "x-unit" = "frames", "x-advanced" = true)
+        step = 1,
+        unit = "frames",
+        advanced
     )]
     pub enter_fade_frames: u32,
-    #[default = 30]
-    #[schemars(
-        description = "Spring damping",
+    #[setting(
+        "Spring damping",
+        default = 30,
         range(min = 1, max = 100),
-        extend(
-            "x-step" = 1,
-            "x-help" = "Lower values bounce more as items land.",
-            "x-advanced" = true
-        )
+        step = 1,
+        help = "Lower values bounce more as items land.",
+        advanced
     )]
     pub spring_damping: u32,
-    #[default = 320]
-    #[schemars(
-        description = "Spring stiffness",
+    #[setting(
+        "Spring stiffness",
+        default = 320,
         range(min = 10, max = 1000),
-        extend("x-step" = 10, "x-help" = "Higher values land faster.", "x-advanced" = true)
+        step = 10,
+        help = "Higher values land faster.",
+        advanced
     )]
     pub spring_stiffness: u32,
-    #[default = 4]
-    #[schemars(
-        description = "Background fade",
+    #[setting(
+        "Background fade",
+        default = 4,
         range(min = 0, max = 30),
-        extend("x-step" = 1, "x-unit" = "frames", "x-advanced" = true)
+        step = 1,
+        unit = "frames",
+        advanced
     )]
     pub bg_fade_frames: u32,
-    #[schemars(
-        description = "Loop",
-        extend("x-help" = "Start again from the first scene after the last.")
-    )]
+    #[setting("Loop", help = "Start again from the first scene after the last.")]
     pub r#loop: bool,
 }
 

@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use opsis_types::timeline::CameraPath;
 use schemars::JsonSchema;
@@ -8,69 +9,67 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::{Lighting, Motion};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Card3d {
-    #[schemars(
-        description = "Image",
-        extend("x-widget" = "asset", "x-accept" = "image/*", "x-zero-label" = "Sample screen")
+    #[setting(
+        "Image",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Sample screen"
     )]
     pub src: String,
-    #[default = 0.04]
-    #[schemars(description = "Rounded corners", range(min = 0, max = 0.2), extend("x-step" = 0.01))]
+    #[setting(
+        "Rounded corners",
+        default = 0.04,
+        range(min = 0, max = 0.2),
+        step = 0.01
+    )]
     pub corner_radius: f64,
-    #[default = 0.04]
-    #[schemars(description = "Thickness", range(min = 0.01, max = 0.3), extend("x-step" = 0.01))]
+    #[setting("Thickness", default = 0.04, range(min = 0.01, max = 0.3), step = 0.01)]
     pub depth: f64,
-    #[default = 40]
-    #[schemars(
-        description = "Tilt",
+    #[setting(
+        "Tilt",
+        default = 40,
         range(min = 0, max = 80),
-        extend(
-            "x-step" = 1,
-            "x-unit" = "°",
-            "x-help" = "How far the card is turned before it settles."
-        )
+        step = 1,
+        unit = "°",
+        help = "How far the card is turned before it settles."
     )]
     pub tilt: u32,
-    #[default(Motion::TiltIn)]
-    #[schemars(
-        description = "Motion",
-        extend(
-            "x-labels" = {
-                "spin": "Spin",
-                "tilt-in": "Tilt in",
-                "float": "Float",
-                "orbit": "Orbit",
-                "swing": "Swing",
-                "still": "Still",
-                "keyframes": "Keyframes"
-            }
-        )
+    #[setting(
+        "Motion",
+        default = Motion::TiltIn,
+        labels = {
+            "spin": "Spin",
+            "tilt-in": "Tilt in",
+            "float": "Float",
+            "orbit": "Orbit",
+            "swing": "Swing",
+            "still": "Still",
+            "keyframes": "Keyframes"
+        }
     )]
     pub motion: Motion,
-    #[schemars(
-        description = "Camera keyframes",
-        extend(
-            "x-help" = "Turn, raise and move the camera at chosen moments. Add a key at the playhead, then set it. Drag keys on the timeline to move them.",
-            "x-widget" = "camera",
-            "x-show-if" = { "motion": ["keyframes"] }
-        )
+    #[setting(
+        "Camera keyframes",
+        help = "Turn, raise and move the camera at chosen moments. Add a key at the playhead, then set it. Drag keys on the timeline to move them.",
+        widget = "camera",
+        show_if = { "motion": ["keyframes"] }
     )]
     pub camera: CameraPath,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 3), extend("x-step" = 0.05))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 3), step = 0.05)]
     pub speed: f64,
-    #[default(Lighting::Soft)]
-    #[schemars(
-        description = "Lighting",
-        extend("x-labels" = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" })
+    #[setting(
+        "Lighting",
+        default = Lighting::Soft,
+        labels = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" }
     )]
     pub lighting: Lighting,
-    #[default = "transparent"]
-    #[schemars(description = "Background")]
+    #[setting("Background", default = "transparent")]
     pub background: String,
 }
 

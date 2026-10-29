@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,63 +8,63 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::DarkOrLight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct CodeDiffWipe {
-    #[default = "export function render(scene) {\n  const frames = scene.frames;\n  return frames.map(draw);\n}"]
-    #[schemars(
-        description = "Before",
-        extend("x-widget" = "code", "x-help" = "Source before the patch.")
+    #[setting(
+        "Before",
+        default = "export function render(scene) {\n  const frames = scene.frames;\n  return frames.map(draw);\n}",
+        widget = "code",
+        help = "Source before the patch."
     )]
     pub before: String,
-    #[default = "export function render(scene, options) {\n  const frames = scene.frames;\n  const scale = options.scale ?? 1;\n  return frames.map((frame) => draw(frame, scale));\n}"]
-    #[schemars(
-        description = "After",
-        extend("x-widget" = "code", "x-help" = "Source after the patch; the scene diffs the two.")
+    #[setting(
+        "After",
+        default = "export function render(scene, options) {\n  const frames = scene.frames;\n  const scale = options.scale ?? 1;\n  return frames.map((frame) => draw(frame, scale));\n}",
+        widget = "code",
+        help = "Source after the patch; the scene diffs the two."
     )]
     pub after: String,
-    #[default = "render.ts"]
-    #[schemars(description = "Title", extend("x-help" = "Filename on the window header."))]
+    #[setting(
+        "Title",
+        default = "render.ts",
+        help = "Filename on the window header."
+    )]
     pub title: String,
-    #[default = 1.7]
-    #[schemars(
-        description = "Wipe (seconds)",
+    #[setting(
+        "Wipe (seconds)",
+        default = 1.7,
         range(min = 0.05, max = 10),
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Seconds the apply front takes to travel the file.",
-            "x-advanced" = true
-        )
+        step = 0.01,
+        help = "Seconds the apply front takes to travel the file.",
+        advanced
     )]
     pub wipe_seconds: f64,
-    #[default = "#E8B86D"]
-    #[schemars(
-        description = "Accent color",
-        extend(
-            "x-help" = "Apply front and glow color.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Accent color",
+        default = "#E8B86D",
+        help = "Apply front and glow color.",
+        check = colour
     )]
     pub accent_color: String,
-    #[default(DarkOrLight::Dark)]
-    #[schemars(description = "Theme", extend("x-help" = "Editor palette."))]
+    #[setting("Theme", default = DarkOrLight::Dark, help = "Editor palette.")]
     pub theme: DarkOrLight,
-    #[default = 1.0]
-    #[schemars(
-        description = "Speed",
+    #[setting(
+        "Speed",
+        default = 1.0,
         range(min = 0.25, max = 4),
-        extend("x-step" = 0.25, "x-help" = "Animation speed multiplier.")
+        step = 0.25,
+        help = "Animation speed multiplier."
     )]
     pub speed: f64,
-    #[schemars(
-        description = "Background",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Theme",
-            "x-help" = "Leave empty to follow the theme."
-        )
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "Theme",
+        help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
 }

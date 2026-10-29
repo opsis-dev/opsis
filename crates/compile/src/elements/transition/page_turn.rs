@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,16 +7,15 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct PageTurn {
-    #[default(-7)]
-    #[schemars(description = "Angle", range(min = -20, max = 20), extend("x-step" = 1))]
+    #[setting("Angle", default = -7, range(min = -20, max = 20), step = 1)]
     pub angle: i32,
-    #[default = 8]
-    #[schemars(description = "Poses", range(min = 2, max = 16), extend("x-step" = 1))]
+    #[setting("Poses", default = 8, range(min = 2, max = 16), step = 1)]
     pub poses: u32,
 }
 

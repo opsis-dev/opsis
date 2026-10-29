@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,22 +7,19 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct GlitchCut {
-    #[default = 1.0]
-    #[schemars(description = "Intensity", range(min = 0, max = 2), extend("x-step" = 0.1))]
+    #[setting("Intensity", default = 1.0, range(min = 0, max = 2), step = 0.1)]
     pub intensity: f64,
-    #[default = 24]
-    #[schemars(description = "Slices", range(min = 8, max = 64), extend("x-step" = 2))]
+    #[setting("Slices", default = 24, range(min = 8, max = 64), step = 2)]
     pub slices: u32,
-    #[default = 1.0]
-    #[schemars(description = "RGB split", range(min = 0, max = 2), extend("x-step" = 0.1))]
+    #[setting("RGB split", default = 1.0, range(min = 0, max = 2), step = 0.1)]
     pub rgb_split: f64,
-    #[default = 0.6]
-    #[schemars(description = "Block noise", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Block noise", default = 0.6, range(min = 0, max = 1), step = 0.05)]
     pub block_noise: f64,
 }
 

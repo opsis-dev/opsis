@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -21,13 +22,13 @@ pub enum WipeDirection {
     FromBottomRight,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Wipe {
-    #[default(WipeDirection::FromLeft)]
-    #[schemars(description = "Direction")]
+    #[setting("Direction", default = WipeDirection::FromLeft)]
     pub direction: WipeDirection,
 }
 

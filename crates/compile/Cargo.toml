@@ -15,6 +15,7 @@ jsonschema = "0.60.1"
 language-tags = "0.3.2"
 nanoid = "0.5.0"
 num-format = "0.4.4"
+opsis-macros = { version = "0.1.0", path = "../macros" }
 opsis-types = { version = "0.1.0", path = "../types" }
 percent-encoding = "2.3.2"
 regex = "1.13.1"

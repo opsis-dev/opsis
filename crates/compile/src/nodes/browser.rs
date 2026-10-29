@@ -1,5 +1,6 @@
 use std::sync::LazyLock;
 
+use opsis_macros::settings;
 use opsis_types::actions::{ClickButton, Point};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
@@ -30,42 +31,42 @@ use crate::text::{
 };
 use crate::vars::PAUSE_MARK;
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Target {
-    #[schemars(
-        description = "Element",
-        extend(
-            "x-help" = "Pick it on the page, or type its visible text.",
-            "x-widget" = "target",
-            "x-check" = { "rule": "not-blank", "message": "Pick an element" }
-        )
+    #[setting(
+        "Element",
+        help = "Pick it on the page, or type its visible text.",
+        widget = "target",
+        check = { "rule": "not-blank", "message": "Pick an element" }
     )]
     pub target: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Role of the picked element", extend("x-hidden" = true))]
+    #[setting("Role of the picked element", hidden)]
     pub target_role: Option<String>,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct PauseAfter {
-    #[default = 600]
-    #[schemars(
-        description = "Pause after",
+    #[setting(
+        "Pause after",
+        default = 600,
         range(min = 0, max = 600000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-help" = "How long the video lingers after this action.")
+        step = 50,
+        unit = "ms",
+        help = "How long the video lingers after this action."
     )]
     pub after: u32,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Silence {
-    #[schemars(
-        description = "No sound",
-        extend("x-advanced" = true, "x-help" = "Action sounds leave this action out.")
-    )]
+    #[setting("No sound", advanced, help = "Action sounds leave this action out.")]
     pub silent: bool,
 }
 
@@ -76,53 +77,59 @@ impl Silence {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Beat {
     #[serde(flatten)]
     pub pause: PauseAfter,
-    #[schemars(
-        description = "Zoom group",
-        extend("x-help" = "Actions in the same group share one zoom instead of zooming in and out each time.")
+    #[setting(
+        "Zoom group",
+        help = "Actions in the same group share one zoom instead of zooming in and out each time."
     )]
     pub cluster: String,
-    #[default = true]
-    #[schemars(description = "Zoom in on this action")]
+    #[setting("Zoom in on this action", default = true)]
     pub zoom: bool,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Frame {
-    #[schemars(
-        description = "Zoom to fit",
-        extend(
-            "x-widget" = "target",
-            "x-help" = "Zoom to a bigger area, like the whole card, instead of the element.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Zoom to fit",
+        widget = "target",
+        help = "Zoom to a bigger area, like the whole card, instead of the element.",
+        advanced
     )]
     pub frame: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Role of the picked element", extend("x-hidden" = true))]
+    #[setting("Role of the picked element", hidden)]
     pub frame_role: Option<String>,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Pointer {
     #[serde(flatten)]
     pub frame: Frame,
-    #[schemars(
-        description = "Zoom amount",
+    #[setting(
+        "Zoom amount",
         range(min = 0, max = 3),
-        extend("x-step" = 0.05, "x-unit" = "×", "x-zero-label" = "Auto", "x-advanced" = true)
+        step = 0.05,
+        unit = "×",
+        zero_label = "Auto",
+        advanced
     )]
     pub zoom_scale: f64,
-    #[schemars(
-        description = "Cursor travel time",
+    #[setting(
+        "Cursor travel time",
         range(min = 0, max = 10000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "Auto", "x-advanced" = true)
+        step = 50,
+        unit = "ms",
+        zero_label = "Auto",
+        advanced
     )]
     pub travel_ms: u32,
 }
@@ -135,65 +142,77 @@ pub enum ColorScheme {
     NoPreference,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Open {
-    #[default = 1920]
-    #[schemars(
-        description = "Window width",
+    #[setting(
+        "Window width",
+        default = 1920,
         range(min = 320, max = 3840),
-        extend("x-step" = 10, "x-unit" = "px", "x-presets-label" = "Size", "x-presets" = [
+        step = 10,
+        unit = "px",
+        presets_label = "Size",
+        presets = [
             { "label": "1280 × 720", "values": { "viewportWidth": 1280, "viewportHeight": 720 } },
             { "label": "1440 × 900", "values": { "viewportWidth": 1440, "viewportHeight": 900 } },
             { "label": "1920 × 1080", "values": { "viewportWidth": 1920, "viewportHeight": 1080 } }
-        ])
+        ]
     )]
     pub viewport_width: u32,
-    #[default = 1080]
-    #[schemars(description = "Window height", range(min = 240, max = 2160), extend("x-step" = 10, "x-unit" = "px"))]
+    #[setting(
+        "Window height",
+        default = 1080,
+        range(min = 240, max = 2160),
+        step = 10,
+        unit = "px"
+    )]
     pub viewport_height: u32,
-    #[default = 2.0]
-    #[schemars(
-        description = "Screenshot sharpness",
+    #[setting(
+        "Screenshot sharpness",
+        default = 2.0,
         range(min = 1, max = 4),
-        extend("x-help" = "Only affects screenshots. 2× or more gives crisp 4K images.", "x-step" = 1, "x-unit" = "×")
+        help = "Only affects screenshots. 2× or more gives crisp 4K images.",
+        step = 1,
+        unit = "×"
     )]
     pub dpr: f64,
-    #[schemars(description = "Mobile device")]
+    #[setting("Mobile device")]
     pub mobile: bool,
-    #[schemars(
-        description = "Browser identity",
-        extend("x-help" = "Pretend to be a specific browser. Leave empty for the default.", "x-advanced" = true)
+    #[setting(
+        "Browser identity",
+        help = "Pretend to be a specific browser. Leave empty for the default.",
+        advanced
     )]
     pub user_agent: String,
-    #[default = "en-US"]
-    #[schemars(
-        description = "Language",
-        extend(
-            "x-help" = "For example en-US, de-DE, ja-JP.",
-            "x-zero-label" = "This computer's language",
-            "x-check" = { "rule": "locale-or-empty", "message": "Use a language like en-US, de-DE or ja-JP" }
-        )
+    #[setting(
+        "Language",
+        default = "en-US",
+        help = "For example en-US, de-DE, ja-JP.",
+        zero_label = "This computer's language",
+        check = { "rule": "locale-or-empty", "message": "Use a language like en-US, de-DE or ja-JP" }
     )]
     pub locale: String,
-    #[schemars(
-        description = "Time zone",
-        extend("x-widget" = "timezone", "x-check" = { "rule": "time-zone-or-empty", "message": "Pick a time zone from the list" })
+    #[setting(
+        "Time zone",
+        widget = "timezone",
+        check = { "rule": "time-zone-or-empty", "message": "Pick a time zone from the list" }
     )]
     pub timezone: String,
-    #[default(ColorScheme::Light)]
-    #[schemars(description = "Theme", extend("x-labels" = { "light": "Light", "dark": "Dark", "no-preference": "System" }))]
+    #[setting(
+        "Theme",
+        default = ColorScheme::Light,
+        labels = { "light": "Light", "dark": "Dark", "no-preference": "System" }
+    )]
     pub color_scheme: ColorScheme,
-    #[default = 1.0]
-    #[schemars(
-        description = "Recording sharpness",
+    #[setting(
+        "Recording sharpness",
+        default = 1.0,
         range(min = 1, max = 4),
-        extend(
-            "x-help" = "Records at a higher resolution so zoomed-in shots stay sharp.",
-            "x-step" = 0.25,
-            "x-unit" = "×",
-            "x-advanced" = true
-        )
+        help = "Records at a higher resolution so zoomed-in shots stay sharp.",
+        step = 0.25,
+        unit = "×",
+        advanced
     )]
     pub capture_scale: f64,
 }
@@ -208,35 +227,44 @@ pub enum DoneWhen {
     WindowClosed,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SignIn {
-    #[default = "{{Site address}}/login"]
-    #[schemars(description = "Sign-in page", extend("x-check" = { "rule": "not-blank", "message": "Add the sign-in page" }))]
+    #[setting(
+        "Sign-in page",
+        default = "{{Site address}}/login",
+        check = { "rule": "not-blank", "message": "Add the sign-in page" }
+    )]
     pub url: String,
-    #[default = "default"]
-    #[schemars(
-        description = "Save as",
-        extend("x-help" = "The name the sign-in is kept under. Sign in nodes with the same name share it.")
+    #[setting(
+        "Save as",
+        default = "default",
+        help = "The name the sign-in is kept under. Sign in nodes with the same name share it."
     )]
     pub secret_name: String,
-    #[default(DoneWhen::WindowClosed)]
-    #[schemars(
-        description = "Finish when",
-        extend("x-labels" = {
+    #[setting(
+        "Finish when",
+        default = DoneWhen::WindowClosed,
+        labels = {
             "url-change": "The address changes",
             "selector": "An element appears",
             "window-closed": "I close the window"
-        })
+        }
     )]
     pub done_when: DoneWhen,
-    #[schemars(
-        description = "Element that appears after signing in",
-        extend("x-help" = "A CSS selector, e.g. .account-menu.", "x-show-if" = { "doneWhen": ["selector"] })
+    #[setting(
+        "Element that appears after signing in",
+        help = "A CSS selector, e.g. .account-menu.",
+        show_if = { "doneWhen": ["selector"] }
     )]
     pub selector: String,
-    #[default = 300]
-    #[schemars(description = "Give up after", range(min = 10, max = 3600), extend("x-unit" = "s"))]
+    #[setting(
+        "Give up after",
+        default = 300,
+        range(min = 10, max = 3600),
+        unit = "s"
+    )]
     pub timeout_sec: u32,
 }
 
@@ -265,50 +293,57 @@ pub enum WaitUntil {
     Commit,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Navigate {
-    #[default = "{{Site address}}"]
-    #[schemars(description = "Page address")]
+    #[setting("Page address", default = "{{Site address}}")]
     pub url: String,
-    #[default(WaitUntil::Load)]
-    #[schemars(
-        description = "Wait until the page has",
-        extend("x-labels" = {
+    #[setting(
+        "Wait until the page has",
+        default = WaitUntil::Load,
+        labels = {
             "load": "Loaded",
             "domcontentloaded": "Started showing",
             "networkidle": "Settled",
             "commit": "Responded"
-        })
+        }
     )]
     pub wait_until: WaitUntil,
-    #[default = 700]
-    #[schemars(
-        description = "Pause after",
+    #[setting(
+        "Pause after",
+        default = 700,
         range(min = 0, max = 600000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-help" = "How long the video lingers on the new page.")
+        step = 50,
+        unit = "ms",
+        help = "How long the video lingers on the new page."
     )]
     pub after: u32,
 }
 
 impl Params for Navigate {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Click {
     #[serde(flatten)]
     pub target: Target,
-    #[default(ClickButton::Left)]
-    #[schemars(description = "Button", extend("x-labels" = { "left": "Left", "right": "Right" }))]
+    #[setting("Button", default = ClickButton::Left, labels = { "left": "Left", "right": "Right" })]
     pub button: ClickButton,
-    #[schemars(description = "Double-click", extend("x-show-if" = { "button": ["left"] }))]
+    #[setting("Double-click", show_if = { "button": ["left"] })]
     pub double: bool,
     #[serde(flatten)]
     pub beat: Beat,
     #[serde(flatten)]
     pub pointer: Pointer,
-    #[default = 220]
-    #[schemars(description = "Hover before clicking", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Hover before clicking",
+        default = 220,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms"
+    )]
     pub hover_ms: u32,
     #[serde(flatten)]
     pub sound: Silence,
@@ -322,24 +357,23 @@ impl Click {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Type {
     #[serde(flatten)]
     pub target: Target,
-    #[schemars(
-        description = "Text to type",
-        extend(
-            "x-widget" = "textarea",
-            "x-pauses" = true,
-            "x-help" = "Use Add pause to hold still for a moment in the middle of typing.",
-            "x-check" = { "rule": "not-blank", "message": "Add text to type" }
-        )
+    #[setting(
+        "Text to type",
+        widget = "textarea",
+        pauses,
+        help = "Use Add pause to hold still for a moment in the middle of typing.",
+        check = { "rule": "not-blank", "message": "Add text to type" }
     )]
     pub text: String,
-    #[schemars(description = "Pause length", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting("Pause length", range(min = 0, max = 10000), step = 50, unit = "ms")]
     pub chunk_pause_ms: u32,
-    #[schemars(description = "Press Enter after typing")]
+    #[setting("Press Enter after typing")]
     pub press_enter: bool,
     #[serde(flatten)]
     pub beat: Beat,
@@ -351,6 +385,7 @@ pub struct Type {
 
 impl Params for Type {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Hover {
@@ -360,8 +395,13 @@ pub struct Hover {
     pub beat: Beat,
     #[serde(flatten)]
     pub pointer: Pointer,
-    #[default = 600]
-    #[schemars(description = "Hover for", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Hover for",
+        default = 600,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms"
+    )]
     pub hover_ms: u32,
 }
 
@@ -382,88 +422,97 @@ pub enum DragMethod {
     Quick,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Drag {
-    #[schemars(
-        description = "Element to drag",
-        extend(
-            "x-help" = "Pick it on the page, type its visible text, or give a spot as across, down.",
-            "x-widget" = "target",
-            "x-check" = { "rule": "not-blank", "message": "Pick an element" }
-        )
+    #[setting(
+        "Element to drag",
+        help = "Pick it on the page, type its visible text, or give a spot as across, down.",
+        widget = "target",
+        check = { "rule": "not-blank", "message": "Pick an element" }
     )]
     pub target: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Role of the picked element", extend("x-hidden" = true))]
+    #[setting("Role of the picked element", hidden)]
     pub target_role: Option<String>,
-    #[default(DragMode::Element)]
-    #[schemars(
-        description = "Drag",
-        extend("x-labels" = { "element": "Onto an element", "by": "By a distance", "path": "Along a path" })
+    #[setting(
+        "Drag",
+        default = DragMode::Element,
+        labels = { "element": "Onto an element", "by": "By a distance", "path": "Along a path" }
     )]
     pub mode: DragMode,
-    #[schemars(description = "Drop on", extend("x-widget" = "target", "x-show-if" = { "mode": ["element"] }))]
+    #[setting("Drop on", widget = "target", show_if = { "mode": ["element"] })]
     pub to: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Role of the picked element", extend("x-hidden" = true))]
+    #[setting("Role of the picked element", hidden)]
     pub to_role: Option<String>,
-    #[default = 300]
-    #[schemars(
-        description = "Across",
+    #[setting(
+        "Across",
+        default = 300,
         range(min = -10000, max = 10000),
-        extend("x-step" = 10, "x-unit" = "px", "x-show-if" = { "mode": ["by"] })
+        step = 10,
+        unit = "px",
+        show_if = { "mode": ["by"] }
     )]
     pub dx: i32,
-    #[schemars(
-        description = "Down",
+    #[setting(
+        "Down",
         range(min = -10000, max = 10000),
-        extend("x-step" = 10, "x-unit" = "px", "x-show-if" = { "mode": ["by"] })
+        step = 10,
+        unit = "px",
+        show_if = { "mode": ["by"] }
     )]
     pub dy: i32,
-    #[schemars(
-        description = "Path",
-        extend(
-            "x-widget" = "textarea",
-            "x-help" = "One point per line, as across, down in pixels from where the drag starts.",
-            "x-presets" = [
-                { "label": "Circle", "values": { "path": "0, 0\n9, -46\n35, -85\n74, -111\n120, -120\n166, -111\n205, -85\n231, -46\n240, 0\n231, 46\n205, 85\n166, 111\n120, 120\n74, 111\n35, 85\n9, 46\n0, 0" } },
-                { "label": "Tick", "values": { "path": "0, 0\n40, 40\n120, -80" } },
-                { "label": "Zigzag", "values": { "path": "0, 0\n60, -60\n120, 0\n180, -60\n240, 0" } },
-                { "label": "Square", "values": { "path": "0, 0\n200, 0\n200, 200\n0, 200\n0, 0" } }
-            ],
-            "x-show-if" = { "mode": ["path"] }
-        )
+    #[setting(
+        "Path",
+        widget = "textarea",
+        help = "One point per line, as across, down in pixels from where the drag starts.",
+        presets = [
+            { "label": "Circle", "values": { "path": "0, 0\n9, -46\n35, -85\n74, -111\n120, -120\n166, -111\n205, -85\n231, -46\n240, 0\n231, 46\n205, 85\n166, 111\n120, 120\n74, 111\n35, 85\n9, 46\n0, 0" } },
+            { "label": "Tick", "values": { "path": "0, 0\n40, 40\n120, -80" } },
+            { "label": "Zigzag", "values": { "path": "0, 0\n60, -60\n120, 0\n180, -60\n240, 0" } },
+            { "label": "Square", "values": { "path": "0, 0\n200, 0\n200, 200\n0, 200\n0, 0" } }
+        ],
+        show_if = { "mode": ["path"] }
     )]
     pub path: String,
-    #[default = 150]
-    #[schemars(
-        description = "Hold before moving",
+    #[setting(
+        "Hold before moving",
+        default = 150,
         range(min = 0, max = 5000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "method": ["smooth"] })
+        step = 50,
+        unit = "ms",
+        show_if = { "method": ["smooth"] }
     )]
     pub hold_ms: u32,
-    #[schemars(
-        description = "Drag time",
+    #[setting(
+        "Drag time",
         range(min = 0, max = 10000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "Auto", "x-show-if" = { "method": ["smooth"] })
+        step = 50,
+        unit = "ms",
+        zero_label = "Auto",
+        show_if = { "method": ["smooth"] }
     )]
     pub drag_ms: u32,
-    #[default(DragMethod::Smooth)]
-    #[schemars(
-        description = "How",
-        extend(
-            "x-labels" = { "smooth": "Smooth, with the cursor", "quick": "Quick, for pages that ignore the smooth drag" },
-            "x-advanced" = true
-        )
+    #[setting(
+        "How",
+        default = DragMethod::Smooth,
+        labels = { "smooth": "Smooth, with the cursor", "quick": "Quick, for pages that ignore the smooth drag" },
+        advanced
     )]
     pub method: DragMethod,
     #[serde(flatten)]
     pub beat: Beat,
     #[serde(flatten)]
     pub pointer: Pointer,
-    #[default = 220]
-    #[schemars(description = "Hover before picking it up", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Hover before picking it up",
+        default = 220,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms"
+    )]
     pub hover_ms: u32,
 }
 
@@ -487,29 +536,40 @@ pub enum ScrollMode {
     By,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Scroll {
-    #[default(ScrollMode::Element)]
-    #[schemars(description = "Scroll to", extend("x-labels" = { "element": "An element", "by": "A distance" }))]
+    #[setting(
+        "Scroll to",
+        default = ScrollMode::Element,
+        labels = { "element": "An element", "by": "A distance" }
+    )]
     pub mode: ScrollMode,
-    #[schemars(description = "Element", extend("x-widget" = "target", "x-show-if" = { "mode": ["element"] }))]
+    #[setting("Element", widget = "target", show_if = { "mode": ["element"] })]
     pub target: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Role of the picked element", extend("x-hidden" = true))]
+    #[setting("Role of the picked element", hidden)]
     pub target_role: Option<String>,
-    #[default = 600]
-    #[schemars(
-        description = "Distance",
+    #[setting(
+        "Distance",
+        default = 600,
         range(min = -20000, max = 20000),
-        extend("x-help" = "Negative scrolls up.", "x-step" = 50, "x-unit" = "px", "x-show-if" = { "mode": ["by"] })
+        help = "Negative scrolls up.",
+        step = 50,
+        unit = "px",
+        show_if = { "mode": ["by"] }
     )]
     pub delta_y: i32,
-    #[default = true]
-    #[schemars(description = "Smooth")]
+    #[setting("Smooth", default = true)]
     pub smooth: bool,
-    #[default = 900]
-    #[schemars(description = "Scroll time", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Scroll time",
+        default = 900,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms"
+    )]
     pub duration_ms: u32,
     #[serde(flatten)]
     pub pause: PauseAfter,
@@ -524,12 +584,13 @@ impl Params for Scroll {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Select {
     #[serde(flatten)]
     pub target: Target,
-    #[schemars(description = "Option", extend("x-check" = { "rule": "not-blank", "message": "Choose an option" }))]
+    #[setting("Option", check = { "rule": "not-blank", "message": "Choose an option" })]
     pub value: String,
     #[serde(flatten)]
     pub beat: Beat,
@@ -537,31 +598,28 @@ pub struct Select {
 
 impl Params for Select {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Upload {
-    #[schemars(
-        description = "File field",
-        extend(
-            "x-help" = "Pick the upload field, or type its label.",
-            "x-widget" = "target",
-            "x-check" = { "rule": "not-blank", "message": "Pick an element" }
-        )
+    #[setting(
+        "File field",
+        help = "Pick the upload field, or type its label.",
+        widget = "target",
+        check = { "rule": "not-blank", "message": "Pick an element" }
     )]
     pub target: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Role of the picked element", extend("x-hidden" = true))]
+    #[setting("Role of the picked element", hidden)]
     pub target_role: Option<String>,
-    #[schemars(
-        description = "File",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "*/*",
-            "x-check" = [
-                { "rule": "not-blank", "message": "Choose a file" },
-                { "rule": "in-project", "message": "Choose a file inside the project folder" }
-            ]
-        )
+    #[setting(
+        "File",
+        widget = "asset",
+        accept = "*/*",
+        check = [
+            { "rule": "not-blank", "message": "Choose a file" },
+            { "rule": "in-project", "message": "Choose a file inside the project folder" }
+        ]
     )]
     pub file: String,
     #[serde(flatten)]
@@ -570,11 +628,16 @@ pub struct Upload {
 
 impl Params for Upload {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct PressKeys {
-    #[default = "Enter"]
-    #[schemars(description = "Keys", extend("x-widget" = "keys", "x-help" = "Click the field and press the shortcut."))]
+    #[setting(
+        "Keys",
+        default = "Enter",
+        widget = "keys",
+        help = "Click the field and press the shortcut."
+    )]
     pub keys: String,
     #[serde(flatten)]
     pub pause: PauseAfter,
@@ -593,42 +656,48 @@ pub enum WaitMode {
     Ms,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Wait {
-    #[default(WaitMode::Element)]
-    #[schemars(
-        description = "Wait for",
-        extend("x-labels" = {
+    #[setting(
+        "Wait for",
+        default = WaitMode::Element,
+        labels = {
             "element": "An element",
             "network-idle": "A quiet page",
             "url": "An address",
             "ms": "A fixed time"
-        })
+        }
     )]
     pub mode: WaitMode,
-    #[schemars(description = "Element", extend("x-widget" = "target", "x-show-if" = { "mode": ["element"] }))]
+    #[setting("Element", widget = "target", show_if = { "mode": ["element"] })]
     pub target: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Role of the picked element", extend("x-hidden" = true))]
+    #[setting("Role of the picked element", hidden)]
     pub target_role: Option<String>,
-    #[schemars(
-        description = "Address pattern",
-        extend("x-help" = "Use * as a wildcard, e.g. */dashboard*.", "x-show-if" = { "mode": ["url"] })
+    #[setting(
+        "Address pattern",
+        help = "Use * as a wildcard, e.g. */dashboard*.",
+        show_if = { "mode": ["url"] }
     )]
     pub url: String,
-    #[default = 1000]
-    #[schemars(
-        description = "Time",
+    #[setting(
+        "Time",
+        default = 1000,
         range(min = 0, max = 600000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "mode": ["ms"] })
+        step = 50,
+        unit = "ms",
+        show_if = { "mode": ["ms"] }
     )]
     pub ms: u32,
-    #[default = 20000]
-    #[schemars(
-        description = "Give up after",
+    #[setting(
+        "Give up after",
+        default = 20000,
         range(min = 500, max = 600000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "mode": ["element", "network-idle", "url"] })
+        step = 50,
+        unit = "ms",
+        show_if = { "mode": ["element", "network-idle", "url"] }
     )]
     pub timeout_ms: u32,
 }
@@ -647,18 +716,24 @@ impl Params for Wait {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Assert {
-    #[schemars(description = "Text", extend("x-check" = { "rule": "not-blank", "message": "Add the text to look for" }))]
+    #[setting("Text", check = { "rule": "not-blank", "message": "Add the text to look for" })]
     pub text: String,
-    #[schemars(description = "Only inside (optional)", extend("x-widget" = "target"))]
+    #[setting("Only inside (optional)", widget = "target")]
     pub target: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Role of the picked element", extend("x-hidden" = true))]
+    #[setting("Role of the picked element", hidden)]
     pub target_role: Option<String>,
-    #[default = 10000]
-    #[schemars(description = "Give up after", range(min = 500, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Give up after",
+        default = 10000,
+        range(min = 500, max = 600000),
+        step = 50,
+        unit = "ms"
+    )]
     pub timeout_ms: u32,
 }
 
@@ -673,35 +748,38 @@ pub struct Hoist {
 
 impl Params for Hoist {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SetState {
-    #[default = "localStorage.setItem('onboarded', '1');"]
-    #[schemars(description = "Script", extend("x-widget" = "code"))]
+    #[setting(
+        "Script",
+        default = "localStorage.setItem('onboarded', '1');",
+        widget = "code"
+    )]
     pub script: String,
-    #[schemars(description = "Reload the page after")]
+    #[setting("Reload the page after")]
     pub reload: bool,
 }
 
 impl Params for SetState {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct MockRoute {
-    #[default = "**/api/**"]
-    #[schemars(
-        description = "Address pattern",
-        extend("x-help" = "Use * as a wildcard.", "x-check" = { "rule": "not-blank", "message": "Add an address pattern" })
+    #[setting(
+        "Address pattern",
+        default = "**/api/**",
+        help = "Use * as a wildcard.",
+        check = { "rule": "not-blank", "message": "Add an address pattern" }
     )]
     pub url: String,
-    #[default = 200]
-    #[schemars(description = "Status code", range(min = 100, max = 599))]
+    #[setting("Status code", default = 200, range(min = 100, max = 599))]
     pub status: u32,
-    #[default = "application/json"]
-    #[schemars(description = "Type")]
+    #[setting("Type", default = "application/json")]
     pub content_type: String,
-    #[default = r#"{"ok":true}"#]
-    #[schemars(description = "Response", extend("x-widget" = "code"))]
+    #[setting("Response", default = r#"{"ok":true}"#, widget = "code")]
     pub body: String,
 }
 
@@ -723,81 +801,88 @@ impl ClockMode {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct FreezeClock {
-    #[default = "2026-10-01T09:41:00"]
-    #[schemars(
-        description = "Date and time",
-        extend(
-            "x-help" = "As a clock in the browser's time zone shows it.",
-            "x-widget" = "datetime",
-            "x-check" = { "rule": "wall-time", "message": "Pick a date and time" }
-        )
+    #[setting(
+        "Date and time",
+        default = "2026-10-01T09:41:00",
+        help = "As a clock in the browser's time zone shows it.",
+        widget = "datetime",
+        check = { "rule": "wall-time", "message": "Pick a date and time" }
     )]
     pub time: String,
-    #[default(ClockMode::Fixed)]
-    #[schemars(description = "Clock", extend("x-labels" = { "fixed": "Frozen", "paused": "Paused" }))]
+    #[setting(
+        "Clock",
+        default = ClockMode::Fixed,
+        labels = { "fixed": "Frozen", "paused": "Paused" }
+    )]
     pub mode: ClockMode,
 }
 
 impl Params for FreezeClock {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct HideElements {
-    #[default = true]
-    #[schemars(description = "Cookie banners")]
+    #[setting("Cookie banners", default = true)]
     pub cookie_banners: bool,
-    #[default = true]
-    #[schemars(description = "Chat widgets")]
+    #[setting("Chat widgets", default = true)]
     pub chat_widgets: bool,
-    #[schemars(
-        description = "Also hide",
-        extend("x-widget" = "textarea", "x-help" = "CSS selectors, one per line.", "x-advanced" = true)
+    #[setting(
+        "Also hide",
+        widget = "textarea",
+        help = "CSS selectors, one per line.",
+        advanced
     )]
     pub selectors: String,
 }
 
 impl Params for HideElements {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Chapter {
-    #[default = "Chapter"]
-    #[schemars(description = "Title")]
+    #[setting("Title", default = "Chapter")]
     pub title: String,
-    #[schemars(description = "Description")]
+    #[setting("Description")]
     pub description: String,
-    #[schemars(description = "Show a chapter card in the video")]
+    #[setting("Show a chapter card in the video")]
     pub show_in_video: bool,
-    #[default = 2000]
-    #[schemars(
-        description = "Card shown for",
+    #[setting(
+        "Card shown for",
+        default = 2000,
         range(min = 0, max = 600000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "showInVideo": ["true"] })
+        step = 50,
+        unit = "ms",
+        show_if = { "showInVideo": ["true"] }
     )]
     pub duration_ms: u32,
 }
 
 impl Params for Chapter {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct OverlayHtml {
-    #[default = r#"<div style="font:600 32px system-ui">Hello</div>"#]
-    #[schemars(description = "HTML", extend("x-widget" = "code"))]
+    #[setting(
+        "HTML",
+        default = r#"<div style="font:600 32px system-ui">Hello</div>"#,
+        widget = "code"
+    )]
     pub html: String,
-    #[default = 2000]
-    #[schemars(
-        description = "Shown for",
+    #[setting(
+        "Shown for",
+        default = 2000,
         range(min = 0, max = 600000),
-        extend(
-            "x-step" = 50,
-            "x-unit" = "ms",
-            "x-help" = "The next actions carry on while it's shown.",
-            "x-zero-label" = "Until the end"
-        )
+        step = 50,
+        unit = "ms",
+        help = "The next actions carry on while it's shown.",
+        zero_label = "Until the end"
     )]
     pub duration_ms: u32,
 }

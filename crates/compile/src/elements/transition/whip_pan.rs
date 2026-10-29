@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -17,16 +18,15 @@ pub enum WhipDirection {
     Down,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct WhipPan {
-    #[default(WhipDirection::Left)]
-    #[schemars(description = "Direction")]
+    #[setting("Direction", default = WhipDirection::Left)]
     pub direction: WhipDirection,
-    #[default = 24]
-    #[schemars(description = "Blur", range(min = 0, max = 48), extend("x-step" = 2))]
+    #[setting("Blur", default = 24, range(min = 0, max = 48), step = 2)]
     pub blur: u32,
 }
 

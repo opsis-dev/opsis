@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,87 +7,71 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ParticleField {
-    #[default = "#05070f"]
-    #[schemars(
-        description = "Background color",
-        extend(
-            "x-help" = "Plate behind the field.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Background color",
+        default = "#05070f",
+        help = "Plate behind the field.",
+        check = colour
     )]
     pub background_color: String,
-    #[default = "#e8b86d"]
-    #[schemars(
-        description = "Color",
-        extend(
-            "x-help" = "Particle colour.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
-    )]
+    #[setting("Color", default = "#e8b86d", help = "Particle colour.", check = colour)]
     pub color: String,
-    #[default = 70]
-    #[schemars(
-        description = "Particles",
+    #[setting(
+        "Particles",
+        default = 70,
         range(min = 1, max = 400),
-        extend("x-step" = 1, "x-help" = "How many particles.")
+        step = 1,
+        help = "How many particles."
     )]
     pub count: u32,
-    #[default = 8.0]
-    #[schemars(
-        description = "Direction",
-        extend("x-help" = "Direction of travel in degrees. 0 drifts straight up.")
+    #[setting(
+        "Direction",
+        default = 8.0,
+        help = "Direction of travel in degrees. 0 drifts straight up."
     )]
     pub angle: f64,
-    #[default = 1.0]
-    #[schemars(
-        description = "Speed",
+    #[setting(
+        "Speed",
+        default = 1.0,
         range(min = 0.25, max = 4),
-        extend(
-            "x-step" = 0.25,
-            "x-help" = "Traverse speed. 1 crosses the frame in about eight seconds."
-        )
+        step = 0.25,
+        help = "Traverse speed. 1 crosses the frame in about eight seconds."
     )]
     pub speed: f64,
-    #[default = 14.0]
-    #[schemars(description = "Size")]
+    #[setting("Size", default = 14.0)]
     pub size: f64,
-    #[default = 2.0]
-    #[schemars(description = "Smallest size", extend("x-advanced" = true))]
+    #[setting("Smallest size", default = 2.0, advanced)]
     pub min_size: f64,
-    #[default = 3.0]
-    #[schemars(
-        description = "Depth blur",
-        extend(
-            "x-help" = "Defocus on the furthest particles. 0 flattens the field.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Depth blur",
+        default = 3.0,
+        help = "Defocus on the furthest particles. 0 flattens the field.",
+        advanced
     )]
     pub depth_blur: f64,
-    #[default = 4.0]
-    #[schemars(
-        description = "Drift",
-        extend("x-help" = "Sideways wander, in percent of the frame.", "x-advanced" = true)
+    #[setting(
+        "Drift",
+        default = 4.0,
+        help = "Sideways wander, in percent of the frame.",
+        advanced
     )]
     pub drift: f64,
-    #[default = 1.0]
-    #[schemars(description = "Intensity", extend("x-help" = "Overall brightness."))]
+    #[setting("Intensity", default = 1.0, help = "Overall brightness.")]
     pub intensity: f64,
-    #[default = 1.6]
-    #[schemars(
-        description = "Glow",
-        extend(
-            "x-step" = 0.1,
-            "x-help" = "Halo per particle, as a multiple of its size. 0 draws hard dots."
-        )
+    #[setting(
+        "Glow",
+        default = 1.6,
+        step = 0.1,
+        help = "Halo per particle, as a multiple of its size. 0 draws hard dots."
     )]
     pub glow: f64,
-    #[default = 1]
-    #[schemars(description = "Variation", extend("x-advanced" = true))]
+    #[setting("Variation", default = 1, advanced)]
     pub seed: u32,
 }
 

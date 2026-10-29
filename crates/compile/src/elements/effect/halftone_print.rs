@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,24 +7,19 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct HalftonePrint {
-    #[default = 10]
-    #[schemars(description = "Dot size", range(min = 4, max = 32), extend("x-step" = 1))]
+    #[setting("Dot size", default = 10, range(min = 4, max = 32), step = 1)]
     pub dot_size: u32,
-    #[schemars(description = "Screen angle", range(min = 0, max = 90), extend("x-step" = 1))]
+    #[setting("Screen angle", range(min = 0, max = 90), step = 1)]
     pub angle: u32,
-    #[default = 1.2]
-    #[schemars(description = "Misregistration", range(min = 0, max = 6), extend("x-step" = 0.2))]
+    #[setting("Misregistration", default = 1.2, range(min = 0, max = 6), step = 0.2)]
     pub misregistration: f64,
-    #[default = "#f4efe4"]
-    #[schemars(
-        description = "Paper",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Paper", default = "#f4efe4", check = colour)]
     pub paper_tint: String,
 }
 

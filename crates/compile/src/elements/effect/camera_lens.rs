@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,25 +7,21 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct CameraLens {
-    #[default = 0.5]
-    #[schemars(description = "Corner softness", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Corner softness", default = 0.5, range(min = 0, max = 2), step = 0.05)]
     pub softness: f64,
-    #[default = 0.5]
-    #[schemars(description = "Bloom", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Bloom", default = 0.5, range(min = 0, max = 2), step = 0.05)]
     pub bloom: f64,
-    #[default = 0.5]
-    #[schemars(description = "Aberration", range(min = 0, max = 3), extend("x-step" = 0.1))]
+    #[setting("Aberration", default = 0.5, range(min = 0, max = 3), step = 0.1)]
     pub aberration: f64,
-    #[default = 0.5]
-    #[schemars(description = "Vignette", range(min = 0, max = 1.5), extend("x-step" = 0.05))]
+    #[setting("Vignette", default = 0.5, range(min = 0, max = 1.5), step = 0.05)]
     pub vignette: f64,
-    #[default = 0.05]
-    #[schemars(description = "Distortion", range(min = 0, max = 0.6), extend("x-step" = 0.01))]
+    #[setting("Distortion", default = 0.05, range(min = 0, max = 0.6), step = 0.01)]
     pub distortion: f64,
 }
 

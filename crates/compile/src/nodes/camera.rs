@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::actions::{Action, ActionKind, Point, Rect};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
@@ -61,66 +62,75 @@ impl FrameChoice {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct AutoZoom {
-    #[default = true]
-    #[schemars(description = "Zoom to the clicks")]
+    #[setting("Zoom to the clicks", default = true)]
     pub zoom: bool,
-    #[default = 1.74]
-    #[schemars(
-        description = "Maximum zoom",
+    #[setting(
+        "Maximum zoom",
+        default = 1.74,
         range(min = 1.1, max = 2.5),
-        extend("x-step" = 0.02, "x-unit" = "×", "x-help" = "Higher zooms closer but can look soft.")
+        step = 0.02,
+        unit = "×",
+        help = "Higher zooms closer but can look soft."
     )]
     pub max_scale: f64,
-    #[default = 1300]
-    #[schemars(description = "Hold each zoom at least", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Hold each zoom at least",
+        default = 1300,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms"
+    )]
     pub hold: u32,
-    #[default = 1.25]
-    #[schemars(description = "Playback speed", range(min = 0.25, max = 4), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Playback speed",
+        default = 1.25,
+        range(min = 0.25, max = 4),
+        step = 0.05,
+        unit = "×"
+    )]
     pub speed: f64,
-    #[default(CameraStyle::Classic)]
-    #[schemars(description = "Camera style")]
+    #[setting("Camera style", default = CameraStyle::Classic)]
     pub style: CameraStyle,
-    #[default(Backdrop::Glaze)]
-    #[schemars(description = "Backdrop", extend("x-show-if" = { "style": ["classic"] }))]
+    #[setting("Backdrop", default = Backdrop::Glaze, show_if = { "style": ["classic"] })]
     pub backdrop: Backdrop,
-    #[default(FrameChoice::None)]
-    #[schemars(
-        description = "Window frame",
-        extend("x-labels" = { "none": "None", "macos": "macOS", "windows": "Windows", "linux": "Linux" })
+    #[setting(
+        "Window frame",
+        default = FrameChoice::None,
+        labels = { "none": "None", "macos": "macOS", "windows": "Windows", "linux": "Linux" }
     )]
     pub frame: FrameChoice,
-    #[default(DEFAULT_FRAME_THEME)]
-    #[schemars(description = "Frame colour", extend("x-show-if" = { "frame": ["macos", "windows", "linux"] }))]
+    #[setting(
+        "Frame colour",
+        default = DEFAULT_FRAME_THEME,
+        show_if = { "frame": ["macos", "windows", "linux"] }
+    )]
     pub frame_theme: FrameTheme,
-    #[default(DEFAULT_ADDRESS_BAR)]
-    #[schemars(
-        description = "Address bar",
-        extend("x-help" = "Shows the page's address in the title bar.", "x-show-if" = { "frame": ["macos", "windows", "linux"] })
+    #[setting(
+        "Address bar",
+        default = DEFAULT_ADDRESS_BAR,
+        help = "Shows the page's address in the title bar.",
+        show_if = { "frame": ["macos", "windows", "linux"] }
     )]
     pub address_bar: bool,
-    #[schemars(
-        description = "Address",
-        extend(
-            "x-zero-label" = "Page address",
-            "x-help" = "Shown instead of the page's own address, such as app.example.com.",
-            "x-show-if" = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"] }
-        )
+    #[setting(
+        "Address",
+        zero_label = "Page address",
+        help = "Shown instead of the page's own address, such as app.example.com.",
+        show_if = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"] }
     )]
     pub address: String,
-    #[default(AddressMode::Fixed)]
-    #[schemars(
-        description = "Show",
-        extend(
-            "x-labels" = { "fixed": "This address", "host": "This host with the page's path" },
-            "x-show-if" = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"], "address": ["*"] }
-        )
+    #[setting(
+        "Show",
+        default = AddressMode::Fixed,
+        labels = { "fixed": "This address", "host": "This host with the page's path" },
+        show_if = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"], "address": ["*"] }
     )]
     pub address_mode: AddressMode,
-    #[default = true]
-    #[schemars(description = "Motion blur")]
+    #[setting("Motion blur", default = true)]
     pub motion_blur: bool,
 }
 
@@ -136,134 +146,219 @@ impl AutoZoom {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ManualZoom {
-    #[default = 1000]
-    #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "At",
+        default = 1000,
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms"
+    )]
     pub at_ms: u32,
-    #[default = 1500]
-    #[schemars(description = "Hold", range(min = 100, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Hold",
+        default = 1500,
+        range(min = 100, max = 600000),
+        step = 50,
+        unit = "ms"
+    )]
     pub hold_ms: u32,
-    #[default = 0.5]
-    #[schemars(
-        description = "Spot",
+    #[setting(
+        "Spot",
+        default = 0.5,
         range(min = 0, max = 1),
-        extend("x-step" = 0.01, "x-widget" = "spot", "x-time-key" = "atMs", "x-help" = "Click the frame to choose where to zoom.")
+        step = 0.01,
+        widget = "spot",
+        time_key = "atMs",
+        help = "Click the frame to choose where to zoom."
     )]
     pub x: f64,
-    #[default = 0.5]
-    #[schemars(description = "Spot vertical", range(min = 0, max = 1), extend("x-step" = 0.01, "x-hidden" = true))]
+    #[setting(
+        "Spot vertical",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.01,
+        hidden
+    )]
     pub y: f64,
-    #[default = 1.5]
-    #[schemars(description = "Zoom", range(min = 1.1, max = 2.5), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Zoom",
+        default = 1.5,
+        range(min = 1.1, max = 2.5),
+        step = 0.05,
+        unit = "×"
+    )]
     pub scale: f64,
 }
 
 impl Params for ManualZoom {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Pan {
-    #[default = 1000]
-    #[schemars(description = "Start at", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Start at",
+        default = 1000,
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms"
+    )]
     pub at_ms: u32,
-    #[default = 1500]
-    #[schemars(description = "Pan for", range(min = 100, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Pan for",
+        default = 1500,
+        range(min = 100, max = 600000),
+        step = 50,
+        unit = "ms"
+    )]
     pub duration_ms: u32,
-    #[default = 0.3]
-    #[schemars(
-        description = "From",
+    #[setting(
+        "From",
+        default = 0.3,
         range(min = 0, max = 1),
-        extend("x-step" = 0.01, "x-widget" = "spot", "x-time-key" = "atMs", "x-help" = "Click the frame to choose where to start.")
+        step = 0.01,
+        widget = "spot",
+        time_key = "atMs",
+        help = "Click the frame to choose where to start."
     )]
     pub from_x: f64,
-    #[default = 0.4]
-    #[schemars(description = "From vertical", range(min = 0, max = 1), extend("x-step" = 0.01, "x-hidden" = true))]
-    pub from_y: f64,
-    #[default = 0.7]
-    #[schemars(
-        description = "To",
+    #[setting(
+        "From vertical",
+        default = 0.4,
         range(min = 0, max = 1),
-        extend("x-step" = 0.01, "x-widget" = "spot", "x-time-key" = "atMs", "x-help" = "Click the frame to choose where to end.")
+        step = 0.01,
+        hidden
+    )]
+    pub from_y: f64,
+    #[setting(
+        "To",
+        default = 0.7,
+        range(min = 0, max = 1),
+        step = 0.01,
+        widget = "spot",
+        time_key = "atMs",
+        help = "Click the frame to choose where to end."
     )]
     pub to_x: f64,
-    #[default = 0.6]
-    #[schemars(description = "To vertical", range(min = 0, max = 1), extend("x-step" = 0.01, "x-hidden" = true))]
+    #[setting(
+        "To vertical",
+        default = 0.6,
+        range(min = 0, max = 1),
+        step = 0.01,
+        hidden
+    )]
     pub to_y: f64,
-    #[default = 1.4]
-    #[schemars(description = "Zoom", range(min = 1.1, max = 2.5), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Zoom",
+        default = 1.4,
+        range(min = 1.1, max = 2.5),
+        step = 0.05,
+        unit = "×"
+    )]
     pub scale: f64,
 }
 
 impl Params for Pan {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct FollowCursor {
-    #[default = 1.35]
-    #[schemars(description = "Zoom", range(min = 1.1, max = 2.5), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Zoom",
+        default = 1.35,
+        range(min = 1.1, max = 2.5),
+        step = 0.05,
+        unit = "×"
+    )]
     pub scale: f64,
-    #[default = 700]
-    #[schemars(description = "Re-aim every", range(min = 200, max = 5000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Re-aim every",
+        default = 700,
+        range(min = 200, max = 5000),
+        step = 50,
+        unit = "ms"
+    )]
     pub every_ms: u32,
 }
 
 impl Params for FollowCursor {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct IdleSpeedup {
-    #[default = 1500]
-    #[schemars(description = "Quiet for longer than", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Quiet for longer than",
+        default = 1500,
+        range(min = 0, max = 20000),
+        step = 50,
+        unit = "ms"
+    )]
     pub threshold_ms: u32,
-    #[default = 400]
-    #[schemars(description = "Keep around each action", range(min = 0, max = 5000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Keep around each action",
+        default = 400,
+        range(min = 0, max = 5000),
+        step = 50,
+        unit = "ms"
+    )]
     pub pad_ms: u32,
-    #[default = 4.0]
-    #[schemars(description = "Speed while quiet", range(min = 1.5, max = 64), extend("x-step" = 0.5, "x-unit" = "×"))]
+    #[setting(
+        "Speed while quiet",
+        default = 4.0,
+        range(min = 1.5, max = 64),
+        step = 0.5,
+        unit = "×"
+    )]
     pub rate: f64,
 }
 
 impl Params for IdleSpeedup {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SpeedSegment {
-    #[schemars(description = "From", extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting("From", step = 50, unit = "ms")]
     pub from_ms: u32,
-    #[default = 1000]
-    #[schemars(description = "To", extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting("To", default = 1000, step = 50, unit = "ms")]
     pub to_ms: u32,
-    #[default = 2.0]
-    #[schemars(description = "Speed", range(min = 0.1, max = 64), extend("x-step" = 0.1, "x-unit" = "×"))]
+    #[setting(
+        "Speed",
+        default = 2.0,
+        range(min = 0.1, max = 64),
+        step = 0.1,
+        unit = "×"
+    )]
     pub rate: f64,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SpeedRamp {
-    #[default(vec![SpeedSegment::default()])]
-    #[schemars(description = "Parts")]
+    #[setting("Parts", default = vec![SpeedSegment::default()])]
     pub segments: Vec<SpeedSegment>,
 }
 
 impl Params for SpeedRamp {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Crop {
-    #[default = 0.1]
-    #[schemars(description = "Left", range(min = 0, max = 1), extend("x-step" = 0.01))]
+    #[setting("Left", default = 0.1, range(min = 0, max = 1), step = 0.01)]
     pub x: f64,
-    #[default = 0.1]
-    #[schemars(description = "Top", range(min = 0, max = 1), extend("x-step" = 0.01))]
+    #[setting("Top", default = 0.1, range(min = 0, max = 1), step = 0.01)]
     pub y: f64,
-    #[default = 0.8]
-    #[schemars(description = "Width", range(min = 0.05, max = 1), extend("x-step" = 0.01))]
+    #[setting("Width", default = 0.8, range(min = 0.05, max = 1), step = 0.01)]
     pub w: f64,
-    #[default = 0.8]
-    #[schemars(description = "Height", range(min = 0.05, max = 1), extend("x-step" = 0.01))]
+    #[setting("Height", default = 0.8, range(min = 0.05, max = 1), step = 0.01)]
     pub h: f64,
 }
 
@@ -327,16 +422,21 @@ impl DeviceEntrance {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct DeviceFrame {
-    #[default(Device::Laptop)]
-    #[schemars(description = "Device", extend("x-labels" = { "laptop": "Laptop", "phone": "Phone" }))]
+    #[setting(
+        "Device",
+        default = Device::Laptop,
+        labels = { "laptop": "Laptop", "phone": "Phone" }
+    )]
     pub device: Device,
-    #[default(DeviceEntrance::Open)]
-    #[schemars(
-        description = "Entrance",
-        extend("x-labels" = { "rise": "Slide in", "open": "Open up", "none": "None" }, "x-show-if" = { "device": ["laptop"] })
+    #[setting(
+        "Entrance",
+        default = DeviceEntrance::Open,
+        labels = { "rise": "Slide in", "open": "Open up", "none": "None" },
+        show_if = { "device": ["laptop"] }
     )]
     pub entrance: DeviceEntrance,
 }
@@ -352,25 +452,28 @@ pub enum BackdropKind {
     Asset,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct BackdropStyle {
-    #[default(BackdropKind::Image)]
-    #[schemars(
-        description = "Kind",
-        extend("x-labels" = { "image": "Studio image", "solid": "Colour", "gradient": "Gradient", "asset": "Your image" })
+    #[setting(
+        "Kind",
+        default = BackdropKind::Image,
+        labels = { "image": "Studio image", "solid": "Colour", "gradient": "Gradient", "asset": "Your image" }
     )]
     pub kind: BackdropKind,
-    #[default(Backdrop::Glaze)]
-    #[schemars(description = "Studio image", extend("x-show-if" = { "kind": ["image"] }))]
+    #[setting("Studio image", default = Backdrop::Glaze, show_if = { "kind": ["image"] })]
     pub name: Backdrop,
-    #[default = "#0b0b10"]
-    #[schemars(description = "Colour", extend("x-widget" = "color", "x-show-if" = { "kind": ["solid"] }))]
+    #[setting("Colour", default = "#0b0b10", widget = "color", show_if = { "kind": ["solid"] })]
     pub color: String,
-    #[default = "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)"]
-    #[schemars(description = "Gradient", extend("x-widget" = "gradient", "x-show-if" = { "kind": ["gradient"] }))]
+    #[setting(
+        "Gradient",
+        default = "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
+        widget = "gradient",
+        show_if = { "kind": ["gradient"] }
+    )]
     pub gradient: String,
-    #[schemars(description = "Image", extend("x-widget" = "asset", "x-accept" = "image/*", "x-show-if" = { "kind": ["asset"] }))]
+    #[setting("Image", widget = "asset", accept = "image/*", show_if = { "kind": ["asset"] })]
     pub asset: String,
 }
 
@@ -412,44 +515,46 @@ impl BackdropStyle {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct MotionBlur {
-    #[default = true]
-    #[schemars(description = "Motion blur")]
+    #[setting("Motion blur", default = true)]
     pub enabled: bool,
 }
 
 impl Params for MotionBlur {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct WindowFrame {
-    #[default(DEFAULT_WINDOW_STYLE)]
-    #[schemars(description = "Window style", extend("x-labels" = { "macos": "macOS", "windows": "Windows", "linux": "Linux" }))]
+    #[setting(
+        "Window style",
+        default = DEFAULT_WINDOW_STYLE,
+        labels = { "macos": "macOS", "windows": "Windows", "linux": "Linux" }
+    )]
     pub window_style: WindowStyle,
-    #[default(DEFAULT_FRAME_THEME)]
-    #[schemars(description = "Frame colour")]
+    #[setting("Frame colour", default = DEFAULT_FRAME_THEME)]
     pub frame_theme: FrameTheme,
-    #[default(DEFAULT_ADDRESS_BAR)]
-    #[schemars(description = "Address bar", extend("x-help" = "Shows the page's address in the title bar."))]
+    #[setting(
+        "Address bar",
+        default = DEFAULT_ADDRESS_BAR,
+        help = "Shows the page's address in the title bar."
+    )]
     pub address_bar: bool,
-    #[schemars(
-        description = "Address",
-        extend(
-            "x-zero-label" = "Page address",
-            "x-help" = "Shown instead of the page's own address, such as app.example.com.",
-            "x-show-if" = { "addressBar": ["true"] }
-        )
+    #[setting(
+        "Address",
+        zero_label = "Page address",
+        help = "Shown instead of the page's own address, such as app.example.com.",
+        show_if = { "addressBar": ["true"] }
     )]
     pub address: String,
-    #[default(AddressMode::Fixed)]
-    #[schemars(
-        description = "Show",
-        extend(
-            "x-labels" = { "fixed": "This address", "host": "This host with the page's path" },
-            "x-show-if" = { "addressBar": ["true"], "address": ["*"] }
-        )
+    #[setting(
+        "Show",
+        default = AddressMode::Fixed,
+        labels = { "fixed": "This address", "host": "This host with the page's path" },
+        show_if = { "addressBar": ["true"], "address": ["*"] }
     )]
     pub address_mode: AddressMode,
 }

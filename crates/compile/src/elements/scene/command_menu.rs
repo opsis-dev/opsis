@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -27,120 +28,106 @@ pub enum MenuIcon {
     File,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct CommandMenuItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Icon",
-        extend("type" = "string", "enum" = ["search", "settings", "user", "file"])
-    )]
+    #[setting("Icon", "type" = "string", "enum" = ["search", "settings", "user", "file"])]
     pub icon: Option<MenuIcon>,
-    #[default = "New item"]
-    #[schemars(description = "Label")]
+    #[setting("Label", default = "New item")]
     pub label: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Shortcut", extend("type" = "string"))]
+    #[setting("Shortcut", "type" = "string")]
     pub shortcut: Option<String>,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct CommandMenu {
-    #[default(MenuState::Opened)]
-    #[schemars(
-        description = "Menu",
-        extend(
-            "x-show-if" = { "autoplay": ["false"] },
-            "x-labels" = { "opened": "Open", "closed": "Closed" }
-        )
+    #[setting(
+        "Menu",
+        default = MenuState::Opened,
+        show_if = { "autoplay": ["false"] },
+        labels = { "opened": "Open", "closed": "Closed" }
     )]
     pub state: MenuState,
-    #[default = "new"]
-    #[schemars(description = "Search")]
+    #[setting("Search", default = "new")]
     pub query: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Letters typed",
+    #[setting(
+        "Letters typed",
         range(min = 0, max = 200),
-        extend(
-            "x-zero-label" = "All",
-            "x-step" = 1,
-            "x-show-if" = { "autoplay": ["false"] },
-            "type" = "integer"
-        )
+        zero_label = "All",
+        step = 1,
+        show_if = { "autoplay": ["false"] },
+        "type" = "integer"
     )]
     pub reveal_count: Option<u32>,
-    #[default(-1)]
-    #[schemars(
-        description = "Selected item",
+    #[setting(
+        "Selected item",
+        default = -1,
         range(min = -1, max = 20),
-        extend(
-            "x-step" = 1,
-            "x-help" = "Counting from 0. -1 selects none.",
-            "x-show-if" = { "autoplay": ["false"] }
-        )
+        step = 1,
+        help = "Counting from 0. -1 selects none.",
+        show_if = { "autoplay": ["false"] }
     )]
     pub selected_index: i32,
-    #[default(-1)]
-    #[schemars(
-        description = "Hovered item",
+    #[setting(
+        "Hovered item",
+        default = -1,
         range(min = -1, max = 20),
-        extend(
-            "x-step" = 1,
-            "x-help" = "Counting from 0. -1 hovers none.",
-            "x-show-if" = { "autoplay": ["false"] }
-        )
+        step = 1,
+        help = "Counting from 0. -1 hovers none.",
+        show_if = { "autoplay": ["false"] }
     )]
     pub highlighted_index: i32,
-    #[schemars(transform = neutral_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
+    #[setting("Theme", transform = neutral_themes, widget = "theme")]
     pub theme: Theme,
-    #[default(vec![
-        CommandMenuItem {
-            icon: Some(MenuIcon::User),
-            label: "Profile".into(),
-            shortcut: Some("⌘ P".into()),
-        },
-        CommandMenuItem {
-            icon: Some(MenuIcon::Settings),
-            label: "Settings".into(),
-            shortcut: Some("⌘ S".into()),
-        },
-        CommandMenuItem {
-            icon: Some(MenuIcon::File),
-            label: "New File".into(),
-            shortcut: Some("⌘ N".into()),
-        },
-        CommandMenuItem {
-            icon: Some(MenuIcon::Search),
-            label: "Search docs".into(),
-            ..Default::default()
-        },
-    ])]
-    #[schemars(description = "Items")]
+    #[setting(
+        "Items",
+        default = vec![
+            CommandMenuItem {
+                icon: Some(MenuIcon::User),
+                label: "Profile".into(),
+                shortcut: Some("⌘ P".into()),
+            },
+            CommandMenuItem {
+                icon: Some(MenuIcon::Settings),
+                label: "Settings".into(),
+                shortcut: Some("⌘ S".into()),
+            },
+            CommandMenuItem {
+                icon: Some(MenuIcon::File),
+                label: "New File".into(),
+                shortcut: Some("⌘ N".into()),
+            },
+            CommandMenuItem {
+                icon: Some(MenuIcon::Search),
+                label: "Search docs".into(),
+                ..Default::default()
+            },
+        ]
+    )]
     pub items: Vec<CommandMenuItem>,
-    #[default = true]
-    #[schemars(
-        description = "Play it out",
-        extend(
-            "x-help" = "Opens the menu, types the search, then picks the first match. Off shows one moment you set below."
-        )
+    #[setting(
+        "Play it out",
+        default = true,
+        help = "Opens the menu, types the search, then picks the first match. Off shows one moment you set below."
     )]
     pub autoplay: bool,
-    #[default(-1)]
-    #[schemars(
-        description = "Press item",
+    #[setting(
+        "Press item",
+        default = -1,
         range(min = -1, max = 20),
-        extend(
-            "x-step" = 1,
-            "x-help" = "The item that gets pressed, counting from 0. -1 presses none.",
-            "x-show-if" = { "autoplay": ["false"] }
-        )
+        step = 1,
+        help = "The item that gets pressed, counting from 0. -1 presses none.",
+        show_if = { "autoplay": ["false"] }
     )]
     pub pressed_index: i32,
 }

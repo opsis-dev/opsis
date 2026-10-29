@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::numbers;
 use opsis_types::timeline::{
@@ -40,55 +41,51 @@ const SHORT_ELEMENT_RATIO: f64 = 0.6;
 const CLIP_DURATION: &str = "clipDuration";
 const ENVELOPE: &str = "envelope";
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 struct EnvelopeField {
-    #[schemars(
-        description = "Keyframes",
-        extend(
-            "x-help" = "Change opacity, position and size over time. Edit them here or on the timeline.",
-            "x-widget" = "envelope"
-        )
+    #[setting(
+        "Keyframes",
+        help = "Change opacity, position and size over time. Edit them here or on the timeline.",
+        widget = "envelope"
     )]
     envelope: VisualEnvelope,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SceneBackground {
-    #[default = "in1"]
-    #[schemars(description = "Scene", extend("x-widget" = "port"))]
+    #[setting("Scene", default = "in1", widget = "port")]
     pub scene: String,
-    #[default = "#0b0b10"]
-    #[schemars(description = "Colour", extend("x-widget" = "color"))]
+    #[setting("Colour", default = "#0b0b10", widget = "color")]
     pub color: String,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 struct SequencerFields {
-    #[default = 1]
-    #[schemars(
-        description = "Pause between scenes",
+    #[setting(
+        "Pause between scenes",
+        default = 1,
         range(min = 0, max = 120),
-        extend(
-            "x-step" = 1,
-            "x-unit" = "frames",
-            "x-help" = "How long the stage stays empty between one scene leaving and the next landing."
-        )
+        step = 1,
+        unit = "frames",
+        help = "How long the stage stays empty between one scene leaving and the next landing."
     )]
     gap_frames: u32,
-    #[schemars(
-        description = "Scene backgrounds",
-        extend("x-help" = "A colour behind a scene. It fades into the next scene's colour.", "x-advanced" = true)
+    #[setting(
+        "Scene backgrounds",
+        help = "A colour behind a scene. It fades into the next scene's colour.",
+        advanced
     )]
     backgrounds: Vec<SceneBackground>,
-    #[schemars(
-        description = "Keyframes",
-        extend(
-            "x-help" = "Change opacity, position and size over time. Edit them here or on the timeline.",
-            "x-widget" = "envelope"
-        )
+    #[setting(
+        "Keyframes",
+        help = "Change opacity, position and size over time. Edit them here or on the timeline.",
+        widget = "envelope"
     )]
     envelope: VisualEnvelope,
 }

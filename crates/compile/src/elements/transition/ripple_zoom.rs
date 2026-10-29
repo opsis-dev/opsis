@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,46 +8,35 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct RippleZoom {
-    #[default = 4.0]
-    #[schemars(
-        description = "Zoom",
-        range(min = 1, max = 8),
-        extend("x-step" = 0.1, "x-advanced" = true)
-    )]
+    #[setting("Zoom", default = 4.0, range(min = 1, max = 8), step = 0.1, advanced)]
     pub zoom: f64,
-    #[default = 0.5]
-    #[schemars(description = "Intensity", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Intensity", default = 0.5, range(min = 0, max = 1), step = 0.05)]
     pub intensity: f64,
-    #[default = 0.5]
-    #[schemars(description = "Softness", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Softness", default = 0.5, range(min = 0, max = 1), step = 0.05)]
     pub softness: f64,
-    #[default = "#141318"]
-    #[schemars(
-        description = "Background",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background", default = "#141318", check = colour)]
     pub color_back: String,
-    #[default(vec!["#3a3a52".into(), "#4a4a68".into(), "#8f88ae".into()])]
-    #[schemars(description = "Colours", length(min = 2, max = 7))]
+    #[setting(
+        "Colours",
+        default = vec!["#3a3a52".into(), "#4a4a68".into(), "#8f88ae".into()],
+        length(min = 2, max = 7)
+    )]
     pub colors: Vec<Colour>,
-    #[default = 1.0]
-    #[schemars(
-        description = "Speed",
+    #[setting(
+        "Speed",
+        default = 1.0,
         range(min = 0.25, max = 4),
-        extend("x-step" = 0.25, "x-advanced" = true)
+        step = 0.25,
+        advanced
     )]
     pub speed: f64,
-    #[default = 0.5]
-    #[schemars(
-        description = "Grain",
-        range(min = 0, max = 1),
-        extend("x-step" = 0.01, "x-advanced" = true)
-    )]
+    #[setting("Grain", default = 0.5, range(min = 0, max = 1), step = 0.01, advanced)]
     pub noise: f64,
 }
 

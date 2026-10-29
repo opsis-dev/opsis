@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -17,41 +18,28 @@ pub enum Side {
     Right,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Callout {
-    #[default = "Click here"]
-    #[schemars(description = "Text")]
+    #[setting("Text", default = "Click here")]
     pub text: String,
-    #[default = 0.5]
-    #[schemars(description = "Target X (0–1)", range(min = 0, max = 1), extend("x-step" = 0.01))]
+    #[setting("Target X (0–1)", default = 0.5, range(min = 0, max = 1), step = 0.01)]
     pub x: f64,
-    #[default = 0.5]
-    #[schemars(description = "Target Y (0–1)", range(min = 0, max = 1), extend("x-step" = 0.01))]
+    #[setting("Target Y (0–1)", default = 0.5, range(min = 0, max = 1), step = 0.01)]
     pub y: f64,
-    #[default(Side::Top)]
-    #[schemars(description = "Label side")]
+    #[setting("Label side", default = Side::Top)]
     pub side: Side,
-    #[default = "#fafafa"]
-    #[schemars(
-        description = "Label colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Label colour", default = "#fafafa", check = colour)]
     pub color: String,
-    #[default = "#f43f5e"]
-    #[schemars(
-        description = "Arrow colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Arrow colour", default = "#f43f5e", check = colour)]
     pub accent: String,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
 }

@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -26,46 +27,47 @@ pub enum PixelShape {
     Dot,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct GridPixelateWipe {
-    #[default = 12]
-    #[schemars(
-        description = "Columns",
+    #[setting(
+        "Columns",
+        default = 12,
         range(min = 1, max = 48),
-        extend("x-step" = 1, "x-help" = "Grid column count.")
+        step = 1,
+        help = "Grid column count."
     )]
     pub cols: u32,
-    #[default = 8]
-    #[schemars(
-        description = "Rows",
+    #[setting(
+        "Rows",
+        default = 8,
         range(min = 1, max = 48),
-        extend("x-step" = 1, "x-help" = "Grid row count.")
+        step = 1,
+        help = "Grid row count."
     )]
     pub rows: u32,
-    #[default(PixelateOrder::FromLeft)]
-    #[schemars(
-        description = "Order",
-        extend("x-help" = "Which axis or point the cells light up from.")
+    #[setting(
+        "Order",
+        default = PixelateOrder::FromLeft,
+        help = "Which axis or point the cells light up from."
     )]
     pub order: PixelateOrder,
-    #[default(PixelShape::Square)]
-    #[schemars(
-        description = "Shape",
-        extend("x-help" = "Cells fill as blocks, or as points that grow with their own reveal.")
+    #[setting(
+        "Shape",
+        default = PixelShape::Square,
+        help = "Cells fill as blocks, or as points that grow with their own reveal."
     )]
     pub shape: PixelShape,
-    #[default = 0.82]
-    #[schemars(
-        description = "Stagger",
+    #[setting(
+        "Stagger",
+        default = 0.82,
         range(min = 0, max = 1),
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "0 pops every cell together; 1 spreads them across the whole window.",
-            "x-advanced" = true
-        )
+        step = 0.01,
+        help = "0 pops every cell together; 1 spreads them across the whole window.",
+        advanced
     )]
     pub stagger: f64,
 }

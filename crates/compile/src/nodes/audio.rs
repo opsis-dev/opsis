@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
@@ -153,43 +154,55 @@ fn source_row(icon: Icon, src: &str, inputs: &CardInputs, empty: &str) -> CardRo
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Music {
-    #[schemars(description = "Song", extend("x-widget" = "music", "x-accept" = "audio/*"))]
+    #[setting("Song", widget = "music", accept = "audio/*")]
     pub src: String,
-    #[default = 0.5]
-    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Volume", default = 0.5, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
-    #[default = true]
-    #[schemars(description = "Loop")]
+    #[setting("Loop", default = true)]
     pub r#loop: bool,
-    #[schemars(description = "Starts at", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting("Starts at", range(min = 0, max = 600000), step = 50, unit = "ms")]
     pub start_ms: u32,
-    #[schemars(
-        description = "Start the song from",
+    #[setting(
+        "Start the song from",
         range(min = 0, max = 600000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-help" = "Skips the start of the song.")
+        step = 50,
+        unit = "ms",
+        help = "Skips the start of the song."
     )]
     pub trim_ms: u32,
-    #[schemars(
-        description = "Play for",
+    #[setting(
+        "Play for",
         range(min = 0, max = 3600000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "To the end", "x-advanced" = true)
+        step = 50,
+        unit = "ms",
+        zero_label = "To the end",
+        advanced
     )]
     pub length_ms: u32,
-    #[default = 800]
-    #[schemars(description = "Fade in", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Fade in",
+        default = 800,
+        range(min = 0, max = 20000),
+        step = 50,
+        unit = "ms"
+    )]
     pub fade_in_ms: u32,
-    #[default = 1500]
-    #[schemars(description = "Fade out", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Fade out",
+        default = 1500,
+        range(min = 0, max = 20000),
+        step = 50,
+        unit = "ms"
+    )]
     pub fade_out_ms: u32,
-    #[schemars(
-        description = "Keyframes",
-        extend(
-            "x-help" = "Change volume and left–right balance over time. Edit them here or on the timeline.",
-            "x-widget" = "envelope"
-        )
+    #[setting(
+        "Keyframes",
+        help = "Change volume and left–right balance over time. Edit them here or on the timeline.",
+        widget = "envelope"
     )]
     pub envelope: AudioEnvelope,
 }
@@ -278,49 +291,50 @@ fn music() -> NodeDef {
         })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SoundEffect {
-    #[schemars(description = "Sound", extend("x-widget" = "sound", "x-accept" = "audio/*", "x-length-key" = "srcMs"))]
+    #[setting("Sound", widget = "sound", accept = "audio/*", length_key = "srcMs")]
     pub src: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Sound length", extend("exclusiveMinimum" = 0, "x-hidden" = true))]
+    #[setting("Sound length", "exclusiveMinimum" = 0, hidden)]
     pub src_ms: Option<f64>,
-    #[schemars(
-        description = "On an action",
-        extend(
-            "x-widget" = "action",
-            "x-help" = "Plays when this browser action happens in the clip the sound is added to, even after you record again or edit the clip."
-        )
+    #[setting(
+        "On an action",
+        widget = "action",
+        help = "Plays when this browser action happens in the clip the sound is added to, even after you record again or edit the clip."
     )]
     pub at_action: String,
-    #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "atAction": [""] }))]
+    #[setting(
+        "At",
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms",
+        show_if = { "atAction": [""] }
+    )]
     pub at_ms: u32,
-    #[schemars(
-        description = "From the action",
+    #[setting(
+        "From the action",
         range(min = -10000, max = 10000),
-        extend(
-            "x-unit" = "ms",
-            "x-step" = 50,
-            "x-help" = "Negative plays it before the action, for sounds that build up to it.",
-            "x-show-if" = { "atAction": ["*"] }
-        )
+        unit = "ms",
+        step = 50,
+        help = "Negative plays it before the action, for sounds that build up to it.",
+        show_if = { "atAction": ["*"] }
     )]
     pub offset_ms: i32,
-    #[default = 1.0]
-    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Volume", default = 1.0, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
-    #[schemars(
-        description = "Keep music up",
-        extend("x-help" = "Music set to lower under other sounds stays at full volume for this one.", "x-advanced" = true)
+    #[setting(
+        "Keep music up",
+        help = "Music set to lower under other sounds stays at full volume for this one.",
+        advanced
     )]
     pub keep_music: bool,
-    #[schemars(
-        description = "Keyframes",
-        extend(
-            "x-help" = "Change volume and left–right balance over time. Edit them here or on the timeline.",
-            "x-widget" = "envelope"
-        )
+    #[setting(
+        "Keyframes",
+        help = "Change volume and left–right balance over time. Edit them here or on the timeline.",
+        widget = "envelope"
     )]
     pub envelope: AudioEnvelope,
 }
@@ -443,25 +457,33 @@ impl NoiseColour {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct RoomTone {
-    #[schemars(
-        description = "Noise",
-        extend(
-            "x-labels" = { "pink": "Pink (soft)", "brown": "Brown (deep)", "white": "White (bright)" },
-            "x-help" = "Pink sounds like a quiet room, brown like a distant rumble, white like air."
-        )
+    #[setting(
+        "Noise",
+        labels = { "pink": "Pink (soft)", "brown": "Brown (deep)", "white": "White (bright)" },
+        help = "Pink sounds like a quiet room, brown like a distant rumble, white like air."
     )]
     pub colour: NoiseColour,
-    #[default(-45.0)]
-    #[schemars(description = "Level", range(min = -70, max = -20), extend("x-step" = 1, "x-unit" = "dB"))]
+    #[setting("Level", default = -45.0, range(min = -70, max = -20), step = 1, unit = "dB")]
     pub level: f64,
-    #[default = 1000]
-    #[schemars(description = "Fade in", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Fade in",
+        default = 1000,
+        range(min = 0, max = 20000),
+        step = 50,
+        unit = "ms"
+    )]
     pub fade_in_ms: u32,
-    #[default = 1000]
-    #[schemars(description = "Fade out", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Fade out",
+        default = 1000,
+        range(min = 0, max = 20000),
+        step = 50,
+        unit = "ms"
+    )]
     pub fade_out_ms: u32,
 }
 
@@ -526,48 +548,71 @@ pub enum ToneKind {
     Countdown,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Tones {
-    #[schemars(
-        description = "Sound",
-        extend(
-            "x-labels" = { "tone": "Tone", "beep": "Beep", "countdown": "Countdown" },
-            "x-help" = "A countdown is short beeps a set time apart, then a long one."
-        )
+    #[setting(
+        "Sound",
+        labels = { "tone": "Tone", "beep": "Beep", "countdown": "Countdown" },
+        help = "A countdown is short beeps a set time apart, then a long one."
     )]
     pub kind: ToneKind,
-    #[default = 880.0]
-    #[schemars(description = "Pitch", range(min = 100, max = 4000), extend("x-step" = 10, "x-unit" = "Hz"))]
+    #[setting(
+        "Pitch",
+        default = 880.0,
+        range(min = 100, max = 4000),
+        step = 10,
+        unit = "Hz"
+    )]
     pub pitch_hz: f64,
-    #[default = 150]
-    #[schemars(description = "Length", range(min = 20, max = 10000), extend("x-step" = 10, "x-unit" = "ms"))]
+    #[setting(
+        "Length",
+        default = 150,
+        range(min = 20, max = 10000),
+        step = 10,
+        unit = "ms"
+    )]
     pub length_ms: u32,
-    #[default = 3]
-    #[schemars(description = "Short beeps", range(min = 1, max = 10), extend("x-show-if" = { "kind": ["countdown"] }))]
+    #[setting(
+        "Short beeps",
+        default = 3,
+        range(min = 1, max = 10),
+        show_if = { "kind": ["countdown"] }
+    )]
     pub count: u32,
-    #[default = 1000]
-    #[schemars(
-        description = "Apart",
+    #[setting(
+        "Apart",
+        default = 1000,
         range(min = 100, max = 5000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "kind": ["countdown"] })
+        step = 50,
+        unit = "ms",
+        show_if = { "kind": ["countdown"] }
     )]
     pub spacing_ms: u32,
-    #[schemars(
-        description = "On an action",
-        extend("x-widget" = "action", "x-help" = "Plays when this browser action happens in the clip the sound is added to.")
+    #[setting(
+        "On an action",
+        widget = "action",
+        help = "Plays when this browser action happens in the clip the sound is added to."
     )]
     pub at_action: String,
-    #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "atAction": [""] }))]
+    #[setting(
+        "At",
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms",
+        show_if = { "atAction": [""] }
+    )]
     pub at_ms: u32,
-    #[schemars(
-        description = "From the action",
+    #[setting(
+        "From the action",
         range(min = -10000, max = 10000),
-        extend("x-unit" = "ms", "x-step" = 50, "x-show-if" = { "atAction": ["*"] })
+        unit = "ms",
+        step = 50,
+        show_if = { "atAction": ["*"] }
     )]
     pub offset_ms: i32,
-    #[default = 0.8]
-    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Volume", default = 0.8, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
 }
 
@@ -792,63 +837,81 @@ impl SoundVariation {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct GenerateSound {
-    #[schemars(
-        description = "Sound",
-        extend("x-labels" = { "whoosh": "Whoosh", "riser": "Riser", "pop": "Pop", "ding": "Ding", "tap": "Tap", "swell": "Swell", "click": "Click" })
+    #[setting(
+        "Sound",
+        labels = { "whoosh": "Whoosh", "riser": "Riser", "pop": "Pop", "ding": "Ding", "tap": "Tap", "swell": "Swell", "click": "Click" }
     )]
     pub preset: SoundPreset,
-    #[schemars(
-        description = "Variation",
-        extend(
-            "x-labels" = {
-                "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
-                "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher",
-                "shorter": "Shorter", "longer": "Longer", "custom": "Custom"
-            },
-            "x-help" = "Custom sets the length, pitch, brightness and take yourself. On a click, shorter and longer change the gap between its press and release."
-        )
+    #[setting(
+        "Variation",
+        labels = {
+            "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
+            "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher",
+            "shorter": "Shorter", "longer": "Longer", "custom": "Custom"
+        },
+        help = "Custom sets the length, pitch, brightness and take yourself. On a click, shorter and longer change the gap between its press and release."
     )]
     pub variation: SoundVariation,
-    #[schemars(
-        description = "Length",
+    #[setting(
+        "Length",
         range(min = 0, max = 20000),
-        extend("x-step" = 10, "x-unit" = "ms", "x-zero-label" = "The sound's usual length", "x-show-if" = { "variation": ["custom"] })
+        step = 10,
+        unit = "ms",
+        zero_label = "The sound's usual length",
+        show_if = { "variation": ["custom"] }
     )]
     pub length_ms: u32,
-    #[schemars(
-        description = "Pitch",
+    #[setting(
+        "Pitch",
         range(min = -24, max = 24),
-        extend("x-step" = 0.5, "x-help" = "Semitones up or down.", "x-show-if" = { "variation": ["custom"] })
+        step = 0.5,
+        help = "Semitones up or down.",
+        show_if = { "variation": ["custom"] }
     )]
     pub pitch: f64,
-    #[default = 0.5]
-    #[schemars(description = "Brightness", range(min = 0, max = 1), extend("x-step" = 0.05, "x-show-if" = { "variation": ["custom"] }))]
+    #[setting(
+        "Brightness",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.05,
+        show_if = { "variation": ["custom"] }
+    )]
     pub brightness: f64,
-    #[default = 1]
-    #[schemars(
-        description = "Take",
+    #[setting(
+        "Take",
+        default = 1,
         range(min = 0, max = 1000),
-        extend("x-help" = "Changes the noisy parts, and a click's gap. The same take always sounds the same.", "x-show-if" = { "variation": ["custom"] })
+        help = "Changes the noisy parts, and a click's gap. The same take always sounds the same.",
+        show_if = { "variation": ["custom"] }
     )]
     pub take: u32,
-    #[schemars(
-        description = "On an action",
-        extend("x-widget" = "action", "x-help" = "Plays when this browser action happens in the clip the sound is added to.")
+    #[setting(
+        "On an action",
+        widget = "action",
+        help = "Plays when this browser action happens in the clip the sound is added to."
     )]
     pub at_action: String,
-    #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "atAction": [""] }))]
+    #[setting(
+        "At",
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms",
+        show_if = { "atAction": [""] }
+    )]
     pub at_ms: u32,
-    #[schemars(
-        description = "From the action",
+    #[setting(
+        "From the action",
         range(min = -10000, max = 10000),
-        extend("x-unit" = "ms", "x-step" = 50, "x-show-if" = { "atAction": ["*"] })
+        unit = "ms",
+        step = 50,
+        show_if = { "atAction": ["*"] }
     )]
     pub offset_ms: i32,
-    #[default = 0.8]
-    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Volume", default = 0.8, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
 }
 
@@ -1051,40 +1114,44 @@ pub const ACTION_SOUNDS_TYPE: &str = "audio.actionSounds";
 const PITCH_SPREAD: f64 = 0.04;
 const LEVEL_SPREAD: f64 = 0.12;
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ActionSounds {
-    #[default = true]
-    #[schemars(description = "Clicks")]
+    #[setting("Clicks", default = true)]
     pub clicks: bool,
-    #[default = "app:sfx/mouse-click.wav"]
-    #[schemars(
-        description = "Click sound",
-        extend("x-widget" = "sound", "x-accept" = "audio/*", "x-length-key" = "clickSoundMs", "x-show-if" = { "clicks": ["true"] })
+    #[setting(
+        "Click sound",
+        default = "app:sfx/mouse-click.wav",
+        widget = "sound",
+        accept = "audio/*",
+        length_key = "clickSoundMs",
+        show_if = { "clicks": ["true"] }
     )]
     pub click_sound: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Click sound length", extend("exclusiveMinimum" = 0, "x-hidden" = true))]
+    #[setting("Click sound length", "exclusiveMinimum" = 0, hidden)]
     pub click_sound_ms: Option<f64>,
-    #[default = true]
-    #[schemars(description = "Keys")]
+    #[setting("Keys", default = true)]
     pub keys: bool,
-    #[default = "app:sfx/key-press.wav"]
-    #[schemars(
-        description = "Key sound",
-        extend("x-widget" = "sound", "x-accept" = "audio/*", "x-length-key" = "keySoundMs", "x-show-if" = { "keys": ["true"] })
+    #[setting(
+        "Key sound",
+        default = "app:sfx/key-press.wav",
+        widget = "sound",
+        accept = "audio/*",
+        length_key = "keySoundMs",
+        show_if = { "keys": ["true"] }
     )]
     pub key_sound: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Key sound length", extend("exclusiveMinimum" = 0, "x-hidden" = true))]
+    #[setting("Key sound length", "exclusiveMinimum" = 0, hidden)]
     pub key_sound_ms: Option<f64>,
-    #[default = 0.6]
-    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Volume", default = 0.6, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
-    #[default = true]
-    #[schemars(
-        description = "Vary each hit",
-        extend("x-help" = "Changes the pitch and level of each click and key a little, so typing doesn't sound mechanical.")
+    #[setting(
+        "Vary each hit",
+        default = true,
+        help = "Changes the pitch and level of each click and key a little, so typing doesn't sound mechanical."
     )]
     pub vary: bool,
 }
@@ -1234,66 +1301,78 @@ pub enum TransitionSoundFrom {
     File,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct TransitionSounds {
-    #[schemars(description = "Sound", extend("x-labels" = { "generated": "A generated sound", "file": "A sound file" }))]
+    #[setting("Sound", labels = { "generated": "A generated sound", "file": "A sound file" })]
     pub sound_from: TransitionSoundFrom,
-    #[schemars(
-        description = "Generated sound",
-        extend(
-            "x-labels" = { "whoosh": "Whoosh", "riser": "Riser", "pop": "Pop", "ding": "Ding", "tap": "Tap", "swell": "Swell", "click": "Click" },
-            "x-show-if" = { "soundFrom": ["generated"] }
-        )
+    #[setting(
+        "Generated sound",
+        labels = { "whoosh": "Whoosh", "riser": "Riser", "pop": "Pop", "ding": "Ding", "tap": "Tap", "swell": "Swell", "click": "Click" },
+        show_if = { "soundFrom": ["generated"] }
     )]
     pub preset: SoundPreset,
-    #[schemars(
-        description = "Variation",
-        extend(
-            "x-labels" = {
-                "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
-                "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher",
-                "shorter": "Shorter", "longer": "Longer", "custom": "Custom"
-            },
-            "x-show-if" = { "soundFrom": ["generated"] }
-        )
+    #[setting(
+        "Variation",
+        labels = {
+            "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
+            "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher",
+            "shorter": "Shorter", "longer": "Longer", "custom": "Custom"
+        },
+        show_if = { "soundFrom": ["generated"] }
     )]
     pub variation: SoundVariation,
-    #[schemars(
-        description = "Pitch",
+    #[setting(
+        "Pitch",
         range(min = -24, max = 24),
-        extend("x-step" = 0.5, "x-help" = "Semitones up or down.", "x-show-if" = { "soundFrom": ["generated"], "variation": ["custom"] })
+        step = 0.5,
+        help = "Semitones up or down.",
+        show_if = { "soundFrom": ["generated"], "variation": ["custom"] }
     )]
     pub pitch: f64,
-    #[default = 0.5]
-    #[schemars(
-        description = "Brightness",
+    #[setting(
+        "Brightness",
+        default = 0.5,
         range(min = 0, max = 1),
-        extend("x-step" = 0.05, "x-show-if" = { "soundFrom": ["generated"], "variation": ["custom"] })
+        step = 0.05,
+        show_if = { "soundFrom": ["generated"], "variation": ["custom"] }
     )]
     pub brightness: f64,
-    #[default = 1]
-    #[schemars(description = "Take", range(min = 0, max = 1000), extend("x-show-if" = { "soundFrom": ["generated"], "variation": ["custom"] }))]
+    #[setting(
+        "Take",
+        default = 1,
+        range(min = 0, max = 1000),
+        show_if = { "soundFrom": ["generated"], "variation": ["custom"] }
+    )]
     pub take: u32,
-    #[default = true]
-    #[schemars(
-        description = "Fit each sound to its transition",
-        extend("x-help" = "Makes each sound as long as its transition. Off, every sound has the variation's own length.", "x-show-if" = { "soundFrom": ["generated"] })
+    #[setting(
+        "Fit each sound to its transition",
+        default = true,
+        help = "Makes each sound as long as its transition. Off, every sound has the variation's own length.",
+        show_if = { "soundFrom": ["generated"] }
     )]
     pub fit: bool,
-    #[default("app:sfx/whoosh.wav".to_owned())]
-    #[schemars(description = "Sound file", extend("x-widget" = "sound", "x-accept" = "audio/*", "x-show-if" = { "soundFrom": ["file"] }))]
+    #[setting(
+        "Sound file",
+        default = "app:sfx/whoosh.wav".to_owned(),
+        widget = "sound",
+        accept = "audio/*",
+        show_if = { "soundFrom": ["file"] }
+    )]
     pub sound: String,
-    #[schemars(
-        description = "Also at plain cuts",
-        extend("x-help" = "Plays the sound where one clip cuts straight to the next too, at the variation's own length.")
+    #[setting(
+        "Also at plain cuts",
+        help = "Plays the sound where one clip cuts straight to the next too, at the variation's own length."
     )]
     pub at_cuts: bool,
-    #[default = true]
-    #[schemars(description = "Vary each one", extend("x-help" = "A small change of pitch and level on each, so they don't sound copied."))]
+    #[setting(
+        "Vary each one",
+        default = true,
+        help = "A small change of pitch and level on each, so they don't sound copied."
+    )]
     pub vary: bool,
-    #[default = 0.7]
-    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Volume", default = 0.7, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
 }
 
@@ -1531,56 +1610,76 @@ pub enum EndHit {
     Click,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Riser {
-    #[schemars(
-        description = "Ends on",
-        extend("x-labels" = { "action": "An action", "marker": "A marker", "clip-end": "The end of the clip" })
+    #[setting(
+        "Ends on",
+        labels = { "action": "An action", "marker": "A marker", "clip-end": "The end of the clip" }
     )]
     pub ends_on: RiserEnd,
-    #[schemars(
-        description = "Action",
-        extend("x-widget" = "action", "x-help" = "The browser action the sound ends on, in the clip it is added to.", "x-show-if" = { "endsOn": ["action"] })
+    #[setting(
+        "Action",
+        widget = "action",
+        help = "The browser action the sound ends on, in the clip it is added to.",
+        show_if = { "endsOn": ["action"] }
     )]
     pub at_action: String,
-    #[schemars(
-        description = "Marker",
-        extend("x-widget" = "marker", "x-help" = "A Timeline marker. Its time counts from the start of the clip the sound is added to.", "x-show-if" = { "endsOn": ["marker"] })
+    #[setting(
+        "Marker",
+        widget = "marker",
+        help = "A Timeline marker. Its time counts from the start of the clip the sound is added to.",
+        show_if = { "endsOn": ["marker"] }
     )]
     pub marker: String,
-    #[default = 3000]
-    #[schemars(description = "Rises for", range(min = 300, max = 30000), extend("x-step" = 100, "x-unit" = "ms"))]
+    #[setting(
+        "Rises for",
+        default = 3000,
+        range(min = 300, max = 30000),
+        step = 100,
+        unit = "ms"
+    )]
     pub length_ms: u32,
-    #[schemars(description = "Sound", extend("x-labels" = { "riser": "Riser", "swell": "Swell" }))]
+    #[setting("Sound", labels = { "riser": "Riser", "swell": "Swell" })]
     pub sound: RiserSound,
-    #[schemars(
-        description = "Variation",
-        extend("x-labels" = {
+    #[setting(
+        "Variation",
+        labels = {
             "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
             "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher", "custom": "Custom"
-        })
+        }
     )]
     pub variation: RiserVariation,
-    #[schemars(
-        description = "Pitch",
+    #[setting(
+        "Pitch",
         range(min = -24, max = 24),
-        extend("x-step" = 0.5, "x-help" = "Semitones up or down.", "x-show-if" = { "variation": ["custom"] })
+        step = 0.5,
+        help = "Semitones up or down.",
+        show_if = { "variation": ["custom"] }
     )]
     pub pitch: f64,
-    #[default = 0.5]
-    #[schemars(description = "Brightness", range(min = 0, max = 1), extend("x-step" = 0.05, "x-show-if" = { "variation": ["custom"] }))]
+    #[setting(
+        "Brightness",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.05,
+        show_if = { "variation": ["custom"] }
+    )]
     pub brightness: f64,
-    #[default = 1]
-    #[schemars(description = "Take", range(min = 0, max = 1000), extend("x-show-if" = { "variation": ["custom"] }))]
+    #[setting(
+        "Take",
+        default = 1,
+        range(min = 0, max = 1000),
+        show_if = { "variation": ["custom"] }
+    )]
     pub take: u32,
-    #[schemars(
-        description = "A hit at the end",
-        extend("x-labels" = { "off": "None", "pop": "Pop", "ding": "Ding", "tap": "Tap", "click": "Click" })
+    #[setting(
+        "A hit at the end",
+        labels = { "off": "None", "pop": "Pop", "ding": "Ding", "tap": "Tap", "click": "Click" }
     )]
     pub end_hit: EndHit,
-    #[default = 0.8]
-    #[schemars(description = "Volume", range(min = 0, max = 2), extend("x-step" = 0.05))]
+    #[setting("Volume", default = 0.8, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
 }
 

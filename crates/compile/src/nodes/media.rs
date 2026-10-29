@@ -1,5 +1,6 @@
 use std::collections::BTreeSet;
 
+use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::mix::LOUDNESS_TARGETS;
@@ -160,33 +161,36 @@ pub enum EncodePreset {
     Veryslow,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Encoding {
-    #[default(ConvertCodec::H264)]
-    #[schemars(description = "Format", extend("x-labels" = { "h264": "MP4", "h265": "MP4 (HEVC)", "vp9": "WebM", "prores": "ProRes" }))]
+    #[setting(
+        "Format",
+        default = ConvertCodec::H264,
+        labels = { "h264": "MP4", "h265": "MP4 (HEVC)", "vp9": "WebM", "prores": "ProRes" }
+    )]
     pub codec: ConvertCodec,
-    #[default = 18]
-    #[schemars(
-        description = "Quality",
+    #[setting(
+        "Quality",
+        default = 18,
         range(min = 0, max = 51),
-        extend("x-widget" = "quality", "x-show-if" = { "codec": ["h264", "h265", "vp9"] })
+        widget = "quality",
+        show_if = { "codec": ["h264", "h265", "vp9"] }
     )]
     pub crf: u32,
-    #[default(EncodePreset::Medium)]
-    #[schemars(
-        description = "Speed vs file size",
-        extend(
-            "x-labels" = {
-                "ultrafast": "Fastest, biggest",
-                "fast": "Fast",
-                "medium": "Balanced",
-                "slow": "Small",
-                "veryslow": "Smallest, slowest"
-            },
-            "x-advanced" = true,
-            "x-show-if" = { "codec": ["h264", "h265"] }
-        )
+    #[setting(
+        "Speed vs file size",
+        default = EncodePreset::Medium,
+        labels = {
+            "ultrafast": "Fastest, biggest",
+            "fast": "Fast",
+            "medium": "Balanced",
+            "slow": "Small",
+            "veryslow": "Smallest, slowest"
+        },
+        advanced,
+        show_if = { "codec": ["h264", "h265"] }
     )]
     pub preset: EncodePreset,
 }
@@ -379,32 +383,32 @@ fn one_file_op<P: Params>(kind: &'static str, title: &str, description: &str) ->
         .outputs(outputs)
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct MediaFile {
-    #[schemars(description = "File", extend("x-widget" = "asset", "x-accept" = "*/*"))]
+    #[setting("File", widget = "asset", accept = "*/*")]
     pub path: String,
-    #[default(Fit::Contain)]
-    #[schemars(description = "Fit", extend("x-labels" = { "cover": "Fill the frame", "contain": "Show all" }))]
+    #[setting(
+        "Fit",
+        default = Fit::Contain,
+        labels = { "cover": "Fill the frame", "contain": "Show all" }
+    )]
     pub fit: Fit,
-    #[default = 3000]
-    #[schemars(
-        description = "Length",
+    #[setting(
+        "Length",
+        default = 3000,
         range(min = 100, max = 3600000),
-        extend(
-            "x-step" = 50,
-            "x-unit" = "ms",
-            "x-help" = "How long the image stays on screen.",
-            "x-show-if-file" = { "path": ["image"] }
-        )
+        step = 50,
+        unit = "ms",
+        help = "How long the image stays on screen.",
+        show_if_file = { "path": ["image"] }
     )]
     pub still_ms: u32,
-    #[schemars(
-        description = "Keyframes",
-        extend(
-            "x-help" = "Change opacity, position and size over time. Edit them here or on the timeline.",
-            "x-widget" = "envelope"
-        )
+    #[setting(
+        "Keyframes",
+        help = "Change opacity, position and size over time. Edit them here or on the timeline.",
+        widget = "envelope"
     )]
     pub envelope: VisualEnvelope,
 }
@@ -495,20 +499,22 @@ fn import() -> NodeDef {
     })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct UseAsClip {
-    #[default(Fit::Contain)]
-    #[schemars(description = "Fit", extend("x-labels" = { "cover": "Fill the frame", "contain": "Show all" }))]
+    #[setting(
+        "Fit",
+        default = Fit::Contain,
+        labels = { "cover": "Fill the frame", "contain": "Show all" }
+    )]
     pub fit: Fit,
-    #[schemars(description = "Muted")]
+    #[setting("Muted")]
     pub muted: bool,
-    #[schemars(
-        description = "Keyframes",
-        extend(
-            "x-help" = "Change opacity, position and size over time. Edit them here or on the timeline.",
-            "x-widget" = "envelope"
-        )
+    #[setting(
+        "Keyframes",
+        help = "Change opacity, position and size over time. Edit them here or on the timeline.",
+        widget = "envelope"
     )]
     pub envelope: VisualEnvelope,
 }
@@ -551,12 +557,19 @@ fn use_as_clip() -> NodeDef {
     })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct TrimFile {
-    #[schemars(description = "Start", range(min = 0, max = 36000000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting("Start", range(min = 0, max = 36000000), step = 50, unit = "ms")]
     pub start_ms: u32,
-    #[schemars(description = "End", range(min = 0, max = 36000000), extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "To the end"))]
+    #[setting(
+        "End",
+        range(min = 0, max = 36000000),
+        step = 50,
+        unit = "ms",
+        zero_label = "To the end"
+    )]
     pub end_ms: u32,
 }
 
@@ -569,10 +582,11 @@ impl Params for TrimFile {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct JoinFiles {
-    #[schemars(description = "Always convert", extend("x-advanced" = true))]
+    #[setting("Always convert", advanced)]
     pub force_reencode: bool,
 }
 
@@ -619,14 +633,19 @@ fn join_files() -> NodeDef {
         .compile(|ctx: &Ctx<'_, JoinFiles>| Ok(Some(pass_media(ctx.result, ctx.inputs, "in1"))))
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ChangeSpeed {
-    #[default = 2.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 64), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Speed",
+        default = 2.0,
+        range(min = 0.25, max = 64),
+        step = 0.05,
+        unit = "×"
+    )]
     pub rate: f64,
-    #[default = true]
-    #[schemars(description = "Keep the sound")]
+    #[setting("Keep the sound", default = true)]
     pub keep_audio: bool,
 }
 
@@ -655,35 +674,41 @@ impl ScaleMode {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Resize {
-    #[default = 1920]
-    #[schemars(
-        description = "Width",
+    #[setting(
+        "Width",
+        default = 1920,
         range(min = 16, max = 7680),
-        extend("x-step" = 2, "x-unit" = "px", "x-help" = "A video takes even sizes; an odd one loses a pixel.")
+        step = 2,
+        unit = "px",
+        help = "A video takes even sizes; an odd one loses a pixel."
     )]
     pub width: u32,
-    #[default = 1080]
-    #[schemars(
-        description = "Height",
+    #[setting(
+        "Height",
+        default = 1080,
         range(min = 16, max = 7680),
-        extend("x-step" = 2, "x-unit" = "px", "x-help" = "A video takes even sizes; an odd one loses a pixel.")
+        step = 2,
+        unit = "px",
+        help = "A video takes even sizes; an odd one loses a pixel."
     )]
     pub height: u32,
-    #[default(ScaleMode::Pad)]
-    #[schemars(description = "Fit", extend("x-labels" = { "pad": "Add bars", "crop": "Crop to fill", "stretch": "Stretch" }))]
+    #[setting(
+        "Fit",
+        default = ScaleMode::Pad,
+        labels = { "pad": "Add bars", "crop": "Crop to fill", "stretch": "Stretch" }
+    )]
     pub mode: ScaleMode,
-    #[default = "black"]
-    #[schemars(
-        description = "Bar colour",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Default",
-            "x-show-if" = { "mode": ["pad"] },
-            "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Bar colour",
+        default = "black",
+        widget = "color",
+        zero_label = "Default",
+        show_if = { "mode": ["pad"] },
+        check = colour_or_empty
     )]
     pub background: String,
 }
@@ -700,22 +725,20 @@ pub enum Dither {
     None,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct MakeGif {
-    #[default = 15]
-    #[schemars(description = "Frame rate", range(min = 5, max = 50), extend("x-unit" = "fps"))]
+    #[setting("Frame rate", default = 15, range(min = 5, max = 50), unit = "fps")]
     pub fps: u32,
-    #[default = 960]
-    #[schemars(description = "Width", range(min = 64, max = 3840), extend("x-unit" = "px"))]
+    #[setting("Width", default = 960, range(min = 64, max = 3840), unit = "px")]
     pub width: u32,
-    #[default = true]
-    #[schemars(description = "Loop forever")]
+    #[setting("Loop forever", default = true)]
     pub r#loop: bool,
-    #[default(Dither::Sierra24a)]
-    #[schemars(
-        description = "Smooth colours",
-        extend("x-labels" = { "sierra2_4a": "Smooth", "bayer": "Patterned", "floyd_steinberg": "Fine", "none": "Off" })
+    #[setting(
+        "Smooth colours",
+        default = Dither::Sierra24a,
+        labels = { "sierra2_4a": "Smooth", "bayer": "Patterned", "floyd_steinberg": "Fine", "none": "Off" }
     )]
     pub dither: Dither,
 }
@@ -730,46 +753,61 @@ pub enum SoundFormat {
     Wav,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ExtractSound {
-    #[default(SoundFormat::M4a)]
-    #[schemars(description = "Format", extend("x-labels" = { "m4a": "M4A", "mp3": "MP3", "wav": "WAV" }))]
+    #[setting(
+        "Format",
+        default = SoundFormat::M4a,
+        labels = { "m4a": "M4A", "mp3": "MP3", "wav": "WAV" }
+    )]
     pub format: SoundFormat,
 }
 
 impl Params for ExtractSound {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct EvenOutVolume {
-    #[default(-16.0)]
-    #[schemars(description = "Loudness", range(min = -40, max = -5), extend("x-widget" = "loudness", "x-unit" = "LUFS"))]
+    #[setting(
+        "Loudness",
+        default = -16.0,
+        range(min = -40, max = -5),
+        widget = "loudness",
+        unit = "LUFS"
+    )]
     pub integrated: f64,
-    #[default(-1.5)]
-    #[schemars(description = "Peak limit", range(min = -9, max = 0), extend("x-step" = 0.1, "x-unit" = "dB", "x-advanced" = true))]
+    #[setting(
+        "Peak limit",
+        default = -1.5,
+        range(min = -9, max = 0),
+        step = 0.1,
+        unit = "dB",
+        advanced
+    )]
     pub true_peak: f64,
-    #[default = 11.0]
-    #[schemars(description = "Dynamic range", range(min = 1, max = 20), extend("x-advanced" = true))]
+    #[setting("Dynamic range", default = 11.0, range(min = 1, max = 20), advanced)]
     pub lra: f64,
 }
 
 impl Params for EvenOutVolume {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct FixClicks {
-    #[default = true]
-    #[schemars(description = "Remove clicks and pops")]
+    #[setting("Remove clicks and pops", default = true)]
     pub clicks: bool,
-    #[default = true]
-    #[schemars(description = "Rebuild clipped peaks")]
+    #[setting("Rebuild clipped peaks", default = true)]
     pub clipping: bool,
-    #[default = 0.5]
-    #[schemars(
-        description = "Strength",
+    #[setting(
+        "Strength",
+        default = 0.5,
         range(min = 0, max = 1),
-        extend("x-step" = 0.05, "x-help" = "Stronger finds more, but can soften sharp sounds that are meant to be there.")
+        step = 0.05,
+        help = "Stronger finds more, but can soften sharp sounds that are meant to be there."
     )]
     pub strength: f64,
 }
@@ -795,41 +833,52 @@ impl Mains {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct RemoveHum {
-    #[schemars(
-        description = "Hum",
-        extend(
-            "x-labels" = { "find": "Find it", "fifty": "50 Hz", "sixty": "60 Hz" },
-            "x-help" = "Mains hum is 50 Hz in most of the world and 60 Hz in the Americas. Find it listens for both first."
-        )
+    #[setting(
+        "Hum",
+        labels = { "find": "Find it", "fifty": "50 Hz", "sixty": "60 Hz" },
+        help = "Mains hum is 50 Hz in most of the world and 60 Hz in the Americas. Find it listens for both first."
     )]
     pub mains: Mains,
-    #[default = 4]
-    #[schemars(description = "Harmonics", range(min = 0, max = 10), extend("x-help" = "Hum also rings at twice, three times and more of its pitch."))]
+    #[setting(
+        "Harmonics",
+        default = 4,
+        range(min = 0, max = 10),
+        help = "Hum also rings at twice, three times and more of its pitch."
+    )]
     pub harmonics: u32,
-    #[default = 2.0]
-    #[schemars(description = "Notch width", range(min = 0.5, max = 20), extend("x-step" = 0.5, "x-unit" = "Hz", "x-advanced" = true))]
+    #[setting(
+        "Notch width",
+        default = 2.0,
+        range(min = 0.5, max = 20),
+        step = 0.5,
+        unit = "Hz",
+        advanced
+    )]
     pub width: f64,
 }
 
 impl Params for RemoveHum {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ChangePitch {
-    #[default = 3.0]
-    #[schemars(
-        description = "Semitones",
+    #[setting(
+        "Semitones",
+        default = 3.0,
         range(min = -24, max = 24),
-        extend("x-step" = 0.5, "x-help" = "Up or down, 12 to an octave. The length stays the same.")
+        step = 0.5,
+        help = "Up or down, 12 to an octave. The length stays the same."
     )]
     pub semitones: f64,
-    #[default = true]
-    #[schemars(
-        description = "Keep the voice's character",
-        extend("x-help" = "Keeps a voice sounding like the same person. Turn it off for a cartoon or a deep voice.")
+    #[setting(
+        "Keep the voice's character",
+        default = true,
+        help = "Keeps a voice sounding like the same person. Turn it off for a cartoon or a deep voice."
     )]
     pub keep_character: bool,
 }
@@ -859,29 +908,39 @@ impl VoiceEffect {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct VoiceEffects {
-    #[schemars(
-        description = "Effect",
-        extend("x-labels" = { "telephone": "Telephone", "radio": "Radio", "small-room": "Small room", "hall": "Hall", "echo": "Echo" })
+    #[setting(
+        "Effect",
+        labels = { "telephone": "Telephone", "radio": "Radio", "small-room": "Small room", "hall": "Hall", "echo": "Echo" }
     )]
     pub effect: VoiceEffect,
-    #[default = 1.0]
-    #[schemars(
-        description = "Mix",
+    #[setting(
+        "Mix",
+        default = 1.0,
         range(min = 0, max = 1),
-        extend("x-step" = 0.05, "x-help" = "How much of the effect against the original. Rooms and echoes sound natural around 0.3.")
+        step = 0.05,
+        help = "How much of the effect against the original. Rooms and echoes sound natural around 0.3."
     )]
     pub mix: f64,
-    #[default = 300]
-    #[schemars(description = "Echo after", range(min = 20, max = 2000), extend("x-step" = 10, "x-unit" = "ms", "x-show-if" = { "effect": ["echo"] }))]
+    #[setting(
+        "Echo after",
+        default = 300,
+        range(min = 20, max = 2000),
+        step = 10,
+        unit = "ms",
+        show_if = { "effect": ["echo"] }
+    )]
     pub delay_ms: u32,
-    #[default = 0.4]
-    #[schemars(
-        description = "Echo level",
+    #[setting(
+        "Echo level",
+        default = 0.4,
         range(min = 0.05, max = 0.9),
-        extend("x-step" = 0.05, "x-help" = "How loud the echo is against the sound.", "x-show-if" = { "effect": ["echo"] })
+        step = 0.05,
+        help = "How loud the echo is against the sound.",
+        show_if = { "effect": ["echo"] }
     )]
     pub decay: f64,
 }
@@ -897,50 +956,65 @@ pub enum FitWay {
     Loop,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct FitMusic {
-    #[schemars(
-        description = "Song",
-        extend("x-widget" = "music", "x-accept" = "audio/*", "x-help" = "A connected sound file takes its place.")
+    #[setting(
+        "Song",
+        widget = "music",
+        accept = "audio/*",
+        help = "A connected sound file takes its place."
     )]
     pub src: String,
-    #[schemars(
-        description = "Way",
-        extend(
-            "x-labels" = { "both": "Stretch, or loop when that's too far", "stretch": "Stretch only", "loop": "Loop only" },
-            "x-help" = "Stretching changes the tempo a little and keeps the song whole. Looping repeats a part of it with a crossfade."
-        )
+    #[setting(
+        "Way",
+        labels = { "both": "Stretch, or loop when that's too far", "stretch": "Stretch only", "loop": "Loop only" },
+        help = "Stretching changes the tempo a little and keeps the song whole. Looping repeats a part of it with a crossfade."
     )]
     pub way: FitWay,
-    #[default = 8.0]
-    #[schemars(
-        description = "Largest stretch",
+    #[setting(
+        "Largest stretch",
+        default = 8.0,
         range(min = 1, max = 25),
-        extend("x-step" = 1, "x-unit" = "%", "x-show-if" = { "way": ["both"] })
+        step = 1,
+        unit = "%",
+        show_if = { "way": ["both"] }
     )]
     pub max_stretch: f64,
-    #[schemars(
-        description = "Loop from",
+    #[setting(
+        "Loop from",
         range(min = 0, max = 3600000),
-        extend("x-step" = 100, "x-unit" = "ms", "x-show-if" = { "way": ["both", "loop"] })
+        step = 100,
+        unit = "ms",
+        show_if = { "way": ["both", "loop"] }
     )]
     pub loop_from_ms: u32,
-    #[schemars(
-        description = "Loop to",
+    #[setting(
+        "Loop to",
         range(min = 0, max = 3600000),
-        extend("x-step" = 100, "x-unit" = "ms", "x-zero-label" = "The end of the song", "x-show-if" = { "way": ["both", "loop"] })
+        step = 100,
+        unit = "ms",
+        zero_label = "The end of the song",
+        show_if = { "way": ["both", "loop"] }
     )]
     pub loop_to_ms: u32,
-    #[default = 1000]
-    #[schemars(
-        description = "Crossfade",
+    #[setting(
+        "Crossfade",
+        default = 1000,
         range(min = 10, max = 10000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-show-if" = { "way": ["both", "loop"] })
+        step = 50,
+        unit = "ms",
+        show_if = { "way": ["both", "loop"] }
     )]
     pub crossfade_ms: u32,
-    #[default = 2000]
-    #[schemars(description = "Fade at the end", range(min = 0, max = 20000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Fade at the end",
+        default = 2000,
+        range(min = 0, max = 20000),
+        step = 50,
+        unit = "ms"
+    )]
     pub fade_out_ms: u32,
 }
 
@@ -1031,29 +1105,36 @@ pub enum NoiseMethod {
     Spectral,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct CleanSpeech {
-    #[default = 0.8]
-    #[schemars(
-        description = "Remove noise",
+    #[setting(
+        "Remove noise",
+        default = 0.8,
         range(min = 0, max = 1),
-        extend("x-step" = 0.05, "x-help" = "How much of the background noise to take out. At 0 it stays.")
+        step = 0.05,
+        help = "How much of the background noise to take out. At 0 it stays."
     )]
     pub noise: f64,
-    #[default = 0.5]
-    #[schemars(description = "Soften “s” sounds", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting(
+        "Soften “s” sounds",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.05
+    )]
     pub soften_s: f64,
-    #[default = true]
-    #[schemars(description = "Even out the level", extend("x-help" = "Lifts quiet words and holds back loud ones."))]
+    #[setting(
+        "Even out the level",
+        default = true,
+        help = "Lifts quiet words and holds back loud ones."
+    )]
     pub even_level: bool,
-    #[schemars(
-        description = "Noise removal",
-        extend(
-            "x-labels" = { "learned": "Learned, for speech", "spectral": "Spectral, for steady noise" },
-            "x-help" = "The learned way keeps only the voice, so music under it goes too. The spectral way takes out a steady hiss or hum and leaves the rest.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Noise removal",
+        labels = { "learned": "Learned, for speech", "spectral": "Spectral, for steady noise" },
+        help = "The learned way keeps only the voice, so music under it goes too. The spectral way takes out a steady hiss or hum and leaves the rest.",
+        advanced
     )]
     pub method: NoiseMethod,
 }
@@ -1095,21 +1176,34 @@ fn noise_level_row(result: Option<&NodeResult>) -> Option<CardRow> {
     })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ShortenPauses {
-    #[default(-40.0)]
-    #[schemars(
-        description = "Silence below",
+    #[setting(
+        "Silence below",
+        default = -40.0,
         range(min = -70, max = -20),
-        extend("x-step" = 1, "x-unit" = "dB", "x-help" = "Quieter than this counts as a pause. Raise it for a noisy room.")
+        step = 1,
+        unit = "dB",
+        help = "Quieter than this counts as a pause. Raise it for a noisy room."
     )]
     pub threshold: f64,
-    #[default = 700]
-    #[schemars(description = "Shorten pauses longer than", range(min = 100, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Shorten pauses longer than",
+        default = 700,
+        range(min = 100, max = 10000),
+        step = 50,
+        unit = "ms"
+    )]
     pub longer_than_ms: u32,
-    #[default = 400]
-    #[schemars(description = "Down to", range(min = 0, max = 10000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Down to",
+        default = 400,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms"
+    )]
     pub keep_ms: u32,
 }
 
@@ -1173,46 +1267,35 @@ impl SpectrumColours {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SoundPicture {
-    #[schemars(
-        description = "Picture",
-        extend(
-            "x-labels" = { "waveform": "Waveform", "spectrum": "Spectrum" },
-            "x-help" = "A waveform shows loudness over time; a spectrum also shows pitch, low at the bottom."
-        )
+    #[setting(
+        "Picture",
+        labels = { "waveform": "Waveform", "spectrum": "Spectrum" },
+        help = "A waveform shows loudness over time; a spectrum also shows pitch, low at the bottom."
     )]
     pub kind: SoundPictureKind,
-    #[default = 1920]
-    #[schemars(description = "Width", range(min = 64, max = 8192), extend("x-unit" = "px"))]
+    #[setting("Width", default = 1920, range(min = 64, max = 8192), unit = "px")]
     pub width: u32,
-    #[default = 400]
-    #[schemars(description = "Height", range(min = 32, max = 4096), extend("x-unit" = "px"))]
+    #[setting("Height", default = 400, range(min = 32, max = 4096), unit = "px")]
     pub height: u32,
-    #[default = "#6366f1"]
-    #[schemars(
-        description = "Colour",
-        extend(
-            "x-widget" = "color",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" },
-            "x-show-if" = { "kind": ["waveform"] }
-        )
+    #[setting(
+        "Colour",
+        default = "#6366f1",
+        widget = "color",
+        check = colour,
+        show_if = { "kind": ["waveform"] }
     )]
     pub color: String,
-    #[schemars(
-        description = "Colours",
-        extend(
-            "x-labels" = { "magma": "Magma", "fire": "Fire", "viridis": "Viridis", "rainbow": "Rainbow", "cool": "Cool" },
-            "x-show-if" = { "kind": ["spectrum"] }
-        )
+    #[setting(
+        "Colours",
+        labels = { "magma": "Magma", "fire": "Fire", "viridis": "Viridis", "rainbow": "Rainbow", "cool": "Cool" },
+        show_if = { "kind": ["spectrum"] }
     )]
     pub colours: SpectrumColours,
-    #[default = "#00000000"]
-    #[schemars(
-        description = "Background",
-        extend("x-widget" = "color", "x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background", default = "#00000000", widget = "color", check = colour)]
     pub background: String,
 }
 
@@ -1256,14 +1339,19 @@ fn sound_picture() -> NodeDef {
     })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct GrabFrame {
-    #[default = 1000]
-    #[schemars(description = "At", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "At",
+        default = 1000,
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms"
+    )]
     pub at_ms: u32,
-    #[default = 1280]
-    #[schemars(description = "Width", range(min = 64, max = 3840), extend("x-unit" = "px"))]
+    #[setting("Width", default = 1280, range(min = 64, max = 3840), unit = "px")]
     pub width: u32,
 }
 

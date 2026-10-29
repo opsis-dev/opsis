@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
@@ -92,33 +93,35 @@ pub enum Resample {
     Sharp,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ResizeImage {
-    #[default = 1920]
-    #[schemars(
-        description = "Width",
+    #[setting(
+        "Width",
+        default = 1920,
         range(min = 0, max = 16384),
-        extend("x-unit" = "px", "x-help" = "0 follows the height and keeps the proportion.")
+        unit = "px",
+        help = "0 follows the height and keeps the proportion."
     )]
     pub width: u32,
-    #[schemars(
-        description = "Height",
+    #[setting(
+        "Height",
         range(min = 0, max = 16384),
-        extend("x-unit" = "px", "x-help" = "0 follows the width and keeps the proportion.")
+        unit = "px",
+        help = "0 follows the width and keeps the proportion."
     )]
     pub height: u32,
-    #[schemars(
-        description = "Fit",
-        extend(
-            "x-labels" = { "inside": "Fit inside", "cover": "Fill and crop", "exact": "Stretch" },
-            "x-help" = "When both sides are set: fit the whole image inside them, fill them and crop the rest, or stretch to exactly that size."
-        )
+    #[setting(
+        "Fit",
+        labels = { "inside": "Fit inside", "cover": "Fill and crop", "exact": "Stretch" },
+        help = "When both sides are set: fit the whole image inside them, fill them and crop the rest, or stretch to exactly that size."
     )]
     pub fit: ResizeFit,
-    #[schemars(
-        description = "Quality",
-        extend("x-labels" = { "fast": "Fast", "smooth": "Smooth", "sharp": "Sharp" }, "x-advanced" = true)
+    #[setting(
+        "Quality",
+        labels = { "fast": "Fast", "smooth": "Smooth", "sharp": "Sharp" },
+        advanced
     )]
     pub quality: Resample,
 }
@@ -142,29 +145,33 @@ fn whole_area() -> Vec<Area> {
     }]
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct CropImage {
-    #[schemars(description = "Crop by", extend("x-labels" = { "area": "Area", "margins": "Margins" }))]
+    #[setting("Crop by", labels = { "area": "Area", "margins": "Margins" })]
     pub mode: CropMode,
-    #[default(whole_area())]
-    #[schemars(
-        description = "Area to keep",
+    #[setting(
+        "Area to keep",
+        default = whole_area(),
         length(min = 1, max = 1),
-        extend(
-            "x-widget" = "boxes",
-            "x-show-if" = { "mode": ["area"] },
-            "x-help" = "Drag on the picture to choose the part to keep."
-        )
+        widget = "boxes",
+        show_if = { "mode": ["area"] },
+        help = "Drag on the picture to choose the part to keep."
     )]
     pub area: Vec<Area>,
-    #[schemars(description = "Top", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
+    #[setting("Top", range(min = 0, max = 16384), unit = "px", show_if = { "mode": ["margins"] })]
     pub top: u32,
-    #[schemars(description = "Right", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
+    #[setting("Right", range(min = 0, max = 16384), unit = "px", show_if = { "mode": ["margins"] })]
     pub right: u32,
-    #[schemars(description = "Bottom", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
+    #[setting(
+        "Bottom",
+        range(min = 0, max = 16384),
+        unit = "px",
+        show_if = { "mode": ["margins"] }
+    )]
     pub bottom: u32,
-    #[schemars(description = "Left", range(min = 0, max = 16384), extend("x-unit" = "px", "x-show-if" = { "mode": ["margins"] }))]
+    #[setting("Left", range(min = 0, max = 16384), unit = "px", show_if = { "mode": ["margins"] })]
     pub left: u32,
 }
 
@@ -180,95 +187,116 @@ pub enum Turn {
     Left,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct RotateImage {
-    #[default(Turn::Right)]
-    #[schemars(
-        description = "Turn",
-        extend("x-labels" = { "none": "None", "right": "90° right", "half": "180°", "left": "90° left" })
+    #[setting(
+        "Turn",
+        default = Turn::Right,
+        labels = { "none": "None", "right": "90° right", "half": "180°", "left": "90° left" }
     )]
     pub turn: Turn,
-    #[schemars(description = "Flip left to right")]
+    #[setting("Flip left to right")]
     pub flip_horizontal: bool,
-    #[schemars(description = "Flip upside down")]
+    #[setting("Flip upside down")]
     pub flip_vertical: bool,
-    #[schemars(
-        description = "Straighten",
+    #[setting(
+        "Straighten",
         range(min = -45, max = 45),
-        extend("x-step" = 0.5, "x-unit" = "°", "x-help" = "Tilts the picture by a small angle. The corners fill with the background colour.")
+        step = 0.5,
+        unit = "°",
+        help = "Tilts the picture by a small angle. The corners fill with the background colour."
     )]
     pub angle: f64,
-    #[default = "#00000000"]
-    #[schemars(
-        description = "Background",
-        extend("x-widget" = "color", "x-check" = { "rule": "colour", "message": "Pick a colour" }, "x-help" = "Fills the corners a tilt opens up.")
+    #[setting(
+        "Background",
+        default = "#00000000",
+        widget = "color",
+        check = colour,
+        help = "Fills the corners a tilt opens up."
     )]
     pub background: String,
 }
 
 impl Params for RotateImage {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct AdjustImage {
-    #[schemars(description = "Brightness", range(min = -1, max = 1), extend("x-step" = 0.05))]
+    #[setting("Brightness", range(min = -1, max = 1), step = 0.05)]
     pub brightness: f64,
-    #[schemars(description = "Contrast", range(min = -1, max = 1), extend("x-step" = 0.05))]
+    #[setting("Contrast", range(min = -1, max = 1), step = 0.05)]
     pub contrast: f64,
-    #[schemars(description = "Saturation", range(min = -1, max = 1), extend("x-step" = 0.05, "x-help" = "-1 takes all the colour out."))]
+    #[setting(
+        "Saturation",
+        range(min = -1, max = 1),
+        step = 0.05,
+        help = "-1 takes all the colour out."
+    )]
     pub saturation: f64,
-    #[schemars(description = "Hue", range(min = -180, max = 180), extend("x-step" = 1, "x-unit" = "°"))]
+    #[setting("Hue", range(min = -180, max = 180), step = 1, unit = "°")]
     pub hue: f64,
-    #[schemars(description = "Black and white")]
+    #[setting("Black and white")]
     pub grayscale: bool,
-    #[schemars(description = "Invert colours")]
+    #[setting("Invert colours")]
     pub invert: bool,
 }
 
 impl Params for AdjustImage {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct BlurImage {
-    #[schemars(description = "Blur", range(min = 0, max = 100), extend("x-step" = 0.5, "x-unit" = "px"))]
+    #[setting("Blur", range(min = 0, max = 100), step = 0.5, unit = "px")]
     pub blur: f64,
-    #[default = 1.0]
-    #[schemars(description = "Sharpen", range(min = 0, max = 5), extend("x-step" = 0.1))]
+    #[setting("Sharpen", default = 1.0, range(min = 0, max = 5), step = 0.1)]
     pub sharpen: f64,
-    #[default = 4]
-    #[schemars(
-        description = "Sharpen threshold",
+    #[setting(
+        "Sharpen threshold",
+        default = 4,
         range(min = 0, max = 255),
-        extend("x-advanced" = true, "x-help" = "Differences smaller than this stay as they are, so flat areas don't get grainy.")
+        advanced,
+        help = "Differences smaller than this stay as they are, so flat areas don't get grainy."
     )]
     pub threshold: u32,
 }
 
 impl Params for BlurImage {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct PlaceImage {
-    #[default = 0.85]
-    #[schemars(
-        description = "Place at",
+    #[setting(
+        "Place at",
+        default = 0.85,
         range(min = 0, max = 1),
-        extend("x-step" = 0.01, "x-widget" = "spot", "x-help" = "Click the picture to choose where the middle of the placed image goes.")
+        step = 0.01,
+        widget = "spot",
+        help = "Click the picture to choose where the middle of the placed image goes."
     )]
     pub x: f64,
-    #[default = 0.85]
-    #[schemars(description = "Place at vertical", range(min = 0, max = 1), extend("x-step" = 0.01, "x-hidden" = true))]
+    #[setting(
+        "Place at vertical",
+        default = 0.85,
+        range(min = 0, max = 1),
+        step = 0.01,
+        hidden
+    )]
     pub y: f64,
-    #[default = 20.0]
-    #[schemars(
-        description = "Size",
+    #[setting(
+        "Size",
+        default = 20.0,
         range(min = 1, max = 100),
-        extend("x-step" = 1, "x-unit" = "%", "x-help" = "The placed image's width, as a share of the picture's width.")
+        step = 1,
+        unit = "%",
+        help = "The placed image's width, as a share of the picture's width."
     )]
     pub size: f64,
-    #[default = 1.0]
-    #[schemars(description = "Opacity", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Opacity", default = 1.0, range(min = 0, max = 1), step = 0.05)]
     pub opacity: f64,
 }
 
@@ -304,38 +332,40 @@ impl StillFileFormat {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ImageFormat {
-    #[default(StillFileFormat::Jpeg)]
-    #[schemars(
-        description = "Format",
-        extend("x-labels" = { "png": "PNG", "jpeg": "JPEG", "webp": "WebP (lossless)", "avif": "AVIF" })
+    #[setting(
+        "Format",
+        default = StillFileFormat::Jpeg,
+        labels = { "png": "PNG", "jpeg": "JPEG", "webp": "WebP (lossless)", "avif": "AVIF" }
     )]
     pub format: StillFileFormat,
-    #[default = 85]
-    #[schemars(
-        description = "Quality",
+    #[setting(
+        "Quality",
+        default = 85,
         range(min = 1, max = 100),
-        extend("x-show-if" = { "format": ["jpeg", "avif"] }, "x-help" = "Higher looks better and makes a larger file.")
+        show_if = { "format": ["jpeg", "avif"] },
+        help = "Higher looks better and makes a larger file."
     )]
     pub quality: u32,
-    #[default = 6]
-    #[schemars(
-        description = "Speed",
+    #[setting(
+        "Speed",
+        default = 6,
         range(min = 1, max = 10),
-        extend("x-show-if" = { "format": ["avif"] }, "x-advanced" = true, "x-help" = "Higher saves faster and makes a larger file.")
+        show_if = { "format": ["avif"] },
+        advanced,
+        help = "Higher saves faster and makes a larger file."
     )]
     pub speed: u32,
-    #[default = "#ffffff"]
-    #[schemars(
-        description = "Background",
-        extend(
-            "x-widget" = "color",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" },
-            "x-show-if" = { "format": ["jpeg"] },
-            "x-help" = "JPEG has no see-through parts, so they're filled with this colour."
-        )
+    #[setting(
+        "Background",
+        default = "#ffffff",
+        widget = "color",
+        check = colour,
+        show_if = { "format": ["jpeg"] },
+        help = "JPEG has no see-through parts, so they're filled with this colour."
     )]
     pub background: String,
 }
@@ -370,43 +400,46 @@ fn hidden_area() -> Vec<Area> {
     }]
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct RedactImage {
-    #[default(hidden_area())]
-    #[schemars(
-        description = "Areas to hide",
+    #[setting(
+        "Areas to hide",
+        default = hidden_area(),
         length(min = 1, max = 8),
-        extend("x-widget" = "boxes", "x-help" = "Drag on the picture to mark each part to hide.")
+        widget = "boxes",
+        help = "Drag on the picture to mark each part to hide."
     )]
     pub areas: Vec<Area>,
-    #[schemars(
-        description = "Hide with",
-        extend("x-labels" = { "pixelate": "Large pixels", "blur": "Blur", "solid": "Solid colour" })
+    #[setting(
+        "Hide with",
+        labels = { "pixelate": "Large pixels", "blur": "Blur", "solid": "Solid colour" }
     )]
     pub style: RedactStyle,
-    #[default = 16]
-    #[schemars(
-        description = "Pixel size",
+    #[setting(
+        "Pixel size",
+        default = 16,
         range(min = 2, max = 256),
-        extend("x-unit" = "px", "x-show-if" = { "style": ["pixelate"] })
+        unit = "px",
+        show_if = { "style": ["pixelate"] }
     )]
     pub block_size: u32,
-    #[default = 16.0]
-    #[schemars(
-        description = "Blur",
+    #[setting(
+        "Blur",
+        default = 16.0,
         range(min = 1, max = 100),
-        extend("x-step" = 0.5, "x-unit" = "px", "x-show-if" = { "style": ["blur"] })
+        step = 0.5,
+        unit = "px",
+        show_if = { "style": ["blur"] }
     )]
     pub blur: f64,
-    #[default = "#000000"]
-    #[schemars(
-        description = "Colour",
-        extend(
-            "x-widget" = "color",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" },
-            "x-show-if" = { "style": ["solid"] }
-        )
+    #[setting(
+        "Colour",
+        default = "#000000",
+        widget = "color",
+        check = colour,
+        show_if = { "style": ["solid"] }
     )]
     pub color: String,
 }
@@ -422,126 +455,146 @@ fn lit_area() -> Vec<Area> {
     }]
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SpotlightImage {
-    #[default(lit_area())]
-    #[schemars(
-        description = "Areas to light",
+    #[setting(
+        "Areas to light",
+        default = lit_area(),
         length(min = 1, max = 8),
-        extend("x-widget" = "boxes", "x-help" = "Drag on the picture to mark each part to keep bright.")
+        widget = "boxes",
+        help = "Drag on the picture to mark each part to keep bright."
     )]
     pub areas: Vec<Area>,
-    #[default = 0.6]
-    #[schemars(description = "Darken the rest", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Darken the rest", default = 0.6, range(min = 0, max = 1), step = 0.05)]
     pub dim: f64,
-    #[schemars(description = "Blur the rest", range(min = 0, max = 50), extend("x-step" = 0.5, "x-unit" = "px"))]
+    #[setting("Blur the rest", range(min = 0, max = 50), step = 0.5, unit = "px")]
     pub blur: f64,
-    #[default = 12.0]
-    #[schemars(description = "Corner radius", range(min = 0, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
+    #[setting(
+        "Corner radius",
+        default = 12.0,
+        range(min = 0, max = 200),
+        step = 1,
+        unit = "px"
+    )]
     pub radius: f64,
-    #[default = 8.0]
-    #[schemars(description = "Soft edge", range(min = 0, max = 100), extend("x-step" = 1, "x-unit" = "px"))]
+    #[setting(
+        "Soft edge",
+        default = 8.0,
+        range(min = 0, max = 100),
+        step = 1,
+        unit = "px"
+    )]
     pub softness: f64,
 }
 
 impl Params for SpotlightImage {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct TrimEdges {
-    #[default = 8]
-    #[schemars(
-        description = "Tolerance",
+    #[setting(
+        "Tolerance",
+        default = 8,
         range(min = 0, max = 255),
-        extend("x-help" = "How far a pixel's colour may be from the corner's and still count as empty edge.")
+        help = "How far a pixel's colour may be from the corner's and still count as empty edge."
     )]
     pub tolerance: u32,
-    #[schemars(description = "Keep around", range(min = 0, max = 2000), extend("x-unit" = "px"))]
+    #[setting("Keep around", range(min = 0, max = 2000), unit = "px")]
     pub padding: u32,
 }
 
 impl Params for TrimEdges {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ClearColour {
-    #[schemars(
-        description = "Colour",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "The corner's colour",
-            "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Colour",
+        widget = "color",
+        zero_label = "The corner's colour",
+        check = colour_or_empty
     )]
     pub color: String,
-    #[default = 10.0]
-    #[schemars(
-        description = "Tolerance",
+    #[setting(
+        "Tolerance",
+        default = 10.0,
         range(min = 0, max = 100),
-        extend("x-step" = 1, "x-unit" = "%", "x-help" = "How different a colour may be and still be made see-through.")
+        step = 1,
+        unit = "%",
+        help = "How different a colour may be and still be made see-through."
     )]
     pub tolerance: f64,
-    #[default = true]
-    #[schemars(
-        description = "Only areas touching the edges",
-        extend("x-help" = "Keeps the same colour inside the picture, such as the white inside a logo.")
+    #[setting(
+        "Only areas touching the edges",
+        default = true,
+        help = "Keeps the same colour inside the picture, such as the white inside a logo."
     )]
     pub edges_only: bool,
-    #[default = 10.0]
-    #[schemars(description = "Soft edge", range(min = 0, max = 100), extend("x-step" = 1, "x-unit" = "%"))]
+    #[setting(
+        "Soft edge",
+        default = 10.0,
+        range(min = 0, max = 100),
+        step = 1,
+        unit = "%"
+    )]
     pub softness: f64,
 }
 
 impl Params for ClearColour {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct OutlineImage {
-    #[default = 8.0]
-    #[schemars(description = "Width", range(min = 1, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
-    pub width: f64,
-    #[default = "#ffffff"]
-    #[schemars(
-        description = "Colour",
-        extend("x-widget" = "color", "x-check" = { "rule": "colour", "message": "Pick a colour" })
+    #[setting(
+        "Width",
+        default = 8.0,
+        range(min = 1, max = 200),
+        step = 1,
+        unit = "px"
     )]
+    pub width: f64,
+    #[setting("Colour", default = "#ffffff", widget = "color", check = colour)]
     pub color: String,
-    #[schemars(description = "Soft edge", range(min = 0, max = 50), extend("x-step" = 1, "x-unit" = "px"))]
+    #[setting("Soft edge", range(min = 0, max = 50), step = 1, unit = "px")]
     pub softness: f64,
-    #[schemars(description = "Shadow")]
+    #[setting("Shadow")]
     pub shadow: bool,
 }
 
 impl Params for OutlineImage {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct TiltImage {
-    #[default = 18.0]
-    #[schemars(
-        description = "Turn",
+    #[setting(
+        "Turn",
+        default = 18.0,
         range(min = -60, max = 60),
-        extend("x-step" = 1, "x-unit" = "°", "x-help" = "Turns the picture away on its right side, or its left with a negative angle.")
+        step = 1,
+        unit = "°",
+        help = "Turns the picture away on its right side, or its left with a negative angle."
     )]
     pub turn: f64,
-    #[default = 8.0]
-    #[schemars(
-        description = "Tilt",
+    #[setting(
+        "Tilt",
+        default = 8.0,
         range(min = -60, max = 60),
-        extend("x-step" = 1, "x-unit" = "°", "x-help" = "Leans the top back, or the bottom with a negative angle.")
+        step = 1,
+        unit = "°",
+        help = "Leans the top back, or the bottom with a negative angle."
     )]
     pub tilt: f64,
-    #[schemars(description = "Lean", range(min = -45, max = 45), extend("x-step" = 1, "x-unit" = "°"))]
+    #[setting("Lean", range(min = -45, max = 45), step = 1, unit = "°")]
     pub lean: f64,
-    #[default = "#00000000"]
-    #[schemars(
-        description = "Background",
-        extend("x-widget" = "color", "x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background", default = "#00000000", widget = "color", check = colour)]
     pub background: String,
-    #[default = true]
-    #[schemars(description = "Shadow")]
+    #[setting("Shadow", default = true)]
     pub shadow: bool,
 }
 
@@ -555,28 +608,31 @@ pub enum LevelsMethod {
     Equalize,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct AutoLevels {
-    #[schemars(
-        description = "Method",
-        extend(
-            "x-labels" = { "stretch": "Stretch", "equalize": "Even out" },
-            "x-help" = "Stretch spreads the levels from black to white. Even out spreads them evenly, which is stronger."
-        )
+    #[setting(
+        "Method",
+        labels = { "stretch": "Stretch", "equalize": "Even out" },
+        help = "Stretch spreads the levels from black to white. Even out spreads them evenly, which is stronger."
     )]
     pub method: LevelsMethod,
-    #[default = 1.0]
-    #[schemars(description = "Strength", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Strength", default = 1.0, range(min = 0, max = 1), step = 0.05)]
     pub strength: f64,
-    #[default = 0.5]
-    #[schemars(
-        description = "Ignore the darkest and lightest",
+    #[setting(
+        "Ignore the darkest and lightest",
+        default = 0.5,
         range(min = 0, max = 5),
-        extend("x-step" = 0.1, "x-unit" = "%", "x-show-if" = { "method": ["stretch"] })
+        step = 0.1,
+        unit = "%",
+        show_if = { "method": ["stretch"] }
     )]
     pub clip: f64,
-    #[schemars(description = "Each colour on its own", extend("x-help" = "Also corrects a colour cast, but can shift colours."))]
+    #[setting(
+        "Each colour on its own",
+        help = "Also corrects a colour cast, but can shift colours."
+    )]
     pub per_channel: bool,
 }
 
@@ -600,33 +656,25 @@ pub enum GridFit {
     Cells,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ImageGrid {
-    #[schemars(description = "Layout", extend("x-labels" = { "row": "One row", "column": "One column", "grid": "Grid" }))]
+    #[setting("Layout", labels = { "row": "One row", "column": "One column", "grid": "Grid" })]
     pub layout: GridLayout,
-    #[default = 2]
-    #[schemars(description = "Columns", range(min = 1, max = 12), extend("x-show-if" = { "layout": ["grid"] }))]
+    #[setting("Columns", default = 2, range(min = 1, max = 12), show_if = { "layout": ["grid"] })]
     pub columns: u32,
-    #[schemars(
-        description = "Sizes",
-        extend(
-            "x-labels" = { "same-height": "Same height", "same-width": "Same width", "cells": "Equal cells" },
-            "x-help" = "Same height and same width shrink every image to the smallest one's. Equal cells makes every cell as big as the largest image and centres each image in its own; nothing is enlarged."
-        )
+    #[setting(
+        "Sizes",
+        labels = { "same-height": "Same height", "same-width": "Same width", "cells": "Equal cells" },
+        help = "Same height and same width shrink every image to the smallest one's. Equal cells makes every cell as big as the largest image and centres each image in its own; nothing is enlarged."
     )]
     pub fit: GridFit,
-    #[default = 24]
-    #[schemars(description = "Gap", range(min = 0, max = 1000), extend("x-unit" = "px"))]
+    #[setting("Gap", default = 24, range(min = 0, max = 1000), unit = "px")]
     pub gap: u32,
-    #[default = 24]
-    #[schemars(description = "Padding", range(min = 0, max = 1000), extend("x-unit" = "px"))]
+    #[setting("Padding", default = 24, range(min = 0, max = 1000), unit = "px")]
     pub padding: u32,
-    #[default = "#ffffff"]
-    #[schemars(
-        description = "Background",
-        extend("x-widget" = "color", "x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background", default = "#ffffff", widget = "color", check = colour)]
     pub background: String,
 }
 
@@ -655,36 +703,51 @@ impl FrameShape {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct FrameScreenshot {
     #[serde(flatten)]
     pub background: BackdropStyle,
-    #[default = 8.0]
-    #[schemars(
-        description = "Padding",
+    #[setting(
+        "Padding",
+        default = 8.0,
         range(min = 0, max = 50),
-        extend("x-step" = 1, "x-unit" = "%", "x-help" = "Space around the picture, as a share of its shorter side.")
+        step = 1,
+        unit = "%",
+        help = "Space around the picture, as a share of its shorter side."
     )]
     pub padding: f64,
-    #[default = 16.0]
-    #[schemars(description = "Corner radius", range(min = 0, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
+    #[setting(
+        "Corner radius",
+        default = 16.0,
+        range(min = 0, max = 200),
+        step = 1,
+        unit = "px"
+    )]
     pub radius: f64,
-    #[default = 16.0]
-    #[schemars(description = "Shadow drop", range(min = 0, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
+    #[setting(
+        "Shadow drop",
+        default = 16.0,
+        range(min = 0, max = 200),
+        step = 1,
+        unit = "px"
+    )]
     pub shadow_drop: f64,
-    #[default = 40.0]
-    #[schemars(description = "Shadow softness", range(min = 0, max = 200), extend("x-step" = 1, "x-unit" = "px"))]
+    #[setting(
+        "Shadow softness",
+        default = 40.0,
+        range(min = 0, max = 200),
+        step = 1,
+        unit = "px"
+    )]
     pub shadow_softness: f64,
-    #[default = 0.35]
-    #[schemars(description = "Shadow opacity", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Shadow opacity", default = 0.35, range(min = 0, max = 1), step = 0.05)]
     pub shadow_opacity: f64,
-    #[schemars(
-        description = "Shape",
-        extend(
-            "x-labels" = { "keep": "Keep", "wide": "16:9", "square": "1:1", "portrait": "4:5", "story": "9:16" },
-            "x-help" = "Grows the background around the picture to this shape; the picture is never cut."
-        )
+    #[setting(
+        "Shape",
+        labels = { "keep": "Keep", "wide": "16:9", "square": "1:1", "portrait": "4:5", "story": "9:16" },
+        help = "Grows the background around the picture to this shape; the picture is never cut."
     )]
     pub shape: FrameShape,
 }
@@ -1481,61 +1544,74 @@ pub enum BeforeAfterLayout {
     Stacked,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct BeforeAfter {
-    #[schemars(
-        description = "Layout",
-        extend(
-            "x-labels" = { "split": "One picture, split", "side-by-side": "Side by side", "stacked": "Stacked" },
-            "x-help" = "Split shows the before on one side of a divider and the after on the other, both at the before's size."
-        )
+    #[setting(
+        "Layout",
+        labels = { "split": "One picture, split", "side-by-side": "Side by side", "stacked": "Stacked" },
+        help = "Split shows the before on one side of a divider and the after on the other, both at the before's size."
     )]
     pub layout: BeforeAfterLayout,
-    #[default = 0.5]
-    #[schemars(
-        description = "Divider at",
+    #[setting(
+        "Divider at",
+        default = 0.5,
         range(min = 0, max = 1),
-        extend("x-step" = 0.01, "x-help" = "How far across the picture the divider sits.", "x-show-if" = { "layout": ["split"] })
+        step = 0.01,
+        help = "How far across the picture the divider sits.",
+        show_if = { "layout": ["split"] }
     )]
     pub position: f64,
-    #[schemars(
-        description = "Divider angle",
+    #[setting(
+        "Divider angle",
         range(min = -45, max = 45),
-        extend("x-step" = 1, "x-unit" = "°", "x-show-if" = { "layout": ["split"] })
+        step = 1,
+        unit = "°",
+        show_if = { "layout": ["split"] }
     )]
     pub angle: f64,
-    #[default = 4]
-    #[schemars(description = "Divider width", range(min = 0, max = 80), extend("x-unit" = "px"))]
+    #[setting("Divider width", default = 4, range(min = 0, max = 80), unit = "px")]
     pub divider_width: u32,
-    #[default("#ffffff".to_owned())]
-    #[schemars(description = "Divider colour", extend("x-widget" = "color"))]
+    #[setting("Divider colour", default = "#ffffff".to_owned(), widget = "color")]
     pub divider_color: String,
-    #[default = true]
-    #[schemars(description = "Labels")]
+    #[setting("Labels", default = true)]
     pub labels: bool,
-    #[default("Before".to_owned())]
-    #[schemars(description = "Before label", extend("x-show-if" = { "labels": ["true"] }))]
+    #[setting("Before label", default = "Before".to_owned(), show_if = { "labels": ["true"] })]
     pub before_label: String,
-    #[default("After".to_owned())]
-    #[schemars(description = "After label", extend("x-show-if" = { "labels": ["true"] }))]
+    #[setting("After label", default = "After".to_owned(), show_if = { "labels": ["true"] })]
     pub after_label: String,
-    #[schemars(description = "Font", extend("x-widget" = "font", "x-zero-label" = "Main font", "x-show-if" = { "labels": ["true"] }))]
+    #[setting("Font", widget = "font", zero_label = "Main font", show_if = { "labels": ["true"] })]
     pub font: String,
-    #[default = 600]
-    #[schemars(description = "Weight", range(min = 100, max = 900), extend("x-step" = 100, "x-show-if" = { "labels": ["true"] }))]
+    #[setting(
+        "Weight",
+        default = 600,
+        range(min = 100, max = 900),
+        step = 100,
+        show_if = { "labels": ["true"] }
+    )]
     pub label_weight: u32,
-    #[schemars(
-        description = "Text size",
+    #[setting(
+        "Text size",
         range(min = 0, max = 400),
-        extend("x-unit" = "px", "x-zero-label" = "Fit the picture", "x-show-if" = { "labels": ["true"] })
+        unit = "px",
+        zero_label = "Fit the picture",
+        show_if = { "labels": ["true"] }
     )]
     pub label_size: u32,
-    #[default("#ffffff".to_owned())]
-    #[schemars(description = "Text colour", extend("x-widget" = "color", "x-show-if" = { "labels": ["true"] }))]
+    #[setting(
+        "Text colour",
+        default = "#ffffff".to_owned(),
+        widget = "color",
+        show_if = { "labels": ["true"] }
+    )]
     pub label_color: String,
-    #[default("rgba(0, 0, 0, 0.6)".to_owned())]
-    #[schemars(description = "Label background", extend("x-widget" = "color", "x-show-if" = { "labels": ["true"] }))]
+    #[setting(
+        "Label background",
+        default = "rgba(0, 0, 0, 0.6)".to_owned(),
+        widget = "color",
+        show_if = { "labels": ["true"] }
+    )]
     pub label_background: String,
 }
 
@@ -1683,57 +1759,60 @@ fn magnify_shown() -> Vec<Area> {
     }]
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Magnify {
-    #[schemars(
-        description = "Size from",
-        extend(
-            "x-labels" = { "two-boxes": "The two boxes", "area-and-zoom": "The area and a zoom", "shown-and-zoom": "Where it shows and a zoom" },
-            "x-help" = "Any two of the area, where it shows and the zoom decide the third. It never shrinks: a view drawn smaller than the area grows to fit it."
-        )
+    #[setting(
+        "Size from",
+        labels = { "two-boxes": "The two boxes", "area-and-zoom": "The area and a zoom", "shown-and-zoom": "Where it shows and a zoom" },
+        help = "Any two of the area, where it shows and the zoom decide the third. It never shrinks: a view drawn smaller than the area grows to fit it."
     )]
     pub size_from: MagnifySize,
-    #[default(magnify_area())]
-    #[schemars(
-        description = "Area to enlarge",
+    #[setting(
+        "Area to enlarge",
+        default = magnify_area(),
         length(min = 1, max = 1),
-        extend(
-            "x-widget" = "boxes",
-            "x-help" = "Drag on the picture over the part to enlarge. With Where it shows and a zoom, only its middle counts."
-        )
+        widget = "boxes",
+        help = "Drag on the picture over the part to enlarge. With Where it shows and a zoom, only its middle counts."
     )]
     pub area: Vec<Area>,
-    #[default(magnify_shown())]
-    #[schemars(
-        description = "Where it shows",
+    #[setting(
+        "Where it shows",
+        default = magnify_shown(),
         length(min = 1, max = 1),
-        extend(
-            "x-widget" = "boxes",
-            "x-help" = "Drag where the enlarged view goes. With The area and a zoom, only its middle counts."
-        )
+        widget = "boxes",
+        help = "Drag where the enlarged view goes. With The area and a zoom, only its middle counts."
     )]
     pub shown: Vec<Area>,
-    #[default = 2.5]
-    #[schemars(
-        description = "Zoom",
+    #[setting(
+        "Zoom",
+        default = 2.5,
         range(min = 1, max = 10),
-        extend("x-step" = 0.1, "x-unit" = "×", "x-show-if" = { "sizeFrom": ["area-and-zoom", "shown-and-zoom"] })
+        step = 0.1,
+        unit = "×",
+        show_if = { "sizeFrom": ["area-and-zoom", "shown-and-zoom"] }
     )]
     pub zoom: f64,
-    #[schemars(description = "Shape", extend("x-labels" = { "circle": "Circle", "rounded": "Rounded box" }))]
+    #[setting("Shape", labels = { "circle": "Circle", "rounded": "Rounded box" })]
     pub shape: MagnifyShape,
-    #[default = 16]
-    #[schemars(description = "Corner radius", range(min = 0, max = 400), extend("x-unit" = "px", "x-show-if" = { "shape": ["rounded"] }))]
+    #[setting(
+        "Corner radius",
+        default = 16,
+        range(min = 0, max = 400),
+        unit = "px",
+        show_if = { "shape": ["rounded"] }
+    )]
     pub radius: u32,
-    #[default = 4]
-    #[schemars(description = "Border width", range(min = 0, max = 40), extend("x-unit" = "px"))]
+    #[setting("Border width", default = 4, range(min = 0, max = 40), unit = "px")]
     pub border_width: u32,
-    #[default("#ffffff".to_owned())]
-    #[schemars(description = "Border colour", extend("x-widget" = "color"))]
+    #[setting("Border colour", default = "#ffffff".to_owned(), widget = "color")]
     pub border_color: String,
-    #[default = true]
-    #[schemars(description = "Line to the spot", extend("x-help" = "Outlines the enlarged part and joins it to the view."))]
+    #[setting(
+        "Line to the spot",
+        default = true,
+        help = "Outlines the enlarged part and joins it to the view."
+    )]
     pub line: bool,
 }
 
@@ -1854,35 +1933,37 @@ fn magnify() -> NodeDef {
     })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct CompareScreenshots {
-    #[default = 0.5]
-    #[schemars(
-        description = "Sensitivity",
+    #[setting(
+        "Sensitivity",
+        default = 0.5,
         range(min = 0, max = 1),
-        extend("x-step" = 0.05, "x-help" = "Higher marks fainter changes. Lower it when compressed pictures show changes everywhere.")
+        step = 0.05,
+        help = "Higher marks fainter changes. Lower it when compressed pictures show changes everywhere."
     )]
     pub sensitivity: f64,
-    #[default = 4]
-    #[schemars(
-        description = "Smallest change",
+    #[setting(
+        "Smallest change",
+        default = 4,
         range(min = 1, max = 400),
-        extend("x-unit" = "px", "x-help" = "Changes smaller than this across are left unmarked.")
+        unit = "px",
+        help = "Changes smaller than this across are left unmarked."
     )]
     pub smallest: u32,
-    #[default = 8]
-    #[schemars(
-        description = "Padding",
+    #[setting(
+        "Padding",
+        default = 8,
         range(min = 0, max = 100),
-        extend("x-unit" = "px", "x-help" = "Space around each change. Changes whose boxes touch become one box.")
+        unit = "px",
+        help = "Space around each change. Changes whose boxes touch become one box."
     )]
     pub padding: u32,
-    #[default = 4]
-    #[schemars(description = "Box width", range(min = 1, max = 40), extend("x-unit" = "px"))]
+    #[setting("Box width", default = 4, range(min = 1, max = 40), unit = "px")]
     pub box_width: u32,
-    #[default("#ef4444".to_owned())]
-    #[schemars(description = "Box colour", extend("x-widget" = "color"))]
+    #[setting("Box colour", default = "#ef4444".to_owned(), widget = "color")]
     pub box_color: String,
 }
 
@@ -1957,66 +2038,69 @@ impl MarkKind {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Mark {
-    #[schemars(
-        description = "Kind",
-        extend("x-labels" = { "arrow": "Arrow", "rectangle": "Box", "oval": "Oval", "step": "Step number", "text": "Text" })
+    #[setting(
+        "Kind",
+        labels = { "arrow": "Arrow", "rectangle": "Box", "oval": "Oval", "step": "Step number", "text": "Text" }
     )]
     pub kind: MarkKind,
-    #[default = 0.3]
-    #[schemars(range(min = 0, max = 1), extend("x-hidden" = true))]
+    #[setting(default = 0.3, range(min = 0, max = 1), hidden)]
     pub x: f64,
-    #[default = 0.3]
-    #[schemars(range(min = 0, max = 1), extend("x-hidden" = true))]
+    #[setting(default = 0.3, range(min = 0, max = 1), hidden)]
     pub y: f64,
-    #[default = 0.5]
-    #[schemars(range(min = 0, max = 1), extend("x-hidden" = true))]
+    #[setting(default = 0.5, range(min = 0, max = 1), hidden)]
     pub x2: f64,
-    #[default = 0.5]
-    #[schemars(range(min = 0, max = 1), extend("x-hidden" = true))]
+    #[setting(default = 0.5, range(min = 0, max = 1), hidden)]
     pub y2: f64,
-    #[default("#ef4444".to_owned())]
-    #[schemars(description = "Colour", extend("x-widget" = "color"))]
+    #[setting("Colour", default = "#ef4444".to_owned(), widget = "color")]
     pub color: String,
-    #[default = 6]
-    #[schemars(
-        description = "Line width",
+    #[setting(
+        "Line width",
+        default = 6,
         range(min = 1, max = 60),
-        extend("x-unit" = "px", "x-show-if" = { "kind": ["arrow", "rectangle", "oval"] })
+        unit = "px",
+        show_if = { "kind": ["arrow", "rectangle", "oval"] }
     )]
     pub line_width: u32,
-    #[schemars(description = "Text", extend("x-show-if" = { "kind": ["text"] }))]
+    #[setting("Text", show_if = { "kind": ["text"] })]
     pub text: String,
-    #[default = 32]
-    #[schemars(
-        description = "Size",
+    #[setting(
+        "Size",
+        default = 32,
         range(min = 8, max = 400),
-        extend("x-unit" = "px", "x-show-if" = { "kind": ["step", "text"] })
+        unit = "px",
+        show_if = { "kind": ["step", "text"] }
     )]
     pub size: u32,
-    #[schemars(
-        description = "Font",
-        extend("x-widget" = "font", "x-zero-label" = "Main font", "x-show-if" = { "kind": ["step", "text"] })
+    #[setting(
+        "Font",
+        widget = "font",
+        zero_label = "Main font",
+        show_if = { "kind": ["step", "text"] }
     )]
     pub font: String,
-    #[default = 700]
-    #[schemars(
-        description = "Weight",
+    #[setting(
+        "Weight",
+        default = 700,
         range(min = 100, max = 900),
-        extend("x-step" = 100, "x-show-if" = { "kind": ["step", "text"] })
+        step = 100,
+        show_if = { "kind": ["step", "text"] }
     )]
     pub weight: u32,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Annotate {
-    #[schemars(
-        description = "Marks",
+    #[setting(
+        "Marks",
         length(max = 50),
-        extend("x-widget" = "marks", "x-help" = "Pick a kind and drag on the picture. Step numbers count up in the order they're listed.")
+        widget = "marks",
+        help = "Pick a kind and drag on the picture. Step numbers count up in the order they're listed."
     )]
     pub marks: Vec<Mark>,
 }

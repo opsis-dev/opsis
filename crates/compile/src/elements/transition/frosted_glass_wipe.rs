@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -17,34 +18,29 @@ pub enum WipeFrom {
     FromBottom,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct FrostedGlassWipe {
-    #[default = 20.0]
-    #[schemars(description = "Blur", extend("x-help" = "Frost panel blur radius."))]
+    #[setting("Blur", default = 20.0, help = "Frost panel blur radius.")]
     pub blur: f64,
-    #[default = 0.14]
-    #[schemars(
-        description = "Panel width",
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Sweep panel width as fraction of frame.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Panel width",
+        default = 0.14,
+        step = 0.01,
+        help = "Sweep panel width as fraction of frame.",
+        advanced
     )]
     pub panel_width: f64,
-    #[default(WipeFrom::FromLeft)]
-    #[schemars(description = "Direction", extend("x-help" = "Sweep direction."))]
+    #[setting("Direction", default = WipeFrom::FromLeft, help = "Sweep direction.")]
     pub direction: WipeFrom,
-    #[default = "rgba(255,255,255,0.12)"]
-    #[schemars(
-        description = "Frost color",
-        extend(
-            "x-help" = "Tint of the glass panel.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Frost color",
+        default = "rgba(255,255,255,0.12)",
+        help = "Tint of the glass panel.",
+        check = colour
     )]
     pub frost_color: String,
 }

@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,164 +8,151 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::DarkOrLight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LogoWallLogo {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Image",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "image/*",
-            "x-zero-label" = "Name and glyph",
-            "type" = "string"
-        )
+    #[setting(
+        "Image",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "Name and glyph",
+        "type" = "string"
     )]
     pub image: Option<String>,
-    #[default = "Marrow"]
-    #[schemars(description = "Name")]
+    #[setting("Name", default = "Marrow")]
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Color",
-        extend("x-widget" = "color", "x-zero-label" = "None", "type" = "string")
-    )]
+    #[setting("Color", widget = "color", zero_label = "None", "type" = "string")]
     pub color: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Glyph", extend("type" = "string"))]
+    #[setting("Glyph", "type" = "string")]
     pub glyph: Option<String>,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LogoWall {
-    #[default(vec![
-        LogoWallLogo {
-            name: "Northstar".into(),
-            color: Some("#E8B86D".into()),
-            ..Default::default()
-        },
-        LogoWallLogo {
-            name: "Halcyon".into(),
-            color: Some("#7DD3E8".into()),
-            ..Default::default()
-        },
-        LogoWallLogo {
-            name: "Fernweh".into(),
-            color: Some("#9BD4A0".into()),
-            ..Default::default()
-        },
-        LogoWallLogo {
-            name: "Orbital".into(),
-            color: Some("#C99BE8".into()),
-            ..Default::default()
-        },
-        LogoWallLogo { name: "Lumen".into(), color: Some("#8FB8F0".into()), ..Default::default() },
-        LogoWallLogo {
-            name: "Tidewater".into(),
-            color: Some("#E89B9B".into()),
-            ..Default::default()
-        },
-        LogoWallLogo {
-            name: "Kestrel".into(),
-            color: Some("#E8B86D".into()),
-            ..Default::default()
-        },
-        LogoWallLogo { color: Some("#7DD3E8".into()), ..Default::default() },
-    ])]
-    #[schemars(
-        description = "Logos",
-        extend(
-            "x-help" = "Wordmark, brand colour and the glyph in the mark beside it, or a logo image in their place."
-        )
+    #[setting(
+        "Logos",
+        default = vec![
+            LogoWallLogo {
+                name: "Northstar".into(),
+                color: Some("#E8B86D".into()),
+                ..Default::default()
+            },
+            LogoWallLogo {
+                name: "Halcyon".into(),
+                color: Some("#7DD3E8".into()),
+                ..Default::default()
+            },
+            LogoWallLogo {
+                name: "Fernweh".into(),
+                color: Some("#9BD4A0".into()),
+                ..Default::default()
+            },
+            LogoWallLogo {
+                name: "Orbital".into(),
+                color: Some("#C99BE8".into()),
+                ..Default::default()
+            },
+            LogoWallLogo { name: "Lumen".into(), color: Some("#8FB8F0".into()), ..Default::default() },
+            LogoWallLogo {
+                name: "Tidewater".into(),
+                color: Some("#E89B9B".into()),
+                ..Default::default()
+            },
+            LogoWallLogo {
+                name: "Kestrel".into(),
+                color: Some("#E8B86D".into()),
+                ..Default::default()
+            },
+            LogoWallLogo { color: Some("#7DD3E8".into()), ..Default::default() },
+        ],
+        help = "Wordmark, brand colour and the glyph in the mark beside it, or a logo image in their place."
     )]
     pub logos: Vec<LogoWallLogo>,
-    #[default = "Trusted by"]
-    #[schemars(
-        description = "Small heading",
-        extend("x-help" = "Small line above the heading. Omit to drop it.")
+    #[setting(
+        "Small heading",
+        default = "Trusted by",
+        help = "Small line above the heading. Omit to drop it."
     )]
     pub eyebrow: String,
-    #[default = "Teams that ship with us"]
-    #[schemars(
-        description = "Title",
-        extend("x-help" = "Heading above the wall. Omit to drop it.")
+    #[setting(
+        "Title",
+        default = "Teams that ship with us",
+        help = "Heading above the wall. Omit to drop it."
     )]
     pub title: String,
-    #[default = 4]
-    #[schemars(
-        description = "Columns",
+    #[setting(
+        "Columns",
+        default = 4,
         range(min = 1),
-        extend("x-step" = 1, "x-help" = "Tiles per row.")
+        step = 1,
+        help = "Tiles per row."
     )]
     pub columns: u32,
-    #[default = 0.32]
-    #[schemars(
-        description = "Start at (seconds)",
-        extend("x-step" = 0.01, "x-help" = "Second the first tile arrives.", "x-advanced" = true)
+    #[setting(
+        "Start at (seconds)",
+        default = 0.32,
+        step = 0.01,
+        help = "Second the first tile arrives.",
+        advanced
     )]
     pub start_at_seconds: f64,
-    #[default = 0.06]
-    #[schemars(
-        description = "Arrive stagger (seconds)",
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Seconds between tiles arriving, in reading order. Deliberately fast.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Arrive stagger (seconds)",
+        default = 0.06,
+        step = 0.01,
+        help = "Seconds between tiles arriving, in reading order. Deliberately fast.",
+        advanced
     )]
     pub arrive_stagger_seconds: f64,
-    #[default = 0.24]
-    #[schemars(
-        description = "Stagger (seconds)",
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Seconds between diagonals of the colour sweep.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Stagger (seconds)",
+        default = 0.24,
+        step = 0.01,
+        help = "Seconds between diagonals of the colour sweep.",
+        advanced
     )]
     pub stagger_seconds: f64,
-    #[default = 0.6]
-    #[schemars(
-        description = "Colour fade (seconds)",
+    #[setting(
+        "Colour fade (seconds)",
+        default = 0.6,
         range(min = 0.05, max = 10),
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "How long one tile takes to go from grey to brand colour.",
-            "x-advanced" = true
-        )
+        step = 0.01,
+        help = "How long one tile takes to go from grey to brand colour.",
+        advanced
     )]
     pub warm_seconds: f64,
-    #[default = "#E8B86D"]
-    #[schemars(
-        description = "Accent color",
-        extend(
-            "x-help" = "Eyebrow, and the fallback for logos with no colour.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Accent color",
+        default = "#E8B86D",
+        help = "Eyebrow, and the fallback for logos with no colour.",
+        check = colour
     )]
     pub accent_color: String,
-    #[default(DarkOrLight::Dark)]
-    #[schemars(description = "Theme", extend("x-help" = "Surface palette."))]
+    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
     pub theme: DarkOrLight,
-    #[default = 1.0]
-    #[schemars(
-        description = "Speed",
+    #[setting(
+        "Speed",
+        default = 1.0,
         range(min = 0.25, max = 4),
-        extend("x-step" = 0.25, "x-help" = "Animation speed multiplier.")
+        step = 0.25,
+        help = "Animation speed multiplier."
     )]
     pub speed: f64,
-    #[schemars(
-        description = "Background",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Theme",
-            "x-help" = "Leave empty to follow the theme."
-        )
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "Theme",
+        help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
 }

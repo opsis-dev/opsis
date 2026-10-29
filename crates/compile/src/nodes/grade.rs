@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
@@ -89,72 +90,86 @@ impl ToneCurve {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Colour {
-    #[schemars(
-        description = "Brightness",
+    #[setting(
+        "Brightness",
         range(min = -1, max = 1),
-        extend(
-            "x-step" = 0.05,
-            "x-presets-label" = "Look",
-            "x-presets" = [
-                { "label": "Natural", "values": { "brightness": 0, "contrast": 1, "saturation": 1, "warmth": 0 } },
-                { "label": "Warm", "values": { "brightness": 0, "contrast": 1, "saturation": 1.1, "warmth": 0.35 } },
-                { "label": "Cool", "values": { "brightness": 0, "contrast": 1.05, "saturation": 1, "warmth": -0.3 } },
-                { "label": "Punchy", "values": { "brightness": 0, "contrast": 1.2, "saturation": 1.25, "warmth": 0 } },
-                { "label": "Soft", "values": { "brightness": 0.1, "contrast": 0.88, "saturation": 0.9, "warmth": 0 } },
-                { "label": "Black and white", "values": { "brightness": 0, "contrast": 1.15, "saturation": 0, "warmth": 0 } },
-                { "label": "Old film", "values": { "brightness": 0, "contrast": 1, "saturation": 0.75, "warmth": 0.25 } }
-            ]
-        )
+        step = 0.05,
+        presets_label = "Look",
+        presets = [
+            { "label": "Natural", "values": { "brightness": 0, "contrast": 1, "saturation": 1, "warmth": 0 } },
+            { "label": "Warm", "values": { "brightness": 0, "contrast": 1, "saturation": 1.1, "warmth": 0.35 } },
+            { "label": "Cool", "values": { "brightness": 0, "contrast": 1.05, "saturation": 1, "warmth": -0.3 } },
+            { "label": "Punchy", "values": { "brightness": 0, "contrast": 1.2, "saturation": 1.25, "warmth": 0 } },
+            { "label": "Soft", "values": { "brightness": 0.1, "contrast": 0.88, "saturation": 0.9, "warmth": 0 } },
+            { "label": "Black and white", "values": { "brightness": 0, "contrast": 1.15, "saturation": 0, "warmth": 0 } },
+            { "label": "Old film", "values": { "brightness": 0, "contrast": 1, "saturation": 0.75, "warmth": 0.25 } }
+        ]
     )]
     pub brightness: f64,
-    #[default = 1.0]
-    #[schemars(description = "Contrast", range(min = 0.5, max = 1.5), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Contrast",
+        default = 1.0,
+        range(min = 0.5, max = 1.5),
+        step = 0.05,
+        unit = "×"
+    )]
     pub contrast: f64,
-    #[default = 1.0]
-    #[schemars(description = "Colour", range(min = 0, max = 2), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Colour",
+        default = 1.0,
+        range(min = 0, max = 2),
+        step = 0.05,
+        unit = "×"
+    )]
     pub saturation: f64,
-    #[default = 1.0]
-    #[schemars(description = "Gamma", range(min = 0.5, max = 2), extend("x-step" = 0.05))]
+    #[setting("Gamma", default = 1.0, range(min = 0.5, max = 2), step = 0.05)]
     pub gamma: f64,
-    #[schemars(description = "Exposure", range(min = -2, max = 2), extend("x-step" = 0.05, "x-unit" = "stops"))]
+    #[setting("Exposure", range(min = -2, max = 2), step = 0.05, unit = "stops")]
     pub exposure: f64,
-    #[schemars(description = "Warmth", range(min = -1, max = 1), extend("x-step" = 0.05))]
+    #[setting("Warmth", range(min = -1, max = 1), step = 0.05)]
     pub warmth: f64,
-    #[schemars(description = "Vibrance", range(min = -1, max = 1), extend("x-step" = 0.05))]
+    #[setting("Vibrance", range(min = -1, max = 1), step = 0.05)]
     pub vibrance: f64,
-    #[schemars(description = "Hue shift", range(min = -180, max = 180), extend("x-step" = 1, "x-unit" = "°"))]
+    #[setting("Hue shift", range(min = -180, max = 180), step = 1, unit = "°")]
     pub hue: f64,
-    #[default = "#3b6ea5"]
-    #[schemars(
-        description = "Colour for shadows",
-        extend("x-widget" = "color", "x-zero-label" = "Default", "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" })
+    #[setting(
+        "Colour for shadows",
+        default = "#3b6ea5",
+        widget = "color",
+        zero_label = "Default",
+        check = colour_or_empty
     )]
     pub shadows: String,
-    #[schemars(description = "Shadows amount", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Shadows amount", range(min = 0, max = 1), step = 0.05)]
     pub shadows_amount: f64,
-    #[default = "#c9a27a"]
-    #[schemars(
-        description = "Colour for midtones",
-        extend("x-widget" = "color", "x-zero-label" = "Default", "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" })
+    #[setting(
+        "Colour for midtones",
+        default = "#c9a27a",
+        widget = "color",
+        zero_label = "Default",
+        check = colour_or_empty
     )]
     pub midtones: String,
-    #[schemars(description = "Midtones amount", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Midtones amount", range(min = 0, max = 1), step = 0.05)]
     pub midtones_amount: f64,
-    #[default = "#ffd9a0"]
-    #[schemars(
-        description = "Colour for highlights",
-        extend("x-widget" = "color", "x-zero-label" = "Default", "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" })
+    #[setting(
+        "Colour for highlights",
+        default = "#ffd9a0",
+        widget = "color",
+        zero_label = "Default",
+        check = colour_or_empty
     )]
     pub highlights: String,
-    #[schemars(description = "Highlights amount", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Highlights amount", range(min = 0, max = 1), step = 0.05)]
     pub highlights_amount: f64,
-    #[default(ToneCurve::None)]
-    #[schemars(
-        description = "Tone curve",
-        extend("x-labels" = {
+    #[setting(
+        "Tone curve",
+        default = ToneCurve::None,
+        labels = {
             "none": "None",
             "vintage": "Vintage",
             "cross_process": "Cross-process",
@@ -163,7 +178,7 @@ pub struct Colour {
             "medium_contrast": "More contrast",
             "strong_contrast": "Strong contrast",
             "negative": "Negative"
-        })
+        }
     )]
     pub curve: ToneCurve,
 }
@@ -195,20 +210,18 @@ impl Colour {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LookFile {
-    #[schemars(
-        description = "Look file",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = ".cube,.3dl,.png",
-            "x-help" = "A colour look saved from another video editor, or downloaded. Files ending in .cube or .3dl, or a look image."
-        )
+    #[setting(
+        "Look file",
+        widget = "asset",
+        accept = ".cube,.3dl,.png",
+        help = "A colour look saved from another video editor, or downloaded. Files ending in .cube or .3dl, or a look image."
     )]
     pub file: String,
-    #[default = 1.0]
-    #[schemars(description = "Strength", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Strength", default = 1.0, range(min = 0, max = 1), step = 0.05)]
     pub strength: f64,
 }
 
@@ -234,50 +247,59 @@ impl MonoKind {
 
 pub const DEFAULT_TINT: &str = "#d8a15b";
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Mono {
-    #[default(MonoKind::Bw)]
-    #[schemars(description = "Kind", extend("x-labels" = { "bw": "Black and white", "sepia": "Sepia", "tint": "Tint" }))]
+    #[setting(
+        "Kind",
+        default = MonoKind::Bw,
+        labels = { "bw": "Black and white", "sepia": "Sepia", "tint": "Tint" }
+    )]
     pub kind: MonoKind,
-    #[default = "#d8a15b"]
-    #[schemars(
-        description = "Tint colour",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Default",
-            "x-show-if" = { "kind": ["tint"] },
-            "x-check" = { "rule": "colour-or-empty", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Tint colour",
+        default = "#d8a15b",
+        widget = "color",
+        zero_label = "Default",
+        show_if = { "kind": ["tint"] },
+        check = colour_or_empty
     )]
     pub tint: String,
-    #[default = 1.0]
-    #[schemars(description = "Strength", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Strength", default = 1.0, range(min = 0, max = 1), step = 0.05)]
     pub strength: f64,
 }
 
 impl Params for Mono {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Texture {
-    #[schemars(description = "Sharpen", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Sharpen", range(min = 0, max = 1), step = 0.05)]
     pub sharpen: f64,
-    #[schemars(description = "Soften", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Soften", range(min = 0, max = 1), step = 0.05)]
     pub soften: f64,
-    #[schemars(description = "Dark edges", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Dark edges", range(min = 0, max = 1), step = 0.05)]
     pub vignette: f64,
-    #[default = 0.5]
-    #[schemars(
-        description = "Dark edges centre",
+    #[setting(
+        "Dark edges centre",
+        default = 0.5,
         range(min = 0, max = 1),
-        extend("x-step" = 0.01, "x-widget" = "spot", "x-help" = "Click the frame to choose the middle of the light.")
+        step = 0.01,
+        widget = "spot",
+        help = "Click the frame to choose the middle of the light."
     )]
     pub vignette_x: f64,
-    #[default = 0.5]
-    #[schemars(description = "Dark edges centre vertical", range(min = 0, max = 1), extend("x-step" = 0.01, "x-hidden" = true))]
+    #[setting(
+        "Dark edges centre vertical",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.01,
+        hidden
+    )]
     pub vignette_y: f64,
-    #[schemars(description = "Film grain", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Film grain", range(min = 0, max = 1), step = 0.05)]
     pub grain: f64,
 }
 
@@ -294,14 +316,15 @@ impl Texture {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Lens {
-    #[schemars(description = "Colour fringing", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Colour fringing", range(min = 0, max = 1), step = 0.05)]
     pub fringe: f64,
-    #[schemars(description = "Lens bulge", range(min = -1, max = 1), extend("x-step" = 0.05))]
+    #[setting("Lens bulge", range(min = -1, max = 1), step = 0.05)]
     pub bulge: f64,
-    #[schemars(description = "Motion trails", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Motion trails", range(min = 0, max = 1), step = 0.05)]
     pub trails: f64,
 }
 
@@ -317,28 +340,32 @@ impl Lens {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct AutoFix {
-    #[schemars(description = "White balance")]
+    #[setting("White balance")]
     pub white_balance: bool,
-    #[schemars(description = "Stretch the levels")]
+    #[setting("Stretch the levels")]
     pub levels: bool,
-    #[default = 0.5]
-    #[schemars(
-        description = "Levels strength",
+    #[setting(
+        "Levels strength",
+        default = 0.5,
         range(min = 0, max = 1),
-        extend("x-step" = 0.05, "x-show-if" = { "levels": ["true"] })
+        step = 0.05,
+        show_if = { "levels": ["true"] }
     )]
     pub levels_strength: f64,
-    #[default = 24]
-    #[schemars(
-        description = "Levels smoothing",
+    #[setting(
+        "Levels smoothing",
+        default = 24,
         range(min = 0, max = 300),
-        extend("x-unit" = "frames", "x-advanced" = true, "x-show-if" = { "levels": ["true"] })
+        unit = "frames",
+        advanced,
+        show_if = { "levels": ["true"] }
     )]
     pub levels_smoothing: u32,
-    #[schemars(description = "Remove banding")]
+    #[setting("Remove banding")]
     pub deband: bool,
 }
 

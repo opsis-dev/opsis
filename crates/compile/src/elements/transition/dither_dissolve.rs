@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,31 +8,24 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::DitherShape;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct DitherDissolve {
-    #[default(DitherShape::Simplex)]
-    #[schemars(description = "Shape")]
+    #[setting("Shape", default = DitherShape::Simplex)]
     pub shape: DitherShape,
-    #[default = "#141318"]
-    #[schemars(
-        description = "Background",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background", default = "#141318", check = colour)]
     pub color_back: String,
-    #[default = "#8f88ae"]
-    #[schemars(
-        description = "Ink",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Ink", default = "#8f88ae", check = colour)]
     pub color_front: String,
-    #[default = 1.5]
-    #[schemars(
-        description = "Speed",
+    #[setting(
+        "Speed",
+        default = 1.5,
         range(min = 0.25, max = 4),
-        extend("x-step" = 0.25, "x-advanced" = true)
+        step = 0.25,
+        advanced
     )]
     pub speed: f64,
 }

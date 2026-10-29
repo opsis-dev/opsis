@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,34 +8,30 @@ use crate::elements::entry::{element, meta};
 use crate::elements::theme::{Theme, neutral_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct SignupFlow {
-    #[schemars(transform = neutral_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
+    #[setting("Theme", transform = neutral_themes, widget = "theme")]
     pub theme: Theme,
-    #[default = "Create an account"]
-    #[schemars(description = "Title")]
+    #[setting("Title", default = "Create an account")]
     pub title: String,
-    #[default = "Enter your information below to create your account"]
-    #[schemars(description = "Description")]
+    #[setting(
+        "Description",
+        default = "Enter your information below to create your account"
+    )]
     pub description: String,
-    #[default = "John Doe"]
-    #[schemars(description = "Name typed in")]
+    #[setting("Name typed in", default = "John Doe")]
     pub full_name: String,
-    #[default = "m@example.com"]
-    #[schemars(description = "Email typed in")]
+    #[setting("Email typed in", default = "m@example.com")]
     pub email: String,
-    #[default = "••••••••"]
-    #[schemars(description = "Password shown")]
+    #[setting("Password shown", default = "••••••••")]
     pub password: String,
-    #[default = "Create account"]
-    #[schemars(description = "Button label")]
+    #[setting("Button label", default = "Create account")]
     pub create_label: String,
-    #[default = "Account created"]
-    #[schemars(description = "Notice")]
+    #[setting("Notice", default = "Account created")]
     pub toast_title: String,
 }
 

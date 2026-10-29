@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,74 +8,69 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::DarkOrLight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct CodeMorphStep {
-    #[schemars(description = "Code", extend("x-widget" = "code"))]
+    #[setting("Code", widget = "code")]
     pub code: String,
-    #[schemars(
-        description = "Show at",
+    #[setting(
+        "Show at",
         range(min = 0, max = 120),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub at: f64,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct CodeMorph {
-    #[default = "invoices.tsx"]
-    #[schemars(description = "Filename")]
+    #[setting("Filename", default = "invoices.tsx")]
     pub filename: String,
-    #[default(DarkOrLight::Dark)]
-    #[schemars(description = "Theme")]
+    #[setting("Theme", default = DarkOrLight::Dark)]
     pub theme: DarkOrLight,
-    #[default = "#0ea5e9"]
-    #[schemars(
-        description = "Accent",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Accent", default = "#0ea5e9", check = colour)]
     pub accent_color: String,
-    #[default = 1.2]
-    #[schemars(
-        description = "Morph time",
+    #[setting(
+        "Morph time",
+        default = 1.2,
         range(min = 0.4, max = 3),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub morph_duration: f64,
-    #[default = 20]
-    #[schemars(description = "Font size", range(min = 12, max = 32), extend("x-step" = 1))]
+    #[setting("Font size", default = 20, range(min = 12, max = 32), step = 1)]
     pub font_size: u32,
-    #[default = true]
-    #[schemars(description = "Highlight changes")]
+    #[setting("Highlight changes", default = true)]
     pub highlight: bool,
-    #[default = true]
-    #[schemars(description = "Line numbers")]
+    #[setting("Line numbers", default = true)]
     pub line_numbers: bool,
-    #[default = true]
-    #[schemars(description = "Window dots")]
+    #[setting("Window dots", default = true)]
     pub window_dots: bool,
-    #[default(vec![
-        CodeMorphStep {
-            code: "import { loadInvoices } from \"./api\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  const invoices = await loadInvoices();\n  list.textContent = \"\";\n  for (const invoice of invoices) {\n    const row = document.createElement(\"li\");\n    row.textContent = invoice.title;\n    list.append(row);\n  }\n}".into(),
-            ..Default::default()
-        },
-        CodeMorphStep {
-            at: 1.6,
-            code: "import { loadInvoices } from \"./api\";\nimport { renderRows } from \"./rows\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  renderRows(list, await loadInvoices());\n}".into(),
-        },
-    ])]
-    #[schemars(
-        description = "Versions",
-        extend("x-help" = "Each version of the code and when it starts to show.")
+    #[setting(
+        "Versions",
+        default = vec![
+            CodeMorphStep {
+                code: "import { loadInvoices } from \"./api\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  const invoices = await loadInvoices();\n  list.textContent = \"\";\n  for (const invoice of invoices) {\n    const row = document.createElement(\"li\");\n    row.textContent = invoice.title;\n    list.append(row);\n  }\n}".into(),
+                ..Default::default()
+            },
+            CodeMorphStep {
+                at: 1.6,
+                code: "import { loadInvoices } from \"./api\";\nimport { renderRows } from \"./rows\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  renderRows(list, await loadInvoices());\n}".into(),
+            },
+        ],
+        help = "Each version of the code and when it starts to show."
     )]
     pub steps: Vec<CodeMorphStep>,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

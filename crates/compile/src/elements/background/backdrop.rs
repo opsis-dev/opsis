@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,13 +8,13 @@ use crate::backdrops::Backdrop;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct StudioBackdrop {
-    #[default(Backdrop::Glaze)]
-    #[schemars(description = "Backdrop")]
+    #[setting("Backdrop", default = Backdrop::Glaze)]
     pub name: Backdrop,
 }
 

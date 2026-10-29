@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -8,228 +9,195 @@ use crate::elements::shared::FontWeight;
 use crate::elements::theme::{Theme, warm_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LogoDriftTile {
-    #[default = "Ab"]
-    #[schemars(description = "Mark", extend("x-help" = "One to three characters."))]
+    #[setting("Mark", default = "Ab", help = "One to three characters.")]
     pub glyph: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Label", extend("type" = "string"))]
+    #[setting("Label", "type" = "string")]
     pub label: Option<String>,
-    #[default = "#1f2430"]
-    #[schemars(
-        description = "Background",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background", default = "#1f2430", check = colour)]
     pub background: String,
-    #[schemars(
-        description = "Text colour",
-        extend("x-widget" = "color", "x-zero-label" = "Default")
-    )]
+    #[setting("Text colour", widget = "color", zero_label = "Default")]
     pub color: String,
-    #[schemars(
-        description = "Start across",
-        range(min = -1200, max = 1200),
-        extend("x-step" = 1, "x-advanced" = true)
-    )]
+    #[setting("Start across", range(min = -1200, max = 1200), step = 1, advanced)]
     pub x: i32,
-    #[schemars(
-        description = "Start down",
-        range(min = -800, max = 800),
-        extend("x-step" = 1, "x-advanced" = true)
-    )]
+    #[setting("Start down", range(min = -800, max = 800), step = 1, advanced)]
     pub y: i32,
-    #[schemars(
-        description = "Drift across",
-        range(min = -200, max = 200),
-        extend("x-step" = 1, "x-advanced" = true)
-    )]
+    #[setting("Drift across", range(min = -200, max = 200), step = 1, advanced)]
     pub vx: i32,
-    #[schemars(
-        description = "Drift down",
-        range(min = -200, max = 200),
-        extend("x-step" = 1, "x-advanced" = true)
-    )]
+    #[setting("Drift down", range(min = -200, max = 200), step = 1, advanced)]
     pub vy: i32,
-    #[default = 140]
-    #[schemars(
-        description = "Size",
-        range(min = 20, max = 400),
-        extend("x-step" = 1, "x-advanced" = true)
-    )]
+    #[setting("Size", default = 140, range(min = 20, max = 400), step = 1, advanced)]
     pub size: u32,
-    #[default = 1.0]
-    #[schemars(
-        description = "Appears at",
+    #[setting(
+        "Appears at",
+        default = 1.0,
         range(min = 0, max = 10),
-        extend("x-step" = 0.01, "x-advanced" = true)
+        step = 0.01,
+        advanced
     )]
     pub at: f64,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LogoDrift {
-    #[default = "Built for the stack you already use."]
-    #[schemars(description = "Headline")]
+    #[setting("Headline", default = "Built for the stack you already use.")]
     pub headline: String,
-    #[default = 0.1762]
-    #[schemars(
-        description = "Pull-back / sec",
+    #[setting(
+        "Pull-back / sec",
+        default = 0.1762,
         range(min = 0, max = 0.4),
-        extend("x-step" = 0.001)
+        step = 0.001
     )]
     pub pullback: f64,
-    #[default = 1.0]
-    #[schemars(description = "Drift", range(min = 0, max = 3), extend("x-step" = 0.05))]
+    #[setting("Drift", default = 1.0, range(min = 0, max = 3), step = 0.05)]
     pub tile_speed: f64,
-    #[default = 1.0]
-    #[schemars(description = "Tile size", range(min = 0.3, max = 2), extend("x-step" = 0.05))]
+    #[setting("Tile size", default = 1.0, range(min = 0.3, max = 2), step = 0.05)]
     pub tile_scale: f64,
-    #[default = 0.4]
-    #[schemars(
-        description = "Tile fade τ (s)",
+    #[setting(
+        "Tile fade τ (s)",
+        default = 0.4,
         range(min = 0.05, max = 2),
-        extend("x-step" = 0.01)
+        step = 0.01
     )]
     pub tile_fade: f64,
-    #[default = 0.02]
-    #[schemars(description = "Tile radius", range(min = 0, max = 0.5), extend("x-step" = 0.01))]
+    #[setting("Tile radius", default = 0.02, range(min = 0, max = 0.5), step = 0.01)]
     pub tile_radius: f64,
-    #[default = 0.34]
-    #[schemars(description = "Glyph size", range(min = 0.1, max = 0.7), extend("x-step" = 0.01))]
+    #[setting("Glyph size", default = 0.34, range(min = 0.1, max = 0.7), step = 0.01)]
     pub glyph_scale: f64,
-    #[default = 0.15]
-    #[schemars(
-        description = "Word stagger (s)",
+    #[setting(
+        "Word stagger (s)",
+        default = 0.15,
         range(min = 0, max = 0.6),
-        extend("x-step" = 0.005)
+        step = 0.005
     )]
     pub word_stagger: f64,
-    #[default = 0.14]
-    #[schemars(
-        description = "Word lands in (s)",
+    #[setting(
+        "Word lands in (s)",
+        default = 0.14,
         range(min = 0.02, max = 1),
-        extend("x-step" = 0.005)
+        step = 0.005
     )]
     pub word_duration: f64,
-    #[default = 1.216]
-    #[schemars(
-        description = "Word arrives at",
+    #[setting(
+        "Word arrives at",
+        default = 1.216,
         range(min = 0.5, max = 2),
-        extend("x-step" = 0.001)
+        step = 0.001
     )]
     pub word_scale: f64,
-    #[default = 4.3]
-    #[schemars(description = "Word blur (px)", range(min = 0, max = 20), extend("x-step" = 0.1))]
+    #[setting("Word blur (px)", default = 4.3, range(min = 0, max = 20), step = 0.1)]
     pub word_blur: f64,
-    #[default = 3.13]
-    #[schemars(description = "Exit at (s)", range(min = 0.5, max = 10), extend("x-step" = 0.01))]
+    #[setting("Exit at (s)", default = 3.13, range(min = 0.5, max = 10), step = 0.01)]
     pub exit_at: f64,
-    #[default = 0.34]
-    #[schemars(description = "Exit over (s)", range(min = 0.05, max = 2), extend("x-step" = 0.01))]
-    pub exit_duration: f64,
-    #[default = 20.0]
-    #[schemars(description = "Headline size", range(min = 8, max = 64), extend("x-step" = 0.5))]
-    pub font_size: f64,
-    #[default = true]
-    #[schemars(description = "Wash")]
-    pub glow: bool,
-    #[default = 0.07]
-    #[schemars(description = "Wash strength", range(min = 0, max = 0.5), extend("x-step" = 0.005))]
-    pub glow_opacity: f64,
-    #[schemars(description = "Accent", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
-    pub accent_color: String,
-    #[schemars(transform = warm_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
-    pub theme: Theme,
-    #[default(FontWeight::W500)]
-    #[schemars(description = "Font weight")]
-    pub font_weight: FontWeight,
-    #[schemars(
-        description = "Glow colour",
-        extend("x-widget" = "color", "x-zero-label" = "Accent")
+    #[setting(
+        "Exit over (s)",
+        default = 0.34,
+        range(min = 0.05, max = 2),
+        step = 0.01
     )]
+    pub exit_duration: f64,
+    #[setting("Headline size", default = 20.0, range(min = 8, max = 64), step = 0.5)]
+    pub font_size: f64,
+    #[setting("Wash", default = true)]
+    pub glow: bool,
+    #[setting(
+        "Wash strength",
+        default = 0.07,
+        range(min = 0, max = 0.5),
+        step = 0.005
+    )]
+    pub glow_opacity: f64,
+    #[setting("Accent", widget = "color", zero_label = "Theme")]
+    pub accent_color: String,
+    #[setting("Theme", transform = warm_themes, widget = "theme")]
+    pub theme: Theme,
+    #[setting("Font weight", default = FontWeight::W500)]
+    pub font_weight: FontWeight,
+    #[setting("Glow colour", widget = "color", zero_label = "Accent")]
     pub glow_color: String,
-    #[default(vec![
-        LogoDriftTile {
-            glyph: "Rc".into(),
-            label: Some("Record".into()),
-            color: "#ffffff".into(),
-            x: 163,
-            y: 232,
-            vx: -54,
-            vy: 12,
-            size: 109,
-            at: 0.28,
-            ..Default::default()
-        },
-        LogoDriftTile {
-            glyph: "Ed".into(),
-            label: Some("Edit".into()),
-            background: "#f2f4f7".into(),
-            color: "#16181d".into(),
-            x: 128,
-            y: -209,
-            vx: 81,
-            vy: 32,
-            size: 122,
-            at: 0.48,
-        },
-        LogoDriftTile {
-            glyph: "Zm".into(),
-            label: Some("Zoom".into()),
-            background: "#10131a".into(),
-            color: "#7dd3fc".into(),
-            x: -384,
-            y: 344,
-            vx: -27,
-            vy: -68,
-            size: 200,
-            at: 0.95,
-        },
-        LogoDriftTile {
-            glyph: "Cc".into(),
-            label: Some("Captions".into()),
-            background: "#e7e8ea".into(),
-            color: "#16181d".into(),
-            x: 519,
-            y: 45,
-            vx: -31,
-            vy: 64,
-            size: 144,
-            at: 1.51,
-        },
-        LogoDriftTile {
-            glyph: "Mx".into(),
-            label: Some("Mix".into()),
-            background: "#f1ece2".into(),
-            color: "#8a5a2b".into(),
-            x: -692,
-            y: -125,
-            vx: 41,
-            vy: -71,
-            size: 214,
-            at: 1.55,
-        },
-    ])]
-    #[schemars(description = "Tiles")]
+    #[setting(
+        "Tiles",
+        default = vec![
+            LogoDriftTile {
+                glyph: "Rc".into(),
+                label: Some("Record".into()),
+                color: "#ffffff".into(),
+                x: 163,
+                y: 232,
+                vx: -54,
+                vy: 12,
+                size: 109,
+                at: 0.28,
+                ..Default::default()
+            },
+            LogoDriftTile {
+                glyph: "Ed".into(),
+                label: Some("Edit".into()),
+                background: "#f2f4f7".into(),
+                color: "#16181d".into(),
+                x: 128,
+                y: -209,
+                vx: 81,
+                vy: 32,
+                size: 122,
+                at: 0.48,
+            },
+            LogoDriftTile {
+                glyph: "Zm".into(),
+                label: Some("Zoom".into()),
+                background: "#10131a".into(),
+                color: "#7dd3fc".into(),
+                x: -384,
+                y: 344,
+                vx: -27,
+                vy: -68,
+                size: 200,
+                at: 0.95,
+            },
+            LogoDriftTile {
+                glyph: "Cc".into(),
+                label: Some("Captions".into()),
+                background: "#e7e8ea".into(),
+                color: "#16181d".into(),
+                x: 519,
+                y: 45,
+                vx: -31,
+                vy: 64,
+                size: 144,
+                at: 1.51,
+            },
+            LogoDriftTile {
+                glyph: "Mx".into(),
+                label: Some("Mix".into()),
+                background: "#f1ece2".into(),
+                color: "#8a5a2b".into(),
+                x: -692,
+                y: -125,
+                vx: 41,
+                vy: -71,
+                size: 214,
+                at: 1.55,
+            },
+        ]
+    )]
     pub tiles: Vec<LogoDriftTile>,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

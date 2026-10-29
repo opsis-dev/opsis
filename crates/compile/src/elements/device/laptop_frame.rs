@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -26,79 +27,65 @@ pub enum LaptopFinale {
     ZoomToScreen,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct LaptopFrame {
-    #[default = "app:placeholders/screen-wide.svg"]
-    #[schemars(description = "Screen (image or video)", extend("x-widget" = "asset"))]
-    pub screen_src: String,
-    #[default(LaptopEntrance::Open)]
-    #[schemars(description = "Entrance")]
-    pub entrance: LaptopEntrance,
-    #[default(LaptopFinale::ZoomToScreen)]
-    #[schemars(description = "Finale")]
-    pub finale: LaptopFinale,
-    #[default = "Recording started"]
-    #[schemars(description = "Notch label")]
-    pub notch_label: String,
-    #[default = true]
-    #[schemars(description = "Notch")]
-    pub show_notch: bool,
-    #[default = 85]
-    #[schemars(description = "Battery level", range(min = 0, max = 100), extend("x-step" = 1))]
-    pub battery_level: u32,
-    #[default = "#1D1D1F"]
-    #[schemars(
-        description = "Bezel color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
+    #[setting(
+        "Screen (image or video)",
+        default = "app:placeholders/screen-wide.svg",
+        widget = "asset"
     )]
+    pub screen_src: String,
+    #[setting("Entrance", default = LaptopEntrance::Open)]
+    pub entrance: LaptopEntrance,
+    #[setting("Finale", default = LaptopFinale::ZoomToScreen)]
+    pub finale: LaptopFinale,
+    #[setting("Notch label", default = "Recording started")]
+    pub notch_label: String,
+    #[setting("Notch", default = true)]
+    pub show_notch: bool,
+    #[setting("Battery level", default = 85, range(min = 0, max = 100), step = 1)]
+    pub battery_level: u32,
+    #[setting("Bezel color", default = "#1D1D1F", check = colour)]
     pub bezel_color: String,
-    #[default = "#FFFFFF"]
-    #[schemars(
-        description = "Screen color",
-        extend("x-widget" = "color", "x-zero-label" = "Theme")
+    #[setting(
+        "Screen color",
+        default = "#FFFFFF",
+        widget = "color",
+        zero_label = "Theme"
     )]
     pub screen_color: String,
-    #[default = 18]
-    #[schemars(description = "Lid tilt", range(min = 0, max = 45), extend("x-step" = 1))]
+    #[setting("Lid tilt", default = 18, range(min = 0, max = 45), step = 1)]
     pub rest_tilt: u32,
-    #[default = 22]
-    #[schemars(description = "Lid radius", range(min = 8, max = 40), extend("x-step" = 1))]
+    #[setting("Lid radius", default = 22, range(min = 8, max = 40), step = 1)]
     pub radius: u32,
-    #[default = 0.85]
-    #[schemars(description = "Scale", range(min = 0.4, max = 1.4), extend("x-step" = 0.05))]
+    #[setting("Scale", default = 0.85, range(min = 0.4, max = 1.4), step = 0.05)]
     pub scale: f64,
-    #[default = true]
-    #[schemars(description = "Float loop")]
+    #[setting("Float loop", default = true)]
     pub float_loop: bool,
-    #[default = 4]
-    #[schemars(description = "Float amplitude", range(min = 0, max = 16), extend("x-step" = 1))]
+    #[setting("Float amplitude", default = 4, range(min = 0, max = 16), step = 1)]
     pub float_amplitude: u32,
-    #[default = "0 40px 80px rgba(10,12,20,0.45)"]
-    #[schemars(description = "Shadow")]
+    #[setting("Shadow", default = "0 40px 80px rgba(10,12,20,0.45)")]
     pub shadow: String,
-    #[default(Theme::of(ThemeMode::Dark))]
-    #[schemars(transform = warm_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
-    pub theme: Theme,
-    #[default = "#30D158"]
-    #[schemars(
-        description = "Recording light",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = warm_themes,
+        widget = "theme"
     )]
+    pub theme: Theme,
+    #[setting("Recording light", default = "#30D158", check = colour)]
     pub indicator_color: String,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

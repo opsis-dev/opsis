@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -21,34 +22,32 @@ pub enum GrainDissolveShape {
     Sphere,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct GrainDissolve {
-    #[default(GrainDissolveShape::Blob)]
-    #[schemars(description = "Shape")]
+    #[setting("Shape", default = GrainDissolveShape::Blob)]
     pub shape: GrainDissolveShape,
-    #[default = 0.3]
-    #[schemars(description = "Noise", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Noise", default = 0.3, range(min = 0, max = 1), step = 0.05)]
     pub noise: f64,
-    #[default = 2.0]
-    #[schemars(description = "Zoom", range(min = 0.5, max = 4), extend("x-step" = 0.25))]
+    #[setting("Zoom", default = 2.0, range(min = 0.5, max = 4), step = 0.25)]
     pub zoom: f64,
-    #[default = "#141318"]
-    #[schemars(
-        description = "Background",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background", default = "#141318", check = colour)]
     pub color_back: String,
-    #[default(vec!["#3a3a52".into(), "#4a4a68".into(), "#8f88ae".into()])]
-    #[schemars(description = "Colours", length(min = 2, max = 7))]
+    #[setting(
+        "Colours",
+        default = vec!["#3a3a52".into(), "#4a4a68".into(), "#8f88ae".into()],
+        length(min = 2, max = 7)
+    )]
     pub colors: Vec<Colour>,
-    #[default = 1.0]
-    #[schemars(
-        description = "Speed",
+    #[setting(
+        "Speed",
+        default = 1.0,
         range(min = 0.25, max = 4),
-        extend("x-step" = 0.25, "x-advanced" = true)
+        step = 0.25,
+        advanced
     )]
     pub speed: f64,
 }

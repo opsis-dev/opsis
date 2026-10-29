@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,157 +7,140 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ComparisonBarsRow {
-    #[default = "Manual steps"]
-    #[schemars(description = "Label")]
+    #[setting("Label", default = "Manual steps")]
     pub label: String,
-    #[default = 62.0]
-    #[schemars(description = "Before")]
+    #[setting("Before", default = 62.0)]
     pub before: f64,
-    #[default = 18.0]
-    #[schemars(description = "After")]
+    #[setting("After", default = 18.0)]
     pub after: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Delta", extend("type" = "string"))]
+    #[setting("Delta", "type" = "string")]
     pub delta: Option<String>,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ComparisonBars {
-    #[default(vec![
-        ComparisonBarsRow {
-            label: "Setup time (min)".into(),
-            before: 240.0,
-            after: 96.0,
-            ..Default::default()
-        },
-        ComparisonBarsRow {
-            label: "Tickets closed / week".into(),
-            before: 120.0,
-            after: 310.0,
-            ..Default::default()
-        },
-        ComparisonBarsRow {
-            label: "Active teams".into(),
-            before: 34.0,
-            after: 88.0,
-            ..Default::default()
-        },
-        ComparisonBarsRow::default(),
-    ])]
-    #[schemars(description = "Rows", extend("x-help" = "The delta is computed when omitted."))]
+    #[setting(
+        "Rows",
+        default = vec![
+            ComparisonBarsRow {
+                label: "Setup time (min)".into(),
+                before: 240.0,
+                after: 96.0,
+                ..Default::default()
+            },
+            ComparisonBarsRow {
+                label: "Tickets closed / week".into(),
+                before: 120.0,
+                after: 310.0,
+                ..Default::default()
+            },
+            ComparisonBarsRow {
+                label: "Active teams".into(),
+                before: 34.0,
+                after: 88.0,
+                ..Default::default()
+            },
+            ComparisonBarsRow::default(),
+        ],
+        help = "The delta is computed when omitted."
+    )]
     pub rows: Vec<ComparisonBarsRow>,
-    #[default = 1100.0]
-    #[schemars(description = "Width", extend("x-help" = "Overall width, label column included."))]
+    #[setting(
+        "Width",
+        default = 1100.0,
+        help = "Overall width, label column included."
+    )]
     pub width: f64,
-    #[default = 84.0]
-    #[schemars(
-        description = "Row height",
-        extend(
-            "x-help" = "Height of one pair, both bars and their gap included.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Row height",
+        default = 84.0,
+        help = "Height of one pair, both bars and their gap included.",
+        advanced
     )]
     pub row_height: f64,
-    #[default = 26.0]
-    #[schemars(description = "Gap", extend("x-help" = "Space between rows.", "x-advanced" = true))]
+    #[setting("Gap", default = 26.0, help = "Space between rows.", advanced)]
     pub gap: f64,
-    #[default = 280.0]
-    #[schemars(
-        description = "Label width",
-        extend("x-help" = "Width reserved for the row labels.", "x-advanced" = true)
+    #[setting(
+        "Label width",
+        default = 280.0,
+        help = "Width reserved for the row labels.",
+        advanced
     )]
     pub label_width: f64,
-    #[default = "rgba(250,250,250,0.22)"]
-    #[schemars(
-        description = "Before color",
-        extend(
-            "x-help" = "Baseline bar. Muted on purpose: it is the thing being beaten.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Before color",
+        default = "rgba(250,250,250,0.22)",
+        help = "Baseline bar. Muted on purpose: it is the thing being beaten.",
+        check = colour
     )]
     pub before_color: String,
-    #[default = "#e8b86d"]
-    #[schemars(
-        description = "After color",
-        extend(
-            "x-help" = "New-value bar, and the colour of a rising delta.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "After color",
+        default = "#e8b86d",
+        help = "New-value bar, and the colour of a rising delta.",
+        check = colour
     )]
     pub after_color: String,
-    #[default = "#f472b6"]
-    #[schemars(
-        description = "Decrease color",
-        extend(
-            "x-help" = "Delta colour when the change is a fall.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Decrease color",
+        default = "#f472b6",
+        help = "Delta colour when the change is a fall.",
+        check = colour
     )]
     pub down_color: String,
-    #[default(vec!["Before".into(), "After".into()])]
-    #[schemars(
-        description = "Series labels",
+    #[setting(
+        "Series labels",
+        default = vec!["Before".into(), "After".into()],
         length(max = 2),
-        extend("x-help" = "Legend above the rows: the before bar, then the after bar.")
+        help = "Legend above the rows: the before bar, then the after bar."
     )]
     pub series_labels: Vec<String>,
-    #[default = true]
-    #[schemars(
-        description = "Show change",
-        extend("x-help" = "Percentage-change chip at the end of the second bar.")
+    #[setting(
+        "Show change",
+        default = true,
+        help = "Percentage-change chip at the end of the second bar."
     )]
     pub show_delta: bool,
-    #[default = 30]
-    #[schemars(
-        description = "Animation length",
+    #[setting(
+        "Animation length",
+        default = 30,
         range(min = 1, max = 300),
-        extend(
-            "x-step" = 1,
-            "x-unit" = "frames",
-            "x-help" = "Length of one bar's growth.",
-            "x-advanced" = true
-        )
+        step = 1,
+        unit = "frames",
+        help = "Length of one bar's growth.",
+        advanced
     )]
     pub duration_in_frames: u32,
-    #[default = 12]
-    #[schemars(
-        description = "Stagger",
-        extend(
-            "x-unit" = "frames",
-            "x-help" = "Frames between one row and the next.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Stagger",
+        default = 12,
+        unit = "frames",
+        help = "Frames between one row and the next.",
+        advanced
     )]
     pub stagger_in_frames: u32,
-    #[default = 6]
-    #[schemars(
-        description = "Pair offset",
-        extend(
-            "x-unit" = "frames",
-            "x-help" = "Frames the second bar trails the first by.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Pair offset",
+        default = 6,
+        unit = "frames",
+        help = "Frames the second bar trails the first by.",
+        advanced
     )]
     pub pair_offset_in_frames: u32,
-    #[default = "#0b0b10"]
-    #[schemars(
-        description = "Bar text color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Bar text color", default = "#0b0b10", check = colour)]
     pub bar_ink_color: String,
-    #[default = "rgba(250,250,250,0.55)"]
-    #[schemars(
-        description = "Label color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Label color", default = "rgba(250,250,250,0.55)", check = colour)]
     pub label_color: String,
 }
 

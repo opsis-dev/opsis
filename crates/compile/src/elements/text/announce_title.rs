@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,92 +8,61 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct AnnounceTitle {
-    #[default = "Introducing"]
-    #[schemars(description = "Eyebrow")]
+    #[setting("Eyebrow", default = "Introducing")]
     pub eyebrow: String,
-    #[default = "Acme 2.0"]
-    #[schemars(description = "Title")]
+    #[setting("Title", default = "Acme 2.0")]
     pub title: String,
-    #[default = "Everything your team needs to ship, in one place."]
-    #[schemars(description = "Tagline")]
+    #[setting(
+        "Tagline",
+        default = "Everything your team needs to ship, in one place."
+    )]
     pub tagline: String,
-    #[schemars(description = "Symbol path")]
+    #[setting("Symbol path")]
     pub symbol_path: String,
-    #[schemars(
-        description = "Symbol colours",
+    #[setting(
+        "Symbol colours",
         length(min = 0, max = 8),
-        extend("x-help" = "Leave empty for the built-in colours.")
+        help = "Leave empty for the built-in colours."
     )]
     pub symbol_colors: Vec<Colour>,
-    #[default = 1.0]
-    #[schemars(description = "Symbol size", range(min = 0, max = 3), extend("x-step" = 0.05))]
+    #[setting("Symbol size", default = 1.0, range(min = 0, max = 3), step = 0.05)]
     pub symbol_scale: f64,
-    #[default = "#5600f5"]
-    #[schemars(
-        description = "Colour field",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Colour field", default = "#5600f5", check = colour)]
     pub field_color: String,
-    #[default = "#4800c9"]
-    #[schemars(
-        description = "Title ink",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Title ink", default = "#4800c9", check = colour)]
     pub title_color: String,
-    #[default = "#fcfcfa"]
-    #[schemars(
-        description = "Title paper",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Title paper", default = "#fcfcfa", check = colour)]
     pub paper_color: String,
-    #[default = "#100022"]
-    #[schemars(
-        description = "Opening ground",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Opening ground", default = "#100022", check = colour)]
     pub void_color: String,
-    #[default = "#000028"]
-    #[schemars(
-        description = "Closing ground",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Closing ground", default = "#000028", check = colour)]
     pub night_color: String,
-    #[default = "#08ff4b"]
-    #[schemars(
-        description = "Closing glow",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Closing glow", default = "#08ff4b", check = colour)]
     pub glow_color: String,
-    #[default = 0.139]
-    #[schemars(description = "Glow strength", range(min = 0, max = 0.4), extend("x-step" = 0.005))]
+    #[setting(
+        "Glow strength",
+        default = 0.139,
+        range(min = 0, max = 0.4),
+        step = 0.005
+    )]
     pub glow_strength: f64,
-    #[default = "#f2f8ff"]
-    #[schemars(
-        description = "Tagline ink",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Tagline ink", default = "#f2f8ff", check = colour)]
     pub tagline_color: String,
-    #[default = "#ffffff"]
-    #[schemars(
-        description = "Shot ink",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Shot ink", default = "#ffffff", check = colour)]
     pub ink_color: String,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

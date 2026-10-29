@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
@@ -19,15 +20,16 @@ use crate::text::{format_duration, percent_text, plural};
 const MAX_BLUR_OF_WIDTH: f64 = 0.04;
 const MAX_SOFTNESS_OF_WIDTH: f64 = 0.02;
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
 pub struct Area {
-    #[schemars(range(min = 0, max = 1))]
+    #[setting(range(min = 0, max = 1))]
     pub x: f64,
-    #[schemars(range(min = 0, max = 1))]
+    #[setting(range(min = 0, max = 1))]
     pub y: f64,
-    #[schemars(range(min = 0, max = 1))]
+    #[setting(range(min = 0, max = 1))]
     pub width: f64,
-    #[schemars(range(min = 0, max = 1))]
+    #[setting(range(min = 0, max = 1))]
     pub height: f64,
 }
 
@@ -40,36 +42,42 @@ pub fn default_areas() -> Vec<Area> {
     }]
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct BlurAreas {
-    #[default(default_areas())]
-    #[schemars(
-        description = "Areas to blur",
+    #[setting(
+        "Areas to blur",
+        default = default_areas(),
         length(max = 8),
-        extend(
-            "x-widget" = "boxes",
-            "x-time-key" = "frameMs",
-            "x-help" = "Drag on the picture to add an area. Move the slider to draw on a later moment of the take. The blur stays on that part of the window while the camera zooms and pans."
-        )
+        widget = "boxes",
+        time_key = "frameMs",
+        help = "Drag on the picture to add an area. Move the slider to draw on a later moment of the take. The blur stays on that part of the window while the camera zooms and pans."
     )]
     pub areas: Vec<Area>,
-    #[schemars(description = "Frame to draw on", range(min = 0, max = 3600000), extend("x-unit" = "ms", "x-hidden" = true))]
+    #[setting("Frame to draw on", range(min = 0, max = 3600000), unit = "ms", hidden)]
     pub frame_ms: f64,
-    #[default = 0.6]
-    #[schemars(description = "Strength", range(min = 0.05, max = 1), extend("x-step" = 0.05))]
+    #[setting("Strength", default = 0.6, range(min = 0.05, max = 1), step = 0.05)]
     pub strength: f64,
-    #[default = 0.3]
-    #[schemars(description = "Soft edge", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Soft edge", default = 0.3, range(min = 0, max = 1), step = 0.05)]
     pub softness: f64,
-    #[default = 0.3]
-    #[schemars(description = "Rounded corners", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Rounded corners", default = 0.3, range(min = 0, max = 1), step = 0.05)]
     pub roundness: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "From", range(min = 0, max = 3600000), extend("x-unit" = "ms", "x-zero-label" = "Start of the take"))]
+    #[setting(
+        "From",
+        range(min = 0, max = 3600000),
+        unit = "ms",
+        zero_label = "Start of the take"
+    )]
     pub from_ms: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(description = "Until", range(min = 0, max = 3600000), extend("x-unit" = "ms", "x-zero-label" = "End of the take"))]
+    #[setting(
+        "Until",
+        range(min = 0, max = 3600000),
+        unit = "ms",
+        zero_label = "End of the take"
+    )]
     pub until_ms: Option<u32>,
 }
 
@@ -154,38 +162,47 @@ fn blur_areas() -> NodeDef {
         })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Look {
-    #[schemars(
-        description = "Brightness",
+    #[setting(
+        "Brightness",
         range(min = -1, max = 1),
-        extend(
-            "x-step" = 0.05,
-            "x-presets-label" = "Look",
-            "x-presets" = [
-                { "label": "Natural", "values": { "brightness": 0, "contrast": 1, "saturation": 1, "warmth": 0, "vignette": 0, "grain": 0 } },
-                { "label": "Warm", "values": { "brightness": 0, "contrast": 1, "saturation": 1.1, "warmth": 0.35, "vignette": 0.2, "grain": 0 } },
-                { "label": "Cool", "values": { "brightness": 0, "contrast": 1.05, "saturation": 1, "warmth": -0.3, "vignette": 0, "grain": 0 } },
-                { "label": "Punchy", "values": { "brightness": 0, "contrast": 1.2, "saturation": 1.25, "warmth": 0, "vignette": 0, "grain": 0 } },
-                { "label": "Soft", "values": { "brightness": 0.1, "contrast": 0.88, "saturation": 0.9, "warmth": 0, "vignette": 0, "grain": 0 } },
-                { "label": "Black and white", "values": { "brightness": 0, "contrast": 1.15, "saturation": 0, "warmth": 0, "vignette": 0, "grain": 0 } },
-                { "label": "Old film", "values": { "brightness": 0, "contrast": 1, "saturation": 0.75, "warmth": 0.25, "vignette": 0.45, "grain": 0.35 } }
-            ]
-        )
+        step = 0.05,
+        presets_label = "Look",
+        presets = [
+            { "label": "Natural", "values": { "brightness": 0, "contrast": 1, "saturation": 1, "warmth": 0, "vignette": 0, "grain": 0 } },
+            { "label": "Warm", "values": { "brightness": 0, "contrast": 1, "saturation": 1.1, "warmth": 0.35, "vignette": 0.2, "grain": 0 } },
+            { "label": "Cool", "values": { "brightness": 0, "contrast": 1.05, "saturation": 1, "warmth": -0.3, "vignette": 0, "grain": 0 } },
+            { "label": "Punchy", "values": { "brightness": 0, "contrast": 1.2, "saturation": 1.25, "warmth": 0, "vignette": 0, "grain": 0 } },
+            { "label": "Soft", "values": { "brightness": 0.1, "contrast": 0.88, "saturation": 0.9, "warmth": 0, "vignette": 0, "grain": 0 } },
+            { "label": "Black and white", "values": { "brightness": 0, "contrast": 1.15, "saturation": 0, "warmth": 0, "vignette": 0, "grain": 0 } },
+            { "label": "Old film", "values": { "brightness": 0, "contrast": 1, "saturation": 0.75, "warmth": 0.25, "vignette": 0.45, "grain": 0.35 } }
+        ]
     )]
     pub brightness: f64,
-    #[default = 1.0]
-    #[schemars(description = "Contrast", range(min = 0.5, max = 1.5), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Contrast",
+        default = 1.0,
+        range(min = 0.5, max = 1.5),
+        step = 0.05,
+        unit = "×"
+    )]
     pub contrast: f64,
-    #[default = 1.0]
-    #[schemars(description = "Colour", range(min = 0, max = 2), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Colour",
+        default = 1.0,
+        range(min = 0, max = 2),
+        step = 0.05,
+        unit = "×"
+    )]
     pub saturation: f64,
-    #[schemars(description = "Warmth", range(min = -1, max = 1), extend("x-step" = 0.05))]
+    #[setting("Warmth", range(min = -1, max = 1), step = 0.05)]
     pub warmth: f64,
-    #[schemars(description = "Dark edges", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Dark edges", range(min = 0, max = 1), step = 0.05)]
     pub vignette: f64,
-    #[schemars(description = "Film grain", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Film grain", range(min = 0, max = 1), step = 0.05)]
     pub grain: f64,
 }
 

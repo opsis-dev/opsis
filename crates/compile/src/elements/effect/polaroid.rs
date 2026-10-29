@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,50 +7,41 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Polaroid {
-    #[default = "first light"]
-    #[schemars(description = "Caption")]
+    #[setting("Caption", default = "first light")]
     pub caption: String,
-    #[schemars(description = "Caption starts", range(min = 0, max = 60), extend("x-step" = 1))]
+    #[setting("Caption starts", range(min = 0, max = 60), step = 1)]
     pub caption_at: u32,
-    #[default = 652]
-    #[schemars(description = "Card width", range(min = 320, max = 900), extend("x-step" = 4))]
+    #[setting("Card width", default = 652, range(min = 320, max = 900), step = 4)]
     pub width: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Caption size",
+    #[setting(
+        "Caption size",
         range(min = 12, max = 56),
-        extend(
-            "x-zero-label" = "Fit",
-            "x-step" = 1,
-            "x-unit" = "px",
-            "x-help" = "Leave empty to size the caption with the card.",
-            "type" = "integer"
-        )
+        zero_label = "Fit",
+        step = 1,
+        unit = "px",
+        help = "Leave empty to size the caption with the card.",
+        "type" = "integer"
     )]
     pub caption_size: Option<u32>,
-    #[default = 0.1]
-    #[schemars(
-        description = "Time per pose",
+    #[setting(
+        "Time per pose",
+        default = 0.1,
         range(min = 0.0333, max = 0.2),
-        extend("x-step" = 0.01, "x-unit" = "s", "x-frames-at" = 30)
+        step = 0.01,
+        unit = "s",
+        frames_at = 30
     )]
     pub step: f64,
-    #[default = "#fdfcf8"]
-    #[schemars(
-        description = "Frame colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Frame colour", default = "#fdfcf8", check = colour)]
     pub frame_color: String,
-    #[default = "#26242c"]
-    #[schemars(
-        description = "Caption colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Caption colour", default = "#26242c", check = colour)]
     pub caption_color: String,
 }
 

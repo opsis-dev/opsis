@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
@@ -78,46 +79,53 @@ fn transition_choices(schema: &mut Schema) {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 #[schemars(transform = transition_choices)]
 pub struct Cut {
-    #[default = "in2"]
-    #[schemars(description = "Before", extend("x-widget" = "cut"))]
+    #[setting("Before", default = "in2", widget = "cut")]
     pub before: String,
-    #[default = "fade"]
-    #[schemars(description = "Transition", extend("x-widget" = "transition"))]
+    #[setting("Transition", default = "fade", widget = "transition")]
     pub transition: String,
-    #[default = 15]
-    #[schemars(description = "Length", range(min = 1, max = 108000), extend("x-step" = 1, "x-unit" = "frames"))]
+    #[setting(
+        "Length",
+        default = 15,
+        range(min = 1, max = 108000),
+        step = 1,
+        unit = "frames"
+    )]
     pub transition_duration: u32,
-    #[schemars(
-        description = "Keep both clips whole",
-        extend("x-help" = "The transition plays over a still of the two clips' last and first frames.")
+    #[setting(
+        "Keep both clips whole",
+        help = "The transition plays over a still of the two clips' last and first frames."
     )]
     pub keep_whole: bool,
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 #[schemars(transform = transition_choices)]
 pub struct Sequence {
-    #[default = "fade"]
-    #[schemars(description = "Transition", extend("x-widget" = "transition"))]
+    #[setting("Transition", default = "fade", widget = "transition")]
     pub transition: String,
-    #[default = 15]
-    #[schemars(description = "Transition length", range(min = 1, max = 108000), extend("x-step" = 1, "x-unit" = "frames"))]
+    #[setting(
+        "Transition length",
+        default = 15,
+        range(min = 1, max = 108000),
+        step = 1,
+        unit = "frames"
+    )]
     pub transition_duration: u32,
-    #[schemars(
-        description = "Keep every clip whole",
-        extend(
-            "x-help" = "The transition plays over a still of the last and first frames, so no clip loses screen time. The sequence gets longer by each transition."
-        )
+    #[setting(
+        "Keep every clip whole",
+        help = "The transition plays over a still of the last and first frames, so no clip loses screen time. The sequence gets longer by each transition."
     )]
     pub keep_whole: bool,
-    #[schemars(
-        description = "Different transitions",
-        extend("x-help" = "Use another transition before some clips. The others use the transition above.")
+    #[setting(
+        "Different transitions",
+        help = "Use another transition before some clips. The others use the transition above."
     )]
     pub cuts: Vec<Cut>,
 }
@@ -298,19 +306,21 @@ impl LengthSource {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Layers {
-    #[default(LengthSource::Longest)]
-    #[schemars(description = "Length follows", extend("x-labels" = { "longest": "Longest", "first": "Layer 1", "last": "Front layer" }))]
+    #[setting(
+        "Length follows",
+        default = LengthSource::Longest,
+        labels = { "longest": "Longest", "first": "Layer 1", "last": "Front layer" }
+    )]
     pub duration: LengthSource,
-    #[schemars(description = "Start each layer at", extend("x-widget" = "offsets"))]
+    #[setting("Start each layer at", widget = "offsets")]
     pub offsets_ms: String,
-    #[schemars(
-        description = "Keep this layout in other shapes",
-        extend(
-            "x-help" = "In 9:16, 1:1 and 4:5 the layers stay arranged as they are here, scaled to fit, so marks drawn over a picture stay on it."
-        )
+    #[setting(
+        "Keep this layout in other shapes",
+        help = "In 9:16, 1:1 and 4:5 the layers stay arranged as they are here, scaled to fit, so marks drawn over a picture stay on it."
     )]
     pub keep_layout: bool,
 }
@@ -404,12 +414,19 @@ fn layers() -> NodeDef {
     })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Trim {
-    #[schemars(description = "Start", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting("Start", range(min = 0, max = 600000), step = 50, unit = "ms")]
     pub start_ms: u32,
-    #[schemars(description = "Keep", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "To the end"))]
+    #[setting(
+        "Keep",
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms",
+        zero_label = "To the end"
+    )]
     pub duration_ms: u32,
 }
 
@@ -485,11 +502,11 @@ fn trim() -> NodeDef {
         })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Repeat {
-    #[default = 2]
-    #[schemars(description = "Times", range(min = 1, max = MAX_REPEATS), extend("x-unit" = "×"))]
+    #[setting("Times", default = 2, range(min = 1, max = MAX_REPEATS), unit = "×")]
     pub times: u32,
 }
 
@@ -530,11 +547,17 @@ fn repeat() -> NodeDef {
         })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Delay {
-    #[default = 500]
-    #[schemars(description = "Delay", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Delay",
+        default = 500,
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms"
+    )]
     pub ms: u32,
 }
 
@@ -565,11 +588,17 @@ fn delay() -> NodeDef {
         })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Speed {
-    #[default = 1.5]
-    #[schemars(description = "Speed", range(min = 0.1, max = 64), extend("x-step" = 0.05, "x-unit" = "×"))]
+    #[setting(
+        "Speed",
+        default = 1.5,
+        range(min = 0.1, max = 64),
+        step = 0.05,
+        unit = "×"
+    )]
     pub rate: f64,
 }
 
@@ -672,18 +701,24 @@ impl FitMode {
     }
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct FitLength {
-    #[default = 10000]
-    #[schemars(
-        description = "Length",
+    #[setting(
+        "Length",
+        default = 10000,
         range(min = 0, max = 600000),
-        extend("x-step" = 50, "x-unit" = "ms", "x-help" = "Ignored when a sound is connected.")
+        step = 50,
+        unit = "ms",
+        help = "Ignored when a sound is connected."
     )]
     pub target_ms: u32,
-    #[default(FitMode::Speed)]
-    #[schemars(description = "How", extend("x-labels" = { "speed": "Change speed", "hold": "Hold the end", "cut": "Cut" }))]
+    #[setting(
+        "How",
+        default = FitMode::Speed,
+        labels = { "speed": "Change speed", "hold": "Hold the end", "cut": "Cut" }
+    )]
     pub mode: FitMode,
 }
 
@@ -760,16 +795,17 @@ fn fit_length() -> NodeDef {
     })
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Branch {
-    #[default = "Version"]
-    #[schemars(description = "Variable", extend("x-widget" = "variable"))]
+    #[setting("Variable", default = "Version", widget = "variable")]
     pub variable: String,
-    #[default = "A"]
-    #[schemars(
-        description = "Equals",
-        extend("x-help" = "Leave empty to use the first clip whenever the variable has a value.", "x-zero-label" = "Any value")
+    #[setting(
+        "Equals",
+        default = "A",
+        help = "Leave empty to use the first clip whenever the variable has a value.",
+        zero_label = "Any value"
     )]
     pub equals: String,
 }

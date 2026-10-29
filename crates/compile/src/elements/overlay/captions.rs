@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
@@ -27,50 +28,35 @@ pub enum CaptionPosition {
     Top,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Captions {
-    #[default(CaptionStyle::WordByWord)]
-    #[schemars(description = "Style")]
+    #[setting("Style", default = CaptionStyle::WordByWord)]
     pub style: CaptionStyle,
-    #[default(CaptionPosition::Bottom)]
-    #[schemars(description = "Position")]
+    #[setting("Position", default = CaptionPosition::Bottom)]
     pub position: CaptionPosition,
-    #[default = 56]
-    #[schemars(description = "Font size", range(min = 16, max = 140), extend("x-step" = 1))]
+    #[setting("Font size", default = 56, range(min = 16, max = 140), step = 1)]
     pub font_size: u32,
-    #[default = "#ffffff"]
-    #[schemars(
-        description = "Text colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Text colour", default = "#ffffff", check = colour)]
     pub color: String,
-    #[default = "#facc15"]
-    #[schemars(
-        description = "Highlight colour",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Highlight colour", default = "#facc15", check = colour)]
     pub highlight_color: String,
-    #[default = "rgba(0,0,0,0.35)"]
-    #[schemars(
-        description = "Panel colour",
-        extend(
-            "x-help" = "The box behind the words. Lower its opacity to let the video show through.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Panel colour",
+        default = "rgba(0,0,0,0.35)",
+        help = "The box behind the words. Lower its opacity to let the video show through.",
+        check = colour
     )]
     pub panel: String,
-    #[default = 800]
-    #[schemars(description = "Font weight", range(min = 100, max = 900), extend("x-step" = 10))]
+    #[setting("Font weight", default = 800, range(min = 100, max = 900), step = 10)]
     pub font_weight: u32,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
 }

@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,77 +8,68 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::DarkOrLight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct FileTreeReveal {
-    #[default(vec![
-        "src/components/cart.tsx".into(),
-        "src/components/checkout.tsx".into(),
-        "src/lib/api.ts".into(),
-        "src/index.ts".into(),
-        "public/logo.svg".into(),
-        "README.md".into(),
-        "package.json".into(),
-    ])]
-    #[schemars(
-        description = "Files",
-        extend(
-            "x-help" = "One path per item, like src/app.ts. End a folder with / to show it empty."
-        )
+    #[setting(
+        "Files",
+        default = vec![
+            "src/components/cart.tsx".into(),
+            "src/components/checkout.tsx".into(),
+            "src/lib/api.ts".into(),
+            "src/index.ts".into(),
+            "public/logo.svg".into(),
+            "README.md".into(),
+            "package.json".into(),
+        ],
+        help = "One path per item, like src/app.ts. End a folder with / to show it empty."
     )]
     pub nodes: Vec<String>,
-    #[default = "acme-app"]
-    #[schemars(
-        description = "Title",
-        extend("x-help" = "Title bar over the tree. Omit to drop the header.")
+    #[setting(
+        "Title",
+        default = "acme-app",
+        help = "Title bar over the tree. Omit to drop the header."
     )]
     pub title: String,
-    #[default = "src/components/checkout.tsx"]
-    #[schemars(
-        description = "Highlighted file",
-        extend(
-            "x-help" = "Slash-joined path of the file that lights up at the end. Omit to select nothing."
-        )
+    #[setting(
+        "Highlighted file",
+        default = "src/components/checkout.tsx",
+        help = "Slash-joined path of the file that lights up at the end. Omit to select nothing."
     )]
     pub selected_path: String,
-    #[default = 0.18]
-    #[schemars(
-        description = "Row stagger",
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Seconds between one row appearing and the next.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Row stagger",
+        default = 0.18,
+        step = 0.01,
+        help = "Seconds between one row appearing and the next.",
+        advanced
     )]
     pub row_stagger: f64,
-    #[default = "#E8B86D"]
-    #[schemars(
-        description = "Accent color",
-        extend(
-            "x-help" = "Selected row's bar, tint and label.",
-            "x-check" = { "rule": "colour", "message": "Pick a colour" }
-        )
+    #[setting(
+        "Accent color",
+        default = "#E8B86D",
+        help = "Selected row's bar, tint and label.",
+        check = colour
     )]
     pub accent_color: String,
-    #[default(DarkOrLight::Dark)]
-    #[schemars(description = "Theme", extend("x-help" = "Surface palette."))]
+    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
     pub theme: DarkOrLight,
-    #[default = 1.0]
-    #[schemars(
-        description = "Speed",
+    #[setting(
+        "Speed",
+        default = 1.0,
         range(min = 0.25, max = 4),
-        extend("x-step" = 0.25, "x-help" = "Animation speed multiplier.")
+        step = 0.25,
+        help = "Animation speed multiplier."
     )]
     pub speed: f64,
-    #[schemars(
-        description = "Background",
-        extend(
-            "x-widget" = "color",
-            "x-zero-label" = "Theme",
-            "x-help" = "Leave empty to follow the theme."
-        )
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "Theme",
+        help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
 }

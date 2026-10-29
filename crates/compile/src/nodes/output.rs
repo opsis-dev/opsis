@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers::whole;
@@ -225,112 +226,111 @@ fn file_bytes(artifacts: &[Artifact]) -> u64 {
     artifacts.iter().filter_map(|a| a.bytes).sum()
 }
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ExportVideo {
-    #[default = "{{Project name}}"]
-    #[schemars(description = "File name")]
+    #[setting("File name", default = "{{Project name}}")]
     pub file_name: String,
-    #[default(Codec::H264)]
-    #[schemars(
-        description = "Format",
-        extend("x-labels" = { "h264": "MP4", "h265": "MP4 (HEVC)", "vp8": "WebM (VP8)", "vp9": "WebM", "prores": "ProRes", "gif": "GIF" })
+    #[setting(
+        "Format",
+        default = Codec::H264,
+        labels = { "h264": "MP4", "h265": "MP4 (HEVC)", "vp8": "WebM (VP8)", "vp9": "WebM", "prores": "ProRes", "gif": "GIF" }
     )]
     pub codec: Codec,
-    #[default = 18]
-    #[schemars(description = "Quality", range(min = 0, max = 51), extend("x-widget" = "quality"))]
+    #[setting("Quality", default = 18, range(min = 0, max = 51), widget = "quality")]
     pub crf: u32,
-    #[default(vec![Variant::Wide])]
-    #[schemars(
-        description = "Shapes",
+    #[setting(
+        "Shapes",
+        default = vec![Variant::Wide],
         length(min = 1),
-        extend("x-widget" = "multiselect", "x-check" = { "rule": "unique", "message": "Pick each shape once" })
+        widget = "multiselect",
+        check = { "rule": "unique", "message": "Pick each shape once" }
     )]
     pub variants: Vec<Variant>,
-    #[default(ReframeMode::Follow)]
-    #[schemars(description = "Other shapes", extend("x-labels" = { "follow": "Follow the action", "center": "Crop the centre", "fit": "Add bars" }))]
+    #[setting(
+        "Other shapes",
+        default = ReframeMode::Follow,
+        labels = { "follow": "Follow the action", "center": "Crop the centre", "fit": "Add bars" }
+    )]
     pub reframe: ReframeMode,
-    #[default = 1.0]
-    #[schemars(
-        description = "Size",
+    #[setting(
+        "Size",
+        default = 1.0,
         range(min = 0.25, max = 2),
-        extend("x-step" = 0.25, "x-unit" = "×", "x-labels" = { "0.5": "Half", "1": "Full", "2": "Double" })
+        step = 0.25,
+        unit = "×",
+        labels = { "0.5": "Half", "1": "Full", "2": "Double" }
     )]
     pub scale: f64,
-    #[default = true]
-    #[schemars(
-        description = "Chapters in the file",
-        extend(
-            "x-help" = "Players list the film's chapters, taken from its Chapter actions.",
-            "x-show-if" = { "codec": ["h264", "h265", "vp8", "vp9", "prores"] }
-        )
+    #[setting(
+        "Chapters in the file",
+        default = true,
+        help = "Players list the film's chapters, taken from its Chapter actions.",
+        show_if = { "codec": ["h264", "h265", "vp8", "vp9", "prores"] }
     )]
     pub chapters: bool,
-    #[schemars(
-        description = "YouTube chapter list",
-        extend(
-            "x-help" = "Also saves the chapter times as text, to paste into a video's description. It needs at least three chapters of ten seconds or more.",
-            "x-show-if" = { "codec": ["h264", "h265", "vp8", "vp9", "prores"] }
-        )
+    #[setting(
+        "YouTube chapter list",
+        help = "Also saves the chapter times as text, to paste into a video's description. It needs at least three chapters of ten seconds or more.",
+        show_if = { "codec": ["h264", "h265", "vp8", "vp9", "prores"] }
     )]
     pub chapter_list: bool,
-    #[default(Gl::Angle)]
-    #[schemars(
-        description = "Draw with",
-        extend(
-            "x-labels" = {
-                "angle": "Graphics card",
-                "swangle": "Software",
-                "egl": "Graphics card, direct",
-                "vulkan": "Graphics card, newer drivers",
-                "swiftshader": "Software (legacy)"
-            },
-            "x-help" = "The graphics card is about ten times faster. Use Software if exports fail.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Draw with",
+        default = Gl::Angle,
+        labels = {
+            "angle": "Graphics card",
+            "swangle": "Software",
+            "egl": "Graphics card, direct",
+            "vulkan": "Graphics card, newer drivers",
+            "swiftshader": "Software (legacy)"
+        },
+        help = "The graphics card is about ten times faster. Use Software if exports fail.",
+        advanced
     )]
     pub gl: Gl,
 }
 
 impl Params for ExportVideo {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ExportImages {
-    #[default = "{{Project name}}"]
-    #[schemars(description = "File name")]
+    #[setting("File name", default = "{{Project name}}")]
     pub file_name: String,
-    #[default = 1000]
-    #[schemars(description = "Frame at", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    #[setting(
+        "Frame at",
+        default = 1000,
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms"
+    )]
     pub at_ms: u32,
-    #[default(vec![StillPreset::Og])]
-    #[schemars(
-        description = "Sizes",
+    #[setting(
+        "Sizes",
+        default = vec![StillPreset::Og],
         length(min = 1),
-        extend(
-            "x-widget" = "multiselect",
-            "x-labels" = { "wide": "Wide 4K", "og": "Link preview", "square": "Square", "portrait": "Portrait", "story": "Story" },
-            "x-check" = { "rule": "unique", "message": "Pick each size once" }
-        )
+        widget = "multiselect",
+        labels = { "wide": "Wide 4K", "og": "Link preview", "square": "Square", "portrait": "Portrait", "story": "Story" },
+        check = { "rule": "unique", "message": "Pick each size once" }
     )]
     pub presets: Vec<StillPreset>,
-    #[default(StillFormat::Png)]
-    #[schemars(description = "Format", extend("x-labels" = { "png": "PNG", "jpeg": "JPEG" }))]
+    #[setting("Format", default = StillFormat::Png, labels = { "png": "PNG", "jpeg": "JPEG" })]
     pub format: StillFormat,
-    #[default(Gl::Angle)]
-    #[schemars(
-        description = "Draw with",
-        extend(
-            "x-labels" = {
-                "angle": "Graphics card",
-                "swangle": "Software",
-                "egl": "Graphics card, direct",
-                "vulkan": "Graphics card, newer drivers",
-                "swiftshader": "Software (legacy)"
-            },
-            "x-help" = "The graphics card is about ten times faster. Use Software if exports fail.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Draw with",
+        default = Gl::Angle,
+        labels = {
+            "angle": "Graphics card",
+            "swangle": "Software",
+            "egl": "Graphics card, direct",
+            "vulkan": "Graphics card, newer drivers",
+            "swiftshader": "Software (legacy)"
+        },
+        help = "The graphics card is about ten times faster. Use Software if exports fail.",
+        advanced
     )]
     pub gl: Gl,
 }

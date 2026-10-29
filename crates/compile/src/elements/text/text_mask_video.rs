@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -18,88 +19,77 @@ pub enum MaskReveal {
     None,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct TextMaskVideo {
-    #[default = "LAUNCH\nDAY"]
-    #[schemars(
-        description = "Text",
-        extend("x-widget" = "textarea", "x-help" = "The letterforms the media is seen through.")
+    #[setting(
+        "Text",
+        default = "LAUNCH\nDAY",
+        widget = "textarea",
+        help = "The letterforms the media is seen through."
     )]
     pub text: String,
-    #[schemars(
-        description = "Media",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = "video/*,image/*",
-            "x-zero-label" = "Gradient",
-            "x-help" = "A video or image to show through the letters. Leave empty for the gradient."
-        )
+    #[setting(
+        "Media",
+        widget = "asset",
+        accept = "video/*,image/*",
+        zero_label = "Gradient",
+        help = "A video or image to show through the letters. Leave empty for the gradient."
     )]
     pub src: String,
-    #[default = "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)"]
-    #[schemars(
-        description = "Gradient fill",
-        extend("x-widget" = "gradient", "x-show-if" = { "src": [""] })
+    #[setting(
+        "Gradient fill",
+        default = "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)",
+        widget = "gradient",
+        show_if = { "src": [""] }
     )]
     pub gradient: String,
-    #[default(MaskReveal::Left)]
-    #[schemars(description = "Reveal", extend("x-help" = "Which way the letters are uncovered."))]
+    #[setting("Reveal", default = MaskReveal::Left, help = "Which way the letters are uncovered.")]
     pub reveal: MaskReveal,
-    #[default = 26.0]
-    #[schemars(description = "Drift", extend("x-advanced" = true))]
+    #[setting("Drift", default = 26.0, advanced)]
     pub drift: f64,
-    #[default = 0.12]
-    #[schemars(
-        description = "Zoom",
-        extend(
-            "x-step" = 0.01,
-            "x-help" = "Extra scale the media breathes through. 0 holds it still.",
-            "x-advanced" = true
-        )
+    #[setting(
+        "Zoom",
+        default = 0.12,
+        step = 0.01,
+        help = "Extra scale the media breathes through. 0 holds it still.",
+        advanced
     )]
     pub zoom: f64,
-    #[default = 30]
-    #[schemars(
-        description = "Animation length",
+    #[setting(
+        "Animation length",
+        default = 30,
         range(min = 1, max = 300),
-        extend(
-            "x-step" = 1,
-            "x-unit" = "frames",
-            "x-help" = "Length of the reveal.",
-            "x-advanced" = true
-        )
+        step = 1,
+        unit = "frames",
+        help = "Length of the reveal.",
+        advanced
     )]
     pub duration_in_frames: u32,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
-    #[default = 800]
-    #[schemars(description = "Font weight")]
+    #[setting("Font weight", default = 800)]
     pub font_weight: u32,
-    #[schemars(description = "Letter spacing")]
+    #[setting("Letter spacing")]
     pub letter_spacing: f64,
-    #[default = 0.98]
-    #[schemars(description = "Line height", extend("x-step" = 0.01))]
+    #[setting("Line height", default = 0.98, step = 0.01)]
     pub line_height: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[schemars(
-        description = "Font size",
+    #[setting(
+        "Font size",
         range(min = 12, max = 600),
-        extend(
-            "x-zero-label" = "Fit",
-            "x-unit" = "px",
-            "x-help" = "Leave empty to fit the text to the frame.",
-            "x-advanced" = true,
-            "type" = "number"
-        )
+        zero_label = "Fit",
+        unit = "px",
+        help = "Leave empty to fit the text to the frame.",
+        advanced,
+        "type" = "number"
     )]
     pub font_size: Option<f64>,
 }

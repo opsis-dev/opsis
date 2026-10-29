@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -27,66 +28,66 @@ pub enum PhoneEntrance {
     Float,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct PhoneFrame {
-    #[default(PhoneVariant::Showcase)]
-    #[schemars(description = "Variant")]
+    #[setting("Variant", default = PhoneVariant::Showcase)]
     pub variant: PhoneVariant,
-    #[default(PhoneEntrance::Float)]
-    #[schemars(description = "Entrance")]
+    #[setting("Entrance", default = PhoneEntrance::Float)]
     pub entrance: PhoneEntrance,
-    #[default = "app:placeholders/screen-tall.svg"]
-    #[schemars(description = "Screen (image or video)", extend("x-widget" = "asset"))]
+    #[setting(
+        "Screen (image or video)",
+        default = "app:placeholders/screen-tall.svg",
+        widget = "asset"
+    )]
     pub screen_src: String,
-    #[default = "#C7C9CE"]
-    #[schemars(description = "Bezel color", extend("x-widget" = "color", "x-zero-label" = "Theme"))]
+    #[setting(
+        "Bezel color",
+        default = "#C7C9CE",
+        widget = "color",
+        zero_label = "Theme"
+    )]
     pub bezel_color: String,
-    #[default = "#0A0A0B"]
-    #[schemars(
-        description = "Screen color",
-        extend("x-widget" = "color", "x-zero-label" = "Theme")
+    #[setting(
+        "Screen color",
+        default = "#0A0A0B",
+        widget = "color",
+        zero_label = "Theme"
     )]
     pub screen_color: String,
-    #[default = 53]
-    #[schemars(description = "Body radius", range(min = 24, max = 90), extend("x-step" = 1))]
+    #[setting("Body radius", default = 53, range(min = 24, max = 90), step = 1)]
     pub radius: u32,
-    #[default = 41]
-    #[schemars(description = "Screen radius", range(min = 12, max = 78), extend("x-step" = 1))]
+    #[setting("Screen radius", default = 41, range(min = 12, max = 78), step = 1)]
     pub screen_radius: u32,
-    #[default = 0.92]
-    #[schemars(description = "Scale", range(min = 0.4, max = 1.5), extend("x-step" = 0.05))]
+    #[setting("Scale", default = 0.92, range(min = 0.4, max = 1.5), step = 0.05)]
     pub scale: f64,
-    #[default(-12)]
-    #[schemars(description = "Tilt angle", range(min = -30, max = 30), extend("x-step" = 1))]
+    #[setting("Tilt angle", default = -12, range(min = -30, max = 30), step = 1)]
     pub tilt_angle: i32,
-    #[default = true]
-    #[schemars(description = "Dynamic island")]
+    #[setting("Dynamic island", default = true)]
     pub show_dynamic_island: bool,
-    #[schemars(description = "Float loop")]
+    #[setting("Float loop")]
     pub float_loop: bool,
-    #[default = 6]
-    #[schemars(description = "Float amplitude", range(min = 0, max = 20), extend("x-step" = 1))]
+    #[setting("Float amplitude", default = 6, range(min = 0, max = 20), step = 1)]
     pub float_amplitude: u32,
-    #[default = "0 30px 70px rgba(16,24,40,0.28)"]
-    #[schemars(description = "Shadow")]
+    #[setting("Shadow", default = "0 30px 70px rgba(16,24,40,0.28)")]
     pub shadow: String,
-    #[default(Theme::of(ThemeMode::Dark))]
-    #[schemars(transform = warm_themes)]
-    #[schemars(description = "Theme", extend("x-widget" = "theme"))]
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = warm_themes,
+        widget = "theme"
+    )]
     pub theme: Theme,
-    #[schemars(
-        description = "Font",
-        extend(
-            "x-widget" = "font",
-            "x-help" = "Project font follows the fonts set for the whole project."
-        )
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,52 +7,44 @@ use smart_default::SmartDefault;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct AnimatedLineChart {
-    #[default = "#22c55e"]
-    #[schemars(
-        description = "Stroke color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Stroke color", default = "#22c55e", check = colour)]
     pub stroke_color: String,
-    #[default = 4]
-    #[schemars(description = "Stroke width", range(min = 1, max = 16), extend("x-step" = 1))]
+    #[setting("Stroke width", default = 4, range(min = 1, max = 16), step = 1)]
     pub stroke_width: u32,
-    #[default = "#27272a"]
-    #[schemars(
-        description = "Grid color",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Grid color", default = "#27272a", check = colour)]
     pub grid_color: String,
-    #[default = true]
-    #[schemars(description = "Show leading dot")]
+    #[setting("Show leading dot", default = true)]
     pub show_dot: bool,
-    #[default(vec![12.0, 19.0, 8.0, 15.0, 22.0, 18.0, 28.0, 25.0, 32.0])]
-    #[schemars(
-        description = "Values",
+    #[setting(
+        "Values",
+        default = vec![12.0, 19.0, 8.0, 15.0, 22.0, 18.0, 28.0, 25.0, 32.0],
         length(min = 2),
-        extend("x-help" = "Paste a column from a spreadsheet to fill the list.")
+        help = "Paste a column from a spreadsheet to fill the list."
     )]
     pub data: Vec<f64>,
-    #[default = 1000]
-    #[schemars(
-        description = "Width",
+    #[setting(
+        "Width",
+        default = 1000,
         range(min = 200, max = 3840),
-        extend("x-step" = 10, "x-advanced" = true)
+        step = 10,
+        advanced
     )]
     pub width: u32,
-    #[default = 500]
-    #[schemars(
-        description = "Height",
+    #[setting(
+        "Height",
+        default = 500,
         range(min = 100, max = 2160),
-        extend("x-step" = 10, "x-advanced" = true)
+        step = 10,
+        advanced
     )]
     pub height: u32,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 4), extend("x-step" = 0.25))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
 }
 

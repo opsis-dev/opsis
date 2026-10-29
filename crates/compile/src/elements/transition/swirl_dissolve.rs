@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,31 +8,30 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct SwirlDissolve {
-    #[default = 10]
-    #[schemars(description = "Bands", range(min = 1, max = 12), extend("x-step" = 1))]
+    #[setting("Bands", default = 10, range(min = 1, max = 12), step = 1)]
     pub band_count: u32,
-    #[default = 0.35]
-    #[schemars(description = "Softness", range(min = 0, max = 1), extend("x-step" = 0.05))]
+    #[setting("Softness", default = 0.35, range(min = 0, max = 1), step = 0.05)]
     pub softness: f64,
-    #[default = "#141318"]
-    #[schemars(
-        description = "Background",
-        extend("x-check" = { "rule": "colour", "message": "Pick a colour" })
-    )]
+    #[setting("Background", default = "#141318", check = colour)]
     pub color_back: String,
-    #[default(vec!["#1f1d29".into(), "#413d56".into(), "#8f88ae".into()])]
-    #[schemars(description = "Colours", length(min = 2, max = 10))]
+    #[setting(
+        "Colours",
+        default = vec!["#1f1d29".into(), "#413d56".into(), "#8f88ae".into()],
+        length(min = 2, max = 10)
+    )]
     pub colors: Vec<Colour>,
-    #[default = 1.0]
-    #[schemars(
-        description = "Speed",
+    #[setting(
+        "Speed",
+        default = 1.0,
         range(min = 0.25, max = 4),
-        extend("x-step" = 0.25, "x-advanced" = true)
+        step = 0.25,
+        advanced
     )]
     pub speed: f64,
 }

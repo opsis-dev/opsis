@@ -1,3 +1,4 @@
+use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::CameraPath;
 use schemars::JsonSchema;
@@ -21,72 +22,66 @@ pub enum ModelMotion {
     Keyframes,
 }
 
+#[settings]
 #[derive(
     Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct Model3d {
-    #[schemars(
-        description = "Model",
-        extend(
-            "x-widget" = "asset",
-            "x-accept" = ".glb,.gltf",
-            "x-help" = "A 3D model file. A model saved as several files keeps them next to it."
-        )
+    #[setting(
+        "Model",
+        widget = "asset",
+        accept = ".glb,.gltf",
+        help = "A 3D model file. A model saved as several files keeps them next to it."
     )]
     pub src: String,
-    #[default(ModelMotion::Spin)]
-    #[schemars(
-        description = "Motion",
-        extend(
-            "x-labels" = {
-                "spin": "Turntable",
-                "orbit": "Orbit",
-                "swing": "Swing",
-                "float": "Float",
-                "still": "Still",
-                "keyframes": "Keyframes"
-            }
-        )
+    #[setting(
+        "Motion",
+        default = ModelMotion::Spin,
+        labels = {
+            "spin": "Turntable",
+            "orbit": "Orbit",
+            "swing": "Swing",
+            "float": "Float",
+            "still": "Still",
+            "keyframes": "Keyframes"
+        }
     )]
     pub motion: ModelMotion,
-    #[schemars(
-        description = "Camera keyframes",
-        extend(
-            "x-help" = "Turn, raise and move the camera at chosen moments. Add a key at the playhead, then set it. Drag keys on the timeline to move them.",
-            "x-widget" = "camera",
-            "x-show-if" = { "motion": ["keyframes"] }
-        )
+    #[setting(
+        "Camera keyframes",
+        help = "Turn, raise and move the camera at chosen moments. Add a key at the playhead, then set it. Drag keys on the timeline to move them.",
+        widget = "camera",
+        show_if = { "motion": ["keyframes"] }
     )]
     pub camera: CameraPath,
-    #[default = 1.0]
-    #[schemars(description = "Speed", range(min = 0.25, max = 3), extend("x-step" = 0.05))]
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 3), step = 0.05)]
     pub speed: f64,
-    #[schemars(
-        description = "Animation",
-        extend("x-help" = "The name of the model's own animation to play. Leave empty for the first one.")
+    #[setting(
+        "Animation",
+        help = "The name of the model's own animation to play. Leave empty for the first one."
     )]
     pub animation: String,
-    #[default = 1.0]
-    #[schemars(description = "Animation speed", range(min = 0.1, max = 4), extend("x-step" = 0.05))]
+    #[setting(
+        "Animation speed",
+        default = 1.0,
+        range(min = 0.1, max = 4),
+        step = 0.05
+    )]
     pub animation_speed: f64,
-    #[default = true]
-    #[schemars(description = "Loop the animation")]
+    #[setting("Loop the animation", default = true)]
     pub r#loop: bool,
-    #[default = 1.0]
-    #[schemars(description = "Zoom", range(min = 0.3, max = 3), extend("x-step" = 0.05))]
+    #[setting("Zoom", default = 1.0, range(min = 0.3, max = 3), step = 0.05)]
     pub zoom: f64,
-    #[default(Lighting::Studio)]
-    #[schemars(
-        description = "Lighting",
-        extend("x-labels" = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" })
+    #[setting(
+        "Lighting",
+        default = Lighting::Studio,
+        labels = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" }
     )]
     pub lighting: Lighting,
-    #[default = true]
-    #[schemars(description = "Floor shadow")]
+    #[setting("Floor shadow", default = true)]
     pub shadow: bool,
-    #[default = "transparent"]
-    #[schemars(description = "Background")]
+    #[setting("Background", default = "transparent")]
     pub background: String,
 }
 
