@@ -6,8 +6,8 @@ import { ROOT } from "./lib/tool-config";
 
 const CHECKED = /^(apps|packages|crates|scripts|e2e)\/.*\.(ts|tsx|mts|css|rs)$|^[^/]+\.config\.ts$/;
 const SKIPPED = [
-  /^apps\/ui\/src\/components\//,
-  /^apps\/ui\/src\/routeTree\.gen\.ts$/,
+  /^apps\/frontend\/src\/components\//,
+  /^apps\/frontend\/src\/routeTree\.gen\.ts$/,
   /\/generated\//,
 ];
 const DIRECTIVE = /^\/\/\/ <reference|^\/[/*]\s*(oxlint-|@ts-)/;

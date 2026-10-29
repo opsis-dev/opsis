@@ -11,7 +11,7 @@ const hexByte = (text: string) => Number.parseInt(text, 16).toString(16).padStar
 
 describe("window background", () => {
   it("matches the canvas colour token, so no other colour shows while the page loads", () => {
-    const css = read("apps", "ui", "src", "index.css");
+    const css = read("apps", "frontend", "src", "index.css");
     const [, token = ""] =
       /--background: (oklch\([^)]*\))/.exec(css.slice(css.indexOf(":root {"))) ?? [];
     const [, r = "", g = "", b = ""] =

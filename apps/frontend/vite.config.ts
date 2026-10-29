@@ -4,24 +4,24 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-const UI_DIR = import.meta.dirname;
-const UI_DEV_PORT = 5173;
+const FRONTEND_DIR = import.meta.dirname;
+const FRONTEND_DEV_PORT = 5173;
 
 export default defineConfig({
-  root: UI_DIR,
-  publicDir: path.join(UI_DIR, "public"),
+  root: FRONTEND_DIR,
+  publicDir: path.join(FRONTEND_DIR, "public"),
   plugins: [
     tanstackRouter({
       target: "react",
       autoCodeSplitting: true,
-      routesDirectory: path.join(UI_DIR, "src", "routes"),
-      generatedRouteTree: path.join(UI_DIR, "src", "routeTree.gen.ts"),
+      routesDirectory: path.join(FRONTEND_DIR, "src", "routes"),
+      generatedRouteTree: path.join(FRONTEND_DIR, "src", "routeTree.gen.ts"),
     }),
     react(),
     tailwindcss(),
   ],
-  resolve: { alias: { "@": path.join(UI_DIR, "src") }, preserveSymlinks: false },
+  resolve: { alias: { "@": path.join(FRONTEND_DIR, "src") }, preserveSymlinks: false },
   clearScreen: false,
-  server: { port: UI_DEV_PORT, strictPort: true },
+  server: { port: FRONTEND_DEV_PORT, strictPort: true },
   build: { outDir: "dist", emptyOutDir: true },
 });

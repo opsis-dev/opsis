@@ -40,7 +40,7 @@
     "test:app": "vitest run",
     "test:rust": "cargo test --workspace",
     "test:watch": "turbo watch test test:app",
-    "routes": "bun run --cwd apps/ui routes",
+    "routes": "bun run --cwd apps/frontend routes",
     "fonts:bundle": "bun scripts/fonts-bundle.ts",
     "brand:icons": "bun scripts/brand-icons.ts",
     "app:icons": "bun scripts/app-icons.ts",
@@ -76,8 +76,8 @@
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@fontsource-variable/space-grotesk": "^5.3.0",
     "@fontsource/instrument-serif": "^5.3.0",
+    "@opsis/frontend": "workspace:*",
     "@opsis/sidecar": "workspace:*",
-    "@opsis/ui": "workspace:*",
     "@opsis/video": "workspace:*",
     "zod": "^4.6.7"
   },

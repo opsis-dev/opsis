@@ -1,12 +1,12 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { usedGlyphs } from "@opsis/ui/nodes/looks";
+import { usedGlyphs } from "@opsis/frontend/nodes/looks";
 import { z } from "zod";
 import { NOTICES, loadGlyph } from "./lib/glyph-sets";
-import { ROOT, UI_DIR } from "./lib/tool-config";
+import { ROOT, FRONTEND_DIR } from "./lib/tool-config";
 
-const OUT = path.join(UI_DIR, "editor", "node-glyphs.generated.ts");
+const OUT = path.join(FRONTEND_DIR, "editor", "node-glyphs.generated.ts");
 const lookSchema = z.object({ glyph: z.string(), morph: z.string().optional() });
 const catalogSchema = z.object({ nodes: z.array(z.object({ look: lookSchema.optional() })) });
 

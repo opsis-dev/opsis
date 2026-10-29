@@ -13,7 +13,7 @@ use crate::mix::plan::MixPlan;
 use crate::timeline::chapters::FilmChapter;
 use crate::timeline::flatten::FlatTimeline;
 
-pub fn ui_types() -> Types {
+pub fn frontend_types() -> Types {
     boundary_types()
         .register::<CompileResult>()
         .register::<PreviewTarget>()

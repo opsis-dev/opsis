@@ -6,7 +6,7 @@ export const PACKAGES_DIR = path.join(ROOT, "packages");
 
 export const APPS_DIR = path.join(ROOT, "apps");
 
-export const UI_DIR = path.join(APPS_DIR, "ui", "src");
+export const FRONTEND_DIR = path.join(APPS_DIR, "frontend", "src");
 
 export const VIDEO_PACKAGE_DIR = path.join(PACKAGES_DIR, "video");
 
@@ -20,16 +20,16 @@ export const IGNORED_PATHS = [
   "crates/compile/src/fonts/bundled.generated.json",
   "crates/engine/src/downloads.generated.json",
   "crates/capture/src/playwright/*.generated.*",
-  "apps/ui/src/generated/bindings.ts",
+  "apps/frontend/src/generated/bindings.ts",
   "apps/sidecar/src/generated/protocol.ts",
   "remotion-bundle/**",
   "resources/**",
   "packages/*/dist/**",
-  "apps/ui/src/routeTree.gen.ts",
-  "apps/ui/src/components/ui/**",
-  "apps/ui/src/components/*.tsx",
-  "apps/ui/src/hooks/**",
-  "apps/ui/src/editor/node-glyphs.generated.ts",
+  "apps/frontend/src/routeTree.gen.ts",
+  "apps/frontend/src/components/ui/**",
+  "apps/frontend/src/components/*.tsx",
+  "apps/frontend/src/hooks/**",
+  "apps/frontend/src/editor/node-glyphs.generated.ts",
   "packages/video/src/generated/**",
   "packages/video/src/registry/length-cases.generated.json",
   "packages/video/src/registry/default-props.generated.json",

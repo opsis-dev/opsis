@@ -282,7 +282,7 @@ In the node list, hovering an element shows a picture of it at the top of the ho
 
 In place:
 
-- The hover card: `NodePreview` in `apps/ui/src/editor/palette.tsx`, inside `HoverCard`, shows the title, category, description and ports.
+- The hover card: `NodePreview` in `apps/frontend/src/editor/palette.tsx`, inside `HoverCard`, shows the title, category, description and ports.
 - `ElementMeta.thumbnail` exists in `crates/compile/src/elements/mod.rs` and is never filled.
 - `render-elements` (`crates/render/src/bin/render-elements.rs`, `bun run elements:render`) already compiles each registry element with its defaults in Rust, wires transitions, wrappers and sequencers to solid clips, and renders one frame through the sidecar into `~/.cache/opsis-element-stills` as 480 px JPEG.
 
@@ -293,7 +293,7 @@ Missing:
 ### Work
 
 1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element including core ones, overlays and text over a neutral dark `solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Swangle`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat` and the sidecar's still job).
-2. **Storage.** `apps/ui/src/editor/element-stills/<key with "/" as "--">.webp`, editor-only, loaded with `import.meta.glob("./element-stills/*.webp", { query: "?url", import: "default", eager: true })` in a small `element-stills.ts` next to `palette.tsx`. Add the folder and its command to the generated-files table in `AGENTS.md`; run it after changing or adding an element. Remove `ElementMeta.thumbnail`.
+2. **Storage.** `apps/frontend/src/editor/element-stills/<key with "/" as "--">.webp`, editor-only, loaded with `import.meta.glob("./element-stills/*.webp", { query: "?url", import: "default", eager: true })` in a small `element-stills.ts` next to `palette.tsx`. Add the folder and its command to the generated-files table in `AGENTS.md`; run it after changing or adding an element. Remove `ElementMeta.thumbnail`.
 3. **Budget.** At most 24 KB per still and 3.5 MB in all (about 140 elements today, 160 with the web motion components, × 15–20 KB); the binary fails above either.
 4. **Hover card.** `NodePreview` shows the still of the hovered element at the top.
 5. **Check.** Offline, every element in the list shows a still.

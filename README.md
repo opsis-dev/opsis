@@ -89,7 +89,7 @@ Tauri app (Rust): windows · menus · projects · app database · fonts · Local
 ```
 crates/      Rust: types, compile, store, project, fonts, engine, traces, runner, media, render,
              capture, stream, prepare, image, api, desktop (the Tauri app)
-apps/ui/     the editor
+apps/frontend the editor
 apps/preview the preview page the headless shell plays
 apps/sidecar Remotion renders on Bun
 e2e/         end-to-end tests (outside the workspace, own install)

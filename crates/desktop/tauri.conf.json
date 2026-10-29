@@ -4,9 +4,9 @@
   "identifier": "app.opsis.desktop",
   "build": {
     "devUrl": "http://localhost:5173",
-    "frontendDist": "../../apps/ui/dist",
-    "beforeDevCommand": "bun run --cwd ../apps/preview build && bun run --cwd ../apps/ui dev",
-    "beforeBuildCommand": "bun run --cwd ../apps/preview build && bun run --cwd ../apps/ui build"
+    "frontendDist": "../../apps/frontend/dist",
+    "beforeDevCommand": "bun run --cwd ../apps/preview build && bun run --cwd ../apps/frontend dev",
+    "beforeBuildCommand": "bun run --cwd ../apps/preview build && bun run --cwd ../apps/frontend build"
   },
   "app": {
     "windows": [],

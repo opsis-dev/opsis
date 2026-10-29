@@ -1,4 +1,4 @@
-use opsis_compile::ts_export::ui_types;
+use opsis_compile::ts_export::frontend_types;
 use opsis_types::ts_export::tidy_export;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands, collect_events};
 
@@ -7,7 +7,7 @@ use crate::{
     page_log, projects, run, settings, shared, views, windows,
 };
 
-pub const BINDINGS_FILE: &str = "apps/ui/src/generated/bindings.ts";
+pub const BINDINGS_FILE: &str = "apps/frontend/src/generated/bindings.ts";
 
 pub fn builder() -> Builder<tauri::Wry> {
     Builder::<tauri::Wry>::new()
@@ -147,7 +147,7 @@ pub fn builder() -> Builder<tauri::Wry> {
             views::ViewEventFired,
             views::PreviewReported,
         ])
-        .types(&ui_types())
+        .types(&frontend_types())
         .dangerously_cast_bigints_to_number()
         .error_handling(ErrorHandlingMode::Throw)
 }
