@@ -7,7 +7,7 @@ type Invoking = {
 
 type Checked = { path: string; version: string; sha256: string } | null;
 
-type Settings = { engine: { browser: Checked; ffmpeg: Checked; ffprobe: Checked } };
+type Settings = { engine: { browser: Checked; ffmpeg: Checked } };
 
 describe("start screen", function () {
   this.timeout(90_000);
@@ -23,7 +23,7 @@ describe("start screen", function () {
     const settings = (await browser.execute(() =>
       (window as unknown as Invoking).__TAURI_INTERNALS__.invoke("get_settings"),
     )) as Settings;
-    for (const tool of [settings.engine.browser, settings.engine.ffmpeg, settings.engine.ffprobe]) {
+    for (const tool of [settings.engine.browser, settings.engine.ffmpeg]) {
       expect(tool?.sha256).toMatch(/^[0-9a-f]{64}$/);
       expect(tool?.version).not.toBe("");
     }

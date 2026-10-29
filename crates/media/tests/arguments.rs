@@ -180,3 +180,52 @@ fn moves_a_whoosh_the_way_asked() {
     assert!(lean(SoundPan::RightToLeft) < 0.0);
     assert!(lean(SoundPan::Centre).abs() < 1e-6);
 }
+
+fn film(codec: &str, size: (u32, u32), fps: f64, sound: Option<(&str, u32)>) -> opsis_probe::Probe {
+    opsis_probe::Probe {
+        duration_ms: Some(2000),
+        format: "mov,mp4,m4a,3gp,3g2,mj2".to_owned(),
+        video: Some(opsis_probe::VideoStream {
+            codec: codec.to_owned(),
+            width: size.0,
+            height: size.1,
+            fps: Some(fps),
+            pix_fmt: "yuv420p".to_owned(),
+        }),
+        audio: sound.map(|(codec, rate)| opsis_probe::AudioStream {
+            codec: codec.to_owned(),
+            sample_rate: Some(rate),
+            channels: Some(2),
+        }),
+    }
+}
+
+proptest! {
+    #[test]
+    fn copies_streams_only_between_files_that_match_in_every_way_that_counts(
+        width in 16u32..4000,
+        height in 16u32..4000,
+        fps in 1.0..120.0f64,
+        nudge in 0.0..0.009f64,
+        change in 0usize..7,
+    ) {
+        use opsis_media::ffmpeg::can_stream_copy;
+        let base = film("h264", (width, height), fps, Some(("aac", 48_000)));
+        prop_assert!(can_stream_copy(&base, &base));
+        prop_assert!(can_stream_copy(&base, &film("h264", (width, height), fps + nudge, Some(("aac", 48_000)))));
+        let mut other = base.clone();
+        let video = other.video.as_mut().unwrap();
+        match change {
+            0 => video.codec = "hevc".to_owned(),
+            1 => video.width += 2,
+            2 => video.height += 2,
+            3 => video.pix_fmt = "yuv444p".to_owned(),
+            4 => video.fps = Some(fps + 0.5),
+            5 => other.audio.as_mut().unwrap().sample_rate = Some(44_100),
+            _ => other.audio = None,
+        }
+        prop_assert!(!can_stream_copy(&base, &other));
+        let still = opsis_probe::Probe { video: None, ..base.clone() };
+        prop_assert!(!can_stream_copy(&still, &still));
+    }
+}

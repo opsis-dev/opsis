@@ -69,10 +69,10 @@ The editor has only run on WebKitGTK.
 
 **Work.**
 
-1. **WKWebView and WebView2.** In the CI build jobs, start the packaged app with a test data folder (`OPSIS_USER_DATA`, the API on) and drive it through the Local API: open each example, run the changelog, `ffprobe` the export. The e2e suite (WebdriverIO, embedded driver) also covers macOS through `@wdio/tauri-service`; run it on the macOS runners. List what a runner can't judge (how the window controls look, first-open prompts) as not covered in the release notes.
+1. **WKWebView and WebView2.** In the CI build jobs, start the packaged app with a test data folder (`OPSIS_USER_DATA`, the API on) and drive it through the Local API: open each example, run the changelog, read the export back with `opsis-probe`. The e2e suite (WebdriverIO, embedded driver) also covers macOS through `@wdio/tauri-service`; run it on the macOS runners. List what a runner can't judge (how the window controls look, first-open prompts) as not covered in the release notes.
 2. **macOS shell.** The native menu (`crates/desktop/src/native_menu.rs`) is built and its ids are tested, but it has never run: check the app menu, Edit roles, Cmd+, opens Settings, Cmd+Q goes through the exit dialog, and the traffic lights sit inside the app bar.
 3. **Preview sound drift.** The preview's sound plays in the webview, kept within two frames of the page's clock; measure drift over a long film on each system.
-4. **Engine checks.** On each runner, download the engine through Settings' installer and run the checks on it (`check_browser`, `check_ffmpeg`, `check_ffprobe`): ffmpeg-static's Windows and macOS builds must have every required encoder, decoder, format and filter, and Chrome for Testing must open a page.
+4. **Engine checks.** On each runner, download the engine through Settings' installer and run the checks on it (`check_browser`, `check_ffmpeg`): ffmpeg-static's Windows and macOS builds must have every required encoder, decoder, format and filter, and Chrome for Testing must open a page.
 5. **Sign-in end to end.** Not in the e2e suite, because saving a sign-in writes to the real keyring. `keyring-core`'s mock store is used only by the store's unit tests (`crates/store/src/keys.rs`); add a test-only store behind the `e2e` feature and a spec that signs in and records a take with it.
 
 ## 4. Local API on Windows

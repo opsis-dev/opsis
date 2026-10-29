@@ -826,18 +826,16 @@ export type EnginePart = "ffmpeg" | "headless-shell";
 export type EngineSection = {
 	browser: CheckedTool | null,
 	ffmpeg: CheckedTool | null,
-	ffprobe: CheckedTool | null,
 };
 
 export type EngineStatus = {
 	downloadDir: string,
 	browser: ToolStatus,
 	ffmpeg: ToolStatus,
-	ffprobe: ToolStatus,
 	complete: boolean,
 };
 
-export type EngineTool = "browser" | "ffmpeg" | "ffprobe";
+export type EngineTool = "browser" | "ffmpeg";
 
 export type EntriesValue = {
 	entries: StyleEntry[],

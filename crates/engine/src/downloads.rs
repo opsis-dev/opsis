@@ -15,7 +15,6 @@ pub enum ShellSource {
 #[serde(rename_all = "lowercase")]
 pub enum FfmpegFile {
     Ffmpeg,
-    Ffprobe,
     License,
 }
 
@@ -152,7 +151,7 @@ mod tests {
                         || platform == ShellPlatform::LinuxArm64 && glibc.is_none()
                 );
             }
-            for file in [FfmpegFile::Ffmpeg, FfmpegFile::Ffprobe, FfmpegFile::License] {
+            for file in [FfmpegFile::Ffmpeg, FfmpegFile::License] {
                 assert!(
                     ffmpeg_download(platform, file).is_some(),
                     "{platform:?} {file:?}"

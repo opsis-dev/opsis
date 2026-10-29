@@ -4830,6 +4830,7 @@ dependencies = [
  "opsis-engine",
  "opsis-golden",
  "opsis-media",
+ "opsis-probe",
  "opsis-project",
  "opsis-runner",
  "opsis-traces",
@@ -5048,6 +5049,7 @@ dependencies = [
  "opsis-compile",
  "opsis-engine",
  "opsis-golden",
+ "opsis-probe",
  "opsis-project",
  "opsis-runner",
  "opsis-types",
@@ -5085,6 +5087,18 @@ dependencies = [
  "tower",
  "usvg",
  "wuff",
+]
+
+[[package]]
+name = "opsis-probe"
+version = "0.1.0"
+dependencies = [
+ "opsis-types",
+ "proptest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.21",
 ]
 
 [[package]]

@@ -8,9 +8,8 @@ use opsis_media::executors::{
     FileCheckError, LinkedMedia, Tools, check_media_file, media_executors, media_has_sound,
     thumbnail_time,
 };
-use opsis_media::ffmpeg::{
-    AudioInfo, FramePipe, MediaTools, ProbeResult, RunOptions, ToolError, ToolFuture, VideoInfo,
-};
+use opsis_media::ffmpeg::{FramePipe, MediaTools, RunOptions, ToolError, ToolFuture};
+use opsis_probe::{AudioStream, Probe, VideoStream};
 use opsis_runner::context::{ExecError, ExecutorContext, ExecutorOutput, ResultStore, RunEnv};
 use opsis_types::numbers;
 use opsis_types::settings::AppSettings;
@@ -21,7 +20,7 @@ use serde_json::{Map, Value, json};
 use tokio_util::sync::CancellationToken;
 
 struct FakeTools {
-    probe: ProbeResult,
+    probe: Probe,
     ran: Mutex<Vec<Vec<String>>>,
 }
 
@@ -31,7 +30,7 @@ impl MediaTools for FakeTools {
         Box::pin(async { Ok(()) })
     }
 
-    fn probe<'a>(&'a self, _: &'a Path) -> ToolFuture<'a, ProbeResult> {
+    fn probe<'a>(&'a self, _: &'a Path) -> ToolFuture<'a, Probe> {
         let probe = self.probe.clone();
         Box::pin(async move { Ok(probe) })
     }
@@ -45,37 +44,35 @@ impl MediaTools for FakeTools {
     }
 }
 
-fn film_probe(sound: Option<&str>) -> ProbeResult {
-    ProbeResult {
+fn film_probe(sound: Option<&str>) -> Probe {
+    Probe {
         duration_ms: Some(4000),
         format: "mov,mp4".into(),
-        video: Some(VideoInfo {
+        video: Some(VideoStream {
             codec: "h264".into(),
             width: 1920,
             height: 1080,
             fps: Some(30.0),
             pix_fmt: "yuv420p".into(),
         }),
-        audio: sound.map(|codec| AudioInfo {
+        audio: sound.map(|codec| AudioStream {
             codec: codec.into(),
             sample_rate: Some(48000),
             channels: Some(2),
         }),
-        raw: json!({}),
     }
 }
 
-fn sound_probe() -> ProbeResult {
-    ProbeResult {
+fn sound_probe() -> Probe {
+    Probe {
         duration_ms: Some(4000),
         format: "wav".into(),
         video: None,
-        audio: Some(AudioInfo {
+        audio: Some(AudioStream {
             codec: "pcm_s16le".into(),
             sample_rate: Some(48000),
             channels: Some(2),
         }),
-        raw: json!({}),
     }
 }
 
@@ -94,7 +91,7 @@ struct Setup<'a> {
 
 async fn run(
     setup: Setup<'_>,
-    probe: ProbeResult,
+    probe: Probe,
     inputs: Value,
 ) -> (Result<ExecutorOutput, ExecError>, Vec<Vec<String>>) {
     let fake = Arc::new(FakeTools {

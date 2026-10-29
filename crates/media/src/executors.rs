@@ -40,7 +40,7 @@ use crate::codecs::{
     sound_file, strings,
 };
 use crate::denoise::{DENOISE_RATE, denoised};
-use crate::ffmpeg::{MediaTools, OnProgress, ProbeResult, RunOptions, ToolError, can_stream_copy};
+use crate::ffmpeg::{MediaTools, OnProgress, RunOptions, ToolError, can_stream_copy};
 use crate::filters::{
     GifLook, JoinPart, JoinSize, fit_filter, gif_filter, hum_filter, hum_listen_filter,
     join_filter, joined_parts_graph, loudnorm_filter, noise_level, noise_level_listen_filter,
@@ -57,6 +57,7 @@ use crate::reverse::{
     join_reversed_args, piece_length_ms, reverse_args, reverse_pieces, reverse_sound_args,
     reversed_parts_list,
 };
+use opsis_probe::Probe;
 
 const CONNECT_MEDIA: &str = "Connect a media input (and run the node that produces it).";
 const MEDIA_PORT: &str = "media";
@@ -161,18 +162,18 @@ fn ext_of(src: &str) -> String {
     )
 }
 
-fn duration_ms(probe: &ProbeResult) -> f64 {
+fn duration_ms(probe: &Probe) -> f64 {
     probe.duration_ms.map_or(0.0, f64::from)
 }
 
-fn media_kind(probe: &ProbeResult, file: &str) -> MediaKind {
+fn media_kind(probe: &Probe, file: &str) -> MediaKind {
     match kind_from_path(file) {
         MediaKind::Video if probe.video.is_none() => MediaKind::Audio,
         named => named,
     }
 }
 
-fn media_value_from(probe: &ProbeResult, src: &str, kind: MediaKind) -> MediaValue {
+fn media_value_from(probe: &Probe, src: &str, kind: MediaKind) -> MediaValue {
     MediaValue {
         src: Some(src.to_owned()),
         kind,
@@ -264,7 +265,7 @@ pub fn thumbnail_time(at_ms: f64, duration_ms: f64) -> f64 {
     }
 }
 
-fn sound_only_file(probe: &ProbeResult, src: &str, node: &str) -> Result<EditedFile, ExecError> {
+fn sound_only_file(probe: &Probe, src: &str, node: &str) -> Result<EditedFile, ExecError> {
     if probe.audio.is_none() {
         return Err(ExecError::new(format!(
             "{node} works on video and sound, and this file has neither."
@@ -382,11 +383,7 @@ async fn trim(
     .await
 }
 
-fn concat_parts(
-    items: &[LinkedMedia],
-    probes: &[ProbeResult],
-    still_ms: f64,
-) -> Vec<(bool, JoinPart)> {
+fn concat_parts(items: &[LinkedMedia], probes: &[Probe], still_ms: f64) -> Vec<(bool, JoinPart)> {
     items
         .iter()
         .zip(probes)
@@ -413,7 +410,7 @@ fn reencode_args(
     ctx: &ExecutorContext,
     p: &JoinFiles,
     paths: &[String],
-    probes: &[ProbeResult],
+    probes: &[Probe],
     parts: &[(bool, JoinPart)],
     out: String,
 ) -> Vec<String> {

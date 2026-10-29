@@ -8,7 +8,8 @@ use opsis_compile::nodes::browser::OPEN_BROWSER_TYPE;
 use opsis_compile::nodes::capture::{FramePicture, Record, Timing};
 use opsis_compile::registry::default_params;
 use opsis_engine::paths::downloaded_browser;
-use opsis_media::ffmpeg::{FramePipe, MediaTools, ProbeResult, RunOptions, ToolError, ToolFuture};
+use opsis_media::ffmpeg::{FramePipe, MediaTools, RunOptions, ToolError, ToolFuture};
+use opsis_probe::Probe;
 use opsis_types::actions::{ActionKind, ActionLog};
 use opsis_types::numbers;
 use opsis_types::values::{BrowserAction, BrowserSessionValue, SessionBrowser, SessionStep};
@@ -77,7 +78,7 @@ impl MediaTools for FramesWritten {
         Box::pin(async { Ok(()) })
     }
 
-    fn probe<'a>(&'a self, _: &'a Path) -> ToolFuture<'a, ProbeResult> {
+    fn probe<'a>(&'a self, _: &'a Path) -> ToolFuture<'a, Probe> {
         Box::pin(async {
             Err(ToolError::Failed {
                 output: "no probe in this test".into(),

@@ -15,6 +15,7 @@ log = "0.4.34"
 nnnoiseless = { version = "0.5.2", default-features = false }
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }
+opsis-probe = { version = "0.1.0", path = "../probe" }
 opsis-project = { version = "0.1.0", path = "../project" }
 opsis-runner = { version = "0.1.0", path = "../runner" }
 opsis-types = { version = "0.1.0", path = "../types" }

@@ -27,8 +27,7 @@ const SHELLS: [(ShellPlatform, ShellSource); 6] = [
     (ShellPlatform::Win64, ShellSource::Google),
 ];
 
-const FFMPEG_FILES: [FfmpegFile; 3] =
-    [FfmpegFile::Ffmpeg, FfmpegFile::Ffprobe, FfmpegFile::License];
+const FFMPEG_FILES: [FfmpegFile; 2] = [FfmpegFile::Ffmpeg, FfmpegFile::License];
 
 fn remotion_name(platform: ShellPlatform) -> &'static str {
     match platform {
@@ -55,7 +54,6 @@ pub fn ffmpeg_url(target: &str, file: FfmpegFile) -> String {
         format!("https://github.com/eugeneware/ffmpeg-static/releases/download/{FFMPEG_RELEASE}");
     match file {
         FfmpegFile::Ffmpeg => format!("{base}/ffmpeg-{target}.gz"),
-        FfmpegFile::Ffprobe => format!("{base}/ffprobe-{target}.gz"),
         FfmpegFile::License => format!("{base}/{target}.LICENSE"),
     }
 }

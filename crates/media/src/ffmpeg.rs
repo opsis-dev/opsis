@@ -5,10 +5,8 @@ use std::sync::LazyLock;
 use futures::future::BoxFuture;
 use opsis_engine::paths::EngineMissing;
 use opsis_engine::tools::EngineFiles;
-use opsis_types::numbers;
+use opsis_probe::Probe;
 use regex::Regex;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
 use tokio::process::{Child, Command};
 use tokio_util::sync::CancellationToken;
@@ -52,134 +50,11 @@ pub struct RunOptions<'a> {
     pub on_log: Option<OnLog<'a>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct VideoInfo {
-    pub codec: String,
-    pub width: u32,
-    pub height: u32,
-    pub fps: Option<f64>,
-    pub pix_fmt: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AudioInfo {
-    pub codec: String,
-    pub sample_rate: Option<u32>,
-    pub channels: Option<u32>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ProbeResult {
-    pub duration_ms: Option<u32>,
-    pub format: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub video: Option<VideoInfo>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub audio: Option<AudioInfo>,
-    #[serde(skip)]
-    pub raw: Value,
-}
-
-#[derive(Default, Deserialize)]
-struct Disposition {
-    attached_pic: Option<u8>,
-}
-
-#[derive(Default, Deserialize)]
-struct RawStream {
-    codec_type: Option<String>,
-    codec_name: Option<String>,
-    width: Option<u32>,
-    height: Option<u32>,
-    r_frame_rate: Option<String>,
-    avg_frame_rate: Option<String>,
-    pix_fmt: Option<String>,
-    sample_rate: Option<String>,
-    channels: Option<u32>,
-    duration: Option<String>,
-    disposition: Option<Disposition>,
-}
-
-#[derive(Default, Deserialize)]
-struct RawFormat {
-    duration: Option<String>,
-    format_name: Option<String>,
-}
-
-#[derive(Default, Deserialize)]
-struct RawProbe {
-    format: Option<RawFormat>,
-    streams: Option<Vec<RawStream>>,
-}
-
-fn seconds_to_ms(text: &str) -> Option<u32> {
-    let seconds: f64 = text.trim().parse().ok()?;
-    let ms = (seconds * 1000.0).round();
-    (ms.is_finite() && ms > 0.0 && ms <= f64::from(u32::MAX))
-        .then_some(numbers::truncate::<u32>(ms))
-}
-
-fn frame_rate(rate: &str) -> Option<f64> {
-    let (count, per) = rate.split_once('/').unwrap_or((rate, "1"));
-    let (count, per): (f64, f64) = (count.trim().parse().ok()?, per.trim().parse().ok()?);
-    let fps = count / per;
-    (fps.is_finite() && fps > 0.0).then_some(fps)
-}
-
-pub fn parse_probe(json: Value) -> Result<ProbeResult, ToolError> {
-    let raw: RawProbe = serde_json::from_value(json.clone()).map_err(|e| ToolError::Failed {
-        output: format!("ffprobe: unexpected output: {e}"),
-    })?;
-    let streams = raw.streams.unwrap_or_default();
-    let is_picture = |s: &&RawStream| {
-        s.codec_type.as_deref() == Some("video")
-            && s.disposition.as_ref().and_then(|d| d.attached_pic) != Some(1)
-    };
-    let v = streams.iter().find(is_picture);
-    let a = streams
-        .iter()
-        .find(|s| s.codec_type.as_deref() == Some("audio"));
-    let format = raw.format.unwrap_or_default();
-    let duration_ms = [
-        format.duration.as_deref(),
-        v.and_then(|v| v.duration.as_deref()),
-        a.and_then(|a| a.duration.as_deref()),
-    ]
-    .into_iter()
-    .flatten()
-    .next()
-    .and_then(seconds_to_ms);
-    Ok(ProbeResult {
-        duration_ms,
-        format: format.format_name.unwrap_or_default(),
-        video: v.map(|v| VideoInfo {
-            codec: v.codec_name.clone().unwrap_or_default(),
-            width: v.width.unwrap_or_default(),
-            height: v.height.unwrap_or_default(),
-            fps: v
-                .avg_frame_rate
-                .as_deref()
-                .and_then(frame_rate)
-                .or_else(|| v.r_frame_rate.as_deref().and_then(frame_rate)),
-            pix_fmt: v.pix_fmt.clone().unwrap_or_default(),
-        }),
-        audio: a.map(|a| AudioInfo {
-            codec: a.codec_name.clone().unwrap_or_default(),
-            sample_rate: a.sample_rate.as_deref().and_then(|r| r.trim().parse().ok()),
-            channels: a.channels,
-        }),
-        raw: json,
-    })
-}
-
-pub fn can_stream_copy(a: &ProbeResult, b: &ProbeResult) -> bool {
+pub fn can_stream_copy(a: &Probe, b: &Probe) -> bool {
     let (Some(av), Some(bv)) = (&a.video, &b.video) else {
         return false;
     };
-    let sound = |p: &ProbeResult| p.audio.as_ref().map(|x| (x.codec.clone(), x.sample_rate));
+    let sound = |p: &Probe| p.audio.as_ref().map(|x| (x.codec.clone(), x.sample_rate));
     let same_rate = match (av.fps, bv.fps) {
         (Some(x), Some(y)) => (x - y).abs() < 0.01,
         (x, y) => x == y,
@@ -219,7 +94,6 @@ fn tail_of(stderr: &str) -> String {
 #[derive(Clone)]
 pub struct Ffmpeg {
     ffmpeg: Option<PathBuf>,
-    ffprobe: Option<PathBuf>,
     env: Vec<(&'static str, PathBuf)>,
 }
 
@@ -227,7 +101,6 @@ impl Ffmpeg {
     pub fn new(engine: &EngineFiles) -> Self {
         Self {
             ffmpeg: engine.ffmpeg.clone(),
-            ffprobe: engine.ffprobe.clone(),
             env: Vec::new(),
         }
     }
@@ -388,32 +261,16 @@ impl Ffmpeg {
         })
     }
 
-    pub async fn probe(&self, file: &Path) -> Result<ProbeResult, ToolError> {
-        let args = [
-            "-v",
-            "error",
-            "-print_format",
-            "json",
-            "-show_format",
-            "-show_streams",
-        ]
-        .iter()
-        .map(|&a| a.to_owned())
-        .chain(std::iter::once(file.to_string_lossy().into_owned()))
-        .collect::<Vec<_>>();
-        let mut command = self.command(self.ffprobe.as_deref(), &args, None)?;
-        command.stdin(Stdio::null());
-        let child = Self::spawn(command, "ffprobe")?;
-        let mut out = String::new();
-        Self::settle(child, "ffprobe", RunOptions::default(), &mut |line| {
-            out.push_str(line);
-            out.push('\n');
-        })
-        .await?;
-        let json = serde_json::from_str(&out).map_err(|e| ToolError::Failed {
-            output: format!("ffprobe: unexpected output: {e}"),
-        })?;
-        parse_probe(json)
+    pub async fn probe(file: &Path) -> Result<Probe, ToolError> {
+        let file = file.to_path_buf();
+        tokio::task::spawn_blocking(move || opsis_probe::probe(&file))
+            .await
+            .map_err(|e| ToolError::Failed {
+                output: e.to_string(),
+            })?
+            .map_err(|e| ToolError::Failed {
+                output: e.to_string(),
+            })
     }
 }
 
@@ -426,7 +283,7 @@ pub struct FramePipe {
 
 pub trait MediaTools: Send + Sync {
     fn run<'a>(&'a self, args: &'a [String], opts: RunOptions<'a>) -> ToolFuture<'a, ()>;
-    fn probe<'a>(&'a self, file: &'a Path) -> ToolFuture<'a, ProbeResult>;
+    fn probe<'a>(&'a self, file: &'a Path) -> ToolFuture<'a, Probe>;
     fn pipe(
         &self,
         args: &[String],
@@ -439,8 +296,8 @@ impl MediaTools for Ffmpeg {
         Box::pin(Ffmpeg::run(self, args, opts))
     }
 
-    fn probe<'a>(&'a self, file: &'a Path) -> ToolFuture<'a, ProbeResult> {
-        Box::pin(Ffmpeg::probe(self, file))
+    fn probe<'a>(&'a self, file: &'a Path) -> ToolFuture<'a, Probe> {
+        Box::pin(Ffmpeg::probe(file))
     }
 
     fn pipe(

@@ -228,9 +228,6 @@ pub fn check_media_files(
     results: &IndexMap<String, NodeResult>,
 ) {
     let state = app.state::<AppState>();
-    if engine_files(&state).ffprobe.is_none() {
-        return;
-    }
     let public = state.paths.public_dir.clone();
     let now = Instant::now();
     let node_keys = app.state::<NodeKeys>();

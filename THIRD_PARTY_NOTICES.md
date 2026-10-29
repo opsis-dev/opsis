@@ -313,9 +313,9 @@ SOFTWARE.
 
 Used under the Remotion licence (https://www.remotion.dev/docs/license).
 
-## FFmpeg (ffmpeg / ffprobe)
+## FFmpeg (ffmpeg)
 
-The FFmpeg programs Opsis runs itself are GPLv3 builds from the pinned ffmpeg-static GitHub release. Opsis doesn't include them: Settings → Engine downloads them, with their licence file, into the app's data folder, or uses programs the user chooses. Source: https://ffmpeg.org/download.html · builds: https://github.com/eugeneware/ffmpeg-static
+The FFmpeg program Opsis runs itself is a GPLv3 build from the pinned ffmpeg-static GitHub release. Opsis doesn't include it: Settings → Engine downloads it, with its licence file, into the app's data folder, or uses a program the user chooses. Source: https://ffmpeg.org/download.html · builds: https://github.com/eugeneware/ffmpeg-static
 
 ## FFmpeg in Remotion's compositor
 

@@ -12,7 +12,6 @@ export function AboutPage() {
     ["Platform", `${env.platform} / ${env.arch}`],
     ["Recording browser", env.engine.browser.path ?? "Not set up"],
     ["Video tools", env.engine.ffmpeg.path ?? "Not set up"],
-    ["Video inspector", env.engine.ffprobe.path ?? "Not set up"],
     ["Engine downloads", env.engine.downloadDir],
     ["App data", env.userData],
   ];

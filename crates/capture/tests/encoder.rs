@@ -3,7 +3,8 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use opsis_capture::encoder::{FrameEncoder, FrameImage};
-use opsis_media::ffmpeg::{FramePipe, MediaTools, ProbeResult, RunOptions, ToolError, ToolFuture};
+use opsis_media::ffmpeg::{FramePipe, MediaTools, RunOptions, ToolError, ToolFuture};
+use opsis_probe::Probe;
 use tokio::io::AsyncReadExt;
 use tokio_util::sync::CancellationToken;
 
@@ -34,7 +35,7 @@ impl MediaTools for FakeTools {
         Box::pin(async { Ok(()) })
     }
 
-    fn probe<'a>(&'a self, _: &'a Path) -> ToolFuture<'a, ProbeResult> {
+    fn probe<'a>(&'a self, _: &'a Path) -> ToolFuture<'a, Probe> {
         Box::pin(async {
             Err(ToolError::Failed {
                 output: "no probe in this test".into(),

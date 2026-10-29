@@ -72,7 +72,6 @@ function EngineProgress({
 const TOOLS: Array<{ tool: EngineTool; title: string }> = [
   { tool: "browser", title: "Recording browser" },
   { tool: "ffmpeg", title: "Video tools" },
-  { tool: "ffprobe", title: "Video inspector" },
 ];
 
 function ToolState({ status }: { status: ToolStatus }) {

@@ -51,7 +51,6 @@ function engineSettings(engine: string): Record<string, { path: string } | null>
   return {
     browser: browser ? { path: browser } : null,
     ffmpeg: tool(path.join(engine, "ffmpeg", `ffmpeg${EXE}`)),
-    ffprobe: tool(path.join(engine, "ffmpeg", `ffprobe${EXE}`)),
   };
 }
 

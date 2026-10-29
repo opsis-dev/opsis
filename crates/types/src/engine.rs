@@ -11,17 +11,15 @@ pub const ENGINE_MISSING_MESSAGE: &str =
 pub enum EngineTool {
     Browser,
     Ffmpeg,
-    Ffprobe,
 }
 
 impl EngineTool {
-    pub const ALL: [Self; 3] = [Self::Browser, Self::Ffmpeg, Self::Ffprobe];
+    pub const ALL: [Self; 2] = [Self::Browser, Self::Ffmpeg];
 
     pub fn label(self) -> &'static str {
         match self {
             Self::Browser => "recording browser",
             Self::Ffmpeg => "video tool",
-            Self::Ffprobe => "video inspector",
         }
     }
 }
@@ -68,7 +66,6 @@ pub struct EngineStatus {
     pub download_dir: String,
     pub browser: ToolStatus,
     pub ffmpeg: ToolStatus,
-    pub ffprobe: ToolStatus,
     pub complete: bool,
 }
 
@@ -77,7 +74,6 @@ impl EngineStatus {
         match tool {
             EngineTool::Browser => &self.browser,
             EngineTool::Ffmpeg => &self.ffmpeg,
-            EngineTool::Ffprobe => &self.ffprobe,
         }
     }
 }

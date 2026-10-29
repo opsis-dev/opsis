@@ -152,7 +152,7 @@ async fn listing(path: &Path, flag: &str) -> Result<BTreeSet<String>, ToolProble
 }
 
 pub async fn check_ffmpeg(path: &Path) -> Result<String, ToolProblem> {
-    let version = ffmpeg_version(&tool_output(path, &["-version"]).await?, "ffmpeg")
+    let version = ffmpeg_version(&tool_output(path, &["-version"]).await?)
         .ok_or_else(|| unrecognized(path, EngineTool::Ffmpeg))?;
     let mut lacking = Vec::new();
     for (flag, required) in [
@@ -171,57 +171,6 @@ pub async fn check_ffmpeg(path: &Path) -> Result<String, ToolProblem> {
             tool: EngineTool::Ffmpeg.label().to_owned(),
             missing: lacking.join(", "),
         })
-    }
-}
-
-fn silent_wav() -> Vec<u8> {
-    const RATE: u32 = 8000;
-    const SAMPLES: u32 = 800;
-    let data = SAMPLES * 2;
-    let mut wav = Vec::new();
-    wav.extend_from_slice(b"RIFF");
-    wav.extend_from_slice(&(36 + data).to_le_bytes());
-    wav.extend_from_slice(b"WAVEfmt ");
-    wav.extend_from_slice(&16u32.to_le_bytes());
-    wav.extend_from_slice(&1u16.to_le_bytes());
-    wav.extend_from_slice(&1u16.to_le_bytes());
-    wav.extend_from_slice(&RATE.to_le_bytes());
-    wav.extend_from_slice(&(RATE * 2).to_le_bytes());
-    wav.extend_from_slice(&2u16.to_le_bytes());
-    wav.extend_from_slice(&16u16.to_le_bytes());
-    wav.extend_from_slice(b"data");
-    wav.extend_from_slice(&data.to_le_bytes());
-    wav.resize(wav.len() + usize::try_from(data).unwrap_or_default(), 0);
-    wav
-}
-
-pub async fn check_ffprobe(path: &Path, temp_dir: &Path) -> Result<String, ToolProblem> {
-    let version = ffmpeg_version(&tool_output(path, &["-version"]).await?, "ffprobe")
-        .ok_or_else(|| unrecognized(path, EngineTool::Ffprobe))?;
-    let sample = tempfile::Builder::new()
-        .prefix("opsis-probe-")
-        .suffix(".wav")
-        .tempfile_in(temp_dir)
-        .map_err(|e| ToolProblem::Failed(e.to_string()))?;
-    std::fs::write(sample.path(), silent_wav()).map_err(|e| ToolProblem::Failed(e.to_string()))?;
-    let sample_path = sample.path().to_string_lossy().into_owned();
-    let probed = tool_output(
-        path,
-        &[
-            "-v",
-            "error",
-            "-show_entries",
-            "format=format_name",
-            "-of",
-            "default=noprint_wrappers=1:nokey=1",
-            &sample_path,
-        ],
-    )
-    .await?;
-    if probed.trim() == "wav" {
-        Ok(version)
-    } else {
-        Err(unrecognized(path, EngineTool::Ffprobe))
     }
 }
 
@@ -341,25 +290,12 @@ mod tests {
         assert_eq!(missing(&["aac", "gif"], &names), ["aac", "gif"]);
     }
 
-    #[test]
-    fn writes_a_probeable_wav() {
-        let wav = silent_wav();
-        assert_eq!(&wav[..4], b"RIFF");
-        assert_eq!(wav.len(), 44 + 1600);
-    }
-
     #[tokio::test]
     #[ignore = "needs the dev engine in ~/.config/Opsis/engine"]
-    async fn accepts_the_pinned_video_tools() {
+    async fn accepts_the_pinned_video_tool() {
         let dir = dirs_engine();
         assert!(
             check_ffmpeg(&dir.join("ffmpeg").join(exe("ffmpeg")))
-                .await
-                .is_ok()
-        );
-        let temp = tempfile::tempdir().unwrap();
-        assert!(
-            check_ffprobe(&dir.join("ffmpeg").join(exe("ffprobe")), temp.path())
                 .await
                 .is_ok()
         );

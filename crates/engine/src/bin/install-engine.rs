@@ -31,8 +31,5 @@ async fn main() {
         }
     }
     let browser = find_headless_shell(&paths).expect("the installed recording browser");
-    println!(
-        "{}",
-        json!({ "browser": browser, "ffmpeg": paths.ffmpeg, "ffprobe": paths.ffprobe })
-    );
+    println!("{}", json!({ "browser": browser, "ffmpeg": paths.ffmpeg }));
 }

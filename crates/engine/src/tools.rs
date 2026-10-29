@@ -40,7 +40,6 @@ pub enum ToolProblem {
 pub struct EngineFiles {
     pub browser: Option<PathBuf>,
     pub ffmpeg: Option<PathBuf>,
-    pub ffprobe: Option<PathBuf>,
     pub stamp: String,
 }
 
@@ -60,7 +59,6 @@ impl EngineFiles {
         Self {
             browser: path(EngineTool::Browser),
             ffmpeg: path(EngineTool::Ffmpeg),
-            ffprobe: path(EngineTool::Ffprobe),
             stamp,
         }
     }
@@ -73,7 +71,6 @@ impl EngineFiles {
         Self {
             browser: find_headless_shell(&paths).map(Path::to_path_buf),
             ffmpeg: Some(paths.ffmpeg),
-            ffprobe: Some(paths.ffprobe),
             stamp: String::new(),
         }
     }
@@ -175,9 +172,9 @@ pub fn browser_version(text: &str) -> Option<String> {
         .map(str::to_owned)
 }
 
-pub fn ffmpeg_version(text: &str, program: &str) -> Option<String> {
+pub fn ffmpeg_version(text: &str) -> Option<String> {
     let first = text.lines().next()?;
-    let rest = first.strip_prefix(&format!("{program} version "))?;
+    let rest = first.strip_prefix("ffmpeg version ")?;
     rest.split_whitespace().next().map(str::to_owned)
 }
 
@@ -215,14 +212,11 @@ mod tests {
     }
 
     #[test]
-    fn reads_the_ffmpeg_version_only_from_the_named_program() {
+    fn reads_the_version_only_from_ffmpeg() {
         let text = "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024\n";
-        assert_eq!(
-            ffmpeg_version(text, "ffmpeg").as_deref(),
-            Some("7.0.2-static")
-        );
-        assert_eq!(ffmpeg_version(text, "ffprobe"), None);
-        assert_eq!(ffmpeg_version("Chromium 157.0.8080.0", "ffmpeg"), None);
+        assert_eq!(ffmpeg_version(text).as_deref(), Some("7.0.2-static"));
+        assert_eq!(ffmpeg_version("ffplay version 7.0.2-static"), None);
+        assert_eq!(ffmpeg_version("Chromium 157.0.8080.0"), None);
     }
 
     #[test]

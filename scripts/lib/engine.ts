@@ -6,7 +6,7 @@ import { ROOT } from "./tool-config";
 
 export const STAGED_ENGINE = path.join(os.homedir(), ".cache", "opsis-stage-engine");
 
-const installedSchema = z.object({ browser: z.string(), ffmpeg: z.string(), ffprobe: z.string() });
+const installedSchema = z.object({ browser: z.string(), ffmpeg: z.string() });
 
 export type InstalledEngine = z.infer<typeof installedSchema>;
 

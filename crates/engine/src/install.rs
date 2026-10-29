@@ -197,7 +197,6 @@ pub async fn install_ffmpeg(
     let p = engine_paths(dir, platform);
     let files = [
         (FfmpegFile::Ffmpeg, &p.ffmpeg),
-        (FfmpegFile::Ffprobe, &p.ffprobe),
         (FfmpegFile::License, &p.ffmpeg_license),
     ];
     let folder = p.ffmpeg.parent().unwrap_or(dir).to_path_buf();

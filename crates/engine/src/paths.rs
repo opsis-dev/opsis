@@ -78,7 +78,6 @@ pub struct EnginePaths {
     pub shell_folder: PathBuf,
     pub headless_shells: [PathBuf; 2],
     pub ffmpeg: PathBuf,
-    pub ffprobe: PathBuf,
     pub ffmpeg_license: PathBuf,
 }
 
@@ -98,7 +97,6 @@ pub fn engine_paths(dir: &Path, platform: ShellPlatform) -> EnginePaths {
         shell_root,
         shell_folder,
         ffmpeg: dir.join("ffmpeg").join(format!("ffmpeg{exe}")),
-        ffprobe: dir.join("ffmpeg").join(format!("ffprobe{exe}")),
         ffmpeg_license: dir.join("ffmpeg").join("LICENSE.txt"),
     }
 }
@@ -116,7 +114,7 @@ pub fn find_headless_shell(paths: &EnginePaths) -> Option<&Path> {
 pub struct EngineMissing;
 
 pub fn is_downloaded(paths: &EnginePaths) -> bool {
-    find_headless_shell(paths).is_some() && paths.ffmpeg.is_file() && paths.ffprobe.is_file()
+    find_headless_shell(paths).is_some() && paths.ffmpeg.is_file()
 }
 
 pub fn downloaded_browser(dir: &Path) -> Option<PathBuf> {
@@ -144,9 +142,10 @@ mod tests {
                 let arm = arch != "x86_64";
                 assert_eq!(platform.id().ends_with("arm64"), arm, "{os} {arch}");
                 assert_eq!(platform.windows(), os.starts_with("win"), "{os} {arch}");
-                for file in [FfmpegFile::Ffmpeg, FfmpegFile::Ffprobe] {
-                    assert!(ffmpeg_download(platform, file).is_some(), "{os} {arch}");
-                }
+                assert!(
+                    ffmpeg_download(platform, FfmpegFile::Ffmpeg).is_some(),
+                    "{os} {arch}"
+                );
                 accepted.push(platform);
             }
         }
@@ -173,8 +172,8 @@ mod tests {
             ]
         );
         assert_eq!(
-            p.ffprobe.to_string_lossy().replace('\\', "/"),
-            "/engine/ffmpeg/ffprobe.exe"
+            p.ffmpeg.to_string_lossy().replace('\\', "/"),
+            "/engine/ffmpeg/ffmpeg.exe"
         );
     }
 }

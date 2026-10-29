@@ -7,7 +7,7 @@ use opsis_engine::paths::{ShellPlatform, download_dir, engine_paths, find_headle
 use opsis_engine::tools::{
     EngineFiles, ToolProblem, browser_warning, file_sha256, file_stamp, same_stamp, shown,
 };
-use opsis_media::capabilities::{check_ffmpeg, check_ffprobe};
+use opsis_media::capabilities::check_ffmpeg;
 use opsis_media::executors::Tools;
 use opsis_media::ffmpeg::Ffmpeg;
 use opsis_types::engine::{
@@ -30,15 +30,14 @@ const ENGINE_TASK: &str = "The engine is being set up.";
 
 #[derive(Default)]
 pub struct EngineChecks {
-    problems: [Option<String>; 3],
-    checking: [bool; 3],
+    problems: [Option<String>; 2],
+    checking: [bool; 2],
 }
 
 fn slot(tool: EngineTool) -> usize {
     match tool {
         EngineTool::Browser => 0,
         EngineTool::Ffmpeg => 1,
-        EngineTool::Ffprobe => 2,
     }
 }
 
@@ -66,17 +65,12 @@ pub fn engine_status(state: &AppState) -> EngineStatus {
     let engine = saved_engine(state);
     let checks = state.engine_checks();
     let status = |tool| tool_status(&checks, engine.tool(tool), tool);
-    let (browser, ffmpeg, ffprobe) = (
-        status(EngineTool::Browser),
-        status(EngineTool::Ffmpeg),
-        status(EngineTool::Ffprobe),
-    );
+    let (browser, ffmpeg) = (status(EngineTool::Browser), status(EngineTool::Ffmpeg));
     EngineStatus {
         download_dir: shown(&download_dir(&state.paths.user_data)),
-        complete: browser.ready() && ffmpeg.ready() && ffprobe.ready(),
+        complete: browser.ready() && ffmpeg.ready(),
         browser,
         ffmpeg,
-        ffprobe,
     }
 }
 
@@ -133,7 +127,6 @@ async fn full_check(app: &AppHandle, tool: EngineTool, path: &Path) -> Result<St
     match tool {
         EngineTool::Browser => check_browser(path, &temp).await,
         EngineTool::Ffmpeg => check_ffmpeg(path).await,
-        EngineTool::Ffprobe => check_ffprobe(path, &temp).await,
     }
 }
 
@@ -250,7 +243,7 @@ fn progress_event(
     }
 }
 
-fn downloaded_tools(dir: &Path, platform: ShellPlatform) -> [(EngineTool, Option<PathBuf>); 3] {
+fn downloaded_tools(dir: &Path, platform: ShellPlatform) -> [(EngineTool, Option<PathBuf>); 2] {
     let paths = engine_paths(dir, platform);
     [
         (
@@ -258,7 +251,6 @@ fn downloaded_tools(dir: &Path, platform: ShellPlatform) -> [(EngineTool, Option
             find_headless_shell(&paths).map(Path::to_path_buf),
         ),
         (EngineTool::Ffmpeg, Some(paths.ffmpeg.clone())),
-        (EngineTool::Ffprobe, Some(paths.ffprobe.clone())),
     ]
 }
 

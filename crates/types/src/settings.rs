@@ -180,8 +180,6 @@ pub struct EngineSection {
     pub browser: Option<CheckedTool>,
     #[garde(skip)]
     pub ffmpeg: Option<CheckedTool>,
-    #[garde(skip)]
-    pub ffprobe: Option<CheckedTool>,
 }
 
 impl EngineSection {
@@ -189,7 +187,6 @@ impl EngineSection {
         match tool {
             EngineTool::Browser => self.browser.as_ref(),
             EngineTool::Ffmpeg => self.ffmpeg.as_ref(),
-            EngineTool::Ffprobe => self.ffprobe.as_ref(),
         }
     }
 
@@ -197,7 +194,6 @@ impl EngineSection {
         match tool {
             EngineTool::Browser => self.browser = checked,
             EngineTool::Ffmpeg => self.ffmpeg = checked,
-            EngineTool::Ffprobe => self.ffprobe = checked,
         }
     }
 }
