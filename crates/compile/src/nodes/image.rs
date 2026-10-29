@@ -1,12 +1,9 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
 use opsis_types::values::{CompileValue, Measured};
 use opsis_types::workflow::PortType;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::errors::SettingsError;
 use crate::node::{
@@ -75,21 +72,25 @@ pub struct Rect {
     pub height: f64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum ResizeFit {
     #[default]
+    #[label("Fit inside")]
     Inside,
+    #[label("Fill and crop")]
     Cover,
+    #[label("Stretch")]
     Exact,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum PlaceAlign {
+    #[label("Top left")]
     Start,
     #[default]
+    #[label("Centre")]
     Center,
+    #[label("Bottom right")]
     End,
 }
 
@@ -103,36 +104,38 @@ impl PlaceAlign {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum LabelEdge {
     #[default]
+    #[label("Top")]
     Top,
+    #[label("Bottom")]
     Bottom,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum ResizeBy {
     #[default]
+    #[label("Pixels")]
     Pixels,
+    #[label("Percent")]
     Percent,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum Resample {
+    #[label("Fast")]
     Fast,
+    #[label("Smooth")]
     Smooth,
     #[default]
+    #[label("Sharp")]
     Sharp,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ResizeImage {
-    #[setting("Size by", labels = { "pixels": "Pixels", "percent": "Percent" })]
+    #[setting("Size by")]
     pub by: ResizeBy,
     #[setting(
         "Scale",
@@ -161,7 +164,6 @@ pub struct ResizeImage {
     pub height: u32,
     #[setting(
         "Fit",
-        labels = { "inside": "Fit inside", "cover": "Fill and crop", "exact": "Stretch" },
         help = "When both sides are set: fit the whole image inside them, fill them and crop the rest, or stretch to exactly that size."
     )]
     pub fit: ResizeFit,
@@ -190,21 +192,16 @@ pub struct ResizeImage {
         advanced
     )]
     pub shrink_only: bool,
-    #[setting(
-        "Quality",
-        labels = { "fast": "Fast", "smooth": "Smooth", "sharp": "Sharp" },
-        advanced
-    )]
+    #[setting("Quality", advanced)]
     pub quality: Resample,
 }
 
-impl Params for ResizeImage {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum CropMode {
     #[default]
+    #[label("Area")]
     Area,
+    #[label("Margins")]
     Margins,
 }
 
@@ -218,10 +215,8 @@ fn whole_area() -> Vec<Area> {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct CropImage {
-    #[setting("Crop by", labels = { "area": "Area", "margins": "Margins" })]
+    #[setting("Crop by")]
     pub mode: CropMode,
     #[setting(
         "Area to keep",
@@ -247,26 +242,24 @@ pub struct CropImage {
     pub left: u32,
 }
 
-impl Params for CropImage {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum Turn {
     #[default]
+    #[label("None")]
     None,
+    #[label("90° right")]
     Right,
+    #[label("180°")]
     Half,
+    #[label("90° left")]
     Left,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct RotateImage {
     #[setting(
         "Turn",
-        default = Turn::Right,
-        labels = { "none": "None", "right": "90° right", "half": "180°", "left": "90° left" }
+        default = Turn::Right
     )]
     pub turn: Turn,
     #[setting("Flip left to right")]
@@ -298,11 +291,7 @@ pub struct RotateImage {
     pub background: String,
 }
 
-impl Params for RotateImage {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct AdjustImage {
     #[setting("Brightness", range(min = -1, max = 1), step = 0.05)]
     pub brightness: f64,
@@ -323,11 +312,7 @@ pub struct AdjustImage {
     pub invert: bool,
 }
 
-impl Params for AdjustImage {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct BlurImage {
     #[setting("Blur", range(min = 0, max = 100), step = 0.5, unit = "px")]
     pub blur: f64,
@@ -352,11 +337,7 @@ pub struct BlurImage {
     pub sharpen_amount: u32,
 }
 
-impl Params for BlurImage {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct PlaceImage {
     #[setting(
         "Place at",
@@ -388,15 +369,16 @@ pub struct PlaceImage {
     pub opacity: f64,
 }
 
-impl Params for PlaceImage {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum StillFileFormat {
     #[default]
+    #[label("PNG")]
     Png,
+    #[label("JPEG")]
     Jpeg,
+    #[label("WebP (lossless)")]
     Webp,
+    #[label("AVIF")]
     Avif,
 }
 
@@ -421,13 +403,10 @@ impl StillFileFormat {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ImageFormat {
     #[setting(
         "Format",
-        default = StillFileFormat::Jpeg,
-        labels = { "png": "PNG", "jpeg": "JPEG", "webp": "WebP (lossless)", "avif": "AVIF" }
+        default = StillFileFormat::Jpeg
     )]
     pub format: StillFileFormat,
     #[setting(
@@ -458,14 +437,14 @@ pub struct ImageFormat {
     pub background: String,
 }
 
-impl Params for ImageFormat {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum RedactStyle {
     #[default]
+    #[label("Large pixels")]
     Pixelate,
+    #[label("Blur")]
     Blur,
+    #[label("Solid colour")]
     Solid,
 }
 
@@ -489,8 +468,6 @@ fn hidden_area() -> Vec<Area> {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct RedactImage {
     #[setting(
         "Areas to hide",
@@ -500,10 +477,7 @@ pub struct RedactImage {
         help = "Drag on the picture to mark each part to hide."
     )]
     pub areas: Vec<Area>,
-    #[setting(
-        "Hide with",
-        labels = { "pixelate": "Large pixels", "blur": "Blur", "solid": "Solid colour" }
-    )]
+    #[setting("Hide with")]
     pub style: RedactStyle,
     #[setting(
         "Pixel size",
@@ -541,8 +515,6 @@ pub struct RedactImage {
     pub radius: f64,
 }
 
-impl Params for RedactImage {}
-
 fn lit_area() -> Vec<Area> {
     vec![Area {
         x: 0.3,
@@ -553,8 +525,6 @@ fn lit_area() -> Vec<Area> {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct SpotlightImage {
     #[setting(
         "Areas to light",
@@ -590,11 +560,7 @@ pub struct SpotlightImage {
     pub dim_color: String,
 }
 
-impl Params for SpotlightImage {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct TrimEdges {
     #[setting(
         "Tolerance",
@@ -616,11 +582,7 @@ pub struct TrimEdges {
     pub edge_color: String,
 }
 
-impl Params for TrimEdges {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ClearColour {
     #[setting(
         "Colour",
@@ -655,11 +617,7 @@ pub struct ClearColour {
     pub softness: f64,
 }
 
-impl Params for ClearColour {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct OutlineImage {
     #[setting(
         "Width",
@@ -717,8 +675,6 @@ pub struct OutlineImage {
     pub shadow_color: String,
 }
 
-impl Params for OutlineImage {}
-
 impl OutlineImage {
     pub fn shadow_softness(&self) -> f64 {
         self.shadow_softness.unwrap_or(self.width)
@@ -730,8 +686,6 @@ impl OutlineImage {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct TiltImage {
     #[setting(
         "Turn",
@@ -808,8 +762,6 @@ pub struct TiltImage {
     pub shadow_color: String,
 }
 
-impl Params for TiltImage {}
-
 impl TiltImage {
     pub fn shadow_space(&self) -> f64 {
         if self.shadow {
@@ -820,21 +772,19 @@ impl TiltImage {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum LevelsMethod {
     #[default]
+    #[label("Stretch")]
     Stretch,
+    #[label("Even out")]
     Equalize,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct AutoLevels {
     #[setting(
         "Method",
-        labels = { "stretch": "Stretch", "equalize": "Even out" },
         help = "Stretch spreads the levels from black to white. Even out spreads them evenly, which is stronger."
     )]
     pub method: LevelsMethod,
@@ -857,37 +807,36 @@ pub struct AutoLevels {
     pub per_channel: bool,
 }
 
-impl Params for AutoLevels {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum GridLayout {
+    #[label("One row")]
     Row,
+    #[label("One column")]
     Column,
     #[default]
+    #[label("Grid")]
     Grid,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum GridFit {
+    #[label("Same height")]
     SameHeight,
+    #[label("Same width")]
     SameWidth,
     #[default]
+    #[label("Equal cells")]
     Cells,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ImageGrid {
-    #[setting("Layout", labels = { "row": "One row", "column": "One column", "grid": "Grid" })]
+    #[setting("Layout")]
     pub layout: GridLayout,
     #[setting("Columns", default = 2, range(min = 1, max = 12), show_if = { "layout": ["grid"] })]
     pub columns: u32,
     #[setting(
         "Sizes",
-        labels = { "same-height": "Same height", "same-width": "Same width", "cells": "Equal cells" },
         help = "Same height and same width shrink every image to the smallest one's. Equal cells makes every cell as big as the largest image and centres each image in its own; nothing is enlarged."
     )]
     pub fit: GridFit,
@@ -905,7 +854,6 @@ pub struct ImageGrid {
     pub background: String,
     #[setting(
         "Place in its cell",
-        labels = { "start": "Top left", "center": "Centre", "end": "Bottom right" },
         help = "Where a picture smaller than its cell sits.",
         advanced
     )]
@@ -920,16 +868,18 @@ pub struct ImageGrid {
     pub radius: f64,
 }
 
-impl Params for ImageGrid {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum FrameShape {
     #[default]
+    #[label("Keep")]
     Keep,
+    #[label("16:9")]
     Wide,
+    #[label("1:1")]
     Square,
+    #[label("4:5")]
     Portrait,
+    #[label("9:16")]
     Story,
 }
 
@@ -945,9 +895,7 @@ impl FrameShape {
     }
 }
 
-#[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(check)]
 pub struct FrameScreenshot {
     #[serde(flatten)]
     pub background: BackdropStyle,
@@ -996,7 +944,6 @@ pub struct FrameScreenshot {
     pub shadow_opacity: f64,
     #[setting(
         "Shape",
-        labels = { "keep": "Keep", "wide": "16:9", "square": "1:1", "portrait": "4:5", "story": "9:16" },
         help = "Grows the background around the picture to this shape; the picture is never cut."
     )]
     pub shape: FrameShape,
@@ -1815,22 +1762,21 @@ fn frame() -> NodeDef {
     })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum BeforeAfterLayout {
     #[default]
+    #[label("One picture, split")]
     Split,
+    #[label("Side by side")]
     SideBySide,
+    #[label("Stacked")]
     Stacked,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct BeforeAfter {
     #[setting(
         "Layout",
-        labels = { "split": "One picture, split", "side-by-side": "Side by side", "stacked": "Stacked" },
         help = "Split shows the before on one side of a divider and the after on the other, both at the before's size."
     )]
     pub layout: BeforeAfterLayout,
@@ -1915,14 +1861,11 @@ pub struct BeforeAfter {
     pub label_radius: u32,
     #[setting(
         "Labels at",
-        labels = { "top": "Top", "bottom": "Bottom" },
         show_if = { "labels": ["true"] },
         advanced
     )]
     pub label_position: LabelEdge,
 }
-
-impl Params for BeforeAfter {}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BeforeAfterPlan {
@@ -2031,20 +1974,23 @@ fn before_after() -> NodeDef {
     })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum MagnifySize {
     #[default]
+    #[label("The two boxes")]
     TwoBoxes,
+    #[label("The area and a zoom")]
     AreaAndZoom,
+    #[label("Where it shows and a zoom")]
     ShownAndZoom,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum MagnifyShape {
     #[default]
+    #[label("Circle")]
     Circle,
+    #[label("Rounded box")]
     Rounded,
 }
 
@@ -2067,12 +2013,9 @@ fn magnify_shown() -> Vec<Area> {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Magnify {
     #[setting(
         "Size from",
-        labels = { "two-boxes": "The two boxes", "area-and-zoom": "The area and a zoom", "shown-and-zoom": "Where it shows and a zoom" },
         help = "Any two of the area, where it shows and the zoom decide the third. It never shrinks: a view drawn smaller than the area grows to fit it.",
         advanced
     )]
@@ -2103,7 +2046,7 @@ pub struct Magnify {
         advanced
     )]
     pub zoom: f64,
-    #[setting("Shape", labels = { "circle": "Circle", "rounded": "Rounded box" })]
+    #[setting("Shape")]
     pub shape: MagnifyShape,
     #[setting(
         "Corner radius",
@@ -2144,15 +2087,12 @@ pub struct Magnify {
     #[setting(
         "Quality",
         default = Resample::Smooth,
-        labels = { "fast": "Fast", "smooth": "Smooth", "sharp": "Sharp" },
         advanced
     )]
     pub quality: Resample,
     #[setting("Shadow", help = "A soft shadow under the enlarged view.", advanced)]
     pub shadow: bool,
 }
-
-impl Params for Magnify {}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MagnifyPlan {
@@ -2270,8 +2210,6 @@ fn magnify() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct CompareScreenshots {
     #[setting(
         "Sensitivity",
@@ -2319,8 +2257,6 @@ pub struct CompareScreenshots {
     )]
     pub differences_background: String,
 }
-
-impl Params for CompareScreenshots {}
 
 const DIFFERENT_SIZES: &str = "The two pictures are different sizes";
 
@@ -2374,14 +2310,18 @@ fn compare() -> NodeDef {
     })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum MarkKind {
     #[default]
+    #[label("Arrow")]
     Arrow,
+    #[label("Box")]
     Rectangle,
+    #[label("Oval")]
     Oval,
+    #[label("Step number")]
     Step,
+    #[label("Text")]
     Text,
 }
 
@@ -2392,13 +2332,8 @@ impl MarkKind {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Mark {
-    #[setting(
-        "Kind",
-        labels = { "arrow": "Arrow", "rectangle": "Box", "oval": "Oval", "step": "Step number", "text": "Text" }
-    )]
+    #[setting("Kind")]
     pub kind: MarkKind,
     #[setting(default = 0.3, range(min = 0, max = 1), hidden)]
     pub x: f64,
@@ -2483,8 +2418,6 @@ pub struct Mark {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Annotate {
     #[setting(
         "Marks",
@@ -2496,8 +2429,6 @@ pub struct Annotate {
     #[setting("First step number", default = 1, range(min = 0, max = 999), advanced)]
     pub first_step: u32,
 }
-
-impl Params for Annotate {}
 
 fn annotate() -> NodeDef {
     image_node::<Annotate>(

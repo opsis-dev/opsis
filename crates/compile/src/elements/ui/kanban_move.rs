@@ -1,18 +1,11 @@
 use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct KanbanMoveCard {
     #[setting("Title", default = "CSV export")]
     pub title: String,
@@ -32,11 +25,7 @@ pub struct KanbanMoveCard {
     pub move_at_seconds: Option<f64>,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct KanbanMove {
     #[setting(
         "Columns",

@@ -1,19 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::background::shader_dithering::DitherPattern;
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::DitherShape;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct DitherDissolve {
     #[setting("Shape", default = DitherShape::Simplex)]
     pub shape: DitherShape,
@@ -40,7 +33,6 @@ pub struct DitherDissolve {
     #[setting(
         "Dot grid",
         default = DitherPattern::Grid4x4,
-        labels = { "random": "Random", "2x2": "2 × 2", "4x4": "4 × 4", "8x8": "8 × 8" },
         advanced
     )]
     pub pattern: DitherPattern,

@@ -1,27 +1,19 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::TextAlign;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum AnimationFit {
+    #[label("Show all")]
     Contain,
+    #[label("Fill the frame")]
     Cover,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct Lottie {
     #[setting("Animation file", widget = "asset", accept = ".json,.lottie")]
     pub src: String,
@@ -33,8 +25,7 @@ pub struct Lottie {
     pub backwards: bool,
     #[setting(
         "Fit",
-        default = AnimationFit::Contain,
-        labels = { "contain": "Show all", "cover": "Fill the frame" }
+        default = AnimationFit::Contain
     )]
     pub fit: AnimationFit,
     #[setting("Background", default = "transparent", advanced)]
@@ -42,7 +33,6 @@ pub struct Lottie {
     #[setting(
         "Align",
         default = TextAlign::Center,
-        labels = { "left": "Left", "center": "Centre", "right": "Right" },
         advanced
     )]
     pub align: TextAlign,

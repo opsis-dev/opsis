@@ -1,32 +1,27 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::DitherShape;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
+#[choice(export)]
 pub enum DitherPattern {
     #[serde(rename = "random")]
+    #[label("Random")]
     Random,
     #[serde(rename = "2x2")]
+    #[label("2 × 2")]
     Grid2x2,
     #[serde(rename = "4x4")]
+    #[label("4 × 4")]
     Grid4x4,
     #[serde(rename = "8x8")]
+    #[label("8 × 8")]
     Grid8x8,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct ShaderDithering {
     #[setting("Speed", default = 1.0, range(min = 0.1, max = 4), step = 0.1)]
     pub speed: f64,

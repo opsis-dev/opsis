@@ -1,13 +1,10 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::cards::{CardRow, Icon};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::recording::{
     AnnotationKind, AnnotationLook, AnnotationSpec, CursorFeel, CursorLook, HighlightLook,
     KeyNames, KeystrokeLook, KeystrokePosition, LabelLook, RecordingProps, RippleLook,
 };
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::card_rows::{LABELLED_TEXT_MAX, join_parts, quote, quoted, toggle_row};
 use crate::color::color_or;
@@ -42,32 +39,21 @@ pub fn default_ripple() -> RippleLook {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum CursorShape {
+    #[label("Simple arrow")]
     Arrow,
+    #[label("Mac")]
     Mac,
 }
 
-impl CursorShape {
-    fn label(self) -> &'static str {
-        match self {
-            Self::Arrow => "Simple arrow",
-            Self::Mac => "Mac",
-        }
-    }
-}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct CursorStyle {
     #[setting("Show the cursor", default = true)]
     pub visible: bool,
     #[setting(
         "Look",
         default = CursorShape::Arrow,
-        labels = { "arrow": "Simple arrow", "mac": "Mac" },
         help = "Mac turns into a pointing hand over links and buttons and a text cursor over fields, as the page asks."
     )]
     pub look: CursorShape,
@@ -137,11 +123,7 @@ pub struct CursorStyle {
     pub hide_while_typing: bool,
 }
 
-impl Params for CursorStyle {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ClickRipple {
     #[setting("Ripple on every click", default = true)]
     pub enabled: bool,
@@ -199,16 +181,11 @@ pub struct ClickRipple {
     pub duration_ms: u32,
 }
 
-impl Params for ClickRipple {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct KeystrokeChips {
     #[setting(
         "Position",
-        default = KeystrokePosition::Bottom,
-        labels = { "bottom": "Bottom", "top": "Top" }
+        default = KeystrokePosition::Bottom
     )]
     pub position: KeystrokePosition,
     #[setting("Show typed text", default = true)]
@@ -275,11 +252,7 @@ pub struct KeystrokeChips {
         advanced
     )]
     pub radius: u32,
-    #[setting(
-        "Key names",
-        labels = { "symbols": "Symbols (⌘⇧K)", "words": "Words (Cmd + Shift + K)" },
-        advanced
-    )]
+    #[setting("Key names", advanced)]
     pub key_names: KeyNames,
     #[setting("Font", widget = "font", zero_label = "Project fonts", advanced)]
     pub font: String,
@@ -294,18 +267,6 @@ pub struct KeystrokeChips {
     pub shadow: f64,
     #[setting("Blinking caret", default = true, show_if = { "typed": ["true"] }, advanced)]
     pub caret: bool,
-}
-
-impl Params for KeystrokeChips {}
-
-fn look_label(look: HighlightLook) -> &'static str {
-    match look {
-        HighlightLook::Clean => "Clean",
-        HighlightLook::Box => "Hand-drawn box",
-        HighlightLook::Circle => "Circle",
-        HighlightLook::Underline => "Underline",
-        HighlightLook::Marker => "Marker",
-    }
 }
 
 pub struct AnnotationFields<'a> {
@@ -336,8 +297,6 @@ pub trait Annotation: Params {
 macro_rules! annotation_params {
     ($name:ident, color = $color:literal, radius = $radius:literal, { $($extra:tt)* }) => {
         #[settings]
-        #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-        #[serde(rename_all = "camelCase", default)]
         pub struct $name {
             #[serde(rename = "match")]
             #[setting(
@@ -389,7 +348,6 @@ annotation_params!(HighlightBox, color = "#a78bfa", radius = 10, {
     #[setting(
         "Look",
         default = HighlightLook::Clean,
-        labels = { "clean": "Clean", "box": "Hand-drawn box", "circle": "Circle", "underline": "Underline", "marker": "Marker" },
         help = "The hand-drawn looks draw themselves in as the action starts."
     )]
     pub look: HighlightLook,
@@ -434,9 +392,6 @@ annotation_params!(HighlightBox, color = "#a78bfa", radius = 10, {
     )]
     pub strokes: u32,
 });
-
-impl Params for Spotlight {}
-impl Params for HighlightBox {}
 
 fn plain_fields<'a>(
     match_text: &'a str,
@@ -527,7 +482,7 @@ fn annotation_rows(f: &AnnotationFields<'_>, icon: Icon) -> Vec<Option<CardRow>>
             quote(f.match_text, LABELLED_TEXT_MAX)
         )
     };
-    let look = (f.look != HighlightLook::Clean).then(|| look_label(f.look).to_owned());
+    let look = (f.look != HighlightLook::Clean).then(|| f.look.label().to_owned());
     vec![
         Some(row(icon, join_parts([Some(on), look]))),
         (!f.text.trim().is_empty()).then(|| row(Icon::Type, quoted(f.text))),
@@ -650,10 +605,7 @@ fn keystroke_chips() -> NodeDef {
     .describe("Shows keys and typed text as keycaps on screen.")
     .card(|ctx: &CardCtx<'_, KeystrokeChips>| {
         let p = &ctx.params;
-        let position = match p.position {
-            KeystrokePosition::Bottom => "Bottom",
-            KeystrokePosition::Top => "Top",
-        };
+        let position = p.position.label();
         vec![Some(row(
             Icon::Keyboard,
             join_parts([

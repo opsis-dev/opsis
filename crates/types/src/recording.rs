@@ -1,12 +1,10 @@
+use opsis_macros::choice;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
 use crate::actions::{Action, ActionLog};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum CameraStyle {
     Classic,
     Proof,
@@ -14,29 +12,25 @@ pub enum CameraStyle {
     Stage,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum AddressMode {
+    #[label("This address")]
     Fixed,
+    #[label("This host with the page's path")]
     Host,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum WindowStyle {
+    #[label("macOS")]
     Macos,
+    #[label("Windows")]
     Windows,
+    #[label("Linux")]
     Linux,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum FrameTheme {
     Light,
     Dark,
@@ -53,15 +47,17 @@ pub enum AnnotationKind {
     Callout,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum HighlightLook {
+    #[label("Clean")]
     Clean,
+    #[label("Hand-drawn box")]
     Box,
+    #[label("Circle")]
     Circle,
+    #[label("Underline")]
     Underline,
+    #[label("Marker")]
     Marker,
 }
 
@@ -121,23 +117,12 @@ pub struct CursorFeel {
     pub hide_while_typing: bool,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Default,
-    Serialize,
-    Deserialize,
-    Type,
-    schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum KeyNames {
     #[default]
+    #[label("Symbols (⌘⇧K)")]
     Symbols,
+    #[label("Words (Cmd + Shift + K)")]
     Words,
 }
 
@@ -154,12 +139,11 @@ pub struct LabelLook {
     pub tilt: f64,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum KeystrokePosition {
+    #[label("Bottom")]
     Bottom,
+    #[label("Top")]
     Top,
 }
 
@@ -286,25 +270,16 @@ pub struct CameraTuning {
     pub easing: Option<CameraEasing>,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Default,
-    Serialize,
-    Deserialize,
-    Type,
-    schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum CameraEasing {
     #[default]
+    #[label("Smooth")]
     Smooth,
+    #[label("Gentle")]
     Gentle,
+    #[label("Snappy")]
     Snappy,
+    #[label("Even")]
     Linear,
 }
 

@@ -1,17 +1,10 @@
 use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct LaunchAnythingLogoImage {
     #[setting(
         "Image",
@@ -22,11 +15,7 @@ pub struct LaunchAnythingLogoImage {
     pub image: String,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct LaunchAnythingStat {
     #[setting("Label", default = "Label")]
     pub label: String,
@@ -41,11 +30,7 @@ fn stat(label: &str, value: &str) -> LaunchAnythingStat {
     }
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct LaunchAnything {
     #[setting("Opening: first word", default = "Good")]
     pub opening: String,

@@ -3,7 +3,6 @@ use opsis_types::looks::NodeLook;
 use opsis_types::timeline::CameraPath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::{Colour, Lighting};
@@ -19,11 +18,7 @@ pub enum ShapeKind {
     Box,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct Shapes3d {
     #[setting("Shapes", default = 14, range(min = 3, max = 40), step = 1)]
     pub count: u32,
@@ -52,8 +47,7 @@ pub struct Shapes3d {
     pub camera: CameraPath,
     #[setting(
         "Lighting",
-        default = Lighting::Studio,
-        labels = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" }
+        default = Lighting::Studio
     )]
     pub lighting: Lighting,
     #[setting("Background", default = "#0b1020", check = colour)]

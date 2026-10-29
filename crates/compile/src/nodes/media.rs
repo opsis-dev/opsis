@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::mix::LOUDNESS_TARGETS;
@@ -10,9 +10,7 @@ use opsis_types::values::{
     ClipValue, CompileValue, Measured, MediaKind, MediaValue, NodeResult, PortValues,
 };
 use opsis_types::workflow::PortType;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
+use serde::Serialize;
 
 use crate::asset_ref::{extension_of, kind_from_path, project_ref};
 use crate::card_rows::{file_row, range_row, truncate_card};
@@ -66,30 +64,20 @@ const MEDIA_PORT: &str = "media";
 const NEW_FILE: &str = " Makes a new file.";
 const MEDIA_MS: f64 = 5000.0;
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum Codec {
+    #[label("MP4")]
     H264,
+    #[label("MP4 (HEVC)")]
     H265,
+    #[label("WebM (VP8)")]
     Vp8,
+    #[label("WebM")]
     Vp9,
+    #[label("ProRes")]
     Prores,
+    #[label("GIF")]
     Gif,
-}
-
-impl Codec {
-    pub fn name(self) -> &'static str {
-        match self {
-            Self::H264 => "MP4",
-            Self::H265 => "MP4 (HEVC)",
-            Self::Vp8 => "WebM (VP8)",
-            Self::Vp9 => "WebM",
-            Self::Prores => "ProRes",
-            Self::Gif => "GIF",
-        }
-    }
 }
 
 pub const QUALITY_PRESETS: [(&str, u32); 4] =
@@ -131,12 +119,15 @@ pub fn loudness_name(lufs: f64) -> String {
         )
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum ConvertCodec {
+    #[label("MP4")]
     H264,
+    #[label("MP4 (HEVC)")]
     H265,
+    #[label("WebM")]
     Vp9,
+    #[label("ProRes")]
     Prores,
 }
 
@@ -151,25 +142,30 @@ impl ConvertCodec {
     }
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum EncodePreset {
+    #[label("Fastest, biggest")]
     Ultrafast,
+    #[label("Fast")]
     Fast,
+    #[label("Balanced")]
     Medium,
+    #[label("Small")]
     Slow,
+    #[label("Smallest, slowest")]
     Veryslow,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum ProresProfile {
+    #[label("Proxy")]
     Proxy,
+    #[label("Light")]
     Lt,
+    #[label("Standard")]
     Standard,
     #[default]
+    #[label("High quality")]
     Hq,
 }
 
@@ -184,23 +180,22 @@ impl ProresProfile {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum SoundQuality {
+    #[label("Low")]
     Low,
+    #[label("Medium")]
     Medium,
     #[default]
+    #[label("High")]
     High,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Encoding {
     #[setting(
         "Format",
         default = ConvertCodec::H264,
-        labels = { "h264": "MP4", "h265": "MP4 (HEVC)", "vp9": "WebM", "prores": "ProRes" },
         advanced
     )]
     pub codec: ConvertCodec,
@@ -215,38 +210,27 @@ pub struct Encoding {
     #[setting(
         "Speed vs file size",
         default = EncodePreset::Medium,
-        labels = {
-            "ultrafast": "Fastest, biggest",
-            "fast": "Fast",
-            "medium": "Balanced",
-            "slow": "Small",
-            "veryslow": "Smallest, slowest"
-        },
         advanced,
         show_if = { "codec": ["h264", "h265"] }
     )]
     pub preset: EncodePreset,
     #[setting(
         "ProRes kind",
-        labels = { "proxy": "Proxy", "lt": "Light", "standard": "Standard", "hq": "High quality" },
         show_if = { "codec": ["prores"] },
         advanced
     )]
     pub prores_profile: ProresProfile,
     #[setting(
         "Sound quality",
-        labels = { "low": "Low", "medium": "Medium", "high": "High" },
         show_if = { "codec": ["h264", "h265", "vp9"] },
         advanced
     )]
     pub sound_quality: SoundQuality,
 }
 
-impl Params for Encoding {}
-
 fn format_row(codec: ConvertCodec, crf: u32) -> CardRow {
     let parts: Vec<String> = [
-        Some(codec.codec().name().to_owned()),
+        Some(codec.codec().label().to_owned()),
         matches!(
             codec,
             ConvertCodec::H264 | ConvertCodec::H265 | ConvertCodec::Vp9
@@ -331,20 +315,12 @@ fn pass_media(result: Option<&NodeResult>, inputs: &Inputs, fallback_port: &str)
         .collect()
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum Fit {
+    #[label("Fill the frame")]
     Cover,
+    #[label("Show all")]
     Contain,
-}
-
-impl Fit {
-    fn label(self) -> &'static str {
-        match self {
-            Self::Cover => "Fill the frame",
-            Self::Contain => "Show all",
-        }
-    }
 }
 
 #[derive(Serialize)]
@@ -439,15 +415,12 @@ fn one_file_op<P: Params>(kind: &'static str, title: &str, description: &str) ->
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct MediaFile {
     #[setting("File", widget = "asset", accept = "*/*")]
     pub path: String,
     #[setting(
         "Fit",
-        default = Fit::Contain,
-        labels = { "cover": "Fill the frame", "contain": "Show all" }
+        default = Fit::Contain
     )]
     pub fit: Fit,
     #[setting(
@@ -478,8 +451,6 @@ pub struct MediaFile {
     )]
     pub background: String,
 }
-
-impl Params for MediaFile {}
 
 fn import() -> NodeDef {
     file_op::<MediaFile>(
@@ -568,13 +539,10 @@ fn import() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct UseAsClip {
     #[setting(
         "Fit",
-        default = Fit::Contain,
-        labels = { "cover": "Fill the frame", "contain": "Show all" }
+        default = Fit::Contain
     )]
     pub fit: Fit,
     #[setting("Muted")]
@@ -606,8 +574,6 @@ pub struct UseAsClip {
     )]
     pub background: String,
 }
-
-impl Params for UseAsClip {}
 
 fn use_as_clip() -> NodeDef {
     NodeDef::of::<UseAsClip>(
@@ -647,9 +613,7 @@ fn use_as_clip() -> NodeDef {
     })
 }
 
-#[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(check)]
 pub struct TrimFile {
     #[setting("Start", range(min = 0, max = 36000000), step = 50, unit = "ms")]
     pub start_ms: u32,
@@ -672,17 +636,16 @@ impl Params for TrimFile {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum JoinSizeFrom {
     #[default]
+    #[label("Of the first file")]
     First,
+    #[label("Of the project")]
     Project,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct JoinFiles {
     #[setting("Always convert", advanced)]
     pub force_reencode: bool,
@@ -698,7 +661,6 @@ pub struct JoinFiles {
     pub still_ms: u32,
     #[setting(
         "Size and frame rate",
-        labels = { "first": "Of the first file", "project": "Of the project" },
         help = "What files that don't match are converted to.",
         advanced
     )]
@@ -713,8 +675,6 @@ pub struct JoinFiles {
     )]
     pub background: String,
 }
-
-impl Params for JoinFiles {}
 
 fn file_label(i: usize, _last: Option<usize>) -> String {
     format!("File {}", i + 1)
@@ -758,8 +718,6 @@ fn join_files() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ChangeSpeed {
     #[setting(
         "Speed",
@@ -781,11 +739,7 @@ pub struct ChangeSpeed {
     pub keep_pitch: bool,
 }
 
-impl Params for ChangeSpeed {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ReverseFile {
     #[setting(
         "Keep the sound",
@@ -795,18 +749,16 @@ pub struct ReverseFile {
     pub keep_audio: bool,
 }
 
-impl Params for ReverseFile {}
-
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
+#[settings]
 pub struct NoSettings {}
 
-impl Params for NoSettings {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum ScaleMode {
+    #[label("Add bars")]
     Pad,
+    #[label("Crop to fill")]
     Crop,
+    #[label("Stretch")]
     Stretch,
 }
 
@@ -821,8 +773,6 @@ impl ScaleMode {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Resize {
     #[setting(
         "Width",
@@ -844,8 +794,7 @@ pub struct Resize {
     pub height: u32,
     #[setting(
         "Fit",
-        default = ScaleMode::Pad,
-        labels = { "pad": "Add bars", "crop": "Crop to fill", "stretch": "Stretch" }
+        default = ScaleMode::Pad
     )]
     pub mode: ScaleMode,
     #[setting(
@@ -867,21 +816,20 @@ pub struct Resize {
     pub anchor: crate::nodes::image::PlaceAlign,
 }
 
-impl Params for Resize {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[choice(rename_all = "snake_case")]
 pub enum Dither {
     #[serde(rename = "sierra2_4a")]
+    #[label("Smooth")]
     Sierra24a,
+    #[label("Patterned")]
     Bayer,
+    #[label("Fine")]
     FloydSteinberg,
+    #[label("Off")]
     None,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct MakeGif {
     #[setting("Frame rate", default = 15, range(min = 5, max = 50), unit = "fps")]
     pub fps: u32,
@@ -892,7 +840,6 @@ pub struct MakeGif {
     #[setting(
         "Smooth colours",
         default = Dither::Sierra24a,
-        labels = { "sierra2_4a": "Smooth", "bayer": "Patterned", "floyd_steinberg": "Fine", "none": "Off" },
         advanced
     )]
     pub dither: Dither,
@@ -900,39 +847,36 @@ pub struct MakeGif {
     pub colours: u32,
     #[setting(
         "Colours from",
-        labels = { "moving": "What moves", "whole": "The whole picture" },
         help = "What the colour table is chosen from.",
         advanced
     )]
     pub palette_from: PaletteFrom,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum PaletteFrom {
     #[default]
+    #[label("What moves")]
     Moving,
+    #[label("The whole picture")]
     Whole,
 }
 
-impl Params for MakeGif {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum SoundFormat {
+    #[label("M4A")]
     M4a,
+    #[label("MP3")]
     Mp3,
+    #[label("WAV")]
     Wav,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ExtractSound {
     #[setting(
         "Format",
-        default = SoundFormat::M4a,
-        labels = { "m4a": "M4A", "mp3": "MP3", "wav": "WAV" }
+        default = SoundFormat::M4a
     )]
     pub format: SoundFormat,
     #[setting(
@@ -947,11 +891,7 @@ pub struct ExtractSound {
     pub bitrate: u32,
 }
 
-impl Params for ExtractSound {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct EvenOutVolume {
     #[setting(
         "Loudness",
@@ -974,11 +914,7 @@ pub struct EvenOutVolume {
     pub lra: f64,
 }
 
-impl Params for EvenOutVolume {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct FixClicks {
     #[setting("Remove clicks and pops", default = true)]
     pub clicks: bool,
@@ -994,14 +930,14 @@ pub struct FixClicks {
     pub strength: f64,
 }
 
-impl Params for FixClicks {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum Mains {
     #[default]
+    #[label("Find it")]
     Find,
+    #[label("50 Hz")]
     Fifty,
+    #[label("60 Hz")]
     Sixty,
 }
 
@@ -1016,12 +952,9 @@ impl Mains {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct RemoveHum {
     #[setting(
         "Hum",
-        labels = { "find": "Find it", "fifty": "50 Hz", "sixty": "60 Hz" },
         help = "Mains hum is 50 Hz in most of the world and 60 Hz in the Americas. Find it listens for both first."
     )]
     pub mains: Mains,
@@ -1054,11 +987,7 @@ pub struct RemoveHum {
     pub depth: f64,
 }
 
-impl Params for RemoveHum {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ChangePitch {
     #[setting(
         "Semitones",
@@ -1076,39 +1005,24 @@ pub struct ChangePitch {
     pub keep_character: bool,
 }
 
-impl Params for ChangePitch {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum VoiceEffect {
     #[default]
+    #[label("Telephone")]
     Telephone,
+    #[label("Radio")]
     Radio,
+    #[label("Small room")]
     SmallRoom,
+    #[label("Hall")]
     Hall,
+    #[label("Echo")]
     Echo,
 }
 
-impl VoiceEffect {
-    pub fn word(self) -> &'static str {
-        match self {
-            Self::Telephone => "Telephone",
-            Self::Radio => "Radio",
-            Self::SmallRoom => "Small room",
-            Self::Hall => "Hall",
-            Self::Echo => "Echo",
-        }
-    }
-}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct VoiceEffects {
-    #[setting(
-        "Effect",
-        labels = { "telephone": "Telephone", "radio": "Radio", "small-room": "Small room", "hall": "Hall", "echo": "Echo" }
-    )]
+    #[setting("Effect")]
     pub effect: VoiceEffect,
     #[setting(
         "Mix",
@@ -1170,20 +1084,18 @@ pub struct VoiceEffects {
     pub reverb_ms: Option<u32>,
 }
 
-impl Params for VoiceEffects {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum FitWay {
     #[default]
+    #[label("Stretch, or loop when that's too far")]
     Both,
+    #[label("Stretch only")]
     Stretch,
+    #[label("Loop only")]
     Loop,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct FitMusic {
     #[setting(
         "Song",
@@ -1194,7 +1106,6 @@ pub struct FitMusic {
     pub src: String,
     #[setting(
         "Way",
-        labels = { "both": "Stretch, or loop when that's too far", "stretch": "Stretch only", "loop": "Loop only" },
         help = "Stretching changes the tempo a little and keeps the song whole. Looping repeats a part of it with a crossfade."
     )]
     pub way: FitWay,
@@ -1245,17 +1156,11 @@ pub struct FitMusic {
         unit = "ms"
     )]
     pub fade_out_ms: u32,
-    #[setting(
-        "Fade curve",
-        labels = { "tri": "Even", "qsin": "Gentle", "exp": "Quick then slow", "log": "Slow then quick" },
-        advanced
-    )]
+    #[setting("Fade curve", advanced)]
     pub fade_curve: FadeCurve,
 }
 
 pub use opsis_types::timeline::FadeCurve;
-
-impl Params for FitMusic {}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FitPlan {
@@ -1334,17 +1239,16 @@ pub fn pitch_ratio(semitones: f64) -> f64 {
     2f64.powf(semitones / 12.0)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum NoiseMethod {
     #[default]
+    #[label("Learned, for speech")]
     Learned,
+    #[label("Spectral, for steady noise")]
     Spectral,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct CleanSpeech {
     #[setting(
         "Remove noise",
@@ -1369,7 +1273,6 @@ pub struct CleanSpeech {
     pub even_level: bool,
     #[setting(
         "Noise removal",
-        labels = { "learned": "Learned, for speech", "spectral": "Spectral, for steady noise" },
         help = "The learned way keeps only the voice, so music under it goes too. The spectral way takes out a steady hiss or hum and leaves the rest.",
         advanced
     )]
@@ -1396,8 +1299,6 @@ pub struct CleanSpeech {
     )]
     pub even_lift: f64,
 }
-
-impl Params for CleanSpeech {}
 
 fn clean_speech_steps(p: &CleanSpeech) -> String {
     let mut parts = Vec::new();
@@ -1435,8 +1336,6 @@ fn noise_level_row(result: Option<&NodeResult>) -> Option<CardRow> {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ShortenPauses {
     #[setting(
         "Silence below",
@@ -1466,8 +1365,6 @@ pub struct ShortenPauses {
     pub keep_ms: u32,
 }
 
-impl Params for ShortenPauses {}
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Pause {
     pub start_ms: f64,
@@ -1495,22 +1392,27 @@ pub fn kept_parts(duration_ms: f64, pauses: &[Pause], keep_ms: f64) -> Vec<(f64,
     parts
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum SoundPictureKind {
     #[default]
+    #[label("Waveform")]
     Waveform,
+    #[label("Spectrum")]
     Spectrum,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum SpectrumColours {
     #[default]
+    #[label("Magma")]
     Magma,
+    #[label("Fire")]
     Fire,
+    #[label("Viridis")]
     Viridis,
+    #[label("Rainbow")]
     Rainbow,
+    #[label("Cool")]
     Cool,
 }
 
@@ -1527,12 +1429,9 @@ impl SpectrumColours {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct SoundPicture {
     #[setting(
         "Picture",
-        labels = { "waveform": "Waveform", "spectrum": "Spectrum" },
         help = "A waveform shows loudness over time; a spectrum also shows pitch, low at the bottom."
     )]
     pub kind: SoundPictureKind,
@@ -1550,7 +1449,6 @@ pub struct SoundPicture {
     pub color: String,
     #[setting(
         "Colours",
-        labels = { "magma": "Magma", "fire": "Fire", "viridis": "Viridis", "rainbow": "Rainbow", "cool": "Cool" },
         show_if = { "kind": ["spectrum"] }
     )]
     pub colours: SpectrumColours,
@@ -1565,7 +1463,6 @@ pub struct SoundPicture {
     pub split_channels: bool,
     #[setting(
         "Loudness scale",
-        labels = { "lin": "Even", "log": "Log", "sqrt": "Square root", "cbrt": "Cube root" },
         help = "Log and the roots show quiet parts larger.",
         show_if = { "kind": ["waveform"] },
         advanced
@@ -1573,7 +1470,6 @@ pub struct SoundPicture {
     pub wave_scale: WaveScale,
     #[setting(
         "Pitch scale",
-        labels = { "lin": "Even", "log": "Log" },
         help = "Log gives low pitches more room.",
         show_if = { "kind": ["spectrum"] },
         advanced
@@ -1581,25 +1477,27 @@ pub struct SoundPicture {
     pub pitch_scale: PitchScale,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum WaveScale {
     #[default]
+    #[label("Even")]
     Lin,
+    #[label("Log")]
     Log,
+    #[label("Square root")]
     Sqrt,
+    #[label("Cube root")]
     Cbrt,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum PitchScale {
     #[default]
+    #[label("Even")]
     Lin,
+    #[label("Log")]
     Log,
 }
-
-impl Params for SoundPicture {}
 
 pub const SOUND_PICTURE_PORT: &str = "image";
 
@@ -1616,10 +1514,7 @@ fn sound_picture() -> NodeDef {
     .outputs(vec![(SOUND_PICTURE_PORT, port(PortType::Image, "Image"))])
     .card(|ctx: &CardCtx<'_, SoundPicture>| {
         let p = &ctx.params;
-        let kind = match p.kind {
-            SoundPictureKind::Waveform => "Waveform",
-            SoundPictureKind::Spectrum => "Spectrum",
-        };
+        let kind = p.kind.label();
         vec![Some(row(
             Icon::AudioLines,
             format!("{kind} · {} × {} px", p.width, p.height),
@@ -1640,8 +1535,6 @@ fn sound_picture() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct GrabFrame {
     #[setting(
         "At",
@@ -1660,8 +1553,6 @@ pub struct GrabFrame {
     )]
     pub width: u32,
 }
-
-impl Params for GrabFrame {}
 
 fn apply_grade() -> NodeDef {
     file_op::<Encoding>(
@@ -1953,7 +1844,7 @@ pub fn nodes() -> Vec<NodeDef> {
                     "Echo after {}",
                     format_duration(f64::from(p.delay_ms))
                 ),
-                effect => effect.word().to_owned(),
+                effect => effect.label().to_owned(),
             };
             vec![
                 Some(row(

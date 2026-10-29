@@ -5029,6 +5029,8 @@ dependencies = [
  "proc-macro2",
  "proptest",
  "quote",
+ "serde",
+ "serde_json",
  "syn 3.0.9",
 ]
 
@@ -5235,6 +5237,7 @@ dependencies = [
  "humansize",
  "indexmap 2.14.2",
  "opsis-golden",
+ "opsis-macros",
  "proptest",
  "regex",
  "schemars 1.2.3",

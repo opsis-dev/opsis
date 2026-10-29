@@ -1,4 +1,4 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
@@ -9,9 +9,6 @@ use opsis_types::timeline::{
 };
 use opsis_types::values::{AudioValue, ClipValue, CompileValue, Hits, MediaKind, MediaValue};
 use opsis_types::workflow::{PortType, WorkflowSettings};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::asset_ref::{base_name, project_ref};
 use crate::card_rows::{LABELLED_TEXT_MAX, named_file_row, quote};
@@ -21,7 +18,6 @@ use crate::node::{
     CLIP_PORT, CardCtx, CardInputs, Category, Ctx, NodeDef, Outputs, Phase, RowExt, many, missing,
     opt, outputs, port, row, with_clip,
 };
-use crate::params::Params;
 use crate::sounds::{builtin_label, builtin_song, builtin_sound};
 use crate::text::{format_duration, percent_text, plural, sign_of};
 use crate::time::{ms_to_frames, ms_to_frames_from, ms_to_signed_frames};
@@ -155,8 +151,6 @@ fn source_row(icon: Icon, src: &str, inputs: &CardInputs, empty: &str) -> CardRo
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Music {
     #[setting("Song", widget = "music", accept = "audio/*")]
     pub src: String,
@@ -206,15 +200,9 @@ pub struct Music {
         advanced
     )]
     pub envelope: AudioEnvelope,
-    #[setting(
-        "Fade curve",
-        labels = { "tri": "Even", "qsin": "Gentle", "exp": "Quick then slow", "log": "Slow then quick" },
-        advanced
-    )]
+    #[setting("Fade curve", advanced)]
     pub fade_curve: FadeCurve,
 }
-
-impl Params for Music {}
 
 fn music_handles(node_id: &str) -> EditHandles {
     let mut trim_start = param_ref(node_id, "trimMs", ParamUnit::Ms);
@@ -300,8 +288,6 @@ fn music() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct SoundEffect {
     #[setting("Sound", widget = "sound", accept = "audio/*", length_key = "srcMs")]
     pub src: String,
@@ -357,7 +343,6 @@ pub struct SoundEffect {
     pub length_ms: u32,
     #[setting(
         "Before the clip starts",
-        labels = { "later": "Start it with the clip", "cut": "Cut its start" },
         help = "When the action comes so early the sound would start before the clip.",
         show_if = { "atAction": ["*"] },
         advanced
@@ -365,15 +350,14 @@ pub struct SoundEffect {
     pub before_clip_start: BeforeClipStart,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum BeforeClipStart {
     #[default]
+    #[label("Start it with the clip")]
     Later,
+    #[label("Cut its start")]
     Cut,
 }
-
-impl Params for SoundEffect {}
 
 fn sound_effect() -> NodeDef {
     NodeDef::of::<SoundEffect>("audio.sfx", "Sound effect", Category::Audio, Phase::Compile)
@@ -473,12 +457,14 @@ pub const RISER_TYPE: &str = "audio.riser";
 pub const RISER_FILE: &str = "riser.wav";
 pub const END_HIT_FILE: &str = "end-hit.wav";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum NoiseColour {
     #[default]
+    #[label("Pink (soft)")]
     Pink,
+    #[label("Brown (deep)")]
     Brown,
+    #[label("White (bright)")]
     White,
 }
 
@@ -493,12 +479,9 @@ impl NoiseColour {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct RoomTone {
     #[setting(
         "Noise",
-        labels = { "pink": "Pink (soft)", "brown": "Brown (deep)", "white": "White (bright)" },
         help = "Pink sounds like a quiet room, brown like a distant rumble, white like air."
     )]
     pub colour: NoiseColour,
@@ -523,8 +506,6 @@ pub struct RoomTone {
     )]
     pub fade_out_ms: u32,
 }
-
-impl Params for RoomTone {}
 
 fn made_sound<P>(ctx: &Ctx<'_, P>) -> Option<(String, Option<u32>)> {
     let media = ctx.result?.output(AUDIO_PORT)?.as_media()?;
@@ -576,22 +557,21 @@ fn room_tone() -> NodeDef {
         })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum ToneKind {
+    #[label("Tone")]
     Tone,
     #[default]
+    #[label("Beep")]
     Beep,
+    #[label("Countdown")]
     Countdown,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Tones {
     #[setting(
         "Sound",
-        labels = { "tone": "Tone", "beep": "Beep", "countdown": "Countdown" },
         help = "A countdown is short beeps a set time apart, then a long one."
     )]
     pub kind: ToneKind,
@@ -657,11 +637,7 @@ pub struct Tones {
         advanced
     )]
     pub keep_music: bool,
-    #[setting(
-        "Wave",
-        labels = { "sine": "Pure", "triangle": "Soft", "square": "Hollow", "saw": "Buzzy" },
-        advanced
-    )]
+    #[setting("Wave", advanced)]
     pub wave: ToneWave,
     #[setting(
         "Last beep length",
@@ -685,17 +661,18 @@ pub struct Tones {
     pub final_pitch: f64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum ToneWave {
     #[default]
+    #[label("Pure")]
     Sine,
+    #[label("Soft")]
     Triangle,
+    #[label("Hollow")]
     Square,
+    #[label("Buzzy")]
     Saw,
 }
-
-impl Params for Tones {}
 
 fn tones() -> NodeDef {
     NodeDef::of::<Tones>(TONES_TYPE, "Tones and countdown beeps", Category::Audio, Phase::Media)
@@ -819,16 +796,22 @@ fn placed_effect<P>(
     )])
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum SoundPreset {
     #[default]
+    #[label("Whoosh")]
     Whoosh,
+    #[label("Riser")]
     Riser,
+    #[label("Pop")]
     Pop,
+    #[label("Ding")]
     Ding,
+    #[label("Tap")]
     Tap,
+    #[label("Swell")]
     Swell,
+    #[label("Click")]
     Click,
 }
 
@@ -842,18 +825,6 @@ impl SoundPreset {
         Self::Swell,
         Self::Click,
     ];
-
-    pub fn word(self) -> &'static str {
-        match self {
-            Self::Whoosh => "Whoosh",
-            Self::Riser => "Riser",
-            Self::Pop => "Pop",
-            Self::Ding => "Ding",
-            Self::Tap => "Tap",
-            Self::Swell => "Swell",
-            Self::Click => "Click",
-        }
-    }
 
     pub fn usual_seconds(self) -> f64 {
         match self {
@@ -888,19 +859,28 @@ impl SoundPreset {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum SoundVariation {
     #[default]
+    #[label("Default")]
     Picked,
+    #[label("As first made")]
     AsMade,
+    #[label("Another take")]
     AnotherTake,
+    #[label("Darker")]
     Darker,
+    #[label("Brighter")]
     Brighter,
+    #[label("5 semitones lower")]
     Lower,
+    #[label("5 semitones higher")]
     Higher,
+    #[label("Shorter")]
     Shorter,
+    #[label("Longer")]
     Longer,
+    #[label("Custom")]
     Custom,
 }
 
@@ -922,21 +902,11 @@ impl SoundVariation {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct GenerateSound {
-    #[setting(
-        "Sound",
-        labels = { "whoosh": "Whoosh", "riser": "Riser", "pop": "Pop", "ding": "Ding", "tap": "Tap", "swell": "Swell", "click": "Click" }
-    )]
+    #[setting("Sound")]
     pub preset: SoundPreset,
     #[setting(
         "Variation",
-        labels = {
-            "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
-            "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher",
-            "shorter": "Shorter", "longer": "Longer", "custom": "Custom"
-        },
         help = "Custom sets the length, pitch, brightness and take yourself. On a click, shorter and longer change the gap between its press and release."
     )]
     pub variation: SoundVariation,
@@ -1005,23 +975,22 @@ pub struct GenerateSound {
     pub keep_music: bool,
     #[setting(
         "Moves",
-        labels = { "left-to-right": "Left to right", "right-to-left": "Right to left", "centre": "Stays in the middle" },
         show_if = { "preset": ["whoosh"] },
         advanced
     )]
     pub pan: SoundPan,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum SoundPan {
     #[default]
+    #[label("Left to right")]
     LeftToRight,
+    #[label("Right to left")]
     RightToLeft,
+    #[label("Stays in the middle")]
     Centre,
 }
-
-impl Params for GenerateSound {}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SoundShape {
@@ -1135,7 +1104,7 @@ fn generate() -> NodeDef {
                     Icon::Sparkles,
                     format!(
                         "{} · {} · {}",
-                        p.preset.word(),
+                        p.preset.label(),
                         p.variation.word(),
                         format_duration(shape.seconds * 1000.0)
                     ),
@@ -1193,8 +1162,6 @@ fn anchor_sounds(
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct AddSound {
     #[setting(
         "Fade where the clip ends",
@@ -1206,8 +1173,6 @@ pub struct AddSound {
     )]
     pub end_fade_ms: u32,
 }
-
-impl Params for AddSound {}
 
 fn add_sound() -> NodeDef {
     NodeDef::of::<AddSound>("audio.mix", "Add sound", Category::Audio, Phase::Compile)
@@ -1242,8 +1207,6 @@ fn add_sound() -> NodeDef {
 pub const ACTION_SOUNDS_TYPE: &str = "audio.actionSounds";
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ActionSounds {
     #[setting("Clicks", default = true)]
     pub clicks: bool,
@@ -1319,8 +1282,6 @@ pub struct ActionSounds {
     )]
     pub drags: bool,
 }
-
-impl Params for ActionSounds {}
 
 impl ActionSounds {
     fn sound_of(&self, kind: HitKind) -> Option<(&str, Option<f64>)> {
@@ -1465,33 +1426,26 @@ fn action_sounds() -> NodeDef {
         })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum TransitionSoundFrom {
     #[default]
+    #[label("A generated sound")]
     Generated,
+    #[label("A sound file")]
     File,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct TransitionSounds {
-    #[setting("Sound", labels = { "generated": "A generated sound", "file": "A sound file" })]
+    #[setting("Sound")]
     pub sound_from: TransitionSoundFrom,
     #[setting(
         "Generated sound",
-        labels = { "whoosh": "Whoosh", "riser": "Riser", "pop": "Pop", "ding": "Ding", "tap": "Tap", "swell": "Swell", "click": "Click" },
         show_if = { "soundFrom": ["generated"] }
     )]
     pub preset: SoundPreset,
     #[setting(
         "Variation",
-        labels = {
-            "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
-            "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher",
-            "shorter": "Shorter", "longer": "Longer", "custom": "Custom"
-        },
         show_if = { "soundFrom": ["generated"] }
     )]
     pub variation: SoundVariation,
@@ -1568,11 +1522,7 @@ pub struct TransitionSounds {
         advanced
     )]
     pub level_spread: u32,
-    #[setting(
-        "Place on the transition",
-        labels = { "start": "From its start", "middle": "Centred on it", "end": "Ending with it" },
-        advanced
-    )]
+    #[setting("Place on the transition", advanced)]
     pub align: TransitionAlign,
     #[setting(
         "Length",
@@ -1587,16 +1537,16 @@ pub struct TransitionSounds {
     pub length_ms: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum TransitionAlign {
+    #[label("From its start")]
     Start,
     #[default]
+    #[label("Centred on it")]
     Middle,
+    #[label("Ending with it")]
     End,
 }
-
-impl Params for TransitionSounds {}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TransitionCue {
@@ -1738,7 +1688,7 @@ fn transition_sounds() -> NodeDef {
             }
             let sound = match p.sound_from {
                 TransitionSoundFrom::Generated => {
-                    format!("{}, {}", p.preset.word(), p.variation.word())
+                    format!("{}, {}", p.preset.label(), p.variation.word())
                 }
                 TransitionSoundFrom::File => builtin_label(&project_ref(&p.sound))
                     .map_or_else(|| base_name(&p.sound), str::to_owned),
@@ -1788,56 +1738,65 @@ fn transition_sounds() -> NodeDef {
         })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum RiserEnd {
     #[default]
+    #[label("An action")]
     Action,
+    #[label("A marker")]
     Marker,
+    #[label("The end of the clip")]
     ClipEnd,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum RiserSound {
     #[default]
+    #[label("Riser")]
     Riser,
+    #[label("Swell")]
     Swell,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum RiserVariation {
     #[default]
+    #[label("Default")]
     Picked,
+    #[label("As first made")]
     AsMade,
+    #[label("Another take")]
     AnotherTake,
+    #[label("Darker")]
     Darker,
+    #[label("Brighter")]
     Brighter,
+    #[label("5 semitones lower")]
     Lower,
+    #[label("5 semitones higher")]
     Higher,
+    #[label("Custom")]
     Custom,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum EndHit {
     #[default]
+    #[label("None")]
     Off,
+    #[label("Pop")]
     Pop,
+    #[label("Ding")]
     Ding,
+    #[label("Tap")]
     Tap,
+    #[label("Click")]
     Click,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Riser {
-    #[setting(
-        "Ends on",
-        labels = { "action": "An action", "marker": "A marker", "clip-end": "The end of the clip" }
-    )]
+    #[setting("Ends on")]
     pub ends_on: RiserEnd,
     #[setting(
         "Action",
@@ -1861,15 +1820,9 @@ pub struct Riser {
         unit = "ms"
     )]
     pub length_ms: u32,
-    #[setting("Sound", labels = { "riser": "Riser", "swell": "Swell" })]
+    #[setting("Sound")]
     pub sound: RiserSound,
-    #[setting(
-        "Variation",
-        labels = {
-            "picked": "Default", "as-made": "As first made", "another-take": "Another take", "darker": "Darker",
-            "brighter": "Brighter", "lower": "5 semitones lower", "higher": "5 semitones higher", "custom": "Custom"
-        }
-    )]
+    #[setting("Variation")]
     pub variation: RiserVariation,
     #[setting(
         "Pitch",
@@ -1894,10 +1847,7 @@ pub struct Riser {
         show_if = { "variation": ["custom"] }
     )]
     pub take: u32,
-    #[setting(
-        "A hit at the end",
-        labels = { "off": "None", "pop": "Pop", "ding": "Ding", "tap": "Tap", "click": "Click" }
-    )]
+    #[setting("A hit at the end")]
     pub end_hit: EndHit,
     #[setting("Volume", default = 0.8, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
@@ -1927,8 +1877,6 @@ pub struct Riser {
     )]
     pub keep_music: bool,
 }
-
-impl Params for Riser {}
 
 impl Riser {
     pub fn shape(&self) -> SoundShape {

@@ -1,17 +1,11 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::theme::{Theme, ThemeMode, agent_run_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum AgentStepIcon {
     Chart,
     Database,
@@ -22,11 +16,7 @@ pub enum AgentStepIcon {
     File,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct AgentRunRunStep {
     #[setting("Name", default = "Search logs")]
     pub name: String,
@@ -53,11 +43,7 @@ pub struct AgentRunRunStep {
     pub sources: Option<Vec<String>>,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct AgentRun {
     #[setting(
         "Theme",

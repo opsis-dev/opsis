@@ -1,19 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::NumberFormat;
 use crate::elements::theme::{Theme, ThemeMode, metric_ticker_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct MetricTickerMetric {
     #[setting("Label", default = "Support tickets")]
     pub label: String,
@@ -39,11 +32,7 @@ pub struct MetricTickerMetric {
     pub color: Option<String>,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct MetricTicker {
     #[setting(
         "Metrics",
@@ -114,7 +103,6 @@ pub struct MetricTicker {
     #[setting(
         "Number format",
         default = NumberFormat::Compact,
-        labels = { "compact": "Short (1.2K)", "full": "Full (1,200)" },
         advanced
     )]
     pub number_format: NumberFormat,

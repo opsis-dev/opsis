@@ -1,19 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::FontWeight;
 use crate::elements::theme::{Theme, warm_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct LogoDriftTile {
     #[setting("Mark", default = "Ab", help = "One to three characters.")]
     pub glyph: String,
@@ -44,11 +37,7 @@ pub struct LogoDriftTile {
     pub at: f64,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct LogoDrift {
     #[setting("Headline", default = "Built for the stack you already use.")]
     pub headline: String,

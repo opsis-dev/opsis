@@ -1,16 +1,10 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::looks::{NodeLook, NodeMotion};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum WhipDirection {
     Left,
     Right,
@@ -18,11 +12,7 @@ pub enum WhipDirection {
     Down,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct WhipPan {
     #[setting("Direction", default = WhipDirection::Left)]
     pub direction: WhipDirection,

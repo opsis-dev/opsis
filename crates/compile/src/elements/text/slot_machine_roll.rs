@@ -1,19 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::FontWeight;
 use crate::elements::shared::VerticalDirection;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct SlotMachineRoll {
     #[setting("From", default = "$99")]
     pub from: String,
@@ -53,7 +46,6 @@ pub struct SlotMachineRoll {
     #[setting(
         "Direction",
         default = VerticalDirection::Up,
-        labels = { "up": "Up", "down": "Down" },
         advanced
     )]
     pub direction: VerticalDirection,

@@ -1,17 +1,11 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::theme::{Theme, ThemeMode, notification_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum ToastTone {
     Info,
     Success,
@@ -19,10 +13,7 @@ pub enum ToastTone {
     Error,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum ToastCorner {
     TopRight,
     TopLeft,
@@ -30,11 +21,7 @@ pub enum ToastCorner {
     BottomLeft,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct NotificationStackToast {
     #[setting("Title", default = "Upload failed")]
     pub title: String,
@@ -55,11 +42,7 @@ pub struct NotificationStackToast {
     pub hold_for: Option<f64>,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct NotificationStack {
     #[setting(
         "Notifications",

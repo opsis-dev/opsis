@@ -1,17 +1,10 @@
 use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct ZoomBlur {
     #[setting("Blur", default = 16, range(min = 0, max = 40), step = 2, unit = "px")]
     pub blur: u32,

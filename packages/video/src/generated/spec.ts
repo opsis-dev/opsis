@@ -3057,12 +3057,12 @@ export type TextMaskVideo = {
 	startFrom: number,
 };
 
+export type ThemeMode = "light" | "dark";
+
 export type Theme = {
 	mode: ThemeMode,
 	colors: { [key in string]: string },
 };
-
-export type ThemeMode = "light" | "dark";
 
 export type TimelineItem = {
 	kind: "group",

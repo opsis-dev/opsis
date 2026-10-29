@@ -1,72 +1,72 @@
+use opsis_macros::{choice, settings};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum NumberFormat {
+    #[label("Short (1.2K)")]
     Compact,
+    #[label("Full (1,200)")]
     Full,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum GroupSeparator {
+    #[label("None")]
     None,
+    #[label("Space")]
     Space,
+    #[label("Comma")]
     Comma,
+    #[label("Dot")]
     Dot,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum Corner {
+    #[label("Bottom left")]
     BottomLeft,
+    #[label("Bottom right")]
     BottomRight,
+    #[label("Top left")]
     TopLeft,
+    #[label("Top right")]
     TopRight,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum LegendValue {
+    #[label("Share")]
     Percent,
+    #[label("Value")]
     Value,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum BlendMode {
+    #[label("Darken")]
     Multiply,
+    #[label("Lighten")]
     Screen,
+    #[label("Normal")]
     Normal,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum VerticalDirection {
+    #[label("Up")]
     Up,
+    #[label("Down")]
     Down,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum TextAlign {
+    #[label("Centre")]
     Center,
+    #[label("Left")]
     Left,
+    #[label("Right")]
     Right,
 }
 
@@ -93,34 +93,35 @@ pub enum Fit {
     Fill,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum Motion {
+    #[label("Spin")]
     Spin,
+    #[label("Tilt in")]
     TiltIn,
+    #[label("Float")]
     Float,
+    #[label("Orbit")]
     Orbit,
+    #[label("Swing")]
     Swing,
+    #[label("Still")]
     Still,
+    #[label("Keyframes")]
     Keyframes,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum Lighting {
+    #[label("Studio")]
     Studio,
+    #[label("Soft")]
     Soft,
+    #[label("Dramatic")]
     Dramatic,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum Direction {
     FromLeft,
     FromRight,
@@ -128,12 +129,10 @@ pub enum Direction {
     FromBottom,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema, specta::Type)]
+#[settings(export)]
 pub struct NoSettings {}
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
+#[choice(export)]
 pub enum FontWeight {
     #[serde(rename = "400")]
     W400,
@@ -154,10 +153,7 @@ pub enum LightOrDark {
     Dark,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum DitherShape {
     Simplex,
     Warp,
@@ -177,10 +173,7 @@ pub enum DarkOrLight {
     Light,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum Orientation {
     Horizontal,
     Vertical,

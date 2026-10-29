@@ -24,8 +24,7 @@ pub enum ThemeMode {
     Dark,
 }
 
-#[settings]
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema, specta::Type)]
+#[settings(export)]
 pub struct Theme {
     pub mode: ThemeMode,
     #[setting("propertyNames" = { "type": "string" })]

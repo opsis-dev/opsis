@@ -1,19 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
 use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct CommitGraphCommit {
     #[setting("Message", default = "Merge retry backoff")]
     pub message: String,
@@ -33,11 +26,7 @@ pub struct CommitGraphCommit {
     pub r#ref: Option<String>,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct CommitGraph {
     #[setting(
         "Commits",

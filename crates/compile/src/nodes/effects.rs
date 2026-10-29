@@ -5,9 +5,6 @@ use opsis_types::numbers;
 use opsis_types::recording::{BlurArea, PictureLook, RecordingProps};
 use opsis_types::timeline::TimelineItem;
 use opsis_types::values::ClipValue;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::clip::{IMAGE, VIDEO, map_items};
 use crate::errors::SettingsError;
@@ -21,7 +18,6 @@ const MAX_BLUR_OF_WIDTH: f64 = 0.04;
 const MAX_SOFTNESS_OF_WIDTH: f64 = 0.02;
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
 pub struct Area {
     #[setting(range(min = 0, max = 1))]
     pub x: f64,
@@ -42,9 +38,7 @@ pub fn default_areas() -> Vec<Area> {
     }]
 }
 
-#[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(check)]
 pub struct BlurAreas {
     #[setting(
         "Areas to blur",
@@ -187,8 +181,6 @@ fn blur_areas() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Look {
     #[setting(
         "Brightness",
@@ -242,8 +234,6 @@ pub struct Look {
     #[setting("Tint", default = 0.0, range(min = -1, max = 1), advanced)]
     pub tint: f64,
 }
-
-impl Params for Look {}
 
 impl Look {
     fn values(&self) -> [f64; 6] {

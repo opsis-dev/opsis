@@ -5439,12 +5439,12 @@
        "dark",
        "no-preference"
       ],
-      "default": "light",
       "x-labels": {
        "light": "Light",
        "dark": "Dark",
        "no-preference": "System"
-      }
+      },
+      "default": "light"
      },
      "captureScale": {
       "description": "Recording sharpness",
@@ -5538,12 +5538,12 @@
        "selector",
        "window-closed"
       ],
-      "default": "window-closed",
       "x-labels": {
        "url-change": "The address changes",
        "selector": "An element appears",
        "window-closed": "I close the window"
-      }
+      },
+      "default": "window-closed"
      },
      "selector": {
       "description": "Element that appears after signing in",
@@ -5643,13 +5643,13 @@
        "networkidle",
        "commit"
       ],
-      "default": "load",
       "x-labels": {
        "load": "Loaded",
        "domcontentloaded": "Started showing",
        "networkidle": "Settled",
        "commit": "Responded"
       },
+      "default": "load",
       "x-advanced": true
      },
      "after": {
@@ -5736,11 +5736,11 @@
        "left",
        "right"
       ],
-      "default": "left",
       "x-labels": {
        "left": "Left",
        "right": "Right"
-      }
+      },
+      "default": "left"
      },
      "double": {
       "description": "Double-click",
@@ -6244,12 +6244,12 @@
        "by",
        "path"
       ],
-      "default": "element",
       "x-labels": {
        "element": "Onto an element",
        "by": "By a distance",
        "path": "Along a path"
-      }
+      },
+      "default": "element"
      },
      "to": {
       "description": "Drop on",
@@ -6393,11 +6393,11 @@
        "smooth",
        "quick"
       ],
-      "default": "smooth",
       "x-labels": {
        "smooth": "Smooth, with the cursor",
        "quick": "Quick, for pages that ignore the smooth drag"
       },
+      "default": "smooth",
       "x-advanced": true
      },
      "after": {
@@ -6529,11 +6529,11 @@
        "element",
        "by"
       ],
-      "default": "element",
       "x-labels": {
        "element": "An element",
        "by": "A distance"
-      }
+      },
+      "default": "element"
      },
      "target": {
       "description": "Element",
@@ -6596,13 +6596,13 @@
        "end",
        "nearest"
       ],
-      "default": "center",
       "x-labels": {
        "start": "At the top",
        "center": "In the middle",
        "end": "At the bottom",
        "nearest": "Just in view"
       },
+      "default": "center",
       "x-show-if": {
        "mode": [
         "element"
@@ -6966,13 +6966,13 @@
        "url",
        "ms"
       ],
-      "default": "element",
       "x-labels": {
        "element": "An element",
        "network-idle": "A quiet page",
        "url": "An address",
        "ms": "A fixed time"
-      }
+      },
+      "default": "element"
      },
      "target": {
       "description": "Element",
@@ -7361,11 +7361,11 @@
        "fixed",
        "paused"
       ],
-      "default": "fixed",
       "x-labels": {
        "fixed": "Frozen",
        "paused": "Paused"
-      }
+      },
+      "default": "fixed"
      }
     },
     "type": "object",
@@ -7600,12 +7600,12 @@
        "center",
        "bottom"
       ],
-      "default": "center",
       "x-labels": {
        "top": "Top",
        "center": "Middle",
        "bottom": "Bottom"
       },
+      "default": "center",
       "x-show-if": {
        "showInVideo": [
         "true"
@@ -7772,11 +7772,11 @@
        "real",
        "smooth"
       ],
-      "default": "real",
       "x-labels": {
        "real": "Real time",
        "smooth": "Smooth (slower)"
       },
+      "default": "real",
       "x-help": "Smooth gives every frame its own picture, however busy the computer is. It takes longer to record than the take lasts."
      },
      "pictures": {
@@ -7787,12 +7787,12 @@
        "lossless",
        "full-detail"
       ],
-      "default": "standard",
       "x-labels": {
        "standard": "Standard",
        "lossless": "Lossless",
        "full-detail": "Full detail"
       },
+      "default": "standard",
       "x-help": "Standard matches real-time takes. Lossless keeps every pixel exact and takes about 70% longer to record. Full detail uses every pixel of a high-density screen: sharper, with twice the width and height, but about four times as long to record.",
       "x-show-if": {
        "timing": [
@@ -7841,12 +7841,12 @@
        "baked",
        "none"
       ],
-      "default": "synthetic",
       "x-labels": {
        "synthetic": "Smooth",
        "baked": "As on screen",
        "none": "None"
-      }
+      },
+      "default": "synthetic"
      },
      "showActions": {
       "description": "Quick mode: show action labels on the video",
@@ -8015,12 +8015,12 @@
        "full-page",
        "element"
       ],
-      "default": "viewport",
       "x-labels": {
        "viewport": "Visible part",
        "full-page": "Whole page",
        "element": "One element"
-      }
+      },
+      "default": "viewport"
      },
      "target": {
       "description": "Element",
@@ -8064,12 +8064,12 @@
        "cutout",
        "bleed"
       ],
-      "default": "window",
       "x-labels": {
        "window": "Window",
        "cutout": "Cut-out",
        "bleed": "Full bleed"
-      }
+      },
+      "default": "window"
      },
      "backdrop": {
       "description": "Backdrop",
@@ -8305,13 +8305,13 @@
        "windows",
        "linux"
       ],
-      "default": "none",
       "x-labels": {
        "none": "None",
        "macos": "macOS",
        "windows": "Windows",
        "linux": "Linux"
       },
+      "default": "none",
       "x-show-if": {
        "look": [
         "window"
@@ -8349,11 +8349,11 @@
        "top",
        "middle"
       ],
-      "default": "top",
       "x-labels": {
        "top": "The top",
        "middle": "The middle"
       },
+      "default": "top",
       "x-help": "Which part of a tall picture shows.",
       "x-show-if": {
        "look": [
@@ -8498,13 +8498,13 @@
        "windows",
        "linux"
       ],
-      "default": "none",
       "x-labels": {
        "none": "None",
        "macos": "macOS",
        "windows": "Windows",
        "linux": "Linux"
-      }
+      },
+      "default": "none"
      },
      "frameTheme": {
       "description": "Frame colour",
@@ -8559,11 +8559,11 @@
        "fixed",
        "host"
       ],
-      "default": "fixed",
       "x-labels": {
        "fixed": "This address",
        "host": "This host with the page's path"
       },
+      "default": "fixed",
       "x-show-if": {
        "frame": [
         "macos",
@@ -8716,13 +8716,13 @@
        "snappy",
        "linear"
       ],
-      "default": "smooth",
       "x-labels": {
        "smooth": "Smooth",
        "gentle": "Gentle",
        "snappy": "Snappy",
        "linear": "Even"
       },
+      "default": "smooth",
       "x-advanced": true
      },
      "cameraPace": {
@@ -9510,11 +9510,11 @@
        "laptop",
        "phone"
       ],
-      "default": "laptop",
       "x-labels": {
        "laptop": "Laptop",
        "phone": "Phone"
-      }
+      },
+      "default": "laptop"
      },
      "entrance": {
       "description": "Entrance",
@@ -9524,12 +9524,12 @@
        "open",
        "none"
       ],
-      "default": "open",
       "x-labels": {
        "rise": "Slide in",
        "open": "Open up",
        "none": "None"
       },
+      "default": "open",
       "x-show-if": {
        "device": [
         "laptop"
@@ -9544,12 +9544,12 @@
        "rotate-in",
        "float"
       ],
-      "default": "rise",
       "x-labels": {
        "rise": "Slide in",
        "rotate-in": "Turn in",
        "float": "Float"
       },
+      "default": "rise",
       "x-show-if": {
        "device": [
         "phone"
@@ -9564,12 +9564,12 @@
        "tilt",
        "showcase"
       ],
-      "default": "flat",
       "x-labels": {
        "flat": "Straight on",
        "tilt": "Turned",
        "showcase": "Showcase"
       },
+      "default": "flat",
       "x-show-if": {
        "device": [
         "phone"
@@ -9585,22 +9585,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -9780,11 +9778,11 @@
        "none",
        "zoom-to-screen"
       ],
-      "default": "none",
       "x-labels": {
        "none": "None",
        "zoom-to-screen": "Zoom into the screen"
       },
+      "default": "none",
       "x-show-if": {
        "device": [
         "laptop"
@@ -9896,12 +9894,12 @@
        "windows",
        "linux"
       ],
-      "default": "macos",
       "x-labels": {
        "macos": "macOS",
        "windows": "Windows",
        "linux": "Linux"
-      }
+      },
+      "default": "macos"
      },
      "frameTheme": {
       "description": "Frame colour",
@@ -9937,11 +9935,11 @@
        "fixed",
        "host"
       ],
-      "default": "fixed",
       "x-labels": {
        "fixed": "This address",
        "host": "This host with the page's path"
       },
+      "default": "fixed",
       "x-show-if": {
        "addressBar": [
         "true"
@@ -9997,13 +9995,13 @@
        "gradient",
        "asset"
       ],
-      "default": "image",
       "x-labels": {
        "image": "Studio image",
        "solid": "Colour",
        "gradient": "Gradient",
        "asset": "Your image"
-      }
+      },
+      "default": "image"
      },
      "name": {
       "description": "Studio image",
@@ -10169,11 +10167,11 @@
        "arrow",
        "mac"
       ],
-      "default": "arrow",
       "x-labels": {
        "arrow": "Simple arrow",
        "mac": "Mac"
       },
+      "default": "arrow",
       "x-help": "Mac turns into a pointing hand over links and buttons and a text cursor over fields, as the page asks."
      },
      "size": {
@@ -10428,11 +10426,11 @@
        "bottom",
        "top"
       ],
-      "default": "bottom",
       "x-labels": {
        "bottom": "Bottom",
        "top": "Top"
-      }
+      },
+      "default": "bottom"
      },
      "typed": {
       "description": "Show typed text",
@@ -10527,11 +10525,11 @@
        "symbols",
        "words"
       ],
-      "default": "symbols",
       "x-labels": {
        "symbols": "Symbols (⌘⇧K)",
        "words": "Words (Cmd + Shift + K)"
       },
+      "default": "symbols",
       "x-advanced": true
      },
      "font": {
@@ -10808,7 +10806,6 @@
        "underline",
        "marker"
       ],
-      "default": "clean",
       "x-labels": {
        "clean": "Clean",
        "box": "Hand-drawn box",
@@ -10816,6 +10813,7 @@
        "underline": "Underline",
        "marker": "Marker"
       },
+      "default": "clean",
       "x-help": "The hand-drawn looks draw themselves in as the action starts."
      },
      "roughness": {
@@ -11047,7 +11045,6 @@
        "underline",
        "marker"
       ],
-      "default": "clean",
       "x-labels": {
        "clean": "Clean",
        "box": "Hand-drawn box",
@@ -11055,6 +11052,7 @@
        "underline": "Underline",
        "marker": "Marker"
       },
+      "default": "clean",
       "x-help": "The hand-drawn looks draw themselves in as the action starts.",
       "x-hidden": true
      },
@@ -11257,7 +11255,6 @@
        "underline",
        "marker"
       ],
-      "default": "clean",
       "x-labels": {
        "clean": "Clean",
        "box": "Hand-drawn box",
@@ -11265,6 +11262,7 @@
        "underline": "Underline",
        "marker": "Marker"
       },
+      "default": "clean",
       "x-help": "The hand-drawn looks draw themselves in as the action starts.",
       "x-hidden": true
      },
@@ -11670,34 +11668,37 @@
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "y": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "width": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "height": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         }
        },
-       "required": [
-        "x",
-        "y",
-        "width",
-        "height"
-       ],
-       "default": {}
+       "default": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 0.0,
+        "height": 0.0
+       }
       },
       "maxItems": 8,
       "default": [
@@ -12270,7 +12271,6 @@
        "strong_contrast",
        "negative"
       ],
-      "default": "none",
       "x-labels": {
        "none": "None",
        "vintage": "Vintage",
@@ -12280,7 +12280,8 @@
        "medium_contrast": "More contrast",
        "strong_contrast": "Strong contrast",
        "negative": "Negative"
-      }
+      },
+      "default": "none"
      }
     },
     "type": "object",
@@ -12386,12 +12387,12 @@
        "sepia",
        "tint"
       ],
-      "default": "bw",
       "x-labels": {
        "bw": "Black and white",
        "sepia": "Sepia",
        "tint": "Tint"
-      }
+      },
+      "default": "bw"
      },
      "tint": {
       "description": "Tint colour",
@@ -12429,7 +12430,6 @@
        "green",
        "blue"
       ],
-      "default": "none",
       "x-labels": {
        "none": "None",
        "red": "Red",
@@ -12438,6 +12438,7 @@
        "green": "Green",
        "blue": "Blue"
       },
+      "default": "none",
       "x-help": "Like a coloured filter on a black-and-white camera: things of that colour come out lighter.",
       "x-show-if": {
        "kind": [
@@ -12546,11 +12547,11 @@
        "round",
        "frame"
       ],
-      "default": "round",
       "x-labels": {
        "round": "Round",
        "frame": "Follows the frame"
       },
+      "default": "round",
       "x-advanced": true
      },
      "colourGrain": {
@@ -12842,14 +12843,14 @@
        "marker",
        "crossed-off"
       ],
-      "default": "underline",
       "x-labels": {
        "underline": "Underline",
        "circle": "Circle",
        "box": "Box",
        "marker": "Marker",
        "crossed-off": "Crossed out"
-      }
+      },
+      "default": "underline"
      },
      "markColor": {
       "description": "Mark colour",
@@ -13650,6 +13651,12 @@
        "top-left",
        "top-right"
       ],
+      "x-labels": {
+       "bottom-left": "Bottom left",
+       "bottom-right": "Bottom right",
+       "top-left": "Top left",
+       "top-right": "Top right"
+      },
       "default": "bottom-left"
      },
      "accent": {
@@ -14664,34 +14671,37 @@
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "y": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "width": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "height": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         }
        },
-       "required": [
-        "x",
-        "y",
-        "width",
-        "height"
-       ],
-       "default": {}
+       "default": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 0.0,
+        "height": 0.0
+       }
       },
       "maxItems": 8,
       "default": [
@@ -14967,11 +14977,11 @@
        "contain",
        "cover"
       ],
-      "default": "contain",
       "x-labels": {
        "contain": "Show all",
        "cover": "Fill the frame"
-      }
+      },
+      "default": "contain"
      },
      "background": {
       "description": "Background",
@@ -14987,12 +14997,12 @@
        "left",
        "right"
       ],
-      "default": "center",
       "x-labels": {
-       "left": "Left",
        "center": "Centre",
+       "left": "Left",
        "right": "Right"
       },
+      "default": "center",
       "x-advanced": true
      },
      "clipDuration": {
@@ -15721,12 +15731,12 @@
        "radial",
        "conic"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Straight",
        "radial": "Round",
        "conic": "Around the centre"
       },
+      "default": "linear",
       "x-advanced": true
      },
      "grainSize": {
@@ -17275,12 +17285,12 @@
        "screen",
        "normal"
       ],
-      "default": "normal",
       "x-labels": {
-       "normal": "Normal",
+       "multiply": "Darken",
        "screen": "Lighten",
-       "multiply": "Darken"
+       "normal": "Normal"
       },
+      "default": "normal",
       "x-advanced": true
      },
      "clipDuration": {
@@ -17530,7 +17540,6 @@
        "still",
        "keyframes"
       ],
-      "default": "spin",
       "x-labels": {
        "spin": "Spin",
        "tilt-in": "Tilt in",
@@ -17539,7 +17548,8 @@
        "swing": "Swing",
        "still": "Still",
        "keyframes": "Keyframes"
-      }
+      },
+      "default": "spin"
      },
      "camera": {
       "description": "Camera keyframes",
@@ -17637,12 +17647,12 @@
        "soft",
        "dramatic"
       ],
-      "default": "studio",
       "x-labels": {
        "studio": "Studio",
        "soft": "Soft",
        "dramatic": "Dramatic"
-      }
+      },
+      "default": "studio"
      },
      "background": {
       "description": "Background",
@@ -18005,7 +18015,6 @@
        "still",
        "keyframes"
       ],
-      "default": "tilt-in",
       "x-labels": {
        "spin": "Spin",
        "tilt-in": "Tilt in",
@@ -18014,7 +18023,8 @@
        "swing": "Swing",
        "still": "Still",
        "keyframes": "Keyframes"
-      }
+      },
+      "default": "tilt-in"
      },
      "camera": {
       "description": "Camera keyframes",
@@ -18112,12 +18122,12 @@
        "soft",
        "dramatic"
       ],
-      "default": "soft",
       "x-labels": {
        "studio": "Studio",
        "soft": "Soft",
        "dramatic": "Dramatic"
-      }
+      },
+      "default": "soft"
      },
      "background": {
       "description": "Background",
@@ -18493,6 +18503,11 @@
        "left",
        "right"
       ],
+      "x-labels": {
+       "center": "Centre",
+       "left": "Left",
+       "right": "Right"
+      },
       "default": "center"
      },
      "lineWidth": {
@@ -18519,7 +18534,6 @@
        "still",
        "keyframes"
       ],
-      "default": "tilt-in",
       "x-labels": {
        "spin": "Spin",
        "tilt-in": "Tilt in",
@@ -18528,7 +18542,8 @@
        "swing": "Swing",
        "still": "Still",
        "keyframes": "Keyframes"
-      }
+      },
+      "default": "tilt-in"
      },
      "camera": {
       "description": "Camera keyframes",
@@ -18626,12 +18641,12 @@
        "soft",
        "dramatic"
       ],
-      "default": "studio",
       "x-labels": {
        "studio": "Studio",
        "soft": "Soft",
        "dramatic": "Dramatic"
-      }
+      },
+      "default": "studio"
      },
      "background": {
       "description": "Background",
@@ -18956,7 +18971,6 @@
        "still",
        "keyframes"
       ],
-      "default": "spin",
       "x-labels": {
        "spin": "Turntable",
        "orbit": "Orbit",
@@ -18964,7 +18978,8 @@
        "float": "Float",
        "still": "Still",
        "keyframes": "Keyframes"
-      }
+      },
+      "default": "spin"
      },
      "camera": {
       "description": "Camera keyframes",
@@ -19094,12 +19109,12 @@
        "soft",
        "dramatic"
       ],
-      "default": "studio",
       "x-labels": {
        "studio": "Studio",
        "soft": "Soft",
        "dramatic": "Dramatic"
-      }
+      },
+      "default": "studio"
      },
      "shadow": {
       "description": "Floor shadow",
@@ -19406,13 +19421,13 @@
        "phone",
        "floating"
       ],
-      "default": "laptop",
       "x-labels": {
        "laptop": "Laptop",
        "monitor": "Monitor",
        "phone": "Phone",
        "floating": "Floating screen"
-      }
+      },
+      "default": "laptop"
      },
      "deviceColor": {
       "description": "Device colour",
@@ -19536,12 +19551,12 @@
        "soft",
        "dramatic"
       ],
-      "default": "studio",
       "x-labels": {
        "studio": "Studio",
        "soft": "Soft",
        "dramatic": "Dramatic"
-      }
+      },
+      "default": "studio"
      },
      "background": {
       "description": "Background",
@@ -19953,12 +19968,12 @@
        "soft",
        "dramatic"
       ],
-      "default": "studio",
       "x-labels": {
        "studio": "Studio",
        "soft": "Soft",
        "dramatic": "Dramatic"
-      }
+      },
+      "default": "studio"
      },
      "background": {
       "description": "Background",
@@ -20699,12 +20714,12 @@
        "left",
        "right"
       ],
-      "default": "center",
       "x-labels": {
-       "left": "Left",
        "center": "Centre",
+       "left": "Left",
        "right": "Right"
       },
+      "default": "center",
       "x-advanced": true
      },
      "letterSpacing": {
@@ -21649,11 +21664,11 @@
        "up",
        "down"
       ],
-      "default": "up",
       "x-labels": {
        "up": "Up",
        "down": "Down"
       },
+      "default": "up",
       "x-advanced": true
      },
      "letterSpacing": {
@@ -22586,12 +22601,12 @@
        "left",
        "right"
       ],
-      "default": "center",
       "x-labels": {
-       "left": "Left",
        "center": "Centre",
+       "left": "Left",
        "right": "Right"
-      }
+      },
+      "default": "center"
      },
      "lineStagger": {
       "description": "Line stagger",
@@ -23574,13 +23589,13 @@
        "screen",
        "normal"
       ],
-      "default": "multiply",
-      "x-help": "How the split copies mix with what is behind them.",
       "x-labels": {
        "multiply": "On a light background",
        "screen": "On a dark background",
        "normal": "On any background"
       },
+      "default": "multiply",
+      "x-help": "How the split copies mix with what is behind them.",
       "x-advanced": true
      },
      "background": {
@@ -24658,12 +24673,12 @@
        "left",
        "right"
       ],
-      "default": "left",
       "x-labels": {
-       "left": "Left",
        "center": "Centre",
+       "left": "Left",
        "right": "Right"
-      }
+      },
+      "default": "left"
      },
      "lineStagger": {
       "description": "Line stagger",
@@ -26705,22 +26720,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "light",
        "colors": {}
@@ -28500,12 +28513,12 @@
        "stripes",
        "edge"
       ],
-      "default": "checks",
       "x-labels": {
        "checks": "Checks",
        "stripes": "Stripes",
        "edge": "Edge"
-      }
+      },
+      "default": "checks"
      },
      "shapeScale": {
       "description": "Pattern size",
@@ -29750,14 +29763,14 @@
        "4x4",
        "8x8"
       ],
-      "default": "4x4",
-      "x-advanced": true,
       "x-labels": {
        "random": "Random",
        "2x2": "2 × 2",
        "4x4": "4 × 4",
        "8x8": "8 × 8"
-      }
+      },
+      "default": "4x4",
+      "x-advanced": true
      },
      "scale": {
       "description": "Scale",
@@ -31184,13 +31197,13 @@
        "1:1",
        "3:4"
       ],
-      "default": "16:9",
       "x-labels": {
        "16:9": "16:9",
        "4:3": "4:3",
        "1:1": "Square",
        "3:4": "3:4"
       },
+      "default": "16:9",
       "x-advanced": true
      },
      "captionStrip": {
@@ -33093,22 +33106,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -34704,22 +34715,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "light",
        "colors": {}
@@ -36045,13 +36054,13 @@
        "comma",
        "dot"
       ],
-      "default": "space",
       "x-labels": {
        "none": "None",
        "space": "Space",
        "comma": "Comma",
        "dot": "Dot"
       },
+      "default": "space",
       "x-advanced": true
      },
      "fontWeight": {
@@ -36657,22 +36666,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "light",
        "colors": {}
@@ -36852,6 +36859,12 @@
        "top-left",
        "top-right"
       ],
+      "x-labels": {
+       "bottom-left": "Bottom left",
+       "bottom-right": "Bottom right",
+       "top-left": "Top left",
+       "top-right": "Top right"
+      },
       "default": "bottom-right",
       "x-advanced": true
      },
@@ -37116,22 +37129,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "light",
        "colors": {}
@@ -37318,6 +37329,12 @@
        "top-left",
        "top-right"
       ],
+      "x-labels": {
+       "bottom-left": "Bottom left",
+       "bottom-right": "Bottom right",
+       "top-left": "Top left",
+       "top-right": "Top right"
+      },
       "default": "bottom-right",
       "x-advanced": true
      },
@@ -37571,15 +37588,15 @@
        "opened",
        "closed"
       ],
+      "x-labels": {
+       "opened": "Open",
+       "closed": "Closed"
+      },
       "default": "opened",
       "x-show-if": {
        "autoplay": [
         "false"
        ]
-      },
-      "x-labels": {
-       "opened": "Open",
-       "closed": "Closed"
       }
      },
      "query": {
@@ -37642,22 +37659,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "light",
        "colors": {}
@@ -39468,6 +39483,10 @@
        "none",
        "zoom-to-screen"
       ],
+      "x-labels": {
+       "none": "None",
+       "zoom-to-screen": "Zoom into the screen"
+      },
       "default": "zoom-to-screen"
      },
      "notchLabel": {
@@ -39567,22 +39586,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -39957,6 +39974,11 @@
        "tilt",
        "showcase"
       ],
+      "x-labels": {
+       "flat": "Straight on",
+       "tilt": "Turned",
+       "showcase": "Showcase"
+      },
       "default": "showcase"
      },
      "entrance": {
@@ -39967,6 +39989,11 @@
        "rotate-in",
        "float"
       ],
+      "x-labels": {
+       "rise": "Slide in",
+       "rotate-in": "Turn in",
+       "float": "Float"
+      },
       "default": "float"
      },
      "screenSrc": {
@@ -40064,22 +40091,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -40484,22 +40509,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -41588,22 +41611,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "light",
        "colors": {}
@@ -42143,22 +42164,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -42724,22 +42743,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -43227,22 +43244,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -43893,22 +43908,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "light",
        "colors": {}
@@ -44569,22 +44582,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -45015,22 +45026,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -45115,13 +45124,13 @@
        "comma",
        "dot"
       ],
-      "default": "none",
       "x-labels": {
        "none": "None",
        "space": "Space",
        "comma": "Comma",
        "dot": "Dot"
       },
+      "default": "none",
       "x-advanced": true
      },
      "fontFamily": {
@@ -45521,22 +45530,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -45580,11 +45587,11 @@
        "compact",
        "full"
       ],
-      "default": "compact",
       "x-labels": {
        "compact": "Short (1.2K)",
        "full": "Full (1,200)"
       },
+      "default": "compact",
       "x-advanced": true
      },
      "glow": {
@@ -46064,11 +46071,11 @@
        "compact",
        "full"
       ],
-      "default": "compact",
       "x-labels": {
        "compact": "Short (1.2K)",
        "full": "Full (1,200)"
       },
+      "default": "compact",
       "x-advanced": true
      },
      "dropoffHeading": {
@@ -46499,11 +46506,11 @@
        "compact",
        "full"
       ],
-      "default": "compact",
       "x-labels": {
        "compact": "Short (1.2K)",
        "full": "Full (1,200)"
       },
+      "default": "compact",
       "x-advanced": true
      },
      "segmentGap": {
@@ -46545,11 +46552,11 @@
        "percent",
        "value"
       ],
-      "default": "percent",
       "x-labels": {
        "percent": "Share",
        "value": "Value"
       },
+      "default": "percent",
       "x-advanced": true
      },
      "fontFamily": {
@@ -46997,11 +47004,11 @@
        "compact",
        "full"
       ],
-      "default": "compact",
       "x-labels": {
        "compact": "Short (1.2K)",
        "full": "Full (1,200)"
       },
+      "default": "compact",
       "x-advanced": true
      },
      "cornerRadius": {
@@ -47500,11 +47507,11 @@
        "compact",
        "full"
       ],
-      "default": "compact",
       "x-labels": {
        "compact": "Short (1.2K)",
        "full": "Full (1,200)"
       },
+      "default": "compact",
       "x-advanced": true
      },
      "cornerRadius": {
@@ -47526,13 +47533,13 @@
        "top-left",
        "top-right"
       ],
-      "default": "bottom-right",
       "x-labels": {
-       "top-left": "Top left",
-       "top-right": "Top right",
        "bottom-left": "Bottom left",
-       "bottom-right": "Bottom right"
+       "bottom-right": "Bottom right",
+       "top-left": "Top left",
+       "top-right": "Top right"
       },
+      "default": "bottom-right",
       "x-advanced": true
      },
      "stepLabelSize": {
@@ -48482,22 +48489,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -48609,6 +48614,10 @@
        "compact",
        "full"
       ],
+      "x-labels": {
+       "compact": "Short (1.2K)",
+       "full": "Full (1,200)"
+      },
       "default": "compact",
       "x-advanced": true
      },
@@ -49496,22 +49505,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -50032,22 +50039,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -50535,22 +50540,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -51085,22 +51088,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -51623,22 +51624,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -52079,22 +52078,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -52572,22 +52569,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -53126,22 +53121,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -53543,22 +53536,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -53953,22 +53944,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -54462,22 +54451,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -55042,22 +55029,20 @@
         "enum": [
          "light",
          "dark"
-        ]
+        ],
+        "default": "light"
        },
        "colors": {
         "type": "object",
         "additionalProperties": {
          "type": "string"
         },
+        "default": {},
         "propertyNames": {
          "type": "string"
         }
        }
       },
-      "required": [
-       "mode",
-       "colors"
-      ],
       "default": {
        "mode": "dark",
        "colors": {}
@@ -58077,13 +58062,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -58161,13 +58146,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -58251,13 +58236,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -58348,13 +58333,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -58425,13 +58410,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -58499,13 +58484,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -58603,13 +58588,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -58709,13 +58694,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -58816,13 +58801,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -58922,13 +58907,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -59142,13 +59127,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -59316,13 +59301,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -59460,11 +59445,11 @@
        "up",
        "down"
       ],
-      "default": "up",
       "x-labels": {
        "up": "Up",
        "down": "Down"
-      }
+      },
+      "default": "up"
      },
      "durationInFrames": {
       "description": "Length",
@@ -59491,13 +59476,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -59630,13 +59615,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -59780,13 +59765,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -59889,13 +59874,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -60058,13 +60043,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -60180,13 +60165,13 @@
        "4x4",
        "8x8"
       ],
-      "default": "4x4",
       "x-labels": {
        "random": "Random",
        "2x2": "2 × 2",
        "4x4": "4 × 4",
        "8x8": "8 × 8"
       },
+      "default": "4x4",
       "x-advanced": true
      },
      "durationInFrames": {
@@ -60214,13 +60199,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -60359,13 +60344,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -60522,13 +60507,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -60663,13 +60648,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -60804,13 +60789,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -60914,13 +60899,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -61046,13 +61031,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -61214,13 +61199,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      }
     },
@@ -61523,13 +61508,13 @@
        "exp",
        "log"
       ],
-      "default": "tri",
       "x-labels": {
        "tri": "Even",
        "qsin": "Gentle",
        "exp": "Quick then slow",
        "log": "Slow then quick"
       },
+      "default": "tri",
       "x-advanced": true
      }
     },
@@ -61750,11 +61735,11 @@
        "later",
        "cut"
       ],
-      "default": "later",
       "x-labels": {
        "later": "Start it with the clip",
        "cut": "Cut its start"
       },
+      "default": "later",
       "x-help": "When the action comes so early the sound would start before the clip.",
       "x-show-if": {
        "atAction": [
@@ -62023,12 +62008,12 @@
        "brown",
        "white"
       ],
-      "default": "pink",
       "x-labels": {
        "pink": "Pink (soft)",
        "brown": "Brown (deep)",
        "white": "White (bright)"
       },
+      "default": "pink",
       "x-help": "Pink sounds like a quiet room, brown like a distant rumble, white like air."
      },
      "level": {
@@ -62099,12 +62084,12 @@
        "beep",
        "countdown"
       ],
-      "default": "beep",
       "x-labels": {
        "tone": "Tone",
        "beep": "Beep",
        "countdown": "Countdown"
       },
+      "default": "beep",
       "x-help": "A countdown is short beeps a set time apart, then a long one."
      },
      "pitchHz": {
@@ -62217,13 +62202,13 @@
        "square",
        "saw"
       ],
-      "default": "sine",
       "x-labels": {
        "sine": "Pure",
        "triangle": "Soft",
        "square": "Hollow",
        "saw": "Buzzy"
       },
+      "default": "sine",
       "x-advanced": true
      },
      "finalLength": {
@@ -62308,7 +62293,6 @@
        "swell",
        "click"
       ],
-      "default": "whoosh",
       "x-labels": {
        "whoosh": "Whoosh",
        "riser": "Riser",
@@ -62317,7 +62301,8 @@
        "tap": "Tap",
        "swell": "Swell",
        "click": "Click"
-      }
+      },
+      "default": "whoosh"
      },
      "variation": {
       "description": "Variation",
@@ -62334,7 +62319,6 @@
        "longer",
        "custom"
       ],
-      "default": "picked",
       "x-labels": {
        "picked": "Default",
        "as-made": "As first made",
@@ -62347,6 +62331,7 @@
        "longer": "Longer",
        "custom": "Custom"
       },
+      "default": "picked",
       "x-help": "Custom sets the length, pitch, brightness and take yourself. On a click, shorter and longer change the gap between its press and release."
      },
      "lengthMs": {
@@ -62469,12 +62454,12 @@
        "right-to-left",
        "centre"
       ],
-      "default": "left-to-right",
       "x-labels": {
        "left-to-right": "Left to right",
        "right-to-left": "Right to left",
        "centre": "Stays in the middle"
       },
+      "default": "left-to-right",
       "x-show-if": {
        "preset": [
         "whoosh"
@@ -62532,11 +62517,11 @@
        "generated",
        "file"
       ],
-      "default": "generated",
       "x-labels": {
        "generated": "A generated sound",
        "file": "A sound file"
-      }
+      },
+      "default": "generated"
      },
      "preset": {
       "description": "Generated sound",
@@ -62550,7 +62535,6 @@
        "swell",
        "click"
       ],
-      "default": "whoosh",
       "x-labels": {
        "whoosh": "Whoosh",
        "riser": "Riser",
@@ -62560,6 +62544,7 @@
        "swell": "Swell",
        "click": "Click"
       },
+      "default": "whoosh",
       "x-show-if": {
        "soundFrom": [
         "generated"
@@ -62581,7 +62566,6 @@
        "longer",
        "custom"
       ],
-      "default": "picked",
       "x-labels": {
        "picked": "Default",
        "as-made": "As first made",
@@ -62594,6 +62578,7 @@
        "longer": "Longer",
        "custom": "Custom"
       },
+      "default": "picked",
       "x-show-if": {
        "soundFrom": [
         "generated"
@@ -62737,12 +62722,12 @@
        "middle",
        "end"
       ],
-      "default": "middle",
       "x-labels": {
        "start": "From its start",
        "middle": "Centred on it",
        "end": "Ending with it"
       },
+      "default": "middle",
       "x-advanced": true
      },
      "lengthMs": {
@@ -62810,12 +62795,12 @@
        "marker",
        "clip-end"
       ],
-      "default": "action",
       "x-labels": {
        "action": "An action",
        "marker": "A marker",
        "clip-end": "The end of the clip"
-      }
+      },
+      "default": "action"
      },
      "atAction": {
       "description": "Action",
@@ -62858,11 +62843,11 @@
        "riser",
        "swell"
       ],
-      "default": "riser",
       "x-labels": {
        "riser": "Riser",
        "swell": "Swell"
-      }
+      },
+      "default": "riser"
      },
      "variation": {
       "description": "Variation",
@@ -62877,7 +62862,6 @@
        "higher",
        "custom"
       ],
-      "default": "picked",
       "x-labels": {
        "picked": "Default",
        "as-made": "As first made",
@@ -62887,7 +62871,8 @@
        "lower": "5 semitones lower",
        "higher": "5 semitones higher",
        "custom": "Custom"
-      }
+      },
+      "default": "picked"
      },
      "pitch": {
       "description": "Pitch",
@@ -62941,14 +62926,14 @@
        "tap",
        "click"
       ],
-      "default": "off",
       "x-labels": {
        "off": "None",
        "pop": "Pop",
        "ding": "Ding",
        "tap": "Tap",
        "click": "Click"
-      }
+      },
+      "default": "off"
      },
      "volume": {
       "description": "Volume",
@@ -63139,13 +63124,13 @@
        "out",
        "in-out"
       ],
-      "default": "linear",
       "x-labels": {
        "linear": "Even",
        "in": "Slow start",
        "out": "Slow end",
        "in-out": "Slow start and end"
       },
+      "default": "linear",
       "x-advanced": true
      },
      "cuts": {
@@ -63249,13 +63234,13 @@
           "out",
           "in-out"
          ],
-         "default": "linear",
          "x-labels": {
           "linear": "Even",
           "in": "Slow start",
           "out": "Slow end",
           "in-out": "Slow start and end"
          },
+         "default": "linear",
          "x-advanced": true
         }
        },
@@ -63326,12 +63311,12 @@
        "first",
        "last"
       ],
-      "default": "longest",
       "x-labels": {
        "longest": "Longest",
        "first": "Layer 1",
        "last": "Front layer"
-      }
+      },
+      "default": "longest"
      },
      "offsetsMs": {
       "description": "Start each layer at",
@@ -63591,12 +63576,12 @@
        "hold",
        "cut"
       ],
-      "default": "speed",
       "x-labels": {
        "speed": "Change speed",
        "hold": "Hold the end",
        "cut": "Cut"
-      }
+      },
+      "default": "speed"
      }
     },
     "type": "object",
@@ -63696,11 +63681,11 @@
        "cover",
        "contain"
       ],
-      "default": "contain",
       "x-labels": {
        "cover": "Fill the frame",
        "contain": "Show all"
-      }
+      },
+      "default": "contain"
      },
      "stillMs": {
       "description": "Length",
@@ -63941,11 +63926,11 @@
        "cover",
        "contain"
       ],
-      "default": "contain",
       "x-labels": {
        "cover": "Fill the frame",
        "contain": "Show all"
-      }
+      },
+      "default": "contain"
      },
      "muted": {
       "description": "Muted",
@@ -64269,11 +64254,11 @@
        "first",
        "project"
       ],
-      "default": "first",
       "x-labels": {
        "first": "Of the first file",
        "project": "Of the project"
       },
+      "default": "first",
       "x-help": "What files that don't match are converted to.",
       "x-advanced": true
      },
@@ -64453,12 +64438,12 @@
        "crop",
        "stretch"
       ],
-      "default": "pad",
       "x-labels": {
        "pad": "Add bars",
        "crop": "Crop to fill",
        "stretch": "Stretch"
-      }
+      },
+      "default": "pad"
      },
      "background": {
       "description": "Bar colour",
@@ -64484,12 +64469,12 @@
        "center",
        "end"
       ],
-      "default": "center",
       "x-labels": {
        "start": "Top or left",
        "center": "Centre",
        "end": "Bottom or right"
       },
+      "default": "center",
       "x-help": "Where the picture sits in the bars, or which part a crop keeps.",
       "x-show-if": {
        "mode": [
@@ -64544,13 +64529,13 @@
        "vp9",
        "prores"
       ],
-      "default": "h264",
       "x-labels": {
        "h264": "MP4",
        "h265": "MP4 (HEVC)",
        "vp9": "WebM",
        "prores": "ProRes"
       },
+      "default": "h264",
       "x-advanced": true
      },
      "crf": {
@@ -64579,7 +64564,6 @@
        "slow",
        "veryslow"
       ],
-      "default": "medium",
       "x-labels": {
        "ultrafast": "Fastest, biggest",
        "fast": "Fast",
@@ -64587,6 +64571,7 @@
        "slow": "Small",
        "veryslow": "Smallest, slowest"
       },
+      "default": "medium",
       "x-advanced": true,
       "x-show-if": {
        "codec": [
@@ -64604,13 +64589,13 @@
        "standard",
        "hq"
       ],
-      "default": "hq",
       "x-labels": {
        "proxy": "Proxy",
        "lt": "Light",
        "standard": "Standard",
        "hq": "High quality"
       },
+      "default": "hq",
       "x-show-if": {
        "codec": [
         "prores"
@@ -64626,12 +64611,12 @@
        "medium",
        "high"
       ],
-      "default": "high",
       "x-labels": {
        "low": "Low",
        "medium": "Medium",
        "high": "High"
       },
+      "default": "high",
       "x-show-if": {
        "codec": [
         "h264",
@@ -64692,13 +64677,13 @@
        "vp9",
        "prores"
       ],
-      "default": "h264",
       "x-labels": {
        "h264": "MP4",
        "h265": "MP4 (HEVC)",
        "vp9": "WebM",
        "prores": "ProRes"
       },
+      "default": "h264",
       "x-advanced": true
      },
      "crf": {
@@ -64727,7 +64712,6 @@
        "slow",
        "veryslow"
       ],
-      "default": "medium",
       "x-labels": {
        "ultrafast": "Fastest, biggest",
        "fast": "Fast",
@@ -64735,6 +64719,7 @@
        "slow": "Small",
        "veryslow": "Smallest, slowest"
       },
+      "default": "medium",
       "x-advanced": true,
       "x-show-if": {
        "codec": [
@@ -64752,13 +64737,13 @@
        "standard",
        "hq"
       ],
-      "default": "hq",
       "x-labels": {
        "proxy": "Proxy",
        "lt": "Light",
        "standard": "Standard",
        "hq": "High quality"
       },
+      "default": "hq",
       "x-show-if": {
        "codec": [
         "prores"
@@ -64774,12 +64759,12 @@
        "medium",
        "high"
       ],
-      "default": "high",
       "x-labels": {
        "low": "Low",
        "medium": "Medium",
        "high": "High"
       },
+      "default": "high",
       "x-show-if": {
        "codec": [
         "h264",
@@ -64857,13 +64842,13 @@
        "floyd_steinberg",
        "none"
       ],
-      "default": "sierra2_4a",
       "x-labels": {
        "sierra2_4a": "Smooth",
        "bayer": "Patterned",
        "floyd_steinberg": "Fine",
        "none": "Off"
       },
+      "default": "sierra2_4a",
       "x-advanced": true
      },
      "colours": {
@@ -64882,11 +64867,11 @@
        "moving",
        "whole"
       ],
-      "default": "moving",
       "x-labels": {
        "moving": "What moves",
        "whole": "The whole picture"
       },
+      "default": "moving",
       "x-help": "What the colour table is chosen from.",
       "x-advanced": true
      }
@@ -64935,12 +64920,12 @@
        "mp3",
        "wav"
       ],
-      "default": "m4a",
       "x-labels": {
        "m4a": "M4A",
        "mp3": "MP3",
        "wav": "WAV"
-      }
+      },
+      "default": "m4a"
      },
      "bitrate": {
       "description": "Bit rate",
@@ -65117,12 +65102,12 @@
        "fifty",
        "sixty"
       ],
-      "default": "find",
       "x-labels": {
        "find": "Find it",
        "fifty": "50 Hz",
        "sixty": "60 Hz"
       },
+      "default": "find",
       "x-help": "Mains hum is 50 Hz in most of the world and 60 Hz in the Americas. Find it listens for both first."
      },
      "harmonics": {
@@ -65200,11 +65185,11 @@
        "waveform",
        "spectrum"
       ],
-      "default": "waveform",
       "x-labels": {
        "waveform": "Waveform",
        "spectrum": "Spectrum"
       },
+      "default": "waveform",
       "x-help": "A waveform shows loudness over time; a spectrum also shows pitch, low at the bottom."
      },
      "width": {
@@ -65250,7 +65235,6 @@
        "rainbow",
        "cool"
       ],
-      "default": "magma",
       "x-labels": {
        "magma": "Magma",
        "fire": "Fire",
@@ -65258,6 +65242,7 @@
        "rainbow": "Rainbow",
        "cool": "Cool"
       },
+      "default": "magma",
       "x-show-if": {
        "kind": [
         "spectrum"
@@ -65295,13 +65280,13 @@
        "sqrt",
        "cbrt"
       ],
-      "default": "lin",
       "x-labels": {
        "lin": "Even",
        "log": "Log",
        "sqrt": "Square root",
        "cbrt": "Cube root"
       },
+      "default": "lin",
       "x-help": "Log and the roots show quiet parts larger.",
       "x-show-if": {
        "kind": [
@@ -65317,11 +65302,11 @@
        "lin",
        "log"
       ],
-      "default": "lin",
       "x-labels": {
        "lin": "Even",
        "log": "Log"
       },
+      "default": "lin",
       "x-help": "Log gives low pitches more room.",
       "x-show-if": {
        "kind": [
@@ -65402,11 +65387,11 @@
        "learned",
        "spectral"
       ],
-      "default": "learned",
       "x-labels": {
        "learned": "Learned, for speech",
        "spectral": "Spectral, for steady noise"
       },
+      "default": "learned",
       "x-help": "The learned way keeps only the voice, so music under it goes too. The spectral way takes out a steady hiss or hum and leaves the rest.",
       "x-advanced": true
      },
@@ -65535,14 +65520,14 @@
        "hall",
        "echo"
       ],
-      "default": "telephone",
       "x-labels": {
        "telephone": "Telephone",
        "radio": "Radio",
        "small-room": "Small room",
        "hall": "Hall",
        "echo": "Echo"
-      }
+      },
+      "default": "telephone"
      },
      "mix": {
       "description": "Mix",
@@ -65693,12 +65678,12 @@
        "stretch",
        "loop"
       ],
-      "default": "both",
       "x-labels": {
        "both": "Stretch, or loop when that's too far",
        "stretch": "Stretch only",
        "loop": "Loop only"
       },
+      "default": "both",
       "x-help": "Stretching changes the tempo a little and keeps the song whole. Looping repeats a part of it with a crossfade."
      },
      "maxStretch": {
@@ -65788,13 +65773,13 @@
        "exp",
        "log"
       ],
-      "default": "tri",
       "x-labels": {
        "tri": "Even",
        "qsin": "Gentle",
        "exp": "Quick then slow",
        "log": "Slow then quick"
       },
+      "default": "tri",
       "x-advanced": true
      }
     },
@@ -65989,11 +65974,11 @@
        "pixels",
        "percent"
       ],
-      "default": "pixels",
       "x-labels": {
        "pixels": "Pixels",
        "percent": "Percent"
-      }
+      },
+      "default": "pixels"
      },
      "scale": {
       "description": "Scale",
@@ -66047,12 +66032,12 @@
        "cover",
        "exact"
       ],
-      "default": "inside",
       "x-labels": {
        "inside": "Fit inside",
        "cover": "Fill and crop",
        "exact": "Stretch"
       },
+      "default": "inside",
       "x-help": "When both sides are set: fit the whole image inside them, fill them and crop the rest, or stretch to exactly that size."
      },
      "cropAtX": {
@@ -66097,12 +66082,12 @@
        "smooth",
        "sharp"
       ],
-      "default": "sharp",
       "x-labels": {
        "fast": "Fast",
        "smooth": "Smooth",
        "sharp": "Sharp"
       },
+      "default": "sharp",
       "x-advanced": true
      }
     },
@@ -66152,11 +66137,11 @@
        "area",
        "margins"
       ],
-      "default": "area",
       "x-labels": {
        "area": "Area",
        "margins": "Margins"
-      }
+      },
+      "default": "area"
      },
      "area": {
       "description": "Area to keep",
@@ -66168,34 +66153,37 @@
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "y": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "width": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "height": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         }
        },
-       "required": [
-        "x",
-        "y",
-        "width",
-        "height"
-       ],
-       "default": {}
+       "default": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 0.0,
+        "height": 0.0
+       }
       },
       "minItems": 1,
       "maxItems": 1,
@@ -66324,13 +66312,13 @@
        "half",
        "left"
       ],
-      "default": "right",
       "x-labels": {
        "none": "None",
        "right": "90° right",
        "half": "180°",
        "left": "90° left"
-      }
+      },
+      "default": "right"
      },
      "flipHorizontal": {
       "description": "Flip left to right",
@@ -66662,13 +66650,13 @@
        "webp",
        "avif"
       ],
-      "default": "jpeg",
       "x-labels": {
        "png": "PNG",
        "jpeg": "JPEG",
        "webp": "WebP (lossless)",
        "avif": "AVIF"
-      }
+      },
+      "default": "jpeg"
      },
      "quality": {
       "description": "Quality",
@@ -66761,34 +66749,37 @@
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "y": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "width": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "height": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         }
        },
-       "required": [
-        "x",
-        "y",
-        "width",
-        "height"
-       ],
-       "default": {}
+       "default": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 0.0,
+        "height": 0.0
+       }
       },
       "minItems": 1,
       "maxItems": 8,
@@ -66811,12 +66802,12 @@
        "blur",
        "solid"
       ],
-      "default": "pixelate",
       "x-labels": {
        "pixelate": "Large pixels",
        "blur": "Blur",
        "solid": "Solid colour"
-      }
+      },
+      "default": "pixelate"
      },
      "blockSize": {
       "description": "Pixel size",
@@ -66932,34 +66923,37 @@
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "y": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "width": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "height": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         }
        },
-       "required": [
-        "x",
-        "y",
-        "width",
-        "height"
-       ],
-       "default": {}
+       "default": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 0.0,
+        "height": 0.0
+       }
       },
       "minItems": 1,
       "maxItems": 8,
@@ -67524,11 +67518,11 @@
        "stretch",
        "equalize"
       ],
-      "default": "stretch",
       "x-labels": {
        "stretch": "Stretch",
        "equalize": "Even out"
       },
+      "default": "stretch",
       "x-help": "Stretch spreads the levels from black to white. Even out spreads them evenly, which is stronger."
      },
      "strength": {
@@ -67616,12 +67610,12 @@
        "column",
        "grid"
       ],
-      "default": "grid",
       "x-labels": {
        "row": "One row",
        "column": "One column",
        "grid": "Grid"
-      }
+      },
+      "default": "grid"
      },
      "columns": {
       "description": "Columns",
@@ -67644,12 +67638,12 @@
        "same-width",
        "cells"
       ],
-      "default": "cells",
       "x-labels": {
        "same-height": "Same height",
        "same-width": "Same width",
        "cells": "Equal cells"
       },
+      "default": "cells",
       "x-help": "Same height and same width shrink every image to the smallest one's. Equal cells makes every cell as big as the largest image and centres each image in its own; nothing is enlarged."
      },
      "gap": {
@@ -67689,12 +67683,12 @@
        "center",
        "end"
       ],
-      "default": "center",
       "x-labels": {
        "start": "Top left",
        "center": "Centre",
        "end": "Bottom right"
       },
+      "default": "center",
       "x-help": "Where a picture smaller than its cell sits.",
       "x-advanced": true
      },
@@ -67757,13 +67751,13 @@
        "gradient",
        "asset"
       ],
-      "default": "image",
       "x-labels": {
        "image": "Studio image",
        "solid": "Colour",
        "gradient": "Gradient",
        "asset": "Your image"
-      }
+      },
+      "default": "image"
      },
      "name": {
       "description": "Studio image",
@@ -67890,7 +67884,6 @@
        "portrait",
        "story"
       ],
-      "default": "keep",
       "x-labels": {
        "keep": "Keep",
        "wide": "16:9",
@@ -67898,6 +67891,7 @@
        "portrait": "4:5",
        "story": "9:16"
       },
+      "default": "keep",
       "x-help": "Grows the background around the picture to this shape; the picture is never cut."
      },
      "align": {
@@ -67908,12 +67902,12 @@
        "center",
        "end"
       ],
-      "default": "center",
       "x-labels": {
        "start": "Top or left",
        "center": "Centre",
        "end": "Bottom or right"
       },
+      "default": "center",
       "x-help": "Where the picture sits when the shape grows the background.",
       "x-advanced": true
      },
@@ -67986,12 +67980,12 @@
        "side-by-side",
        "stacked"
       ],
-      "default": "split",
       "x-labels": {
        "split": "One picture, split",
        "side-by-side": "Side by side",
        "stacked": "Stacked"
       },
+      "default": "split",
       "x-help": "Split shows the before on one side of a divider and the after on the other, both at the before's size."
      },
      "position": {
@@ -68157,11 +68151,11 @@
        "top",
        "bottom"
       ],
-      "default": "top",
       "x-labels": {
        "top": "Top",
        "bottom": "Bottom"
       },
+      "default": "top",
       "x-show-if": {
        "labels": [
         "true"
@@ -68223,12 +68217,12 @@
        "area-and-zoom",
        "shown-and-zoom"
       ],
-      "default": "two-boxes",
       "x-labels": {
        "two-boxes": "The two boxes",
        "area-and-zoom": "The area and a zoom",
        "shown-and-zoom": "Where it shows and a zoom"
       },
+      "default": "two-boxes",
       "x-help": "Any two of the area, where it shows and the zoom decide the third. It never shrinks: a view drawn smaller than the area grows to fit it.",
       "x-advanced": true
      },
@@ -68242,34 +68236,37 @@
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "y": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "width": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "height": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         }
        },
-       "required": [
-        "x",
-        "y",
-        "width",
-        "height"
-       ],
-       "default": {}
+       "default": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 0.0,
+        "height": 0.0
+       }
       },
       "minItems": 1,
       "maxItems": 1,
@@ -68294,34 +68291,37 @@
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "y": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "width": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         },
         "height": {
          "type": "number",
          "format": "double",
          "minimum": 0,
-         "maximum": 1
+         "maximum": 1,
+         "default": 0.0
         }
        },
-       "required": [
-        "x",
-        "y",
-        "width",
-        "height"
-       ],
-       "default": {}
+       "default": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 0.0,
+        "height": 0.0
+       }
       },
       "minItems": 1,
       "maxItems": 1,
@@ -68360,11 +68360,11 @@
        "circle",
        "rounded"
       ],
-      "default": "circle",
       "x-labels": {
        "circle": "Circle",
        "rounded": "Rounded box"
-      }
+      },
+      "default": "circle"
      },
      "radius": {
       "description": "Corner radius",
@@ -68426,12 +68426,12 @@
        "smooth",
        "sharp"
       ],
-      "default": "smooth",
       "x-labels": {
        "fast": "Fast",
        "smooth": "Smooth",
        "sharp": "Sharp"
       },
+      "default": "smooth",
       "x-advanced": true
      },
      "shadow": {
@@ -68622,14 +68622,14 @@
           "step",
           "text"
          ],
-         "default": "arrow",
          "x-labels": {
           "arrow": "Arrow",
           "rectangle": "Box",
           "oval": "Oval",
           "step": "Step number",
           "text": "Text"
-         }
+         },
+         "default": "arrow"
         },
         "x": {
          "type": "number",
@@ -68888,7 +68888,6 @@
        "prores",
        "gif"
       ],
-      "default": "h264",
       "x-labels": {
        "h264": "MP4",
        "h265": "MP4 (HEVC)",
@@ -68896,7 +68895,8 @@
        "vp9": "WebM",
        "prores": "ProRes",
        "gif": "GIF"
-      }
+      },
+      "default": "h264"
      },
      "crf": {
       "description": "Quality",
@@ -68937,12 +68937,12 @@
        "center",
        "fit"
       ],
-      "default": "follow",
       "x-labels": {
        "follow": "Follow the action",
        "center": "Crop the centre",
        "fit": "Add bars"
-      }
+      },
+      "default": "follow"
      },
      "scale": {
       "description": "Size",
@@ -69000,7 +69000,6 @@
        "vulkan",
        "swiftshader"
       ],
-      "default": "angle",
       "x-labels": {
        "angle": "Graphics card",
        "swangle": "Software",
@@ -69008,6 +69007,7 @@
        "vulkan": "Graphics card, newer drivers",
        "swiftshader": "Software (legacy)"
       },
+      "default": "angle",
       "x-help": "The graphics card is about ten times faster. Use Software if exports fail.",
       "x-advanced": true
      },
@@ -69033,7 +69033,6 @@
        "slow",
        "veryslow"
       ],
-      "default": "medium",
       "x-labels": {
        "ultrafast": "Fastest, biggest",
        "fast": "Fast",
@@ -69041,6 +69040,7 @@
        "slow": "Small",
        "veryslow": "Smallest, slowest"
       },
+      "default": "medium",
       "x-show-if": {
        "codec": [
         "h264"
@@ -69070,13 +69070,13 @@
        "standard",
        "hq"
       ],
-      "default": "hq",
       "x-labels": {
        "proxy": "Proxy",
        "lt": "Light",
        "standard": "Standard",
        "hq": "High quality"
       },
+      "default": "hq",
       "x-show-if": {
        "codec": [
         "prores"
@@ -69234,11 +69234,11 @@
        "png",
        "jpeg"
       ],
-      "default": "png",
       "x-labels": {
        "png": "PNG",
        "jpeg": "JPEG"
-      }
+      },
+      "default": "png"
      },
      "gl": {
       "description": "Draw with",
@@ -69250,7 +69250,6 @@
        "vulkan",
        "swiftshader"
       ],
-      "default": "angle",
       "x-labels": {
        "angle": "Graphics card",
        "swangle": "Software",
@@ -69258,6 +69257,7 @@
        "vulkan": "Graphics card, newer drivers",
        "swiftshader": "Software (legacy)"
       },
+      "default": "angle",
       "x-help": "The graphics card is about ten times faster. Use Software if exports fail.",
       "x-advanced": true
      },
@@ -69269,12 +69269,12 @@
        "center",
        "fit"
       ],
-      "default": "follow",
       "x-labels": {
        "follow": "Follow the action",
        "center": "Crop the centre",
        "fit": "Add bars"
       },
+      "default": "follow",
       "x-advanced": true
      },
      "jpegQuality": {

@@ -1,23 +1,76 @@
 use proc_macro2::TokenStream;
-use quote::ToTokens;
-use syn::parse::Parser;
+use quote::{ToTokens, quote};
+use syn::parse::{Parse, ParseStream, Parser};
 use syn::spanned::Spanned;
-use syn::{Attribute, ItemStruct};
+use syn::{Attribute, Ident, ItemStruct, Token};
 
 use crate::setting::Setting;
 
+struct Options {
+    export: bool,
+    check: bool,
+}
+
+impl Parse for Options {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut options = Options {
+            export: false,
+            check: false,
+        };
+        while !input.is_empty() {
+            let name: Ident = input.parse()?;
+            match name.to_string().as_str() {
+                "export" => options.export = true,
+                "check" => options.check = true,
+                other => {
+                    return Err(syn::Error::new(
+                        name.span(),
+                        format!("`settings` takes `export` and `check`, not `{other}`"),
+                    ));
+                }
+            }
+            if !input.is_empty() {
+                input.parse::<Token![,]>()?;
+            }
+        }
+        Ok(options)
+    }
+}
+
 pub fn expand(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStream> {
-    if !attr.is_empty() {
+    let options: Options = syn::parse2(attr)?;
+    let mut item: ItemStruct = syn::parse2(item)?;
+    if let Some(derive) = item.attrs.iter().find(|a| a.path().is_ident("derive")) {
         return Err(syn::Error::new(
-            attr.span(),
-            "`settings` takes no arguments",
+            derive.span(),
+            "`settings` writes the derives; remove this `derive`",
         ));
     }
-    let mut item: ItemStruct = syn::parse2(item)?;
     for field in &mut item.fields {
         field.attrs = field_attributes(std::mem::take(&mut field.attrs))?;
     }
-    Ok(item.into_token_stream())
+    let export = options.export.then(|| quote!(, ::specta::Type));
+    let name = &item.ident;
+    let (impl_generics, type_generics, where_clause) = item.generics.split_for_impl();
+    let params = (!options.check).then(|| {
+        quote!(impl #impl_generics crate::params::Params for #name #type_generics #where_clause {})
+    });
+    let body = item.to_token_stream();
+    Ok(quote! {
+        #[derive(
+            Debug,
+            Clone,
+            PartialEq,
+            ::smart_default::SmartDefault,
+            ::serde::Serialize,
+            ::serde::Deserialize,
+            ::schemars::JsonSchema
+            #export
+        )]
+        #[serde(rename_all = "camelCase", default)]
+        #body
+        #params
+    })
 }
 
 fn field_attributes(attrs: Vec<Attribute>) -> syn::Result<Vec<Attribute>> {
@@ -52,7 +105,7 @@ mod tests {
     use proc_macro2::TokenStream;
     use proptest::prelude::*;
     use quote::ToTokens;
-    use syn::{Attribute, Ident, ItemStruct, LitStr, Token};
+    use syn::{Attribute, Ident, LitStr, Token};
 
     use super::expand;
     use crate::setting::value_tokens;
@@ -146,7 +199,10 @@ mod tests {
         let item: TokenStream = format!("struct Settings {{ {field} value: u32 }}")
             .parse()
             .unwrap();
-        let out: ItemStruct = syn::parse2(expand(TokenStream::new(), item)?)?;
+        let out: syn::File = syn::parse2(expand(TokenStream::new(), item)?)?;
+        let Some(syn::Item::Struct(out)) = out.items.into_iter().next() else {
+            panic!("a struct comes first");
+        };
         Ok(out.fields.into_iter().next().unwrap().attrs)
     }
 
@@ -200,8 +256,54 @@ mod tests {
         }
     }
 
+    fn whole(attr: &str, item: &str) -> String {
+        expand(attr.parse().unwrap(), item.parse().unwrap())
+            .unwrap()
+            .to_string()
+    }
+
+    #[test]
+    fn writes_the_derives_and_the_settings_trait_unless_asked_not_to() {
+        let plain = whole("", "struct S { a: u32 }");
+        assert!(
+            plain.contains("SmartDefault") && !plain.contains("specta"),
+            "{plain}"
+        );
+        assert!(
+            plain.contains("rename_all = \"camelCase\" , default"),
+            "{plain}"
+        );
+        assert!(
+            plain.contains("impl crate :: params :: Params for S"),
+            "{plain}"
+        );
+        let both = whole("export, check", "struct S { a: u32 }");
+        assert!(both.contains(":: specta :: Type"), "{both}");
+        assert!(!both.contains("Params"), "{both}");
+    }
+
     #[test]
     fn explains_what_it_cannot_take() {
+        assert_eq!(
+            expand(
+                "hidden".parse().unwrap(),
+                "struct S { a: u32 }".parse().unwrap()
+            )
+            .err()
+            .unwrap()
+            .to_string(),
+            "`settings` takes `export` and `check`, not `hidden`"
+        );
+        assert_eq!(
+            expand(
+                TokenStream::new(),
+                "#[derive(Debug)] struct S { a: u32 }".parse().unwrap()
+            )
+            .err()
+            .unwrap()
+            .to_string(),
+            "`settings` writes the derives; remove this `derive`"
+        );
         assert_eq!(
             error("#[setting(\"A\", help = \"x\", help = \"y\")]"),
             "`x-help` is given twice"

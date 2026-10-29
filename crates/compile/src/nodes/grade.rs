@@ -1,11 +1,8 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
 use opsis_types::values::StyleEntry;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::asset_ref::base_name;
 use crate::card_rows::{file_row, truncate_card};
@@ -62,37 +59,27 @@ fn tone_amount(color: &str, amount: f64) -> bool {
     tone_offsets(color, amount).is_some()
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[choice(rename_all = "snake_case")]
 pub enum ToneCurve {
+    #[label("None")]
     None,
+    #[label("Vintage")]
     Vintage,
+    #[label("Cross-process")]
     CrossProcess,
+    #[label("Lighter")]
     Lighter,
+    #[label("Darker")]
     Darker,
+    #[label("More contrast")]
     MediumContrast,
+    #[label("Strong contrast")]
     StrongContrast,
+    #[label("Negative")]
     Negative,
 }
 
-impl ToneCurve {
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::None => "None",
-            Self::Vintage => "Vintage",
-            Self::CrossProcess => "Cross-process",
-            Self::Lighter => "Lighter",
-            Self::Darker => "Darker",
-            Self::MediumContrast => "More contrast",
-            Self::StrongContrast => "Strong contrast",
-            Self::Negative => "Negative",
-        }
-    }
-}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Colour {
     #[setting(
         "Brightness",
@@ -177,22 +164,10 @@ pub struct Colour {
     pub highlights_amount: f64,
     #[setting(
         "Tone curve",
-        default = ToneCurve::None,
-        labels = {
-            "none": "None",
-            "vintage": "Vintage",
-            "cross_process": "Cross-process",
-            "lighter": "Lighter",
-            "darker": "Darker",
-            "medium_contrast": "More contrast",
-            "strong_contrast": "Strong contrast",
-            "negative": "Negative"
-        }
+        default = ToneCurve::None
     )]
     pub curve: ToneCurve,
 }
-
-impl Params for Colour {}
 
 impl Colour {
     fn changes(&self) -> [Change; 12] {
@@ -220,8 +195,6 @@ impl Colour {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct LookFile {
     #[setting(
         "Look file",
@@ -234,36 +207,23 @@ pub struct LookFile {
     pub strength: f64,
 }
 
-impl Params for LookFile {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum MonoKind {
+    #[label("Black and white")]
     Bw,
+    #[label("Sepia")]
     Sepia,
+    #[label("Tint")]
     Tint,
-}
-
-impl MonoKind {
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::Bw => "Black and white",
-            Self::Sepia => "Sepia",
-            Self::Tint => "Tint",
-        }
-    }
 }
 
 pub const DEFAULT_TINT: &str = "#d8a15b";
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Mono {
     #[setting(
         "Kind",
-        default = MonoKind::Bw,
-        labels = { "bw": "Black and white", "sepia": "Sepia", "tint": "Tint" }
+        default = MonoKind::Bw
     )]
     pub kind: MonoKind,
     #[setting(
@@ -279,7 +239,6 @@ pub struct Mono {
     pub strength: f64,
     #[setting(
         "Colour filter",
-        labels = { "none": "None", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "blue": "Blue" },
         help = "Like a coloured filter on a black-and-white camera: things of that colour come out lighter.",
         show_if = { "kind": ["bw"] },
         advanced
@@ -287,15 +246,20 @@ pub struct Mono {
     pub filter: MonoFilter,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum MonoFilter {
     #[default]
+    #[label("None")]
     None,
+    #[label("Red")]
     Red,
+    #[label("Orange")]
     Orange,
+    #[label("Yellow")]
     Yellow,
+    #[label("Green")]
     Green,
+    #[label("Blue")]
     Blue,
 }
 
@@ -312,11 +276,7 @@ impl MonoFilter {
     }
 }
 
-impl Params for Mono {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Texture {
     #[setting("Sharpen", range(min = 0, max = 1), step = 0.05)]
     pub sharpen: f64,
@@ -344,11 +304,7 @@ pub struct Texture {
     pub vignette_y: f64,
     #[setting("Film grain", range(min = 0, max = 1), step = 0.05)]
     pub grain: f64,
-    #[setting(
-        "Dark edges shape",
-        labels = { "round": "Round", "frame": "Follows the frame" },
-        advanced
-    )]
+    #[setting("Dark edges shape", advanced)]
     pub vignette_shape: VignetteShape,
     #[setting(
         "Colour grain",
@@ -359,15 +315,14 @@ pub struct Texture {
     pub colour_grain: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum VignetteShape {
     #[default]
+    #[label("Round")]
     Round,
+    #[label("Follows the frame")]
     Frame,
 }
-
-impl Params for Texture {}
 
 impl Texture {
     fn changes(&self) -> [Change; 4] {
@@ -381,8 +336,6 @@ impl Texture {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Lens {
     #[setting("Colour fringing", range(min = 0, max = 1), step = 0.05)]
     pub fringe: f64,
@@ -421,8 +374,6 @@ pub struct Lens {
     pub corner_color: String,
 }
 
-impl Params for Lens {}
-
 impl Lens {
     fn changes(&self) -> [Change; 3] {
         [
@@ -434,8 +385,6 @@ impl Lens {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct AutoFix {
     #[setting("White balance")]
     pub white_balance: bool,
@@ -477,8 +426,6 @@ pub struct AutoFix {
     )]
     pub deband_strength: f64,
 }
-
-impl Params for AutoFix {}
 
 impl AutoFix {
     fn changes(&self) -> [Change; 3] {

@@ -1,18 +1,11 @@
 use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::GroupSeparator;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct RollingNumber {
     #[setting("From", range(min = 0, max = 999_999_999_999_u64), step = 1)]
     #[specta(type = f64)]
@@ -49,7 +42,6 @@ pub struct RollingNumber {
     #[setting(
         "Thousands separator",
         default = GroupSeparator::Space,
-        labels = { "none": "None", "space": "Space", "comma": "Comma", "dot": "Dot" },
         advanced
     )]
     pub group_separator: GroupSeparator,

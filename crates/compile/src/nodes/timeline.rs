@@ -1,4 +1,4 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
@@ -8,10 +8,8 @@ use opsis_types::timeline::{
 };
 use opsis_types::values::{ClipValue, CompileValue};
 use opsis_types::workflow::{PortType, WorkflowSettings};
-use schemars::{JsonSchema, Schema};
-use serde::{Deserialize, Serialize};
+use schemars::Schema;
 use serde_json::{Value, json};
-use smart_default::SmartDefault;
 
 use crate::card_rows::{
     Cover, TAG_TEXT_MAX, cover, cover_row, frame_secs, quote, range_row, transition_length_text,
@@ -29,7 +27,6 @@ use crate::node::{
 use crate::nodes::transitions::{
     NO_TRANSITION, transition_kinds, transition_ref, transition_title,
 };
-use crate::params::Params;
 use crate::ports::{clip_family, clip_label, connected_clips, in_index, layer_label};
 use crate::remap::{Remap, speed_remap};
 use crate::text::{format_duration, parse_number_text, plural};
@@ -80,8 +77,6 @@ fn transition_choices(schema: &mut Schema) {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 #[schemars(transform = transition_choices)]
 pub struct Cut {
     #[setting("Before", default = "in2", widget = "cut")]
@@ -105,15 +100,12 @@ pub struct Cut {
     #[setting(
         "Easing",
         default = TransitionEase::Linear,
-        labels = { "linear": "Even", "in": "Slow start", "out": "Slow end", "in-out": "Slow start and end" },
         advanced
     )]
     pub easing: TransitionEase,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 #[schemars(transform = transition_choices)]
 pub struct Sequence {
     #[setting("Transition", default = "fade", widget = "transition")]
@@ -135,7 +127,6 @@ pub struct Sequence {
     #[setting(
         "Easing",
         default = TransitionEase::Linear,
-        labels = { "linear": "Even", "in": "Slow start", "out": "Slow end", "in-out": "Slow start and end" },
         advanced
     )]
     pub easing: TransitionEase,
@@ -146,8 +137,6 @@ pub struct Sequence {
     )]
     pub cuts: Vec<Cut>,
 }
-
-impl Params for Sequence {}
 
 struct CutPlan {
     transition: String,
@@ -310,11 +299,13 @@ fn sequence() -> NodeDef {
     })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum LengthSource {
+    #[label("Longest")]
     Longest,
+    #[label("Layer 1")]
     First,
+    #[label("Front layer")]
     Last,
 }
 
@@ -337,13 +328,10 @@ impl LengthSource {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Layers {
     #[setting(
         "Length follows",
-        default = LengthSource::Longest,
-        labels = { "longest": "Longest", "first": "Layer 1", "last": "Front layer" }
+        default = LengthSource::Longest
     )]
     pub duration: LengthSource,
     #[setting("Start each layer at", widget = "offsets")]
@@ -355,8 +343,6 @@ pub struct Layers {
     )]
     pub keep_layout: bool,
 }
-
-impl Params for Layers {}
 
 pub fn parse_number_list(text: &str) -> Vec<f64> {
     text.split(',')
@@ -446,8 +432,6 @@ fn layers() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Trim {
     #[setting("Start", range(min = 0, max = 600000), step = 50, unit = "ms")]
     pub start_ms: u32,
@@ -460,8 +444,6 @@ pub struct Trim {
     )]
     pub duration_ms: u32,
 }
-
-impl Params for Trim {}
 
 fn trim() -> NodeDef {
     NodeDef::clip_modifier::<Trim>("timeline.trim", "Trim", Category::Timeline)
@@ -534,14 +516,10 @@ fn trim() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Repeat {
     #[setting("Times", default = 2, range(min = 1, max = MAX_REPEATS), unit = "×")]
     pub times: u32,
 }
-
-impl Params for Repeat {}
 
 fn repeat() -> NodeDef {
     NodeDef::clip_modifier::<Repeat>("timeline.loop", "Repeat", Category::Timeline)
@@ -579,8 +557,6 @@ fn repeat() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Delay {
     #[setting(
         "Delay",
@@ -591,8 +567,6 @@ pub struct Delay {
     )]
     pub ms: u32,
 }
-
-impl Params for Delay {}
 
 fn delay() -> NodeDef {
     NodeDef::clip_modifier::<Delay>("timeline.delay", "Delay", Category::Timeline)
@@ -620,8 +594,6 @@ fn delay() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Speed {
     #[setting(
         "Speed",
@@ -634,8 +606,6 @@ pub struct Speed {
     #[setting("Keep the pitch", default = true, advanced)]
     pub keep_pitch: bool,
 }
-
-impl Params for Speed {}
 
 fn speed() -> NodeDef {
     NodeDef::clip_modifier::<Speed>("timeline.speed", "Speed", Category::Timeline)
@@ -675,11 +645,13 @@ fn speed() -> NodeDef {
         })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum FitMode {
+    #[label("Change speed")]
     Speed,
+    #[label("Hold the end")]
     Hold,
+    #[label("Cut")]
     Cut,
 }
 
@@ -736,8 +708,6 @@ impl FitMode {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct FitLength {
     #[setting(
         "Length",
@@ -750,13 +720,10 @@ pub struct FitLength {
     pub target_ms: u32,
     #[setting(
         "How",
-        default = FitMode::Speed,
-        labels = { "speed": "Change speed", "hold": "Hold the end", "cut": "Cut" }
+        default = FitMode::Speed
     )]
     pub mode: FitMode,
 }
-
-impl Params for FitLength {}
 
 fn fit_length() -> NodeDef {
     NodeDef::of::<FitLength>(
@@ -830,8 +797,6 @@ fn fit_length() -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Branch {
     #[setting("Variable", default = "Version", widget = "variable")]
     pub variable: String,
@@ -843,8 +808,6 @@ pub struct Branch {
     )]
     pub equals: String,
 }
-
-impl Params for Branch {}
 
 pub fn branch_port(value: Option<&str>, equals: &str) -> &'static str {
     let has = value.is_some_and(|v| !v.trim().is_empty());

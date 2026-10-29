@@ -1,32 +1,28 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::CameraPath;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Lighting;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum ModelMotion {
+    #[label("Turntable")]
     Spin,
+    #[label("Orbit")]
     Orbit,
+    #[label("Swing")]
     Swing,
+    #[label("Float")]
     Float,
+    #[label("Still")]
     Still,
+    #[label("Keyframes")]
     Keyframes,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct Model3d {
     #[setting(
         "Model",
@@ -37,15 +33,7 @@ pub struct Model3d {
     pub src: String,
     #[setting(
         "Motion",
-        default = ModelMotion::Spin,
-        labels = {
-            "spin": "Turntable",
-            "orbit": "Orbit",
-            "swing": "Swing",
-            "float": "Float",
-            "still": "Still",
-            "keyframes": "Keyframes"
-        }
+        default = ModelMotion::Spin
     )]
     pub motion: ModelMotion,
     #[setting(
@@ -77,8 +65,7 @@ pub struct Model3d {
     pub zoom: f64,
     #[setting(
         "Lighting",
-        default = Lighting::Studio,
-        labels = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" }
+        default = Lighting::Studio
     )]
     pub lighting: Lighting,
     #[setting("Floor shadow", default = true)]

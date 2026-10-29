@@ -2,7 +2,6 @@ use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -18,11 +17,7 @@ pub enum TerminalLineKind {
     Error,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct TerminalSimulatorLine {
     #[setting("Text", default = "Done")]
     pub text: String,
@@ -39,11 +34,7 @@ pub struct TerminalSimulatorLine {
     pub delay: f64,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct TerminalSimulator {
     #[setting("Prompt", default = "$")]
     pub prompt: String,

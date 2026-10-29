@@ -7,10 +7,8 @@ use opsis_types::timeline::{
 };
 use opsis_types::values::{ClipValue, CompileValue};
 use opsis_types::workflow::{PortType, WorkflowSettings};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::{Map, Value, json};
-use smart_default::SmartDefault;
 
 use crate::asset_ref::{kind_from_path, project_ref};
 use crate::card_rows::{file_row, frame_secs, quoted, sentence};
@@ -42,8 +40,6 @@ const CLIP_DURATION: &str = "clipDuration";
 const ENVELOPE: &str = "envelope";
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 struct EnvelopeField {
     #[setting(
         "Keyframes",
@@ -55,8 +51,6 @@ struct EnvelopeField {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct SceneBackground {
     #[setting("Scene", default = "in1", widget = "port")]
     pub scene: String,
@@ -65,8 +59,6 @@ pub struct SceneBackground {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 struct SequencerFields {
     #[setting(
         "Pause between scenes",

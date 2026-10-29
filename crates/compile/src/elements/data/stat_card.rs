@@ -1,19 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::GroupSeparator;
 use crate::elements::theme::{Theme, ThemeMode, stat_card_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct StatCard {
     #[setting("Value", default = 98.0, help = "Number the counter lands on.")]
     pub value: f64,
@@ -116,7 +109,6 @@ pub struct StatCard {
     #[setting(
         "Thousands separator",
         default = GroupSeparator::None,
-        labels = { "none": "None", "space": "Space", "comma": "Comma", "dot": "Dot" },
         advanced
     )]
     pub group_separator: GroupSeparator,

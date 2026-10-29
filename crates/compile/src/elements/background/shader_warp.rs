@@ -1,28 +1,21 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum WarpShape {
+    #[label("Checks")]
     Checks,
+    #[label("Stripes")]
     Stripes,
+    #[label("Edge")]
     Edge,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct ShaderWarp {
     #[setting("Speed", default = 1.0, range(min = 0.1, max = 4), step = 0.1)]
     pub speed: f64,
@@ -48,8 +41,7 @@ pub struct ShaderWarp {
     pub colors: Vec<Colour>,
     #[setting(
         "Pattern",
-        default = WarpShape::Checks,
-        labels = { "checks": "Checks", "stripes": "Stripes", "edge": "Edge" }
+        default = WarpShape::Checks
     )]
     pub shape: WarpShape,
     #[setting("Pattern size", default = 0.1, range(min = 0, max = 1), advanced)]

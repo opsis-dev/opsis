@@ -1,18 +1,11 @@
 use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::{FontWeight, TextAlign};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct LineByLineSlide {
     #[setting(
         "Text",
@@ -51,8 +44,7 @@ pub struct LineByLineSlide {
     pub speed: f64,
     #[setting(
         "Align",
-        default = TextAlign::Left,
-        labels = { "left": "Left", "center": "Centre", "right": "Right" }
+        default = TextAlign::Left
     )]
     pub align: TextAlign,
     #[setting(

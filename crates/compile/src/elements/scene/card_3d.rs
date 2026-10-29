@@ -1,19 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 use opsis_types::timeline::CameraPath;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::{Lighting, Motion};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct Card3d {
     #[setting(
         "Image",
@@ -48,16 +41,7 @@ pub struct Card3d {
     pub tilt: u32,
     #[setting(
         "Motion",
-        default = Motion::TiltIn,
-        labels = {
-            "spin": "Spin",
-            "tilt-in": "Tilt in",
-            "float": "Float",
-            "orbit": "Orbit",
-            "swing": "Swing",
-            "still": "Still",
-            "keyframes": "Keyframes"
-        }
+        default = Motion::TiltIn
     )]
     pub motion: Motion,
     #[setting(
@@ -71,8 +55,7 @@ pub struct Card3d {
     pub speed: f64,
     #[setting(
         "Lighting",
-        default = Lighting::Soft,
-        labels = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" }
+        default = Lighting::Soft
     )]
     pub lighting: Lighting,
     #[setting(

@@ -10,14 +10,6 @@ pub const DEFAULT_WINDOW_STYLE: WindowStyle = WindowStyle::Macos;
 pub const DEFAULT_FRAME_THEME: FrameTheme = FrameTheme::Light;
 pub const DEFAULT_ADDRESS_BAR: bool = true;
 
-pub fn window_style_label(style: WindowStyle) -> &'static str {
-    match style {
-        WindowStyle::Macos => "macOS",
-        WindowStyle::Windows => "Windows",
-        WindowStyle::Linux => "Linux",
-    }
-}
-
 pub fn host_window_style(platform: Platform) -> WindowStyle {
     match platform {
         Platform::Mac => WindowStyle::Macos,

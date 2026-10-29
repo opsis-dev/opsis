@@ -1,4 +1,4 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::actions::Bounds;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
@@ -7,9 +7,7 @@ use opsis_types::recording::WindowStyle;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
 use opsis_types::values::{BrowserAction, CompileValue, ImageValue, RecordingValue};
 use opsis_types::workflow::{DEFAULT_TAKE_MS, DEFAULT_VIEWPORT, PortType};
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::card_rows::element_row;
 use crate::clip::{ItemExtra, STILL, item_clip, placeholder_clip};
@@ -27,28 +25,33 @@ pub const STILL_TYPE: &str = "capture.still";
 
 pub const RECORD_TYPE: &str = "capture.record";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum Cursor {
+    #[label("Smooth")]
     Synthetic,
+    #[label("As on screen")]
     Baked,
+    #[label("None")]
     None,
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum Timing {
     #[default]
+    #[label("Real time")]
     Real,
+    #[label("Smooth (slower)")]
     Smooth,
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum FramePicture {
     #[default]
+    #[label("Standard")]
     Standard,
+    #[label("Lossless")]
     Lossless,
+    #[label("Full detail")]
     FullDetail,
 }
 
@@ -63,20 +66,16 @@ impl Cursor {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Record {
     #[setting("Frame rate", default = 30, "enum" = [25, 30, 60], unit = "fps")]
     pub fps: u32,
     #[setting(
         "Timing",
-        labels = { "real": "Real time", "smooth": "Smooth (slower)" },
         help = "Smooth gives every frame its own picture, however busy the computer is. It takes longer to record than the take lasts."
     )]
     pub timing: Timing,
     #[setting(
         "Frame pictures",
-        labels = { "standard": "Standard", "lossless": "Lossless", "full-detail": "Full detail" },
         help = "Standard matches real-time takes. Lossless keeps every pixel exact and takes about 70% longer to record. Full detail uses every pixel of a high-density screen: sharper, with twice the width and height, but about four times as long to record.",
         show_if = { "timing": ["smooth"] },
         advanced
@@ -110,8 +109,7 @@ pub struct Record {
     pub end_tail_ms: u32,
     #[setting(
         "Cursor",
-        default = Cursor::Synthetic,
-        labels = { "synthetic": "Smooth", "baked": "As on screen", "none": "None" }
+        default = Cursor::Synthetic
     )]
     pub cursor: Cursor,
     #[setting("Quick mode: show action labels on the video", advanced)]
@@ -151,63 +149,45 @@ pub struct Record {
     pub mutates: String,
 }
 
-impl Params for Record {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum Region {
+    #[label("Visible part")]
     Viewport,
+    #[label("Whole page")]
     FullPage,
+    #[label("One element")]
     Element,
 }
 
-impl Region {
-    fn label(self) -> &'static str {
-        match self {
-            Self::Viewport => "Visible part",
-            Self::FullPage => "Whole page",
-            Self::Element => "One element",
-        }
-    }
-}
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum StillLook {
+    #[label("Window")]
     Window,
+    #[label("Cut-out")]
     Cutout,
+    #[label("Full bleed")]
     Bleed,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Default,
-    Serialize,
-    Deserialize,
-    JsonSchema,
-    specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum StillAlign {
     #[default]
+    #[label("The top")]
     Top,
+    #[label("The middle")]
     Middle,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum StillFrame {
     #[default]
+    #[label("None")]
     None,
+    #[label("macOS")]
     Macos,
+    #[label("Windows")]
     Windows,
+    #[label("Linux")]
     Linux,
 }
 
@@ -222,14 +202,11 @@ impl StillFrame {
     }
 }
 
-#[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(check)]
 pub struct Still {
     #[setting(
         "Capture",
-        default = Region::Viewport,
-        labels = { "viewport": "Visible part", "full-page": "Whole page", "element": "One element" }
+        default = Region::Viewport
     )]
     pub region: Region,
     #[setting("Element", widget = "target", show_if = { "region": ["element"] })]
@@ -248,8 +225,7 @@ pub struct Still {
     pub padding: u32,
     #[setting(
         "Style",
-        default = StillLook::Window,
-        labels = { "window": "Window", "cutout": "Cut-out", "bleed": "Full bleed" }
+        default = StillLook::Window
     )]
     pub look: StillLook,
     #[setting("Backdrop", default = "glaze", widget = "backdrop")]
@@ -293,7 +269,6 @@ pub struct Still {
     pub shadow: u32,
     #[setting(
         "Title bar",
-        labels = { "none": "None", "macos": "macOS", "windows": "Windows", "linux": "Linux" },
         show_if = { "look": ["window"] },
         advanced
     )]
@@ -319,7 +294,6 @@ pub struct Still {
     pub push_in_ms: u32,
     #[setting(
         "Keep in view",
-        labels = { "top": "The top", "middle": "The middle" },
         help = "Which part of a tall picture shows.",
         show_if = { "look": ["bleed"] },
         advanced

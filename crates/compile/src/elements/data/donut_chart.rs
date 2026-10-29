@@ -1,18 +1,11 @@
 use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::{Colour, LegendValue, NumberFormat};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct DonutChartSegment {
     #[setting("Label", default = "Referral")]
     pub label: String,
@@ -26,11 +19,7 @@ pub struct DonutChartSegment {
     pub delta: Option<String>,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct DonutChart {
     #[setting(
         "Segments",
@@ -93,7 +82,6 @@ pub struct DonutChart {
     #[setting(
         "Number format",
         default = NumberFormat::Compact,
-        labels = { "compact": "Short (1.2K)", "full": "Full (1,200)" },
         advanced
     )]
     pub number_format: NumberFormat,
@@ -120,7 +108,6 @@ pub struct DonutChart {
     #[setting(
         "Legend shows",
         default = LegendValue::Percent,
-        labels = { "percent": "Share", "value": "Value" },
         advanced
     )]
     pub legend_shows: LegendValue,

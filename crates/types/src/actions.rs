@@ -1,3 +1,4 @@
+use opsis_macros::choice;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
@@ -70,23 +71,12 @@ impl From<Bounds> for Rect {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Default,
-    PartialEq,
-    Eq,
-    Hash,
-    Serialize,
-    Deserialize,
-    Type,
-    schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum ClickButton {
     #[default]
+    #[label("Left")]
     Left,
+    #[label("Right")]
     Right,
 }
 

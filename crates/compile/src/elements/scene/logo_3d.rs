@@ -1,19 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::CameraPath;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::{Lighting, Motion};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct Logo3d {
     #[setting(
         "Logo file",
@@ -31,16 +24,7 @@ pub struct Logo3d {
     pub metalness: f64,
     #[setting(
         "Motion",
-        default = Motion::Spin,
-        labels = {
-            "spin": "Spin",
-            "tilt-in": "Tilt in",
-            "float": "Float",
-            "orbit": "Orbit",
-            "swing": "Swing",
-            "still": "Still",
-            "keyframes": "Keyframes"
-        }
+        default = Motion::Spin
     )]
     pub motion: Motion,
     #[setting(
@@ -54,8 +38,7 @@ pub struct Logo3d {
     pub speed: f64,
     #[setting(
         "Lighting",
-        default = Lighting::Studio,
-        labels = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" }
+        default = Lighting::Studio
     )]
     pub lighting: Lighting,
     #[setting(

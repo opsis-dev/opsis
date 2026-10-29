@@ -1,38 +1,25 @@
-use opsis_macros::settings;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
+use opsis_macros::{choice, settings};
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 pub const CAPTIONS_ELEMENT: &str = "captions";
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum CaptionStyle {
     WordByWord,
     Karaoke,
     Line,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum CaptionPosition {
     Bottom,
     Center,
     Top,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct Captions {
     #[setting("Style", default = CaptionStyle::WordByWord)]
     pub style: CaptionStyle,
@@ -116,8 +103,6 @@ pub struct Captions {
     )]
     pub unspoken_opacity: f64,
 }
-
-impl crate::params::Params for Captions {}
 
 pub fn definition() -> ElementMeta {
     meta::<Captions>(element(

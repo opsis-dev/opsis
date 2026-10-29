@@ -1,18 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::cards::Icon;
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::card_rows::truncate_card;
 use crate::graph::{GROUP_TYPE, NOTE_TYPE};
 use crate::node::{CardCtx, Category, NodeDef, Phase, missing, row};
-use crate::params::Params;
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Group {
     #[setting("Title", default = "Group")]
     pub title: String,
@@ -20,19 +14,13 @@ pub struct Group {
     pub color: String,
 }
 
-impl Params for Group {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Note {
     #[setting("Text", default = "Notes…", widget = "textarea")]
     pub text: String,
     #[setting("Colour", default = "#fcd34d", widget = "color", check = colour)]
     pub color: String,
 }
-
-impl Params for Note {}
 
 pub fn nodes() -> Vec<NodeDef> {
     vec![

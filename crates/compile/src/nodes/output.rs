@@ -1,4 +1,4 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers::whole;
@@ -7,7 +7,6 @@ use opsis_types::values::{Artifact, CompileValue};
 use opsis_types::workflow::{PortType, Workflow, WorkflowNode, WorkflowSettings};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::node::{
     CLIP_PORT, CardCtx, Category, Claim, Ctx, NodeDef, Outputs, Phase, RowExt, port, row,
@@ -21,15 +20,17 @@ const EXPORT_NAME_FALLBACK: &str = "output";
 pub const RENDER_TYPE: &str = "output.render";
 pub const STILL_TYPE: &str = "output.still";
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum Gl {
+    #[label("Graphics card")]
     Angle,
+    #[label("Software")]
     Swangle,
+    #[label("Graphics card, direct")]
     Egl,
+    #[label("Graphics card, newer drivers")]
     Vulkan,
+    #[label("Software (legacy)")]
     Swiftshader,
 }
 
@@ -197,12 +198,11 @@ impl StillPreset {
     }
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum StillFormat {
+    #[label("PNG")]
     Png,
+    #[label("JPEG")]
     Jpeg,
 }
 
@@ -227,15 +227,12 @@ fn file_bytes(artifacts: &[Artifact]) -> u64 {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ExportVideo {
     #[setting("File name", default = "{{Project name}}")]
     pub file_name: String,
     #[setting(
         "Format",
-        default = Codec::H264,
-        labels = { "h264": "MP4", "h265": "MP4 (HEVC)", "vp8": "WebM (VP8)", "vp9": "WebM", "prores": "ProRes", "gif": "GIF" }
+        default = Codec::H264
     )]
     pub codec: Codec,
     #[setting("Quality", default = 18, range(min = 0, max = 51), widget = "quality")]
@@ -250,8 +247,7 @@ pub struct ExportVideo {
     pub variants: Vec<Variant>,
     #[setting(
         "Other shapes",
-        default = ReframeMode::Follow,
-        labels = { "follow": "Follow the action", "center": "Crop the centre", "fit": "Add bars" }
+        default = ReframeMode::Follow
     )]
     pub reframe: ReframeMode,
     #[setting(
@@ -280,13 +276,6 @@ pub struct ExportVideo {
     #[setting(
         "Draw with",
         default = Gl::Angle,
-        labels = {
-            "angle": "Graphics card",
-            "swangle": "Software",
-            "egl": "Graphics card, direct",
-            "vulkan": "Graphics card, newer drivers",
-            "swiftshader": "Software (legacy)"
-        },
         help = "The graphics card is about ten times faster. Use Software if exports fail.",
         advanced
     )]
@@ -302,13 +291,6 @@ pub struct ExportVideo {
     #[setting(
         "Speed vs file size",
         default = EncodePreset::Medium,
-        labels = {
-            "ultrafast": "Fastest, biggest",
-            "fast": "Fast",
-            "medium": "Balanced",
-            "slow": "Small",
-            "veryslow": "Smallest, slowest"
-        },
         show_if = { "codec": ["h264"] },
         advanced
     )]
@@ -322,7 +304,6 @@ pub struct ExportVideo {
     pub full_colour: bool,
     #[setting(
         "ProRes kind",
-        labels = { "proxy": "Proxy", "lt": "Light", "standard": "Standard", "hq": "High quality" },
         show_if = { "codec": ["prores"] },
         advanced
     )]
@@ -358,8 +339,6 @@ pub struct ExportVideo {
     )]
     pub gif_every_nth: u32,
 }
-
-impl Params for ExportVideo {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum PixelFormat {
@@ -407,8 +386,6 @@ impl ExportVideo {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ExportImages {
     #[setting("File name", default = "{{Project name}}")]
     pub file_name: String,
@@ -429,18 +406,11 @@ pub struct ExportImages {
         check = { "rule": "unique", "message": "Pick each size once" }
     )]
     pub presets: Vec<StillPreset>,
-    #[setting("Format", default = StillFormat::Png, labels = { "png": "PNG", "jpeg": "JPEG" })]
+    #[setting("Format", default = StillFormat::Png)]
     pub format: StillFormat,
     #[setting(
         "Draw with",
         default = Gl::Angle,
-        labels = {
-            "angle": "Graphics card",
-            "swangle": "Software",
-            "egl": "Graphics card, direct",
-            "vulkan": "Graphics card, newer drivers",
-            "swiftshader": "Software (legacy)"
-        },
         help = "The graphics card is about ten times faster. Use Software if exports fail.",
         advanced
     )]
@@ -448,7 +418,6 @@ pub struct ExportImages {
     #[setting(
         "Other shapes",
         default = ReframeMode::Follow,
-        labels = { "follow": "Follow the action", "center": "Crop the centre", "fit": "Add bars" },
         advanced
     )]
     pub reframe: ReframeMode,
@@ -471,8 +440,6 @@ pub struct ExportImages {
     )]
     pub scale: f64,
 }
-
-impl Params for ExportImages {}
 
 fn output_node<P: Params>(
     kind: &'static str,
@@ -539,7 +506,7 @@ fn export_video() -> NodeDef {
                 Icon::Film,
                 format!(
                     "{} · {} · {} fps",
-                    p.codec.name(),
+                    p.codec.label(),
                     sides.join(" / "),
                     ctx.fps()
                 ),

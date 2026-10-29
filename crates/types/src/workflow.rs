@@ -1,3 +1,4 @@
+use opsis_macros::choice;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use specta::Type;
@@ -64,20 +65,7 @@ impl PortType {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Default,
-    Serialize,
-    Deserialize,
-    Type,
-    schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum Theme {
     Light,
     #[default]

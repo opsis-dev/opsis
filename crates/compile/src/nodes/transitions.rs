@@ -4,10 +4,7 @@ use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::{TransitionEase, TransitionRef};
 use opsis_types::values::{ClipValue, CompileValue};
 use opsis_types::workflow::PortType;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use smart_default::SmartDefault;
 
 use crate::card_rows::{
     cover, cover_row, frame_secs, sentence, squeezed_too_much, transition_length_text,
@@ -19,7 +16,7 @@ use crate::node::{
     port, row,
 };
 use crate::nodes::elements::extended_schema;
-use crate::params::{Params, Values, schema_of, whole_number};
+use crate::params::{Values, schema_of, whole_number};
 
 pub const NO_TRANSITION: &str = "none";
 pub const DEFAULT_TRANSITION: &str = "fade";
@@ -104,8 +101,6 @@ fn speed_row(length: u32, designed: u32, fps: u32) -> Option<CardRow> {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 struct TransitionFields {
     #[setting(
         "Keep both clips whole",
@@ -182,8 +177,6 @@ fn presentation_node(meta: &'static ElementMeta) -> NodeDef {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct LightLeakCut {
     #[setting(
         "Length",
@@ -208,8 +201,6 @@ pub struct LightLeakCut {
     )]
     pub strength: f64,
 }
-
-impl Params for LightLeakCut {}
 
 fn light_leak() -> NodeDef {
     let (inputs, outs) = ab();

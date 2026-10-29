@@ -1,37 +1,30 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum MarkLook {
+    #[label("Underline")]
     Underline,
+    #[label("Circle")]
     Circle,
+    #[label("Box")]
     Box,
+    #[label("Marker")]
     Marker,
+    #[label("Crossed out")]
     CrossedOff,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum TitleAlign {
     Center,
     Left,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum Entrance {
     Rise,
     Fade,
@@ -40,11 +33,7 @@ pub enum Entrance {
     None,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct Title {
     #[setting("Eyebrow")]
     pub eyebrow: String,
@@ -59,14 +48,7 @@ pub struct Title {
     pub mark: String,
     #[setting(
         "Mark",
-        default = MarkLook::Underline,
-        labels = {
-            "underline": "Underline",
-            "circle": "Circle",
-            "box": "Box",
-            "marker": "Marker",
-            "crossed-off": "Crossed out"
-        }
+        default = MarkLook::Underline
     )]
     pub mark_look: MarkLook,
     #[setting("Mark colour", default = "#facc15", check = colour)]

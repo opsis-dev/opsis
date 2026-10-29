@@ -1,27 +1,20 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum GradientShape {
+    #[label("Straight")]
     Linear,
+    #[label("Round")]
     Radial,
+    #[label("Around the centre")]
     Conic,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct Gradient {
     #[setting("From", default = "#1e1b4b", check = colour)]
     pub from: String,
@@ -34,7 +27,6 @@ pub struct Gradient {
     #[setting(
         "Shape",
         default = GradientShape::Linear,
-        labels = { "linear": "Straight", "radial": "Round", "conic": "Around the centre" },
         advanced
     )]
     pub shape: GradientShape,

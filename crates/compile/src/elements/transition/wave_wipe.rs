@@ -1,19 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
 use crate::elements::shared::VerticalDirection;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct WaveWipe {
     #[setting("Intensity", default = 0.2, range(min = 0, max = 1), step = 0.05)]
     pub intensity: f64,
@@ -53,8 +46,7 @@ pub struct WaveWipe {
     pub zoom: f64,
     #[setting(
         "Direction",
-        default = VerticalDirection::Up,
-        labels = { "up": "Up", "down": "Down" }
+        default = VerticalDirection::Up
     )]
     pub direction: VerticalDirection,
 }

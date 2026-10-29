@@ -1,19 +1,12 @@
 use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::NumberFormat;
 use crate::elements::theme::{Theme, ThemeMode, data_story_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct DataStoryBarData {
     #[setting("Label", default = "API")]
     pub label: String,
@@ -27,11 +20,7 @@ pub struct DataStoryBarData {
     pub color: Option<String>,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct DataStoryMetric {
     #[setting("Label", default = "Support tickets")]
     pub label: String,
@@ -49,11 +38,7 @@ pub struct DataStoryMetric {
     pub prefix: Option<String>,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct DataStoryStep {
     #[setting("Title", default = "Next step")]
     pub title: String,
@@ -61,11 +46,7 @@ pub struct DataStoryStep {
     pub description: String,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct DataStory {
     #[setting(
         "Title",

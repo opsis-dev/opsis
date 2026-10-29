@@ -1,18 +1,11 @@
 use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::{Colour, Corner, NumberFormat};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct BarChartRaceSerie {
     #[setting("Label", default = "Partners")]
     pub label: String,
@@ -23,11 +16,7 @@ pub struct BarChartRaceSerie {
     pub color: Option<String>,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct BarChartRace {
     #[setting(
         "Series",
@@ -135,7 +124,6 @@ pub struct BarChartRace {
     #[setting(
         "Number format",
         default = NumberFormat::Compact,
-        labels = { "compact": "Short (1.2K)", "full": "Full (1,200)" },
         advanced
     )]
     pub number_format: NumberFormat,
@@ -150,7 +138,6 @@ pub struct BarChartRace {
     #[setting(
         "Step label position",
         default = Corner::BottomRight,
-        labels = { "top-left": "Top left", "top-right": "Top right", "bottom-left": "Bottom left", "bottom-right": "Bottom right" },
         advanced
     )]
     pub step_label_position: Corner,

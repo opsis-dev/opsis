@@ -1,31 +1,26 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::looks::NodeLook;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
+#[choice(export)]
 pub enum PhotoShape {
     #[serde(rename = "16:9")]
+    #[label("16:9")]
     Wide,
     #[serde(rename = "4:3")]
+    #[label("4:3")]
     Classic,
     #[serde(rename = "1:1")]
+    #[label("Square")]
     Square,
     #[serde(rename = "3:4")]
+    #[label("3:4")]
     Tall,
 }
 
-#[settings]
-#[derive(
-    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(export)]
 pub struct Polaroid {
     #[setting("Caption", default = "first light")]
     pub caption: String,
@@ -62,7 +57,6 @@ pub struct Polaroid {
     #[setting(
         "Photo shape",
         default = PhotoShape::Wide,
-        labels = { "16:9": "16:9", "4:3": "4:3", "1:1": "Square", "3:4": "3:4" },
         advanced
     )]
     pub photo_shape: PhotoShape,

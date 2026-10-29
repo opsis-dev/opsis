@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::actions::{ClickButton, Point};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
@@ -10,10 +10,7 @@ use opsis_types::values::{
 };
 use opsis_types::workflow::PortType;
 use regex::Regex;
-use schemars::JsonSchema;
 use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
 use crate::asset_ref::mime_subtype;
 use crate::card_rows::{
@@ -32,8 +29,6 @@ use crate::text::{
 use crate::vars::PAUSE_MARK;
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Target {
     #[setting(
         "Element",
@@ -48,8 +43,6 @@ pub struct Target {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct PauseAfter {
     #[setting(
         "Pause after",
@@ -63,8 +56,6 @@ pub struct PauseAfter {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Silence {
     #[setting("No sound", advanced, help = "Action sounds leave this action out.")]
     pub silent: bool,
@@ -78,8 +69,6 @@ impl Silence {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Beat {
     #[serde(flatten)]
     pub pause: PauseAfter,
@@ -94,8 +83,6 @@ pub struct Beat {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Frame {
     #[setting(
         "Zoom to fit",
@@ -110,8 +97,6 @@ pub struct Frame {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Pointer {
     #[serde(flatten)]
     pub frame: Frame,
@@ -135,17 +120,17 @@ pub struct Pointer {
     pub travel_ms: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum ColorScheme {
+    #[label("Light")]
     Light,
+    #[label("Dark")]
     Dark,
+    #[label("System")]
     NoPreference,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Open {
     #[setting(
         "Window width",
@@ -204,8 +189,7 @@ pub struct Open {
     pub timezone: String,
     #[setting(
         "Theme",
-        default = ColorScheme::Light,
-        labels = { "light": "Light", "dark": "Dark", "no-preference": "System" }
+        default = ColorScheme::Light
     )]
     pub color_scheme: ColorScheme,
     #[setting(
@@ -232,19 +216,17 @@ pub struct Open {
     pub reduce_motion: bool,
 }
 
-impl Params for Open {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum DoneWhen {
+    #[label("The address changes")]
     UrlChange,
+    #[label("An element appears")]
     Selector,
+    #[label("I close the window")]
     WindowClosed,
 }
 
-#[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(check)]
 pub struct SignIn {
     #[setting(
         "Sign-in page",
@@ -261,12 +243,7 @@ pub struct SignIn {
     pub secret_name: String,
     #[setting(
         "Finish when",
-        default = DoneWhen::WindowClosed,
-        labels = {
-            "url-change": "The address changes",
-            "selector": "An element appears",
-            "window-closed": "I close the window"
-        }
+        default = DoneWhen::WindowClosed
     )]
     pub done_when: DoneWhen,
     #[setting(
@@ -296,35 +273,28 @@ impl Params for SignIn {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
+#[settings]
 pub struct StartRecording {}
 
-impl Params for StartRecording {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum WaitUntil {
+    #[label("Loaded")]
     Load,
+    #[label("Started showing")]
     Domcontentloaded,
+    #[label("Settled")]
     Networkidle,
+    #[label("Responded")]
     Commit,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Navigate {
     #[setting("Page address", default = "{{Site address}}")]
     pub url: String,
     #[setting(
         "Wait until the page has",
         default = WaitUntil::Load,
-        labels = {
-            "load": "Loaded",
-            "domcontentloaded": "Started showing",
-            "networkidle": "Settled",
-            "commit": "Responded"
-        },
         advanced
     )]
     pub wait_until: WaitUntil,
@@ -349,15 +319,11 @@ pub struct Navigate {
     pub timeout_ms: u32,
 }
 
-impl Params for Navigate {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Click {
     #[serde(flatten)]
     pub target: Target,
-    #[setting("Button", default = ClickButton::Left, labels = { "left": "Left", "right": "Right" })]
+    #[setting("Button", default = ClickButton::Left)]
     pub button: ClickButton,
     #[setting("Double-click", show_if = { "button": ["left"] })]
     pub double: bool,
@@ -394,8 +360,6 @@ pub struct Click {
     pub scroll_smoothly: bool,
 }
 
-impl Params for Click {}
-
 impl Click {
     pub fn double_clicks(&self) -> bool {
         self.double && self.button == ClickButton::Left
@@ -403,8 +367,6 @@ impl Click {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Type {
     #[serde(flatten)]
     pub target: Target,
@@ -453,11 +415,7 @@ pub struct Type {
     pub clear_first: bool,
 }
 
-impl Params for Type {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Hover {
     #[serde(flatten)]
     pub target: Target,
@@ -475,26 +433,25 @@ pub struct Hover {
     pub hover_ms: u32,
 }
 
-impl Params for Hover {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum DragMode {
+    #[label("Onto an element")]
     Element,
+    #[label("By a distance")]
     By,
+    #[label("Along a path")]
     Path,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum DragMethod {
+    #[label("Smooth, with the cursor")]
     Smooth,
+    #[label("Quick, for pages that ignore the smooth drag")]
     Quick,
 }
 
-#[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(check)]
 pub struct Drag {
     #[setting(
         "Element to drag",
@@ -508,8 +465,7 @@ pub struct Drag {
     pub target_role: Option<String>,
     #[setting(
         "Drag",
-        default = DragMode::Element,
-        labels = { "element": "Onto an element", "by": "By a distance", "path": "Along a path" }
+        default = DragMode::Element
     )]
     pub mode: DragMode,
     #[setting("Drop on", widget = "target", show_if = { "mode": ["element"] })]
@@ -579,7 +535,6 @@ pub struct Drag {
     #[setting(
         "How",
         default = DragMethod::Smooth,
-        labels = { "smooth": "Smooth, with the cursor", "quick": "Quick, for pages that ignore the smooth drag" },
         advanced
     )]
     pub method: DragMethod,
@@ -611,20 +566,24 @@ impl Params for Drag {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum ScrollMode {
+    #[label("An element")]
     Element,
+    #[label("A distance")]
     By,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum ScrollAlign {
+    #[label("At the top")]
     Start,
     #[default]
+    #[label("In the middle")]
     Center,
+    #[label("At the bottom")]
     End,
+    #[label("Just in view")]
     Nearest,
 }
 
@@ -639,14 +598,11 @@ impl ScrollAlign {
     }
 }
 
-#[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(check)]
 pub struct Scroll {
     #[setting(
         "Scroll to",
-        default = ScrollMode::Element,
-        labels = { "element": "An element", "by": "A distance" }
+        default = ScrollMode::Element
     )]
     pub mode: ScrollMode,
     #[setting("Element", widget = "target", show_if = { "mode": ["element"] })]
@@ -676,7 +632,6 @@ pub struct Scroll {
     pub delta_x: i32,
     #[setting(
         "Where it ends up",
-        labels = { "start": "At the top", "center": "In the middle", "end": "At the bottom", "nearest": "Just in view" },
         show_if = { "mode": ["element"] },
         advanced
     )]
@@ -705,8 +660,6 @@ impl Params for Scroll {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Select {
     #[serde(flatten)]
     pub target: Target,
@@ -727,11 +680,7 @@ pub struct Select {
     pub hover_ms: u32,
 }
 
-impl Params for Select {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Upload {
     #[setting(
         "File field",
@@ -757,11 +706,7 @@ pub struct Upload {
     pub pause: PauseAfter,
 }
 
-impl Params for Upload {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct PressKeys {
     #[setting(
         "Keys",
@@ -776,30 +721,23 @@ pub struct PressKeys {
     pub sound: Silence,
 }
 
-impl Params for PressKeys {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
+#[choice]
 pub enum WaitMode {
+    #[label("An element")]
     Element,
+    #[label("A quiet page")]
     NetworkIdle,
+    #[label("An address")]
     Url,
+    #[label("A fixed time")]
     Ms,
 }
 
-#[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(check)]
 pub struct Wait {
     #[setting(
         "Wait for",
-        default = WaitMode::Element,
-        labels = {
-            "element": "An element",
-            "network-idle": "A quiet page",
-            "url": "An address",
-            "ms": "A fixed time"
-        }
+        default = WaitMode::Element
     )]
     pub mode: WaitMode,
     #[setting("Element", widget = "target", show_if = { "mode": ["element"] })]
@@ -849,8 +787,6 @@ impl Params for Wait {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Assert {
     #[setting("Text", check = { "rule": "not-blank", "message": "Add the text to look for" })]
     pub text: String,
@@ -876,11 +812,7 @@ pub struct Assert {
     pub exact: bool,
 }
 
-impl Params for Assert {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Hoist {
     #[serde(flatten)]
     pub target: Target,
@@ -895,11 +827,7 @@ pub struct Hoist {
     pub timeout_ms: u32,
 }
 
-impl Params for Hoist {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct SetState {
     #[setting(
         "Script",
@@ -917,11 +845,7 @@ pub struct SetState {
     pub every_page: bool,
 }
 
-impl Params for SetState {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct MockRoute {
     #[setting(
         "Address pattern",
@@ -947,27 +871,15 @@ pub struct MockRoute {
     pub delay_ms: u32,
 }
 
-impl Params for MockRoute {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum ClockMode {
+    #[label("Frozen")]
     Fixed,
+    #[label("Paused")]
     Paused,
 }
 
-impl ClockMode {
-    fn label(self) -> &'static str {
-        match self {
-            Self::Fixed => "Frozen",
-            Self::Paused => "Paused",
-        }
-    }
-}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct FreezeClock {
     #[setting(
         "Date and time",
@@ -979,17 +891,12 @@ pub struct FreezeClock {
     pub time: String,
     #[setting(
         "Clock",
-        default = ClockMode::Fixed,
-        labels = { "fixed": "Frozen", "paused": "Paused" }
+        default = ClockMode::Fixed
     )]
     pub mode: ClockMode,
 }
 
-impl Params for FreezeClock {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct HideElements {
     #[setting("Cookie banners", default = true)]
     pub cookie_banners: bool,
@@ -1003,11 +910,7 @@ pub struct HideElements {
     pub selectors: String,
 }
 
-impl Params for HideElements {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Chapter {
     #[setting("Title", default = "Chapter")]
     pub title: String,
@@ -1048,7 +951,6 @@ pub struct Chapter {
     pub card_width: u32,
     #[setting(
         "Card position",
-        labels = { "top": "Top", "center": "Middle", "bottom": "Bottom" },
         show_if = { "showInVideo": ["true"] },
         advanced
     )]
@@ -1059,12 +961,14 @@ pub struct Chapter {
     pub fade_ms: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum CardPosition {
+    #[label("Top")]
     Top,
     #[default]
+    #[label("Middle")]
     Center,
+    #[label("Bottom")]
     Bottom,
 }
 
@@ -1078,11 +982,7 @@ impl CardPosition {
     }
 }
 
-impl Params for Chapter {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct OverlayHtml {
     #[setting(
         "HTML",
@@ -1103,8 +1003,6 @@ pub struct OverlayHtml {
     #[setting("Fade", range(min = 0, max = 3000), step = 50, unit = "ms", advanced)]
     pub fade_ms: u32,
 }
-
-impl Params for OverlayHtml {}
 
 static POINT_TEXT: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$").expect("pattern")

@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use opsis_macros::choice;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use specta::Type;
@@ -21,25 +22,16 @@ pub struct TransitionRef {
     pub easing: Option<TransitionEase>,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Default,
-    Serialize,
-    Deserialize,
-    Type,
-    schemars::JsonSchema,
-)]
-#[serde(rename_all = "kebab-case")]
+#[choice(export)]
 pub enum TransitionEase {
     #[default]
+    #[label("Even")]
     Linear,
+    #[label("Slow start")]
     In,
+    #[label("Slow end")]
     Out,
+    #[label("Slow start and end")]
     InOut,
 }
 
@@ -455,25 +447,16 @@ pub enum AudioRole {
     Effect,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Default,
-    Serialize,
-    Deserialize,
-    Type,
-    schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum FadeCurve {
     #[default]
+    #[label("Even")]
     Tri,
+    #[label("Gentle")]
     Qsin,
+    #[label("Quick then slow")]
     Exp,
+    #[label("Slow then quick")]
     Log,
 }
 
@@ -588,24 +571,14 @@ pub struct SpecAssets {
     pub versions: Option<IndexMap<String, String>>,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Default,
-    Serialize,
-    Deserialize,
-    Type,
-    schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum ReframeMode {
     #[default]
+    #[label("Follow the action")]
     Follow,
+    #[label("Crop the centre")]
     Center,
+    #[label("Add bars")]
     Fit,
 }
 

@@ -9,10 +9,8 @@ use opsis_types::recording::{AnnotationKind, HighlightLook, LabelLook};
 use opsis_types::values::{Caption, CaptionsValue, CompileValue};
 use opsis_types::workflow::PortType;
 use regex::Regex;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use serde_json::Value;
-use smart_default::SmartDefault;
 
 use crate::card_rows::{quoted_row, truncate_card};
 use crate::clip::{EMPTY_CLIP_FRAMES, ItemExtra, empty_clip, item_clip, stack_clips};
@@ -22,7 +20,7 @@ use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Phase, RowExt, opt, outputs, port, row,
 };
 use crate::nodes::cursor::{Annotation, AnnotationFields, annotation};
-use crate::params::{Params, to_values};
+use crate::params::to_values;
 use crate::text::{format_duration, humanize};
 use crate::time::{frames_to_ms, ms_to_frames};
 
@@ -109,8 +107,6 @@ pub fn script_to_captions(script: &str, pace: ScriptPace) -> Vec<Caption> {
 macro_rules! labelled_annotation {
     ($name:ident, look = $look:ty, text = $text:literal, color = $color:literal, font_size = $size:literal $(, text_color = $text_color:literal)?) => {
         #[settings]
-        #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-        #[serde(rename_all = "camelCase", default)]
         pub struct $name {
             #[serde(rename = "match")]
             #[setting(
@@ -173,7 +169,6 @@ macro_rules! labelled_annotation {
             #[setting(
                 "Look",
                 default = HighlightLook::Clean,
-                labels = { "clean": "Clean", "box": "Hand-drawn box", "circle": "Circle", "underline": "Underline", "marker": "Marker" },
                 help = "The hand-drawn looks draw themselves in as the action starts.",
                 hidden
             )]
@@ -191,14 +186,10 @@ macro_rules! labelled_annotation {
             #[serde(flatten)]
             pub style: $look,
         }
-
-        impl Params for $name {}
     };
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct TooltipLook {
     #[setting(
         "Font weight",
@@ -240,8 +231,6 @@ pub struct TooltipLook {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct CalloutLook {
     #[setting(
         "Font weight",
@@ -371,8 +360,6 @@ impl Annotation for CalloutArrow {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct CaptionsFromScript {
     #[setting(
         "Script",
@@ -409,8 +396,6 @@ pub struct CaptionsFromScript {
     )]
     pub paragraph_pause_ms: u32,
 }
-
-impl Params for CaptionsFromScript {}
 
 fn captions_from_script() -> NodeDef {
     NodeDef::of::<CaptionsFromScript>(

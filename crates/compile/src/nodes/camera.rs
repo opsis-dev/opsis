@@ -1,4 +1,4 @@
-use opsis_macros::settings;
+use opsis_macros::{choice, settings};
 use opsis_types::actions::{Action, ActionKind, Point, Rect};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
@@ -9,10 +9,7 @@ use opsis_types::recording::{
 use opsis_types::timeline::{ElementRef, GroupProps};
 use opsis_types::values::{ClipValue, CompileValue, StyleEntry, TaggedRecording};
 use opsis_types::workflow::{DEFAULT_TAKE_MS, PortType};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use smart_default::SmartDefault;
 
 use crate::asset_ref::base_name;
 use crate::backdrops::Backdrop;
@@ -36,7 +33,6 @@ use crate::params::{Params, Values};
 use crate::recording::{
     DEFAULT_ADDRESS_BAR, DEFAULT_FRAME_THEME, DEFAULT_WINDOW_STYLE, default_recording_props,
     follow_cursor_beats, host_window_style, idle_spans, point_rect, recording_speed,
-    window_style_label,
 };
 use crate::remap::{RemapSegment, eased_segments, remap_duration, remap_from_segments};
 
@@ -48,12 +44,15 @@ use crate::time::{EPSILON, ms_to_frames, recording_ms_to_frames, whole_frames};
 pub const FOLLOW_CURSOR_TYPE: &str = "camera.followCursor";
 const CURSOR_STYLE_TYPE: &str = crate::nodes::cursor::CURSOR_STYLE_TYPE;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum FrameChoice {
+    #[label("None")]
     None,
+    #[label("macOS")]
     Macos,
+    #[label("Windows")]
     Windows,
+    #[label("Linux")]
     Linux,
 }
 
@@ -69,8 +68,6 @@ impl FrameChoice {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct AutoZoom {
     #[setting("Zoom to the clicks", default = true)]
     pub zoom: bool,
@@ -106,8 +103,7 @@ pub struct AutoZoom {
     pub backdrop: Backdrop,
     #[setting(
         "Window frame",
-        default = FrameChoice::None,
-        labels = { "none": "None", "macos": "macOS", "windows": "Windows", "linux": "Linux" }
+        default = FrameChoice::None
     )]
     pub frame: FrameChoice,
     #[setting(
@@ -133,7 +129,6 @@ pub struct AutoZoom {
     #[setting(
         "Show",
         default = AddressMode::Fixed,
-        labels = { "fixed": "This address", "host": "This host with the page's path" },
         show_if = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"], "address": ["*"] },
         advanced
     )]
@@ -212,11 +207,7 @@ pub struct AutoZoom {
         advanced
     )]
     pub bleed_dim: f64,
-    #[setting(
-        "Camera easing",
-        labels = { "smooth": "Smooth", "gentle": "Gentle", "snappy": "Snappy", "linear": "Even" },
-        advanced
-    )]
+    #[setting("Camera easing", advanced)]
     pub camera_easing: CameraEasing,
     #[setting(
         "Camera move time",
@@ -334,8 +325,6 @@ pub struct AutoZoom {
     pub frame_font: String,
 }
 
-impl Params for AutoZoom {}
-
 impl AutoZoom {
     fn tuning(&self) -> CameraTuning {
         let seconds = |ms: u32| Some(f64::from(ms) / 1000.0);
@@ -367,8 +356,6 @@ impl AutoZoom {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ManualZoom {
     #[setting(
         "At",
@@ -424,11 +411,7 @@ pub struct ManualZoom {
     pub lead_ms: u32,
 }
 
-impl Params for ManualZoom {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct Pan {
     #[setting(
         "Start at",
@@ -499,11 +482,7 @@ pub struct Pan {
     pub zoom_out_when_far: bool,
 }
 
-impl Params for Pan {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct FollowCursor {
     #[setting(
         "Zoom",
@@ -531,11 +510,7 @@ pub struct FollowCursor {
     pub zoom_out_on_jumps: bool,
 }
 
-impl Params for FollowCursor {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct IdleSpeedup {
     #[setting(
         "Quiet for longer than",
@@ -573,11 +548,7 @@ pub struct IdleSpeedup {
     pub ease_ms: u32,
 }
 
-impl Params for IdleSpeedup {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct SpeedSegment {
     #[setting("From", step = 50, unit = "ms")]
     pub from_ms: u32,
@@ -594,8 +565,6 @@ pub struct SpeedSegment {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct SpeedRamp {
     #[setting("Parts", default = vec![SpeedSegment::default()])]
     pub segments: Vec<SpeedSegment>,
@@ -610,11 +579,7 @@ pub struct SpeedRamp {
     pub ease_ms: u32,
 }
 
-impl Params for SpeedRamp {}
-
-#[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(check)]
 pub struct Crop {
     #[setting("Left", default = 0.1, range(min = 0, max = 1), step = 0.01)]
     pub x: f64,
@@ -644,21 +609,15 @@ impl Params for Crop {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum Device {
+    #[label("Laptop")]
     Laptop,
+    #[label("Phone")]
     Phone,
 }
 
 impl Device {
-    fn label(self) -> &'static str {
-        match self {
-            Self::Laptop => "Laptop",
-            Self::Phone => "Phone",
-        }
-    }
-
     fn icon(self) -> Icon {
         match self {
             Self::Laptop => Icon::Laptop,
@@ -674,52 +633,38 @@ impl Device {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum DeviceEntrance {
+    #[label("Slide in")]
     Rise,
+    #[label("Open up")]
     Open,
+    #[label("None")]
     None,
 }
 
-impl DeviceEntrance {
-    fn label(self) -> &'static str {
-        match self {
-            Self::Rise => "Slide in",
-            Self::Open => "Open up",
-            Self::None => "None",
-        }
-    }
-}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct DeviceFrame {
     #[setting(
         "Device",
-        default = Device::Laptop,
-        labels = { "laptop": "Laptop", "phone": "Phone" }
+        default = Device::Laptop
     )]
     pub device: Device,
     #[setting(
         "Entrance",
         default = DeviceEntrance::Open,
-        labels = { "rise": "Slide in", "open": "Open up", "none": "None" },
         show_if = { "device": ["laptop"] }
     )]
     pub entrance: DeviceEntrance,
     #[setting(
         "Entrance",
         default = PhoneEntrance::Rise,
-        labels = { "rise": "Slide in", "rotate-in": "Turn in", "float": "Float" },
         show_if = { "device": ["phone"] }
     )]
     pub phone_entrance: PhoneEntrance,
     #[setting(
         "Angle",
         default = PhoneVariant::Flat,
-        labels = { "flat": "Straight on", "tilt": "Turned", "showcase": "Showcase" },
         show_if = { "device": ["phone"] }
     )]
     pub variant: PhoneVariant,
@@ -758,7 +703,6 @@ pub struct DeviceFrame {
     #[setting(
         "Finale",
         default = LaptopFinale::None,
-        labels = { "none": "None", "zoom-to-screen": "Zoom into the screen" },
         show_if = { "device": ["laptop"] },
         advanced
     )]
@@ -773,8 +717,6 @@ pub struct DeviceFrame {
     #[setting("Dynamic island", default = true, show_if = { "device": ["phone"] }, advanced)]
     pub show_dynamic_island: bool,
 }
-
-impl Params for DeviceFrame {}
 
 impl DeviceFrame {
     fn element_values(&self) -> Values {
@@ -835,23 +777,23 @@ impl DeviceFrame {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
+#[choice]
 pub enum BackdropKind {
+    #[label("Studio image")]
     Image,
+    #[label("Colour")]
     Solid,
+    #[label("Gradient")]
     Gradient,
+    #[label("Your image")]
     Asset,
 }
 
-#[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
+#[settings(check)]
 pub struct BackdropStyle {
     #[setting(
         "Kind",
-        default = BackdropKind::Image,
-        labels = { "image": "Studio image", "solid": "Colour", "gradient": "Gradient", "asset": "Your image" }
+        default = BackdropKind::Image
     )]
     pub kind: BackdropKind,
     #[setting("Studio image", default = Backdrop::Glaze, show_if = { "kind": ["image"] })]
@@ -908,8 +850,6 @@ impl BackdropStyle {
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct MotionBlur {
     #[setting("Motion blur", default = true)]
     pub enabled: bool,
@@ -925,16 +865,11 @@ pub struct MotionBlur {
     pub shutter_angle: u32,
 }
 
-impl Params for MotionBlur {}
-
 #[settings]
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
 pub struct WindowFrame {
     #[setting(
         "Window style",
-        default = DEFAULT_WINDOW_STYLE,
-        labels = { "macos": "macOS", "windows": "Windows", "linux": "Linux" }
+        default = DEFAULT_WINDOW_STYLE
     )]
     pub window_style: WindowStyle,
     #[setting("Frame colour", default = DEFAULT_FRAME_THEME)]
@@ -955,14 +890,11 @@ pub struct WindowFrame {
     #[setting(
         "Show",
         default = AddressMode::Fixed,
-        labels = { "fixed": "This address", "host": "This host with the page's path" },
         show_if = { "addressBar": ["true"], "address": ["*"] },
         advanced
     )]
     pub address_mode: AddressMode,
 }
-
-impl Params for WindowFrame {}
 
 impl WindowFrame {
     fn bar(&self) -> Bar<'_> {
@@ -974,10 +906,8 @@ impl WindowFrame {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
+#[settings]
 pub struct ApplyStyle {}
-
-impl Params for ApplyStyle {}
 
 struct Bar<'a> {
     shown: bool,
@@ -1519,7 +1449,7 @@ fn window_frame() -> NodeDef {
                     Icon::AppWindow,
                     format!(
                         "{} · {}",
-                        window_style_label(p.window_style),
+                        p.window_style.label(),
                         humanize(frame_theme_name(p.frame_theme))
                     ),
                 )),
