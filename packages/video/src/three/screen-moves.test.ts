@@ -1,3 +1,4 @@
+import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import type { ScreenMove } from "#video/generated/spec.ts";
 import { screenPoseAt } from "#video/three/screen-moves.ts";
@@ -39,9 +40,25 @@ describe("camera moves around a 3D screen", () => {
     );
   });
 
-  it("gives the same pose for a frame whichever way the playhead moves", () => {
-    const forward = [0, 20, 40, 60].map((f) => screenPoseAt("orbit", f, 100, true));
-    const backward = [60, 40, 20, 0].map((f) => screenPoseAt("orbit", f, 100, true)).toReversed();
-    expect(backward).toEqual(forward);
+  it("moves smoothly from frame to frame and faces the camera at the end of any length", () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom(...PRESETS),
+        fc.integer({ min: 60, max: 900 }),
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        (move, length, share) => {
+          const frame = Math.floor(share * (length - 1));
+          const now = screenPoseAt(move, frame, length, true);
+          const next = screenPoseAt(move, frame + 1, length, true);
+          const parts = (p: typeof now) => [...p.rotation, ...p.position];
+          for (const [a, b] of parts(now).map((v, i) => [v, parts(next)[i]])) {
+            expect(Number.isFinite(a)).toBe(true);
+            expect(Math.abs(b - a)).toBeLessThan(Math.PI / 4);
+          }
+          const last = screenPoseAt(move, length, length, true);
+          expect(parts(last).every((v) => Math.abs(v) < 1e-9)).toBe(true);
+        },
+      ),
+    );
   });
 });

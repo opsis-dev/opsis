@@ -55577,7 +55577,7 @@
        "area-and-zoom": "The area and a zoom",
        "shown-and-zoom": "Where it shows and a zoom"
       },
-      "x-help": "Any two of the area, where it shows and the zoom decide the third."
+      "x-help": "Any two of the area, where it shows and the zoom decide the third. It never shrinks: a view drawn smaller than the area grows to fit it."
      },
      "area": {
       "description": "Area to enlarge",

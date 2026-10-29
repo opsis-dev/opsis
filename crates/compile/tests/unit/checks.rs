@@ -2,27 +2,14 @@ use opsis_compile::check::check_workflow;
 use opsis_compile::graph::IssueLevel;
 use opsis_compile::recording::default_recording_props;
 use opsis_compile::text::{
-    display_address, format_bytes, format_duration, format_precise_duration, format_when, humanize,
-    pascal_case, percent_text, plural, plural_with, signed_text, single_quoted,
+    display_address, format_duration, format_precise_duration, format_when, humanize, pascal_case,
+    percent_text, plural, plural_with, signed_text, single_quoted,
 };
 use opsis_types::actions::{ActionLog, Viewport};
 use opsis_types::timeline::TimelineSpec;
 use serde_json::{Value, json};
 
 use crate::helpers::template;
-
-#[test]
-fn writes_sizes_in_binary_units() {
-    assert_eq!(
-        [
-            format_bytes(512),
-            format_bytes(2048),
-            format_bytes(5_242_880),
-            format_bytes(3 * 1024u64.pow(3))
-        ],
-        ["512 B", "2.0 KB", "5.0 MB", "3.0 GB"]
-    );
-}
 
 #[test]
 fn writes_durations_in_seconds_minutes_and_hours() {

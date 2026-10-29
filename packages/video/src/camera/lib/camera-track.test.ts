@@ -1,3 +1,4 @@
+import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
   buildCameraTrack,
@@ -278,13 +279,6 @@ describe("typing beats", () => {
       "a click with no typing must not inherit the extended hold",
     ).toBe(true);
   });
-
-  it("ends at base either way", () => {
-    for (const log of [typingLog, clickOnlyLog]) {
-      const keys = buildCameraTrack(log, 1, {});
-      expect(posesNearlyEqual(keys[keys.length - 1].pose, BASE_POSE)).toBe(true);
-    }
-  });
 });
 
 describe("frameFor", () => {
@@ -331,11 +325,35 @@ describe("frameFor", () => {
     expect(frameFor(small, VP, S_MAX * 1.69, true).scale).toBeCloseTo(S_MAX * 1.69, 9);
   });
 
-  it("never inverts its clamps at maximum zoom", () => {
-    const pose = frameFor(click(0, 1919, 1079), VP, S_MAX);
-    expect(Number.isFinite(pose.cx) && Number.isFinite(pose.cy)).toBe(true);
-    expect(pose.cx).toBeGreaterThanOrEqual(1 / (2 * pose.scale) - 1e-9);
-    expect(pose.cy).toBeLessThanOrEqual(1 - 1 / (2 * pose.scale) + 1e-9);
+  it("keeps every click in shot in any frame and never inverts its clamps at any zoom", () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 0, max: 1919 }),
+        fc.integer({ min: 0, max: 1079 }),
+        fc.option(fc.tuple(fc.integer({ min: 1, max: 1920 }), fc.integer({ min: 1, max: 1080 }))),
+        fc.double({ min: 1.05, max: S_MAX * 1.69, noNaN: true }),
+        fc.boolean(),
+        (x, y, size, sMax, narrow) => {
+          const target = size
+            ? box(
+                Math.max(0, Math.min(1920 - size[0], x - size[0] / 2)),
+                Math.max(0, Math.min(1080 - size[1], y - size[1] / 2)),
+                size[0],
+                size[1],
+              )
+            : {};
+          const pose = frameFor(click(0, x, y, target), VP, sMax, narrow);
+          const half = 1 / (2 * pose.scale);
+          expect(Number.isFinite(pose.cx) && Number.isFinite(pose.cy)).toBe(true);
+          expect(pose.scale).toBeGreaterThanOrEqual(1 - 1e-9);
+          expect(pose.cx).toBeGreaterThanOrEqual(half - 1e-9);
+          expect(pose.cx).toBeLessThanOrEqual(1 - half + 1e-9);
+          expect(pose.cy).toBeGreaterThanOrEqual(half - 1e-9);
+          expect(pose.cy).toBeLessThanOrEqual(1 - half + 1e-9);
+          expect(isInFrame(pose, VP, x, y)).toBe(true);
+        },
+      ),
+    );
   });
 });
 
@@ -388,5 +406,63 @@ describe("camera in narrower shapes", () => {
     const pose = narrowPose(full, tuning, { cx: 0.8, cy: 0.3 });
     expect(pose.cx).toBeCloseTo(0.2, 9);
     expect(pose.cy).toBeCloseTo(0.7, 9);
+  });
+});
+
+const randomLog = fc
+  .tuple(
+    fc.array(
+      fc.record({
+        t: fc.integer({ min: 200, max: 20_000 }),
+        x: fc.integer({ min: 0, max: 1919 }),
+        y: fc.integer({ min: 0, max: 1079 }),
+        typed: fc.boolean(),
+        zoom: fc.boolean(),
+      }),
+      { minLength: 1, maxLength: 8 },
+    ),
+    fc.integer({ min: 5000, max: 10_000 }),
+  )
+  .map(([raw, room]): ClickLog => {
+    const clicks = raw
+      .toSorted((a, b) => a.t - b.t)
+      .map((c) =>
+        click(c.t, c.x, c.y, {
+          ...(c.typed ? { typeEndMs: c.t + 1500 } : {}),
+          ...(c.zoom ? {} : { zoom: false }),
+        }),
+      );
+    const lastMs = Math.max(...clicks.map((c) => c.typeEndMs ?? c.tMs));
+    return { name: "random", viewport: VP, durationMs: lastMs + room, clicks };
+  });
+
+describe("any take", () => {
+  it("starts at base and, with room after the last action, ends at base at the end of the take", () => {
+    fc.assert(
+      fc.property(randomLog, (log) => {
+        const keys = buildCameraTrack(log, 1, {});
+        expect(posesNearlyEqual(sampleTrack(keys, 0), BASE_POSE)).toBe(true);
+        const last = keys[keys.length - 1];
+        expect(posesNearlyEqual(last.pose, BASE_POSE)).toBe(true);
+        expect(last.t).toBeGreaterThanOrEqual(log.durationMs / 1000 - 0.1);
+        expect(keys.every((k, i) => i === 0 || k.t >= keys[i - 1].t)).toBe(true);
+      }),
+    );
+  });
+
+  it("never jumps between two frames", () => {
+    fc.assert(
+      fc.property(randomLog, (log) => {
+        const frames = Math.ceil((log.durationMs / 1000) * 30);
+        for (let f = 0; f < frames; f++) {
+          const a = zoomAt(f, 30, log);
+          const b = zoomAt(f + 1, 30, log);
+          expect(Math.abs(a.translateX - b.translateX)).toBeLessThan(0.25);
+          expect(Math.abs(a.translateY - b.translateY)).toBeLessThan(0.25);
+          expect(Math.abs(a.scale - b.scale)).toBeLessThan(0.25);
+        }
+      }),
+      { numRuns: 60 },
+    );
   });
 });

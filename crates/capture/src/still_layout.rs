@@ -61,8 +61,8 @@ fn window_box(aspect_ratio: f64, canvas: Size, fit: f64) -> Size {
         aspect_ratio,
     );
     Size {
-        width: b.width.round(),
-        height: b.height.round(),
+        width: b.width.round().max(1.0),
+        height: b.height.round().max(1.0),
     }
 }
 
@@ -84,7 +84,9 @@ fn cutout_width(shot: &ShotArea, canvas: Size, max_upscale: f64) -> f64 {
         height: shot.height,
     });
     let want = window_box(aspect(body.width, body.height), canvas, CUTOUT_FIT);
-    let s = (want.width / body.width).min(max_upscale);
+    let s = (want.width / body.width)
+        .min(want.height / body.height)
+        .min(max_upscale);
     shot.width * s
 }
 

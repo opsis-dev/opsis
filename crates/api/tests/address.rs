@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use proptest::prelude::*;
+
 use opsis_api::address::{API_SOCKET_ENV, ApiAddress, Host, MAX_SOCKET_PATH_BYTES, api_address};
 
 fn host<'a>(custom: Option<&'a str>, user_data: &'a str) -> Host<'a> {
@@ -14,10 +16,6 @@ fn host<'a>(custom: Option<&'a str>, user_data: &'a str) -> Host<'a> {
 
 const USER_DATA: &str = "/home/ada/.config/Opsis";
 
-fn path_of_bytes(bytes: usize) -> String {
-    format!("/{}/api.sock", "a".repeat(bytes - "/api.sock".len() - 1))
-}
-
 #[test]
 fn uses_the_socket_in_the_apps_data_folder_by_default() {
     assert_eq!(
@@ -26,32 +24,6 @@ fn uses_the_socket_in_the_apps_data_folder_by_default() {
             address: "/home/ada/.config/Opsis/api.sock".into(),
             error: None
         }
-    );
-}
-
-#[test]
-fn uses_the_path_the_environment_variable_names() {
-    assert_eq!(
-        api_address(&host(Some(" /run/user/1000/df.sock "), USER_DATA)),
-        ApiAddress {
-            address: "/run/user/1000/df.sock".into(),
-            error: None
-        }
-    );
-}
-
-#[test]
-fn allows_exactly_the_maximum_length_and_refuses_one_byte_more() {
-    let fits = path_of_bytes(MAX_SOCKET_PATH_BYTES);
-    let over = path_of_bytes(MAX_SOCKET_PATH_BYTES + 1);
-    assert_eq!(api_address(&host(Some(&fits), USER_DATA)).error, None);
-    assert!(
-        api_address(&host(Some(&over), USER_DATA))
-            .error
-            .unwrap()
-            .contains(&format!(
-                "101 bytes long, and it can be at most {MAX_SOCKET_PATH_BYTES}"
-            ))
     );
 }
 
@@ -67,26 +39,28 @@ fn counts_a_long_default_path_and_says_how_to_fix_it() {
     );
 }
 
-#[test]
-fn counts_bytes_not_characters() {
-    let address = format!("/home/ada/{}/api.sock", "é".repeat(45));
-    assert!(address.chars().count() <= MAX_SOCKET_PATH_BYTES);
-    assert!(
-        api_address(&host(Some(&address), USER_DATA))
-            .error
-            .unwrap()
-            .contains("bytes long")
-    );
-}
-
-#[test]
-fn refuses_a_relative_path() {
-    assert!(
-        api_address(&host(Some("df.sock"), USER_DATA))
-            .error
-            .unwrap()
-            .contains("has to be a full path")
-    );
+proptest! {
+    #[test]
+    fn takes_any_full_path_up_to_the_byte_limit_and_explains_the_rest(
+        relative in any::<bool>(),
+        name in "[a-zé_ .-]{1,80}",
+        depth in 0usize..4,
+        padding in "[ ]{0,3}",
+    ) {
+        let path = format!("{}{}{}", if relative { "" } else { "/" }, format!("{name}/").repeat(depth), name);
+        let typed = format!("{padding}{path}{padding}");
+        let trimmed = typed.trim();
+        let found = api_address(&host(Some(&typed), USER_DATA));
+        prop_assert_eq!(&found.address, trimmed);
+        match found.error {
+            None => prop_assert!(trimmed.starts_with('/') && trimmed.len() <= MAX_SOCKET_PATH_BYTES),
+            Some(error) if !trimmed.starts_with('/') => prop_assert!(error.contains("has to be a full path"), "{}", error),
+            Some(error) => {
+                prop_assert!(trimmed.len() > MAX_SOCKET_PATH_BYTES);
+                prop_assert!(error.contains(&format!("{} bytes long", trimmed.len())), "{}", error);
+            }
+        }
+    }
 }
 
 #[test]

@@ -13,6 +13,7 @@ use opsis_compile::vars::{Token, Vars, interpolate_text, rename_variable, string
 use opsis_types::secrets::{secret_file_name, secret_name};
 use opsis_types::values::{LastRun, MediaKind, NodeResult};
 use opsis_types::workflow::Workflow;
+use proptest::prelude::*;
 use serde_json::json;
 
 #[test]
@@ -74,36 +75,6 @@ fn sorts_refs_into_project_app_web_and_absolute_files() {
         ],
         ["a.mp4", "site", "clip.mp4"]
     );
-}
-
-#[test]
-fn reads_the_last_segments_extension_in_lowercase() {
-    assert_eq!(
-        [
-            extension_of("assets/Clip.MP4"),
-            extension_of("README"),
-            extension_of("dir.v2/clip"),
-            extension_of(".gitignore")
-        ],
-        ["mp4", "", "", ""]
-    );
-}
-
-#[test]
-fn keys_a_project_file_the_same_however_its_path_is_written() {
-    assert_eq!(
-        file_version_key("project:assets/./a.png").as_deref(),
-        Some("assets/a.png")
-    );
-    assert_eq!(
-        file_version_key("project:/assets//a.png").as_deref(),
-        Some("assets/a.png")
-    );
-    assert_eq!(
-        file_version_key("assets\\a.png").as_deref(),
-        Some("assets/a.png")
-    );
-    assert_eq!(file_version_key("app:backdrops/a.png"), None);
 }
 
 #[test]
@@ -442,4 +413,141 @@ fn three_d_elements_name_prepared_files_and_text_picks_the_face_the_page_would()
     let mut empty = props(json!({ "src": "" }));
     prepare_props("logo-3d", &mut empty, &fonts);
     assert_eq!(empty["src"], "");
+}
+
+fn segment() -> impl Strategy<Value = String> {
+    "[A-Za-z0-9_é-]([A-Za-z0-9_é -]{0,6}[A-Za-z0-9_é-])?"
+}
+
+fn segments() -> impl Strategy<Value = Vec<String>> {
+    prop::collection::vec(segment(), 1..4)
+}
+
+fn rebuilt(tokens: &[Token]) -> String {
+    tokens
+        .iter()
+        .map(|t| match t {
+            Token::Text(text) => text.clone(),
+            Token::Var(name) => format!("{{{{{name}}}}}"),
+            Token::Pause => "¦".to_owned(),
+        })
+        .collect()
+}
+
+fn is_slug(text: &str) -> bool {
+    !text.is_empty()
+        && text.split('-').all(|part| {
+            !part.is_empty()
+                && part
+                    .chars()
+                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+        })
+}
+
+proptest! {
+    #[test]
+    fn keys_a_project_file_the_same_however_its_path_is_written(parts in segments(), dots in 0usize..3) {
+        let plain = parts.join("/");
+        let messy = format!("{}{}", "./".repeat(dots), parts.join("//"));
+        for written in [
+            format!("project:{plain}"),
+            format!("project:/{messy}"),
+            parts.join("\\"),
+            format!("  project:{messy}  "),
+        ] {
+            prop_assert_eq!(file_version_key(&written), Some(plain.clone()), "{}", written);
+        }
+        prop_assert_eq!(file_version_key(&format!("app:{plain}")), None);
+    }
+
+    #[test]
+    fn reads_the_last_segments_extension_in_lowercase(dirs in prop::collection::vec("[a-z]{1,4}(\\.[a-z]{1,3})?", 0..3), stem in "[A-Za-z0-9]{1,6}", ext in "[A-Za-z0-9]{1,4}") {
+        let folder: String = dirs.iter().map(|d| format!("{d}/")).collect();
+        prop_assert_eq!(extension_of(&format!("{folder}{stem}.{ext}")), ext.to_lowercase());
+        prop_assert_eq!(extension_of(&format!("{folder}{stem}")), "");
+        prop_assert_eq!(extension_of(&format!("{folder}.{stem}")), "");
+    }
+
+    #[test]
+    fn names_project_files_once_and_finds_them_again(parts in segments()) {
+        let rel = parts.join("/");
+        let named = project_ref(&rel);
+        prop_assert_eq!(project_ref(&named), named.clone());
+        prop_assert_eq!(project_rel_path(&named), Some(rel));
+    }
+
+    #[test]
+    fn splits_any_text_into_tokens_that_write_it_again(text in "[a-z {}¦]{0,40}", pauses in any::<bool>()) {
+        let tokens = tokenize(&text, pauses);
+        prop_assert_eq!(tokenize(&rebuilt(&tokens), pauses), tokens.clone());
+        prop_assert!(pauses || !tokens.contains(&Token::Pause));
+        if !text.contains("{{") {
+            prop_assert_eq!(rebuilt(&tokens), text);
+        }
+    }
+
+    #[test]
+    fn renames_every_use_of_a_variable_and_no_other(parts in prop::collection::vec(prop::sample::select(vec!["{{a}}", "{{ a }}", "{{c}}", "x", " ", "¦"]), 0..12)) {
+        let text = parts.concat();
+        let renamed = rename_variable(&json!({ "t": text, "l": [text] }), "a", "b");
+        let tokens = tokenize(renamed["t"].as_str().unwrap(), true);
+        let before = tokenize(&text, true);
+        prop_assert!(!tokens.contains(&Token::Var("a".into())));
+        prop_assert_eq!(tokens.len(), before.len());
+        let renamed_before: Vec<Token> = before
+            .into_iter()
+            .map(|t| if t == Token::Var("a".into()) { Token::Var("b".into()) } else { t })
+            .collect();
+        prop_assert_eq!(tokens, renamed_before);
+        prop_assert_eq!(&renamed["l"][0], &renamed["t"]);
+    }
+
+    #[test]
+    fn names_folders_and_sign_in_files_with_a_plain_slug(name in "\\PC{0,30}") {
+        let folder = project_folder_name(&name);
+        prop_assert!(is_slug(&folder), "{}", folder);
+        prop_assert_eq!(project_folder_name(&folder), folder);
+        let file = secret_file_name(&name);
+        prop_assert!(is_slug(&file), "{}", file);
+        prop_assert_eq!(secret_file_name(&format!("  {name}  ")), file);
+    }
+
+    #[test]
+    fn reads_any_number_typed_with_a_point_or_a_comma(value in -1e9..1e9f64, comma in any::<bool>(), pad in "[ ]{0,2}") {
+        let typed = format!("{value}");
+        let typed = if comma { typed.replacen('.', ",", 1) } else { typed };
+        prop_assert_eq!(parse_number_text(&format!("{pad}{typed}{pad}")), Some(value));
+    }
+
+    #[test]
+    fn reads_the_same_colour_in_any_notation(r in 0u8..=255, g in 0u8..=255, b in 0u8..=255) {
+        let hex = format!("#{r:02x}{g:02x}{b:02x}");
+        let rgb = format!("rgb({r}, {g}, {b})");
+        let opaque = format!("{hex}ff");
+        prop_assert!(same_color(&hex, &rgb));
+        prop_assert!(same_color(&hex, &hex.to_uppercase()));
+        prop_assert!(same_color(&hex, &opaque));
+    }
+
+    #[test]
+    fn prepared_refs_come_back_whole_and_never_leave_their_folder(
+        parts in segments(),
+        kind in prop_oneof![
+            (100u32..=900).prop_map(|w| opsis_compile::asset_ref::PreparedKind::Typeface { weight: f64::from(w / 100 * 100) }),
+            Just(opsis_compile::asset_ref::PreparedKind::Model),
+            Just(opsis_compile::asset_ref::PreparedKind::Svg),
+            Just(opsis_compile::asset_ref::PreparedKind::Texture),
+        ],
+        app in any::<bool>(),
+        escape in 0usize..3,
+    ) {
+        use opsis_compile::asset_ref::PreparedRef;
+        let rel = parts.join("/");
+        let source = format!("{}{rel}", if app { "app:" } else { "project:" });
+        let prepared = PreparedRef::new(kind, &source).unwrap();
+        prop_assert_eq!(PreparedRef::parse(&prepared.to_ref()), Some(prepared.clone()));
+        prop_assert_eq!(PreparedRef::from_path(&prepared.path()), Some(prepared));
+        let outside = format!("project:{}{rel}", "../".repeat(escape + 1));
+        prop_assert_eq!(PreparedRef::new(kind, &outside), None);
+    }
 }

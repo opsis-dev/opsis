@@ -47,5 +47,8 @@
     "test": "vitest run",
     "routes": "tsr generate"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "fast-check": "^4.10.2"
+  }
 }

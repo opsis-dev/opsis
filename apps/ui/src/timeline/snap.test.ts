@@ -1,21 +1,59 @@
+import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { rulerStep, snapFrame, snapSpan } from "./snap";
 
-describe("snapping", () => {
-  const targets = [
-    { frame: 30, kind: "playhead" as const },
-    { frame: 90, kind: "edge" as const },
-  ];
+const target = fc.record({
+  frame: fc.integer({ min: 0, max: 2000 }),
+  kind: fc.constantFrom("playhead" as const, "edge" as const, "marker" as const, "beat" as const),
+});
 
-  it("snaps to the nearest target inside the threshold", () => {
-    expect(snapFrame(33, targets, 5)).toEqual({ frame: 30, target: targets[0] });
-    expect(snapFrame(40, targets, 5).target).toBeNull();
+describe("snapping", () => {
+  it("snaps to the nearest target inside the threshold and stays put otherwise", () => {
+    fc.assert(
+      fc.property(
+        fc.array(target, { maxLength: 12 }),
+        fc.double({ min: -100, max: 2100, noNaN: true }),
+        fc.integer({ min: 0, max: 40 }),
+        (targets, frame, threshold) => {
+          const snapped = snapFrame(frame, targets, threshold);
+          const nearest = Math.min(...targets.map((t) => Math.abs(t.frame - frame)));
+          const inReach = nearest <= threshold;
+          expect(snapped.target !== null).toBe(inReach);
+          expect(snapped.frame).toBe(snapped.target ? snapped.target.frame : frame);
+          expect(inReach ? Math.abs(snapped.frame - frame) : nearest).toBe(nearest);
+        },
+      ),
+    );
   });
 
-  it("snaps whichever end of a moved span is closer", () => {
-    expect(snapSpan(0, 50, 28, targets, 5).delta).toBe(30);
-    expect(snapSpan(0, 50, 42, targets, 5).delta).toBe(40);
-    expect(snapSpan(0, 50, 10, targets, 5)).toEqual({ delta: 10, target: null });
+  it("puts one end of a moved span exactly on a target, whichever is closer", () => {
+    fc.assert(
+      fc.property(
+        fc.array(target, { maxLength: 12 }),
+        fc.integer({ min: 0, max: 1000 }),
+        fc.integer({ min: 1, max: 500 }),
+        fc.double({ min: -300, max: 300, noNaN: true }),
+        fc.integer({ min: 0, max: 40 }),
+        (targets, from, length, delta, threshold) => {
+          const to = from + length;
+          const snapped = snapSpan(from, to, delta, targets, threshold);
+          const landed = [from + snapped.delta, to + snapped.delta];
+          const ends = [from, to].map((edge) => snapFrame(edge + delta, targets, threshold));
+          const closest = Math.min(
+            ...ends.map((own, i) =>
+              own.target ? Math.abs(own.frame - ([from, to][i] + delta)) : Number.POSITIVE_INFINITY,
+            ),
+          );
+          expect(snapped.target !== null).toBe(ends.some((own) => own.target));
+          expect(
+            snapped.target ? landed.includes(snapped.target.frame) : snapped.delta === delta,
+          ).toBe(true);
+          expect(
+            snapped.target ? Math.abs(Math.abs(snapped.delta - delta) - closest) : 0,
+          ).toBeLessThanOrEqual(1e-9);
+        },
+      ),
+    );
   });
 });
 

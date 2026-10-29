@@ -32,7 +32,7 @@ export function containBox(outer: Size, aspect: number): Size {
 
 function windowBox(aspect: number, canvas: Size, fit: number): Size {
   const box = containBox({ width: canvas.width * fit, height: canvas.height * fit }, aspect);
-  return { width: Math.round(box.width), height: Math.round(box.height) };
+  return { width: Math.max(1, Math.round(box.width)), height: Math.max(1, Math.round(box.height)) };
 }
 
 const centeredLeft = (size: Size, canvas: Size) => (canvas.width - size.width) / 2;
@@ -49,7 +49,7 @@ function windowLayout(shot: ShotArea, canvas: Size, fit: number): Box {
 function cutoutLayout(shot: ShotArea, canvas: Size, maxUpscale: number): Box {
   const body = shot.body ?? { x: 0, y: 0, width: shot.width, height: shot.height };
   const want = windowBox(aspectOf(body), canvas, CUTOUT_FIT);
-  const s = Math.min(want.width / body.width, maxUpscale);
+  const s = Math.min(want.width / body.width, want.height / body.height, maxUpscale);
   const placed = { width: body.width * s, height: body.height * s };
   return {
     x: centeredLeft(placed, canvas) - body.x * s,

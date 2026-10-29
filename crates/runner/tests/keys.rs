@@ -4,7 +4,8 @@ use opsis_compile::vars::workflow_vars;
 use opsis_runner::context::{ExecutorOutput, Executors, Stamps, executor};
 use opsis_runner::keys::{KeyInputs, Release, hash_nodes, node_hash};
 use opsis_types::workflow::Workflow;
-use serde_json::Value;
+use proptest::prelude::*;
+use serde_json::{Map, Value};
 
 fn workflow(nodes: Value, edges: Value) -> Workflow {
     serde_json::from_value(
@@ -113,114 +114,84 @@ fn changes_every_key_after_a_stamped_executor_when_its_stamp_changes() {
     assert_eq!(key_of(&wf, dir.path(), "rec"), unsaved);
 }
 
-#[test]
-fn keys_ignore_port_listing_order_and_change_with_the_app_version() {
-    let ports = |list: &[(&str, &str)]| {
-        list.iter()
-            .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
-            .collect::<Vec<_>>()
-    };
-    let params = serde_json::json!({});
-    assert_eq!(
-        node_hash(
-            "fx.title",
-            &params,
-            &ports(&[("clip", "x:clip"), ("audio", "y:audio")]),
-            &Release::default()
-        ),
-        node_hash(
-            "fx.title",
-            &params,
-            &ports(&[("audio", "y:audio"), ("clip", "x:clip")]),
-            &Release::default()
-        )
-    );
-    assert_ne!(
-        node_hash(
-            "fx.title",
-            &params,
-            &ports(&[("clip", "x:clip"), ("audio", "y:audio")]),
-            &Release::default()
-        ),
-        node_hash(
-            "fx.title",
-            &params,
-            &ports(&[("clip", "y:audio"), ("audio", "x:clip")]),
-            &Release::default()
-        )
-    );
-    let release = |app, engine| Release { app, engine };
-    assert_ne!(
-        node_hash("media.trim", &params, &[], &release("0.1.0", "")),
-        node_hash("media.trim", &params, &[], &release("0.2.0", ""))
-    );
-    assert_ne!(
-        node_hash("media.trim", &params, &[], &release("0.1.0", "a:b:c")),
-        node_hash("media.trim", &params, &[], &release("0.1.0", "a:d:c"))
-    );
+fn params() -> impl Strategy<Value = Map<String, Value>> {
+    prop::collection::btree_map(
+        "[a-z]{1,6}",
+        prop_oneof![
+            any::<i32>().prop_map(Value::from),
+            "[a-z ]{0,6}".prop_map(Value::from),
+            any::<bool>().prop_map(Value::from)
+        ],
+        0..6,
+    )
+    .prop_map(|m| m.into_iter().collect())
 }
 
-fn upstream(list: &[(&str, &str)]) -> Vec<(String, String)> {
-    list.iter()
-        .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
-        .collect()
-}
-
-#[test]
-fn keys_are_stable_under_key_order_and_change_with_params_or_upstream() {
-    let clip = upstream(&[("clip", "x:clip")]);
-    let key = node_hash(
-        "fx.title",
-        &serde_json::json!({ "title": "Hi", "fontSize": 100 }),
-        &clip,
-        &Release::default(),
-    );
-    assert_eq!(
-        node_hash(
-            "fx.title",
-            &serde_json::json!({ "fontSize": 100, "title": "Hi" }),
-            &clip,
-            &Release::default()
-        ),
-        key
-    );
-    assert_ne!(
-        node_hash(
-            "fx.title",
-            &serde_json::json!({ "title": "Hello", "fontSize": 100 }),
-            &clip,
-            &Release::default()
-        ),
-        key
-    );
-    assert_ne!(
-        node_hash(
-            "fx.title",
-            &serde_json::json!({ "title": "Hi", "fontSize": 100 }),
-            &upstream(&[("clip", "y:clip")]),
-            &Release::default()
-        ),
-        key
-    );
-}
-
-#[test]
-fn keys_ignore_the_order_connections_were_made_to_a_port_that_takes_several() {
-    let params = serde_json::json!({});
-    assert_eq!(
-        node_hash(
-            "audio.mix",
-            &params,
-            &upstream(&[("sounds", "a:audio"), ("sounds", "b:audio")]),
-            &Release::default()
-        ),
-        node_hash(
-            "audio.mix",
-            &params,
-            &upstream(&[("sounds", "b:audio"), ("sounds", "a:audio")]),
-            &Release::default()
+fn upstream() -> impl Strategy<Value = Vec<(String, String)>> {
+    prop::collection::vec(
+        (
+            prop::sample::select(vec!["clip", "audio", "sounds", "in1"]),
+            "[a-z]{1,4}:(clip|audio)",
         )
-    );
+            .prop_map(|(port, from)| (port.to_owned(), from)),
+        0..6,
+    )
+}
+
+fn reversed(params: &Map<String, Value>) -> Value {
+    Value::Object(
+        params
+            .iter()
+            .rev()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect(),
+    )
+}
+
+proptest! {
+    #[test]
+    fn keys_ignore_the_order_of_settings_and_connections(
+        params in params(),
+        ports in upstream(),
+        shift in 0usize..6,
+    ) {
+        let mut moved = ports.clone();
+        if !moved.is_empty() {
+            let by = shift % moved.len();
+            moved.rotate_left(by);
+        }
+        moved.reverse();
+        prop_assert_eq!(
+            node_hash("fx.title", &Value::Object(params.clone()), &ports, &Release::default()),
+            node_hash("fx.title", &reversed(&params), &moved, &Release::default())
+        );
+    }
+
+    #[test]
+    fn keys_change_with_any_setting_connection_or_release(
+        params in params(),
+        ports in upstream(),
+        key in "[a-z]{1,6}",
+        value in any::<i32>(),
+    ) {
+        let key_of = |params: &Map<String, Value>, ports: &[(String, String)], release: &Release<'_>| {
+            node_hash("fx.title", &Value::Object(params.clone()), ports, release)
+        };
+        let base = key_of(&params, &ports, &Release::default());
+        let mut changed = params.clone();
+        let next = Value::from(value);
+        if changed.get(&key) != Some(&next) {
+            changed.insert(key, next);
+            prop_assert_ne!(key_of(&changed, &ports, &Release::default()), base.clone());
+        }
+        let mut rewired = ports.clone();
+        rewired.push(("clip".to_owned(), "zz:clip".to_owned()));
+        prop_assert_ne!(key_of(&params, &rewired, &Release::default()), base.clone());
+        let app = Release { app: "0.2.0", engine: "" };
+        let engine = Release { app: "", engine: "a:d:c" };
+        prop_assert_ne!(key_of(&params, &ports, &app), base.clone());
+        prop_assert_ne!(key_of(&params, &ports, &engine), base);
+    }
 }
 
 #[test]

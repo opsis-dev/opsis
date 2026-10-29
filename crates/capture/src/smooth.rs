@@ -178,15 +178,21 @@ impl Stepper for Smooth {
 
 #[cfg(test)]
 mod tests {
+    use proptest::prelude::*;
+
     use super::*;
 
-    #[test]
-    fn moves_the_page_by_whole_milliseconds_that_add_up_to_the_frame_times() {
-        let frame_ms = 1000.0 / 30.0;
-        let steps: Vec<f64> = (1..=6).map(|f| page_ms(f, frame_ms)).collect();
-        assert_eq!(steps, [33.0, 34.0, 33.0, 33.0, 34.0, 33.0]);
-        let total: f64 = (1..=30).map(|f| page_ms(f, frame_ms)).sum();
-        assert_eq!(total, 1000.0);
-        assert_eq!(page_ms(1, 1000.0 / 60.0), 17.0);
+    proptest! {
+        #[test]
+        fn moves_the_page_by_whole_milliseconds_that_add_up_to_the_frame_times(
+            fps in prop::sample::select(vec![12u32, 24, 25, 30, 48, 50, 60, 120]),
+            frames in 1u64..10_000,
+        ) {
+            let frame_ms = 1000.0 / f64::from(fps);
+            let steps: Vec<f64> = (1..=frames).map(|f| page_ms(f, frame_ms)).collect();
+            prop_assert!(steps.iter().all(|s| s.fract() == 0.0 && *s >= frame_ms.floor() && *s <= frame_ms.ceil()));
+            let total: f64 = steps.iter().sum();
+            prop_assert_eq!(total, (numbers::float_wide(frames) * frame_ms).round());
+        }
     }
 }

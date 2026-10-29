@@ -176,12 +176,15 @@ function scaleFor(
 
 const inView = (v: number, half: number): number => clamp(v, half, 1 - half);
 
+function keepingClick(aimed: number, click: number, half: number): number {
+  const margin = Math.min(FRAMING.clickEdgeMargin, half * FRAMING.clickEdgeMarginMaxShare);
+  return inView(clamp(aimed, click - half + margin, click + half - margin), half);
+}
+
 function offCenter(focus: number, click: number, offset: number, scale: number): number {
   const half = 1 / (2 * scale);
   const side = focus >= 0.5 ? 1 : -1;
-  const aimed = inView(focus - (offset * side) / scale, half);
-  const margin = Math.min(FRAMING.clickEdgeMargin, half * FRAMING.clickEdgeMarginMaxShare);
-  return inView(clamp(aimed, click - half + margin, click + half - margin), half);
+  return keepingClick(inView(focus - (offset * side) / scale, half), click, half);
 }
 
 export function frameFor(c: ClickEvent, vp: Viewport, sMax: number, narrow = false): CameraPose {
@@ -191,7 +194,11 @@ export function frameFor(c: ClickEvent, vp: Viewport, sMax: number, narrow = fal
   const focusY = clamp01(subject.y / vp.height);
   if (narrow) {
     const half = 1 / (2 * scale);
-    return { scale, cx: inView(focusX, half), cy: inView(focusY, half) };
+    return {
+      scale,
+      cx: keepingClick(inView(focusX, half), clamp01(c.x / vp.width), half),
+      cy: keepingClick(inView(focusY, half), clamp01(c.y / vp.height), half),
+    };
   }
   return {
     scale,

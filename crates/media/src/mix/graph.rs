@@ -743,269 +743,50 @@ pub fn parse_loudnorm(stderr: &str) -> Option<LoudnessMeasure> {
 
 #[cfg(test)]
 mod tests {
-    use opsis_types::mix::{Master, Strip};
-    use serde_json::{Value, json};
+    use opsis_compile::mix::plan::SoundPlacement;
+    use proptest::prelude::*;
 
-    use super::*;
+    use super::pack_lanes;
 
-    const FILM: Plan = Plan {
-        fps: 30,
-        duration_in_frames: 300,
-    };
-    const PADDED: &str = "[s0]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS[out]";
-
-    fn resolve(r: &str) -> String {
-        format!("/files/{}", r.split(':').nth(1).unwrap_or(r))
-    }
-
-    fn sound_job(placement: Value, strip: Value) -> Job {
-        let mut sound = json!({ "src": "project:a.wav", "at": 0, "offset": 0, "length": 90, "rate": 1, "loop": false, "volume": 1, "fadeIn": 0, "fadeOut": 0 });
-        sound
-            .as_object_mut()
-            .unwrap()
-            .extend(placement.as_object().unwrap().clone());
-        let channel: ChannelPlan = serde_json::from_value(json!({
-            "id": "a", "kind": "effect", "bus": "effects", "audible": true,
-            "strip": serde_json::from_value::<Strip>(strip).unwrap(), "sounds": [sound]
-        }))
-        .unwrap();
-        let inputs = channel.sounds.iter().map(|s| resolve(&s.src)).collect();
-        channel_job(FILM, &channel, inputs)
-    }
-
-    #[test]
-    fn changes_a_sounds_pitch_by_its_rate_of_play_and_back_to_the_mix_rate() {
-        let job = sound_job(json!({ "length": 6, "pitch": 1.03 }), json!({}));
-        assert_eq!(
-            job.filter,
-            format!(
-                "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=49440,aresample=48000,atrim=end=0.2,asetpts=PTS-STARTPTS[s0];{PADDED}"
-            )
-        );
-        assert!(
-            !sound_job(json!({ "pitch": 1 }), json!({}))
-                .filter
-                .contains("asetrate")
-        );
-    }
-
-    fn shots(count: u32, every: u32, length: u32) -> Job {
-        let sounds: Vec<Value> = (0..count)
-            .map(|i| json!({ "src": "app:sfx/key.wav", "at": 30 + i * every, "offset": 0, "length": length, "rate": 1, "loop": false, "volume": 1, "fadeIn": 0, "fadeOut": 0 }))
-            .collect();
-        let channel: ChannelPlan = serde_json::from_value(json!({
-            "id": "a", "kind": "effect", "bus": "effects", "audible": true,
-            "strip": serde_json::from_value::<Strip>(json!({})).unwrap(), "sounds": sounds
-        }))
-        .unwrap();
-        let inputs = channel.sounds.iter().map(|s| resolve(&s.src)).collect();
-        channel_job(FILM, &channel, inputs)
-    }
-
-    #[test]
-    fn plays_many_short_sounds_one_after_another_on_a_few_lanes() {
-        let one_lane = shots(18, 3, 2);
-        assert_eq!(one_lane.inputs.len(), 18);
-        assert!(
-            one_lane
-                .filter
-                .contains("anullsrc=r=48000:cl=stereo,atrim=end_sample=48000[l0q]")
-        );
-        assert!(
-            one_lane
-                .filter
-                .contains("apad=whole_len=4800,atrim=end_sample=4800[s0]")
-        );
-        assert!(one_lane.filter.contains("[s17]concat=n=19:v=0:a=1[l0]"));
-        assert!(!one_lane.filter.contains("adelay"));
-        assert!(!one_lane.filter.contains("amix"));
-        let crowded = shots(18, 3, 5);
-        assert!(crowded.filter.contains("concat=n=10:v=0:a=1[l0]"));
-        assert!(crowded.filter.contains("concat=n=10:v=0:a=1[l1]"));
-        assert!(crowded.filter.contains("[l0][l1]amix=inputs=2"));
-        assert!(shots(16, 3, 2).filter.contains("adelay"));
-    }
-
-    #[test]
-    fn places_a_sound_in_time_with_fades_and_volume() {
-        let job = sound_job(
-            json!({ "at": 30, "offset": 15, "length": 60, "volume": 0.5, "fadeIn": 6, "fadeOut": 12 }),
-            json!({}),
-        );
-        assert_eq!(job.inputs, ["/files/a.wav"]);
-        assert_eq!(
-            job.filter,
-            format!(
-                "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.5,asetpts=PTS-STARTPTS,atrim=end=2,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.2,afade=t=out:st=1.6:d=0.4,adelay=delays=1000:all=1[s0];{PADDED}"
-            )
-        );
-    }
-
-    #[test]
-    fn loops_pans_and_fades_volume_with_keyframes() {
-        let pan = json!([{ "frame": 0, "value": -1, "ease": "linear" }, { "frame": 30, "value": 1, "ease": "linear" }]);
-        let filter = sound_job(
-            json!({ "loop": true, "envelope": { "pan": pan } }),
-            json!({}),
-        )
-        .filter;
-        for part in [
-            "aloop=loop=-1:size=2147483647",
-            "channelsplit=channel_layout=stereo[s0l][s0r]",
-            "[s0L][s0R]join=inputs=2:channel_layout=stereo[s0]",
-            "min(1,1-(if(lt(t,0),-1,if(lt(t,1),-1+(2)*(t-0)/1,1))))",
-        ] {
-            assert!(filter.contains(part), "{part}");
+    fn placed(at: u32, length: u32) -> SoundPlacement {
+        SoundPlacement {
+            src: "app:sfx/key.wav".into(),
+            at,
+            offset: 0,
+            length,
+            looped: false,
+            rate: 1.0,
+            pitch: None,
+            volume: 1.0,
+            fade_in: 0,
+            fade_out: 0,
+            envelope: None,
         }
-        let volume = json!([{ "frame": 0, "value": 1, "ease": "linear" }, { "frame": 30, "value": 0, "ease": "linear" }, { "frame": 60, "value": 0, "ease": "linear" }]);
-        let filter = sound_job(json!({ "envelope": { "volume": volume } }), json!({})).filter;
-        assert!(filter.contains("volume=eval=frame:volume='if(lt(t,0),1,if(lt(t,1),1+(-1)*(t-0)/1,if(lt(t,2),0,0)))'"), "{filter}");
     }
 
-    #[test]
-    fn runs_a_channel_strip_in_signal_order() {
-        let strip = json!({
-            "trim": 3, "highpass": { "on": true, "freq": 80 },
-            "eq": { "on": true, "bands": [
-                { "type": "lowshelf", "freq": 120, "gain": -2, "q": 0.7 }, { "type": "peak", "freq": 500, "gain": 0, "q": 1 },
-                { "type": "peak", "freq": 2500, "gain": 3, "q": 1.4 }, { "type": "highshelf", "freq": 8000, "gain": 1.5, "q": 0.7 }
-            ] },
-            "comp": { "on": true, "threshold": -20, "ratio": 4, "attack": 5, "release": 100, "makeup": 6 },
-            "pan": -0.5, "fader": -3
-        });
-        let filter = sound_job(json!({}), strip).filter;
-        let pinned = "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo";
-        assert_eq!(
-            filter.split(';').skip(1).collect::<Vec<_>>(),
-            [
-                "[s0]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS,volume=3dB,highpass=f=80,lowshelf=f=120:t=q:w=0.7:g=-2,equalizer=f=2500:t=q:w=1.4:g=3,highshelf=f=8000:t=q:w=0.7:g=1.5[sum]".to_owned(),
-                format!("[sum]{pinned},asplit=2[pre][c]"),
-                format!("[c]acompressor=threshold=0.1:ratio=4:attack=5:release=100:makeup=1.995262,{pinned},asplit=2[post][m]"),
-                "[m]pan=stereo|c0=1*c0|c1=0.5*c1,volume=-3dB[out]".to_owned(),
-            ]
-        );
-    }
-
-    #[test]
-    fn writes_stem_arguments_with_a_length_limit() {
-        let job = sound_job(json!({}), json!({}));
-        let args = job_args(&job, "/out.wav", PcmCodec::F32, None, Some(11.0));
-        let expected = [
-            "-i",
-            "/files/a.wav",
-            "-filter_complex",
-            &job.filter,
-            "-map",
-            "[out]",
-            "-t",
-            "11",
-            "-ac",
-            "2",
-            "-ar",
-            "48000",
-            "-c:a",
-            "pcm_f32le",
-            "/out.wav",
-        ];
-        assert_eq!(args, expected);
-    }
-
-    fn bus(channels: &[&str], duck: Option<Value>, fader: f64, processing: Value) -> BusPlan {
-        serde_json::from_value(json!({ "id": "music", "name": "Music", "fader": fader, "channels": channels, "duck": duck, "processing": processing })).unwrap()
-    }
-
-    fn no_processing() -> Value {
-        json!({ "highpass": { "on": false, "freq": 80 }, "eq": { "on": false, "bands": [] }, "comp": { "on": false } })
-    }
-
-    #[test]
-    fn ducks_a_bus_with_a_sidechain_keyed_from_other_channels() {
-        let duck = json!({ "keys": ["fx", "clip"], "amount": 14, "attack": 50, "release": 400 });
-        let job = bus_job(
-            FILM,
-            &bus(&["music"], Some(duck), -2.0, no_processing()),
-            &|id| format!("/stems/{id}.wav"),
-        );
-        assert_eq!(
-            job.inputs,
-            ["/stems/music.wav", "/stems/fx.wav", "/stems/clip.wav"]
-        );
-        assert_eq!(
-            job.filter,
-            "[0:a]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS,volume=-2dB[main];[1:a][2:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=10,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=2:attack=50:release=400:makeup=1,apad,atrim=end=10,asetpts=PTS-STARTPTS[out]"
-        );
-    }
-
-    #[test]
-    fn measures_then_normalises_loudness_on_the_master_limiting_last() {
-        let master: Master = serde_json::from_value(
-            json!({ "loudness": "web", "limiter": { "on": true, "ceiling": -1 } }),
-        )
-        .unwrap();
-        assert!(
-            loudness_measure_job(FILM, &master, &["/b1.wav".into()])
-                .unwrap()
-                .filter
-                .contains("loudnorm=I=-14:TP=-1:LRA=11:print_format=json")
-        );
-        let measured = parse_loudnorm("junk\n{\n\t\"input_i\" : \"-20.1\",\n\t\"input_tp\" : \"-3.2\",\n\t\"input_lra\" : \"4.0\",\n\t\"input_thresh\" : \"-30.5\",\n\t\"output_i\" : \"-14.0\",\n\t\"target_offset\" : \"0.1\"\n}\n").unwrap();
-        let fields = [
-            &measured.input_i,
-            &measured.input_tp,
-            &measured.input_lra,
-            &measured.input_thresh,
-            &measured.target_offset,
-        ];
-        assert_eq!(fields, ["-20.1", "-3.2", "4.0", "-30.5", "0.1"]);
-        assert_eq!(
-            parse_loudnorm("{ \"input_i\" : \"-20.1\", \"input_tp\" : \"-3.2\" }"),
-            None
-        );
-        assert_eq!(parse_loudnorm("{ \"input_i\" : \"-inf\" }"), None);
-        let master: Master = serde_json::from_value(json!({ "loudness": "web", "limiter": { "on": true, "ceiling": -1 }, "comp": { "on": false } })).unwrap();
-        let job = master_job(
-            FILM,
-            &master,
-            &["/b1.wav".into(), "/b2.wav".into()],
-            Some(&measured),
-        );
-        assert_eq!(
-            job.filter,
-            "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=10,asetpts=PTS-STARTPTS,loudnorm=I=-14:TP=-1:LRA=11:measured_I=-20.1:measured_TP=-3.2:measured_LRA=4.0:measured_thresh=-30.5:offset=0.1:linear=true:print_format=summary,aresample=48000,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]"
-        );
-    }
-
-    #[test]
-    fn uses_silence_for_an_empty_bus_and_runs_bus_processing_before_its_fader() {
-        let empty = bus_job(
-            Plan {
-                fps: 30,
-                duration_in_frames: 60,
-            },
-            &bus(&[], None, 0.0, no_processing()),
-            &|_| String::new(),
-        );
-        assert_eq!(
-            empty,
-            Job {
-                inputs: Vec::new(),
-                filter: "anullsrc=r=48000:cl=stereo,atrim=end=2[out]".into(),
-                output: "out".into(),
-                taps: None
+    proptest! {
+        #[test]
+        fn packs_every_sound_once_on_as_few_lanes_as_ever_play_at_once(
+            spans in prop::collection::vec((0u32..600, 1u32..40), 0..80),
+        ) {
+            let sounds: Vec<SoundPlacement> = spans.iter().map(|&(at, length)| placed(at, length)).collect();
+            let shots: Vec<usize> = (0..sounds.len()).collect();
+            let lanes = pack_lanes(&sounds, &shots);
+            let mut placed: Vec<usize> = lanes.iter().flatten().copied().collect();
+            placed.sort_unstable();
+            prop_assert_eq!(&placed, &shots);
+            for lane in &lanes {
+                for pair in lane.windows(2) {
+                    let (before, after) = (&sounds[pair[0]], &sounds[pair[1]]);
+                    prop_assert!(before.at + before.length <= after.at);
+                }
             }
-        );
-        let processing = json!({
-            "highpass": { "on": true, "freq": 60 },
-            "eq": { "on": true, "bands": [
-                { "type": "lowshelf", "freq": 100, "gain": 2, "q": 0.7 }, { "type": "peak", "freq": 600, "gain": 0, "q": 1 },
-                { "type": "peak", "freq": 4000, "gain": 0, "q": 1 }, { "type": "highshelf", "freq": 9000, "gain": 0, "q": 0.7 }
-            ] },
-            "comp": { "on": true, "threshold": -16, "ratio": 4, "attack": 3, "release": 80, "makeup": 0 }
-        });
-        let job = bus_job(FILM, &bus(&["a"], None, -3.0, processing), &|id| {
-            format!("{id}.wav")
-        });
-        assert!(job.filter.contains("highpass=f=60,lowshelf=f=100"));
-        assert!(job.filter.find("acompressor").unwrap() < job.filter.find("volume=-3dB").unwrap());
+            let busiest = sounds
+                .iter()
+                .map(|s| sounds.iter().filter(|o| o.at <= s.at && s.at < o.at + o.length).count())
+                .max()
+                .unwrap_or(0);
+            prop_assert_eq!(lanes.len(), busiest);
+        }
     }
 }

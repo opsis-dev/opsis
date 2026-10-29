@@ -141,7 +141,16 @@ mod tests {
     }
 
     #[test]
-    fn sees_its_own_process_alive() {
-        assert!(process_alive(std::process::id()));
+    #[cfg(unix)]
+    fn tells_a_running_process_from_one_that_has_ended() {
+        let mut child = std::process::Command::new("sleep")
+            .arg("30")
+            .spawn()
+            .unwrap();
+        let pid = child.id();
+        assert!(process_alive(pid));
+        child.kill().unwrap();
+        child.wait().unwrap();
+        assert!(!process_alive(pid));
     }
 }

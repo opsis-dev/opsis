@@ -1,18 +1,27 @@
+import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { activeAt, loopOf, wrapInLoop } from "./playhead";
 
+const span = fc
+  .tuple(fc.integer({ min: 0, max: 1000 }), fc.integer({ min: 1, max: 500 }))
+  .map(([from, length]) => ({ from, to: from + length }));
+
 describe("activeAt", () => {
-  const spans = { b: { from: 30, to: 90 }, a: { from: 0, to: 60 }, c: { from: 90, to: 120 } };
-
-  it("lists the nodes whose span holds the frame, sorted", () => {
-    expect(activeAt(spans, 45)).toEqual(["a", "b"]);
-    expect(activeAt(spans, 0)).toEqual(["a"]);
-  });
-
-  it("ends a span before its last frame", () => {
-    expect(activeAt(spans, 60)).toEqual(["b"]);
-    expect(activeAt(spans, 90)).toEqual(["c"]);
-    expect(activeAt(spans, 120)).toEqual([]);
+  it("lists exactly the nodes whose span holds the frame, sorted, ending before the last frame", () => {
+    fc.assert(
+      fc.property(
+        fc.dictionary(fc.string({ minLength: 1, maxLength: 4 }), span),
+        fc.integer({ min: 0, max: 1600 }),
+        (spans, frame) => {
+          const active = activeAt(spans, frame);
+          expect(active).toEqual(active.toSorted());
+          const holding = Object.entries(spans)
+            .filter(([, s]) => s.from <= frame && frame < s.to)
+            .map(([id]) => id);
+          expect(active.toSorted()).toEqual(holding.toSorted());
+        },
+      ),
+    );
   });
 });
 
@@ -21,27 +30,36 @@ describe("loopOf", () => {
     expect(loopOf(null, null, 300)).toEqual({ from: 0, to: 300 });
   });
 
-  it("plays the out point's frame before looping back to the in point", () => {
+  it("plays the out point's frame and stays inside the film for any points", () => {
+    fc.assert(
+      fc.property(
+        fc.option(fc.integer({ min: -50, max: 400 })),
+        fc.option(fc.integer({ min: -50, max: 400 })),
+        fc.integer({ min: 1, max: 300 }),
+        (inPoint, outPoint, duration) => {
+          const loop = loopOf(inPoint, outPoint, duration);
+          expect(loop.from).toBeGreaterThanOrEqual(0);
+          expect(loop.to).toBeLessThanOrEqual(duration);
+          expect(loop.from).toBeLessThan(loop.to);
+        },
+      ),
+    );
     expect(loopOf(30, 120, 300)).toEqual({ from: 30, to: 121 });
-    expect(loopOf(30, null, 300)).toEqual({ from: 30, to: 300 });
-    expect(loopOf(null, 120, 300)).toEqual({ from: 0, to: 121 });
   });
 });
 
 describe("wrapInLoop", () => {
-  const loop = { from: 30, to: 121 };
-
-  it("keeps a position inside the loop", () => {
-    expect(wrapInLoop(30, loop)).toBe(30);
-    expect(wrapInLoop(120.5, loop)).toBe(120.5);
-  });
-
-  it("carries past the end back to the in point", () => {
-    expect(wrapInLoop(121, loop)).toBe(30);
-    expect(wrapInLoop(123.5, loop)).toBe(32.5);
-  });
-
-  it("carries before the start, when playing backwards, to the end", () => {
-    expect(wrapInLoop(29, loop)).toBe(120);
+  it("keeps every position inside the loop at the same place in its cycle", () => {
+    fc.assert(
+      fc.property(span, fc.double({ min: -10_000, max: 10_000, noNaN: true }), (loop, position) => {
+        const wrapped = wrapInLoop(position, loop);
+        expect(wrapped).toBeGreaterThanOrEqual(loop.from);
+        expect(wrapped).toBeLessThan(loop.to);
+        const cycles = (position - wrapped) / (loop.to - loop.from);
+        expect(Math.abs(cycles - Math.round(cycles))).toBeLessThan(1e-6);
+        const inside = position >= loop.from && position < loop.to;
+        expect(inside ? wrapped : position).toBe(position);
+      }),
+    );
   });
 });

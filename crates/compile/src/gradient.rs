@@ -259,6 +259,8 @@ pub fn edit_gradient(css: &str, edit: &GradientEdit) -> Option<GradientView> {
 
 #[cfg(test)]
 mod edits {
+    use proptest::prelude::*;
+
     use super::*;
 
     const CSS: &str = "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)";
@@ -334,5 +336,84 @@ mod edits {
         assert!(radial.css.starts_with("radial-gradient(circle, "));
         let turned = edit_gradient(CSS, &GradientEdit::Angle { angle: 370.4 }).unwrap();
         assert_eq!(turned.gradient.angle, 10.0);
+    }
+
+    fn colour() -> impl Strategy<Value = String> {
+        prop_oneof![
+            "#[0-9a-f]{6}",
+            "#[0-9a-f]{3}",
+            prop::sample::select(vec!["red", "blue", "white", "transparent"])
+                .prop_map(String::from),
+            (0u8..=255, 0u8..=255, 0u8..=255).prop_map(|(r, g, b)| format!("rgb({r}, {g}, {b})")),
+        ]
+    }
+
+    fn gradient() -> impl Strategy<Value = Gradient> {
+        (
+            prop::bool::ANY,
+            0u32..360,
+            prop::collection::vec((colour(), 0u32..=100), MIN_STOPS..=MAX_STOPS),
+        )
+            .prop_map(|(radial, angle, stops)| Gradient {
+                kind: if radial {
+                    GradientKind::Radial
+                } else {
+                    GradientKind::Linear
+                },
+                angle: if radial { 180.0 } else { f64::from(angle) },
+                stops: stops
+                    .into_iter()
+                    .map(|(color, at)| GradientStop {
+                        color,
+                        at: f64::from(at),
+                    })
+                    .collect(),
+            })
+    }
+
+    fn edit() -> impl Strategy<Value = GradientEdit> {
+        prop_oneof![
+            prop::bool::ANY.prop_map(|radial| GradientEdit::Kind {
+                kind: if radial {
+                    GradientKind::Radial
+                } else {
+                    GradientKind::Linear
+                }
+            }),
+            (-1000.0..1000.0f64).prop_map(|angle| GradientEdit::Angle { angle }),
+            (0usize..8, colour())
+                .prop_map(|(index, color)| GradientEdit::StopColor { index, color }),
+            (0usize..8, -50.0..150.0f64).prop_map(|(index, at)| GradientEdit::StopAt { index, at }),
+            (-50.0..150.0f64).prop_map(|at| GradientEdit::AddStop { at }),
+            (0usize..8).prop_map(|index| GradientEdit::RemoveStop { index }),
+            (0usize..8).prop_map(|index| GradientEdit::Sort { index }),
+        ]
+    }
+
+    proptest! {
+        #[test]
+        fn reads_back_every_gradient_it_writes(gradient in gradient()) {
+            let css = format_gradient(&gradient);
+            prop_assert_eq!(parse_gradient(&css), Some(gradient));
+        }
+
+        #[test]
+        fn keeps_two_to_six_whole_stops_inside_the_strip_after_any_edits(
+            start in gradient(),
+            edits in prop::collection::vec(edit(), 0..20),
+        ) {
+            let mut css = format_gradient(&start);
+            for edit in &edits {
+                let view = edit_gradient(&css, edit).unwrap();
+                let stops = &view.gradient.stops;
+                prop_assert!((MIN_STOPS..=MAX_STOPS).contains(&stops.len()));
+                prop_assert!(stops.iter().all(|s| (0.0..=100.0).contains(&s.at) && s.at.fract() == 0.0));
+                prop_assert!((0.0..360.0).contains(&view.gradient.angle));
+                prop_assert_eq!(view.can_add, stops.len() < MAX_STOPS);
+                prop_assert_eq!(view.can_remove, stops.len() > MIN_STOPS);
+                prop_assert!(view.selected.is_none_or(|i| i < stops.len()));
+                css = view.css;
+            }
+        }
     }
 }

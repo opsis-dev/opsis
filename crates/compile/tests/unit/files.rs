@@ -84,7 +84,7 @@ fn shows_what_the_check_read_and_says_when_a_file_is_missing_or_not_read_yet() {
             "a.mp4",
             "MP4 · 1920 × 1080 · 29.97 fps",
             "12 s",
-            "2.5 MB · No sound"
+            "2.5 MiB · No sound"
         ]
     );
     let sound = checked(
@@ -98,7 +98,7 @@ fn shows_what_the_check_read_and_says_when_a_file_is_missing_or_not_read_yet() {
             CardInputs::default(),
             Some(&sound)
         ),
-        ["voice.mp3", "MP3 · Sound", "3 s", "48.0 KB"]
+        ["voice.mp3", "MP3 · Sound", "3 s", "48 KiB"]
     );
     assert_eq!(
         texts(

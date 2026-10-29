@@ -1,10 +1,12 @@
 use opsis_compile::edits::EditError;
 use opsis_compile::edits::keyframes::apply_keyframe_edit;
 use opsis_compile::edits::timeline::TimelineEdits;
+use opsis_compile::envelope::envelope_track;
 use opsis_compile::ids::SaltedIds;
 use opsis_types::edits::{KeyframeEdit, TimelineEdit};
 use opsis_types::timeline::{CameraPath, Ease, EnvelopeKey, Keyframe};
 use opsis_types::workflow::Workflow;
+use proptest::prelude::*;
 use serde_json::{Value, json};
 
 use crate::helpers::{TITLE, film, flat_film};
@@ -67,8 +69,85 @@ fn adds_a_key_on_the_line_where_it_is_placed() {
     assert_eq!(keys(&added, "x")[1], key(5.0, 0.25));
 }
 
+const VISUAL: [EnvelopeKey; 4] = [
+    EnvelopeKey::Opacity,
+    EnvelopeKey::X,
+    EnvelopeKey::Y,
+    EnvelopeKey::Scale,
+];
+
+fn ease() -> impl Strategy<Value = Ease> {
+    prop::sample::select(vec![
+        Ease::Linear,
+        Ease::In,
+        Ease::Out,
+        Ease::InOut,
+        Ease::Hold,
+    ])
+}
+
+fn keyframe_edit() -> impl Strategy<Value = KeyframeEdit> {
+    let track = prop::sample::select(VISUAL.to_vec());
+    let node_id = || "t".to_owned();
+    prop_oneof![
+        (track.clone(), -100.0..1000.0f64).prop_map(move |(track, frame)| KeyframeEdit::AddKey {
+            node_id: node_id(),
+            track,
+            frame
+        }),
+        track
+            .clone()
+            .prop_map(move |track| KeyframeEdit::AppendKey {
+                node_id: node_id(),
+                track
+            }),
+        (
+            track.clone(),
+            0u32..6,
+            prop::option::of(-100.0..1000.0f64),
+            prop::option::of(-10.0..10.0f64),
+            prop::option::of(ease()),
+        )
+            .prop_map(
+                move |(track, index, frame, value, ease)| KeyframeEdit::SetKey {
+                    node_id: node_id(),
+                    track,
+                    index,
+                    frame,
+                    value,
+                    ease
+                }
+            ),
+        (track, 0u32..6).prop_map(move |(track, index)| KeyframeEdit::RemoveKey {
+            node_id: node_id(),
+            track,
+            index
+        }),
+    ]
+}
+
+proptest! {
+    #[test]
+    fn keeps_values_in_range_frames_whole_and_keys_in_order(edits in prop::collection::vec(keyframe_edit(), 1..25)) {
+        let mut wf = titled(json!({ "title": "Hi" }));
+        for edit in edits {
+            let before = wf.clone();
+            if apply_keyframe_edit(&mut wf, edit).is_err() {
+                prop_assert_eq!(&wf, &before);
+            }
+            for track in VISUAL {
+                let range = envelope_track(track);
+                let list = keys(&wf, track.name());
+                prop_assert!(list.iter().all(|k| k.frame >= 0.0 && k.frame.fract() == 0.0));
+                prop_assert!(list.iter().all(|k| (range.min..=range.max).contains(&k.value)));
+                prop_assert!(list.windows(2).all(|w| w[0].frame <= w[1].frame));
+            }
+        }
+    }
+}
+
 #[test]
-fn keeps_values_in_range_frames_whole_and_keys_in_order() {
+fn moves_a_key_past_the_next_one_with_its_value_clamped() {
     let wf = titled(json!({ "envelope": { "scale": [
         { "frame": 0, "value": 1, "ease": "linear" },
         { "frame": 30, "value": 2, "ease": "linear" },

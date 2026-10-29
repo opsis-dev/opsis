@@ -1,6 +1,6 @@
 import { round2, round3, roundTo } from "#video/common/math.ts";
 
-const UNITS = ["B", "KB", "MB", "GB"];
+const UNITS = ["B", "KiB", "MiB", "GiB", "TiB"];
 
 export function formatBytes(n: number): string {
   if (!Number.isFinite(n) || n < 0) return "";
@@ -10,7 +10,7 @@ export function formatBytes(n: number): string {
     value /= 1024;
     unit++;
   }
-  return unit === 0 ? `${Math.round(value)} B` : `${value.toFixed(1)} ${UNITS[unit]}`;
+  return unit === 0 ? `${Math.round(value)} B` : `${Number(value.toFixed(1))} ${UNITS[unit]}`;
 }
 
 export const MINUS = "−";

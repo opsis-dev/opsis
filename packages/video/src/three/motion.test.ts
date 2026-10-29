@@ -1,3 +1,4 @@
+import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import type { Motion } from "#video/generated/spec.ts";
 import { boxDistance, fitDistance, poseAt, type MotionTime } from "#video/three/motion.ts";
@@ -35,12 +36,25 @@ describe("3D motion presets", () => {
     expect(poseAt("still", at(60)).scale).toBeCloseTo(1, 2);
   });
 
-  it("gives the same pose for a frame whichever way the playhead moves", () => {
-    for (const motion of MOTIONS) {
-      const forward = [0, 10, 20, 30, 40].map((f) => poseAt(motion, at(f)));
-      const backward = [40, 30, 20, 10, 0].map((f) => poseAt(motion, at(f))).toReversed();
-      expect(backward).toEqual(forward);
-    }
+  it("moves smoothly from frame to frame at any speed and seed", () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom(...MOTIONS),
+        fc.integer({ min: 0, max: 900 }),
+        fc.double({ min: 0.25, max: 2, noNaN: true }),
+        fc.integer({ min: 0, max: 1000 }),
+        (motion, frame, speed, seed) => {
+          const now = poseAt(motion, at(frame, { speed, seed }));
+          const next = poseAt(motion, at(frame + 1, { speed, seed }));
+          const parts = (p: typeof now) => [...p.rotation, ...p.position, p.scale];
+          for (const [a, b] of parts(now).map((v, i) => [v, parts(next)[i]])) {
+            expect(Number.isFinite(a)).toBe(true);
+            expect(Math.abs(b - a)).toBeLessThan(Math.PI / 4);
+          }
+          expect(now.scale).toBeGreaterThan(0);
+        },
+      ),
+    );
   });
 
   it("floats differently for another seed", () => {

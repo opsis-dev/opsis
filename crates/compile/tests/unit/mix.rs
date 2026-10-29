@@ -5,6 +5,7 @@ use opsis_compile::timeline::flatten::flatten_spec;
 use opsis_types::mix::{Mix, Strip, db_to_gain};
 use opsis_types::timeline::{AudioItem, TimelineItem, TimelineSpec};
 use opsis_types::workflow::Workflow;
+use proptest::prelude::*;
 use serde_json::{Value, json};
 
 use crate::helpers::{Graph, TITLE, export_film, film, film_spec};
@@ -317,18 +318,32 @@ fn keys(ids: &[&str]) -> Vec<String> {
     ids.iter().map(|id| (*id).to_owned()).collect()
 }
 
-#[test]
-fn merges_overlapping_duck_spans() {
-    let spec = duck_spec(json!([
-        effect("a", 20, json!({})),
-        effect("b", 0, json!({})),
-        effect("c", 5, json!({ "lengthFrames": 7 })),
-        effect("d", 30, json!({})),
-    ]));
-    assert_eq!(
-        duck_spans(&spec, [], &keys(&["a", "b", "c", "d"])),
-        [(0.0, 12.0), (20.0, 40.0)]
-    );
+proptest! {
+    #[test]
+    fn ducks_over_exactly_the_time_a_key_sound_plays(
+        sounds in prop::collection::vec((prop::sample::select(vec!["a", "b", "c"]), 0u32..300, 1u32..60), 0..20),
+        keyed in prop::sample::subsequence(vec!["a", "b", "c"], 0..=3),
+    ) {
+        let spec = duck_spec(json!([]));
+        let clips: Vec<(&str, f64, f64)> = sounds
+            .iter()
+            .map(|&(channel, from, length)| (channel, f64::from(from), f64::from(from + length)))
+            .collect();
+        let keys = keys(&keyed);
+        let spans = duck_spans(&spec, clips.clone(), &keys);
+        prop_assert!(spans.iter().all(|(from, to)| from < to));
+        prop_assert!(spans.windows(2).all(|w| w[0].1 < w[1].0));
+        let playing = |t: f64| {
+            clips
+                .iter()
+                .any(|(channel, from, to)| keyed.contains(channel) && *from <= t && t < *to)
+        };
+        for half in 0..800 {
+            let t = f64::from(half) / 2.0;
+            let ducked = spans.iter().any(|(from, to)| *from <= t && t < *to);
+            prop_assert_eq!(ducked, playing(t), "at {}", t);
+        }
+    }
 }
 
 #[test]

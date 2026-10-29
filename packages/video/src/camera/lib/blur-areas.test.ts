@@ -1,56 +1,96 @@
+import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { blurParams } from "#video/camera/lib/blur-areas.ts";
 import type { BlurArea } from "#video/generated/spec.ts";
 
-const area = (extra: Partial<BlurArea> = {}): BlurArea => ({
-  x: 0.1,
-  y: 0.2,
-  width: 0.3,
-  height: 0.1,
-  strength: 0.02,
-  softness: 0.005,
-  roundness: 0.4,
-  ...extra,
+const unit = (min: number, max: number) => fc.double({ min, max, noNaN: true });
+
+const area: fc.Arbitrary<BlurArea> = fc.record({
+  x: unit(-0.5, 1.5),
+  y: unit(-0.5, 1.5),
+  width: unit(0, 1.5),
+  height: unit(0, 1.5),
+  strength: fc.integer({ min: 0, max: 100 }).map((n) => n / 1000),
+  softness: unit(0, 0.05),
+  roundness: unit(0, 1),
 });
 
-describe("blur areas on a recording", () => {
-  it("turns an area into its corners on the frame", () => {
-    const [p] = blurParams([area()], 0, 1920);
-    expect(p.topLeft).toEqual([0.1, 0.2]);
-    expect(p.bottomRight[0]).toBeCloseTo(0.4);
-    expect(p.bottomRight[1]).toBeCloseTo(0.3);
-    expect(p.roundness).toBe(0.4);
-  });
+const timed = fc
+  .tuple(area, fc.integer({ min: 0, max: 20_000 }), fc.integer({ min: 1, max: 20_000 }))
+  .map(([a, fromMs, length]): BlurArea => ({ ...a, fromMs, untilMs: fromMs + length }));
 
-  it("keeps the corners on the frame", () => {
-    const [p] = blurParams([area({ x: 0.9, width: 0.3, y: -0.1 })], 0, 1920);
-    expect(p.topLeft).toEqual([0.9, 0]);
-    expect(p.bottomRight[0]).toBe(1);
+describe("blur areas on a recording", () => {
+  it("keeps every area's corners on the frame, in order", () => {
+    fc.assert(
+      fc.property(area, fc.integer({ min: 100, max: 4000 }), (a, width) => {
+        const [p] = blurParams([a], 0, width);
+        for (const v of [...p.topLeft, ...p.bottomRight]) {
+          expect(v).toBeGreaterThanOrEqual(0);
+          expect(v).toBeLessThanOrEqual(1);
+        }
+        expect(p.bottomRight[0]).toBeGreaterThanOrEqual(p.topLeft[0]);
+        expect(p.bottomRight[1]).toBeGreaterThanOrEqual(p.topLeft[1]);
+        expect(p.roundness).toBe(a.roundness);
+      }),
+    );
   });
 
   it("blurs the same share of the width in the small preview copy and the full take", () => {
-    const [small] = blurParams([area()], 0, 960);
-    const [full] = blurParams([area()], 0, 1920);
-    expect(small.blurRadius / 960).toBeCloseTo(full.blurRadius / 1920);
-    expect(small.feather / 960).toBeCloseTo(full.feather / 1920);
-    expect(full.blurRadius).toBeCloseTo(38.4);
+    fc.assert(
+      fc.property(area, unit(0, 30_000), fc.integer({ min: 100, max: 4000 }), (a, t, width) => {
+        const [small] = blurParams([a], t, width);
+        const [full] = blurParams([a], t, width * 2);
+        expect(full.blurRadius).toBeCloseTo(small.blurRadius * 2, 9);
+        expect(full.feather).toBeCloseTo(small.feather * 2, 9);
+      }),
+    );
+  });
+
+  it("is off outside its times, on inside them and never stronger than set", () => {
+    fc.assert(
+      fc.property(timed, fc.integer({ min: -1000, max: 45_000 }), (a, t) => {
+        const [p] = blurParams([a], t, 1000);
+        const inside = t > (a.fromMs ?? 0) && t < (a.untilMs ?? 0);
+        expect(p.disabled).toBe(!inside);
+        expect(p.blurRadius).toBeGreaterThanOrEqual(0);
+        expect(p.blurRadius).toBeLessThanOrEqual(a.strength * 1000 + 1e-9);
+      }),
+    );
   });
 
   it("eases in after its start and out before its end", () => {
-    const timed = [area({ fromMs: 1000, untilMs: 3000 })];
-    const strength = (t: number) => blurParams(timed, t, 1000)[0].blurRadius;
-    expect(strength(1000)).toBe(0);
+    const timedArea = {
+      x: 0.1,
+      y: 0.2,
+      width: 0.3,
+      height: 0.1,
+      strength: 0.02,
+      softness: 0.005,
+      roundness: 0.4,
+      fromMs: 1000,
+      untilMs: 3000,
+    };
+    const strength = (t: number) => blurParams([timedArea], t, 1000)[0].blurRadius;
     expect(strength(1100)).toBeCloseTo(10);
     expect(strength(2000)).toBeCloseTo(20);
     expect(strength(2900)).toBeCloseTo(10);
-    expect(strength(3000)).toBe(0);
+    fc.assert(
+      fc.property(unit(1000, 2000), unit(0, 1000), (t, later) => {
+        expect(strength(Math.min(2000, t + later))).toBeGreaterThanOrEqual(strength(t) - 1e-9);
+        expect(strength(4000 - t)).toBeCloseTo(strength(t), 9);
+      }),
+    );
   });
 
-  it("is off outside its times and on for the whole clip without them", () => {
-    const timed = [area({ fromMs: 1000, untilMs: 3000 })];
-    expect(blurParams(timed, 500, 1000)[0].disabled).toBe(true);
-    expect(blurParams(timed, 3500, 1000)[0].disabled).toBe(true);
-    expect(blurParams(timed, 2000, 1000)[0].disabled).toBe(false);
-    expect(blurParams([area()], 0, 1000)[0]).toMatchObject({ disabled: false, blurRadius: 20 });
+  it("stays on for the whole clip without times", () => {
+    fc.assert(
+      fc.property(area, unit(0, 1e6), (a, t) => {
+        fc.pre(a.strength > 0);
+        expect(blurParams([a], t, 1000)[0]).toMatchObject({
+          disabled: false,
+          blurRadius: a.strength * 1000,
+        });
+      }),
+    );
   });
 });

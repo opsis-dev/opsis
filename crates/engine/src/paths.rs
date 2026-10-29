@@ -131,26 +131,30 @@ pub fn download_dir(user_data: &Path) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::downloads::{FfmpegFile, ffmpeg_download};
 
     #[test]
-    fn maps_platforms_to_the_download_platforms() {
-        assert_eq!(
-            ShellPlatform::for_os("linux", "x86_64").unwrap(),
-            ShellPlatform::Linux64
-        );
-        assert_eq!(
-            ShellPlatform::for_os("linux", "aarch64").unwrap(),
-            ShellPlatform::LinuxArm64
-        );
-        assert_eq!(
-            ShellPlatform::for_os("macos", "aarch64").unwrap(),
-            ShellPlatform::MacArm64
-        );
-        assert_eq!(
-            ShellPlatform::for_os("windows", "x86_64").unwrap(),
-            ShellPlatform::Win64
-        );
+    fn every_platform_it_accepts_can_download_its_engine() {
+        let mut accepted = Vec::new();
+        for os in ["linux", "macos", "darwin", "windows", "win32", "freebsd"] {
+            for arch in ["x86_64", "aarch64", "arm64"] {
+                let Ok(platform) = ShellPlatform::for_os(os, arch) else {
+                    continue;
+                };
+                let arm = arch != "x86_64";
+                assert_eq!(platform.id().ends_with("arm64"), arm, "{os} {arch}");
+                assert_eq!(platform.windows(), os.starts_with("win"), "{os} {arch}");
+                for file in [FfmpegFile::Ffmpeg, FfmpegFile::Ffprobe] {
+                    assert!(ffmpeg_download(platform, file).is_some(), "{os} {arch}");
+                }
+                accepted.push(platform);
+            }
+        }
+        accepted.sort_by_key(|p| p.id());
+        accepted.dedup();
+        assert_eq!(accepted.len(), 5);
         assert!(ShellPlatform::for_os("windows", "aarch64").is_err());
+        assert!(ShellPlatform::current().is_ok());
     }
 
     #[test]

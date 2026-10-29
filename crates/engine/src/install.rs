@@ -3,7 +3,6 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 use futures_util::StreamExt;
-use humansize::{FormatSizeOptions, WINDOWS, format_size};
 use opsis_types::engine::{EngineInstallUpdate, EnginePart};
 use opsis_types::numbers;
 use sha2::{Digest, Sha256};
@@ -86,19 +85,14 @@ impl<'a> Progress<'a> {
     }
 }
 
-fn size_text(bytes: u64) -> String {
-    format_size(
-        bytes,
-        FormatSizeOptions::from(WINDOWS)
-            .decimal_places(1)
-            .decimal_zeroes(1),
-    )
-}
-
 fn downloaded_text(got: u64, total: Option<u64>) -> String {
     match total {
-        Some(total) => format!("{} of {}", size_text(got), size_text(total)),
-        None => size_text(got),
+        Some(total) => format!(
+            "{} of {}",
+            numbers::byte_size(got),
+            numbers::byte_size(total)
+        ),
+        None => numbers::byte_size(got),
     }
 }
 
@@ -395,11 +389,11 @@ mod tests {
     }
 
     #[test]
-    fn writes_sizes_in_binary_units() {
+    fn says_how_much_of_the_download_has_arrived() {
         assert_eq!(
-            downloaded_text(3 * 1024 * 1024, Some(29 * 1024 * 1024)),
-            "3.0 MB of 29.0 MB"
+            downloaded_text(3 * 1024 * 1024 + 400_000, Some(29 * 1024 * 1024)),
+            "3.4 MiB of 29 MiB"
         );
-        assert_eq!(downloaded_text(1536, None), "1.5 kB");
+        assert_eq!(downloaded_text(1536, None), "1.5 KiB");
     }
 }

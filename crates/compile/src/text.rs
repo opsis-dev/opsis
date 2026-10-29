@@ -118,21 +118,6 @@ pub fn percent_text(fraction: f64, max: f64) -> String {
     format!("{}%", ((fraction * 100.0).round().min(max)))
 }
 
-pub fn format_bytes(n: u64) -> String {
-    const UNITS: [&str; 4] = ["B", "KB", "MB", "GB"];
-    let mut value = numbers::float_wide(n);
-    let mut unit = 0;
-    while value >= 1024.0 && unit < UNITS.len() - 1 {
-        value /= 1024.0;
-        unit += 1;
-    }
-    if unit == 0 {
-        format!("{} B", value.round())
-    } else {
-        format!("{value:.1} {}", UNITS[unit])
-    }
-}
-
 pub fn humanize(key: &str) -> String {
     use heck::ToSnakeCase;
     let text = key.to_snake_case().replace('_', " ");

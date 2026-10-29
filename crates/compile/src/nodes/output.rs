@@ -13,7 +13,7 @@ use crate::node::{
 };
 use crate::nodes::media::Codec;
 use crate::params::Params;
-use crate::text::{format_bytes, format_duration, slug_name};
+use crate::text::{format_duration, slug_name};
 use crate::time::{even_px, frames_to_ms};
 
 const EXPORT_NAME_FALLBACK: &str = "output";
@@ -411,7 +411,7 @@ fn export_video() -> NodeDef {
                 .and_then(|m| m.duration_ms)
                 .filter(|d| *d != 0)
                 .map(|d| row(Icon::Clock, format_duration(f64::from(d)))),
-            (bytes > 0).then(|| row(Icon::HardDrive, format_bytes(bytes))),
+            (bytes > 0).then(|| row(Icon::HardDrive, opsis_types::numbers::byte_size(bytes))),
         ]
     })
 }

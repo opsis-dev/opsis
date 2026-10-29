@@ -1,7 +1,7 @@
 use opsis_compile::clip::recording_props;
 use opsis_compile::node::CardInputs;
 use opsis_compile::nodes::media::Codec;
-use opsis_compile::nodes::media::{loudness_name, quality_name};
+use opsis_compile::nodes::media::{QUALITY_PRESETS, loudness_name, loudness_presets, quality_name};
 use opsis_compile::nodes::output::{
     Variant, export_reframe, shaped_preview, variant_canvas, variant_size, video_file_names,
 };
@@ -9,6 +9,7 @@ use opsis_compile::params::ParamSchema;
 use opsis_compile::registry::node_def;
 use opsis_types::timeline::{ReframeMode, TimelineSpec};
 use opsis_types::workflow::{Workflow, WorkflowNode, WorkflowSettings};
+use proptest::prelude::*;
 use serde_json::{Value, json};
 
 use crate::helpers::{
@@ -106,7 +107,7 @@ fn shows_export_lengths_sizes_shapes_and_folders_on_cards() {
     };
     assert_eq!(
         texts(json!(["16:9", "9:16"])),
-        ["16:9 + 9:16", "MP4 · 1080p · 30 fps", "15.4 s", "1.4 MB"]
+        ["16:9 + 9:16", "MP4 · 1080p · 30 fps", "15.4 s", "1.4 MiB"]
     );
     assert_eq!(
         texts(json!(["16:9", "1:1"]))[1],
@@ -388,13 +389,28 @@ fn words_the_first_wrong_setting_in_the_unit_the_field_shows() {
 }
 
 #[test]
-fn names_loudness_and_quality_presets() {
-    assert_eq!(
-        [loudness_name(-14.0), loudness_name(-18.0)],
-        ["Online video".to_owned(), "−18 LUFS".to_owned()]
-    );
-    assert_eq!(
-        [quality_name(18), quality_name(25), quality_name(15)],
-        ["High", "Medium", "Max"]
-    );
+fn names_a_loudness_by_its_preset_or_in_lufs() {
+    for (label, lufs) in loudness_presets() {
+        assert_eq!(loudness_name(lufs), label);
+    }
+    assert_eq!(loudness_name(-18.0), "−18 LUFS");
+}
+
+proptest! {
+    #[test]
+    fn names_a_quality_after_the_nearest_preset_and_the_better_one_on_a_tie(crf in 0u32..=63) {
+        let name = quality_name(crf);
+        let (_, chosen) = QUALITY_PRESETS.iter().find(|(n, _)| *n == name).unwrap();
+        for (_, other) in QUALITY_PRESETS {
+            let (mine, theirs) = (chosen.abs_diff(crf), other.abs_diff(crf));
+            prop_assert!(mine < theirs || (mine == theirs && *chosen <= other));
+        }
+    }
+
+    #[test]
+    fn writes_a_loudness_that_isnt_a_preset_in_lufs(lufs in -40i32..=-5) {
+        let value = f64::from(lufs);
+        prop_assume!(loudness_presets().iter().all(|(_, v)| *v != value));
+        prop_assert_eq!(loudness_name(value), format!("−{} LUFS", -lufs));
+    }
 }

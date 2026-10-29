@@ -1690,7 +1690,7 @@ pub struct Magnify {
         description = "Size from",
         extend(
             "x-labels" = { "two-boxes": "The two boxes", "area-and-zoom": "The area and a zoom", "shown-and-zoom": "Where it shows and a zoom" },
-            "x-help" = "Any two of the area, where it shows and the zoom decide the third."
+            "x-help" = "Any two of the area, where it shows and the zoom decide the third. It never shrinks: a view drawn smaller than the area grows to fit it."
         )
     )]
     pub size_from: MagnifySize,
@@ -1802,9 +1802,16 @@ pub fn magnify_plan(source: (f64, f64), p: &Magnify) -> MagnifyPlan {
     let area_box = kept_in(source, area_box);
     let (area, shown) = match p.size_from {
         MagnifySize::TwoBoxes => {
-            let scale = (shown_box.width / area_box.width).min(shown_box.height / area_box.height);
-            let size = (shown_box.width / scale, shown_box.height / scale);
-            (kept_in(source, around(middle(area_box), size)), shown_box)
+            let drawn = (shown_box.width / area_box.width).min(shown_box.height / area_box.height);
+            let shown = if drawn < 1.0 {
+                let grown = (shown_box.width / drawn, shown_box.height / drawn);
+                kept_in(source, around(middle(shown_box), grown))
+            } else {
+                shown_box
+            };
+            let scale = (shown.width / area_box.width).min(shown.height / area_box.height);
+            let size = (shown.width / scale, shown.height / scale);
+            (kept_in(source, around(middle(area_box), size)), shown)
         }
         MagnifySize::AreaAndZoom => {
             let size = (area_box.width * zoom, area_box.height * zoom);

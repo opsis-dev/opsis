@@ -24,7 +24,7 @@ use crate::node::{
 use crate::nodes::grade::{grade_changes_nothing, grade_needs_video, grade_step_title};
 use crate::params::{Params, to_values};
 use crate::ports::{IN_PREFIX, in_index};
-use crate::text::{format_bytes, format_duration, grouped, percent_text, plural, signed_text};
+use crate::text::{format_duration, grouped, percent_text, plural, signed_text};
 use crate::time::ms_to_frames;
 
 pub const FASTSTART_TYPE: &str = "media.faststart";
@@ -252,7 +252,7 @@ fn file_details_row(media: &MediaValue, path: &str, fps: Option<f64>) -> CardRow
 }
 
 fn file_size_row(media: &MediaValue, bytes: u64) -> CardRow {
-    let size = format_bytes(bytes);
+    let size = opsis_types::numbers::byte_size(bytes);
     match (media.kind, media.has_audio) {
         (MediaKind::Video, Some(false)) => row(Icon::VolumeX, format!("{size} · No sound")),
         (MediaKind::Video, Some(true)) => row(Icon::HardDrive, format!("{size} · With sound")),

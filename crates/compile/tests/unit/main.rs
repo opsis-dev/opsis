@@ -8,6 +8,7 @@ mod graph;
 mod growing_inputs;
 mod helpers;
 mod hosted;
+mod image_plans;
 mod keyframes;
 mod lengths;
 mod looks;
