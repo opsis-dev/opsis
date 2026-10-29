@@ -88,7 +88,7 @@ export function Canvas({ projectDir }: { projectDir: string }) {
   const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
   const active = useMemo(() => new Set(activeIds), [activeIds]);
   const { nodes, onNodesChange } = useFlowNodes(workflow, selected);
-  const { edges, onEdgesChange } = useFlowEdges(workflow, active);
+  const { edges, onEdgesChange } = useFlowEdges(workflow, active, nodes);
 
   const isValidConnection: IsValidConnection = useCallback(
     (c) =>

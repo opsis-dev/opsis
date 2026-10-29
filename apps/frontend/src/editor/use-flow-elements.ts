@@ -1,16 +1,20 @@
 import {
   applyEdgeChanges,
   applyNodeChanges,
+  type BuiltInEdge,
   type Edge,
   type EdgeChange,
   type NodeChange,
 } from "@xyflow/react";
 import { useCallback, useMemo, useState } from "react";
 import type { Workflow } from "@/generated/bindings";
+import { getNodeDef } from "@/store/catalog";
 import { portOf } from "@/workflow/graph";
+import { CARD_WIDTH } from "@/workflow/nodes";
 import { useUiStore } from "../store/ui";
 import { workflowEdits } from "../store/workflow";
 import { toFlowEdges, toFlowNodes, type CanvasNode } from "./convert";
+import { stepPositions, type LaneBox } from "./edge-lanes";
 import { portTypeColor } from "./ports";
 
 type LiveFields = Partial<
@@ -79,15 +83,44 @@ export function useFlowNodes(workflow: Workflow, selected: ReadonlySet<string>) 
   return { nodes, onNodesChange };
 }
 
-export function useFlowEdges(workflow: Workflow, active: ReadonlySet<string>) {
+function laneBoxes(nodes: readonly CanvasNode[]): Map<string, LaneBox> {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const origin = (n: CanvasNode | undefined): { x: number; y: number } => {
+    if (!n) return { x: 0, y: 0 };
+    const parent = n.parentId ? origin(byId.get(n.parentId)) : { x: 0, y: 0 };
+    return { x: parent.x + n.position.x, y: parent.y + n.position.y };
+  };
+  return new Map(
+    nodes.map((n) => [
+      n.id,
+      {
+        ...origin(n),
+        width: n.measured?.width ?? CARD_WIDTH,
+        height: n.measured?.height ?? getNodeDef(n.data.node.type)?.cardHeight ?? 0,
+      },
+    ]),
+  );
+}
+
+export function useFlowEdges(
+  workflow: Workflow,
+  active: ReadonlySet<string>,
+  nodes: readonly CanvasNode[],
+) {
+  const steps = useMemo(() => stepPositions(laneBoxes(nodes), workflow.edges), [nodes, workflow]);
   const base = useMemo(
     () =>
       toFlowEdges(
         workflow,
         (e) => portTypeColor(portOf(workflow, e.source, "out", e.sourceHandle)?.type),
         active,
-      ),
-    [workflow, active],
+      ).map((e): Edge => {
+        const stepPosition = steps.get(e.id);
+        if (stepPosition === undefined) return e;
+        const laned: BuiltInEdge = { ...e, type: "smoothstep", pathOptions: { stepPosition } };
+        return laned;
+      }),
+    [workflow, active, steps],
   );
   const [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set());
   const edges = useMemo(
