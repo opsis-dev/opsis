@@ -1,5 +1,6 @@
 use opsis_compile::color::css_hex;
-use opsis_compile::nodes::media::{Dither, ScaleMode};
+use opsis_compile::nodes::image::PlaceAlign;
+use opsis_compile::nodes::media::{Dither, PaletteFrom, ScaleMode};
 
 use crate::codecs::{edit_video, even_down, ffmpeg_seconds, serde_name, with_even_frame};
 use opsis_compile::text::round_to;
@@ -11,34 +12,69 @@ pub fn ffmpeg_color(color: &str) -> String {
     css_hex(color.trim()).unwrap_or_else(|| "black".to_owned())
 }
 
-fn pad_to(w: f64, h: f64, color: Option<&str>) -> String {
+fn placed(free: &str, align: PlaceAlign) -> String {
+    match align {
+        PlaceAlign::Start => "0".to_owned(),
+        PlaceAlign::Center => format!("{free}/2"),
+        PlaceAlign::End => free.to_owned(),
+    }
+}
+
+fn pad_to(w: f64, h: f64, color: Option<&str>, align: PlaceAlign) -> String {
     let color = color.map(|c| format!(":color={c}")).unwrap_or_default();
+    let (x, y) = (placed("(ow-iw)", align), placed("(oh-ih)", align));
     let (w, h) = (w.to_string(), h.to_string());
     format!(
-        "scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2{color},setsar=1"
+        "scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:{x}:{y}{color},setsar=1"
     )
 }
 
-pub fn fit_filter(mode: ScaleMode, width: f64, height: f64, background: &str) -> String {
+pub fn fit_filter(
+    mode: ScaleMode,
+    width: f64,
+    height: f64,
+    background: &str,
+    align: PlaceAlign,
+) -> String {
     match mode {
         ScaleMode::Pad => {
             let color = (!background.is_empty()).then(|| ffmpeg_color(background));
-            pad_to(width, height, color.as_deref())
+            pad_to(width, height, color.as_deref(), align)
         }
         ScaleMode::Crop => {
             let (w, h) = (width.to_string(), height.to_string());
-            format!("scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1")
+            let at = match align {
+                PlaceAlign::Center => String::new(),
+                PlaceAlign::Start => ":0:0".to_owned(),
+                PlaceAlign::End => ":iw-ow:ih-oh".to_owned(),
+            };
+            format!("scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}{at},setsar=1")
         }
         ScaleMode::Stretch => format!("scale={}:{},setsar=1", width, height),
     }
 }
 
-pub fn gif_filter(fps: f64, width: f64, dither: Dither) -> String {
+pub struct GifLook {
+    pub dither: Dither,
+    pub colours: u32,
+    pub palette_from: PaletteFrom,
+}
+
+pub fn gif_filter(fps: f64, width: f64, look: &GifLook) -> String {
+    let colours = if look.colours >= 256 {
+        String::new()
+    } else {
+        format!(":max_colors={}", look.colours.max(2))
+    };
+    let stats = match look.palette_from {
+        PaletteFrom::Moving => "diff",
+        PaletteFrom::Whole => "full",
+    };
     format!(
-        "fps={},scale={}:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[pal];[b][pal]paletteuse=dither={}",
+        "fps={},scale={}:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode={stats}{colours}[pal];[b][pal]paletteuse=dither={}",
         fps,
         width,
-        serde_name(&dither)
+        serde_name(&look.dither)
     )
 }
 
@@ -64,7 +100,8 @@ pub struct Join {
     pub audio: bool,
 }
 
-pub fn join_filter(parts: &[JoinPart], to: JoinSize) -> Join {
+pub fn join_filter(parts: &[JoinPart], to: JoinSize, background: &str) -> Join {
+    let background = ffmpeg_color(background);
     let rate = (round_to(to.fps, 3)).to_string();
     let (width, height) = (
         even_down(f64::from(to.width)),
@@ -80,11 +117,11 @@ pub fn join_filter(parts: &[JoinPart], to: JoinSize) -> Join {
             chains.push(if p.video {
                 format!(
                     "[{i}:v]{},fps={rate},format=yuv420p[v{i}]",
-                    pad_to(width, height, None)
+                    pad_to(width, height, Some(&background), PlaceAlign::Center)
                 )
             } else {
                 format!(
-                    "color=c=black:s={}x{}:r={rate}:d={seconds},format=yuv420p[v{i}]",
+                    "color=c={background}:s={}x{}:r={rate}:d={seconds},format=yuv420p[v{i}]",
                     width, height
                 )
             });
@@ -136,7 +173,21 @@ pub fn atempo_chain(rate: f64) -> String {
         .join(",")
 }
 
-pub fn speed_args(input: &str, output: &str, rate: f64, fps: f64, sound: bool) -> Vec<String> {
+pub fn retime_sound(rate: f64, keep_pitch: bool) -> String {
+    if keep_pitch {
+        atempo_chain(rate)
+    } else {
+        format!("rubberband=tempo={rate:.4}:pitch={rate:.4}")
+    }
+}
+
+pub fn speed_args(
+    input: &str,
+    output: &str,
+    rate: f64,
+    fps: f64,
+    sound: Option<bool>,
+) -> Vec<String> {
     let mut args = vec![
         "-i".to_owned(),
         input.to_owned(),
@@ -145,8 +196,8 @@ pub fn speed_args(input: &str, output: &str, rate: f64, fps: f64, sound: bool) -
         "-r".to_owned(),
         (round_to(fps, 3)).to_string(),
     ];
-    if sound {
-        args.extend(["-af".to_owned(), atempo_chain(rate)]);
+    if let Some(keep_pitch) = sound {
+        args.extend(["-af".to_owned(), retime_sound(rate, keep_pitch)]);
     } else {
         args.push("-an".to_owned());
     }
@@ -155,12 +206,18 @@ pub fn speed_args(input: &str, output: &str, rate: f64, fps: f64, sound: bool) -
     args
 }
 
-pub fn speed_sound_args(input: &str, output: &str, rate: f64, codecs: &[String]) -> Vec<String> {
+pub fn speed_sound_args(
+    input: &str,
+    output: &str,
+    rate: f64,
+    keep_pitch: bool,
+    codecs: &[String],
+) -> Vec<String> {
     let mut args = vec![
         "-i".to_owned(),
         input.to_owned(),
         "-af".to_owned(),
-        atempo_chain(rate),
+        retime_sound(rate, keep_pitch),
     ];
     args.extend(codecs.iter().cloned());
     args.push(output.to_owned());
@@ -183,16 +240,17 @@ pub fn repair_filter(clicks: bool, clipping: bool, strength: f64) -> Option<Stri
     (!chain.is_empty()).then(|| chain.join(","))
 }
 
-pub const HUM_DEPTH_DB: f64 = -40.0;
 pub const HUM_LISTEN_WIDTH_HZ: f64 = 4.0;
 
-const RUMBLE_HZ: u32 = 80;
 const SPEECH_NOISE_REDUCTION_DB: f64 = 40.0;
 const SPEECH_NOISE_FLOOR_DB: f64 = -50.0;
 const FLOOR_ABOVE_NOISE_DB: f64 = 3.0;
 const QUIET_SHARE: f64 = 0.1;
 const PITCH_TAIL_S: u32 = 1;
-const SPEECH_LEVEL: &str = "speechnorm=e=6.25:r=0.00001:l=1:t=0.01";
+fn speech_level(lift_db: f64) -> String {
+    let expansion = round_to(10f64.powf(lift_db / 20.0), 2).max(1.0);
+    format!("speechnorm=e={expansion}:r=0.00001:l=1:t=0.01")
+}
 
 pub fn pitch_filter(
     p: &opsis_compile::nodes::media::ChangePitch,
@@ -216,8 +274,35 @@ pub fn pitch_filter(
     }
 }
 
-const TELEPHONE: &str = "highpass=f=300,highpass=f=300,lowpass=f=3400,lowpass=f=3400,acrusher=bits=8:mode=log:aa=1:mix=0.3,compand=attacks=0.01:decays=0.2:points=-80/-80|-30/-15|0/-3";
-const RADIO: &str = "highpass=f=200,lowpass=f=5000,acrusher=bits=10:mode=log:aa=1:mix=0.2,compand=attacks=0.01:decays=0.3:points=-80/-80|-35/-20|0/-4";
+fn telephone(grit: f64) -> String {
+    format!(
+        "highpass=f=300,highpass=f=300,lowpass=f=3400,lowpass=f=3400,acrusher=bits=8:mode=log:aa=1:mix={},compand=attacks=0.01:decays=0.2:points=-80/-80|-30/-15|0/-3",
+        round_to((0.3 * grit).clamp(0.0, 1.0), 2)
+    )
+}
+
+fn radio(grit: f64) -> String {
+    format!(
+        "highpass=f=200,lowpass=f=5000,acrusher=bits=10:mode=log:aa=1:mix={},compand=attacks=0.01:decays=0.3:points=-80/-80|-35/-20|0/-4",
+        round_to((0.2 * grit).clamp(0.0, 1.0), 2)
+    )
+}
+
+fn echo(p: &opsis_compile::nodes::media::VoiceEffects) -> String {
+    let repeats = 1..=p.repeats.max(1);
+    let delays: Vec<String> = repeats
+        .clone()
+        .map(|n| (p.delay_ms * n).to_string())
+        .collect();
+    let decays: Vec<String> = repeats
+        .map(|n| round_to(p.decay.powi(numbers::signed(n)), 2).to_string())
+        .collect();
+    format!(
+        "aecho=in_gain=1:out_gain=1:delays={}:decays={}",
+        delays.join("|"),
+        decays.join("|")
+    )
+}
 
 fn mixed_with_original(chain: &str, mix: f64) -> String {
     let wet = round_to(mix.clamp(0.0, 1.0), 2);
@@ -251,16 +336,9 @@ fn in_room(room: &str, mix: f64) -> String {
 pub fn voice_filter(p: &opsis_compile::nodes::media::VoiceEffects, room: Option<&str>) -> String {
     use opsis_compile::nodes::media::VoiceEffect;
     match (p.effect, room) {
-        (VoiceEffect::Telephone, _) => mixed_with_original(TELEPHONE, p.mix),
-        (VoiceEffect::Radio, _) => mixed_with_original(RADIO, p.mix),
-        (VoiceEffect::Echo, _) => mixed_with_original(
-            &format!(
-                "aecho=in_gain=1:out_gain=1:delays={}:decays={}",
-                p.delay_ms,
-                round_to(p.decay, 2)
-            ),
-            p.mix,
-        ),
+        (VoiceEffect::Telephone, _) => mixed_with_original(&telephone(p.grit), p.mix),
+        (VoiceEffect::Radio, _) => mixed_with_original(&radio(p.grit), p.mix),
+        (VoiceEffect::Echo, _) => mixed_with_original(&echo(p), p.mix),
         (VoiceEffect::SmallRoom | VoiceEffect::Hall, Some(path)) => in_room(path, p.mix),
         (VoiceEffect::SmallRoom | VoiceEffect::Hall, None) => "anull".to_owned(),
     }
@@ -283,9 +361,13 @@ pub fn fit_graph(
     let fade = f64::from(p.fade_out_ms).min(target_ms);
     let ending = if fade > 0.0 {
         format!(
-            ",afade=t=out:st={}:d={}",
+            ",afade=t=out:st={}:d={}{}",
             ffmpeg_seconds(target_ms - fade),
-            ffmpeg_seconds(fade)
+            ffmpeg_seconds(fade),
+            match p.fade_curve {
+                opsis_compile::nodes::media::FadeCurve::Tri => String::new(),
+                curve => format!(":curve={}", serde_name(&curve)),
+            }
         )
     } else {
         String::new()
@@ -327,11 +409,11 @@ pub fn fit_graph(
     }
 }
 
-pub fn hum_filter(hertz: f64, harmonics: u32, width: f64) -> String {
+pub fn hum_filter(hertz: f64, harmonics: u32, width: f64, depth: f64) -> String {
     (1..=harmonics + 1)
         .map(|n| {
             format!(
-                "equalizer=f={}:t=h:w={width}:g={HUM_DEPTH_DB}",
+                "equalizer=f={}:t=h:w={width}:g={depth}",
                 hertz * f64::from(n)
             )
         })
@@ -370,12 +452,14 @@ pub fn speech_filter(
             round_to(p.noise * SPEECH_NOISE_REDUCTION_DB, 1)
         ));
     }
-    steps.push(format!("highpass=f={RUMBLE_HZ}"));
+    if p.rumble_hz > 0 {
+        steps.push(format!("highpass=f={}", p.rumble_hz));
+    }
     if p.soften_s > 0.0 {
         steps.push(format!("deesser=i={}", round_to(p.soften_s, 2)));
     }
     if p.even_level {
-        steps.push(SPEECH_LEVEL.to_owned());
+        steps.push(speech_level(p.even_lift));
     }
     steps.join(",")
 }
@@ -401,12 +485,21 @@ pub fn sound_picture_graph(p: &opsis_compile::nodes::media::SoundPicture) -> Str
     let size = format!("{}x{}", p.width, p.height);
     let drawn = match p.kind {
         SoundPictureKind::Waveform => format!(
-            "showwavespic=s={size}:split_channels=0:colors={}",
-            ffmpeg_color(&p.color)
+            "showwavespic=s={size}:split_channels={}:colors={}{}",
+            u8::from(p.split_channels),
+            ffmpeg_color(&p.color),
+            match p.wave_scale {
+                opsis_compile::nodes::media::WaveScale::Lin => String::new(),
+                scale => format!(":scale={}", serde_name(&scale)),
+            }
         ),
         SoundPictureKind::Spectrum => format!(
-            "showspectrumpic=s={size}:legend=0:color={},scale={size}",
-            p.colours.id()
+            "showspectrumpic=s={size}:legend=0:color={}{},scale={size}",
+            p.colours.id(),
+            match p.pitch_scale {
+                opsis_compile::nodes::media::PitchScale::Lin => String::new(),
+                scale => format!(":fscale={}", serde_name(&scale)),
+            }
         ),
     };
     format!(

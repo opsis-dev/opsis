@@ -1,47 +1,15 @@
-import type React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { isString } from "#video/common/guards.ts";
-import { type ElementProps } from "#video/common/spec.ts";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { codePalette, type CodeTheme } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 import { treeFromPaths } from "#video/lib/settings/shape.ts";
-
-const fontFamily = '"Inter"';
 
 export type FileNode = {
   name: string;
   children?: FileNode[];
 };
-
-export type FileTreeRevealProps = {
-  nodes?: FileNode[];
-  title?: string;
-  selectedPath?: string;
-  rowStagger?: number;
-  holdSeconds?: number;
-  accentColor?: string;
-  backgroundColor?: string;
-  theme?: "dark" | "light";
-  speed?: number;
-};
-
-const DEFAULT_NODES: FileNode[] = [
-  {
-    name: "src",
-    children: [
-      {
-        name: "scenes",
-        children: [{ name: "hook-card.tsx" }, { name: "lower-third.tsx" }],
-      },
-      { name: "lib", children: [{ name: "motion-tokens.ts" }] },
-      { name: "index.ts" },
-    ],
-  },
-  { name: "public", children: [{ name: "logo.svg" }] },
-  { name: "remotion.config.ts" },
-  { name: "package.json" },
-];
 
 const T = {
   panel: 0,
@@ -90,7 +58,7 @@ function flatten(nodes: FileNode[], depth = 0, parent = "", out: FlatRow[] = [])
   return out;
 }
 
-function extensionColor(name: string, palette: (typeof CODE_THEMES)["dark"]) {
+function extensionColor(name: string, palette: CodeTheme) {
   const extension = name.slice(name.lastIndexOf(".") + 1);
   if (extension === "tsx" || extension === "jsx") return palette.token.type;
   if (extension === "ts" || extension === "js" || extension === "mjs") return palette.token.call;
@@ -101,55 +69,67 @@ function extensionColor(name: string, palette: (typeof CODE_THEMES)["dark"]) {
   return palette.fg;
 }
 
-const FolderGlyph: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M3.4 6.6a1.8 1.8 0 0 1 1.8-1.8h3.6l2 2.4h8a1.8 1.8 0 0 1 1.8 1.8v8.4a1.8 1.8 0 0 1-1.8 1.8H5.2a1.8 1.8 0 0 1-1.8-1.8V6.6Z"
-      stroke={color}
-      strokeWidth={1.6}
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+function FolderGlyph({ size, color }: { size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M3.4 6.6a1.8 1.8 0 0 1 1.8-1.8h3.6l2 2.4h8a1.8 1.8 0 0 1 1.8 1.8v8.4a1.8 1.8 0 0 1-1.8 1.8H5.2a1.8 1.8 0 0 1-1.8-1.8V6.6Z"
+        stroke={color}
+        strokeWidth={1.6}
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
-const FileGlyph: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M13.6 3.4H7a1.8 1.8 0 0 0-1.8 1.8v13.6A1.8 1.8 0 0 0 7 20.6h10a1.8 1.8 0 0 0 1.8-1.8V8.6l-5.2-5.2Z"
-      stroke={color}
-      strokeWidth={1.6}
-      strokeLinejoin="round"
-    />
-    <path d="M13.4 3.6v5.2h5.2" stroke={color} strokeWidth={1.6} />
-  </svg>
-);
+function FileGlyph({ size, color }: { size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M13.6 3.4H7a1.8 1.8 0 0 0-1.8 1.8v13.6A1.8 1.8 0 0 0 7 20.6h10a1.8 1.8 0 0 0 1.8-1.8V8.6l-5.2-5.2Z"
+        stroke={color}
+        strokeWidth={1.6}
+        strokeLinejoin="round"
+      />
+      <path d="M13.4 3.6v5.2h5.2" stroke={color} strokeWidth={1.6} />
+    </svg>
+  );
+}
 
-const ChevronGlyph: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M9 6.5L15.5 12 9 17.5"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+function ChevronGlyph({ size, color }: { size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M9 6.5L15.5 12 9 17.5"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
-const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
-  nodes = DEFAULT_NODES,
-  title = "northstar-studio",
-  selectedPath = "src/scenes/lower-third.tsx",
-  rowStagger = 0.18,
+function FileTreeRevealView({
+  nodes,
+  title,
+  selectedPath,
+  rowStagger,
   holdSeconds,
-  accentColor = "#E8B86D",
+  accentColor,
   backgroundColor,
-  theme = "dark",
-  speed = 1,
-}) => {
+  theme,
+  speed,
+  countLabel,
+  panelWidth,
+  fontFamily,
+}: Omit<ElementSettings["file-tree-reveal"], "nodes"> & {
+  nodes: FileNode[];
+  holdSeconds?: number;
+}) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
   const at = (seconds: number) => (seconds * fps) / speed;
@@ -190,7 +170,7 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
           ...clamp,
         });
 
-  const panelW = Math.min(width - safe.paddingLeft - safe.paddingRight, 480 * u);
+  const panelW = Math.min(width - safe.paddingLeft - safe.paddingRight, panelWidth * u);
   const rowH = ROW_U * u;
   const indent = 19 * u;
   const rowsH = rows.length * rowH;
@@ -199,7 +179,7 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
     <AbsoluteFill
       style={{
         background: backgroundColor ?? palette.page,
-        fontFamily,
+        fontFamily: fontOr(fontFamily, "main"),
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -254,7 +234,7 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
                 fontVariantNumeric: "tabular-nums",
               }}
             >
-              {rows.filter((row) => !row.isFolder).length} files
+              {rows.filter((row) => !row.isFolder).length} {countLabel}
             </span>
           </div>
         ) : null}
@@ -349,15 +329,8 @@ const FileTreeRevealView: React.FC<FileTreeRevealProps> = ({
       </div>
     </AbsoluteFill>
   );
-};
+}
 
-export function FileTreeReveal(props: ElementProps & { children?: React.ReactNode }) {
-  return (
-    <FileTreeRevealView
-      {...({
-        ...props,
-        nodes: treeFromPaths(Array.isArray(props.nodes) ? props.nodes.filter(isString) : []),
-      } as unknown as React.ComponentProps<typeof FileTreeRevealView>)}
-    />
-  );
+export function FileTreeReveal({ nodes, ...settings }: ElementSettings["file-tree-reveal"]) {
+  return <FileTreeRevealView {...settings} nodes={treeFromPaths(nodes)} />;
 }

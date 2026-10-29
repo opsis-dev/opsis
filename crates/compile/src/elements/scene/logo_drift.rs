@@ -56,7 +56,8 @@ pub struct LogoDrift {
         "Pull-back / sec",
         default = 0.1762,
         range(min = 0, max = 0.4),
-        step = 0.001
+        step = 0.001,
+        advanced
     )]
     pub pullback: f64,
     #[setting("Drift", default = 1.0, range(min = 0, max = 3), step = 0.05)]
@@ -67,35 +68,57 @@ pub struct LogoDrift {
         "Tile fade τ (s)",
         default = 0.4,
         range(min = 0.05, max = 2),
-        step = 0.01
+        step = 0.01,
+        advanced
     )]
     pub tile_fade: f64,
-    #[setting("Tile radius", default = 0.02, range(min = 0, max = 0.5), step = 0.01)]
+    #[setting(
+        "Tile radius",
+        default = 0.02,
+        range(min = 0, max = 0.5),
+        step = 0.01,
+        advanced
+    )]
     pub tile_radius: f64,
-    #[setting("Glyph size", default = 0.34, range(min = 0.1, max = 0.7), step = 0.01)]
+    #[setting(
+        "Glyph size",
+        default = 0.34,
+        range(min = 0.1, max = 0.7),
+        step = 0.01,
+        advanced
+    )]
     pub glyph_scale: f64,
     #[setting(
         "Word stagger (s)",
         default = 0.15,
         range(min = 0, max = 0.6),
-        step = 0.005
+        step = 0.005,
+        advanced
     )]
     pub word_stagger: f64,
     #[setting(
         "Word lands in (s)",
         default = 0.14,
         range(min = 0.02, max = 1),
-        step = 0.005
+        step = 0.005,
+        advanced
     )]
     pub word_duration: f64,
     #[setting(
         "Word arrives at",
         default = 1.216,
         range(min = 0.5, max = 2),
-        step = 0.001
+        step = 0.001,
+        advanced
     )]
     pub word_scale: f64,
-    #[setting("Word blur (px)", default = 4.3, range(min = 0, max = 20), step = 0.1)]
+    #[setting(
+        "Word blur (px)",
+        default = 4.3,
+        range(min = 0, max = 20),
+        step = 0.1,
+        advanced
+    )]
     pub word_blur: f64,
     #[setting("Exit at (s)", default = 3.13, range(min = 0.5, max = 10), step = 0.01)]
     pub exit_at: f64,
@@ -103,7 +126,8 @@ pub struct LogoDrift {
         "Exit over (s)",
         default = 0.34,
         range(min = 0.05, max = 2),
-        step = 0.01
+        step = 0.01,
+        advanced
     )]
     pub exit_duration: f64,
     #[setting("Headline size", default = 20.0, range(min = 8, max = 64), step = 0.5)]
@@ -114,7 +138,8 @@ pub struct LogoDrift {
         "Wash strength",
         default = 0.07,
         range(min = 0, max = 0.5),
-        step = 0.005
+        step = 0.005,
+        advanced
     )]
     pub glow_opacity: f64,
     #[setting("Accent", widget = "color", zero_label = "Theme")]
@@ -123,7 +148,7 @@ pub struct LogoDrift {
     pub theme: Theme,
     #[setting("Font weight", default = FontWeight::W500)]
     pub font_weight: FontWeight,
-    #[setting("Glow colour", widget = "color", zero_label = "Accent")]
+    #[setting("Glow colour", widget = "color", zero_label = "Accent", advanced)]
     pub glow_color: String,
     #[setting(
         "Tiles",
@@ -199,6 +224,75 @@ pub struct LogoDrift {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Headline starts at",
+        default = 0.017,
+        range(min = 0, max = 10),
+        step = 0.01,
+        unit = "s",
+        advanced
+    )]
+    pub word_at: f64,
+    #[setting(
+        "Exit zoom",
+        default = 0.8,
+        range(min = 0.2, max = 2),
+        step = 0.05,
+        advanced
+    )]
+    pub exit_scale: f64,
+    #[setting(
+        "Exit blur",
+        default = 6.5,
+        range(min = 0, max = 30),
+        step = 0.5,
+        unit = "px",
+        advanced
+    )]
+    pub exit_blur: f64,
+    #[setting(
+        "Wash size",
+        default = 1.0,
+        range(min = 0.2, max = 3),
+        step = 0.05,
+        show_if = { "glow": ["true"] },
+        advanced
+    )]
+    pub glow_size: f64,
+    #[setting(
+        "Mark weight",
+        default = 600,
+        range(min = 100, max = 900),
+        step = 100,
+        advanced
+    )]
+    pub glyph_weight: u32,
+    #[setting(
+        "Label size",
+        default = 0.1,
+        range(min = 0.04, max = 0.3),
+        step = 0.01,
+        help = "As a share of the tile.",
+        advanced
+    )]
+    pub label_scale: f64,
+    #[setting(
+        "Label opacity",
+        default = 0.72,
+        range(min = 0, max = 1),
+        step = 0.01,
+        advanced
+    )]
+    pub label_opacity: f64,
+    #[setting(
+        "Headline width",
+        default = 88,
+        range(min = 20, max = 100),
+        step = 1,
+        unit = "%",
+        advanced
+    )]
+    pub headline_width: u32,
 }
 
 pub fn definition() -> ElementMeta {

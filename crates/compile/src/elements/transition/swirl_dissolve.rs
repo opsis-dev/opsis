@@ -16,7 +16,13 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 pub struct SwirlDissolve {
     #[setting("Bands", default = 10, range(min = 1, max = 12), step = 1)]
     pub band_count: u32,
-    #[setting("Softness", default = 0.35, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Softness",
+        default = 0.35,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub softness: f64,
     #[setting("Background", default = "#141318", check = colour)]
     pub color_back: String,
@@ -34,6 +40,8 @@ pub struct SwirlDissolve {
         advanced
     )]
     pub speed: f64,
+    #[setting("Grain", default = 0.2, range(min = 0, max = 1), advanced)]
+    pub noise: f64,
 }
 
 pub fn definition() -> ElementMeta {

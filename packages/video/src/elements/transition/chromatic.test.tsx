@@ -3,6 +3,14 @@ import { render } from "@testing-library/react";
 import { useEffect } from "react";
 import { expect, it } from "vitest";
 import { chromaticAberrationWipe } from "#video/elements/transition/chromatic-aberration-wipe.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
+
+const SETTINGS: ElementSettings["chromatic-aberration-wipe"] = {
+  intensity: 12,
+  axis: "horizontal",
+  slide: 1,
+  fade: false,
+};
 
 it("keeps the scene mounted as the colour split opens", () => {
   const events: string[] = [];
@@ -15,13 +23,13 @@ it("keeps the scene mounted as the colour split opens", () => {
     }, []);
     return <p>scene</p>;
   };
-  const { component: Presentation } = chromaticAberrationWipe({});
+  const { component: Presentation } = chromaticAberrationWipe(SETTINGS);
   const AtProgress = ({ progress }: { progress: number }) => (
     <Presentation
       presentationProgress={progress}
       presentationDirection="entering"
       presentationDurationInFrames={20}
-      passedProps={{}}
+      passedProps={SETTINGS}
       onElementImage={() => undefined}
       onUnmount={() => undefined}
       bothEnteringAndExiting={false}

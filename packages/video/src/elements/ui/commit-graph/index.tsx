@@ -1,47 +1,9 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-
-const fontFamily = '"Inter"';
-
-export type GraphCommit = {
-  message: string;
-  hash: string;
-  lane?: number;
-  parent?: number;
-  mergeFrom?: number;
-  ref?: string;
-};
-
-export type CommitGraphProps = {
-  commits?: GraphCommit[];
-  windowTitle?: string;
-  startAtSeconds?: number;
-  stepSeconds?: number;
-  holdSeconds?: number;
-  accentColor?: string;
-  laneColors?: string[];
-  backgroundColor?: string;
-  theme?: "dark" | "light";
-  speed?: number;
-};
-
-const DEFAULT_COMMITS: GraphCommit[] = [
-  { message: "Seed the registry manifest", hash: "9c41f0a" },
-  { message: "Add render queue worker", hash: "3ab77e2" },
-  { message: "Branch: retry backoff", hash: "d0e91c4", lane: 1, parent: 1 },
-  { message: "Cap retries at five", hash: "51b2fa8", lane: 1 },
-  { message: "Ship caption presets", hash: "7f30dd1", lane: 0, parent: 1 },
-  {
-    message: "Merge retry backoff",
-    hash: "b8c4e05",
-    lane: 0,
-    parent: 4,
-    mergeFrom: 3,
-    ref: "main",
-  },
-];
 
 const T = {
   window: 0,
@@ -55,23 +17,33 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-const DEFAULT_LANE_COLORS = ["#7DD3E8", "#C99BE8", "#9BD4A0", "#E8B86D"];
-
-export const CommitGraph: React.FC<CommitGraphProps> = ({
-  commits: commitsProp = DEFAULT_COMMITS,
-  windowTitle = "git log --graph --oneline",
-  startAtSeconds = 0.34,
-  stepSeconds = 0.36,
-  holdSeconds,
-  accentColor = "#E8B86D",
-  laneColors = DEFAULT_LANE_COLORS,
+export function CommitGraph({
+  commits: commitsProp,
+  windowTitle,
+  startAtSeconds,
+  stepSeconds,
+  accentColor,
+  laneColors,
   backgroundColor,
-  theme = "dark",
-  speed = 1,
-}) => {
+  theme,
+  speed,
+  codeFont,
+  font,
+  windowWidth,
+  rowSpacing,
+  laneSpacing,
+  dotSize,
+  lineWidth,
+  textSize,
+  cornerRadius,
+  windowDots,
+  holdSeconds,
+}: ElementSettings["commit-graph"] & { holdSeconds?: number }) {
+  const fontFamily = fontOr(font, "main");
+  const mono = fontOr(codeFont, "code");
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
   const at = (seconds: number) => (seconds * fps) / speed;
@@ -115,14 +87,14 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
           ...clamp,
         });
 
-  const windowW = Math.min(width - safe.paddingLeft - safe.paddingRight, 860 * u);
-  const rowH = 48 * u;
-  const laneW = 30 * u;
+  const windowW = Math.min(width - safe.paddingLeft - safe.paddingRight, windowWidth * u);
+  const rowH = rowSpacing * u;
+  const laneW = laneSpacing * u;
   const gutterX = 26 * u;
   const lanes = commits.reduce((max, commit) => Math.max(max, commit.lane ?? 0), 0) + 1;
   const graphW = gutterX + lanes * laneW;
   const bodyH = rowH * commits.length;
-  const dotR = 6.5 * u;
+  const dotR = dotSize * u;
 
   const laneColor = (lane: number) =>
     lane === 0 ? accentColor : laneColors[(lane - 1) % laneColors.length];
@@ -152,7 +124,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
   return (
     <AbsoluteFill
       style={{
-        background: backgroundColor ?? palette.page,
+        background: backgroundColor || palette.page,
         fontFamily,
         display: "flex",
         alignItems: "center",
@@ -163,7 +135,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
       <div
         style={{
           width: windowW,
-          borderRadius: 18 * u,
+          borderRadius: cornerRadius * u,
           background: palette.window,
           border: `1px solid ${palette.border}`,
           boxShadow: `inset 0 1px 0 ${palette.highlight}, 0 ${24 * u}px ${
@@ -188,7 +160,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
               opacity: chromeIn,
             }}
           >
-            {[0, 1, 2].map((dot) => (
+            {(windowDots ? [0, 1, 2] : []).map((dot) => (
               <span
                 key={dot}
                 style={{
@@ -203,9 +175,9 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
               style={{
                 marginLeft: 10 * u,
                 color: palette.dim,
-                fontSize: 14.5 * u,
+                fontSize: textSize * (14.5 / 15.5) * u,
                 fontWeight: 500,
-                fontFamily: "ui-monospace, monospace",
+                fontFamily: mono,
               }}
             >
               {windowTitle}
@@ -239,7 +211,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
                   d={edgePath(edge.from, index)}
                   fill="none"
                   stroke={edge.stroke}
-                  strokeWidth={2.2 * u}
+                  strokeWidth={lineWidth * u}
                   strokeLinecap="round"
                   opacity={0.85}
                   pathLength={1}
@@ -263,7 +235,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
                   r={dotR * (0.6 + pop * 0.4)}
                   fill={palette.window}
                   stroke={color}
-                  strokeWidth={2.6 * u}
+                  strokeWidth={lineWidth * (2.6 / 2.2) * u}
                   opacity={pop}
                 />
               );
@@ -293,9 +265,9 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
                 <span
                   style={{
                     color: laneColor(commit.lane ?? 0),
-                    fontSize: 14.5 * u,
+                    fontSize: textSize * (14.5 / 15.5) * u,
                     fontWeight: 600,
-                    fontFamily: "ui-monospace, monospace",
+                    fontFamily: mono,
                     flexShrink: 0,
                   }}
                 >
@@ -304,7 +276,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
                 <span
                   style={{
                     color: palette.fg,
-                    fontSize: 15.5 * u,
+                    fontSize: textSize * u,
                     fontWeight: 500,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
@@ -322,7 +294,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
                       background: `color-mix(in srgb, ${accentColor} 13%, transparent)`,
                       border: `1px solid color-mix(in srgb, ${accentColor} 40%, transparent)`,
                       color: accentColor,
-                      fontSize: 14.5 * u,
+                      fontSize: textSize * (14.5 / 15.5) * u,
                       fontWeight: 600,
                     }}
                   >
@@ -336,4 +308,4 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
       </div>
     </AbsoluteFill>
   );
-};
+}

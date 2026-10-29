@@ -4,19 +4,17 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
-export type ZoomBlurProps = {
-  blur?: number;
-  rise?: number;
-};
+type ZoomBlurProps = ElementSettings["zoom-blur"];
 
-const ZoomBlurPresentation: React.FC<TransitionPresentationComponentProps<ZoomBlurProps>> = ({
+function ZoomBlurPresentation({
   children,
   presentationProgress,
   presentationDirection,
   passedProps,
-}) => {
-  const { blur = 16, rise = 0 } = passedProps;
+}: TransitionPresentationComponentProps<ZoomBlurProps>) {
+  const { blur, rise, zoom } = passedProps;
   const entering = presentationDirection === "entering";
   const p = presentationProgress;
 
@@ -27,14 +25,14 @@ const ZoomBlurPresentation: React.FC<TransitionPresentationComponentProps<ZoomBl
         filter: p < 1 ? `blur(${(1 - p) * blur}px)` : undefined,
       }
     : {
-        transform: `scale(${1 + p * 0.12})${rise > 0 ? ` translateY(${-p * rise}px)` : ""}`,
+        transform: `scale(${1 + p * (zoom - 1)})${rise > 0 ? ` translateY(${-p * rise}px)` : ""}`,
         filter: p > 0 ? `blur(${p * blur}px)` : undefined,
       };
 
   return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
-};
+}
 
-export function zoomBlur(props: ZoomBlurProps = {}): TransitionPresentation<ZoomBlurProps> {
+export function zoomBlur(props: ZoomBlurProps): TransitionPresentation<ZoomBlurProps> {
   return {
     component: ZoomBlurPresentation,
     props,

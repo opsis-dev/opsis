@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { Img } from "remotion";
-import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { type SceneProps, tint } from "#video/elements/scene/launch-anything/content.ts";
 import { clamp, getShowcase, key, tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { LogoGlyph } from "#video/elements/scene/launch-anything/ui.tsx";
 
@@ -29,18 +29,12 @@ function Dashboard({ scene, t }: SceneProps) {
           borderRight: "1px solid #e8e4df",
         }}
       >
-        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 26 }}>◈ Workroom</div>
-        {[
-          "Workspace",
-          "Overview",
-          "Milestones",
-          "Projects",
-          "Teammates",
-          "Reports",
-          "Settings",
-        ].map((label, i) => (
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 26 }}>
+          ◈ {scene.content.appName}
+        </div>
+        {scene.content.dashboardMenu.map((label, i) => (
           <div
-            key={label}
+            key={i}
             style={{
               padding: "10px 2px",
               color: i === 1 ? scene.accent : "#958b86",
@@ -61,17 +55,13 @@ function Dashboard({ scene, t }: SceneProps) {
             fontWeight: 600,
           }}
         >
-          <span>Your week, in focus</span>
-          <span style={{ fontSize: 9, color: "#94837a" }}>This month ▾</span>
+          <span>{scene.content.dashboard}</span>
+          <span style={{ fontSize: 9, color: "#94837a" }}>{scene.content.dashboardPeriod} ▾</span>
         </div>
         <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-          {[
-            ["Tasks closed", "128"],
-            ["Active projects", "12"],
-            ["On track", "92%"],
-          ].map(([label, value]) => (
+          {scene.content.dashboardStats.map(({ label, value }, i) => (
             <div
-              key={label}
+              key={i}
               style={{
                 flex: 1,
                 padding: 13,
@@ -82,7 +72,7 @@ function Dashboard({ scene, t }: SceneProps) {
               <div style={{ color: "#a7978e" }}>{label}</div>
               <div style={{ fontSize: 19, marginTop: 9 }}>{value}</div>
               <div style={{ color: "#6b9869", fontSize: 7, marginTop: 5 }}>
-                Demo workspace · this month
+                {scene.content.dashboardNote}
               </div>
             </div>
           ))}
@@ -96,7 +86,7 @@ function Dashboard({ scene, t }: SceneProps) {
               borderRadius: 7,
             }}
           >
-            <b>Project momentum</b>
+            <b>{scene.content.momentum}</b>
             <svg
               width="258"
               height="153"
@@ -143,15 +133,9 @@ function Dashboard({ scene, t }: SceneProps) {
               borderRadius: 7,
             }}
           >
-            <b>Recent activity</b>
-            {[
-              "Brief approved",
-              "Review completed",
-              "Project completed",
-              "Files organized",
-              "Milestone reached",
-            ].map((label, n) => (
-              <div key={label} style={{ display: "flex", gap: 6, marginTop: 18, fontSize: 8 }}>
+            <b>{scene.content.activityTitle}</b>
+            {scene.content.dashboardActivity.map((label, n) => (
+              <div key={n} style={{ display: "flex", gap: 6, marginTop: 18, fontSize: 8 }}>
                 <span style={{ color: scene.accent }}>●</span>
                 <span>
                   {label}
@@ -276,7 +260,7 @@ function Shoppers({ scene, t }: SceneProps) {
         </div>
         <div style={{ padding: "12px 15px", fontSize: 13 }}>
           <b>{scene.content.shopDetail}</b>
-          <p style={{ fontSize: 9, color: "#827c82" }}>A collection for slower mornings.</p>
+          <p style={{ fontSize: 9, color: "#827c82" }}>{scene.content.shopNote}</p>
           <div
             style={{
               background: scene.accent,
@@ -297,7 +281,7 @@ function Shoppers({ scene, t }: SceneProps) {
 function Exchange({ scene, t }: SceneProps) {
   const p = tween(t, 9.25, 9.83);
   return (
-    <div style={{ ...surface, background: "#122d24", color: "#fff" }}>
+    <div style={{ ...surface, background: scene.palette.night, color: scene.palette.lightText }}>
       <div
         style={{
           paddingTop: 58,
@@ -378,7 +362,7 @@ function Builder({ scene, t }: SceneProps) {
           gap: 27,
         }}
       >
-        <div style={{ fontSize: 20, color: "#245744", letterSpacing: "-0.02em" }}>
+        <div style={{ fontSize: 20, color: scene.accent, letterSpacing: "-0.02em" }}>
           {scene.content.builder}
         </div>
         <div
@@ -396,14 +380,14 @@ function Builder({ scene, t }: SceneProps) {
         >
           <span style={{ flex: 1 }}>
             {prompt}
-            <span style={{ color: "#245744" }}>│</span>
+            <span style={{ color: scene.accent }}>│</span>
           </span>
           <span
             style={{
               width: 21,
               height: 23,
               borderRadius: 5,
-              background: "linear-gradient(130deg,#749876,#245744)",
+              background: `linear-gradient(130deg, ${tint(scene.accent, 35)}, ${scene.accent})`,
               color: "#fff",
               display: "grid",
               placeItems: "center",
@@ -433,7 +417,7 @@ function Trading({ scene, t }: SceneProps) {
           overflow: "hidden",
         }}
       >
-        <div style={{ padding: 12, fontSize: 10 }}>Review activity</div>
+        <div style={{ padding: 12, fontSize: 10 }}>{scene.content.reviewTitle}</div>
         {Array.from({ length: 25 }, (_, i) => (
           <div
             key={i}
@@ -464,7 +448,7 @@ function Trading({ scene, t }: SceneProps) {
         <div style={{ fontSize: 10 }}>Draft　 Review　 Ready</div>
         <div style={{ height: 1, background: "#34312a", marginTop: 16 }} />
         <div style={{ fontSize: 9, color: "#aba694", marginTop: 15 }}>Project</div>
-        <div style={{ fontSize: 13, marginTop: 8 }}>Autumn release　⌄</div>
+        <div style={{ fontSize: 13, marginTop: 8 }}>{scene.content.reviewProject}　⌄</div>
         <div style={{ fontSize: 9, color: "#9f9d8c", marginTop: 22 }}>Review progress</div>
         <div style={{ fontSize: 22, marginTop: 9 }}>
           12 / 12
@@ -481,7 +465,7 @@ function Trading({ scene, t }: SceneProps) {
               borderRadius: 4,
             }}
           >
-            Approve
+            {scene.content.reviewButtons[0]}
           </span>
           <span
             style={{
@@ -493,26 +477,24 @@ function Trading({ scene, t }: SceneProps) {
               borderRadius: 4,
             }}
           >
-            Revise
+            {scene.content.reviewButtons[1]}
           </span>
         </div>
-        {["Files reviewed", "Comments resolved", "Contributors", "Next milestone"].map(
-          (label, i) => (
-            <div
-              key={label}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: 18,
-                fontSize: 8,
-                color: "#8a877a",
-              }}
-            >
-              <span>{label}</span>
-              <span>{["12 files", "28 / 28", "4 people", "Ready to share"][i]}</span>
-            </div>
-          ),
-        )}
+        {scene.content.reviewRows.map(({ label, value }, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: 18,
+              fontSize: 8,
+              color: "#8a877a",
+            }}
+          >
+            <span>{label}</span>
+            <span>{value}</span>
+          </div>
+        ))}
       </div>
       <div
         style={{
@@ -559,8 +541,8 @@ function Loyalty({ scene, t }: SceneProps) {
             fontSize: 10,
           }}
         >
-          <b>◫ Project notes</b>
-          <p>Collect ideas. Connect the details.</p>
+          <b>◫ {scene.content.ideasCard}</b>
+          <p>{scene.content.ideasNote}</p>
           {[80, 106, 63].map((width, n) => (
             <div key={n} style={{ height: 3, width, background: "#d9d5d9", marginTop: 9 }} />
           ))}

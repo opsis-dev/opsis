@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -50,8 +50,13 @@ pub struct CodeDiffWipe {
         check = colour
     )]
     pub accent_color: String,
-    #[setting("Theme", default = DarkOrLight::Dark, help = "Editor palette.")]
-    pub theme: DarkOrLight,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = code_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting(
         "Speed",
         default = 1.0,
@@ -67,6 +72,58 @@ pub struct CodeDiffWipe {
         help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
+    #[setting(
+        "Font size",
+        default = 20,
+        range(min = 12, max = 32),
+        step = 1,
+        unit = "px"
+    )]
+    pub font_size: u32,
+    #[setting(
+        "Window width",
+        default = 940,
+        range(min = 400, max = 1200),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub window_width: u32,
+    #[setting("Line height", default = 1.7, range(min = 1.2, max = 2.4), advanced)]
+    pub line_height: f64,
+    #[setting(
+        "Start at",
+        default = 0.7,
+        range(min = 0, max = 10),
+        unit = "s",
+        advanced
+    )]
+    pub start_at: f64,
+    #[setting("Collapse removed lines", default = true, advanced)]
+    pub collapse_removed: bool,
+    #[setting("Change count", default = true, advanced)]
+    pub show_counts: bool,
+    #[setting("Dim unchanged lines", default = true, advanced)]
+    pub dim_unchanged: bool,
+    #[setting("Strike out removed lines", default = true, advanced)]
+    pub strike_removed: bool,
+    #[setting("Glow behind the window", default = true, advanced)]
+    pub glow: bool,
+    #[setting("Vignette", default = true, advanced)]
+    pub vignette: bool,
+    #[setting(
+        "Corner radius",
+        default = 16,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub corner_radius: u32,
+    #[setting("Window dots", default = true, advanced)]
+    pub window_dots: bool,
+    #[setting("Font", widget = "font", advanced)]
+    pub font: String,
 }
 
 pub fn definition() -> ElementMeta {

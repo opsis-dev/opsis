@@ -19,9 +19,10 @@ export function Opening({ scene, t }: SceneProps) {
         >
           <ShaderTextReveal
             text={`${scene.content.opening}\n`}
-            fontFamily="Manrope"
+            fontFamily={scene.look.font}
             fontWeight={500}
-            fontSize={430}
+            fontSize={scene.look.openingSize}
+            intensity={scene.look.openingShimmer}
             wordDuration={fps * 1.4}
           />
         </div>
@@ -40,9 +41,10 @@ export function Opening({ scene, t }: SceneProps) {
         >
           <ShaderTextReveal
             text={`${scene.content.subject}\n`}
-            fontFamily="Manrope"
+            fontFamily={scene.look.font}
             fontWeight={500}
-            fontSize={300}
+            fontSize={(scene.look.openingSize * 300) / 430}
+            intensity={scene.look.openingShimmer}
             wordDuration={fps * 1.4}
           />
         </div>
@@ -59,15 +61,16 @@ export function Opening({ scene, t }: SceneProps) {
               objectFit: "cover",
               opacity: tween(t, 2.5, 2.85),
               transform: `scale(${tween(t, 2.5, 3.8, 1.1, 1)})`,
-              filter: "brightness(0.66) saturate(0.85) blur(0.4px)",
+              filter: `brightness(${scene.look.photoDimming}) saturate(0.85) blur(0.4px)`,
             }}
           />
           <Center>
             <Title
+              scene={scene}
               text={scene.content.ready}
               size={57}
               style={{
-                color: "#fff9ee",
+                color: scene.palette.lightText,
                 opacity: tween(t, 2.5, 2.7),
                 filter: `blur(${tween(t, 2.5, 2.9, 7, 0)}px)`,
                 textShadow: "0 0 3px #fff6",

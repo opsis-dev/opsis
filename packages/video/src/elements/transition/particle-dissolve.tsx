@@ -2,32 +2,14 @@ import type {
   TransitionPresentation,
   TransitionPresentationComponentProps,
 } from "@remotion/transitions";
-import type React from "react";
 import { AbsoluteFill } from "remotion";
+import type { ElementSettings, ParticleDissolveDirection } from "#video/generated/spec.ts";
 import {
   makeCanvasPresentation,
   makeSceneShader,
 } from "#video/lib/transitions/canvas-presentation.tsx";
 
-export type ParticleDissolveDirection = "reveal" | "up" | "down" | "left" | "right";
-
-export type ParticleDissolveProps = {
-  particleSize?: number;
-  scatter?: number;
-  shimmer?: number;
-  aberration?: number;
-  direction?: ParticleDissolveDirection;
-  stagger?: number;
-};
-
-const DEFAULTS = {
-  particleSize: 4,
-  scatter: 0.08,
-  shimmer: 0.6,
-  aberration: 0.5,
-  direction: "reveal" as ParticleDissolveDirection,
-  stagger: 0.55,
-};
+type ParticleDissolveProps = ElementSettings["particle-dissolve"];
 
 const AXES: Record<ParticleDissolveDirection, [number, number]> = {
   reveal: [0, 0],
@@ -49,6 +31,8 @@ uniform float u_scatter;
 uniform float u_shimmer;
 uniform float u_aberration;
 uniform float u_stagger;
+uniform float u_grey;
+uniform float u_ragged;
 uniform vec2 u_dir;
 uniform float u_radial;
 
@@ -103,7 +87,7 @@ void main() {
     ? clamp(length(centred) / 0.62, 0.0, 1.0)
     : clamp(dot(v_uv - 0.5, u_dir) + 0.5, 0.0, 1.0);
   float blob = fbm(skewed * 2.2);
-  float order = mix(blob, spatial, 0.55) * u_stagger;
+  float order = mix(blob, spatial, 1.0 - u_ragged) * u_stagger;
   float span = max(1.0 - u_stagger, 0.08);
   float phase = clamp((u_progress - order) / span, 0.0, 1.0);
   float dust = sin(phase * PI);
@@ -125,7 +109,7 @@ void main() {
   vec4 arriving = grab(u_to, v_uv + drift, -drift, split);
 
   vec4 base = mix(leaving, arriving, smoothstep(0.25, 0.75, phase));
-  base.rgb = mix(base.rgb, vec3(luma(base.rgb)), dust);
+  base.rgb = mix(base.rgb, vec3(luma(base.rgb)), dust * u_grey);
   base.rgb *= 1.0 - dust * 0.25;
 
   vec2 g = (v_uv - drift) * grid;
@@ -162,14 +146,16 @@ const shader = makeSceneShader<ParticleDissolveProps>(
   FRAGMENT_SHADER,
   ({ gl, uniform, height, passedProps }) => {
     const {
-      particleSize = DEFAULTS.particleSize,
-      scatter = DEFAULTS.scatter,
-      shimmer = DEFAULTS.shimmer,
-      aberration = DEFAULTS.aberration,
-      direction = DEFAULTS.direction,
-      stagger = DEFAULTS.stagger,
+      particleSize,
+      scatter,
+      shimmer,
+      aberration,
+      direction,
+      stagger,
+      dustColor,
+      raggedness,
     } = passedProps;
-    const axis = AXES[direction] ?? AXES[DEFAULTS.direction];
+    const axis = AXES[direction];
     gl.uniform1f(uniform("u_cells"), height / Math.max(particleSize, 1));
     gl.uniform1f(uniform("u_scatter"), scatter);
     gl.uniform1f(uniform("u_shimmer"), shimmer);
@@ -177,12 +163,16 @@ const shader = makeSceneShader<ParticleDissolveProps>(
     gl.uniform1f(uniform("u_stagger"), Math.min(Math.max(stagger, 0), 0.92));
     gl.uniform2f(uniform("u_dir"), axis[0], axis[1]);
     gl.uniform1f(uniform("u_radial"), direction === "reveal" ? 1 : 0);
+    gl.uniform1f(uniform("u_grey"), 1 - dustColor / 100);
+    gl.uniform1f(uniform("u_ragged"), raggedness);
   },
 );
 
-const ParticleDissolveFallback: React.FC<
-  TransitionPresentationComponentProps<ParticleDissolveProps>
-> = ({ children, presentationProgress, presentationDirection }) => {
+function ParticleDissolveFallback({
+  children,
+  presentationProgress,
+  presentationDirection,
+}: TransitionPresentationComponentProps<ParticleDissolveProps>) {
   const p = presentationProgress;
   const entering = presentationDirection === "entering";
   const t = entering ? p : 1 - p;
@@ -202,7 +192,7 @@ const ParticleDissolveFallback: React.FC<
       {children}
     </AbsoluteFill>
   );
-};
+}
 
 const presentation = makeCanvasPresentation<ParticleDissolveProps>({
   shader,
@@ -210,7 +200,7 @@ const presentation = makeCanvasPresentation<ParticleDissolveProps>({
 });
 
 export function particleDissolve(
-  props: ParticleDissolveProps = {},
+  props: ParticleDissolveProps,
 ): TransitionPresentation<ParticleDissolveProps> {
   return presentation(props);
 }

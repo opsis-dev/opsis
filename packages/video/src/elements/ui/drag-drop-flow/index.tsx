@@ -1,29 +1,11 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
+import { fontOr } from "#video/common/fonts.ts";
+import { percentText } from "#video/common/format.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 import { samplePath, waypointsToPath } from "#video/lib/paths/path-utils.ts";
-
-const fontFamily = '"Inter"';
-
-export type DragDropFlowProps = {
-  fileName?: string;
-  fileSize?: string;
-  siblings?: string[];
-  sourceLabel?: string;
-  label?: string;
-  hint?: string;
-  activeLabel?: string;
-  uploadingLabel?: string;
-  doneLabel?: string;
-  accentColor?: string;
-  backgroundColor?: string;
-  theme?: "dark" | "light";
-  holdSeconds?: number;
-  speed?: number;
-};
-
-const DEFAULT_SIBLINGS = ["b-roll-rooftop.mov", "interview-cam-b.mp4"];
 
 const T = {
   panel: 0,
@@ -48,96 +30,101 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-const FileGlyph: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5L13.5 3Z"
-      stroke={color}
-      strokeWidth={1.6}
-      strokeLinejoin="round"
-    />
-    <path d="M13.3 3.2V8.7h5.5" stroke={color} strokeWidth={1.6} />
-    <path
-      d="m10.4 12.6 4 2.4-4 2.4v-4.8Z"
-      fill={color}
-      stroke={color}
-      strokeWidth={1.4}
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+function FileGlyph({ size, color }: { size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5L13.5 3Z"
+        stroke={color}
+        strokeWidth={1.6}
+        strokeLinejoin="round"
+      />
+      <path d="M13.3 3.2V8.7h5.5" stroke={color} strokeWidth={1.6} />
+      <path
+        d="m10.4 12.6 4 2.4-4 2.4v-4.8Z"
+        fill={color}
+        stroke={color}
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
-const UploadGlyph: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M12 15.5V4.2m0 0L7.6 8.6M12 4.2l4.4 4.4"
-      stroke={color}
-      strokeWidth={1.7}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M4.5 15v3.2a1.8 1.8 0 0 0 1.8 1.8h11.4a1.8 1.8 0 0 0 1.8-1.8V15"
-      stroke={color}
-      strokeWidth={1.7}
-      strokeLinecap="round"
-    />
-  </svg>
-);
+function UploadGlyph({ size, color }: { size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 15.5V4.2m0 0L7.6 8.6M12 4.2l4.4 4.4"
+        stroke={color}
+        strokeWidth={1.7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.5 15v3.2a1.8 1.8 0 0 0 1.8 1.8h11.4a1.8 1.8 0 0 0 1.8-1.8V15"
+        stroke={color}
+        strokeWidth={1.7}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
-const CheckGlyph: React.FC<{
-  size: number;
-  color: string;
-  progress: number;
-}> = ({ size, color, progress }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M4.8 12.6l4.9 4.9 9.5-10.4"
-      stroke={color}
-      strokeWidth={2.4}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeDasharray={22}
-      strokeDashoffset={22 * (1 - progress)}
-    />
-  </svg>
-);
+function CheckGlyph({ size, color, progress }: { size: number; color: string; progress: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M4.8 12.6l4.9 4.9 9.5-10.4"
+        stroke={color}
+        strokeWidth={2.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray={22}
+        strokeDashoffset={22 * (1 - progress)}
+      />
+    </svg>
+  );
+}
 
-const CursorGlyph: React.FC<{ size: number; fill: string; stroke: string }> = ({
-  size,
-  fill,
-  stroke,
-}) => (
-  <svg width={size} height={size * 1.35} viewBox="0 0 17 23" fill="none">
-    <path
-      d="M1.4 1.2 15.2 12.1l-6.1.6-3.2 6.3-4.5-17.8Z"
-      fill={fill}
-      stroke={stroke}
-      strokeWidth={1.4}
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+function CursorGlyph({ size, fill, stroke }: { size: number; fill: string; stroke: string }) {
+  return (
+    <svg width={size} height={size * 1.35} viewBox="0 0 17 23" fill="none">
+      <path
+        d="M1.4 1.2 15.2 12.1l-6.1.6-3.2 6.3-4.5-17.8Z"
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
-export const DragDropFlow: React.FC<DragDropFlowProps> = ({
-  fileName = "hero-take.mp4",
-  fileSize = "48.2 MB",
-  siblings = DEFAULT_SIBLINGS,
-  sourceLabel = "Media library",
-  label = "Drop your clip",
-  hint = "MP4 or MOV, up to 2 GB",
-  activeLabel = "Release to upload",
-  uploadingLabel = "Uploading",
-  doneLabel = "Uploaded",
-  accentColor = "#E8B86D",
+export function DragDropFlow({
+  fileName,
+  fileSize,
+  siblings,
+  sourceLabel,
+  label,
+  hint,
+  activeLabel,
+  doneLabel,
+  accentColor,
+  theme,
+  speed,
+  uploadingLabel,
   backgroundColor,
-  theme = "dark",
+  uploadSeconds,
+  showPercent,
+  draggedRow,
+  fontFamily,
+  cursorColor,
   holdSeconds,
-  speed = 1,
-}) => {
+}: ElementSettings["drag-drop-flow"] & { holdSeconds?: number }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
   const at = (seconds: number) => (seconds * fps) / speed;
@@ -151,7 +138,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
     h: height - safe.paddingTop - safe.paddingBottom,
   };
   const portrait = height > width;
-  const draggedIndex = Math.min(1, siblings.length);
+  const draggedIndex = Math.min(draggedRow, siblings.length);
   const rows = [...siblings.slice(0, draggedIndex), fileName, ...siblings.slice(draggedIndex)];
   const trayUnits = 26 * 2 + 46 + rows.length * 74 + (rows.length - 1) * 12;
   const u = Math.min(
@@ -243,8 +230,9 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
     [0, 1, 1, 0],
     clamp,
   );
-  const upload = ease(T.uploadStart, T.uploadEnd, EASING.editorial);
-  const done = ease(T.uploadEnd, T.doneEnd);
+  const uploadEnd = T.uploadStart + uploadSeconds;
+  const upload = ease(T.uploadStart, uploadEnd, EASING.editorial);
+  const done = ease(uploadEnd, uploadEnd + (T.doneEnd - T.uploadEnd));
   const panel = spring({
     frame,
     fps,
@@ -282,8 +270,8 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
       style={{
         width,
         height,
-        background: backgroundColor ?? palette.page,
-        fontFamily,
+        background: backgroundColor || palette.page,
+        fontFamily: fontOr(fontFamily, "main"),
         position: "relative",
         overflow: "hidden",
       }}
@@ -523,7 +511,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
           }}
         >
           <span />
-          <span>{Math.round(upload * 100)}%</span>
+          <span>{showPercent ? percentText(upload) : null}</span>
         </div>
 
         <div
@@ -563,11 +551,11 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
         >
           <CursorGlyph
             size={19 * u}
-            fill={theme === "dark" ? "#F6F7FA" : "#1A1D24"}
-            stroke={theme === "dark" ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.7)"}
+            fill={cursorColor || (theme.mode === "dark" ? "#F6F7FA" : "#1A1D24")}
+            stroke={theme.mode === "dark" ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.7)"}
           />
         </div>
       </div>
     </div>
   );
-};
+}

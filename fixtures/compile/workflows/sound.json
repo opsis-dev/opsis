@@ -987,7 +987,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": []
@@ -1066,7 +1068,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -1076,7 +1080,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc/#/",
         "waitUntil": "load",
-        "after": 900
+        "after": 900,
+        "timeoutMs": 30000
        }
       }
      ],
@@ -1212,7 +1217,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -1222,7 +1229,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc/#/",
         "waitUntil": "load",
-        "after": 900
+        "after": 900,
+        "timeoutMs": 30000
        }
       },
       {
@@ -1301,7 +1309,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -1311,7 +1321,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc/#/",
         "waitUntil": "load",
-        "after": 900
+        "after": 900,
+        "timeoutMs": 30000
        }
       },
       {
@@ -1332,7 +1343,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       }
      ],
@@ -1353,7 +1369,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -1363,7 +1381,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc/#/",
         "waitUntil": "load",
-        "after": 900
+        "after": 900,
+        "timeoutMs": 30000
        }
       },
       {
@@ -1384,7 +1403,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -1400,7 +1424,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       }
      ],
@@ -1438,7 +1467,10 @@
            "#232338",
            "#3a3a5c",
            "#52527a"
-          ]
+          ],
+          "grainOverlay": 0.0,
+          "grainMixer": 0.0,
+          "scale": 1.0
          }
         }
        ]
@@ -1476,7 +1508,10 @@
           "color": "#fafafa",
           "fontWeight": "600",
           "background": "white",
-          "speed": 1
+          "letterSpacing": -0.05,
+          "speed": 1,
+          "stagger": 1.0,
+          "distance": 16
          }
         }
        ]
@@ -1499,7 +1534,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -1509,7 +1546,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc/#/",
         "waitUntil": "load",
-        "after": 900
+        "after": 900,
+        "timeoutMs": 30000
        }
       },
       {
@@ -1530,7 +1568,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -1546,7 +1589,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -1562,7 +1610,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       }
      ],
@@ -1622,7 +1675,10 @@
                 "#232338",
                 "#3a3a5c",
                 "#52527a"
-               ]
+               ],
+               "grainOverlay": 0.0,
+               "grainMixer": 0.0,
+               "scale": 1.0
               }
              }
             ]
@@ -1679,7 +1735,10 @@
                "color": "#fafafa",
                "fontWeight": "600",
                "background": "white",
-               "speed": 1
+               "letterSpacing": -0.05,
+               "speed": 1,
+               "stagger": 1.0,
+               "distance": 16
               }
              }
             ]
@@ -1729,7 +1788,19 @@
           "accent": "#a78bfa",
           "background": "transparent",
           "fontSize": 112,
-          "fontWeight": 760
+          "fontWeight": 760,
+          "fadeOut": 0.3333,
+          "sideMargin": 9.0,
+          "lineGap": 0.22,
+          "eyebrowSize": 0.26,
+          "eyebrowUppercase": true,
+          "subtitleSize": 0.34,
+          "letterSpacing": -0.035,
+          "lineStagger": 1.0,
+          "markThickness": 0.045,
+          "markerOpacity": 55.0,
+          "markSeed": 1,
+          "markDrawTime": 0.45
          }
         }
        ]
@@ -1752,7 +1823,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -1762,7 +1835,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc/#/",
         "waitUntil": "load",
-        "after": 900
+        "after": 900,
+        "timeoutMs": 30000
        }
       },
       {
@@ -1783,7 +1857,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -1799,7 +1878,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -1815,7 +1899,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -1834,7 +1923,9 @@
         "zoomScale": 0,
         "travelMs": 0,
         "hoverMs": 220,
-        "silent": false
+        "silent": false,
+        "findWithinMs": 15000,
+        "scrollSmoothly": false
        }
       }
      ],
@@ -1855,7 +1946,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -1865,7 +1958,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc/#/",
         "waitUntil": "load",
-        "after": 900
+        "after": 900,
+        "timeoutMs": 30000
        }
       },
       {
@@ -1886,7 +1980,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -1902,7 +2001,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -1918,7 +2022,12 @@
         "cluster": "add",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -1937,7 +2046,9 @@
         "zoomScale": 0,
         "travelMs": 0,
         "hoverMs": 220,
-        "silent": false
+        "silent": false,
+        "findWithinMs": 15000,
+        "scrollSmoothly": false
        }
       },
       {
@@ -1956,7 +2067,9 @@
         "zoomScale": 0,
         "travelMs": 0,
         "hoverMs": 220,
-        "silent": false
+        "silent": false,
+        "findWithinMs": 15000,
+        "scrollSmoothly": false
        }
       }
      ],
@@ -1976,7 +2089,15 @@
         "chords": true,
         "keycap": "#0a0a0a",
         "ink": "#ffffff",
-        "size": 1
+        "size": 1,
+        "chordHoldMs": 1100,
+        "typedHoldMs": 600,
+        "edge": 56,
+        "radius": 26,
+        "keyNames": "symbols",
+        "font": "",
+        "shadow": 0.35,
+        "caret": true
        }
       }
      ]
@@ -2093,7 +2214,10 @@
                      "#232338",
                      "#3a3a5c",
                      "#52527a"
-                    ]
+                    ],
+                    "grainOverlay": 0.0,
+                    "grainMixer": 0.0,
+                    "scale": 1.0
                    }
                   }
                  ]
@@ -2150,7 +2274,10 @@
                     "color": "#fafafa",
                     "fontWeight": "600",
                     "background": "white",
-                    "speed": 1
+                    "letterSpacing": -0.05,
+                    "speed": 1,
+                    "stagger": 1.0,
+                    "distance": 16
                    }
                   }
                  ]
@@ -2248,7 +2375,19 @@
                "accent": "#a78bfa",
                "background": "transparent",
                "fontSize": 112,
-               "fontWeight": 760
+               "fontWeight": 760,
+               "fadeOut": 0.3333,
+               "sideMargin": 9.0,
+               "lineGap": 0.22,
+               "eyebrowSize": 0.26,
+               "eyebrowUppercase": true,
+               "subtitleSize": 0.34,
+               "letterSpacing": -0.035,
+               "lineStagger": 1.0,
+               "markThickness": 0.045,
+               "markerOpacity": 55.0,
+               "markSeed": 1,
+               "markDrawTime": 0.45
               }
              }
             ]
@@ -2355,7 +2494,10 @@
                           "#232338",
                           "#3a3a5c",
                           "#52527a"
-                         ]
+                         ],
+                         "grainOverlay": 0.0,
+                         "grainMixer": 0.0,
+                         "scale": 1.0
                         }
                        }
                       ]
@@ -2412,7 +2554,10 @@
                          "color": "#fafafa",
                          "fontWeight": "600",
                          "background": "white",
-                         "speed": 1
+                         "letterSpacing": -0.05,
+                         "speed": 1,
+                         "stagger": 1.0,
+                         "distance": 16
                         }
                        }
                       ]
@@ -2510,7 +2655,19 @@
                     "accent": "#a78bfa",
                     "background": "transparent",
                     "fontSize": 112,
-                    "fontWeight": 760
+                    "fontWeight": 760,
+                    "fadeOut": 0.3333,
+                    "sideMargin": 9.0,
+                    "lineGap": 0.22,
+                    "eyebrowSize": 0.26,
+                    "eyebrowUppercase": true,
+                    "subtitleSize": 0.34,
+                    "letterSpacing": -0.035,
+                    "lineStagger": 1.0,
+                    "markThickness": 0.045,
+                    "markerOpacity": 55.0,
+                    "markSeed": 1,
+                    "markDrawTime": 0.45
                    }
                   }
                  ]
@@ -2669,7 +2826,10 @@
                           "#232338",
                           "#3a3a5c",
                           "#52527a"
-                         ]
+                         ],
+                         "grainOverlay": 0.0,
+                         "grainMixer": 0.0,
+                         "scale": 1.0
                         }
                        }
                       ]
@@ -2726,7 +2886,10 @@
                          "color": "#fafafa",
                          "fontWeight": "600",
                          "background": "white",
-                         "speed": 1
+                         "letterSpacing": -0.05,
+                         "speed": 1,
+                         "stagger": 1.0,
+                         "distance": 16
                         }
                        }
                       ]
@@ -2824,7 +2987,19 @@
                     "accent": "#a78bfa",
                     "background": "transparent",
                     "fontSize": 112,
-                    "fontWeight": 760
+                    "fontWeight": 760,
+                    "fadeOut": 0.3333,
+                    "sideMargin": 9.0,
+                    "lineGap": 0.22,
+                    "eyebrowSize": 0.26,
+                    "eyebrowUppercase": true,
+                    "subtitleSize": 0.34,
+                    "letterSpacing": -0.035,
+                    "lineStagger": 1.0,
+                    "markThickness": 0.045,
+                    "markerOpacity": 55.0,
+                    "markSeed": 1,
+                    "markDrawTime": 0.45
                    }
                   }
                  ]
@@ -3514,7 +3689,10 @@
                         "#232338",
                         "#3a3a5c",
                         "#52527a"
-                       ]
+                       ],
+                       "grainOverlay": 0.0,
+                       "grainMixer": 0.0,
+                       "scale": 1.0
                       }
                      }
                     ]
@@ -3571,7 +3749,10 @@
                        "color": "#fafafa",
                        "fontWeight": "600",
                        "background": "white",
-                       "speed": 1
+                       "letterSpacing": -0.05,
+                       "speed": 1,
+                       "stagger": 1.0,
+                       "distance": 16
                       }
                      }
                     ]
@@ -3669,7 +3850,19 @@
                   "accent": "#a78bfa",
                   "background": "transparent",
                   "fontSize": 112,
-                  "fontWeight": 760
+                  "fontWeight": 760,
+                  "fadeOut": 0.3333,
+                  "sideMargin": 9.0,
+                  "lineGap": 0.22,
+                  "eyebrowSize": 0.26,
+                  "eyebrowUppercase": true,
+                  "subtitleSize": 0.34,
+                  "letterSpacing": -0.035,
+                  "lineStagger": 1.0,
+                  "markThickness": 0.045,
+                  "markerOpacity": 55.0,
+                  "markSeed": 1,
+                  "markDrawTime": 0.45
                  }
                 }
                ]
@@ -4387,7 +4580,10 @@
                         "#232338",
                         "#3a3a5c",
                         "#52527a"
-                       ]
+                       ],
+                       "grainOverlay": 0.0,
+                       "grainMixer": 0.0,
+                       "scale": 1.0
                       }
                      }
                     ]
@@ -4444,7 +4640,10 @@
                        "color": "#fafafa",
                        "fontWeight": "600",
                        "background": "white",
-                       "speed": 1
+                       "letterSpacing": -0.05,
+                       "speed": 1,
+                       "stagger": 1.0,
+                       "distance": 16
                       }
                      }
                     ]
@@ -4542,7 +4741,19 @@
                   "accent": "#a78bfa",
                   "background": "transparent",
                   "fontSize": 112,
-                  "fontWeight": 760
+                  "fontWeight": 760,
+                  "fadeOut": 0.3333,
+                  "sideMargin": 9.0,
+                  "lineGap": 0.22,
+                  "eyebrowSize": 0.26,
+                  "eyebrowUppercase": true,
+                  "subtitleSize": 0.34,
+                  "letterSpacing": -0.035,
+                  "lineStagger": 1.0,
+                  "markThickness": 0.045,
+                  "markerOpacity": 55.0,
+                  "markSeed": 1,
+                  "markDrawTime": 0.45
                  }
                 }
                ]
@@ -5163,7 +5374,10 @@
         "#232338",
         "#3a3a5c",
         "#52527a"
-       ]
+       ],
+       "grainOverlay": 0.0,
+       "grainMixer": 0.0,
+       "scale": 1.0
       },
       "thumbnail": null,
       "from": 0.0,
@@ -5261,7 +5475,10 @@
        "color": "#fafafa",
        "fontWeight": "600",
        "background": "white",
-       "speed": 1
+       "letterSpacing": -0.05,
+       "speed": 1,
+       "stagger": 1.0,
+       "distance": 16
       },
       "thumbnail": null,
       "from": 0.0,
@@ -5431,7 +5648,19 @@
        "accent": "#a78bfa",
        "background": "transparent",
        "fontSize": 112,
-       "fontWeight": 760
+       "fontWeight": 760,
+       "fadeOut": 0.3333,
+       "sideMargin": 9.0,
+       "lineGap": 0.22,
+       "eyebrowSize": 0.26,
+       "eyebrowUppercase": true,
+       "subtitleSize": 0.34,
+       "letterSpacing": -0.035,
+       "lineStagger": 1.0,
+       "markThickness": 0.045,
+       "markerOpacity": 55.0,
+       "markSeed": 1,
+       "markDrawTime": 0.45
       },
       "thumbnail": null,
       "from": 183.0,
@@ -6650,7 +6879,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": []
@@ -6733,7 +6964,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -6743,7 +6976,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc/#/",
          "waitUntil": "load",
-         "after": 900
+         "after": 900,
+         "timeoutMs": 30000
         }
        }
       ],
@@ -6879,7 +7113,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -6889,7 +7125,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc/#/",
          "waitUntil": "load",
-         "after": 900
+         "after": 900,
+         "timeoutMs": 30000
         }
        },
        {
@@ -6968,7 +7205,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -6978,7 +7217,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc/#/",
          "waitUntil": "load",
-         "after": 900
+         "after": 900,
+         "timeoutMs": 30000
         }
        },
        {
@@ -6999,7 +7239,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        }
       ],
@@ -7020,7 +7265,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -7030,7 +7277,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc/#/",
          "waitUntil": "load",
-         "after": 900
+         "after": 900,
+         "timeoutMs": 30000
         }
        },
        {
@@ -7051,7 +7299,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -7067,7 +7320,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        }
       ],
@@ -7105,7 +7363,10 @@
             "#232338",
             "#3a3a5c",
             "#52527a"
-           ]
+           ],
+           "grainOverlay": 0.0,
+           "grainMixer": 0.0,
+           "scale": 1.0
           }
          }
         ]
@@ -7143,7 +7404,10 @@
            "color": "#fafafa",
            "fontWeight": "600",
            "background": "white",
-           "speed": 1
+           "letterSpacing": -0.05,
+           "speed": 1,
+           "stagger": 1.0,
+           "distance": 16
           }
          }
         ]
@@ -7166,7 +7430,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -7176,7 +7442,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc/#/",
          "waitUntil": "load",
-         "after": 900
+         "after": 900,
+         "timeoutMs": 30000
         }
        },
        {
@@ -7197,7 +7464,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -7213,7 +7485,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -7229,7 +7506,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        }
       ],
@@ -7289,7 +7571,10 @@
                  "#232338",
                  "#3a3a5c",
                  "#52527a"
-                ]
+                ],
+                "grainOverlay": 0.0,
+                "grainMixer": 0.0,
+                "scale": 1.0
                }
               }
              ]
@@ -7346,7 +7631,10 @@
                 "color": "#fafafa",
                 "fontWeight": "600",
                 "background": "white",
-                "speed": 1
+                "letterSpacing": -0.05,
+                "speed": 1,
+                "stagger": 1.0,
+                "distance": 16
                }
               }
              ]
@@ -7396,7 +7684,19 @@
            "accent": "#a78bfa",
            "background": "transparent",
            "fontSize": 112,
-           "fontWeight": 760
+           "fontWeight": 760,
+           "fadeOut": 0.3333,
+           "sideMargin": 9.0,
+           "lineGap": 0.22,
+           "eyebrowSize": 0.26,
+           "eyebrowUppercase": true,
+           "subtitleSize": 0.34,
+           "letterSpacing": -0.035,
+           "lineStagger": 1.0,
+           "markThickness": 0.045,
+           "markerOpacity": 55.0,
+           "markSeed": 1,
+           "markDrawTime": 0.45
           }
          }
         ]
@@ -7419,7 +7719,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -7429,7 +7731,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc/#/",
          "waitUntil": "load",
-         "after": 900
+         "after": 900,
+         "timeoutMs": 30000
         }
        },
        {
@@ -7450,7 +7753,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -7466,7 +7774,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -7482,7 +7795,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -7501,7 +7819,9 @@
          "zoomScale": 0,
          "travelMs": 0,
          "hoverMs": 220,
-         "silent": false
+         "silent": false,
+         "findWithinMs": 15000,
+         "scrollSmoothly": false
         }
        }
       ],
@@ -7522,7 +7842,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -7532,7 +7854,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc/#/",
          "waitUntil": "load",
-         "after": 900
+         "after": 900,
+         "timeoutMs": 30000
         }
        },
        {
@@ -7553,7 +7876,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -7569,7 +7897,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -7585,7 +7918,12 @@
          "cluster": "add",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -7604,7 +7942,9 @@
          "zoomScale": 0,
          "travelMs": 0,
          "hoverMs": 220,
-         "silent": false
+         "silent": false,
+         "findWithinMs": 15000,
+         "scrollSmoothly": false
         }
        },
        {
@@ -7623,7 +7963,9 @@
          "zoomScale": 0,
          "travelMs": 0,
          "hoverMs": 220,
-         "silent": false
+         "silent": false,
+         "findWithinMs": 15000,
+         "scrollSmoothly": false
         }
        }
       ],
@@ -7643,7 +7985,15 @@
          "chords": true,
          "keycap": "#0a0a0a",
          "ink": "#ffffff",
-         "size": 1
+         "size": 1,
+         "chordHoldMs": 1100,
+         "typedHoldMs": 600,
+         "edge": 56,
+         "radius": 26,
+         "keyNames": "symbols",
+         "font": "",
+         "shadow": 0.35,
+         "caret": true
         }
        }
       ]
@@ -7937,7 +8287,19 @@
            "zoom": true,
            "tuning": {
             "sMax": 1.74,
-            "holdMinS": 1.3
+            "holdMinS": 1.3,
+            "minScale": 1.18,
+            "firstMaxScale": 1.54,
+            "roomPx": 80.0,
+            "targetShare": 0.55,
+            "offCentre": 0.26,
+            "joinWithinS": 2.2,
+            "stayZoomedWithinS": 2.8,
+            "holdAfterTypingS": 0.4,
+            "restAtEndS": 0.6,
+            "longestPanPx": 500.0,
+            "pace": 1.0,
+            "easing": "smooth"
            },
            "motionBlur": true,
            "style": "classic",
@@ -7962,9 +8324,22 @@
             "chords": true,
             "keycap": "#0a0a0a",
             "ink": "#ffffff",
-            "size": 1.0
+            "size": 1.0,
+            "chordHoldS": 1.1,
+            "typedHoldS": 0.6,
+            "edge": 56.0,
+            "radius": 26.0,
+            "keyNames": "symbols",
+            "shadow": 0.35,
+            "caret": true
            },
-           "annotations": []
+           "annotations": [],
+           "stageGround": "#faf6f1",
+           "rimGlow": 1.0,
+           "liftColours": true,
+           "shutterAngle": 180.0,
+           "bleedBlur": 48.0,
+           "bleedDim": 0.55
           }
          }
         ]
@@ -8182,7 +8557,10 @@
                       "#232338",
                       "#3a3a5c",
                       "#52527a"
-                     ]
+                     ],
+                     "grainOverlay": 0.0,
+                     "grainMixer": 0.0,
+                     "scale": 1.0
                     }
                    }
                   ]
@@ -8239,7 +8617,10 @@
                      "color": "#fafafa",
                      "fontWeight": "600",
                      "background": "white",
-                     "speed": 1
+                     "letterSpacing": -0.05,
+                     "speed": 1,
+                     "stagger": 1.0,
+                     "distance": 16
                     }
                    }
                   ]
@@ -8415,7 +8796,19 @@
                 "zoom": true,
                 "tuning": {
                  "sMax": 1.74,
-                 "holdMinS": 1.3
+                 "holdMinS": 1.3,
+                 "minScale": 1.18,
+                 "firstMaxScale": 1.54,
+                 "roomPx": 80.0,
+                 "targetShare": 0.55,
+                 "offCentre": 0.26,
+                 "joinWithinS": 2.2,
+                 "stayZoomedWithinS": 2.8,
+                 "holdAfterTypingS": 0.4,
+                 "restAtEndS": 0.6,
+                 "longestPanPx": 500.0,
+                 "pace": 1.0,
+                 "easing": "smooth"
                 },
                 "motionBlur": true,
                 "style": "classic",
@@ -8440,9 +8833,22 @@
                  "chords": true,
                  "keycap": "#0a0a0a",
                  "ink": "#ffffff",
-                 "size": 1.0
+                 "size": 1.0,
+                 "chordHoldS": 1.1,
+                 "typedHoldS": 0.6,
+                 "edge": 56.0,
+                 "radius": 26.0,
+                 "keyNames": "symbols",
+                 "shadow": 0.35,
+                 "caret": true
                 },
-                "annotations": []
+                "annotations": [],
+                "stageGround": "#faf6f1",
+                "rimGlow": 1.0,
+                "liftColours": true,
+                "shutterAngle": 180.0,
+                "bleedBlur": 48.0,
+                "bleedDim": 0.55
                }
               }
              ]
@@ -8495,7 +8901,19 @@
                 "accent": "#a78bfa",
                 "background": "transparent",
                 "fontSize": 112,
-                "fontWeight": 760
+                "fontWeight": 760,
+                "fadeOut": 0.3333,
+                "sideMargin": 9.0,
+                "lineGap": 0.22,
+                "eyebrowSize": 0.26,
+                "eyebrowUppercase": true,
+                "subtitleSize": 0.34,
+                "letterSpacing": -0.035,
+                "lineStagger": 1.0,
+                "markThickness": 0.045,
+                "markerOpacity": 55.0,
+                "markSeed": 1,
+                "markDrawTime": 0.45
                }
               }
              ]
@@ -8740,7 +9158,10 @@
                            "#232338",
                            "#3a3a5c",
                            "#52527a"
-                          ]
+                          ],
+                          "grainOverlay": 0.0,
+                          "grainMixer": 0.0,
+                          "scale": 1.0
                          }
                         }
                        ]
@@ -8797,7 +9218,10 @@
                           "color": "#fafafa",
                           "fontWeight": "600",
                           "background": "white",
-                          "speed": 1
+                          "letterSpacing": -0.05,
+                          "speed": 1,
+                          "stagger": 1.0,
+                          "distance": 16
                          }
                         }
                        ]
@@ -8973,7 +9397,19 @@
                      "zoom": true,
                      "tuning": {
                       "sMax": 1.74,
-                      "holdMinS": 1.3
+                      "holdMinS": 1.3,
+                      "minScale": 1.18,
+                      "firstMaxScale": 1.54,
+                      "roomPx": 80.0,
+                      "targetShare": 0.55,
+                      "offCentre": 0.26,
+                      "joinWithinS": 2.2,
+                      "stayZoomedWithinS": 2.8,
+                      "holdAfterTypingS": 0.4,
+                      "restAtEndS": 0.6,
+                      "longestPanPx": 500.0,
+                      "pace": 1.0,
+                      "easing": "smooth"
                      },
                      "motionBlur": true,
                      "style": "classic",
@@ -8998,9 +9434,22 @@
                       "chords": true,
                       "keycap": "#0a0a0a",
                       "ink": "#ffffff",
-                      "size": 1.0
+                      "size": 1.0,
+                      "chordHoldS": 1.1,
+                      "typedHoldS": 0.6,
+                      "edge": 56.0,
+                      "radius": 26.0,
+                      "keyNames": "symbols",
+                      "shadow": 0.35,
+                      "caret": true
                      },
-                     "annotations": []
+                     "annotations": [],
+                     "stageGround": "#faf6f1",
+                     "rimGlow": 1.0,
+                     "liftColours": true,
+                     "shutterAngle": 180.0,
+                     "bleedBlur": 48.0,
+                     "bleedDim": 0.55
                     }
                    }
                   ]
@@ -9053,7 +9502,19 @@
                      "accent": "#a78bfa",
                      "background": "transparent",
                      "fontSize": 112,
-                     "fontWeight": 760
+                     "fontWeight": 760,
+                     "fadeOut": 0.3333,
+                     "sideMargin": 9.0,
+                     "lineGap": 0.22,
+                     "eyebrowSize": 0.26,
+                     "eyebrowUppercase": true,
+                     "subtitleSize": 0.34,
+                     "letterSpacing": -0.035,
+                     "lineStagger": 1.0,
+                     "markThickness": 0.045,
+                     "markerOpacity": 55.0,
+                     "markSeed": 1,
+                     "markDrawTime": 0.45
                     }
                    }
                   ]
@@ -9350,7 +9811,10 @@
                            "#232338",
                            "#3a3a5c",
                            "#52527a"
-                          ]
+                          ],
+                          "grainOverlay": 0.0,
+                          "grainMixer": 0.0,
+                          "scale": 1.0
                          }
                         }
                        ]
@@ -9407,7 +9871,10 @@
                           "color": "#fafafa",
                           "fontWeight": "600",
                           "background": "white",
-                          "speed": 1
+                          "letterSpacing": -0.05,
+                          "speed": 1,
+                          "stagger": 1.0,
+                          "distance": 16
                          }
                         }
                        ]
@@ -9583,7 +10050,19 @@
                      "zoom": true,
                      "tuning": {
                       "sMax": 1.74,
-                      "holdMinS": 1.3
+                      "holdMinS": 1.3,
+                      "minScale": 1.18,
+                      "firstMaxScale": 1.54,
+                      "roomPx": 80.0,
+                      "targetShare": 0.55,
+                      "offCentre": 0.26,
+                      "joinWithinS": 2.2,
+                      "stayZoomedWithinS": 2.8,
+                      "holdAfterTypingS": 0.4,
+                      "restAtEndS": 0.6,
+                      "longestPanPx": 500.0,
+                      "pace": 1.0,
+                      "easing": "smooth"
                      },
                      "motionBlur": true,
                      "style": "classic",
@@ -9608,9 +10087,22 @@
                       "chords": true,
                       "keycap": "#0a0a0a",
                       "ink": "#ffffff",
-                      "size": 1.0
+                      "size": 1.0,
+                      "chordHoldS": 1.1,
+                      "typedHoldS": 0.6,
+                      "edge": 56.0,
+                      "radius": 26.0,
+                      "keyNames": "symbols",
+                      "shadow": 0.35,
+                      "caret": true
                      },
-                     "annotations": []
+                     "annotations": [],
+                     "stageGround": "#faf6f1",
+                     "rimGlow": 1.0,
+                     "liftColours": true,
+                     "shutterAngle": 180.0,
+                     "bleedBlur": 48.0,
+                     "bleedDim": 0.55
                     }
                    }
                   ]
@@ -9663,7 +10155,19 @@
                      "accent": "#a78bfa",
                      "background": "transparent",
                      "fontSize": 112,
-                     "fontWeight": 760
+                     "fontWeight": 760,
+                     "fadeOut": 0.3333,
+                     "sideMargin": 9.0,
+                     "lineGap": 0.22,
+                     "eyebrowSize": 0.26,
+                     "eyebrowUppercase": true,
+                     "subtitleSize": 0.34,
+                     "letterSpacing": -0.035,
+                     "lineStagger": 1.0,
+                     "markThickness": 0.045,
+                     "markerOpacity": 55.0,
+                     "markSeed": 1,
+                     "markDrawTime": 0.45
                     }
                    }
                   ]
@@ -10538,7 +11042,10 @@
                          "#232338",
                          "#3a3a5c",
                          "#52527a"
-                        ]
+                        ],
+                        "grainOverlay": 0.0,
+                        "grainMixer": 0.0,
+                        "scale": 1.0
                        }
                       }
                      ]
@@ -10595,7 +11102,10 @@
                         "color": "#fafafa",
                         "fontWeight": "600",
                         "background": "white",
-                        "speed": 1
+                        "letterSpacing": -0.05,
+                        "speed": 1,
+                        "stagger": 1.0,
+                        "distance": 16
                        }
                       }
                      ]
@@ -10771,7 +11281,19 @@
                    "zoom": true,
                    "tuning": {
                     "sMax": 1.74,
-                    "holdMinS": 1.3
+                    "holdMinS": 1.3,
+                    "minScale": 1.18,
+                    "firstMaxScale": 1.54,
+                    "roomPx": 80.0,
+                    "targetShare": 0.55,
+                    "offCentre": 0.26,
+                    "joinWithinS": 2.2,
+                    "stayZoomedWithinS": 2.8,
+                    "holdAfterTypingS": 0.4,
+                    "restAtEndS": 0.6,
+                    "longestPanPx": 500.0,
+                    "pace": 1.0,
+                    "easing": "smooth"
                    },
                    "motionBlur": true,
                    "style": "classic",
@@ -10796,9 +11318,22 @@
                     "chords": true,
                     "keycap": "#0a0a0a",
                     "ink": "#ffffff",
-                    "size": 1.0
+                    "size": 1.0,
+                    "chordHoldS": 1.1,
+                    "typedHoldS": 0.6,
+                    "edge": 56.0,
+                    "radius": 26.0,
+                    "keyNames": "symbols",
+                    "shadow": 0.35,
+                    "caret": true
                    },
-                   "annotations": []
+                   "annotations": [],
+                   "stageGround": "#faf6f1",
+                   "rimGlow": 1.0,
+                   "liftColours": true,
+                   "shutterAngle": 180.0,
+                   "bleedBlur": 48.0,
+                   "bleedDim": 0.55
                   }
                  }
                 ]
@@ -10851,7 +11386,19 @@
                    "accent": "#a78bfa",
                    "background": "transparent",
                    "fontSize": 112,
-                   "fontWeight": 760
+                   "fontWeight": 760,
+                   "fadeOut": 0.3333,
+                   "sideMargin": 9.0,
+                   "lineGap": 0.22,
+                   "eyebrowSize": 0.26,
+                   "eyebrowUppercase": true,
+                   "subtitleSize": 0.34,
+                   "letterSpacing": -0.035,
+                   "lineStagger": 1.0,
+                   "markThickness": 0.045,
+                   "markerOpacity": 55.0,
+                   "markSeed": 1,
+                   "markDrawTime": 0.45
                   }
                  }
                 ]
@@ -11595,7 +12142,10 @@
                          "#232338",
                          "#3a3a5c",
                          "#52527a"
-                        ]
+                        ],
+                        "grainOverlay": 0.0,
+                        "grainMixer": 0.0,
+                        "scale": 1.0
                        }
                       }
                      ]
@@ -11652,7 +12202,10 @@
                         "color": "#fafafa",
                         "fontWeight": "600",
                         "background": "white",
-                        "speed": 1
+                        "letterSpacing": -0.05,
+                        "speed": 1,
+                        "stagger": 1.0,
+                        "distance": 16
                        }
                       }
                      ]
@@ -11828,7 +12381,19 @@
                    "zoom": true,
                    "tuning": {
                     "sMax": 1.74,
-                    "holdMinS": 1.3
+                    "holdMinS": 1.3,
+                    "minScale": 1.18,
+                    "firstMaxScale": 1.54,
+                    "roomPx": 80.0,
+                    "targetShare": 0.55,
+                    "offCentre": 0.26,
+                    "joinWithinS": 2.2,
+                    "stayZoomedWithinS": 2.8,
+                    "holdAfterTypingS": 0.4,
+                    "restAtEndS": 0.6,
+                    "longestPanPx": 500.0,
+                    "pace": 1.0,
+                    "easing": "smooth"
                    },
                    "motionBlur": true,
                    "style": "classic",
@@ -11853,9 +12418,22 @@
                     "chords": true,
                     "keycap": "#0a0a0a",
                     "ink": "#ffffff",
-                    "size": 1.0
+                    "size": 1.0,
+                    "chordHoldS": 1.1,
+                    "typedHoldS": 0.6,
+                    "edge": 56.0,
+                    "radius": 26.0,
+                    "keyNames": "symbols",
+                    "shadow": 0.35,
+                    "caret": true
                    },
-                   "annotations": []
+                   "annotations": [],
+                   "stageGround": "#faf6f1",
+                   "rimGlow": 1.0,
+                   "liftColours": true,
+                   "shutterAngle": 180.0,
+                   "bleedBlur": 48.0,
+                   "bleedDim": 0.55
                   }
                  }
                 ]
@@ -11908,7 +12486,19 @@
                    "accent": "#a78bfa",
                    "background": "transparent",
                    "fontSize": 112,
-                   "fontWeight": 760
+                   "fontWeight": 760,
+                   "fadeOut": 0.3333,
+                   "sideMargin": 9.0,
+                   "lineGap": 0.22,
+                   "eyebrowSize": 0.26,
+                   "eyebrowUppercase": true,
+                   "subtitleSize": 0.34,
+                   "letterSpacing": -0.035,
+                   "lineStagger": 1.0,
+                   "markThickness": 0.045,
+                   "markerOpacity": 55.0,
+                   "markSeed": 1,
+                   "markDrawTime": 0.45
                   }
                  }
                 ]
@@ -12555,7 +13145,10 @@
          "#232338",
          "#3a3a5c",
          "#52527a"
-        ]
+        ],
+        "grainOverlay": 0.0,
+        "grainMixer": 0.0,
+        "scale": 1.0
        },
        "thumbnail": null,
        "from": 0.0,
@@ -12653,7 +13246,10 @@
         "color": "#fafafa",
         "fontWeight": "600",
         "background": "white",
-        "speed": 1
+        "letterSpacing": -0.05,
+        "speed": 1,
+        "stagger": 1.0,
+        "distance": 16
        },
        "thumbnail": null,
        "from": 0.0,
@@ -12877,7 +13473,19 @@
         "zoom": true,
         "tuning": {
          "sMax": 1.74,
-         "holdMinS": 1.3
+         "holdMinS": 1.3,
+         "minScale": 1.18,
+         "firstMaxScale": 1.54,
+         "roomPx": 80.0,
+         "targetShare": 0.55,
+         "offCentre": 0.26,
+         "joinWithinS": 2.2,
+         "stayZoomedWithinS": 2.8,
+         "holdAfterTypingS": 0.4,
+         "restAtEndS": 0.6,
+         "longestPanPx": 500.0,
+         "pace": 1.0,
+         "easing": "smooth"
         },
         "motionBlur": true,
         "style": "classic",
@@ -12902,9 +13510,22 @@
          "chords": true,
          "keycap": "#0a0a0a",
          "ink": "#ffffff",
-         "size": 1.0
+         "size": 1.0,
+         "chordHoldS": 1.1,
+         "typedHoldS": 0.6,
+         "edge": 56.0,
+         "radius": 26.0,
+         "keyNames": "symbols",
+         "shadow": 0.35,
+         "caret": true
         },
-        "annotations": []
+        "annotations": [],
+        "stageGround": "#faf6f1",
+        "rimGlow": 1.0,
+        "liftColours": true,
+        "shutterAngle": 180.0,
+        "bleedBlur": 48.0,
+        "bleedDim": 0.55
        },
        "thumbnail": {
         "kind": "filmstrip",
@@ -12986,7 +13607,19 @@
         "accent": "#a78bfa",
         "background": "transparent",
         "fontSize": 112,
-        "fontWeight": 760
+        "fontWeight": 760,
+        "fadeOut": 0.3333,
+        "sideMargin": 9.0,
+        "lineGap": 0.22,
+        "eyebrowSize": 0.26,
+        "eyebrowUppercase": true,
+        "subtitleSize": 0.34,
+        "letterSpacing": -0.035,
+        "lineStagger": 1.0,
+        "markThickness": 0.045,
+        "markerOpacity": 55.0,
+        "markSeed": 1,
+        "markDrawTime": 0.45
        },
        "thumbnail": null,
        "from": 224.0,

@@ -36,12 +36,13 @@ pub struct PunchLines {
         "Line height (em)",
         default = 0.89,
         range(min = 0.7, max = 1.6),
-        step = 0.005
+        step = 0.005,
+        advanced
     )]
     pub line_height: f64,
-    #[setting("Letter spacing", default = "-0.022em")]
+    #[setting("Letter spacing", default = "-0.022em", advanced)]
     pub letter_spacing: String,
-    #[setting("Word spacing", default = "-0.02em")]
+    #[setting("Word spacing", default = "-0.02em", advanced)]
     pub word_spacing: String,
     #[setting("Ground", widget = "color", zero_label = "Theme")]
     pub ground: String,
@@ -55,23 +56,26 @@ pub struct PunchLines {
         range(min = 0, max = 1),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub lead: f64,
-    #[setting("Slide from (em)", default = -0.737, range(min = -3, max = 0), step = 0.01)]
+    #[setting("Slide from (em)", default = -0.737, range(min = -3, max = 0), step = 0.01, advanced)]
     pub slide_from: f64,
     #[setting(
         "Slide kick (em/s)",
         default = 7.34,
         range(min = 0, max = 20),
-        step = 0.1
+        step = 0.1,
+        advanced
     )]
     pub slide_kick: f64,
     #[setting(
         "Slide settle",
         default = 2.846,
         range(min = 0.5, max = 8),
-        step = 0.05
+        step = 0.05,
+        advanced
     )]
     pub slide_settle: f64,
     #[setting(
@@ -80,14 +84,27 @@ pub struct PunchLines {
         range(min = 0, max = 0.6667),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub line_stagger: f64,
-    #[setting("Slide drop (em)", default = 0.313, range(min = -1, max = 1), step = 0.01)]
+    #[setting("Slide drop (em)", default = 0.313, range(min = -1, max = 1), step = 0.01, advanced)]
     pub slide_drop: f64,
-    #[setting("Motion blur", default = 1.0, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Motion blur",
+        default = 1.0,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub motion_blur: f64,
-    #[setting("Punch from", default = 0.32, range(min = 0.05, max = 1), step = 0.01)]
+    #[setting(
+        "Punch from",
+        default = 0.32,
+        range(min = 0.05, max = 1),
+        step = 0.01,
+        advanced
+    )]
     pub punch_from: f64,
     #[setting(
         "Punch",
@@ -95,7 +112,8 @@ pub struct PunchLines {
         range(min = 0.0667, max = 1.3333),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub punch_frames: f64,
     #[setting(
@@ -104,16 +122,24 @@ pub struct PunchLines {
         range(min = 0, max = 0.4),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub word_stagger: f64,
-    #[setting("Push from", default = 0.778, range(min = 0.3, max = 1), step = 0.005)]
+    #[setting(
+        "Push from",
+        default = 0.778,
+        range(min = 0.3, max = 1),
+        step = 0.005,
+        advanced
+    )]
     pub push_from: f64,
     #[setting(
         "Push per second",
         default = 0.205,
         range(min = 0, max = 1),
-        step = 0.005
+        step = 0.005,
+        advanced
     )]
     pub push_rate: f64,
     #[setting(
@@ -122,7 +148,8 @@ pub struct PunchLines {
         range(min = 0, max = 1.3333),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub rush_lead: f64,
     #[setting(
@@ -131,17 +158,25 @@ pub struct PunchLines {
         range(min = 0.1333, max = 2),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub rush_frames: f64,
     #[setting(
         "Rush travel",
         default = 0.85,
         range(min = 0.2, max = 0.95),
-        step = 0.01
+        step = 0.01,
+        advanced
     )]
     pub rush_travel: f64,
-    #[setting("Fit width", default = 0.92, range(min = 0.4, max = 1), step = 0.01)]
+    #[setting(
+        "Fit width",
+        default = 0.92,
+        range(min = 0.4, max = 1),
+        step = 0.01,
+        advanced
+    )]
     pub fit: f64,
     #[setting("Theme", transform = warm_themes, widget = "theme")]
     pub theme: Theme,

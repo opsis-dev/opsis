@@ -24,14 +24,21 @@ pub struct SpringSettle {
         help = "How long each item in a scene waits after the one before it."
     )]
     pub enter_stagger: f64,
-    #[setting("Exit scale", default = 0.84, range(min = 0.5, max = 1), step = 0.02)]
+    #[setting(
+        "Exit scale",
+        default = 0.84,
+        range(min = 0.5, max = 1),
+        step = 0.02,
+        advanced
+    )]
     pub exit_scale: f64,
     #[setting(
         "Exit time",
         default = 6,
         range(min = 2, max = 24),
         step = 1,
-        unit = "frames"
+        unit = "frames",
+        advanced
     )]
     pub exit_frames: u32,
     #[setting(
@@ -72,6 +79,15 @@ pub struct SpringSettle {
     pub bg_fade_frames: u32,
     #[setting("Loop", help = "Start again from the first scene after the last.")]
     pub r#loop: bool,
+    #[setting(
+        "Uneven timing",
+        default = 1,
+        range(min = 0, max = 5),
+        step = 1,
+        unit = "frames",
+        advanced
+    )]
+    pub enter_stagger_jitter: u32,
 }
 
 pub fn definition() -> ElementMeta {

@@ -17,6 +17,30 @@ pub struct TransitionRef {
     pub params: Option<Map<String, Value>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hold: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub easing: Option<TransitionEase>,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Default,
+    Serialize,
+    Deserialize,
+    Type,
+    schemars::JsonSchema,
+)]
+#[serde(rename_all = "kebab-case")]
+pub enum TransitionEase {
+    #[default]
+    Linear,
+    In,
+    Out,
+    InOut,
 }
 
 #[derive(
@@ -284,9 +308,13 @@ pub struct GroupProps {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub remap: Option<Vec<(f64, f64)>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shift_pitch: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub loop_every: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub crop: Option<Rect>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub crop_fill: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wrapper: Option<ElementRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -428,6 +456,28 @@ pub enum AudioRole {
 }
 
 #[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Default,
+    Serialize,
+    Deserialize,
+    Type,
+    schemars::JsonSchema,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum FadeCurve {
+    #[default]
+    Tri,
+    Qsin,
+    Exp,
+    Log,
+}
+
+#[derive(
     Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, Type, schemars::JsonSchema,
 )]
 #[serde(rename_all = "camelCase")]
@@ -464,6 +514,8 @@ pub struct AudioItem {
     pub fade_in_frames: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fade_out_frames: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fade_curve: Option<FadeCurve>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub node_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -503,6 +555,7 @@ impl AudioItem {
             hit: None,
             fade_in_frames: None,
             fade_out_frames: None,
+            fade_curve: None,
             node_id: None,
             channel: None,
             layer_track: None,

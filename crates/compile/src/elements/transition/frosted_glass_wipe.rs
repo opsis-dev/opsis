@@ -40,9 +40,21 @@ pub struct FrostedGlassWipe {
         "Frost color",
         default = "rgba(255,255,255,0.12)",
         help = "Tint of the glass panel.",
-        check = colour
+        check = colour,
+        advanced
     )]
     pub frost_color: String,
+    #[setting("Edge colour", default = "rgba(255,255,255,0.22)", widget = "color", check = colour, advanced)]
+    pub edge_color: String,
+    #[setting(
+        "Glow",
+        default = 28,
+        range(min = 0, max = 120),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub glow: u32,
 }
 
 pub fn definition() -> ElementMeta {

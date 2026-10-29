@@ -367,7 +367,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": []
@@ -387,7 +389,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -397,7 +401,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc",
         "waitUntil": "load",
-        "after": 700
+        "after": 700,
+        "timeoutMs": 30000
        }
       }
      ],
@@ -418,7 +423,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -428,7 +435,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc",
         "waitUntil": "load",
-        "after": 700
+        "after": 700,
+        "timeoutMs": 30000
        }
       },
       {
@@ -454,7 +462,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -464,7 +474,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc",
         "waitUntil": "load",
-        "after": 700
+        "after": 700,
+        "timeoutMs": 30000
        }
       },
       {
@@ -479,7 +490,17 @@
         "title": "Create your first item",
         "description": "",
         "showInVideo": false,
-        "durationMs": 2000
+        "durationMs": 2000,
+        "afterMs": 2000,
+        "cardColor": "rgba(0, 0, 0, 0.7)",
+        "edgeColor": "rgba(255, 255, 255, 0.15)",
+        "textColor": "#ffffff",
+        "titleSize": 28,
+        "descriptionSize": 15,
+        "cardWidth": 560,
+        "position": "center",
+        "blur": 2,
+        "fadeMs": 300
        }
       }
      ],
@@ -500,7 +521,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -510,7 +533,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc",
         "waitUntil": "load",
-        "after": 700
+        "after": 700,
+        "timeoutMs": 30000
        }
       },
       {
@@ -525,7 +549,17 @@
         "title": "Create your first item",
         "description": "",
         "showInVideo": false,
-        "durationMs": 2000
+        "durationMs": 2000,
+        "afterMs": 2000,
+        "cardColor": "rgba(0, 0, 0, 0.7)",
+        "edgeColor": "rgba(255, 255, 255, 0.15)",
+        "textColor": "#ffffff",
+        "titleSize": 28,
+        "descriptionSize": 15,
+        "cardWidth": 560,
+        "position": "center",
+        "blur": 2,
+        "fadeMs": 300
        }
       },
       {
@@ -541,7 +575,12 @@
         "cluster": "",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       }
      ],
@@ -614,7 +653,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -624,7 +665,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc",
         "waitUntil": "load",
-        "after": 700
+        "after": 700,
+        "timeoutMs": 30000
        }
       },
       {
@@ -639,7 +681,17 @@
         "title": "Create your first item",
         "description": "",
         "showInVideo": false,
-        "durationMs": 2000
+        "durationMs": 2000,
+        "afterMs": 2000,
+        "cardColor": "rgba(0, 0, 0, 0.7)",
+        "edgeColor": "rgba(255, 255, 255, 0.15)",
+        "textColor": "#ffffff",
+        "titleSize": 28,
+        "descriptionSize": 15,
+        "cardWidth": 560,
+        "position": "center",
+        "blur": 2,
+        "fadeMs": 300
        }
       },
       {
@@ -655,7 +707,12 @@
         "cluster": "",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -665,7 +722,17 @@
         "title": "Mark it done",
         "description": "",
         "showInVideo": false,
-        "durationMs": 2000
+        "durationMs": 2000,
+        "afterMs": 2000,
+        "cardColor": "rgba(0, 0, 0, 0.7)",
+        "edgeColor": "rgba(255, 255, 255, 0.15)",
+        "textColor": "#ffffff",
+        "titleSize": 28,
+        "descriptionSize": 15,
+        "cardWidth": 560,
+        "position": "center",
+        "blur": 2,
+        "fadeMs": 300
        }
       }
      ],
@@ -681,13 +748,19 @@
        "type": "cursor.highlightBox",
        "params": {
         "match": "",
-        "text": "",
         "color": "#a78bfa",
         "padding": 10,
         "leadMs": 250,
         "holdMs": 1400,
+        "fadeMs": 180,
+        "cornerRadius": 10,
         "look": "clean",
-        "roughness": 1
+        "roughness": 1,
+        "lineWidth": 3,
+        "fillOpacity": 12,
+        "markerOpacity": 50,
+        "drawMs": 450,
+        "strokes": 2
        }
       }
      ]
@@ -707,7 +780,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -717,7 +792,8 @@
        "params": {
         "url": "https://demo.playwright.dev/todomvc",
         "waitUntil": "load",
-        "after": 700
+        "after": 700,
+        "timeoutMs": 30000
        }
       },
       {
@@ -732,7 +808,17 @@
         "title": "Create your first item",
         "description": "",
         "showInVideo": false,
-        "durationMs": 2000
+        "durationMs": 2000,
+        "afterMs": 2000,
+        "cardColor": "rgba(0, 0, 0, 0.7)",
+        "edgeColor": "rgba(255, 255, 255, 0.15)",
+        "textColor": "#ffffff",
+        "titleSize": 28,
+        "descriptionSize": 15,
+        "cardWidth": 560,
+        "position": "center",
+        "blur": 2,
+        "fadeMs": 300
        }
       },
       {
@@ -748,7 +834,12 @@
         "cluster": "",
         "zoom": true,
         "frame": "",
-        "silent": false
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
        }
       },
       {
@@ -758,7 +849,17 @@
         "title": "Mark it done",
         "description": "",
         "showInVideo": false,
-        "durationMs": 2000
+        "durationMs": 2000,
+        "afterMs": 2000,
+        "cardColor": "rgba(0, 0, 0, 0.7)",
+        "edgeColor": "rgba(255, 255, 255, 0.15)",
+        "textColor": "#ffffff",
+        "titleSize": 28,
+        "descriptionSize": 15,
+        "cardWidth": 560,
+        "position": "center",
+        "blur": 2,
+        "fadeMs": 300
        }
       },
       {
@@ -776,7 +877,9 @@
         "zoomScale": 0,
         "travelMs": 0,
         "hoverMs": 220,
-        "silent": false
+        "silent": false,
+        "findWithinMs": 15000,
+        "scrollSmoothly": false
        }
       }
      ],
@@ -792,13 +895,19 @@
        "type": "cursor.highlightBox",
        "params": {
         "match": "",
-        "text": "",
         "color": "#a78bfa",
         "padding": 10,
         "leadMs": 250,
         "holdMs": 1400,
+        "fadeMs": 180,
+        "cornerRadius": 10,
         "look": "clean",
-        "roughness": 1
+        "roughness": 1,
+        "lineWidth": 3,
+        "fillOpacity": 12,
+        "markerOpacity": 50,
+        "drawMs": 450,
+        "strokes": 2
        }
       },
       {
@@ -815,7 +924,12 @@
         "fontSize": 18,
         "font": "",
         "look": "clean",
-        "roughness": 1
+        "roughness": 1,
+        "fontWeight": 600,
+        "boxPadding": 14,
+        "radius": 10,
+        "pointerSize": 8,
+        "shadow": true
        }
       }
      ]
@@ -926,6 +1040,14 @@
                "highlightColor": "#facc15",
                "panel": "rgba(0,0,0,0.35)",
                "fontWeight": 800,
+               "unspokenOpacity": 55.0,
+               "wordsPerLine": 6,
+               "lingerMs": 250,
+               "edgeOffset": 90,
+               "sideMargin": 10.0,
+               "panelPadding": 22,
+               "panelRadius": 16,
+               "textShadow": true,
                "captions": [
                 {
                  "text": "Create",
@@ -1242,6 +1364,14 @@
              "highlightColor": "#facc15",
              "panel": "rgba(0,0,0,0.35)",
              "fontWeight": 800,
+             "unspokenOpacity": 55.0,
+             "wordsPerLine": 6,
+             "lingerMs": 250,
+             "edgeOffset": 90,
+             "sideMargin": 10.0,
+             "panelPadding": 22,
+             "panelRadius": 16,
+             "textShadow": true,
              "captions": [
               {
                "text": "Create",
@@ -1796,6 +1926,14 @@
              "highlightColor": "#facc15",
              "panel": "rgba(0,0,0,0.35)",
              "fontWeight": 800,
+             "unspokenOpacity": 55.0,
+             "wordsPerLine": 6,
+             "lingerMs": 250,
+             "edgeOffset": 90,
+             "sideMargin": 10.0,
+             "panelPadding": 22,
+             "panelRadius": 16,
+             "textShadow": true,
              "captions": [
               {
                "text": "Create",
@@ -2326,6 +2464,14 @@
        "highlightColor": "#facc15",
        "panel": "rgba(0,0,0,0.35)",
        "fontWeight": 800,
+       "unspokenOpacity": 55.0,
+       "wordsPerLine": 6,
+       "lingerMs": 250,
+       "edgeOffset": 90,
+       "sideMargin": 10.0,
+       "panelPadding": 22,
+       "panelRadius": 16,
+       "textShadow": true,
        "captions": [
         {
          "text": "Create",
@@ -2774,7 +2920,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": []
@@ -2794,7 +2942,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -2804,7 +2954,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc",
          "waitUntil": "load",
-         "after": 700
+         "after": 700,
+         "timeoutMs": 30000
         }
        }
       ],
@@ -2825,7 +2976,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -2835,7 +2988,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc",
          "waitUntil": "load",
-         "after": 700
+         "after": 700,
+         "timeoutMs": 30000
         }
        },
        {
@@ -2861,7 +3015,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -2871,7 +3027,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc",
          "waitUntil": "load",
-         "after": 700
+         "after": 700,
+         "timeoutMs": 30000
         }
        },
        {
@@ -2886,7 +3043,17 @@
          "title": "Create your first item",
          "description": "",
          "showInVideo": false,
-         "durationMs": 2000
+         "durationMs": 2000,
+         "afterMs": 2000,
+         "cardColor": "rgba(0, 0, 0, 0.7)",
+         "edgeColor": "rgba(255, 255, 255, 0.15)",
+         "textColor": "#ffffff",
+         "titleSize": 28,
+         "descriptionSize": 15,
+         "cardWidth": 560,
+         "position": "center",
+         "blur": 2,
+         "fadeMs": 300
         }
        }
       ],
@@ -2907,7 +3074,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -2917,7 +3086,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc",
          "waitUntil": "load",
-         "after": 700
+         "after": 700,
+         "timeoutMs": 30000
         }
        },
        {
@@ -2932,7 +3102,17 @@
          "title": "Create your first item",
          "description": "",
          "showInVideo": false,
-         "durationMs": 2000
+         "durationMs": 2000,
+         "afterMs": 2000,
+         "cardColor": "rgba(0, 0, 0, 0.7)",
+         "edgeColor": "rgba(255, 255, 255, 0.15)",
+         "textColor": "#ffffff",
+         "titleSize": 28,
+         "descriptionSize": 15,
+         "cardWidth": 560,
+         "position": "center",
+         "blur": 2,
+         "fadeMs": 300
         }
        },
        {
@@ -2948,7 +3128,12 @@
          "cluster": "",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        }
       ],
@@ -3021,7 +3206,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -3031,7 +3218,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc",
          "waitUntil": "load",
-         "after": 700
+         "after": 700,
+         "timeoutMs": 30000
         }
        },
        {
@@ -3046,7 +3234,17 @@
          "title": "Create your first item",
          "description": "",
          "showInVideo": false,
-         "durationMs": 2000
+         "durationMs": 2000,
+         "afterMs": 2000,
+         "cardColor": "rgba(0, 0, 0, 0.7)",
+         "edgeColor": "rgba(255, 255, 255, 0.15)",
+         "textColor": "#ffffff",
+         "titleSize": 28,
+         "descriptionSize": 15,
+         "cardWidth": 560,
+         "position": "center",
+         "blur": 2,
+         "fadeMs": 300
         }
        },
        {
@@ -3062,7 +3260,12 @@
          "cluster": "",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -3072,7 +3275,17 @@
          "title": "Mark it done",
          "description": "",
          "showInVideo": false,
-         "durationMs": 2000
+         "durationMs": 2000,
+         "afterMs": 2000,
+         "cardColor": "rgba(0, 0, 0, 0.7)",
+         "edgeColor": "rgba(255, 255, 255, 0.15)",
+         "textColor": "#ffffff",
+         "titleSize": 28,
+         "descriptionSize": 15,
+         "cardWidth": 560,
+         "position": "center",
+         "blur": 2,
+         "fadeMs": 300
         }
        }
       ],
@@ -3088,13 +3301,19 @@
         "type": "cursor.highlightBox",
         "params": {
          "match": "",
-         "text": "",
          "color": "#a78bfa",
          "padding": 10,
          "leadMs": 250,
          "holdMs": 1400,
+         "fadeMs": 180,
+         "cornerRadius": 10,
          "look": "clean",
-         "roughness": 1
+         "roughness": 1,
+         "lineWidth": 3,
+         "fillOpacity": 12,
+         "markerOpacity": 50,
+         "drawMs": 450,
+         "strokes": 2
         }
        }
       ]
@@ -3114,7 +3333,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -3124,7 +3345,8 @@
         "params": {
          "url": "https://demo.playwright.dev/todomvc",
          "waitUntil": "load",
-         "after": 700
+         "after": 700,
+         "timeoutMs": 30000
         }
        },
        {
@@ -3139,7 +3361,17 @@
          "title": "Create your first item",
          "description": "",
          "showInVideo": false,
-         "durationMs": 2000
+         "durationMs": 2000,
+         "afterMs": 2000,
+         "cardColor": "rgba(0, 0, 0, 0.7)",
+         "edgeColor": "rgba(255, 255, 255, 0.15)",
+         "textColor": "#ffffff",
+         "titleSize": 28,
+         "descriptionSize": 15,
+         "cardWidth": 560,
+         "position": "center",
+         "blur": 2,
+         "fadeMs": 300
         }
        },
        {
@@ -3155,7 +3387,12 @@
          "cluster": "",
          "zoom": true,
          "frame": "",
-         "silent": false
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
         }
        },
        {
@@ -3165,7 +3402,17 @@
          "title": "Mark it done",
          "description": "",
          "showInVideo": false,
-         "durationMs": 2000
+         "durationMs": 2000,
+         "afterMs": 2000,
+         "cardColor": "rgba(0, 0, 0, 0.7)",
+         "edgeColor": "rgba(255, 255, 255, 0.15)",
+         "textColor": "#ffffff",
+         "titleSize": 28,
+         "descriptionSize": 15,
+         "cardWidth": 560,
+         "position": "center",
+         "blur": 2,
+         "fadeMs": 300
         }
        },
        {
@@ -3183,7 +3430,9 @@
          "zoomScale": 0,
          "travelMs": 0,
          "hoverMs": 220,
-         "silent": false
+         "silent": false,
+         "findWithinMs": 15000,
+         "scrollSmoothly": false
         }
        }
       ],
@@ -3199,13 +3448,19 @@
         "type": "cursor.highlightBox",
         "params": {
          "match": "",
-         "text": "",
          "color": "#a78bfa",
          "padding": 10,
          "leadMs": 250,
          "holdMs": 1400,
+         "fadeMs": 180,
+         "cornerRadius": 10,
          "look": "clean",
-         "roughness": 1
+         "roughness": 1,
+         "lineWidth": 3,
+         "fillOpacity": 12,
+         "markerOpacity": 50,
+         "drawMs": 450,
+         "strokes": 2
         }
        },
        {
@@ -3222,7 +3477,12 @@
          "fontSize": 18,
          "font": "",
          "look": "clean",
-         "roughness": 1
+         "roughness": 1,
+         "fontWeight": 600,
+         "boxPadding": 14,
+         "radius": 10,
+         "pointerSize": 8,
+         "shadow": true
         }
        }
       ]
@@ -3480,7 +3740,19 @@
            "zoom": true,
            "tuning": {
             "sMax": 1.74,
-            "holdMinS": 1.3
+            "holdMinS": 1.3,
+            "minScale": 1.18,
+            "firstMaxScale": 1.54,
+            "roomPx": 80.0,
+            "targetShare": 0.55,
+            "offCentre": 0.26,
+            "joinWithinS": 2.2,
+            "stayZoomedWithinS": 2.8,
+            "holdAfterTypingS": 0.4,
+            "restAtEndS": 0.6,
+            "longestPanPx": 500.0,
+            "pace": 1.0,
+            "easing": "smooth"
            },
            "motionBlur": true,
            "style": "classic",
@@ -3509,7 +3781,16 @@
              "color": "#a78bfa",
              "padding": 10.0,
              "leadMs": 250.0,
-             "holdMs": 1400.0
+             "holdMs": 1400.0,
+             "markLook": {
+              "fadeS": 0.18,
+              "radius": 10.0,
+              "lineWidth": 3.0,
+              "fillOpacity": 0.12,
+              "markerOpacity": 0.5,
+              "drawS": 0.45,
+              "strokes": 2.0
+             }
             },
             {
              "kind": "tooltip",
@@ -3522,9 +3803,25 @@
              "leadMs": 250.0,
              "holdMs": 1400.0,
              "textColor": "#fafafa",
-             "fontSize": 18.0
+             "fontSize": 18.0,
+             "labelLook": {
+              "fontWeight": 600.0,
+              "boxPadding": 14.0,
+              "radius": 10.0,
+              "pointerSize": 8.0,
+              "shadow": true,
+              "arrowSize": 1.0,
+              "lineWidth": 5.0,
+              "tilt": -4.0
+             }
             }
-           ]
+           ],
+           "stageGround": "#faf6f1",
+           "rimGlow": 1.0,
+           "liftColours": true,
+           "shutterAngle": 180.0,
+           "bleedBlur": 48.0,
+           "bleedDim": 0.55
           }
          }
         ]
@@ -3793,7 +4090,19 @@
                 "zoom": true,
                 "tuning": {
                  "sMax": 1.74,
-                 "holdMinS": 1.3
+                 "holdMinS": 1.3,
+                 "minScale": 1.18,
+                 "firstMaxScale": 1.54,
+                 "roomPx": 80.0,
+                 "targetShare": 0.55,
+                 "offCentre": 0.26,
+                 "joinWithinS": 2.2,
+                 "stayZoomedWithinS": 2.8,
+                 "holdAfterTypingS": 0.4,
+                 "restAtEndS": 0.6,
+                 "longestPanPx": 500.0,
+                 "pace": 1.0,
+                 "easing": "smooth"
                 },
                 "motionBlur": true,
                 "style": "classic",
@@ -3822,7 +4131,16 @@
                   "color": "#a78bfa",
                   "padding": 10.0,
                   "leadMs": 250.0,
-                  "holdMs": 1400.0
+                  "holdMs": 1400.0,
+                  "markLook": {
+                   "fadeS": 0.18,
+                   "radius": 10.0,
+                   "lineWidth": 3.0,
+                   "fillOpacity": 0.12,
+                   "markerOpacity": 0.5,
+                   "drawS": 0.45,
+                   "strokes": 2.0
+                  }
                  },
                  {
                   "kind": "tooltip",
@@ -3835,9 +4153,25 @@
                   "leadMs": 250.0,
                   "holdMs": 1400.0,
                   "textColor": "#fafafa",
-                  "fontSize": 18.0
+                  "fontSize": 18.0,
+                  "labelLook": {
+                   "fontWeight": 600.0,
+                   "boxPadding": 14.0,
+                   "radius": 10.0,
+                   "pointerSize": 8.0,
+                   "shadow": true,
+                   "arrowSize": 1.0,
+                   "lineWidth": 5.0,
+                   "tilt": -4.0
+                  }
                  }
-                ]
+                ],
+                "stageGround": "#faf6f1",
+                "rimGlow": 1.0,
+                "liftColours": true,
+                "shutterAngle": 180.0,
+                "bleedBlur": 48.0,
+                "bleedDim": 0.55
                }
               }
              ]
@@ -3875,6 +4209,14 @@
                 "highlightColor": "#facc15",
                 "panel": "rgba(0,0,0,0.35)",
                 "fontWeight": 800,
+                "unspokenOpacity": 55.0,
+                "wordsPerLine": 6,
+                "lingerMs": 250,
+                "edgeOffset": 90,
+                "sideMargin": 10.0,
+                "panelPadding": 22,
+                "panelRadius": 16,
+                "textShadow": true,
                 "captions": [
                  {
                   "text": "Create",
@@ -4404,7 +4746,19 @@
               "zoom": true,
               "tuning": {
                "sMax": 1.74,
-               "holdMinS": 1.3
+               "holdMinS": 1.3,
+               "minScale": 1.18,
+               "firstMaxScale": 1.54,
+               "roomPx": 80.0,
+               "targetShare": 0.55,
+               "offCentre": 0.26,
+               "joinWithinS": 2.2,
+               "stayZoomedWithinS": 2.8,
+               "holdAfterTypingS": 0.4,
+               "restAtEndS": 0.6,
+               "longestPanPx": 500.0,
+               "pace": 1.0,
+               "easing": "smooth"
               },
               "motionBlur": true,
               "style": "classic",
@@ -4433,7 +4787,16 @@
                 "color": "#a78bfa",
                 "padding": 10.0,
                 "leadMs": 250.0,
-                "holdMs": 1400.0
+                "holdMs": 1400.0,
+                "markLook": {
+                 "fadeS": 0.18,
+                 "radius": 10.0,
+                 "lineWidth": 3.0,
+                 "fillOpacity": 0.12,
+                 "markerOpacity": 0.5,
+                 "drawS": 0.45,
+                 "strokes": 2.0
+                }
                },
                {
                 "kind": "tooltip",
@@ -4446,9 +4809,25 @@
                 "leadMs": 250.0,
                 "holdMs": 1400.0,
                 "textColor": "#fafafa",
-                "fontSize": 18.0
+                "fontSize": 18.0,
+                "labelLook": {
+                 "fontWeight": 600.0,
+                 "boxPadding": 14.0,
+                 "radius": 10.0,
+                 "pointerSize": 8.0,
+                 "shadow": true,
+                 "arrowSize": 1.0,
+                 "lineWidth": 5.0,
+                 "tilt": -4.0
+                }
                }
-              ]
+              ],
+              "stageGround": "#faf6f1",
+              "rimGlow": 1.0,
+              "liftColours": true,
+              "shutterAngle": 180.0,
+              "bleedBlur": 48.0,
+              "bleedDim": 0.55
              }
             }
            ]
@@ -4486,6 +4865,14 @@
               "highlightColor": "#facc15",
               "panel": "rgba(0,0,0,0.35)",
               "fontWeight": 800,
+              "unspokenOpacity": 55.0,
+              "wordsPerLine": 6,
+              "lingerMs": 250,
+              "edgeOffset": 90,
+              "sideMargin": 10.0,
+              "panelPadding": 22,
+              "panelRadius": 16,
+              "textShadow": true,
               "captions": [
                {
                 "text": "Create",
@@ -5115,7 +5502,19 @@
               "zoom": true,
               "tuning": {
                "sMax": 1.74,
-               "holdMinS": 1.3
+               "holdMinS": 1.3,
+               "minScale": 1.18,
+               "firstMaxScale": 1.54,
+               "roomPx": 80.0,
+               "targetShare": 0.55,
+               "offCentre": 0.26,
+               "joinWithinS": 2.2,
+               "stayZoomedWithinS": 2.8,
+               "holdAfterTypingS": 0.4,
+               "restAtEndS": 0.6,
+               "longestPanPx": 500.0,
+               "pace": 1.0,
+               "easing": "smooth"
               },
               "motionBlur": true,
               "style": "classic",
@@ -5144,7 +5543,16 @@
                 "color": "#a78bfa",
                 "padding": 10.0,
                 "leadMs": 250.0,
-                "holdMs": 1400.0
+                "holdMs": 1400.0,
+                "markLook": {
+                 "fadeS": 0.18,
+                 "radius": 10.0,
+                 "lineWidth": 3.0,
+                 "fillOpacity": 0.12,
+                 "markerOpacity": 0.5,
+                 "drawS": 0.45,
+                 "strokes": 2.0
+                }
                },
                {
                 "kind": "tooltip",
@@ -5157,9 +5565,25 @@
                 "leadMs": 250.0,
                 "holdMs": 1400.0,
                 "textColor": "#fafafa",
-                "fontSize": 18.0
+                "fontSize": 18.0,
+                "labelLook": {
+                 "fontWeight": 600.0,
+                 "boxPadding": 14.0,
+                 "radius": 10.0,
+                 "pointerSize": 8.0,
+                 "shadow": true,
+                 "arrowSize": 1.0,
+                 "lineWidth": 5.0,
+                 "tilt": -4.0
+                }
                }
-              ]
+              ],
+              "stageGround": "#faf6f1",
+              "rimGlow": 1.0,
+              "liftColours": true,
+              "shutterAngle": 180.0,
+              "bleedBlur": 48.0,
+              "bleedDim": 0.55
              }
             }
            ]
@@ -5197,6 +5621,14 @@
               "highlightColor": "#facc15",
               "panel": "rgba(0,0,0,0.35)",
               "fontWeight": 800,
+              "unspokenOpacity": 55.0,
+              "wordsPerLine": 6,
+              "lingerMs": 250,
+              "edgeOffset": 90,
+              "sideMargin": 10.0,
+              "panelPadding": 22,
+              "panelRadius": 16,
+              "textShadow": true,
               "captions": [
                {
                 "text": "Create",
@@ -5800,7 +6232,19 @@
         "zoom": true,
         "tuning": {
          "sMax": 1.74,
-         "holdMinS": 1.3
+         "holdMinS": 1.3,
+         "minScale": 1.18,
+         "firstMaxScale": 1.54,
+         "roomPx": 80.0,
+         "targetShare": 0.55,
+         "offCentre": 0.26,
+         "joinWithinS": 2.2,
+         "stayZoomedWithinS": 2.8,
+         "holdAfterTypingS": 0.4,
+         "restAtEndS": 0.6,
+         "longestPanPx": 500.0,
+         "pace": 1.0,
+         "easing": "smooth"
         },
         "motionBlur": true,
         "style": "classic",
@@ -5829,7 +6273,16 @@
           "color": "#a78bfa",
           "padding": 10.0,
           "leadMs": 250.0,
-          "holdMs": 1400.0
+          "holdMs": 1400.0,
+          "markLook": {
+           "fadeS": 0.18,
+           "radius": 10.0,
+           "lineWidth": 3.0,
+           "fillOpacity": 0.12,
+           "markerOpacity": 0.5,
+           "drawS": 0.45,
+           "strokes": 2.0
+          }
          },
          {
           "kind": "tooltip",
@@ -5842,9 +6295,25 @@
           "leadMs": 250.0,
           "holdMs": 1400.0,
           "textColor": "#fafafa",
-          "fontSize": 18.0
+          "fontSize": 18.0,
+          "labelLook": {
+           "fontWeight": 600.0,
+           "boxPadding": 14.0,
+           "radius": 10.0,
+           "pointerSize": 8.0,
+           "shadow": true,
+           "arrowSize": 1.0,
+           "lineWidth": 5.0,
+           "tilt": -4.0
+          }
          }
-        ]
+        ],
+        "stageGround": "#faf6f1",
+        "rimGlow": 1.0,
+        "liftColours": true,
+        "shutterAngle": 180.0,
+        "bleedBlur": 48.0,
+        "bleedDim": 0.55
        },
        "thumbnail": {
         "kind": "filmstrip",
@@ -5889,6 +6358,14 @@
         "highlightColor": "#facc15",
         "panel": "rgba(0,0,0,0.35)",
         "fontWeight": 800,
+        "unspokenOpacity": 55.0,
+        "wordsPerLine": 6,
+        "lingerMs": 250,
+        "edgeOffset": 90,
+        "sideMargin": 10.0,
+        "panelPadding": 22,
+        "panelRadius": 16,
+        "textShadow": true,
         "captions": [
          {
           "text": "Create",

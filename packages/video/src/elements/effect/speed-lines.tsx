@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { random } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export type SpeedLinesMode = "trail" | "focus";
 
@@ -25,6 +26,8 @@ export interface SpeedLinesProps {
   seed?: number;
   delay?: number;
   speed?: number;
+  hold?: number;
+  streakLength?: number;
   children?: ReactNode;
   className?: string;
 }
@@ -81,6 +84,8 @@ export const speedLinesDefaults: Required<Omit<SpeedLinesProps, Unset>> = {
   seed: 1,
   delay: 0,
   speed: 1,
+  hold: 8,
+  streakLength: 1.6,
 };
 
 const REFERENCE = 720;
@@ -102,7 +107,6 @@ const LIFE = 0.3;
 const MIN_LIFE = 3;
 const DRAW = 0.4;
 const ERASE = 0.35;
-const SHUTTER = 1.6;
 const DRIFT = 0.15;
 const SETBACK = 0.35;
 const SLOW = 5;
@@ -112,10 +116,9 @@ const IMPACT = 3;
 const RUSH_JITTER = 1;
 const RELAX = 0.12;
 const RELAX_RATE = 1.5;
-const RELEASE = 8;
 const RELEASE_JITTER = 1.5;
 const RETRACT = 3.5;
-const FOCUS_END = RELEASE + RELEASE_JITTER + RETRACT;
+const focusEnd = (release: number) => release + RELEASE_JITTER + RETRACT;
 const ANGLE_JITTER = 0.6;
 const RADIUS_JITTER = 0.6;
 const MAX_COUNT = 64;
@@ -181,6 +184,8 @@ function settingsOf(options: SpeedLinesOptions) {
     seed: finite(options.seed, speedLinesDefaults.seed),
     delay: Math.max(0, finite(options.delay, speedLinesDefaults.delay)),
     speed: Math.max(0, finite(options.speed, speedLinesDefaults.speed)),
+    release: Math.max(0, finite(options.hold, speedLinesDefaults.hold)),
+    shutter: Math.max(0, finite(options.streakLength, speedLinesDefaults.streakLength)),
   };
 }
 
@@ -253,8 +258,8 @@ function easeOf(time: number, travel: number, bounce: number) {
 }
 
 export function getSpeedLinesTimeline(options: SpeedLinesOptions = {}) {
-  const { mode, duration, bounce } = settingsOf(options);
-  if (mode === "focus") return { mode, impact: IMPACT, end: FOCUS_END };
+  const { mode, duration, bounce, release } = settingsOf(options);
+  if (mode === "focus") return { mode, impact: IMPACT, end: focusEnd(release) };
   return { mode, impact: duration, end: duration + springOf(bounce).settle };
 }
 
@@ -378,7 +383,7 @@ export function getSpeedLinesStreaks(
   for (const streak of streakSeeds(settings)) {
     const age = (progress - streak.spawn) / life;
     if (age <= 0 || age >= 1) continue;
-    const reach = SHUTTER * streak.factor * forward * gate;
+    const reach = settings.shutter * streak.factor * forward * gate;
     const drawn = easeOut(age / DRAW);
     const erased = smoothstep((age - ERASE) / (1 - ERASE));
     const length = reach * (drawn - erased);
@@ -405,7 +410,7 @@ export function getSpeedLinesStreaks(
 }
 
 export function getSpeedLinesRadius(time: number, ray: SpeedLinesRayTiming) {
-  const { rest, outer, start = 0, release = RELEASE } = ray;
+  const { rest, outer, start = 0, release = speedLinesDefaults.hold } = ray;
   const t = finite(time, 0);
   if (t <= start) return outer;
   if (t < IMPACT) {
@@ -423,7 +428,7 @@ export function getSpeedLinesRays(frame: number, options: SpeedLinesOptions = {}
   const settings = settingsOf(options);
   if (settings.mode !== "focus") return [];
   const time = getSpeedLinesTime(frame, options);
-  if (time <= 0 || time >= FOCUS_END) return [];
+  if (time <= 0 || time >= focusEnd(settings.release)) return [];
   const { seed, count, spread, weight, unit, width, height } = settings;
   const cx = settings.x * width;
   const cy = settings.y * height;
@@ -442,7 +447,7 @@ export function getSpeedLinesRays(frame: number, options: SpeedLinesOptions = {}
       rest,
       outer,
       start: RUSH_JITTER * key(seed, index, "rush"),
-      release: RELEASE + RELEASE_JITTER * key(seed, index, "release"),
+      release: settings.release + RELEASE_JITTER * key(seed, index, "release"),
     });
     const length = outer - inner;
     if (length < minimum) continue;
@@ -502,30 +507,29 @@ export function getSpeedLinesState(frame: number, options: SpeedLinesOptions = {
 export type SpeedLinesState = ReturnType<typeof getSpeedLinesState>;
 
 export function SpeedLines({
-  mode = speedLinesDefaults.mode,
-  from = speedLinesDefaults.from,
-  to,
-  x = speedLinesDefaults.x,
-  y = speedLinesDefaults.y,
-  count = speedLinesDefaults.count,
-  weight = speedLinesDefaults.weight,
-  spread = speedLinesDefaults.spread,
-  duration = speedLinesDefaults.duration,
-  bounce = speedLinesDefaults.bounce,
-  squash = speedLinesDefaults.squash,
-  color = speedLinesDefaults.color,
-  seed = speedLinesDefaults.seed,
-  delay = speedLinesDefaults.delay,
-  speed = speedLinesDefaults.speed,
+  mode,
+  fromX,
+  fromY,
+  x,
+  y,
+  count,
+  weight,
+  spread,
+  duration,
+  bounce,
+  color,
+  seed,
+  delay,
+  speed,
+  hold,
+  streakLength,
   children,
-  className,
-}: SpeedLinesProps) {
+}: ElementSettings["speed-lines"] & { children?: ReactNode }) {
   const frame = useAuthoredFrame();
   const { width, height, fps } = useAuthoredConfig();
   const state = getSpeedLinesState(frame, {
     mode,
-    from,
-    to,
+    from: { x: fromX, y: fromY },
     x,
     y,
     count,
@@ -533,10 +537,11 @@ export function SpeedLines({
     spread,
     duration,
     bounce,
-    squash,
     seed,
     delay,
     speed,
+    hold,
+    streakLength,
     width,
     height,
     fps,
@@ -545,7 +550,7 @@ export function SpeedLines({
   const placed = children !== undefined && children !== null;
 
   return (
-    <div className={className} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
       <svg
         width="100%"
         height="100%"

@@ -27,7 +27,7 @@ export interface ToastStyleContext {
 }
 
 export function toastStyleContext(variant: ToastVariant, theme: NeutralTheme): ToastStyleContext {
-  if (variant === "success") return { iconColor: "oklch(0.6 0.17 150)" };
+  if (variant === "success") return { iconColor: theme.success };
   if (variant === "error") return { iconColor: theme.destructive };
   return { iconColor: theme.mutedForeground };
 }

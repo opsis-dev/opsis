@@ -1,4 +1,7 @@
 import { slide as slideOf } from "@remotion/transitions/slide";
-import { directional, EDGES } from "#video/lib/transitions/directional.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { presentation } from "#video/registry/framing.tsx";
 
-export const slide = directional(slideOf, EDGES, "from-right");
+export const slide = presentation(({ direction }: ElementSettings["slide"]) =>
+  slideOf({ direction }),
+);

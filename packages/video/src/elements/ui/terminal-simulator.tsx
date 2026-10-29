@@ -1,5 +1,7 @@
 import { interpolate, Sequence } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { parseColor } from "#video/lib/neutral-ui/color.ts";
 
 export type TerminalLineType = "command" | "log" | "success" | "error";
@@ -10,30 +12,6 @@ export interface TerminalLine {
   delay?: number;
   pause?: number;
 }
-
-export interface TerminalSimulatorProps {
-  lines?: TerminalLine[];
-  prompt?: string;
-  title?: string;
-  background?: string;
-  chromeColor?: string;
-  fontSize?: number;
-  charsPerFrame?: number;
-  chunkSize?: number;
-  speed?: number;
-  className?: string;
-}
-
-const DEFAULT_LINES: TerminalLine[] = [
-  { text: "npm run build", type: "command", delay: 0 },
-  { text: "Resolving dependencies...", type: "log", delay: 6 },
-  { text: "> acme@1.0.0 build", type: "log", delay: 4 },
-  { text: "> next build", type: "log", delay: 4 },
-  { text: "Compiling...", type: "log", delay: 12 },
-  { text: "Compiled successfully in 4.2s", type: "success", delay: 14 },
-  { text: "Generating static pages (24/24)", type: "log", delay: 10 },
-  { text: "Build completed without errors", type: "success", delay: 12 },
-];
 
 const TYPE_COLORS: Record<TerminalLineType, string> = {
   command: "#fafafa",
@@ -57,45 +35,63 @@ function isLight(color: string): boolean {
   return alpha > 0.5 && 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5;
 }
 
-function autoPause(line: TerminalLine): number {
+function autoPause(line: TerminalLine, ellipsis: number): number {
   if (line.pause !== undefined) return line.pause;
-  if (line.text.trimEnd().endsWith("...")) return 18;
+  if (line.text.trimEnd().endsWith("...")) return ellipsis;
   return 0;
 }
 
 export function TerminalSimulator({
-  lines = DEFAULT_LINES,
-  prompt = "$",
-  title = "~/projects/acme",
-  background = "#0a0a0a",
-  chromeColor = "#1a1a1a",
-  fontSize = 18,
-  charsPerFrame = 1,
-  chunkSize = 1,
-  speed = 1,
-  className,
-}: TerminalSimulatorProps) {
+  lines,
+  prompt,
+  title,
+  background,
+  chromeColor,
+  fontSize,
+  charsPerFrame,
+  chunkSize,
+  speed,
+  width: windowWidth,
+  height: windowHeight,
+  ellipsisPause,
+  startAt,
+  windowDots,
+  cornerRadius,
+  lineHeight: lineSpacing,
+  font,
+  commandColor,
+  logColor,
+  successColor,
+  errorColor,
+  promptColor,
+  cursorColor,
+  titleColor,
+}: ElementSettings["terminal-simulator"]) {
   const frame = useAuthoredFrame() * speed;
   const { fps } = useAuthoredConfig();
   const realFrames = useRealFrames();
 
-  const lineHeight = Math.round(fontSize * 1.6);
-  const windowWidth = 900;
-  const windowHeight = 480;
+  const lineHeight = Math.round(fontSize * lineSpacing);
   const visibleLines = Math.max(
     1,
     Math.floor((windowHeight - CHROME_HEIGHT - BODY_PADDING * 2) / lineHeight),
   );
-  const typeColors = isLight(background) ? LIGHT_TYPE_COLORS : TYPE_COLORS;
+  const auto = isLight(background) ? LIGHT_TYPE_COLORS : TYPE_COLORS;
+  const typeColors: Record<TerminalLineType, string> = {
+    command: commandColor || auto.command,
+    log: logColor || auto.log,
+    success: successColor || auto.success,
+    error: errorColor || auto.error,
+  };
 
   const starts: number[] = [];
-  let acc = 10;
+  let acc = startAt;
   for (let i = 0; i < lines.length; i++) {
     const delay = lines[i].delay ?? 8;
     acc += delay;
     starts.push(acc);
     const typingFrames = Math.ceil(lines[i].text.length / (chunkSize * charsPerFrame));
-    acc += typingFrames + autoPause(lines[i]);
+    acc += typingFrames + autoPause(lines[i], ellipsisPause);
   }
 
   let translateY = 0;
@@ -107,7 +103,6 @@ export function TerminalSimulator({
 
   return (
     <div
-      className={className}
       style={{
         position: "absolute",
         inset: 0,
@@ -121,12 +116,12 @@ export function TerminalSimulator({
           width: windowWidth,
           height: windowHeight,
           background,
-          borderRadius: 12,
+          borderRadius: cornerRadius,
           overflow: "hidden",
           boxShadow: "0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
           display: "flex",
           flexDirection: "column",
-          fontFamily: "var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace",
+          fontFamily: fontOr(font, "code"),
         }}
       >
         <div
@@ -140,14 +135,18 @@ export function TerminalSimulator({
             borderBottom: "1px solid rgba(255,255,255,0.06)",
           }}
         >
-          <Light color="#ff5f57" />
-          <Light color="#febc2e" />
-          <Light color="#28c840" />
+          {windowDots ? (
+            <>
+              <Light color="#ff5f57" />
+              <Light color="#febc2e" />
+              <Light color="#28c840" />
+            </>
+          ) : null}
           <div
             style={{
               flex: 1,
               textAlign: "center",
-              color: "#71717a",
+              color: titleColor,
               fontSize: 13,
             }}
           >
@@ -183,6 +182,8 @@ export function TerminalSimulator({
                   line={line}
                   colors={typeColors}
                   prompt={prompt}
+                  promptColor={promptColor || typeColors.success}
+                  cursorColor={cursorColor}
                   fontSize={fontSize}
                   lineHeight={lineHeight}
                   charsPerFrame={charsPerFrame}
@@ -217,6 +218,8 @@ function TerminalLineRow({
   line,
   colors,
   prompt,
+  promptColor,
+  cursorColor,
   fontSize,
   lineHeight,
   charsPerFrame,
@@ -227,6 +230,8 @@ function TerminalLineRow({
   line: TerminalLine;
   colors: Record<TerminalLineType, string>;
   prompt: string;
+  promptColor: string;
+  cursorColor: string;
   fontSize: number;
   lineHeight: number;
   charsPerFrame: number;
@@ -260,7 +265,7 @@ function TerminalLineRow({
       }}
     >
       {line.type === "command" && (
-        <span style={{ color: colors.success, marginRight: 8 }}>{prompt}</span>
+        <span style={{ color: promptColor, marginRight: 8 }}>{prompt}</span>
       )}
       <span>{visible}</span>
       {!typingDone && cursorVisible && (
@@ -269,7 +274,7 @@ function TerminalLineRow({
             display: "inline-block",
             width: fontSize * 0.55,
             height: fontSize,
-            background: TYPE_COLORS[line.type],
+            background: cursorColor || colors[line.type],
             marginLeft: 2,
           }}
         />

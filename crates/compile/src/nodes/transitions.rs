@@ -1,7 +1,7 @@
 use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
-use opsis_types::timeline::TransitionRef;
+use opsis_types::timeline::{TransitionEase, TransitionRef};
 use opsis_types::values::{ClipValue, CompileValue};
 use opsis_types::workflow::PortType;
 use schemars::JsonSchema;
@@ -47,6 +47,7 @@ pub fn transition_ref(
     kind: &str,
     duration_in_frames: u32,
     keep_whole: bool,
+    easing: TransitionEase,
     params: Option<Map<String, Value>>,
 ) -> TransitionRef {
     TransitionRef {
@@ -54,6 +55,7 @@ pub fn transition_ref(
         duration_in_frames,
         params,
         hold: keep_whole.then_some(true),
+        easing: (easing != TransitionEase::Linear).then_some(easing),
     }
 }
 
@@ -104,12 +106,20 @@ fn speed_row(length: u32, designed: u32, fps: u32) -> Option<CardRow> {
 #[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
-struct KeepWholeField {
+struct TransitionFields {
     #[setting(
         "Keep both clips whole",
-        help = "The transition plays over a still of the last and first frames, so neither clip loses screen time. The result gets longer by the transition."
+        help = "The transition plays over a still of the last and first frames, so neither clip loses screen time. The result gets longer by the transition.",
+        advanced
     )]
     keep_whole: bool,
+    #[setting(
+        "Easing",
+        default = TransitionEase::Linear,
+        labels = { "linear": "Even", "in": "Slow start", "out": "Slow end", "in-out": "Slow start and end" },
+        advanced
+    )]
+    easing: TransitionEase,
 }
 
 fn length_field(default: u32) -> Value {
@@ -130,7 +140,7 @@ fn presentation_node(meta: &'static ElementMeta) -> NodeDef {
         "durationInFrames".into(),
         length_field(meta.default_duration_in_frames),
     );
-    if let Some(Value::Object(props)) = schema_of::<KeepWholeField>().get("properties") {
+    if let Some(Value::Object(props)) = schema_of::<TransitionFields>().get("properties") {
         extra.extend(props.clone());
     }
     let (inputs, outs) = ab();
@@ -157,11 +167,15 @@ fn presentation_node(meta: &'static ElementMeta) -> NodeDef {
             let mut rest = ctx.values.clone();
             let length = whole_number(rest.remove("durationInFrames").as_ref()).unwrap_or(meta.default_duration_in_frames);
             let keep_whole = rest.remove("keepWhole").and_then(|v| v.as_bool()).unwrap_or(false);
+            let easing = rest
+                .remove("easing")
+                .and_then(|v| serde_json::from_value(v).ok())
+                .unwrap_or_default();
             let mut params = meta.fixed_props.clone();
             params.extend(rest);
             join_clips(ctx.inputs, |a, b| {
                 let ports = ["a".to_owned(), "b".to_owned()];
-                let enter = transition_ref(&meta.key, length, keep_whole, Some(params));
+                let enter = transition_ref(&meta.key, length, keep_whole, easing, Some(params));
                 sequence_clips(ctx.node_id, &[a.clone(), b.clone()], &[None, Some(enter)], SequenceSlots { ports: Some(&ports), slot_node: None })
             })
         })
@@ -183,6 +197,16 @@ pub struct LightLeakCut {
     pub seed: u32,
     #[setting("Colour shift", range(min = 0, max = 360), unit = "°")]
     pub hue_shift: f64,
+    #[setting("Offset", default = 0, range(min = -108000, max = 108000), step = 1, unit = "frames", advanced)]
+    pub offset: i32,
+    #[setting(
+        "Strength",
+        default = 100.0,
+        range(min = 0, max = 100),
+        unit = "%",
+        advanced
+    )]
+    pub strength: f64,
 }
 
 impl Params for LightLeakCut {}
@@ -234,9 +258,13 @@ fn light_leak() -> NodeDef {
                 },
             );
             let length = p.duration_in_frames.min(cut.duration_in_frames);
-            let mut props = Map::new();
-            props.insert("seed".into(), Value::from(p.seed));
-            props.insert("hueShift".into(), Value::from(p.hue_shift));
+            let props = crate::elements::element_meta("light-leak").map_or_else(Map::new, |meta| {
+                let mut values = meta.default_props.clone();
+                values.insert("seed".into(), Value::from(p.seed));
+                values.insert("hueShift".into(), Value::from(p.hue_shift));
+                values.insert("strength".into(), Value::from(p.strength));
+                crate::nodes::elements::element_props(meta, &values)
+            });
             let leak = item_clip(
                 &format!("{}:leak", ctx.node_id),
                 "light-leak",
@@ -244,8 +272,10 @@ fn light_leak() -> NodeDef {
                 length,
                 ItemExtra::default(),
             );
-            let centred_on_cut = a.duration_in_frames.saturating_sub(length.div_ceil(2));
-            let start = centred_on_cut.min(cut.duration_in_frames - length);
+            let centred_on_cut = i64::from(a.duration_in_frames) - i64::from(length.div_ceil(2))
+                + i64::from(p.offset);
+            let latest = i64::from(cut.duration_in_frames - length);
+            let start = u32::try_from(centred_on_cut.clamp(0, latest)).unwrap_or(0);
             stack_clips(ctx.node_id, &[cut, leak], &[0, start], None, None)
         })
     })

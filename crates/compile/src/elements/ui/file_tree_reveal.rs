@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -55,8 +55,13 @@ pub struct FileTreeReveal {
         check = colour
     )]
     pub accent_color: String,
-    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
-    pub theme: DarkOrLight,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = code_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting(
         "Speed",
         default = 1.0,
@@ -72,6 +77,19 @@ pub struct FileTreeReveal {
         help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
+    #[setting("File count word", default = "files", advanced)]
+    pub count_label: String,
+    #[setting(
+        "Panel width",
+        default = 480,
+        range(min = 280, max = 1200),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub panel_width: u32,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {

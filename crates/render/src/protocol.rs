@@ -1,5 +1,5 @@
-use opsis_compile::nodes::media::Codec;
-use opsis_compile::nodes::output::{Gl, StillFormat};
+use opsis_compile::nodes::media::{Codec, EncodePreset};
+use opsis_compile::nodes::output::{Gl, PixelFormat, RenderProres, StillFormat};
 use opsis_types::JsonObject;
 use opsis_types::timeline::TimelineSpec;
 use opsis_types::ts_export::render_plain;
@@ -35,6 +35,16 @@ pub struct MediaJob {
     pub crf: Option<f64>,
     pub scale: f64,
     pub muted: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub x264_preset: Option<EncodePreset>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pixel_format: Option<PixelFormat>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pro_res_profile: Option<RenderProres>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub number_of_gif_loops: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub every_nth_frame: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]

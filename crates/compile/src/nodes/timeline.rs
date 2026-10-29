@@ -4,7 +4,7 @@ use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
 use opsis_types::timeline::{
     EditHandles, GroupProps, ItemBase, LinkedParam, ParamRef, ParamUnit, Sign, TimelineTrack,
-    TransitionRef,
+    TransitionEase, TransitionRef,
 };
 use opsis_types::values::{ClipValue, CompileValue};
 use opsis_types::workflow::{PortType, WorkflowSettings};
@@ -98,9 +98,17 @@ pub struct Cut {
     pub transition_duration: u32,
     #[setting(
         "Keep both clips whole",
-        help = "The transition plays over a still of the two clips' last and first frames."
+        help = "The transition plays over a still of the two clips' last and first frames.",
+        advanced
     )]
     pub keep_whole: bool,
+    #[setting(
+        "Easing",
+        default = TransitionEase::Linear,
+        labels = { "linear": "Even", "in": "Slow start", "out": "Slow end", "in-out": "Slow start and end" },
+        advanced
+    )]
+    pub easing: TransitionEase,
 }
 
 #[settings]
@@ -120,12 +128,21 @@ pub struct Sequence {
     pub transition_duration: u32,
     #[setting(
         "Keep every clip whole",
-        help = "The transition plays over a still of the last and first frames, so no clip loses screen time. The sequence gets longer by each transition."
+        help = "The transition plays over a still of the last and first frames, so no clip loses screen time. The sequence gets longer by each transition.",
+        advanced
     )]
     pub keep_whole: bool,
     #[setting(
+        "Easing",
+        default = TransitionEase::Linear,
+        labels = { "linear": "Even", "in": "Slow start", "out": "Slow end", "in-out": "Slow start and end" },
+        advanced
+    )]
+    pub easing: TransitionEase,
+    #[setting(
         "Different transitions",
-        help = "Use another transition before some clips. The others use the transition above."
+        help = "Use another transition before some clips. The others use the transition above.",
+        advanced
     )]
     pub cuts: Vec<Cut>,
 }
@@ -136,6 +153,7 @@ struct CutPlan {
     transition: String,
     transition_duration: u32,
     keep_whole: bool,
+    easing: TransitionEase,
     before: String,
     after: String,
     own: bool,
@@ -148,14 +166,25 @@ fn cuts_for(p: &Sequence, ports: &[String]) -> Vec<CutPlan> {
         .skip(1)
         .map(|(i, handle)| {
             let own = p.cuts.iter().rev().find(|c| c.before == *handle);
-            let (transition, duration, keep_whole) = match own {
-                Some(c) => (c.transition.clone(), c.transition_duration, c.keep_whole),
-                None => (p.transition.clone(), p.transition_duration, p.keep_whole),
+            let (transition, duration, keep_whole, easing) = match own {
+                Some(c) => (
+                    c.transition.clone(),
+                    c.transition_duration,
+                    c.keep_whole,
+                    c.easing,
+                ),
+                None => (
+                    p.transition.clone(),
+                    p.transition_duration,
+                    p.keep_whole,
+                    p.easing,
+                ),
             };
             CutPlan {
                 transition,
                 transition_duration: duration,
                 keep_whole,
+                easing,
                 before: handle.clone(),
                 after: ports[i - 1].clone(),
                 own: own.is_some(),
@@ -262,6 +291,7 @@ fn sequence() -> NodeDef {
                             &cut.transition,
                             cut.transition_duration,
                             cut.keep_whole,
+                            cut.easing,
                             None,
                         )
                     })
@@ -320,7 +350,8 @@ pub struct Layers {
     pub offsets_ms: String,
     #[setting(
         "Keep this layout in other shapes",
-        help = "In 9:16, 1:1 and 4:5 the layers stay arranged as they are here, scaled to fit, so marks drawn over a picture stay on it."
+        help = "In 9:16, 1:1 and 4:5 the layers stay arranged as they are here, scaled to fit, so marks drawn over a picture stay on it.",
+        advanced
     )]
     pub keep_layout: bool,
 }
@@ -600,6 +631,8 @@ pub struct Speed {
         unit = "×"
     )]
     pub rate: f64,
+    #[setting("Keep the pitch", default = true, advanced)]
+    pub keep_pitch: bool,
 }
 
 impl Params for Speed {}
@@ -625,6 +658,7 @@ fn speed() -> NodeDef {
                 let out = at_least_one_frame(f64::from(clip.duration_in_frames) / ctx.params.rate);
                 let props = GroupProps {
                     remap: Some(speed_remap(clip.duration_in_frames, out)),
+                    shift_pitch: (!ctx.params.keep_pitch).then_some(true),
                     ..GroupProps::default()
                 };
                 let handles = EditHandles {

@@ -207,6 +207,17 @@ export type Anchor = {
 
 export type AnnotationKind = "highlight" | "spotlight" | "tooltip" | "callout";
 
+export type AnnotationLook = {
+	fadeS: number,
+	radius: number,
+	softness?: number,
+	lineWidth?: number,
+	fillOpacity?: number,
+	markerOpacity?: number,
+	drawS?: number,
+	strokes?: number,
+};
+
 export type AnnotationSpec = {
 	kind: AnnotationKind,
 	look?: HighlightLook,
@@ -220,6 +231,8 @@ export type AnnotationSpec = {
 	textColor?: string,
 	fontSize?: number,
 	font?: string,
+	labelLook?: LabelLook,
+	markLook?: AnnotationLook,
 };
 
 export type ApiProblem = {
@@ -310,6 +323,7 @@ export type AudioItem = {
 	hit?: boolean,
 	fadeInFrames?: number,
 	fadeOutFrames?: number,
+	fadeCurve?: FadeCurve,
 	nodeId?: string,
 	channel?: string,
 	layerTrack?: string,
@@ -350,6 +364,7 @@ export type BlurArea = {
 	strength: number,
 	softness: number,
 	roundness: number,
+	fadeMs: number,
 	fromMs?: number,
 	untilMs?: number,
 };
@@ -425,6 +440,8 @@ export type CameraDial = {
 
 export type CameraDialKey = "yaw" | "pitch" | "distance" | "height";
 
+export type CameraEasing = "smooth" | "gentle" | "snappy" | "linear";
+
 export type CameraKeyMark = {
 	key: string,
 	itemId: string,
@@ -451,6 +468,18 @@ export type CameraStyle = "classic" | "proof" | "ledger" | "stage";
 export type CameraTuning = {
 	sMax?: number,
 	holdMinS?: number,
+	minScale?: number,
+	firstMaxScale?: number,
+	roomPx?: number,
+	targetShare?: number,
+	offCentre?: number,
+	joinWithinS?: number,
+	stayZoomedWithinS?: number,
+	holdAfterTypingS?: number,
+	restAtEndS?: number,
+	longestPanPx?: number,
+	pace?: number,
+	easing?: CameraEasing,
 };
 
 export type CanvasMode = "mouse" | "touchpad";
@@ -616,6 +645,14 @@ export type ConnectionProblem = {
 };
 
 export type ConsoleLevel = "log" | "info" | "warning" | "error" | "debug";
+
+export type CursorFeel = {
+	growWithZoom: number,
+	outlineWidth: number,
+	shadow: number,
+	pressSquash: number,
+	hideWhileTyping: boolean,
+};
 
 export type CursorLook = { shape: "arrow"; fill: string; edge: string } | { shape: "mac" };
 
@@ -846,6 +883,8 @@ export type Eq = {
 	bands: EqBand[],
 };
 
+export type FadeCurve = "tri" | "qsin" | "exp" | "log";
+
 export type FilmChapter = {
 	title: string,
 	startMs: number,
@@ -986,8 +1025,10 @@ export type GroupProps = {
 	tracks: TimelineTrack[],
 	startFrom?: number,
 	remap?: ([number, number])[],
+	shiftPitch?: boolean,
 	loopEvery?: number,
 	crop?: Rect,
+	cropFill?: boolean,
 	wrapper?: ElementRef,
 	background?: string,
 	design?: Viewport,
@@ -1060,6 +1101,8 @@ export type ItemBase = {
 	design?: Design,
 };
 
+export type KeyNames = "symbols" | "words";
+
 export type KeyframeEdit = { op: "addKey"; nodeId: string; track: EnvelopeKey; frame: number } | { op: "appendKey"; nodeId: string; track: EnvelopeKey } | { op: "setKey"; nodeId: string; track: EnvelopeKey; index: number; frame?: number; value?: number; ease?: Ease } | { op: "removeKey"; nodeId: string; track: EnvelopeKey; index: number } | { op: "addCameraKey"; nodeId: string; frame: number } | { op: "setCameraKey"; nodeId: string; index: number; frame?: number; yaw?: number; pitch?: number; distance?: number; height?: number; ease?: Ease } | { op: "removeCameraKey"; nodeId: string; index: number };
 
 export type Keyframe = {
@@ -1075,9 +1118,28 @@ export type KeystrokeLook = {
 	keycap: string,
 	ink: string,
 	size: number,
+	chordHoldS?: number,
+	typedHoldS?: number,
+	edge?: number,
+	radius?: number,
+	keyNames?: KeyNames,
+	font?: string,
+	shadow?: number,
+	caret?: boolean,
 };
 
 export type KeystrokePosition = "bottom" | "top";
+
+export type LabelLook = {
+	fontWeight: number,
+	boxPadding: number,
+	radius: number,
+	pointerSize: number,
+	shadow: boolean,
+	arrowSize: number,
+	lineWidth: number,
+	tilt: number,
+};
 
 export type LastRun = {
 	updatedAt: number,
@@ -1384,6 +1446,10 @@ export type PictureLook = {
 	warmth?: number,
 	vignette?: number,
 	grain?: number,
+	vignetteSize?: number,
+	vignetteSoftness?: number,
+	vignetteColor?: string,
+	tint?: number,
 };
 
 export type PlannedFamily<C = {
@@ -1506,6 +1572,7 @@ export type RecordingProps = {
 	cursor: boolean,
 	cursorScale: number,
 	cursorLook: CursorLook,
+	cursorFeel?: CursorFeel,
 	ripple: RippleLook | null,
 	extraBeats: Action[],
 	keystrokes?: KeystrokeLook,
@@ -1513,6 +1580,15 @@ export type RecordingProps = {
 	blurAreas?: BlurArea[],
 	look?: PictureLook,
 	screen?: boolean,
+	windowFit?: number,
+	stageGround?: string,
+	windowRadius?: number,
+	rimGlow?: number,
+	liftColours?: boolean,
+	shutterAngle?: number,
+	bleedBlur?: number,
+	bleedDim?: number,
+	frameFont?: string,
 };
 
 export type RecordingValue = {
@@ -1554,6 +1630,9 @@ export type RippleLook = {
 	color: string,
 	size: number,
 	width: number,
+	ringOpacity?: number,
+	fillOpacity?: number,
+	durationS?: number,
 };
 
 export type RunEventFired = RunEvent;
@@ -1689,6 +1768,7 @@ export type SoundPlacement = {
 	volume: number,
 	fadeIn: number,
 	fadeOut: number,
+	fadeCurve?: FadeCurve,
 	envelope?: AudioEnvelope,
 };
 
@@ -1915,6 +1995,8 @@ export type TracesSection = {
 	keepLast: number,
 };
 
+export type TransitionEase = "linear" | "in" | "out" | "in-out";
+
 export type TransitionMark = {
 	key: string,
 	itemKey: string,
@@ -1931,6 +2013,7 @@ export type TransitionRef = {
 	durationInFrames: number,
 	params?: { [key in string]: unknown },
 	hold?: boolean,
+	easing?: TransitionEase,
 };
 
 export type Value = null | boolean | number | string | Value[] | { [key in string]: Value };

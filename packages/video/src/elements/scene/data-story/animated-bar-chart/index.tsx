@@ -1,7 +1,9 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
+import type { NumberFormat } from "#video/generated/spec.ts";
 import {
   formatAxisValue,
-  formatCompactNumber,
+  formatNumber,
   niceDomain,
   readDelta,
   type ChartDatum,
@@ -9,72 +11,40 @@ import {
 import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
 import { DURATION, EASING, STAGGER } from "#video/lib/motion/motion-tokens.ts";
 
-const fontFamily = '"Inter"';
-
 export type AnimatedBarChartProps = {
   data: ChartDatum[];
   title?: string;
   subtitle?: string;
   maxValue?: number;
-  valueFormatter?: (value: number) => string;
+  numberFormat: NumberFormat;
   highlightLabel?: string;
-  showAxis?: boolean;
+  showAxis: boolean;
   maxBars?: number;
-  barColor?: string;
-  accentColor?: string;
-  backgroundColor?: string;
-  theme?: "dark" | "light";
+  barColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  look: StoryLook;
   holdSeconds?: number;
 };
 
-const PALETTES = {
-  dark: {
-    bg: "#080810",
-    label: "rgba(250,250,250,0.62)",
-    axis: "rgba(250,250,250,0.42)",
-    grid: "rgba(250,250,250,0.08)",
-    track: "rgba(250,250,250,0.05)",
-    ink: "#fafafa",
-    bar: "#2dd4bf",
-    accent: "#e8b86d",
-    up: "#2dd4bf",
-    down: "#f87171",
-  },
-  light: {
-    bg: "#F4F4F2",
-    label: "rgba(34,37,43,0.66)",
-    axis: "rgba(34,37,43,0.48)",
-    grid: "rgba(34,37,43,0.10)",
-    track: "rgba(34,37,43,0.06)",
-    ink: "#22252B",
-    bar: "#0f766e",
-    accent: "#b45309",
-    up: "#0f766e",
-    down: "#dc2626",
-  },
-} as const;
-
 const EXIT_FOR = 0.42;
 
-export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
+export function AnimatedBarChart({
   data,
   title,
   subtitle,
   maxValue,
-  valueFormatter = formatCompactNumber,
+  numberFormat,
   highlightLabel,
-  showAxis = true,
+  showAxis,
   maxBars = 6,
-  barColor: barSetting,
-  accentColor: accentSetting,
-  backgroundColor: backgroundSetting,
-  theme = "dark",
+  barColor,
+  accentColor,
+  backgroundColor,
+  look,
   holdSeconds,
-}) => {
-  const COLORS = PALETTES[theme];
-  const barColor = barSetting ?? COLORS.bar;
-  const accentColor = accentSetting ?? COLORS.accent;
-  const backgroundColor = backgroundSetting ?? COLORS.bg;
+}: AnimatedBarChartProps) {
+  const COLORS = look.palette;
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const safe = getSafeAreaPadding({ width, height });
@@ -146,7 +116,7 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
         height,
         background: backgroundColor,
         color: COLORS.ink,
-        fontFamily,
+        fontFamily: look.font,
         paddingLeft: safe.paddingLeft,
         paddingRight: safe.paddingRight,
         paddingTop: safe.paddingTop,
@@ -162,7 +132,7 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
           <h2
             style={{
               margin: 0,
-              fontSize: scaleFont(isPortrait ? 76 : 64, width),
+              fontSize: scaleFont((isPortrait ? 76 : 64) * look.textSize, width),
               fontWeight: 700,
               lineHeight: 1.02,
               letterSpacing: "-0.025em",
@@ -311,7 +281,7 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
                       color: isHighlighted ? fill : COLORS.ink,
                     }}
                   >
-                    {valueFormatter(item.value * enter)}
+                    {formatNumber(item.value * enter, numberFormat)}
                   </div>
                   {delta.text ? (
                     <div
@@ -379,4 +349,4 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
       </div>
     </div>
   );
-};
+}

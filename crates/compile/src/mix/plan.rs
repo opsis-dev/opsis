@@ -4,7 +4,7 @@ use opsis_types::mix::{
     Bus, ChannelKind, Comp, Eq, Highpass, Master, Mix, Strip, StripSettings, strip_settings,
 };
 use opsis_types::numbers::whole;
-use opsis_types::timeline::{AudioEnvelope, TimelineSpec};
+use opsis_types::timeline::{AudioEnvelope, FadeCurve, TimelineSpec};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -27,6 +27,8 @@ pub struct SoundPlacement {
     pub volume: f64,
     pub fade_in: u32,
     pub fade_out: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fade_curve: Option<FadeCurve>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub envelope: Option<AudioEnvelope>,
 }
@@ -103,6 +105,7 @@ fn sound_placements(flat: &FlatTimeline) -> IndexMap<String, Vec<SoundPlacement>
                 volume: a.volume,
                 fade_in: item.and_then(|i| i.fade_in_frames).unwrap_or(0),
                 fade_out: item.and_then(|i| i.fade_out_frames).unwrap_or(0),
+                fade_curve: item.and_then(|i| i.fade_curve),
                 envelope: item.and_then(|i| i.envelope.clone()),
             });
     }

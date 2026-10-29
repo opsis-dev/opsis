@@ -25,11 +25,14 @@ export type DisplacementPresentationProps = DisplacementCoreConfig & {
   affect?: "both" | "entering";
 };
 
-const DisplacementPresentationComponent: React.FC<
-  React.ComponentProps<
-    NonNullable<TransitionPresentation<DisplacementPresentationProps>["component"]>
-  >
-> = ({ children, presentationProgress, presentationDirection, passedProps }) => {
+function DisplacementPresentationComponent({
+  children,
+  presentationProgress,
+  presentationDirection,
+  passedProps,
+}: React.ComponentProps<
+  NonNullable<TransitionPresentation<DisplacementPresentationProps>["component"]>
+>) {
   const { width, height } = useVideoConfig();
   const rawId = useId();
   const domId = rawId.replace(/:/g, "");
@@ -127,7 +130,7 @@ const DisplacementPresentationComponent: React.FC<
       </AbsoluteFill>
     </AbsoluteFill>
   );
-};
+}
 
 export function displacementPresentation(
   props: DisplacementPresentationProps = {},

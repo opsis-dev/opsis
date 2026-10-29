@@ -1,40 +1,34 @@
+import type { CSSProperties } from "react";
 import { interpolate } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface StrikethroughReplaceProps {
-  background?: string;
-  fontFamily?: string;
-  from: string;
-  to: string;
-  lineColor?: string;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function StrikethroughReplace({
-  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily,
   from,
   to,
-  lineColor = "#ff5e3a",
-  fontSize = 48,
-  color = "#171717",
-  fontWeight = 600,
-  speed = 1,
-  className,
-  background = "transparent",
-}: StrikethroughReplaceProps) {
+  lineColor,
+  fontSize,
+  color,
+  fontWeight,
+  speed,
+  background,
+  strikeEnd,
+  swapLength,
+  letterSpacing,
+  thickness,
+  toColor,
+}: ElementSettings["strikethrough-replace"]) {
   const frame = useAuthoredFrame() * speed;
   const { durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
 
-  const strikeEnd = durationInFrames * 0.4;
-  const fadeStart = durationInFrames * 0.4;
-  const fadeEnd = durationInFrames * 0.6;
+  const struck = durationInFrames * strikeEnd;
+  const fadeStart = durationInFrames * strikeEnd;
+  const fadeEnd = durationInFrames * (strikeEnd + swapLength);
 
-  const linePct = interpolate(frame, [0, strikeEnd], [0, 100], {
+  const linePct = interpolate(frame, [0, struck], [0, 100], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -53,12 +47,12 @@ export function StrikethroughReplace({
     extrapolateRight: "clamp",
   });
 
-  const textStyle: React.CSSProperties = {
+  const textStyle: CSSProperties = {
     fontSize,
     fontWeight,
     color,
-    letterSpacing: "-0.03em",
-    fontFamily,
+    letterSpacing: `${letterSpacing}em`,
+    fontFamily: fontOr(fontFamily, "main"),
     whiteSpace: "nowrap",
   };
 
@@ -82,7 +76,6 @@ export function StrikethroughReplace({
         }}
       >
         <span
-          className={className}
           style={{
             ...textStyle,
             position: "absolute",
@@ -96,7 +89,7 @@ export function StrikethroughReplace({
               position: "absolute",
               left: 0,
               top: "50%",
-              height: Math.max(2, Math.round(fontSize * 0.08)),
+              height: thickness ?? Math.max(2, Math.round(fontSize * 0.08)),
               width: `${linePct}%`,
               background: lineColor,
               translate: "0 -50%",
@@ -106,9 +99,9 @@ export function StrikethroughReplace({
         </span>
 
         <span
-          className={className}
           style={{
             ...textStyle,
+            color: toColor || color,
             opacity: toOpacity,
             translate: `0 ${toY}px`,
           }}

@@ -71,7 +71,8 @@ fn timelines(wf: &Workflow, compiled: &CompileResult) -> Value {
             let mut mix = serde_json::to_value(build_mix_plan(spec, wf.mix.as_ref(), &flat))
                 .expect("a mix plan");
             mix.as_object_mut().expect("a plan").remove("key");
-            let film = json!({ "flat": flat, "mix": mix, "chapters": film_chapters(spec) });
+            let film =
+                json!({ "flat": flat, "mix": mix, "chapters": film_chapters(spec, "Intro") });
             (id.clone(), film)
         })
         .collect();

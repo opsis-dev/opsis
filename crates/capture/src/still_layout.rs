@@ -2,7 +2,6 @@ pub use opsis_compile::nodes::capture::StillLook;
 use opsis_compile::time::{clamp, even_px};
 use serde::{Deserialize, Serialize};
 
-const CUTOUT_FIT: f64 = 0.8;
 const TALL_SHOT: f64 = 1.5;
 const TALLEST_CUTOUT: f64 = 4.0;
 const MAX_EXPORT_SCALE: f64 = 2.0;
@@ -12,7 +11,6 @@ const HD_PIXELS: f64 = 1920.0 * 1080.0;
 const MAX_HD_SURFACE_SCALE: f64 = 4.0;
 const SURFACE_SCALE_STEPS: f64 = 10.0;
 const SURFACE_BUDGET_PX: f64 = HD_PIXELS * MAX_HD_SURFACE_SCALE * MAX_HD_SURFACE_SCALE;
-pub const WINDOW_FIT: f64 = 0.86;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Size {
@@ -76,14 +74,14 @@ fn window_width(shot: &ShotArea, canvas: Size, fit: f64) -> f64 {
     window_box(ratio, canvas, fit).width
 }
 
-fn cutout_width(shot: &ShotArea, canvas: Size, max_upscale: f64) -> f64 {
+fn cutout_width(shot: &ShotArea, canvas: Size, fit: f64, max_upscale: f64) -> f64 {
     let body = shot.body.unwrap_or(Area {
         x: 0.0,
         y: 0.0,
         width: shot.width,
         height: shot.height,
     });
-    let want = window_box(aspect(body.width, body.height), canvas, CUTOUT_FIT);
+    let want = window_box(aspect(body.width, body.height), canvas, fit);
     let s = (want.width / body.width)
         .min(want.height / body.height)
         .min(max_upscale);
@@ -98,7 +96,7 @@ fn bleed_width(shot: &ShotArea, canvas: Size) -> f64 {
 fn drawn_width(look: StillLook, shot: &ShotArea, canvas: Size, fit: f64, max_upscale: f64) -> f64 {
     match look {
         StillLook::Bleed => bleed_width(shot, canvas),
-        StillLook::Cutout => cutout_width(shot, canvas, max_upscale),
+        StillLook::Cutout => cutout_width(shot, canvas, fit, max_upscale),
         StillLook::Window => window_width(shot, canvas, fit),
     }
 }

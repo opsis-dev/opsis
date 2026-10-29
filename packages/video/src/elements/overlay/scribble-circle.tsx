@@ -1,9 +1,7 @@
-import type React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
-import { numberOr } from "#video/common/math.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
 import {
   BrushGrain,
   type BrushPoint,
@@ -13,48 +11,42 @@ import {
 } from "#video/parts/brush.tsx";
 
 const SAMPLES_PER_LAP = 48;
-const NOISE = 0.035;
 const CENTRE = 0.02;
 
-export type ScribbleCircleGeometry = {
+type ScribbleCircleGeometry = {
   width: number;
   height: number;
   strokeWidth: number;
-  laps?: number;
-  pressure?: number;
-  release?: number;
-  grain?: number;
-  seed?: string;
-  points?: number;
-  progress?: number;
+  laps: number;
+  pressure: number;
+  release: number;
+  grain: number;
+  seed: string;
+  progress: number;
+  wobble: number;
+  startAngle: number;
+  clockwise: boolean;
 };
 
-export function scribbleCircleCentre(width: number, height: number, seed = "scribble"): BrushPoint {
+function scribbleCircleCentre(width: number, height: number, seed: string): BrushPoint {
   return {
     x: width / 2 + hashRange(`${seed}:cx`, -CENTRE, CENTRE) * width,
     y: height / 2 + hashRange(`${seed}:cy`, -CENTRE, CENTRE) * height,
   };
 }
 
-export function scribbleCirclePoints(args: {
-  width: number;
-  height: number;
-  laps?: number;
-  seed?: string;
-  points?: number;
-}): BrushPoint[] {
-  const laps = args.laps ?? 1.15;
-  const seed = args.seed ?? "scribble";
-  const points = args.points ?? SAMPLES_PER_LAP;
-
-  const count = Math.max(2, Math.ceil(laps * points));
+function scribbleCirclePoints(args: ScribbleCircleGeometry): BrushPoint[] {
+  const { laps, seed, wobble } = args;
+  const count = Math.max(2, Math.ceil(laps * SAMPLES_PER_LAP));
   const rx = args.width / 2;
   const ry = args.height / 2;
   const { x: cx, y: cy } = scribbleCircleCentre(args.width, args.height, seed);
+  const start = (args.startAngle * Math.PI) / 180;
+  const turn = args.clockwise ? 1 : -1;
 
   return Array.from({ length: count }, (_, i) => {
-    const angle = laps * Math.PI * 2 * (i / (count - 1));
-    const scale = 1 + hashRange(`${seed}:r${i}`, -NOISE, NOISE);
+    const angle = start + turn * laps * Math.PI * 2 * (i / (count - 1));
+    const scale = 1 + hashRange(`${seed}:r${i}`, -wobble, wobble);
     return {
       x: cx + rx * scale * Math.cos(angle),
       y: cy + ry * scale * Math.sin(angle),
@@ -62,16 +54,15 @@ export function scribbleCirclePoints(args: {
   });
 }
 
-export function scribbleCirclePath(args: ScribbleCircleGeometry): {
+function scribbleCirclePath(args: ScribbleCircleGeometry): {
   d: string;
   viewBox: string;
   marginX: number;
   marginY: number;
 } {
-  const grain = args.grain ?? 1;
-  const reach = brushReach(args.strokeWidth, grain);
-  const marginX = reach + (args.width / 2) * NOISE + args.width * CENTRE;
-  const marginY = reach + (args.height / 2) * NOISE + args.height * CENTRE;
+  const reach = brushReach(args.strokeWidth, args.grain);
+  const marginX = reach + (args.width / 2) * args.wobble + args.width * CENTRE;
+  const marginY = reach + (args.height / 2) * args.wobble + args.height * CENTRE;
 
   return {
     d: brushRibbon(scribbleCirclePoints(args), {
@@ -86,51 +77,25 @@ export function scribbleCirclePath(args: ScribbleCircleGeometry): {
   };
 }
 
-export function scribbleCircleProgress(
-  frame: number,
-  options?: { delay?: number; durationSteps?: number; step?: number },
-): number {
-  const delay = options?.delay ?? 0;
-  const durationSteps = options?.durationSteps ?? 10;
-  const step = options?.step ?? DEFAULT_STEP;
-  return steppedRamp(frame, delay, delay + durationSteps * step, { step });
-}
-
-export interface ScribbleCircleProps {
-  width: number;
-  height: number;
-  color?: string;
-  strokeWidth?: number;
-  pressure?: number;
-  release?: number;
-  grain?: number;
-  delay?: number;
-  durationSteps?: number;
-  laps?: number;
-  seed?: string;
-  step?: number;
-}
-
 function ScribbleCircleView({
   width,
   height,
-  color = "#6f7f35",
-  strokeWidth = 14,
-  pressure = 0.2,
-  release = 1,
-  grain = 1,
-  delay = 0,
-  durationSteps = 10,
-  laps = 1.15,
-  seed = "scribble",
-  step = DEFAULT_STEP,
-}: ScribbleCircleProps) {
+  color,
+  strokeWidth,
+  pressure,
+  release,
+  grain,
+  durationSteps,
+  laps,
+  seed,
+  step,
+  wobble,
+  startAngle,
+  clockwise,
+  opacity,
+}: Omit<ElementSettings["scribble-circle"], "x" | "y">) {
   const frame = useAuthoredFrame();
-  const progress = scribbleCircleProgress(frame, {
-    delay,
-    durationSteps,
-    step,
-  });
+  const progress = steppedRamp(frame, 0, durationSteps * step, { step });
   const { d, viewBox, marginX, marginY } = scribbleCirclePath({
     width,
     height,
@@ -141,6 +106,9 @@ function ScribbleCircleView({
     grain,
     seed,
     progress,
+    wobble,
+    startAngle,
+    clockwise,
   });
 
   return (
@@ -169,7 +137,7 @@ function ScribbleCircleView({
         <path
           d={d}
           fill={color}
-          opacity={0.85}
+          opacity={opacity}
           filter={grain > 0 ? `url(#${brushFilterId(seed, strokeWidth, grain)})` : undefined}
         />
       </svg>
@@ -177,22 +145,19 @@ function ScribbleCircleView({
   );
 }
 
-export function ScribbleCircle(all: ElementProps & { children?: React.ReactNode }) {
-  const { x, y, ...props } = all;
+export function ScribbleCircle({ x, y, ...settings }: ElementSettings["scribble-circle"]) {
   const { width, height } = useVideoConfig();
   return (
     <AbsoluteFill>
       <div
         style={{
           position: "absolute",
-          left: numberOr(x, 0.5) * width,
-          top: numberOr(y, 0.5) * height,
+          left: x * width,
+          top: y * height,
           translate: "-50% -50%",
         }}
       >
-        <ScribbleCircleView
-          {...(props as unknown as React.ComponentProps<typeof ScribbleCircleView>)}
-        />
+        <ScribbleCircleView {...settings} />
       </div>
     </AbsoluteFill>
   );

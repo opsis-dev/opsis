@@ -66,7 +66,8 @@ pub struct CommandMenu {
         zero_label = "All",
         step = 1,
         show_if = { "autoplay": ["false"] },
-        "type" = "integer"
+        "type" = "integer",
+        advanced
     )]
     pub reveal_count: Option<u32>,
     #[setting(
@@ -84,7 +85,8 @@ pub struct CommandMenu {
         range(min = -1, max = 20),
         step = 1,
         help = "Counting from 0. -1 hovers none.",
-        show_if = { "autoplay": ["false"] }
+        show_if = { "autoplay": ["false"] },
+        advanced
     )]
     pub highlighted_index: i32,
     #[setting("Theme", transform = neutral_themes, widget = "theme")]
@@ -127,9 +129,76 @@ pub struct CommandMenu {
         range(min = -1, max = 20),
         step = 1,
         help = "The item that gets pressed, counting from 0. -1 presses none.",
-        show_if = { "autoplay": ["false"] }
+        show_if = { "autoplay": ["false"] },
+        advanced
     )]
     pub pressed_index: i32,
+    #[setting(
+        "Time per letter",
+        default = 0.0833,
+        range(min = 0.0333, max = 0.4),
+        step = 0.01,
+        unit = "s",
+        frames_at = 30,
+        advanced
+    )]
+    pub letter_seconds: f64,
+    #[setting(
+        "Pause before picking",
+        default = 0.6,
+        range(min = 0, max = 3),
+        step = 0.01,
+        unit = "s",
+        frames_at = 30,
+        advanced
+    )]
+    pub pause_seconds: f64,
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4))]
+    pub speed: f64,
+    #[setting(
+        "Match picked",
+        default = 0,
+        range(min = 0, max = 20),
+        step = 1,
+        help = "Which of the matching items gets picked, counting from 0.",
+        show_if = { "autoplay": ["true"] },
+        advanced
+    )]
+    pub pick_index: u32,
+    #[setting("Placeholder", default = "Type a command or search…", advanced)]
+    pub placeholder: String,
+    #[setting("No match text", default = "No results found.", advanced)]
+    pub empty_text: String,
+    #[setting("Backdrop dimming", default = 0.5, range(min = 0, max = 1), advanced)]
+    pub backdrop_opacity: f64,
+    #[setting(
+        "Menu width",
+        default = 440,
+        range(min = 280, max = 900),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub panel_width: u32,
+    #[setting(
+        "Distance from top",
+        default = 18.0,
+        range(min = 0, max = 60),
+        unit = "%",
+        advanced
+    )]
+    pub top: f64,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
+    #[setting(
+        "Corner radius",
+        default = 10,
+        range(min = 0, max = 32),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub radius: u32,
 }
 
 pub fn definition() -> ElementMeta {

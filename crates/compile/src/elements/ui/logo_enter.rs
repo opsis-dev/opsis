@@ -57,7 +57,8 @@ pub struct LogoEnter {
         range(min = 0),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub stagger: f64,
     #[setting(
@@ -73,6 +74,43 @@ pub struct LogoEnter {
     pub logos: Vec<LogoEnterLogo>,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Bounce damping",
+        default = 13,
+        range(min = 4, max = 40),
+        step = 1,
+        help = "Lower bounces more as each logo lands.",
+        advanced
+    )]
+    pub bounce: u32,
+    #[setting(
+        "Ring width",
+        default = 5,
+        range(min = 0, max = 20),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub ring_width: u32,
+    #[setting(
+        "Shadow",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.01,
+        advanced
+    )]
+    pub shadow: f64,
+    #[setting(
+        "Logo size",
+        default = 52,
+        range(min = 20, max = 100),
+        step = 1,
+        unit = "%",
+        advanced
+    )]
+    pub logo_scale: u32,
+    #[setting("First logo on top", default = true, advanced)]
+    pub first_on_top: bool,
 }
 
 pub fn definition() -> ElementMeta {

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import {
   Box3,
@@ -16,7 +16,7 @@ import {
 } from "three";
 import type { SVGResult } from "three/addons/loaders/SVGLoader.js";
 import { isRecord } from "#video/common/guards.ts";
-import { Card } from "#video/elements/scene/card-3d.tsx";
+import { Card, FACE_ROUGHNESS } from "#video/elements/scene/card-3d.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { isSvg, useSvg, useTexture } from "#video/three/load.ts";
 import { elementPose } from "#video/three/motion.ts";
@@ -25,13 +25,18 @@ import { Posed, Stage3D } from "#video/three/stage.tsx";
 
 const SAMPLE_LOGO = "placeholders/logo-mark.svg";
 const LOGO_SIZE = 2;
-const ROUGHNESS = 0.35;
-const BEVEL_SHARE = 0.08;
 const CURVE_SEGMENTS = 24;
 const TUBE_SIDES = 12;
 const SEED = 1;
 
-type Look = { depth: number; color?: string; metalness: number };
+type Look = {
+  depth: number;
+  color?: string;
+  metalness: number;
+  roughness: number;
+  bevel: number;
+  size: number;
+};
 
 function svgBounds(svg: SVGResult): number {
   const box = new Box3();
@@ -46,7 +51,7 @@ const material = (color: string, look: Look) =>
   new MeshStandardMaterial({
     color: look.color ?? color,
     metalness: look.metalness,
-    roughness: ROUGHNESS,
+    roughness: look.roughness,
     side: DoubleSide,
   });
 
@@ -75,8 +80,8 @@ function svgModel(svg: SVGResult, look: Look): Group {
         depth,
         curveSegments: CURVE_SEGMENTS,
         bevelEnabled: true,
-        bevelThickness: depth * BEVEL_SHARE,
-        bevelSize: depth * BEVEL_SHARE,
+        bevelThickness: depth * look.bevel,
+        bevelSize: depth * look.bevel,
         bevelSegments: 3,
       });
       geometry.translate(0, 0, -depth / 2);
@@ -96,7 +101,7 @@ function svgModel(svg: SVGResult, look: Look): Group {
   flipped.scale.y = -1;
   const model = new Group();
   model.add(flipped);
-  fitToSize(flipped, LOGO_SIZE);
+  fitToSize(flipped, look.size);
   return model;
 }
 
@@ -110,13 +115,13 @@ function dispose(object: Object3D): void {
   });
 }
 
-const SvgLogo: React.FC<{ svg: SVGResult; look: Look }> = ({ svg, look }) => {
+function SvgLogo({ svg, look }: { svg: SVGResult; look: Look }) {
   const model = useMemo(() => svgModel(svg, look), [svg, look]);
   useEffect(() => () => dispose(model), [model]);
   return <primitive object={model} />;
-};
+}
 
-export const Logo3D: React.FC<ElementSettings["logo-3d"]> = ({
+export function Logo3D({
   src,
   depth,
   color,
@@ -126,7 +131,17 @@ export const Logo3D: React.FC<ElementSettings["logo-3d"]> = ({
   speed,
   lighting,
   background,
-}) => {
+  zoom,
+  roughness,
+  bevel,
+  cornerRadius,
+  tilt,
+  growIn,
+  endFacing,
+  motionAmount,
+  reverse,
+  lens,
+}: ElementSettings["logo-3d"]) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const file = src || staticFile(SAMPLE_LOGO);
@@ -134,24 +149,41 @@ export const Logo3D: React.FC<ElementSettings["logo-3d"]> = ({
   const svg = useSvg(vector ? file : null);
   const texture = useTexture(vector ? null : file);
   const look = useMemo(
-    () => ({ depth, color: color || undefined, metalness }),
-    [depth, color, metalness],
+    () => ({
+      depth,
+      color: color || undefined,
+      metalness,
+      roughness,
+      bevel,
+      size: LOGO_SIZE * zoom,
+    }),
+    [depth, color, metalness, roughness, bevel, zoom],
   );
-  const pose = elementPose(motion, camera, { frame, fps, speed, seed: SEED });
+  const pose = elementPose(motion, camera, {
+    frame,
+    fps,
+    speed,
+    seed: SEED,
+    tiltDeg: tilt,
+    endFacing,
+    amount: motionAmount,
+    reverse,
+    growIn,
+  });
   return (
-    <Stage3D lighting={lighting} background={background}>
+    <Stage3D lighting={lighting} background={background} fov={lens}>
       <Posed pose={pose}>
         {svg ? <SvgLogo svg={svg} look={look} /> : null}
         {texture ? (
           <Card
             texture={texture}
-            longest={LOGO_SIZE}
-            radius={0.12}
+            longest={LOGO_SIZE * zoom}
+            radius={cornerRadius}
             depth={depth * 0.4}
-            look={look}
+            look={{ ...look, faceRoughness: FACE_ROUGHNESS }}
           />
         ) : null}
       </Posed>
     </Stage3D>
   );
-};
+}

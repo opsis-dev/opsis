@@ -16,6 +16,7 @@ pub struct MockResponse {
     pub status: u32,
     pub content_type: String,
     pub body: String,
+    pub delay_ms: u32,
 }
 
 #[derive(Default)]
@@ -65,6 +66,21 @@ impl Routes {
                     .find(|m| url_matches(&url, &m.url).unwrap_or(false))
                     .cloned();
                 let answered = match found {
+                    Some(mock) if mock.delay_ms > 0 => {
+                        let tab = Arc::clone(&intercepting);
+                        tokio::spawn(async move {
+                            tab.clock()
+                                .wait(std::time::Duration::from_millis(u64::from(mock.delay_ms)))
+                                .await;
+                            if let Err(error) = tab
+                                .send("Fetch.fulfillRequest", fulfilled(&id, &mock))
+                                .await
+                            {
+                                log::debug!("answering an intercepted request late: {error}");
+                            }
+                        });
+                        Ok(serde_json::Value::Null)
+                    }
                     Some(mock) => {
                         intercepting
                             .send("Fetch.fulfillRequest", fulfilled(&id, &mock))

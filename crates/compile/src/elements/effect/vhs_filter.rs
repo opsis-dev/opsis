@@ -21,6 +21,10 @@ pub struct VhsFilter {
     pub noise: f64,
     #[setting("Intensity", default = 1.0, range(min = 0, max = 1), step = 0.05)]
     pub intensity: f64,
+    #[setting("Bottom tear", default = 1.0, range(min = 0, max = 3), advanced)]
+    pub head_switch: f64,
+    #[setting("Scanlines", default = 1.0, range(min = 0, max = 3), advanced)]
+    pub scanlines: f64,
 }
 
 pub fn definition() -> ElementMeta {

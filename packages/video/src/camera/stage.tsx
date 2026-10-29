@@ -3,17 +3,19 @@ import { AbsoluteFill } from "remotion";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { ink, WINDOW_RADIUS } from "#video/camera/lib/style.ts";
 
-export const Stage: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <AbsoluteFill
-    style={{
-      justifyContent: "center",
-      alignItems: "center",
-      overflow: "hidden",
-    }}
-  >
-    {children}
-  </AbsoluteFill>
-);
+export function Stage({ children }: { children: React.ReactNode }) {
+  return (
+    <AbsoluteFill
+      style={{
+        justifyContent: "center",
+        alignItems: "center",
+        overflow: "hidden",
+      }}
+    >
+      {children}
+    </AbsoluteFill>
+  );
+}
 
 const GLOW_RADIUS = 60;
 const GLOW_BLUR = 90;
@@ -25,7 +27,7 @@ const RIM_LOOKS = {
   dark: { glow: "rgba(255,255,255,0.10)", lift: "2%", rim: "rgba(255,255,255,0.14)" },
 } as const;
 
-export const RimLight: React.FC<{ light?: boolean }> = ({ light = false }) => {
+export function RimLight({ light = false, strength = 1 }: { light?: boolean; strength?: number }) {
   const k = useDesignScale();
   const look = RIM_LOOKS[light ? "light" : "dark"];
   return (
@@ -38,6 +40,7 @@ export const RimLight: React.FC<{ light?: boolean }> = ({ light = false }) => {
           background: look.glow,
           transform: `translateY(${look.lift}) scale(${GLOW_SCALE})`,
           filter: `blur(${GLOW_BLUR * k}px)`,
+          opacity: strength,
           pointerEvents: "none",
         }}
       />
@@ -52,4 +55,4 @@ export const RimLight: React.FC<{ light?: boolean }> = ({ light = false }) => {
       />
     </>
   );
-};
+}

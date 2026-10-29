@@ -43,6 +43,24 @@ pub struct InlineHighlight {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Change starts at",
+        default = 0.2,
+        range(min = 0, max = 0.9),
+        unit = "×",
+        advanced
+    )]
+    pub change_start: f64,
+    #[setting(
+        "Change ends at",
+        default = 0.7,
+        range(min = 0.1, max = 1),
+        unit = "×",
+        advanced
+    )]
+    pub change_end: f64,
+    #[setting("Letter spacing", default = -0.03, range(min = -0.1, max = 0.3), unit = "em", advanced)]
+    pub letter_spacing: f64,
 }
 
 pub fn definition() -> ElementMeta {

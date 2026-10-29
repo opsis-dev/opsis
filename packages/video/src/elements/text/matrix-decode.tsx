@@ -1,33 +1,23 @@
 import { random } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface MatrixDecodeProps {
-  background?: string;
-  fontFamily?: string;
-  text: string;
-  charset?: string;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  revealDuration?: number;
-  speed?: number;
-  className?: string;
-}
+import { fontOr } from "#video/common/fonts.ts";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function MatrixDecode({
-  fontFamily = "var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace",
+  fontFamily,
   text,
-  charset = "!@#$%^&*()_+-=<>?/\\|",
-  fontSize = 72,
-  color = "#22c55e",
-  fontWeight = 600,
-  revealDuration = 60,
-  speed = 1,
-  className,
-  background = "transparent",
-}: MatrixDecodeProps) {
+  charset,
+  fontSize,
+  color,
+  fontWeight,
+  revealDuration,
+  speed,
+  background,
+  scrambleEvery,
+  seed,
+  letterSpacing,
+}: ElementSettings["matrix-decode"]) {
   const frame = useAuthoredFrame() * speed;
-  useAuthoredConfig();
 
   let output = "";
   for (let i = 0; i < text.length; i++) {
@@ -37,7 +27,8 @@ export function MatrixDecode({
     } else if (frame >= revealFrame) {
       output += text[i];
     } else {
-      const r = random(`${i}-${Math.floor(frame / 2)}`);
+      const tick = Math.floor(frame / Math.max(scrambleEvery, 1));
+      const r = random(seed === 0 ? `${i}-${tick}` : `${seed}-${i}-${tick}`);
       const ch = charset[Math.floor(r * charset.length)];
       output += ch;
     }
@@ -55,14 +46,13 @@ export function MatrixDecode({
       }}
     >
       <span
-        className={className}
         style={{
           fontSize,
           fontWeight,
           color,
-          letterSpacing: "0.05em",
+          letterSpacing: `${letterSpacing}em`,
           whiteSpace: "pre",
-          fontFamily,
+          fontFamily: fontOr(fontFamily, "code"),
         }}
       >
         {output}

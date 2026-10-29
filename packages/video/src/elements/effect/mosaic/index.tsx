@@ -5,11 +5,15 @@ import { PixelateRegion } from "#video/elements/effect/mosaic/pixelate-region.ts
 
 const MAX_REGIONS = 8;
 
-export const Mosaic: React.FC<{
+export function Mosaic({
+  boxes = [],
+  blockSize = 24,
+  children,
+}: {
   boxes?: Box[];
   blockSize?: number;
   children?: React.ReactNode;
-}> = ({ boxes = [], blockSize = 24, children }) => {
+}) {
   const { width, height } = useVideoConfig();
   const regions = boxes
     .filter((b) => b.width > 0 && b.height > 0)
@@ -26,4 +30,4 @@ export const Mosaic: React.FC<{
       {children}
     </PixelateRegion>
   );
-};
+}

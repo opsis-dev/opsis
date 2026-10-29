@@ -4,40 +4,23 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
-import { ShaderGrainGradient } from "#video/elements/background/shader-grain-gradient.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { GrainGradientField } from "#video/parts/shader-fields.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,
   extrapolateRight: "clamp" as const,
 };
 
-const DEFAULT_COLORS = ["#3a3a52", "#4a4a68", "#8f88ae"];
+type RippleZoomProps = ElementSettings["ripple-zoom"];
 
-export type RippleZoomProps = {
-  colors?: string[];
-  colorBack?: string;
-  intensity?: number;
-  softness?: number;
-  noise?: number;
-  zoom?: number;
-  speed?: number;
-};
-
-const RippleZoomPresentation: React.FC<TransitionPresentationComponentProps<RippleZoomProps>> = ({
+function RippleZoomPresentation({
   children,
   presentationProgress,
   presentationDirection,
   passedProps,
-}) => {
-  const {
-    colors = DEFAULT_COLORS,
-    colorBack = "#141318",
-    intensity = 0.5,
-    softness = 0.5,
-    noise = 0.5,
-    zoom = 4,
-    speed = 1,
-  } = passedProps;
+}: TransitionPresentationComponentProps<RippleZoomProps>) {
+  const { colors, colorBack, intensity, softness, noise, zoom, speed, originX } = passedProps;
   const entering = presentationDirection === "entering";
   const p = presentationProgress;
 
@@ -76,7 +59,7 @@ const RippleZoomPresentation: React.FC<TransitionPresentationComponentProps<Ripp
   return (
     <AbsoluteFill>
       <AbsoluteFill style={{ opacity: fieldOpacity, pointerEvents: "none" }}>
-        <ShaderGrainGradient
+        <GrainGradientField
           speed={speed}
           shape="ripple"
           colors={colors}
@@ -85,14 +68,15 @@ const RippleZoomPresentation: React.FC<TransitionPresentationComponentProps<Ripp
           softness={softness}
           noise={noise}
           scale={fieldScale}
+          offsetX={(originX - 0.5) * 2}
         />
       </AbsoluteFill>
       <AbsoluteFill style={childStyle}>{children}</AbsoluteFill>
     </AbsoluteFill>
   );
-};
+}
 
-export function rippleZoom(props: RippleZoomProps = {}): TransitionPresentation<RippleZoomProps> {
+export function rippleZoom(props: RippleZoomProps): TransitionPresentation<RippleZoomProps> {
   return {
     component: RippleZoomPresentation,
     props,

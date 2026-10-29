@@ -1,12 +1,10 @@
-import type React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 import { ticksFromWords } from "#video/lib/settings/shape.ts";
-
-const fontFamily = '"Inter"';
 
 export type MatrixCell = boolean | string;
 
@@ -14,32 +12,6 @@ export type MatrixRow = {
   label: string;
   cells: MatrixCell[];
 };
-
-export type ComparisonTableProps = {
-  columns?: string[];
-  rows?: MatrixRow[];
-  title?: string;
-  highlightColumn?: number;
-  highlightLabel?: string;
-  startAtSeconds?: number;
-  rowStaggerSeconds?: number;
-  holdSeconds?: number;
-  accentColor?: string;
-  backgroundColor?: string;
-  theme?: "dark" | "light";
-  speed?: number;
-};
-
-const DEFAULT_COLUMNS = ["Free", "Studio", "Scale"];
-
-const DEFAULT_ROWS: MatrixRow[] = [
-  { label: "Render minutes", cells: ["60", "2,000", "Unlimited"] },
-  { label: "1080p exports", cells: [true, true, true] },
-  { label: "4K exports", cells: [false, true, true] },
-  { label: "Team seats", cells: ["1", "9", "Unlimited"] },
-  { label: "Render API", cells: [false, true, true] },
-  { label: "Priority queue", cells: [false, false, true] },
-];
 
 const T = {
   card: 0,
@@ -54,60 +26,66 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-const Tick: React.FC<{ color: string; size: number; progress: number }> = ({
-  color,
-  size,
-  progress,
-}) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M5 12.5 L10 17.5 L19 7"
-      stroke={color}
-      strokeWidth={2.6}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      pathLength={1}
-      strokeDasharray={1}
-      strokeDashoffset={1 - progress}
-    />
-  </svg>
-);
+function Tick({ color, size, progress }: { color: string; size: number; progress: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M5 12.5 L10 17.5 L19 7"
+        stroke={color}
+        strokeWidth={2.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        pathLength={1}
+        strokeDasharray={1}
+        strokeDashoffset={1 - progress}
+      />
+    </svg>
+  );
+}
 
-const Cross: React.FC<{ color: string; size: number; progress: number }> = ({
-  color,
-  size,
-  progress,
-}) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M7.5 7.5 L16.5 16.5 M16.5 7.5 L7.5 16.5"
-      stroke={color}
-      strokeWidth={2.4}
-      strokeLinecap="round"
-      pathLength={1}
-      strokeDasharray={1}
-      strokeDashoffset={1 - progress}
-    />
-  </svg>
-);
+function Cross({ color, size, progress }: { color: string; size: number; progress: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M7.5 7.5 L16.5 16.5 M16.5 7.5 L7.5 16.5"
+        stroke={color}
+        strokeWidth={2.4}
+        strokeLinecap="round"
+        pathLength={1}
+        strokeDasharray={1}
+        strokeDashoffset={1 - progress}
+      />
+    </svg>
+  );
+}
 
-const ComparisonTableView: React.FC<ComparisonTableProps> = ({
-  columns = DEFAULT_COLUMNS,
-  rows = DEFAULT_ROWS,
-  title = "What you get",
-  highlightColumn = 1,
-  highlightLabel = "Most picked",
-  startAtSeconds = 0.5,
-  rowStaggerSeconds = 0.26,
+function ComparisonTableView({
+  columns,
+  rows,
+  title,
+  highlight,
+  highlightColumn: column,
+  highlightLabel,
+  startAtSeconds,
+  rowStaggerSeconds,
   holdSeconds,
-  accentColor = "#E8B86D",
+  accentColor,
   backgroundColor,
-  theme = "dark",
-  speed = 1,
-}) => {
+  theme,
+  speed,
+  tickColor,
+  labelWidth,
+  cardWidth,
+  fontFamily,
+  uppercaseHeadings,
+}: Omit<ElementSettings["comparison-table"], "rows"> & {
+  rows: MatrixRow[];
+  holdSeconds?: number;
+}) {
+  const highlightColumn = highlight ? column : -1;
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
   const at = (seconds: number) => (seconds * fps) / speed;
@@ -137,9 +115,9 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
           ...clamp,
         });
 
-  const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 880 * u);
+  const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, cardWidth * u);
   const pad = 24 * u;
-  const labelW = (cardW - pad * 2) * 0.36;
+  const labelW = ((cardW - pad * 2) * labelWidth) / 100;
   const colW = (cardW - pad * 2 - labelW) / Math.max(1, columns.length);
   const rowH = 46 * u;
   const headH = 44 * u;
@@ -147,8 +125,8 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
   return (
     <AbsoluteFill
       style={{
-        background: backgroundColor ?? palette.page,
-        fontFamily,
+        background: backgroundColor || palette.page,
+        fontFamily: fontOr(fontFamily, "main"),
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -225,7 +203,7 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
         <div style={{ position: "relative" }}>
           <div style={{ display: "flex", height: headH, alignItems: "flex-end" }}>
             <div style={{ width: labelW }} />
-            {columns.map((column, columnIndex) => (
+            {columns.map((name, columnIndex) => (
               <div
                 key={columnIndex}
                 style={{
@@ -236,12 +214,12 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
                   fontSize: 15 * u,
                   fontWeight: 600,
                   letterSpacing: "0.04em",
-                  textTransform: "uppercase",
+                  textTransform: uppercaseHeadings ? "uppercase" : undefined,
                   opacity: headIn,
                   translate: `0 ${(1 - headIn) * 8 * u}px`,
                 }}
               >
-                {column}
+                {name}
               </div>
             ))}
           </div>
@@ -301,7 +279,7 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
                         </span>
                       ) : cell ? (
                         <Tick
-                          color={lit ? accentColor : "#9BD4A0"}
+                          color={lit ? accentColor : tickColor}
                           size={22 * u}
                           progress={cellIn}
                         />
@@ -318,14 +296,8 @@ const ComparisonTableView: React.FC<ComparisonTableProps> = ({
       </div>
     </AbsoluteFill>
   );
-};
+}
 
-export function ComparisonTable(props: ElementProps & { children?: React.ReactNode }) {
-  return (
-    <ComparisonTableView
-      {...({ ...props, rows: ticksFromWords(props.rows) } as unknown as React.ComponentProps<
-        typeof ComparisonTableView
-      >)}
-    />
-  );
+export function ComparisonTable({ rows, ...settings }: ElementSettings["comparison-table"]) {
+  return <ComparisonTableView {...settings} rows={ticksFromWords(rows)} />;
 }

@@ -27,7 +27,7 @@ pub struct Logo3d {
     pub depth: f64,
     #[setting("Colour", widget = "color", zero_label = "The logo's own colours")]
     pub color: String,
-    #[setting("Metal", default = 0.3, range(min = 0, max = 1), step = 0.05)]
+    #[setting("Metal", default = 0.3, range(min = 0, max = 1), step = 0.05, advanced)]
     pub metalness: f64,
     #[setting(
         "Motion",
@@ -58,8 +58,46 @@ pub struct Logo3d {
         labels = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" }
     )]
     pub lighting: Lighting,
-    #[setting("Background", default = "transparent")]
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "None",
+        check = colour_or_empty
+    )]
     pub background: String,
+    #[setting("Zoom", default = 1.0, range(min = 0.3, max = 3))]
+    pub zoom: f64,
+    #[setting("Matte", default = 0.35, range(min = 0, max = 1), advanced)]
+    pub roughness: f64,
+    #[setting("Bevel", default = 0.08, range(min = 0, max = 0.3), advanced)]
+    pub bevel: f64,
+    #[setting("Rounded corners", default = 0.12, range(min = 0, max = 0.5), advanced)]
+    pub corner_radius: f64,
+    #[setting(
+        "Tilt",
+        default = 52,
+        range(min = 0, max = 80),
+        step = 1,
+        unit = "°",
+        advanced
+    )]
+    pub tilt: u32,
+    #[setting("Grow in", default = true, advanced)]
+    pub grow_in: bool,
+    #[setting("End facing the camera", advanced)]
+    pub end_facing: bool,
+    #[setting("Motion amount", default = 1.0, range(min = 0, max = 2), advanced)]
+    pub motion_amount: f64,
+    #[setting("Turn the other way", advanced)]
+    pub reverse: bool,
+    #[setting(
+        "Lens",
+        default = 30.0,
+        range(min = 10, max = 70),
+        unit = "°",
+        advanced
+    )]
+    pub lens: f64,
 }
 
 pub fn definition() -> ElementMeta {

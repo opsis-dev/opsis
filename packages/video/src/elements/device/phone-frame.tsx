@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from "react";
-import type React from "react";
 import {
   Easing,
   getRemotionEnvironment,
@@ -8,36 +7,20 @@ import {
   OffthreadVideo,
   staticFile,
 } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
-import { isTheme, themeColors } from "#video/common/theme.ts";
+import { themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { resolveFont, type WarmTheme, useWarmTheme, withAlpha } from "#video/lib/warm-ui/index.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
 export type PhoneFrameVariant = "flat" | "tilt" | "showcase";
 export type PhoneFrameEntrance = "rise" | "rotate-in" | "float";
 
-export interface PhoneFrameProps {
+type PhoneFrameProps = Omit<ElementSettings["phone-frame"], "theme"> & {
   children?: ReactNode;
-  screenSrc?: string;
-  variant?: PhoneFrameVariant;
-  entrance?: PhoneFrameEntrance;
-  bezelColor?: string;
-  screenColor?: string;
-  theme?: Partial<WarmTheme>;
-  mode?: "light" | "dark";
-  fontFamily?: string;
-  radius?: number;
-  screenRadius?: number;
-  shadow?: string;
-  scale?: number;
-  showDynamicIsland?: boolean;
-  floatLoop?: boolean;
-  floatAmplitude?: number;
-  tiltAngle?: number;
-  speed?: number;
-  className?: string;
-}
+  theme: Partial<WarmTheme>;
+  mode: "light" | "dark";
+};
 
 const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
@@ -46,19 +29,7 @@ export const DEVICE_HEIGHT = 656;
 
 export const BEZEL_WIDTH = 12;
 
-export const DEVICE_RADIUS_RATIO = 0.165;
-
 export const ENTRANCE_FRAMES = 30;
-
-export const FLOAT_PERIOD_SECONDS = 4.5;
-
-export function deviceRadius(deviceWidth: number): number {
-  return Math.round(deviceWidth * DEVICE_RADIUS_RATIO);
-}
-
-export function screenRadiusFor(radius: number, bezel: number = BEZEL_WIDTH): number {
-  return Math.max(4, radius - bezel);
-}
 
 export interface EntrancePose {
   opacity: number;
@@ -119,8 +90,8 @@ export function floatOffset(
   frame: number,
   fps: number,
   amplitude: number,
-  startFrame = 0,
-  periodSeconds: number = FLOAT_PERIOD_SECONDS,
+  startFrame: number,
+  periodSeconds: number,
 ): number {
   const local = Math.max(0, frame - startFrame);
   const value = Math.sin((local / (fps * periodSeconds)) * Math.PI * 2) * amplitude;
@@ -137,294 +108,6 @@ export const SIDE_BUTTONS: Array<{
   { side: "left", top: 222, length: 46 },
   { side: "right", top: 176, length: 68 },
 ];
-
-const SCREEN_W = DEVICE_WIDTH - BEZEL_WIDTH * 2;
-const SCREEN_H = DEVICE_HEIGHT - BEZEL_WIDTH * 2;
-
-const ROUTE: ReadonlyArray<readonly [number, number]> = [
-  [224, 450],
-  [172, 462],
-  [116, 460],
-  [70, 450],
-  [52, 412],
-  [74, 382],
-  [104, 388],
-  [134, 372],
-  [162, 380],
-  [192, 364],
-  [222, 372],
-  [248, 396],
-  [256, 424],
-  [244, 448],
-];
-
-function routeCumLengths(pts: ReadonlyArray<readonly [number, number]>) {
-  const cum = [0];
-  let total = 0;
-  for (let i = 0; i < pts.length; i++) {
-    const a = pts[i];
-    const b = pts[(i + 1) % pts.length];
-    total += Math.hypot(b[0] - a[0], b[1] - a[1]);
-    cum.push(total);
-  }
-  return { cum, total };
-}
-
-const ROUTE_LEN = routeCumLengths(ROUTE);
-
-export function pointAtFraction(
-  f: number,
-  pts: ReadonlyArray<readonly [number, number]> = ROUTE,
-): { x: number; y: number } {
-  const { cum, total } = pts === ROUTE ? ROUTE_LEN : routeCumLengths(pts);
-  const target = Math.max(0, Math.min(1, f)) * total;
-  for (let i = 0; i < pts.length; i++) {
-    if (cum[i + 1] >= target) {
-      const seg = cum[i + 1] - cum[i] || 1;
-      const t = (target - cum[i]) / seg;
-      const a = pts[i];
-      const b = pts[(i + 1) % pts.length];
-      return { x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t };
-    }
-  }
-  const last = pts[pts.length - 1];
-  return { x: last[0], y: last[1] };
-}
-
-export function smoothClosedPath(pts: ReadonlyArray<readonly [number, number]>): string {
-  const n = pts.length;
-  const p = (i: number) => pts[((i % n) + n) % n];
-  let d = `M ${p(0)[0]} ${p(0)[1]}`;
-  for (let i = 0; i < n; i++) {
-    const p0 = p(i - 1);
-    const p1 = p(i);
-    const p2 = p(i + 1);
-    const p3 = p(i + 2);
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
-    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
-    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
-    d += ` C ${c1x} ${c1y} ${c2x} ${c2y} ${p2[0]} ${p2[1]}`;
-  }
-  return `${d} Z`;
-}
-
-const ROUTE_PATH = smoothClosedPath(ROUTE);
-
-interface Pill {
-  title: string;
-  sub: string;
-  icon: "climb" | "heart" | "trophy" | "bolt" | "flame";
-  tint: string;
-  x: number;
-  y: number;
-  anchor: readonly [number, number];
-  appear: number;
-}
-
-const PILLS: Pill[] = [
-  {
-    title: "BIG CLIMB",
-    sub: "+993 ft",
-    icon: "climb",
-    tint: "#D2925F",
-    x: 100,
-    y: 196,
-    anchor: [148, 372],
-    appear: 74,
-  },
-  {
-    title: "SETTLED",
-    sub: "HR steady at 116",
-    icon: "heart",
-    tint: "#84B27C",
-    x: 80,
-    y: 234,
-    anchor: [132, 374],
-    appear: 60,
-  },
-  {
-    title: "NEW PR",
-    sub: "Fastest 5 mi",
-    icon: "trophy",
-    tint: "#ADA69E",
-    x: 44,
-    y: 292,
-    anchor: [64, 398],
-    appear: 40,
-  },
-  {
-    title: "FASTEST SPLIT",
-    sub: "23 mph avg",
-    icon: "bolt",
-    tint: "#ADA69E",
-    x: 168,
-    y: 300,
-    anchor: [242, 378],
-    appear: 52,
-  },
-  {
-    title: "SPRINT",
-    sub: "Hit 32 mph",
-    icon: "flame",
-    tint: "#CC6D5C",
-    x: 158,
-    y: 402,
-    anchor: [232, 448],
-    appear: 22,
-  },
-];
-
-function PillIcon({ kind, color }: { kind: Pill["icon"]; color: string }) {
-  const stroke = {
-    width: 11,
-    height: 11,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: color,
-    strokeWidth: 2.4,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-  };
-  if (kind === "climb") {
-    return (
-      <svg aria-hidden {...stroke}>
-        <title>climb</title>
-        <path d="M7 17 17 7" />
-        <path d="M8 7h9v9" />
-      </svg>
-    );
-  }
-  if (kind === "trophy") {
-    return (
-      <svg aria-hidden {...stroke}>
-        <title>trophy</title>
-        <path d="M7 4h10v5a5 5 0 0 1-10 0z" />
-        <path d="M7 6H4v1a3 3 0 0 0 3 3" />
-        <path d="M17 6h3v1a3 3 0 0 1-3 3" />
-        <path d="M9 20h6M12 14v6" />
-      </svg>
-    );
-  }
-  if (kind === "heart") {
-    return (
-      <svg aria-hidden width={11} height={11} viewBox="0 0 24 24" fill={color}>
-        <title>heart</title>
-        <path d="M12 21S3.5 15.4 3.5 9.4C3.5 6.4 5.6 4.5 8 4.5c1.8 0 3.2 1.1 4 2.4.8-1.3 2.2-2.4 4-2.4 2.4 0 4.5 1.9 4.5 4.9 0 6-8.5 11.6-8.5 11.6z" />
-      </svg>
-    );
-  }
-  if (kind === "bolt") {
-    return (
-      <svg aria-hidden width={11} height={11} viewBox="0 0 24 24" fill={color}>
-        <title>bolt</title>
-        <path d="M13 2 4 14h6l-1 8 9-12h-6z" />
-      </svg>
-    );
-  }
-  return (
-    <svg aria-hidden width={11} height={11} viewBox="0 0 24 24" fill={color}>
-      <title>flame</title>
-      <path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-1.6.7-2.8 1.6-3.7.2 1.7 1.2 2.7 2.6 2.7-1-3 1-4 .8-9z" />
-    </svg>
-  );
-}
-
-function StatusIcons() {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-      <svg aria-hidden width={16} height={11} viewBox="0 0 18 12" fill="#fff">
-        <title>signal</title>
-        <rect x="0" y="8" width="3" height="4" rx="1" />
-        <rect x="5" y="5" width="3" height="7" rx="1" />
-        <rect x="10" y="2.5" width="3" height="9.5" rx="1" />
-        <rect x="15" y="0" width="3" height="12" rx="1" opacity="0.4" />
-      </svg>
-      <svg aria-hidden width={15} height={11} viewBox="0 0 16 12" fill="#fff">
-        <title>wifi</title>
-        <path d="M8 2.2c2.7 0 5.2 1 7 2.8l-1.5 1.6A7.8 7.8 0 0 0 8 4.4 7.8 7.8 0 0 0 2.5 6.6L1 5C2.8 3.2 5.3 2.2 8 2.2Z" />
-        <path d="M8 6c1.5 0 2.9.6 4 1.6l-1.6 1.6A3.4 3.4 0 0 0 8 8.2c-.9 0-1.7.4-2.4 1L4 7.6A5.7 5.7 0 0 1 8 6Z" />
-        <circle cx="8" cy="10.4" r="1.4" />
-      </svg>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1.5,
-        }}
-      >
-        <div
-          style={{
-            width: 20,
-            height: 10,
-            borderRadius: 3,
-            border: "1px solid rgba(255,255,255,0.5)",
-            padding: 1.5,
-          }}
-        >
-          <div
-            style={{
-              width: "42%",
-              height: "100%",
-              borderRadius: 1,
-              background: "#fff",
-            }}
-          />
-        </div>
-        <div
-          style={{
-            width: 1.5,
-            height: 4,
-            borderRadius: 1,
-            background: "rgba(255,255,255,0.5)",
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function Stat({
-  value,
-  unit,
-  label,
-  accent,
-}: {
-  value: string;
-  unit: string;
-  label: string;
-  accent?: boolean;
-}) {
-  const color = accent ? "#F0842E" : "#FFFFFF";
-  const dim = accent ? "rgba(240,132,46,0.85)" : "rgba(255,255,255,0.42)";
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
-        <span
-          style={{
-            fontSize: 15,
-            fontWeight: 700,
-            color,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {value}
-        </span>
-        <span style={{ fontSize: 8, fontWeight: 600, color: dim }}>{unit}</span>
-      </div>
-      <span
-        style={{
-          fontSize: 7,
-          fontWeight: 700,
-          letterSpacing: "0.06em",
-          color: dim,
-        }}
-      >
-        {label}
-      </span>
-    </div>
-  );
-}
 
 export interface ShowcasePose {
   rotateX: number;
@@ -460,320 +143,6 @@ export function showcasePose(frame: number, durationInFrames: number): ShowcaseP
 }
 
 const CLAMP = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
-
-function RideSummaryDemo({ frame, face }: { frame: number; face: string }) {
-  const ease = Easing.bezier(0.2, 0.6, 0.35, 1);
-  const draw = interpolate(frame, [12, 128], [0, 1], {
-    ...CLAMP,
-    easing: ease,
-  });
-  const fillIn = interpolate(frame, [70, 150], [0, 1], CLAMP);
-  const head = pointAtFraction(draw);
-  const hint = interpolate(frame, [0, 8, 70, 88], [0, 1, 1, 0], CLAMP);
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        overflow: "hidden",
-        backgroundColor: "#0A0A0B",
-        fontFamily: face,
-        textRendering: "geometricPrecision",
-        color: "#fff",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          opacity: fillIn,
-          background:
-            "radial-gradient(120% 55% at 54% 90%, rgba(214,124,54,0.32), transparent 60%), radial-gradient(70% 40% at 46% 62%, rgba(104,158,92,0.24), transparent 62%)",
-        }}
-      />
-
-      <svg
-        width={SCREEN_W}
-        height={SCREEN_H}
-        viewBox={`0 0 ${SCREEN_W} ${SCREEN_H}`}
-        style={{ position: "absolute", inset: 0 }}
-      >
-        <title>ride route</title>
-        <defs>
-          <linearGradient
-            id="pf-elev"
-            x1="0"
-            y1="340"
-            x2="0"
-            y2="470"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0" stopColor="#7FA85E" stopOpacity="0.32" />
-            <stop offset="0.55" stopColor="#BE9150" stopOpacity="0.28" />
-            <stop offset="1" stopColor="#DE8138" stopOpacity="0.42" />
-          </linearGradient>
-          <filter id="pf-glow" x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation="4.5" />
-          </filter>
-        </defs>
-
-        <path d={ROUTE_PATH} fill="url(#pf-elev)" opacity={fillIn} />
-
-        {PILLS.map((p) => (
-          <line
-            key={`c-${p.title}`}
-            x1={p.anchor[0]}
-            y1={p.anchor[1]}
-            x2={p.x + 22}
-            y2={p.y + 30}
-            stroke="rgba(255,255,255,0.28)"
-            strokeWidth={1}
-            opacity={interpolate(frame, [p.appear, p.appear + 10], [0, 1], CLAMP)}
-          />
-        ))}
-
-        <path
-          d={ROUTE_PATH}
-          fill="none"
-          stroke="#FFEBD6"
-          strokeWidth={7}
-          strokeLinecap="round"
-          opacity={0.55}
-          pathLength={1}
-          strokeDasharray={1}
-          strokeDashoffset={1 - draw}
-          filter="url(#pf-glow)"
-        />
-        <path
-          d={ROUTE_PATH}
-          fill="none"
-          stroke="#FFFFFF"
-          strokeWidth={2.4}
-          strokeLinecap="round"
-          pathLength={1}
-          strokeDasharray={1}
-          strokeDashoffset={1 - draw}
-        />
-
-        {PILLS.map((p) => (
-          <circle
-            key={`a-${p.title}`}
-            cx={p.anchor[0]}
-            cy={p.anchor[1]}
-            r={2.4}
-            fill="#EE8348"
-            opacity={interpolate(frame, [p.appear, p.appear + 8], [0, 0.95], CLAMP)}
-          />
-        ))}
-
-        {draw > 0 && (
-          <>
-            <circle cx={head.x} cy={head.y} r={7} fill="#FFFFFF" filter="url(#pf-glow)" />
-            <circle cx={head.x} cy={head.y} r={3.4} fill="#FFFFFF" />
-          </>
-        )}
-      </svg>
-
-      {PILLS.map((p) => {
-        const t = interpolate(frame, [p.appear, p.appear + 12], [0, 1], {
-          ...CLAMP,
-          easing: ease,
-        });
-        return (
-          <div
-            key={p.title}
-            style={{
-              position: "absolute",
-              left: p.x,
-              top: p.y,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "4px 9px 4px 4px",
-              borderRadius: 999,
-              background: "rgba(26,24,23,0.82)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              opacity: t,
-              transform: `translateY(${(1 - t) * 6}px)`,
-            }}
-          >
-            <div
-              style={{
-                width: 18,
-                height: 18,
-                borderRadius: 999,
-                background: "rgba(255,255,255,0.08)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <PillIcon kind={p.icon} color={p.tint} />
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                lineHeight: 1.15,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 8.5,
-                  fontWeight: 700,
-                  letterSpacing: "0.04em",
-                  color: "#F4F1EC",
-                }}
-              >
-                {p.title}
-              </span>
-              <span style={{ fontSize: 8, color: "rgba(232,227,220,0.6)" }}>{p.sub}</span>
-            </div>
-          </div>
-        );
-      })}
-
-      <div
-        style={{
-          position: "absolute",
-          top: 14,
-          left: 18,
-          right: 16,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ fontSize: 13, fontWeight: 700 }}>9:41</span>
-          <svg
-            aria-hidden
-            width={12}
-            height={12}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#fff"
-            strokeWidth={2}
-            strokeLinecap="round"
-          >
-            <title>alerts off</title>
-            <path d="M6 8a6 6 0 0 1 9-5" />
-            <path d="M18 8v5l2 3H8" />
-            <path d="M10.5 19a2 2 0 0 0 3 0" />
-            <path d="M3 3l18 18" />
-          </svg>
-        </div>
-        <StatusIcons />
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          top: 40,
-          left: 18,
-          right: 16,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>System voice</span>
-        <span style={{ fontSize: 11, fontWeight: 600, color: "#fff" }}>Save</span>
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          top: 60,
-          right: 16,
-          display: "flex",
-          alignItems: "center",
-          gap: 3,
-          fontSize: 12,
-          fontWeight: 600,
-        }}
-      >
-        Eddy
-        <svg
-          aria-hidden
-          width={9}
-          height={9}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#fff"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <title>expand</title>
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          top: 86,
-          left: 18,
-          right: 16,
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-        }}
-      >
-        <div style={{ display: "flex", gap: 14 }}>
-          <Stat value="16.5" unit="mph" label="AVG" />
-          <Stat value="147" unit="bpm" label="AVG HR •" accent />
-          <Stat value="26.0" unit="mph" label="MAX" />
-          <Stat value="606" unit="ft" label="ASCENT" />
-        </div>
-        <div
-          style={{
-            width: 26,
-            height: 26,
-            borderRadius: 999,
-            background: "rgba(255,255,255,0.1)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <svg
-            aria-hidden
-            width={13}
-            height={13}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#fff"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <title>reset</title>
-            <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
-            <path d="M3 3v5h5" />
-          </svg>
-        </div>
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          bottom: 54,
-          left: 0,
-          right: 0,
-          textAlign: "center",
-          fontSize: 9,
-          color: "rgba(255,255,255,0.34)",
-          opacity: hint,
-        }}
-      >
-        Scrub along the bottom · Drag to explore
-      </div>
-    </div>
-  );
-}
 
 const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
 
@@ -812,8 +181,8 @@ function ScreenMedia({ src, frame }: { src: string; frame: number }) {
 function PhoneFrameView({
   children,
   screenSrc,
-  variant = "flat",
-  entrance = "rise",
+  variant,
+  entrance,
   bezelColor,
   screenColor,
   theme,
@@ -822,36 +191,35 @@ function PhoneFrameView({
   radius,
   screenRadius,
   shadow,
-  scale = 1,
-  showDynamicIsland = true,
-  floatLoop = true,
-  floatAmplitude = 6,
-  tiltAngle = -12,
-  speed = 1,
-  className,
+  scale,
+  showDynamicIsland,
+  floatLoop,
+  floatAmplitude,
+  tiltAngle,
+  speed,
+  floatPeriod,
 }: PhoneFrameProps) {
   const frame = useAuthoredFrame() * speed;
   const { fps, durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
   const t = useWarmTheme(theme, mode);
-  const face = resolveFont(fontFamily ?? t.fontFamily) ?? FONT_FAMILY;
+  const face = resolveFont(fontFamily || t.fontFamily) ?? FONT_FAMILY;
   const island = useWarmTheme(theme, "dark");
-  const body = bezelColor ?? t.foreground;
-  const glass = screenColor ?? t.card;
-  const drop = shadow ?? `0 24px 60px ${withAlpha(t.foreground, 0.18)}`;
+  const body = bezelColor || t.foreground;
+  const glass = screenColor || t.card;
+  const drop = shadow;
 
-  const bodyRadius = radius ?? deviceRadius(DEVICE_WIDTH);
-  const innerRadius = screenRadius ?? screenRadiusFor(bodyRadius);
+  const bodyRadius = radius;
+  const innerRadius = screenRadius;
 
   const pose = entrancePose(frame, entrance);
   const floatStart = entrance === "float" ? 0 : ENTRANCE_FRAMES;
-  const bob = floatLoop ? floatOffset(frame, fps, floatAmplitude, floatStart) : 0;
+  const bob = floatLoop ? floatOffset(frame, fps, floatAmplitude, floatStart, floatPeriod) : 0;
 
   const crane = variant === "showcase" ? showcasePose(frame, durationInFrames) : null;
 
   return (
     <div
-      className={className}
       style={{
         position: "absolute",
         inset: 0,
@@ -919,12 +287,7 @@ function PhoneFrameView({
                   overflow: "hidden",
                 }}
               >
-                {children ??
-                  (screenSrc ? (
-                    <ScreenMedia src={screenSrc} frame={frame} />
-                  ) : (
-                    <RideSummaryDemo frame={frame} face={face} />
-                  ))}
+                {children ?? (screenSrc ? <ScreenMedia src={screenSrc} frame={frame} /> : null)}
 
                 {showDynamicIsland && (
                   <div
@@ -964,19 +327,13 @@ function PhoneFrameView({
   );
 }
 
-export function PhoneFrame(props: ElementProps & { children?: React.ReactNode }) {
-  const { theme } = props;
-  if (!isTheme(theme))
-    return (
-      <PhoneFrameView {...(props as unknown as React.ComponentProps<typeof PhoneFrameView>)} />
-    );
+export function PhoneFrame({
+  theme,
+  ...settings
+}: ElementSettings["phone-frame"] & { children?: ReactNode }) {
   return (
     <WarmUIProvider mode={theme.mode}>
-      <PhoneFrameView
-        {...(props as unknown as React.ComponentProps<typeof PhoneFrameView>)}
-        theme={themeColors(theme)}
-        mode={theme.mode}
-      />
+      <PhoneFrameView {...settings} theme={themeColors(theme)} mode={theme.mode} />
     </WarmUIProvider>
   );
 }

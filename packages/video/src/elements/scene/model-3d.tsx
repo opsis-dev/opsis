@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo } from "react";
+import { useLayoutEffect, useMemo } from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import {
   AnimationMixer,
@@ -72,14 +72,14 @@ function place(gltf: GLTF, animation: string, loop: boolean, zoom: number): Plac
   return { model, floor: box.min.y, width: Math.max(size.x, size.z), mixer, action };
 }
 
-const Animated: React.FC<{ placed: Placed; timeS: number }> = ({ placed, timeS }) => {
+function Animated({ placed, timeS }: { placed: Placed; timeS: number }) {
   useLayoutEffect(() => {
     placed.mixer?.setTime(timeS);
   }, [placed, timeS]);
   return <primitive object={placed.model} />;
-};
+}
 
-export const Model3D: React.FC<ElementSettings["model-3d"]> = ({
+export function Model3D({
   src,
   motion,
   camera,
@@ -91,7 +91,14 @@ export const Model3D: React.FC<ElementSettings["model-3d"]> = ({
   lighting,
   shadow,
   background,
-}) => {
+  shadowOpacity,
+  growIn,
+  motionAmount,
+  tilt,
+  endFacing,
+  reverse,
+  lens,
+}: ElementSettings["model-3d"]) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const gltf = useModel(src || null);
@@ -106,14 +113,26 @@ export const Model3D: React.FC<ElementSettings["model-3d"]> = ({
     },
     [placed],
   );
-  const pose = elementPose(motion, camera, { frame, fps, speed, seed: SEED });
+  const pose = elementPose(motion, camera, {
+    frame,
+    fps,
+    speed,
+    seed: SEED,
+    tiltDeg: tilt,
+    endFacing,
+    amount: motionAmount,
+    reverse,
+    growIn,
+  });
   if (!placed) return null;
   return (
-    <Stage3D lighting={lighting} background={background}>
-      {shadow ? <GroundShadow width={placed.width} y={placed.floor} /> : null}
+    <Stage3D lighting={lighting} background={background} fov={lens}>
+      {shadow ? (
+        <GroundShadow width={placed.width} y={placed.floor} opacity={shadowOpacity} />
+      ) : null}
       <Posed pose={pose}>
         <Animated placed={placed} timeS={(frame / fps) * animationSpeed} />
       </Posed>
     </Stage3D>
   );
-};
+}

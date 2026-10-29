@@ -78,10 +78,11 @@ describe("marks", () => {
         fc.array(fc.record({ kind: fc.constantFrom(...MARK_KINDS, "nonsense") }), {
           maxLength: 12,
         }),
-        (marks) => {
-          const numbers = stepNumbers(marks);
+        fc.integer({ min: 0, max: 999 }),
+        (marks, first) => {
+          const numbers = stepNumbers(marks, first);
           const steps = numbers.filter((n) => n !== undefined);
-          expect(steps).toEqual(steps.map((_, i) => i + 1));
+          expect(steps).toEqual(steps.map((_, i) => first + i));
           marks.forEach((m, i) => expect(numbers[i] !== undefined).toBe(kindOf(m) === "step"));
         },
       ),

@@ -1,60 +1,47 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { PathDraw } from "#video/elements/scene/logo-reveal/path-draw.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
-import { DELAY, DURATION, EASING, STAGGER } from "#video/lib/motion/motion-tokens.ts";
+import { DELAY, DURATION, EASING } from "#video/lib/motion/motion-tokens.ts";
 import { springSmooth } from "#video/lib/motion/springs.ts";
-
-const fontFamily = '"Inter"';
-
-export type LogoRevealProps = {
-  pathD: string | string[];
-  viewBox?: string;
-  size?: number;
-  wordmark?: string;
-  tagline?: string;
-  stroke?: string;
-  strokeWidth?: number;
-  fill?: string;
-  backgroundColor?: string;
-  textColor?: string;
-  holdSeconds?: number;
-};
-
-const COLORS = {
-  bg: "#080810",
-  stroke: "#e8b86d",
-  ink: "#f4f4f5",
-} as const;
-
-const BEATS = {
-  mark: DELAY.short,
-  wordmark: DELAY.short + DURATION.slow,
-  tagline: DELAY.short + DURATION.slow + STAGGER.relaxed,
-} as const;
 
 const EXIT_FOR = 0.42;
 
-export const LogoReveal: React.FC<LogoRevealProps> = ({
+export function LogoReveal({
   pathD,
   viewBox,
   size,
   wordmark,
   tagline,
-  stroke = COLORS.stroke,
+  stroke,
   strokeWidth,
   fill,
-  backgroundColor = COLORS.bg,
-  textColor = COLORS.ink,
+  backgroundColor,
+  textColor,
   holdSeconds,
-}) => {
-  const frame = useCurrentFrame();
+  fontFamily,
+  speed,
+  drawSeconds,
+  pathStagger,
+  nameAt,
+  glow,
+  penTip,
+  nameSize,
+  fontWeight,
+  taglineSize,
+  taglineColor,
+}: ElementSettings["logo-reveal"] & { holdSeconds?: number }) {
+  const frame = useCurrentFrame() * speed;
   const { width, height, fps } = useVideoConfig();
   const safeArea = getSafeAreaPadding({ width, height });
 
   const hasCopy = Boolean(wordmark || tagline);
   const markSize = size ?? Math.round(Math.min(width, height) * (hasCopy ? 0.4 : 0.56));
   const lineWidth = strokeWidth ?? Math.max(2, Math.round(markSize * 0.022));
-  const drawFrames = DURATION.slow * 2;
+  const drawFrames = drawSeconds * fps;
+  const nameFrame = nameAt * fps;
+  const taglineFrame = nameFrame + 0.4 * fps;
 
   const bloom = spring({
     frame,
@@ -64,12 +51,12 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
   });
 
   const wordmarkLift = spring({
-    frame: frame - BEATS.wordmark,
+    frame: frame - nameFrame,
     fps,
     config: springSmooth,
     durationInFrames: DURATION.normal,
   });
-  const taglineIn = interpolate(frame, [BEATS.tagline, BEATS.tagline + DURATION.normal], [0, 1], {
+  const taglineIn = interpolate(frame, [taglineFrame, taglineFrame + DURATION.normal], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASING.enter,
@@ -104,7 +91,7 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
         justifyContent: "center",
         gap: scaleFont(28, width),
         position: "relative",
-        fontFamily,
+        fontFamily: fontOr(fontFamily, "main"),
       }}
     >
       <div
@@ -117,19 +104,21 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
           ...leaving,
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            width: markSize * 1.8,
-            height: markSize * 1.8,
-            borderRadius: "50%",
-            background: `radial-gradient(circle, color-mix(in srgb, ${stroke} 22%, transparent), transparent 70%)`,
-            filter: `blur(${scaleFont(36, width)}px)`,
-            opacity: bloom * 0.9,
-            scale: 0.8 + bloom * 0.35,
-            pointerEvents: "none",
-          }}
-        />
+        {glow ? (
+          <div
+            style={{
+              position: "absolute",
+              width: markSize * 1.8,
+              height: markSize * 1.8,
+              borderRadius: "50%",
+              background: `radial-gradient(circle, color-mix(in srgb, ${stroke} 22%, transparent), transparent 70%)`,
+              filter: `blur(${scaleFont(36, width)}px)`,
+              opacity: bloom * 0.9,
+              scale: 0.8 + bloom * 0.35,
+              pointerEvents: "none",
+            }}
+          />
+        ) : null}
         <PathDraw
           d={pathD}
           viewBox={viewBox}
@@ -138,9 +127,11 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
           stroke={stroke}
           strokeWidth={lineWidth}
           fill={fill}
-          delayInFrames={BEATS.mark}
+          delayInFrames={DELAY.short}
           durationInFrames={drawFrames}
-          staggerInFrames={STAGGER.normal}
+          staggerInFrames={pathStagger * fps}
+          head={penTip}
+          glow={glow}
         />
       </div>
 
@@ -148,8 +139,8 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
         <div
           style={{
             color: textColor,
-            fontSize: scaleFont(84, width),
-            fontWeight: 600,
+            fontSize: scaleFont(nameSize, width),
+            fontWeight,
             lineHeight: 1,
             letterSpacing: -0.5,
             textAlign: "center",
@@ -166,9 +157,9 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
       {tagline ? (
         <div
           style={{
-            color: `color-mix(in srgb, ${textColor} 60%, transparent)`,
-            fontSize: scaleFont(40, width),
-            fontWeight: 500,
+            color: taglineColor || `color-mix(in srgb, ${textColor} 60%, transparent)`,
+            fontSize: scaleFont(taglineSize, width),
+            fontWeight: Math.max(100, fontWeight - 100),
             lineHeight: 1.2,
             textAlign: "center",
             maxWidth: width * 0.7,
@@ -183,4 +174,4 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
       ) : null}
     </div>
   );
-};
+}

@@ -3,9 +3,10 @@ use opsis_compile::mix::plan::{BusDuck, BusPlan, ChannelPlan, SoundPlacement};
 use opsis_compile::time::clamp;
 use opsis_types::mix::{Comp, Eq, EqType, Highpass, LoudnessGoal, Master, SAMPLE_RATE, db_to_gain};
 use opsis_types::numbers::whole;
-use opsis_types::timeline::Keyframe;
+use opsis_types::timeline::{FadeCurve, Keyframe};
 use serde::{Deserialize, Serialize};
 
+use crate::codecs::serde_name;
 use crate::filters::{atempo_chain, loudnorm_filter};
 
 const LANE_AFTER: usize = 16;
@@ -210,16 +211,20 @@ fn placement_steps(sound: &SoundPlacement, fps: f64) -> Vec<String> {
     if sound.volume != 1.0 {
         steps.push(format!("volume={}", n6(sound.volume)));
     }
+    let curve = match sound.fade_curve {
+        None | Some(FadeCurve::Tri) => String::new(),
+        Some(curve) => format!(":curve={}", serde_name(&curve)),
+    };
     if sound.fade_in > 0 {
         steps.push(format!(
-            "afade=t=in:st=0:d={}",
+            "afade=t=in:st=0:d={}{curve}",
             secs(f64::from(sound.fade_in.min(sound.length)), fps)
         ));
     }
     if sound.fade_out > 0 {
         let d = sound.fade_out.min(sound.length);
         steps.push(format!(
-            "afade=t=out:st={}:d={}",
+            "afade=t=out:st={}:d={}{curve}",
             secs(f64::from(sound.length - d), fps),
             secs(f64::from(d), fps)
         ));
@@ -760,6 +765,7 @@ mod tests {
             volume: 1.0,
             fade_in: 0,
             fade_out: 0,
+            fade_curve: None,
             envelope: None,
         }
     }

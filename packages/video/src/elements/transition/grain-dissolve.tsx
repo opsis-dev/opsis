@@ -4,45 +4,30 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
-import {
-  ShaderGrainGradient,
-  type ShaderGrainGradientProps,
-} from "#video/elements/background/shader-grain-gradient.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { GrainGradientField } from "#video/parts/shader-fields.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,
   extrapolateRight: "clamp" as const,
 };
 
-const DEFAULT_COLORS = ["#3a3a52", "#4a4a68", "#8f88ae"];
+type GrainDissolveProps = ElementSettings["grain-dissolve"];
 
-export type GrainDissolveProps = {
-  colors?: string[];
-  colorBack?: string;
-  shape?: NonNullable<ShaderGrainGradientProps["shape"]>;
-  noise?: number;
-  zoom?: number;
-  speed?: number;
-};
-
-const GrainDissolvePresentation: React.FC<
-  TransitionPresentationComponentProps<GrainDissolveProps>
-> = ({ children, presentationProgress, presentationDirection, passedProps }) => {
-  const {
-    colors = DEFAULT_COLORS,
-    colorBack = "#141318",
-    shape = "blob",
-    noise = 0.3,
-    zoom = 2,
-    speed = 1,
-  } = passedProps;
+function GrainDissolvePresentation({
+  children,
+  presentationProgress,
+  presentationDirection,
+  passedProps,
+}: TransitionPresentationComponentProps<GrainDissolveProps>) {
+  const { colors, colorBack, shape, noise, zoom, speed, sceneBlur, rotation } = passedProps;
   const entering = presentationDirection === "entering";
   const p = presentationProgress;
 
   if (!entering) {
     const exitStyle: React.CSSProperties = {
       opacity: interpolate(p, [0.14, 0.34], [1, 0], clampOpts),
-      filter: `blur(${interpolate(p, [0.06, 0.34], [0, 10], clampOpts)}px)`,
+      filter: `blur(${interpolate(p, [0.06, 0.34], [0, sceneBlur], clampOpts)}px)`,
     };
     return <AbsoluteFill style={exitStyle}>{children}</AbsoluteFill>;
   }
@@ -67,13 +52,13 @@ const GrainDissolvePresentation: React.FC<
       ...clampOpts,
       easing: Easing.out(Easing.cubic),
     })}`,
-    filter: `blur(${interpolate(p, [0.7, 0.92], [10, 0], clampOpts)}px)`,
+    filter: `blur(${interpolate(p, [0.7, 0.92], [sceneBlur, 0], clampOpts)}px)`,
   };
 
   return (
     <AbsoluteFill>
       <AbsoluteFill style={{ opacity: fieldOpacity, pointerEvents: "none" }}>
-        <ShaderGrainGradient
+        <GrainGradientField
           speed={speed}
           colors={colors}
           colorBack={colorBack}
@@ -82,15 +67,16 @@ const GrainDissolvePresentation: React.FC<
           intensity={intensity}
           softness={softness}
           scale={fieldScale}
+          rotation={rotation}
         />
       </AbsoluteFill>
       <AbsoluteFill style={childStyle}>{children}</AbsoluteFill>
     </AbsoluteFill>
   );
-};
+}
 
 export function grainDissolve(
-  props: GrainDissolveProps = {},
+  props: GrainDissolveProps,
 ): TransitionPresentation<GrainDissolveProps> {
   return {
     component: GrainDissolvePresentation,

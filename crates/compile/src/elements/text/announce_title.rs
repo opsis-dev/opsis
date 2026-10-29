@@ -23,15 +23,22 @@ pub struct AnnounceTitle {
         default = "Everything your team needs to ship, in one place."
     )]
     pub tagline: String,
-    #[setting("Symbol path")]
+    #[setting("Symbol path", advanced)]
     pub symbol_path: String,
     #[setting(
         "Symbol colours",
         length(min = 0, max = 8),
-        help = "Leave empty for the built-in colours."
+        help = "Leave empty for the built-in colours.",
+        advanced
     )]
     pub symbol_colors: Vec<Colour>,
-    #[setting("Symbol size", default = 1.0, range(min = 0, max = 3), step = 0.05)]
+    #[setting(
+        "Symbol size",
+        default = 1.0,
+        range(min = 0, max = 3),
+        step = 0.05,
+        advanced
+    )]
     pub symbol_scale: f64,
     #[setting("Colour field", default = "#5600f5", check = colour)]
     pub field_color: String,
@@ -49,7 +56,8 @@ pub struct AnnounceTitle {
         "Glow strength",
         default = 0.139,
         range(min = 0, max = 0.4),
-        step = 0.005
+        step = 0.005,
+        advanced
     )]
     pub glow_strength: f64,
     #[setting("Tagline ink", default = "#f2f8ff", check = colour)]
@@ -64,6 +72,26 @@ pub struct AnnounceTitle {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Font weight",
+        default = 400,
+        range(min = 100, max = 900),
+        step = 100,
+        advanced
+    )]
+    pub font_weight: u32,
+    #[setting("Text size", default = 1.0, range(min = 0.5, max = 2), advanced)]
+    pub text_scale: f64,
+    #[setting("Symbol glow", default = 1.0, range(min = 0, max = 3), advanced)]
+    pub symbol_glow: f64,
+    #[setting(
+        "Tagline tint",
+        default = vec!["#8a2447".into(), "#862547".into(), "#7b2a4f".into(), "#633864".into(), "#4f467d".into(), "#3c519f".into(), "#2f5ed2".into(), "#3266e5".into()],
+        length(min = 1, max = 12),
+        help = "The colours the tagline shows before it settles, from left to right.",
+        advanced
+    )]
+    pub tagline_tint: Vec<Colour>,
 }
 
 pub fn definition() -> ElementMeta {

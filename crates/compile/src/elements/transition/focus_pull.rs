@@ -15,6 +15,16 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 pub struct FocusPull {
     #[setting("Blur", default = 16, range(min = 4, max = 32), step = 1)]
     pub blur: u32,
+    #[setting(
+        "Glow",
+        default = 30.0,
+        range(min = 0, max = 100),
+        unit = "%",
+        advanced
+    )]
+    pub glow: f64,
+    #[setting("Zoom", default = 5.0, range(min = 0, max = 20), unit = "%", advanced)]
+    pub zoom: f64,
 }
 
 pub fn definition() -> ElementMeta {

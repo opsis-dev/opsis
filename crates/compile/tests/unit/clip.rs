@@ -38,6 +38,7 @@ fn fade(kind: &str, frames: u32, hold: bool) -> Option<TransitionRef> {
         duration_in_frames: frames,
         params: None,
         hold: hold.then_some(true),
+        easing: None,
     })
 }
 

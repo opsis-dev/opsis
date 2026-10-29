@@ -2,9 +2,13 @@ import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { LogoAssemble } from "#video/elements/scene/logo-assemble.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import DEFAULT_PROPS from "#video/registry/default-props.generated.json";
+
+const usual = DEFAULT_PROPS["logo-assemble"] as unknown as ElementSettings["logo-assemble"];
 
 it("never loads sample pictures from the internet when no images are set", () => {
-  const Cleared = () => <LogoAssemble brandName="Acme" />;
+  const Cleared = () => <LogoAssemble {...usual} images={[]} logoSrc="" />;
   const sources = [30, 90, 150].flatMap((frame) => {
     const view = render(
       <Thumbnail

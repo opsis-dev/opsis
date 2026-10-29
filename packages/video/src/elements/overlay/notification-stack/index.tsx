@@ -1,39 +1,19 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings, ToastTone } from "#video/generated/spec.ts";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
-import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
-const fontFamily = '"Inter"';
+const TONES = { success: "#7FD1A0", error: "#F97362", info: "#7DD3E8" } as const;
 
-export type ToastTone = "info" | "success" | "warn" | "error";
-
-export type Toast = {
-  title: string;
-  body?: string;
-  meta?: string;
-  tone?: ToastTone;
-  atSeconds?: number;
-  holdFor?: number;
+const PALETTES = {
+  dark: { ...CODE_THEMES.dark, ...TONES },
+  light: { ...CODE_THEMES.light, ...TONES },
 };
 
-export type NotificationStackProps = {
-  toasts?: Toast[];
-  align?: "top-right" | "top-left" | "bottom-right" | "bottom-left";
-  startAtSeconds?: number;
-  staggerSeconds?: number;
-  lifeSeconds?: number;
-  showProgress?: boolean;
-  accentColor?: string;
-  theme?: "dark" | "light";
-  speed?: number;
-};
+type Palette = (typeof PALETTES)["dark"];
 
-const DEFAULT_TOASTS: Toast[] = [
-  { title: "Render finished", body: "launch-teaser.mp4 · 1080p", tone: "success", meta: "now" },
-  { title: "3 new comments", body: "Mina left notes on scene 4", tone: "info", meta: "1m" },
-  { title: "Storage at 86%", body: "Archive old renders to free space", tone: "warn", meta: "2m" },
-  { title: "Upload failed", body: "b-roll-rooftop.mov · retrying", tone: "error", meta: "2m" },
-];
+const VERTICAL_SHARE = 1.25;
 
 const T = {
   enterFor: 0.34,
@@ -45,20 +25,16 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-const toneColor = (tone: ToastTone, accentColor: string): string =>
+const toneColor = (tone: ToastTone, accentColor: string, palette: Palette): string =>
   tone === "success"
-    ? "#7FD1A0"
+    ? palette.success
     : tone === "error"
-      ? "#F97362"
+      ? palette.error
       : tone === "warn"
         ? accentColor
-        : "#7DD3E8";
+        : palette.info;
 
-const ToneGlyph: React.FC<{ tone: ToastTone; size: number; color: string }> = ({
-  tone,
-  size,
-  color,
-}) => {
+function ToneGlyph({ tone, size, color }: { tone: ToastTone; size: number; color: string }) {
   if (tone === "success") {
     return (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -100,36 +76,44 @@ const ToneGlyph: React.FC<{ tone: ToastTone; size: number; color: string }> = ({
       <circle cx="12" cy="7.9" r="1.15" fill={color} />
     </svg>
   );
-};
+}
 
-export const NotificationStack: React.FC<NotificationStackProps> = ({
-  toasts = DEFAULT_TOASTS,
-  align = "top-right",
-  startAtSeconds = 0.3,
-  staggerSeconds = 0.62,
-  lifeSeconds = 2.3,
-  showProgress = true,
-  accentColor = "#E8B86D",
-  theme = "dark",
-  speed = 1,
-}) => {
+export function NotificationStack({
+  toasts,
+  align,
+  startAtSeconds,
+  staggerSeconds,
+  lifeSeconds,
+  showProgress,
+  accentColor,
+  theme,
+  speed,
+  fontFamily,
+  size,
+  toastWidth,
+  cornerRadius,
+  margin,
+}: ElementSettings["notification-stack"]) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
-  const safe = getSafeAreaPadding({ width, height });
+  const palette = { ...PALETTES[theme.mode], ...theme.colors };
+  const side = Math.round((margin / 1080) * width);
+  const edge = Math.round(((margin * VERTICAL_SHARE) / 1080) * height);
+  const safe = { paddingLeft: side, paddingRight: side, paddingTop: edge, paddingBottom: edge };
 
   const at = (seconds: number) => (seconds * fps) / speed;
   const ease = (from: number, to: number, easing = EASING.enter) =>
     interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
 
   const portrait = height > width;
-  const u = portrait ? Math.min(width / 496, height / 896) : Math.min(width / 1024, height / 576);
+  const u =
+    size * (portrait ? Math.min(width / 496, height / 896) : Math.min(width / 1024, height / 576));
 
   const isRight = align.endsWith("right");
   const isBottom = align.startsWith("bottom");
 
   const gap = 11 * u;
-  const toastW = Math.min(width - safe.paddingLeft - safe.paddingRight, 370 * u);
+  const toastW = Math.min(width - safe.paddingLeft - safe.paddingRight, toastWidth * u);
 
   const plan = toasts.map((toast, index) => {
     const spawn = toast.atSeconds ?? startAtSeconds + staggerSeconds * index;
@@ -147,7 +131,7 @@ export const NotificationStack: React.FC<NotificationStackProps> = ({
   });
 
   return (
-    <AbsoluteFill style={{ pointerEvents: "none", fontFamily }}>
+    <AbsoluteFill style={{ pointerEvents: "none", fontFamily: fontOr(fontFamily, "main") }}>
       <div
         style={{
           position: "absolute",
@@ -161,7 +145,7 @@ export const NotificationStack: React.FC<NotificationStackProps> = ({
         {toasts.map((toast, index) => {
           const beat = plan[index];
           const tone = toast.tone ?? "info";
-          const color = toneColor(tone, accentColor);
+          const color = toneColor(tone, accentColor, palette);
 
           const offset = plan
             .slice(0, index)
@@ -201,7 +185,7 @@ export const NotificationStack: React.FC<NotificationStackProps> = ({
                   alignItems: "center",
                   gap: 12 * u,
                   padding: `0 ${15 * u}px`,
-                  borderRadius: 14 * u,
+                  borderRadius: cornerRadius * u,
                   background: `${palette.window}F2`,
                   border: `1px solid ${palette.border}`,
                   boxShadow: `inset 0 1px 0 ${palette.highlight}, 0 ${
@@ -298,4 +282,4 @@ export const NotificationStack: React.FC<NotificationStackProps> = ({
       </div>
     </AbsoluteFill>
   );
-};
+}

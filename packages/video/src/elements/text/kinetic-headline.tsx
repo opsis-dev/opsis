@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import {
   AbsoluteFill,
   Easing,
@@ -17,14 +17,7 @@ const EMPHASIS_SWEEP_FRAMES = [8, 22];
 const WORD_FADE_FRAMES = 6;
 
 const KINETIC = {
-  padding: "0 8%",
-  columnGapEm: 0.28,
   rowGapEm: 0.08,
-  weight: 780,
-  letterSpacing: "-0.04em",
-  lineHeight: 1.05,
-  riseEm: 0.5,
-  tiltDeg: 4,
   underlineBottom: "0.02em",
   underlineHeight: "0.09em",
   underlineRadius: 99,
@@ -41,7 +34,7 @@ export const emphasisedWords = (text: string): EmphasisedWord[] =>
       em: w.startsWith("*") || w.endsWith("*"),
     }));
 
-export const KineticHeadline: React.FC<ElementSettings["kinetic-headline"]> = ({
+export function KineticHeadline({
   text,
   color,
   emphasisColor,
@@ -49,7 +42,16 @@ export const KineticHeadline: React.FC<ElementSettings["kinetic-headline"]> = ({
   fontSize,
   wordStagger,
   fontFamily,
-}) => {
+  fontWeight,
+  letterSpacing,
+  lineHeight,
+  sideMargin,
+  wordGap,
+  rise,
+  tilt,
+  underlineEmphasis,
+  fadeOutInFrames,
+}: ElementSettings["kinetic-headline"]) {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
   const words = useMemo(() => emphasisedWords(text), [text]);
@@ -60,8 +62,8 @@ export const KineticHeadline: React.FC<ElementSettings["kinetic-headline"]> = ({
         style={{
           alignItems: "center",
           justifyContent: "center",
-          padding: KINETIC.padding,
-          opacity: exitOpacity(frame, durationInFrames),
+          padding: `0 ${sideMargin}%`,
+          opacity: exitOpacity(frame, durationInFrames, fadeOutInFrames),
         }}
       >
         <div
@@ -69,13 +71,13 @@ export const KineticHeadline: React.FC<ElementSettings["kinetic-headline"]> = ({
             display: "flex",
             flexWrap: "wrap",
             justifyContent: "center",
-            columnGap: fontSize * KINETIC.columnGapEm,
+            columnGap: fontSize * wordGap,
             rowGap: fontSize * KINETIC.rowGapEm,
             fontFamily: fontOr(fontFamily, "heading"),
             fontSize,
-            fontWeight: KINETIC.weight,
-            letterSpacing: KINETIC.letterSpacing,
-            lineHeight: KINETIC.lineHeight,
+            fontWeight,
+            letterSpacing: `${letterSpacing}em`,
+            lineHeight,
           }}
         >
           {words.map(({ word, em }, i) => (
@@ -87,17 +89,36 @@ export const KineticHeadline: React.FC<ElementSettings["kinetic-headline"]> = ({
               fps={fps}
               color={em ? emphasisColor : color}
               emphasisColor={emphasisColor}
+              rise={rise}
+              tilt={tilt}
+              underline={underlineEmphasis}
             />
           ))}
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
   );
-};
+}
 
-const KineticWord: React.FC<
-  EmphasisedWord & { frame: number; fps: number; color: string; emphasisColor: string }
-> = ({ word, em, frame, fps, color, emphasisColor }) => {
+function KineticWord({
+  word,
+  em,
+  frame,
+  fps,
+  color,
+  emphasisColor,
+  rise,
+  tilt,
+  underline,
+}: EmphasisedWord & {
+  frame: number;
+  fps: number;
+  color: string;
+  emphasisColor: string;
+  rise: number;
+  tilt: number;
+  underline: boolean;
+}) {
   const s = spring({ frame, fps, config: WORD_SPRING });
   const sweep = interpolate(frame, EMPHASIS_SWEEP_FRAMES, [0, 1], {
     ...CLAMPED,
@@ -110,11 +131,11 @@ const KineticWord: React.FC<
         display: "inline-block",
         color,
         opacity: interpolate(frame, [0, WORD_FADE_FRAMES], [0, 1], CLAMPED),
-        transform: `translateY(${(1 - s) * KINETIC.riseEm}em) rotate(${(1 - s) * KINETIC.tiltDeg}deg)`,
+        transform: `translateY(${(1 - s) * rise}em) rotate(${(1 - s) * tilt}deg)`,
       }}
     >
       {word}
-      {em ? (
+      {em && underline ? (
         <span
           style={{
             position: "absolute",
@@ -131,4 +152,4 @@ const KineticWord: React.FC<
       ) : null}
     </span>
   );
-};
+}

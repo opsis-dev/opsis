@@ -75,7 +75,7 @@ describe("window look", () => {
   it("centres the shot inside the fitted canvas in its own shape, or the canvas's when tall", () => {
     fc.assert(
       fc.property(anyShot, canvas, fc.double({ min: 0.5, max: 1, noNaN: true }), (s, c, fit) => {
-        const box = stillLayout("window", s, c, fit);
+        const box = stillLayout("window", s, c, fit, "top");
         expect(box.width).toBeLessThanOrEqual(Math.round(c.width * fit) + 1);
         expect(box.height).toBeLessThanOrEqual(Math.round(c.height * fit) + 1);
         expect(Math.abs(box.x + box.width / 2 - c.width / 2)).toBeLessThanOrEqual(1);
@@ -94,7 +94,7 @@ describe("cutout look", () => {
   it("centres the element at most four fifths of the canvas wide and never stretches it past one and a half times its pixels", () => {
     fc.assert(
       fc.property(bodyShot, canvas, (s, c) => {
-        const img = stillLayout("cutout", s, c, 0.86);
+        const img = stillLayout("cutout", s, c, 0.8, "top");
         const body = elementBox(s, img);
         const rounding = 1 + Math.max(body.width / body.height, body.height / body.width) / 2;
         expect(body.width).toBeLessThanOrEqual(c.width * 0.8 + rounding);
@@ -112,7 +112,7 @@ describe("bleed look", () => {
   it("covers the canvas, keeps the top and centres across", () => {
     fc.assert(
       fc.property(anyShot, canvas, (s, c) => {
-        const box = stillLayout("bleed", s, c, 0.86);
+        const box = stillLayout("bleed", s, c, 0.86, "top");
         expect(box.width).toBeGreaterThanOrEqual(c.width - 1e-6);
         expect(box.height).toBeGreaterThanOrEqual(c.height - 1e-6);
         expect(box.y).toBe(0);
@@ -137,7 +137,13 @@ describe("captureScale", () => {
           const budget = 1920 * 1080 * 16;
           const area = region.width * region.height;
           expect(area * scale ** 2 <= budget + 1e-6 || scale === 1).toBe(true);
-          const drawn = stillLayout(look, { ...region, scale: Number.POSITIVE_INFINITY }, c, 0.86);
+          const drawn = stillLayout(
+            look,
+            { ...region, scale: Number.POSITIVE_INFINITY },
+            c,
+            0.86,
+            "top",
+          );
           const enough = scale >= Math.max(least, drawn.width / region.width) - 1e-9;
           const atBudget = area * (scale + 0.1) ** 2 > budget;
           expect(enough || atBudget || scale === 8).toBe(true);

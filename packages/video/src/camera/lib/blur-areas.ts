@@ -3,16 +3,15 @@ import type { EffectDescriptor } from "remotion";
 import { clamp01 } from "#video/common/math.ts";
 import type { BlurArea } from "#video/generated/spec.ts";
 
-const EASE_MS = 200;
-
 type BlurParams = Required<RegionBlurParams> & { disabled: boolean };
 
 function strengthAt(area: BlurArea, timeMs: number): number {
-  const { fromMs, untilMs } = area;
+  const { fromMs, untilMs, fadeMs } = area;
   if (fromMs !== undefined && timeMs < fromMs) return 0;
   if (untilMs !== undefined && timeMs > untilMs) return 0;
-  const easedIn = fromMs === undefined ? 1 : clamp01((timeMs - fromMs) / EASE_MS);
-  const easedOut = untilMs === undefined ? 1 : clamp01((untilMs - timeMs) / EASE_MS);
+  const eased = (ms: number) => (fadeMs > 0 ? clamp01(ms / fadeMs) : 1);
+  const easedIn = fromMs === undefined ? 1 : eased(timeMs - fromMs);
+  const easedOut = untilMs === undefined ? 1 : eased(untilMs - timeMs);
   return Math.min(easedIn, easedOut);
 }
 

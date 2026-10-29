@@ -1,66 +1,92 @@
+import { fontOr } from "#video/common/fonts.ts";
 import { launchMedia } from "#video/elements/scene/launch-anything/assets.ts";
-import type { ShowcaseId } from "#video/elements/scene/launch-anything/motion.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
-export const launchContent = {
-  opening: "Good",
-  subject: "ideas",
-  ready: "deserve a stage",
-  next: "Let’s make",
-  action: "them real",
-  proof: "Your work.\nA clearer view.",
-  industry: "Built around you",
-  promise: "Made to be yours.",
-  launch: "Begin",
-  shoppers: "Small things. Well made.",
-  builder: "Turn a brief into a workspace",
-  builderPrompt: "Create a workspace for our next product release",
-  trading: "Review once.\nMove forward.",
-  loyalty: "A place for every idea",
-  loyaltyPayoff: "Room for the next one",
-  integration: "Bring your work together",
-  integrations: ["Files", "Messages", "Calendar"],
-  shopName: "Object Study",
-  shopHeadline: "Everyday, considered.",
-  shopDetail: "Useful objects. Quiet details.",
-  shopAction: "Explore the objects",
-  connections: "Connect your tools.\nKeep work moving.",
-};
+export const shade = (color: string, percent: number) =>
+  `color-mix(in srgb, ${color}, black ${percent}%)`;
 
-export type LaunchContent = typeof launchContent;
-export type LaunchMedia = typeof launchMedia;
+export const tint = (color: string, percent: number) =>
+  `color-mix(in srgb, ${color}, white ${percent}%)`;
 
-export type LaunchAnythingProps = {
-  brandUrl?: string;
-  accentColor?: string;
-  opening?: string;
-  subject?: string;
-  content?: Partial<LaunchContent>;
-  media?: Partial<LaunchMedia>;
-  screenImages?: Partial<Record<ShowcaseId, string>>;
-  logos?: string[];
-  logoSrc?: string;
-  audioSrc?: string;
-  volume?: number;
-};
-
-export function resolveLaunchProps(props: LaunchAnythingProps) {
-  const integrations = props.content?.integrations?.filter((name) => name.trim());
+export function launchScene(s: ElementSettings["launch-anything"]) {
   return {
-    brandUrl: props.brandUrl ?? "yourproduct.example",
-    accent: props.accentColor ?? "#245744",
+    brandUrl: s.brandUrl,
+    accent: s.accentColor,
     content: {
-      ...launchContent,
-      ...props.content,
-      ...(props.opening === undefined ? {} : { opening: props.opening }),
-      ...(props.subject === undefined ? {} : { subject: props.subject }),
-      integrations: integrations?.length ? integrations : launchContent.integrations,
+      opening: s.opening,
+      subject: s.subject,
+      ready: s.copyReady,
+      next: s.copyNext,
+      action: s.copyAction,
+      proof: s.copyProof,
+      industry: s.copyIndustry,
+      promise: s.copyPromise,
+      launch: s.copyLaunch,
+      shoppers: s.copyShoppers,
+      builder: s.copyBuilder,
+      builderPrompt: s.copyBuilderPrompt,
+      trading: s.copyTrading,
+      loyalty: s.copyLoyalty,
+      loyaltyPayoff: s.copyLoyaltyPayoff,
+      integration: s.copyIntegration,
+      integrations: s.copyIntegrations.filter((name) => name.trim()),
+      shopName: s.copyShopName,
+      shopHeadline: s.copyShopHeadline,
+      shopDetail: s.copyShopDetail,
+      shopAction: s.copyShopAction,
+      connections: s.copyConnections,
+      appName: s.copyAppName,
+      dashboardMenu: s.copyDashboardMenu,
+      dashboard: s.copyDashboard,
+      dashboardPeriod: s.copyDashboardPeriod,
+      dashboardNote: s.copyDashboardNote,
+      dashboardStats: s.dashboardStats,
+      momentum: s.copyMomentum,
+      activityTitle: s.copyActivityTitle,
+      dashboardActivity: s.dashboardActivity,
+      shopNote: s.copyShopNote,
+      reviewTitle: s.copyReviewTitle,
+      reviewProject: s.copyReviewProject,
+      reviewButtons: s.copyReviewButtons,
+      reviewRows: s.reviewRows,
+      ideasCard: s.copyIdeasCard,
+      ideasNote: s.copyIdeasNote,
     },
-    media: { ...launchMedia, ...props.media },
-    screenImages: props.screenImages ?? {},
-    logos: props.logos?.filter((src) => src.trim()) ?? [],
-    logoSrc: props.logoSrc,
+    media: {
+      desk: s.photoDesk || launchMedia.desk,
+      horizon: s.photoHorizon || launchMedia.horizon,
+      rocket: s.photoRocket || launchMedia.rocket,
+      earth: s.photoEarth || launchMedia.earth,
+    },
+    screenImages: {
+      dashboard: s.screenDashboard,
+      shoppers: s.screenShoppers,
+      exchange: s.screenExchange,
+      builder: s.screenBuilder,
+      trading: s.screenTrading,
+      loyalty: s.screenLoyalty,
+      integrations: s.screenIntegrations,
+    },
+    logos: s.logoImages.map((logo) => logo.image).filter((src) => src.trim()),
+    logoSrc: s.logoSrc || undefined,
+    palette: {
+      night: s.nightColor,
+      paper: s.paperColor,
+      lightText: s.lightTextColor,
+      ink: s.inkColor,
+      sage: s.sageColor,
+    },
+    look: {
+      font: fontOr(s.fontFamily, "main"),
+      openingShimmer: s.openingShimmer,
+      openingSize: s.openingSize,
+      headlineWeight: s.headlineWeight,
+      textSize: s.textSize,
+      photoDimming: s.photoDimming,
+      logoSize: s.logoSize,
+    },
   };
 }
 
-export type LaunchScene = ReturnType<typeof resolveLaunchProps>;
+export type LaunchScene = ReturnType<typeof launchScene>;
 export type SceneProps = { scene: LaunchScene; t: number };

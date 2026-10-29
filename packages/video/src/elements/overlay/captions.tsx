@@ -1,35 +1,28 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { framesToMs, msToFrames } from "#video/common/time.ts";
 import { JUSTIFY_AT, overlayPadding, useOverlayFrame, verticalInsets } from "#video/core/frame.ts";
 import type { ElementSettings, CaptionsValue } from "#video/generated/spec.ts";
 
-const MAX_WORDS_PER_LINE = 6;
-const CAPTION_LINGER_MS = 250;
-
 const CAPTIONS = {
-  paddingPx: 90,
-  sidePadding: "10%",
   wordGapEm: 0.28,
   shadow: "0 4px 24px rgba(0,0,0,0.55)",
-  boxPaddingPx: [10, 22],
-  boxRadiusPx: 16,
+  boxPadShare: 10 / 22,
   popFrom: 0.85,
   popGrowth: 0.15,
-  unspokenOpacity: 0.55,
 } as const;
 
 const CAPTION_POP_SPRING = { damping: 14, stiffness: 220 };
 
 type Caption = CaptionsValue["captions"][number];
 
-export function groupCaptions(captions: Caption[]): Caption[][] {
+export function groupCaptions(captions: Caption[], wordsPerLine: number): Caption[][] {
   const lines: Caption[][] = [];
   let line: Caption[] = [];
   for (const caption of captions) {
     line.push(caption);
-    if (line.length >= MAX_WORDS_PER_LINE || /[.!?]$/.test(caption.text)) {
+    if (line.length >= wordsPerLine || /[.!?]$/.test(caption.text)) {
       lines.push(line);
       line = [];
     }
@@ -51,13 +44,21 @@ function isLit(style: CaptionStyle, spoken: boolean, active: boolean): boolean {
   }
 }
 
-const CaptionWord: React.FC<{
+function CaptionWord({
+  word,
+  style,
+  tMs,
+  color,
+  highlightColor,
+  unspoken,
+}: {
   word: Caption;
   style: CaptionStyle;
   tMs: number;
   color: string;
   highlightColor: string;
-}> = ({ word, style, tMs, color, highlightColor }) => {
+  unspoken: number;
+}) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const active = tMs >= word.startMs && tMs < word.endMs;
@@ -77,15 +78,15 @@ const CaptionWord: React.FC<{
           style === "word-by-word"
             ? `scale(${CAPTIONS.popFrom + pop * CAPTIONS.popGrowth})`
             : undefined,
-        opacity: style === "karaoke" && !spoken ? CAPTIONS.unspokenOpacity : 1,
+        opacity: style === "karaoke" && !spoken ? unspoken : 1,
       }}
     >
       {word.text}
     </span>
   );
-};
+}
 
-export const Captions: React.FC<ElementSettings["captions"] & { captions: Caption[] }> = ({
+export function Captions({
   captions,
   style,
   position,
@@ -95,25 +96,32 @@ export const Captions: React.FC<ElementSettings["captions"] & { captions: Captio
   panel,
   fontWeight,
   fontFamily,
-}) => {
+  wordsPerLine,
+  lingerMs,
+  edgeOffset,
+  sideMargin,
+  panelPadding,
+  panelRadius,
+  textShadow,
+  unspokenOpacity,
+}: ElementSettings["captions"] & { captions: Caption[] }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const { k, insets } = useOverlayFrame();
   const tMs = framesToMs(frame, fps);
-  const lines = useMemo(() => groupCaptions(captions), [captions]);
-  const line = lines.find(
-    (l) => tMs >= l[0].startMs && tMs <= l[l.length - 1].endMs + CAPTION_LINGER_MS,
-  );
+  const lines = useMemo(() => groupCaptions(captions, wordsPerLine), [captions, wordsPerLine]);
+  const line = lines.find((l) => tMs >= l[0].startMs && tMs <= l[l.length - 1].endMs + lingerMs);
   if (!line) return null;
-  const [boxPadY, boxPadX] = CAPTIONS.boxPaddingPx;
+  const boxPadX = panelPadding;
+  const boxPadY = panelPadding * CAPTIONS.boxPadShare;
   return (
     <AbsoluteFill
       style={{
         justifyContent: JUSTIFY_AT[position],
         alignItems: "center",
-        ...overlayPadding(CAPTIONS.paddingPx * k, verticalInsets(insets)),
-        paddingLeft: CAPTIONS.sidePadding,
-        paddingRight: CAPTIONS.sidePadding,
+        ...overlayPadding(edgeOffset * k, verticalInsets(insets)),
+        paddingLeft: `${sideMargin}%`,
+        paddingRight: `${sideMargin}%`,
       }}
     >
       <div
@@ -125,9 +133,9 @@ export const Captions: React.FC<ElementSettings["captions"] & { captions: Captio
           fontFamily: fontOr(fontFamily, "main"),
           fontSize: fontSize * k,
           fontWeight,
-          textShadow: CAPTIONS.shadow,
+          textShadow: textShadow ? CAPTIONS.shadow : undefined,
           padding: `${boxPadY * k}px ${boxPadX * k}px`,
-          borderRadius: CAPTIONS.boxRadiusPx * k,
+          borderRadius: panelRadius * k,
           background: panel,
         }}
       >
@@ -139,9 +147,10 @@ export const Captions: React.FC<ElementSettings["captions"] & { captions: Captio
             tMs={tMs}
             color={color}
             highlightColor={highlightColor}
+            unspoken={unspokenOpacity / 100}
           />
         ))}
       </div>
     </AbsoluteFill>
   );
-};
+}

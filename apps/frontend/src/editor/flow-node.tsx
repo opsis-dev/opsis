@@ -25,7 +25,7 @@ import type { CatalogPort, EditorNode, NodeRunStatus, WorkflowNode } from "@/gen
 import { cn } from "@/lib/utils";
 import { getNodeDef, nodeName } from "@/store/catalog";
 import { inputsBeforeCompile } from "@/workflow/graph";
-import { CARD_WIDTH, groupLook, noteText } from "@/workflow/nodes";
+import { CARD_WIDTH, groupLook, noteColor, noteText } from "@/workflow/nodes";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore, workflowEdits } from "../store/workflow";
@@ -245,10 +245,16 @@ export const GroupFlowNode = memo(function GroupFlowNode({
 });
 
 export const NoteFlowNode = memo(function NoteFlowNode({ data }: NodeProps<CanvasNode>) {
+  const color = noteColor(data.node);
   return (
     <div
-      className="rounded-lg border border-amber-300/40 bg-amber-200/10 p-3 text-xs leading-relaxed whitespace-pre-wrap text-amber-100"
-      style={{ width: CARD_WIDTH }}
+      className="rounded-lg border p-3 text-xs leading-relaxed whitespace-pre-wrap"
+      style={{
+        width: CARD_WIDTH,
+        borderColor: `color-mix(in oklab, ${color} 40%, transparent)`,
+        background: `color-mix(in oklab, ${color} 10%, transparent)`,
+        color: `color-mix(in oklab, ${color} 30%, white)`,
+      }}
     >
       {noteText(data.node)}
     </div>

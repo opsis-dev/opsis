@@ -1,41 +1,36 @@
 import { interpolate, interpolateColors } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface InlineHighlightProps {
-  background?: string;
-  fontFamily?: string;
-  before: string;
-  highlight: string;
-  after?: string;
-  baseColor?: string;
-  highlightColor?: string;
-  fontSize?: number;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function InlineHighlight({
-  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily,
   before,
   highlight,
-  after = "",
-  baseColor = "#171717",
-  highlightColor = "#ff5e3a",
-  fontSize = 48,
-  fontWeight = 600,
-  speed = 1,
-  className,
-  background = "transparent",
-}: InlineHighlightProps) {
+  after,
+  baseColor,
+  highlightColor,
+  fontSize,
+  fontWeight,
+  speed,
+  background,
+  changeStart,
+  changeEnd,
+  letterSpacing,
+}: ElementSettings["inline-highlight"]) {
   const frame = useAuthoredFrame() * speed;
   const { durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
 
-  const progress = interpolate(frame, [durationInFrames * 0.2, durationInFrames * 0.7], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const progress = interpolate(
+    frame,
+    [durationInFrames * changeStart, durationInFrames * changeEnd],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    },
+  );
 
   const color = interpolateColors(progress, [0, 1], [baseColor, highlightColor]);
 
@@ -51,13 +46,12 @@ export function InlineHighlight({
       }}
     >
       <span
-        className={className}
         style={{
           fontSize,
           fontWeight,
           color: baseColor,
-          letterSpacing: "-0.03em",
-          fontFamily,
+          letterSpacing: `${letterSpacing}em`,
+          fontFamily: fontOr(fontFamily, "main"),
         }}
       >
         {before}

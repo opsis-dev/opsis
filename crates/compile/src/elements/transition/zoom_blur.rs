@@ -13,10 +13,12 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ZoomBlur {
-    #[setting("Blur", default = 16, range(min = 0, max = 40), step = 2)]
+    #[setting("Blur", default = 16, range(min = 0, max = 40), step = 2, unit = "px")]
     pub blur: u32,
-    #[setting("Rise", range(min = 0, max = 160), step = 10)]
+    #[setting("Rise", range(min = 0, max = 160), step = 10, unit = "px")]
     pub rise: u32,
+    #[setting("Zoom", default = 1.12, range(min = 1, max = 2), unit = "×", advanced)]
+    pub zoom: f64,
 }
 
 pub fn definition() -> ElementMeta {

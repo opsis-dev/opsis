@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::LightOrDark;
+use crate::elements::theme::{Theme, ThemeMode, agent_run_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[derive(
@@ -59,13 +59,24 @@ pub struct AgentRunRunStep {
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct AgentRun {
-    #[setting("Theme", default = LightOrDark::Light)]
-    pub theme: LightOrDark,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Light),
+        transform = agent_run_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting("Accent", default = "#2563eb", check = colour)]
     pub accent_color: String,
-    #[setting("Compression", default = 3.0, range(min = 1, max = 8), step = 0.5)]
+    #[setting(
+        "Compression",
+        default = 3.0,
+        range(min = 1, max = 8),
+        step = 0.5,
+        advanced
+    )]
     pub compression: f64,
-    #[setting("Seed", default = 1, range(min = 1, max = 99), step = 1)]
+    #[setting("Seed", default = 1, range(min = 1, max = 99), step = 1, advanced)]
     pub seed: u32,
     #[setting("Title", default = "Checkout conversion drop")]
     pub run_title: String,
@@ -122,6 +133,23 @@ pub struct AgentRun {
     pub run_answer: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting("Thinking label", default = "Thinking", advanced)]
+    pub thinking_label: String,
+    #[setting("Done thinking label", default = "Thought for", advanced)]
+    pub thought_label: String,
+    #[setting("Timer", default = true, advanced)]
+    pub show_timer: bool,
+    #[setting(
+        "Corner radius",
+        default = 18,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub corner_radius: u32,
+    #[setting("Font", widget = "font", advanced)]
+    pub font: String,
 }
 
 pub fn definition() -> ElementMeta {

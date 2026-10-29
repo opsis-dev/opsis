@@ -2,9 +2,9 @@ import type {
   TransitionPresentation,
   TransitionPresentationComponentProps,
 } from "@remotion/transitions";
-import type React from "react";
 import { AbsoluteFill, interpolate } from "remotion";
-import { ShaderDithering } from "#video/elements/background/shader-dithering.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { DitheringField } from "#video/parts/shader-fields.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,
@@ -18,48 +18,42 @@ const coverChildOpacity = (p: number, entering: boolean) =>
     ? interpolate(p, [0.58, 0.66], [0, 1], clampOpts)
     : interpolate(p, [0.28, 0.36], [1, 0], clampOpts);
 
-type DitherShape = NonNullable<React.ComponentProps<typeof ShaderDithering>["shape"]>;
+type DitherDissolveProps = ElementSettings["dither-dissolve"];
 
-export type DitherDissolveProps = {
-  colorBack?: string;
-  colorFront?: string;
-  shape?: DitherShape;
-  speed?: number;
-};
+const DOT_GROWTH = 1.75;
 
-const DitherDissolvePresentation: React.FC<
-  TransitionPresentationComponentProps<DitherDissolveProps>
-> = ({ children, presentationProgress, presentationDirection, passedProps }) => {
-  const {
-    colorBack = "#141318",
-    colorFront = "#8f88ae",
-    shape = "simplex",
-    speed = 1.5,
-  } = passedProps;
+function DitherDissolvePresentation({
+  children,
+  presentationProgress,
+  presentationDirection,
+  passedProps,
+}: TransitionPresentationComponentProps<DitherDissolveProps>) {
+  const { colorBack, colorFront, shape, speed, dotSize, pattern } = passedProps;
   const entering = presentationDirection === "entering";
   const p = presentationProgress;
-  const size = interpolate(p, [0, 1], [1.6, 2.8], clampOpts);
+  const size = interpolate(p, [0, 1], [dotSize, dotSize * DOT_GROWTH], clampOpts);
 
   return (
     <AbsoluteFill>
       <AbsoluteFill style={{ opacity: coverChildOpacity(p, entering) }}>{children}</AbsoluteFill>
       {entering ? (
         <AbsoluteFill style={{ opacity: coverEnvelope(p), pointerEvents: "none" }}>
-          <ShaderDithering
+          <DitheringField
             speed={speed}
             colorBack={colorBack}
             colorFront={colorFront}
             shape={shape}
+            type={pattern}
             size={size}
           />
         </AbsoluteFill>
       ) : null}
     </AbsoluteFill>
   );
-};
+}
 
 export function ditherDissolve(
-  props: DitherDissolveProps = {},
+  props: DitherDissolveProps,
 ): TransitionPresentation<DitherDissolveProps> {
   return {
     component: DitherDissolvePresentation,

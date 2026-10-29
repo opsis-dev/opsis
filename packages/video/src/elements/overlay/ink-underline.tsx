@@ -1,9 +1,7 @@
-import type React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
-import { numberOr } from "#video/common/math.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
 import {
   BrushGrain,
   type BrushPoint,
@@ -15,8 +13,13 @@ import {
 
 const SAMPLES = 40;
 
-export function inkUnderlineSpine(width: number, thickness: number, seed: string): BrushPoint[] {
-  const wobble = hashRange(`${seed}:w`, -1.2, 1.2);
+export function inkUnderlineSpine(
+  width: number,
+  thickness: number,
+  seed: string,
+  wobbleSize: number,
+): BrushPoint[] {
+  const wobble = hashRange(`${seed}:w`, -wobbleSize, wobbleSize);
   const mid = thickness / 2 + 2;
   return sampleCubic(
     { x: 2, y: mid },
@@ -27,39 +30,27 @@ export function inkUnderlineSpine(width: number, thickness: number, seed: string
   );
 }
 
-export interface InkUnderlineProps {
-  width: number;
-  color?: string;
-  thickness?: number;
-  pressure?: number;
-  release?: number;
-  grain?: number;
-  delay?: number;
-  durationSteps?: number;
-  seed?: string;
-  step?: number;
-}
-
 function InkUnderlineView({
   width,
-  color = "#6f7f35",
-  thickness = 9,
-  pressure = 1,
-  release = 0.15,
-  grain = 1,
-  delay = 0,
-  durationSteps = 5,
-  seed = "ink",
-  step = DEFAULT_STEP,
-}: InkUnderlineProps) {
+  color,
+  thickness,
+  pressure,
+  release,
+  grain,
+  durationSteps,
+  seed,
+  step,
+  wobble,
+  opacity,
+}: Omit<ElementSettings["ink-underline"], "x" | "y" | "angle">) {
   const frame = useAuthoredFrame();
-  const progress = steppedRamp(frame, delay, delay + durationSteps * step, {
+  const progress = steppedRamp(frame, 0, durationSteps * step, {
     step,
   });
 
   const reach = brushReach(thickness, grain);
   const height = thickness + 4;
-  const d = brushRibbon(inkUnderlineSpine(width, thickness, seed), {
+  const d = brushRibbon(inkUnderlineSpine(width, thickness, seed, wobble), {
     strokeWidth: thickness,
     pressure,
     release,
@@ -92,7 +83,7 @@ function InkUnderlineView({
         <path
           d={d}
           fill={color}
-          opacity={0.85}
+          opacity={opacity}
           filter={grain > 0 ? `url(#${brushFilterId(seed, thickness, grain)})` : undefined}
         />
       </svg>
@@ -100,22 +91,20 @@ function InkUnderlineView({
   );
 }
 
-export function InkUnderline(all: ElementProps & { children?: React.ReactNode }) {
-  const { x, y, ...props } = all;
+export function InkUnderline({ x, y, angle, ...settings }: ElementSettings["ink-underline"]) {
   const { width, height } = useVideoConfig();
   return (
     <AbsoluteFill>
       <div
         style={{
           position: "absolute",
-          left: numberOr(x, 0.5) * width,
-          top: numberOr(y, 0.5) * height,
+          left: x * width,
+          top: y * height,
           translate: "-50% -50%",
+          rotate: `${angle}deg`,
         }}
       >
-        <InkUnderlineView
-          {...(props as unknown as React.ComponentProps<typeof InkUnderlineView>)}
-        />
+        <InkUnderlineView {...settings} />
       </div>
     </AbsoluteFill>
   );

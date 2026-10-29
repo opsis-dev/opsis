@@ -9,6 +9,7 @@ import type {
   Rect,
   Viewport,
   AnnotationKind,
+  AnnotationLook,
   AnnotationSpec,
   HighlightLook,
 } from "#video/generated/spec.ts";
@@ -25,7 +26,8 @@ export type Annotation = {
   look: HighlightLook;
   roughness: number;
   seed: number;
-  label: Pick<AnnotationSpec, "textColor" | "fontSize" | "font">;
+  label: Pick<AnnotationSpec, "textColor" | "fontSize" | "font" | "labelLook">;
+  markLook?: AnnotationLook;
 };
 
 const DEFAULT_ROUGHNESS = 1;
@@ -121,7 +123,13 @@ export function resolveAnnotations(log: ActionLog, specs: AnnotationSpec[]): Ann
         look: spec.look ?? "clean",
         roughness: spec.roughness ?? DEFAULT_ROUGHNESS,
         seed: out.length + 1,
-        label: { textColor: spec.textColor, fontSize: spec.fontSize, font: spec.font },
+        label: {
+          textColor: spec.textColor,
+          fontSize: spec.fontSize,
+          font: spec.font,
+          labelLook: spec.labelLook,
+        },
+        markLook: spec.markLook,
       });
     }
   }
@@ -130,9 +138,12 @@ export function resolveAnnotations(log: ActionLog, specs: AnnotationSpec[]): Ann
 
 const isTyped = (a: Action): a is Action & { text: string } => a.kind === "type" && !!a.text;
 
-export const typedBeats = (log: ActionLog): Array<{ text: string; fromS: number; toS: number }> =>
+export const typedBeats = (
+  log: ActionLog,
+  lingerS = TYPED_LINGER_S,
+): Array<{ text: string; fromS: number; toS: number }> =>
   log.actions.filter(isTyped).map((a) => ({
     text: a.text,
     fromS: a.t / 1000,
-    toS: (a.tEnd ?? a.t + TYPED_FALLBACK_MS) / 1000 + TYPED_LINGER_S,
+    toS: (a.tEnd ?? a.t + TYPED_FALLBACK_MS) / 1000 + lingerS,
   }));

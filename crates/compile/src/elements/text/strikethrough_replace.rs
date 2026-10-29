@@ -41,6 +41,43 @@ pub struct StrikethroughReplace {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Strike ends at",
+        default = 0.4,
+        range(min = 0.1, max = 0.9),
+        unit = "× length",
+        advanced
+    )]
+    pub strike_end: f64,
+    #[setting(
+        "Swap time",
+        default = 0.2,
+        range(min = 0.05, max = 0.6),
+        unit = "× length",
+        advanced
+    )]
+    pub swap_length: f64,
+    #[setting("Letter spacing", default = -0.03, range(min = -0.1, max = 0.3), unit = "em", advanced)]
+    pub letter_spacing: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Line thickness",
+        range(min = 1, max = 40),
+        zero_label = "Auto",
+        step = 1,
+        unit = "px",
+        "type" = "integer",
+        advanced
+    )]
+    pub thickness: Option<u32>,
+    #[setting(
+        "New text colour",
+        widget = "color",
+        zero_label = "Same as the text",
+        check = colour_or_empty,
+        advanced
+    )]
+    pub to_color: String,
 }
 
 pub fn definition() -> ElementMeta {

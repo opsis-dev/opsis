@@ -2,9 +2,33 @@ import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { SpeedLines } from "#video/elements/effect/speed-lines.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
+
+const DEFAULTS: ElementSettings["speed-lines"] = {
+  mode: "trail",
+  count: 12,
+  weight: 2,
+  spread: 96,
+  duration: 14,
+  bounce: 0.5,
+  x: 0.5,
+  y: 0.5,
+  delay: 0,
+  color: "#ffffff",
+  seed: 1,
+  speed: 1,
+  fromX: -0.25,
+  fromY: 0.5,
+  hold: 8,
+  streakLength: 1.6,
+};
 
 const drawn = (mode: "trail" | "focus", frame: number) => {
-  const Lines = () => <SpeedLines mode={mode}>{null}</SpeedLines>;
+  const Lines = () => (
+    <SpeedLines {...DEFAULTS} mode={mode}>
+      {null}
+    </SpeedLines>
+  );
   const view = render(
     <Thumbnail
       component={Lines}

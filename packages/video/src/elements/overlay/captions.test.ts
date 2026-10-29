@@ -6,12 +6,12 @@ const words = (text: string) =>
 
 describe("groupCaptions", () => {
   it("ends a line at six words", () => {
-    const lines = groupCaptions(words("one two three four five six seven"));
+    const lines = groupCaptions(words("one two three four five six seven"), 6);
     expect(lines.map((line) => line.length)).toEqual([6, 1]);
   });
 
   it("ends a line at the end of a sentence", () => {
-    const lines = groupCaptions(words("Ready? Set up in seconds. Go!"));
+    const lines = groupCaptions(words("Ready? Set up in seconds. Go!"), 6);
     expect(lines.map((line) => line.map((w) => w.text).join(" "))).toEqual([
       "Ready?",
       "Set up in seconds.",
@@ -20,6 +20,6 @@ describe("groupCaptions", () => {
   });
 
   it("returns no lines without captions", () => {
-    expect(groupCaptions([])).toEqual([]);
+    expect(groupCaptions([], 6)).toEqual([]);
   });
 });

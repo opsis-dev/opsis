@@ -15,12 +15,14 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 pub struct TvPowerOff {
     #[setting("Duration", default = 18, range(min = 8, max = 30), step = 1)]
     pub duration_in_frames: u32,
-    #[setting("Surge", default = 1.0, range(min = 0, max = 2), step = 0.05)]
+    #[setting("Surge", default = 1.0, range(min = 0, max = 2), step = 0.05, advanced)]
     pub gain: f64,
     #[setting("Afterglow", default = 1.0, range(min = 0, max = 2), step = 0.05)]
     pub afterglow: f64,
     #[setting("Phosphor", default = "#d8ecff", check = colour)]
     pub phosphor: String,
+    #[setting("Screen off colour", default = "#000000", widget = "color", check = colour, advanced)]
+    pub screen_color: String,
 }
 
 pub fn definition() -> ElementMeta {

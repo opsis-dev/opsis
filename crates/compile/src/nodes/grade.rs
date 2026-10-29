@@ -126,7 +126,13 @@ pub struct Colour {
         unit = "×"
     )]
     pub saturation: f64,
-    #[setting("Gamma", default = 1.0, range(min = 0.5, max = 2), step = 0.05)]
+    #[setting(
+        "Gamma",
+        default = 1.0,
+        range(min = 0.5, max = 2),
+        step = 0.05,
+        advanced
+    )]
     pub gamma: f64,
     #[setting("Exposure", range(min = -2, max = 2), step = 0.05, unit = "stops")]
     pub exposure: f64,
@@ -134,37 +140,40 @@ pub struct Colour {
     pub warmth: f64,
     #[setting("Vibrance", range(min = -1, max = 1), step = 0.05)]
     pub vibrance: f64,
-    #[setting("Hue shift", range(min = -180, max = 180), step = 1, unit = "°")]
+    #[setting("Hue shift", range(min = -180, max = 180), step = 1, unit = "°", advanced)]
     pub hue: f64,
     #[setting(
         "Colour for shadows",
         default = "#3b6ea5",
         widget = "color",
         zero_label = "Default",
-        check = colour_or_empty
+        check = colour_or_empty,
+        advanced
     )]
     pub shadows: String,
-    #[setting("Shadows amount", range(min = 0, max = 1), step = 0.05)]
+    #[setting("Shadows amount", range(min = 0, max = 1), step = 0.05, advanced)]
     pub shadows_amount: f64,
     #[setting(
         "Colour for midtones",
         default = "#c9a27a",
         widget = "color",
         zero_label = "Default",
-        check = colour_or_empty
+        check = colour_or_empty,
+        advanced
     )]
     pub midtones: String,
-    #[setting("Midtones amount", range(min = 0, max = 1), step = 0.05)]
+    #[setting("Midtones amount", range(min = 0, max = 1), step = 0.05, advanced)]
     pub midtones_amount: f64,
     #[setting(
         "Colour for highlights",
         default = "#ffd9a0",
         widget = "color",
         zero_label = "Default",
-        check = colour_or_empty
+        check = colour_or_empty,
+        advanced
     )]
     pub highlights: String,
-    #[setting("Highlights amount", range(min = 0, max = 1), step = 0.05)]
+    #[setting("Highlights amount", range(min = 0, max = 1), step = 0.05, advanced)]
     pub highlights_amount: f64,
     #[setting(
         "Tone curve",
@@ -268,6 +277,39 @@ pub struct Mono {
     pub tint: String,
     #[setting("Strength", default = 1.0, range(min = 0, max = 1), step = 0.05)]
     pub strength: f64,
+    #[setting(
+        "Colour filter",
+        labels = { "none": "None", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "blue": "Blue" },
+        help = "Like a coloured filter on a black-and-white camera: things of that colour come out lighter.",
+        show_if = { "kind": ["bw"] },
+        advanced
+    )]
+    pub filter: MonoFilter,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum MonoFilter {
+    #[default]
+    None,
+    Red,
+    Orange,
+    Yellow,
+    Green,
+    Blue,
+}
+
+impl MonoFilter {
+    pub fn chroma(self) -> (f64, f64) {
+        match self {
+            Self::None => (0.0, 0.0),
+            Self::Red => (-0.2, 0.6),
+            Self::Orange => (-0.45, 0.45),
+            Self::Yellow => (-0.6, 0.15),
+            Self::Green => (-0.35, -0.5),
+            Self::Blue => (0.6, -0.15),
+        }
+    }
 }
 
 impl Params for Mono {}
@@ -288,7 +330,8 @@ pub struct Texture {
         range(min = 0, max = 1),
         step = 0.01,
         widget = "spot",
-        help = "Click the frame to choose the middle of the light."
+        help = "Click the frame to choose the middle of the light.",
+        advanced
     )]
     pub vignette_x: f64,
     #[setting(
@@ -301,6 +344,27 @@ pub struct Texture {
     pub vignette_y: f64,
     #[setting("Film grain", range(min = 0, max = 1), step = 0.05)]
     pub grain: f64,
+    #[setting(
+        "Dark edges shape",
+        labels = { "round": "Round", "frame": "Follows the frame" },
+        advanced
+    )]
+    pub vignette_shape: VignetteShape,
+    #[setting(
+        "Colour grain",
+        default = true,
+        help = "Off, the grain is only in the light, not the colour.",
+        advanced
+    )]
+    pub colour_grain: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum VignetteShape {
+    #[default]
+    Round,
+    Frame,
 }
 
 impl Params for Texture {}
@@ -326,6 +390,35 @@ pub struct Lens {
     pub bulge: f64,
     #[setting("Motion trails", range(min = 0, max = 1), step = 0.05)]
     pub trails: f64,
+    #[setting("Fringe angle", range(min = -180, max = 180), step = 5, unit = "°", advanced)]
+    pub fringe_angle: f64,
+    #[setting(
+        "Bulge centre",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.01,
+        widget = "spot",
+        help = "Click the frame to choose the middle of the bulge.",
+        advanced
+    )]
+    pub bulge_x: f64,
+    #[setting(
+        "Bulge centre vertical",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.01,
+        hidden
+    )]
+    pub bulge_y: f64,
+    #[setting(
+        "Corner colour",
+        default = "#000000",
+        widget = "color",
+        check = colour,
+        help = "Fills corners a bulge pulls in.",
+        advanced
+    )]
+    pub corner_color: String,
 }
 
 impl Params for Lens {}
@@ -367,6 +460,22 @@ pub struct AutoFix {
     pub levels_smoothing: u32,
     #[setting("Remove banding")]
     pub deband: bool,
+    #[setting(
+        "Each colour apart",
+        help = "Stretches red, green and blue each on its own, which also corrects a colour cast.",
+        show_if = { "levels": ["true"] },
+        advanced
+    )]
+    pub levels_each_colour: bool,
+    #[setting(
+        "Banding strength",
+        default = 0.02,
+        range(min = 0.003, max = 0.5),
+        step = 0.005,
+        show_if = { "deband": ["true"] },
+        advanced
+    )]
+    pub deband_strength: f64,
 }
 
 impl Params for AutoFix {}

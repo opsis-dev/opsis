@@ -1,4 +1,6 @@
-use opsis_compile::nodes::media::{Codec, ConvertCodec, EncodePreset, SoundFormat};
+use opsis_compile::nodes::media::{
+    Codec, ConvertCodec, EncodePreset, Encoding, ProresProfile, SoundFormat, SoundQuality,
+};
 use serde::Serialize;
 
 pub const FASTSTART: [&str; 2] = ["-movflags", "+faststart"];
@@ -120,14 +122,7 @@ pub fn codec_video(codec: Codec, crf: f64, preset: EncodePreset) -> Option<Vec<S
             "-b:v".into(),
             "0".into(),
         ],
-        Codec::Prores => strings(&[
-            "-c:v",
-            "prores_ks",
-            "-profile:v",
-            "3",
-            "-pix_fmt",
-            "yuv422p10le",
-        ]),
+        Codec::Prores => prores_args(ProresProfile::Hq),
         Codec::Vp8 | Codec::Gif => return None,
     })
 }
@@ -141,8 +136,41 @@ pub fn convert_codec(codec: ConvertCodec) -> Codec {
     }
 }
 
-fn convert_video(codec: ConvertCodec, crf: f64, preset: EncodePreset) -> Vec<String> {
-    codec_video(convert_codec(codec), crf, preset).unwrap_or_default()
+pub fn prores_args(profile: ProresProfile) -> Vec<String> {
+    vec![
+        "-c:v".into(),
+        "prores_ks".into(),
+        "-profile:v".into(),
+        profile.number().to_string(),
+        "-pix_fmt".into(),
+        "yuv422p10le".into(),
+    ]
+}
+
+pub fn sound_args(codec: ConvertCodec, quality: SoundQuality) -> Vec<String> {
+    let rate = |aac: &str, opus: &str| match codec {
+        ConvertCodec::Vp9 => opus.to_owned(),
+        _ => aac.to_owned(),
+    };
+    let bit_rate = match quality {
+        SoundQuality::Low => rate("128k", "96k"),
+        SoundQuality::Medium => rate("192k", "128k"),
+        SoundQuality::High => rate("320k", "192k"),
+    };
+    match codec {
+        ConvertCodec::Prores => strings(&PCM_16),
+        ConvertCodec::Vp9 => vec!["-c:a".into(), "libopus".into(), "-b:a".into(), bit_rate],
+        ConvertCodec::H264 | ConvertCodec::H265 => {
+            vec!["-c:a".into(), "aac".into(), "-b:a".into(), bit_rate]
+        }
+    }
+}
+
+fn convert_video(p: &Encoding) -> Vec<String> {
+    if p.codec == ConvertCodec::Prores {
+        return prores_args(p.prores_profile);
+    }
+    codec_video(convert_codec(p.codec), f64::from(p.crf), p.preset).unwrap_or_default()
 }
 
 pub fn has_sound_track(codec: Codec) -> bool {
@@ -153,22 +181,22 @@ pub fn is_image_codec(codec: Codec) -> bool {
     codec == Codec::Gif
 }
 
-pub fn convert_args(codec: ConvertCodec, crf: f64, preset: EncodePreset) -> Vec<String> {
-    let info = codec_info(convert_codec(codec));
-    let mut args = convert_video(codec, crf, preset);
+pub fn convert_args(p: &Encoding) -> Vec<String> {
+    let info = codec_info(convert_codec(p.codec));
+    let mut args = convert_video(p);
     if info.faststart {
         args.extend(strings(&FASTSTART));
     }
-    args.extend(strings(info.audio.unwrap_or_default()));
+    args.extend(sound_args(p.codec, p.sound_quality));
     args
 }
 
-pub fn grade_video_args(codec: ConvertCodec, crf: f64, preset: EncodePreset) -> Vec<String> {
-    let mut args = convert_video(codec, crf, preset);
+pub fn grade_video_args(p: &Encoding) -> Vec<String> {
+    let mut args = convert_video(p);
     if let Some(at) = args.iter().position(|a| a == "-vf") {
         args.drain(at..at + 2);
     }
-    if codec == ConvertCodec::Vp9 {
+    if p.codec == ConvertCodec::Vp9 {
         args.extend(strings(&["-pix_fmt", "yuv420p"]));
     }
     args
@@ -177,11 +205,11 @@ pub fn grade_video_args(codec: ConvertCodec, crf: f64, preset: EncodePreset) -> 
 const MP4_SOUNDS: [&str; 7] = ["aac", "mp3", "ac3", "eac3", "opus", "flac", "alac"];
 const WEBM_SOUNDS: [&str; 2] = ["opus", "vorbis"];
 
-pub fn grade_sound_args(codec: ConvertCodec, sound: Option<&str>) -> Vec<String> {
+pub fn grade_sound_args(p: &Encoding, sound: Option<&str>) -> Vec<String> {
     let Some(sound) = sound.filter(|s| !s.is_empty()) else {
         return Vec::new();
     };
-    let info = codec_info(convert_codec(codec));
+    let info = codec_info(convert_codec(p.codec));
     let keeps = match info.ext {
         "webm" => WEBM_SOUNDS.contains(&sound),
         "mov" => true,
@@ -190,7 +218,7 @@ pub fn grade_sound_args(codec: ConvertCodec, sound: Option<&str>) -> Vec<String>
     if keeps {
         strings(&["-c:a", "copy"])
     } else {
-        strings(info.audio.unwrap_or_default())
+        sound_args(p.codec, p.sound_quality)
     }
 }
 
@@ -199,6 +227,18 @@ pub fn audio_format_args(format: SoundFormat) -> Vec<String> {
         SoundFormat::M4a => strings(&["-c:a", "aac", "-b:a", "192k"]),
         SoundFormat::Mp3 => strings(&["-c:a", "libmp3lame", "-q:a", "2"]),
         SoundFormat::Wav => strings(&PCM_16),
+    }
+}
+
+pub fn extract_args(format: SoundFormat, kbps: u32) -> Vec<String> {
+    match format {
+        SoundFormat::M4a => vec![
+            "-c:a".into(),
+            "aac".into(),
+            "-b:a".into(),
+            format!("{kbps}k"),
+        ],
+        other => audio_format_args(other),
     }
 }
 
@@ -229,7 +269,11 @@ pub fn frame_grab_args(input: &str, output: &str, grab: &FrameGrab) -> Vec<Strin
         "-vf".to_owned(),
         format!(
             "scale={}:{}",
-            grab.width.to_string(),
+            if grab.width > 0.0 {
+                grab.width.to_string()
+            } else {
+                "iw".to_owned()
+            },
             if grab.even_height { -2 } else { -1 }
         ),
     ];
@@ -282,11 +326,21 @@ pub fn edited_file(ext: &str, video: bool, audio: bool) -> Option<EditedFile> {
     audio.then(|| sound_file(ext))
 }
 
-pub fn mux_args(codec: Codec, picture: &str, sound: &str, out: &str) -> Vec<String> {
+pub fn mux_args(
+    codec: Codec,
+    picture: &str,
+    sound: &str,
+    out: &str,
+    kbps: Option<u32>,
+) -> Vec<String> {
     let mut args = strings(&[
         "-y", "-i", picture, "-i", sound, "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy",
     ]);
-    args.extend(strings(codec_info(codec).audio.unwrap_or_default()));
+    let mut audio = strings(codec_info(codec).audio.unwrap_or_default());
+    if let (Some(kbps), Some(at)) = (kbps, audio.iter().position(|a| a == "-b:a")) {
+        audio[at + 1] = format!("{kbps}k");
+    }
+    args.extend(audio);
     args.extend(strings(&["-shortest", out]));
     args
 }

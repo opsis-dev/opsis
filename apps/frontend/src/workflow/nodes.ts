@@ -28,6 +28,8 @@ export const groupLook = (node: WorkflowNode) => ({
 
 export const noteText = (node: WorkflowNode): string => textParam(node, "text");
 
+export const noteColor = (node: WorkflowNode): string => textParam(node, "color");
+
 const TRANSITION_WARN_RATIO = 0.4;
 
 export const coversTooMuch = (ratio: number): boolean => ratio > TRANSITION_WARN_RATIO;

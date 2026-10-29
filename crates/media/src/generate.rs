@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use opsis_compile::nodes::audio::{NoiseColour, ToneKind};
+use opsis_compile::nodes::audio::{NoiseColour, ToneKind, ToneWave};
 use opsis_compile::nodes::media::VoiceEffect;
 use opsis_types::numbers;
 use opsis_types::numbers::whole;
@@ -9,7 +9,6 @@ pub const RATE: u32 = 48_000;
 const LOOP_SECONDS: f64 = 10.0;
 const SEAM_SECONDS: f64 = 0.1;
 const EDGE_SECONDS: f64 = 0.005;
-const FINAL_BEEP_LONGER: f64 = 3.0;
 
 struct Seeded(u64);
 
@@ -79,14 +78,39 @@ pub fn room_tone(colour: NoiseColour, level_db: f64, seed: u64) -> Vec<f32> {
     looped.iter().map(|s| numbers::narrow(s * gain)).collect()
 }
 
-fn beep(pitch: f64, seconds: f64) -> Vec<f32> {
+fn wave_at(wave: ToneWave, cycles: f64) -> f64 {
+    let turn = cycles.fract();
+    match wave {
+        ToneWave::Sine => (cycles * std::f64::consts::TAU).sin(),
+        ToneWave::Triangle => 1.0 - 4.0 * (turn - 0.5).abs(),
+        ToneWave::Square => {
+            if turn < 0.5 {
+                1.0
+            } else {
+                -1.0
+            }
+        }
+        ToneWave::Saw => 2.0 * turn - 1.0,
+    }
+}
+
+fn wave_level(wave: ToneWave) -> f64 {
+    match wave {
+        ToneWave::Sine | ToneWave::Triangle => 0.5,
+        ToneWave::Square => 0.3,
+        ToneWave::Saw => 0.35,
+    }
+}
+
+fn beep(pitch: f64, seconds: f64, wave: ToneWave) -> Vec<f32> {
     let count = samples_for(seconds);
     let edge = samples_for(EDGE_SECONDS).min(count / 2).max(1);
+    let level = wave_level(wave);
     (0..count)
         .map(|i| {
             let shape = (numbers::float(i.min(count - 1 - i)) / numbers::float(edge)).min(1.0);
-            let phase = numbers::float(i) / f64::from(RATE) * pitch * std::f64::consts::TAU;
-            numbers::narrow(phase.sin() * shape * 0.5)
+            let cycles = numbers::float(i) / f64::from(RATE) * pitch;
+            numbers::narrow(wave_at(wave, cycles) * shape * level)
         })
         .collect()
 }
@@ -97,15 +121,22 @@ pub struct Beeps {
     pub length_ms: f64,
     pub count: u32,
     pub spacing_ms: f64,
+    pub wave: ToneWave,
+    pub final_length: f64,
+    pub final_pitch: f64,
 }
 
 pub fn beeps(p: &Beeps) -> Vec<f32> {
-    let one = beep(p.pitch_hz, p.length_ms / 1000.0);
+    let one = beep(p.pitch_hz, p.length_ms / 1000.0, p.wave);
     if p.kind != ToneKind::Countdown {
         return one;
     }
     let step = samples_for(p.spacing_ms / 1000.0);
-    let last = beep(p.pitch_hz, p.length_ms / 1000.0 * FINAL_BEEP_LONGER);
+    let last = beep(
+        p.pitch_hz * 2f64.powf(p.final_pitch / 12.0),
+        p.length_ms / 1000.0 * p.final_length,
+        p.wave,
+    );
     let starts: Vec<usize> = (0..=p.count as usize).map(|n| n * step).collect();
     let total = starts.last().copied().unwrap_or(0) + last.len();
     let mut out = vec![0.0f32; total.max(one.len())];
@@ -178,8 +209,20 @@ fn room_channel(room: &Room, seed: u64) -> Vec<f32> {
     out.iter().map(|s| numbers::narrow(s / energy)).collect()
 }
 
-pub fn room_response(effect: VoiceEffect, seed: u64) -> Option<[Vec<f32>; 2]> {
-    let room = room_of(effect)?;
+pub fn room_response(
+    effect: VoiceEffect,
+    seed: u64,
+    reverb_ms: Option<u32>,
+) -> Option<[Vec<f32>; 2]> {
+    let own = room_of(effect)?;
+    let reverb_seconds = reverb_ms.map_or(own.reverb_seconds, |ms| f64::from(ms) / 1000.0);
+    let room = &Room {
+        seconds: own
+            .seconds
+            .max(reverb_seconds * own.seconds / own.reverb_seconds),
+        reverb_seconds,
+        reflections: own.reflections,
+    };
     Some([
         room_channel(room, seed),
         room_channel(room, seed.rotate_left(17) ^ 0x9e37),
@@ -320,6 +363,9 @@ mod tests {
             length_ms: 150.0,
             count: 3,
             spacing_ms: 1000.0,
+            wave: ToneWave::Sine,
+            final_length: 3.0,
+            final_pitch: 0.0,
         };
         let sound = beeps(&p);
         let starts = onsets(&sound);
@@ -343,7 +389,7 @@ mod tests {
             (VoiceEffect::SmallRoom, &SMALL_ROOM),
             (VoiceEffect::Hall, &HALL),
         ] {
-            let [left, right] = room_response(effect, 5).unwrap();
+            let [left, right] = room_response(effect, 5, None).unwrap();
             assert_eq!(left.len(), samples_for(room.seconds));
             let energy: f64 = left.iter().map(|s| f64::from(*s).powi(2)).sum();
             assert!((energy - 1.0).abs() < 1e-3, "{energy}");
@@ -359,8 +405,8 @@ mod tests {
                 "{effect:?} falls {fall:.1} dB over 80% of its reverb time"
             );
             assert_ne!(left, right);
-            assert_eq!(room_response(effect, 5).unwrap()[0], left);
+            assert_eq!(room_response(effect, 5, None).unwrap()[0], left);
         }
-        assert!(room_response(VoiceEffect::Echo, 5).is_none());
+        assert!(room_response(VoiceEffect::Echo, 5, None).is_none());
     }
 }

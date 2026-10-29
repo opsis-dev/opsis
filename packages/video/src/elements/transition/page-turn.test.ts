@@ -3,7 +3,7 @@ import { pageTurnLift } from "#video/elements/transition/page-turn.tsx";
 
 const lowestAfterTurn = (width: number, height: number, angle: number) => {
   const theta = (angle * Math.PI) / 180;
-  const lift = pageTurnLift(width, height, "18% 100%", angle);
+  const lift = pageTurnLift(width, height, 0.18, angle);
   const corners = [
     [0, 0],
     [width, 0],

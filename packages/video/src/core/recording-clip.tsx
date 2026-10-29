@@ -12,6 +12,7 @@ import { frameAddress } from "#video/camera/frame-address.ts";
 import { KeycapHUD } from "#video/camera/keycap-hud.tsx";
 import { blurEffects } from "#video/camera/lib/blur-areas.ts";
 import { DesignWidthContext } from "#video/camera/lib/design-scale.ts";
+import { KEYSTROKE_EDGE } from "#video/camera/lib/keycap.ts";
 import { faded, SHOT_STYLES } from "#video/camera/lib/style.ts";
 import { poseAt } from "#video/camera/lib/zoom.ts";
 import { STAGE_COLOR } from "#video/common/element-colors.ts";
@@ -37,7 +38,6 @@ const TYPED_FADE_OUT_S = 0.2;
 const CARET_BLINKS_PER_S = 2.5;
 
 const TYPED_CHIP = {
-  margin: 56,
   padY: 14,
   padX: 26,
   fontSize: 30,
@@ -45,7 +45,7 @@ const TYPED_CHIP = {
   shadowBlur: 24,
   maxWidth: "70%",
   keycapShare: "82%",
-  shadow: "rgba(0,0,0,0.35)",
+  shadow: 0.35,
 } as const;
 
 const CLIP_KEYS = [
@@ -60,10 +60,20 @@ const CLIP_KEYS = [
   "cursor",
   "cursorScale",
   "cursorLook",
+  "cursorFeel",
   "ripple",
+  "windowFit",
+  "stageGround",
+  "windowRadius",
+  "rimGlow",
+  "liftColours",
+  "shutterAngle",
+  "bleedBlur",
+  "bleedDim",
+  "frameFont",
 ] as const satisfies ReadonlyArray<keyof RecordingProps>;
 
-export const RecordingClip: React.FC<RecordingProps> = (props) => {
+export function RecordingClip(props: RecordingProps) {
   const fast = useQuality() === "fast";
   const proxy = fast && !!props.proxySrc;
   const shown = proxy && props.proxySrc ? props.proxySrc : props.src;
@@ -142,18 +152,26 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
           <KeycapHUD keys={log.keys} timeS={timeS} look={keystrokes} />
         ) : null}
         {keystrokes?.typed ? (
-          <TypedChip beats={typedBeats(props.log)} timeS={timeS} look={keystrokes} />
+          <TypedChip
+            beats={typedBeats(props.log, keystrokes.typedHoldS ?? TYPED_LINGER_S)}
+            timeS={timeS}
+            look={keystrokes}
+          />
         ) : null}
       </DesignWidthContext.Provider>
     </AbsoluteFill>
   );
-};
+}
 
-const LayoutFrame: React.FC<{
+function LayoutFrame({
+  layout,
+  followX,
+  children,
+}: {
   layout: Reframe;
   followX: () => number;
   children: React.ReactNode;
-}> = ({ layout, followX, children }) => {
+}) {
   switch (layout.mode) {
     case "same":
       return <>{children}</>;
@@ -172,12 +190,9 @@ const LayoutFrame: React.FC<{
         </Cropped>
       );
   }
-};
+}
 
-const Letterboxed: React.FC<{ height: number; children: React.ReactNode }> = ({
-  height,
-  children,
-}) => {
+function Letterboxed({ height, children }: { height: number; children: React.ReactNode }) {
   const { width } = useVideoConfig();
   return (
     <AbsoluteFill
@@ -188,13 +203,9 @@ const Letterboxed: React.FC<{ height: number; children: React.ReactNode }> = ({
       </DesignWidthContext.Provider>
     </AbsoluteFill>
   );
-};
+}
 
-const Cropped: React.FC<{ box: Size; cx: number; children: React.ReactNode }> = ({
-  box,
-  cx,
-  children,
-}) => {
+function Cropped({ box, cx, children }: { box: Size; cx: number; children: React.ReactNode }) {
   const { width, height } = useVideoConfig();
   return (
     <AbsoluteFill style={{ overflow: "hidden" }}>
@@ -213,19 +224,23 @@ const Cropped: React.FC<{ box: Size; cx: number; children: React.ReactNode }> = 
       </DesignWidthContext.Provider>
     </AbsoluteFill>
   );
-};
+}
 
-const TypedChip: React.FC<{
+function TypedChip({
+  beats,
+  timeS,
+  look,
+}: {
   beats: Array<{ text: string; fromS: number; toS: number }>;
   timeS: number;
   look: KeystrokeLook;
-}> = ({ beats, timeS, look }) => {
+}) {
   const { position } = look;
   const { k: frameScale, insets } = useOverlayFrame();
   const k = frameScale * look.size;
   const beat = beats.find((b) => timeS >= b.fromS && timeS <= b.toS);
   if (!beat) return null;
-  const typingEnd = beat.toS - TYPED_LINGER_S;
+  const typingEnd = beat.toS - (look.typedHoldS ?? TYPED_LINGER_S);
   const shown = Math.round(
     interpolate(timeS, [beat.fromS, typingEnd], [0, beat.text.length], CLAMPED),
   );
@@ -238,7 +253,7 @@ const TypedChip: React.FC<{
       style={{
         justifyContent: JUSTIFY_AT[position],
         alignItems: "center",
-        ...overlayPadding(TYPED_CHIP.margin * frameScale, verticalInsets(insets)),
+        ...overlayPadding((look.edge ?? KEYSTROKE_EDGE) * frameScale, verticalInsets(insets)),
         pointerEvents: "none",
       }}
     >
@@ -250,17 +265,19 @@ const TypedChip: React.FC<{
           borderRadius: 999,
           background: faded(look.keycap, TYPED_CHIP.keycapShare),
           color: look.ink,
-          fontFamily: CODE_FONT,
+          fontFamily: look.font || CODE_FONT,
           fontSize: TYPED_CHIP.fontSize * k,
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
-          boxShadow: `0 ${TYPED_CHIP.shadowY * k}px ${TYPED_CHIP.shadowBlur * k}px ${TYPED_CHIP.shadow}`,
+          boxShadow: `0 ${TYPED_CHIP.shadowY * k}px ${TYPED_CHIP.shadowBlur * k}px rgba(0,0,0,${look.shadow ?? TYPED_CHIP.shadow})`,
         }}
       >
         {beat.text.slice(0, shown)}
-        <span style={{ opacity: Math.floor(timeS * CARET_BLINKS_PER_S) % 2 ? 0 : 1 }}>▍</span>
+        {look.caret === false ? null : (
+          <span style={{ opacity: Math.floor(timeS * CARET_BLINKS_PER_S) % 2 ? 0 : 1 }}>▍</span>
+        )}
       </div>
     </AbsoluteFill>
   );
-};
+}

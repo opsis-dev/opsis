@@ -260,11 +260,17 @@ fn scale_keys(keys: Option<Vec<Keyframe>>, by: f64) -> Option<Vec<Keyframe>> {
     })
 }
 
-fn speed_sound(a: AudioItem, inner_per_outer: f64) -> AudioItem {
+fn speed_sound(a: AudioItem, inner_per_outer: f64, shift_pitch: bool) -> AudioItem {
     let outer = |frames: u32| whole(f64::from(frames) / inner_per_outer).max(1);
+    let (rate, pitch) = if shift_pitch {
+        (a.rate, Some(a.pitch.unwrap_or(1.0) * inner_per_outer))
+    } else {
+        (Some(a.rate.unwrap_or(1.0) * inner_per_outer), a.pitch)
+    };
     AudioItem {
         from: whole_signed(f64::from(a.from) / inner_per_outer),
-        rate: Some(a.rate.unwrap_or(1.0) * inner_per_outer),
+        rate,
+        pitch,
         duration_in_frames: a.duration_in_frames.map(outer),
         fade_in_frames: a
             .fade_in_frames
@@ -337,7 +343,13 @@ pub fn wrap_sounds(audio: &[AudioItem], props: &GroupProps, duration: u32) -> Ve
                     ..a
                 })
                 .collect(),
-            Some(rate) => items.into_iter().map(|a| speed_sound(a, rate)).collect(),
+            Some(rate) => {
+                let shift = props.shift_pitch == Some(true);
+                items
+                    .into_iter()
+                    .map(|a| speed_sound(a, rate, shift))
+                    .collect()
+            }
         };
     }
     items

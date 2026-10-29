@@ -10,7 +10,10 @@
       "fontWeight": "400",
       "background": "white",
       "fontFamily": "",
-      "speed": 1.0
+      "speed": 1.0,
+      "pushTime": 12.0,
+      "driveDistance": 0.5,
+      "letterSpacing": -0.02
     },
     "settings": {
       "text": "one two three four five six seven eight nine ten",
@@ -21,7 +24,10 @@
       "fontWeight": "400",
       "background": "white",
       "fontFamily": "",
-      "speed": 1.0
+      "speed": 1.0,
+      "pushTime": 12.0,
+      "driveDistance": 0.5,
+      "letterSpacing": -0.02
     },
     "growth": 14
   },
@@ -42,7 +48,8 @@
       "backgroundColor": "#f5f1f5",
       "reducedMotion": false,
       "fontFamily": "",
-      "speed": 1.0
+      "speed": 1.0,
+      "weight": "400"
     },
     "settings": {
       "text": "a much longer search phrase to type",
@@ -59,7 +66,8 @@
       "backgroundColor": "#f5f1f5",
       "reducedMotion": false,
       "fontFamily": "",
-      "speed": 1.0
+      "speed": 1.0,
+      "weight": "400"
     },
     "growth": 184
   },
@@ -92,7 +100,10 @@
       "boxColor": "#26242c",
       "weight": "600",
       "seed": "checklist",
-      "background": "white"
+      "background": "white",
+      "wobble": 1.0,
+      "fontFamily": "",
+      "strikeColor": ""
     },
     "settings": {
       "fontSize": 40,
@@ -129,7 +140,10 @@
       "boxColor": "#26242c",
       "weight": "600",
       "seed": "checklist",
-      "background": "white"
+      "background": "white",
+      "wobble": 1.0,
+      "fontFamily": "",
+      "strikeColor": ""
     },
     "growth": 87
   },
@@ -137,7 +151,10 @@
     "key": "code-morph",
     "usual": {
       "filename": "invoices.tsx",
-      "theme": "dark",
+      "theme": {
+        "mode": "dark",
+        "colors": {}
+      },
       "accentColor": "#0ea5e9",
       "morphDuration": 36.0,
       "fontSize": 20,
@@ -154,11 +171,20 @@
           "at": 48.0
         }
       ],
-      "speed": 1.0
+      "speed": 1.0,
+      "lineHeight": 1.55,
+      "cornerRadius": 14,
+      "maxSize": 0.9,
+      "highlightHold": 24.0,
+      "font": "",
+      "backgroundColor": ""
     },
     "settings": {
       "filename": "invoices.tsx",
-      "theme": "dark",
+      "theme": {
+        "mode": "dark",
+        "colors": {}
+      },
       "accentColor": "#0ea5e9",
       "morphDuration": 45.0,
       "fontSize": 20,
@@ -179,7 +205,13 @@
           "code": "c"
         }
       ],
-      "speed": 1.0
+      "speed": 1.0,
+      "lineHeight": 1.55,
+      "cornerRadius": 14,
+      "maxSize": 0.9,
+      "highlightHold": 24.0,
+      "font": "",
+      "backgroundColor": ""
     },
     "growth": 77
   },
@@ -187,7 +219,10 @@
     "key": "keystroke",
     "usual": {
       "platform": "mac",
-      "theme": "light",
+      "theme": {
+        "mode": "light",
+        "colors": {}
+      },
       "accent": "#0a84ff",
       "size": 64,
       "linger": 30.0,
@@ -207,11 +242,19 @@
           "at": 114.0
         }
       ],
-      "speed": 1.0
+      "speed": 1.0,
+      "fontFamily": "",
+      "fontWeight": 500,
+      "thenText": "then",
+      "hold": 8.0,
+      "roundness": 0.16
     },
     "settings": {
       "platform": "mac",
-      "theme": "light",
+      "theme": {
+        "mode": "light",
+        "colors": {}
+      },
       "accent": "#0a84ff",
       "size": 64,
       "linger": 45.0,
@@ -235,14 +278,22 @@
           "keys": "mod+s"
         }
       ],
-      "speed": 1.0
+      "speed": 1.0,
+      "fontFamily": "",
+      "fontWeight": 500,
+      "thenText": "then",
+      "hold": 8.0,
+      "roundness": 0.16
     },
     "growth": 171
   },
   {
     "key": "agent-run",
     "usual": {
-      "theme": "light",
+      "theme": {
+        "mode": "light",
+        "colors": {}
+      },
       "accentColor": "#2563eb",
       "compression": 3.0,
       "seed": 1,
@@ -293,10 +344,18 @@
         }
       ],
       "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
-      "speed": 1.0
+      "speed": 1.0,
+      "thinkingLabel": "Thinking",
+      "thoughtLabel": "Thought for",
+      "showTimer": true,
+      "cornerRadius": 18,
+      "font": ""
     },
     "settings": {
-      "theme": "light",
+      "theme": {
+        "mode": "light",
+        "colors": {}
+      },
       "accentColor": "#2563eb",
       "compression": 3.0,
       "seed": 1,
@@ -351,7 +410,12 @@
         }
       ],
       "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.\n\n## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
-      "speed": 1.0
+      "speed": 1.0,
+      "thinkingLabel": "Thinking",
+      "thoughtLabel": "Thought for",
+      "showTimer": true,
+      "cornerRadius": 18,
+      "font": ""
     },
     "growth": 122
   },
@@ -388,7 +452,18 @@
         }
       ],
       "autoplay": true,
-      "pressedIndex": -1
+      "pressedIndex": -1,
+      "letterSeconds": 2.5,
+      "pauseSeconds": 18.0,
+      "speed": 1.0,
+      "pickIndex": 0,
+      "placeholder": "Type a command or search…",
+      "emptyText": "No results found.",
+      "backdropOpacity": 0.5,
+      "panelWidth": 440,
+      "top": 18.0,
+      "fontFamily": "",
+      "radius": 10
     },
     "settings": {
       "state": "opened",
@@ -421,9 +496,20 @@
         }
       ],
       "autoplay": true,
-      "pressedIndex": -1
+      "pressedIndex": -1,
+      "letterSeconds": 4.5,
+      "pauseSeconds": 36.0,
+      "speed": 1.0,
+      "pickIndex": 0,
+      "placeholder": "Type a command or search…",
+      "emptyText": "No results found.",
+      "backdropOpacity": 0.5,
+      "panelWidth": 440,
+      "top": 18.0,
+      "fontFamily": "",
+      "radius": 10
     },
-    "growth": 13
+    "growth": 47
   },
   {
     "key": "punch-lines",

@@ -1,20 +1,6 @@
 import { useMemo } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
-
-export type ParticleFieldProps = {
-  backgroundColor?: string;
-  color?: string;
-  count?: number;
-  angle?: number;
-  speed?: number;
-  size?: number;
-  minSize?: number;
-  depthBlur?: number;
-  drift?: number;
-  intensity?: number;
-  glow?: number;
-  seed?: number;
-};
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 function hash(index: number, salt: number, seed: number): number {
   const value = Math.sin(index * 53.17 + salt * 79.3 + seed * 27.1) * 43758.5453;
@@ -48,20 +34,21 @@ function buildParticles(count: number, seed: number): Particle[] {
   }));
 }
 
-export const ParticleField: React.FC<ParticleFieldProps> = ({
-  backgroundColor = "#05070f",
-  color = "#e8b86d",
-  count = 70,
-  angle = 8,
-  speed = 1,
-  size = 14,
-  minSize = 2,
-  depthBlur = 3,
-  drift = 4,
-  intensity = 1,
-  glow = 1.6,
-  seed = 1,
-}) => {
+export function ParticleField({
+  backgroundColor,
+  color,
+  count,
+  angle,
+  speed,
+  size,
+  minSize,
+  depthBlur,
+  drift,
+  intensity,
+  glow,
+  seed,
+  twinkle: twinkleDepth,
+}: ElementSettings["particle-field"]) {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
   const pixel = width / 1920;
@@ -93,8 +80,10 @@ export const ParticleField: React.FC<ParticleFieldProps> = ({
         const y = 50 + dirY * forward + perpY * across;
         const diameter = (minSize + (size - minSize) * particle.depth) * pixel;
         const twinkle =
-          0.7 +
-          0.3 * Math.sin((time / particle.twinklePeriod) * Math.PI * 2 + particle.twinklePhase);
+          1 -
+          twinkleDepth +
+          twinkleDepth *
+            Math.sin((time / particle.twinklePeriod) * Math.PI * 2 + particle.twinklePhase);
 
         return (
           <div
@@ -125,4 +114,4 @@ export const ParticleField: React.FC<ParticleFieldProps> = ({
       })}
     </AbsoluteFill>
   );
-};
+}

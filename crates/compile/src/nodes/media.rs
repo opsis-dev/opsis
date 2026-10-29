@@ -9,7 +9,7 @@ use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
 use opsis_types::values::{
     ClipValue, CompileValue, Measured, MediaKind, MediaValue, NodeResult, PortValues,
 };
-use opsis_types::workflow::{DEFAULT_STILL_MS, PortType};
+use opsis_types::workflow::PortType;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
@@ -151,7 +151,9 @@ impl ConvertCodec {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum EncodePreset {
     Ultrafast,
@@ -161,6 +163,36 @@ pub enum EncodePreset {
     Veryslow,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum ProresProfile {
+    Proxy,
+    Lt,
+    Standard,
+    #[default]
+    Hq,
+}
+
+impl ProresProfile {
+    pub fn number(self) -> u32 {
+        match self {
+            Self::Proxy => 0,
+            Self::Lt => 1,
+            Self::Standard => 2,
+            Self::Hq => 3,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum SoundQuality {
+    Low,
+    Medium,
+    #[default]
+    High,
+}
+
 #[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
@@ -168,7 +200,8 @@ pub struct Encoding {
     #[setting(
         "Format",
         default = ConvertCodec::H264,
-        labels = { "h264": "MP4", "h265": "MP4 (HEVC)", "vp9": "WebM", "prores": "ProRes" }
+        labels = { "h264": "MP4", "h265": "MP4 (HEVC)", "vp9": "WebM", "prores": "ProRes" },
+        advanced
     )]
     pub codec: ConvertCodec,
     #[setting(
@@ -193,6 +226,20 @@ pub struct Encoding {
         show_if = { "codec": ["h264", "h265"] }
     )]
     pub preset: EncodePreset,
+    #[setting(
+        "ProRes kind",
+        labels = { "proxy": "Proxy", "lt": "Light", "standard": "Standard", "hq": "High quality" },
+        show_if = { "codec": ["prores"] },
+        advanced
+    )]
+    pub prores_profile: ProresProfile,
+    #[setting(
+        "Sound quality",
+        labels = { "low": "Low", "medium": "Medium", "high": "High" },
+        show_if = { "codec": ["h264", "h265", "vp9"] },
+        advanced
+    )]
+    pub sound_quality: SoundQuality,
 }
 
 impl Params for Encoding {}
@@ -305,6 +352,8 @@ struct FileClipProps<'a> {
     src: &'a str,
     fit: Fit,
     muted: bool,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    background: &'a str,
 }
 
 struct ClipLook<'a> {
@@ -315,13 +364,15 @@ struct ClipLook<'a> {
     unlinked: (&'a str, &'a str),
     sound_label: &'a str,
     still: Option<(f64, EditHandles)>,
+    image_ms: f64,
+    background: &'a str,
 }
 
-fn clip_ms(media: Option<&MediaValue>, still: Option<f64>) -> f64 {
+fn clip_ms(media: Option<&MediaValue>, still: Option<f64>, image_ms: f64) -> f64 {
     match media {
-        Some(m) if m.kind == MediaKind::Image => still
-            .or(m.duration_ms.map(f64::from))
-            .unwrap_or(DEFAULT_STILL_MS),
+        Some(m) if m.kind == MediaKind::Image => {
+            still.or(m.duration_ms.map(f64::from)).unwrap_or(image_ms)
+        }
         _ => media
             .and_then(|m| m.duration_ms)
             .map_or(MEDIA_MS, f64::from),
@@ -329,7 +380,10 @@ fn clip_ms(media: Option<&MediaValue>, still: Option<f64>) -> f64 {
 }
 
 fn media_to_clip(node_id: &str, media: Option<&MediaValue>, look: ClipLook<'_>) -> ClipValue {
-    let frames = ms_to_frames(clip_ms(media, look.still.as_ref().map(|s| s.0)), look.fps);
+    let frames = ms_to_frames(
+        clip_ms(media, look.still.as_ref().map(|s| s.0), look.image_ms),
+        look.fps,
+    );
     let extra = ItemExtra {
         envelope: Some(look.envelope.clone()),
         ..ItemExtra::default()
@@ -342,6 +396,7 @@ fn media_to_clip(node_id: &str, media: Option<&MediaValue>, look: ClipLook<'_>) 
             src,
             fit: look.fit,
             muted,
+            background: look.background,
         })
     };
     match media.kind {
@@ -408,9 +463,20 @@ pub struct MediaFile {
     #[setting(
         "Keyframes",
         help = "Change opacity, position and size over time. Edit them here or on the timeline.",
-        widget = "envelope"
+        widget = "envelope",
+        advanced
     )]
     pub envelope: VisualEnvelope,
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "None",
+        check = colour_or_empty,
+        help = "Fills the bars Show all leaves.",
+        show_if = { "fit": ["contain"] },
+        advanced
+    )]
+    pub background: String,
 }
 
 impl Params for MediaFile {}
@@ -490,6 +556,8 @@ fn import() -> NodeDef {
             unlinked: ("No file chosen", &p.path),
             sound_label: &p.path,
             still: Some((f64::from(p.still_ms), handles)),
+            image_ms: f64::from(p.still_ms),
+            background: &p.background,
         };
         let clip = media_to_clip(ctx.node_id, Some(&media), look);
         crate::node::outputs([
@@ -512,11 +580,31 @@ pub struct UseAsClip {
     #[setting("Muted")]
     pub muted: bool,
     #[setting(
+        "Picture length",
+        default = 3000,
+        range(min = 100, max = 3600000),
+        step = 50,
+        unit = "ms",
+        help = "How long an image stays on screen."
+    )]
+    pub still_ms: u32,
+    #[setting(
         "Keyframes",
         help = "Change opacity, position and size over time. Edit them here or on the timeline.",
-        widget = "envelope"
+        widget = "envelope",
+        advanced
     )]
     pub envelope: VisualEnvelope,
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "None",
+        check = colour_or_empty,
+        help = "Fills the bars Show all leaves.",
+        show_if = { "fit": ["contain"] },
+        advanced
+    )]
+    pub background: String,
 }
 
 impl Params for UseAsClip {}
@@ -547,6 +635,8 @@ fn use_as_clip() -> NodeDef {
             unlinked: ("No file connected", "Connect a file to use it as a clip"),
             sound_label: "Sound files can't be shown as a clip",
             still: None,
+            image_ms: f64::from(p.still_ms),
+            background: &p.background,
         };
         let clip = media_to_clip(
             ctx.node_id,
@@ -582,12 +672,46 @@ impl Params for TrimFile {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum JoinSizeFrom {
+    #[default]
+    First,
+    Project,
+}
+
 #[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct JoinFiles {
     #[setting("Always convert", advanced)]
     pub force_reencode: bool,
+    #[setting(
+        "Picture length",
+        default = 3000,
+        range(min = 100, max = 3600000),
+        step = 50,
+        unit = "ms",
+        help = "How long an image joined in stays on screen.",
+        advanced
+    )]
+    pub still_ms: u32,
+    #[setting(
+        "Size and frame rate",
+        labels = { "first": "Of the first file", "project": "Of the project" },
+        help = "What files that don't match are converted to.",
+        advanced
+    )]
+    pub match_to: JoinSizeFrom,
+    #[setting(
+        "Background",
+        default = "#000000",
+        widget = "color",
+        check = colour,
+        help = "Behind sound-only parts and around files of another shape.",
+        advanced
+    )]
+    pub background: String,
 }
 
 impl Params for JoinFiles {}
@@ -647,9 +771,31 @@ pub struct ChangeSpeed {
     pub rate: f64,
     #[setting("Keep the sound", default = true)]
     pub keep_audio: bool,
+    #[setting(
+        "Keep the pitch",
+        default = true,
+        help = "Off, the sound goes higher when faster and lower when slower.",
+        show_if = { "keepAudio": ["true"] },
+        advanced
+    )]
+    pub keep_pitch: bool,
 }
 
 impl Params for ChangeSpeed {}
+
+#[settings]
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ReverseFile {
+    #[setting(
+        "Keep the sound",
+        default = true,
+        help = "Plays the sound backwards with the picture."
+    )]
+    pub keep_audio: bool,
+}
+
+impl Params for ReverseFile {}
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
 pub struct NoSettings {}
@@ -711,6 +857,14 @@ pub struct Resize {
         check = colour_or_empty
     )]
     pub background: String,
+    #[setting(
+        "Place",
+        labels = { "start": "Top or left", "center": "Centre", "end": "Bottom or right" },
+        help = "Where the picture sits in the bars, or which part a crop keeps.",
+        show_if = { "mode": ["pad", "crop"] },
+        advanced
+    )]
+    pub anchor: crate::nodes::image::PlaceAlign,
 }
 
 impl Params for Resize {}
@@ -738,9 +892,27 @@ pub struct MakeGif {
     #[setting(
         "Smooth colours",
         default = Dither::Sierra24a,
-        labels = { "sierra2_4a": "Smooth", "bayer": "Patterned", "floyd_steinberg": "Fine", "none": "Off" }
+        labels = { "sierra2_4a": "Smooth", "bayer": "Patterned", "floyd_steinberg": "Fine", "none": "Off" },
+        advanced
     )]
     pub dither: Dither,
+    #[setting("Colours", default = 256, range(min = 2, max = 256), advanced)]
+    pub colours: u32,
+    #[setting(
+        "Colours from",
+        labels = { "moving": "What moves", "whole": "The whole picture" },
+        help = "What the colour table is chosen from.",
+        advanced
+    )]
+    pub palette_from: PaletteFrom,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum PaletteFrom {
+    #[default]
+    Moving,
+    Whole,
 }
 
 impl Params for MakeGif {}
@@ -763,6 +935,16 @@ pub struct ExtractSound {
         labels = { "m4a": "M4A", "mp3": "MP3", "wav": "WAV" }
     )]
     pub format: SoundFormat,
+    #[setting(
+        "Bit rate",
+        default = 192,
+        range(min = 64, max = 320),
+        step = 32,
+        unit = "kbps",
+        show_if = { "format": ["m4a"] },
+        advanced
+    )]
+    pub bitrate: u32,
 }
 
 impl Params for ExtractSound {}
@@ -847,7 +1029,8 @@ pub struct RemoveHum {
         "Harmonics",
         default = 4,
         range(min = 0, max = 10),
-        help = "Hum also rings at twice, three times and more of its pitch."
+        help = "Hum also rings at twice, three times and more of its pitch.",
+        advanced
     )]
     pub harmonics: u32,
     #[setting(
@@ -859,6 +1042,16 @@ pub struct RemoveHum {
         advanced
     )]
     pub width: f64,
+    #[setting(
+        "Depth",
+        default = -40.0,
+        range(min = -80, max = -6),
+        step = 1,
+        unit = "dB",
+        help = "How far each notch cuts.",
+        advanced
+    )]
+    pub depth: f64,
 }
 
 impl Params for RemoveHum {}
@@ -943,6 +1136,38 @@ pub struct VoiceEffects {
         show_if = { "effect": ["echo"] }
     )]
     pub decay: f64,
+    #[setting(
+        "Repeats",
+        default = 1,
+        range(min = 1, max = 8),
+        help = "Each repeat comes one delay later at the echo level of the one before.",
+        show_if = { "effect": ["echo"] },
+        advanced
+    )]
+    pub repeats: u32,
+    #[setting(
+        "Grit",
+        default = 1.0,
+        range(min = 0, max = 3),
+        step = 0.1,
+        help = "How rough the line sounds.",
+        show_if = { "effect": ["telephone", "radio"] },
+        advanced
+    )]
+    pub grit: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Room length",
+        range(min = 50, max = 10000),
+        step = 50,
+        unit = "ms",
+        zero_label = "The room's own",
+        help = "How long the room rings on.",
+        show_if = { "effect": ["small-room", "hall"] },
+        "type" = "integer",
+        advanced
+    )]
+    pub reverb_ms: Option<u32>,
 }
 
 impl Params for VoiceEffects {}
@@ -979,7 +1204,8 @@ pub struct FitMusic {
         range(min = 1, max = 25),
         step = 1,
         unit = "%",
-        show_if = { "way": ["both"] }
+        show_if = { "way": ["both"] },
+        advanced
     )]
     pub max_stretch: f64,
     #[setting(
@@ -987,7 +1213,8 @@ pub struct FitMusic {
         range(min = 0, max = 3600000),
         step = 100,
         unit = "ms",
-        show_if = { "way": ["both", "loop"] }
+        show_if = { "way": ["both", "loop"] },
+        advanced
     )]
     pub loop_from_ms: u32,
     #[setting(
@@ -996,7 +1223,8 @@ pub struct FitMusic {
         step = 100,
         unit = "ms",
         zero_label = "The end of the song",
-        show_if = { "way": ["both", "loop"] }
+        show_if = { "way": ["both", "loop"] },
+        advanced
     )]
     pub loop_to_ms: u32,
     #[setting(
@@ -1005,7 +1233,8 @@ pub struct FitMusic {
         range(min = 10, max = 10000),
         step = 50,
         unit = "ms",
-        show_if = { "way": ["both", "loop"] }
+        show_if = { "way": ["both", "loop"] },
+        advanced
     )]
     pub crossfade_ms: u32,
     #[setting(
@@ -1016,7 +1245,15 @@ pub struct FitMusic {
         unit = "ms"
     )]
     pub fade_out_ms: u32,
+    #[setting(
+        "Fade curve",
+        labels = { "tri": "Even", "qsin": "Gentle", "exp": "Quick then slow", "log": "Slow then quick" },
+        advanced
+    )]
+    pub fade_curve: FadeCurve,
 }
+
+pub use opsis_types::timeline::FadeCurve;
 
 impl Params for FitMusic {}
 
@@ -1137,6 +1374,27 @@ pub struct CleanSpeech {
         advanced
     )]
     pub method: NoiseMethod,
+    #[setting(
+        "Cut rumble below",
+        default = 80,
+        range(min = 0, max = 300),
+        step = 10,
+        unit = "Hz",
+        help = "0 keeps the lowest sounds.",
+        advanced
+    )]
+    pub rumble_hz: u32,
+    #[setting(
+        "Most lift",
+        default = 16.0,
+        range(min = 0, max = 30),
+        step = 1,
+        unit = "dB",
+        help = "How far Even out the level may lift a quiet word.",
+        show_if = { "evenLevel": ["true"] },
+        advanced
+    )]
+    pub even_lift: f64,
 }
 
 impl Params for CleanSpeech {}
@@ -1186,7 +1444,8 @@ pub struct ShortenPauses {
         range(min = -70, max = -20),
         step = 1,
         unit = "dB",
-        help = "Quieter than this counts as a pause. Raise it for a noisy room."
+        help = "Quieter than this counts as a pause. Raise it for a noisy room.",
+        advanced
     )]
     pub threshold: f64,
     #[setting(
@@ -1297,6 +1556,47 @@ pub struct SoundPicture {
     pub colours: SpectrumColours,
     #[setting("Background", default = "#00000000", widget = "color", check = colour)]
     pub background: String,
+    #[setting(
+        "Each channel apart",
+        help = "Draws left and right one above the other.",
+        show_if = { "kind": ["waveform"] },
+        advanced
+    )]
+    pub split_channels: bool,
+    #[setting(
+        "Loudness scale",
+        labels = { "lin": "Even", "log": "Log", "sqrt": "Square root", "cbrt": "Cube root" },
+        help = "Log and the roots show quiet parts larger.",
+        show_if = { "kind": ["waveform"] },
+        advanced
+    )]
+    pub wave_scale: WaveScale,
+    #[setting(
+        "Pitch scale",
+        labels = { "lin": "Even", "log": "Log" },
+        help = "Log gives low pitches more room.",
+        show_if = { "kind": ["spectrum"] },
+        advanced
+    )]
+    pub pitch_scale: PitchScale,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum WaveScale {
+    #[default]
+    Lin,
+    Log,
+    Sqrt,
+    Cbrt,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum PitchScale {
+    #[default]
+    Lin,
+    Log,
 }
 
 impl Params for SoundPicture {}
@@ -1346,12 +1646,18 @@ pub struct GrabFrame {
     #[setting(
         "At",
         default = 1000,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 36000000),
         step = 50,
         unit = "ms"
     )]
     pub at_ms: u32,
-    #[setting("Width", default = 1280, range(min = 64, max = 3840), unit = "px")]
+    #[setting(
+        "Width",
+        default = 1280,
+        range(min = 0, max = 7680),
+        unit = "px",
+        help = "0 keeps the frame's own size."
+    )]
     pub width: u32,
 }
 
@@ -1404,11 +1710,15 @@ fn thumbnail() -> NodeDef {
         let p = &ctx.params;
         vec![Some(row(
             Icon::Image,
-            format!(
-                "At {} · {} px",
-                format_duration(f64::from(p.at_ms)),
-                p.width
-            ),
+            if p.width == 0 {
+                format!("At {} · Its own size", format_duration(f64::from(p.at_ms)))
+            } else {
+                format!(
+                    "At {} · {} px",
+                    format_duration(f64::from(p.at_ms)),
+                    p.width
+                )
+            },
         ))]
     })
     .compile(|ctx: &Ctx<'_, GrabFrame>| {
@@ -1468,11 +1778,12 @@ pub fn nodes() -> Vec<NodeDef> {
         })
         .look(NodeLook::of("lucide:fast-forward"))
         .needs(FileNeed::Moving),
-        one_file_op::<NoSettings>(REVERSE_TYPE, "Reverse", "Plays a file backwards.")
+        one_file_op::<ReverseFile>(REVERSE_TYPE, "Reverse", "Plays a file backwards.")
             .uses_project_size()
-            .card(|ctx: &CardCtx<'_, NoSettings>| {
+            .card(|ctx: &CardCtx<'_, ReverseFile>| {
                 vec![
                     Some(row(Icon::RefreshCw, "Plays backwards")),
+                    (!ctx.params.keep_audio).then(|| row(Icon::VolumeX, "No sound")),
                     length_row(ctx.result, Icon::Clock),
                 ]
             })

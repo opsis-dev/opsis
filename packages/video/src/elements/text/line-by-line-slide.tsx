@@ -1,29 +1,23 @@
 import { Easing, interpolate } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface LineByLineSlideProps {
-  background?: string;
-  fontFamily?: string;
-  text: string;
-  distance?: number;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function LineByLineSlide({
-  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily,
   text,
-  distance = 48,
-  fontSize = 72,
-  color = "#171717",
-  fontWeight = 600,
-  speed = 1,
-  className,
-  background = "transparent",
-}: LineByLineSlideProps) {
+  distance,
+  fontSize,
+  color,
+  fontWeight,
+  speed,
+  background,
+  align,
+  lineStagger,
+  exit,
+  letterSpacing,
+  lineHeight,
+}: ElementSettings["line-by-line-slide"]) {
   const frame = useAuthoredFrame() * speed;
   const { durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
@@ -34,17 +28,16 @@ export function LineByLineSlide({
   const enterTravel = 14;
   const exitDur = 18;
   const exitTravelFrom = 8;
-  const enterStagger = 4;
+  const enterStagger = lineStagger;
   const exitStagger = 2;
 
   const enterEasing = Easing.bezier(0.22, 1, 0.36, 1);
   const exitEasing = Easing.bezier(0.64, 0, 0.78, 0);
 
   const enterEnd = enterDur + (lines.length - 1) * enterStagger;
-  const exitStart = Math.max(
-    enterEnd,
-    durationInFrames - exitDur - (lines.length - 1) * exitStagger,
-  );
+  const exitStart = exit
+    ? Math.max(enterEnd, durationInFrames - exitDur - (lines.length - 1) * exitStagger)
+    : Number.POSITIVE_INFINITY;
 
   return (
     <div
@@ -58,15 +51,14 @@ export function LineByLineSlide({
       }}
     >
       <span
-        className={className}
         style={{
           fontSize,
           fontWeight,
           color,
-          letterSpacing: "-0.03em",
-          lineHeight: 1.1,
-          textAlign: "left",
-          fontFamily,
+          letterSpacing: `${letterSpacing}em`,
+          lineHeight,
+          textAlign: align,
+          fontFamily: fontOr(fontFamily, "main"),
         }}
       >
         {lines.map((line, i) => {

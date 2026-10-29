@@ -37,7 +37,9 @@
    "locale": "en-US",
    "timezone": "",
    "colorScheme": "light",
-   "captureScale": 1.0
+   "captureScale": 1.0,
+   "showScrollbars": false,
+   "reduceMotion": false
   }
  },
  {
@@ -164,7 +166,8 @@
   "defaults": {
    "url": "{{Site address}}",
    "waitUntil": "load",
-   "after": 700
+   "after": 700,
+   "timeoutMs": 30000
   }
  },
  {
@@ -215,7 +218,9 @@
    "zoomScale": 0.0,
    "travelMs": 0,
    "hoverMs": 220,
-   "silent": false
+   "silent": false,
+   "findWithinMs": 15000,
+   "scrollSmoothly": false
   }
  },
  {
@@ -264,7 +269,12 @@
    "cluster": "",
    "zoom": true,
    "frame": "",
-   "silent": false
+   "zoomScale": 0.0,
+   "travelMs": 0,
+   "silent": false,
+   "hoverMs": 220,
+   "keyMs": 30,
+   "clearFirst": true
   }
  },
  {
@@ -361,6 +371,7 @@
    "path": "",
    "holdMs": 150,
    "dragMs": 0,
+   "dropHoldMs": 120,
    "method": "smooth",
    "after": 600,
    "cluster": "",
@@ -412,6 +423,8 @@
    "mode": "element",
    "target": "",
    "deltaY": 600,
+   "deltaX": 0,
+   "align": "center",
    "smooth": true,
    "durationMs": 900,
    "after": 600
@@ -459,7 +472,11 @@
    "value": "",
    "after": 600,
    "cluster": "",
-   "zoom": true
+   "zoom": true,
+   "frame": "",
+   "zoomScale": 0.0,
+   "travelMs": 0,
+   "hoverMs": 220
   }
  },
  {
@@ -502,9 +519,7 @@
   "defaults": {
    "target": "",
    "file": "",
-   "after": 600,
-   "cluster": "",
-   "zoom": true
+   "after": 600
   }
  },
  {
@@ -635,7 +650,8 @@
   "defaults": {
    "text": "",
    "target": "",
-   "timeoutMs": 10000
+   "timeoutMs": 10000,
+   "exact": false
   }
  },
  {
@@ -676,7 +692,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "target": ""
+   "target": "",
+   "timeoutMs": 15000
   }
  },
  {
@@ -718,7 +735,8 @@
   "hostDefaults": null,
   "defaults": {
    "script": "localStorage.setItem('onboarded', '1');",
-   "reload": false
+   "reload": false,
+   "everyPage": false
   }
  },
  {
@@ -762,7 +780,8 @@
    "url": "**/api/**",
    "status": 200,
    "contentType": "application/json",
-   "body": "{\"ok\":true}"
+   "body": "{\"ok\":true}",
+   "delayMs": 0
   }
  },
  {
@@ -891,7 +910,17 @@
    "title": "Chapter",
    "description": "",
    "showInVideo": false,
-   "durationMs": 2000
+   "durationMs": 2000,
+   "afterMs": 2000,
+   "cardColor": "rgba(0, 0, 0, 0.7)",
+   "edgeColor": "rgba(255, 255, 255, 0.15)",
+   "textColor": "#ffffff",
+   "titleSize": 28,
+   "descriptionSize": 15,
+   "cardWidth": 560,
+   "position": "center",
+   "blur": 2,
+   "fadeMs": 300
   }
  },
  {
@@ -933,7 +962,8 @@
   "hostDefaults": null,
   "defaults": {
    "html": "<div style=\"font:600 32px system-ui\">Hello</div>",
-   "durationMs": 2000
+   "durationMs": 2000,
+   "fadeMs": 0
   }
  },
  {
@@ -982,6 +1012,12 @@
    "endTailMs": 2500,
    "cursor": "synthetic",
    "showActions": false,
+   "actionLabelMs": 600,
+   "cursorFill": "#111418",
+   "cursorOutline": "#ffffff",
+   "cursorScale": 1.0,
+   "clickRing": true,
+   "ringColor": "rgba(15, 23, 42, 0.55)",
    "mutates": ""
   }
  },
@@ -1036,7 +1072,14 @@
    "look": "window",
    "backdrop": "glaze",
    "durationMs": 3000,
-   "envelope": {}
+   "envelope": {},
+   "windowFit": 86,
+   "cutoutFit": 80,
+   "shadow": 45,
+   "frame": "none",
+   "pushIn": 2.0,
+   "pushInMs": 4000,
+   "align": "top"
   }
  },
  {
@@ -1095,7 +1138,26 @@
    "addressBar": true,
    "address": "",
    "addressMode": "fixed",
-   "motionBlur": true
+   "motionBlur": true,
+   "ground": "#faf6f1",
+   "shadow": 1.0,
+   "liftColours": true,
+   "shutterAngle": 180,
+   "bleedBlur": 48,
+   "bleedDim": 0.55,
+   "cameraEasing": "smooth",
+   "cameraPace": 1.0,
+   "minScale": 1.18,
+   "firstMaxScale": 1.54,
+   "room": 80,
+   "targetShare": 55,
+   "offCentre": 0.26,
+   "joinWithinMs": 2200,
+   "stayZoomedWithinMs": 2800,
+   "holdAfterTypingMs": 400,
+   "restAtEndMs": 600,
+   "longestPan": 500,
+   "frameFont": ""
   }
  },
  {
@@ -1186,7 +1248,8 @@
    "holdMs": 1500,
    "x": 0.5,
    "y": 0.5,
-   "scale": 1.5
+   "scale": 1.5,
+   "leadMs": 400
   }
  },
  {
@@ -1233,7 +1296,8 @@
    "fromY": 0.4,
    "toX": 0.7,
    "toY": 0.6,
-   "scale": 1.4
+   "scale": 1.4,
+   "zoomOutWhenFar": true
   }
  },
  {
@@ -1275,7 +1339,8 @@
   "hostDefaults": null,
   "defaults": {
    "scale": 1.35,
-   "everyMs": 700
+   "everyMs": 700,
+   "zoomOutOnJumps": true
   }
  },
  {
@@ -1318,7 +1383,8 @@
   "defaults": {
    "thresholdMs": 1500,
    "padMs": 400,
-   "rate": 4.0
+   "rate": 4.0,
+   "easeMs": 0
   }
  },
  {
@@ -1365,7 +1431,8 @@
      "toMs": 1000,
      "rate": 2.0
     }
-   ]
+   ],
+   "easeMs": 0
   }
  },
  {
@@ -1409,7 +1476,8 @@
    "x": 0.1,
    "y": 0.1,
    "w": 0.8,
-   "h": 0.8
+   "h": 0.8,
+   "fill": false
   }
  },
  {
@@ -1451,7 +1519,24 @@
   "hostDefaults": null,
   "defaults": {
    "device": "laptop",
-   "entrance": "open"
+   "entrance": "open",
+   "phoneEntrance": "rise",
+   "variant": "flat",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
+   "bezelColor": "",
+   "showNotch": true,
+   "notchLabel": "Recording started",
+   "batteryLevel": 85,
+   "indicatorColor": "#30D158",
+   "floatLoop": true,
+   "restTilt": 18,
+   "finale": "none",
+   "shadow": "",
+   "tiltAngle": -12,
+   "showDynamicIsland": true
   }
  },
  {
@@ -1592,7 +1677,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "enabled": true
+   "enabled": true,
+   "shutterAngle": 180
   }
  },
  {
@@ -1637,7 +1723,12 @@
    "look": "arrow",
    "size": 1.0,
    "color": "#111418",
-   "outline": "#ffffff"
+   "outline": "#ffffff",
+   "growWithZoom": 0.58,
+   "outlineWidth": 1.85,
+   "shadow": 0.34,
+   "pressSquash": 0.9,
+   "hideWhileTyping": true
   }
  },
  {
@@ -1681,7 +1772,10 @@
    "enabled": true,
    "color": "#0f172a",
    "size": 1.0,
-   "width": 2.0
+   "width": 2.0,
+   "ringOpacity": 47,
+   "fillOpacity": 9,
+   "durationMs": 350
   }
  },
  {
@@ -1727,7 +1821,15 @@
    "chords": true,
    "keycap": "#0a0a0a",
    "ink": "#ffffff",
-   "size": 1.0
+   "size": 1.0,
+   "chordHoldMs": 1100,
+   "typedHoldMs": 600,
+   "edge": 56,
+   "radius": 26,
+   "keyNames": "symbols",
+   "font": "",
+   "shadow": 0.35,
+   "caret": true
   }
  },
  {
@@ -1769,13 +1871,13 @@
   "hostDefaults": null,
   "defaults": {
    "match": "",
-   "text": "",
    "color": "rgba(0,0,0,0.55)",
    "padding": 10,
    "leadMs": 250,
    "holdMs": 1400,
-   "look": "clean",
-   "roughness": 1.0
+   "fadeMs": 180,
+   "cornerRadius": 12,
+   "softness": 0
   }
  },
  {
@@ -1817,13 +1919,19 @@
   "hostDefaults": null,
   "defaults": {
    "match": "",
-   "text": "",
    "color": "#a78bfa",
    "padding": 10,
    "leadMs": 250,
    "holdMs": 1400,
+   "fadeMs": 180,
+   "cornerRadius": 10,
    "look": "clean",
-   "roughness": 1.0
+   "roughness": 1.0,
+   "lineWidth": 3,
+   "fillOpacity": 12,
+   "markerOpacity": 50,
+   "drawMs": 450,
+   "strokes": 2
   }
  },
  {
@@ -1874,7 +1982,12 @@
    "fontSize": 18,
    "font": "",
    "look": "clean",
-   "roughness": 1.0
+   "roughness": 1.0,
+   "fontWeight": 600,
+   "boxPadding": 14,
+   "radius": 10,
+   "pointerSize": 8,
+   "shadow": true
   }
  },
  {
@@ -1924,7 +2037,11 @@
    "fontSize": 30,
    "font": "",
    "look": "clean",
-   "roughness": 1.0
+   "roughness": 1.0,
+   "fontWeight": 800,
+   "arrowSize": 1.0,
+   "lineWidth": 5,
+   "tilt": -4.0
   }
  },
  {
@@ -1960,7 +2077,8 @@
    "script": "Record a real flow. Turn it into a cinematic demo.",
    "wordsPerMinute": 165,
    "startMs": 0,
-   "linePauseMs": 350
+   "linePauseMs": 350,
+   "paragraphPauseMs": 700
   }
  },
  {
@@ -2015,7 +2133,15 @@
    "highlightColor": "#facc15",
    "panel": "rgba(0,0,0,0.35)",
    "fontWeight": 800,
-   "fontFamily": ""
+   "fontFamily": "",
+   "wordsPerLine": 6,
+   "lingerMs": 250,
+   "edgeOffset": 90,
+   "sideMargin": 10.0,
+   "panelPadding": 22,
+   "panelRadius": 16,
+   "textShadow": true,
+   "unspokenOpacity": 55.0
   }
  },
  {
@@ -2067,7 +2193,8 @@
    "frameMs": 0.0,
    "strength": 0.6,
    "softness": 0.3,
-   "roundness": 0.3
+   "roundness": 0.3,
+   "fadeMs": 200
   }
  },
  {
@@ -2113,7 +2240,11 @@
    "saturation": 1.0,
    "warmth": 0.0,
    "vignette": 0.0,
-   "grain": 0.0
+   "grain": 0.0,
+   "vignetteSize": 0.65,
+   "vignetteSoftness": 0.35,
+   "vignetteColor": "#000000",
+   "tint": 0.0
   }
  },
  {
@@ -2253,7 +2384,8 @@
   "defaults": {
    "kind": "bw",
    "tint": "#d8a15b",
-   "strength": 1.0
+   "strength": 1.0,
+   "filter": "none"
   }
  },
  {
@@ -2299,7 +2431,9 @@
    "vignette": 0.0,
    "vignetteX": 0.5,
    "vignetteY": 0.5,
-   "grain": 0.0
+   "grain": 0.0,
+   "vignetteShape": "round",
+   "colourGrain": true
   }
  },
  {
@@ -2342,7 +2476,11 @@
   "defaults": {
    "fringe": 0.0,
    "bulge": 0.0,
-   "trails": 0.0
+   "trails": 0.0,
+   "fringeAngle": 0.0,
+   "bulgeX": 0.5,
+   "bulgeY": 0.5,
+   "cornerColor": "#000000"
   }
  },
  {
@@ -2387,7 +2525,9 @@
    "levels": false,
    "levelsStrength": 0.5,
    "levelsSmoothing": 24,
-   "deband": false
+   "deband": false,
+   "levelsEachColour": false,
+   "debandStrength": 0.02
   }
  },
  {
@@ -2434,6 +2574,19 @@
    "fontSize": 112,
    "fontWeight": 760,
    "fontFamily": "",
+   "sideMargin": 9.0,
+   "lineGap": 0.22,
+   "eyebrowSize": 0.26,
+   "eyebrowUppercase": true,
+   "subtitleSize": 0.34,
+   "letterSpacing": -0.035,
+   "lineStagger": 1.0,
+   "markThickness": 0.045,
+   "markerOpacity": 55.0,
+   "markSeed": 1,
+   "markDrawTime": 0.45,
+   "fadeOut": 0.3333,
+   "subtitleColor": "",
    "clipDuration": 75,
    "envelope": {}
   }
@@ -2475,6 +2628,15 @@
    "fontSize": 104,
    "wordStagger": 4,
    "fontFamily": "",
+   "fontWeight": 780,
+   "letterSpacing": -0.04,
+   "lineHeight": 1.05,
+   "sideMargin": 8.0,
+   "wordGap": 0.28,
+   "rise": 0.5,
+   "tilt": 4.0,
+   "underlineEmphasis": true,
+   "fadeOutInFrames": 10,
    "clipDuration": 90,
    "envelope": {}
   }
@@ -2516,6 +2678,16 @@
    "color": "#fafafa",
    "panel": "rgba(10,10,12,0.72)",
    "fontFamily": "",
+   "exitTime": 0.4667,
+   "slide": 120,
+   "margin": 80,
+   "barWidth": 8,
+   "cornerRadius": 18,
+   "panelBlur": 12,
+   "titleSize": 44,
+   "titleWeight": 720,
+   "subtitleSize": 28,
+   "subtitleOpacity": 0.7,
    "clipDuration": 120,
    "envelope": {}
   }
@@ -2557,6 +2729,17 @@
    "color": "#fafafa",
    "accent": "#f43f5e",
    "fontFamily": "",
+   "drawTime": 0.6,
+   "labelDistance": 170,
+   "bend": 40,
+   "arrowWidth": 7,
+   "dotSize": 14,
+   "labelRadius": 14,
+   "fontSize": 34,
+   "fontWeight": 700,
+   "slant": 19.29,
+   "fadeOut": 0.3333,
+   "labelBackground": "",
    "clipDuration": 75,
    "envelope": {}
   }
@@ -2593,8 +2776,9 @@
   "defaults": {
    "src": "",
    "fit": "contain",
-   "background": "transparent",
+   "background": "",
    "kenBurns": false,
+   "kenBurnsZoom": 1.06,
    "clipDuration": 90,
    "envelope": {}
   }
@@ -2687,6 +2871,7 @@
    "backwards": false,
    "fit": "contain",
    "background": "transparent",
+   "align": "center",
    "clipDuration": 90,
    "envelope": {}
   }
@@ -2728,6 +2913,7 @@
    "volume": 1.0,
    "playbackRate": 1.0,
    "trimBeforeMs": 0,
+   "background": "",
    "clipDuration": 150,
    "envelope": {}
   }
@@ -2801,6 +2987,8 @@
    "to": "#0f172a",
    "angle": 135,
    "grain": 0.08,
+   "shape": "linear",
+   "grainSize": 1.0,
    "clipDuration": 90,
    "envelope": {}
   }
@@ -2839,6 +3027,14 @@
    "color2": "#4f46e5",
    "scale": 0.004,
    "speed": 0.004,
+   "blobs": 5,
+   "wander": 40.0,
+   "blobSize": 30.0,
+   "intensity": 0.55,
+   "softness": 40,
+   "seed": 0,
+   "grain": 0.08,
+   "grainSize": 1.0,
    "clipDuration": 150,
    "envelope": {}
   }
@@ -2877,6 +3073,9 @@
    "color2": "#27272a",
    "rays": 24,
    "rotationSpeed": 0.15,
+   "edgeFade": 75.0,
+   "rayWidth": 50.0,
+   "centerX": 50.0,
    "clipDuration": 150,
    "envelope": {}
   }
@@ -2913,6 +3112,7 @@
   "defaults": {
    "color": "#f5f1e8",
    "grain": 0.18,
+   "grainSize": 1.0,
    "clipDuration": 150,
    "envelope": {}
   }
@@ -2984,6 +3184,10 @@
   "defaults": {
    "src": "",
    "dim": 0.3,
+   "dimColor": "#000000",
+   "fit": "cover",
+   "playbackRate": 1.0,
+   "trimBeforeMs": 0,
    "clipDuration": 150,
    "envelope": {}
   }
@@ -3020,6 +3224,8 @@
   "defaults": {
    "seed": 3,
    "hueShift": 0,
+   "strength": 100.0,
+   "blend": "normal",
    "clipDuration": 45,
    "envelope": {}
   }
@@ -3064,7 +3270,17 @@
    },
    "speed": 1.0,
    "lighting": "studio",
-   "background": "transparent",
+   "background": "",
+   "zoom": 1.0,
+   "roughness": 0.35,
+   "bevel": 0.08,
+   "cornerRadius": 0.12,
+   "tilt": 52,
+   "growIn": true,
+   "endFacing": false,
+   "motionAmount": 1.0,
+   "reverse": false,
+   "lens": 30.0,
    "clipDuration": 150,
    "envelope": {}
   }
@@ -3109,7 +3325,16 @@
    },
    "speed": 1.0,
    "lighting": "soft",
-   "background": "transparent",
+   "background": "",
+   "zoom": 1.0,
+   "edgeColor": "#ffffff",
+   "roughness": 0.6,
+   "shadow": 0.55,
+   "growIn": true,
+   "endFacing": false,
+   "motionAmount": 1.0,
+   "reverse": false,
+   "lens": 30.0,
    "clipDuration": 120,
    "envelope": {}
   }
@@ -3161,6 +3386,15 @@
    "speed": 1.0,
    "lighting": "studio",
    "background": "transparent",
+   "size": 1.0,
+   "lineHeight": 1.15,
+   "roughness": 0.3,
+   "lens": 30.0,
+   "tilt": 52,
+   "endFacing": false,
+   "motionAmount": 1.0,
+   "growIn": true,
+   "reverse": false,
    "clipDuration": 120,
    "envelope": {}
   }
@@ -3207,7 +3441,14 @@
    "zoom": 1.0,
    "lighting": "studio",
    "shadow": true,
-   "background": "transparent",
+   "background": "",
+   "shadowOpacity": 0.55,
+   "growIn": true,
+   "motionAmount": 1.0,
+   "tilt": 52,
+   "endFacing": false,
+   "reverse": false,
+   "lens": 30.0,
    "clipDuration": 150,
    "envelope": {}
   }
@@ -3259,6 +3500,11 @@
    "endFaceOn": true,
    "lighting": "studio",
    "background": "#0b0b10",
+   "bezelColor": "#0a0a0c",
+   "metalness": 0.6,
+   "roughness": 0.35,
+   "glare": 0.16,
+   "moveEndsAt": 0.85,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3307,6 +3553,17 @@
    },
    "lighting": "studio",
    "background": "#0b1020",
+   "depth": 1.0,
+   "size": 1.0,
+   "drift": 0.45,
+   "spin": 1.0,
+   "roughness": 0.4,
+   "metalness": 0.1,
+   "kinds": [
+    "sphere",
+    "ring",
+    "box"
+   ],
    "clipDuration": 150,
    "envelope": {}
   }
@@ -3349,6 +3606,9 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "stagger": 0.0333,
+   "distance": 16,
+   "letterSpacing": -0.05,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3393,6 +3653,10 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "cursorWidth": 0.08,
+   "blinkRate": 1.0,
+   "align": "center",
+   "letterSpacing": -0.03,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3435,6 +3699,10 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "sweeps": 1,
+   "bandAngle": 110.0,
+   "bandWidth": 40.0,
+   "letterSpacing": -0.03,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3478,6 +3746,9 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "scrambleEvery": 0.0667,
+   "seed": 0,
+   "letterSpacing": 0.05,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3520,6 +3791,9 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "columnStagger": 0.1333,
+   "direction": "up",
+   "letterSpacing": -0.03,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3563,6 +3837,8 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "wordDuration": 0.4,
+   "letterSpacing": -0.03,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3605,6 +3881,10 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "wordGap": 10,
+   "wordTime": 0.4333,
+   "entryBlur": 3.5,
+   "letterSpacing": -0.03,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3647,6 +3927,11 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "align": "center",
+   "lineStagger": 0.1,
+   "exitDistance": 22,
+   "blur": 6,
+   "lineHeight": 1.1,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3690,6 +3975,8 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "endTracking": -0.03,
+   "fadeIn": 0.5,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3733,6 +4020,9 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "pushTime": 0.4,
+   "driveDistance": 0.5,
+   "letterSpacing": -0.02,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3784,6 +4074,7 @@
    "background": "#fafafa",
    "fontFamily": "",
    "speed": 1.0,
+   "letterSpacing": -0.03,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3834,6 +4125,10 @@
    "fontWeight": "700",
    "fontFamily": "",
    "speed": 1.0,
+   "revealEnd": 1.1,
+   "compactWidth": 87.0,
+   "gradientSpread": 26.0,
+   "letterSpacing": 0.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3877,6 +4172,10 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "strikeEnd": 0.4,
+   "swapLength": 0.2,
+   "letterSpacing": -0.03,
+   "toColor": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3919,6 +4218,11 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "align": "left",
+   "lineStagger": 0.1333,
+   "exit": true,
+   "letterSpacing": -0.03,
+   "lineHeight": 1.1,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -3964,6 +4268,10 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "markerAt": 0.5,
+   "markerHeight": 1.0,
+   "x": 0.5,
+   "y": 0.5,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4008,6 +4316,9 @@
    "background": "white",
    "fontFamily": "",
    "speed": 1.0,
+   "changeStart": 0.2,
+   "changeEnd": 0.7,
+   "letterSpacing": -0.03,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4053,6 +4364,9 @@
    "step": 0.1,
    "x": 0.5,
    "y": 0.62,
+   "wobble": 1.2,
+   "angle": 0.0,
+   "opacity": 0.85,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4100,6 +4414,10 @@
    "width": 420,
    "height": 220,
    "release": 1.0,
+   "wobble": 0.035,
+   "startAngle": 0.0,
+   "clockwise": true,
+   "opacity": 0.85,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4149,6 +4467,9 @@
    "fromY": 0.72,
    "toX": 0.48,
    "toY": 0.5,
+   "headAngle": 41.25,
+   "wobble": 0.06,
+   "opacity": 0.85,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4184,7 +4505,10 @@
   "hostDefaults": null,
   "defaults": {
    "platform": "mac",
-   "theme": "light",
+   "theme": {
+    "mode": "light",
+    "colors": {}
+   },
    "accent": "#0a84ff",
    "size": 64,
    "linger": 1.0,
@@ -4205,6 +4529,11 @@
     }
    ],
    "speed": 1.0,
+   "fontFamily": "",
+   "fontWeight": 500,
+   "thenText": "then",
+   "hold": 0.2667,
+   "roundness": 0.16,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4255,6 +4584,10 @@
    "originX": 0.5,
    "originY": 0.5,
    "lifetime": 3.0,
+   "spread": 360.0,
+   "direction": 180.0,
+   "spin": 1.0,
+   "pieceShape": 0.62,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4301,6 +4634,9 @@
    "backgroundColor": "#a800b7",
    "loop": false,
    "speed": 1.0,
+   "echoOpacity": 0.36,
+   "x": 0.5,
+   "y": 0.5,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4344,6 +4680,9 @@
     "#3a3a5c",
     "#52527a"
    ],
+   "grainOverlay": 0.0,
+   "grainMixer": 0.0,
+   "scale": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4436,6 +4775,10 @@
     "#12121a",
     "#52527a"
    ],
+   "shape": "checks",
+   "shapeScale": 0.1,
+   "swirlIterations": 10,
+   "scale": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4480,6 +4823,11 @@
     "#3a3a5c",
     "#232338"
    ],
+   "center": 0.2,
+   "proportion": 0.5,
+   "noise": 0.2,
+   "noiseFrequency": 0.4,
+   "scale": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4526,6 +4874,11 @@
     "#3a3a5c"
    ],
    "colorBloom": "#3a3a5c",
+   "offsetY": -0.55,
+   "offsetX": 0.0,
+   "spotty": 0.3,
+   "midIntensity": 0.4,
+   "midSize": 0.2,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4565,6 +4918,10 @@
    "softness": 0.1,
    "colorBack": "#12121a",
    "colorFront": "#6a6a85",
+   "octaveCount": 1,
+   "persistence": 1.0,
+   "lacunarity": 1.5,
+   "scale": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4605,6 +4962,8 @@
    "colorFront": "#6a6a85",
    "shape": "wave",
    "type": "4x4",
+   "scale": 0.6,
+   "rotation": 0.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4651,6 +5010,11 @@
    "scanlines": 1.0,
    "maskScale": 2,
    "vignette": 1.0,
+   "scanlineCount": 240,
+   "mask": 0.66,
+   "glow": 0.75,
+   "flicker": 0.012,
+   "bezelColor": "#000000",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4697,6 +5061,8 @@
    "wobble": 1.0,
    "noise": 1.0,
    "intensity": 1.0,
+   "headSwitch": 1.0,
+   "scanlines": 1.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4743,6 +5109,9 @@
    "angle": 0,
    "misregistration": 1.2,
    "paperTint": "#f4efe4",
+   "cyanInk": "#14e0fa",
+   "magentaInk": "#e61ff0",
+   "yellowInk": "#f7e61a",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4790,6 +5159,8 @@
    "aberration": 0.5,
    "vignette": 0.5,
    "distortion": 0.05,
+   "sharpCentre": 0.22,
+   "bloomThreshold": 0.62,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4838,6 +5209,13 @@
    "step": 0.1,
    "frameColor": "#fdfcf8",
    "captionColor": "#26242c",
+   "photoShape": "16:9",
+   "captionStrip": 62,
+   "cornerRadius": 4,
+   "captionWeight": 600,
+   "writeSpeed": 1.4,
+   "captionFont": "",
+   "photoColor": "#100f14",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4884,6 +5262,7 @@
    "gain": 1.0,
    "afterglow": 1.0,
    "phosphor": "#d8ecff",
+   "screenColor": "#000000",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -4930,6 +5309,10 @@
    "color": "#ffffff",
    "seed": 1,
    "speed": 1.0,
+   "fromX": -0.25,
+   "fromY": 0.5,
+   "hold": 0.2667,
+   "streakLength": 1.6,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5009,6 +5392,21 @@
     }
    ],
    "speed": 1.0,
+   "width": 900,
+   "height": 480,
+   "ellipsisPause": 0.6,
+   "startAt": 0.3333,
+   "windowDots": true,
+   "cornerRadius": 12,
+   "lineHeight": 1.6,
+   "font": "",
+   "commandColor": "",
+   "logColor": "",
+   "successColor": "",
+   "errorColor": "",
+   "promptColor": "",
+   "cursorColor": "",
+   "titleColor": "#71717a",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5053,6 +5451,21 @@
    "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
    "aura": false,
    "speed": 1.0,
+   "frost": 16,
+   "cornerRadius": 16,
+   "lineHeight": 1.55,
+   "font": "",
+   "codeColor": "#e4e4e7",
+   "commentColor": "#52525b",
+   "stringColor": "#86efac",
+   "keywordColor": "#c4b5fd",
+   "numberColor": "#fcd34d",
+   "titleColor": "#a1a1aa",
+   "lineNumberColor": "#3f3f46",
+   "auraColors": [
+    "rgba(56,189,248,0.22)",
+    "rgba(168,85,247,0.18)"
+   ],
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5088,7 +5501,10 @@
   "hostDefaults": null,
   "defaults": {
    "filename": "invoices.tsx",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "accentColor": "#0ea5e9",
    "morphDuration": 1.2,
    "fontSize": 20,
@@ -5106,6 +5522,12 @@
     }
    ],
    "speed": 1.0,
+   "lineHeight": 1.55,
+   "cornerRadius": 14,
+   "maxSize": 0.9,
+   "highlightHold": 0.8,
+   "font": "",
+   "backgroundColor": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5164,6 +5586,11 @@
     }
    ],
    "speed": 1.0,
+   "bounce": 13,
+   "ringWidth": 5,
+   "shadow": 0.5,
+   "logoScale": 52,
+   "firstOnTop": true,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5225,6 +5652,9 @@
    "weight": "600",
    "seed": "checklist",
    "background": "white",
+   "wobble": 1.0,
+   "fontFamily": "",
+   "strikeColor": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5274,6 +5704,7 @@
    "reducedMotion": false,
    "fontFamily": "",
    "speed": 1.0,
+   "weight": "400",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5308,7 +5739,10 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "theme": "light",
+   "theme": {
+    "mode": "light",
+    "colors": {}
+   },
    "accentColor": "#2563eb",
    "compression": 3.0,
    "seed": 1,
@@ -5360,6 +5794,11 @@
    ],
    "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
    "speed": 1.0,
+   "thinkingLabel": "Thinking",
+   "thoughtLabel": "Thought for",
+   "showTimer": true,
+   "cornerRadius": 18,
+   "font": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5436,6 +5875,10 @@
    "baselineColor": "#27272a",
    "labelColor": "#a1a1aa",
    "speed": 1.0,
+   "cornerRadius": 6,
+   "glow": 33.0,
+   "labelSize": 16,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5488,6 +5931,11 @@
    "width": 1000,
    "height": 500,
    "speed": 1.0,
+   "startAtZero": false,
+   "finishAt": 85.0,
+   "gridRows": 4,
+   "showColumns": true,
+   "glow": 33.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5528,6 +5976,12 @@
    "color": "#171717",
    "background": "white",
    "speed": 1.0,
+   "finishAt": 80.0,
+   "groupSeparator": "space",
+   "fontWeight": 800,
+   "prefix": "",
+   "suffix": "",
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5587,6 +6041,7 @@
    "springStiffness": 320,
    "bgFadeFrames": 4,
    "loop": false,
+   "enterStaggerJitter": 1,
    "gapFrames": 1,
    "backgrounds": [],
    "envelope": {}
@@ -5633,6 +6088,21 @@
    "password": "••••••••",
    "createLabel": "Create account",
    "toastTitle": "Account created",
+   "nameLabel": "Full Name",
+   "emailLabel": "Email",
+   "emailHelp": "We'll use this to contact you.",
+   "passwordLabel": "Password",
+   "passwordHelp": "Must be at least 8 characters long.",
+   "confirmLabel": "Confirm Password",
+   "speed": 1.0,
+   "loadingSeconds": 1.4,
+   "noticeSeconds": 2.2,
+   "cursorShape": "pointer",
+   "cursorSize": 28,
+   "noticeCorner": "bottom-right",
+   "backgroundColor": "",
+   "radius": 10,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5679,6 +6149,18 @@
     "infra is unblocked before the team scales next quarter."
    ],
    "toastTitle": "Response ready",
+   "typingSeconds": 1.67,
+   "loadingSeconds": 2.87,
+   "noticeSeconds": 2.0,
+   "speed": 1.0,
+   "fieldWidth": 320,
+   "answerWidth": 560,
+   "answerSize": 18,
+   "fontFamily": "",
+   "buttonVariant": "default",
+   "noticeCorner": "bottom-right",
+   "backgroundColor": "",
+   "radius": 10,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5744,6 +6226,17 @@
    ],
    "autoplay": true,
    "pressedIndex": -1,
+   "letterSeconds": 0.0833,
+   "pauseSeconds": 0.6,
+   "speed": 1.0,
+   "pickIndex": 0,
+   "placeholder": "Type a command or search…",
+   "emptyText": "No results found.",
+   "backdropOpacity": 0.5,
+   "panelWidth": 440,
+   "top": 18.0,
+   "fontFamily": "",
+   "radius": 10,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5791,13 +6284,17 @@
     "A fresh chapter.\nNo starting over."
    ],
    "logoSrc": "",
-   "themeBackground": "",
-   "themeSurface": "",
-   "themeForeground": "",
-   "themeMuted": "",
+   "themeBackground": "#050709",
+   "themeSurface": "#151C22",
+   "themeForeground": "#F2F5F7",
+   "themeMuted": "#A4ADB5",
    "lightIntensity": 1.0,
    "music": "",
    "musicVolume": 1.0,
+   "fontFamily": "",
+   "textSize": 1.0,
+   "statementWeight": 500,
+   "logoSize": 34,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5875,6 +6372,81 @@
    "logoSrc": "",
    "music": "",
    "musicVolume": 1.0,
+   "fontFamily": "Manrope",
+   "nightColor": "#122d24",
+   "paperColor": "#faf6ec",
+   "lightTextColor": "#fff9f3",
+   "inkColor": "#17392b",
+   "sageColor": "#497761",
+   "openingShimmer": 1.0,
+   "openingSize": 430,
+   "headlineWeight": 500,
+   "textSize": 1.0,
+   "photoDimming": 0.66,
+   "logoSize": 64,
+   "copyAppName": "Workroom",
+   "copyDashboardMenu": [
+    "Workspace",
+    "Overview",
+    "Milestones",
+    "Projects",
+    "Teammates",
+    "Reports",
+    "Settings"
+   ],
+   "copyDashboard": "Your week, in focus",
+   "copyDashboardPeriod": "This month",
+   "copyDashboardNote": "Demo workspace · this month",
+   "dashboardStats": [
+    {
+     "label": "Tasks closed",
+     "value": "128"
+    },
+    {
+     "label": "Active projects",
+     "value": "12"
+    },
+    {
+     "label": "On track",
+     "value": "92%"
+    }
+   ],
+   "copyMomentum": "Project momentum",
+   "copyActivityTitle": "Recent activity",
+   "dashboardActivity": [
+    "Brief approved",
+    "Review completed",
+    "Project completed",
+    "Files organized",
+    "Milestone reached"
+   ],
+   "copyShopNote": "A collection for slower mornings.",
+   "copyReviewTitle": "Review activity",
+   "copyReviewProject": "Autumn release",
+   "copyReviewButtons": [
+    "Approve",
+    "Revise"
+   ],
+   "reviewRows": [
+    {
+     "label": "Files reviewed",
+     "value": "12 files"
+    },
+    {
+     "label": "Comments resolved",
+     "value": "28 / 28"
+    },
+    {
+     "label": "Contributors",
+     "value": "4 people"
+    },
+    {
+     "label": "Next milestone",
+     "value": "Ready to share"
+    }
+   ],
+   "copyIdeasCard": "Project notes",
+   "copyIdeasNote": "Collect ideas. Connect the details.",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5930,6 +6502,11 @@
    "indicatorColor": "#30D158",
    "fontFamily": "",
    "speed": 1.0,
+   "notchAt": 4.0,
+   "zoomAt": 4.6667,
+   "zoomLength": 1.5,
+   "floatPeriod": 5.0,
+   "notchLabelSize": 12,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -5983,6 +6560,7 @@
    },
    "fontFamily": "",
    "speed": 1.0,
+   "floatPeriod": 4.5,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6100,6 +6678,19 @@
    "inkColor": "#ffffff",
    "fontFamily": "",
    "speed": 1.0,
+   "fontWeight": 400,
+   "textScale": 1.0,
+   "symbolGlow": 1.0,
+   "taglineTint": [
+    "#8a2447",
+    "#862547",
+    "#7b2a4f",
+    "#633864",
+    "#4f467d",
+    "#3c519f",
+    "#2f5ed2",
+    "#3266e5"
+   ],
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6214,7 +6805,7 @@
    "startAt": 0.2,
    "drawDuration": 0.4667,
    "thickness": 4,
-   "shineColor": "#FAFAFA",
+   "shineColor": "",
    "logoSrc": "app:placeholders/logo-mark.svg",
    "logoScale": 1.05,
    "spinTurns": 1.0,
@@ -6223,7 +6814,7 @@
    "rushScale": 42,
    "rushDrift": 0.55,
    "swingOut": 0.25,
-   "coverColor": "#266DF0",
+   "coverColor": "",
    "fontSize": 56,
    "fontWeight": "600",
    "theme": {
@@ -6233,6 +6824,12 @@
    "background": "",
    "fontFamily": "",
    "speed": 1.0,
+   "letterSpacing": -0.02,
+   "lineHeight": 1.25,
+   "textWidth": 80.0,
+   "markerOpacity": 16.0,
+   "shineWidth": 40.0,
+   "markGap": 0.3,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6277,7 +6874,7 @@
    "prefixColor": "",
    "chipFills": [],
    "chipTextColor": "",
-   "chipBorderColor": "rgb(160, 160, 160)",
+   "chipBorderColor": "",
    "fontWeight": "400",
    "chipFontWeight": "400",
    "fontSize": 63,
@@ -6293,6 +6890,17 @@
    },
    "fontFamily": "",
    "speed": 1.0,
+   "pillHeight": 1.128,
+   "pillPadding": 0.19,
+   "pillGap": 0.147,
+   "chipPadding": 0.42,
+   "chipInset": 0.04,
+   "chipGap": 0.057,
+   "pillResizeTime": 0.6,
+   "rollTime": 0.5,
+   "fieldFadeTime": 0.3,
+   "letterStagger": 0.0333,
+   "introZoom": 1.16,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6364,6 +6972,18 @@
    ],
    "fontFamily": "",
    "speed": 1.0,
+   "orbitSeconds": 1.67,
+   "orbitSpeed": 1.0,
+   "cardRatio": 1.22,
+   "cardShadow": 0.4,
+   "cardRadius": 4,
+   "ringSize": 36.0,
+   "cardSize": 15.0,
+   "logoSize": 12.5,
+   "logoGap": 3.5,
+   "nameSize": 5.5,
+   "middleTextSize": 4.0,
+   "fontWeight": 600,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6485,6 +7105,14 @@
    ],
    "fontFamily": "",
    "speed": 1.0,
+   "wordAt": 0.017,
+   "exitScale": 0.8,
+   "exitBlur": 6.5,
+   "glowSize": 1.0,
+   "glyphWeight": 600,
+   "labelScale": 0.1,
+   "labelOpacity": 0.72,
+   "headlineWidth": 88,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6527,6 +7155,13 @@
     "colors": {}
    },
    "fontFamily": "",
+   "cardTilt": 17,
+   "cardGap": 92,
+   "cardAspect": 1.613,
+   "cardRadius": 30,
+   "headlineSize": 42,
+   "headlineWeight": 600,
+   "edgeFade": true,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6570,10 +7205,19 @@
    "delta": 4,
    "deltaSuffix": "%",
    "accentColor": "#2DD4BF",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "showDelta": true,
    "backgroundColor": "",
+   "glow": 10.0,
+   "ringThickness": 9,
+   "groupSeparator": "none",
+   "fontFamily": "",
+   "downColor": "",
+   "ringGlow": 10,
    "clipDuration": 123,
    "envelope": {}
   }
@@ -6658,7 +7302,17 @@
    "maxCards": 4,
    "accentColor": "",
    "backgroundColor": "",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
+   "showArrows": true,
+   "numberFormat": "compact",
+   "glow": 7.0,
+   "uppercaseEyebrow": true,
+   "cornerRadius": 18,
+   "trendFill": true,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6727,6 +7381,9 @@
    "inkColor": "#fafafa",
    "labelColor": "rgba(250,250,250,0.55)",
    "dropoffColor": "#f472b6",
+   "numberFormat": "compact",
+   "dropoffHeading": "Drop-off",
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6797,6 +7454,13 @@
    "inkColor": "#fafafa",
    "upColor": "#2dd4bf",
    "downColor": "#f87171",
+   "numberFormat": "compact",
+   "segmentGap": 1.2,
+   "roundEnds": false,
+   "startAngle": 0.0,
+   "uppercaseLabel": true,
+   "legendShows": "percent",
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6870,6 +7534,10 @@
    "pairOffsetInFrames": 6,
    "barInkColor": "#0b0b10",
    "labelColor": "rgba(250,250,250,0.55)",
+   "numberFormat": "compact",
+   "cornerRadius": 28.0,
+   "showBeforeValue": false,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6998,6 +7666,12 @@
    "inkColor": "#fafafa",
    "barInkColor": "#0b0b10",
    "labelColor": "rgba(250,250,250,0.55)",
+   "numberFormat": "compact",
+   "cornerRadius": 22.0,
+   "stepLabelPosition": "bottom-right",
+   "stepLabelSize": 90.0,
+   "stepLabelOpacity": 22.0,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7046,6 +7720,10 @@
    "trackColor": "rgba(250,250,250,0.10)",
    "inkColor": "#fafafa",
    "labelColor": "rgba(250,250,250,0.58)",
+   "roundEnds": true,
+   "showNeedle": true,
+   "uppercaseLabel": true,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7170,11 +7848,25 @@
    "insightEyebrow": "Takeaway",
    "ctaTitle": "Turn your data into motion",
    "ctaLabel": "Get started",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "accentColor": "#e8b86d",
    "dataColor": "#2dd4bf",
    "timelineColor": "#f59e0b",
    "backgroundColor": "",
+   "showScale": true,
+   "highlightBar": "",
+   "chartSubtitle": "",
+   "numberFormat": "compact",
+   "textSize": 1.0,
+   "logoSrc": "",
+   "ctaUrl": "",
+   "ctaSubtitle": "",
+   "eyebrowCaps": true,
+   "glow": 1.0,
+   "fontFamily": "",
    "clipDuration": 420,
    "envelope": {}
   }
@@ -7217,6 +7909,17 @@
    "textColor": "#f4f4f5",
    "viewBox": "",
    "fill": "",
+   "fontFamily": "",
+   "speed": 1.0,
+   "drawSeconds": 2.4,
+   "pathStagger": 0.27,
+   "nameAt": 1.37,
+   "glow": true,
+   "penTip": true,
+   "nameSize": 84,
+   "fontWeight": 600,
+   "taglineSize": 40,
+   "taglineColor": "",
    "clipDuration": 120,
    "envelope": {}
   }
@@ -7270,9 +7973,16 @@
    "featuresAtSeconds": 1.05,
    "featureStaggerSeconds": 0.22,
    "accentColor": "#E8B86D",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "backgroundColor": "",
+   "ctaTextColor": "",
+   "rollFrom": 0,
+   "cardWidth": 460,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7363,14 +8073,23 @@
     }
    ],
    "title": "What you get",
+   "highlight": true,
    "highlightColumn": 1,
    "highlightLabel": "Most picked",
    "startAtSeconds": 0.5,
    "rowStaggerSeconds": 0.26,
    "accentColor": "#E8B86D",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "backgroundColor": "",
+   "tickColor": "#9BD4A0",
+   "labelWidth": 36.0,
+   "cardWidth": 880,
+   "fontFamily": "",
+   "uppercaseHeadings": true,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7432,13 +8151,22 @@
    "summary": "Captions, webhooks, and a queue that stops sulking.",
    "startAtSeconds": 0.66,
    "staggerSeconds": 0.28,
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "backgroundColor": "",
    "kindAdded": "",
    "kindFixed": "",
    "kindChanged": "",
    "kindRemoved": "",
+   "addedLabel": "Added",
+   "fixedLabel": "Fixed",
+   "changedLabel": "Changed",
+   "removedLabel": "Removed",
+   "cardWidth": 760,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7515,9 +8243,24 @@
    "staggerSeconds": 0.24,
    "warmSeconds": 0.6,
    "accentColor": "#E8B86D",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "backgroundColor": "",
+   "glyphColor": "",
+   "fontFamily": "",
+   "wallWidth": 900,
+   "gap": 14,
+   "tileHeight": 88,
+   "tileRadius": 14,
+   "titleSize": 30,
+   "eyebrowUppercase": true,
+   "nameSize": 19,
+   "imageSize": 46,
+   "showMark": true,
+   "startBrightness": 0.72,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7563,9 +8306,19 @@
    ],
    "logoSrc": "",
    "accentColor": "#E8B86D",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "backgroundColor": "",
+   "fontFamily": "",
+   "glow": 12,
+   "textSize": 1.0,
+   "titleWeight": 700,
+   "eyebrowCaps": true,
+   "buttonRadius": 999,
+   "buttonArrow": true,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7609,9 +8362,26 @@
    "startLine": 1,
    "showLineNumbers": true,
    "accentColor": "#E8B86D",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "backgroundColor": "",
+   "fontSize": 21,
+   "windowWidth": 940,
+   "lineHeight": 1.62,
+   "visibleLines": 10,
+   "typingSpeed": 55.0,
+   "linePause": 0.07,
+   "startAt": 0.4,
+   "highlightAfter": 0.34,
+   "dimOthers": 0.34,
+   "glow": true,
+   "vignette": true,
+   "cornerRadius": 16,
+   "windowDots": true,
+   "font": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7651,9 +8421,25 @@
    "title": "render.ts",
    "wipeSeconds": 1.7,
    "accentColor": "#E8B86D",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "backgroundColor": "",
+   "fontSize": 20,
+   "windowWidth": 940,
+   "lineHeight": 1.7,
+   "startAt": 0.7,
+   "collapseRemoved": true,
+   "showCounts": true,
+   "dimUnchanged": true,
+   "strikeRemoved": true,
+   "glow": true,
+   "vignette": true,
+   "cornerRadius": 16,
+   "windowDots": true,
+   "font": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7738,9 +8524,14 @@
    "moveSeconds": 0.62,
    "dealStaggerSeconds": 0.08,
    "accentColor": "#E8B86D",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "backgroundColor": "",
+   "showCounts": true,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7788,9 +8579,15 @@
    "selectedPath": "src/components/checkout.tsx",
    "rowStagger": 0.18,
    "accentColor": "#E8B86D",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "backgroundColor": "",
+   "countLabel": "files",
+   "panelWidth": 480,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7837,10 +8634,18 @@
    "activeLabel": "Release to upload",
    "doneLabel": "Uploaded",
    "accentColor": "#E8B86D",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "uploadingLabel": "Uploading",
    "backgroundColor": "",
+   "uploadSeconds": 1.26,
+   "showPercent": true,
+   "draggedRow": 1,
+   "fontFamily": "",
+   "cursorColor": "",
    "clipDuration": 150,
    "envelope": {}
   }
@@ -7920,9 +8725,22 @@
     "#9BD4A0",
     "#E8B86D"
    ],
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
    "backgroundColor": "",
+   "codeFont": "",
+   "font": "",
+   "windowWidth": 860,
+   "rowSpacing": 48,
+   "laneSpacing": 30,
+   "dotSize": 6.5,
+   "lineWidth": 2.2,
+   "textSize": 15.5,
+   "cornerRadius": 18,
+   "windowDots": true,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7989,8 +8807,16 @@
    "lifeSeconds": 2.3,
    "showProgress": true,
    "accentColor": "#E8B86D",
-   "theme": "dark",
+   "theme": {
+    "mode": "dark",
+    "colors": {}
+   },
    "speed": 1.0,
+   "fontFamily": "",
+   "size": 1.0,
+   "toastWidth": 370,
+   "cornerRadius": 14,
+   "margin": 80,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -8041,6 +8867,29 @@
    "backgroundColor": "#080810",
    "accentColor": "#e8b86d",
    "textColor": "#f8fafc",
+   "deviceColor": "#171b26",
+   "deviceEdgeColor": "#242a3a",
+   "bezelColor": "#0d111b",
+   "buttonColor": "#0c0e15",
+   "cameraColor": "#05060a",
+   "islandColor": "#000000",
+   "lensColor": "#1e2230",
+   "baseGradient": "linear-gradient(180deg, #30384b 0%, #171b26 60%, #0b0d14 100%)",
+   "secondAccent": "#2dd4bf",
+   "thirdAccent": "#f472b6",
+   "screenColor": "#f6f1e8",
+   "screenTextColor": "#111827",
+   "screenMutedColor": "#6b7280",
+   "backgroundTint": "#5b6b9a",
+   "shadow": 0.42,
+   "glow": 0.2,
+   "showGrid": true,
+   "pullBackFrom": 1.18,
+   "scale": 1.0,
+   "titleSize": 64,
+   "titleWeight": 800,
+   "subtitleSize": 24,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -8091,6 +8940,15 @@
    "phoneLabel": "Phone",
    "tabletLabel": "Tablet",
    "laptopLabel": "Laptop",
+   "baseGradient": "linear-gradient(180deg, #23262E 0%, #14161B 100%)",
+   "islandColor": "#05060A",
+   "cameraColor": "rgba(255,255,255,0.28)",
+   "edgeColor": "rgba(255,255,255,0.10)",
+   "shadow": 0.55,
+   "gap": 26,
+   "labelSize": 12,
+   "labelUppercase": true,
+   "fontFamily": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -8135,6 +8993,8 @@
    "seed": "handwriting",
    "color": "#f4f4f5",
    "fontWeight": "600",
+   "durationInFrames": 10,
+   "wordSpacing": 0.26,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -8182,6 +9042,9 @@
    "color": "#fdf2f8",
    "fontWeight": "600",
    "offColor": "",
+   "durationInFrames": 20,
+   "humRate": 2.0,
+   "wordSpacing": 0.26,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -8227,6 +9090,9 @@
    "fontWeight": 800,
    "letterSpacing": 0.0,
    "lineHeight": 0.98,
+   "driftSpeed": 1.0,
+   "fitMax": 150.0,
+   "startFrom": 0.0,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -8278,6 +9144,11 @@
    "horizonGlow": 0.5,
    "striation": 0.55,
    "seed": 1,
+   "folds": 2.0,
+   "sidewaysDrift": 13.0,
+   "raySpacing": 72,
+   "vignette": 0.55,
+   "horizonGlowColor": "",
    "clipDuration": 120,
    "envelope": {}
   }
@@ -8324,6 +9195,7 @@
    "intensity": 1.0,
    "glow": 1.6,
    "seed": 1,
+   "twinkle": 0.3,
    "clipDuration": 120,
    "envelope": {}
   }
@@ -8374,7 +9246,8 @@
   "hostDefaults": null,
   "defaults": {
    "durationInFrames": 15,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8424,7 +9297,8 @@
   "defaults": {
    "direction": "from-right",
    "durationInFrames": 20,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8474,7 +9348,8 @@
   "defaults": {
    "direction": "from-left",
    "durationInFrames": 20,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8523,8 +9398,10 @@
   "hostDefaults": null,
   "defaults": {
    "direction": "from-right",
+   "perspective": 1000,
    "durationInFrames": 24,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8573,7 +9450,8 @@
   "hostDefaults": null,
   "defaults": {
    "durationInFrames": 24,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8622,7 +9500,8 @@
   "hostDefaults": null,
   "defaults": {
    "durationInFrames": 24,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8672,8 +9551,10 @@
   "defaults": {
    "direction": "left",
    "blur": 24,
+   "stretch": 12.0,
    "durationInFrames": 114,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8723,8 +9604,10 @@
   "defaults": {
    "zoom": 2.4,
    "blur": 14,
+   "approachFrom": 0.68,
    "durationInFrames": 112,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8774,8 +9657,10 @@
   "defaults": {
    "blur": 16,
    "rise": 0,
+   "zoom": 1.12,
    "durationInFrames": 114,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8824,8 +9709,11 @@
   "hostDefaults": null,
   "defaults": {
    "blur": 16,
+   "glow": 30.0,
+   "zoom": 5.0,
    "durationInFrames": 114,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8878,8 +9766,19 @@
    "shakeAmount": 50,
    "shakeTranslatePx": 73,
    "colorSplit": true,
+   "zoom": 150.0,
+   "zoomBlur": 60.0,
+   "distortion": 160.0,
+   "twist": -15.0,
+   "pullBack": 100.0,
+   "shakeSpeed": 11.2,
+   "shakeRotation": 1.1,
+   "fringe": 1.0,
+   "letterbox": 0.0,
+   "background": "#000000",
    "durationInFrames": 112,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8938,8 +9837,10 @@
    ],
    "speed": 1.0,
    "noise": 0.5,
+   "originX": 0.5,
    "durationInFrames": 116,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -8998,8 +9899,10 @@
    ],
    "speed": 1.0,
    "zoom": 1.16,
+   "direction": "up",
    "durationInFrames": 116,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9047,14 +9950,16 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "ringColor": "#8f88ae",
    "colorBack": "#141318",
    "colors": [
     "#8f88ae"
    ],
    "speed": 1.0,
+   "detail": 3.0,
+   "originX": 0.5,
    "durationInFrames": 116,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9106,8 +10011,12 @@
    "slices": 24,
    "rgbSplit": 1.0,
    "blockNoise": 0.6,
+   "flicker": 22,
+   "blockColumns": 16,
+   "tint": "#0d0417",
    "durationInFrames": 78,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9157,8 +10066,10 @@
   "defaults": {
    "angle": -7,
    "poses": 8,
+   "hingeX": 0.18,
    "durationInFrames": 128,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9216,8 +10127,11 @@
     "#8f88ae"
    ],
    "speed": 1.0,
+   "sceneBlur": 10,
+   "rotation": 0.0,
    "durationInFrames": 116,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9269,8 +10183,11 @@
    "colorBack": "#141318",
    "colorFront": "#8f88ae",
    "speed": 1.5,
+   "dotSize": 1.6,
+   "pattern": "4x4",
    "durationInFrames": 100,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9327,8 +10244,10 @@
     "#8f88ae"
    ],
    "speed": 1.0,
+   "noise": 0.2,
    "durationInFrames": 116,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9382,8 +10301,11 @@
    "aberration": 0.5,
    "direction": "reveal",
    "stagger": 0.55,
+   "dustColor": 0.0,
+   "raggedness": 0.45,
    "durationInFrames": 84,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9436,8 +10358,10 @@
    "order": "from-left",
    "shape": "square",
    "stagger": 0.82,
+   "reverse": false,
    "durationInFrames": 26,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9489,8 +10413,11 @@
    "panelWidth": 0.14,
    "direction": "from-left",
    "frostColor": "rgba(255,255,255,0.12)",
+   "edgeColor": "rgba(255,255,255,0.22)",
+   "glow": 28,
    "durationInFrames": 24,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9541,8 +10468,10 @@
    "intensity": 12.0,
    "axis": "horizontal",
    "slide": 1.0,
+   "fade": false,
    "durationInFrames": 14,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9595,8 +10524,10 @@
    "stagger": 0.45,
    "alternate": false,
    "edgeSoftness": 0.06,
+   "reverse": false,
    "durationInFrames": 24,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9649,8 +10580,11 @@
    "originX": 0.5,
    "originY": 0.5,
    "warp": 0.0,
+   "warpDetail": 0.008,
+   "seed": 7,
    "durationInFrames": 24,
-   "keepWhole": false
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -9700,7 +10634,9 @@
   "defaults": {
    "durationInFrames": 30,
    "seed": 3,
-   "hueShift": 0.0
+   "hueShift": 0.0,
+   "offset": 0,
+   "strength": 100.0
   }
  },
  {
@@ -9749,7 +10685,8 @@
    "lengthMs": 0,
    "fadeInMs": 800,
    "fadeOutMs": 1500,
-   "envelope": {}
+   "envelope": {},
+   "fadeCurve": "tri"
   }
  },
  {
@@ -9796,7 +10733,9 @@
    "offsetMs": 0,
    "volume": 1.0,
    "keepMusic": false,
-   "envelope": {}
+   "envelope": {},
+   "lengthMs": 0,
+   "beforeClipStart": "later"
   }
  },
  {
@@ -9843,7 +10782,9 @@
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
-  "defaults": {}
+  "defaults": {
+   "endFadeMs": 0
+  }
  },
  {
   "type": "audio.actionSounds",
@@ -9888,7 +10829,11 @@
    "keys": true,
    "keySound": "app:sfx/key-press.wav",
    "volume": 0.6,
-   "vary": true
+   "vary": true,
+   "pitchSpread": 4,
+   "levelSpread": 12,
+   "nudgeMs": 0,
+   "drags": false
   }
  },
  {
@@ -9965,7 +10910,11 @@
    "atAction": "",
    "atMs": 0,
    "offsetMs": 0,
-   "volume": 0.8
+   "volume": 0.8,
+   "keepMusic": false,
+   "wave": "sine",
+   "finalLength": 3.0,
+   "finalPitch": 0.0
   }
  },
  {
@@ -10007,7 +10956,9 @@
    "atAction": "",
    "atMs": 0,
    "offsetMs": 0,
-   "volume": 0.8
+   "volume": 0.8,
+   "keepMusic": false,
+   "pan": "left-to-right"
   }
  },
  {
@@ -10058,7 +11009,11 @@
    "sound": "app:sfx/whoosh.wav",
    "atCuts": false,
    "vary": true,
-   "volume": 0.7
+   "volume": 0.7,
+   "pitchSpread": 4,
+   "levelSpread": 12,
+   "align": "middle",
+   "lengthMs": 0
   }
  },
  {
@@ -10101,7 +11056,9 @@
    "brightness": 0.5,
    "take": 1,
    "endHit": "off",
-   "volume": 0.8
+   "volume": 0.8,
+   "peakAt": 75,
+   "keepMusic": false
   }
  },
  {
@@ -10153,6 +11110,7 @@
    "transition": "fade",
    "transitionDuration": 15,
    "keepWhole": false,
+   "easing": "linear",
    "cuts": []
   }
  },
@@ -10364,7 +11322,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "rate": 1.5
+   "rate": 1.5,
+   "keepPitch": true
   }
  },
  {
@@ -10505,7 +11464,8 @@
    "path": "",
    "fit": "contain",
    "stillMs": 3000,
-   "envelope": {}
+   "envelope": {},
+   "background": ""
   }
  },
  {
@@ -10548,7 +11508,9 @@
   "defaults": {
    "fit": "contain",
    "muted": false,
-   "envelope": {}
+   "stillMs": 3000,
+   "envelope": {},
+   "background": ""
   }
  },
  {
@@ -10634,7 +11596,10 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "forceReencode": false
+   "forceReencode": false,
+   "stillMs": 3000,
+   "matchTo": "first",
+   "background": "#000000"
   }
  },
  {
@@ -10676,7 +11641,8 @@
   "hostDefaults": null,
   "defaults": {
    "rate": 2.0,
-   "keepAudio": true
+   "keepAudio": true,
+   "keepPitch": true
   }
  },
  {
@@ -10716,7 +11682,9 @@
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
-  "defaults": {}
+  "defaults": {
+   "keepAudio": true
+  }
  },
  {
   "type": "media.scalePad",
@@ -10759,7 +11727,8 @@
    "width": 1920,
    "height": 1080,
    "mode": "pad",
-   "background": "black"
+   "background": "black",
+   "anchor": "center"
   }
  },
  {
@@ -10802,7 +11771,9 @@
   "defaults": {
    "codec": "h264",
    "crf": 18,
-   "preset": "medium"
+   "preset": "medium",
+   "proresProfile": "hq",
+   "soundQuality": "high"
   }
  },
  {
@@ -10852,7 +11823,9 @@
   "defaults": {
    "codec": "h264",
    "crf": 18,
-   "preset": "medium"
+   "preset": "medium",
+   "proresProfile": "hq",
+   "soundQuality": "high"
   }
  },
  {
@@ -10896,7 +11869,9 @@
    "fps": 15,
    "width": 960,
    "loop": true,
-   "dither": "sierra2_4a"
+   "dither": "sierra2_4a",
+   "colours": 256,
+   "paletteFrom": "moving"
   }
  },
  {
@@ -10937,7 +11912,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "format": "m4a"
+   "format": "m4a",
+   "bitrate": 192
   }
  },
  {
@@ -11066,7 +12042,8 @@
   "defaults": {
    "mains": "find",
    "harmonics": 4,
-   "width": 2.0
+   "width": 2.0,
+   "depth": -40.0
   }
  },
  {
@@ -11112,7 +12089,10 @@
    "height": 400,
    "color": "#6366f1",
    "colours": "magma",
-   "background": "#00000000"
+   "background": "#00000000",
+   "splitChannels": false,
+   "waveScale": "lin",
+   "pitchScale": "lin"
   }
  },
  {
@@ -11156,7 +12136,9 @@
    "noise": 0.8,
    "softenS": 0.5,
    "evenLevel": true,
-   "method": "learned"
+   "method": "learned",
+   "rumbleHz": 80,
+   "evenLift": 16.0
   }
  },
  {
@@ -11242,7 +12224,9 @@
    "effect": "telephone",
    "mix": 1.0,
    "delayMs": 300,
-   "decay": 0.4
+   "decay": 0.4,
+   "repeats": 1,
+   "grit": 1.0
   }
  },
  {
@@ -11296,7 +12280,8 @@
    "loopFromMs": 0,
    "loopToMs": 0,
    "crossfadeMs": 1000,
-   "fadeOutMs": 2000
+   "fadeOutMs": 2000,
+   "fadeCurve": "tri"
   }
  },
  {
@@ -11461,9 +12446,14 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
+   "by": "pixels",
+   "scale": 100,
    "width": 1920,
    "height": 0,
    "fit": "inside",
+   "cropAtX": 0.5,
+   "cropAtY": 0.5,
+   "shrinkOnly": false,
    "quality": "sharp"
   }
  },
@@ -11562,6 +12552,7 @@
    "flipHorizontal": false,
    "flipVertical": false,
    "angle": 0.0,
+   "cropCorners": false,
    "background": "#00000000"
   }
  },
@@ -11651,7 +12642,8 @@
   "defaults": {
    "blur": 0.0,
    "sharpen": 1.0,
-   "threshold": 4
+   "threshold": 4,
+   "sharpenAmount": 100
   }
  },
  {
@@ -11798,7 +12790,8 @@
    "style": "pixelate",
    "blockSize": 16,
    "blur": 16.0,
-   "color": "#000000"
+   "color": "#000000",
+   "radius": 0.0
   }
  },
  {
@@ -11850,7 +12843,8 @@
    "dim": 0.6,
    "blur": 0.0,
    "radius": 12.0,
-   "softness": 8.0
+   "softness": 8.0,
+   "dimColor": "#000000"
   }
  },
  {
@@ -11892,7 +12886,8 @@
   "hostDefaults": null,
   "defaults": {
    "tolerance": 8,
-   "padding": 0
+   "padding": 0,
+   "edgeColor": ""
   }
  },
  {
@@ -11980,7 +12975,9 @@
    "width": 8.0,
    "color": "#ffffff",
    "softness": 0.0,
-   "shadow": false
+   "shadow": false,
+   "shadowOpacity": 0.35,
+   "shadowColor": "#000000"
   }
  },
  {
@@ -12025,7 +13022,12 @@
    "tilt": 8.0,
    "lean": 0.0,
    "background": "#00000000",
-   "shadow": true
+   "shadow": true,
+   "perspective": 2.0,
+   "shadowOpacity": 0.35,
+   "shadowSoftness": 2.0,
+   "shadowDrop": 2.0,
+   "shadowColor": "#000000"
   }
  },
  {
@@ -12118,7 +13120,9 @@
    "fit": "cells",
    "gap": 24,
    "padding": 24,
-   "background": "#ffffff"
+   "background": "#ffffff",
+   "align": "center",
+   "radius": 0.0
   }
  },
  {
@@ -12169,7 +13173,9 @@
    "shadowDrop": 16.0,
    "shadowSoftness": 40.0,
    "shadowOpacity": 0.35,
-   "shape": "keep"
+   "shape": "keep",
+   "align": "center",
+   "shadowColor": "#000000"
   }
  },
  {
@@ -12229,7 +13235,9 @@
    "labelWeight": 600,
    "labelSize": 0,
    "labelColor": "#ffffff",
-   "labelBackground": "rgba(0, 0, 0, 0.6)"
+   "labelBackground": "rgba(0, 0, 0, 0.6)",
+   "labelRadius": 30,
+   "labelPosition": "top"
   }
  },
  {
@@ -12292,7 +13300,9 @@
    "radius": 16,
    "borderWidth": 4,
    "borderColor": "#ffffff",
-   "line": true
+   "line": true,
+   "quality": "smooth",
+   "shadow": false
   }
  },
  {
@@ -12351,7 +13361,8 @@
    "smallest": 4,
    "padding": 8,
    "boxWidth": 4,
-   "boxColor": "#ef4444"
+   "boxColor": "#ef4444",
+   "differencesBackground": "#00000000"
   }
  },
  {
@@ -12392,7 +13403,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "marks": []
+   "marks": [],
+   "firstStep": 1
   }
  },
  {
@@ -12443,7 +13455,13 @@
    "scale": 1.0,
    "chapters": true,
    "chapterList": false,
-   "gl": "angle"
+   "gl": "angle",
+   "firstChapter": "Intro",
+   "preset": "medium",
+   "fullColour": false,
+   "proresProfile": "hq",
+   "gifPlays": 0,
+   "gifEveryNth": 1
   }
  },
  {
@@ -12490,7 +13508,10 @@
     "og"
    ],
    "format": "png",
-   "gl": "angle"
+   "gl": "angle",
+   "reframe": "follow",
+   "jpegQuality": 80,
+   "scale": 1.0
   }
  },
  {
@@ -12541,7 +13562,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "text": "Notes…"
+   "text": "Notes…",
+   "color": "#fcd34d"
   }
  }
 ]

@@ -5,3 +5,4 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
 cc 9a666a488cfffc900eaf907c78a124e6d170068782328d7f4ba56776c7def55f # shrinks to source = (50.0, 50.0), drawn = Object {"x": Number(0.0), "y": Number(0.0), "width": Number(0.0), "height": Number(1.2261428968167871)}, shown = Object {"x": Number(0.6624100231892861), "y": Number(1.3063908861755078), "width": Number(0.0), "height": Number(0.0)}, zoom = 0.5, size_from = "two-boxes", shape = "circle"
+cc 48923d28538de98199e9086816122b25e0a70a6e35b89a872dffc6d18d11fd93 # shrinks to source = (2387.0, 1.0), angle = -6.719766594684569

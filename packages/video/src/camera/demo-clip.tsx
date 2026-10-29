@@ -18,6 +18,7 @@ import { percent } from "#video/common/format.ts";
 import type { Size } from "#video/core/still-layout.ts";
 import { Backdrop } from "#video/elements/background/backdrop.tsx";
 import type {
+  CursorFeel,
   CursorLook,
   RecordingProps,
   RippleLook,
@@ -36,6 +37,7 @@ type DemoClipProps = {
   ripple: RippleLook | null;
   cursorScale?: number;
   cursorLook?: CursorLook;
+  cursorFeel?: CursorFeel;
   tuning?: CameraTuning;
   annotations?: Annotation[];
   backdrop?: string;
@@ -46,15 +48,24 @@ type DemoClipProps = {
   addressBar?: boolean;
   address?: string;
   effects?: EffectDescriptor<unknown>[];
+  windowFit?: number;
+  stageGround?: string;
+  windowRadius?: number;
+  rimGlow?: number;
+  liftColours?: boolean;
+  shutterAngle?: number;
+  bleedBlur?: number;
+  bleedDim?: number;
+  frameFont?: string;
 };
 
 const FILL = { width: "100%", height: "100%" } as const;
 const PAGE_BG = "#fcfcfc";
 const BLEED_BG = "#0b0b10";
-const BLEED_BLUR = {
-  filter: "blur(48px) brightness(0.55) saturate(1.2)",
+const bleedBlur = (clip: DemoClipProps): React.CSSProperties => ({
+  filter: `blur(${clip.bleedBlur ?? 48}px) brightness(${clip.bleedDim ?? 0.55}) saturate(1.2)`,
   transform: "scale(1.15)",
-};
+});
 const BLEED_SHADOW = "0 30px 80px rgba(0,0,0,0.45)";
 const BLUR_SHUTTER_ANGLE = 180;
 const BLUR_SAMPLES = 8;
@@ -65,29 +76,37 @@ export const useClipTime = (speed: number): number => {
   return logTimeS(frame, fps, speed);
 };
 
-const Footage: React.FC<{
+function Footage({
+  src,
+  speed,
+  fit,
+  muted,
+  effects = [],
+}: {
   src: string;
   speed: number;
   fit: "cover" | "fill";
   muted?: boolean;
   effects?: EffectDescriptor<unknown>[];
-}> = ({ src, speed, fit, muted, effects = [] }) => (
-  <Video
-    src={src}
-    playbackRate={speed}
-    objectFit={fit}
-    muted={muted}
-    effects={effects}
-    style={FILL}
-  />
-);
+}) {
+  return (
+    <Video
+      src={src}
+      playbackRate={speed}
+      objectFit={fit}
+      muted={muted}
+      effects={effects}
+      style={FILL}
+    />
+  );
+}
 
 const cameraTransform = (z: ZoomState) =>
   `translate(${percent(z.translateX)}, ${percent(z.translateY)}) scale(${z.scale})`;
 
 type Framing = { chrome: boolean; fit: number; zoom: boolean };
 
-type CameraClip = Pick<DemoClipProps, "log" | "speed" | "tuning" | "box" | "chrome">;
+type CameraClip = Pick<DemoClipProps, "log" | "speed" | "tuning" | "box" | "chrome" | "windowFit">;
 
 function useCamera(clip: CameraClip, framing: Framing) {
   const frame = useCurrentFrame();
@@ -114,33 +133,41 @@ function useCamera(clip: CameraClip, framing: Framing) {
 
 const windowFraming = (clip: CameraClip, shot: WindowShot): Framing => ({
   chrome: clip.chrome,
-  fit: shot.windowFit,
+  fit: clip.windowFit ?? shot.windowFit,
   zoom: shot.zoom,
 });
 
-const ShadowGroup: React.FC<{ clip: CameraClip; shot: WindowShot; light: boolean }> = ({
+function ShadowGroup({
   clip,
   shot,
   light,
-}) => {
+}: {
+  clip: CameraClip & Pick<DemoClipProps, "rimGlow">;
+  shot: WindowShot;
+  light: boolean;
+}) {
   const { style } = useCamera(clip, windowFraming(clip, shot));
   return (
     <Stage>
       <div style={style}>
-        <RimLight light={light} />
+        <RimLight light={light} strength={clip.rimGlow ?? 1} />
       </div>
     </Stage>
   );
-};
+}
 
 type FootageClip = Pick<DemoClipProps, "src" | "speed" | "annotations" | "effects"> & CursorOptions;
 
-const Marks: React.FC<{ clip: FootageClip; timeS: number; cameraScale: number }> = ({
+function Marks({
   clip,
   timeS,
   cameraScale,
-}) =>
-  clip.annotations?.length ? (
+}: {
+  clip: FootageClip;
+  timeS: number;
+  cameraScale: number;
+}) {
+  return clip.annotations?.length ? (
     <Annotations
       annotations={clip.annotations}
       viewport={clip.log.viewport}
@@ -148,8 +175,9 @@ const Marks: React.FC<{ clip: FootageClip; timeS: number; cameraScale: number }>
       cameraScale={cameraScale}
     />
   ) : null;
+}
 
-const WindowGroup: React.FC<{ clip: DemoClipProps; shot: WindowShot }> = ({ clip, shot }) => {
+function WindowGroup({ clip, shot }: { clip: DemoClipProps; shot: WindowShot }) {
   const { z, style } = useCamera(clip, windowFraming(clip, shot));
   const timeS = useClipTime(clip.speed);
 
@@ -162,6 +190,9 @@ const WindowGroup: React.FC<{ clip: DemoClipProps; shot: WindowShot }> = ({ clip
           windowStyle={clip.windowStyle}
           theme={clip.frameTheme}
           addressBar={clip.addressBar}
+          radius={clip.windowRadius}
+          lift={clip.liftColours ?? true}
+          font={clip.frameFont}
         >
           <Footage src={clip.src} speed={clip.speed} fit="fill" effects={clip.effects} />
           <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
@@ -170,9 +201,9 @@ const WindowGroup: React.FC<{ clip: DemoClipProps; shot: WindowShot }> = ({ clip
       </div>
     </Stage>
   );
-};
+}
 
-const FullBleedClip: React.FC<{ clip: FootageClip }> = ({ clip }) => {
+function FullBleedClip({ clip }: { clip: FootageClip }) {
   const timeS = useClipTime(clip.speed);
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: PAGE_BG }}>
@@ -181,9 +212,9 @@ const FullBleedClip: React.FC<{ clip: FootageClip }> = ({ clip }) => {
       <Cursor clip={clip} timeS={timeS} cameraScale={1} />
     </AbsoluteFill>
   );
-};
+}
 
-const NarrowBleedClip: React.FC<{ clip: FootageClip & CameraClip }> = ({ clip }) => {
+function NarrowBleedClip({ clip }: { clip: DemoClipProps }) {
   const { z, style } = useCamera(clip, {
     chrome: false,
     fit: 1,
@@ -192,7 +223,7 @@ const NarrowBleedClip: React.FC<{ clip: FootageClip & CameraClip }> = ({ clip })
   const timeS = useClipTime(clip.speed);
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: BLEED_BG }}>
-      <AbsoluteFill style={BLEED_BLUR}>
+      <AbsoluteFill style={bleedBlur(clip)}>
         <Footage src={clip.src} speed={clip.speed} fit="cover" muted effects={clip.effects} />
       </AbsoluteFill>
       <Stage>
@@ -204,9 +235,9 @@ const NarrowBleedClip: React.FC<{ clip: FootageClip & CameraClip }> = ({ clip })
       </Stage>
     </AbsoluteFill>
   );
-};
+}
 
-export const ScreenClip: React.FC<DemoClipProps> = (clip) => {
+export function ScreenClip(clip: DemoClipProps) {
   const shot = SHOT_STYLES[clip.style];
   const zoom = shot.framing === "window" && shot.zoom;
   const { z, style } = useCamera(clip, { chrome: false, fit: 1, zoom });
@@ -233,21 +264,25 @@ export const ScreenClip: React.FC<DemoClipProps> = (clip) => {
       </div>
     </AbsoluteFill>
   );
-};
+}
 
-export const DemoClip: React.FC<DemoClipProps> = (props) => {
+export function DemoClip(props: DemoClipProps) {
   const shot = SHOT_STYLES[props.style];
   if (shot.framing !== "window")
     return props.box ? <NarrowBleedClip clip={props} /> : <FullBleedClip clip={props} />;
 
-  const backdrop = props.backdropChosen ? props.backdrop : (shot.ground ?? props.backdrop);
+  const ground = shot.ground && (props.stageGround ?? shot.ground);
+  const backdrop = props.backdropChosen ? props.backdrop : ground || props.backdrop;
   const windowGroup = <WindowGroup clip={props} shot={shot} />;
   return (
     <AbsoluteFill>
       <Backdrop name={backdrop} />
       <ShadowGroup clip={props} shot={shot} light={isLightBackdrop(backdrop)} />
       {shot.zoom && props.motionBlur ? (
-        <CameraMotionBlur shutterAngle={BLUR_SHUTTER_ANGLE} samples={BLUR_SAMPLES}>
+        <CameraMotionBlur
+          shutterAngle={props.shutterAngle ?? BLUR_SHUTTER_ANGLE}
+          samples={BLUR_SAMPLES}
+        >
           {windowGroup}
         </CameraMotionBlur>
       ) : (
@@ -255,4 +290,4 @@ export const DemoClip: React.FC<DemoClipProps> = (props) => {
       )}
     </AbsoluteFill>
   );
-};
+}

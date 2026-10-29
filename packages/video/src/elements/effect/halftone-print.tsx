@@ -1,32 +1,19 @@
-import type React from "react";
 import { AbsoluteFill } from "remotion";
 import { useAuthoredConfig } from "#video/core/authored-clock.ts";
-import { parseColor } from "#video/lib/neutral-ui/color.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
   makeFilterShader,
+  rgbUniform,
 } from "#video/lib/transitions/canvas-presentation.tsx";
-
-export type HalftonePrintProps = {
-  dotSize?: number;
-  angle?: number;
-  misregistration?: number;
-  paperTint?: string;
-};
-
-const DEFAULTS = {
-  dotSize: 10,
-  angle: 0,
-  misregistration: 1.2,
-  paperTint: "#f4efe4",
-};
 
 type NormalizedProps = {
   cell: number;
   angle: number;
   shift: number;
   paper: string;
+  inks: [string, string, string];
 };
 
 const FRAGMENT_SHADER = `#version 300 es
@@ -38,13 +25,13 @@ uniform float u_cell;
 uniform float u_angle;
 uniform float u_shift;
 uniform vec3 u_paper;
+uniform vec3 u_cyan_absorb;
+uniform vec3 u_magenta_absorb;
+uniform vec3 u_yellow_absorb;
 
 in vec2 v_uv;
 out vec4 outColor;
 
-const vec3 CYAN_ABSORB = vec3(0.92, 0.12, 0.02);
-const vec3 MAGENTA_ABSORB = vec3(0.10, 0.88, 0.06);
-const vec3 YELLOW_ABSORB = vec3(0.03, 0.10, 0.90);
 
 vec2 toSquare(vec2 uv) {
   return vec2(uv.x * u_aspect, uv.y);
@@ -85,45 +72,47 @@ void main() {
     screenInk(u_angle, u_shift * vec2(-0.5, -0.866), vec3(0.0, 0.0, 1.0));
 
   vec3 color = u_paper;
-  color *= 1.0 - cyan * CYAN_ABSORB;
-  color *= 1.0 - magenta * MAGENTA_ABSORB;
-  color *= 1.0 - yellow * YELLOW_ABSORB;
+  color *= 1.0 - cyan * u_cyan_absorb;
+  color *= 1.0 - magenta * u_magenta_absorb;
+  color *= 1.0 - yellow * u_yellow_absorb;
 
   outColor = vec4(color * source.a, source.a);
 }`;
 
-function toRgb(color: string): [number, number, number] {
-  const { r, g, b } = parseColor(color);
-  return [r, g, b];
-}
-
 const shader = makeFilterShader<NormalizedProps>(
   FRAGMENT_SHADER,
   ({ gl, uniform, passedProps }) => {
-    const { cell, angle, shift, paper } = passedProps;
+    const { cell, angle, shift, paper, inks } = passedProps;
+    const absorb = (ink: string) => rgbUniform(ink).map((c) => 1 - c);
+    gl.uniform3fv(uniform("u_cyan_absorb"), absorb(inks[0]));
+    gl.uniform3fv(uniform("u_magenta_absorb"), absorb(inks[1]));
+    gl.uniform3fv(uniform("u_yellow_absorb"), absorb(inks[2]));
     gl.uniform1f(uniform("u_cell"), cell);
     gl.uniform1f(uniform("u_angle"), angle);
     gl.uniform1f(uniform("u_shift"), shift);
-    gl.uniform3fv(uniform("u_paper"), toRgb(paper));
+    gl.uniform3fv(uniform("u_paper"), rgbUniform(paper));
   },
 );
 
-const HalftonePrintFallback: React.FC<NormalizedProps & CanvasFilterProps> = ({ children }) => (
-  <AbsoluteFill>{children}</AbsoluteFill>
-);
+function HalftonePrintFallback({ children }: NormalizedProps & CanvasFilterProps) {
+  return <AbsoluteFill>{children}</AbsoluteFill>;
+}
 
 const HalftonePrintCanvas = makeCanvasFilter<NormalizedProps>({
   shader,
   fallback: HalftonePrintFallback,
 });
 
-export const HalftonePrint: React.FC<HalftonePrintProps & CanvasFilterProps> = ({
-  dotSize = DEFAULTS.dotSize,
-  angle = DEFAULTS.angle,
-  misregistration = DEFAULTS.misregistration,
-  paperTint = DEFAULTS.paperTint,
+export function HalftonePrint({
+  dotSize,
+  angle,
+  misregistration,
+  paperTint,
+  cyanInk,
+  magentaInk,
+  yellowInk,
   children,
-}) => {
+}: ElementSettings["halftone-print"] & CanvasFilterProps) {
   const { height } = useAuthoredConfig();
 
   return (
@@ -132,8 +121,9 @@ export const HalftonePrint: React.FC<HalftonePrintProps & CanvasFilterProps> = (
       angle={(angle * Math.PI) / 180}
       shift={misregistration / height}
       paper={paperTint}
+      inks={[cyanInk, magentaInk, yellowInk]}
     >
       {children}
     </HalftonePrintCanvas>
   );
-};
+}

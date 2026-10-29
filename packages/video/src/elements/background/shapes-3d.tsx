@@ -1,44 +1,49 @@
 import { noise3D } from "@remotion/noise";
-import React, { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { random, useCurrentFrame, useVideoConfig } from "remotion";
 import { MeshStandardMaterial, SphereGeometry, TorusGeometry, type BufferGeometry } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { cameraAt } from "#video/common/camera-path.ts";
-import type { ElementSettings } from "#video/generated/spec.ts";
+import type { ElementSettings, ShapeKind } from "#video/generated/spec.ts";
 import { viewPose } from "#video/three/motion.ts";
-import { Posed, Stage3D } from "#video/three/stage.tsx";
+import { Posed, STAGE_FOV, Stage3D } from "#video/three/stage.tsx";
 
 const FOV_HALF = (30 * Math.PI) / 360;
 const STAGE_DISTANCE = 1.15 / Math.sin(FOV_HALF);
 const DEPTH = { near: 0.6, far: -3.5 };
 const SIZE = { min: 0.14, max: 0.42 };
-const DRIFT = { reach: 0.45, pace: 0.006, spin: 0.012 };
+const DRIFT = { pace: 0.006, spin: 0.012 };
 const SPREAD = 1.05;
-const ROUGHNESS = 0.4;
-const METALNESS = 0.1;
 
-type Kind = "sphere" | "ring" | "box";
-const KINDS: Kind[] = ["sphere", "ring", "box"];
+type Placed = { kind: ShapeKind; color: number; x: number; y: number; z: number; size: number };
 
-type Placed = { kind: Kind; color: number; x: number; y: number; z: number; size: number };
+type Layout = {
+  count: number;
+  colors: number;
+  seed: number;
+  aspect: number;
+  kinds: ShapeKind[];
+  depth: number;
+  size: number;
+};
 
-function place(count: number, colors: number, seed: number, aspect: number): Placed[] {
+function place({ count, colors, seed, aspect, kinds, depth, size }: Layout): Placed[] {
   return Array.from({ length: count }, (_, i) => {
     const r = (key: string) => random(`${seed}:${i}:${key}`);
-    const z = DEPTH.far + r("z") * (DEPTH.near - DEPTH.far);
+    const z = (DEPTH.far + r("z") * (DEPTH.near - DEPTH.far)) * depth;
     const halfH = (STAGE_DISTANCE - z) * Math.tan(FOV_HALF) * SPREAD;
     return {
-      kind: KINDS[Math.floor(r("kind") * KINDS.length) % KINDS.length],
+      kind: kinds[Math.floor(r("kind") * kinds.length) % kinds.length],
       color: colors ? i % colors : 0,
       x: (r("x") * 2 - 1) * halfH * aspect,
       y: (r("y") * 2 - 1) * halfH,
       z,
-      size: SIZE.min + r("size") * (SIZE.max - SIZE.min),
+      size: (SIZE.min + r("size") * (SIZE.max - SIZE.min)) * size,
     };
   });
 }
 
-function geometryFor(kind: Kind): BufferGeometry {
+function geometryFor(kind: ShapeKind): BufferGeometry {
   switch (kind) {
     case "sphere":
       return new SphereGeometry(1, 48, 32);
@@ -49,7 +54,7 @@ function geometryFor(kind: Kind): BufferGeometry {
   }
 }
 
-export const Shapes3D: React.FC<ElementSettings["shapes-3d"]> = ({
+export function Shapes3D({
   count,
   palette,
   seed,
@@ -57,12 +62,28 @@ export const Shapes3D: React.FC<ElementSettings["shapes-3d"]> = ({
   camera,
   lighting,
   background,
-}) => {
+  depth,
+  size,
+  drift: reach,
+  spin,
+  roughness,
+  metalness,
+  kinds,
+}: ElementSettings["shapes-3d"]) {
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
   const placed = useMemo(
-    () => place(count, palette.length, seed, width / height),
-    [count, palette.length, seed, width, height],
+    () =>
+      place({
+        count,
+        colors: palette.length,
+        seed,
+        aspect: width / height,
+        kinds,
+        depth,
+        size,
+      }),
+    [count, palette.length, seed, width, height, kinds, depth, size],
   );
   const parts = useMemo(
     () => ({
@@ -70,12 +91,10 @@ export const Shapes3D: React.FC<ElementSettings["shapes-3d"]> = ({
         sphere: geometryFor("sphere"),
         ring: geometryFor("ring"),
         box: geometryFor("box"),
-      } satisfies Record<Kind, BufferGeometry>,
-      materials: palette.map(
-        (color) => new MeshStandardMaterial({ color, roughness: ROUGHNESS, metalness: METALNESS }),
-      ),
+      } satisfies Record<ShapeKind, BufferGeometry>,
+      materials: palette.map((color) => new MeshStandardMaterial({ color, roughness, metalness })),
     }),
-    [palette],
+    [palette, roughness, metalness],
   );
   useEffect(
     () => () => {
@@ -86,13 +105,13 @@ export const Shapes3D: React.FC<ElementSettings["shapes-3d"]> = ({
   );
   const t = frame * speed;
   return (
-    <Stage3D lighting={lighting} background={background}>
+    <Stage3D lighting={lighting} background={background} fov={STAGE_FOV}>
       <Posed pose={viewPose(cameraAt(camera, frame))}>
         {placed.map((p, i) => {
           const drift = (axis: string) =>
-            noise3D(`${seed}:${axis}`, i * 7.3, 0, t * DRIFT.pace) * DRIFT.reach;
+            noise3D(`${seed}:${axis}`, i * 7.3, 0, t * DRIFT.pace) * reach;
           const turn = (axis: string) =>
-            noise3D(`${seed}:r${axis}`, i * 3.1, 0, t * DRIFT.spin) * Math.PI;
+            noise3D(`${seed}:r${axis}`, i * 3.1, 0, t * DRIFT.spin * spin) * Math.PI;
           const material = parts.materials[p.color];
           if (!material) return null;
           return (
@@ -109,4 +128,4 @@ export const Shapes3D: React.FC<ElementSettings["shapes-3d"]> = ({
       </Posed>
     </Stage3D>
   );
-};
+}

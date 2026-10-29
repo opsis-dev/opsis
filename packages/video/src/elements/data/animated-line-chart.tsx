@@ -1,29 +1,22 @@
 import { spring } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface AnimatedLineChartProps {
-  data?: number[];
-  width?: number;
-  height?: number;
-  strokeColor?: string;
-  strokeWidth?: number;
-  gridColor?: string;
-  showDot?: boolean;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function AnimatedLineChart({
-  data = [12, 19, 8, 15, 22, 18, 28, 25, 32],
-  width = 1000,
-  height = 500,
-  strokeColor = "#22c55e",
-  strokeWidth = 4,
-  gridColor = "#27272a",
-  showDot = true,
-  speed = 1,
-  className,
-}: AnimatedLineChartProps) {
+  data,
+  width,
+  height,
+  strokeColor,
+  strokeWidth,
+  gridColor,
+  showDot,
+  speed,
+  startAtZero,
+  finishAt,
+  gridRows,
+  showColumns,
+  glow,
+}: ElementSettings["animated-line-chart"]) {
   const frame = useAuthoredFrame() * speed;
   const { fps, durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
@@ -32,7 +25,7 @@ export function AnimatedLineChart({
   const innerWidth = width - padding * 2;
   const innerHeight = height - padding * 2;
 
-  const min = Math.min(...data);
+  const min = startAtZero ? Math.min(0, ...data) : Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
 
@@ -56,7 +49,7 @@ export function AnimatedLineChart({
   const progress = spring({
     frame,
     fps,
-    durationInFrames: Math.round(durationInFrames * 0.85),
+    durationInFrames: Math.round((durationInFrames * finishAt) / 100),
     config: { damping: 200 },
   });
 
@@ -81,12 +74,10 @@ export function AnimatedLineChart({
     dotY = points[i].y;
   }
 
-  const gridRows = 4;
-  const gridCols = data.length - 1;
+  const gridCols = showColumns ? data.length - 1 : 0;
 
   return (
     <div
-      className={className}
       style={{
         position: "absolute",
         inset: 0,
@@ -116,7 +107,7 @@ export function AnimatedLineChart({
             />
           );
         })}
-        {Array.from({ length: gridCols + 1 }).map((_, i) => {
+        {Array.from({ length: showColumns ? gridCols + 1 : 0 }).map((_, i) => {
           const x = padding + (i / gridCols) * innerWidth;
           return (
             <line
@@ -157,7 +148,7 @@ export function AnimatedLineChart({
           strokeDasharray={pathLength}
           strokeDashoffset={dashOffset}
           style={{
-            filter: `drop-shadow(0 0 12px color-mix(in srgb, ${strokeColor} 33%, transparent))`,
+            filter: `drop-shadow(0 0 12px color-mix(in srgb, ${strokeColor} ${glow}%, transparent))`,
           }}
         />
 

@@ -220,3 +220,23 @@ proptest! {
         prop_assert!(inverse_remap(&remap, -1.0, RemapSide::Start) < remap[0].0);
     }
 }
+
+proptest::proptest! {
+    #[test]
+    fn eases_each_speed_change_inside_its_own_part(
+        from in 0.0..10_000.0f64,
+        length in 1.0..10_000.0f64,
+        rate in 0.1..64.0f64,
+        ease in 0.0..3_000.0f64,
+    ) {
+        let parts = opsis_compile::remap::eased_segments(&[(from, from + length, rate)], ease);
+        proptest::prop_assert!((parts[0].0 - from).abs() < 1e-6);
+        proptest::prop_assert!((parts[parts.len() - 1].1 - (from + length)).abs() < 1e-6);
+        for pair in parts.windows(2) {
+            proptest::prop_assert!((pair[0].1 - pair[1].0).abs() < 1e-6, "{parts:?}");
+        }
+        let (low, high) = (rate.min(1.0), rate.max(1.0));
+        proptest::prop_assert!(parts.iter().all(|p| p.2 >= low - 1e-9 && p.2 <= high + 1e-9));
+        proptest::prop_assert!(parts.iter().any(|p| (p.2 - rate).abs() < 1e-9));
+    }
+}

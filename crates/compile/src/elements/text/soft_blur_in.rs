@@ -39,6 +39,27 @@ pub struct SoftBlurIn {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Stagger",
+        default = 0.0333,
+        range(min = 0, max = 0.5),
+        step = 0.0333,
+        unit = "s",
+        frames_at = 30,
+        advanced
+    )]
+    pub stagger: f64,
+    #[setting(
+        "Distance",
+        default = 16,
+        range(min = 0, max = 120),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub distance: u32,
+    #[setting("Letter spacing", default = -0.05, range(min = -0.2, max = 0.5), unit = "em", advanced)]
+    pub letter_spacing: f64,
 }
 
 pub fn definition() -> ElementMeta {

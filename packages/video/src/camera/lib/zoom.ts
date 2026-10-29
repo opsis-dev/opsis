@@ -44,7 +44,7 @@ export function poseAt(
   log: ClickLog,
   { speed = 1, tuning = NO_TUNING }: TrackOptions = {},
 ): CameraPose {
-  return sampleTrack(cachedTrack(log, speed, tuning), logTimeS(frame, fps, speed));
+  return sampleTrack(cachedTrack(log, speed, tuning), logTimeS(frame, fps, speed), tuning);
 }
 
 export function zoomAt(

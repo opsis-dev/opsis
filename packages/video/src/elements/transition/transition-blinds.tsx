@@ -1,21 +1,10 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import { useMemo } from "react";
 import { AbsoluteFill } from "remotion";
-import {
-  resolveTransitionTiming,
-  transitionPhase,
-  type TransitionVariant,
-} from "#video/lib/transitions/transition-timing.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
-export type BlindsOrientation = "horizontal" | "vertical";
-
-export type BlindsProps = {
-  orientation?: BlindsOrientation;
-  slats?: number;
-  stagger?: number;
-  alternate?: boolean;
-  edgeSoftness?: number;
-};
+type BlindsProps = ElementSettings["transition-blinds"];
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -29,20 +18,12 @@ function slatProgress(coverage: number, index: number, count: number, stagger: n
   return clamp01((coverage - start) / (span > 0 ? span : 1));
 }
 
-const BlindsPresentation: React.FC<
-  React.ComponentProps<NonNullable<TransitionPresentation<BlindsProps>["component"]>>
-> = ({
+function BlindsPresentation({
   children,
   presentationProgress,
   presentationDirection,
-  passedProps: {
-    orientation = "horizontal",
-    slats = 12,
-    stagger = 0.45,
-    alternate = false,
-    edgeSoftness = 0.06,
-  },
-}) => {
+  passedProps: { orientation, slats, stagger, alternate, edgeSoftness, reverse },
+}: React.ComponentProps<NonNullable<TransitionPresentation<BlindsProps>["component"]>>) {
   const phase = transitionPhase(presentationProgress, presentationDirection, {
     lead: 1,
   });
@@ -55,7 +36,7 @@ const BlindsPresentation: React.FC<
 
     const layers = Array.from({ length: count }, (_, index) => {
       const progress = slatProgress(coverage, index, count, stagger);
-      const reversed = alternate && index % 2 === 1;
+      const reversed = (alternate && index % 2 === 1) !== reverse;
       const edge = progress * (100 + feather * 2) - feather;
       const direction = reversed
         ? horizontal
@@ -90,7 +71,7 @@ const BlindsPresentation: React.FC<
       WebkitMaskRepeat: "no-repeat",
       maskRepeat: "no-repeat",
     };
-  }, [alternate, count, coverage, edgeSoftness, orientation, stagger]);
+  }, [alternate, count, coverage, edgeSoftness, orientation, reverse, stagger]);
 
   if (!phase.isEntering) {
     return <AbsoluteFill>{children}</AbsoluteFill>;
@@ -101,31 +82,8 @@ const BlindsPresentation: React.FC<
   }
 
   return <AbsoluteFill style={maskStyle}>{children}</AbsoluteFill>;
-};
+}
 
-export function blinds(props: BlindsProps = {}): TransitionPresentation<BlindsProps> {
+export function blinds(props: BlindsProps): TransitionPresentation<BlindsProps> {
   return { component: BlindsPresentation, props };
-}
-
-export type TransitionBlindsConfig = BlindsProps & {
-  durationInFrames?: number;
-  variant?: TransitionVariant;
-};
-
-export function transitionBlinds({
-  durationInFrames = 24,
-  variant = "editorial",
-  ...presentationProps
-}: TransitionBlindsConfig = {}) {
-  return {
-    presentation: blinds(presentationProps),
-    timing: resolveTransitionTiming({ durationInFrames, variant }),
-  };
-}
-
-export function getTransitionBlindsDuration(
-  config: TransitionBlindsConfig = {},
-  fps: number,
-): number {
-  return transitionBlinds(config).timing.getDurationInFrames({ fps });
 }

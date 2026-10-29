@@ -18,7 +18,13 @@ pub struct RippleZoom {
     pub zoom: f64,
     #[setting("Intensity", default = 0.5, range(min = 0, max = 1), step = 0.05)]
     pub intensity: f64,
-    #[setting("Softness", default = 0.5, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Softness",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub softness: f64,
     #[setting("Background", default = "#141318", check = colour)]
     pub color_back: String,
@@ -38,6 +44,8 @@ pub struct RippleZoom {
     pub speed: f64,
     #[setting("Grain", default = 0.5, range(min = 0, max = 1), step = 0.01, advanced)]
     pub noise: f64,
+    #[setting("Horizontal centre", default = 0.5, range(min = 0, max = 1), advanced)]
+    pub origin_x: f64,
 }
 
 pub fn definition() -> ElementMeta {

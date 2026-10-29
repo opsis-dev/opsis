@@ -150,7 +150,7 @@ fn still_layouts_are_as_recorded() {
             typed(&c["region"]),
             canvas,
             body,
-            0.86,
+            if look == StillLook::Cutout { 0.8 } else { 0.86 },
             number(&c["least"]),
         );
         with(c, json!({ "canvas": canvas, "scale": scale }))

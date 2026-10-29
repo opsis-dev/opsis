@@ -13,6 +13,7 @@ const area: fc.Arbitrary<BlurArea> = fc.record({
   strength: fc.integer({ min: 0, max: 100 }).map((n) => n / 1000),
   softness: unit(0, 0.05),
   roundness: unit(0, 1),
+  fadeMs: fc.integer({ min: 1, max: 2000 }),
 });
 
 const timed = fc
@@ -67,6 +68,7 @@ describe("blur areas on a recording", () => {
       strength: 0.02,
       softness: 0.005,
       roundness: 0.4,
+      fadeMs: 200,
       fromMs: 1000,
       untilMs: 3000,
     };
@@ -78,6 +80,17 @@ describe("blur areas on a recording", () => {
       fc.property(unit(1000, 2000), unit(0, 1000), (t, later) => {
         expect(strength(Math.min(2000, t + later))).toBeGreaterThanOrEqual(strength(t) - 1e-9);
         expect(strength(4000 - t)).toBeCloseTo(strength(t), 9);
+      }),
+    );
+  });
+
+  it("starts and stops at full strength without a fade", () => {
+    fc.assert(
+      fc.property(timed, fc.integer({ min: -1000, max: 45_000 }), (a, t) => {
+        const sharp = { ...a, fadeMs: 0 };
+        const [p] = blurParams([sharp], t, 1000);
+        const inside = t >= (sharp.fromMs ?? 0) && t <= (sharp.untilMs ?? 0);
+        expect(p.blurRadius).toBeCloseTo(inside ? sharp.strength * 1000 : 0, 9);
       }),
     );
   });

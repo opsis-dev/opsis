@@ -6,6 +6,7 @@ use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::FontWeight;
+use crate::elements::shared::VerticalDirection;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -39,6 +40,25 @@ pub struct SlotMachineRoll {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Column stagger",
+        default = 0.1333,
+        range(min = 0, max = 1),
+        step = 0.0333,
+        unit = "s",
+        frames_at = 30,
+        advanced
+    )]
+    pub column_stagger: f64,
+    #[setting(
+        "Direction",
+        default = VerticalDirection::Up,
+        labels = { "up": "Up", "down": "Down" },
+        advanced
+    )]
+    pub direction: VerticalDirection,
+    #[setting("Letter spacing", default = -0.03, range(min = -0.2, max = 0.5), unit = "em", advanced)]
+    pub letter_spacing: f64,
 }
 
 pub fn definition() -> ElementMeta {

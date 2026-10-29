@@ -48,7 +48,8 @@ struct EnvelopeField {
     #[setting(
         "Keyframes",
         help = "Change opacity, position and size over time. Edit them here or on the timeline.",
-        widget = "envelope"
+        widget = "envelope",
+        advanced
     )]
     envelope: VisualEnvelope,
 }
@@ -78,14 +79,14 @@ struct SequencerFields {
     gap_frames: u32,
     #[setting(
         "Scene backgrounds",
-        help = "A colour behind a scene. It fades into the next scene's colour.",
-        advanced
+        help = "A colour behind a scene. It fades into the next scene's colour."
     )]
     backgrounds: Vec<SceneBackground>,
     #[setting(
         "Keyframes",
         help = "Change opacity, position and size over time. Edit them here or on the timeline.",
-        widget = "envelope"
+        widget = "envelope",
+        advanced
     )]
     envelope: VisualEnvelope,
 }

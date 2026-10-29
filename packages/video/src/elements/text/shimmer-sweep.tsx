@@ -1,43 +1,41 @@
+import type { CSSProperties } from "react";
 import { interpolate } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface ShimmerSweepProps {
-  background?: string;
-  fontFamily?: string;
-  text: string;
-  baseColor?: string;
-  shineColor?: string;
-  fontSize?: number;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function ShimmerSweep({
-  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily,
   text,
-  baseColor = "#3f3f46",
-  shineColor = "#fafafa",
-  fontSize = 96,
-  fontWeight = 700,
-  speed = 1,
-  className,
-  background = "transparent",
-}: ShimmerSweepProps) {
+  baseColor,
+  shineColor,
+  fontSize,
+  fontWeight,
+  speed,
+  background,
+  sweeps,
+  bandAngle,
+  bandWidth,
+  letterSpacing,
+}: ElementSettings["shimmer-sweep"]) {
   const frame = useAuthoredFrame() * speed;
   const { durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
 
-  const position = interpolate(frame, [0, durationInFrames * 0.8], [200, -100], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const passes = Math.max(1, sweeps);
+  const progress =
+    interpolate(frame, [0, durationInFrames * 0.8], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }) * passes;
+  const pass = progress >= passes ? 1 : progress % 1;
+  const position = 200 - 300 * pass;
 
-  const textStyle: React.CSSProperties = {
+  const textStyle: CSSProperties = {
     fontSize,
     fontWeight,
-    letterSpacing: "-0.03em",
-    fontFamily,
+    letterSpacing: `${letterSpacing}em`,
+    fontFamily: fontOr(fontFamily, "main"),
     margin: 0,
     lineHeight: 1,
   };
@@ -56,7 +54,6 @@ export function ShimmerSweep({
       <div style={{ position: "relative", display: "inline-block" }}>
         <span style={{ ...textStyle, color: baseColor }}>{text}</span>
         <span
-          className={className}
           style={{
             ...textStyle,
             position: "absolute",
@@ -64,7 +61,7 @@ export function ShimmerSweep({
             color: "transparent",
             backgroundClip: "text",
             WebkitBackgroundClip: "text",
-            backgroundImage: `linear-gradient(110deg, transparent 30%, ${shineColor} 50%, transparent 70%)`,
+            backgroundImage: `linear-gradient(${bandAngle}deg, transparent ${50 - bandWidth / 2}%, ${shineColor} 50%, transparent ${50 + bandWidth / 2}%)`,
             backgroundSize: "200% 100%",
             backgroundPosition: `${position}% 50%`,
           }}

@@ -1,17 +1,16 @@
-import type React from "react";
 import { Easing, interpolate } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
-import { isTheme, themeColors } from "#video/common/theme.ts";
+import { fontOr } from "#video/common/fonts.ts";
+import { themeColors } from "#video/common/theme.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   type CommandMenuIcon,
   CommandMenuItemRow,
   type CommandMenuItemState,
-  type CommandMenuItemStyle,
   type CommandMenuItemStyleContext,
   commandMenuItemStyle,
   commandMenuItemStyleContext,
 } from "#video/elements/scene/command-menu/command-menu-item.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { type NeutralTheme, revealedText, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 import {
   NeutralUIProvider,
@@ -27,37 +26,18 @@ export interface CommandMenuEntry {
   shortcut?: string;
 }
 
-export interface CommandMenuProps {
-  state?: CommandMenuState;
-  style?: CommandMenuStyle;
-  query?: string;
-  revealCount?: number;
-  items?: CommandMenuEntry[];
-  selectedIndex?: number;
-  highlightedIndex?: number;
-  pressedIndex?: number;
-  itemStyles?: (CommandMenuItemStyle | undefined)[];
+type CommandMenuViewProps = Omit<ElementSettings["command-menu"], "theme"> & {
   theme?: Partial<NeutralTheme>;
-  autoplay?: boolean;
-  className?: string;
-}
+};
 
 const OPEN_AT = 6;
 const OPEN_FOR = 12;
 const TYPE_AT = 24;
-const FRAMES_PER_LETTER = 2.5;
 const HOVER_AFTER_TYPING = 8;
-const PRESS_AFTER_HOVER = 18;
 const PRESS_FOR = 6;
 
-export function commandMenuPlayEnd(query: string): number {
-  return (
-    TYPE_AT +
-    Array.from(query).length * FRAMES_PER_LETTER +
-    HOVER_AFTER_TYPING +
-    PRESS_AFTER_HOVER +
-    PRESS_FOR
-  );
+export function commandMenuPlayEnd(query: string, perLetter: number, pause: number): number {
+  return TYPE_AT + Array.from(query).length * perLetter + HOVER_AFTER_TYPING + pause + PRESS_FOR;
 }
 
 function blendStyles(a: CommandMenuStyle, b: CommandMenuStyle, t: number): CommandMenuStyle {
@@ -68,10 +48,6 @@ function blendStyles(a: CommandMenuStyle, b: CommandMenuStyle, t: number): Comma
     panelTranslateY: a.panelTranslateY + (b.panelTranslateY - a.panelTranslateY) * t,
   };
 }
-
-const PANEL_WIDTH = 440;
-const CONTENT_WIDTH = PANEL_WIDTH - 16;
-const MAX_OVERLAY_ALPHA = 0.5;
 
 export function filterCommandItems(
   items: CommandMenuEntry[],
@@ -153,25 +129,27 @@ function rowState(
 }
 
 function CommandMenuView({
-  state = "closed",
-  style,
-  query = "",
+  state,
+  query,
   revealCount,
-  items = [
-    { icon: "user", label: "Profile", shortcut: "⌘ P" },
-    { icon: "settings", label: "Settings", shortcut: "⌘ S" },
-    { icon: "file", label: "New File", shortcut: "⌘ N" },
-    { icon: "search", label: "Search docs" },
-  ],
-  selectedIndex = -1,
-  highlightedIndex = -1,
-  pressedIndex = -1,
-  itemStyles,
+  items,
+  selectedIndex,
+  highlightedIndex,
+  pressedIndex,
   theme: themeOverride,
-  autoplay = false,
-  className,
-}: CommandMenuProps) {
-  const frame = useAuthoredFrame();
+  autoplay,
+  letterSeconds: perLetter,
+  pauseSeconds: pause,
+  speed,
+  pickIndex,
+  placeholder,
+  emptyText,
+  backdropOpacity,
+  panelWidth,
+  top,
+  fontFamily,
+}: CommandMenuViewProps) {
+  const frame = useAuthoredFrame() * speed;
   const theme = useNeutralTheme(themeOverride, "light");
   const ctx = commandMenuStyleContext(theme);
   const opened = interpolate(frame, [OPEN_AT, OPEN_AT + OPEN_FOR], [0, 1], {
@@ -179,18 +157,18 @@ function CommandMenuView({
     extrapolateRight: "clamp",
     easing: Easing.out(Easing.cubic),
   });
-  const typed = Math.max(0, Math.floor((frame - TYPE_AT) / FRAMES_PER_LETTER) + 1);
+  const typed = Math.max(0, Math.floor((frame - TYPE_AT) / perLetter) + 1);
   const shownCount = autoplay ? Math.min(typed, Array.from(query).length) : revealCount;
   const v = autoplay
     ? blendStyles(commandMenuStyle("closed", ctx), commandMenuStyle("opened", ctx), opened)
-    : (style ?? commandMenuStyle(state, ctx));
+    : commandMenuStyle(state, ctx);
 
   const visibleQuery = shownCount === undefined ? query : revealedText(query, shownCount);
   const filtered = filterCommandItems(items, query, shownCount);
-  const typingEnd = TYPE_AT + Array.from(query).length * FRAMES_PER_LETTER;
-  const pick = items.indexOf(filtered[0]);
+  const typingEnd = TYPE_AT + Array.from(query).length * perLetter;
+  const pick = items.indexOf(filtered[Math.min(pickIndex, filtered.length - 1)]);
   const hoverAt = typingEnd + HOVER_AFTER_TYPING;
-  const pressAt = hoverAt + PRESS_AFTER_HOVER;
+  const pressAt = hoverAt + pause;
   const highlighted = autoplay ? (frame >= hoverAt ? pick : -1) : highlightedIndex;
   const pressed = autoplay
     ? frame >= pressAt && frame < pressAt + PRESS_FOR
@@ -207,22 +185,21 @@ function CommandMenuView({
         display: "flex",
         alignItems: "flex-start",
         justifyContent: "center",
-        paddingTop: "18%",
-        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        paddingTop: `${top}%`,
+        fontFamily: fontOr(fontFamily, "main"),
       }}
     >
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: `rgba(0, 0, 0, ${MAX_OVERLAY_ALPHA * v.backdropOpacity})`,
+          background: `rgba(0, 0, 0, ${backdropOpacity * v.backdropOpacity})`,
         }}
       />
       <div
-        className={className}
         style={{
           position: "relative",
-          width: PANEL_WIDTH,
+          width: panelWidth,
           boxSizing: "border-box",
           transformOrigin: "top",
           transform: `translateY(${v.panelTranslateY}px) scale(${v.panelScale})`,
@@ -262,7 +239,7 @@ function CommandMenuView({
               color: visibleQuery ? ctx.inputFg : ctx.placeholderFg,
             }}
           >
-            {visibleQuery || "Type a command or search…"}
+            {visibleQuery || placeholder}
             <span
               style={{
                 display: "inline-block",
@@ -298,27 +275,23 @@ function CommandMenuView({
                 color: ctx.mutedFg,
               }}
             >
-              No results found.
+              {emptyText}
             </div>
           ) : (
-            filtered.map((item, i) => {
-              const override = itemStyles?.[i];
+            filtered.map((item) => {
               const index = items.indexOf(item);
               return (
                 <CommandMenuItemRow
                   key={index}
-                  style={
-                    override ??
-                    commandMenuItemStyle(
-                      rowState(index, selected, highlighted, pressed),
-                      ctx.itemCtx,
-                    )
-                  }
+                  style={commandMenuItemStyle(
+                    rowState(index, selected, highlighted, pressed),
+                    ctx.itemCtx,
+                  )}
                   ctx={ctx.itemCtx}
                   label={item.label}
                   icon={item.icon}
                   shortcut={item.shortcut}
-                  width={CONTENT_WIDTH}
+                  width={panelWidth - 16}
                   radius={theme.radius}
                 />
               );
@@ -330,22 +303,15 @@ function CommandMenuView({
   );
 }
 
-export function CommandMenu(props: ElementProps & { children?: React.ReactNode }) {
-  const { theme } = props;
-  if (!isTheme(theme))
-    return (
-      <CommandMenuView {...(props as unknown as React.ComponentProps<typeof CommandMenuView>)} />
-    );
+export function CommandMenu({ theme, radius, ...settings }: ElementSettings["command-menu"]) {
   const tokens = {
     ...(theme.mode === "dark" ? defaultDarkTheme : defaultLightTheme),
     ...themeColors(theme),
+    radius,
   };
   return (
     <NeutralUIProvider mode={theme.mode} theme={tokens}>
-      <CommandMenuView
-        {...(props as unknown as React.ComponentProps<typeof CommandMenuView>)}
-        theme={tokens}
-      />
+      <CommandMenuView {...settings} radius={radius} theme={tokens} />
     </NeutralUIProvider>
   );
 }

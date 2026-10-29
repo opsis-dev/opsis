@@ -10,9 +10,12 @@ export type FadeProps = {
   dipTo?: string;
 };
 
-const FadePresentation: React.FC<
-  React.ComponentProps<NonNullable<TransitionPresentation<FadeProps>["component"]>>
-> = ({ children, presentationProgress, presentationDirection, passedProps: { dipTo } }) => {
+function FadePresentation({
+  children,
+  presentationProgress,
+  presentationDirection,
+  passedProps: { dipTo },
+}: React.ComponentProps<NonNullable<TransitionPresentation<FadeProps>["component"]>>) {
   const phase = transitionPhase(presentationProgress, presentationDirection, {
     lead: 1,
     fade: true,
@@ -32,7 +35,7 @@ const FadePresentation: React.FC<
       <AbsoluteFill style={{ background: dipTo, opacity: veil }} />
     </AbsoluteFill>
   );
-};
+}
 
 export function crossfade(props: FadeProps = {}): TransitionPresentation<FadeProps> {
   return { component: FadePresentation, props };

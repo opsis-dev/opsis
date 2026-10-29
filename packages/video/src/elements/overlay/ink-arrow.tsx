@@ -1,9 +1,7 @@
-import type React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
-import { numberOr } from "#video/common/math.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
 import {
   BrushGrain,
   type BrushPoint,
@@ -14,7 +12,6 @@ import {
   sampleLine,
 } from "#video/parts/brush.tsx";
 
-const HEAD_ANGLE = 0.72;
 const SHAFT_SAMPLES = 40;
 const ARM_SAMPLES = 10;
 const ARM_TAPER = 0.6;
@@ -28,6 +25,7 @@ export function inkArrowControls(
   to: InkArrowPoint,
   curvature: number,
   seed: string,
+  wobbleShare: number,
 ): { c1: InkArrowPoint; c2: InkArrowPoint } {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
@@ -35,7 +33,7 @@ export function inkArrowControls(
   const normalX = -dy / distance;
   const normalY = dx / distance;
   const bow = curvature * distance;
-  const wobble = distance * 0.06;
+  const wobble = distance * wobbleShare;
 
   const at = (t: number, key: string): InkArrowPoint => ({
     x: from.x + dx * t + normalX * bow + hashRange(`${seed}:${key}:x`, -wobble, wobble),
@@ -49,6 +47,7 @@ export function inkArrowHead(
   c2: InkArrowPoint,
   to: InkArrowPoint,
   headSize: number,
+  headAngle: number,
 ): { left: InkArrowPoint; right: InkArrowPoint } {
   const dx = to.x - c2.x;
   const dy = to.y - c2.y;
@@ -61,7 +60,7 @@ export function inkArrowHead(
     y: to.y + headSize * (backX * Math.sin(angle) + backY * Math.cos(angle)),
   });
 
-  return { left: arm(HEAD_ANGLE), right: arm(-HEAD_ANGLE) };
+  return { left: arm(headAngle), right: arm(-headAngle) };
 }
 
 export function inkArrowArmWidth(strokeWidth: number, release: number): number {
@@ -101,48 +100,38 @@ export function inkArrowViewport(
   };
 }
 
-export interface InkArrowProps {
+type InkArrowProps = Omit<ElementSettings["ink-arrow"], "fromX" | "fromY" | "toX" | "toY"> & {
   from: InkArrowPoint;
   to: InkArrowPoint;
-  curvature?: number;
-  color?: string;
-  strokeWidth?: number;
-  pressure?: number;
-  release?: number;
-  grain?: number;
-  delay?: number;
-  drawDur?: number;
-  headSize?: number;
-  headDur?: number;
-  seed?: string;
-  step?: number;
-}
+};
 
 function InkArrowView({
   from,
   to,
-  curvature = 0.35,
-  color = "#26242c",
-  strokeWidth = 8,
-  pressure = 0.2,
-  release = 1,
-  grain = 1,
-  delay = 0,
-  drawDur = 36,
-  headSize = 24,
+  curvature,
+  color,
+  strokeWidth,
+  pressure,
+  release,
+  grain,
+  drawDur,
+  headSize,
   headDur,
-  seed = "arrow",
-  step = DEFAULT_STEP,
+  seed,
+  step,
+  headAngle,
+  wobble,
+  opacity,
 }: InkArrowProps) {
   const frame = useAuthoredFrame();
-  const progress = steppedRamp(frame, delay, delay + drawDur, { step });
-  const { c1, c2 } = inkArrowControls(from, to, curvature, seed);
+  const progress = steppedRamp(frame, 0, drawDur, { step });
+  const { c1, c2 } = inkArrowControls(from, to, curvature, seed, wobble);
   const headReach = inkArrowHeadReach(headSize, strokeWidth);
-  const head = inkArrowHead(c2, to, headReach);
+  const head = inkArrowHead(c2, to, headReach, (headAngle * Math.PI) / 180);
   const apex = inkArrowApex(c2, to, headReach);
 
-  const headFrames = headDur ?? step * 4;
-  const headStart = delay + drawDur;
+  const headFrames = headDur;
+  const headStart = drawDur;
   const headMid = headStart + headFrames / 2;
   const leftArm = steppedRamp(frame, headStart, headMid, { step });
   const rightArm = steppedRamp(frame, headMid, headStart + headFrames, {
@@ -183,35 +172,25 @@ function InkArrowView({
           progress,
         })}
         fill={color}
-        opacity={0.85}
+        opacity={opacity}
         filter={filter}
       />
       {leftArm > 0 ? (
-        <path d={armRibbon(head.left, leftArm)} fill={color} opacity={0.85} filter={filter} />
+        <path d={armRibbon(head.left, leftArm)} fill={color} opacity={opacity} filter={filter} />
       ) : null}
       {rightArm > 0 ? (
-        <path d={armRibbon(head.right, rightArm)} fill={color} opacity={0.85} filter={filter} />
+        <path d={armRibbon(head.right, rightArm)} fill={color} opacity={opacity} filter={filter} />
       ) : null}
     </svg>
   );
 }
 
-export function InkArrow(all: ElementProps & { children?: React.ReactNode }) {
-  const { fromX, fromY, toX, toY, ...props } = all;
+export function InkArrow({ fromX, fromY, toX, toY, ...settings }: ElementSettings["ink-arrow"]) {
   const { width, height } = useVideoConfig();
-  const point = (x: unknown, y: unknown) => ({
-    x: numberOr(x, 0.5) * width,
-    y: numberOr(y, 0.5) * height,
-  });
+  const point = (x: number, y: number) => ({ x: x * width, y: y * height });
   return (
     <AbsoluteFill>
-      <InkArrowView
-        {...({
-          ...props,
-          from: point(fromX, fromY),
-          to: point(toX, toY),
-        } as unknown as React.ComponentProps<typeof InkArrowView>)}
-      />
+      <InkArrowView {...settings} from={point(fromX, fromY)} to={point(toX, toY)} />
     </AbsoluteFill>
   );
 }

@@ -1,27 +1,7 @@
 import { interpolate, Sequence } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredFrame, useRealFrames } from "#video/core/authored-clock.ts";
-
-export interface GlassCodeBlockProps {
-  code?: string;
-  title?: string;
-  width?: number;
-  height?: number;
-  fontSize?: number;
-  glassColor?: string;
-  staggerFrames?: number;
-  showTrafficLights?: boolean;
-  aura?: boolean;
-  speed?: number;
-  className?: string;
-}
-
-const FONT_MONO = "var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace";
-
-const DEFAULT_CODE = `export async function publish(draft: Draft) {
-  const page = await render(draft);
-  await upload(page, { public: true });
-  return page.url;
-}`;
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 const KEYWORDS = new Set([
   "import",
@@ -79,27 +59,39 @@ function tokenizeLine(line: string): Token[] {
   return tokens;
 }
 
-const TOKEN_COLORS: Record<Token["kind"], string> = {
-  code: "#e4e4e7",
-  comment: "#52525b",
-  string: "#86efac",
-  keyword: "#c4b5fd",
-  number: "#fcd34d",
-};
+type TokenColors = Record<Token["kind"], string>;
 
 export function GlassCodeBlock({
-  code = DEFAULT_CODE,
-  title = "hero.tsx",
-  width = 760,
-  height = 460,
-  fontSize = 16,
-  glassColor = "rgba(10, 10, 10, 0.6)",
-  staggerFrames = 4,
-  showTrafficLights = true,
-  aura = false,
-  speed = 1,
-  className,
-}: GlassCodeBlockProps) {
+  code,
+  title,
+  width,
+  height,
+  fontSize,
+  glassColor,
+  staggerFrames,
+  showTrafficLights,
+  aura,
+  speed,
+  frost,
+  cornerRadius,
+  lineHeight,
+  font,
+  codeColor,
+  commentColor,
+  stringColor,
+  keywordColor,
+  numberColor,
+  titleColor,
+  lineNumberColor,
+  auraColors,
+}: ElementSettings["glass-code-block"]) {
+  const colors: TokenColors = {
+    code: codeColor,
+    comment: commentColor,
+    string: stringColor,
+    keyword: keywordColor,
+    number: numberColor,
+  };
   const realFrames = useRealFrames();
   const lines = code.split("\n");
   const digits = String(lines.length).length;
@@ -110,7 +102,7 @@ export function GlassCodeBlock({
     Math.min(
       fontSize,
       (width - 2 - 48) / ((longest + digits + 1) * 0.62),
-      (bodyHeight / lines.length - 4) / 1.55,
+      (bodyHeight / lines.length - 4) / lineHeight,
     ),
   );
   const frame = useAuthoredFrame();
@@ -118,11 +110,10 @@ export function GlassCodeBlock({
     staggerFrames > 0
       ? Math.min(lines.length, Math.floor((frame * speed) / staggerFrames) + 1)
       : lines.length;
-  const scroll = Math.max(0, shown * (fitted * 1.55 + 4) - bodyHeight);
+  const scroll = Math.max(0, shown * (fitted * lineHeight + 4) - bodyHeight);
 
   return (
     <div
-      className={className}
       style={{
         position: "absolute",
         inset: 0,
@@ -131,13 +122,13 @@ export function GlassCodeBlock({
         justifyContent: "center",
       }}
     >
-      {aura && <BackdropAura />}
+      {aura && <BackdropAura colors={auraColors} />}
 
       <div
         style={{
           position: "relative",
           padding: 1,
-          borderRadius: 16,
+          borderRadius: cornerRadius,
           background:
             "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 100%)",
           width,
@@ -149,15 +140,15 @@ export function GlassCodeBlock({
           style={{
             width: "100%",
             height: "100%",
-            borderRadius: 15,
+            borderRadius: Math.max(0, cornerRadius - 1),
             background: glassColor,
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
+            backdropFilter: `blur(${frost}px)`,
+            WebkitBackdropFilter: `blur(${frost}px)`,
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            fontFamily: FONT_MONO,
+            fontFamily: fontOr(font, "code"),
           }}
         >
           <div
@@ -181,7 +172,7 @@ export function GlassCodeBlock({
               style={{
                 flex: 1,
                 textAlign: "center",
-                color: "#a1a1aa",
+                color: titleColor,
                 fontSize: 12,
                 letterSpacing: "0.02em",
               }}
@@ -200,7 +191,7 @@ export function GlassCodeBlock({
               flexDirection: "column",
               gap: 4,
               fontSize: fitted,
-              lineHeight: 1.55,
+              lineHeight,
             }}
           >
             <div
@@ -217,7 +208,14 @@ export function GlassCodeBlock({
                   from={Math.round(realFrames((i * staggerFrames) / speed))}
                   layout="none"
                 >
-                  <CodeLine line={line} index={i} digits={digits} fontSize={fitted} />
+                  <CodeLine
+                    line={line}
+                    index={i}
+                    digits={digits}
+                    fontSize={fitted}
+                    colors={colors}
+                    gutter={lineNumberColor}
+                  />
                 </Sequence>
               ))}
             </div>
@@ -247,11 +245,15 @@ function CodeLine({
   index,
   digits,
   fontSize,
+  colors,
+  gutter,
 }: {
   line: string;
   index: number;
   digits: number;
   fontSize: number;
+  colors: TokenColors;
+  gutter: string;
 }) {
   const frame = useAuthoredFrame();
   const opacity = interpolate(frame, [0, 8], [0, 1], {
@@ -277,14 +279,12 @@ function CodeLine({
         gap: 0,
       }}
     >
-      <span
-        style={{ width: `${digits + 1}ch`, flexShrink: 0, color: "#3f3f46", userSelect: "none" }}
-      >
+      <span style={{ width: `${digits + 1}ch`, flexShrink: 0, color: gutter, userSelect: "none" }}>
         {String(index + 1).padStart(digits, " ")}
       </span>
       <span>
         {tokens.map((t, i) => (
-          <span key={i} style={{ color: TOKEN_COLORS[t.kind] }}>
+          <span key={i} style={{ color: colors[t.kind] }}>
             {t.text}
           </span>
         ))}
@@ -293,7 +293,7 @@ function CodeLine({
   );
 }
 
-function BackdropAura() {
+function BackdropAura({ colors }: { colors: string[] }) {
   const frame = useAuthoredFrame();
   const t = frame / 60;
   const x = 50 + Math.sin(t) * 20;
@@ -304,7 +304,7 @@ function BackdropAura() {
         position: "absolute",
         inset: 0,
         pointerEvents: "none",
-        background: `radial-gradient(circle at ${x}% ${y}%, rgba(56,189,248,0.22), transparent 50%), radial-gradient(circle at ${100 - x}% ${100 - y}%, rgba(168,85,247,0.18), transparent 55%)`,
+        background: `radial-gradient(circle at ${x}% ${y}%, ${colors[0]}, transparent 50%), radial-gradient(circle at ${100 - x}% ${100 - y}%, ${colors[1]}, transparent 55%)`,
       }}
     />
   );

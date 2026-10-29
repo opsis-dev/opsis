@@ -10,7 +10,11 @@ export type MotionTime = {
   fps: number;
   speed: number;
   seed: number;
-  tiltDeg?: number;
+  tiltDeg: number;
+  endFacing: boolean;
+  amount: number;
+  reverse: boolean;
+  growIn: boolean;
 };
 
 const TAU = Math.PI * 2;
@@ -20,8 +24,8 @@ const SWING_PERIOD_S = 3.2;
 const ENTER_FROM = 0.9;
 const ENTER_SPRING = { damping: 200 };
 const TILT_SPRING = { damping: 14, mass: 0.9 };
-const DEFAULT_TILT_DEG = 52;
 const TILT_REST: Vec3 = [0.08, -0.18, 0];
+const FACING: Vec3 = [0, 0, 0];
 const TILT_DEPTH = -2;
 const FLOAT = { tiltX: 0.08, turnY: 0.25, rollZ: 0.04, lift: 0.08 };
 const ORBIT = { pitch: 0.15, turn: 0.7 };
@@ -45,18 +49,19 @@ const tiltFrom = (deg: number): Vec3 => {
 
 export function poseAt(
   motion: Motion,
-  { frame, fps, speed, seed, tiltDeg = DEFAULT_TILT_DEG }: MotionTime,
+  { frame, fps, speed, seed, tiltDeg, endFacing, amount, reverse, growIn }: MotionTime,
 ): Pose {
   const t = (frame / fps) * speed;
   const enter = spring({ frame, fps, config: ENTER_SPRING });
-  const scale = ENTER_FROM + (1 - ENTER_FROM) * enter;
+  const scale = growIn ? ENTER_FROM + (1 - ENTER_FROM) * enter : 1;
+  const turn = reverse ? -1 : 1;
   switch (motion) {
     case "spin":
-      return { ...still(scale), rotation: [SPIN_PITCH, (TAU * t) / SPIN_PERIOD_S, 0] };
+      return { ...still(scale), rotation: [SPIN_PITCH, (turn * TAU * t) / SPIN_PERIOD_S, 0] };
     case "tilt-in": {
       const s = spring({ frame: frame * speed, fps, config: TILT_SPRING });
       return {
-        rotation: lerp3(tiltFrom(tiltDeg), TILT_REST, s),
+        rotation: lerp3(tiltFrom(tiltDeg), endFacing ? FACING : TILT_REST, s),
         position: [0, 0, (1 - s) * TILT_DEPTH],
         scale,
       };
@@ -65,23 +70,27 @@ export function poseAt(
       const phase = random(seed) * TAU;
       return {
         rotation: [
-          Math.sin(t * 0.9 + phase) * FLOAT.tiltX,
-          Math.sin(t * 0.6 + phase * 2) * FLOAT.turnY,
-          Math.sin(t * 0.7 + phase * 3) * FLOAT.rollZ,
+          Math.sin(t * 0.9 + phase) * FLOAT.tiltX * amount,
+          Math.sin(t * 0.6 + phase * 2) * FLOAT.turnY * amount * turn,
+          Math.sin(t * 0.7 + phase * 3) * FLOAT.rollZ * amount,
         ],
-        position: [0, Math.sin(t * 1.1 + phase) * FLOAT.lift, 0],
+        position: [0, Math.sin(t * 1.1 + phase) * FLOAT.lift * amount, 0],
         scale,
       };
     }
     case "orbit":
       return {
         ...still(scale),
-        rotation: [ORBIT.pitch, Math.sin((TAU * t) / ORBIT_PERIOD_S) * ORBIT.turn, 0],
+        rotation: [
+          ORBIT.pitch,
+          Math.sin((TAU * t) / ORBIT_PERIOD_S) * ORBIT.turn * amount * turn,
+          0,
+        ],
       };
     case "swing":
       return {
         ...still(scale),
-        rotation: [0, Math.sin((TAU * t) / SWING_PERIOD_S) * SWING_TURN, 0],
+        rotation: [0, Math.sin((TAU * t) / SWING_PERIOD_S) * SWING_TURN * amount * turn, 0],
       };
     case "still":
     case "keyframes":

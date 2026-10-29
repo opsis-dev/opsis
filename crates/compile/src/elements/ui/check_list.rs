@@ -34,7 +34,8 @@ pub struct CheckList {
         range(min = 0.2, max = 1.6),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub item_gap: f64,
     #[setting(
@@ -43,12 +44,25 @@ pub struct CheckList {
         range(min = 0.1, max = 0.8),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub close_gap: f64,
-    #[setting("Letters / pose", default = 1.6, range(min = 0.8, max = 3), step = 0.2)]
+    #[setting(
+        "Letters / pose",
+        default = 1.6,
+        range(min = 0.8, max = 3),
+        step = 0.2,
+        advanced
+    )]
     pub per_step: f64,
-    #[setting("Stroke width", default = 3, range(min = 1, max = 8), step = 1)]
+    #[setting(
+        "Stroke width",
+        default = 3,
+        range(min = 1, max = 8),
+        step = 1,
+        advanced
+    )]
     pub stroke_width: u32,
     #[setting("Label color", default = "#26242c", check = colour)]
     pub color: String,
@@ -60,7 +74,8 @@ pub struct CheckList {
         range(min = 0.0333, max = 0.2),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub step: f64,
     #[setting(
@@ -82,7 +97,7 @@ pub struct CheckList {
     pub width: u32,
     #[setting("Box colour", default = "#26242c", check = colour)]
     pub box_color: String,
-    #[setting("Font weight", default = FontWeight::W600)]
+    #[setting("Font weight", default = FontWeight::W600, advanced)]
     pub weight: FontWeight,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
@@ -109,6 +124,31 @@ pub struct CheckList {
         check = colour
     )]
     pub background: String,
+    #[setting(
+        "Wobble",
+        default = 1.0,
+        range(min = 0, max = 3),
+        step = 0.1,
+        help = "How much the boxes, strikes and letters wander.",
+        advanced
+    )]
+    pub wobble: f64,
+    #[setting(
+        "Font",
+        widget = "font",
+        zero_label = "Handwriting",
+        help = "Project font follows the fonts set for the whole project.",
+        advanced
+    )]
+    pub font_family: String,
+    #[setting(
+        "Strike colour",
+        widget = "color",
+        zero_label = "Tick colour",
+        check = colour_or_empty,
+        advanced
+    )]
+    pub strike_color: String,
 }
 
 pub fn definition() -> ElementMeta {

@@ -23,7 +23,13 @@ pub struct TrackingIn {
         step = 0.05
     )]
     pub start_tracking: f64,
-    #[setting("Start blur", default = 12, range(min = 0, max = 40), step = 1)]
+    #[setting(
+        "Start blur",
+        default = 12,
+        range(min = 0, max = 40),
+        step = 1,
+        advanced
+    )]
     pub start_blur: u32,
     #[setting("Font size", default = 96, range(min = 12, max = 200), step = 1)]
     pub font_size: u32,
@@ -46,6 +52,18 @@ pub struct TrackingIn {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting("End letter spacing", default = -0.03, range(min = -0.2, max = 1), unit = "em", advanced)]
+    pub end_tracking: f64,
+    #[setting(
+        "Fade in",
+        default = 0.5,
+        range(min = 0, max = 2),
+        step = 0.0333,
+        unit = "s",
+        frames_at = 30,
+        advanced
+    )]
+    pub fade_in: f64,
 }
 
 pub fn definition() -> ElementMeta {

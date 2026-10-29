@@ -1,77 +1,30 @@
 import { useMemo } from "react";
-import type React from "react";
-import { AbsoluteFill, Audio, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
+import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { TeaserBackground } from "#video/elements/scene/release-teaser/background.tsx";
-import {
-  type ReleaseTeaserProps,
-  resolveReleaseTeaserProps,
-} from "#video/elements/scene/release-teaser/content.ts";
+import { releaseTeaserScene } from "#video/elements/scene/release-teaser/content.ts";
 import { atFps, RELEASE_TEASER_FPS } from "#video/elements/scene/release-teaser/motion.ts";
 import { ReleaseLockup } from "#video/elements/scene/release-teaser/scenes/closing.tsx";
 import { Statement } from "#video/elements/scene/release-teaser/scenes/statement.tsx";
-import { nestedFrom } from "#video/lib/settings/shape.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
-export type {
-  ReleaseTeaserProps,
-  ReleaseTeaserTheme,
-} from "#video/elements/scene/release-teaser/content.ts";
-export {
-  releaseTeaserStatements,
-  releaseTeaserTheme,
-} from "#video/elements/scene/release-teaser/content.ts";
 export {
   RELEASE_TEASER_FPS,
   releaseTeaserTimeline,
 } from "#video/elements/scene/release-teaser/motion.ts";
 
-function ReleaseTeaserView(props: ReleaseTeaserProps) {
+export function ReleaseTeaser(settings: ElementSettings["release-teaser"]) {
   const currentFrame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const frame = (currentFrame / fps) * RELEASE_TEASER_FPS;
-  const {
-    brandName,
-    release,
-    tagline,
-    statements,
-    accentColor,
-    theme,
-    logoSrc,
-    lightIntensity,
-    reducedMotion,
-  } = props;
-  const scene = useMemo(
-    () =>
-      resolveReleaseTeaserProps({
-        brandName,
-        release,
-        tagline,
-        statements,
-        accentColor,
-        theme,
-        logoSrc,
-        lightIntensity,
-        reducedMotion,
-      }),
-    [
-      brandName,
-      release,
-      tagline,
-      statements,
-      accentColor,
-      theme,
-      logoSrc,
-      lightIntensity,
-      reducedMotion,
-    ],
-  );
+  const scene = useMemo(() => releaseTeaserScene(settings), [settings]);
   const scale = Math.min(width / 960, height / 540);
   return (
     <AbsoluteFill
       style={{
         background: scene.theme.background,
         overflow: "hidden",
-        fontFamily: '"Inter", sans-serif',
+        fontFamily: fontOr(settings.fontFamily, "main"),
         WebkitFontSmoothing: "antialiased",
       }}
     >
@@ -132,24 +85,6 @@ function ReleaseTeaserView(props: ReleaseTeaserProps) {
           <ReleaseLockup scene={scene} frame={frame - 610} />
         </Sequence>
       </div>
-      {props.audioSrc?.trim() ? (
-        <Audio
-          src={props.audioSrc.trim()}
-          volume={Number.isFinite(props.volume) ? Math.max(0, Math.min(1, props.volume ?? 1)) : 1}
-        />
-      ) : null}
     </AbsoluteFill>
-  );
-}
-export function ReleaseTeaser(props: ElementProps & { children?: React.ReactNode }) {
-  return (
-    <ReleaseTeaserView
-      {...(nestedFrom(props, {
-        themeBackground: "theme.background",
-        themeSurface: "theme.surface",
-        themeForeground: "theme.foreground",
-        themeMuted: "theme.muted",
-      }) as unknown as React.ComponentProps<typeof ReleaseTeaserView>)}
-    />
   );
 }

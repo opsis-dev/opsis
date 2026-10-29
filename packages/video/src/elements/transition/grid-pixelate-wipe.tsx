@@ -1,26 +1,23 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import { useMemo } from "react";
 import { AbsoluteFill, Easing, interpolate, useVideoConfig } from "remotion";
-import {
-  resolveTransitionTiming,
-  transitionPhase,
-  type TransitionVariant,
-} from "#video/lib/transitions/transition-timing.ts";
+import type { ElementSettings, PixelateOrder, PixelShape } from "#video/generated/spec.ts";
+import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
-export type GridPixelateOrder = "from-left" | "from-top" | "diagonal" | "center";
+type GridPixelateWipeProps = ElementSettings["grid-pixelate-wipe"];
 
-export type GridPixelateShape = "square" | "dot";
-
-export type GridPixelateWipeProps = {
-  cols?: number;
-  rows?: number;
-  order?: GridPixelateOrder;
-  shape?: GridPixelateShape;
-  stagger?: number;
+type GridMask = {
+  cols: number;
+  rows: number;
+  order: PixelateOrder;
+  shape: PixelShape;
+  stagger: number;
+  reverse: boolean;
+  aspect: number;
 };
 
 function cellRank(
-  order: GridPixelateOrder,
+  order: PixelateOrder,
   col: number,
   row: number,
   cols: number,
@@ -55,12 +52,7 @@ function cellOpacity(progress: number, rank: number, stagger: number): number {
 
 function buildGridMask(
   progress: number,
-  cols: number,
-  rows: number,
-  order: GridPixelateOrder,
-  shape: GridPixelateShape,
-  stagger: number,
-  aspect = 1,
+  { cols, rows, order, shape, stagger, reverse, aspect }: GridMask,
 ): string {
   const cellW = 100 / cols;
   const cellH = 100 / rows;
@@ -68,7 +60,8 @@ function buildGridMask(
 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-      const opacity = cellOpacity(progress, cellRank(order, col, row, cols, rows), stagger);
+      const rank = cellRank(order, col, row, cols, rows);
+      const opacity = cellOpacity(progress, reverse ? 1 - rank : rank, stagger);
 
       if (opacity < 0.004) {
         continue;
@@ -94,14 +87,12 @@ function buildGridMask(
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
-const GridPixelateWipePresentation: React.FC<
-  React.ComponentProps<NonNullable<TransitionPresentation<GridPixelateWipeProps>["component"]>>
-> = ({
+function GridPixelateWipePresentation({
   children,
   presentationProgress,
   presentationDirection,
-  passedProps: { cols = 12, rows = 8, order = "from-left", shape = "square", stagger = 0.82 },
-}) => {
+  passedProps: { cols, rows, order, shape, stagger, reverse },
+}: React.ComponentProps<NonNullable<TransitionPresentation<GridPixelateWipeProps>["component"]>>) {
   const phase = transitionPhase(presentationProgress, presentationDirection, {
     lead: 1,
   });
@@ -114,7 +105,15 @@ const GridPixelateWipePresentation: React.FC<
       return undefined;
     }
 
-    const mask = buildGridMask(filled, cols, shapedRows, order, shape, stagger, width / height);
+    const mask = buildGridMask(filled, {
+      cols,
+      rows: shapedRows,
+      order,
+      shape,
+      stagger,
+      reverse,
+      aspect: width / height,
+    });
 
     return {
       WebkitMaskImage: mask,
@@ -124,48 +123,16 @@ const GridPixelateWipePresentation: React.FC<
       WebkitMaskRepeat: "no-repeat",
       maskRepeat: "no-repeat",
     };
-  }, [cols, filled, order, phase.isEntering, shapedRows, shape, stagger, width, height]);
+  }, [cols, filled, order, phase.isEntering, reverse, shapedRows, shape, stagger, width, height]);
 
   return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
-};
+}
 
 export function gridPixelateWipe(
-  props: GridPixelateWipeProps = {},
+  props: GridPixelateWipeProps,
 ): TransitionPresentation<GridPixelateWipeProps> {
   return {
     component: GridPixelateWipePresentation,
     props,
   };
-}
-
-export type TransitionGridPixelateWipeConfig = {
-  durationInFrames?: number;
-  cols?: number;
-  rows?: number;
-  order?: GridPixelateOrder;
-  shape?: GridPixelateShape;
-  stagger?: number;
-  variant?: TransitionVariant;
-};
-
-export function transitionGridPixelateWipe({
-  durationInFrames = 26,
-  cols = 12,
-  rows = 8,
-  order = "from-left",
-  shape = "square",
-  stagger = 0.82,
-  variant = "editorial",
-}: TransitionGridPixelateWipeConfig = {}) {
-  return {
-    presentation: gridPixelateWipe({ cols, rows, order, shape, stagger }),
-    timing: resolveTransitionTiming({ durationInFrames, variant }),
-  };
-}
-
-export function getTransitionGridPixelateWipeDuration(
-  config: TransitionGridPixelateWipeConfig = {},
-  fps: number,
-): number {
-  return transitionGridPixelateWipe(config).timing.getDurationInFrames({ fps });
 }

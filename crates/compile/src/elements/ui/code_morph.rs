@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::theme::{Theme, ThemeMode, code_morph_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -34,8 +34,13 @@ pub struct CodeMorphStep {
 pub struct CodeMorph {
     #[setting("Filename", default = "invoices.tsx")]
     pub filename: String,
-    #[setting("Theme", default = DarkOrLight::Dark)]
-    pub theme: DarkOrLight,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = code_morph_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting("Accent", default = "#0ea5e9", check = colour)]
     pub accent_color: String,
     #[setting(
@@ -53,7 +58,7 @@ pub struct CodeMorph {
     pub highlight: bool,
     #[setting("Line numbers", default = true)]
     pub line_numbers: bool,
-    #[setting("Window dots", default = true)]
+    #[setting("Window dots", default = true, advanced)]
     pub window_dots: bool,
     #[setting(
         "Versions",
@@ -72,6 +77,39 @@ pub struct CodeMorph {
     pub steps: Vec<CodeMorphStep>,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting("Line height", default = 1.55, range(min = 1.2, max = 2.4), advanced)]
+    pub line_height: f64,
+    #[setting(
+        "Corner radius",
+        default = 14,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub corner_radius: u32,
+    #[setting("Largest size", default = 0.9, range(min = 0.3, max = 1), advanced)]
+    pub max_size: f64,
+    #[setting(
+        "Highlight for",
+        default = 0.8,
+        range(min = 0, max = 5),
+        step = 0.0333,
+        unit = "s",
+        frames_at = 30,
+        advanced
+    )]
+    pub highlight_hold: f64,
+    #[setting("Font", widget = "font", advanced)]
+    pub font: String,
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "None",
+        check = colour_or_empty,
+        advanced
+    )]
+    pub background_color: String,
 }
 
 pub fn definition() -> ElementMeta {

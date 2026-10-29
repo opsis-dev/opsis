@@ -55,24 +55,43 @@ pub struct PhoneFrame {
         "Screen color",
         default = "#0A0A0B",
         widget = "color",
-        zero_label = "Theme"
+        zero_label = "Theme",
+        advanced
     )]
     pub screen_color: String,
-    #[setting("Body radius", default = 53, range(min = 24, max = 90), step = 1)]
+    #[setting(
+        "Body radius",
+        default = 53,
+        range(min = 24, max = 90),
+        step = 1,
+        advanced
+    )]
     pub radius: u32,
-    #[setting("Screen radius", default = 41, range(min = 12, max = 78), step = 1)]
+    #[setting(
+        "Screen radius",
+        default = 41,
+        range(min = 12, max = 78),
+        step = 1,
+        advanced
+    )]
     pub screen_radius: u32,
     #[setting("Scale", default = 0.92, range(min = 0.4, max = 1.5), step = 0.05)]
     pub scale: f64,
-    #[setting("Tilt angle", default = -12, range(min = -30, max = 30), step = 1)]
+    #[setting("Tilt angle", default = -12, range(min = -30, max = 30), step = 1, advanced)]
     pub tilt_angle: i32,
     #[setting("Dynamic island", default = true)]
     pub show_dynamic_island: bool,
     #[setting("Float loop")]
     pub float_loop: bool,
-    #[setting("Float amplitude", default = 6, range(min = 0, max = 20), step = 1)]
+    #[setting(
+        "Float amplitude",
+        default = 6,
+        range(min = 0, max = 20),
+        step = 1,
+        advanced
+    )]
     pub float_amplitude: u32,
-    #[setting("Shadow", default = "0 30px 70px rgba(16,24,40,0.28)")]
+    #[setting("Shadow", default = "0 30px 70px rgba(16,24,40,0.28)", advanced)]
     pub shadow: String,
     #[setting(
         "Theme",
@@ -84,11 +103,28 @@ pub struct PhoneFrame {
     #[setting(
         "Font",
         widget = "font",
-        help = "Project font follows the fonts set for the whole project."
+        help = "Project font follows the fonts set for the whole project.",
+        advanced
     )]
     pub font_family: String,
-    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
+    #[setting(
+        "Speed",
+        default = 1.0,
+        range(min = 0.25, max = 4),
+        step = 0.25,
+        advanced
+    )]
     pub speed: f64,
+    #[setting(
+        "Float period",
+        default = 4.5,
+        range(min = 1, max = 20),
+        step = 0.1,
+        unit = "s",
+        show_if = { "floatLoop": ["true"] },
+        advanced
+    )]
+    pub float_period: f64,
 }
 
 pub fn definition() -> ElementMeta {

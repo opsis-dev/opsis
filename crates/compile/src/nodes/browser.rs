@@ -85,7 +85,8 @@ pub struct Beat {
     pub pause: PauseAfter,
     #[setting(
         "Zoom group",
-        help = "Actions in the same group share one zoom instead of zooming in and out each time."
+        help = "Actions in the same group share one zoom instead of zooming in and out each time.",
+        advanced
     )]
     pub cluster: String,
     #[setting("Zoom in on this action", default = true)]
@@ -174,7 +175,8 @@ pub struct Open {
         range(min = 1, max = 4),
         help = "Only affects screenshots. 2× or more gives crisp 4K images.",
         step = 1,
-        unit = "×"
+        unit = "×",
+        advanced
     )]
     pub dpr: f64,
     #[setting("Mobile device")]
@@ -196,7 +198,8 @@ pub struct Open {
     #[setting(
         "Time zone",
         widget = "timezone",
-        check = { "rule": "time-zone-or-empty", "message": "Pick a time zone from the list" }
+        check = { "rule": "time-zone-or-empty", "message": "Pick a time zone from the list" },
+        advanced
     )]
     pub timezone: String,
     #[setting(
@@ -215,6 +218,18 @@ pub struct Open {
         advanced
     )]
     pub capture_scale: f64,
+    #[setting(
+        "Show scrollbars",
+        help = "Off hides them, as most product videos do.",
+        advanced
+    )]
+    pub show_scrollbars: bool,
+    #[setting(
+        "Ask for less motion",
+        help = "Tells the page the viewer prefers reduced motion, so it skips its own animations.",
+        advanced
+    )]
+    pub reduce_motion: bool,
 }
 
 impl Params for Open {}
@@ -240,7 +255,8 @@ pub struct SignIn {
     #[setting(
         "Save as",
         default = "default",
-        help = "The name the sign-in is kept under. Sign in nodes with the same name share it."
+        help = "The name the sign-in is kept under. Sign in nodes with the same name share it.",
+        advanced
     )]
     pub secret_name: String,
     #[setting(
@@ -263,7 +279,8 @@ pub struct SignIn {
         "Give up after",
         default = 300,
         range(min = 10, max = 3600),
-        unit = "s"
+        unit = "s",
+        advanced
     )]
     pub timeout_sec: u32,
 }
@@ -307,7 +324,8 @@ pub struct Navigate {
             "domcontentloaded": "Started showing",
             "networkidle": "Settled",
             "commit": "Responded"
-        }
+        },
+        advanced
     )]
     pub wait_until: WaitUntil,
     #[setting(
@@ -319,6 +337,16 @@ pub struct Navigate {
         help = "How long the video lingers on the new page."
     )]
     pub after: u32,
+    #[setting(
+        "Give up after",
+        default = 30000,
+        range(min = 1000, max = 600000),
+        step = 1000,
+        unit = "ms",
+        help = "How long to wait for the page before the take fails.",
+        advanced
+    )]
+    pub timeout_ms: u32,
 }
 
 impl Params for Navigate {}
@@ -342,11 +370,28 @@ pub struct Click {
         default = 220,
         range(min = 0, max = 10000),
         step = 50,
-        unit = "ms"
+        unit = "ms",
+        advanced
     )]
     pub hover_ms: u32,
     #[serde(flatten)]
     pub sound: Silence,
+    #[setting(
+        "Find it within",
+        default = 15000,
+        range(min = 1000, max = 120000),
+        step = 1000,
+        unit = "ms",
+        help = "How long to wait for the element to appear before the take fails.",
+        advanced
+    )]
+    pub find_within_ms: u32,
+    #[setting(
+        "Scroll to it smoothly",
+        help = "When the element is off screen. Off jumps to it.",
+        advanced
+    )]
+    pub scroll_smoothly: bool,
 }
 
 impl Params for Click {}
@@ -378,9 +423,34 @@ pub struct Type {
     #[serde(flatten)]
     pub beat: Beat,
     #[serde(flatten)]
-    pub frame: Frame,
+    pub pointer: Pointer,
     #[serde(flatten)]
     pub sound: Silence,
+    #[setting(
+        "Hover before clicking in",
+        default = 220,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms",
+        advanced
+    )]
+    pub hover_ms: u32,
+    #[setting(
+        "Time per key",
+        default = 30,
+        range(min = 0, max = 1000),
+        step = 5,
+        unit = "ms",
+        help = "How long each key is held, which sets the typing speed."
+    )]
+    pub key_ms: u32,
+    #[setting(
+        "Clear the field first",
+        default = true,
+        help = "Off adds to what the field already holds.",
+        advanced
+    )]
+    pub clear_first: bool,
 }
 
 impl Params for Type {}
@@ -483,7 +553,8 @@ pub struct Drag {
         range(min = 0, max = 5000),
         step = 50,
         unit = "ms",
-        show_if = { "method": ["smooth"] }
+        show_if = { "method": ["smooth"] },
+        advanced
     )]
     pub hold_ms: u32,
     #[setting(
@@ -495,6 +566,16 @@ pub struct Drag {
         show_if = { "method": ["smooth"] }
     )]
     pub drag_ms: u32,
+    #[setting(
+        "Hold before dropping",
+        default = 120,
+        range(min = 0, max = 5000),
+        step = 10,
+        unit = "ms",
+        show_if = { "method": ["smooth"] },
+        advanced
+    )]
+    pub drop_hold_ms: u32,
     #[setting(
         "How",
         default = DragMethod::Smooth,
@@ -511,7 +592,8 @@ pub struct Drag {
         default = 220,
         range(min = 0, max = 10000),
         step = 50,
-        unit = "ms"
+        unit = "ms",
+        advanced
     )]
     pub hover_ms: u32,
 }
@@ -534,6 +616,27 @@ impl Params for Drag {
 pub enum ScrollMode {
     Element,
     By,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum ScrollAlign {
+    Start,
+    #[default]
+    Center,
+    End,
+    Nearest,
+}
+
+impl ScrollAlign {
+    pub fn block(self) -> &'static str {
+        match self {
+            Self::Start => "start",
+            Self::Center => "center",
+            Self::End => "end",
+            Self::Nearest => "nearest",
+        }
+    }
 }
 
 #[settings]
@@ -561,6 +664,23 @@ pub struct Scroll {
         show_if = { "mode": ["by"] }
     )]
     pub delta_y: i32,
+    #[setting(
+        "Across",
+        range(min = -20000, max = 20000),
+        help = "Negative scrolls left.",
+        step = 50,
+        unit = "px",
+        show_if = { "mode": ["by"] },
+        advanced
+    )]
+    pub delta_x: i32,
+    #[setting(
+        "Where it ends up",
+        labels = { "start": "At the top", "center": "In the middle", "end": "At the bottom", "nearest": "Just in view" },
+        show_if = { "mode": ["element"] },
+        advanced
+    )]
+    pub align: ScrollAlign,
     #[setting("Smooth", default = true)]
     pub smooth: bool,
     #[setting(
@@ -594,6 +714,17 @@ pub struct Select {
     pub value: String,
     #[serde(flatten)]
     pub beat: Beat,
+    #[serde(flatten)]
+    pub pointer: Pointer,
+    #[setting(
+        "Hover before choosing",
+        default = 220,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms",
+        advanced
+    )]
+    pub hover_ms: u32,
 }
 
 impl Params for Select {}
@@ -623,7 +754,7 @@ pub struct Upload {
     )]
     pub file: String,
     #[serde(flatten)]
-    pub beat: Beat,
+    pub pause: PauseAfter,
 }
 
 impl Params for Upload {}
@@ -697,7 +828,8 @@ pub struct Wait {
         range(min = 500, max = 600000),
         step = 50,
         unit = "ms",
-        show_if = { "mode": ["element", "network-idle", "url"] }
+        show_if = { "mode": ["element", "network-idle", "url"] },
+        advanced
     )]
     pub timeout_ms: u32,
 }
@@ -722,7 +854,7 @@ impl Params for Wait {
 pub struct Assert {
     #[setting("Text", check = { "rule": "not-blank", "message": "Add the text to look for" })]
     pub text: String,
-    #[setting("Only inside (optional)", widget = "target")]
+    #[setting("Only inside (optional)", widget = "target", advanced)]
     pub target: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting("Role of the picked element", hidden)]
@@ -732,18 +864,35 @@ pub struct Assert {
         default = 10000,
         range(min = 500, max = 600000),
         step = 50,
-        unit = "ms"
+        unit = "ms",
+        advanced
     )]
     pub timeout_ms: u32,
+    #[setting(
+        "Exact text",
+        help = "Off matches the text inside longer text, in any case.",
+        advanced
+    )]
+    pub exact: bool,
 }
 
 impl Params for Assert {}
 
+#[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Hoist {
     #[serde(flatten)]
     pub target: Target,
+    #[setting(
+        "Find it within",
+        default = 15000,
+        range(min = 1000, max = 120000),
+        step = 1000,
+        unit = "ms",
+        advanced
+    )]
+    pub timeout_ms: u32,
 }
 
 impl Params for Hoist {}
@@ -760,6 +909,12 @@ pub struct SetState {
     pub script: String,
     #[setting("Reload the page after")]
     pub reload: bool,
+    #[setting(
+        "On every page",
+        help = "Runs it on every page that loads, not only once.",
+        advanced
+    )]
+    pub every_page: bool,
 }
 
 impl Params for SetState {}
@@ -777,10 +932,19 @@ pub struct MockRoute {
     pub url: String,
     #[setting("Status code", default = 200, range(min = 100, max = 599))]
     pub status: u32,
-    #[setting("Type", default = "application/json")]
+    #[setting("Type", default = "application/json", advanced)]
     pub content_type: String,
     #[setting("Response", default = r#"{"ok":true}"#, widget = "code")]
     pub body: String,
+    #[setting(
+        "Reply after",
+        range(min = 0, max = 60000),
+        step = 50,
+        unit = "ms",
+        help = "Holds the reply back, to show a loading state.",
+        advanced
+    )]
+    pub delay_ms: u32,
 }
 
 impl Params for MockRoute {}
@@ -834,8 +998,7 @@ pub struct HideElements {
     #[setting(
         "Also hide",
         widget = "textarea",
-        help = "CSS selectors, one per line.",
-        advanced
+        help = "CSS selectors, one per line."
     )]
     pub selectors: String,
 }
@@ -861,6 +1024,58 @@ pub struct Chapter {
         show_if = { "showInVideo": ["true"] }
     )]
     pub duration_ms: u32,
+    #[setting(
+        "Pause after the card",
+        default = 2000,
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms",
+        show_if = { "showInVideo": ["true"] },
+        advanced
+    )]
+    pub after_ms: u32,
+    #[setting("Card colour", default = "rgba(0, 0, 0, 0.7)", widget = "color", check = colour, show_if = { "showInVideo": ["true"] }, advanced)]
+    pub card_color: String,
+    #[setting("Edge colour", default = "rgba(255, 255, 255, 0.15)", widget = "color", check = colour, show_if = { "showInVideo": ["true"] }, advanced)]
+    pub edge_color: String,
+    #[setting("Text colour", default = "#ffffff", widget = "color", check = colour, help = "The description is a softer shade of it.", show_if = { "showInVideo": ["true"] }, advanced)]
+    pub text_color: String,
+    #[setting("Title size", default = 28, range(min = 10, max = 120), unit = "px", show_if = { "showInVideo": ["true"] }, advanced)]
+    pub title_size: u32,
+    #[setting("Description size", default = 15, range(min = 8, max = 80), unit = "px", show_if = { "showInVideo": ["true"] }, advanced)]
+    pub description_size: u32,
+    #[setting("Card width", default = 560, range(min = 200, max = 1600), step = 10, unit = "px", show_if = { "showInVideo": ["true"] }, advanced)]
+    pub card_width: u32,
+    #[setting(
+        "Card position",
+        labels = { "top": "Top", "center": "Middle", "bottom": "Bottom" },
+        show_if = { "showInVideo": ["true"] },
+        advanced
+    )]
+    pub position: CardPosition,
+    #[setting("Blur behind", default = 2, range(min = 0, max = 40), unit = "px", show_if = { "showInVideo": ["true"] }, advanced)]
+    pub blur: u32,
+    #[setting("Fade", default = 300, range(min = 0, max = 3000), step = 50, unit = "ms", show_if = { "showInVideo": ["true"] }, advanced)]
+    pub fade_ms: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum CardPosition {
+    Top,
+    #[default]
+    Center,
+    Bottom,
+}
+
+impl CardPosition {
+    pub fn flex(self) -> &'static str {
+        match self {
+            Self::Top => "flex-start",
+            Self::Center => "center",
+            Self::Bottom => "flex-end",
+        }
+    }
 }
 
 impl Params for Chapter {}
@@ -885,6 +1100,8 @@ pub struct OverlayHtml {
         zero_label = "Until the end"
     )]
     pub duration_ms: u32,
+    #[setting("Fade", range(min = 0, max = 3000), step = 50, unit = "ms", advanced)]
+    pub fade_ms: u32,
 }
 
 impl Params for OverlayHtml {}
@@ -1402,7 +1619,7 @@ pub fn nodes() -> Vec<NodeDef> {
                         p.target_role.as_deref(),
                     )),
                     Some(file),
-                    pause(p.beat.pause.after),
+                    pause(p.pause.after),
                 ]
             },
         ).look(NodeLook::of("lucide:file-up").moves(NodeMotion::NudgeUp)),

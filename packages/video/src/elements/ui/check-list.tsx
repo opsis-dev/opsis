@@ -1,7 +1,8 @@
 import { AbsoluteFill } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
-import { Handwrite, handwriteDuration } from "#video/parts/handwrite.tsx";
+import { HAND_FAMILY, Handwrite, handwriteDuration } from "#video/parts/handwrite.tsx";
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
@@ -138,8 +139,8 @@ export function checkListDuration(
   );
 }
 
-const boxPath = (size: number, seed: string, index: number): string => {
-  const nudge = (n: number) => hashRange(`${seed}:${index}:c${n}`, -1.5, 1.5);
+const boxPath = (size: number, seed: string, index: number, wobble: number): string => {
+  const nudge = (n: number) => hashRange(`${seed}:${index}:c${n}`, -1.5, 1.5) * wobble;
   const lo = size * 0.08;
   const hi = size - lo;
   const corners: [number, number][] = [
@@ -167,50 +168,35 @@ const strikePath = (
   rowHeight: number,
   seed: string,
   index: number,
+  wobble: number,
 ): string => {
-  const lift = (n: number) => hashRange(`${seed}:${index}:s${n}`, -1.6, 1.6);
+  const lift = (n: number) => hashRange(`${seed}:${index}:s${n}`, -1.6, 1.6) * wobble;
   const overshoot = fontSize * 0.07;
   const mid = rowHeight / 2;
   return `M ${-overshoot} ${mid + lift(0)} C ${reach * 0.35} ${mid + lift(1)}, ${reach * 0.7} ${mid + lift(2)}, ${reach + overshoot} ${mid + lift(3)}`;
 };
 
-export interface CheckListProps {
-  background?: string;
-  items: (string | CheckListItem)[];
-  width: number;
-  fontSize?: number;
-  color?: string;
-  boxColor?: string;
-  tickColor?: string;
-  delay?: number;
-  itemGap?: number;
-  closeGap?: number;
-  rowGap?: number;
-  strokeWidth?: number;
-  perStep?: number;
-  weight?: 400 | 500 | 600 | 700;
-  seed?: string;
-  step?: number;
-}
-
 export function CheckList({
-  background = "transparent",
+  background,
   items,
   width,
-  fontSize = 40,
-  color = "#26242c",
-  boxColor = "#26242c",
-  tickColor = "#6f7f35",
+  fontSize,
+  color,
+  boxColor,
+  tickColor,
+  strikeColor,
   delay = 0,
   itemGap,
   closeGap,
   rowGap,
-  strokeWidth = 3,
-  perStep = DEFAULT_PER_STEP,
-  weight = 600,
-  seed = "checklist",
-  step = DEFAULT_STEP,
-}: CheckListProps) {
+  strokeWidth,
+  perStep,
+  weight,
+  seed,
+  step,
+  wobble,
+  fontFamily,
+}: ElementSettings["check-list"] & { delay?: number }) {
   const frame = useAuthoredFrame();
   const entries = normalizeCheckListItems(items);
   const schedule = checkListSchedule(entries, {
@@ -274,7 +260,7 @@ export function CheckList({
                 style={{ display: "block", overflow: "visible", flexShrink: 0 }}
               >
                 <path
-                  d={boxPath(boxSize, seed, i)}
+                  d={boxPath(boxSize, seed, i, wobble)}
                   stroke={boxColor}
                   strokeWidth={strokeWidth}
                   strokeLinecap="round"
@@ -317,6 +303,8 @@ export function CheckList({
                   weight={weight}
                   align="left"
                   step={step}
+                  wobble={wobble}
+                  fontFamily={fontFamily || HAND_FAMILY}
                 />
                 {item.checked ? (
                   <svg
@@ -337,8 +325,9 @@ export function CheckList({
                         rowHeight,
                         seed,
                         i,
+                        wobble,
                       )}
-                      stroke={tickColor}
+                      stroke={strikeColor || tickColor}
                       strokeWidth={strokeWidth}
                       strokeLinecap="round"
                       fill="none"

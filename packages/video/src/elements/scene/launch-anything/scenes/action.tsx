@@ -1,5 +1,5 @@
 import { useId } from "react";
-import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { type SceneProps, shade, tint } from "#video/elements/scene/launch-anything/content.ts";
 import { actionFrame, tween } from "#video/elements/scene/launch-anything/motion.ts";
 import {
   ActionFrame,
@@ -17,8 +17,8 @@ export function Action({ scene, t }: SceneProps) {
       style={{
         position: "absolute",
         inset: 0,
-        background: actionBackground,
-        color: "#050608",
+        background: actionBackground(scene),
+        color: shade(scene.palette.ink, 88),
       }}
     >
       <div
@@ -30,7 +30,14 @@ export function Action({ scene, t }: SceneProps) {
         }}
       >
         <Center>
-          <RevealCopy text={scene.content.next} size={47 - 11 * travel} t={t} start={3.8} dark />
+          <RevealCopy
+            scene={scene}
+            text={scene.content.next}
+            size={47 - 11 * travel}
+            t={t}
+            start={3.8}
+            dark
+          />
         </Center>
       </div>
       <ActionFrame scene={scene} t={t} />
@@ -62,15 +69,15 @@ export function Action({ scene, t }: SceneProps) {
         >
           <defs>
             <linearGradient id={id} x1="0" x2="1" y1="0" y2="1">
-              <stop stopColor="#93af8f" />
+              <stop stopColor={tint(scene.palette.sage, 40)} />
               <stop offset="0.5" stopColor={scene.accent} />
-              <stop offset="1" stopColor="#d3dfc2" />
+              <stop offset="1" stopColor={tint(scene.palette.sage, 75)} />
             </linearGradient>
           </defs>
           <path
             d="M27 4Q30 0 33 4L57 57Q58 64 51 62L32 54 13 63Q5 66 9 56Z"
             fill={`url(#${id})`}
-            stroke="#b3c6a4"
+            stroke={tint(scene.palette.sage, 55)}
             strokeWidth="1"
           />
         </svg>

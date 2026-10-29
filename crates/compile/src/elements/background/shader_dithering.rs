@@ -36,7 +36,7 @@ pub struct ShaderDithering {
     pub color_back: String,
     #[setting("Front", default = "#6a6a85", check = colour)]
     pub color_front: String,
-    #[setting("Pattern", default = DitherShape::Wave, advanced)]
+    #[setting("Pattern", default = DitherShape::Wave)]
     pub shape: DitherShape,
     #[setting(
         "Dot grid",
@@ -45,6 +45,10 @@ pub struct ShaderDithering {
         labels = { "random": "Random", "2x2": "2 × 2", "4x4": "4 × 4", "8x8": "8 × 8" }
     )]
     pub r#type: DitherPattern,
+    #[setting("Scale", default = 0.6, range(min = 0.1, max = 4), advanced)]
+    pub scale: f64,
+    #[setting("Turn", default = 0.0, range(min = 0, max = 360), unit = "°", advanced)]
+    pub rotation: f64,
 }
 
 pub fn definition() -> ElementMeta {

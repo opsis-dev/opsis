@@ -1,5 +1,5 @@
 import { Img } from "remotion";
-import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { type SceneProps, shade } from "#video/elements/scene/launch-anything/content.ts";
 import { tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { Center, Title } from "#video/elements/scene/launch-anything/ui.tsx";
 
@@ -13,7 +13,7 @@ export function Space({ scene, t }: SceneProps) {
         position: "absolute",
         inset: 0,
         overflow: "hidden",
-        background: "#eee8d9",
+        background: shade(scene.palette.paper, 5),
       }}
     >
       <Img
@@ -25,7 +25,7 @@ export function Space({ scene, t }: SceneProps) {
           height: inset ? 230 : "100%",
           objectFit: "cover",
           transform: `translateX(${tween(age, 0, 0.53, -3, 3)}px) scale(${tween(age, 0, 0.53, 1.07, 1.02)})`,
-          filter: first ? "brightness(0.8)" : "brightness(0.68)",
+          filter: `brightness(${(scene.look.photoDimming * (first ? 0.8 : 0.68)) / 0.66})`,
         }}
       />
       <div
@@ -38,12 +38,13 @@ export function Space({ scene, t }: SceneProps) {
       />
       <Center>
         <Title
+          scene={scene}
           text={scene.content.launch}
           size={92}
           style={{
             letterSpacing: "-0.05em",
-            fontWeight: 400,
-            color: "#f8f2e5",
+            fontWeight: Math.max(100, scene.look.headlineWeight - 100),
+            color: scene.palette.lightText,
           }}
         />
       </Center>

@@ -53,10 +53,10 @@ export function createCutBoard(): CutBoard {
 
 const CutBoardContext = createContext<CutBoard | null>(null);
 
-export const CutBoardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function CutBoardProvider({ children }: { children: React.ReactNode }) {
   const [board] = useState(createCutBoard);
   return <CutBoardContext.Provider value={board}>{children}</CutBoardContext.Provider>;
-};
+}
 
 export function useCutBoard(): CutBoard | null {
   return useContext(CutBoardContext);

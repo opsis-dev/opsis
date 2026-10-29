@@ -2,7 +2,7 @@ import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { Sequence } from "remotion";
 
-export const ScreenFit: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function ScreenFit({ children }: { children: React.ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
   useLayoutEffect(() => {
@@ -30,4 +30,4 @@ export const ScreenFit: React.FC<{ children: React.ReactNode }> = ({ children })
       ) : null}
     </div>
   );
-};
+}

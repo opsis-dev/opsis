@@ -1,7 +1,7 @@
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import { DEFAULT_STEP, hashRange, qf, qstep } from "#video/lib/motion/stop-motion.ts";
 
-const HAND_FAMILY = '"Caveat"';
+export const HAND_FAMILY = '"Caveat"';
 
 export interface HandwriteProps {
   text: string;
@@ -9,10 +9,11 @@ export interface HandwriteProps {
   color?: string;
   delay?: number;
   perStep?: number;
-  weight?: 400 | 500 | 600 | 700;
+  weight?: number | string;
   align?: "left" | "center";
   fontFamily?: string;
   step?: number;
+  wobble?: number;
 }
 
 export function Handwrite({
@@ -25,6 +26,7 @@ export function Handwrite({
   align = "center",
   fontFamily = HAND_FAMILY,
   step = DEFAULT_STEP,
+  wobble = 1,
 }: HandwriteProps) {
   const frame = useAuthoredFrame();
   const steps = Math.max(0, qstep(Math.max(0, qf(frame, step) - delay), step));
@@ -57,8 +59,8 @@ export function Handwrite({
       >
         {chars.map((char, i) => {
           const visible = i < shown;
-          const slant = hashRange(`hw:${text}:${i}:r`, -3.2, 3.2);
-          const dy = hashRange(`hw:${text}:${i}:y`, -1.8, 1.8);
+          const slant = hashRange(`hw:${text}:${i}:r`, -3.2, 3.2) * wobble;
+          const dy = hashRange(`hw:${text}:${i}:y`, -1.8, 1.8) * wobble;
           const fresh = visible && i >= freshFrom;
           return (
             <span

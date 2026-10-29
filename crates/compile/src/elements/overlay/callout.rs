@@ -39,9 +39,97 @@ pub struct Callout {
     #[setting(
         "Font",
         widget = "font",
-        help = "Project font follows the fonts set for the whole project."
+        help = "Project font follows the fonts set for the whole project.",
+        advanced
     )]
     pub font_family: String,
+    #[setting(
+        "Draw time",
+        default = 0.6,
+        range(min = 0.1, max = 3),
+        unit = "s",
+        advanced
+    )]
+    pub draw_time: f64,
+    #[setting(
+        "Label distance",
+        default = 170,
+        range(min = 40, max = 600),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub label_distance: u32,
+    #[setting("Arrow bend", default = 40, range(min = -200, max = 200), step = 1, unit = "px", advanced)]
+    pub bend: i32,
+    #[setting(
+        "Arrow width",
+        default = 7,
+        range(min = 1, max = 30),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub arrow_width: u32,
+    #[setting(
+        "Dot size",
+        default = 14,
+        range(min = 0, max = 60),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub dot_size: u32,
+    #[setting(
+        "Label corner radius",
+        default = 14,
+        range(min = 0, max = 60),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub label_radius: u32,
+    #[setting(
+        "Text size",
+        default = 34,
+        range(min = 12, max = 120),
+        step = 1,
+        unit = "px"
+    )]
+    pub font_size: u32,
+    #[setting(
+        "Font weight",
+        default = 700,
+        range(min = 100, max = 900),
+        step = 100,
+        advanced
+    )]
+    pub font_weight: u32,
+    #[setting(
+        "Arrow slant",
+        default = 19.29,
+        range(min = 0, max = 60),
+        step = 0.5,
+        unit = "°",
+        advanced
+    )]
+    pub slant: f64,
+    #[setting(
+        "Fade out",
+        default = 0.3333,
+        range(min = 0, max = 2),
+        unit = "s",
+        advanced
+    )]
+    pub fade_out: f64,
+    #[setting(
+        "Label background",
+        widget = "color",
+        zero_label = "Accent",
+        check = colour_or_empty,
+        advanced
+    )]
+    pub label_background: String,
 }
 
 pub fn definition() -> ElementMeta {

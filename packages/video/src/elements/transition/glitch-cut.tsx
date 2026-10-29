@@ -2,28 +2,15 @@ import type {
   TransitionPresentation,
   TransitionPresentationComponentProps,
 } from "@remotion/transitions";
-import type React from "react";
 import { AbsoluteFill, random } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import {
   makeCanvasPresentation,
   makeSceneShader,
+  rgbUniform,
 } from "#video/lib/transitions/canvas-presentation.tsx";
 
-export type GlitchCutProps = {
-  intensity?: number;
-  slices?: number;
-  rgbSplit?: number;
-  blockNoise?: number;
-};
-
-const DEFAULTS = {
-  intensity: 1,
-  slices: 24,
-  rgbSplit: 1,
-  blockNoise: 0.6,
-};
-
-const STEPS = 22;
+type GlitchCutProps = ElementSettings["glitch-cut"];
 
 const FRAGMENT_SHADER = `#version 300 es
 precision highp float;
@@ -35,13 +22,14 @@ uniform float u_intensity;
 uniform float u_slices;
 uniform float u_rgb_split;
 uniform float u_block_noise;
+uniform float u_steps;
+uniform float u_block_columns;
+uniform vec3 u_tint;
 
 in vec2 v_uv;
 out vec4 outColor;
 
 const float PI = 3.141592653589793;
-const float STEPS = ${STEPS}.0;
-const float BLOCK_COLUMNS = 16.0;
 
 float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -56,14 +44,14 @@ vec4 sampleSplit(sampler2D tex, vec2 uv, float split) {
 
 void main() {
   float energy = pow(max(sin(u_progress * PI), 0.0), 0.7);
-  float clock = floor(u_progress * STEPS);
+  float clock = floor(u_progress * u_steps);
 
   float row = floor(v_uv.y * u_slices);
   float torn = step(0.45, hash(vec2(row, clock)));
   float amount = hash(vec2(row + 17.0, clock * 1.7 + 3.0)) - 0.5;
   float sliceShift = amount * 0.3 * u_intensity * energy * torn;
 
-  vec2 block = vec2(floor(v_uv.x * BLOCK_COLUMNS), row);
+  vec2 block = vec2(floor(v_uv.x * u_block_columns), row);
   float corrupt = step(
     1.0 - u_block_noise * 0.5 * energy,
     hash(block + clock * 7.3)
@@ -86,7 +74,7 @@ void main() {
   color = mix(color, leaked, leak * 0.8);
 
   color.rgb +=
-    vec3(0.05, 0.015, 0.09) *
+    u_tint *
     energy *
     torn *
     hash(vec2(row, clock + 41.0)) *
@@ -96,31 +84,25 @@ void main() {
 }`;
 
 const shader = makeSceneShader<GlitchCutProps>(FRAGMENT_SHADER, ({ gl, uniform, passedProps }) => {
-  const {
-    intensity = DEFAULTS.intensity,
-    slices = DEFAULTS.slices,
-    rgbSplit = DEFAULTS.rgbSplit,
-    blockNoise = DEFAULTS.blockNoise,
-  } = passedProps;
+  const { intensity, slices, rgbSplit, blockNoise, flicker, blockColumns, tint } = passedProps;
   gl.uniform1f(uniform("u_intensity"), intensity);
   gl.uniform1f(uniform("u_slices"), slices);
   gl.uniform1f(uniform("u_rgb_split"), rgbSplit);
   gl.uniform1f(uniform("u_block_noise"), blockNoise);
+  gl.uniform1f(uniform("u_steps"), flicker);
+  gl.uniform1f(uniform("u_block_columns"), blockColumns);
+  gl.uniform3fv(uniform("u_tint"), rgbUniform(tint));
 });
 
 const bandCut = (band: number) => 0.5 + (random(`glitch-cut-handoff-${band}`) - 0.5) * 0.32;
 
-const GlitchCutFallback: React.FC<TransitionPresentationComponentProps<GlitchCutProps>> = ({
+function GlitchCutFallback({
   children,
   presentationProgress,
   presentationDirection,
   passedProps,
-}) => {
-  const {
-    intensity = DEFAULTS.intensity,
-    slices = DEFAULTS.slices,
-    rgbSplit = DEFAULTS.rgbSplit,
-  } = passedProps;
+}: TransitionPresentationComponentProps<GlitchCutProps>) {
+  const { intensity, slices, rgbSplit, flicker } = passedProps;
   const entering = presentationDirection === "entering";
   const p = presentationProgress;
   const energy = Math.max(0, Math.sin(p * Math.PI)) ** 0.7;
@@ -130,7 +112,7 @@ const GlitchCutFallback: React.FC<TransitionPresentationComponentProps<GlitchCut
     return <AbsoluteFill style={{ opacity: settled }}>{children}</AbsoluteFill>;
   }
 
-  const clock = Math.floor(p * STEPS);
+  const clock = Math.floor(p * flicker);
   const bands = Math.max(2, Math.min(6, Math.round(slices / 5)));
   const height = 100 / bands;
 
@@ -165,13 +147,13 @@ const GlitchCutFallback: React.FC<TransitionPresentationComponentProps<GlitchCut
       })}
     </AbsoluteFill>
   );
-};
+}
 
 const presentation = makeCanvasPresentation<GlitchCutProps>({
   shader,
   fallback: GlitchCutFallback,
 });
 
-export function glitchCut(props: GlitchCutProps = {}): TransitionPresentation<GlitchCutProps> {
+export function glitchCut(props: GlitchCutProps): TransitionPresentation<GlitchCutProps> {
   return presentation(props);
 }

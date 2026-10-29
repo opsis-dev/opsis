@@ -1,9 +1,9 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-
-const fontFamily = '"Inter"';
 
 export type KanbanCard = {
   title: string;
@@ -13,43 +13,6 @@ export type KanbanCard = {
   moveTo?: number;
   moveAtSeconds?: number;
 };
-
-export type KanbanMoveProps = {
-  columns?: string[];
-  cards?: KanbanCard[];
-  moveSeconds?: number;
-  dealStaggerSeconds?: number;
-  holdSeconds?: number;
-  accentColor?: string;
-  backgroundColor?: string;
-  theme?: "dark" | "light";
-  speed?: number;
-};
-
-const DEFAULT_COLUMNS = ["Backlog", "In progress", "Shipped"];
-
-const DEFAULT_CARDS: KanbanCard[] = [
-  { title: "Caption presets", meta: "RUI-218 · Ana", column: 0, tint: "#8FB8F0" },
-  {
-    title: "Render queue retries",
-    meta: "RUI-204 · Piotr",
-    column: 0,
-    tint: "#E8B86D",
-    moveTo: 1,
-    moveAtSeconds: 0.95,
-  },
-  { title: "Waveform atom", meta: "RUI-231 · Dai", column: 0, tint: "#C99BE8" },
-  {
-    title: "Timeline scrubber",
-    meta: "RUI-190 · Ana",
-    column: 1,
-    tint: "#7DD3E8",
-    moveTo: 2,
-    moveAtSeconds: 1.72,
-  },
-  { title: "Theme tokens", meta: "RUI-177 · Kit", column: 1, tint: "#9BD4A0" },
-  { title: "Export presets", meta: "RUI-166 · Dai", column: 2, tint: "#9BD4A0" },
-];
 
 const T = {
   board: 0,
@@ -64,20 +27,22 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-export const KanbanMove: React.FC<KanbanMoveProps> = ({
-  columns = DEFAULT_COLUMNS,
-  cards: cardsProp = DEFAULT_CARDS,
-  moveSeconds = 0.62,
-  dealStaggerSeconds = 0.08,
+export function KanbanMove({
+  columns,
+  cards: cardsProp,
+  moveSeconds,
+  dealStaggerSeconds,
   holdSeconds,
-  accentColor = "#E8B86D",
+  accentColor,
   backgroundColor,
-  theme = "dark",
-  speed = 1,
-}) => {
+  theme,
+  speed,
+  showCounts,
+  fontFamily,
+}: ElementSettings["kanban-move"] & { holdSeconds?: number }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
   const at = (seconds: number) => (seconds * fps) / speed;
@@ -177,8 +142,8 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
   return (
     <AbsoluteFill
       style={{
-        background: backgroundColor ?? palette.page,
-        fontFamily,
+        background: backgroundColor || palette.page,
+        fontFamily: fontOr(fontFamily, "main"),
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -263,7 +228,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
                     fontVariantNumeric: "tabular-nums",
                   }}
                 >
-                  {settled}
+                  {showCounts ? settled : null}
                 </span>
               </div>
             </div>
@@ -367,4 +332,4 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
       </div>
     </AbsoluteFill>
   );
-};
+}

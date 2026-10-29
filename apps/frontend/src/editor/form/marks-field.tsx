@@ -10,7 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
-import { Arrow, Circle, Ellipse, Group, Layer, Rect, Stage, Text } from "react-konva";
+import { Arrow, Circle, Ellipse, Group, Label, Layer, Rect, Stage, Tag, Text } from "react-konva";
 import { Button } from "@/components/ui/button";
 import { FieldDescription } from "@/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -117,6 +117,9 @@ function MarkShape({ mark, points, size, scale, step }: ShapeProps) {
   const textSize = numberIn(mark, "size", 32) * scale;
   const font = textIn(mark, "font") || "sans-serif";
   const bold = numberIn(mark, "weight", 700) >= 600 ? "bold" : "normal";
+  const head = numberIn(mark, "headSize", 1);
+  const fill = numberIn(mark, "fill", 0);
+  const radius = numberIn(mark, "radius", 0) * scale;
   const [x1, y1, x2, y2] = [
     points.x * size.width,
     points.y * size.height,
@@ -131,35 +134,50 @@ function MarkShape({ mark, points, size, scale, step }: ShapeProps) {
           stroke={colour}
           fill={colour}
           strokeWidth={line * scale}
-          pointerLength={Math.max(line * HEAD_LENGTH, SMALLEST_HEAD) * scale}
-          pointerWidth={Math.max(line * HEAD_WIDTH, SMALLEST_HEAD * 0.7) * scale}
+          pointerLength={Math.max(line * HEAD_LENGTH, SMALLEST_HEAD) * head * scale}
+          pointerWidth={Math.max(line * HEAD_WIDTH, SMALLEST_HEAD * 0.7) * head * scale}
           hitStrokeWidth={Math.max(line * scale, 12)}
         />
       );
-    case "rectangle":
+    case "rectangle": {
+      const box = {
+        x: Math.min(x1, x2),
+        y: Math.min(y1, y2),
+        width: Math.abs(x2 - x1),
+        height: Math.abs(y2 - y1),
+        cornerRadius: radius,
+      };
       return (
-        <Rect
-          x={Math.min(x1, x2)}
-          y={Math.min(y1, y2)}
-          width={Math.abs(x2 - x1)}
-          height={Math.abs(y2 - y1)}
-          stroke={colour}
-          strokeWidth={line * scale}
-          hitStrokeWidth={Math.max(line * scale, 12)}
-        />
+        <Group>
+          {fill > 0 ? <Rect {...box} fill={colour} opacity={fill} listening={false} /> : null}
+          <Rect
+            {...box}
+            stroke={colour}
+            strokeWidth={line * scale}
+            hitStrokeWidth={Math.max(line * scale, 12)}
+          />
+        </Group>
       );
-    case "oval":
+    }
+    case "oval": {
+      const oval = {
+        x: (x1 + x2) / 2,
+        y: (y1 + y2) / 2,
+        radiusX: Math.abs(x2 - x1) / 2,
+        radiusY: Math.abs(y2 - y1) / 2,
+      };
       return (
-        <Ellipse
-          x={(x1 + x2) / 2}
-          y={(y1 + y2) / 2}
-          radiusX={Math.abs(x2 - x1) / 2}
-          radiusY={Math.abs(y2 - y1) / 2}
-          stroke={colour}
-          strokeWidth={line * scale}
-          hitStrokeWidth={Math.max(line * scale, 12)}
-        />
+        <Group>
+          {fill > 0 ? <Ellipse {...oval} fill={colour} opacity={fill} listening={false} /> : null}
+          <Ellipse
+            {...oval}
+            stroke={colour}
+            strokeWidth={line * scale}
+            hitStrokeWidth={Math.max(line * scale, 12)}
+          />
+        </Group>
       );
+    }
     case "step":
       return (
         <Group>
@@ -175,22 +193,27 @@ function MarkShape({ mark, points, size, scale, step }: ShapeProps) {
             fontSize={textSize * 0.6}
             fontFamily={font}
             fontStyle={bold}
-            fill="#ffffff"
+            fill={textIn(mark, "textColor") || "#ffffff"}
           />
         </Group>
       );
-    case "text":
+    case "text": {
+      const background = textIn(mark, "textBackground");
+      const pad = background ? textSize * 0.3 : 0;
       return (
-        <Text
-          x={x1}
-          y={y1}
-          text={textIn(mark, "text") || "Text"}
-          fontSize={textSize}
-          fontFamily={font}
-          fontStyle={bold}
-          fill={colour}
-        />
+        <Label x={x1 - pad} y={y1 - pad}>
+          <Tag fill={background || undefined} cornerRadius={background ? textSize * 0.25 : 0} />
+          <Text
+            text={textIn(mark, "text") || "Text"}
+            fontSize={textSize}
+            fontFamily={font}
+            fontStyle={bold}
+            fill={colour}
+            padding={pad}
+          />
+        </Label>
       );
+    }
   }
 }
 
@@ -251,6 +274,7 @@ export function MarksField({
   value: marks,
   onChange,
   ctx,
+  all,
   item,
   renderMark,
 }: ParamFieldProps<ParamValues[]> & {
@@ -265,7 +289,8 @@ export function MarksField({
   const size = useElementSize(frame);
   const natural = useNaturalWidth(ctx);
   const scale = natural && size.width ? size.width / natural : 1;
-  const steps = stepNumbers(marks);
+  const firstStep = typeof all.firstStep === "number" ? all.firstStep : 1;
+  const steps = stepNumbers(marks, firstStep);
   const full = marks.length >= MAX_MARKS;
   const current = selected !== null && selected < marks.length ? selected : null;
 
@@ -373,7 +398,7 @@ export function MarksField({
                   }}
                   size={size}
                   scale={scale}
-                  step={steps.filter((s) => s !== undefined).length + 1}
+                  step={firstStep + steps.filter((s) => s !== undefined).length}
                 />
               ) : null}
               {current !== null && tool === "select" && twoEnded(kindOf(marks[current] ?? {}))

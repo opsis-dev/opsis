@@ -27,7 +27,7 @@ pub struct AnimatedBarChartBar {
 pub struct AnimatedBarChart {
     #[setting("Bar color", default = "#0ea5e9", check = colour)]
     pub bar_color: String,
-    #[setting("Gap", default = 16, range(min = 0, max = 80), step = 2)]
+    #[setting("Gap", default = 16, range(min = 0, max = 80), step = 2, advanced)]
     pub gap: u32,
     #[setting(
         "Stagger",
@@ -35,7 +35,8 @@ pub struct AnimatedBarChart {
         range(min = 0, max = 1),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub stagger_frames: f64,
     #[setting(
@@ -54,28 +55,44 @@ pub struct AnimatedBarChart {
         help = "Leave every label empty to draw the bars without labels."
     )]
     pub bars: Vec<AnimatedBarChartBar>,
-    #[setting(
-        "Width",
-        default = 1000,
-        range(min = 200, max = 1920),
-        step = 10,
-        advanced
-    )]
+    #[setting("Width", default = 1000, range(min = 200, max = 1920), step = 10)]
     pub width: u32,
-    #[setting(
-        "Height",
-        default = 500,
-        range(min = 100, max = 1080),
-        step = 10,
-        advanced
-    )]
+    #[setting("Height", default = 500, range(min = 100, max = 1080), step = 10)]
     pub height: u32,
-    #[setting("Baseline colour", default = "#27272a", check = colour)]
+    #[setting("Baseline colour", default = "#27272a", check = colour, advanced)]
     pub baseline_color: String,
-    #[setting("Label colour", default = "#a1a1aa", check = colour)]
+    #[setting("Label colour", default = "#a1a1aa", check = colour, advanced)]
     pub label_color: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Corner radius",
+        default = 6,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub corner_radius: u32,
+    #[setting(
+        "Glow",
+        default = 33.0,
+        range(min = 0, max = 100),
+        unit = "%",
+        advanced
+    )]
+    pub glow: f64,
+    #[setting(
+        "Label size",
+        default = 16,
+        range(min = 8, max = 64),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub label_size: u32,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {

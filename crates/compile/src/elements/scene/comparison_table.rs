@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -67,10 +67,15 @@ pub struct ComparisonTable {
         help = "Heading above the table. Omit to drop it."
     )]
     pub title: String,
+    #[setting("Highlight a column", default = true)]
+    pub highlight: bool,
     #[setting(
         "Highlighted column",
         default = 1,
-        help = "Column kept lit throughout. Pass -1 for a table with no favourite."
+        range(min = 0, max = 20),
+        step = 1,
+        help = "Column kept lit throughout, counting from 0.",
+        show_if = { "highlight": ["true"] }
     )]
     pub highlight_column: u32,
     #[setting(
@@ -102,8 +107,13 @@ pub struct ComparisonTable {
         check = colour
     )]
     pub accent_color: String,
-    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
-    pub theme: DarkOrLight,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = code_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting(
         "Speed",
         default = 1.0,
@@ -119,6 +129,29 @@ pub struct ComparisonTable {
         help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
+    #[setting("Tick colour", default = "#9BD4A0", widget = "color", check = colour)]
+    pub tick_color: String,
+    #[setting(
+        "Label column width",
+        default = 36.0,
+        range(min = 15, max = 60),
+        unit = "%",
+        advanced
+    )]
+    pub label_width: f64,
+    #[setting(
+        "Table width",
+        default = 880,
+        range(min = 400, max = 1600),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub card_width: u32,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
+    #[setting("Capital headings", default = true, advanced)]
+    pub uppercase_headings: bool,
 }
 
 pub fn definition() -> ElementMeta {

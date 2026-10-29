@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from "react";
-import type React from "react";
 import {
   Easing,
   getRemotionEnvironment,
@@ -8,9 +7,9 @@ import {
   OffthreadVideo,
   staticFile,
 } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
-import { isTheme, themeColors } from "#video/common/theme.ts";
+import { themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import {
   mixOklch,
   resolveFont,
@@ -24,29 +23,11 @@ export type LaptopFrameEntrance = "rise" | "open" | "none";
 export type LaptopFrameFinale = "none" | "zoom-to-screen";
 export type NotchPhase = "idle" | "loading" | "done";
 
-export interface LaptopFrameProps {
+type LaptopFrameProps = Omit<ElementSettings["laptop-frame"], "theme"> & {
   children?: ReactNode;
-  screenSrc?: string;
-  entrance?: LaptopFrameEntrance;
-  finale?: LaptopFrameFinale;
-  bezelColor?: string;
-  screenColor?: string;
-  theme?: Partial<WarmTheme>;
-  mode?: "light" | "dark";
-  fontFamily?: string;
-  indicatorColor?: string;
-  restTilt?: number;
-  radius?: number;
-  shadow?: string;
-  scale?: number;
-  showNotch?: boolean;
-  notchLabel?: string;
-  batteryLevel?: number;
-  floatLoop?: boolean;
-  floatAmplitude?: number;
-  speed?: number;
-  className?: string;
-}
+  theme: Partial<WarmTheme>;
+  mode: "light" | "dark";
+};
 
 const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
@@ -65,24 +46,18 @@ export const PERSPECTIVE = 1600;
 
 export const ENTRANCE_FRAMES = 30;
 
-export const PUSH_START = 140;
-export const PUSH_END = 185;
-
 export const CAMERA_EASE = Easing.bezier(0.2, 0.6, 0.35, 1);
 
 export const COLUMN_HEIGHT = LID_HEIGHT + DECK_HEIGHT;
-
-export const FLOAT_PERIOD_SECONDS = 5;
 
 export const NOTCH_HEIGHT = 30;
 export const NOTCH_IDLE_WIDTH = 116;
 export const NOTCH_LOADING_WIDTH = 150;
 export const NOTCH_DONE_WIDTH = 320;
 
-export const NOTCH_TIMING = {
-  loadingStart: 72,
-  doneStart: 120,
-} as const;
+export const NOTCH_LOADING_FOR = 48;
+
+export type ZoomTiming = { start: number; end: number };
 
 export interface EntrancePose {
   opacity: number;
@@ -125,8 +100,9 @@ export function entrancePose(frame: number, entrance: LaptopFrameEntrance): Entr
 export function lidTilt(
   frame: number,
   entrance: LaptopFrameEntrance,
-  finale: LaptopFrameFinale = "none",
-  restTilt: number = REST_TILT,
+  finale: LaptopFrameFinale,
+  restTilt: number,
+  zoom: ZoomTiming,
 ): number {
   const opened =
     entrance === "open"
@@ -137,9 +113,9 @@ export function lidTilt(
         })
       : restTilt;
 
-  if (finale !== "zoom-to-screen" || frame < PUSH_START) return opened;
+  if (finale !== "zoom-to-screen" || frame < zoom.start) return opened;
 
-  return interpolate(frame, [PUSH_START, PUSH_END], [restTilt, 0], {
+  return interpolate(frame, [zoom.start, zoom.end], [restTilt, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: CAMERA_EASE,
@@ -157,10 +133,11 @@ export function cameraPose(
   baseScale: number,
   compWidth: number,
   compHeight: number,
+  zoom: ZoomTiming,
 ): CameraPose {
   if (finale !== "zoom-to-screen") return { scale: 1, translateY: 0 };
 
-  const p = interpolate(frame, [PUSH_START, PUSH_END], [0, 1], {
+  const p = interpolate(frame, [zoom.start, zoom.end], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: CAMERA_EASE,
@@ -184,8 +161,8 @@ export function floatOffset(
   frame: number,
   fps: number,
   amplitude: number,
-  startFrame = 0,
-  periodSeconds: number = FLOAT_PERIOD_SECONDS,
+  startFrame: number,
+  periodSeconds: number,
 ): number {
   const local = Math.max(0, frame - startFrame);
   const value = Math.sin((local / (fps * periodSeconds)) * Math.PI * 2) * amplitude;
@@ -202,7 +179,7 @@ export interface NotchState {
 
 export function notchState(
   frame: number,
-  timing: { loadingStart: number; doneStart: number } = NOTCH_TIMING,
+  timing: { loadingStart: number; doneStart: number },
 ): NotchState {
   const { loadingStart, doneStart } = timing;
   const clamp = {
@@ -229,172 +206,6 @@ export function notchState(
   const done = interpolate(frame, [doneStart - 4, doneStart + 6], [0, 1], clamp);
 
   return { phase, width, idle, loading, done };
-}
-
-function PlaceholderScreen({ frame, t }: { frame: number; t: WarmTheme }) {
-  const rise = (delay: number) => {
-    const r = interpolate(frame, [delay, delay + 14], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: Easing.out(Easing.cubic),
-    });
-    return { opacity: r, transform: `translateY(${(1 - r) * 14}px)` };
-  };
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: `linear-gradient(165deg, ${t.card} 0%, ${mixOklch(
-          t.card,
-          t.primary,
-          0.06,
-        )} 100%)`,
-        color: t.foreground,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "22px 34px",
-          ...rise(6),
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <div
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: 7,
-              background: `linear-gradient(135deg, ${t.primary}, ${mixOklch(
-                t.primary,
-                t.foreground,
-                0.18,
-              )})`,
-            }}
-          />
-          <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em" }}>Acme</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          {["Product", "Pricing", "Docs"].map((l) => (
-            <span key={l} style={{ fontSize: 13.5, color: t.mutedForeground }}>
-              {l}
-            </span>
-          ))}
-          <div
-            style={{
-              padding: "7px 14px",
-              borderRadius: 8,
-              backgroundColor: t.foreground,
-              color: t.background,
-              fontSize: 13,
-              fontWeight: 600,
-            }}
-          >
-            Sign in
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          padding: "0 40px",
-          gap: 18,
-        }}
-      >
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 7,
-            padding: "5px 12px",
-            borderRadius: 999,
-            border: `1px solid ${t.border}`,
-            backgroundColor: t.card,
-            fontSize: 12.5,
-            fontWeight: 600,
-            color: t.primary,
-            ...rise(12),
-          }}
-        >
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: 999,
-              backgroundColor: t.primary,
-            }}
-          />
-          Now in public beta
-        </div>
-        <div
-          style={{
-            fontSize: 46,
-            fontWeight: 700,
-            letterSpacing: "-0.03em",
-            lineHeight: 1.05,
-            maxWidth: 560,
-            ...rise(16),
-          }}
-        >
-          Ship demos that sell.
-        </div>
-        <div
-          style={{
-            fontSize: 16.5,
-            lineHeight: 1.5,
-            color: t.mutedForeground,
-            maxWidth: 440,
-            ...rise(20),
-          }}
-        >
-          Turn your product into a polished launch video in minutes — no editor, no render farm.
-        </div>
-        <div style={{ display: "flex", gap: 10, marginTop: 6, ...rise(24) }}>
-          <div
-            style={{
-              padding: "11px 20px",
-              borderRadius: 10,
-              background: `linear-gradient(135deg, ${t.primary}, ${mixOklch(
-                t.primary,
-                t.foreground,
-                0.18,
-              )})`,
-              color: t.primaryForeground,
-              fontSize: 14.5,
-              fontWeight: 600,
-              boxShadow: `0 10px 24px ${withAlpha(t.primary, 0.32)}`,
-            }}
-          >
-            Get started
-          </div>
-          <div
-            style={{
-              padding: "11px 20px",
-              borderRadius: 10,
-              border: `1px solid ${t.border}`,
-              backgroundColor: t.card,
-              fontSize: 14.5,
-              fontWeight: 600,
-            }}
-          >
-            Watch demo
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
@@ -451,17 +262,21 @@ function Dot({ size, color, style }: { size: number; color: string; style?: CSSP
 function Notch({
   frame,
   label,
+  labelSize,
   batteryLevel,
   t,
   indicatorColor,
+  doneAt,
 }: {
   frame: number;
   label: string;
+  labelSize: number;
   batteryLevel: number;
   t: WarmTheme;
   indicatorColor: string;
+  doneAt: number;
 }) {
-  const state = notchState(frame);
+  const state = notchState(frame, { loadingStart: doneAt - NOTCH_LOADING_FOR, doneStart: doneAt });
   const layer: CSSProperties = {
     position: "absolute",
     inset: 0,
@@ -512,7 +327,7 @@ function Notch({
       <div style={{ ...layer, gap: 8, opacity: state.done }}>
         <span
           style={{
-            fontSize: 12,
+            fontSize: labelSize,
             fontWeight: 500,
             letterSpacing: "-0.01em",
             color: t.foreground,
@@ -549,62 +364,61 @@ function Notch({
 function LaptopFrameView({
   children,
   screenSrc,
-  entrance = "rise",
-  finale = "none",
+  entrance,
+  finale,
   bezelColor,
   screenColor,
   theme,
   mode,
   fontFamily,
-  indicatorColor = "#30D158",
-  restTilt = REST_TILT,
-  radius = LID_RADIUS,
+  indicatorColor,
+  restTilt,
+  radius,
   shadow,
-  scale = 0.95,
-  showNotch = true,
-  notchLabel = "AirPods Connected",
-  batteryLevel = 85,
-  floatLoop = true,
-  floatAmplitude = 4,
-  speed = 1,
-  className,
+  scale,
+  showNotch,
+  notchLabel,
+  batteryLevel,
+  floatLoop,
+  floatAmplitude,
+  speed,
+  notchAt,
+  zoomAt,
+  zoomLength,
+  floatPeriod,
+  notchLabelSize,
 }: LaptopFrameProps) {
   const frame = useAuthoredFrame() * speed;
   const t = useWarmTheme(theme, mode);
-  const face = resolveFont(fontFamily ?? t.fontFamily) ?? FONT_FAMILY;
+  const face = resolveFont(fontFamily || t.fontFamily) ?? FONT_FAMILY;
   const shell = useWarmTheme(theme, "dark");
-  const lid = bezelColor ?? mixOklch(shell.background, shell.foreground, 0.09);
-  const glass = screenColor ?? t.card;
-  const drop = shadow ?? `0 40px 80px ${withAlpha(shell.background, 0.45)}`;
+  const lid = bezelColor || mixOklch(shell.background, shell.foreground, 0.09);
+  const glass = screenColor || t.card;
+  const drop = shadow;
+  const zoom = { start: zoomAt, end: zoomAt + zoomLength };
   const { fps, width, height } = useAuthoredConfig();
   const isRendering = getRemotionEnvironment().isRendering;
 
   const pose = entrancePose(frame, entrance);
-  const tilt = lidTilt(frame, entrance, finale, restTilt);
-  const camera = cameraPose(frame, finale, scale, width, height);
+  const tilt = lidTilt(frame, entrance, finale, restTilt, zoom);
+  const camera = cameraPose(frame, finale, scale, width, height, zoom);
   const bob =
-    floatLoop && !(finale === "zoom-to-screen" && frame >= PUSH_START)
-      ? floatOffset(frame, fps, floatAmplitude, ENTRANCE_FRAMES)
+    floatLoop && !(finale === "zoom-to-screen" && frame >= zoom.start)
+      ? floatOffset(frame, fps, floatAmplitude, ENTRANCE_FRAMES, floatPeriod)
       : 0;
   const notchFade =
     finale === "zoom-to-screen"
-      ? interpolate(frame, [PUSH_START, PUSH_START + 10], [1, 0], {
+      ? interpolate(frame, [zoom.start, zoom.start + 10], [1, 0], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
         })
       : 1;
 
   const screenContent =
-    children ??
-    (screenSrc ? (
-      <ScreenMedia src={screenSrc} frame={frame} />
-    ) : (
-      <PlaceholderScreen frame={frame} t={t} />
-    ));
+    children ?? (screenSrc ? <ScreenMedia src={screenSrc} frame={frame} /> : null);
 
   return (
     <div
-      className={className}
       style={{
         position: "absolute",
         inset: 0,
@@ -669,7 +483,9 @@ function LaptopFrameView({
                       indicatorColor={indicatorColor}
                       frame={frame}
                       label={notchLabel}
+                      labelSize={notchLabelSize}
                       batteryLevel={batteryLevel}
+                      doneAt={notchAt}
                     />
                   </div>
                 )}
@@ -712,19 +528,13 @@ function LaptopFrameView({
   );
 }
 
-export function LaptopFrame(props: ElementProps & { children?: React.ReactNode }) {
-  const { theme } = props;
-  if (!isTheme(theme))
-    return (
-      <LaptopFrameView {...(props as unknown as React.ComponentProps<typeof LaptopFrameView>)} />
-    );
+export function LaptopFrame({
+  theme,
+  ...settings
+}: ElementSettings["laptop-frame"] & { children?: ReactNode }) {
   return (
     <WarmUIProvider mode={theme.mode}>
-      <LaptopFrameView
-        {...(props as unknown as React.ComponentProps<typeof LaptopFrameView>)}
-        theme={themeColors(theme)}
-        mode={theme.mode}
-      />
+      <LaptopFrameView {...settings} theme={themeColors(theme)} mode={theme.mode} />
     </WarmUIProvider>
   );
 }

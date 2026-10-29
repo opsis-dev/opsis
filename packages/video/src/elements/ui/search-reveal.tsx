@@ -1,23 +1,15 @@
 import { AbsoluteFill, Easing, interpolate } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export type SearchRevealProps = {
   text?: string;
-  fontFamily?: string;
   fieldWidth?: number;
-  fontSize?: number;
   framesPerCharacter?: number;
   showPanel?: boolean;
-  showGuides?: boolean;
-  color?: string;
-  fieldColor?: string;
-  ringColor?: string;
-  panelColor?: string;
-  accentColor?: string;
-  backgroundColor?: string;
   speed?: number;
   reducedMotion?: boolean;
-  className?: string;
 };
 
 export const searchRevealLength = 90;
@@ -88,23 +80,23 @@ function Cross({ x, y, size = 9 }: { x: number; y: number; size?: number }) {
 }
 
 export function SearchReveal({
-  text = "acme",
-  fontFamily = "var(--font-geist-sans), sans-serif",
-  fieldWidth = 464,
-  fontSize = 34,
-  framesPerCharacter = 4,
-  showPanel = true,
-  showGuides = true,
-  color = "#26232b",
-  fieldColor = "#ffffff",
-  ringColor = "#cbc5cf",
-  panelColor = "#a800b7",
-  accentColor = "#e8f99a",
-  backgroundColor = "#f5f1f5",
-  speed = 1,
-  reducedMotion = false,
-  className,
-}: SearchRevealProps) {
+  text,
+  fontFamily,
+  fieldWidth,
+  fontSize,
+  framesPerCharacter,
+  showPanel,
+  showGuides,
+  color,
+  fieldColor,
+  ringColor,
+  panelColor,
+  accentColor,
+  backgroundColor,
+  speed,
+  reducedMotion,
+  weight,
+}: ElementSettings["search-reveal"]) {
   const frame = useAuthoredFrame();
   const { width, height, fps } = useAuthoredConfig();
   const state = getSearchRevealState((frame * 30) / fps, {
@@ -129,7 +121,6 @@ export function SearchReveal({
 
   return (
     <AbsoluteFill
-      className={className}
       style={{
         backgroundColor,
         overflow: "hidden",
@@ -284,9 +275,9 @@ export function SearchReveal({
                 justifyContent: "center",
                 overflow: "hidden",
                 color,
-                fontFamily,
+                fontFamily: fontOr(fontFamily, "main"),
                 fontSize: fittedFont,
-                fontWeight: 400,
+                fontWeight: weight,
               }}
             >
               <div

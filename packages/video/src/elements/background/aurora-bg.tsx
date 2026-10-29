@@ -1,21 +1,6 @@
 import { useId } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
-
-export type AuroraBgProps = {
-  backgroundColor?: string;
-  colors?: string[];
-  ribbonCount?: number;
-  amplitude?: number;
-  thickness?: number;
-  centerY?: number;
-  spread?: number;
-  speed?: number;
-  blur?: number;
-  intensity?: number;
-  horizonGlow?: number;
-  striation?: number;
-  seed?: number;
-};
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 function hash(index: number, salt: number, seed: number): number {
   const value = Math.sin(index * 37.31 + salt * 91.7 + seed * 13.9) * 43758.5453;
@@ -46,7 +31,13 @@ type Ribbon = {
   alpha: number;
 };
 
-function buildRibbons(count: number, colors: string[], seed: number): Ribbon[] {
+function buildRibbons(
+  count: number,
+  colors: string[],
+  seed: number,
+  folds: number,
+  sidewaysDrift: number,
+): Ribbon[] {
   return Array.from({ length: count }, (_, index) => {
     const t = count === 1 ? 0.5 : index / (count - 1);
     return {
@@ -56,8 +47,8 @@ function buildRibbons(count: number, colors: string[], seed: number): Ribbon[] {
       fastRate: 0.75 + hash(index, 2, seed) * 0.6,
       slowPhase: hash(index, 3, seed) * Math.PI * 2,
       fastPhase: hash(index, 4, seed) * Math.PI * 2,
-      waves: 1.3 + hash(index, 5, seed) * 1.4,
-      drift: (hash(index, 6, seed) - 0.5) * 26,
+      waves: folds * (0.65 + hash(index, 5, seed) * 0.7),
+      drift: (hash(index, 6, seed) - 0.5) * 2 * sidewaysDrift,
       scale: 0.65 + hash(index, 7, seed) * 0.6,
       alpha: 0.5 + hash(index, 8, seed) * 0.5,
     };
@@ -110,35 +101,45 @@ function ribbonPath(
   return `${forward} ${back} Z`;
 }
 
-export const AuroraBg: React.FC<AuroraBgProps> = ({
-  backgroundColor = "#050505",
-  colors = ["#e4ac59", "#e07a5f", "#c2557a"],
-  ribbonCount = 4,
-  amplitude = 9,
-  thickness = 15,
-  centerY = 46,
-  spread = 34,
-  speed = 1,
-  blur = 14,
-  intensity = 1.3,
-  horizonGlow = 0.5,
-  striation = 0.55,
-  seed = 1,
-}) => {
+export function AuroraBg({
+  backgroundColor,
+  colors,
+  ribbonCount,
+  amplitude,
+  thickness,
+  centerY,
+  spread,
+  speed,
+  blur,
+  intensity,
+  horizonGlow,
+  striation,
+  seed,
+  folds,
+  sidewaysDrift,
+  raySpacing,
+  vignette,
+  horizonGlowColor,
+}: ElementSettings["aurora-bg"]) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const uid = useId().replace(/:/g, "");
   const time = (frame / fps) * speed;
 
-  const palette = colors.length > 0 ? colors : ["#e4ac59"];
-  const ribbons = buildRibbons(Math.max(1, Math.round(ribbonCount)), palette, seed);
+  const ribbons = buildRibbons(
+    Math.max(1, Math.round(ribbonCount)),
+    colors,
+    seed,
+    folds,
+    sidewaysDrift,
+  );
 
   return (
     <AbsoluteFill style={{ background: backgroundColor, overflow: "hidden" }}>
       {horizonGlow > 0 ? (
         <AbsoluteFill
           style={{
-            background: `radial-gradient(120% 60% at 50% ${centerY + spread * 0.5}%, ${palette[0]} 0%, transparent 70%)`,
+            background: `radial-gradient(120% 60% at 50% ${centerY + spread * 0.5}%, ${horizonGlowColor || colors[0]} 0%, transparent 70%)`,
             opacity:
               0.16 *
               horizonGlow *
@@ -156,10 +157,10 @@ export const AuroraBg: React.FC<AuroraBgProps> = ({
             ? {
                 maskImage: rayMask(striation),
                 WebkitMaskImage: rayMask(striation),
-                maskSize: "72px 100%",
-                WebkitMaskSize: "72px 100%",
-                maskPosition: `${((time * 9) % 72).toFixed(2)}px 0`,
-                WebkitMaskPosition: `${((time * 9) % 72).toFixed(2)}px 0`,
+                maskSize: `${raySpacing}px 100%`,
+                WebkitMaskSize: `${raySpacing}px 100%`,
+                maskPosition: `${((time * 9) % raySpacing).toFixed(2)}px 0`,
+                WebkitMaskPosition: `${((time * 9) % raySpacing).toFixed(2)}px 0`,
               }
             : {}),
         }}
@@ -192,10 +193,10 @@ export const AuroraBg: React.FC<AuroraBgProps> = ({
 
       <AbsoluteFill
         style={{
-          background: "radial-gradient(circle at 50% 45%, transparent 40%, rgba(0,0,0,0.55) 100%)",
+          background: `radial-gradient(circle at 50% 45%, transparent 40%, rgba(0,0,0,${vignette}) 100%)`,
           pointerEvents: "none",
         }}
       />
     </AbsoluteFill>
   );
-};
+}

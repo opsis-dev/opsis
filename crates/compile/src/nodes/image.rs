@@ -86,6 +86,41 @@ pub enum ResizeFit {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
+pub enum PlaceAlign {
+    Start,
+    #[default]
+    Center,
+    End,
+}
+
+impl PlaceAlign {
+    pub fn share(self) -> f64 {
+        match self {
+            Self::Start => 0.0,
+            Self::Center => 0.5,
+            Self::End => 1.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum LabelEdge {
+    #[default]
+    Top,
+    Bottom,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum ResizeBy {
+    #[default]
+    Pixels,
+    Percent,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
 pub enum Resample {
     Fast,
     Smooth,
@@ -97,19 +132,31 @@ pub enum Resample {
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ResizeImage {
+    #[setting("Size by", labels = { "pixels": "Pixels", "percent": "Percent" })]
+    pub by: ResizeBy,
+    #[setting(
+        "Scale",
+        default = 100,
+        range(min = 1, max = 1000),
+        unit = "%",
+        show_if = { "by": ["percent"] }
+    )]
+    pub scale: u32,
     #[setting(
         "Width",
         default = 1920,
         range(min = 0, max = 16384),
         unit = "px",
-        help = "0 follows the height and keeps the proportion."
+        help = "0 follows the height and keeps the proportion.",
+        show_if = { "by": ["pixels"] }
     )]
     pub width: u32,
     #[setting(
         "Height",
         range(min = 0, max = 16384),
         unit = "px",
-        help = "0 follows the width and keeps the proportion."
+        help = "0 follows the width and keeps the proportion.",
+        show_if = { "by": ["pixels"] }
     )]
     pub height: u32,
     #[setting(
@@ -118,6 +165,31 @@ pub struct ResizeImage {
         help = "When both sides are set: fit the whole image inside them, fill them and crop the rest, or stretch to exactly that size."
     )]
     pub fit: ResizeFit,
+    #[setting(
+        "Keep",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.01,
+        widget = "spot",
+        help = "Click the picture to choose which part stays when it is filled and cropped.",
+        show_if = { "fit": ["cover"] },
+        advanced
+    )]
+    pub crop_at_x: f64,
+    #[setting(
+        "Keep vertical",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.01,
+        hidden
+    )]
+    pub crop_at_y: f64,
+    #[setting(
+        "Never enlarge",
+        help = "A picture smaller than the size asked keeps its own size.",
+        advanced
+    )]
+    pub shrink_only: bool,
     #[setting(
         "Quality",
         labels = { "fast": "Fast", "smooth": "Smooth", "sharp": "Sharp" },
@@ -210,11 +282,18 @@ pub struct RotateImage {
     )]
     pub angle: f64,
     #[setting(
+        "Cut off the corners",
+        help = "Crops the straightened picture to the largest part with no empty corners.",
+        advanced
+    )]
+    pub crop_corners: bool,
+    #[setting(
         "Background",
         default = "#00000000",
         widget = "color",
         check = colour,
-        help = "Fills the corners a tilt opens up."
+        help = "Fills the corners a tilt opens up.",
+        advanced
     )]
     pub background: String,
 }
@@ -236,11 +315,11 @@ pub struct AdjustImage {
         help = "-1 takes all the colour out."
     )]
     pub saturation: f64,
-    #[setting("Hue", range(min = -180, max = 180), step = 1, unit = "°")]
+    #[setting("Hue", range(min = -180, max = 180), step = 1, unit = "°", advanced)]
     pub hue: f64,
     #[setting("Black and white")]
     pub grayscale: bool,
-    #[setting("Invert colours")]
+    #[setting("Invert colours", advanced)]
     pub invert: bool,
 }
 
@@ -262,6 +341,15 @@ pub struct BlurImage {
         help = "Differences smaller than this stay as they are, so flat areas don't get grainy."
     )]
     pub threshold: u32,
+    #[setting(
+        "Sharpen amount",
+        default = 100,
+        range(min = 0, max = 300),
+        unit = "%",
+        help = "How much of the sharpening is added.",
+        advanced
+    )]
+    pub sharpen_amount: u32,
 }
 
 impl Params for BlurImage {}
@@ -442,6 +530,15 @@ pub struct RedactImage {
         show_if = { "style": ["solid"] }
     )]
     pub color: String,
+    #[setting(
+        "Corner radius",
+        range(min = 0, max = 200),
+        step = 1,
+        unit = "px",
+        show_if = { "style": ["solid"] },
+        advanced
+    )]
+    pub radius: f64,
 }
 
 impl Params for RedactImage {}
@@ -476,7 +573,8 @@ pub struct SpotlightImage {
         default = 12.0,
         range(min = 0, max = 200),
         step = 1,
-        unit = "px"
+        unit = "px",
+        advanced
     )]
     pub radius: f64,
     #[setting(
@@ -484,9 +582,12 @@ pub struct SpotlightImage {
         default = 8.0,
         range(min = 0, max = 100),
         step = 1,
-        unit = "px"
+        unit = "px",
+        advanced
     )]
     pub softness: f64,
+    #[setting("Darken toward", default = "#000000", widget = "color", check = colour, advanced)]
+    pub dim_color: String,
 }
 
 impl Params for SpotlightImage {}
@@ -504,6 +605,15 @@ pub struct TrimEdges {
     pub tolerance: u32,
     #[setting("Keep around", range(min = 0, max = 2000), unit = "px")]
     pub padding: u32,
+    #[setting(
+        "Edge colour",
+        widget = "color",
+        zero_label = "Top-left pixel",
+        check = colour_or_empty,
+        help = "The colour of the empty edge to cut.",
+        advanced
+    )]
+    pub edge_color: String,
 }
 
 impl Params for TrimEdges {}
@@ -539,7 +649,8 @@ pub struct ClearColour {
         default = 10.0,
         range(min = 0, max = 100),
         step = 1,
-        unit = "%"
+        unit = "%",
+        advanced
     )]
     pub softness: f64,
 }
@@ -560,13 +671,63 @@ pub struct OutlineImage {
     pub width: f64,
     #[setting("Colour", default = "#ffffff", widget = "color", check = colour)]
     pub color: String,
-    #[setting("Soft edge", range(min = 0, max = 50), step = 1, unit = "px")]
+    #[setting("Soft edge", range(min = 0, max = 50), step = 1, unit = "px", advanced)]
     pub softness: f64,
     #[setting("Shadow")]
     pub shadow: bool,
+    #[setting(
+        "Shadow opacity",
+        default = 0.35,
+        range(min = 0, max = 1),
+        step = 0.05,
+        show_if = { "shadow": ["true"] },
+        advanced
+    )]
+    pub shadow_opacity: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Shadow softness",
+        range(min = 0, max = 200),
+        step = 1,
+        unit = "px",
+        zero_label = "Outline width",
+        show_if = { "shadow": ["true"] },
+        advanced
+    )]
+    pub shadow_softness: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Shadow drop",
+        range(min = 0, max = 200),
+        step = 1,
+        unit = "px",
+        zero_label = "Half the outline width",
+        show_if = { "shadow": ["true"] },
+        advanced
+    )]
+    pub shadow_drop: Option<f64>,
+    #[setting(
+        "Shadow colour",
+        default = "#000000",
+        widget = "color",
+        check = colour,
+        show_if = { "shadow": ["true"] },
+        advanced
+    )]
+    pub shadow_color: String,
 }
 
 impl Params for OutlineImage {}
+
+impl OutlineImage {
+    pub fn shadow_softness(&self) -> f64 {
+        self.shadow_softness.unwrap_or(self.width)
+    }
+
+    pub fn shadow_drop(&self) -> f64 {
+        self.shadow_drop.unwrap_or(self.width / 2.0)
+    }
+}
 
 #[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -590,15 +751,74 @@ pub struct TiltImage {
         help = "Leans the top back, or the bottom with a negative angle."
     )]
     pub tilt: f64,
-    #[setting("Lean", range(min = -45, max = 45), step = 1, unit = "°")]
+    #[setting("Lean", range(min = -45, max = 45), step = 1, unit = "°", advanced)]
     pub lean: f64,
-    #[setting("Background", default = "#00000000", widget = "color", check = colour)]
+    #[setting("Background", default = "#00000000", widget = "color", check = colour, advanced)]
     pub background: String,
     #[setting("Shadow", default = true)]
     pub shadow: bool,
+    #[setting(
+        "Viewing distance",
+        default = 2.0,
+        range(min = 0.5, max = 10),
+        step = 0.1,
+        help = "How far away the picture is seen from, in its long side. Closer looks more three-dimensional.",
+        advanced
+    )]
+    pub perspective: f64,
+    #[setting(
+        "Shadow opacity",
+        default = 0.35,
+        range(min = 0, max = 1),
+        step = 0.05,
+        show_if = { "shadow": ["true"] },
+        advanced
+    )]
+    pub shadow_opacity: f64,
+    #[setting(
+        "Shadow softness",
+        default = 2.0,
+        range(min = 0, max = 10),
+        step = 0.1,
+        unit = "%",
+        help = "Of the picture's long side.",
+        show_if = { "shadow": ["true"] },
+        advanced
+    )]
+    pub shadow_softness: f64,
+    #[setting(
+        "Shadow drop",
+        default = 2.0,
+        range(min = 0, max = 10),
+        step = 0.1,
+        unit = "%",
+        help = "Of the picture's long side.",
+        show_if = { "shadow": ["true"] },
+        advanced
+    )]
+    pub shadow_drop: f64,
+    #[setting(
+        "Shadow colour",
+        default = "#000000",
+        widget = "color",
+        check = colour,
+        show_if = { "shadow": ["true"] },
+        advanced
+    )]
+    pub shadow_color: String,
 }
 
 impl Params for TiltImage {}
+
+impl TiltImage {
+    pub fn shadow_space(&self) -> f64 {
+        if self.shadow {
+            SHADOW_SPACE.max((2.0 * self.shadow_softness + self.shadow_drop) / 100.0)
+        } else {
+            0.0
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
@@ -626,7 +846,8 @@ pub struct AutoLevels {
         range(min = 0, max = 5),
         step = 0.1,
         unit = "%",
-        show_if = { "method": ["stretch"] }
+        show_if = { "method": ["stretch"] },
+        advanced
     )]
     pub clip: f64,
     #[setting(
@@ -672,10 +893,31 @@ pub struct ImageGrid {
     pub fit: GridFit,
     #[setting("Gap", default = 24, range(min = 0, max = 1000), unit = "px")]
     pub gap: u32,
-    #[setting("Padding", default = 24, range(min = 0, max = 1000), unit = "px")]
+    #[setting(
+        "Padding",
+        default = 24,
+        range(min = 0, max = 1000),
+        unit = "px",
+        advanced
+    )]
     pub padding: u32,
     #[setting("Background", default = "#ffffff", widget = "color", check = colour)]
     pub background: String,
+    #[setting(
+        "Place in its cell",
+        labels = { "start": "Top left", "center": "Centre", "end": "Bottom right" },
+        help = "Where a picture smaller than its cell sits.",
+        advanced
+    )]
+    pub align: PlaceAlign,
+    #[setting(
+        "Corner radius",
+        range(min = 0, max = 500),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub radius: f64,
 }
 
 impl Params for ImageGrid {}
@@ -731,7 +973,8 @@ pub struct FrameScreenshot {
         default = 16.0,
         range(min = 0, max = 200),
         step = 1,
-        unit = "px"
+        unit = "px",
+        advanced
     )]
     pub shadow_drop: f64,
     #[setting(
@@ -739,10 +982,17 @@ pub struct FrameScreenshot {
         default = 40.0,
         range(min = 0, max = 200),
         step = 1,
-        unit = "px"
+        unit = "px",
+        advanced
     )]
     pub shadow_softness: f64,
-    #[setting("Shadow opacity", default = 0.35, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Shadow opacity",
+        default = 0.35,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub shadow_opacity: f64,
     #[setting(
         "Shape",
@@ -750,6 +1000,15 @@ pub struct FrameScreenshot {
         help = "Grows the background around the picture to this shape; the picture is never cut."
     )]
     pub shape: FrameShape,
+    #[setting(
+        "Place on the shape",
+        labels = { "start": "Top or left", "center": "Centre", "end": "Bottom or right" },
+        help = "Where the picture sits when the shape grows the background.",
+        advanced
+    )]
+    pub align: PlaceAlign,
+    #[setting("Shadow colour", default = "#000000", widget = "color", check = colour, advanced)]
+    pub shadow_color: String,
 }
 
 impl Params for FrameScreenshot {
@@ -768,9 +1027,10 @@ pub fn framed_placement(source: (f64, f64), p: &FrameScreenshot) -> ((f64, f64),
             w = (h * ratio).round();
         }
     }
+    let free = (w - source.0 - 2.0 * pad, h - source.1 - 2.0 * pad);
     let at = (
-        ((w - source.0) / 2.0).round(),
-        ((h - source.1) / 2.0).round(),
+        (pad + free.0 * p.align.share()).round(),
+        (pad + free.1 * p.align.share()).round(),
     );
     ((w, h), at)
 }
@@ -854,8 +1114,8 @@ pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
             let (c, r) = place(i);
             let (w, h) = scaled[i];
             Rect {
-                x: (left(c) + (column_widths[c] - w) / 2.0).round(),
-                y: (top(r) + (row_heights[r] - h) / 2.0).round(),
+                x: (left(c) + (column_widths[c] - w) * p.align.share()).round(),
+                y: (top(r) + (row_heights[r] - h) * p.align.share()).round(),
                 width: w,
                 height: h,
             }
@@ -873,12 +1133,11 @@ pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
     }
 }
 
-const VIEW_DISTANCE: f64 = 2.0;
 const SHADOW_SPACE: f64 = 0.06;
 
 pub fn tilt_corners(size: (f64, f64), p: &TiltImage) -> [(f64, f64); 4] {
     let (w, h) = size;
-    let distance = VIEW_DISTANCE * w.max(h);
+    let distance = p.perspective * w.max(h);
     let (lean, tilt, turn) = (
         p.lean.to_radians(),
         p.tilt.to_radians(),
@@ -898,11 +1157,7 @@ pub fn tilt_corners(size: (f64, f64), p: &TiltImage) -> [(f64, f64); 4] {
         let scale = distance / (distance + z);
         (x * scale, y * scale)
     });
-    let margin = if p.shadow {
-        SHADOW_SPACE * w.max(h)
-    } else {
-        0.0
-    };
+    let margin = p.shadow_space() * w.max(h);
     let left = projected.iter().map(|c| c.0).fold(f64::INFINITY, f64::min);
     let top = projected.iter().map(|c| c.1).fold(f64::INFINITY, f64::min);
     projected.map(|(x, y)| (x - left + margin, y - top + margin))
@@ -910,11 +1165,7 @@ pub fn tilt_corners(size: (f64, f64), p: &TiltImage) -> [(f64, f64); 4] {
 
 pub fn tilted_size(size: (f64, f64), p: &TiltImage) -> (f64, f64) {
     let corners = tilt_corners(size, p);
-    let margin = if p.shadow {
-        SHADOW_SPACE * size.0.max(size.1)
-    } else {
-        0.0
-    };
+    let margin = p.shadow_space() * size.0.max(size.1);
     let right = corners.iter().map(|c| c.0).fold(0.0, f64::max);
     let bottom = corners.iter().map(|c| c.1).fold(0.0, f64::max);
     (
@@ -924,7 +1175,11 @@ pub fn tilted_size(size: (f64, f64), p: &TiltImage) -> (f64, f64) {
 }
 
 pub fn outline_padding(p: &OutlineImage) -> f64 {
-    let shadow = if p.shadow { p.width * 2.0 } else { 0.0 };
+    let shadow = if p.shadow {
+        (2.0 * p.shadow_softness()).max(p.shadow_softness() + 2.0 * p.shadow_drop())
+    } else {
+        0.0
+    };
     (p.width + p.softness + shadow).ceil()
 }
 
@@ -933,7 +1188,20 @@ fn even(value: f64) -> f64 {
 }
 
 pub fn resized_size(source: (f64, f64), p: &ResizeImage) -> (f64, f64) {
+    let asked = asked_size(source, p);
+    if p.shrink_only && (asked.0 > source.0 || asked.1 > source.1) {
+        let k = (source.0 / asked.0).min(source.1 / asked.1);
+        return (even(asked.0 * k), even(asked.1 * k));
+    }
+    asked
+}
+
+fn asked_size(source: (f64, f64), p: &ResizeImage) -> (f64, f64) {
     let (sw, sh) = source;
+    if p.by == ResizeBy::Percent {
+        let k = f64::from(p.scale) / 100.0;
+        return (even(sw * k), even(sh * k));
+    }
     let (w, h) = (f64::from(p.width), f64::from(p.height));
     match (w > 0.0, h > 0.0) {
         (false, false) => (sw, sh),
@@ -1009,9 +1277,21 @@ pub fn rotated_size(source: (f64, f64), p: &RotateImage) -> (f64, f64) {
         return (w, h);
     }
     let (sin, cos) = p.angle.to_radians().sin_cos();
-    (
-        (w * cos.abs() + h * sin.abs()).ceil(),
-        (w * sin.abs() + h * cos.abs()).ceil(),
+    let (sin, cos) = (sin.abs(), cos.abs());
+    if p.crop_corners {
+        let k = (w / (w * cos + h * sin)).min(h / (w * sin + h * cos));
+        return ((w * k).floor().max(1.0), (h * k).floor().max(1.0));
+    }
+    ((w * cos + h * sin).ceil(), (w * sin + h * cos).ceil())
+}
+
+pub fn tilted_canvas(source: (f64, f64), p: &RotateImage) -> (f64, f64) {
+    rotated_size(
+        source,
+        &RotateImage {
+            crop_corners: false,
+            ..p.clone()
+        },
     )
 }
 
@@ -1571,9 +1851,15 @@ pub struct BeforeAfter {
         show_if = { "layout": ["split"] }
     )]
     pub angle: f64,
-    #[setting("Divider width", default = 4, range(min = 0, max = 80), unit = "px")]
+    #[setting(
+        "Divider width",
+        default = 4,
+        range(min = 0, max = 80),
+        unit = "px",
+        advanced
+    )]
     pub divider_width: u32,
-    #[setting("Divider colour", default = "#ffffff".to_owned(), widget = "color")]
+    #[setting("Divider colour", default = "#ffffff".to_owned(), widget = "color", advanced)]
     pub divider_color: String,
     #[setting("Labels", default = true)]
     pub labels: bool,
@@ -1581,14 +1867,15 @@ pub struct BeforeAfter {
     pub before_label: String,
     #[setting("After label", default = "After".to_owned(), show_if = { "labels": ["true"] })]
     pub after_label: String,
-    #[setting("Font", widget = "font", zero_label = "Main font", show_if = { "labels": ["true"] })]
+    #[setting("Font", widget = "font", zero_label = "Main font", show_if = { "labels": ["true"] }, advanced)]
     pub font: String,
     #[setting(
         "Weight",
         default = 600,
         range(min = 100, max = 900),
         step = 100,
-        show_if = { "labels": ["true"] }
+        show_if = { "labels": ["true"] },
+        advanced
     )]
     pub label_weight: u32,
     #[setting(
@@ -1596,23 +1883,43 @@ pub struct BeforeAfter {
         range(min = 0, max = 400),
         unit = "px",
         zero_label = "Fit the picture",
-        show_if = { "labels": ["true"] }
+        show_if = { "labels": ["true"] },
+        advanced
     )]
     pub label_size: u32,
     #[setting(
         "Text colour",
         default = "#ffffff".to_owned(),
         widget = "color",
-        show_if = { "labels": ["true"] }
+        show_if = { "labels": ["true"] },
+        advanced
     )]
     pub label_color: String,
     #[setting(
         "Label background",
         default = "rgba(0, 0, 0, 0.6)".to_owned(),
         widget = "color",
-        show_if = { "labels": ["true"] }
+        show_if = { "labels": ["true"] },
+        advanced
     )]
     pub label_background: String,
+    #[setting(
+        "Label corners",
+        default = 30,
+        range(min = 0, max = 50),
+        unit = "%",
+        help = "Of the label's height; 50 makes a pill.",
+        show_if = { "labels": ["true"] },
+        advanced
+    )]
+    pub label_radius: u32,
+    #[setting(
+        "Labels at",
+        labels = { "top": "Top", "bottom": "Bottom" },
+        show_if = { "labels": ["true"] },
+        advanced
+    )]
+    pub label_position: LabelEdge,
 }
 
 impl Params for BeforeAfter {}
@@ -1766,7 +2073,8 @@ pub struct Magnify {
     #[setting(
         "Size from",
         labels = { "two-boxes": "The two boxes", "area-and-zoom": "The area and a zoom", "shown-and-zoom": "Where it shows and a zoom" },
-        help = "Any two of the area, where it shows and the zoom decide the third. It never shrinks: a view drawn smaller than the area grows to fit it."
+        help = "Any two of the area, where it shows and the zoom decide the third. It never shrinks: a view drawn smaller than the area grows to fit it.",
+        advanced
     )]
     pub size_from: MagnifySize,
     #[setting(
@@ -1791,7 +2099,8 @@ pub struct Magnify {
         range(min = 1, max = 10),
         step = 0.1,
         unit = "×",
-        show_if = { "sizeFrom": ["area-and-zoom", "shown-and-zoom"] }
+        show_if = { "sizeFrom": ["area-and-zoom", "shown-and-zoom"] },
+        advanced
     )]
     pub zoom: f64,
     #[setting("Shape", labels = { "circle": "Circle", "rounded": "Rounded box" })]
@@ -1801,10 +2110,17 @@ pub struct Magnify {
         default = 16,
         range(min = 0, max = 400),
         unit = "px",
-        show_if = { "shape": ["rounded"] }
+        show_if = { "shape": ["rounded"] },
+        advanced
     )]
     pub radius: u32,
-    #[setting("Border width", default = 4, range(min = 0, max = 40), unit = "px")]
+    #[setting(
+        "Border width",
+        default = 4,
+        range(min = 0, max = 40),
+        unit = "px",
+        advanced
+    )]
     pub border_width: u32,
     #[setting("Border colour", default = "#ffffff".to_owned(), widget = "color")]
     pub border_color: String,
@@ -1814,6 +2130,26 @@ pub struct Magnify {
         help = "Outlines the enlarged part and joins it to the view."
     )]
     pub line: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Line width",
+        range(min = 1, max = 40),
+        unit = "px",
+        zero_label = "Half the border",
+        show_if = { "line": ["true"] },
+        "type" = "integer",
+        advanced
+    )]
+    pub line_width: Option<u32>,
+    #[setting(
+        "Quality",
+        default = Resample::Smooth,
+        labels = { "fast": "Fast", "smooth": "Smooth", "sharp": "Sharp" },
+        advanced
+    )]
+    pub quality: Resample,
+    #[setting("Shadow", help = "A soft shadow under the enlarged view.", advanced)]
+    pub shadow: bool,
 }
 
 impl Params for Magnify {}
@@ -1950,7 +2286,8 @@ pub struct CompareScreenshots {
         default = 4,
         range(min = 1, max = 400),
         unit = "px",
-        help = "Changes smaller than this across are left unmarked."
+        help = "Changes smaller than this across are left unmarked.",
+        advanced
     )]
     pub smallest: u32,
     #[setting(
@@ -1958,13 +2295,29 @@ pub struct CompareScreenshots {
         default = 8,
         range(min = 0, max = 100),
         unit = "px",
-        help = "Space around each change. Changes whose boxes touch become one box."
+        help = "Space around each change. Changes whose boxes touch become one box.",
+        advanced
     )]
     pub padding: u32,
-    #[setting("Box width", default = 4, range(min = 1, max = 40), unit = "px")]
+    #[setting(
+        "Box width",
+        default = 4,
+        range(min = 1, max = 40),
+        unit = "px",
+        advanced
+    )]
     pub box_width: u32,
     #[setting("Box colour", default = "#ef4444".to_owned(), widget = "color")]
     pub box_color: String,
+    #[setting(
+        "Unchanged pixels",
+        default = "#00000000",
+        widget = "color",
+        check = colour,
+        help = "What the Differences picture shows where nothing changed.",
+        advanced
+    )]
+    pub differences_background: String,
 }
 
 impl Params for CompareScreenshots {}
@@ -2090,10 +2443,47 @@ pub struct Mark {
         show_if = { "kind": ["step", "text"] }
     )]
     pub weight: u32,
+    #[setting(
+        "Number colour",
+        default = "#ffffff".to_owned(),
+        widget = "color",
+        show_if = { "kind": ["step"] }
+    )]
+    pub text_color: String,
+    #[setting(
+        "Head size",
+        default = 1.0,
+        range(min = 0.3, max = 3),
+        step = 0.1,
+        show_if = { "kind": ["arrow"] }
+    )]
+    pub head_size: f64,
+    #[setting(
+        "Corner radius",
+        range(min = 0, max = 200),
+        unit = "px",
+        show_if = { "kind": ["rectangle"] }
+    )]
+    pub radius: u32,
+    #[setting(
+        "Fill",
+        range(min = 0, max = 1),
+        step = 0.05,
+        help = "How strongly the colour fills the inside.",
+        show_if = { "kind": ["rectangle", "oval"] }
+    )]
+    pub fill: f64,
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "None",
+        show_if = { "kind": ["text"] }
+    )]
+    pub text_background: String,
 }
 
 #[settings]
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Annotate {
     #[setting(
@@ -2103,6 +2493,8 @@ pub struct Annotate {
         help = "Pick a kind and drag on the picture. Step numbers count up in the order they're listed."
     )]
     pub marks: Vec<Mark>,
+    #[setting("First step number", default = 1, range(min = 0, max = 999), advanced)]
+    pub first_step: u32,
 }
 
 impl Params for Annotate {}

@@ -1,6 +1,16 @@
 import { LightLeak } from "@remotion/light-leaks";
-import React from "react";
+import { AbsoluteFill } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
-export const LightLeakElement: React.FC<{ seed: number; hueShift: number }> = (props) => (
-  <LightLeak {...props} />
-);
+export function LightLeakElement({
+  seed,
+  hueShift,
+  strength,
+  blend,
+}: ElementSettings["light-leak"]) {
+  return (
+    <AbsoluteFill style={{ opacity: strength / 100, mixBlendMode: blend }}>
+      <LightLeak seed={seed} hueShift={hueShift} />
+    </AbsoluteFill>
+  );
+}

@@ -1,23 +1,13 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import { useMemo } from "react";
 import { AbsoluteFill, interpolate } from "remotion";
-import {
-  resolveTransitionTiming,
-  transitionPhase,
-  type TransitionVariant,
-} from "#video/lib/transitions/transition-timing.ts";
+import type { ElementSettings, WipeFrom } from "#video/generated/spec.ts";
+import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
-export type FrostedGlassDirection = "from-left" | "from-right" | "from-top" | "from-bottom";
-
-export type FrostedGlassWipeProps = {
-  blur?: number;
-  panelWidth?: number;
-  direction?: FrostedGlassDirection;
-  frostColor?: string;
-};
+type FrostedGlassWipeProps = ElementSettings["frosted-glass-wipe"];
 
 const AXIS: Record<
-  FrostedGlassDirection,
+  WipeFrom,
   { vertical: boolean; gradient: string; near: "left" | "right" | "top" | "bottom" }
 > = {
   "from-left": { vertical: false, gradient: "to right", near: "left" },
@@ -26,19 +16,12 @@ const AXIS: Record<
   "from-bottom": { vertical: true, gradient: "to top", near: "bottom" },
 };
 
-const FrostedGlassWipePresentation: React.FC<
-  React.ComponentProps<NonNullable<TransitionPresentation<FrostedGlassWipeProps>["component"]>>
-> = ({
+function FrostedGlassWipePresentation({
   children,
   presentationProgress,
   presentationDirection,
-  passedProps: {
-    blur = 20,
-    panelWidth = 0.14,
-    direction = "from-left",
-    frostColor = "rgba(255,255,255,0.12)",
-  },
-}) => {
+  passedProps: { blur, panelWidth, direction, frostColor, edgeColor, glow: glowSize },
+}: React.ComponentProps<NonNullable<TransitionPresentation<FrostedGlassWipeProps>["component"]>>) {
   const phase = transitionPhase(presentationProgress, presentationDirection, {
     lead: 1,
   });
@@ -70,7 +53,7 @@ const FrostedGlassWipePresentation: React.FC<
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
     });
-    const edge = `1px solid rgba(255,255,255,${(0.22 * glow).toFixed(3)})`;
+    const edge = `1px solid color-mix(in srgb, ${edgeColor} ${(glow * 100).toFixed(1)}%, transparent)`;
 
     return {
       position: "absolute" as const,
@@ -92,11 +75,11 @@ const FrostedGlassWipePresentation: React.FC<
       backdropFilter: `blur(${blur}px)`,
       WebkitBackdropFilter: `blur(${blur}px)`,
       background: `linear-gradient(${gradient}, transparent, ${frostColor}, transparent)`,
-      boxShadow: `0 0 ${(28 * glow).toFixed(1)}px rgba(255,255,255,${(0.18 * glow).toFixed(3)})`,
+      boxShadow: `0 0 ${(glowSize * glow).toFixed(1)}px rgba(255,255,255,${(0.18 * glow).toFixed(3)})`,
       opacity: glow,
       pointerEvents: "none" as const,
     };
-  }, [blur, frostColor, gradient, near, panelWidth, swept, vertical]);
+  }, [blur, edgeColor, frostColor, glowSize, gradient, near, panelWidth, swept, vertical]);
 
   if (!phase.isEntering) {
     return <AbsoluteFill>{children}</AbsoluteFill>;
@@ -108,43 +91,13 @@ const FrostedGlassWipePresentation: React.FC<
       <div style={panelStyle} />
     </AbsoluteFill>
   );
-};
+}
 
 export function frostedGlassWipe(
-  props: FrostedGlassWipeProps = {},
+  props: FrostedGlassWipeProps,
 ): TransitionPresentation<FrostedGlassWipeProps> {
   return {
     component: FrostedGlassWipePresentation,
     props,
   };
-}
-
-export type TransitionFrostedGlassWipeConfig = {
-  durationInFrames?: number;
-  blur?: number;
-  panelWidth?: number;
-  direction?: FrostedGlassDirection;
-  frostColor?: string;
-  variant?: TransitionVariant;
-};
-
-export function transitionFrostedGlassWipe({
-  durationInFrames = 24,
-  blur = 20,
-  panelWidth = 0.14,
-  direction = "from-left",
-  frostColor = "rgba(255,255,255,0.12)",
-  variant = "editorial",
-}: TransitionFrostedGlassWipeConfig = {}) {
-  return {
-    presentation: frostedGlassWipe({ blur, panelWidth, direction, frostColor }),
-    timing: resolveTransitionTiming({ durationInFrames, variant }),
-  };
-}
-
-export function getTransitionFrostedGlassWipeDuration(
-  config: TransitionFrostedGlassWipeConfig = {},
-  fps: number,
-): number {
-  return transitionFrostedGlassWipe(config).timing.getDurationInFrames({ fps });
 }

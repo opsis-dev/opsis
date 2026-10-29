@@ -1,29 +1,23 @@
 import { Easing, interpolate } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface MaskRevealUpProps {
-  background?: string;
-  fontFamily?: string;
-  text: string;
-  distance?: number;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function MaskRevealUp({
-  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily,
   text,
-  distance = 30,
-  fontSize = 72,
-  color = "#171717",
-  fontWeight = 600,
-  speed = 1,
-  className,
-  background = "transparent",
-}: MaskRevealUpProps) {
+  distance,
+  fontSize,
+  color,
+  fontWeight,
+  speed,
+  background,
+  align,
+  lineStagger,
+  exitDistance,
+  blur: softness,
+  lineHeight,
+}: ElementSettings["mask-reveal-up"]) {
   const frame = useAuthoredFrame() * speed;
   const { durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
@@ -34,7 +28,7 @@ export function MaskRevealUp({
   const enterTravel = 11;
   const exitDur = 16;
   const exitTravelFrom = 8;
-  const enterStagger = 3;
+  const enterStagger = lineStagger;
   const exitStagger = 2;
 
   const enterEasing = Easing.bezier(0.22, 1, 0.36, 1);
@@ -58,15 +52,14 @@ export function MaskRevealUp({
       }}
     >
       <span
-        className={className}
         style={{
           fontSize,
           fontWeight,
           color,
           letterSpacing: "-0.03em",
-          lineHeight: 1.1,
-          textAlign: "center",
-          fontFamily,
+          lineHeight,
+          textAlign: align,
+          fontFamily: fontOr(fontFamily, "main"),
         }}
       >
         {lines.map((line, i) => {
@@ -93,7 +86,7 @@ export function MaskRevealUp({
             easing: enterEasing,
           });
 
-          const yExit = interpolate(exitLocal, [exitTravelFrom, exitDur], [0, -22], {
+          const yExit = interpolate(exitLocal, [exitTravelFrom, exitDur], [0, -exitDistance], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
             easing: exitEasing,
@@ -101,13 +94,13 @@ export function MaskRevealUp({
 
           const y = yEnter + yExit;
 
-          const blurEnter = interpolate(enterLocal, [0, enterDur], [6, 0], {
+          const blurEnter = interpolate(enterLocal, [0, enterDur], [softness, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
             easing: enterEasing,
           });
 
-          const blurExit = interpolate(exitLocal, [0, exitDur], [0, 6], {
+          const blurExit = interpolate(exitLocal, [0, exitDur], [0, softness], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
             easing: exitEasing,

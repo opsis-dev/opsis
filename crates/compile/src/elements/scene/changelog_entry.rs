@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[derive(
@@ -91,8 +91,13 @@ pub struct ChangelogEntry {
         advanced
     )]
     pub stagger_seconds: f64,
-    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
-    pub theme: DarkOrLight,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = code_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting(
         "Speed",
         default = 1.0,
@@ -108,7 +113,7 @@ pub struct ChangelogEntry {
         help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
-    #[setting("Added colour", widget = "color", zero_label = "Default")]
+    #[setting("Added colour", widget = "color", zero_label = "Default", advanced)]
     pub kind_added: String,
     #[setting("Fixed colour", widget = "color", zero_label = "Default")]
     pub kind_fixed: String,
@@ -116,6 +121,25 @@ pub struct ChangelogEntry {
     pub kind_changed: String,
     #[setting("Removed colour", widget = "color", zero_label = "Default")]
     pub kind_removed: String,
+    #[setting("Added tag", default = "Added", advanced)]
+    pub added_label: String,
+    #[setting("Fixed tag", default = "Fixed", advanced)]
+    pub fixed_label: String,
+    #[setting("Changed tag", default = "Changed", advanced)]
+    pub changed_label: String,
+    #[setting("Removed tag", default = "Removed", advanced)]
+    pub removed_label: String,
+    #[setting(
+        "Card width",
+        default = 760,
+        range(min = 320, max = 1600),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub card_width: u32,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {

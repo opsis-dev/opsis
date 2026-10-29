@@ -59,7 +59,10 @@ export function drawn(kind: MarkKind, start: Point, end: Point): MarkPoints | nu
   return { x: unit(start.x), y: unit(start.y), x2: unit(end.x), y2: unit(end.y) };
 }
 
-export function stepNumbers(marks: readonly ParamValues[]): Array<number | undefined> {
-  let count = 0;
-  return marks.map((m) => (kindOf(m) === "step" ? ++count : undefined));
+export function stepNumbers(
+  marks: readonly ParamValues[],
+  first: number,
+): Array<number | undefined> {
+  let next = first;
+  return marks.map((m) => (kindOf(m) === "step" ? next++ : undefined));
 }

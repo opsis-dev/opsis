@@ -1,11 +1,25 @@
-import React from "react";
 import { AbsoluteFill } from "remotion";
 import { VideoElement } from "#video/elements/media/video.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
-export const VideoLoop: React.FC<{ src: string; dim?: number }> = ({ src, dim = 0.3 }) =>
-  src ? (
+export function VideoLoop({
+  src,
+  dim,
+  dimColor,
+  fit,
+  playbackRate,
+  trimBeforeMs,
+}: ElementSettings["video-loop"]) {
+  return src ? (
     <AbsoluteFill>
-      <VideoElement src={src} loop />
-      <AbsoluteFill style={{ background: `rgba(0,0,0,${dim})` }} />
+      <VideoElement
+        src={src}
+        fit={fit}
+        playbackRate={playbackRate}
+        trimBeforeMs={trimBeforeMs}
+        loop
+      />
+      <AbsoluteFill style={{ background: dimColor, opacity: dim }} />
     </AbsoluteFill>
   ) : null;
+}

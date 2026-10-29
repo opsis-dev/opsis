@@ -1,7 +1,7 @@
 use crate::common::{cases, json, number, text, typed, with};
-use opsis_compile::nodes::media::{Dither, ScaleMode};
+use opsis_compile::nodes::media::{JoinFiles, MakeGif, Resize};
 use opsis_media::filters::{
-    JoinPart, JoinSize, atempo_chain, ffmpeg_color, fit_filter, gif_filter, join_filter,
+    GifLook, JoinPart, JoinSize, atempo_chain, ffmpeg_color, fit_filter, gif_filter, join_filter,
     loudnorm_filter, speed_args, speed_sound_args,
 };
 
@@ -14,26 +14,31 @@ fn filters_are_as_recorded() {
         with(case, &[("out", json(ffmpeg_color(text(&case["color"]))))])
     });
     let fit = cases(&f["fit"], |case| {
-        let p = &case["p"];
-        let mode: ScaleMode = typed(&p["mode"]);
+        let p: Resize = typed(&case["p"]);
         let out = fit_filter(
-            mode,
-            number(&p["width"]),
-            number(&p["height"]),
-            text(&p["background"]),
+            p.mode,
+            f64::from(p.width),
+            f64::from(p.height),
+            &p.background,
+            p.anchor,
         );
         with(case, &[("out", json(out))])
     });
     let gif = cases(&f["gif"], |case| {
-        let p = &case["p"];
-        let dither: Dither = typed(&p["dither"]);
-        let out = gif_filter(number(&p["fps"]), number(&p["width"]), dither);
+        let p: MakeGif = typed(&case["p"]);
+        let look = GifLook {
+            dither: p.dither,
+            colours: p.colours,
+            palette_from: p.palette_from,
+        };
+        let out = gif_filter(f64::from(p.fps), f64::from(p.width), &look);
         with(case, &[("out", json(out))])
     });
     let join = cases(&f["join"], |case| {
         let parts: Vec<JoinPart> = typed(&case["parts"]);
         let to: JoinSize = typed(&case["to"]);
-        with(case, &[("out", json(join_filter(&parts, to)))])
+        let background = JoinFiles::default().background;
+        with(case, &[("out", json(join_filter(&parts, to, &background)))])
     });
     let speed = cases(&f["speed"], |case| {
         let o = &case["opts"];
@@ -42,13 +47,13 @@ fn filters_are_as_recorded() {
             "out.mp4",
             number(&o["rate"]),
             number(&o["fps"]),
-            o["sound"] == true,
+            (o["sound"] == true).then_some(true),
         );
         with(case, &[("args", json(out))])
     });
     let speed_sound = cases(&f["speedSound"], |case| {
         let codecs = ["-vn", "-c:a", "aac"].map(str::to_owned);
-        let out = speed_sound_args("in.mp3", "out.mp3", number(&case["rate"]), &codecs);
+        let out = speed_sound_args("in.mp3", "out.mp3", number(&case["rate"]), true, &codecs);
         with(case, &[("args", json(out))])
     });
     let atempo = cases(&f["atempo"], |case| {

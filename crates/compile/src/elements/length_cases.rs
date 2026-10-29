@@ -53,7 +53,9 @@ fn changes(key: &str, defaults: &Map<String, Value>) -> Value {
             "runAnswer": doubled_text(defaults, "runAnswer"),
             "runSteps": appended(defaults, "runSteps", json!({ "name": "Write the summary", "duration": 2 }))
         }),
-        "command-menu" => json!({ "query": "settings" }),
+        "command-menu" => {
+            json!({ "query": "settings", "letterSeconds": 0.15, "pauseSeconds": 1.2 })
+        }
         "punch-lines" => {
             json!({ "script": "One. | Two. | Three. | Four. | Five.", "holds": "1.5, 2" })
         }

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { Box3, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
@@ -12,12 +12,10 @@ import { Posed, Stage3D } from "#video/three/stage.tsx";
 
 const TEXT_SIZE = 2.6;
 const LETTER_EM = 0.6;
-const LINE_HEIGHT_EM = 1.15;
 const DEPTH_EM = 0.6;
 const BEVEL = { thickness: 0.05, size: 0.035, segments: 4 };
 const CURVE_SEGMENTS = 10;
 const ITALIC_SHEAR = 0.2;
-const ROUGHNESS = 0.3;
 const SEED = 1;
 
 type TextLook = {
@@ -29,6 +27,8 @@ type TextLook = {
   align: "center" | "left" | "right";
   lineWidth: number;
   slant: boolean;
+  lineHeight: number;
+  roughness: number;
 };
 
 function textModel(data: FontData, look: TextLook): Group {
@@ -41,7 +41,7 @@ function textModel(data: FontData, look: TextLook): Group {
   const material = new MeshStandardMaterial({
     color: look.color,
     metalness: look.metalness,
-    roughness: ROUGHNESS,
+    roughness: look.roughness,
   });
   const shapes = lines.map((line) => {
     if (!line.trim()) return null;
@@ -74,7 +74,7 @@ function textModel(data: FontData, look: TextLook): Group {
           ? widest / 2 - box.max.x
           : -(box.min.x + box.max.x) / 2;
     const mesh = new Mesh(geometry, material);
-    mesh.position.set(x, -i * LINE_HEIGHT_EM, 0);
+    mesh.position.set(x, -i * look.lineHeight, 0);
     text.add(mesh);
   });
   const model = new Group();
@@ -94,7 +94,7 @@ function dispose(model: Group): void {
 const outlinesFor = (url: string) =>
   url ? loadOutlines(url) : Promise.reject(new Error(FONT_UNREADABLE));
 
-export const Text3D: React.FC<ElementSettings["text-3d"] & Partial<PreparedTypeface>> = ({
+export function Text3D({
   text,
   fontFamily,
   typeface = "",
@@ -111,7 +111,16 @@ export const Text3D: React.FC<ElementSettings["text-3d"] & Partial<PreparedTypef
   speed,
   lighting,
   background,
-}) => {
+  size,
+  lineHeight,
+  roughness,
+  lens,
+  tilt,
+  endFacing,
+  motionAmount,
+  growIn,
+  reverse,
+}: ElementSettings["text-3d"] & Partial<PreparedTypeface>) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const loaded = useHeldLoad(
@@ -124,23 +133,56 @@ export const Text3D: React.FC<ElementSettings["text-3d"] & Partial<PreparedTypef
   const model = useMemo(
     () =>
       outlines
-        ? textModel(outlines, { text, depth, bevel, color, metalness, align, lineWidth, slant })
+        ? textModel(outlines, {
+            text,
+            depth,
+            bevel,
+            color,
+            metalness,
+            align,
+            lineWidth,
+            slant,
+            lineHeight,
+            roughness,
+          })
         : null,
-    [outlines, text, depth, bevel, color, metalness, align, lineWidth, slant],
+    [
+      outlines,
+      text,
+      depth,
+      bevel,
+      color,
+      metalness,
+      align,
+      lineWidth,
+      slant,
+      lineHeight,
+      roughness,
+    ],
   );
   useEffect(() => (model ? () => dispose(model) : undefined), [model]);
-  const pose = elementPose(motion, camera, { frame, fps, speed, seed: SEED });
+  const pose = elementPose(motion, camera, {
+    frame,
+    fps,
+    speed,
+    seed: SEED,
+    tiltDeg: tilt,
+    endFacing,
+    amount: motionAmount,
+    reverse,
+    growIn,
+  });
   const box = useMemo(() => {
     if (!model) return undefined;
-    const size = new Box3().setFromObject(model).getSize(new Vector3());
-    return { width: size.x, height: size.y };
-  }, [model]);
+    const extent = new Box3().setFromObject(model).getSize(new Vector3());
+    return { width: extent.x / size, height: extent.y / size };
+  }, [model, size]);
   if (!model) return null;
   return (
-    <Stage3D lighting={lighting} background={background} box={box}>
+    <Stage3D lighting={lighting} background={background} box={box} fov={lens}>
       <Posed pose={pose}>
         <primitive object={model} />
       </Posed>
     </Stage3D>
   );
-};
+}

@@ -15,12 +15,24 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 pub struct HalftonePrint {
     #[setting("Dot size", default = 10, range(min = 4, max = 32), step = 1)]
     pub dot_size: u32,
-    #[setting("Screen angle", range(min = 0, max = 90), step = 1)]
+    #[setting("Screen angle", range(min = 0, max = 90), step = 1, advanced)]
     pub angle: u32,
-    #[setting("Misregistration", default = 1.2, range(min = 0, max = 6), step = 0.2)]
+    #[setting(
+        "Misregistration",
+        default = 1.2,
+        range(min = 0, max = 6),
+        step = 0.2,
+        advanced
+    )]
     pub misregistration: f64,
     #[setting("Paper", default = "#f4efe4", check = colour)]
     pub paper_tint: String,
+    #[setting("Cyan ink", default = "#14e0fa", widget = "color", check = colour, advanced)]
+    pub cyan_ink: String,
+    #[setting("Magenta ink", default = "#e61ff0", widget = "color", check = colour, advanced)]
+    pub magenta_ink: String,
+    #[setting("Yellow ink", default = "#f7e61a", widget = "color", check = colour, advanced)]
+    pub yellow_ink: String,
 }
 
 pub fn definition() -> ElementMeta {

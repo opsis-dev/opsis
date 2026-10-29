@@ -70,7 +70,7 @@ function unitStyle(effect: SplitTextEffect, unit: SplitUnitState, travel: number
   };
 }
 
-export const SplitTextChars: React.FC<SplitTextCharsProps> = ({
+export function SplitTextChars({
   text,
   mode = "chars",
   order = "start",
@@ -88,7 +88,7 @@ export const SplitTextChars: React.FC<SplitTextCharsProps> = ({
   style,
   className,
   ...timing
-}) => {
+}: SplitTextCharsProps) {
   const { width } = useVideoConfig();
   const fontSize = fontSizeProp ?? scaleFont(84, width);
   const { lines } = useSplitText({ text, mode, order, ...timing });
@@ -138,4 +138,4 @@ export const SplitTextChars: React.FC<SplitTextCharsProps> = ({
       ))}
     </span>
   );
-};
+}

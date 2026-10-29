@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { resolveAnnotations, toClickLog } from "#video/camera/action-log.ts";
-import { buildCameraTrack, clusterize, sampleTrack } from "#video/camera/lib/camera-track.ts";
+import {
+  buildCameraTrack,
+  type CameraTuning,
+  clusterize,
+  sampleTrack,
+  NO_TUNING,
+  tunedFrom,
+} from "#video/camera/lib/camera-track.ts";
 import { BASE_POSE } from "#video/camera/lib/camera.ts";
 import { isInFrame } from "#video/camera/lib/test-fixtures.ts";
 import { rectCenter } from "#video/common/geometry.ts";
@@ -110,15 +117,17 @@ describe("ActionLog → ClickLog", () => {
       "groups",
     ).clicks;
     expect(clicks.map((c) => c.cluster)).toEqual(["a", undefined, undefined]);
-    expect(clusterize(clicks, log.viewport).map((g) => g.length)).toEqual([1, 2]);
+    expect(clusterize(clicks, log.viewport, tunedFrom(NO_TUNING)).map((g) => g.length)).toEqual([
+      1, 2,
+    ]);
   });
 
   it("drives a camera track that leaves and returns to base", () => {
     const cl = toClickLog(log, "demo");
     const track = buildCameraTrack(cl, 1, {});
-    expect(sampleTrack(track, 0)).toEqual(BASE_POSE);
-    expect(sampleTrack(track, 2.6).scale).toBeGreaterThan(1.1);
-    expect(sampleTrack(track, 9).scale).toBeCloseTo(1, 5);
+    expect(sampleTrack(track, 0, NO_TUNING)).toEqual(BASE_POSE);
+    expect(sampleTrack(track, 2.6, NO_TUNING).scale).toBeGreaterThan(1.1);
+    expect(sampleTrack(track, 9, NO_TUNING).scale).toBeCloseTo(1, 5);
   });
 
   it("honours the Auto zoom tuning", () => {
@@ -127,6 +136,24 @@ describe("ActionLog → ClickLog", () => {
     const tight = Math.max(...buildCameraTrack(cl, 1, { sMax: 1.2 }).map((k) => k.pose.scale));
     expect(tight).toBeLessThanOrEqual(1.2);
     expect(loose).toBeGreaterThan(tight);
+  });
+
+  it("gives the target more room, waits longer and moves slower when tuned to", () => {
+    const cl = toClickLog(log, "demo");
+    const most = (tuning: CameraTuning) =>
+      Math.max(...buildCameraTrack(cl, 1, tuning).map((k) => k.pose.scale));
+    expect(most({ roomPx: 300, firstMaxScale: 2.5 })).toBeLessThan(most({ firstMaxScale: 2.5 }));
+    const last = (tuning: CameraTuning) => {
+      const keys = buildCameraTrack(cl, 1, tuning);
+      return keys[keys.length - 1].t;
+    };
+    expect(last({ pace: 2 })).toBeGreaterThanOrEqual(last({}));
+    const keys = buildCameraTrack(cl, 1, {});
+    const moving = keys.findIndex((k, i) => i > 0 && k.pose.scale !== keys[i - 1].pose.scale);
+    const quarter = keys[moving - 1].t + (keys[moving].t - keys[moving - 1].t) / 4;
+    const halfway = (easing: CameraTuning["easing"]) =>
+      sampleTrack(keys, quarter, { easing }).scale;
+    expect(halfway("linear")).not.toBe(halfway("snappy"));
   });
 
   it("pins annotations to matching beats", () => {
@@ -199,7 +226,7 @@ describe("ActionLog → ClickLog", () => {
     const drop = { x: 700, y: 320, w: 200, h: 200 };
     const track = buildCameraTrack(toClickLog(dragLog(drop), "d"), 1, {});
     for (const t of [3, 3.5, 4]) {
-      const pose = sampleTrack(track, t);
+      const pose = sampleTrack(track, t, NO_TUNING);
       expect(pose.scale).toBeGreaterThan(1.05);
       for (const r of [pick, drop]) {
         expect(isInFrame(pose, log.viewport, r.x, r.y)).toBe(true);

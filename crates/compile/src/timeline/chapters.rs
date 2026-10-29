@@ -15,9 +15,8 @@ pub struct FilmChapter {
 
 const MIN_CHAPTER_MS: f64 = 10_000.0;
 pub const MIN_LISTED_CHAPTERS: usize = 3;
-const OPENING_TITLE: &str = "Intro";
 
-pub fn film_chapters(spec: &TimelineSpec) -> Vec<FilmChapter> {
+pub fn film_chapters(spec: &TimelineSpec, opening: &str) -> Vec<FilmChapter> {
     let duration_ms = frames_to_ms(spec.duration_in_frames, spec.fps);
     let mut starts: Vec<(String, f64)> = flatten_spec(spec)
         .marks
@@ -31,7 +30,7 @@ pub fn film_chapters(spec: &TimelineSpec) -> Vec<FilmChapter> {
         return Vec::new();
     };
     if first.1 >= MIN_CHAPTER_MS {
-        starts.insert(0, (OPENING_TITLE.to_owned(), 0.0));
+        starts.insert(0, (opening.to_owned(), 0.0));
     } else {
         first.1 = 0.0;
     }

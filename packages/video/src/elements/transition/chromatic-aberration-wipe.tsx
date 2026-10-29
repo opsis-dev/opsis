@@ -1,19 +1,10 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import { useId, useMemo } from "react";
 import { AbsoluteFill, interpolate } from "remotion";
-import {
-  resolveTransitionTiming,
-  transitionPhase,
-  type TransitionVariant,
-} from "#video/lib/transitions/transition-timing.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
-export type ChromaticAberrationAxis = "horizontal" | "vertical";
-
-export type ChromaticAberrationWipeProps = {
-  intensity?: number;
-  axis?: ChromaticAberrationAxis;
-  slide?: number;
-};
+type ChromaticAberrationWipeProps = ElementSettings["chromatic-aberration-wipe"];
 
 const CHANNEL_MATRIX = {
   red: "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0",
@@ -27,19 +18,18 @@ const CHANNEL_OFFSET: Record<keyof typeof CHANNEL_MATRIX, number> = {
   blue: -1,
 };
 
-const ChromaticPresentation: React.FC<
-  React.ComponentProps<
-    NonNullable<TransitionPresentation<ChromaticAberrationWipeProps>["component"]>
-  >
-> = ({
+function ChromaticPresentation({
   children,
   presentationProgress,
   presentationDirection,
-  passedProps: { intensity = 12, axis = "horizontal", slide = 1 },
-}) => {
+  passedProps: { intensity, axis, slide, fade },
+}: React.ComponentProps<
+  NonNullable<TransitionPresentation<ChromaticAberrationWipeProps>["component"]>
+>) {
   const filterId = useId().replace(/:/g, "");
   const phase = transitionPhase(presentationProgress, presentationDirection, {
     lead: 1,
+    fade,
   });
 
   const separation = interpolate(phase.displace, [0, 0.5, 1], [0, intensity, 0], {
@@ -97,40 +87,10 @@ const ChromaticPresentation: React.FC<
       ))}
     </AbsoluteFill>
   );
-};
+}
 
 export function chromaticAberrationWipe(
-  props: ChromaticAberrationWipeProps = {},
+  props: ChromaticAberrationWipeProps,
 ): TransitionPresentation<ChromaticAberrationWipeProps> {
   return { component: ChromaticPresentation, props };
-}
-
-export type TransitionChromaticAberrationWipeConfig = {
-  durationInFrames?: number;
-  intensity?: number;
-  axis?: ChromaticAberrationAxis;
-  slide?: number;
-  variant?: TransitionVariant;
-};
-
-export function transitionChromaticAberrationWipe({
-  durationInFrames = 14,
-  intensity = 12,
-  axis = "horizontal",
-  slide = 1,
-  variant = "editorial",
-}: TransitionChromaticAberrationWipeConfig = {}) {
-  return {
-    presentation: chromaticAberrationWipe({ intensity, axis, slide }),
-    timing: resolveTransitionTiming({ durationInFrames, variant }),
-  };
-}
-
-export function getTransitionChromaticAberrationWipeDuration(
-  config: TransitionChromaticAberrationWipeConfig = {},
-  fps: number,
-): number {
-  return transitionChromaticAberrationWipe(config).timing.getDurationInFrames({
-    fps,
-  });
 }

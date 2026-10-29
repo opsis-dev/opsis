@@ -1,9 +1,6 @@
-import { AbsoluteFill, Audio, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
-import type { ElementProps } from "#video/common/spec.ts";
-import {
-  type LaunchAnythingProps,
-  resolveLaunchProps,
-} from "#video/elements/scene/launch-anything/content.ts";
+import { useMemo } from "react";
+import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
+import { launchScene } from "#video/elements/scene/launch-anything/content.ts";
 import { LAUNCH_FPS, launchTimeline } from "#video/elements/scene/launch-anything/motion.ts";
 import { Action } from "#video/elements/scene/launch-anything/scenes/action.tsx";
 import { Address, ClosingMark } from "#video/elements/scene/launch-anything/scenes/closing.tsx";
@@ -13,15 +10,8 @@ import { Portal } from "#video/elements/scene/launch-anything/scenes/portal.tsx"
 import { Proof } from "#video/elements/scene/launch-anything/scenes/proof.tsx";
 import { Showcase } from "#video/elements/scene/launch-anything/scenes/showcase.tsx";
 import { Space } from "#video/elements/scene/launch-anything/scenes/space.tsx";
-import { listsFrom, nestedFrom } from "#video/lib/settings/shape.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
-export { launchMedia } from "#video/elements/scene/launch-anything/assets.ts";
-export type {
-  LaunchAnythingProps,
-  LaunchContent,
-  LaunchMedia,
-} from "#video/elements/scene/launch-anything/content.ts";
-export { launchContent } from "#video/elements/scene/launch-anything/content.ts";
 export {
   LAUNCH_FPS,
   launchTimeline,
@@ -40,20 +30,19 @@ const scenes = {
   mark: ClosingMark,
 };
 
-function LaunchAnythingView(props: LaunchAnythingProps) {
+export function LaunchAnything(settings: ElementSettings["launch-anything"]) {
   const frame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
-  const scene = resolveLaunchProps(props);
+  const scene = useMemo(() => launchScene(settings), [settings]);
   const scale = Math.min(width / 480, height / 270);
-  const volume = Number.isFinite(props.volume) ? Math.min(1, Math.max(0, props.volume ?? 1)) : 1;
   return (
     <AbsoluteFill
       name="Product Showcase"
       style={{
-        background: "#122d24",
-        color: "#fff",
+        background: scene.palette.night,
+        color: scene.palette.lightText,
         overflow: "hidden",
-        fontFamily: "Manrope, sans-serif",
+        fontFamily: scene.look.font,
         WebkitFontSmoothing: "antialiased",
       }}
     >
@@ -87,44 +76,6 @@ function LaunchAnythingView(props: LaunchAnythingProps) {
           );
         })}
       </div>
-      {props.audioSrc?.trim() ? <Audio src={props.audioSrc} volume={volume} /> : null}
     </AbsoluteFill>
   );
-}
-
-export function LaunchAnything(props: ElementProps) {
-  const settings = nestedFrom(listsFrom(props, { logoImages: { image: "logos" } }), {
-    copyReady: "content.ready",
-    copyNext: "content.next",
-    copyAction: "content.action",
-    copyProof: "content.proof",
-    copyIndustry: "content.industry",
-    copyPromise: "content.promise",
-    copyLaunch: "content.launch",
-    copyShoppers: "content.shoppers",
-    copyShopName: "content.shopName",
-    copyShopHeadline: "content.shopHeadline",
-    copyShopDetail: "content.shopDetail",
-    copyShopAction: "content.shopAction",
-    copyBuilder: "content.builder",
-    copyBuilderPrompt: "content.builderPrompt",
-    copyTrading: "content.trading",
-    copyLoyalty: "content.loyalty",
-    copyLoyaltyPayoff: "content.loyaltyPayoff",
-    copyIntegration: "content.integration",
-    copyConnections: "content.connections",
-    copyIntegrations: "content.integrations",
-    screenDashboard: "screenImages.dashboard",
-    screenShoppers: "screenImages.shoppers",
-    screenExchange: "screenImages.exchange",
-    screenBuilder: "screenImages.builder",
-    screenTrading: "screenImages.trading",
-    screenLoyalty: "screenImages.loyalty",
-    screenIntegrations: "screenImages.integrations",
-    photoDesk: "media.desk",
-    photoHorizon: "media.horizon",
-    photoRocket: "media.rocket",
-    photoEarth: "media.earth",
-  });
-  return <LaunchAnythingView {...(settings as unknown as LaunchAnythingProps)} />;
 }

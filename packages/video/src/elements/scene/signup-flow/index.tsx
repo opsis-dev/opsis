@@ -1,6 +1,6 @@
-import type React from "react";
-import { type ElementProps } from "#video/common/spec.ts";
-import { isTheme, themeColors } from "#video/common/theme.ts";
+import type { CSSProperties } from "react";
+import { fontOr } from "#video/common/fonts.ts";
+import { themeColors } from "#video/common/theme.ts";
 import { BlurIn } from "#video/elements/scene/signup-flow/blur-in.tsx";
 import { Cursor } from "#video/elements/scene/signup-flow/cursor.tsx";
 import {
@@ -12,6 +12,7 @@ import {
 } from "#video/elements/scene/signup-flow/field.tsx";
 import { useBlurInTransition } from "#video/elements/scene/signup-flow/use-blur-in-transition.ts";
 import { useCursorPath } from "#video/elements/scene/signup-flow/use-cursor-path.ts";
+import type { Corner, ElementSettings } from "#video/generated/spec.ts";
 import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 import {
   NeutralUIProvider,
@@ -25,18 +26,16 @@ import { useButtonTransition } from "#video/parts/use-button-transition.ts";
 import { useInputTransition } from "#video/parts/use-input-transition.ts";
 import { useToastTransition } from "#video/parts/use-toast-transition.ts";
 
-export interface SignupFlowProps {
-  title?: string;
-  description?: string;
-  fullName?: string;
-  email?: string;
-  password?: string;
-  createLabel?: string;
-  googleLabel?: string;
-  signinText?: string;
-  toastTitle?: string;
+type SignupFlowViewProps = Omit<ElementSettings["signup-flow"], "theme"> & {
   theme?: Partial<NeutralTheme>;
-}
+};
+
+const NOTICE_PLACE: Record<Corner, CSSProperties> = {
+  "bottom-left": { left: 32, bottom: 32 },
+  "bottom-right": { right: 32, bottom: 32 },
+  "top-left": { left: 32, top: 32 },
+  "top-right": { right: 32, top: 32 },
+};
 
 const STAGE_W = 1280;
 const CARD_W = 376;
@@ -51,38 +50,59 @@ const CONFIRM_Y = 500;
 const CREATE_Y = 564;
 
 function SignupFlowView({
-  title = "Create an account",
-  description = "Enter your information below to create your account",
-  fullName = "John Doe",
-  email = "m@example.com",
-  password = "••••••••",
-  createLabel = "Create account",
-  toastTitle = "Account created",
+  title,
+  description,
+  fullName,
+  email,
+  password,
+  createLabel,
+  toastTitle,
   theme,
-}: SignupFlowProps) {
+  nameLabel,
+  emailLabel,
+  emailHelp,
+  passwordLabel,
+  passwordHelp,
+  confirmLabel,
+  speed,
+  loadingSeconds: loading,
+  noticeSeconds: notice,
+  cursorShape,
+  cursorSize,
+  noticeCorner,
+  radius,
+  fontFamily,
+  backgroundColor,
+}: SignupFlowViewProps) {
   const resolved = useNeutralTheme(theme);
-  const opts = { theme };
+  const opts = { theme, speed };
+  const blur = { speed };
 
   const cardEnter = useBlurInTransition([{ at: 0, state: "revealed", duration: 18 }], {
     distance: 0,
+    speed,
   });
-  const enterHeader = useBlurInTransition([{ at: 18, state: "revealed", duration: 16 }]);
-  const enterName = useBlurInTransition([{ at: 24, state: "revealed", duration: 16 }]);
-  const enterEmail = useBlurInTransition([{ at: 30, state: "revealed", duration: 16 }]);
-  const enterPass = useBlurInTransition([{ at: 36, state: "revealed", duration: 16 }]);
-  const enterConfirm = useBlurInTransition([{ at: 42, state: "revealed", duration: 16 }]);
-  const enterButton = useBlurInTransition([{ at: 48, state: "revealed", duration: 16 }]);
+  const enterHeader = useBlurInTransition([{ at: 18, state: "revealed", duration: 16 }], blur);
+  const enterName = useBlurInTransition([{ at: 24, state: "revealed", duration: 16 }], blur);
+  const enterEmail = useBlurInTransition([{ at: 30, state: "revealed", duration: 16 }], blur);
+  const enterPass = useBlurInTransition([{ at: 36, state: "revealed", duration: 16 }], blur);
+  const enterConfirm = useBlurInTransition([{ at: 42, state: "revealed", duration: 16 }], blur);
+  const enterButton = useBlurInTransition([{ at: 48, state: "revealed", duration: 16 }], blur);
 
   const DEMO = 48;
+  const successAt = 192 + DEMO + loading;
 
-  const cursorStyle = useCursorPath([
-    { at: 0, x: 160, y: 120 },
-    { at: 18 + DEMO, x: CENTER_X, y: NAME_Y, duration: 18, click: true },
-    { at: 52 + DEMO, x: CENTER_X, y: EMAIL_Y, duration: 30, click: true },
-    { at: 96 + DEMO, x: CENTER_X, y: PASS_Y, duration: 40, click: true },
-    { at: 134 + DEMO, x: CENTER_X, y: CONFIRM_Y, duration: 32, click: true },
-    { at: 176 + DEMO, x: CENTER_X, y: CREATE_Y, duration: 38, click: true },
-  ]);
+  const cursorStyle = useCursorPath(
+    [
+      { at: 0, x: 160, y: 120 },
+      { at: 18 + DEMO, x: CENTER_X, y: NAME_Y, duration: 18, click: true },
+      { at: 52 + DEMO, x: CENTER_X, y: EMAIL_Y, duration: 30, click: true },
+      { at: 96 + DEMO, x: CENTER_X, y: PASS_Y, duration: 40, click: true },
+      { at: 134 + DEMO, x: CENTER_X, y: CONFIRM_Y, duration: 32, click: true },
+      { at: 176 + DEMO, x: CENTER_X, y: CREATE_Y, duration: 38, click: true },
+    ],
+    { speed },
+  );
 
   const nameStyle = useInputTransition(
     [
@@ -122,17 +142,17 @@ function SignupFlowView({
       { at: 176 + DEMO, state: "hover", duration: 8 },
       { at: 186 + DEMO, state: "press", duration: 6 },
       { at: 192 + DEMO, state: "loading", duration: 6 },
-      { at: 234 + DEMO, state: "success", duration: 16 },
+      { at: successAt, state: "success", duration: 16 },
     ],
     opts,
   );
 
   const toastStyle = useToastTransition(
     [
-      { at: 234 + DEMO, state: "visible", duration: 14 },
-      { at: 300 + DEMO, state: "hidden", duration: 14 },
+      { at: successAt, state: "visible", duration: 14 },
+      { at: successAt + notice, state: "hidden", duration: 14 },
     ],
-    {},
+    { speed },
   );
 
   return (
@@ -141,8 +161,8 @@ function SignupFlowView({
         position: "relative",
         width: "100%",
         height: "100%",
-        background: "transparent",
-        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        background: backgroundColor || "transparent",
+        fontFamily: fontOr(fontFamily, "main"),
       }}
     >
       <div
@@ -159,7 +179,7 @@ function SignupFlowView({
           gap: 24,
           background: resolved.background,
           border: `1px solid ${resolved.border}`,
-          borderRadius: 14,
+          borderRadius: radius + 4,
           boxShadow: "0 10px 30px -12px rgba(0,0,0,0.22), 0 2px 8px -3px rgba(0,0,0,0.10)",
           opacity: cardEnter.opacity,
           filter: cardEnter.blur > 0 ? `blur(${cardEnter.blur}px)` : "none",
@@ -193,7 +213,7 @@ function SignupFlowView({
         <FieldGroup gap={16}>
           <BlurIn display="block" style={enterName}>
             <Field>
-              <FieldLabel theme={theme}>Full Name</FieldLabel>
+              <FieldLabel theme={theme}>{nameLabel}</FieldLabel>
               <FieldControl>
                 <Input placeholder={fullName} value={fullName} style={nameStyle} theme={theme} />
               </FieldControl>
@@ -202,27 +222,27 @@ function SignupFlowView({
 
           <BlurIn display="block" style={enterEmail}>
             <Field>
-              <FieldLabel theme={theme}>Email</FieldLabel>
+              <FieldLabel theme={theme}>{emailLabel}</FieldLabel>
               <FieldControl>
                 <Input placeholder={email} value={email} style={emailStyle} theme={theme} />
               </FieldControl>
-              <FieldDescription theme={theme}>We'll use this to contact you.</FieldDescription>
+              <FieldDescription theme={theme}>{emailHelp}</FieldDescription>
             </Field>
           </BlurIn>
 
           <BlurIn display="block" style={enterPass}>
             <Field>
-              <FieldLabel theme={theme}>Password</FieldLabel>
+              <FieldLabel theme={theme}>{passwordLabel}</FieldLabel>
               <FieldControl>
                 <Input placeholder={password} value={password} style={passStyle} theme={theme} />
               </FieldControl>
-              <FieldDescription theme={theme}>Must be at least 8 characters long.</FieldDescription>
+              <FieldDescription theme={theme}>{passwordHelp}</FieldDescription>
             </Field>
           </BlurIn>
 
           <BlurIn display="block" style={enterConfirm}>
             <Field>
-              <FieldLabel theme={theme}>Confirm Password</FieldLabel>
+              <FieldLabel theme={theme}>{confirmLabel}</FieldLabel>
               <FieldControl>
                 <Input placeholder={password} value={password} style={confirmStyle} theme={theme} />
               </FieldControl>
@@ -239,31 +259,24 @@ function SignupFlowView({
         </BlurIn>
       </div>
 
-      <div style={{ position: "absolute", right: 32, bottom: 32 }}>
+      <div style={{ position: "absolute", ...NOTICE_PLACE[noticeCorner] }}>
         <Toast title={toastTitle} variant="success" style={toastStyle} theme={theme} />
       </div>
 
-      <Cursor style={cursorStyle} variant="pointer" theme={theme} />
+      <Cursor style={cursorStyle} variant={cursorShape} size={cursorSize} theme={theme} />
     </div>
   );
 }
 
-export function SignupFlow(props: ElementProps & { children?: React.ReactNode }) {
-  const { theme } = props;
-  if (!isTheme(theme))
-    return (
-      <SignupFlowView {...(props as unknown as React.ComponentProps<typeof SignupFlowView>)} />
-    );
+export function SignupFlow({ theme, radius, ...settings }: ElementSettings["signup-flow"]) {
   const tokens = {
     ...(theme.mode === "dark" ? defaultDarkTheme : defaultLightTheme),
     ...themeColors(theme),
+    radius,
   };
   return (
     <NeutralUIProvider mode={theme.mode} theme={tokens}>
-      <SignupFlowView
-        {...(props as unknown as React.ComponentProps<typeof SignupFlowView>)}
-        theme={tokens}
-      />
+      <SignupFlowView {...settings} radius={radius} theme={tokens} />
     </NeutralUIProvider>
   );
 }

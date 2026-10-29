@@ -1,4 +1,4 @@
-import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { type SceneProps, tint } from "#video/elements/scene/launch-anything/content.ts";
 import { tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { Center, RevealCopy } from "#video/elements/scene/launch-anything/ui.tsx";
 
@@ -11,8 +11,8 @@ export function Industry({ scene, t }: SceneProps) {
       style={{
         position: "absolute",
         inset: 0,
-        background: "#122d24",
-        color: "#f7f1e4",
+        background: scene.palette.night,
+        color: scene.palette.lightText,
         overflow: "hidden",
       }}
     >
@@ -32,7 +32,7 @@ export function Industry({ scene, t }: SceneProps) {
             key={i}
             d={`M${-70 + i * 21} 310V${90 - i * 22}Q${240} ${-140 - i * 24} ${550 - i * 21} ${90 - i * 22}V310`}
             fill="none"
-            stroke={i % 2 ? "#b6c7ad" : "#688d73"}
+            stroke={i % 2 ? tint(scene.palette.sage, 55) : tint(scene.palette.sage, 20)}
             strokeWidth={0.7}
             opacity={0.12 + i * 0.04}
           />
@@ -44,6 +44,7 @@ export function Industry({ scene, t }: SceneProps) {
         }}
       >
         <RevealCopy
+          scene={scene}
           text={second ? scene.content.promise : scene.content.industry}
           t={t}
           start={start}

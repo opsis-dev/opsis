@@ -24,10 +24,25 @@ pub struct Video {
     pub muted: bool,
     #[setting("Volume", default = 1.0, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
-    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.05)]
+    #[setting(
+        "Speed",
+        default = 1.0,
+        range(min = 0.25, max = 4),
+        step = 0.05,
+        advanced
+    )]
     pub playback_rate: f64,
     #[setting("Start at", range(min = 0, max = 3600000), step = 100, unit = "ms")]
     pub trim_before_ms: u32,
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "None",
+        check = colour_or_empty,
+        help = "Shows around the video when Fit leaves room.",
+        advanced
+    )]
+    pub background: String,
 }
 
 pub fn definition() -> ElementMeta {

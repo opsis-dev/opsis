@@ -59,6 +59,62 @@ pub struct Captions {
         help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
+    #[setting("Words per line", default = 6, range(min = 1, max = 20), step = 1)]
+    pub words_per_line: u32,
+    #[setting(
+        "Stay after the last word",
+        default = 250,
+        range(min = 0, max = 2000),
+        step = 50,
+        unit = "ms",
+        advanced
+    )]
+    pub linger_ms: u32,
+    #[setting(
+        "Distance from the edge",
+        default = 90,
+        range(min = 0, max = 400),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub edge_offset: u32,
+    #[setting(
+        "Side margin",
+        default = 10.0,
+        range(min = 0, max = 40),
+        unit = "%",
+        advanced
+    )]
+    pub side_margin: f64,
+    #[setting(
+        "Panel padding",
+        default = 22,
+        range(min = 0, max = 80),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub panel_padding: u32,
+    #[setting(
+        "Panel corners",
+        default = 16,
+        range(min = 0, max = 60),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub panel_radius: u32,
+    #[setting("Text shadow", default = true, advanced)]
+    pub text_shadow: bool,
+    #[setting(
+        "Unspoken words",
+        default = 55.0,
+        range(min = 0, max = 100),
+        unit = "%",
+        advanced
+    )]
+    pub unspoken_opacity: f64,
 }
 
 impl crate::params::Params for Captions {}

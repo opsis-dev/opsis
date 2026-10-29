@@ -1,19 +1,17 @@
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
 import { fitHeadline } from "#video/elements/scene/data-story/text-fit-utils.ts";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-
-const fontFamily = '"Inter"';
 
 export type CaptionBumperProps = {
   text: string;
   eyebrow?: string;
-  maxFontSize?: number;
+  maxFontSize: number;
   holdSeconds?: number;
   backgroundColor?: string;
-  accentColor?: string;
-  theme?: "dark" | "light";
+  accentColor: string;
+  look: StoryLook;
   speed?: number;
 };
 
@@ -33,19 +31,19 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-export const CaptionBumper: React.FC<CaptionBumperProps> = ({
+export function CaptionBumper({
   text,
   eyebrow,
-  maxFontSize = 84,
+  maxFontSize,
   holdSeconds,
   backgroundColor,
-  accentColor = "#F472B6",
-  theme = "dark",
+  accentColor,
+  look,
   speed = 1,
-}) => {
+}: CaptionBumperProps) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = look.palette;
   const safe = getSafeAreaPadding({ width, height });
 
   const at = (seconds: number) => (seconds * fps) / speed;
@@ -65,7 +63,7 @@ export const CaptionBumper: React.FC<CaptionBumperProps> = ({
   const fontSize = fitHeadline({
     text,
     maxWidth: stage.w,
-    maxFontSize: maxFontSize * u,
+    maxFontSize: maxFontSize * look.textSize * u,
     minFontSize: 30 * u,
   });
 
@@ -89,7 +87,7 @@ export const CaptionBumper: React.FC<CaptionBumperProps> = ({
         width,
         height,
         background: backgroundColor ?? palette.page,
-        fontFamily,
+        fontFamily: look.font,
         position: "relative",
         overflow: "hidden",
         display: "grid",
@@ -100,7 +98,7 @@ export const CaptionBumper: React.FC<CaptionBumperProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 70% 55% at 50% 50%, color-mix(in srgb, ${accentColor} 13%, transparent), transparent 72%)`,
+          background: `radial-gradient(ellipse 70% 55% at 50% 50%, color-mix(in srgb, ${accentColor} ${13 * look.glow}%, transparent), transparent 72%)`,
           clipPath: `inset(${(1 - ground) * 50}% 0 ${(1 - ground) * 50}% 0)`,
           opacity: 1 - exit,
         }}
@@ -125,8 +123,8 @@ export const CaptionBumper: React.FC<CaptionBumperProps> = ({
               color: accentColor,
               fontSize: 22 * u,
               fontWeight: 600,
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
+              letterSpacing: look.eyebrowCaps ? "0.16em" : undefined,
+              textTransform: look.eyebrowCaps ? "uppercase" : "none",
               opacity: eyebrowIn,
               translate: `0 ${(1 - eyebrowIn) * 10 * u}px`,
             }}
@@ -179,4 +177,4 @@ export const CaptionBumper: React.FC<CaptionBumperProps> = ({
       </div>
     </div>
   );
-};
+}

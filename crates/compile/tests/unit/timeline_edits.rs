@@ -438,7 +438,7 @@ fn splits_in_place_inside_a_sequence_with_a_transition_keeping_each_cut_on_its_c
         param(&next, "timeline.sequence", "cuts"),
         Some(&json!([
             { "before": "in4", "transition": "wipe", "transitionDuration": 20, "keepWhole": false },
-            { "before": "in2", "transition": "none", "transitionDuration": 15, "keepWhole": false },
+            { "before": "in2", "transition": "none", "transitionDuration": 15, "keepWhole": false, "easing": "linear" },
         ]))
     );
     let after = flat_film(&next);

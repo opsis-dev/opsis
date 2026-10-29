@@ -6,6 +6,7 @@ use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
+use crate::elements::shared::VerticalDirection;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -16,9 +17,15 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 pub struct WaveWipe {
     #[setting("Intensity", default = 0.2, range(min = 0, max = 1), step = 0.05)]
     pub intensity: f64,
-    #[setting("Softness", default = 0.7, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Softness",
+        default = 0.7,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub softness: f64,
-    #[setting("Noise", default = 0.4, range(min = 0, max = 1), step = 0.05)]
+    #[setting("Noise", default = 0.4, range(min = 0, max = 1), step = 0.05, advanced)]
     pub noise: f64,
     #[setting("Background", default = "#141318", check = colour)]
     pub color_back: String,
@@ -44,6 +51,12 @@ pub struct WaveWipe {
         advanced
     )]
     pub zoom: f64,
+    #[setting(
+        "Direction",
+        default = VerticalDirection::Up,
+        labels = { "up": "Up", "down": "Down" }
+    )]
+    pub direction: VerticalDirection,
 }
 
 pub fn definition() -> ElementMeta {

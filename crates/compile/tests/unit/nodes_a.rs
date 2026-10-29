@@ -917,7 +917,7 @@ fn puts_blur_areas_on_the_take_and_adds_them_up_across_nodes() {
     let props = blurred(&[json!({ "strength": 0.5, "softness": 0, "roundness": 0.2 })]);
     assert_eq!(
         props["blurAreas"],
-        json!([{ "x": 0.62, "y": 0.06, "width": 0.3, "height": 0.08, "strength": 0.02, "softness": 0.0, "roundness": 0.2 }])
+        json!([{ "x": 0.62, "y": 0.06, "width": 0.3, "height": 0.08, "strength": 0.02, "softness": 0.0, "roundness": 0.2, "fadeMs": 200.0 }])
     );
     let props = blurred(&[
         json!({ "fromMs": 1000, "untilMs": 2000 }),
@@ -1043,6 +1043,7 @@ fn pace(words_per_minute: f64, start_ms: f64, line_pause_ms: f64) -> ScriptPace 
         words_per_minute,
         start_ms,
         line_pause_ms,
+        paragraph_pause_ms: line_pause_ms * 2.0,
     }
 }
 

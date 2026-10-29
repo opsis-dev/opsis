@@ -21,7 +21,10 @@ pub struct ReleaseTeaser {
     pub tagline: String,
     #[setting("Mark and dimensional edge lighting", default = "#9BC8DD", check = colour)]
     pub accent_color: String,
-    #[setting("Static mark and complete statements, without camera motion or blur")]
+    #[setting(
+        "Static mark and complete statements, without camera motion or blur",
+        advanced
+    )]
     pub reduced_motion: bool,
     #[setting(
         "Statements",
@@ -38,13 +41,13 @@ pub struct ReleaseTeaser {
     pub statements: Vec<String>,
     #[setting("Logo", widget = "asset", accept = "image/*", zero_label = "Name only")]
     pub logo_src: String,
-    #[setting("Background", widget = "color", zero_label = "Default")]
+    #[setting("Background", default = "#050709", check = colour)]
     pub theme_background: String,
-    #[setting("Panel colour", widget = "color", zero_label = "Default")]
+    #[setting("Panel colour", default = "#151C22", check = colour)]
     pub theme_surface: String,
-    #[setting("Text colour", widget = "color", zero_label = "Default")]
+    #[setting("Text colour", default = "#F2F5F7", check = colour)]
     pub theme_foreground: String,
-    #[setting("Soft text colour", widget = "color", zero_label = "Default")]
+    #[setting("Soft text colour", default = "#A4ADB5", check = colour)]
     pub theme_muted: String,
     #[setting("Light", default = 1.0, range(min = 0, max = 2), step = 0.05, advanced)]
     pub light_intensity: f64,
@@ -55,8 +58,48 @@ pub struct ReleaseTeaser {
         widget = "sound"
     )]
     pub music: String,
-    #[setting("Music volume", default = 1.0, range(min = 0, max = 1), step = 0.01)]
+    #[setting(
+        "Music volume",
+        default = 1.0,
+        range(min = 0, max = 1),
+        step = 0.01,
+        advanced
+    )]
     pub music_volume: f64,
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project.",
+        advanced
+    )]
+    pub font_family: String,
+    #[setting(
+        "Text size",
+        default = 1.0,
+        range(min = 0.5, max = 2),
+        step = 0.05,
+        help = "Scales every line of text together.",
+        advanced
+    )]
+    pub text_size: f64,
+    #[setting(
+        "Statement weight",
+        default = 500,
+        range(min = 100, max = 800),
+        step = 100,
+        help = "The name is one step bolder.",
+        advanced
+    )]
+    pub statement_weight: u32,
+    #[setting(
+        "Logo size",
+        default = 34,
+        range(min = 12, max = 120),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub logo_size: u32,
 }
 
 pub fn definition() -> ElementMeta {
@@ -69,7 +112,6 @@ pub fn definition() -> ElementMeta {
                 ElementCategory::Scene,
                 300,
             )
-                .fonts(&["Inter"])
                 .look(NodeLook::of("lucide:rocket")),
         )
 }

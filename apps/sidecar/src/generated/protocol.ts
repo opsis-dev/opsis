@@ -4,6 +4,8 @@ export type CancelJob = {
 
 export type Codec = "h264" | "h265" | "vp8" | "vp9" | "prores" | "gif";
 
+export type EncodePreset = "ultrafast" | "fast" | "medium" | "slow" | "veryslow";
+
 export type Gl = "angle" | "swangle" | "egl" | "vulkan" | "swiftshader";
 
 export type JobProgress = {
@@ -17,9 +19,18 @@ export type MediaJob = {
 	crf?: number,
 	scale: number,
 	muted: boolean,
+	x264Preset?: EncodePreset,
+	pixelFormat?: PixelFormat,
+	proResProfile?: RenderProres,
+	numberOfGifLoops?: number,
+	everyNthFrame?: number,
 } & RenderTarget;
 
+export type PixelFormat = "yuv444p";
+
 export type ProgressMethod = "progress";
+
+export type RenderProres = "proxy" | "light" | "standard";
 
 export type RenderTarget = {
 	serveUrl: string,

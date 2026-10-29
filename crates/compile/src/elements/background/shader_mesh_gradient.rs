@@ -26,6 +26,12 @@ pub struct ShaderMeshGradient {
         length(min = 2, max = 10)
     )]
     pub colors: Vec<Colour>,
+    #[setting("Grain", default = 0.0, range(min = 0, max = 1))]
+    pub grain_overlay: f64,
+    #[setting("Grainy edges", default = 0.0, range(min = 0, max = 1), advanced)]
+    pub grain_mixer: f64,
+    #[setting("Scale", default = 1.0, range(min = 0.1, max = 4), advanced)]
+    pub scale: f64,
 }
 
 pub fn definition() -> ElementMeta {

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -100,8 +100,13 @@ pub struct PricingCard {
         check = colour
     )]
     pub accent_color: String,
-    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
-    pub theme: DarkOrLight,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = code_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting(
         "Speed",
         default = 1.0,
@@ -117,6 +122,14 @@ pub struct PricingCard {
         help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
+    #[setting(
+        "Button text color",
+        zero_label = "Theme",
+        help = "Leave empty to follow the theme.",
+        check = colour_or_empty,
+        advanced
+    )]
+    pub cta_text_color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
         "Old price",
@@ -127,6 +140,25 @@ pub struct PricingCard {
         "type" = "integer"
     )]
     pub was_price: Option<u32>,
+    #[setting(
+        "Roll from",
+        default = 0,
+        range(min = 0, max = 1000000),
+        step = 1,
+        advanced
+    )]
+    pub roll_from: u32,
+    #[setting(
+        "Card width",
+        default = 460,
+        range(min = 300, max = 1000),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub card_width: u32,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {
@@ -139,7 +171,6 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Scene,
             120,
         )
-        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:badge-dollar-sign")),
     )
 }

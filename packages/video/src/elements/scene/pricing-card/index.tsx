@@ -1,38 +1,9 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-
-const fontFamily = '"Inter"';
-
-export type PricingCardProps = {
-  tier?: string;
-  badge?: string;
-  price?: number;
-  currency?: string;
-  period?: string;
-  note?: string;
-  wasPrice?: number;
-  features?: string[];
-  ctaLabel?: string;
-  priceAtSeconds?: number;
-  rollSeconds?: number;
-  featuresAtSeconds?: number;
-  featureStaggerSeconds?: number;
-  holdSeconds?: number;
-  accentColor?: string;
-  backgroundColor?: string;
-  theme?: "dark" | "light";
-  speed?: number;
-};
-
-const DEFAULT_FEATURES = [
-  "2,000 render minutes a month",
-  "4K exports, no watermark",
-  "9 team seats",
-  "Render API and webhooks",
-  "Priority render queue",
-];
 
 const T = {
   card: 0,
@@ -49,29 +20,33 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-export const PricingCard: React.FC<PricingCardProps> = ({
-  tier = "Studio",
-  badge = "Most picked",
-  price = 32,
-  currency = "$",
-  period = "/mo",
-  note = "Billed annually. Cancel whenever.",
+export function PricingCard({
+  tier,
+  badge,
+  price,
+  currency,
+  period,
+  note,
   wasPrice,
-  features = DEFAULT_FEATURES,
-  ctaLabel = "Start rendering",
-  priceAtSeconds = 0.42,
-  rollSeconds = 0.9,
-  featuresAtSeconds = 1.05,
-  featureStaggerSeconds = 0.22,
+  features,
+  ctaLabel,
+  priceAtSeconds,
+  rollSeconds,
+  featuresAtSeconds,
+  featureStaggerSeconds,
   holdSeconds,
-  accentColor = "#E8B86D",
+  accentColor,
   backgroundColor,
-  theme = "dark",
-  speed = 1,
-}) => {
+  theme,
+  speed,
+  ctaTextColor,
+  rollFrom,
+  cardWidth,
+  fontFamily,
+}: ElementSettings["pricing-card"] & { holdSeconds?: number }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
   const at = (seconds: number) => (seconds * fps) / speed;
@@ -91,7 +66,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
 
   const roll = ease(priceAtSeconds, priceAtSeconds + rollSeconds, EASING.editorial);
   const priceDecimals = Math.min(2, (String(price).split(".")[1] ?? "").length);
-  const shown = interpolate(roll, [0, 1], [0, price]).toFixed(priceDecimals);
+  const shown = interpolate(roll, [0, 1], [rollFrom, price]).toFixed(priceDecimals);
   const rollBlur = Math.sin(Math.PI * roll) * 2.2;
 
   const lastFeatureAt =
@@ -107,14 +82,14 @@ export const PricingCard: React.FC<PricingCardProps> = ({
           ...clamp,
         });
 
-  const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 460 * u);
+  const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, cardWidth * u);
   const pad = 30 * u;
 
   return (
     <AbsoluteFill
       style={{
-        background: backgroundColor ?? palette.page,
-        fontFamily,
+        background: backgroundColor || palette.page,
+        fontFamily: fontOr(fontFamily, "main"),
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -326,7 +301,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: theme === "dark" ? "#141013" : "#1B1509",
+                color: ctaTextColor || (theme.mode === "dark" ? "#141013" : "#1B1509"),
                 fontSize: 16.5 * u,
                 fontWeight: 700,
                 letterSpacing: "0.01em",
@@ -342,4 +317,4 @@ export const PricingCard: React.FC<PricingCardProps> = ({
       </div>
     </AbsoluteFill>
   );
-};
+}

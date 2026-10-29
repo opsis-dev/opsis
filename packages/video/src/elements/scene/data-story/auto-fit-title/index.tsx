@@ -1,21 +1,19 @@
 import { Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
 import { fitHeadline } from "#video/elements/scene/data-story/text-fit-utils.ts";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-
-const fontFamily = '"Inter"';
 
 export type AutoFitTitleProps = {
   title: string;
   subtitle?: string;
   logoSrc?: string;
   logoSize?: number;
-  maxFontSize?: number;
+  maxFontSize: number;
   minFontSize?: number;
-  accentColor?: string;
+  accentColor: string;
   backgroundColor?: string;
-  theme?: "dark" | "light";
+  look: StoryLook;
   speed?: number;
   holdSeconds?: number;
 };
@@ -32,22 +30,22 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-export const AutoFitTitle: React.FC<AutoFitTitleProps> = ({
+export function AutoFitTitle({
   title,
   subtitle,
   logoSrc,
   logoSize,
-  maxFontSize = 128,
+  maxFontSize,
   minFontSize = 34,
-  accentColor = "#E8B86D",
+  accentColor,
   backgroundColor,
-  theme = "dark",
+  look,
   speed = 1,
   holdSeconds,
-}) => {
+}: AutoFitTitleProps) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = look.palette;
   const safe = getSafeAreaPadding({ width, height });
 
   const at = (seconds: number) => (seconds * fps) / speed;
@@ -67,7 +65,7 @@ export const AutoFitTitle: React.FC<AutoFitTitleProps> = ({
   const fontSize = fitHeadline({
     text: title,
     maxWidth: stage.w,
-    maxFontSize: maxFontSize * u,
+    maxFontSize: maxFontSize * look.textSize * u,
     minFontSize: minFontSize * u,
   });
 
@@ -82,7 +80,7 @@ export const AutoFitTitle: React.FC<AutoFitTitleProps> = ({
         width,
         height,
         background: backgroundColor ?? palette.page,
-        fontFamily,
+        fontFamily: look.font,
         position: "relative",
         overflow: "hidden",
         display: "grid",
@@ -93,7 +91,7 @@ export const AutoFitTitle: React.FC<AutoFitTitleProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 64% 50% at 50% 46%, color-mix(in srgb, ${accentColor} 10%, transparent), transparent 72%)`,
+          background: `radial-gradient(ellipse 64% 50% at 50% 46%, color-mix(in srgb, ${accentColor} ${10 * look.glow}%, transparent), transparent 72%)`,
           scale: `${interpolate(push, [0, 1], [1, 1.1])}`,
         }}
       />
@@ -180,4 +178,4 @@ export const AutoFitTitle: React.FC<AutoFitTitleProps> = ({
       </div>
     </div>
   );
-};
+}

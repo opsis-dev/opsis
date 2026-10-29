@@ -1,10 +1,11 @@
 use crate::common::{cases, json, number, text, typed, with};
-use opsis_compile::nodes::media::{Codec, ConvertCodec, EncodePreset, SoundFormat};
+use opsis_compile::nodes::media::{Codec, EncodePreset, Encoding, SoundFormat};
 use opsis_media::codecs::{
     FrameGrab, H264, audio_format_args, audio_format_for, codec_info, codec_video, convert_args,
     edited_file, ffmpeg_seconds, finish_args, frame_grab_args, grade_sound_args, grade_video_args,
     h264_args, mux_args, sound_file, strings,
 };
+use opsis_types::numbers;
 use serde_json::{Map, Value};
 
 const CODECS: &str = "media/codecs.json";
@@ -59,20 +60,22 @@ fn audio_formats(stored: &Value) -> Value {
 fn codec_and_file_arguments_are_as_recorded() {
     let f = opsis_golden::read(CODECS);
     let convert = cases(&f["convert"], |case| {
-        let codec: ConvertCodec = typed(&case["codec"]);
-        let preset: EncodePreset = typed(&case["preset"]);
-        let crf = number(&case["crf"]);
+        let p: Encoding = typed(&serde_json::json!({
+            "codec": case["codec"],
+            "crf": numbers::whole(number(&case["crf"])),
+            "preset": case["preset"],
+        }));
         with(
             case,
             &[
-                ("convert", json(convert_args(codec, crf, preset))),
-                ("gradeVideo", json(grade_video_args(codec, crf, preset))),
+                ("convert", json(convert_args(&p))),
+                ("gradeVideo", json(grade_video_args(&p))),
             ],
         )
     });
     let grade_sound = cases(&f["gradeSound"], |case| {
-        let codec: ConvertCodec = typed(&case["codec"]);
-        let made = grade_sound_args(codec, case["sound"].as_str());
+        let p: Encoding = typed(&serde_json::json!({ "codec": case["codec"] }));
+        let made = grade_sound_args(&p, case["sound"].as_str());
         with(case, &[("args", json(made))])
     });
     let h264 = cases(&f["h264"], |case| {
@@ -115,7 +118,7 @@ fn codec_and_file_arguments_are_as_recorded() {
     });
     let mux = cases(&f["mux"], |case| {
         let codec: Codec = typed(&case["codec"]);
-        let made = mux_args(codec, "p.mp4", "m.wav", "o.mp4");
+        let made = mux_args(codec, "p.mp4", "m.wav", "o.mp4", None);
         with(case, &[("args", json(made))])
     });
     let finish = cases(&f["finish"], |case| {

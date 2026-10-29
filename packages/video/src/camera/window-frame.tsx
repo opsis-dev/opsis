@@ -42,7 +42,7 @@ const TRAFFIC_LIGHTS = [
   ["#28c840", "#1aab29"],
 ] as const;
 
-const TrafficLights: React.FC = () => {
+function TrafficLights() {
   const k = useDesignScale();
   return (
     <div style={{ display: "flex", gap: TRAFFIC_LIGHT.gap * k, flexShrink: 0 }}>
@@ -60,7 +60,7 @@ const TrafficLights: React.FC = () => {
       ))}
     </div>
   );
-};
+}
 
 const ICONS = {
   minimize: "M3 8h10",
@@ -68,11 +68,13 @@ const ICONS = {
   close: "M4 4l8 8M12 4l-8 8",
 } as const;
 
-const Glyph: React.FC<{ d: string; size: number; color: string }> = ({ d, size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 16 16">
-    <path d={d} stroke={color} strokeWidth={1.2} fill="none" strokeLinecap="round" />
-  </svg>
-);
+function Glyph({ d, size, color }: { d: string; size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16">
+      <path d={d} stroke={color} strokeWidth={1.2} fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 type ButtonsLook = { size: number; gap: number; glyph: number; fullHeight: boolean };
 
@@ -140,7 +142,7 @@ const STYLE_LOOKS: Record<WindowStyle, StyleLook> = {
   },
 };
 
-const WindowButtons: React.FC<{ look: ButtonsLook; theme: FrameTheme }> = ({ look, theme }) => {
+function WindowButtons({ look, theme }: { look: ButtonsLook; theme: FrameTheme }) {
   const k = useDesignScale();
   const c = FRAME_COLORS[theme];
   const row: React.CSSProperties = look.fullHeight
@@ -163,13 +165,9 @@ const WindowButtons: React.FC<{ look: ButtonsLook; theme: FrameTheme }> = ({ loo
       ))}
     </div>
   );
-};
+}
 
-const SlotView: React.FC<{ slot: Slot; facing: Slot; theme: FrameTheme }> = ({
-  slot,
-  facing,
-  theme,
-}) => {
+function SlotView({ slot, facing, theme }: { slot: Slot; facing: Slot; theme: FrameTheme }) {
   const k = useDesignScale();
   switch (slot.kind) {
     case "lights":
@@ -181,13 +179,19 @@ const SlotView: React.FC<{ slot: Slot; facing: Slot; theme: FrameTheme }> = ({
     case "empty":
       return null;
   }
-};
+}
 
-const AddressField: React.FC<{ look: StyleLook; theme: FrameTheme; address: string }> = ({
+function AddressField({
   look,
   theme,
   address,
-}) => {
+  font,
+}: {
+  look: StyleLook;
+  theme: FrameTheme;
+  address: string;
+  font: string;
+}) {
   const k = useDesignScale();
   const c = FRAME_COLORS[theme];
   return (
@@ -200,7 +204,7 @@ const AddressField: React.FC<{ look: StyleLook; theme: FrameTheme; address: stri
         border: `${k}px solid ${c.fieldEdge}`,
         color: c.text,
         fontSize: ADDRESS_FIELD.fontSize * k,
-        fontFamily: SYSTEM_FONT,
+        fontFamily: font,
         fontWeight: ADDRESS_FIELD.fontWeight,
         letterSpacing: ADDRESS_FIELD.letterSpacing,
         display: "flex",
@@ -215,14 +219,21 @@ const AddressField: React.FC<{ look: StyleLook; theme: FrameTheme; address: stri
       {address}
     </div>
   );
-};
+}
 
-const TitleBar: React.FC<{
+function TitleBar({
+  windowStyle,
+  theme,
+  addressBar,
+  address,
+  font,
+}: {
   windowStyle: WindowStyle;
   theme: FrameTheme;
   addressBar: boolean;
   address: string;
-}> = ({ windowStyle, theme, addressBar, address }) => {
+  font: string;
+}) {
   const k = useDesignScale();
   const c = FRAME_COLORS[theme];
   const look = STYLE_LOOKS[windowStyle];
@@ -240,42 +251,48 @@ const TitleBar: React.FC<{
     >
       <SlotView slot={look.lead} facing={look.trail} theme={theme} />
       {addressBar ? (
-        <AddressField look={look} theme={theme} address={address} />
+        <AddressField look={look} theme={theme} address={address} font={font} />
       ) : (
         <div style={{ flex: 1 }} />
       )}
       <SlotView slot={look.trail} facing={look.lead} theme={theme} />
     </div>
   );
-};
+}
 
-export const WindowFrame: React.FC<{
-  chrome?: boolean;
-  address?: string;
-  windowStyle?: WindowStyle;
-  theme?: FrameTheme;
-  addressBar?: boolean;
-  children: React.ReactNode;
-}> = ({
+export function WindowFrame({
   chrome = false,
   address = "",
   windowStyle = DEFAULT_WINDOW_STYLE,
   theme = DEFAULT_FRAME_THEME,
   addressBar = DEFAULT_ADDRESS_BAR,
+  radius,
+  lift = true,
+  font = SYSTEM_FONT,
   children,
-}) => {
+}: {
+  chrome?: boolean;
+  address?: string;
+  windowStyle?: WindowStyle;
+  theme?: FrameTheme;
+  addressBar?: boolean;
+  radius?: number;
+  lift?: boolean;
+  font?: string;
+  children: React.ReactNode;
+}) {
   const k = useDesignScale();
   return (
     <div
       style={{
         position: "absolute",
         inset: 0,
-        borderRadius: STYLE_LOOKS[windowStyle].windowRadius * k,
+        borderRadius: (radius ?? STYLE_LOOKS[windowStyle].windowRadius) * k,
         overflow: "hidden",
         background: "#fff",
         display: "flex",
         flexDirection: "column",
-        filter: WINDOW_FILTER,
+        filter: lift ? WINDOW_FILTER : undefined,
         boxShadow: `inset 0 ${k}px 0 rgba(255,255,255,0.9)`,
       }}
     >
@@ -285,6 +302,7 @@ export const WindowFrame: React.FC<{
           theme={theme}
           addressBar={addressBar}
           address={address}
+          font={font}
         />
       ) : null}
 
@@ -300,4 +318,4 @@ export const WindowFrame: React.FC<{
       </div>
     </div>
   );
-};
+}

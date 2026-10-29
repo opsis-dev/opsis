@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::LightOrDark;
+use crate::elements::theme::{Theme, ThemeMode, keystroke_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[derive(
@@ -54,8 +54,13 @@ pub struct KeystrokeStep {
 pub struct Keystroke {
     #[setting("Platform", default = KeyboardPlatform::Mac)]
     pub platform: KeyboardPlatform,
-    #[setting("Theme", default = LightOrDark::Light)]
-    pub theme: LightOrDark,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Light),
+        transform = keystroke_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting("Accent", default = "#0a84ff", check = colour)]
     pub accent: String,
     #[setting("Key size", default = 64, range(min = 32, max = 128), step = 1)]
@@ -66,7 +71,8 @@ pub struct Keystroke {
         range(min = 0, max = 3),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub linger: f64,
     #[setting(
@@ -96,8 +102,38 @@ pub struct Keystroke {
         help = "Join keys pressed together with +, like mod+k. Separate keys pressed one after another with a space."
     )]
     pub steps: Vec<KeystrokeStep>,
-    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
+    #[setting(
+        "Speed",
+        default = 1.0,
+        range(min = 0.25, max = 4),
+        step = 0.25,
+        advanced
+    )]
     pub speed: f64,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
+    #[setting(
+        "Font weight",
+        default = 500,
+        range(min = 100, max = 900),
+        step = 100,
+        advanced
+    )]
+    pub font_weight: u32,
+    #[setting("Between keys", default = "then", advanced)]
+    pub then_text: String,
+    #[setting(
+        "Hold",
+        default = 0.2667,
+        range(min = 0.0333, max = 20),
+        step = 0.0333,
+        unit = "s",
+        frames_at = 30,
+        advanced
+    )]
+    pub hold: f64,
+    #[setting("Key roundness", default = 0.16, range(min = 0, max = 0.5), advanced)]
+    pub roundness: f64,
 }
 
 pub fn definition() -> ElementMeta {

@@ -73,7 +73,8 @@ pub struct Screen3d {
     #[setting(
         "End facing the camera",
         default = true,
-        help = "The move ends with the screen filling the frame, so it cuts cleanly to the same clip without the device."
+        help = "The move ends with the screen filling the frame, so it cuts cleanly to the same clip without the device.",
+        advanced
     )]
     pub end_face_on: bool,
     #[setting(
@@ -84,6 +85,43 @@ pub struct Screen3d {
     pub lighting: Lighting,
     #[setting("Background", default = "#0b0b10", check = colour)]
     pub background: String,
+    #[setting("Bezel colour", default = "#0a0a0c", check = colour, advanced)]
+    pub bezel_color: String,
+    #[setting(
+        "Metalness",
+        default = 0.6,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
+    pub metalness: f64,
+    #[setting(
+        "Roughness",
+        default = 0.35,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
+    pub roughness: f64,
+    #[setting(
+        "Glare",
+        default = 0.16,
+        range(min = 0, max = 1),
+        step = 0.01,
+        help = "How bright the light sweeping over the screen gets as it turns.",
+        advanced
+    )]
+    pub glare: f64,
+    #[setting(
+        "Move ends at",
+        default = 0.85,
+        range(min = 0.1, max = 1),
+        step = 0.01,
+        help = "Share of the element's length the move takes; it holds still after.",
+        show_if = { "move": ["push-in", "orbit", "tilt-reveal", "rise"] },
+        advanced
+    )]
+    pub move_ends_at: f64,
 }
 
 pub fn definition() -> ElementMeta {

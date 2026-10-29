@@ -335,7 +335,15 @@ async fn annotate(
             slot.insert(font_named(&ctx, &mark.font, mark.weight).await?);
         }
     }
-    let out = blocking(move || Ok(crate::marks::annotate(&image, &p.marks, &fonts))).await?;
+    let out = blocking(move || {
+        Ok(crate::marks::annotate(
+            &image,
+            &p.marks,
+            p.first_step,
+            &fonts,
+        ))
+    })
+    .await?;
     saved(&ctx, &out, None)
 }
 

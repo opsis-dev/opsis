@@ -128,11 +128,34 @@ fn frames_any_clip_in_a_device_and_draws_window_title_bars() {
             json!({ "device": device }),
             json!({ CLIP: clip_value(&empty_clip(60)) }),
         );
-        assert_eq!(
-            group_value(&framed)["wrapper"]["component"],
-            format!("{device}-frame")
-        );
+        let wrapper = &group_value(&framed)["wrapper"];
+        assert_eq!(wrapper["component"], format!("{device}-frame"));
+        let props = wrapper["props"].as_object().unwrap();
+        let usual = opsis_compile::elements::element_meta(&format!("{device}-frame"))
+            .unwrap()
+            .default_props
+            .keys()
+            .filter(|k| !props.contains_key(*k))
+            .filter(|k| !["bezelColor", "screenColor", "fontFamily"].contains(&k.as_str()))
+            .cloned()
+            .collect::<Vec<_>>();
+        assert!(usual.is_empty(), "{device} is missing {usual:?}");
+        assert_eq!(props["theme"]["mode"], "dark");
     }
+    let phone = compile_clip(
+        "camera.deviceFrame",
+        json!({ "device": "phone", "variant": "tilt", "tiltAngle": 20, "scale": 0.7 }),
+        json!({ CLIP: clip_value(&empty_clip(60)) }),
+    );
+    let props = &group_value(&phone)["wrapper"]["props"];
+    assert_eq!(
+        (
+            props["variant"].clone(),
+            props["tiltAngle"].clone(),
+            props["scale"].clone()
+        ),
+        (json!("tilt"), json!(20), json!(0.7))
+    );
     let clip = zoomed(
         Some(&[(
             "camera.windowFrame",

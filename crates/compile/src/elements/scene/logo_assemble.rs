@@ -39,7 +39,13 @@ pub struct LogoAssemble {
         widget = "asset"
     )]
     pub logo_src: String,
-    #[setting("Ring images", default = 10, range(min = 5, max = 16), step = 1)]
+    #[setting(
+        "Ring images",
+        default = 10,
+        range(min = 5, max = 16),
+        step = 1,
+        advanced
+    )]
     pub count: u32,
     #[setting("Background", widget = "color", zero_label = "Theme")]
     pub background: String,
@@ -73,6 +79,112 @@ pub struct LogoAssemble {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Orbit time",
+        default = 1.67,
+        range(min = 0.3, max = 10),
+        step = 0.01,
+        unit = "s",
+        frames_at = 30,
+        help = "How long the cards circle before they gather into the logo.",
+        advanced
+    )]
+    pub orbit_seconds: f64,
+    #[setting(
+        "Orbit speed",
+        default = 1.0,
+        range(min = 0, max = 4),
+        step = 0.05,
+        advanced
+    )]
+    pub orbit_speed: f64,
+    #[setting(
+        "Card shape",
+        default = 1.22,
+        range(min = 0.5, max = 2),
+        step = 0.01,
+        help = "Card height divided by its width.",
+        advanced
+    )]
+    pub card_ratio: f64,
+    #[setting(
+        "Card shadow",
+        default = 0.4,
+        range(min = 0, max = 1),
+        step = 0.01,
+        advanced
+    )]
+    pub card_shadow: f64,
+    #[setting(
+        "Card corners",
+        default = 4,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub card_radius: u32,
+    #[setting(
+        "Ring size",
+        default = 36.0,
+        range(min = 10, max = 48),
+        step = 0.5,
+        unit = "%",
+        help = "As a share of the frame's short side.",
+        advanced
+    )]
+    pub ring_size: f64,
+    #[setting(
+        "Card size",
+        default = 15.0,
+        range(min = 4, max = 30),
+        step = 0.5,
+        unit = "%",
+        advanced
+    )]
+    pub card_size: f64,
+    #[setting(
+        "Logo size",
+        default = 12.5,
+        range(min = 4, max = 40),
+        step = 0.5,
+        unit = "%"
+    )]
+    pub logo_size: f64,
+    #[setting(
+        "Logo gap",
+        default = 3.5,
+        range(min = 0, max = 15),
+        step = 0.5,
+        unit = "%",
+        advanced
+    )]
+    pub logo_gap: f64,
+    #[setting(
+        "Name size",
+        default = 5.5,
+        range(min = 2, max = 15),
+        step = 0.1,
+        unit = "%"
+    )]
+    pub name_size: f64,
+    #[setting(
+        "Center text size",
+        default = 4.0,
+        range(min = 1, max = 10),
+        step = 0.1,
+        unit = "%",
+        advanced
+    )]
+    pub middle_text_size: f64,
+    #[setting(
+        "Font weight",
+        default = 600,
+        range(min = 100, max = 900),
+        step = 100,
+        advanced
+    )]
+    pub font_weight: u32,
 }
 
 pub fn definition() -> ElementMeta {

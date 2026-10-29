@@ -1,37 +1,29 @@
-import type React from "react";
 import { AbsoluteFill, random } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import type { SplitUnitState } from "#video/lib/text/text-split.ts";
-import { SplitTextChars, type SplitTextCharsProps } from "#video/parts/split-text-chars.tsx";
-
-export type HandwritingTextProps = Omit<
-  SplitTextCharsProps,
-  "effect" | "renderUnit" | "order" | "mode"
-> & {
-  penSize?: number;
-  penColor?: string;
-  inkSoftness?: number;
-  wobble?: number;
-  seed?: string | number;
-};
+import { HAND_FAMILY } from "#video/parts/handwrite.tsx";
+import { SplitTextChars } from "#video/parts/split-text-chars.tsx";
 
 function jitter(seed: string | number, index: number, salt: number): number {
   return random(`${seed}-${index}-${salt}`) * 2 - 1;
 }
 
-const HandwritingTextView: React.FC<HandwritingTextProps> = ({
-  penSize = 0.14,
+export function HandwritingText({
+  text,
+  penSize,
   penColor,
-  inkSoftness = 0.18,
-  wobble = 1.6,
-  seed = "handwriting",
-  color = "#f4f4f5",
-  fontFamily = '"Segoe Script", "Bradley Hand", "Snell Roundhand", cursive',
-  staggerInFrames = 3,
-  durationInFrames = 10,
-  ...splitProps
-}) => {
-  const nib = penColor ?? color;
+  inkSoftness,
+  wobble,
+  seed,
+  color,
+  fontFamily,
+  fontSize,
+  fontWeight,
+  staggerInFrames,
+  durationInFrames,
+  wordSpacing,
+}: ElementSettings["handwriting-text"]) {
+  const nib = penColor;
   const softness = Math.max(0, inkSoftness) * 100;
 
   const renderUnit = (unit: SplitUnitState) => {
@@ -83,25 +75,20 @@ const HandwritingTextView: React.FC<HandwritingTextProps> = ({
   };
 
   return (
-    <SplitTextChars
-      {...splitProps}
-      color={color}
-      fontFamily={fontFamily}
-      mode="chars"
-      order="start"
-      staggerInFrames={staggerInFrames}
-      durationInFrames={durationInFrames}
-      effect="none"
-      renderUnit={renderUnit}
-    />
-  );
-};
-
-export function HandwritingText(props: ElementProps & { children?: React.ReactNode }) {
-  return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-      <HandwritingTextView
-        {...(props as unknown as React.ComponentProps<typeof HandwritingTextView>)}
+      <SplitTextChars
+        text={text}
+        color={color}
+        fontFamily={fontFamily || HAND_FAMILY}
+        fontSize={fontSize}
+        fontWeight={fontWeight}
+        wordSpacing={wordSpacing}
+        mode="chars"
+        order="start"
+        staggerInFrames={staggerInFrames}
+        durationInFrames={durationInFrames}
+        effect="none"
+        renderUnit={renderUnit}
       />
     </AbsoluteFill>
   );

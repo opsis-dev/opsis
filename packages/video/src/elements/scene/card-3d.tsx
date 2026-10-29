@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import {
   CanvasTexture,
@@ -18,19 +18,18 @@ const SAMPLE_SCREEN = "placeholders/screen-wide.svg";
 const CARD_SIZE = 2.2;
 const FACE_GAP = 0.002;
 const BODY_ROUGHNESS = 0.45;
-const FACE_ROUGHNESS = 0.6;
+export const FACE_ROUGHNESS = 0.6;
 const SHADOW = {
   spread: 1.25,
   drop: 0.18,
   back: 0.6,
-  opacity: 0.55,
   px: 256,
   floorDepth: 0.6,
   floorGap: 0.01,
 };
 const SEED = 1;
 
-type CardLook = { color?: string; metalness: number };
+type CardLook = { color?: string; metalness: number; faceRoughness: number };
 
 type CardProps = {
   texture: Texture;
@@ -47,7 +46,7 @@ const imageSize = (texture: Texture) => {
   return { w: w || 1, h: h || 1 };
 };
 
-export const Card: React.FC<CardProps> = ({ texture, longest, radius, depth, look }) => {
+export function Card({ texture, longest, radius, depth, look }: CardProps) {
   const { w, h } = imageSize(texture);
   const { width, height } = fittedSize(w, h, longest);
   const corner = radius * longest;
@@ -68,7 +67,7 @@ export const Card: React.FC<CardProps> = ({ texture, longest, radius, depth, loo
       roughness: BODY_ROUGHNESS,
       ...(look.color ? { color: look.color } : {}),
     });
-    const faceMaterial = new MeshStandardMaterial({ map: texture, roughness: FACE_ROUGHNESS });
+    const faceMaterial = new MeshStandardMaterial({ map: texture, roughness: look.faceRoughness });
     return { body, face, bodyMaterial, faceMaterial };
   }, [texture, width, height, corner, depth, look]);
   useEffect(
@@ -87,7 +86,7 @@ export const Card: React.FC<CardProps> = ({ texture, longest, radius, depth, loo
       <mesh geometry={parts.face} material={parts.faceMaterial} position={[0, 0, front]} />
     </group>
   );
-};
+}
 
 function shadowTexture(): CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -105,7 +104,7 @@ function shadowTexture(): CanvasTexture {
   return new CanvasTexture(canvas);
 }
 
-function useShadowPlane(width: number, height: number) {
+function useShadowPlane(width: number, height: number, opacity: number) {
   const parts = useMemo(
     () => ({
       geometry: new PlaneGeometry(width * SHADOW.spread, height * SHADOW.spread),
@@ -113,10 +112,10 @@ function useShadowPlane(width: number, height: number) {
         map: shadowTexture(),
         transparent: true,
         depthWrite: false,
-        opacity: SHADOW.opacity,
+        opacity,
       }),
     }),
-    [width, height],
+    [width, height, opacity],
   );
   useEffect(
     () => () => {
@@ -129,8 +128,16 @@ function useShadowPlane(width: number, height: number) {
   return parts;
 }
 
-const SoftShadow: React.FC<{ width: number; height: number }> = ({ width, height }) => {
-  const parts = useShadowPlane(width, height);
+function SoftShadow({
+  width,
+  height,
+  opacity,
+}: {
+  width: number;
+  height: number;
+  opacity: number;
+}) {
+  const parts = useShadowPlane(width, height, opacity);
   return (
     <mesh
       geometry={parts.geometry}
@@ -138,10 +145,10 @@ const SoftShadow: React.FC<{ width: number; height: number }> = ({ width, height
       position={[0, -SHADOW.drop, -SHADOW.back]}
     />
   );
-};
+}
 
-export const GroundShadow: React.FC<{ width: number; y: number }> = ({ width, y }) => {
-  const parts = useShadowPlane(width, width * SHADOW.floorDepth);
+export function GroundShadow({ width, y, opacity }: { width: number; y: number; opacity: number }) {
+  const parts = useShadowPlane(width, width * SHADOW.floorDepth, opacity);
   return (
     <mesh
       geometry={parts.geometry}
@@ -150,9 +157,9 @@ export const GroundShadow: React.FC<{ width: number; y: number }> = ({ width, y 
       rotation={[-Math.PI / 2, 0, 0]}
     />
   );
-};
+}
 
-export const Card3D: React.FC<ElementSettings["card-3d"]> = ({
+export function Card3D({
   src,
   cornerRadius,
   tilt,
@@ -162,27 +169,44 @@ export const Card3D: React.FC<ElementSettings["card-3d"]> = ({
   speed,
   lighting,
   background,
-}) => {
+  zoom,
+  edgeColor,
+  roughness,
+  shadow,
+  growIn,
+  endFacing,
+  motionAmount,
+  reverse,
+  lens,
+}: ElementSettings["card-3d"]) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const texture = useTexture(src || staticFile(SAMPLE_SCREEN));
-  const look = useMemo(() => ({ metalness: 0 }), []);
-  const pose = elementPose(motion, camera, { frame, fps, speed, seed: SEED, tiltDeg: tilt });
+  const look = useMemo(
+    () => ({ metalness: 0, color: edgeColor, faceRoughness: roughness }),
+    [edgeColor, roughness],
+  );
+  const pose = elementPose(motion, camera, {
+    frame,
+    fps,
+    speed,
+    seed: SEED,
+    tiltDeg: tilt,
+    endFacing,
+    amount: motionAmount,
+    reverse,
+    growIn,
+  });
   if (!texture) return null;
   const { w, h } = imageSize(texture);
-  const size = fittedSize(w, h, CARD_SIZE);
+  const longest = CARD_SIZE * zoom;
+  const size = fittedSize(w, h, longest);
   return (
-    <Stage3D lighting={lighting} background={background}>
-      <SoftShadow width={size.width} height={size.height} />
+    <Stage3D lighting={lighting} background={background} fov={lens}>
+      <SoftShadow width={size.width} height={size.height} opacity={shadow} />
       <Posed pose={pose}>
-        <Card
-          texture={texture}
-          longest={CARD_SIZE}
-          radius={cornerRadius}
-          depth={depth}
-          look={look}
-        />
+        <Card texture={texture} longest={longest} radius={cornerRadius} depth={depth} look={look} />
       </Posed>
     </Stage3D>
   );
-};
+}

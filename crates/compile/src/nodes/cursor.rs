@@ -2,8 +2,8 @@ use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::recording::{
-    AnnotationKind, AnnotationSpec, CursorLook, HighlightLook, KeystrokeLook, KeystrokePosition,
-    RecordingProps, RippleLook,
+    AnnotationKind, AnnotationLook, AnnotationSpec, CursorFeel, CursorLook, HighlightLook,
+    KeyNames, KeystrokeLook, KeystrokePosition, LabelLook, RecordingProps, RippleLook,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -36,6 +36,9 @@ pub fn default_ripple() -> RippleLook {
         color: DEFAULT_RIPPLE_COLOR.to_owned(),
         size: DEFAULT_RIPPLE_SIZE,
         width: DEFAULT_RIPPLE_WIDTH,
+        ring_opacity: None,
+        fill_opacity: None,
+        duration_s: None,
     }
 }
 
@@ -91,9 +94,47 @@ pub struct CursorStyle {
         widget = "color",
         zero_label = "Default",
         show_if = { "look": ["arrow"] },
-        check = colour_or_empty
+        check = colour_or_empty,
+        advanced
     )]
     pub outline: String,
+    #[setting(
+        "Grow with the zoom",
+        default = 0.58,
+        range(min = 0, max = 1),
+        step = 0.02,
+        help = "0 keeps the cursor the same size on screen; 1 grows it with the page.",
+        advanced
+    )]
+    pub grow_with_zoom: f64,
+    #[setting(
+        "Outline width",
+        default = 1.85,
+        range(min = 0, max = 6),
+        step = 0.05,
+        show_if = { "look": ["arrow"] },
+        advanced
+    )]
+    pub outline_width: f64,
+    #[setting(
+        "Shadow",
+        default = 0.34,
+        range(min = 0, max = 1),
+        step = 0.02,
+        advanced
+    )]
+    pub shadow: f64,
+    #[setting(
+        "Press squash",
+        default = 0.9,
+        range(min = 0.5, max = 1),
+        step = 0.01,
+        help = "How small the cursor gets while pressing.",
+        advanced
+    )]
+    pub press_squash: f64,
+    #[setting("Hide while typing", default = true, advanced)]
+    pub hide_while_typing: bool,
 }
 
 impl Params for CursorStyle {}
@@ -129,6 +170,33 @@ pub struct ClickRipple {
         advanced
     )]
     pub width: f64,
+    #[setting(
+        "Ring strength",
+        default = 47,
+        range(min = 0, max = 100),
+        step = 1,
+        unit = "%",
+        advanced
+    )]
+    pub ring_opacity: u32,
+    #[setting(
+        "Fill strength",
+        default = 9,
+        range(min = 0, max = 100),
+        step = 1,
+        unit = "%",
+        advanced
+    )]
+    pub fill_opacity: u32,
+    #[setting(
+        "Ripple time",
+        default = 350,
+        range(min = 50, max = 3000),
+        step = 10,
+        unit = "ms",
+        advanced
+    )]
+    pub duration_ms: u32,
 }
 
 impl Params for ClickRipple {}
@@ -171,6 +239,61 @@ pub struct KeystrokeChips {
         unit = "×"
     )]
     pub size: f64,
+    #[setting(
+        "Shortcut shown for",
+        default = 1100,
+        range(min = 100, max = 10000),
+        step = 50,
+        unit = "ms",
+        advanced
+    )]
+    pub chord_hold_ms: u32,
+    #[setting(
+        "Typed text stays for",
+        default = 600,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms",
+        advanced
+    )]
+    pub typed_hold_ms: u32,
+    #[setting(
+        "Distance from the edge",
+        default = 56,
+        range(min = 0, max = 400),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub edge: u32,
+    #[setting(
+        "Keycap corners",
+        default = 26,
+        range(min = 0, max = 80),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub radius: u32,
+    #[setting(
+        "Key names",
+        labels = { "symbols": "Symbols (⌘⇧K)", "words": "Words (Cmd + Shift + K)" },
+        advanced
+    )]
+    pub key_names: KeyNames,
+    #[setting("Font", widget = "font", zero_label = "Project fonts", advanced)]
+    pub font: String,
+    #[setting(
+        "Typed text shadow",
+        default = 0.35,
+        range(min = 0, max = 1),
+        step = 0.01,
+        show_if = { "typed": ["true"] },
+        advanced
+    )]
+    pub shadow: f64,
+    #[setting("Blinking caret", default = true, show_if = { "typed": ["true"] }, advanced)]
+    pub caret: bool,
 }
 
 impl Params for KeystrokeChips {}
@@ -197,6 +320,8 @@ pub struct AnnotationFields<'a> {
     pub text_color: Option<&'a str>,
     pub font_size: Option<u32>,
     pub font: Option<&'a str>,
+    pub label_look: Option<LabelLook>,
+    pub mark_look: Option<AnnotationLook>,
 }
 
 pub trait Annotation: Params {
@@ -209,7 +334,7 @@ pub trait Annotation: Params {
 }
 
 macro_rules! annotation_params {
-    ($name:ident, look_hidden = $hidden:literal, color = $color:literal) => {
+    ($name:ident, color = $color:literal, radius = $radius:literal, { $($extra:tt)* }) => {
         #[settings]
         #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
         #[serde(rename_all = "camelCase", default)]
@@ -220,8 +345,6 @@ macro_rules! annotation_params {
                 help = "Leave empty to show on every click, typing, hover and drag. Matches part of an action's name."
             )]
             pub match_text: String,
-            #[setting("Text", hidden)]
-            pub text: String,
             #[setting(
                 "Colour",
                 default = $color,
@@ -237,7 +360,8 @@ macro_rules! annotation_params {
                 default = 250,
                 range(min = 0, max = 5000),
                 step = 50,
-                unit = "ms"
+                unit = "ms",
+                advanced
             )]
             pub lead_ms: u32,
             #[setting(
@@ -248,30 +372,68 @@ macro_rules! annotation_params {
                 unit = "ms"
             )]
             pub hold_ms: u32,
-            #[setting(
-                "Look",
-                default = HighlightLook::Clean,
-                labels = { "clean": "Clean", "box": "Hand-drawn box", "circle": "Circle", "underline": "Underline", "marker": "Marker" },
-                help = "The hand-drawn looks draw themselves in as the action starts.",
-                hidden = $hidden
-            )]
-            pub look: HighlightLook,
-            #[setting(
-                "Sketchiness",
-                default = 1.0,
-                range(min = 0, max = 3),
-                step = 0.1,
-                advanced,
-                hidden = $hidden,
-                show_if = { "look": ["box", "circle", "underline", "marker"] }
-            )]
-            pub roughness: f64,
+            #[setting("Fade", default = 180, range(min = 0, max = 2000), step = 10, unit = "ms", advanced)]
+            pub fade_ms: u32,
+            #[setting("Corner radius", default = $radius, range(min = 0, max = 80), unit = "px", advanced)]
+            pub corner_radius: u32,
+            $($extra)*
         }
     };
 }
 
-annotation_params!(Spotlight, look_hidden = true, color = "rgba(0,0,0,0.55)");
-annotation_params!(HighlightBox, look_hidden = false, color = "#a78bfa");
+annotation_params!(Spotlight, color = "rgba(0,0,0,0.55)", radius = 12, {
+    #[setting("Soft edge", range(min = 0, max = 200), unit = "px", advanced)]
+    pub softness: u32,
+});
+annotation_params!(HighlightBox, color = "#a78bfa", radius = 10, {
+    #[setting(
+        "Look",
+        default = HighlightLook::Clean,
+        labels = { "clean": "Clean", "box": "Hand-drawn box", "circle": "Circle", "underline": "Underline", "marker": "Marker" },
+        help = "The hand-drawn looks draw themselves in as the action starts."
+    )]
+    pub look: HighlightLook,
+    #[setting(
+        "Sketchiness",
+        default = 1.0,
+        range(min = 0, max = 3),
+        step = 0.1,
+        advanced,
+        show_if = { "look": ["box", "circle", "underline", "marker"] }
+    )]
+    pub roughness: f64,
+    #[setting("Line width", default = 3, range(min = 1, max = 20), unit = "px", advanced)]
+    pub line_width: u32,
+    #[setting("Fill", default = 12, range(min = 0, max = 100), unit = "%", advanced)]
+    pub fill_opacity: u32,
+    #[setting(
+        "Marker strength",
+        default = 50,
+        range(min = 0, max = 100),
+        unit = "%",
+        show_if = { "look": ["marker"] },
+        advanced
+    )]
+    pub marker_opacity: u32,
+    #[setting(
+        "Draw-in time",
+        default = 450,
+        range(min = 0, max = 3000),
+        step = 10,
+        unit = "ms",
+        show_if = { "look": ["box", "circle", "underline", "marker"] },
+        advanced
+    )]
+    pub draw_ms: u32,
+    #[setting(
+        "Strokes",
+        default = 2,
+        range(min = 1, max = 5),
+        show_if = { "look": ["box", "circle", "underline", "marker"] },
+        advanced
+    )]
+    pub strokes: u32,
+});
 
 impl Params for Spotlight {}
 impl Params for HighlightBox {}
@@ -295,6 +457,8 @@ fn plain_fields<'a>(
         text_color: None,
         font_size: None,
         font: None,
+        label_look: None,
+        mark_look: None,
     }
 }
 
@@ -304,13 +468,25 @@ impl Annotation for Spotlight {
     const COLOR: &'static str = "rgba(0,0,0,0.55)";
 
     fn fields(&self) -> AnnotationFields<'_> {
-        plain_fields(
-            &self.match_text,
-            &self.text,
-            &self.color,
-            (self.padding, self.lead_ms, self.hold_ms),
-            (self.look, self.roughness),
-        )
+        AnnotationFields {
+            mark_look: Some(AnnotationLook {
+                fade_s: f64::from(self.fade_ms) / 1000.0,
+                radius: f64::from(self.corner_radius),
+                softness: Some(f64::from(self.softness)),
+                line_width: None,
+                fill_opacity: None,
+                marker_opacity: None,
+                draw_s: None,
+                strokes: None,
+            }),
+            ..plain_fields(
+                &self.match_text,
+                "",
+                &self.color,
+                (self.padding, self.lead_ms, self.hold_ms),
+                (HighlightLook::Clean, 1.0),
+            )
+        }
     }
 }
 
@@ -320,13 +496,25 @@ impl Annotation for HighlightBox {
     const COLOR: &'static str = "#a78bfa";
 
     fn fields(&self) -> AnnotationFields<'_> {
-        plain_fields(
-            &self.match_text,
-            &self.text,
-            &self.color,
-            (self.padding, self.lead_ms, self.hold_ms),
-            (self.look, self.roughness),
-        )
+        AnnotationFields {
+            mark_look: Some(AnnotationLook {
+                fade_s: f64::from(self.fade_ms) / 1000.0,
+                radius: f64::from(self.corner_radius),
+                softness: None,
+                line_width: Some(f64::from(self.line_width)),
+                fill_opacity: Some(f64::from(self.fill_opacity) / 100.0),
+                marker_opacity: Some(f64::from(self.marker_opacity) / 100.0),
+                draw_s: Some(f64::from(self.draw_ms) / 1000.0),
+                strokes: Some(f64::from(self.strokes)),
+            }),
+            ..plain_fields(
+                &self.match_text,
+                "",
+                &self.color,
+                (self.padding, self.lead_ms, self.hold_ms),
+                (self.look, self.roughness),
+            )
+        }
     }
 }
 
@@ -365,6 +553,8 @@ fn annotation_spec<A: Annotation>(p: &A) -> AnnotationSpec {
         },
         font_size: f.font_size.map(f64::from),
         font: f.font.and_then(font_prop),
+        label_look: f.label_look,
+        mark_look: f.mark_look,
     }
 }
 
@@ -407,6 +597,13 @@ fn cursor_style() -> NodeDef {
         .restyle(|props: RecordingProps, p: &CursorStyle, _| RecordingProps {
             cursor: p.visible,
             cursor_scale: p.size,
+            cursor_feel: Some(CursorFeel {
+                grow_with_zoom: p.grow_with_zoom,
+                outline_width: p.outline_width,
+                shadow: p.shadow,
+                press_squash: p.press_squash,
+                hide_while_typing: p.hide_while_typing,
+            }),
             cursor_look: match p.look {
                 CursorShape::Mac => CursorLook::Mac,
                 CursorShape::Arrow => CursorLook::Arrow {
@@ -436,6 +633,9 @@ fn click_ripple() -> NodeDef {
                 color: color_or(&p.color, DEFAULT_RIPPLE_COLOR),
                 size: p.size,
                 width: p.width,
+                ring_opacity: Some(f64::from(p.ring_opacity) / 100.0),
+                fill_opacity: Some(f64::from(p.fill_opacity) / 100.0),
+                duration_s: Some(f64::from(p.duration_ms) / 1000.0),
             }),
             ..props
         })
@@ -472,6 +672,14 @@ fn keystroke_chips() -> NodeDef {
                 keycap: color_or(&p.keycap, DEFAULT_KEYCAP),
                 ink: color_or(&p.ink, DEFAULT_KEYCAP_INK),
                 size: p.size,
+                chord_hold_s: Some(f64::from(p.chord_hold_ms) / 1000.0),
+                typed_hold_s: Some(f64::from(p.typed_hold_ms) / 1000.0),
+                edge: Some(f64::from(p.edge)),
+                radius: Some(f64::from(p.radius)),
+                key_names: Some(p.key_names),
+                font: font_prop(&p.font),
+                shadow: Some(p.shadow),
+                caret: Some(p.caret),
             }),
             ..props
         },

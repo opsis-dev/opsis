@@ -233,6 +233,7 @@ fn turns_flips_and_straightens_onto_a_larger_canvas() {
         flip_vertical: v,
         angle,
         background: "#ffffff".into(),
+        crop_corners: false,
     };
     let right = ops::rotate(&image, &rotate(Turn::Right, false, false, 0.0)).to_rgb8();
     assert_eq!(right.dimensions(), (2 * CELL, 3 * CELL));
@@ -242,6 +243,27 @@ fn turns_flips_and_straightens_onto_a_larger_canvas() {
     let tilted = ops::rotate(&image, &rotate(Turn::None, false, false, 30.0)).to_rgba8();
     assert!(tilted.width() > 3 * CELL && tilted.height() > 2 * CELL);
     assert_eq!(tilted.get_pixel(0, 0).0, [255, 255, 255, 255]);
+    let cut = ops::rotate(
+        &image,
+        &RotateImage {
+            crop_corners: true,
+            ..rotate(Turn::None, false, false, 30.0)
+        },
+    )
+    .to_rgba8();
+    assert!(cut.width() < 3 * CELL && cut.height() < 2 * CELL);
+    for (x, y) in [
+        (0, 0),
+        (cut.width() - 1, 0),
+        (0, cut.height() - 1),
+        (cut.width() - 1, cut.height() - 1),
+    ] {
+        assert_ne!(
+            cut.get_pixel(x, y).0,
+            [255, 255, 255, 255],
+            "corner {x}, {y} is filled"
+        );
+    }
 }
 
 #[test]
@@ -288,6 +310,7 @@ fn blurs_and_sharpens_without_changing_size() {
         blur: 0.0,
         sharpen: 0.0,
         threshold: 0,
+        sharpen_amount: 100,
     };
     assert_eq!(ops::blur(&image, &none).to_rgb8(), image.to_rgb8());
     let soft = ops::blur(
@@ -296,6 +319,7 @@ fn blurs_and_sharpens_without_changing_size() {
             blur: 6.0,
             sharpen: 0.0,
             threshold: 0,
+            sharpen_amount: 100,
         },
     )
     .to_rgb8();
@@ -382,6 +406,7 @@ fn hides_only_inside_its_areas_in_every_style_and_depth() {
             block_size: 8,
             blur: 6.0,
             color: "#ff00ff".into(),
+            ..RedactImage::default()
         };
         for image in [&shallow, &deep] {
             let out = ops::redact(image, &p);
@@ -435,6 +460,7 @@ fn keeps_lit_areas_and_darkens_the_rest_in_every_depth() {
         blur: 0.0,
         radius: 8.0,
         softness: 4.0,
+        ..SpotlightImage::default()
     };
     for image in [
         DynamicImage::ImageRgba8(grey.clone()),
@@ -464,6 +490,48 @@ fn keeps_lit_areas_and_darkens_the_rest_in_every_depth() {
 }
 
 #[test]
+fn sharpens_by_the_amount_asked() {
+    let image = DynamicImage::ImageRgb8(
+        ops::blur(
+            &sample(),
+            &BlurImage {
+                blur: 3.0,
+                sharpen: 0.0,
+                threshold: 0,
+                sharpen_amount: 100,
+            },
+        )
+        .to_rgb8(),
+    );
+    let sharpen = |amount| {
+        ops::blur(
+            &image,
+            &BlurImage {
+                blur: 0.0,
+                sharpen: 2.0,
+                threshold: 0,
+                sharpen_amount: amount,
+            },
+        )
+        .to_rgb8()
+    };
+    assert_eq!(sharpen(0), image.to_rgb8());
+    let change = |amount| {
+        sharpen(amount)
+            .pixels()
+            .zip(image.to_rgb8().pixels())
+            .map(|(a, b)| {
+                a.0.iter()
+                    .zip(b.0)
+                    .map(|(x, y)| u64::from(x.abs_diff(y)))
+                    .sum::<u64>()
+            })
+            .sum::<u64>()
+    };
+    assert!(change(50) < change(100) && change(100) < change(200));
+}
+
+#[test]
 fn trims_even_margins_within_the_tolerance_and_keeps_padding() {
     let framed = RgbaImage::from_fn(64, 48, |x, y| {
         if (10..54).contains(&x) && (12..40).contains(&y) {
@@ -474,7 +542,29 @@ fn trims_even_margins_within_the_tolerance_and_keeps_padding() {
         }
     });
     let image = DynamicImage::ImageRgba8(framed);
-    let trim = |tolerance, padding| ops::trim(&image, &TrimEdges { tolerance, padding });
+    let by_colour = ops::trim(
+        &image,
+        &TrimEdges {
+            tolerance: 8,
+            padding: 0,
+            edge_color: "#1437c8".into(),
+        },
+    );
+    assert_eq!(
+        by_colour.dimensions(),
+        (64, 48),
+        "edges that aren't that colour stay"
+    );
+    let trim = |tolerance, padding| {
+        ops::trim(
+            &image,
+            &TrimEdges {
+                tolerance,
+                padding,
+                edge_color: String::new(),
+            },
+        )
+    };
     assert_eq!(trim(8, 0).dimensions(), (44, 28));
     assert_eq!(trim(8, 0).to_rgba8().get_pixel(0, 0).0, [20, 60, 200, 255]);
     assert_eq!(trim(8, 4).dimensions(), (52, 36));
@@ -565,6 +655,7 @@ fn draws_an_outline_only_where_the_picture_was_see_through() {
         color: "#ffffff".into(),
         softness: 0.0,
         shadow: false,
+        ..OutlineImage::default()
     };
     let out = ops::outline(&image, &p).to_rgba8();
     assert_eq!(
@@ -610,6 +701,7 @@ fn tilts_the_corners_to_where_the_plan_puts_them() {
         lean: 0.0,
         background: "#00000000".into(),
         shadow: false,
+        ..TiltImage::default()
     };
     let out = ops::tilt(&red, &p).unwrap().to_rgba8();
     let (w, h) = tilted_size((100.0, 60.0), &p);
@@ -714,6 +806,7 @@ fn lays_images_out_in_rows_columns_and_cells() {
         gap: 4,
         padding: 2,
         background: "#000000".into(),
+        ..ImageGrid::default()
     };
     let row = grid_plan(&sizes, &grid(GridLayout::Row, GridFit::SameHeight, 2));
     assert_eq!(

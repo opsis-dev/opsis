@@ -2,24 +2,15 @@ import type {
   TransitionPresentation,
   TransitionPresentationComponentProps,
 } from "@remotion/transitions";
-import type React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 const LIFT_RATIO = 1.28;
 
-function originFractions(origin: string): [number, number] {
-  const parts = origin
-    .trim()
-    .split(/\s+/)
-    .map((part) => {
-      const value = Number.parseFloat(part);
-      return part.endsWith("%") && Number.isFinite(value) ? value / 100 : null;
-    });
-  return [parts[0] ?? 0.5, parts[1] ?? 0.5];
-}
+const HINGE_Y = 1;
 
-export function pageTurnLift(width: number, height: number, origin: string, angle: number): number {
-  const [ox, oy] = originFractions(origin);
+export function pageTurnLift(width: number, height: number, ox: number, angle: number): number {
+  const oy = HINGE_Y;
   const theta = (angle * Math.PI) / 180;
   const lowest = [
     [0, 0],
@@ -42,20 +33,16 @@ export function pageTurnPose(progress: number, poses: number): number {
   return bucket / (poses - 1);
 }
 
-export type PageTurnProps = {
-  angle?: number;
-  origin?: string;
-  poses?: number;
-};
+type PageTurnProps = ElementSettings["page-turn"];
 
-const PageTurnPresentation: React.FC<TransitionPresentationComponentProps<PageTurnProps>> = ({
+function PageTurnPresentation({
   children,
   presentationProgress,
   presentationDirection,
   passedProps,
-}) => {
+}: TransitionPresentationComponentProps<PageTurnProps>) {
   const { width, height } = useVideoConfig();
-  const { angle = -7, origin = "18% 100%", poses = 8 } = passedProps;
+  const { angle, poses, hingeX } = passedProps;
 
   if (presentationDirection === "entering") {
     return <AbsoluteFill>{children}</AbsoluteFill>;
@@ -67,17 +54,17 @@ const PageTurnPresentation: React.FC<TransitionPresentationComponentProps<PageTu
     <AbsoluteFill
       style={{
         zIndex: 2,
-        transformOrigin: origin,
-        translate: `0 ${-pose * pageTurnLift(width, height, origin, angle)}px`,
+        transformOrigin: `${hingeX * 100}% ${HINGE_Y * 100}%`,
+        translate: `0 ${-pose * pageTurnLift(width, height, hingeX, angle)}px`,
         rotate: `${angle * pose}deg`,
       }}
     >
       {children}
     </AbsoluteFill>
   );
-};
+}
 
-export function pageTurn(props: PageTurnProps = {}): TransitionPresentation<PageTurnProps> {
+export function pageTurn(props: PageTurnProps): TransitionPresentation<PageTurnProps> {
   return {
     component: PageTurnPresentation,
     props,

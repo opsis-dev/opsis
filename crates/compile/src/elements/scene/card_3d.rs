@@ -29,7 +29,13 @@ pub struct Card3d {
         step = 0.01
     )]
     pub corner_radius: f64,
-    #[setting("Thickness", default = 0.04, range(min = 0.01, max = 0.3), step = 0.01)]
+    #[setting(
+        "Thickness",
+        default = 0.04,
+        range(min = 0.01, max = 0.3),
+        step = 0.01,
+        advanced
+    )]
     pub depth: f64,
     #[setting(
         "Tilt",
@@ -69,8 +75,37 @@ pub struct Card3d {
         labels = { "studio": "Studio", "soft": "Soft", "dramatic": "Dramatic" }
     )]
     pub lighting: Lighting,
-    #[setting("Background", default = "transparent")]
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "None",
+        check = colour_or_empty
+    )]
     pub background: String,
+    #[setting("Zoom", default = 1.0, range(min = 0.3, max = 3))]
+    pub zoom: f64,
+    #[setting("Edge colour", default = "#ffffff", widget = "color", check = colour, advanced)]
+    pub edge_color: String,
+    #[setting("Matte", default = 0.6, range(min = 0, max = 1), advanced)]
+    pub roughness: f64,
+    #[setting("Shadow strength", default = 0.55, range(min = 0, max = 1), advanced)]
+    pub shadow: f64,
+    #[setting("Grow in", default = true, advanced)]
+    pub grow_in: bool,
+    #[setting("End facing the camera", advanced)]
+    pub end_facing: bool,
+    #[setting("Motion amount", default = 1.0, range(min = 0, max = 2), advanced)]
+    pub motion_amount: f64,
+    #[setting("Turn the other way", advanced)]
+    pub reverse: bool,
+    #[setting(
+        "Lens",
+        default = 30.0,
+        range(min = 10, max = 70),
+        unit = "°",
+        advanced
+    )]
+    pub lens: f64,
 }
 
 pub fn definition() -> ElementMeta {

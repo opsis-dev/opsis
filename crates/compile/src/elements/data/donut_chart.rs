@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::Colour;
+use crate::elements::shared::{Colour, LegendValue, NumberFormat};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -80,16 +80,52 @@ pub struct DonutChart {
         advanced
     )]
     pub stagger_in_frames: u32,
-    #[setting("Track color", default = "rgba(250,250,250,0.08)", check = colour)]
+    #[setting("Track color", default = "rgba(250,250,250,0.08)", check = colour, advanced)]
     pub track_color: String,
-    #[setting("Label color", default = "rgba(250,250,250,0.58)", check = colour)]
+    #[setting("Label color", default = "rgba(250,250,250,0.58)", check = colour, advanced)]
     pub label_color: String,
-    #[setting("Text color", default = "#fafafa", check = colour)]
+    #[setting("Text color", default = "#fafafa", check = colour, advanced)]
     pub ink_color: String,
-    #[setting("Increase color", default = "#2dd4bf", check = colour)]
+    #[setting("Increase color", default = "#2dd4bf", check = colour, advanced)]
     pub up_color: String,
-    #[setting("Decrease color", default = "#f87171", check = colour)]
+    #[setting("Decrease color", default = "#f87171", check = colour, advanced)]
     pub down_color: String,
+    #[setting(
+        "Number format",
+        default = NumberFormat::Compact,
+        labels = { "compact": "Short (1.2K)", "full": "Full (1,200)" },
+        advanced
+    )]
+    pub number_format: NumberFormat,
+    #[setting(
+        "Segment gap",
+        default = 1.2,
+        range(min = 0, max = 5),
+        unit = "%",
+        advanced
+    )]
+    pub segment_gap: f64,
+    #[setting("Rounded ends", advanced)]
+    pub round_ends: bool,
+    #[setting(
+        "Start angle",
+        default = 0.0,
+        range(min = 0, max = 359),
+        unit = "deg",
+        advanced
+    )]
+    pub start_angle: f64,
+    #[setting("Capitalise label", default = true, advanced)]
+    pub uppercase_label: bool,
+    #[setting(
+        "Legend shows",
+        default = LegendValue::Percent,
+        labels = { "percent": "Share", "value": "Value" },
+        advanced
+    )]
+    pub legend_shows: LegendValue,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {

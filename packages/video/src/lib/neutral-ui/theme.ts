@@ -21,6 +21,7 @@ export interface NeutralTheme {
   border: string;
   input: string;
   ring: string;
+  success: string;
   radius: number;
 }
 
@@ -44,6 +45,7 @@ export const defaultLightTheme: NeutralTheme = {
   border: "oklch(0.922 0 0)",
   input: "oklch(0.922 0 0)",
   ring: "oklch(0.708 0 0)",
+  success: "oklch(0.6 0.17 150)",
   radius: 10,
 };
 
@@ -67,6 +69,7 @@ export const defaultDarkTheme: NeutralTheme = {
   border: "oklch(1 0 0 / 10%)",
   input: "oklch(1 0 0 / 15%)",
   ring: "oklch(0.556 0 0)",
+  success: "oklch(0.6 0.17 150)",
   radius: 10,
 };
 

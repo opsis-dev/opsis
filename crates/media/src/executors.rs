@@ -19,8 +19,9 @@ use opsis_compile::nodes::audio::{
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
     ChangePitch, ChangeSpeed, CleanSpeech, Encoding, EvenOutVolume, ExtractSound, FixClicks,
-    GrabFrame, JoinFiles, MakeGif, MediaFile, NoiseMethod, RemoveHum, Resize, SOUND_PICTURE_PORT,
-    ShortenPauses, SoundPicture, TrimFile, VoiceEffects, joined_files, kept_parts,
+    GrabFrame, JoinFiles, JoinSizeFrom, MakeGif, MediaFile, NoiseMethod, RemoveHum, Resize,
+    ReverseFile, SOUND_PICTURE_PORT, ShortenPauses, SoundPicture, TrimFile, VoiceEffects,
+    joined_files, kept_parts,
 };
 use opsis_compile::registry::{node_def, node_name};
 use opsis_compile::text::{format_duration, single_quoted};
@@ -31,21 +32,20 @@ use opsis_types::values::{
     Artifact, ArtifactKind, CompileValue, ImageValue, Measured, MediaKind, MediaValue, PortValues,
     StyleEntry,
 };
-use opsis_types::workflow::DEFAULT_STILL_MS;
 
 use crate::codecs::{
     EVEN_FRAME, EditedFile, FASTSTART, FrameGrab, PCM_16, audio_format_args, audio_format_for,
     codec_info, convert_args, convert_codec, edit_audio, edit_video, edited_file, even_down,
-    ffmpeg_seconds, frame_grab_args, grade_sound_args, grade_video_args, serde_name, sound_file,
-    strings,
+    extract_args, ffmpeg_seconds, frame_grab_args, grade_sound_args, grade_video_args, serde_name,
+    sound_file, strings,
 };
 use crate::denoise::{DENOISE_RATE, denoised};
 use crate::ffmpeg::{MediaTools, OnProgress, ProbeResult, RunOptions, ToolError, can_stream_copy};
 use crate::filters::{
-    JoinPart, JoinSize, fit_filter, gif_filter, hum_filter, hum_listen_filter, join_filter,
-    joined_parts_graph, loudnorm_filter, noise_level, noise_level_listen_filter, pitch_filter,
-    repair_filter, rms_level, silence_listen_filter, silences, sound_picture_graph, spectral_floor,
-    speech_filter, speed_args, speed_sound_args, voice_filter,
+    GifLook, JoinPart, JoinSize, fit_filter, gif_filter, hum_filter, hum_listen_filter,
+    join_filter, joined_parts_graph, loudnorm_filter, noise_level, noise_level_listen_filter,
+    pitch_filter, repair_filter, rms_level, silence_listen_filter, silences, sound_picture_graph,
+    spectral_floor, speech_filter, speed_args, speed_sound_args, voice_filter,
 };
 use crate::filters::{fit_graph, fit_inputs};
 use crate::generate::{
@@ -382,14 +382,18 @@ async fn trim(
     .await
 }
 
-fn concat_parts(items: &[LinkedMedia], probes: &[ProbeResult]) -> Vec<(bool, JoinPart)> {
+fn concat_parts(
+    items: &[LinkedMedia],
+    probes: &[ProbeResult],
+    still_ms: f64,
+) -> Vec<(bool, JoinPart)> {
     items
         .iter()
         .zip(probes)
         .map(|(m, probe)| {
             let still = m.value.kind == MediaKind::Image;
             let duration_ms = if still {
-                m.value.duration_ms.map_or(DEFAULT_STILL_MS, f64::from)
+                m.value.duration_ms.map_or(still_ms, f64::from)
             } else {
                 probe.duration_ms.map_or(0.0, f64::from)
             };
@@ -407,19 +411,27 @@ fn concat_parts(items: &[LinkedMedia], probes: &[ProbeResult]) -> Vec<(bool, Joi
 
 fn reencode_args(
     ctx: &ExecutorContext,
+    p: &JoinFiles,
     paths: &[String],
     probes: &[ProbeResult],
     parts: &[(bool, JoinPart)],
     out: String,
 ) -> Vec<String> {
-    let first = probes.iter().find_map(|x| x.video.as_ref());
+    let first = probes
+        .iter()
+        .find_map(|x| x.video.as_ref())
+        .filter(|_| p.match_to == JoinSizeFrom::First);
     let settings = &ctx.workflow.settings;
     let to = JoinSize {
         width: first.map_or(settings.width, |v| v.width),
         height: first.map_or(settings.height, |v| v.height),
         fps: first.and_then(|v| v.fps).unwrap_or(f64::from(settings.fps)),
     };
-    let join = join_filter(&parts.iter().map(|(_, p)| *p).collect::<Vec<_>>(), to);
+    let join = join_filter(
+        &parts.iter().map(|(_, part)| *part).collect::<Vec<_>>(),
+        to,
+        &p.background,
+    );
     let mut args = Vec::new();
     for (path, (still, part)) in paths.iter().zip(parts) {
         if *still {
@@ -465,7 +477,7 @@ async fn concat(
     let probes = try_join_all(paths.iter().map(|f| tools.probe(Path::new(f))))
         .await
         .map_err(tool_error)?;
-    let parts = concat_parts(&items, &probes);
+    let parts = concat_parts(&items, &probes, f64::from(p.still_ms));
     let total: f64 = parts.iter().map(|(_, p)| p.duration_ms).sum();
     let any_video = parts.iter().any(|(_, p)| p.video);
     let file = if any_video {
@@ -503,7 +515,7 @@ async fn concat(
             LogLevel::Info,
             "The files differ, converting them to match the first one.",
         );
-        reencode_args(&ctx, &paths, &probes, &parts, out)
+        reencode_args(&ctx, &p, &paths, &probes, &parts, out)
     };
     tools
         .run(&args, run_options(&ctx, Some(total), Some(&progress)))
@@ -538,7 +550,7 @@ async fn speed(
             duration_ms,
         };
         return transcode(&ctx, &*tools, &input, job, |i, o| {
-            speed_sound_args(i, o, p.rate, &out.codecs)
+            speed_sound_args(i, o, p.rate, p.keep_pitch, &out.codecs)
         })
         .await;
     };
@@ -550,7 +562,7 @@ async fn speed(
         duration_ms,
     };
     transcode(&ctx, &*tools, &input, job, |i, o| {
-        speed_args(i, o, p.rate, fps, sound)
+        speed_args(i, o, p.rate, fps, sound.then_some(p.keep_pitch))
     })
     .await
 }
@@ -644,12 +656,18 @@ async fn reverse(
     inputs: PortValues,
     tools: Tools,
 ) -> Result<ExecutorOutput, ExecError> {
+    let keep_audio = ctx.params::<ReverseFile>()?.keep_audio;
     let input = require_media(inputs.get(MEDIA_PORT))?;
     let src = ctx.ref_to_path(&input.src)?;
     let probe = tools.probe(&src).await.map_err(tool_error)?;
     let label = "Reversed";
     let Some(video) = &probe.video else {
         let out = sound_only_file(&probe, &input.src, "Reverse")?;
+        if !keep_audio {
+            return Err(ExecError::new(
+                "This file is only sound, so turning off Keep the sound leaves nothing.",
+            ));
+        }
         let job = Transcode {
             file: format!("reversed{}", out.ext),
             label,
@@ -660,7 +678,7 @@ async fn reverse(
         })
         .await;
     };
-    let sound = media_has_sound(&ctx, &*tools, &input).await?;
+    let sound = keep_audio && media_has_sound(&ctx, &*tools, &input).await?;
     let pieces = reverse_pieces(PieceBudget {
         duration_ms: duration_ms(&probe),
         fps: video.fps.unwrap_or(f64::from(ctx.workflow.settings.fps)),
@@ -722,9 +740,9 @@ async fn scale_pad(
     let image = input.value.kind == MediaKind::Image;
     let (w, h) = (f64::from(p.width), f64::from(p.height));
     let filter = if image {
-        fit_filter(p.mode, w, h, &p.background)
+        fit_filter(p.mode, w, h, &p.background, p.anchor)
     } else {
-        fit_filter(p.mode, even_down(w), even_down(h), &p.background)
+        fit_filter(p.mode, even_down(w), even_down(h), &p.background, p.anchor)
     };
     let label = format!("{}×{}", p.width, p.height);
     let job = Transcode {
@@ -759,7 +777,7 @@ async fn convert(
     };
     transcode(&ctx, &*tools, &input, job, |i, o| {
         let mut args = vec!["-i".to_owned(), i.to_owned()];
-        args.extend(convert_args(p.codec, f64::from(p.crf), p.preset));
+        args.extend(convert_args(&p));
         args.push(o.to_owned());
         args
     })
@@ -861,8 +879,8 @@ async fn apply_grade(
             if sound.is_some() {
                 args.extend(strings(&["-map", "0:a?"]));
             }
-            args.extend(grade_video_args(p.codec, f64::from(p.crf), p.preset));
-            args.extend(grade_sound_args(p.codec, sound));
+            args.extend(grade_video_args(&p));
+            args.extend(grade_sound_args(&p, sound));
             if codec.faststart {
                 args.extend(strings(&FASTSTART));
             }
@@ -880,7 +898,15 @@ async fn gif(
 ) -> Result<ExecutorOutput, ExecError> {
     let p: MakeGif = ctx.params()?;
     let input = require_media(inputs.get(MEDIA_PORT))?;
-    let filter = gif_filter(f64::from(p.fps), f64::from(p.width), p.dither);
+    let filter = gif_filter(
+        f64::from(p.fps),
+        f64::from(p.width),
+        &GifLook {
+            dither: p.dither,
+            colours: p.colours,
+            palette_from: p.palette_from,
+        },
+    );
     let looped = if p.r#loop { "0" } else { "-1" };
     let job = Transcode {
         file: "animation.gif".into(),
@@ -910,7 +936,7 @@ async fn extract_audio(
     };
     transcode(&ctx, &*tools, &input, job, |i, o| {
         let mut args = strings(&["-i", i, "-vn"]);
-        args.extend(audio_format_args(p.format));
+        args.extend(extract_args(p.format, p.bitrate));
         args.push(o.to_owned());
         args
     })
@@ -1048,7 +1074,7 @@ async fn hum(
         stem: "hum",
         label: "Hum removed",
         silent: "This file has no sound to clean.",
-        filter: hum_filter(hertz, p.harmonics, p.width),
+        filter: hum_filter(hertz, p.harmonics, p.width, p.depth),
         sound: None,
     };
     filter_sound(&ctx, &inputs, &*tools, job).await
@@ -1148,6 +1174,9 @@ async fn make_tones(
         length_ms: f64::from(p.length_ms),
         count: p.count,
         spacing_ms: f64::from(p.spacing_ms),
+        wave: p.wave,
+        final_length: p.final_length,
+        final_pitch: p.final_pitch,
     });
     made_sound(&ctx, "tones.wav", "Tones", &samples)
 }
@@ -1403,7 +1432,7 @@ async fn voice_effects(
     tools: Tools,
 ) -> Result<ExecutorOutput, ExecError> {
     let p: VoiceEffects = ctx.params()?;
-    let room = match room_response(p.effect, seed_of(&ctx.node.id)) {
+    let room = match room_response(p.effect, seed_of(&ctx.node.id), p.reverb_ms) {
         Some(channels) => {
             let file = ctx.dir.join("room.wav");
             write_stereo_wav(&file, &channels).map_err(|e| ExecError::new(e.to_string()))?;

@@ -1,42 +1,17 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { CODE_THEMES, CodeLine, MONO_ADVANCE, tokenizeCode } from "#video/lib/code/code-syntax.tsx";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { CodeLine, codePalette, MONO_ADVANCE, tokenizeCode } from "#video/lib/code/code-syntax.tsx";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 import { stageScale } from "#video/lib/text/ai-composer-utils.tsx";
-
-const fontFamily = '"JetBrains Mono"';
 
 const REF_WIDTH = 1280;
 const REF_HEIGHT = 720;
 
-const WINDOW_WIDTH = 940;
 const HEADER_HEIGHT = 46;
 const BODY_PADDING = 22;
-const ROW_HEIGHT = 34;
-const FONT_SIZE = 20;
 const GUTTER_WIDTH = 46;
 const CODE_INSET = 18;
-
-export type CodeDiffWipeProps = {
-  before?: string;
-  after?: string;
-  title?: string;
-  wipeSeconds?: number;
-  accentColor?: string;
-  backgroundColor?: string;
-  theme?: "dark" | "light";
-  speed?: number;
-};
-
-const DEFAULT_BEFORE = `export function render(scene) {
-  const frames = scene.frames;
-  return frames.map(draw);
-}`;
-
-const DEFAULT_AFTER = `export function render(scene, options) {
-  const frames = scene.frames;
-  const scale = options.scale ?? 1;
-  return frames.map((frame) => draw(frame, scale));
-}`;
 
 type DiffKind = "context" | "remove" | "add";
 
@@ -91,32 +66,52 @@ function diffLines(before: string[], after: string[]): DiffRow[] {
 
 const CHROME_LIGHTS = ["#FF5F57", "#FEBC2E", "#28C840"] as const;
 
-const Plus: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path d="M12 5.5v13M5.5 12h13" stroke={color} strokeWidth={2.6} strokeLinecap="round" />
-  </svg>
-);
+function Plus({ size, color }: { size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M12 5.5v13M5.5 12h13" stroke={color} strokeWidth={2.6} strokeLinecap="round" />
+    </svg>
+  );
+}
 
-const Minus: React.FC<{ size: number; color: string }> = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path d="M5.5 12h13" stroke={color} strokeWidth={2.6} strokeLinecap="round" />
-  </svg>
-);
+function Minus({ size, color }: { size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M5.5 12h13" stroke={color} strokeWidth={2.6} strokeLinecap="round" />
+    </svg>
+  );
+}
 
-export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
-  before = DEFAULT_BEFORE,
-  after = DEFAULT_AFTER,
-  title = "render.ts",
-  wipeSeconds = 1.7,
-  accentColor = "#E8B86D",
+export function CodeDiffWipe({
+  before,
+  after,
+  title,
+  wipeSeconds,
+  accentColor,
   backgroundColor,
-  theme = "dark",
-  speed = 1,
-}) => {
+  theme,
+  speed,
+  fontSize: FONT_SIZE,
+  windowWidth: WINDOW_WIDTH,
+  lineHeight,
+  startAt,
+  collapseRemoved,
+  showCounts,
+  dimUnchanged,
+  strikeRemoved,
+  glow,
+  vignette,
+  cornerRadius,
+  windowDots,
+  font,
+}: ElementSettings["code-diff-wipe"]) {
+  const ROW_HEIGHT = FONT_SIZE * lineHeight;
+  const fontFamily = fontOr(font, "code");
   const rawFrame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
-  const page = backgroundColor ?? palette.page;
+  const palette = codePalette(theme);
+  const dark = theme.mode === "dark";
+  const page = backgroundColor || palette.page;
   const scale = stageScale(width, height, REF_WIDTH, REF_HEIGHT);
   const frame = rawFrame * speed;
 
@@ -148,10 +143,10 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
   const added = rows.filter((row) => row.kind === "add").length;
   const removed = rows.filter((row) => row.kind === "remove").length;
 
-  const addColor = palette.token.string;
-  const removeColor = theme === "dark" ? "#F87171" : "#DC2626";
+  const addColor = palette.added;
+  const removeColor = palette.removed;
 
-  const wipeStart = seconds(0.7);
+  const wipeStart = seconds(startAt);
   const wipeFrames = seconds(wipeSeconds);
   const rowTrigger = (index: number) =>
     wipeStart + (rows.length <= 1 ? 0 : (index / rows.length) * wipeFrames);
@@ -184,7 +179,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
 
   const heights = rows.map((row, index) => {
     const progress = rowProgress(index);
-    if (row.kind === "remove") return ROW_HEIGHT * (1 - dropOld);
+    if (row.kind === "remove") return collapseRemoved ? ROW_HEIGHT * (1 - dropOld) : ROW_HEIGHT;
     if (row.kind === "add") return ROW_HEIGHT * progress;
     return ROW_HEIGHT;
   });
@@ -223,7 +218,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 70% 50% at 50% 38%, color-mix(in srgb, ${accentColor} 11%, transparent), transparent 70%)`,
+          background: `radial-gradient(ellipse 70% 50% at 50% 38%, color-mix(in srgb, ${accentColor} ${glow ? 11 : 0}%, transparent), transparent 70%)`,
           opacity: chromeIn,
         }}
       />
@@ -231,8 +226,9 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background:
-            theme === "dark"
+          background: !vignette
+            ? undefined
+            : dark
               ? "radial-gradient(ellipse 120% 90% at 50% 50%, transparent 45%, rgba(0,0,0,0.55) 100%)"
               : "radial-gradient(ellipse 120% 90% at 50% 50%, transparent 55%, rgba(15,18,25,0.07) 100%)",
         }}
@@ -243,7 +239,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
           width: windowWidth,
           transform: `scale(${scale * fit * interpolate(enter, [0, 1], [0.965, 1])}) translateY(${interpolate(enter, [0, 1], [26, 0])}px)`,
           opacity: enter,
-          borderRadius: 16,
+          borderRadius: cornerRadius,
           background: palette.window,
           border: `1px solid ${palette.border}`,
           boxShadow: `inset 0 1px 0 ${palette.highlight}, 0 34px 90px ${palette.shadow}`,
@@ -262,7 +258,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
             position: "relative",
           }}
         >
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: windowDots ? "flex" : "none", gap: 8 }}>
             {CHROME_LIGHTS.map((color) => (
               <div
                 key={color}
@@ -293,7 +289,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
           <span
             style={{
               marginLeft: "auto",
-              display: "flex",
+              display: showCounts ? "flex" : "none",
               gap: 12,
               fontSize: 14,
               fontVariantNumeric: "tabular-nums",
@@ -368,7 +364,8 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
                       height: ROW_HEIGHT,
                       display: "flex",
                       alignItems: "center",
-                      textDecorationLine: isRemove && progress > 0.15 ? "line-through" : "none",
+                      textDecorationLine:
+                        strikeRemoved && isRemove && progress > 0.15 ? "line-through" : "none",
                       textDecorationColor: removeColor,
                     }}
                   >
@@ -376,7 +373,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
                       tokens={tokenRows[index]}
                       theme={palette}
                       reveal={revealed >= row.text.length ? undefined : revealed}
-                      muted={row.kind === "context"}
+                      muted={dimUnchanged && row.kind === "context"}
                     />
                   </span>
                 </div>
@@ -400,7 +397,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
       </div>
     </div>
   );
-};
+}
 
 function tintAlpha(value: number): string {
   const alpha = Math.round(Math.max(0, Math.min(1, value)) * 30);

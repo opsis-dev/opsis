@@ -372,7 +372,7 @@ impl Session {
         .await?;
         let features = json!([
             { "name": "prefers-color-scheme", "value": color_scheme(params.color_scheme) },
-            { "name": "prefers-reduced-motion", "value": "" },
+            { "name": "prefers-reduced-motion", "value": if params.reduce_motion { "reduce" } else { "" } },
             { "name": "forced-colors", "value": "" },
             { "name": "prefers-contrast", "value": "" },
         ]);
@@ -381,6 +381,10 @@ impl Session {
             json!({ "media": "", "features": features }),
         )
         .await?;
+        if params.show_scrollbars {
+            tab.send("Emulation.setScrollbarsHidden", json!({ "hidden": false }))
+                .await?;
+        }
         Ok(())
     }
 

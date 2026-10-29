@@ -1,52 +1,44 @@
 import { useMemo } from "react";
 import { spring } from "remotion";
-import { MAIN_FONT } from "#video/common/fonts.ts";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 const COLUMN_EM = 0.7;
-const LETTER_SPACING_EM = -0.03;
 
 function columnWidths(
   from: string,
   to: string,
   fontSize: number,
-  fontWeight: number,
+  fontWeight: string,
   fontFamily: string,
+  letterSpacing: number,
 ): number[] {
   const fixed = () => Array.from(from, () => COLUMN_EM * fontSize);
   if (typeof document === "undefined") return fixed();
   const ctx = document.createElement("canvas").getContext("2d");
   if (!ctx) return fixed();
   ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-  ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
+  ctx.letterSpacing = `${letterSpacing * fontSize}px`;
   return Array.from(from, (char, i) =>
     Math.max(ctx.measureText(char).width, ctx.measureText(to[i] ?? "").width),
   );
 }
 
-export interface SlotMachineRollProps {
-  background?: string;
-  fontFamily?: string;
-  from?: string;
-  to?: string;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
-
 export function SlotMachineRoll({
-  fontFamily = MAIN_FONT,
-  from = "$99",
-  to = "$199",
-  fontSize = 120,
-  color = "#171717",
-  fontWeight = 700,
-  speed = 1,
-  className,
-  background = "transparent",
-}: SlotMachineRollProps) {
+  fontFamily,
+  from,
+  to,
+  fontSize,
+  color,
+  fontWeight,
+  speed,
+  background,
+  columnStagger,
+  direction,
+  letterSpacing,
+}: ElementSettings["slot-machine-roll"]) {
+  const face = fontOr(fontFamily, "main");
   const frame = useAuthoredFrame() * speed;
   const { fps } = useAuthoredConfig();
 
@@ -54,18 +46,21 @@ export function SlotMachineRoll({
   const paddedFrom = from.padStart(len, " ");
   const paddedTo = to.padStart(len, " ");
   const widths = useMemo(
-    () => columnWidths(paddedFrom, paddedTo, fontSize, fontWeight, fontFamily),
-    [paddedFrom, paddedTo, fontSize, fontWeight, fontFamily],
+    () => columnWidths(paddedFrom, paddedTo, fontSize, fontWeight, face, letterSpacing),
+    [paddedFrom, paddedTo, fontSize, fontWeight, face, letterSpacing],
   );
 
   const columns = [];
   for (let i = 0; i < len; i++) {
     const raw = spring({
-      frame: frame - i * 4,
+      frame: frame - i * columnStagger,
       fps,
       config: { damping: 14 },
     });
     const t = Math.max(0, Math.min(1, raw));
+    const up = direction === "up";
+    const first = up ? paddedFrom[i] : paddedTo[i];
+    const second = up ? paddedTo[i] : paddedFrom[i];
     columns.push(
       <span
         key={i}
@@ -83,11 +78,11 @@ export function SlotMachineRoll({
           style={{
             display: "flex",
             flexDirection: "column",
-            translate: `0 ${-t * fontSize * 1.1}px`,
+            translate: `0 ${-(up ? t : 1 - t) * fontSize * 1.1}px`,
           }}
         >
-          <span style={{ height: "1.1em", whiteSpace: "pre" }}>{paddedFrom[i]}</span>
-          <span style={{ height: "1.1em", whiteSpace: "pre" }}>{paddedTo[i]}</span>
+          <span style={{ height: "1.1em", whiteSpace: "pre" }}>{first}</span>
+          <span style={{ height: "1.1em", whiteSpace: "pre" }}>{second}</span>
         </span>
       </span>,
     );
@@ -105,13 +100,12 @@ export function SlotMachineRoll({
       }}
     >
       <span
-        className={className}
         style={{
           fontSize,
           fontWeight,
           color,
-          letterSpacing: `${LETTER_SPACING_EM}em`,
-          fontFamily,
+          letterSpacing: `${letterSpacing}em`,
+          fontFamily: face,
           lineHeight: 1.1,
         }}
       >

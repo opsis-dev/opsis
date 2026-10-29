@@ -1,12 +1,9 @@
-import type React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { nestedFrom } from "#video/lib/settings/shape.ts";
-
-const fontFamily = '"Inter"';
 
 export type ChangeKind = "added" | "fixed" | "changed" | "removed";
 
@@ -14,29 +11,6 @@ export type ChangeRow = {
   kind: ChangeKind;
   text: string;
 };
-
-export type ChangelogEntryProps = {
-  version?: string;
-  date?: string;
-  summary?: string;
-  changes?: ChangeRow[];
-  kindColors?: Partial<Record<ChangeKind, string>>;
-  startAtSeconds?: number;
-  staggerSeconds?: number;
-  holdSeconds?: number;
-  accentColor?: string;
-  backgroundColor?: string;
-  theme?: "dark" | "light";
-  speed?: number;
-};
-
-const DEFAULT_CHANGES: ChangeRow[] = [
-  { kind: "added", text: "Caption presets for nine languages" },
-  { kind: "added", text: "Render API webhooks on job completion" },
-  { kind: "fixed", text: "Retry backoff no longer stalls the queue" },
-  { kind: "changed", text: "Theme tokens moved to a single source" },
-  { kind: "removed", text: "Legacy waveform atom" },
-];
 
 const DEFAULT_KIND_COLORS: Record<ChangeKind, string> = {
   added: "#9BD4A0",
@@ -60,23 +34,39 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-const ChangelogEntryView: React.FC<ChangelogEntryProps> = ({
-  version = "v2.4.0",
-  date = "16 August",
-  summary = "Captions, webhooks, and a queue that stops sulking.",
-  changes = DEFAULT_CHANGES,
+function ChangelogEntryView({
+  version,
+  date,
+  summary,
+  changes,
   kindColors,
-  startAtSeconds = 0.66,
-  staggerSeconds = 0.28,
+  startAtSeconds,
+  staggerSeconds,
   holdSeconds,
-  accentColor = "#E8B86D",
   backgroundColor,
-  theme = "dark",
-  speed = 1,
-}) => {
+  theme,
+  speed,
+  tags,
+  cardWidth,
+  fontFamily,
+}: Omit<
+  ElementSettings["changelog-entry"],
+  | "kindAdded"
+  | "kindFixed"
+  | "kindChanged"
+  | "kindRemoved"
+  | "addedLabel"
+  | "fixedLabel"
+  | "changedLabel"
+  | "removedLabel"
+> & {
+  kindColors: Partial<Record<ChangeKind, string>>;
+  tags: Record<ChangeKind, string>;
+  holdSeconds?: number;
+}) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
   const at = (seconds: number) => (seconds * fps) / speed;
@@ -103,18 +93,17 @@ const ChangelogEntryView: React.FC<ChangelogEntryProps> = ({
           ...clamp,
         });
 
-  const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 760 * u);
+  const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, cardWidth * u);
   const pad = 30 * u;
   const tagW = 74 * u;
 
-  const colorFor = (kind: ChangeKind) =>
-    kindColors?.[kind] ?? DEFAULT_KIND_COLORS[kind] ?? accentColor;
+  const colorFor = (kind: ChangeKind) => kindColors[kind] || DEFAULT_KIND_COLORS[kind];
 
   return (
     <AbsoluteFill
       style={{
-        background: backgroundColor ?? palette.page,
-        fontFamily,
+        background: backgroundColor || palette.page,
+        fontFamily: fontOr(fontFamily, "main"),
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -228,7 +217,7 @@ const ChangelogEntryView: React.FC<ChangelogEntryProps> = ({
                     scale: `${0.9 + rowIn * 0.1}`,
                   }}
                 >
-                  {change.kind}
+                  {tags[change.kind]}
                 </span>
                 <span
                   style={{
@@ -248,17 +237,29 @@ const ChangelogEntryView: React.FC<ChangelogEntryProps> = ({
       </div>
     </AbsoluteFill>
   );
-};
+}
 
-export function ChangelogEntry(props: ElementProps & { children?: React.ReactNode }) {
+export function ChangelogEntry({
+  kindAdded,
+  kindFixed,
+  kindChanged,
+  kindRemoved,
+  addedLabel,
+  fixedLabel,
+  changedLabel,
+  removedLabel,
+  ...settings
+}: ElementSettings["changelog-entry"]) {
   return (
     <ChangelogEntryView
-      {...(nestedFrom(props, {
-        kindAdded: "kindColors.added",
-        kindFixed: "kindColors.fixed",
-        kindChanged: "kindColors.changed",
-        kindRemoved: "kindColors.removed",
-      }) as unknown as React.ComponentProps<typeof ChangelogEntryView>)}
+      {...settings}
+      kindColors={{
+        added: kindAdded,
+        fixed: kindFixed,
+        changed: kindChanged,
+        removed: kindRemoved,
+      }}
+      tags={{ added: addedLabel, fixed: fixedLabel, changed: changedLabel, removed: removedLabel }}
     />
   );
 }

@@ -17,12 +17,26 @@ pub struct ShaderPerlinNoise {
     pub speed: f64,
     #[setting("Proportion", default = 0.35, range(min = 0, max = 1), step = 0.05)]
     pub proportion: f64,
-    #[setting("Softness", default = 0.1, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Softness",
+        default = 0.1,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub softness: f64,
     #[setting("Background", default = "#12121a", check = colour)]
     pub color_back: String,
     #[setting("Front", default = "#6a6a85", check = colour)]
     pub color_front: String,
+    #[setting("Detail", default = 1, range(min = 1, max = 8), step = 1, advanced)]
+    pub octave_count: u32,
+    #[setting("Roughness", default = 1.0, range(min = 0.3, max = 1), advanced)]
+    pub persistence: f64,
+    #[setting("Detail spacing", default = 1.5, range(min = 1.5, max = 10), advanced)]
+    pub lacunarity: f64,
+    #[setting("Scale", default = 1.0, range(min = 0.1, max = 4), advanced)]
+    pub scale: f64,
 }
 
 pub fn definition() -> ElementMeta {

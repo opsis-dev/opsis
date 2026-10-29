@@ -81,6 +81,37 @@ proptest! {
     }
 
     #[test]
+    fn scales_by_percent_and_never_enlarges_when_asked(
+        source in picture(),
+        scale in 1u32..1000,
+        width in 0u32..5000,
+        height in 0u32..5000,
+    ) {
+        let by_percent: ResizeImage = settings(json!({ "by": "percent", "scale": scale }));
+        let (w, h) = resized_size(source, &by_percent);
+        let k = f64::from(scale) / 100.0;
+        prop_assert!((w - (source.0 * k).round().max(1.0)).abs() < 1e-9);
+        prop_assert!((h - (source.1 * k).round().max(1.0)).abs() < 1e-9);
+        let capped: ResizeImage = settings(json!({ "width": width, "height": height, "shrinkOnly": true }));
+        let (w, h) = resized_size(source, &capped);
+        prop_assert!(w <= source.0.max(1.0) + 0.5 && h <= source.1.max(1.0) + 0.5, "{w} {h} {source:?}");
+    }
+
+    #[test]
+    fn cuts_off_the_corners_to_a_part_inside_the_turned_picture(
+        source in picture(),
+        angle in -45.0..45.0f64,
+    ) {
+        prop_assume!(angle.abs() > 0.01);
+        let p: RotateImage = settings(json!({ "turn": "none", "angle": angle, "cropCorners": true }));
+        let (w, h) = rotated_size(source, &p);
+        prop_assert!(w <= source.0 && h <= source.1, "{w} {h} {source:?}");
+        let (sin, cos) = angle.to_radians().sin_cos();
+        let (sin, cos) = (sin.abs(), cos.abs());
+        prop_assert!(w * cos + h * sin <= source.0 + 1.0 && w * sin + h * cos <= source.1 + 1.0);
+    }
+
+    #[test]
     fn turns_onto_a_canvas_that_just_holds_the_turned_picture(
         source in picture(),
         turn in prop::sample::select(vec!["none", "right", "half", "left"]),

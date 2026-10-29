@@ -9,7 +9,7 @@ export function Portal(props: SceneProps) {
       style={{
         position: "absolute",
         inset: 0,
-        background: actionBackground,
+        background: actionBackground(props.scene),
         overflow: "hidden",
       }}
     >

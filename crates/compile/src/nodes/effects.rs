@@ -59,16 +59,29 @@ pub struct BlurAreas {
     pub frame_ms: f64,
     #[setting("Strength", default = 0.6, range(min = 0.05, max = 1), step = 0.05)]
     pub strength: f64,
-    #[setting("Soft edge", default = 0.3, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Soft edge",
+        default = 0.3,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub softness: f64,
-    #[setting("Rounded corners", default = 0.3, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Rounded corners",
+        default = 0.3,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub roundness: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
         "From",
         range(min = 0, max = 3600000),
         unit = "ms",
-        zero_label = "Start of the take"
+        zero_label = "Start of the take",
+        advanced
     )]
     pub from_ms: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -76,9 +89,19 @@ pub struct BlurAreas {
         "Until",
         range(min = 0, max = 3600000),
         unit = "ms",
-        zero_label = "End of the take"
+        zero_label = "End of the take",
+        advanced
     )]
     pub until_ms: Option<u32>,
+    #[setting(
+        "Fade in and out",
+        default = 200,
+        range(min = 0, max = 2000),
+        step = 1,
+        unit = "ms",
+        advanced
+    )]
+    pub fade_ms: u32,
 }
 
 impl Params for BlurAreas {
@@ -103,6 +126,7 @@ pub fn blur_areas_of(p: &BlurAreas) -> Vec<BlurArea> {
             strength: p.strength * MAX_BLUR_OF_WIDTH,
             softness: p.softness * MAX_SOFTNESS_OF_WIDTH,
             roundness: p.roundness,
+            fade_ms: f64::from(p.fade_ms),
             from_ms: p.from_ms.map(f64::from),
             until_ms: p.until_ms.map(f64::from),
         })
@@ -204,6 +228,19 @@ pub struct Look {
     pub vignette: f64,
     #[setting("Film grain", range(min = 0, max = 1), step = 0.05)]
     pub grain: f64,
+    #[setting("Dark edges size", default = 0.65, range(min = 0, max = 1), advanced)]
+    pub vignette_size: f64,
+    #[setting(
+        "Dark edges softness",
+        default = 0.35,
+        range(min = 0, max = 1),
+        advanced
+    )]
+    pub vignette_softness: f64,
+    #[setting("Dark edges colour", default = "#000000", widget = "color", check = colour, advanced)]
+    pub vignette_color: String,
+    #[setting("Tint", default = 0.0, range(min = -1, max = 1), advanced)]
+    pub tint: f64,
 }
 
 impl Params for Look {}
@@ -236,7 +273,14 @@ const LOOK_PRESETS: [(&str, [f64; 6]); 7] = [
 fn changed_look(p: &Look) -> PictureLook {
     let keep = |i: usize, v: f64| (v != NEUTRAL[i]).then_some(v);
     let v = p.values();
+    let plain = Look::default();
+    let changed = |v: f64, default: f64| (v != default).then_some(v);
     PictureLook {
+        vignette_size: changed(p.vignette_size, plain.vignette_size),
+        vignette_softness: changed(p.vignette_softness, plain.vignette_softness),
+        vignette_color: (p.vignette_color != plain.vignette_color)
+            .then(|| p.vignette_color.clone()),
+        tint: changed(p.tint, plain.tint),
         brightness: keep(0, v[0]),
         contrast: keep(1, v[1]),
         saturation: keep(2, v[2]),

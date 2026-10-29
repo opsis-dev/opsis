@@ -1,30 +1,15 @@
 import type React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
-import { numberOr } from "#video/common/math.ts";
-import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { parseColor } from "#video/lib/neutral-ui/color.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
   makeFilterShader,
+  rgbUniform,
 } from "#video/lib/transitions/canvas-presentation.tsx";
 
-export type TvPowerOffProps = {
-  durationInFrames?: number;
-  delay?: number;
-  gain?: number;
-  afterglow?: number;
-  phosphor?: string;
-};
-
-const DEFAULTS = {
-  durationInFrames: 18,
-  delay: 0,
-  gain: 1,
-  afterglow: 1,
-  phosphor: "#d8ecff",
-};
+type TvPowerOffProps = ElementSettings["tv-power-off"] & { delay: number };
 
 const COLLAPSE_END = 0.6;
 const PINCH_END = 0.82;
@@ -44,6 +29,7 @@ uniform float u_progress;
 uniform float u_gain;
 uniform float u_afterglow;
 uniform vec3 u_phosphor;
+uniform vec3 u_screen;
 
 in vec2 v_uv;
 out vec4 outColor;
@@ -67,7 +53,7 @@ void main() {
     return;
   }
   if (p >= 1.0) {
-    outColor = vec4(0.0, 0.0, 0.0, 1.0);
+    outColor = vec4(u_screen, 1.0);
     return;
   }
 
@@ -130,47 +116,33 @@ void main() {
 
   float blackout = smoothstep(0.0, BLACKOUT_IN, p);
   outColor = vec4(
-    clamp(light, 0.0, 1.0),
+    clamp(light + u_screen * blackout, 0.0, 1.0),
     mix(texture(u_scene, v_uv).a, 1.0, blackout)
   );
 }`;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-function toRgb(color: string): [number, number, number] {
-  const { r, g, b } = parseColor(color);
-  return [r, g, b];
-}
-
-function powerProgress(props: TvPowerOffProps, frame: number): number {
-  const { durationInFrames = DEFAULTS.durationInFrames, delay = DEFAULTS.delay } = props;
+function powerProgress({ durationInFrames, delay }: TvPowerOffProps, frame: number): number {
   return clamp((frame - delay) / Math.max(1, durationInFrames), 0, 1);
 }
 
 const shader = makeFilterShader<TvPowerOffProps>(
   FRAGMENT_SHADER,
   ({ gl, uniform, width, height, frame, passedProps }) => {
-    const {
-      gain = DEFAULTS.gain,
-      afterglow = DEFAULTS.afterglow,
-      phosphor = DEFAULTS.phosphor,
-    } = passedProps;
+    const { gain, afterglow, phosphor, screenColor } = passedProps;
     gl.uniform1f(uniform("u_progress"), powerProgress(passedProps, frame));
     gl.uniform2f(uniform("u_resolution"), width, height);
     gl.uniform1f(uniform("u_gain"), gain);
     gl.uniform1f(uniform("u_afterglow"), afterglow);
-    gl.uniform3fv(uniform("u_phosphor"), toRgb(phosphor));
+    gl.uniform3fv(uniform("u_phosphor"), rgbUniform(phosphor));
+    gl.uniform3fv(uniform("u_screen"), rgbUniform(screenColor));
   },
 );
 
-const TvPowerOffFallback: React.FC<TvPowerOffProps & CanvasFilterProps> = (props) => {
+function TvPowerOffFallback(props: TvPowerOffProps & CanvasFilterProps) {
   const frame = useAuthoredFrame();
-  const {
-    children,
-    gain = DEFAULTS.gain,
-    afterglow = DEFAULTS.afterglow,
-    phosphor = DEFAULTS.phosphor,
-  } = props;
+  const { children, gain, afterglow, phosphor, screenColor } = props;
 
   const p = powerProgress(props, frame);
   const collapse = clamp(p / COLLAPSE_END, 0, 1);
@@ -186,7 +158,7 @@ const TvPowerOffFallback: React.FC<TvPowerOffProps & CanvasFilterProps> = (props
     <AbsoluteFill>
       <AbsoluteFill
         style={{
-          background: "#000000",
+          background: screenColor,
           opacity: clamp(p / BLACKOUT_IN, 0, 1),
         }}
       />
@@ -207,22 +179,21 @@ const TvPowerOffFallback: React.FC<TvPowerOffProps & CanvasFilterProps> = (props
       />
     </AbsoluteFill>
   );
-};
+}
 
 const TvPowerOffView = makeCanvasFilter<TvPowerOffProps>({
   shader,
   fallback: TvPowerOffFallback,
 });
 
-export function TvPowerOff(props: ElementProps & { children?: React.ReactNode }) {
+export function TvPowerOff({
+  children,
+  ...settings
+}: ElementSettings["tv-power-off"] & { children?: React.ReactNode }) {
   const { durationInFrames } = useVideoConfig();
-  const length = numberOr(props.durationInFrames, 0);
   return (
-    <TvPowerOffView
-      {...({
-        ...props,
-        delay: Math.max(0, durationInFrames - length),
-      } as unknown as React.ComponentProps<typeof TvPowerOffView>)}
-    />
+    <TvPowerOffView {...settings} delay={Math.max(0, durationInFrames - settings.durationInFrames)}>
+      {children}
+    </TvPowerOffView>
   );
 }

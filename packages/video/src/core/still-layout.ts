@@ -3,12 +3,12 @@ import { clamp } from "#video/common/math.ts";
 export type Size = { width: number; height: number };
 export type Box = { x: number; y: number; width: number; height: number };
 export type StillLook = "window" | "cutout" | "bleed";
+export type StillAlign = "top" | "middle";
 
 type ShotArea = Size & { body?: Box };
 
 export type Shot = ShotArea & { scale: number };
 
-const CUTOUT_FIT = 0.8;
 const CUTOUT_MAX_UPSCALE = 1.5;
 const TALL_SHOT = 1.5;
 const TALLEST_CUTOUT = 4;
@@ -46,9 +46,9 @@ function windowLayout(shot: ShotArea, canvas: Size, fit: number): Box {
   return { x: centeredLeft(size, canvas), y: centeredTop(size, canvas), ...size };
 }
 
-function cutoutLayout(shot: ShotArea, canvas: Size, maxUpscale: number): Box {
+function cutoutLayout(shot: ShotArea, canvas: Size, fit: number, maxUpscale: number): Box {
   const body = shot.body ?? { x: 0, y: 0, width: shot.width, height: shot.height };
-  const want = windowBox(aspectOf(body), canvas, CUTOUT_FIT);
+  const want = windowBox(aspectOf(body), canvas, fit);
   const s = Math.min(want.width / body.width, want.height / body.height, maxUpscale);
   const placed = { width: body.width * s, height: body.height * s };
   return {
@@ -59,26 +59,34 @@ function cutoutLayout(shot: ShotArea, canvas: Size, maxUpscale: number): Box {
   };
 }
 
-function bleedLayout(shot: ShotArea, canvas: Size): Box {
+function bleedLayout(shot: ShotArea, canvas: Size, align: StillAlign): Box {
   const zoom = Math.max(canvas.width / shot.width, canvas.height / shot.height);
   const size = { width: shot.width * zoom, height: shot.height * zoom };
-  return { x: centeredLeft(size, canvas), y: 0, ...size };
+  const y = align === "middle" ? centeredTop(size, canvas) : 0;
+  return { x: centeredLeft(size, canvas), y, ...size };
 }
 
 function layoutOf(
   look: StillLook,
   shot: ShotArea,
   canvas: Size,
-  windowFit: number,
+  fit: number,
   maxUpscale: number,
+  align: StillAlign,
 ): Box {
-  if (look === "bleed") return bleedLayout(shot, canvas);
-  if (look === "cutout") return cutoutLayout(shot, canvas, maxUpscale);
-  return windowLayout(shot, canvas, windowFit);
+  if (look === "bleed") return bleedLayout(shot, canvas, align);
+  if (look === "cutout") return cutoutLayout(shot, canvas, fit, maxUpscale);
+  return windowLayout(shot, canvas, fit);
 }
 
-export function stillLayout(look: StillLook, shot: Shot, canvas: Size, windowFit: number): Box {
-  const box = layoutOf(look, shot, canvas, windowFit, shot.scale * CUTOUT_MAX_UPSCALE);
+export function stillLayout(
+  look: StillLook,
+  shot: Shot,
+  canvas: Size,
+  fit: number,
+  align: StillAlign,
+): Box {
+  const box = layoutOf(look, shot, canvas, fit, shot.scale * CUTOUT_MAX_UPSCALE, align);
   return { ...box, x: Math.round(box.x), y: Math.round(box.y) };
 }
 
@@ -122,7 +130,7 @@ export function captureScale(
 ): number {
   const area = { ...region, body: opts.body };
   const drawn =
-    layoutOf(look, area, canvas, opts.fit, Number.POSITIVE_INFINITY).width / region.width;
+    layoutOf(look, area, canvas, opts.fit, Number.POSITIVE_INFINITY, "top").width / region.width;
   const wanted = Math.ceil(drawn * CAPTURE.scaleSteps) / CAPTURE.scaleSteps;
   return Math.min(maxScaleFor(region), Math.max(opts.least, wanted));
 }

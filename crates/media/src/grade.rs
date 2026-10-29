@@ -5,13 +5,15 @@ use opsis_compile::color::{color_or, hue_and_saturation};
 use opsis_compile::errors::SettingsError;
 use opsis_compile::nodes::grade::{
     AUTO_FIX_TYPE, AutoFix, COLOUR_TYPE, Colour, DEFAULT_TINT, LENS_TYPE, LOOK_TYPE, Lens,
-    LookFile, MONO_TYPE, Mono, MonoKind, TEXTURE_TYPE, Texture, ToneCurve, tone_offsets,
+    LookFile, MONO_TYPE, Mono, MonoKind, TEXTURE_TYPE, Texture, ToneCurve, VignetteShape,
+    tone_offsets,
 };
 use opsis_compile::registry::node_def;
 use opsis_types::values::StyleEntry;
 use serde::de::DeserializeOwned;
 
 use crate::codecs::serde_name;
+use crate::filters::ffmpeg_color;
 use opsis_compile::text::round_to;
 
 const DESIGN_WIDTH: f64 = 1920.0;
@@ -212,7 +214,10 @@ fn mono_piece(p: &Mono) -> Option<Piece> {
             )
         }
         MonoKind::Sepia => vec![SEPIA.to_owned()],
-        MonoKind::Bw => vec!["monochrome=cb=0:cr=0:size=1".to_owned()],
+        MonoKind::Bw => {
+            let (cb, cr) = p.filter.chroma();
+            vec![format!("monochrome=cb={}:cr={}:size=1", num(cb), num(cr))]
+        }
     };
     Some(Piece {
         filters,
@@ -252,22 +257,34 @@ fn texture_filters(p: &Texture, size: GradeSize) -> Vec<String> {
                     "y0",
                     when(p.vignette > 0.0, format!("h*{}", num(p.vignette_y))),
                 ),
+                (
+                    "aspect",
+                    when(
+                        p.vignette > 0.0 && p.vignette_shape == VignetteShape::Frame,
+                        format!("{}/{}", size.width, size.height),
+                    ),
+                ),
             ],
         ),
     ]
     .concat();
     if !size.still {
+        let (amount, motion) = if p.colour_grain {
+            ("alls", "allf")
+        } else {
+            ("c0s", "c0f")
+        };
         filters.extend(options(
             "noise",
             vec![
                 (
-                    "alls",
+                    amount,
                     when(
                         p.grain > 0.0,
                         (f64::max(1.0, (p.grain * 40.0).round())).to_string(),
                     ),
                 ),
-                ("allf", when(p.grain > 0.0, "t+u")),
+                (motion, when(p.grain > 0.0, "t+u")),
             ],
         ));
     }
@@ -279,20 +296,44 @@ fn lens_filters(p: &Lens, size: GradeSize) -> Vec<String> {
         1.0,
         (p.fringe * 8.0 * (f64::from(size.width) / DESIGN_WIDTH)).round(),
     );
+    let (sin, cos) = p.fringe_angle.to_radians().sin_cos();
+    let along = |part: f64| (shift * part).round();
+    let (across, down) = (along(cos), along(sin));
+    let centred = p.bulge_x == 0.5 && p.bulge_y == 0.5;
     let mut filters = [
         options(
             "rgbashift",
             vec![
-                ("rh", when(p.fringe > 0.0, shift.to_string())),
-                ("bh", when(p.fringe > 0.0, (-shift).to_string())),
+                (
+                    "rh",
+                    when(p.fringe > 0.0 && across != 0.0, across.to_string()),
+                ),
+                ("rv", when(p.fringe > 0.0 && down != 0.0, down.to_string())),
+                (
+                    "bh",
+                    when(p.fringe > 0.0 && across != 0.0, (-across).to_string()),
+                ),
+                (
+                    "bv",
+                    when(p.fringe > 0.0 && down != 0.0, (-down).to_string()),
+                ),
             ],
         ),
         options(
             "lenscorrection",
             vec![
+                ("cx", when(p.bulge != 0.0 && !centred, num(p.bulge_x))),
+                ("cy", when(p.bulge != 0.0 && !centred, num(p.bulge_y))),
                 ("k1", when(p.bulge != 0.0, num(p.bulge * 0.5))),
                 ("k2", when(p.bulge != 0.0, "0")),
                 ("i", when(p.bulge != 0.0, "bilinear")),
+                (
+                    "fc",
+                    when(
+                        p.bulge != 0.0 && ffmpeg_color(&p.corner_color) != ffmpeg_color("#000000"),
+                        ffmpeg_color(&p.corner_color),
+                    ),
+                ),
             ],
         ),
     ]
@@ -321,13 +362,29 @@ fn auto_fix_filters(p: &AutoFix, size: GradeSize) -> Vec<String> {
             "normalize",
             vec![
                 ("smoothing", on(p.levels_smoothing.to_string())),
-                ("independence", on("0")),
+                (
+                    "independence",
+                    on(if p.levels_each_colour { "1" } else { "0" }),
+                ),
                 ("strength", on(num(p.levels_strength))),
             ],
         ));
     }
     if p.deband {
-        filters.push("deband".to_owned());
+        let default = AutoFix::default().deband_strength;
+        let threshold = num(p.deband_strength);
+        let tuned = options(
+            "deband",
+            ["1thr", "2thr", "3thr", "4thr"]
+                .into_iter()
+                .map(|key| (key, when(p.deband_strength != default, threshold.clone())))
+                .collect(),
+        );
+        if tuned.is_empty() {
+            filters.push("deband".to_owned());
+        } else {
+            filters.extend(tuned);
+        }
     }
     filters
 }

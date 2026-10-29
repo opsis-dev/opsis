@@ -1,5 +1,5 @@
 import { act, render } from "@testing-library/react";
-import React, { useLayoutEffect } from "react";
+import { useLayoutEffect } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { holdRender, useHeldLoad } from "#video/core/loading.ts";
 
@@ -19,10 +19,10 @@ vi.mock("remotion", () => {
   };
 });
 
-const Canvas: React.FC = () => {
+function Canvas() {
   useLayoutEffect(() => holdRender("canvas"), []);
   return <p>canvas</p>;
-};
+}
 
 function deferred() {
   let resolve: (value: string) => void = () => undefined;
@@ -32,10 +32,10 @@ function deferred() {
   return { promise, resolve };
 }
 
-const Loader: React.FC<{ id: string; load: (key: string) => Promise<string> }> = ({ id, load }) => {
+function Loader({ id, load }: { id: string; load: (key: string) => Promise<string> }) {
   const loaded = useHeldLoad(`file ${id}`, id, load);
   return loaded?.key === id ? <Canvas /> : null;
-};
+}
 
 describe("holding a render while something loads", () => {
   it("keeps the hold until what the value mounts has taken its own hold", async () => {

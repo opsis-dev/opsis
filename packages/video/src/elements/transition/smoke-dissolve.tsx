@@ -4,31 +4,24 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
-import { ShaderSmokeRing } from "#video/elements/transition/smoke-dissolve/shader-smoke-ring.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { SmokeRingField } from "#video/parts/shader-fields.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,
   extrapolateRight: "clamp" as const,
 };
 
-const DEFAULT_COLORS = ["#8f88ae"];
+type SmokeDissolveProps = ElementSettings["smoke-dissolve"];
 
-export type SmokeDissolveProps = {
-  colorBack?: string;
-  colors?: string[];
-  speed?: number;
-};
-
-const SmokeDissolvePresentation: React.FC<
-  TransitionPresentationComponentProps<SmokeDissolveProps>
-> = ({
+function SmokeDissolvePresentation({
   children,
   presentationProgress,
   presentationDirection,
   presentationDurationInFrames,
   passedProps,
-}) => {
-  const { colorBack = "#141318", colors = DEFAULT_COLORS, speed = 1 } = passedProps;
+}: TransitionPresentationComponentProps<SmokeDissolveProps>) {
+  const { colorBack, colors, speed, detail, originX } = passedProps;
   const entering = presentationDirection === "entering";
   const p =
     presentationDurationInFrames > 1
@@ -58,23 +51,25 @@ const SmokeDissolvePresentation: React.FC<
     <AbsoluteFill>
       {entering ? (
         <AbsoluteFill style={{ pointerEvents: "none" }}>
-          <ShaderSmokeRing
+          <SmokeRingField
             speed={speed}
             colorBack={colorBack}
             colors={colors}
             radius={radius}
             scale={scale}
             thickness={thickness}
+            noiseScale={detail}
+            offsetX={(originX - 0.5) * 2}
           />
         </AbsoluteFill>
       ) : null}
       <AbsoluteFill style={childStyle}>{children}</AbsoluteFill>
     </AbsoluteFill>
   );
-};
+}
 
 export function smokeDissolve(
-  props: SmokeDissolveProps = {},
+  props: SmokeDissolveProps,
 ): TransitionPresentation<SmokeDissolveProps> {
   return {
     component: SmokeDissolvePresentation,

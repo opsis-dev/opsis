@@ -13,27 +13,25 @@ import { HandDrawnMark, type MarkLook } from "#video/core/hand-drawn.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
 
-const TITLE = { padding: "0 9%", gapEm: 0.22 } as const;
+const SUBTITLE_FADE = 0.7;
 
 type LineLook = { sizeEm: number; delay: number; style: React.CSSProperties };
-
-const MARK = { strokeEm: 0.045, markerShare: "55%", seed: 1 } as const;
 
 const LINES = {
   eyebrow: {
     sizeEm: 0.26,
     delay: 0,
-    style: { fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase" },
+    style: { fontWeight: 700, letterSpacing: "0.18em" },
   },
   title: {
     sizeEm: 1,
     delay: 4,
-    style: { fontWeight: 760, letterSpacing: "-0.035em", lineHeight: 1.02, maxWidth: "100%" },
+    style: { fontWeight: 760, lineHeight: 1.02, maxWidth: "100%" },
   },
   subtitle: {
     sizeEm: 0.34,
     delay: 10,
-    style: { fontWeight: 450, opacity: 0.7, maxWidth: "80%" },
+    style: { fontWeight: 450, maxWidth: "80%" },
   },
 } satisfies Record<string, LineLook>;
 
@@ -43,6 +41,7 @@ type TitleLineProps = {
   color: string;
   fontSize: number;
   entrance: Entrance;
+  stagger: number;
 };
 
 export function splitMark(text: string, mark: string): [string, string, string] | null {
@@ -53,6 +52,8 @@ export function splitMark(text: string, mark: string): [string, string, string] 
   return [text.slice(0, at), text.slice(at, at + wanted.length), text.slice(at + wanted.length)];
 }
 
+type MarkStyle = { thickness: number; markerOpacity: number; seed: number; drawTime: number };
+
 type MarkedTextProps = {
   text: string;
   mark: string;
@@ -60,9 +61,10 @@ type MarkedTextProps = {
   color: string;
   fontSize: number;
   delay: number;
+  style: MarkStyle;
 };
 
-const MarkedText: React.FC<MarkedTextProps> = ({ text, mark, look, color, fontSize, delay }) => {
+function MarkedText({ text, mark, look, color, fontSize, delay, style }: MarkedTextProps) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const parts = splitMark(text, mark);
@@ -73,25 +75,25 @@ const MarkedText: React.FC<MarkedTextProps> = ({ text, mark, look, color, fontSi
       {before}
       <HandDrawnMark
         look={look}
-        progress={drawOn(frame / fps, (delay + ENTRANCE_FADE_FRAMES) / fps)}
-        color={look === "marker" ? faded(color, MARK.markerShare) : color}
-        strokeWidth={fontSize * MARK.strokeEm}
-        seed={MARK.seed}
+        progress={drawOn(frame / fps, (delay + ENTRANCE_FADE_FRAMES) / fps, style.drawTime)}
+        color={look === "marker" ? faded(color, `${style.markerOpacity}%`) : color}
+        strokeWidth={fontSize * style.thickness}
+        seed={style.seed}
       >
         {marked}
       </HandDrawnMark>
       {after}
     </>
   );
-};
+}
 
-const TitleLine: React.FC<TitleLineProps> = ({ look, text, color, fontSize, entrance }) => {
+function TitleLine({ look, text, color, fontSize, entrance, stagger }: TitleLineProps) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   return (
     <div
       style={{
-        ...entranceStyle(entrance, frame, fps, look.delay),
+        ...entranceStyle(entrance, frame, fps, look.delay * stagger),
         color,
         fontSize: fontSize * look.sizeEm,
         ...look.style,
@@ -100,9 +102,9 @@ const TitleLine: React.FC<TitleLineProps> = ({ look, text, color, fontSize, entr
       {text}
     </div>
   );
-};
+}
 
-export const Title: React.FC<ElementSettings["title"]> = ({
+export function Title({
   eyebrow,
   title,
   subtitle,
@@ -117,11 +119,30 @@ export const Title: React.FC<ElementSettings["title"]> = ({
   fontSize,
   fontWeight,
   fontFamily,
-}) => {
+  sideMargin,
+  lineGap,
+  eyebrowSize,
+  eyebrowUppercase,
+  subtitleSize,
+  letterSpacing,
+  lineStagger,
+  markThickness,
+  markerOpacity,
+  markSeed,
+  markDrawTime,
+  fadeOut,
+  subtitleColor,
+}: ElementSettings["title"]) {
   const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
-  const out = exitOpacity(frame, durationInFrames);
-  const line = { fontSize, entrance };
+  const { durationInFrames, fps } = useVideoConfig();
+  const out = exitOpacity(frame, durationInFrames, Math.round(fadeOut * fps));
+  const line = { fontSize, entrance, stagger: lineStagger };
+  const markStyle = {
+    thickness: markThickness,
+    markerOpacity,
+    seed: markSeed,
+    drawTime: markDrawTime,
+  };
   return (
     <AbsoluteFill>
       <Backgrounded background={background} />
@@ -129,18 +150,33 @@ export const Title: React.FC<ElementSettings["title"]> = ({
         style={{
           alignItems: align === "center" ? "center" : "flex-start",
           justifyContent: "center",
-          padding: TITLE.padding,
+          padding: `0 ${sideMargin}%`,
           textAlign: align,
           fontFamily: fontOr(fontFamily, "heading"),
           opacity: out,
-          gap: fontSize * TITLE.gapEm,
+          gap: fontSize * lineGap,
         }}
       >
         {eyebrow ? (
-          <TitleLine look={LINES.eyebrow} text={eyebrow} color={accent} {...line} />
+          <TitleLine
+            look={{
+              ...LINES.eyebrow,
+              sizeEm: eyebrowSize,
+              style: {
+                ...LINES.eyebrow.style,
+                textTransform: eyebrowUppercase ? "uppercase" : "none",
+              },
+            }}
+            text={eyebrow}
+            color={accent}
+            {...line}
+          />
         ) : null}
         <TitleLine
-          look={{ ...LINES.title, style: { ...LINES.title.style, fontWeight } }}
+          look={{
+            ...LINES.title,
+            style: { ...LINES.title.style, fontWeight, letterSpacing: `${letterSpacing}em` },
+          }}
           text={
             <MarkedText
               text={title}
@@ -148,16 +184,26 @@ export const Title: React.FC<ElementSettings["title"]> = ({
               look={markLook}
               color={markColor}
               fontSize={fontSize}
-              delay={LINES.title.delay}
+              delay={LINES.title.delay * lineStagger}
+              style={markStyle}
             />
           }
           color={color}
           {...line}
         />
         {subtitle ? (
-          <TitleLine look={LINES.subtitle} text={subtitle} color={color} {...line} />
+          <TitleLine
+            look={{
+              ...LINES.subtitle,
+              sizeEm: subtitleSize,
+              style: { ...LINES.subtitle.style, opacity: subtitleColor ? 1 : SUBTITLE_FADE },
+            }}
+            text={subtitle}
+            color={subtitleColor || color}
+            {...line}
+          />
         ) : null}
       </AbsoluteFill>
     </AbsoluteFill>
   );
-};
+}

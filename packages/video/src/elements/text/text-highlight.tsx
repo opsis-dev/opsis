@@ -8,9 +8,9 @@ import {
   spring,
   staticFile,
 } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
 import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import {
   parseColor,
   resolveFont,
@@ -49,10 +49,6 @@ function resolveSrc(src: string): string {
 
 function lighterOf(a: string, b: string): string {
   return (rgbToOklch(parseColor(a)).l ?? 0) >= (rgbToOklch(parseColor(b)).l ?? 0) ? a : b;
-}
-
-export function defaultThickness(fontSize: number): number {
-  return Math.max(2, Math.round(fontSize * 0.08));
 }
 
 export function strikethroughPhases(
@@ -126,94 +122,64 @@ function SnapMark({ size, color }: { size: number; color: string }) {
   );
 }
 
-export interface TextHighlightProps {
-  before?: string;
-  highlight: string;
-  after?: string;
-  preset?: TextHighlightPreset;
-  baseColor?: string;
-  accentColor?: string;
-  theme?: Partial<WarmTheme>;
-  mode?: "light" | "dark";
-  fontFamily?: string;
-  highlightedTextColor?: string;
-  replaceWith?: string;
-  startAt?: number;
-  drawDuration?: number;
-  springConfig?: TextHighlightSpringConfig;
-  thickness?: number;
-  shineColor?: string;
-
-  logo?: React.ReactNode;
-  logoSrc?: string;
-  logoScale?: number;
-  spinTurns?: number;
-  holdDuration?: number;
-  rushDuration?: number;
-  rushScale?: number;
-  rushDrift?: number;
-  swingOut?: number;
-  coverColor?: string;
-
-  fontSize?: number;
-  fontWeight?: number;
-  speed?: number;
-  background?: string;
-  className?: string;
-}
-
 function TextHighlightView({
-  before = "",
+  before,
   highlight,
-  after = "",
-  preset = "logo-wipe",
+  after,
+  preset,
   baseColor,
   accentColor,
   background,
-  theme,
+  colors,
   mode,
   fontFamily,
   highlightedTextColor,
   replaceWith,
-  startAt = 6,
-  drawDuration = 14,
-  springConfig,
+  startAt,
+  drawDuration,
   thickness,
   shineColor,
-  logo,
   logoSrc,
-  logoScale = 1.05,
-  spinTurns = 1,
-  holdDuration = 12,
-  rushDuration = 24,
-  rushScale = 42,
-  rushDrift = 0.55,
-  swingOut = 0.25,
+  logoScale,
+  spinTurns,
+  holdDuration,
+  rushDuration,
+  rushScale,
+  rushDrift,
+  swingOut,
   coverColor,
-  fontSize = 56,
-  fontWeight = 600,
-  speed = 1,
-  className,
-}: TextHighlightProps) {
+  fontSize,
+  fontWeight,
+  speed,
+  letterSpacing,
+  lineHeight,
+  textWidth,
+  markerOpacity,
+  shineWidth,
+  markGap,
+}: Omit<ElementSettings["text-highlight"], "theme"> & {
+  colors?: Partial<WarmTheme>;
+  mode?: "light" | "dark";
+}) {
   const frame = useAuthoredFrame() * speed;
   const { fps, width, height } = useAuthoredConfig();
-  const t = useWarmTheme(theme, mode);
+  const t = useWarmTheme(colors, mode);
   const ground = background ?? t.background;
   const face =
-    resolveFont(fontFamily ?? t.fontFamily) ??
+    resolveFont(fontFamily || t.fontFamily) ??
     "Inter, -apple-system, BlinkMacSystemFont, sans-serif";
   const base = baseColor ?? t.foreground;
   const accent = accentColor ?? t.primary;
-  const shine = shineColor ?? lighterOf(t.card, t.foreground);
+  const shine = shineColor || lighterOf(t.card, t.foreground);
 
   const emphasisColor =
     highlightedTextColor ?? (preset === "color" || preset === "strikethrough" ? accent : base);
-  const lineThickness = thickness ?? defaultThickness(fontSize);
+  const lineThickness = thickness;
 
   const sweep = spring({
     frame: frame - startAt,
     fps,
-    config: { damping: 18, ...springConfig },
+    config: { damping: 18 },
     durationInFrames: drawDuration,
   });
 
@@ -221,12 +187,12 @@ function TextHighlightView({
     fontSize,
     fontWeight,
     color: base,
-    letterSpacing: "-0.02em",
-    lineHeight: 1.25,
+    letterSpacing: `${letterSpacing}em`,
+    lineHeight,
     fontFamily: face,
     whiteSpace: "pre-wrap",
     textAlign: "center",
-    maxWidth: "80%",
+    maxWidth: `${textWidth}%`,
   };
 
   if (preset === "logo-wipe") {
@@ -280,10 +246,9 @@ function TextHighlightView({
         }}
       >
         <div
-          className={className}
           style={{
             position: "relative",
-            paddingLeft: markSize + fontSize * 0.3,
+            paddingLeft: markSize + fontSize * markGap,
           }}
         >
           <span
@@ -326,7 +291,7 @@ function TextHighlightView({
                   top: "50%",
                   translate: `calc(-50% - ${swingPx - inkPx}px) -50%`,
                   borderRadius: "50%",
-                  background: coverColor ?? accent,
+                  background: coverColor || accent,
                   width: 2 * floodRadius,
                   height: 2 * floodRadius,
                 }}
@@ -343,22 +308,21 @@ function TextHighlightView({
                   }`,
                 }}
               >
-                {logo ??
-                  (logoSrc ? (
-                    <Img
-                      src={resolveSrc(logoSrc)}
-                      alt=""
-                      style={{
-                        display: "block",
-                        width: markSize,
-                        height: markSize,
-                        maxWidth: "none",
-                        objectFit: "contain",
-                      }}
-                    />
-                  ) : (
-                    <SnapMark size={markSize} color={accent} />
-                  ))}
+                {logoSrc ? (
+                  <Img
+                    src={resolveSrc(logoSrc)}
+                    alt=""
+                    style={{
+                      display: "block",
+                      width: markSize,
+                      height: markSize,
+                      maxWidth: "none",
+                      objectFit: "contain",
+                    }}
+                  />
+                ) : (
+                  <SnapMark size={markSize} color={accent} />
+                )}
               </div>
             </div>
           </span>
@@ -377,7 +341,7 @@ function TextHighlightView({
           style={{
             position: "absolute",
             inset: "-0.02em -0.12em",
-            background: withAlpha(accent, 0.16),
+            background: withAlpha(accent, markerOpacity / 100),
             borderRadius: "0.12em",
             transformOrigin: "left center",
             transform: `scaleX(${sweep})`,
@@ -524,7 +488,7 @@ function TextHighlightView({
             color: "transparent",
             backgroundClip: "text",
             WebkitBackgroundClip: "text",
-            backgroundImage: `linear-gradient(110deg, transparent 30%, ${shine} 50%, transparent 70%)`,
+            backgroundImage: `linear-gradient(110deg, transparent ${50 - shineWidth / 2}%, ${shine} 50%, transparent ${50 + shineWidth / 2}%)`,
             backgroundSize: "200% 100%",
             backgroundPosition: `${interpolate(
               frame,
@@ -551,7 +515,7 @@ function TextHighlightView({
         justifyContent: "center",
       }}
     >
-      <span className={className} style={textStyle}>
+      <span style={textStyle}>
         {before}
         {highlightNode}
         {after}
@@ -560,21 +524,11 @@ function TextHighlightView({
   );
 }
 
-export function TextHighlight(props: ElementProps & { children?: React.ReactNode }) {
-  const { theme } = props;
-  if (!isTheme(theme))
-    return (
-      <TextHighlightView
-        {...(props as unknown as React.ComponentProps<typeof TextHighlightView>)}
-      />
-    );
+export function TextHighlight({ theme, ...settings }: ElementSettings["text-highlight"]) {
+  if (!isTheme(theme)) return <TextHighlightView {...settings} />;
   return (
     <WarmUIProvider mode={theme.mode}>
-      <TextHighlightView
-        {...(props as unknown as React.ComponentProps<typeof TextHighlightView>)}
-        theme={themeColors(theme)}
-        mode={theme.mode}
-      />
+      <TextHighlightView {...settings} colors={themeColors(theme)} mode={theme.mode} />
     </WarmUIProvider>
   );
 }

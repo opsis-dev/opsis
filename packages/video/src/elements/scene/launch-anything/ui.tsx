@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Img, Interactive } from "remotion";
+import { type LaunchScene, shade, tint } from "#video/elements/scene/launch-anything/content.ts";
 import { clamp, tween } from "#video/elements/scene/launch-anything/motion.ts";
 
 export function Center({ children, style }: { children: ReactNode; style?: CSSProperties }) {
@@ -20,12 +21,14 @@ export function Center({ children, style }: { children: ReactNode; style?: CSSPr
 }
 
 export function Title({
+  scene,
   text,
-  size = 44,
+  size,
   style,
 }: {
+  scene: LaunchScene;
   text: string;
-  size?: number;
+  size: number;
   style?: CSSProperties;
 }) {
   const longest = Math.max(...text.split("\n").map((line) => line.length), 1);
@@ -33,8 +36,8 @@ export function Title({
     <Interactive.Div
       name="Headline"
       style={{
-        fontSize: Math.min(size, 720 / longest),
-        fontWeight: 500,
+        fontSize: Math.min(size * scene.look.textSize, 720 / longest),
+        fontWeight: scene.look.headlineWeight,
         lineHeight: 1.13,
         letterSpacing: "-0.04em",
         wordSpacing: "0.025em",
@@ -79,26 +82,30 @@ export function BrandMark({
 }
 
 export function RevealCopy({
+  scene,
   text,
   t,
   start,
-  size = 43,
+  size,
   dark = false,
 }: {
+  scene: LaunchScene;
   text: string;
   t: number;
   start: number;
-  size?: number;
+  size: number;
   dark?: boolean;
 }) {
+  const { ink, sage } = scene.palette;
   const amount = tween(t, start, start + 0.55);
   return (
     <Title
+      scene={scene}
       text={text}
       size={size}
       style={{
         opacity: clamp((t - start) * 14),
-        backgroundImage: `linear-gradient(105deg, ${dark ? "#060609" : "#fff"} ${amount * 140 - 35}%, #a0bea9 ${amount * 140 - 18}%, #497761 ${amount * 140}%, ${dark ? "#070707" : "#cedbcb"} ${amount * 140 + 26}%)`,
+        backgroundImage: `linear-gradient(105deg, ${dark ? shade(ink, 88) : "#fff"} ${amount * 140 - 35}%, ${tint(sage, 45)} ${amount * 140 - 18}%, ${sage} ${amount * 140}%, ${dark ? shade(ink, 88) : tint(sage, 72)} ${amount * 140 + 26}%)`,
         backgroundClip: "text",
         WebkitBackgroundClip: "text",
         color: "transparent",

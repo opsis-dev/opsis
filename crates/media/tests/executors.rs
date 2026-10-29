@@ -688,7 +688,7 @@ async fn cleans_speech_with_the_spectral_way_in_one_pass_between_two_listens() {
             "-i",
             "/p/assets/voice.wav",
             "-af",
-            "afftdn=nr=20:nf=-50,highpass=f=80,deesser=i=0.5,speechnorm=e=6.25:r=0.00001:l=1:t=0.01",
+            "afftdn=nr=20:nf=-50,highpass=f=80,deesser=i=0.5,speechnorm=e=6.31:r=0.00001:l=1:t=0.01",
             "-ar",
             "48000",
             "-c:a",
@@ -771,7 +771,7 @@ async fn cleans_speech_the_learned_way_and_puts_the_cleaned_voice_back_under_the
             "-ac",
             "2",
             "-af",
-            "highpass=f=80,deesser=i=0.5,speechnorm=e=6.25:r=0.00001:l=1:t=0.01"
+            "highpass=f=80,deesser=i=0.5,speechnorm=e=6.31:r=0.00001:l=1:t=0.01"
         ]
     );
     assert!(ran[2].windows(2).any(|w| w == ["-c:v", "copy"]));

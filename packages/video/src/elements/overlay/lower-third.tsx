@@ -1,32 +1,21 @@
-import React from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { isLandscape, overlayPadding, useOverlayFrame } from "#video/core/frame.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
 const LOWER_THIRD_SPRING = { damping: 200 };
-const LOWER_THIRD_EXIT_FRAMES = 14;
-const LOWER_THIRD_SLIDE_PX = 120;
 
 const LOWER_THIRD = {
-  paddingPx: 80,
   gapPx: 18,
-  barWidthPx: 8,
-  panelRadiusPx: 18,
   panelPaddingPx: [18, 28],
-  panelBlur: "blur(12px)",
-  titleSizePx: 44,
-  titleWeight: 720,
   titleLetterSpacing: "-0.02em",
-  subtitleSizePx: 28,
-  subtitleOpacity: 0.7,
   subtitleGapPx: 4,
 } as const;
 
-const slideOffset = (enter: number, exit: number, dir: number): number =>
-  LOWER_THIRD_SLIDE_PX * dir * (1 - enter + exit);
+const slideOffset = (enter: number, exit: number, dir: number, slide: number): number =>
+  slide * dir * (1 - enter + exit);
 
-export const LowerThird: React.FC<ElementSettings["lower-third"]> = ({
+export function LowerThird({
   title,
   subtitle,
   position,
@@ -34,26 +23,36 @@ export const LowerThird: React.FC<ElementSettings["lower-third"]> = ({
   color,
   panel,
   fontFamily,
-}) => {
+  exitTime,
+  slide,
+  margin,
+  barWidth,
+  cornerRadius,
+  panelBlur,
+  titleSize,
+  titleWeight,
+  subtitleSize,
+  subtitleOpacity,
+}: ElementSettings["lower-third"]) {
   const frame = useCurrentFrame();
   const { fps, durationInFrames, width, height } = useVideoConfig();
   const { k, insets } = useOverlayFrame();
   const enter = spring({ frame, fps, config: LOWER_THIRD_SPRING });
   const exit = spring({
-    frame: frame - (durationInFrames - LOWER_THIRD_EXIT_FRAMES),
+    frame: frame - (durationInFrames - Math.round(exitTime * fps)),
     fps,
     config: LOWER_THIRD_SPRING,
   });
   const top = position.startsWith("top") || !isLandscape(width, height);
   const right = position.endsWith("right");
-  const x = slideOffset(enter, exit, right ? 1 : -1);
+  const x = slideOffset(enter, exit, right ? 1 : -1, slide);
   const [panelPadY, panelPadX] = LOWER_THIRD.panelPaddingPx;
   return (
     <AbsoluteFill
       style={{
         justifyContent: top ? "flex-start" : "flex-end",
         alignItems: right ? "flex-end" : "flex-start",
-        ...overlayPadding(LOWER_THIRD.paddingPx * k, insets),
+        ...overlayPadding(margin * k, insets),
       }}
     >
       <div
@@ -68,7 +67,7 @@ export const LowerThird: React.FC<ElementSettings["lower-third"]> = ({
       >
         <div
           style={{
-            width: LOWER_THIRD.barWidthPx * k,
+            width: barWidth * k,
             borderRadius: 99,
             background: accent,
             transform: `scaleY(${enter})`,
@@ -78,16 +77,16 @@ export const LowerThird: React.FC<ElementSettings["lower-third"]> = ({
         <div
           style={{
             background: panel,
-            borderRadius: LOWER_THIRD.panelRadiusPx * k,
+            borderRadius: cornerRadius * k,
             padding: `${panelPadY * k}px ${panelPadX * k}px`,
-            backdropFilter: LOWER_THIRD.panelBlur,
+            backdropFilter: `blur(${panelBlur}px)`,
           }}
         >
           <div
             style={{
               color,
-              fontSize: LOWER_THIRD.titleSizePx * k,
-              fontWeight: LOWER_THIRD.titleWeight,
+              fontSize: titleSize * k,
+              fontWeight: titleWeight,
               letterSpacing: LOWER_THIRD.titleLetterSpacing,
             }}
           >
@@ -97,8 +96,8 @@ export const LowerThird: React.FC<ElementSettings["lower-third"]> = ({
             <div
               style={{
                 color,
-                opacity: LOWER_THIRD.subtitleOpacity,
-                fontSize: LOWER_THIRD.subtitleSizePx * k,
+                opacity: subtitleOpacity,
+                fontSize: subtitleSize * k,
                 marginTop: LOWER_THIRD.subtitleGapPx * k,
               }}
             >
@@ -109,4 +108,4 @@ export const LowerThird: React.FC<ElementSettings["lower-third"]> = ({
       </div>
     </AbsoluteFill>
   );
-};
+}

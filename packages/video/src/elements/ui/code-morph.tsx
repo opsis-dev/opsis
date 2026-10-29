@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Easing } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export type CodeMorphTheme = "dark" | "light";
 
@@ -32,10 +34,12 @@ export interface CodeMorphProps {
   theme?: CodeMorphTheme;
   accentColor?: string;
   speed?: number;
-  className?: string;
+  lineHeight?: number;
+  maxSize?: number;
+  highlightHold?: number;
 }
 
-type Paint = "theme" | "accentColor" | "className";
+type Paint = "theme" | "accentColor";
 
 export interface CodeMorphOptions extends Omit<CodeMorphProps, Paint> {
   width?: number;
@@ -111,7 +115,9 @@ export function Invoices() {
   return <InvoiceTable rows={data} />;
 }`;
 
-export const codeMorphDefaults: Required<Omit<CodeMorphProps, "className">> = {
+export const codeMorphDefaults: Required<
+  Omit<CodeMorphProps, "lineHeight" | "maxSize" | "highlightHold">
+> = {
   steps: [
     { at: 0, code: BEFORE },
     { at: 48, code: AFTER },
@@ -127,12 +133,11 @@ export const codeMorphDefaults: Required<Omit<CodeMorphProps, "className">> = {
   speed: 1,
 };
 
-const FONT_MONO =
-  "var(--font-geist-mono, ui-monospace), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
 const MAX_WIDTH = 1152;
 const MAX_HEIGHT = 640;
+const MAX_SHARE = 0.9;
 const ADVANCE = 0.6;
 const LEADING = 1.55;
 const HEADER = 42;
@@ -141,7 +146,6 @@ const PAD_BOTTOM = 22;
 const PAD_LEFT = 22;
 const PAD_RIGHT = 28;
 const GUTTER_GAP = 2;
-const RADIUS = 14;
 const DOT = 11;
 const DOT_GAP = 7;
 const DOT_LEFT = 16;
@@ -897,10 +901,11 @@ export function getCodeMorphLayout(options: CodeMorphOptions = {}) {
   const digits = lineNumbers ? Math.max(2, String(rows).length) : 0;
   const gutter = lineNumbers ? digits + GUTTER_GAP : 0;
   const header = windowDots || filename !== "" ? HEADER : 0;
-  const leading = size * LEADING;
+  const leading = size * finite(options.lineHeight, LEADING);
   const panelWidth = PAD_LEFT + PAD_RIGHT + (gutter + columns) * ADVANCE * size;
   const panelHeight = header + PAD_TOP + PAD_BOTTOM + rows * leading;
-  const fit = Math.min(1, MAX_WIDTH / panelWidth, MAX_HEIGHT / panelHeight);
+  const share = finite(options.maxSize, MAX_SHARE) / MAX_SHARE;
+  const fit = Math.min(1, (MAX_WIDTH * share) / panelWidth, (MAX_HEIGHT * share) / panelHeight);
   const scale = Math.min(width / REFERENCE_WIDTH, height / REFERENCE_HEIGHT);
   const unit = scale * fit;
   return {
@@ -943,7 +948,7 @@ export function getCodeMorphTimeline(options: CodeMorphOptions = {}) {
   }
   const morphs = starts.map((start, index) => {
     const highlightStart = start + phase(ENTER_START, morph);
-    const natural = highlightStart + RISE + SHOW;
+    const natural = highlightStart + RISE + finite(options.highlightHold, SHOW);
     const next = index + 1 < starts.length ? starts[index + 1] : natural;
     const fallStart = Math.min(natural, next);
     return {
@@ -1164,27 +1169,32 @@ function transformOf(token: CodeMorphRenderToken, lineHeight: number) {
 }
 
 export function CodeMorph({
-  steps = codeMorphDefaults.steps,
-  morphDuration = codeMorphDefaults.morphDuration,
-  highlight = codeMorphDefaults.highlight,
-  fontSize = codeMorphDefaults.fontSize,
-  lineNumbers = codeMorphDefaults.lineNumbers,
-  filename = codeMorphDefaults.filename,
-  windowDots = codeMorphDefaults.windowDots,
-  theme = codeMorphDefaults.theme,
-  accentColor = codeMorphDefaults.accentColor,
-  speed = codeMorphDefaults.speed,
-  className,
-}: CodeMorphProps) {
+  steps,
+  morphDuration,
+  highlight,
+  fontSize,
+  lineNumbers,
+  filename,
+  windowDots,
+  theme,
+  accentColor,
+  speed,
+  lineHeight,
+  cornerRadius,
+  maxSize,
+  highlightHold,
+  font,
+  backgroundColor,
+}: ElementSettings["code-morph"]) {
   const frame = useAuthoredFrame();
   const { width, height, fps } = useAuthoredConfig();
   const layout = useMemo(() => {
-    const shape = { steps, fontSize, lineNumbers, filename, windowDots };
+    const shape = { steps, fontSize, lineNumbers, filename, windowDots, lineHeight, maxSize };
     return getCodeMorphLayout({ ...shape, width, height });
-  }, [steps, fontSize, lineNumbers, filename, windowDots, width, height]);
-  const motion = { steps, morphDuration, highlight, speed, fps };
+  }, [steps, fontSize, lineNumbers, filename, windowDots, lineHeight, maxSize, width, height]);
+  const motion = { steps, morphDuration, highlight, speed, fps, highlightHold };
   const state = getCodeMorphState(frame, motion, layout);
-  const palette = theme === "light" ? PALETTES.light : PALETTES.dark;
+  const palette = { ...PALETTES[theme.mode], ...theme.colors };
   const unit = layout.unit;
   const hairline = Math.max(1, unit);
   const edge = `${hairline}px solid ${palette.border}`;
@@ -1201,13 +1211,13 @@ export function CodeMorph({
 
   return (
     <div
-      className={className}
       style={{
         position: "absolute",
         inset: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        background: backgroundColor || undefined,
       }}
     >
       <div
@@ -1220,9 +1230,9 @@ export function CodeMorph({
           background: palette.panel,
           color: palette.text,
           border: edge,
-          borderRadius: RADIUS * unit,
+          borderRadius: cornerRadius * unit,
           overflow: "hidden",
-          fontFamily: FONT_MONO,
+          fontFamily: fontOr(font, "code"),
           fontSize: layout.fontSize,
           lineHeight: `${layout.lineHeight}px`,
           fontVariantLigatures: "none",

@@ -197,13 +197,12 @@ fn asks_for_mark_text_only_where_marks_draw_text() {
         Some("Add the text to show")
     );
     assert_eq!(problem("cursor.spotlight", ""), None);
-    assert_eq!(
+    assert!(
         node_def("cursor.highlightBox")
             .unwrap()
             .params
             .field("text")
-            .unwrap()["x-hidden"],
-        true
+            .is_none()
     );
     assert_eq!(
         card_texts(

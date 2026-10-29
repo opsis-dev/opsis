@@ -67,3 +67,21 @@ fn pictures_render_again_when_the_picture_shape_or_quality_changes() {
         key
     );
 }
+
+#[test]
+fn draws_the_picture_again_only_when_an_option_that_shapes_it_changes() {
+    let usual = picture_key(&spec(json!({})), &opts(json!({})), "");
+    for changed in [
+        json!({ "x264_preset": "slow" }),
+        json!({ "pixel_format": "yuv444p" }),
+        json!({ "pro_res_profile": "proxy" }),
+        json!({ "number_of_gif_loops": 2 }),
+        json!({ "every_nth_frame": 2 }),
+    ] {
+        assert_ne!(
+            picture_key(&spec(json!({})), &opts(changed.clone()), ""),
+            usual,
+            "{changed}"
+        );
+    }
+}

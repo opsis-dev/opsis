@@ -1,5 +1,5 @@
 import { Img } from "remotion";
-import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { type SceneProps, shade, tint } from "#video/elements/scene/launch-anything/content.ts";
 import { tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { Center, LogoGlyph, Title } from "#video/elements/scene/launch-anything/ui.tsx";
 
@@ -43,8 +43,8 @@ export function Proof({ scene, t }: SceneProps) {
       style={{
         position: "absolute",
         inset: 0,
-        background: "linear-gradient(#f2ecdf,#faf6ec 65%,#eee8da)",
-        color: "#17392b",
+        background: `linear-gradient(${shade(scene.palette.paper, 3)}, ${scene.palette.paper} 65%, ${shade(scene.palette.paper, 5)})`,
+        color: scene.palette.ink,
         overflow: "hidden",
       }}
     >
@@ -70,11 +70,11 @@ export function Proof({ scene, t }: SceneProps) {
                 height: 27,
                 display: "grid",
                 placeItems: "center",
-                color: "#51735b",
+                color: scene.palette.sage,
                 opacity: [0.73, 0.3, 0.58, 0.19, 0.4][i % 5] * reveal,
                 filter: `blur(${blur}px)`,
                 transform: `rotate(${Math.sin(i * 2.8) * 9}deg)`,
-                background: i % 7 === 0 ? "#dce3cf" : undefined,
+                background: i % 7 === 0 ? tint(scene.palette.sage, 78) : undefined,
                 borderRadius: 7,
                 boxShadow: i % 7 === 0 ? "0 3px 12px #34492812" : undefined,
               }}
@@ -89,6 +89,7 @@ export function Proof({ scene, t }: SceneProps) {
         })}
         <Center>
           <Title
+            scene={scene}
             text={scene.content.proof}
             size={32}
             style={{

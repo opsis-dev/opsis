@@ -4,39 +4,24 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
-import { ShaderSwirl } from "#video/elements/background/shader-swirl.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { SwirlField } from "#video/parts/shader-fields.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,
   extrapolateRight: "clamp" as const,
 };
 
-const DEFAULT_COLORS = ["#1f1d29", "#413d56", "#8f88ae"];
+type SwirlDissolveProps = ElementSettings["swirl-dissolve"];
 
-export type SwirlDissolveProps = {
-  colors?: string[];
-  colorBack?: string;
-  bandCount?: number;
-  softness?: number;
-  speed?: number;
-};
-
-const SwirlDissolvePresentation: React.FC<
-  TransitionPresentationComponentProps<SwirlDissolveProps>
-> = ({
+function SwirlDissolvePresentation({
   children,
   presentationProgress,
   presentationDirection,
   presentationDurationInFrames,
   passedProps,
-}) => {
-  const {
-    colors = DEFAULT_COLORS,
-    colorBack = "#141318",
-    bandCount = 10,
-    softness = 0.35,
-    speed = 1,
-  } = passedProps;
+}: TransitionPresentationComponentProps<SwirlDissolveProps>) {
+  const { colors, colorBack, bandCount, softness, speed, noise } = passedProps;
   const entering = presentationDirection === "entering";
   const p =
     presentationDurationInFrames > 1
@@ -67,23 +52,24 @@ const SwirlDissolvePresentation: React.FC<
     <AbsoluteFill>
       {entering ? (
         <AbsoluteFill style={{ pointerEvents: "none" }}>
-          <ShaderSwirl
+          <SwirlField
             speed={speed}
             twist={twist}
             colors={colors}
             colorBack={colorBack}
             bandCount={bandCount}
             softness={softness}
+            noise={noise}
           />
         </AbsoluteFill>
       ) : null}
       <AbsoluteFill style={childStyle}>{children}</AbsoluteFill>
     </AbsoluteFill>
   );
-};
+}
 
 export function swirlDissolve(
-  props: SwirlDissolveProps = {},
+  props: SwirlDissolveProps,
 ): TransitionPresentation<SwirlDissolveProps> {
   return {
     component: SwirlDissolvePresentation,

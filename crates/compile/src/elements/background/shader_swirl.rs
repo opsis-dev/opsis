@@ -20,7 +20,13 @@ pub struct ShaderSwirl {
     pub band_count: u32,
     #[setting("Twist", default = 0.1, range(min = 0, max = 1), step = 0.05)]
     pub twist: f64,
-    #[setting("Softness", default = 0.2, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Softness",
+        default = 0.2,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub softness: f64,
     #[setting("Background", default = "#12121a", check = colour)]
     pub color_back: String,
@@ -30,6 +36,16 @@ pub struct ShaderSwirl {
         length(min = 2, max = 10)
     )]
     pub colors: Vec<Colour>,
+    #[setting("Centre size", default = 0.2, range(min = 0, max = 1), advanced)]
+    pub center: f64,
+    #[setting("Proportion", default = 0.5, range(min = 0, max = 1), advanced)]
+    pub proportion: f64,
+    #[setting("Wobble", default = 0.2, range(min = 0, max = 1), advanced)]
+    pub noise: f64,
+    #[setting("Wobble size", default = 0.4, range(min = 0, max = 1), advanced)]
+    pub noise_frequency: f64,
+    #[setting("Scale", default = 1.0, range(min = 0.1, max = 4), advanced)]
+    pub scale: f64,
 }
 
 pub fn definition() -> ElementMeta {

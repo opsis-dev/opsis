@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import type React from "react";
 import {
   AbsoluteFill,
   Easing,
@@ -10,9 +9,9 @@ import {
   staticFile,
   useVideoConfig,
 } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
-import { isTheme, themeColors } from "#video/common/theme.ts";
+import { themeColors } from "#video/common/theme.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
@@ -34,26 +33,10 @@ export interface CameraMove {
   y?: number;
 }
 
-export interface ScreenRecordingProps {
-  src: string;
-  crop?: ScreenCrop;
-  cropTop?: number;
-  cropRight?: number;
-  cropBottom?: number;
-  cropLeft?: number;
-  sourceAspect?: number;
-  fit?: ScreenRecordingFit;
-  backdropColor?: string;
-  camera?: CameraMove[];
-  radius?: number;
-  trimBefore?: number;
-  audio?: boolean;
-  entrance?: ScreenRecordingEntrance;
-  theme?: Partial<WarmTheme>;
-  mode?: "light" | "dark";
-  speed?: number;
-  className?: string;
-}
+type ScreenRecordingProps = Omit<ElementSettings["screen-recording"], "theme"> & {
+  theme: Partial<WarmTheme>;
+  mode: "light" | "dark";
+};
 
 export const CAMERA_EASE = Easing.bezier(0.2, 0.6, 0.35, 1);
 
@@ -66,11 +49,6 @@ export const ENTRANCE_FRAMES = 18;
 const ENTRANCE_START = 4;
 
 const ENTRANCE_BLUR = 8;
-
-export const DEMO_CAMERA: CameraMove[] = [
-  { at: 34, duration: 25, zoom: 1.6, x: 0.36, y: 0.42 },
-  { at: 96, duration: 25, zoom: 1 },
-];
 
 export interface CameraPose {
   zoom: number;
@@ -216,23 +194,21 @@ function resolveSrc(src: string): string {
 
 function ScreenRecordingView({
   src,
-  crop,
   cropTop,
   cropRight,
   cropBottom,
   cropLeft,
   sourceAspect,
-  fit = "cover",
+  fit,
   backdropColor,
-  camera = DEMO_CAMERA,
-  radius = 0,
+  camera,
+  radius,
   trimBefore,
-  audio = false,
-  entrance = "fade",
+  audio,
+  entrance,
   theme,
   mode,
-  speed = 1,
-  className,
+  speed,
 }: ScreenRecordingProps) {
   const frame = useAuthoredFrame() * speed;
   const t = useWarmTheme(theme, mode);
@@ -242,12 +218,7 @@ function ScreenRecordingView({
   const shot = shotLayout(
     width,
     height,
-    {
-      top: cropTop ?? crop?.top,
-      right: cropRight ?? crop?.right,
-      bottom: cropBottom ?? crop?.bottom,
-      left: cropLeft ?? crop?.left,
-    },
+    { top: cropTop, right: cropRight, bottom: cropBottom, left: cropLeft },
     fit,
     sourceAspect,
   );
@@ -280,9 +251,8 @@ function ScreenRecordingView({
 
   return (
     <AbsoluteFill
-      className={className}
       style={{
-        backgroundColor: backdropColor ?? t.background,
+        backgroundColor: backdropColor || t.background,
         borderRadius: radius,
         overflow: "hidden",
       }}
@@ -323,21 +293,10 @@ function ScreenRecordingView({
   );
 }
 
-export function ScreenRecording(props: ElementProps & { children?: React.ReactNode }) {
-  const { theme } = props;
-  if (!isTheme(theme))
-    return (
-      <ScreenRecordingView
-        {...(props as unknown as React.ComponentProps<typeof ScreenRecordingView>)}
-      />
-    );
+export function ScreenRecording({ theme, ...settings }: ElementSettings["screen-recording"]) {
   return (
     <WarmUIProvider mode={theme.mode}>
-      <ScreenRecordingView
-        {...(props as unknown as React.ComponentProps<typeof ScreenRecordingView>)}
-        theme={themeColors(theme)}
-        mode={theme.mode}
-      />
+      <ScreenRecordingView {...settings} theme={themeColors(theme)} mode={theme.mode} />
     </WarmUIProvider>
   );
 }

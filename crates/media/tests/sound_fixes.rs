@@ -121,7 +121,7 @@ fn takes_mains_hum_out_and_leaves_the_voice() {
     write(&dir.path().join("in.wav"), &samples);
     filtered(
         &dir.path().join("in.wav"),
-        &hum_filter(50.0, 4, 2.0),
+        &hum_filter(50.0, 4, 2.0, -40.0),
         &dir.path().join("out.wav"),
     );
     let out = read(&dir.path().join("out.wav"));
@@ -515,7 +515,7 @@ fn rms_between(samples: &[f32], from: f32, to: f32) -> f32 {
 fn voiced(dir: &Path, samples: &[f32], p: &VoiceEffects) -> Vec<f32> {
     let input = dir.join("in.wav");
     write(&input, samples);
-    let room = opsis_media::generate::room_response(p.effect, 3).map(|channels| {
+    let room = opsis_media::generate::room_response(p.effect, 3, p.reverb_ms).map(|channels| {
         let file = dir.join("room.wav");
         opsis_media::generate::write_stereo_wav(&file, &channels).unwrap();
         opsis_media::grade::filter_path(&file.to_string_lossy())

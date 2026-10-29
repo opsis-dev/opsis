@@ -16,7 +16,6 @@ use crate::input::Input;
 use crate::page_scripts::{CURSOR_UNDER, CursorUnder, DEFAULT_CURSOR, call, cursor_keyword};
 use crate::selectors::Target;
 
-const DEFAULT_PAUSE_MS: f64 = 700.0;
 const SAMPLE_MS: u64 = 8;
 const GLIDE_MIN_PX: f64 = 6.0;
 const SETTLE_MS: f64 = 220.0;
@@ -24,10 +23,7 @@ const OVERSHOOT_RETURN_MS: f64 = 130.0;
 const CLICK_HOLD_MS: f64 = 80.0;
 const DOUBLE_CLICK_GAP_MS: f64 = 90.0;
 const FIELD_FOCUS_MS: f64 = 150.0;
-const KEY_DELAY_MS: u64 = 30;
-const DRAG_HOLD_MS: f64 = 150.0;
 const DRAG_NUDGE_PX: f64 = 6.0;
-const DROP_SETTLE_MS: f64 = 120.0;
 const QUICK_DRAG_STEPS: u32 = 20;
 const VISIBLE_TIMEOUT: Duration = Duration::from_secs(20);
 const SCROLL_MOVED_PX: f64 = 8.0;
@@ -88,6 +84,9 @@ pub struct ActionOpts {
     pub zoom_scale: Option<f64>,
     pub travel_ms: Option<f64>,
     pub hover_ms: Option<f64>,
+    pub key_ms: f64,
+    pub clear_first: bool,
+    pub smooth_scroll: bool,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -105,8 +104,9 @@ pub enum DragMethod {
 #[derive(Debug, Clone)]
 pub struct DragOpts {
     pub action: ActionOpts,
-    pub hold_ms: Option<f64>,
+    pub hold_ms: f64,
     pub drag_ms: f64,
+    pub drop_hold_ms: f64,
     pub method: DragMethod,
 }
 
@@ -227,8 +227,8 @@ impl CursorDriver {
             .await;
     }
 
-    pub async fn pause(&self, ms: Option<f64>) {
-        self.hold(ms.unwrap_or(DEFAULT_PAUSE_MS)).await;
+    pub async fn pause(&self, ms: f64) {
+        self.hold(ms).await;
     }
 
     pub async fn press_key(&self, chord: &str, label: Option<&str>) -> Result<()> {
@@ -292,13 +292,15 @@ impl CursorDriver {
             )
             .await?;
         self.hold(FIELD_FOCUS_MS).await;
-        let select_all = if cfg!(target_os = "macos") {
-            "Meta+A"
-        } else {
-            "Control+A"
-        };
-        self.input.press(&self.tab, select_all, None).await?;
-        self.input.press(&self.tab, "Backspace", None).await?;
+        if opts.clear_first {
+            let select_all = if cfg!(target_os = "macos") {
+                "Meta+A"
+            } else {
+                "Control+A"
+            };
+            self.input.press(&self.tab, select_all, None).await?;
+            self.input.press(&self.tab, "Backspace", None).await?;
+        }
         let key_times = std::sync::Mutex::new(Vec::new());
         let keyed = || key_times.lock().expect("key times").push(self.now());
         for (i, chunk) in chunks.iter().enumerate() {
@@ -309,7 +311,7 @@ impl CursorDriver {
                 .type_text(
                     &self.tab,
                     chunk,
-                    Some(Duration::from_millis(KEY_DELAY_MS)),
+                    Some(Duration::from_secs_f64(opts.key_ms.max(0.0) / 1000.0)),
                     &keyed,
                 )
                 .await?;
@@ -430,7 +432,7 @@ impl CursorDriver {
         Ok(())
     }
 
-    async fn box_of(&self, target: &Target) -> Result<TargetBox> {
+    async fn box_of(&self, target: &Target, smooth_scroll: bool) -> Result<TargetBox> {
         let selector = match target {
             Target::Point(point) => {
                 return Ok(TargetBox {
@@ -444,13 +446,24 @@ impl CursorDriver {
         let handle = self.tab.wait_visible(selector, VISIBLE_TIMEOUT).await?;
         let measured = async {
             let before = self.tab.bounding_box(&handle).await?;
-            self.tab.scroll_into_view_if_needed(&handle).await?;
+            if smooth_scroll {
+                crate::take::smooth_scroll_into_view(
+                    &self.tab,
+                    &handle,
+                    "center",
+                    SCROLL_SETTLE_MS,
+                )
+                .await?;
+            } else {
+                self.tab.scroll_into_view_if_needed(&handle).await?;
+            }
             let found = self
                 .tab
                 .bounding_box(&handle)
                 .await?
                 .ok_or_else(|| CaptureError::failed("Couldn't see the element on the page."))?;
-            if let Some(before) = before
+            if !smooth_scroll
+                && let Some(before) = before
                 && (Point {
                     x: before.x,
                     y: before.y,
@@ -477,7 +490,7 @@ impl CursorDriver {
 
     async fn drop_box(&self, target: &Target) -> Result<TargetBox> {
         let selector = match target {
-            Target::Point(_) => return self.box_of(target).await,
+            Target::Point(_) => return self.box_of(target, false).await,
             Target::Element(selector) => selector,
         };
         let handle = self
@@ -500,9 +513,9 @@ impl CursorDriver {
     }
 
     async fn approach(&self, target: &Target, label: &str, opts: &ActionOpts) -> Result<Aim> {
-        let point = self.box_of(target).await?;
+        let point = self.box_of(target, opts.smooth_scroll).await?;
         let frame = match &opts.frame {
-            Some(frame) => self.box_of(frame).await?,
+            Some(frame) => self.box_of(frame, false).await?,
             None => TargetBox {
                 cx: point.cx,
                 cy: point.cy,
@@ -641,9 +654,9 @@ impl CursorDriver {
         self.input
             .mouse_down(&self.tab, MouseButton::Left, 1)
             .await?;
-        self.hold(opts.hold_ms.unwrap_or(DRAG_HOLD_MS)).await;
+        self.hold(opts.hold_ms).await;
         let moved = moving.await?;
-        self.hold(DROP_SETTLE_MS).await;
+        self.hold(opts.drop_hold_ms).await;
         self.input.mouse_up(&self.tab, MouseButton::Left, 1).await?;
         Ok(moved)
     }
@@ -661,8 +674,8 @@ impl CursorDriver {
         let plan = onto_plan(origin, &self.drop_box(onto).await?);
         let end = plan.end;
         if let (Target::Element(_), Target::Element(_)) = (from, onto) {
-            let source = self.box_of(from).await?;
-            let target = self.box_of(onto).await?;
+            let source = self.box_of(from, false).await?;
+            let target = self.box_of(onto, false).await?;
             self.input
                 .mouse_move(&self.tab, source.cx, source.cy, 1)
                 .await?;

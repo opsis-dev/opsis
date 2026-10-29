@@ -28,7 +28,7 @@ pub struct HandwritingText {
         advanced
     )]
     pub pen_size: f64,
-    #[setting("Pen color", default = "#e8b86d", help = "Nib colour.", check = colour)]
+    #[setting("Pen color", default = "#e8b86d", help = "Nib colour.", check = colour, advanced)]
     pub pen_color: String,
     #[setting(
         "Ink softness",
@@ -50,13 +50,13 @@ pub struct HandwritingText {
         "Stagger",
         default = 3,
         unit = "frames",
-        help = "Frames between one character and the next. This is the writing speed.",
-        advanced
+        help = "Frames between one character and the next. This is the writing speed."
     )]
     pub stagger_in_frames: u32,
     #[setting(
         "Font",
         widget = "font",
+        zero_label = "Handwriting",
         help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
@@ -77,6 +77,23 @@ pub struct HandwritingText {
     pub font_size: Option<u32>,
     #[setting("Font weight", default = FontWeight::W600)]
     pub font_weight: FontWeight,
+    #[setting(
+        "Stroke time",
+        default = 10,
+        range(min = 1, max = 60),
+        step = 1,
+        unit = "frames",
+        advanced
+    )]
+    pub duration_in_frames: u32,
+    #[setting(
+        "Word spacing",
+        default = 0.26,
+        range(min = 0, max = 1),
+        unit = "em",
+        advanced
+    )]
+    pub word_spacing: f64,
 }
 
 pub fn definition() -> ElementMeta {
@@ -89,6 +106,7 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Text,
             120,
         )
+        .fonts(&["Caveat"])
         .look(NodeLook::of("lucide:signature").moves(NodeMotion::Draw)),
     )
 }

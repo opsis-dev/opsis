@@ -17,6 +17,14 @@ pub struct Paper {
     pub color: String,
     #[setting("Grain", default = 0.18, range(min = 0, max = 0.5), step = 0.01)]
     pub grain: f64,
+    #[setting(
+        "Grain size",
+        default = 1.0,
+        range(min = 0.5, max = 4),
+        unit = "x",
+        advanced
+    )]
+    pub grain_size: f64,
 }
 
 pub fn definition() -> ElementMeta {

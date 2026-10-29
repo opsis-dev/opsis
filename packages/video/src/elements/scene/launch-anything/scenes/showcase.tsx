@@ -1,5 +1,5 @@
 import { Img } from "remotion";
-import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import { type SceneProps, shade, tint } from "#video/elements/scene/launch-anything/content.ts";
 import { deskCamera, getShowcase, tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { ShowcaseScreen } from "#video/elements/scene/launch-anything/screens.tsx";
 
@@ -12,7 +12,7 @@ export function Showcase({ scene, t }: SceneProps) {
         position: "absolute",
         inset: 0,
         overflow: "hidden",
-        background: "#e8dcc2",
+        background: shade(scene.palette.paper, 9),
       }}
     >
       <div
@@ -72,7 +72,7 @@ export function Showcase({ scene, t }: SceneProps) {
             height: (270 * 291) / 941,
             clipPath: "polygon(0.8% 0, 99.2% 0, 100% 100%, 0 100%)",
             overflow: "hidden",
-            background: "#fcfaf7",
+            background: tint(scene.palette.paper, 50),
           }}
         >
           {custom ? (
@@ -104,7 +104,7 @@ export function Showcase({ scene, t }: SceneProps) {
         style={{
           position: "absolute",
           inset: 0,
-          border: `${tween(t, 7.333, 7.55, 12, 0)}px solid #f7f2e6`,
+          border: `${tween(t, 7.333, 7.55, 12, 0)}px solid ${shade(scene.palette.paper, 1.5)}`,
           borderRadius: tween(t, 7.333, 7.55, 36, 0),
           opacity: 1 - tween(t, 7.4, 7.6),
           pointerEvents: "none",

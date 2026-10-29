@@ -1,31 +1,21 @@
 import { interpolate } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface StaggeredFadeUpProps {
-  background?: string;
-  fontFamily?: string;
-  text: string;
-  staggerDelay?: number;
-  distance?: number;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function StaggeredFadeUp({
-  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily,
   text,
-  staggerDelay = 4,
-  distance = 20,
-  fontSize = 72,
-  color = "#171717",
-  fontWeight = 600,
-  speed = 1,
-  className,
-  background = "transparent",
-}: StaggeredFadeUpProps) {
+  staggerDelay,
+  distance,
+  fontSize,
+  color,
+  fontWeight,
+  speed,
+  background,
+  wordDuration,
+  letterSpacing,
+}: ElementSettings["staggered-fade-up"]) {
   const frame = useAuthoredFrame() * speed;
 
   const words = text.split(" ");
@@ -42,22 +32,21 @@ export function StaggeredFadeUp({
       }}
     >
       <span
-        className={className}
         style={{
           fontSize,
           fontWeight,
           color,
-          letterSpacing: "-0.03em",
-          fontFamily,
+          letterSpacing: `${letterSpacing}em`,
+          fontFamily: fontOr(fontFamily, "main"),
         }}
       >
         {words.map((word, i) => {
           const local = frame - i * staggerDelay;
-          const opacity = interpolate(local, [0, 12], [0, 1], {
+          const opacity = interpolate(local, [0, wordDuration], [0, 1], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           });
-          const y = interpolate(local, [0, 12], [distance, 0], {
+          const y = interpolate(local, [0, wordDuration], [distance, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           });

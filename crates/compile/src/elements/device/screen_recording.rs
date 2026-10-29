@@ -69,7 +69,7 @@ pub struct ScreenRecording {
         widget = "asset"
     )]
     pub src: String,
-    #[setting("Crop top", range(min = 0, max = 0.4), step = 0.005)]
+    #[setting("Crop top", range(min = 0, max = 0.4), step = 0.005, advanced)]
     pub crop_top: f64,
     #[setting("Crop right", range(min = 0, max = 0.4), step = 0.005)]
     pub crop_right: f64,
@@ -79,13 +79,13 @@ pub struct ScreenRecording {
     pub crop_left: f64,
     #[setting("Fit", default = RecordingFit::Cover)]
     pub fit: RecordingFit,
-    #[setting("Letterbox", widget = "color", zero_label = "Theme")]
+    #[setting("Letterbox", widget = "color", zero_label = "Theme", advanced)]
     pub backdrop_color: String,
     #[setting("Entrance", default = RecordingEntrance::Fade)]
     pub entrance: RecordingEntrance,
-    #[setting("Corner radius", range(min = 0, max = 48), step = 1)]
+    #[setting("Corner radius", range(min = 0, max = 48), step = 1, advanced)]
     pub radius: u32,
-    #[setting("Trim in", range(min = 0, max = 300), step = 1)]
+    #[setting("Trim in", range(min = 0, max = 300), step = 1, advanced)]
     pub trim_before: u32,
     #[setting("Audio")]
     pub audio: bool,
@@ -93,7 +93,8 @@ pub struct ScreenRecording {
         "Theme",
         default = Theme::of(ThemeMode::Dark),
         transform = warm_themes,
-        widget = "theme"
+        widget = "theme",
+        advanced
     )]
     pub theme: Theme,
     #[setting(
@@ -105,8 +106,24 @@ pub struct ScreenRecording {
         help = "Each move zooms to a spot. Leave the list empty for a still shot."
     )]
     pub camera: Vec<ScreenRecordingCamera>,
-    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
+    #[setting(
+        "Speed",
+        default = 1.0,
+        range(min = 0.25, max = 4),
+        step = 0.25,
+        advanced
+    )]
     pub speed: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Source shape",
+        range(min = 0.2, max = 5),
+        step = 0.01,
+        zero_label = "Frame's shape",
+        help = "The recording's width divided by its height.",
+        advanced
+    )]
+    pub source_aspect: Option<f64>,
 }
 
 pub fn definition() -> ElementMeta {

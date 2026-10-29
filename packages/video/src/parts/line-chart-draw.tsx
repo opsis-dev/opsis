@@ -39,7 +39,7 @@ export type LineChartDrawProps = {
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-export const LineChartDraw: React.FC<LineChartDrawProps> = ({
+export function LineChartDraw({
   points,
   width: widthProp,
   height: heightProp,
@@ -60,7 +60,7 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
   durationInFrames = 70,
   delayInFrames = 0,
   frame: frameOverride,
-}) => {
+}: LineChartDrawProps) {
   const localFrame = useCurrentFrame();
   const frame = frameOverride ?? localFrame;
   const config = useVideoConfig();
@@ -240,4 +240,4 @@ export const LineChartDraw: React.FC<LineChartDrawProps> = ({
       ) : null}
     </svg>
   );
-};
+}

@@ -10,6 +10,7 @@ import {
   useDelayRender,
   useVideoConfig,
 } from "remotion";
+import { parseColor } from "#video/lib/neutral-ui/color.ts";
 
 const QUAD = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
 
@@ -639,8 +640,9 @@ export function makeCanvasPresentation<Props extends Record<string, unknown>>({
 }: CanvasPresentationOptions<Props>): (props: Props) => TransitionPresentation<Props> {
   const Canvas = makeCanvasComponent(shader);
 
-  const Presentation: React.FC<TransitionPresentationComponentProps<Props>> = (props) =>
-    isCanvasTransitionSupported() ? <Canvas {...props} /> : <Fallback {...props} />;
+  function Presentation(props: TransitionPresentationComponentProps<Props>) {
+    return isCanvasTransitionSupported() ? <Canvas {...props} /> : <Fallback {...props} />;
+  }
 
   return (props) => ({ component: Presentation, props });
 }
@@ -659,4 +661,9 @@ export function makeCanvasFilter<Props extends Record<string, unknown>>({
   return function CanvasFilter(props) {
     return isCanvasFilterSupported() ? <Canvas {...props} /> : <Fallback {...props} />;
   };
+}
+
+export function rgbUniform(color: string): [number, number, number] {
+  const { r, g, b } = parseColor(color);
+  return [r, g, b];
 }

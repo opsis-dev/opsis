@@ -1,8 +1,7 @@
-import React from "react";
 import { AbsoluteFill } from "remotion";
 import type { KeyEvent } from "#video/camera/lib/click-log.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
-import { chordGlyphs, keycapAt, keycapEase } from "#video/camera/lib/keycap.ts";
+import { chordGlyphs, KEYSTROKE_EDGE, keycapAt, keycapEase } from "#video/camera/lib/keycap.ts";
 import { useOverlayFrame } from "#video/core/frame.ts";
 import type { KeystrokeLook } from "#video/generated/spec.ts";
 
@@ -10,23 +9,28 @@ const KEYCAP = {
   height: 103,
   minWidth: 216,
   padX: 46,
-  edge: 53,
+  edgeLift: 3,
   radius: 26,
   glyph: 44,
   glyphGap: 0.28,
   rise: 10,
 } as const;
 
-export const KeycapHUD: React.FC<{
+export function KeycapHUD({
+  keys,
+  timeS,
+  look,
+}: {
   keys: KeyEvent[];
   timeS: number;
   look: KeystrokeLook;
-}> = ({ keys, timeS, look }) => {
+}) {
   const { position } = look;
   const frameScale = useDesignScale();
   const k = frameScale * look.size;
   const { insets } = useOverlayFrame();
-  const active = keycapAt(keys, timeS);
+  const active = keycapAt(keys, timeS, look.chordHoldS ?? undefined);
+  const edge = ((look.edge ?? KEYSTROKE_EDGE) - KEYCAP.edgeLift) * frameScale;
   if (!active) return null;
 
   const appear = keycapEase(active.inP);
@@ -39,8 +43,8 @@ export const KeycapHUD: React.FC<{
       style={{
         alignItems: "center",
         justifyContent: top ? "flex-start" : "flex-end",
-        paddingTop: top ? KEYCAP.edge * frameScale + insets.top : 0,
-        paddingBottom: top ? 0 : KEYCAP.edge * frameScale + insets.bottom,
+        paddingTop: top ? edge + insets.top : 0,
+        paddingBottom: top ? 0 : edge + insets.bottom,
         pointerEvents: "none",
       }}
     >
@@ -52,9 +56,10 @@ export const KeycapHUD: React.FC<{
           minWidth: KEYCAP.minWidth * k,
           height: KEYCAP.height * k,
           padding: `0 ${KEYCAP.padX * k}px`,
-          borderRadius: KEYCAP.radius * k,
+          borderRadius: (look.radius ?? KEYCAP.radius) * k,
           backgroundColor: look.keycap,
           color: look.ink,
+          fontFamily: look.font || undefined,
           fontSize: KEYCAP.glyph * k,
           gap: KEYCAP.glyphGap * KEYCAP.glyph * k,
           lineHeight: 1,
@@ -62,8 +67,8 @@ export const KeycapHUD: React.FC<{
           transform: `translateY(${rise}px)`,
         }}
       >
-        {chordGlyphs(active.chord)}
+        {chordGlyphs(active.chord, look.keyNames)}
       </div>
     </AbsoluteFill>
   );
-};
+}

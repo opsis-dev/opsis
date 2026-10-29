@@ -50,7 +50,7 @@ describe("interpolatePose", () => {
   it("drives scale and center with the same progress", () => {
     const a = { scale: 1, cx: 0.2, cy: 0.3 };
     const b = { scale: 2, cx: 0.8, cy: 0.9 };
-    const mid = interpolatePose(a, b, 0.5);
+    const mid = interpolatePose(a, b, 0.5, "smooth");
     const p = (mid.scale - 1) / 1;
     expect((mid.cx - 0.2) / 0.6).toBeCloseTo(p, 9);
     expect((mid.cy - 0.3) / 0.6).toBeCloseTo(p, 9);

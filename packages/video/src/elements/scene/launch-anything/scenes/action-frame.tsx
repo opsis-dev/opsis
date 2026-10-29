@@ -1,12 +1,19 @@
 import { Img } from "remotion";
-import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
+import {
+  type LaunchScene,
+  type SceneProps,
+  shade,
+  tint,
+} from "#video/elements/scene/launch-anything/content.ts";
 import { actionFrame, smooth, tween } from "#video/elements/scene/launch-anything/motion.ts";
 
-export const actionBackground = "linear-gradient(#f3edde, #faf6ec 75%)";
+export const actionBackground = (scene: LaunchScene) =>
+  `linear-gradient(${shade(scene.palette.paper, 3)}, ${scene.palette.paper} 75%)`;
 
 export function ActionFrame({ scene, t }: SceneProps) {
   const shape = actionFrame(t);
   const aperture = tween(t, 6.7, 7.33, 0, 1, smooth);
+  const { paper, sage } = scene.palette;
   return (
     <div
       style={{
@@ -19,7 +26,7 @@ export function ActionFrame({ scene, t }: SceneProps) {
         opacity: shape.enter,
         transform: `scale(${1 - 0.07 * shape.press})`,
         overflow: "hidden",
-        background: "linear-gradient(135deg, #fbf8ee 10%, #f5f1e5 36%, #d9dfc8 70%, #90a47f 100%)",
+        background: `linear-gradient(135deg, ${paper} 10%, ${shade(paper, 2)} 36%, ${tint(sage, 76)} 70%, ${tint(sage, 38)} 100%)`,
         boxShadow: "inset 1px 1px 2px #fff, 0 4px 18px #728b6415",
       }}
     >
@@ -28,7 +35,7 @@ export function ActionFrame({ scene, t }: SceneProps) {
           position: "absolute",
           inset: 0,
           opacity: shape.morph,
-          background: "linear-gradient(140deg, #8ca48d, #d1d8c3 35%, #f8f4ea 60%, #9ca78a)",
+          background: `linear-gradient(140deg, ${tint(sage, 35)}, ${tint(sage, 72)} 35%, ${shade(paper, 1)} 60%, ${tint(sage, 42)})`,
         }}
       />
       <div
@@ -38,7 +45,7 @@ export function ActionFrame({ scene, t }: SceneProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#070707",
+          color: shade(scene.palette.ink, 88),
           fontSize: Math.min(36, 320 / Math.max(1, Array.from(scene.content.action).length)),
           letterSpacing: "-0.045em",
           fontWeight: 500,
@@ -59,7 +66,7 @@ export function ActionFrame({ scene, t }: SceneProps) {
           boxSizing: "border-box",
           opacity: shape.morph,
           overflow: "hidden",
-          background: "linear-gradient(140deg, #f8f4ea 25%, #efecdf 46%, #d5d8c2 72%, #849b7b)",
+          background: `linear-gradient(140deg, ${shade(paper, 1)} 25%, ${shade(paper, 4)} 46%, ${tint(sage, 72)} 72%, ${tint(sage, 32)})`,
           boxShadow: "inset 0 0 12px #ffffff9a",
         }}
       >
@@ -67,8 +74,7 @@ export function ActionFrame({ scene, t }: SceneProps) {
           style={{
             position: "absolute",
             inset: 0,
-            background:
-              "linear-gradient(120deg, #cbdac2 6%, #8ca887 27%, #245744 51%, #6b8b65 75%, #e2e4cf)",
+            background: `linear-gradient(120deg, ${tint(sage, 70)} 6%, ${tint(sage, 35)} 27%, ${scene.accent} 51%, ${tint(sage, 20)} 75%, ${tint(sage, 82)})`,
             opacity: tween(t, 6.85, 7.07),
           }}
         />

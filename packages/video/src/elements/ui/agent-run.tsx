@@ -1,8 +1,10 @@
 import { type CSSProperties, useMemo } from "react";
 import type React from "react";
 import { Easing, random } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { Theme } from "#video/generated/spec.ts";
 import { nestedFrom } from "#video/lib/settings/shape.ts";
 
 export type AgentRunTheme = "light" | "dark";
@@ -27,7 +29,7 @@ export interface AgentRunScript {
 
 export interface AgentRunProps {
   run?: AgentRunScript;
-  theme?: AgentRunTheme;
+  theme?: Theme;
   accentColor?: string;
   compression?: number;
   seed?: number;
@@ -45,6 +47,8 @@ export interface AgentRunOptions {
 export interface AgentRunPlayback {
   fps?: number;
   speed?: number;
+  thinkingLabel?: string;
+  thoughtLabel?: string;
 }
 
 export const defaultAgentRun: AgentRunScript = {
@@ -116,7 +120,7 @@ export const defaultAgentRun: AgentRunScript = {
 
 export const agentRunDefaults: Required<Omit<AgentRunProps, "className">> = {
   run: defaultAgentRun,
-  theme: "light",
+  theme: { mode: "light", colors: {} },
   accentColor: "#2563eb",
   compression: 3,
   seed: 1,
@@ -1593,7 +1597,7 @@ export function getAgentRunState(
   const answerRevealed = getAgentRunReveal(timeline.answerChunks, answerLocal);
   const running = time - RUN_START;
   const swap = time >= timeline.thinkEnd ? expo((time - timeline.thinkEnd) / SWAP) : 0;
-  const thinking = "Thinking";
+  const thinking = playback.thinkingLabel ?? "Thinking";
   const blocks: AgentRunBlockState[] = [];
   for (const block of layout.blocks) {
     const next = blockState(block, run.answer, timeline.answerChunks, answerLocal, answerRevealed);
@@ -1631,7 +1635,7 @@ export function getAgentRunState(
       opacity: round(easeOut((running + 1) / STATUS_IN)),
       thinking,
       shimmer: getAgentRunShimmer(time, thinking.length),
-      thought: `Thought for ${Math.max(1, Math.round(timeline.thinkSeconds))}s`,
+      thought: `${playback.thoughtLabel ?? "Thought for"} ${Math.max(1, Math.round(timeline.thinkSeconds))}s`,
       swap: round(swap),
       lift: round(SWAP_RISE * (1 - swap)),
     },
@@ -1700,10 +1704,11 @@ export function getAgentRunPalette(
   theme = agentRunDefaults.theme,
   accentColor = agentRunDefaults.accentColor,
 ): AgentRunPalette {
-  const dark = theme === "dark";
+  const dark = theme.mode === "dark";
   const tint = dark ? 22 : 12;
   return {
-    ...AGENT_RUN_THEMES[dark ? "dark" : "light"],
+    ...AGENT_RUN_THEMES[theme.mode],
+    ...theme.colors,
     accent: accentColor,
     accentTint: `color-mix(in srgb, ${accentColor} ${tint}%, transparent)`,
     accentText: dark ? `color-mix(in srgb, ${accentColor} 62%, #ffffff)` : accentColor,
@@ -2053,9 +2058,11 @@ function AnswerBlock({ block, palette }: { block: AgentRunBlockState; palette: A
 function Header({
   header,
   palette,
+  showTimer,
 }: {
   header: AgentRunState["header"];
   palette: AgentRunPalette;
+  showTimer: boolean;
 }) {
   return (
     <div
@@ -2088,7 +2095,7 @@ function Header({
           alignItems: "center",
           gap: 7,
           flexShrink: 0,
-          opacity: header.opacity,
+          opacity: showTimer ? header.opacity : 0,
         }}
       >
         <Spinner state={header.spinner} size={14} palette={palette} />
@@ -2408,20 +2415,30 @@ function AgentRunView({
   compression = agentRunDefaults.compression,
   seed = agentRunDefaults.seed,
   speed = agentRunDefaults.speed,
-  className,
-}: AgentRunProps) {
+  thinkingLabel,
+  thoughtLabel,
+  showTimer,
+  cornerRadius,
+  font,
+}: AgentRunProps & {
+  thinkingLabel: string;
+  thoughtLabel: string;
+  showTimer: boolean;
+  cornerRadius: number;
+  font: string;
+}) {
   const frame = useAuthoredFrame();
   const { width, height, fps } = useAuthoredConfig();
   const model = useMemo(
     () => getAgentRunModel(run, { seed, compression, width, height }),
     [run, seed, compression, width, height],
   );
-  const state = getAgentRunState(frame, model, { fps, speed });
+  const state = getAgentRunState(frame, model, { fps, speed, thinkingLabel, thoughtLabel });
   const palette = getAgentRunPalette(theme, accentColor);
   const { panel } = state;
 
   return (
-    <div className={className} style={{ position: "absolute", inset: 0 }}>
+    <div style={{ position: "absolute", inset: 0 }}>
       <div
         style={{
           position: "absolute",
@@ -2444,15 +2461,15 @@ function AgentRunView({
             transform: `translateY(${panel.lift}px)`,
             background: palette.panel,
             border: `1px solid ${palette.border}`,
-            borderRadius: 18,
+            borderRadius: cornerRadius,
             boxShadow: palette.shadow,
             color: palette.fg,
-            fontFamily: SANS,
+            fontFamily: font ? fontOr(font, "main") : SANS,
             fontSize: BODY_SIZE,
             WebkitFontSmoothing: "antialiased",
           }}
         >
-          <Header header={state.header} palette={palette} />
+          <Header header={state.header} palette={palette} showTimer={showTimer} />
           <div
             style={{
               position: "relative",

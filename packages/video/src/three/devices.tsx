@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
   BoxGeometry,
   ExtrudeGeometry,
@@ -11,9 +11,6 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import type { ScreenDevice as Device } from "#video/generated/spec.ts";
 import type { Vec3 } from "#video/three/motion.ts";
 import { roundedRect } from "#video/three/shapes.ts";
-
-const BEZEL_COLOR = "#0a0a0c";
-const BODY = { roughness: 0.35, metalness: 0.6 };
 
 type Part = { geometry: BufferGeometry; position: Vec3 };
 
@@ -107,18 +104,28 @@ function partsFor(device: Device, { width: w, height: h }: ScreenSize): Build {
   }
 }
 
-export const DeviceBody: React.FC<{ device: Device; screen: ScreenSize; color: string }> = ({
+export function DeviceBody({
   device,
   screen,
   color,
-}) => {
+  bezelColor,
+  metalness,
+  roughness,
+}: {
+  device: Device;
+  screen: ScreenSize;
+  color: string;
+  bezelColor: string;
+  metalness: number;
+  roughness: number;
+}) {
   const build = useMemo(() => partsFor(device, screen), [device, screen]);
   const materials = useMemo(
     () => ({
-      body: new MeshStandardMaterial({ color, ...BODY }),
-      bezel: new MeshStandardMaterial({ color: BEZEL_COLOR, roughness: 0.15 }),
+      body: new MeshStandardMaterial({ color, roughness, metalness }),
+      bezel: new MeshStandardMaterial({ color: bezelColor, roughness: 0.15 }),
     }),
-    [color],
+    [color, bezelColor, metalness, roughness],
   );
   const faces = useMemo(
     () => ({
@@ -149,4 +156,4 @@ export const DeviceBody: React.FC<{ device: Device; screen: ScreenSize; color: s
       ))}
     </group>
   );
-};
+}

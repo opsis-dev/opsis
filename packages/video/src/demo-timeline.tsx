@@ -19,7 +19,7 @@ import {
 } from "#video/assets.tsx";
 import { groupOf } from "#video/common/clip.ts";
 import { ERROR_COLOR, STAGE_COLOR } from "#video/common/element-colors.ts";
-import { envelopeAt } from "#video/common/envelope.ts";
+import { ease, envelopeAt } from "#video/common/envelope.ts";
 import { CODE_FONT, MAIN_FONT } from "#video/common/fonts.ts";
 import { percent } from "#video/common/format.ts";
 import { MIN_CROP } from "#video/common/limits.ts";
@@ -56,57 +56,64 @@ const ELEMENT_FONTS: React.CSSProperties &
 
 const PREMOUNT_FRAMES = 30;
 
-export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
-  <ReframeProvider value={spec.reframe ?? DEFAULT_REFRAME}>
-    <QualityProvider value={spec.quality ?? DEFAULT_QUALITY}>
-      <AbsoluteFill
-        style={{
-          ...ELEMENT_FONTS,
-          background: spec.background ?? STAGE_COLOR,
-          overflow: "hidden",
-        }}
-      >
-        <FontProvider fonts={spec.fonts}>
-          <Tracks tracks={spec.tracks} />
-        </FontProvider>
-        {spec.mix ? <Audio src={assetUrl(spec.mix.src)} /> : null}
-      </AbsoluteFill>
-    </QualityProvider>
-  </ReframeProvider>
-);
+export function DemoTimeline(spec: TimelineSpec) {
+  return (
+    <ReframeProvider value={spec.reframe ?? DEFAULT_REFRAME}>
+      <QualityProvider value={spec.quality ?? DEFAULT_QUALITY}>
+        <AbsoluteFill
+          style={{
+            ...ELEMENT_FONTS,
+            background: spec.background ?? STAGE_COLOR,
+            overflow: "hidden",
+          }}
+        >
+          <FontProvider fonts={spec.fonts}>
+            <Tracks tracks={spec.tracks} />
+          </FontProvider>
+          {spec.mix ? <Audio src={assetUrl(spec.mix.src)} /> : null}
+        </AbsoluteFill>
+      </QualityProvider>
+    </ReframeProvider>
+  );
+}
 
-const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
-  <CutBoardProvider>
-    {tracks.map((track) => (
-      <AbsoluteFill key={track.id}>
-        {track.items.map((item) => (
-          <Sequence
-            key={item.id}
-            from={item.from}
-            durationInFrames={item.durationInFrames}
-            name={item.kind === "element" ? item.component : item.kind}
-            premountFor={item.kind === "element" ? undefined : PREMOUNT_FRAMES}
-          >
-            <TransitionWrap item={item}>
-              {item.envelope ? (
-                <EnvelopeWrap envelope={item.envelope}>
+function Tracks({ tracks }: { tracks: TimelineTrack[] }) {
+  return (
+    <CutBoardProvider>
+      {tracks.map((track) => (
+        <AbsoluteFill key={track.id}>
+          {track.items.map((item) => (
+            <Sequence
+              key={item.id}
+              from={item.from}
+              durationInFrames={item.durationInFrames}
+              name={item.kind === "element" ? item.component : item.kind}
+              premountFor={item.kind === "element" ? undefined : PREMOUNT_FRAMES}
+            >
+              <TransitionWrap item={item}>
+                {item.envelope ? (
+                  <EnvelopeWrap envelope={item.envelope}>
+                    <ItemContent item={item} />
+                  </EnvelopeWrap>
+                ) : (
                   <ItemContent item={item} />
-                </EnvelopeWrap>
-              ) : (
-                <ItemContent item={item} />
-              )}
-            </TransitionWrap>
-          </Sequence>
-        ))}
-      </AbsoluteFill>
-    ))}
-  </CutBoardProvider>
-);
+                )}
+              </TransitionWrap>
+            </Sequence>
+          ))}
+        </AbsoluteFill>
+      ))}
+    </CutBoardProvider>
+  );
+}
 
-const EnvelopeWrap: React.FC<{ envelope: VisualEnvelope; children: React.ReactNode }> = ({
+function EnvelopeWrap({
   envelope,
   children,
-}) => {
+}: {
+  envelope: VisualEnvelope;
+  children: React.ReactNode;
+}) {
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
   const opacity = envelopeAt(envelope.opacity, frame, 1);
@@ -123,15 +130,15 @@ const EnvelopeWrap: React.FC<{ envelope: VisualEnvelope; children: React.ReactNo
       {children}
     </AbsoluteFill>
   );
-};
+}
 
-const ItemContent: React.FC<{ item: TimelineItem }> = ({ item }) => {
+function ItemContent({ item }: { item: TimelineItem }) {
   if (item.kind === "group") return <Group {...item.props} />;
   if (item.kind === "recording") return <RecordingClip {...item.props} />;
   return <Element item={item} />;
-};
+}
 
-const Element: React.FC<{ item: ElementItem }> = ({ item }) => {
+function Element({ item }: { item: ElementItem }) {
   const element = resolveElement(item.component, getComponent);
   if (element?.status === "unknown") return <MissingElement name={item.component} />;
   return element?.status === "ready" ? (
@@ -139,16 +146,20 @@ const Element: React.FC<{ item: ElementItem }> = ({ item }) => {
       {createElement(element.impl, withAppFiles(item.props))}
     </DesignBox>
   ) : null;
-};
+}
 
-const cropScale = (crop: Rect): number => 1 / Math.max(MIN_CROP, crop.w, crop.h);
+const cropScale = (crop: Rect, fill: boolean): number =>
+  1 / Math.max(MIN_CROP, fill ? Math.min(crop.w, crop.h) : Math.max(crop.w, crop.h));
 
 const FILL: React.CSSProperties = { position: "absolute", inset: 0 };
 
-const SceneSequence: React.FC<{ sequencer: SequencerProps; tracks: TimelineTrack[] }> = ({
+function SceneSequence({
   sequencer,
   tracks,
-}) => {
+}: {
+  sequencer: SequencerProps;
+  tracks: TimelineTrack[];
+}) {
   const element = resolveElement(sequencer.component, getSequencer);
   if (element?.status === "unknown") return <MissingElement name={sequencer.component} />;
   if (element?.status !== "ready") return null;
@@ -169,19 +180,20 @@ const SceneSequence: React.FC<{ sequencer: SequencerProps; tracks: TimelineTrack
       ),
     }));
   return <Scenes scenes={scenes} config={withAppFiles(sequencer.props)} />;
-};
+}
 
-const Group: React.FC<GroupProps> = ({
+function Group({
   tracks,
   startFrom,
   remap,
   loopEvery,
   crop,
+  cropFill,
   wrapper,
   background,
   design,
   sequencer,
-}) => {
+}: GroupProps) {
   const frame = useCurrentFrame();
   let layers: React.ReactNode = sequencer ? (
     <SceneSequence sequencer={sequencer} tracks={tracks} />
@@ -200,7 +212,12 @@ const Group: React.FC<GroupProps> = ({
     layers = (
       <Freeze frame={Math.max(0, Math.floor(remapFrame(remap, frame) + EPSILON))}>{layers}</Freeze>
     );
-  if (crop) layers = <CropBox crop={crop}>{layers}</CropBox>;
+  if (crop)
+    layers = (
+      <CropBox crop={crop} fill={cropFill ?? false}>
+        {layers}
+      </CropBox>
+    );
   return (
     <AbsoluteFill style={background ? { background } : undefined}>
       <DesignBox design={design}>
@@ -208,16 +225,16 @@ const Group: React.FC<GroupProps> = ({
       </DesignBox>
     </AbsoluteFill>
   );
-};
+}
 
 type Wrap<P> = React.FC<P & { children: React.ReactNode }>;
 
-const CropBox: Wrap<{ crop: Rect }> = ({ crop, children }) => {
-  const scale = cropScale(crop);
+const CropBox: Wrap<{ crop: Rect; fill: boolean }> = ({ crop, fill, children }) => {
+  const scale = cropScale(crop, fill);
   const w = crop.w * scale;
   const h = crop.h * scale;
   return (
-    <AbsoluteFill>
+    <AbsoluteFill style={fill ? { overflow: "hidden" } : undefined}>
       <div
         style={{
           position: "absolute",
@@ -289,10 +306,7 @@ const DesignBox: Wrap<{ design?: Size; fill?: boolean }> = ({ design, fill, chil
   );
 };
 
-const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }> = ({
-  item,
-  children,
-}) => {
+function TransitionWrap({ item, children }: { item: TimelineItem; children: React.ReactNode }) {
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
   const board = useCutBoard();
@@ -319,7 +333,7 @@ const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }
       {children}
     </Presentation>
   );
-};
+}
 
 type ActiveTransition = {
   ref: TransitionRef;
@@ -330,7 +344,10 @@ type ActiveTransition = {
 function activeTransition(item: TimelineItem, frame: number): ActiveTransition | null {
   const { enter, exit, durationInFrames } = item;
   const progressFrom = (ref: TransitionRef, start: number) =>
-    interpolate(frame, [start, start + ref.durationInFrames], [0, 1], CLAMP_RIGHT);
+    ease(
+      ref.easing ?? "linear",
+      interpolate(frame, [start, start + ref.durationInFrames], [0, 1], CLAMP_RIGHT),
+    );
   if (enter && frame < enter.durationInFrames)
     return { ref: enter, direction: "entering", progress: progressFrom(enter, 0) };
   const exitStart = exit ? durationInFrames - exit.durationInFrames : 0;
@@ -339,16 +356,18 @@ function activeTransition(item: TimelineItem, frame: number): ActiveTransition |
   return null;
 }
 
-const MissingElement: React.FC<{ name: string }> = ({ name }) => (
-  <AbsoluteFill
-    style={{
-      alignItems: "center",
-      justifyContent: "center",
-      color: ERROR_COLOR,
-      fontFamily: MAIN_FONT,
-      fontSize: 40,
-    }}
-  >
-    Unknown element: {name}
-  </AbsoluteFill>
-);
+function MissingElement({ name }: { name: string }) {
+  return (
+    <AbsoluteFill
+      style={{
+        alignItems: "center",
+        justifyContent: "center",
+        color: ERROR_COLOR,
+        fontFamily: MAIN_FONT,
+        fontSize: 40,
+      }}
+    >
+      Unknown element: {name}
+    </AbsoluteFill>
+  );
+}

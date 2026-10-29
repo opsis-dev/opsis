@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::shared::GroupSeparator;
+use crate::elements::theme::{Theme, ThemeMode, stat_card_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -49,7 +50,8 @@ pub struct StatCard {
         "Change suffix",
         default = "%",
         help = "Unit on the delta chip.",
-        show_if = { "showDelta": ["true"] }
+        show_if = { "showDelta": ["true"] },
+        advanced
     )]
     pub delta_suffix: String,
     #[setting(
@@ -59,8 +61,13 @@ pub struct StatCard {
         check = colour
     )]
     pub accent_color: String,
-    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
-    pub theme: DarkOrLight,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = stat_card_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting(
         "Speed",
         default = 1.0,
@@ -75,7 +82,8 @@ pub struct StatCard {
         "Background",
         widget = "color",
         zero_label = "Theme",
-        help = "Leave empty to follow the theme."
+        help = "Leave empty to follow the theme.",
+        advanced
     )]
     pub background_color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -88,6 +96,49 @@ pub struct StatCard {
         "type" = "integer"
     )]
     pub max: Option<u32>,
+    #[setting(
+        "Glow",
+        default = 10.0,
+        range(min = 0, max = 100),
+        unit = "%",
+        advanced
+    )]
+    pub glow: f64,
+    #[setting(
+        "Ring thickness",
+        default = 9,
+        range(min = 2, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub ring_thickness: u32,
+    #[setting(
+        "Thousands separator",
+        default = GroupSeparator::None,
+        labels = { "none": "None", "space": "Space", "comma": "Comma", "dot": "Dot" },
+        advanced
+    )]
+    pub group_separator: GroupSeparator,
+    #[setting("Font", widget = "font", zero_label = "Main font", advanced)]
+    pub font_family: String,
+    #[setting(
+        "Falling colour",
+        widget = "color",
+        zero_label = "Accent",
+        check = colour_or_empty,
+        advanced
+    )]
+    pub down_color: String,
+    #[setting(
+        "Ring glow",
+        default = 10,
+        range(min = 0, max = 60),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub ring_glow: u32,
 }
 
 pub fn definition() -> ElementMeta {

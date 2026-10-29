@@ -23,12 +23,15 @@ pub struct TransitionBlinds {
     #[setting(
         "Slats",
         default = 12,
+        range(min = 2, max = 48),
+        step = 1,
         help = "Number of slats. Above ~24 it stops reading as slats at 1080p."
     )]
     pub slats: u32,
     #[setting(
         "Stagger",
         default = 0.45,
+        range(min = 0, max = 1),
         step = 0.01,
         help = "Share of the window the cascade spans. 0 opens every slat together.",
         advanced
@@ -42,11 +45,14 @@ pub struct TransitionBlinds {
     #[setting(
         "Edge softness",
         default = 0.06,
+        range(min = 0, max = 0.5),
         step = 0.01,
         help = "Soft leading edge per slat, as a share of its length.",
         advanced
     )]
     pub edge_softness: f64,
+    #[setting("Reverse sweep", advanced)]
+    pub reverse: bool,
 }
 
 pub fn definition() -> ElementMeta {

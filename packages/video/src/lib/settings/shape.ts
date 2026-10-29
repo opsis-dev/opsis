@@ -46,14 +46,14 @@ export function listsFrom<P extends ElementProps>(
 
 const TICK_WORDS: Partial<Record<string, boolean>> = { yes: true, no: false };
 
-export const ticksFromWords = (rows: unknown): ElementProps[] =>
-  rowsOf(rows).map((row) => ({
+export const ticksFromWords = <Row extends { cells: unknown[] }>(
+  rows: Row[],
+): (Omit<Row, "cells"> & { cells: (Row["cells"][number] | boolean)[] })[] =>
+  rows.map((row) => ({
     ...row,
-    cells: Array.isArray(row.cells)
-      ? row.cells.map((cell) =>
-          isString(cell) ? (TICK_WORDS[cell.trim().toLowerCase()] ?? cell) : cell,
-        )
-      : row.cells,
+    cells: row.cells.map((cell) =>
+      isString(cell) ? (TICK_WORDS[cell.trim().toLowerCase()] ?? cell) : cell,
+    ),
   }));
 
 export type TreeNode = { name: string; children?: TreeNode[] };

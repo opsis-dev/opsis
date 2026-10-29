@@ -8,6 +8,11 @@ const at = (frame: number, extra: Partial<MotionTime> = {}): MotionTime => ({
   fps: 30,
   speed: 1,
   seed: 1,
+  tiltDeg: 52,
+  endFacing: false,
+  amount: 1,
+  reverse: false,
+  growIn: true,
   ...extra,
 });
 
@@ -18,6 +23,19 @@ describe("3D motion presets", () => {
     expect(poseAt("spin", at(0)).rotation[1]).toBe(0);
     expect(poseAt("spin", at(90)).rotation[1]).toBeCloseTo(Math.PI);
     expect(poseAt("spin", at(90, { speed: 2 })).rotation[1]).toBeCloseTo(Math.PI * 2);
+  });
+
+  it("turns the other way and settles square to the camera when asked", () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 1, max: 600 }), (frame) => {
+        const ahead = poseAt("spin", at(frame)).rotation[1];
+        expect(poseAt("spin", at(frame, { reverse: true })).rotation[1]).toBeCloseTo(-ahead);
+      }),
+    );
+    expect(poseAt("tilt-in", at(240, { endFacing: true })).rotation).toEqual(
+      [0, 0, 0].map((v) => expect.closeTo(v, 2)),
+    );
+    expect(poseAt("still", at(0, { growIn: false })).scale).toBe(1);
   });
 
   it("tilts in from an angle and settles facing the camera", () => {

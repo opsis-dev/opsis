@@ -49,7 +49,7 @@ fn without_times(log: &ActionLog) -> Vec<Value> {
         .iter()
         .map(|a| {
             let mut value = serde_json::to_value(a).unwrap();
-            for key in ["t", "tEnd", "tDepart", "tDown"] {
+            for key in ["t", "tEnd", "tDepart", "tDown", "keyTimes"] {
                 value.as_object_mut().unwrap().remove(key);
             }
             value

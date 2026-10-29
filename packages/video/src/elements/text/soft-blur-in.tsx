@@ -1,35 +1,26 @@
 import { Easing, interpolate } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface SoftBlurInProps {
-  background?: string;
-  fontFamily?: string;
-  text: string;
-  blur?: number;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function SoftBlurIn({
-  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily,
   text,
-  blur = 12,
-  fontSize = 72,
-  color = "#171717",
-  fontWeight = 600,
-  speed = 1,
-  className,
-  background = "transparent",
-}: SoftBlurInProps) {
+  blur,
+  fontSize,
+  color,
+  fontWeight,
+  speed,
+  background,
+  stagger,
+  distance,
+  letterSpacing,
+}: ElementSettings["soft-blur-in"]) {
   const frame = useAuthoredFrame() * speed;
 
   const chars = Array.from(text);
   const charDurationFrames = 27;
   const charTravelFrames = 9;
-  const staggerFrames = 1;
 
   return (
     <div
@@ -43,24 +34,23 @@ export function SoftBlurIn({
       }}
     >
       <span
-        className={className}
         style={{
           fontSize,
           fontWeight,
           color,
-          letterSpacing: "-0.05em",
-          fontFamily,
+          letterSpacing: `${letterSpacing}em`,
+          fontFamily: fontOr(fontFamily, "main"),
         }}
       >
         {chars.map((char, i) => {
-          const local = frame - i * staggerFrames;
+          const local = frame - i * stagger;
           const easing = Easing.bezier(0.22, 1, 0.36, 1);
           const opacity = interpolate(local, [0, charDurationFrames], [0, 1], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
             easing,
           });
-          const y = interpolate(local, [0, charTravelFrames], [16, 0], {
+          const y = interpolate(local, [0, charTravelFrames], [distance, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
             easing,

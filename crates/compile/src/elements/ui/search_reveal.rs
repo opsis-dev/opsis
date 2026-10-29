@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
+use crate::elements::shared::FontWeight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -25,7 +26,8 @@ pub struct SearchReveal {
         range(min = 0.0333, max = 0.4),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub frames_per_character: f64,
     #[setting("Graphic panel", default = true)]
@@ -34,9 +36,9 @@ pub struct SearchReveal {
     pub show_guides: bool,
     #[setting("Text and markers", default = "#26232b", check = colour)]
     pub color: String,
-    #[setting("Search field", default = "#ffffff", check = colour)]
+    #[setting("Search field", default = "#ffffff", check = colour, advanced)]
     pub field_color: String,
-    #[setting("Circles and search icon", default = "#cbc5cf", check = colour)]
+    #[setting("Circles and search icon", default = "#cbc5cf", check = colour, advanced)]
     pub ring_color: String,
     #[setting("Panel color", default = "#a800b7", check = colour)]
     pub panel_color: String,
@@ -44,7 +46,7 @@ pub struct SearchReveal {
     pub accent_color: String,
     #[setting("Background", default = "#f5f1f5", check = colour)]
     pub background_color: String,
-    #[setting("Static final pose")]
+    #[setting("Static final pose", advanced)]
     pub reduced_motion: bool,
     #[setting(
         "Font",
@@ -54,6 +56,8 @@ pub struct SearchReveal {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting("Font weight", default = FontWeight::W400, advanced)]
+    pub weight: FontWeight,
 }
 
 pub fn definition() -> ElementMeta {

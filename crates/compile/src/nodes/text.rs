@@ -5,7 +5,7 @@ use icu_segmenter::options::WordBreakInvariantOptions;
 use opsis_macros::settings;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
-use opsis_types::recording::{AnnotationKind, HighlightLook};
+use opsis_types::recording::{AnnotationKind, HighlightLook, LabelLook};
 use opsis_types::values::{Caption, CaptionsValue, CompileValue};
 use opsis_types::workflow::PortType;
 use regex::Regex;
@@ -77,6 +77,7 @@ pub struct ScriptPace {
     pub words_per_minute: f64,
     pub start_ms: f64,
     pub line_pause_ms: f64,
+    pub paragraph_pause_ms: f64,
 }
 
 pub fn script_to_captions(script: &str, pace: ScriptPace) -> Vec<Caption> {
@@ -88,7 +89,7 @@ pub fn script_to_captions(script: &str, pace: ScriptPace) -> Vec<Caption> {
         let count = words.len();
         for (i, word) in words.into_iter().enumerate() {
             let pause = if i + 1 == count {
-                pace.line_pause_ms * 2.0
+                pace.paragraph_pause_ms
             } else if ends_sentence(&word) {
                 pace.line_pause_ms
             } else {
@@ -106,7 +107,7 @@ pub fn script_to_captions(script: &str, pace: ScriptPace) -> Vec<Caption> {
 }
 
 macro_rules! labelled_annotation {
-    ($name:ident, text = $text:literal, color = $color:literal, font_size = $size:literal $(, text_color = $text_color:literal)?) => {
+    ($name:ident, look = $look:ty, text = $text:literal, color = $color:literal, font_size = $size:literal $(, text_color = $text_color:literal)?) => {
         #[settings]
         #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
         #[serde(rename_all = "camelCase", default)]
@@ -131,14 +132,15 @@ macro_rules! labelled_annotation {
                 check = colour_or_empty
             )]
             pub color: String,
-            #[setting("Space around", default = 10, range(min = 0, max = 80), unit = "px")]
+            #[setting("Space around", default = 10, range(min = 0, max = 80), unit = "px", advanced)]
             pub padding: u32,
             #[setting(
                 "Appear early by",
                 default = 250,
                 range(min = 0, max = 5000),
                 step = 50,
-                unit = "ms"
+                unit = "ms",
+                advanced
             )]
             pub lead_ms: u32,
             #[setting(
@@ -164,7 +166,8 @@ macro_rules! labelled_annotation {
             #[setting(
                 "Font",
                 widget = "font",
-                help = "Project font follows the fonts set for the whole project."
+                help = "Project font follows the fonts set for the whole project.",
+                advanced
             )]
             pub font: String,
             #[setting(
@@ -185,14 +188,126 @@ macro_rules! labelled_annotation {
                 show_if = { "look": ["box", "circle", "underline", "marker"] }
             )]
             pub roughness: f64,
+            #[serde(flatten)]
+            pub style: $look,
         }
 
         impl Params for $name {}
     };
 }
 
+#[settings]
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct TooltipLook {
+    #[setting(
+        "Font weight",
+        default = 600,
+        range(min = 100, max = 900),
+        step = 100,
+        advanced
+    )]
+    pub font_weight: u32,
+    #[setting(
+        "Space inside",
+        default = 14,
+        range(min = 0, max = 60),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub box_padding: u32,
+    #[setting(
+        "Rounded corners",
+        default = 10,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub radius: u32,
+    #[setting(
+        "Pointer size",
+        default = 8,
+        range(min = 0, max = 30),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub pointer_size: u32,
+    #[setting("Shadow", default = true, advanced)]
+    pub shadow: bool,
+}
+
+#[settings]
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct CalloutLook {
+    #[setting(
+        "Font weight",
+        default = 800,
+        range(min = 100, max = 900),
+        step = 100,
+        advanced
+    )]
+    pub font_weight: u32,
+    #[setting(
+        "Arrow size",
+        default = 1.0,
+        range(min = 0.3, max = 3),
+        step = 0.05,
+        unit = "×",
+        advanced
+    )]
+    pub arrow_size: f64,
+    #[setting(
+        "Line width",
+        default = 5,
+        range(min = 1, max = 20),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub line_width: u32,
+    #[setting("Tilt", default = -4.0, range(min = -30, max = 30), step = 0.5, unit = "°", advanced)]
+    pub tilt: f64,
+}
+
+impl TooltipLook {
+    fn label(&self) -> LabelLook {
+        let callout = CalloutLook::default();
+        LabelLook {
+            font_weight: f64::from(self.font_weight),
+            box_padding: f64::from(self.box_padding),
+            radius: f64::from(self.radius),
+            pointer_size: f64::from(self.pointer_size),
+            shadow: self.shadow,
+            arrow_size: callout.arrow_size,
+            line_width: f64::from(callout.line_width),
+            tilt: callout.tilt,
+        }
+    }
+}
+
+impl CalloutLook {
+    fn label(&self) -> LabelLook {
+        let tooltip = TooltipLook::default();
+        LabelLook {
+            font_weight: f64::from(self.font_weight),
+            box_padding: f64::from(tooltip.box_padding),
+            radius: f64::from(tooltip.radius),
+            pointer_size: f64::from(tooltip.pointer_size),
+            shadow: false,
+            arrow_size: self.arrow_size,
+            line_width: f64::from(self.line_width),
+            tilt: self.tilt,
+        }
+    }
+}
+
 labelled_annotation!(
     Tooltip,
+    look = TooltipLook,
     text = "Click to continue",
     color = "#18181b",
     font_size = 18,
@@ -200,6 +315,7 @@ labelled_annotation!(
 );
 labelled_annotation!(
     CalloutArrow,
+    look = CalloutLook,
     text = "New!",
     color = "#f43f5e",
     font_size = 30
@@ -224,6 +340,8 @@ impl Annotation for Tooltip {
             text_color: Some(&self.text_color),
             font_size: Some(self.font_size),
             font: Some(&self.font),
+            label_look: Some(self.style.label()),
+            mark_look: None,
         }
     }
 }
@@ -246,6 +364,8 @@ impl Annotation for CalloutArrow {
             text_color: None,
             font_size: Some(self.font_size),
             font: Some(&self.font),
+            label_look: Some(self.style.label()),
+            mark_look: None,
         }
     }
 }
@@ -275,9 +395,19 @@ pub struct CaptionsFromScript {
         default = 350,
         range(min = 0, max = 5000),
         step = 50,
-        unit = "ms"
+        unit = "ms",
+        advanced
     )]
     pub line_pause_ms: u32,
+    #[setting(
+        "Pause between paragraphs",
+        default = 700,
+        range(min = 0, max = 10000),
+        step = 1,
+        unit = "ms",
+        advanced
+    )]
+    pub paragraph_pause_ms: u32,
 }
 
 impl Params for CaptionsFromScript {}
@@ -307,6 +437,7 @@ fn captions_from_script() -> NodeDef {
             words_per_minute: f64::from(p.words_per_minute),
             start_ms: f64::from(p.start_ms),
             line_pause_ms: f64::from(p.line_pause_ms),
+            paragraph_pause_ms: f64::from(p.paragraph_pause_ms),
         };
         outputs([(
             CAPTIONS_PORT,

@@ -43,6 +43,38 @@ pub struct RemapSegment {
     pub rate: f64,
 }
 
+const EASE_STEPS: u32 = 6;
+
+pub fn eased_segments(segments: &[(f64, f64, f64)], ease: f64) -> Vec<(f64, f64, f64)> {
+    if ease <= 0.0 {
+        return segments.to_vec();
+    }
+    let steps = f64::from(EASE_STEPS);
+    segments
+        .iter()
+        .flat_map(|&(from, to, rate)| {
+            let e = ease.min((to - from) / 2.0).max(0.0);
+            if e <= 0.0 {
+                return vec![(from, to, rate)];
+            }
+            let step = e / steps;
+            let between = |k: u32| 1.0 + (rate - 1.0) * f64::from(k) / (steps + 1.0);
+            let mut parts: Vec<(f64, f64, f64)> = (0..EASE_STEPS)
+                .map(|k| {
+                    let at = from + step * f64::from(k);
+                    (at, at + step, between(k + 1))
+                })
+                .collect();
+            parts.push((from + e, to - e, rate));
+            parts.extend((0..EASE_STEPS).map(|k| {
+                let at = to - e + step * f64::from(k);
+                (at, at + step, between(EASE_STEPS - k))
+            }));
+            parts
+        })
+        .collect()
+}
+
 pub fn remap_from_segments(inner_duration: f64, segments: &[RemapSegment]) -> Remap {
     let mut out = vec![(0.0, 0.0)];
     let mut out_pos = 0.0;

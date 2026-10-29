@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Easing } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export type KeystrokePlatform = "mac" | "windows";
 export type KeystrokeTheme = "light" | "dark";
@@ -36,10 +38,13 @@ export interface KeystrokeProps {
   size?: number;
   linger?: number;
   speed?: number;
-  className?: string;
+  hold?: number;
+  roundness?: number;
+  thenText?: string;
+  colors?: Partial<KeystrokePalette>;
 }
 
-export interface KeystrokeOptions extends Omit<KeystrokeProps, "className"> {
+export interface KeystrokeOptions extends KeystrokeProps {
   width?: number;
   height?: number;
   fps?: number;
@@ -103,7 +108,7 @@ export interface KeystrokePalette {
   shadow: string;
 }
 
-type Unset = "steps" | "className";
+type Unset = "steps" | "hold" | "roundness" | "thenText" | "colors";
 type Modifier = "fn" | "ctrl" | "alt" | "shift" | "meta";
 type Named =
   | "enter"
@@ -211,9 +216,6 @@ const SHADOW_Y_PRESSED = 0.02;
 const SHADOW_BLUR = 0.11;
 const SHADOW_BLUR_PRESSED = 0.03;
 const GLIDE = Easing.bezier(0.33, 1, 0.68, 1);
-const FONT_FAMILY =
-  'var(--font-geist-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif)';
-
 const ICONS: Record<KeystrokeIcon, IconShape> = {
   command: {
     box: "0 0 24 24",
@@ -591,9 +593,14 @@ export function getKeystrokeLeadIn(keys: string, hold = HOLD) {
 }
 
 export function getKeystrokeTimeline(
-  options: Pick<KeystrokeOptions, "steps" | "platform" | "linger" | "fps"> = {},
+  options: Pick<
+    KeystrokeOptions,
+    "steps" | "platform" | "linger" | "fps" | "hold" | "thenText"
+  > = {},
 ) {
   const platform = platformOf(options.platform);
+  const usualHold = within(options.hold, HOLD, 0, MAX_FRAMES);
+  const then = ` ${options.thenText ?? "then"} `;
   const scale = 30 / fpsOf(options.fps);
   const lingerFrames = within(options.linger, keystrokeDefaults.linger, 0, MAX_FRAMES);
   const linger = lingerFrames * scale;
@@ -604,7 +611,7 @@ export function getKeystrokeTimeline(
     const chords = parseKeystrokeKeys(entry.keys, platform);
     if (chords.length === 0) continue;
     const at = entry.at * scale;
-    const hold = within(entry.hold, HOLD, 0, MAX_FRAMES) * scale;
+    const hold = within(entry.hold, usualHold, 0, MAX_FRAMES) * scale;
     const planned = schedule(chords, hold);
     const offset = at - planned[planned.length - 1].fire;
     const timing = planned.map((chord) => ({
@@ -640,9 +647,7 @@ export function getKeystrokeTimeline(
       if (pushes.length === 2) break;
     }
     exit = round(Math.max(exit, draft.enter));
-    const label = draft.chords
-      .map((chord) => chord.map((key) => key.label).join(" "))
-      .join(" then ");
+    const label = draft.chords.map((chord) => chord.map((key) => key.label).join(" ")).join(then);
     return {
       ...draft,
       index,
@@ -662,7 +667,7 @@ export type KeystrokeTimeline = ReturnType<typeof getKeystrokeTimeline>;
 export const keystrokeLength = getKeystrokeTimeline().end;
 
 export function getKeystrokeDuration(
-  options: Pick<KeystrokeOptions, "steps" | "linger" | "speed" | "fps"> = {},
+  options: Pick<KeystrokeOptions, "steps" | "linger" | "speed" | "fps" | "hold"> = {},
 ) {
   const fps = fpsOf(options.fps);
   const rate = rateOf(options.speed);
@@ -679,14 +684,14 @@ export function getKeystrokeTime(
   return (elapsed * rateOf(options.speed) * 30) / fpsOf(options.fps);
 }
 
-export function getKeystrokeMetrics(size: number, unit = 1) {
+export function getKeystrokeMetrics(size: number, unit = 1, roundness = RADIUS) {
   return {
     size: round(size),
     height: round(size),
     wall: round(size * WALL),
     travel: round(size * TRAVEL),
     keytop: round(size * (1 - WALL)),
-    radius: round(size * RADIUS),
+    radius: round(size * roundness),
     rise: round(size * RISE),
     border: round(Math.max(1, unit)),
     charFont: round(size * CHAR_FONT),
@@ -798,12 +803,12 @@ export function getKeystrokeState(
   const height = Math.max(1, finite(options.height, 720));
   const unit = Math.min(height / 720, width / 1280);
   const reference = within(options.size, keystrokeDefaults.size, MIN_SIZE, MAX_SIZE);
-  const metrics = getKeystrokeMetrics(reference * unit, unit);
+  const metrics = getKeystrokeMetrics(reference * unit, unit, options.roundness);
   const time = getKeystrokeTime(frame, options);
   const x = finite(options.x, keystrokeDefaults.x);
   const y = finite(options.y, keystrokeDefaults.y);
   const theme = themeOf(options.theme);
-  const palette = keystrokePalettes[theme];
+  const palette = { ...keystrokePalettes[theme], ...options.colors };
   const accent = accentOf(options.accent);
   const groups = timeline.groups
     .filter((group) => time > group.enter && time < group.end)
@@ -827,7 +832,15 @@ export function getKeystrokeState(
 
 export type KeystrokeState = ReturnType<typeof getKeystrokeState>;
 
-function Legend({ legend, metrics }: { legend: KeystrokeLegend; metrics: KeystrokeMetrics }) {
+function Legend({
+  legend,
+  metrics,
+  weight,
+}: {
+  legend: KeystrokeLegend;
+  metrics: KeystrokeMetrics;
+  weight: number;
+}) {
   if (legend.kind === "icon") {
     const icon = ICONS[legend.icon];
     return (
@@ -851,46 +864,61 @@ function Legend({ legend, metrics }: { legend: KeystrokeLegend; metrics: Keystro
   }
   const fontSize = legend.kind === "word" ? metrics.wordFont : metrics.charFont;
   return (
-    <span style={{ fontSize, fontWeight: 500, lineHeight: 1, whiteSpace: "nowrap" }}>
+    <span style={{ fontSize, fontWeight: weight, lineHeight: 1, whiteSpace: "nowrap" }}>
       {legend.text}
     </span>
   );
 }
 
 export function Keystroke({
-  steps = keystrokeDefaultSteps,
-  platform = keystrokeDefaults.platform,
-  theme = keystrokeDefaults.theme,
-  accent = keystrokeDefaults.accent,
-  x = keystrokeDefaults.x,
-  y = keystrokeDefaults.y,
-  size = keystrokeDefaults.size,
-  linger = keystrokeDefaults.linger,
-  speed = keystrokeDefaults.speed,
-  className,
-}: KeystrokeProps) {
+  steps,
+  platform,
+  theme,
+  accent,
+  x,
+  y,
+  size,
+  linger,
+  speed,
+  fontFamily,
+  fontWeight,
+  thenText,
+  hold,
+  roundness,
+}: ElementSettings["keystroke"]) {
   const frame = useAuthoredFrame();
   const { width, height, fps } = useAuthoredConfig();
   const timeline = useMemo(
-    () => getKeystrokeTimeline({ steps, platform, linger, fps }),
-    [steps, platform, linger, fps],
+    () => getKeystrokeTimeline({ steps, platform, linger, fps, hold, thenText }),
+    [steps, platform, linger, fps, hold, thenText],
   );
   const state = getKeystrokeState(
     frame,
-    { width, height, fps, theme, accent, x, y, size, speed },
+    {
+      width,
+      height,
+      fps,
+      theme: theme.mode,
+      colors: theme.colors,
+      accent,
+      x,
+      y,
+      size,
+      speed,
+      roundness,
+    },
     timeline,
   );
   const { metrics, palette } = state;
 
   return (
     <div
-      className={className}
       style={{
         position: "absolute",
         inset: 0,
         overflow: "hidden",
         pointerEvents: "none",
-        fontFamily: FONT_FAMILY,
+        fontFamily: fontOr(fontFamily, "main"),
       }}
     >
       {state.groups.map((group) => (
@@ -922,12 +950,12 @@ export function Keystroke({
                 opacity: separator.opacity,
                 color: palette.separator,
                 fontSize: metrics.separatorFont,
-                fontWeight: 500,
+                fontWeight,
                 lineHeight: 1,
                 whiteSpace: "nowrap",
               }}
             >
-              then
+              {thenText}
             </div>
           ))}
           {group.caps.map((cap) => (
@@ -972,7 +1000,7 @@ export function Keystroke({
                   justifyContent: "center",
                 }}
               >
-                <Legend legend={cap.key.legend} metrics={metrics} />
+                <Legend legend={cap.key.legend} metrics={metrics} weight={fontWeight} />
               </div>
             </div>
           ))}

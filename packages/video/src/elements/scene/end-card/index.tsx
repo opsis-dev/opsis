@@ -1,25 +1,9 @@
 import { Img, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-
-const fontFamily = '"Inter"';
-
-export type EndCardProps = {
-  title: string;
-  subtitle?: string;
-  eyebrow?: string;
-  cta?: string;
-  url?: string;
-  handles?: string[];
-  logoSrc?: string;
-  logoSize?: number;
-  backgroundColor?: string;
-  accentColor?: string;
-  theme?: "dark" | "light";
-  holdSeconds?: number;
-  speed?: number;
-};
 
 const T = {
   logo: 0,
@@ -41,7 +25,7 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-export const EndCard: React.FC<EndCardProps> = ({
+export function EndCard({
   title,
   subtitle,
   eyebrow,
@@ -51,14 +35,21 @@ export const EndCard: React.FC<EndCardProps> = ({
   logoSrc,
   logoSize,
   backgroundColor,
-  accentColor = "#E8B86D",
-  theme = "dark",
+  accentColor,
+  theme,
   holdSeconds,
-  speed = 1,
-}) => {
+  speed,
+  fontFamily,
+  glow,
+  textSize,
+  titleWeight,
+  eyebrowCaps,
+  buttonRadius,
+  buttonArrow,
+}: ElementSettings["end-card"] & { holdSeconds?: number }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
   const now = (frame / fps) * speed;
@@ -74,6 +65,7 @@ export const EndCard: React.FC<EndCardProps> = ({
   const u = portrait
     ? Math.min(stage.w / 620, stage.h / 1120)
     : Math.min(stage.w / 1120, stage.h / 620);
+  const tu = u * textSize;
 
   const logoIn = logoSrc ? ease(T.logo, T.logo + 0.5) : 0;
   const eyebrowIn = eyebrow ? ease(T.eyebrow, T.eyebrow + 0.45) : 0;
@@ -105,8 +97,8 @@ export const EndCard: React.FC<EndCardProps> = ({
       style={{
         width,
         height,
-        background: backgroundColor ?? palette.page,
-        fontFamily,
+        background: backgroundColor || palette.page,
+        fontFamily: fontOr(fontFamily, "main"),
         position: "relative",
         overflow: "hidden",
         display: "grid",
@@ -117,7 +109,7 @@ export const EndCard: React.FC<EndCardProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 60% 46% at 50% 44%, color-mix(in srgb, ${accentColor} 12%, transparent), transparent 72%)`,
+          background: `radial-gradient(ellipse 60% 46% at 50% 44%, color-mix(in srgb, ${accentColor} ${glow}%, transparent), transparent 72%)`,
         }}
       />
 
@@ -151,10 +143,10 @@ export const EndCard: React.FC<EndCardProps> = ({
           <div
             style={{
               color: accentColor,
-              fontSize: 20 * u,
+              fontSize: 20 * tu,
               fontWeight: 600,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
+              letterSpacing: eyebrowCaps ? "0.14em" : undefined,
+              textTransform: eyebrowCaps ? "uppercase" : "none",
               opacity: eyebrowIn,
               translate: `0 ${(1 - eyebrowIn) * 10 * u}px`,
             }}
@@ -168,8 +160,8 @@ export const EndCard: React.FC<EndCardProps> = ({
             style={{
               margin: 0,
               color: palette.fg,
-              fontSize: 68 * u,
-              fontWeight: 700,
+              fontSize: 68 * tu,
+              fontWeight: titleWeight,
               lineHeight: 1.06,
               letterSpacing: "-0.03em",
               translate: `0 ${(1 - titleIn) * 100}%`,
@@ -185,7 +177,7 @@ export const EndCard: React.FC<EndCardProps> = ({
               margin: 0,
               maxWidth: stage.w * 0.7,
               color: palette.dim,
-              fontSize: 28 * u,
+              fontSize: 28 * tu,
               lineHeight: 1.35,
               opacity: subtitleIn,
               translate: `0 ${(1 - subtitleIn) * 12 * u}px`,
@@ -201,7 +193,7 @@ export const EndCard: React.FC<EndCardProps> = ({
               style={{
                 position: "absolute",
                 inset: 0,
-                borderRadius: 999,
+                borderRadius: buttonRadius,
                 border: `${2 * u}px solid ${accentColor}`,
                 opacity: pulse > 0 && pulse < 1 ? (1 - pulse) * 0.8 : 0,
                 scale: `${interpolate(pulse, [0, 1], [1, 1.28])}`,
@@ -214,10 +206,10 @@ export const EndCard: React.FC<EndCardProps> = ({
                 alignItems: "center",
                 gap: 12 * u,
                 padding: `${17 * u}px ${34 * u}px`,
-                borderRadius: 999,
+                borderRadius: buttonRadius,
                 background: accentColor,
                 color: palette.page,
-                fontSize: 27 * u,
+                fontSize: 27 * tu,
                 fontWeight: 700,
                 letterSpacing: "-0.01em",
                 boxShadow: `0 ${14 * u}px ${40 * u}px color-mix(in srgb, ${accentColor} 27%, transparent)`,
@@ -240,21 +232,23 @@ export const EndCard: React.FC<EndCardProps> = ({
               >
                 {cta}
               </span>
-              <svg
-                width={20 * u}
-                height={20 * u}
-                viewBox="0 0 24 24"
-                fill="none"
-                style={{ opacity: buttonLabel }}
-              >
-                <path
-                  d="M5 12h13m0 0-5.4-5.4M18 12l-5.4 5.4"
-                  stroke={palette.page}
-                  strokeWidth={2.2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              {buttonArrow ? (
+                <svg
+                  width={20 * u}
+                  height={20 * u}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  style={{ opacity: buttonLabel }}
+                >
+                  <path
+                    d="M5 12h13m0 0-5.4-5.4M18 12l-5.4 5.4"
+                    stroke={palette.page}
+                    strokeWidth={2.2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : null}
             </div>
           </div>
         ) : null}
@@ -264,7 +258,7 @@ export const EndCard: React.FC<EndCardProps> = ({
             style={{
               marginTop: 4 * u,
               color: palette.dim,
-              fontSize: 24 * u,
+              fontSize: 24 * tu,
               fontWeight: 500,
               display: "flex",
               alignItems: "center",
@@ -276,7 +270,7 @@ export const EndCard: React.FC<EndCardProps> = ({
               style={{
                 display: "inline-block",
                 width: 2 * u,
-                height: 24 * u,
+                height: 24 * tu,
                 marginLeft: 3 * u,
                 background: accentColor,
                 opacity: urlDone ? 0 : 1,
@@ -294,7 +288,7 @@ export const EndCard: React.FC<EndCardProps> = ({
               justifyContent: "center",
               gap: `${8 * u}px ${20 * u}px`,
               color: palette.faint,
-              fontSize: 21 * u,
+              fontSize: 21 * tu,
               opacity: handlesIn,
               translate: `0 ${(1 - handlesIn) * 10 * u}px`,
             }}
@@ -307,4 +301,4 @@ export const EndCard: React.FC<EndCardProps> = ({
       </div>
     </div>
   );
-};
+}

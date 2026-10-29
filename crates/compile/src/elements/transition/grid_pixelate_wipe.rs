@@ -70,6 +70,8 @@ pub struct GridPixelateWipe {
         advanced
     )]
     pub stagger: f64,
+    #[setting("Reverse order", advanced)]
+    pub reverse: bool,
 }
 
 pub fn definition() -> ElementMeta {

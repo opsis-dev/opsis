@@ -1,16 +1,18 @@
 import { resolveCursor } from "@remotion/mac-cursors";
-import React from "react";
 import { Img } from "remotion";
 import type { ClickLog } from "#video/camera/lib/click-log.ts";
 import { cursorAt, type Ring } from "#video/camera/lib/cursor.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { faded, ink } from "#video/camera/lib/style.ts";
 import { percent } from "#video/common/format.ts";
-import { DEFAULT_CURSOR_LOOK, type ArrowCursorLook } from "#video/common/recording.ts";
+import {
+  DEFAULT_CURSOR_FEEL,
+  DEFAULT_CURSOR_LOOK,
+  type ArrowCursorLook,
+} from "#video/common/recording.ts";
 import { isFadedOut } from "#video/core/anim.ts";
-import type { CursorLook, RippleLook } from "#video/generated/spec.ts";
+import type { CursorFeel, CursorLook, RippleLook } from "#video/generated/spec.ts";
 
-const CURSOR_SCALE_EXP = 0.58;
 const HOT_X = 1;
 const HOT_Y = 1;
 const ARROW_W = 34;
@@ -18,21 +20,24 @@ const ARROW_H = 45;
 const ARROW_VIEW_W = 24;
 const ARROW_VIEW_H = 32;
 const RIPPLE_D = 22;
-const RIPPLE_RING = "55%";
-const RIPPLE_FILL = "10%";
+const RIPPLE_RING = 0.47;
+const RIPPLE_FILL = 0.085;
+const RIPPLE_S = 0.35;
 const RIPPLE_FROM = 0.3;
 const RIPPLE_GROWTH = 1.05;
-const RIPPLE_OPACITY = 0.85;
 const ARROW_PATH = "M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z";
-const ARROW_STROKE = 1.85;
 const MAC_CURSOR_PX = 64;
 const MAC_ARTWORK_PX = 32;
 
-const Ripple: React.FC<{ ring: Ring; k: number; look: RippleLook }> = ({
+function Ripple({
   ring: { progress, hollow },
   k,
   look,
-}) => {
+}: {
+  ring: Ring;
+  k: number;
+  look: RippleLook;
+}) {
   const size = RIPPLE_D * look.size * k;
   return (
     <div
@@ -45,20 +50,28 @@ const Ripple: React.FC<{ ring: Ring; k: number; look: RippleLook }> = ({
         marginLeft: -size / 2,
         marginTop: -size / 2,
         borderRadius: "50%",
-        border: `${look.width * k}px solid ${faded(look.color, RIPPLE_RING)}`,
-        background: hollow ? "transparent" : faded(look.color, RIPPLE_FILL),
+        border: `${look.width * k}px solid ${faded(look.color, percent(look.ringOpacity ?? RIPPLE_RING))}`,
+        background: hollow
+          ? "transparent"
+          : faded(look.color, percent(look.fillOpacity ?? RIPPLE_FILL)),
         transform: `scale(${RIPPLE_FROM + progress * RIPPLE_GROWTH})`,
-        opacity: RIPPLE_OPACITY * (1 - progress),
+        opacity: 1 - progress,
       }}
     />
   );
-};
+}
 
-const Arrow: React.FC<{ squash: number; k: number; look: ArrowCursorLook }> = ({
+function Arrow({
   squash,
   k,
   look,
-}) => {
+  feel,
+}: {
+  squash: number;
+  k: number;
+  look: ArrowCursorLook;
+  feel: CursorFeel;
+}) {
   const width = ARROW_W * k;
   const height = ARROW_H * k;
   return (
@@ -73,26 +86,25 @@ const Arrow: React.FC<{ squash: number; k: number; look: ArrowCursorLook }> = ({
         top: (-HOT_Y / ARROW_VIEW_H) * height,
         transform: `scale(${squash})`,
         transformOrigin: `${percent(HOT_X / ARROW_VIEW_W)} ${percent(HOT_Y / ARROW_VIEW_H)}`,
-        filter: `drop-shadow(0 ${1.5 * k}px ${2.5 * k}px ${ink(0.34)})`,
+        filter:
+          feel.shadow > 0
+            ? `drop-shadow(0 ${1.5 * k}px ${2.5 * k}px ${ink(feel.shadow)})`
+            : undefined,
       }}
     >
       <path
         d={ARROW_PATH}
         fill={look.fill}
         stroke={look.edge}
-        strokeWidth={ARROW_STROKE}
+        strokeWidth={feel.outlineWidth}
         strokeLinejoin="round"
         paintOrder="stroke"
       />
     </svg>
   );
-};
+}
 
-const MacCursor: React.FC<{ shape: string; squash: number; k: number }> = ({
-  shape,
-  squash,
-  k,
-}) => {
+function MacCursor({ shape, squash, k }: { shape: string; squash: number; k: number }) {
   const resolved = resolveCursor(shape);
   if (!resolved) return null;
   const size = MAC_CURSOR_PX * k;
@@ -115,7 +127,7 @@ const MacCursor: React.FC<{ shape: string; squash: number; k: number }> = ({
       }}
     />
   );
-};
+}
 
 export type CursorOptions = {
   log: ClickLog;
@@ -123,20 +135,36 @@ export type CursorOptions = {
   ripple: RippleLook | null;
   cursorScale?: number;
   cursorLook?: CursorLook;
+  cursorFeel?: CursorFeel;
 };
 
-export const Cursor: React.FC<{ clip: CursorOptions; timeS: number; cameraScale: number }> = ({
+export function Cursor({
   clip,
   timeS,
   cameraScale,
-}) => {
+}: {
+  clip: CursorOptions;
+  timeS: number;
+  cameraScale: number;
+}) {
   const k = useDesignScale();
-  const { log, ripple, cursorScale: scale = 1, cursorLook = DEFAULT_CURSOR_LOOK } = clip;
-  const state = clip.cursor ? cursorAt(log.cursorTrack ?? [], log.clicks, timeS) : null;
+  const {
+    log,
+    ripple,
+    cursorScale: scale = 1,
+    cursorLook = DEFAULT_CURSOR_LOOK,
+    cursorFeel: feel = DEFAULT_CURSOR_FEEL,
+  } = clip;
+  const motion = {
+    pressSquash: feel.pressSquash,
+    hideWhileTyping: feel.hideWhileTyping,
+    rippleS: ripple?.durationS ?? RIPPLE_S,
+  };
+  const state = clip.cursor ? cursorAt(log.cursorTrack ?? [], log.clicks, timeS, motion) : null;
   if (!state || isFadedOut(state.opacity)) return null;
 
   const { width, height } = log.viewport;
-  const counter = cameraScale ** (CURSOR_SCALE_EXP - 1) * scale;
+  const counter = cameraScale ** (feel.growWithZoom - 1) * scale;
 
   return (
     <div
@@ -158,8 +186,8 @@ export const Cursor: React.FC<{ clip: CursorOptions; timeS: number; cameraScale:
       {cursorLook.shape === "mac" ? (
         <MacCursor shape={state.shape} squash={state.squash} k={k} />
       ) : (
-        <Arrow squash={state.squash} k={k} look={cursorLook} />
+        <Arrow squash={state.squash} k={k} look={cursorLook} feel={feel} />
       )}
     </div>
   );
-};
+}

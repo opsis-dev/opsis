@@ -68,6 +68,85 @@ pub struct LogoReveal {
     pub stroke_width: Option<f64>,
     #[setting("Fill colour", widget = "color", zero_label = "None")]
     pub fill: String,
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project."
+    )]
+    pub font_family: String,
+    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
+    pub speed: f64,
+    #[setting(
+        "Draw time",
+        default = 2.4,
+        range(min = 0.2, max = 10),
+        step = 0.1,
+        unit = "s",
+        advanced
+    )]
+    pub draw_seconds: f64,
+    #[setting(
+        "Time between lines",
+        default = 0.27,
+        range(min = 0, max = 2),
+        step = 0.01,
+        unit = "s",
+        help = "When the logo has several lines, each starts this long after the one before.",
+        advanced
+    )]
+    pub path_stagger: f64,
+    #[setting(
+        "Name at",
+        default = 1.37,
+        range(min = 0, max = 20),
+        step = 0.01,
+        unit = "s",
+        help = "The tagline follows 0.4 s later.",
+        advanced
+    )]
+    pub name_at: f64,
+    #[setting("Glow", default = true, advanced)]
+    pub glow: bool,
+    #[setting(
+        "Pen tip",
+        default = true,
+        help = "A dot at the end of the line while it draws.",
+        advanced
+    )]
+    pub pen_tip: bool,
+    #[setting(
+        "Name size",
+        default = 84,
+        range(min = 16, max = 240),
+        step = 1,
+        unit = "px"
+    )]
+    pub name_size: u32,
+    #[setting(
+        "Name weight",
+        default = 600,
+        range(min = 100, max = 900),
+        step = 100,
+        advanced
+    )]
+    pub font_weight: u32,
+    #[setting(
+        "Tagline size",
+        default = 40,
+        range(min = 10, max = 120),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub tagline_size: u32,
+    #[setting(
+        "Tagline color",
+        widget = "color",
+        zero_label = "Softer text color",
+        check = colour_or_empty,
+        advanced
+    )]
+    pub tagline_color: String,
 }
 
 pub fn definition() -> ElementMeta {
@@ -80,7 +159,6 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Scene,
             120,
         )
-        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:pen-tool").moves(NodeMotion::Draw)),
     )
 }

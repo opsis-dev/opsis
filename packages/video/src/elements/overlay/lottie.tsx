@@ -1,10 +1,14 @@
 import { Lottie, type LottieAnimationData } from "@remotion/lottie";
-import React from "react";
 import { readLottie } from "#video/core/dot-lottie.ts";
 import { useHeldLoad } from "#video/core/loading.ts";
+import type { ElementSettings, TextAlign } from "#video/generated/spec.ts";
 import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
 
-type LottieFit = "contain" | "cover";
+const ALIGN = {
+  left: "xMinYMid",
+  center: "xMidYMid",
+  right: "xMaxYMid",
+} as const satisfies Record<TextAlign, string>;
 
 async function loadAnimation(src: string): Promise<LottieAnimationData> {
   const res = await fetch(src);
@@ -12,14 +16,15 @@ async function loadAnimation(src: string): Promise<LottieAnimationData> {
   return readLottie(new Uint8Array(await res.arrayBuffer()));
 }
 
-export const LottieElement: React.FC<{
-  src: string;
-  loop?: boolean;
-  speed?: number;
-  backwards?: boolean;
-  fit?: LottieFit;
-  background?: string;
-}> = ({ src, loop = true, speed = 1, backwards = false, fit = "contain", background }) => {
+export function LottieElement({
+  src,
+  loop,
+  speed,
+  backwards,
+  fit,
+  background,
+  align,
+}: ElementSettings["lottie"]) {
   const loaded = useHeldLoad(`Loading animation ${src}`, src || null, loadAnimation);
   const data = loaded?.key === src ? loaded.value : null;
   if (!src || !data) return null;
@@ -30,9 +35,9 @@ export const LottieElement: React.FC<{
         loop={loop}
         playbackRate={speed}
         direction={backwards ? "backward" : "forward"}
-        preserveAspectRatio={fit === "cover" ? "xMidYMid slice" : "xMidYMid meet"}
+        preserveAspectRatio={`${ALIGN[align]} ${fit === "cover" ? "slice" : "meet"}`}
         style={{ width: "100%", height: "100%" }}
       />
     </Backgrounded>
   );
-};
+}

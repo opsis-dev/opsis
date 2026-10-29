@@ -1,36 +1,15 @@
 import { Easing, interpolate } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface GradientScaleCutTextProps {
-  fontFamily?: string;
-  text?: string;
-  giantFontSize?: number;
-  compactFontSize?: number;
-  fontWeight?: number;
-  gradientStart?: string;
-  gradientEnd?: string;
-  ghostColor?: string;
-  backgroundColor?: string;
-  anchorOffsetX?: number;
-  giantTravel?: number;
-  settleTravel?: number;
-  cutFrame?: number;
-  revealSoftness?: number;
-  compactBlur?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export const gradientScaleCutTextLength = 36;
 
-const REVEAL_END = 33;
 const SETTLE_FRAMES = 8;
 const GIANT_Y = -28;
 const GIANT_X_CORRECTION = -48;
 const COMPACT_Y = 5;
-const COMPACT_X_SCALE = 0.87;
 const COMPACT_START_X_CORRECTION = 28;
-const FONT_FAMILY = "var(--font-geist-sans), sans-serif";
 const clamp = {
   extrapolateLeft: "clamp" as const,
   extrapolateRight: "clamp" as const,
@@ -40,11 +19,13 @@ interface TextLayerProps {
   text: string;
   fontFamily: string;
   fontSize: number;
-  fontWeight: number;
+  fontWeight: string;
   gradientStart: string;
   gradientEnd: string;
   ghostColor: string;
   maskImage: string;
+  gradientSpread: number;
+  letterSpacing: number;
 }
 
 function TextLayer({
@@ -56,13 +37,15 @@ function TextLayer({
   gradientEnd,
   ghostColor,
   maskImage,
+  gradientSpread,
+  letterSpacing,
 }: TextLayerProps) {
   const textStyle = {
     display: "block",
     fontFamily,
     fontSize,
     fontWeight,
-    letterSpacing: 0,
+    letterSpacing: `${letterSpacing}em`,
     lineHeight: 1.12,
     whiteSpace: "nowrap" as const,
   };
@@ -76,7 +59,7 @@ function TextLayer({
           position: "absolute",
           inset: 0,
           color: "transparent",
-          backgroundImage: `linear-gradient(90deg, ${gradientStart} 0%, ${gradientStart} 4%, ${gradientEnd} 26%, ${gradientEnd} 100%)`,
+          backgroundImage: `linear-gradient(90deg, ${gradientStart} 0%, ${gradientStart} 4%, ${gradientEnd} ${gradientSpread}%, ${gradientEnd} 100%)`,
           backgroundClip: "text",
           maskImage,
           maskRepeat: "no-repeat",
@@ -93,31 +76,35 @@ function TextLayer({
 }
 
 export function GradientScaleCutText({
-  text = "Introducing",
-  fontFamily = FONT_FAMILY,
-  giantFontSize = 520,
-  compactFontSize = 132,
-  fontWeight = 700,
-  gradientStart = "#f04a14",
-  gradientEnd = "#f3f1f1",
-  ghostColor = "#170b0a",
-  backgroundColor = "#000000",
-  anchorOffsetX = -16,
-  giantTravel = 400,
-  settleTravel = 160,
-  cutFrame = 13,
-  revealSoftness = 14,
-  compactBlur = 12,
-  speed = 1,
-  className,
-}: GradientScaleCutTextProps) {
+  text,
+  fontFamily,
+  giantFontSize,
+  compactFontSize,
+  fontWeight,
+  gradientStart,
+  gradientEnd,
+  ghostColor,
+  backgroundColor,
+  anchorOffsetX,
+  giantTravel,
+  settleTravel,
+  cutFrame,
+  revealSoftness,
+  compactBlur,
+  speed,
+  revealEnd,
+  compactWidth,
+  gradientSpread,
+  letterSpacing,
+}: ElementSettings["gradient-scale-cut-text"]) {
+  const face = fontOr(fontFamily, "main");
   const frame = useAuthoredFrame() * Math.max(speed, 0);
   const safeCutFrame = Math.max(cutFrame, 1);
   const safeGiantFontSize = Math.max(giantFontSize, 1);
   const safeCompactFontSize = Math.max(compactFontSize, 1);
   const safeSoftness = Math.max(revealSoftness, 0);
   const safeBlur = Math.max(compactBlur, 0);
-  const revealProgress = interpolate(frame, [0, REVEAL_END], [0.02, 1], {
+  const revealProgress = interpolate(frame, [0, revealEnd], [0.02, 1], {
     ...clamp,
     easing: Easing.bezier(0.22, 0.74, 0.24, 1),
   });
@@ -147,7 +134,6 @@ export function GradientScaleCutText({
 
   return (
     <div
-      className={className}
       style={{
         position: "absolute",
         inset: 0,
@@ -166,7 +152,7 @@ export function GradientScaleCutText({
           }}
         >
           <TextLayer
-            fontFamily={fontFamily}
+            fontFamily={face}
             text={text}
             fontSize={safeGiantFontSize}
             fontWeight={fontWeight}
@@ -174,6 +160,8 @@ export function GradientScaleCutText({
             gradientEnd={gradientEnd}
             ghostColor={ghostColor}
             maskImage={maskImage}
+            gradientSpread={gradientSpread}
+            letterSpacing={letterSpacing}
           />
         </div>
       ) : (
@@ -184,12 +172,12 @@ export function GradientScaleCutText({
             left: `calc(50% + ${anchorOffsetX + compactX}px)`,
             filter: `blur(${compactBlurValue}px)`,
             opacity: 1,
-            transform: `translate3d(-50%, -50%, 0) scaleX(${COMPACT_X_SCALE})`,
+            transform: `translate3d(-50%, -50%, 0) scaleX(${compactWidth / 100})`,
             transformOrigin: "center",
           }}
         >
           <TextLayer
-            fontFamily={fontFamily}
+            fontFamily={face}
             text={text}
             fontSize={safeCompactFontSize}
             fontWeight={fontWeight}
@@ -197,6 +185,8 @@ export function GradientScaleCutText({
             gradientEnd={gradientEnd}
             ghostColor={ghostColor}
             maskImage={maskImage}
+            gradientSpread={gradientSpread}
+            letterSpacing={letterSpacing}
           />
         </div>
       )}

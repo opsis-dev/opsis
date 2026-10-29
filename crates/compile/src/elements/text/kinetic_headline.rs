@@ -40,6 +40,43 @@ pub struct KineticHeadline {
         help = "Project font follows the fonts set for the whole project."
     )]
     pub font_family: String,
+    #[setting("Font weight", default = 780, range(min = 100, max = 900), step = 10)]
+    pub font_weight: u32,
+    #[setting("Letter spacing", default = -0.04, range(min = -0.2, max = 0.5), unit = "em", advanced)]
+    pub letter_spacing: f64,
+    #[setting("Line height", default = 1.05, range(min = 0.7, max = 1.8), advanced)]
+    pub line_height: f64,
+    #[setting(
+        "Side margin",
+        default = 8.0,
+        range(min = 0, max = 30),
+        unit = "%",
+        advanced
+    )]
+    pub side_margin: f64,
+    #[setting(
+        "Word gap",
+        default = 0.28,
+        range(min = 0, max = 1),
+        unit = "em",
+        advanced
+    )]
+    pub word_gap: f64,
+    #[setting("Rise", default = 0.5, range(min = 0, max = 2), unit = "em", advanced)]
+    pub rise: f64,
+    #[setting("Tilt", default = 4.0, range(min = -30, max = 30), unit = "°", advanced)]
+    pub tilt: f64,
+    #[setting("Underline emphasised words", default = true, advanced)]
+    pub underline_emphasis: bool,
+    #[setting(
+        "Fade out",
+        default = 10,
+        range(min = 0, max = 60),
+        step = 1,
+        unit = "frames",
+        advanced
+    )]
+    pub fade_out_in_frames: u32,
 }
 
 pub fn definition() -> ElementMeta {

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
+use crate::elements::shared::GroupSeparator;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -37,6 +38,35 @@ pub struct RollingNumber {
     pub background: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Finish counting at",
+        default = 80.0,
+        range(min = 10, max = 100),
+        unit = "%",
+        advanced
+    )]
+    pub finish_at: f64,
+    #[setting(
+        "Thousands separator",
+        default = GroupSeparator::Space,
+        labels = { "none": "None", "space": "Space", "comma": "Comma", "dot": "Dot" },
+        advanced
+    )]
+    pub group_separator: GroupSeparator,
+    #[setting(
+        "Weight",
+        default = 800,
+        range(min = 100, max = 900),
+        step = 100,
+        advanced
+    )]
+    pub font_weight: u32,
+    #[setting("Prefix")]
+    pub prefix: String,
+    #[setting("Suffix")]
+    pub suffix: String,
+    #[setting("Font", widget = "font", zero_label = "Code font", advanced)]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {

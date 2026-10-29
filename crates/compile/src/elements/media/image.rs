@@ -18,10 +18,25 @@ pub struct Image {
     pub src: String,
     #[setting("Fit", default = Fit::Contain)]
     pub fit: Fit,
-    #[setting("Background", default = "transparent")]
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "None",
+        check = colour_or_empty
+    )]
     pub background: String,
     #[setting("Slow push-in")]
     pub ken_burns: bool,
+    #[setting(
+        "Push-in zoom",
+        default = 1.06,
+        range(min = 1, max = 1.5),
+        step = 0.01,
+        unit = "×",
+        show_if = { "kenBurns": ["true"] },
+        advanced
+    )]
+    pub ken_burns_zoom: f64,
 }
 
 pub fn definition() -> ElementMeta {

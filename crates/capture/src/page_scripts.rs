@@ -1,3 +1,4 @@
+use opsis_compile::nodes::capture::Record;
 use std::sync::LazyLock;
 
 use opsis_types::secrets::SavedItem;
@@ -173,11 +174,20 @@ const RIPPLE_MS: f64 = 350.0;
 const RIPPLE_CLEANUP_MS: f64 = 30.0;
 const CURSOR_Z: i64 = 2_147_483_647;
 
-const ARROW_SVG: &str = r##"<svg width="48" height="64" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z" fill="#111418" stroke="#ffffff" stroke-width="1.85" stroke-linejoin="round" paint-order="stroke"/>
-</svg>"##;
+fn arrow_svg(p: &Record) -> String {
+    let (w, h) = (48.0 * p.cursor_scale, 64.0 * p.cursor_scale);
+    let fill = html_escape::encode_double_quoted_attribute(&p.cursor_fill);
+    let stroke = html_escape::encode_double_quoted_attribute(&p.cursor_outline);
+    format!(
+        r##"<svg width="{w}" height="{h}" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z" fill="{fill}" stroke="{stroke}" stroke-width="1.85" stroke-linejoin="round" paint-order="stroke"/>
+</svg>"##
+    )
+}
 
-fn cursor_css() -> String {
+fn cursor_css(p: &Record) -> String {
+    let ring = &p.ring_color;
+    let shown = if p.click_ring { "block" } else { "none" };
     format!(
         r#"
 * {{ cursor: none !important; }}
@@ -185,29 +195,30 @@ fn cursor_css() -> String {
   position: fixed; top: 0; left: 0; pointer-events: none; z-index: {CURSOR_Z};
   transform: translate({off}px, {off}px);
   transform-origin: {hx}px {hy}px;
-  filter: drop-shadow(0 0 0.5px #fff) drop-shadow(0 1px 0 #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 5px 12px rgba(0,0,0,.6));
+  filter: drop-shadow(0 0 0.5px {glow}) drop-shadow(0 1px 0 {glow}) drop-shadow(0 0 2px {glow}) drop-shadow(0 5px 12px rgba(0,0,0,.6));
 }}
 #pw-cursor svg {{ display: block; }}
 .pw-ripple {{
   position: fixed; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
-  border: 2px solid rgba(15,23,42,.55); background: rgba(15,23,42,.1);
+  border: 2px solid {ring}; background: color-mix(in srgb, {ring} 18%, transparent); display: {shown};
   pointer-events: none; z-index: {below};
   animation: pw-ripple {RIPPLE_MS}ms ease-out forwards;
 }}
 @keyframes pw-ripple {{ from {{ transform: scale(.3); opacity: .85; }} to {{ transform: scale(1.35); opacity: 0; }} }}
 "#,
         off = OFF_SCREEN_PX,
-        hx = HOTSPOT.0,
-        hy = HOTSPOT.1,
+        hx = HOTSPOT.0 * p.cursor_scale,
+        hy = HOTSPOT.1 * p.cursor_scale,
+        glow = p.cursor_outline,
         below = CURSOR_Z - 1,
     )
 }
 
-pub fn cursor_look() -> Value {
+pub fn cursor_look(p: &Record) -> Value {
     json!({
-        "hotspot": { "x": HOTSPOT.0, "y": HOTSPOT.1 },
-        "arrow": ARROW_SVG,
-        "css": cursor_css(),
+        "hotspot": { "x": HOTSPOT.0 * p.cursor_scale, "y": HOTSPOT.1 * p.cursor_scale },
+        "arrow": arrow_svg(p),
+        "css": cursor_css(p),
         "offScreen": OFF_SCREEN_PX,
         "pressedScale": PRESSED_SCALE,
         "rippleMs": RIPPLE_MS + RIPPLE_CLEANUP_MS,
@@ -449,7 +460,7 @@ pub fn page_time_for_new_pages(now: PageNow, wall: f64) -> String {
     )
 }
 
-pub const PLAN_ELEMENT_SCROLL: &str = r#"function planElementScroll() {
+pub const PLAN_ELEMENT_SCROLL: &str = r#"function planElementScroll(block) {
   const scrollers = [];
   for (let node = this.parentElement; node; node = node.parentElement) {
     if (node.scrollHeight > node.clientHeight || node.scrollWidth > node.clientWidth) scrollers.push(node);
@@ -457,7 +468,7 @@ pub const PLAN_ELEMENT_SCROLL: &str = r#"function planElementScroll() {
   const root = document.scrollingElement;
   if (root && !scrollers.includes(root)) scrollers.push(root);
   const from = scrollers.map((s) => [s.scrollLeft, s.scrollTop]);
-  this.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+  this.scrollIntoView({ block, inline: "nearest", behavior: "instant" });
   const to = scrollers.map((s) => [s.scrollLeft, s.scrollTop]);
   scrollers.forEach((s, i) => s.scrollTo({ left: from[i][0], top: from[i][1], behavior: "instant" }));
   this.__opsisScroll = { scrollers, from, to };

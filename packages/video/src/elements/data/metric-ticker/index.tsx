@@ -1,33 +1,12 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { formatCompactNumber, readDelta } from "#video/lib/charts/chart-utils.ts";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { formatNumber, readDelta } from "#video/lib/charts/chart-utils.ts";
 import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
 import { DURATION, EASING, STAGGER } from "#video/lib/motion/motion-tokens.ts";
 import { LineChartDraw } from "#video/parts/line-chart-draw.tsx";
 
-const fontFamily = '"Inter"';
-
-export type MetricTickerItem = {
-  label: string;
-  value: number;
-  from?: number;
-  suffix?: string;
-  prefix?: string;
-  delta?: string;
-  trend?: number[];
-  color?: string;
-};
-
-export type MetricTickerProps = {
-  metrics: MetricTickerItem[];
-  title?: string;
-  eyebrow?: string;
-  valueFormatter?: (value: number) => string;
-  maxCards?: number;
-  backgroundColor?: string;
-  accentColor?: string;
-  theme?: "dark" | "light";
-  holdSeconds?: number;
-};
+export type MetricTickerItem = ElementSettings["metric-ticker"]["metrics"][number];
 
 const PALETTES = {
   dark: {
@@ -56,19 +35,25 @@ const PALETTES = {
 
 const DELTA_GLYPH = { up: "↑", down: "↓", flat: "" } as const;
 
-export const MetricTicker: React.FC<MetricTickerProps> = ({
+export function MetricTicker({
   metrics,
   title,
   eyebrow,
-  valueFormatter = formatCompactNumber,
-  maxCards = 4,
+  maxCards,
   backgroundColor,
   accentColor: accentSetting,
-  theme = "dark",
+  theme,
+  showArrows,
+  numberFormat,
+  glow,
+  uppercaseEyebrow,
+  cornerRadius,
+  trendFill,
+  fontFamily,
   holdSeconds,
-}) => {
-  const COLORS = PALETTES[theme];
-  const accentColor = accentSetting ?? COLORS.accent;
+}: ElementSettings["metric-ticker"] & { holdSeconds?: number }) {
+  const COLORS = { ...PALETTES[theme.mode], ...theme.colors };
+  const accentColor = accentSetting || COLORS.accent;
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const safe = getSafeAreaPadding({ width, height });
@@ -103,10 +88,10 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
       style={{
         width,
         height,
-        background: backgroundColor ?? COLORS.bg,
-        backgroundImage: `radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, ${accentColor} 7%, transparent), transparent 70%)`,
+        background: backgroundColor || COLORS.bg,
+        backgroundImage: `radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, ${accentColor} ${glow}%, transparent), transparent 70%)`,
         color: COLORS.ink,
-        fontFamily,
+        fontFamily: fontOr(fontFamily, "main"),
         paddingLeft: safe.paddingLeft,
         paddingRight: safe.paddingRight,
         paddingTop: safe.paddingTop,
@@ -134,8 +119,8 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
                 color: COLORS.eyebrow,
                 fontSize: scaleFont(24, width),
                 fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
+                letterSpacing: uppercaseEyebrow ? "0.08em" : undefined,
+                textTransform: uppercaseEyebrow ? "uppercase" : undefined,
               }}
             >
               {eyebrow}
@@ -195,7 +180,7 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
                 gap: scaleFont(14, width),
                 alignContent: "start",
                 padding: cardPadding,
-                borderRadius: scaleFont(18, width),
+                borderRadius: scaleFont(cornerRadius, width),
                 background: COLORS.card,
                 border: `1px solid ${COLORS.border}`,
                 opacity: Math.min(1, enter * 1.6),
@@ -232,7 +217,10 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
                   }}
                 >
                   {metric.prefix ?? ""}
-                  {valueFormatter((metric.from ?? 0) + (metric.value - (metric.from ?? 0)) * enter)}
+                  {formatNumber(
+                    (metric.from ?? 0) + (metric.value - (metric.from ?? 0)) * enter,
+                    numberFormat,
+                  )}
                   {metric.suffix ?? ""}
                 </span>
                 {delta.text ? (
@@ -245,7 +233,8 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
                       opacity: detailOpacity,
                     }}
                   >
-                    {DELTA_GLYPH[delta.direction]} {delta.text}
+                    {showArrows ? `${DELTA_GLYPH[delta.direction]} ` : ""}
+                    {delta.text}
                   </span>
                 ) : null}
               </div>
@@ -266,6 +255,7 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
                     includeZero={false}
                     showDots={false}
                     showHead={false}
+                    showArea={trendFill}
                     durationInFrames={DURATION.slow}
                     delayInFrames={delay + STAGGER.tight}
                     frame={frame}
@@ -278,4 +268,4 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
       </div>
     </div>
   );
-};
+}

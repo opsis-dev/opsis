@@ -1,26 +1,12 @@
-import type React from "react";
 import { AbsoluteFill } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
   makeFilterShader,
 } from "#video/lib/transitions/canvas-presentation.tsx";
 
-export type CameraLensProps = {
-  softness?: number;
-  bloom?: number;
-  aberration?: number;
-  vignette?: number;
-  distortion?: number;
-};
-
-const DEFAULTS = {
-  softness: 0.5,
-  bloom: 0.5,
-  aberration: 0.5,
-  vignette: 0.5,
-  distortion: 0.05,
-};
+type CameraLensProps = ElementSettings["camera-lens"];
 
 const FRAGMENT_SHADER = `#version 300 es
 precision highp float;
@@ -32,6 +18,8 @@ uniform float u_bloom;
 uniform float u_aberration;
 uniform float u_vignette;
 uniform float u_distortion;
+uniform float u_sharpCentre;
+uniform float u_bloomThreshold;
 
 in vec2 v_uv;
 out vec4 outColor;
@@ -76,7 +64,7 @@ void main() {
   float focused = reach * bend;
   vec2 base = lensUv(direction, focused);
 
-  float soft = u_softness * 0.011 * smoothstep(0.22, 1.0, radius);
+  float soft = u_softness * 0.011 * smoothstep(u_sharpCentre, 1.0, radius);
   float split = u_aberration * 0.0035 * radius;
 
   vec4 mid = softSample(base, soft);
@@ -88,7 +76,7 @@ void main() {
   for (int i = 0; i < GLARE_TAPS; i++) {
     vec3 tap =
       texture(u_scene, base + spiral(i, GLARE_TAPS, u_bloom * 0.026, 0.7)).rgb;
-    glare += max(tap - 0.62, vec3(0.0));
+    glare += max(tap - u_bloomThreshold, vec3(0.0));
   }
   color += (glare / float(GLARE_TAPS)) * u_bloom * 1.4;
 
@@ -101,46 +89,41 @@ void main() {
 const shader = makeFilterShader<CameraLensProps>(
   FRAGMENT_SHADER,
   ({ gl, uniform, passedProps }) => {
-    const {
-      softness = DEFAULTS.softness,
-      bloom = DEFAULTS.bloom,
-      aberration = DEFAULTS.aberration,
-      vignette = DEFAULTS.vignette,
-      distortion = DEFAULTS.distortion,
-    } = passedProps;
+    const { softness, bloom, aberration, vignette, distortion, sharpCentre, bloomThreshold } =
+      passedProps;
     gl.uniform1f(uniform("u_softness"), softness);
     gl.uniform1f(uniform("u_bloom"), bloom);
     gl.uniform1f(uniform("u_aberration"), aberration);
     gl.uniform1f(uniform("u_vignette"), vignette);
     gl.uniform1f(uniform("u_distortion"), distortion);
+    gl.uniform1f(uniform("u_sharpCentre"), sharpCentre);
+    gl.uniform1f(uniform("u_bloomThreshold"), bloomThreshold);
   },
 );
 
-const CameraLensFallback: React.FC<CameraLensProps & CanvasFilterProps> = ({
-  children,
-  bloom = DEFAULTS.bloom,
-  vignette = DEFAULTS.vignette,
-}) => (
-  <AbsoluteFill>
-    <AbsoluteFill>{children}</AbsoluteFill>
-    <AbsoluteFill
-      style={{
-        filter: `blur(${6 * bloom}px) brightness(1.5) contrast(1.3)`,
-        mixBlendMode: "screen",
-        opacity: 0.3 * bloom,
-      }}
-    >
-      {children}
+function CameraLensFallback({ children, bloom, vignette }: CameraLensProps & CanvasFilterProps) {
+  return (
+    <AbsoluteFill>
+      <AbsoluteFill>{children}</AbsoluteFill>
+      <AbsoluteFill
+        style={{
+          filter: `blur(${6 * bloom}px) brightness(1.5) contrast(1.3)`,
+          mixBlendMode: "screen",
+          opacity: 0.3 * bloom,
+        }}
+      >
+        {children}
+      </AbsoluteFill>
+      <AbsoluteFill
+        style={{
+          background:
+            "radial-gradient(ellipse 78% 76% at 50% 50%, transparent 52%, rgba(0, 0, 0, 0.5) 100%)",
+          opacity: Math.min(vignette, 1),
+        }}
+      />
     </AbsoluteFill>
-    <AbsoluteFill
-      style={{
-        background:
-          "radial-gradient(ellipse 78% 76% at 50% 50%, transparent 52%, rgba(0, 0, 0, 0.5) 100%)",
-        opacity: Math.min(vignette, 1),
-      }}
-    />
-  </AbsoluteFill>
-);
+  );
+}
 
 export const CameraLens = makeCanvasFilter<CameraLensProps>({
   shader,

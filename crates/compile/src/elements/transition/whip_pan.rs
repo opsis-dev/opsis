@@ -26,8 +26,16 @@ pub enum WhipDirection {
 pub struct WhipPan {
     #[setting("Direction", default = WhipDirection::Left)]
     pub direction: WhipDirection,
-    #[setting("Blur", default = 24, range(min = 0, max = 48), step = 2)]
+    #[setting("Blur", default = 24, range(min = 0, max = 48), step = 2, unit = "px")]
     pub blur: u32,
+    #[setting(
+        "Stretch",
+        default = 12.0,
+        range(min = 0, max = 40),
+        unit = "%",
+        advanced
+    )]
+    pub stretch: f64,
 }
 
 pub fn definition() -> ElementMeta {

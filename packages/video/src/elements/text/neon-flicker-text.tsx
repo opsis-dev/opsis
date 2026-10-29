@@ -1,38 +1,36 @@
-import type React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import type { SplitUnitState } from "#video/lib/text/text-split.ts";
-import { SplitTextChars, type SplitTextCharsProps } from "#video/parts/split-text-chars.tsx";
-
-export type NeonFlickerTextProps = Omit<SplitTextCharsProps, "effect" | "renderUnit"> & {
-  glowColor?: string;
-  glowSize?: number;
-  offColor?: string;
-  offLevel?: number;
-  hum?: number;
-  buzz?: number;
-  flickerOnExit?: boolean;
-};
+import { SplitTextChars } from "#video/parts/split-text-chars.tsx";
 
 function noise(index: number, beat: number, seed: number): number {
   const value = Math.sin(index * 73.19 + beat * 137.51 + seed * 311.7) * 43758.5453;
   return value - Math.floor(value);
 }
 
-const NeonFlickerTextView: React.FC<NeonFlickerTextProps> = ({
-  glowColor = "#f472b6",
-  glowSize = 26,
+export function NeonFlickerText({
+  text,
+  glowColor,
+  glowSize,
   offColor: offSetting,
-  offLevel = 0.14,
-  hum = 0.12,
-  buzz = 0.06,
-  flickerOnExit = true,
-  color = "#fdf2f8",
-  seed = 1,
-  ...splitProps
-}) => {
+  offLevel,
+  hum,
+  buzz,
+  flickerOnExit,
+  order,
+  staggerInFrames,
+  seed,
+  color,
+  fontSize,
+  fontWeight,
+  durationInFrames,
+  humRate,
+  wordSpacing,
+}: ElementSettings["neon-flicker-text"]) {
   const frame = useCurrentFrame();
-  const offColor = offSetting ?? `color-mix(in srgb, ${glowColor} 16%, transparent)`;
+  const { fps } = useVideoConfig();
+  const offColor = offSetting || `color-mix(in srgb, ${glowColor} 16%, transparent)`;
+  const humStep = (humRate * Math.PI * 2) / fps;
 
   const renderUnit = (unit: SplitUnitState) => {
     const striking = unit.enter > 0 && unit.enter < 1;
@@ -45,7 +43,7 @@ const NeonFlickerTextView: React.FC<NeonFlickerTextProps> = ({
       const beat = Math.floor(frame / 2);
       lit = noise(unit.index, beat, seed) < 0.22 + 0.78 * unit.enter ? 1 : offLevel;
     } else {
-      const wave = 0.5 + 0.5 * Math.sin(frame * 0.42 + unit.index * 1.3);
+      const wave = 0.5 + 0.5 * Math.sin(frame * humStep + unit.index * 1.3);
       const stutter = buzz > 0 && noise(unit.index, Math.floor(frame / 3), seed + 7) < buzz;
       lit = stutter ? offLevel + 0.2 : 1 - hum * wave;
     }
@@ -76,22 +74,20 @@ const NeonFlickerTextView: React.FC<NeonFlickerTextProps> = ({
   };
 
   return (
-    <SplitTextChars
-      {...splitProps}
-      exit={splitProps.exit ?? true}
-      color={color}
-      seed={seed}
-      effect="none"
-      renderUnit={renderUnit}
-    />
-  );
-};
-
-export function NeonFlickerText(props: ElementProps & { children?: React.ReactNode }) {
-  return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-      <NeonFlickerTextView
-        {...(props as unknown as React.ComponentProps<typeof NeonFlickerTextView>)}
+      <SplitTextChars
+        text={text}
+        order={order}
+        staggerInFrames={staggerInFrames}
+        durationInFrames={durationInFrames}
+        fontSize={fontSize}
+        fontWeight={fontWeight}
+        wordSpacing={wordSpacing}
+        exit
+        color={color}
+        seed={seed}
+        effect="none"
+        renderUnit={renderUnit}
       />
     </AbsoluteFill>
   );

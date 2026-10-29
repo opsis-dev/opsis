@@ -76,16 +76,19 @@ const ALLOWED: Record<string, Record<string, string>> = {
     "rgba(255,255,255,0.9)": "window top highlight",
   },
   "elements/overlay/captions.tsx": { "rgba(0,0,0,0.55)": "caption text shadow" },
-  "core/still.tsx": { "rgba(0,0,0,0.45)": "cut-out screenshot shadow" },
-  "elements/background/video-loop.tsx": { "rgba(0,0,0,${dim})": "the video loop's dim setting" },
+  "core/still.tsx": {
+    "rgba(0,0,0,${props.shadow})": "cut-out screenshot shadow at the Shadow setting",
+  },
   "core/placeholder.tsx": {
     "rgba(255,255,255,0.05)": "empty clip sweep, never in a finished film",
     "rgba(255,255,255,0.18)": "empty clip border, never in a finished film",
   },
-  "core/recording-clip.tsx": { "rgba(0,0,0,0.35)": "typed text chip shadow" },
-  "three/devices.tsx": { "#0a0a0c": "3D device bezel and screen glass" },
+  "core/recording-clip.tsx": {
+    "rgba(0,0,0,${look.shadow ?? TYPED_CHIP.shadow})":
+      "typed text chip shadow, its strength a setting",
+  },
   "elements/device/screen-3d.tsx": {
-    "rgba(255,255,255,${GLARE.strongest})": "3D screen glare",
+    "rgba(255,255,255,${strength})": "3D screen glare at the Glare setting's strength",
     "rgba(255,255,255,0)": "3D screen glare fading out",
   },
   "elements/scene/card-3d.tsx": {

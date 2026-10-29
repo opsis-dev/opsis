@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type React from "react";
 import {
   AbsoluteFill,
   continueRender,
@@ -9,9 +8,9 @@ import {
   interpolate,
   spring,
 } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
 import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import {
   Item,
   mixOklch,
@@ -28,20 +27,11 @@ const CLAMP = {
   extrapolateRight: "clamp",
 } as const;
 
-const PILL_H = 1.128;
-const PILL_CY = 0.5164;
 const PILL_R = 0.229;
-const PILL_PAD = 0.19;
-const PILL_GAP = 0.147;
-const ACT1_EM = 0.087;
-const ACT2_EM = 0.222;
-const CHIP_PAD_X = 0.42;
 const CHIP_PAD_Y = 0.165;
 const CHIP_R = 0.162;
 const CHIP_BORDER = 0.017;
-const CHIP_INSET = 0.04;
 const ACT1_FIT = 0.92;
-const CHIP_GAP = 0.057;
 
 const WIDTH_EASE = Easing.bezier(0.65, 0.2, 0.3, 1.5);
 const WIDTH_SECONDS = 0.6;
@@ -132,37 +122,6 @@ export const STATUS_CYCLE_MOTION: StatusCycleMotion = {
   letterStagger: 1,
 };
 
-export interface StatusCycleProps {
-  prefix?: string;
-  statuses?: string[] | string;
-  chips?: string[] | string;
-  fieldColor?: string;
-  pageColor?: string;
-  pillColor?: string;
-  pillLabelColor?: string;
-  prefixColor?: string;
-  chipFills?: string[] | string;
-  chipTextColor?: string;
-  chipBorderColor?: string;
-  fontWeight?: number;
-  chipFontWeight?: number;
-  pillRadius?: number;
-  chipRadius?: number;
-  chipBorderWidth?: number;
-  pillCenterY?: number;
-  motion?: Partial<StatusCycleMotion>;
-  fontSize?: number;
-  chipFontSize?: number;
-  fontFamily?: string;
-  statusHold?: number;
-  introFrames?: number;
-  chipStagger?: number;
-  startAt?: number;
-  speed?: number;
-  theme?: Partial<WarmTheme>;
-  mode?: "light" | "dark";
-}
-
 interface Metrics {
   letters: { left: number; width: number }[];
   prefixWidth: number;
@@ -172,9 +131,9 @@ interface Metrics {
 }
 
 function StatusCycleView({
-  prefix = "Acme is",
-  statuses = ["animating", "transitioning", "rendering a scene", "installed"],
-  chips = ["text-reveal", "phone-frame", "answer-stream", "word-flip", "orbit-gallery"],
+  prefix,
+  statuses,
+  chips,
   fieldColor,
   pageColor,
   pillColor,
@@ -183,28 +142,41 @@ function StatusCycleView({
   chipFills,
   chipTextColor,
   chipBorderColor,
-  fontWeight = 400,
-  chipFontWeight = 400,
+  fontWeight,
+  chipFontWeight,
   pillRadius,
   chipRadius,
   chipBorderWidth,
-  pillCenterY = PILL_CY,
-  motion,
+  pillCenterY,
   fontSize,
   chipFontSize,
   fontFamily,
-  statusHold = 30,
-  introFrames = 24,
-  chipStagger = 8,
-  startAt = 0,
-  speed = 1,
-  theme,
+  statusHold,
+  introFrames,
+  chipStagger,
+  startAt,
+  speed,
+  pillHeight,
+  pillPadding,
+  pillGap,
+  chipPadding,
+  chipInset,
+  chipGap,
+  pillResizeTime,
+  rollTime,
+  fieldFadeTime,
+  letterStagger,
+  introZoom,
+  colors,
   mode,
-}: StatusCycleProps) {
+}: Omit<ElementSettings["status-cycle"], "theme"> & {
+  colors?: Partial<WarmTheme>;
+  mode?: "light" | "dark";
+}) {
   const frame = useAuthoredFrame() * speed - startAt;
   const { fps, width, height } = useAuthoredConfig();
-  const t = useWarmTheme(theme, mode);
-  const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
+  const t = useWarmTheme(colors, mode);
+  const face = resolveFont(fontFamily || t.fontFamily) ?? SANS;
 
   const labels = useMemo(() => toList(statuses), [statuses]);
   const chipLabels = useMemo(() => toList(chips), [chips]);
@@ -216,13 +188,19 @@ function StatusCycleView({
   const prefixInk = prefixColor ?? t.foreground;
   const labelInk = pillLabelColor ?? mixOklch(field, t.card, 0.62);
   const chipInk = chipTextColor ?? t.foreground;
-  const chipEdge = chipBorderColor ?? mixOklch(t.border, t.foreground, 0.28);
-  const m = { ...STATUS_CYCLE_MOTION, ...motion };
+  const chipEdge = chipBorderColor || mixOklch(t.border, t.foreground, 0.28);
+  const m = {
+    ...STATUS_CYCLE_MOTION,
+    widthSeconds: pillResizeTime,
+    rollSeconds: rollTime,
+    fadeSeconds: fieldFadeTime,
+    letterStagger,
+  };
   const fills = toList(chipFills);
   const fillCycle = fills.length > 0 ? fills : [t.card, mixOklch(t.card, field, 0.14), field];
 
-  const nominalEm = fontSize ?? ACT1_EM * height;
-  const nominalChipEm = chipFontSize ?? ACT2_EM * height;
+  const nominalEm = fontSize;
+  const nominalChipEm = chipFontSize;
 
   const measureKey = JSON.stringify([
     glyphs,
@@ -275,8 +253,8 @@ function StatusCycleView({
 
   const fadeP = interpolate(frame, [fadeStart, fadeStart + fadeFrames], [0, 1], CLAMP);
 
-  const rawPad = PILL_PAD * PILL_H * nominalEm;
-  const rawGap = PILL_GAP * PILL_H * nominalEm;
+  const rawPad = pillPadding * pillHeight * nominalEm;
+  const rawGap = pillGap * pillHeight * nominalEm;
   const rawLockup =
     (metrics?.prefixWidth ?? 0) +
     rawGap +
@@ -284,14 +262,14 @@ function StatusCycleView({
     2 * rawPad;
   const act1Fit = metrics ? fitScale(rawLockup, ACT1_FIT * width) : 1;
 
-  const rawChip = Math.max(0, ...(metrics?.chipWidths ?? [0])) + 2 * CHIP_PAD_X * nominalChipEm;
-  const chipFit = metrics ? fitScale(rawChip, (1 - 2 * CHIP_INSET) * width) : 1;
+  const rawChip = Math.max(0, ...(metrics?.chipWidths ?? [0])) + 2 * chipPadding * nominalChipEm;
+  const chipFit = metrics ? fitScale(rawChip, (1 - 2 * chipInset) * width) : 1;
 
   const em = nominalEm * act1Fit;
   const chipEm = nominalChipEm * chipFit;
-  const pillH = PILL_H * em;
-  const pillPad = PILL_PAD * pillH;
-  const gap = PILL_GAP * pillH;
+  const pillH = pillHeight * em;
+  const pillPad = pillPadding * pillH;
+  const gap = pillGap * pillH;
   const prefixWidth = (metrics?.prefixWidth ?? 0) * act1Fit;
 
   const pillWidths = (metrics?.statusWidths ?? labels.map(() => 0)).map(
@@ -322,7 +300,7 @@ function StatusCycleView({
     frame,
     fps,
     config: { damping: 26, stiffness: 90, mass: 1.4 },
-    from: 1.16,
+    from: introZoom,
     to: 1,
   });
 
@@ -427,6 +405,9 @@ function StatusCycleView({
           weight={chipFontWeight}
           tau={m.scrollTau}
           typeStyle={typeStyle}
+          padding={chipPadding}
+          inset={chipInset}
+          spacing={chipGap}
         />
       ) : null}
     </AbsoluteFill>
@@ -587,7 +568,13 @@ function Chips({
   weight,
   tau: scrollTau,
   typeStyle,
+  padding,
+  inset,
+  spacing,
 }: {
+  padding: number;
+  inset: number;
+  spacing: number;
   labels: string[];
   widths: number[];
   frame: number;
@@ -602,14 +589,14 @@ function Chips({
   edge: string;
   radius?: number;
   borderWidth?: number;
-  weight: number;
+  weight: string;
   tau: number;
   typeStyle: React.CSSProperties;
 }) {
   if (frame < beat) return null;
 
   const chipH = em * (1 + 2 * CHIP_PAD_Y);
-  const step = chipH + CHIP_GAP * height;
+  const step = chipH + spacing * height;
   const tau = scrollTau * fps;
 
   const { arrived, since } = chipAt({
@@ -619,12 +606,12 @@ function Chips({
     count: labels.length,
   });
   const p = settle(since, tau);
-  const fieldY = height - CHIP_GAP * height - chipH - (arrived - 2 + p) * step;
+  const fieldY = height - spacing * height - chipH - (arrived - 2 + p) * step;
 
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
       {labels.slice(0, arrived).map((text, i) => {
-        const w = (widths[i] ?? 0) + 2 * CHIP_PAD_X * em;
+        const w = (widths[i] ?? 0) + 2 * padding * em;
         const left = i % 2 === 0;
         const fill = fills[i % fills.length] ?? fills[0];
         return (
@@ -633,8 +620,8 @@ function Chips({
               style={{
                 position: "absolute",
                 top: 0,
-                left: left ? CHIP_INSET * width : undefined,
-                right: left ? undefined : CHIP_INSET * width,
+                left: left ? inset * width : undefined,
+                right: left ? undefined : inset * width,
                 transform: `translateY(${fieldY + i * step}px)`,
                 width: w,
                 height: chipH,
@@ -738,19 +725,11 @@ function Measuring({
   );
 }
 
-export function StatusCycle(props: ElementProps & { children?: React.ReactNode }) {
-  const { theme } = props;
-  if (!isTheme(theme))
-    return (
-      <StatusCycleView {...(props as unknown as React.ComponentProps<typeof StatusCycleView>)} />
-    );
+export function StatusCycle({ theme, ...settings }: ElementSettings["status-cycle"]) {
+  if (!isTheme(theme)) return <StatusCycleView {...settings} />;
   return (
     <WarmUIProvider mode={theme.mode}>
-      <StatusCycleView
-        {...(props as unknown as React.ComponentProps<typeof StatusCycleView>)}
-        theme={themeColors(theme)}
-        mode={theme.mode}
-      />
+      <StatusCycleView {...settings} colors={themeColors(theme)} mode={theme.mode} />
     </WarmUIProvider>
   );
 }

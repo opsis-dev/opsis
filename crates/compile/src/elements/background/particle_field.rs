@@ -73,6 +73,8 @@ pub struct ParticleField {
     pub glow: f64,
     #[setting("Variation", default = 1, advanced)]
     pub seed: u32,
+    #[setting("Twinkle", default = 0.3, range(min = 0, max = 1), advanced)]
+    pub twinkle: f64,
 }
 
 pub fn definition() -> ElementMeta {

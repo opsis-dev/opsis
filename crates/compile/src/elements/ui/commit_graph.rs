@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::{Colour, DarkOrLight};
+use crate::elements::shared::Colour;
+use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -115,11 +116,17 @@ pub struct CommitGraph {
         "Branch colors",
         default = vec!["#7DD3E8".into(), "#C99BE8".into(), "#9BD4A0".into(), "#E8B86D".into()],
         length(min = 1),
-        help = "Colours for branch lanes 1 and up."
+        help = "Colours for branch lanes 1 and up.",
+        advanced
     )]
     pub lane_colors: Vec<Colour>,
-    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
-    pub theme: DarkOrLight,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = code_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting(
         "Speed",
         default = 1.0,
@@ -135,6 +142,72 @@ pub struct CommitGraph {
         help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
+    #[setting("Hash font", widget = "font", advanced)]
+    pub code_font: String,
+    #[setting("Font", widget = "font", advanced)]
+    pub font: String,
+    #[setting(
+        "Window width",
+        default = 860,
+        range(min = 400, max = 1400),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub window_width: u32,
+    #[setting(
+        "Row spacing",
+        default = 48,
+        range(min = 28, max = 96),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub row_spacing: u32,
+    #[setting(
+        "Lane spacing",
+        default = 30,
+        range(min = 16, max = 80),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub lane_spacing: u32,
+    #[setting(
+        "Dot size",
+        default = 6.5,
+        range(min = 3, max = 16),
+        unit = "px",
+        advanced
+    )]
+    pub dot_size: f64,
+    #[setting(
+        "Line width",
+        default = 2.2,
+        range(min = 1, max = 8),
+        unit = "px",
+        advanced
+    )]
+    pub line_width: f64,
+    #[setting(
+        "Text size",
+        default = 15.5,
+        range(min = 10, max = 28),
+        unit = "px",
+        advanced
+    )]
+    pub text_size: f64,
+    #[setting(
+        "Corner radius",
+        default = 18,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub corner_radius: u32,
+    #[setting("Window dots", default = true, advanced)]
+    pub window_dots: bool,
 }
 
 pub fn definition() -> ElementMeta {

@@ -13,25 +13,33 @@ import { screenPoseAt } from "#video/three/screen-moves.ts";
 import { Posed, STAGE_FOV, Stage3D } from "#video/three/stage.tsx";
 
 const SCREEN_WIDTH = 2;
-const GLARE = { angle: 115, strongest: 0.16, travel: 120 };
+const GLARE = { angle: 115, travel: 120 };
 
-const Glare: React.FC<{ turn: number }> = ({ turn }) => (
-  <AbsoluteFill
-    style={{
-      pointerEvents: "none",
-      background: `linear-gradient(${GLARE.angle}deg, rgba(255,255,255,${GLARE.strongest}) 0%, rgba(255,255,255,0) 45%)`,
-      backgroundSize: "200% 100%",
-      backgroundPositionX: `${50 + turn * GLARE.travel}%`,
-      opacity: Math.min(1, Math.abs(turn) * 3),
-    }}
-  />
-);
+function Glare({ turn, strength }: { turn: number; strength: number }) {
+  return (
+    <AbsoluteFill
+      style={{
+        pointerEvents: "none",
+        background: `linear-gradient(${GLARE.angle}deg, rgba(255,255,255,${strength}) 0%, rgba(255,255,255,0) 45%)`,
+        backgroundSize: "200% 100%",
+        backgroundPositionX: `${50 + turn * GLARE.travel}%`,
+        opacity: Math.min(1, Math.abs(turn) * 3),
+      }}
+    />
+  );
+}
 
-const OnScreen: React.FC<{ quad: Point2[]; turn: number; children?: React.ReactNode }> = ({
+function OnScreen({
   quad,
   turn,
+  glare,
   children,
-}) => {
+}: {
+  quad: Point2[];
+  turn: number;
+  glare: number;
+  children?: React.ReactNode;
+}) {
   const { width, height } = useVideoConfig();
   return (
     <div
@@ -47,12 +55,12 @@ const OnScreen: React.FC<{ quad: Point2[]; turn: number; children?: React.ReactN
       }}
     >
       {children}
-      <Glare turn={turn} />
+      <Glare turn={turn} strength={glare} />
     </div>
   );
-};
+}
 
-export const Screen3D: React.FC<ElementSettings["screen-3d"] & { children?: React.ReactNode }> = ({
+export function Screen3D({
   device,
   deviceColor,
   move,
@@ -60,8 +68,13 @@ export const Screen3D: React.FC<ElementSettings["screen-3d"] & { children?: Reac
   endFaceOn,
   lighting,
   background,
+  bezelColor,
+  metalness,
+  roughness,
+  glare,
+  moveEndsAt,
   children,
-}) => {
+}: ElementSettings["screen-3d"] & { children?: React.ReactNode }) {
   const frame = useCurrentFrame();
   const { width, height, durationInFrames } = useVideoConfig();
   const screen = useMemo(
@@ -69,7 +82,7 @@ export const Screen3D: React.FC<ElementSettings["screen-3d"] & { children?: Reac
     [width, height],
   );
   const distance = screenDistance(screen.height, STAGE_FOV);
-  const pose = screenPoseAt(move, frame, durationInFrames, endFaceOn, camera);
+  const pose = screenPoseAt(move, frame, durationInFrames, endFaceOn, moveEndsAt, camera);
   const quad = screenQuad({
     fovDeg: STAGE_FOV,
     distance,
@@ -80,15 +93,28 @@ export const Screen3D: React.FC<ElementSettings["screen-3d"] & { children?: Reac
   });
   const overlay =
     quad && facesCamera(quad) ? (
-      <OnScreen quad={quad} turn={pose.rotation[1]}>
+      <OnScreen quad={quad} turn={pose.rotation[1]} glare={glare}>
         {children}
       </OnScreen>
     ) : null;
   return (
-    <Stage3D lighting={lighting} background={background} distance={distance} overlay={overlay}>
+    <Stage3D
+      lighting={lighting}
+      background={background}
+      distance={distance}
+      overlay={overlay}
+      fov={STAGE_FOV}
+    >
       <Posed pose={pose}>
-        <DeviceBody device={device} screen={screen} color={deviceColor} />
+        <DeviceBody
+          device={device}
+          screen={screen}
+          color={deviceColor}
+          bezelColor={bezelColor}
+          metalness={metalness}
+          roughness={roughness}
+        />
       </Posed>
     </Stage3D>
   );
-};
+}

@@ -1,4 +1,3 @@
-import type React from "react";
 import { AbsoluteFill } from "remotion";
 import { useAuthoredConfig } from "#video/core/authored-clock.ts";
 import {
@@ -97,38 +96,37 @@ const shader = makeFilterShader<NormalizedProps>(
   },
 );
 
-const PixelateRegionFallback: React.FC<NormalizedProps & CanvasFilterProps> = ({
-  children,
-  rects,
-}) => (
-  <AbsoluteFill>
-    {children}
-    {rects.map((rect) => (
-      <div
-        key={`${rect.x}-${rect.y}-${rect.width}-${rect.height}`}
-        style={{
-          position: "absolute",
-          left: `${rect.x * 100}%`,
-          top: `${rect.y * 100}%`,
-          width: `${rect.width * 100}%`,
-          height: `${rect.height * 100}%`,
-          background: "#14161c",
-        }}
-      />
-    ))}
-  </AbsoluteFill>
-);
+function PixelateRegionFallback({ children, rects }: NormalizedProps & CanvasFilterProps) {
+  return (
+    <AbsoluteFill>
+      {children}
+      {rects.map((rect) => (
+        <div
+          key={`${rect.x}-${rect.y}-${rect.width}-${rect.height}`}
+          style={{
+            position: "absolute",
+            left: `${rect.x * 100}%`,
+            top: `${rect.y * 100}%`,
+            width: `${rect.width * 100}%`,
+            height: `${rect.height * 100}%`,
+            background: "#14161c",
+          }}
+        />
+      ))}
+    </AbsoluteFill>
+  );
+}
 
 const PixelateRegionCanvas = makeCanvasFilter<NormalizedProps>({
   shader,
   fallback: PixelateRegionFallback,
 });
 
-export const PixelateRegion: React.FC<PixelateRegionProps & CanvasFilterProps> = ({
+export function PixelateRegion({
   regions,
   cellSize = DEFAULTS.cellSize,
   children,
-}) => {
+}: PixelateRegionProps & CanvasFilterProps) {
   const { width, height } = useAuthoredConfig();
 
   if (regions.length > MAX_REGIONS) {
@@ -149,4 +147,4 @@ export const PixelateRegion: React.FC<PixelateRegionProps & CanvasFilterProps> =
       {children}
     </PixelateRegionCanvas>
   );
-};
+}

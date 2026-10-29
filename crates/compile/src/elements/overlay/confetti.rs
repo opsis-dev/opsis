@@ -16,13 +16,19 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 pub struct Confetti {
     #[setting("Particles", default = 140, range(min = 10, max = 400), step = 10)]
     pub particle_count: u32,
-    #[setting("Power", default = 17, range(min = 4, max = 40), step = 1)]
+    #[setting("Power", default = 17, range(min = 4, max = 40), step = 1, advanced)]
     pub power: u32,
-    #[setting("Gravity", default = 0.45, range(min = 0, max = 1.5), step = 0.05)]
+    #[setting(
+        "Gravity",
+        default = 0.45,
+        range(min = 0, max = 1.5),
+        step = 0.05,
+        advanced
+    )]
     pub gravity: f64,
     #[setting("Size", default = 13, range(min = 4, max = 30), step = 1)]
     pub size: u32,
-    #[setting("Seed", default = 1, range(min = 1), step = 1)]
+    #[setting("Seed", default = 1, range(min = 1), step = 1, advanced)]
     pub seed: u32,
     #[setting(
         "Colours",
@@ -63,6 +69,20 @@ pub struct Confetti {
         frames_at = 30
     )]
     pub lifetime: f64,
+    #[setting(
+        "Spread",
+        default = 360.0,
+        range(min = 10, max = 360),
+        unit = "°",
+        advanced
+    )]
+    pub spread: f64,
+    #[setting("Direction", default = 180.0, range(min = -180, max = 180), unit = "°", advanced)]
+    pub direction: f64,
+    #[setting("Spin", default = 1.0, range(min = 0, max = 3), unit = "×", advanced)]
+    pub spin: f64,
+    #[setting("Piece height", default = 0.62, range(min = 0.1, max = 1), advanced)]
+    pub piece_shape: f64,
 }
 
 pub fn definition() -> ElementMeta {

@@ -1,33 +1,35 @@
-import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
-const DEFAULT_RAYS = 24;
-const DEFAULT_ROTATION_SPEED = 0.15;
 const STARBURST_OVERSCAN = "-50%";
-const STARBURST_VIGNETTE_PCT = 75;
 
-export const Starburst: React.FC<{
-  color1: string;
-  color2: string;
-  rays?: number;
-  rotationSpeed?: number;
-}> = ({ color1, color2, rays = DEFAULT_RAYS, rotationSpeed = DEFAULT_ROTATION_SPEED }) => {
+export function Starburst({
+  color1,
+  color2,
+  rays,
+  rotationSpeed,
+  edgeFade,
+  rayWidth,
+  centerX,
+}: ElementSettings["starburst"]) {
   const frame = useCurrentFrame();
   const step = 360 / Math.max(2, rays);
+  const split = (step * rayWidth) / 100;
+  const across = (centerX + 50) / 2;
   return (
     <AbsoluteFill style={{ overflow: "hidden", background: color1 }}>
       <div
         style={{
           position: "absolute",
           inset: STARBURST_OVERSCAN,
-          background: `repeating-conic-gradient(from ${frame * rotationSpeed}deg, ${color1} 0deg ${step / 2}deg, ${color2} ${step / 2}deg ${step}deg)`,
+          background: `repeating-conic-gradient(from ${frame * rotationSpeed}deg at ${across}% 50%, ${color1} 0deg ${split}deg, ${color2} ${split}deg ${step}deg)`,
         }}
       />
       <AbsoluteFill
         style={{
-          background: `radial-gradient(circle, transparent 0%, ${color1} ${STARBURST_VIGNETTE_PCT}%)`,
+          background: `radial-gradient(circle at ${centerX}% 50%, transparent 0%, ${color1} ${edgeFade}%)`,
         }}
       />
     </AbsoluteFill>
   );
-};
+}

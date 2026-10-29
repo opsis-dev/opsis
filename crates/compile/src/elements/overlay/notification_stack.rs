@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::theme::{Theme, ThemeMode, notification_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[derive(
@@ -122,7 +122,8 @@ pub struct NotificationStack {
     #[setting(
         "Show timer bar",
         default = true,
-        help = "Draining line along each toast's bottom edge."
+        help = "Draining line along each toast's bottom edge.",
+        advanced
     )]
     pub show_progress: bool,
     #[setting(
@@ -132,16 +133,53 @@ pub struct NotificationStack {
         check = colour
     )]
     pub accent_color: String,
-    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
-    pub theme: DarkOrLight,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = notification_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting(
         "Speed",
         default = 1.0,
         range(min = 0.25, max = 4),
         step = 0.25,
-        help = "Animation speed multiplier."
+        help = "Animation speed multiplier.",
+        advanced
     )]
     pub speed: f64,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
+    #[setting("Size", default = 1.0, range(min = 0.5, max = 2), unit = "×")]
+    pub size: f64,
+    #[setting(
+        "Toast width",
+        default = 370,
+        range(min = 200, max = 700),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub toast_width: u32,
+    #[setting(
+        "Corner radius",
+        default = 14,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub corner_radius: u32,
+    #[setting(
+        "Margin",
+        default = 80,
+        range(min = 0, max = 300),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub margin: u32,
 }
 
 pub fn definition() -> ElementMeta {

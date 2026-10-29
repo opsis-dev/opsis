@@ -30,7 +30,13 @@ pub enum GrainGradientShape {
 pub struct ShaderGrainGradient {
     #[setting("Speed", default = 1.0, range(min = 0.1, max = 4), step = 0.1)]
     pub speed: f64,
-    #[setting("Softness", default = 0.6, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Softness",
+        default = 0.6,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub softness: f64,
     #[setting("Intensity", default = 0.2, range(min = 0, max = 1), step = 0.05)]
     pub intensity: f64,

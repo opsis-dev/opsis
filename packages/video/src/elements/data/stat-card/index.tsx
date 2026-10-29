@@ -1,26 +1,30 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings, GroupSeparator } from "#video/generated/spec.ts";
+import { groupDigits } from "#video/lib/charts/chart-utils.ts";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
-const fontFamily = '"Inter"';
+const PALETTES = {
+  dark: {
+    page: CODE_THEMES.dark.page,
+    fg: CODE_THEMES.dark.fg,
+    faint: CODE_THEMES.dark.faint,
+    band: CODE_THEMES.dark.band,
+  },
+  light: {
+    page: CODE_THEMES.light.page,
+    fg: CODE_THEMES.light.fg,
+    faint: CODE_THEMES.light.faint,
+    band: CODE_THEMES.light.band,
+  },
+};
 
-export type StatCardProps = {
-  value?: number;
-  max?: number;
-  suffix?: string;
-  prefix?: string;
-  decimals?: number;
-  label?: string;
-  caption?: string;
-  showDelta?: boolean;
-  delta?: number;
-  deltaSuffix?: string;
-  backgroundColor?: string;
-  accentColor?: string;
-  theme?: "dark" | "light";
-  holdSeconds?: number;
-  speed?: number;
+const formatValue = (value: number, decimals: number, separator: GroupSeparator): string => {
+  const [whole, fraction] = value.toFixed(decimals).split(".");
+  const grouped = groupDigits(whole, separator);
+  return fraction === undefined ? grouped : `${grouped}.${fraction}`;
 };
 
 const T = {
@@ -39,27 +43,34 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-export const StatCard: React.FC<StatCardProps> = ({
-  value = 98,
+export function StatCard({
+  value,
   max,
-  suffix = "%",
+  suffix,
   prefix,
-  decimals = 0,
-  label = "Satisfaction",
+  decimals,
+  label,
   caption,
   delta: deltaSetting,
-  showDelta = true,
-  deltaSuffix = "%",
+  showDelta,
+  deltaSuffix,
   backgroundColor,
-  accentColor = "#2DD4BF",
-  theme = "dark",
+  accentColor,
+  theme,
+  speed,
+  glow,
+  ringThickness,
+  groupSeparator,
+  fontFamily,
+  downColor,
+  ringGlow,
   holdSeconds,
-  speed = 1,
-}) => {
+}: ElementSettings["stat-card"] & { holdSeconds?: number }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const delta = showDelta ? deltaSetting : undefined;
-  const palette = CODE_THEMES[theme];
+  const deltaColor = delta !== undefined && delta < 0 ? downColor || accentColor : accentColor;
+  const palette = { ...PALETTES[theme.mode], ...theme.colors };
   const safe = getSafeAreaPadding({ width, height });
 
   const at = (seconds: number) => (seconds * fps) / speed;
@@ -103,7 +114,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   );
 
   const size = Math.min(stage.w * 0.62, stage.h * 0.62, 380 * u);
-  const stroke = 9 * u;
+  const stroke = ringThickness * u;
   const radius = size / 2 - stroke;
   const circumference = 2 * Math.PI * radius;
 
@@ -112,8 +123,8 @@ export const StatCard: React.FC<StatCardProps> = ({
       style={{
         width,
         height,
-        background: backgroundColor ?? palette.page,
-        fontFamily,
+        background: backgroundColor || palette.page,
+        fontFamily: fontOr(fontFamily, "main"),
         position: "relative",
         overflow: "hidden",
         display: "grid",
@@ -124,7 +135,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 55% 50% at 50% 45%, color-mix(in srgb, ${accentColor} 10%, transparent), transparent 72%)`,
+          background: `radial-gradient(ellipse 55% 50% at 50% 45%, color-mix(in srgb, ${accentColor} ${glow}%, transparent), transparent 72%)`,
         }}
       />
 
@@ -160,7 +171,7 @@ export const StatCard: React.FC<StatCardProps> = ({
               strokeDasharray={circumference}
               strokeDashoffset={circumference * (1 - ring)}
               style={{
-                filter: `drop-shadow(0 0 ${(10 + land * 16) * u}px ${accentColor})`,
+                filter: `drop-shadow(0 0 ${(ringGlow + land * 16) * u}px ${accentColor})`,
               }}
             />
           </svg>
@@ -188,7 +199,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                 {prefix}
               </span>
             ) : null}
-            {counted.toFixed(decimals)}
+            {formatValue(counted, decimals, groupSeparator)}
             {suffix ? <span style={{ fontSize: 54 * u, color: accentColor }}>{suffix}</span> : null}
           </div>
         </div>
@@ -229,9 +240,9 @@ export const StatCard: React.FC<StatCardProps> = ({
               gap: 8 * u,
               padding: `${8 * u}px ${15 * u}px`,
               borderRadius: 999,
-              background: `color-mix(in srgb, ${accentColor} 9%, transparent)`,
-              border: `1px solid color-mix(in srgb, ${accentColor} 33%, transparent)`,
-              color: accentColor,
+              background: `color-mix(in srgb, ${deltaColor} 9%, transparent)`,
+              border: `1px solid color-mix(in srgb, ${deltaColor} 33%, transparent)`,
+              color: deltaColor,
               fontSize: 22 * u,
               fontWeight: 600,
               fontVariantNumeric: "tabular-nums",
@@ -244,7 +255,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             <svg width={16 * u} height={16 * u} viewBox="0 0 16 16" fill="none">
               <path
                 d={delta < 0 ? "M8 3v10m0 0 4-4m-4 4-4-4" : "M8 13V3m0 0 4 4M8 3 4 7"}
-                stroke={accentColor}
+                stroke={deltaColor}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -258,4 +269,4 @@ export const StatCard: React.FC<StatCardProps> = ({
       </div>
     </div>
   );
-};
+}

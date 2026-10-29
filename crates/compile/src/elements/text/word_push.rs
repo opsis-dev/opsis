@@ -24,7 +24,8 @@ pub struct WordPush {
         "Gap shrink / word",
         default = 0.8,
         range(min = 0.5, max = 1),
-        step = 0.05
+        step = 0.05,
+        advanced
     )]
     pub accel: f64,
     #[setting("Color", default = "#171717", check = colour)]
@@ -46,6 +47,26 @@ pub struct WordPush {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Push time",
+        default = 0.4,
+        range(min = 0.1, max = 1.5),
+        step = 0.0333,
+        unit = "s",
+        frames_at = 30,
+        advanced
+    )]
+    pub push_time: f64,
+    #[setting(
+        "Drive-in distance",
+        default = 0.5,
+        range(min = 0, max = 3),
+        unit = "em",
+        advanced
+    )]
+    pub drive_distance: f64,
+    #[setting("Letter spacing", default = -0.02, range(min = -0.1, max = 0.3), unit = "em", advanced)]
+    pub letter_spacing: f64,
 }
 
 pub fn definition() -> ElementMeta {

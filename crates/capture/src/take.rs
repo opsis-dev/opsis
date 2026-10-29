@@ -10,7 +10,8 @@ use opsis_compile::asset_ref::project_rel_path;
 use opsis_compile::nodes::browser::{
     Assert, Chapter, Click, Drag, DragMethod as DragParam, DragMode, FreezeClock, HideElements,
     Hoist, Hover, MockRoute, Navigate, OPEN_BROWSER_TYPE, Open, OverlayHtml, PressKeys, Scroll,
-    ScrollMode, Select, SetState, SignIn, Silence, Type, Wait, WaitMode, WaitUntil, read_path,
+    ScrollAlign, ScrollMode, Select, SetState, SignIn, Silence, Type, Wait, WaitMode, WaitUntil,
+    read_path,
 };
 use opsis_compile::nodes::capture::{Cursor, Record, Timing};
 use opsis_compile::registry::node_def;
@@ -41,7 +42,7 @@ use crate::keyboard::pressed_chord;
 use crate::live::{FrameSink, LiveSink};
 use crate::locators::{first, text_string_selector};
 use crate::overlays::Overlays;
-use crate::page::{Lifecycle, NAVIGATION_TIMEOUT};
+use crate::page::Lifecycle;
 use crate::page_scripts::{
     ADD_STYLES, CHAT_WIDGET_SELECTORS, COOKIE_BANNER_SELECTORS, INSTALL_CURSOR, INVALID_SELECTORS,
     OPTION_VALUE, PLAN_ELEMENT_SCROLL, RESTORE_LOCAL_STORAGE, STEP_ELEMENT_SCROLL, SavedStorage,
@@ -61,7 +62,42 @@ const LIVE_CURSOR_GAP_MS: f64 = 30.0;
 const FIRST_PAGE_MIN_WAIT_MS: f64 = 500.0;
 const SCROLL_TICK_MS: f64 = 16.0;
 const SCROLL_SMOOTHLY: &str =
-    "function() { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }";
+    "function(block) { this.scrollIntoView({ behavior: 'smooth', block }); }";
+const SCROLL_INSTANTLY: &str =
+    "function(block) { this.scrollIntoView({ behavior: 'instant', block }); }";
+
+pub(crate) async fn smooth_scroll_into_view(
+    tab: &crate::cdp::Tab,
+    handle: &Handle,
+    block: &str,
+    duration_ms: f64,
+) -> Result<(), CaptureError> {
+    if !tab.clock().is_stepped() {
+        tab.call_on::<Value>(handle, SCROLL_SMOOTHLY, &[Arg::Value(json!(block))])
+            .await?;
+        tab.clock()
+            .wait(Duration::from_secs_f64(duration_ms.max(0.0) / 1000.0))
+            .await;
+        return Ok(());
+    }
+    tab.call_on::<Value>(handle, PLAN_ELEMENT_SCROLL, &[Arg::Value(json!(block))])
+        .await?;
+    let start = tab.clock().now();
+    let span = duration_ms.max(1.0);
+    loop {
+        let p01 = ((tab.clock().now() - start) / span).clamp(0.0, 1.0);
+        tab.call_on::<Value>(
+            handle,
+            STEP_ELEMENT_SCROLL,
+            &[Arg::Value(json!(camera_ease(p01)))],
+        )
+        .await?;
+        if p01 >= 1.0 {
+            return Ok(());
+        }
+        tab.clock().wait(Duration::from_millis(1)).await;
+    }
+}
 const SELECT_OPTION: &str =
     "(injected, node, value) => injected.selectOptions(node, [{ valueOrLabel: value }])";
 const PAGE_TIME_ZONE: &str = "Intl.DateTimeFormat().resolvedOptions().timeZone";
@@ -425,11 +461,16 @@ impl<'e> TakeRun<'e> {
         }
         if recording.is_some_and(|r| r.record.cursor == Cursor::Baked) {
             session
-                .add_init_script(&call(INSTALL_CURSOR, &cursor_look()))
+                .add_init_script(&call(
+                    INSTALL_CURSOR,
+                    &cursor_look(&recording.expect("a baked cursor records").record),
+                ))
                 .await?;
         }
         let overlays = match recording {
-            Some(r) => Some(Arc::new(Overlays::start(tab, r.record.show_actions).await?)),
+            Some(r) => Some(Arc::new(
+                Overlays::start(tab, r.record.show_actions, r.record.action_label_ms).await?,
+            )),
             None => None,
         };
         Ok((trace, overlays, Lifecycle::start(tab).await?))
@@ -510,13 +551,13 @@ impl<'e> TakeRun<'e> {
 
     async fn pause_if_rolling(&self, after: u32) {
         if let Some(driver) = &self.driver {
-            driver.pause(Some(f64::from(after))).await;
+            driver.pause(f64::from(after)).await;
         }
     }
 
     async fn settle_after_page(&self, after: u32) {
         match &self.driver {
-            Some(driver) => driver.pause(Some(f64::from(after))).await,
+            Some(driver) => driver.pause(f64::from(after)).await,
             None => {
                 self.sleep(Duration::from_secs_f64(
                     FIRST_PAGE_MIN_WAIT_MS.max(f64::from(after)) / 1000.0,
@@ -591,6 +632,9 @@ impl<'e> TakeRun<'e> {
             zoom_scale,
             travel_ms,
             hover_ms,
+            key_ms: 0.0,
+            clear_first: true,
+            smooth_scroll: false,
         })
     }
 
@@ -781,7 +825,12 @@ impl<'e> TakeRun<'e> {
     async fn navigate(&mut self, step: &SessionStep, p: Navigate) -> StepResult {
         let t = self.recorder.elapsed();
         self.lifecycle
-            .navigate(self.tab(), &p.url, p.wait_until, NAVIGATION_TIMEOUT)
+            .navigate(
+                self.tab(),
+                &p.url,
+                p.wait_until,
+                Duration::from_millis(u64::from(p.timeout_ms)),
+            )
             .await?;
         let mut action = Action::new(format!("{}:nav", step.id), ActionKind::Navigate, t);
         action.t_end = Some(self.recorder.elapsed());
@@ -800,9 +849,14 @@ impl<'e> TakeRun<'e> {
     }
 
     async fn click(&mut self, step: &SessionStep, p: Click) -> StepResult {
-        let resolved = self.resolve(&p.target.target, None).await?;
+        let resolved = self
+            .resolve(
+                &p.target.target,
+                Some(Duration::from_millis(u64::from(p.find_within_ms))),
+            )
+            .await?;
         let label = step_name(step, Some(&p.target.target));
-        let opts = self
+        let mut opts = self
             .motion(
                 &resolved.by,
                 &p.beat,
@@ -810,6 +864,7 @@ impl<'e> TakeRun<'e> {
                 Some((p.pointer.zoom_scale, p.pointer.travel_ms, p.hover_ms)),
             )
             .await?;
+        opts.smooth_scroll = p.scroll_smoothly;
         let press = Press {
             button: p.button,
             double: p.double_clicks(),
@@ -818,7 +873,7 @@ impl<'e> TakeRun<'e> {
         driver
             .move_and_click(&resolved.target, Some(&label), &opts, press)
             .await?;
-        driver.pause(Some(f64::from(p.beat.pause.after))).await;
+        driver.pause(f64::from(p.beat.pause.after)).await;
         Ok(())
     }
 
@@ -826,9 +881,16 @@ impl<'e> TakeRun<'e> {
         let resolved = self.resolve(&p.target.target, None).await?;
         let label = step_name(step, Some(&p.target.target));
         let mut opts = self
-            .motion(&resolved.by, &p.beat, &p.frame.frame, None)
+            .motion(
+                &resolved.by,
+                &p.beat,
+                &p.pointer.frame.frame,
+                Some((p.pointer.zoom_scale, p.pointer.travel_ms, p.hover_ms)),
+            )
             .await?;
         opts.chunk_pause_ms = f64::from(p.chunk_pause_ms);
+        opts.key_ms = f64::from(p.key_ms);
+        opts.clear_first = p.clear_first;
         let chunks: Vec<String> = p.text.split(PAUSE_MARK).map(str::to_owned).collect();
         let driver = self.rolling()?;
         driver
@@ -837,7 +899,7 @@ impl<'e> TakeRun<'e> {
         if p.press_enter {
             driver.press_key("Enter", Some("Enter")).await?;
         }
-        driver.pause(Some(f64::from(p.beat.pause.after))).await;
+        driver.pause(f64::from(p.beat.pause.after)).await;
         Ok(())
     }
 
@@ -854,7 +916,7 @@ impl<'e> TakeRun<'e> {
             .await?;
         let driver = self.rolling()?;
         driver.focus(&resolved.target, Some(&label), &opts).await?;
-        driver.pause(Some(f64::from(p.beat.pause.after))).await;
+        driver.pause(f64::from(p.beat.pause.after)).await;
         Ok(())
     }
 
@@ -885,8 +947,9 @@ impl<'e> TakeRun<'e> {
             .await?;
         let opts = DragOpts {
             action,
-            hold_ms: Some(f64::from(p.hold_ms)),
+            hold_ms: f64::from(p.hold_ms),
             drag_ms: f64::from(p.drag_ms),
+            drop_hold_ms: f64::from(p.drop_hold_ms),
             method: if p.method == DragParam::Quick {
                 DragMethod::Quick
             } else {
@@ -895,7 +958,7 @@ impl<'e> TakeRun<'e> {
         };
         let driver = self.rolling()?;
         driver.drag(&from.target, &to, Some(&label), &opts).await?;
-        driver.pause(Some(f64::from(p.beat.pause.after))).await;
+        driver.pause(f64::from(p.beat.pause.after)).await;
         Ok(())
     }
 
@@ -905,25 +968,27 @@ impl<'e> TakeRun<'e> {
             ScrollMode::Element => {
                 let resolved = self.resolve(&p.target, None).await?;
                 let handle = self.element(&resolved.target, &p.target).await?;
-                let scrolled = if !p.smooth {
+                let block = p.align.block();
+                let scrolled = if p.smooth {
+                    smooth_scroll_into_view(self.tab(), &handle, block, f64::from(p.duration_ms))
+                        .await
+                } else if p.align == ScrollAlign::Center {
                     self.tab().scroll_into_view_if_needed(&handle).await
-                } else if self.tab().clock().is_stepped() {
-                    self.scroll_by_frames(&handle, p.duration_ms).await
                 } else {
                     self.tab()
-                        .call_on::<Value>(&handle, SCROLL_SMOOTHLY, &[])
+                        .call_on::<Value>(&handle, SCROLL_INSTANTLY, &[Arg::Value(json!(block))])
                         .await
                         .map(drop)
                 };
                 self.tab().release(&handle).await;
                 scrolled?;
-                if p.smooth && !self.tab().clock().is_stepped() {
-                    self.sleep(ms(p.duration_ms)).await;
-                }
             }
             ScrollMode::By if !p.smooth => {
                 self.tab()
-                    .evaluate_main::<Value>(&format!("window.scrollBy(0, {})", p.delta_y))
+                    .evaluate_main::<Value>(&format!(
+                        "window.scrollBy({}, {})",
+                        p.delta_x, p.delta_y
+                    ))
                     .await?;
             }
             ScrollMode::By => {
@@ -931,7 +996,11 @@ impl<'e> TakeRun<'e> {
                 let start = self.tab().clock().now();
                 for tick in 1..=numbers::truncate::<u32>(ticks) {
                     self.input
-                        .wheel(self.tab(), 0.0, f64::from(p.delta_y) / ticks)
+                        .wheel(
+                            self.tab(),
+                            f64::from(p.delta_x) / ticks,
+                            f64::from(p.delta_y) / ticks,
+                        )
                         .await?;
                     self.tab()
                         .clock()
@@ -948,35 +1017,17 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn scroll_by_frames(
-        &self,
-        handle: &Handle,
-        duration_ms: u32,
-    ) -> Result<(), CaptureError> {
-        let tab = self.tab();
-        tab.call_on::<Value>(handle, PLAN_ELEMENT_SCROLL, &[])
-            .await?;
-        let start = tab.clock().now();
-        let span = f64::from(duration_ms.max(1));
-        loop {
-            let p01 = ((tab.clock().now() - start) / span).clamp(0.0, 1.0);
-            tab.call_on::<Value>(
-                handle,
-                STEP_ELEMENT_SCROLL,
-                &[Arg::Value(json!(camera_ease(p01)))],
-            )
-            .await?;
-            if p01 >= 1.0 {
-                return Ok(());
-            }
-            tab.clock().wait(Duration::from_millis(1)).await;
-        }
-    }
-
     async fn select(&mut self, step: &SessionStep, p: Select) -> StepResult {
         let resolved = self.resolve(&p.target.target, None).await?;
         let label = step_name(step, Some(&p.target.target));
-        let opts = self.motion(&resolved.by, &p.beat, "", None).await?;
+        let opts = self
+            .motion(
+                &resolved.by,
+                &p.beat,
+                &p.pointer.frame.frame,
+                Some((p.pointer.zoom_scale, p.pointer.travel_ms, p.hover_ms)),
+            )
+            .await?;
         let driver = self.rolling()?;
         driver.focus(&resolved.target, Some(&label), &opts).await?;
         let handle = self.element(&resolved.target, &p.target.target).await?;
@@ -1009,9 +1060,7 @@ impl<'e> TakeRun<'e> {
         .await;
         self.tab().release(&handle).await;
         picked?;
-        self.rolling()?
-            .pause(Some(f64::from(p.beat.pause.after)))
-            .await;
+        self.rolling()?.pause(f64::from(p.beat.pause.after)).await;
         Ok(())
     }
 
@@ -1032,7 +1081,7 @@ impl<'e> TakeRun<'e> {
             .await;
         self.tab().release(&handle).await;
         set?;
-        self.pause_if_rolling(p.beat.pause.after).await;
+        self.pause_if_rolling(p.pause.after).await;
         Ok(())
     }
 
@@ -1069,7 +1118,7 @@ impl<'e> TakeRun<'e> {
     }
 
     async fn assert(&mut self, p: Assert) -> StepResult {
-        let text = text_string_selector(&p.text, false);
+        let text = text_string_selector(&p.text, p.exact);
         let selector = if p.target.trim().is_empty() {
             first(&text)
         } else {
@@ -1091,17 +1140,29 @@ impl<'e> TakeRun<'e> {
     }
 
     async fn hoist(&mut self, p: Hoist) -> StepResult {
-        let resolved = self.resolve(&p.target.target, None).await?;
+        let resolved = self
+            .resolve(
+                &p.target.target,
+                Some(Duration::from_millis(u64::from(p.timeout_ms))),
+            )
+            .await?;
         let selector = resolved.target.element()?.to_owned();
         self.hoisted.insert(p.target.target, selector);
         Ok(())
     }
 
     async fn set_state(&mut self, step: &SessionStep, p: SetState) -> StepResult {
-        if self.lifecycle.url() == "about:blank" {
+        if p.every_page {
             self.session
-                .add_init_script(&before_first_load(&step.id, &p.script))
+                .add_init_script(&run_user_script(&p.script))
                 .await?;
+        }
+        if self.lifecycle.url() == "about:blank" {
+            if !p.every_page {
+                self.session
+                    .add_init_script(&before_first_load(&step.id, &p.script))
+                    .await?;
+            }
             return Ok(());
         }
         self.tab()
@@ -1123,6 +1184,7 @@ impl<'e> TakeRun<'e> {
                     status: p.status,
                     content_type: p.content_type,
                     body: p.body,
+                    delay_ms: p.delay_ms,
                 },
             )
             .await?;
@@ -1208,10 +1270,8 @@ impl<'e> TakeRun<'e> {
         if p.show_in_video
             && let Some(overlays) = &self.overlays
         {
-            overlays
-                .chapter(&p.title, &p.description, ms(p.duration_ms))
-                .await;
-            self.sleep(ms(p.duration_ms)).await;
+            overlays.chapter(&p).await;
+            self.sleep(ms(p.after_ms)).await;
         }
         Ok(())
     }
@@ -1220,9 +1280,9 @@ impl<'e> TakeRun<'e> {
         let Some(overlays) = &self.overlays else {
             return Ok(());
         };
-        let id = overlays.show(&p.html).await;
+        let id = overlays.show_faded(&p.html, p.fade_ms).await;
         if p.duration_ms > 0 {
-            overlays.remove_after(id, ms(p.duration_ms));
+            overlays.remove_after(id, ms(p.duration_ms), p.fade_ms);
         }
         Ok(())
     }

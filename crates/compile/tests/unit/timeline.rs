@@ -166,7 +166,7 @@ fn chaptered_film(
     g.link(&last, "out");
     let results = IndexMap::from([("record".to_owned(), record_result(&log))]);
     let spec = export_film(&g.build(), Some(&results), "out");
-    let chapters = film_chapters(&spec);
+    let chapters = film_chapters(&spec, "Intro");
     (spec, chapters)
 }
 
@@ -225,7 +225,7 @@ fn chapters_follow_delays_speed_changes_and_trims() {
 #[test]
 fn a_film_without_chapters_has_none() {
     let wf = film(|g| g.node("t", TITLE, json!({ "clipDuration": 90 })));
-    assert!(film_chapters(&export_film(&wf, None, "out")).is_empty());
+    assert!(film_chapters(&export_film(&wf, None, "out"), "Intro").is_empty());
 }
 
 #[test]

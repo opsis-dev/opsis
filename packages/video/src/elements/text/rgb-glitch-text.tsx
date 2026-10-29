@@ -1,41 +1,25 @@
+import type { CSSProperties } from "react";
 import { random } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface RGBGlitchTextProps {
-  background?: string;
-  fontFamily?: string;
-  text: string;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  glitchAt?: number;
-  glitchDuration?: number;
-  intensity?: number;
-  seed?: string;
-  glitchColors?: string[];
-  blend?: "multiply" | "screen" | "normal";
-  speed?: number;
-  className?: string;
-}
-
-const GLITCH_COLORS = ["#ff0040", "#00ff80", "#0080ff"];
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function RGBGlitchText({
-  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily,
   text,
-  fontSize = 96,
-  color = "#171717",
-  fontWeight = 700,
-  glitchAt = 20,
-  glitchDuration = 8,
-  intensity = 6,
-  seed = "glitch",
-  glitchColors = GLITCH_COLORS,
-  blend = "multiply",
-  speed = 1,
-  className,
-  background = "transparent",
-}: RGBGlitchTextProps) {
+  fontSize,
+  color,
+  fontWeight,
+  glitchAt,
+  glitchDuration,
+  intensity,
+  seed,
+  glitchColors,
+  blend,
+  speed,
+  background,
+  letterSpacing,
+}: ElementSettings["rgb-glitch-text"]) {
   const frame = useAuthoredFrame() * speed;
 
   const isGlitching = frame >= glitchAt && frame < glitchAt + glitchDuration;
@@ -52,14 +36,14 @@ export function RGBGlitchText({
 
   const copyOpacity = isGlitching ? 1 : 0;
 
-  const baseStyle: React.CSSProperties = {
+  const baseStyle: CSSProperties = {
     position: "absolute",
     top: 0,
     left: 0,
     fontSize,
     fontWeight,
-    letterSpacing: "-0.03em",
-    fontFamily,
+    letterSpacing: `${letterSpacing}em`,
+    fontFamily: fontOr(fontFamily, "main"),
     whiteSpace: "pre",
     mixBlendMode: blend,
   };
@@ -75,7 +59,7 @@ export function RGBGlitchText({
         background,
       }}
     >
-      <div className={className} style={{ position: "relative", display: "inline-block" }}>
+      <div style={{ position: "relative", display: "inline-block" }}>
         <span
           style={{
             position: "relative",
@@ -92,7 +76,7 @@ export function RGBGlitchText({
         <span
           style={{
             ...baseStyle,
-            color: glitchColors[0] ?? GLITCH_COLORS[0],
+            color: glitchColors[0],
             opacity: copyOpacity,
             translate: `${rX}px ${rY}px`,
           }}
@@ -102,7 +86,7 @@ export function RGBGlitchText({
         <span
           style={{
             ...baseStyle,
-            color: glitchColors[1] ?? GLITCH_COLORS[1],
+            color: glitchColors[1],
             opacity: copyOpacity,
             translate: `${gX}px ${gY}px`,
           }}
@@ -112,7 +96,7 @@ export function RGBGlitchText({
         <span
           style={{
             ...baseStyle,
-            color: glitchColors[2] ?? GLITCH_COLORS[2],
+            color: glitchColors[2],
             opacity: copyOpacity,
             translate: `${bX}px ${bY}px`,
           }}

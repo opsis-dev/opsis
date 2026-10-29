@@ -38,9 +38,70 @@ pub struct HeroLaunch {
     #[setting(
         "Font",
         widget = "font",
-        help = "Project font follows the fonts set for the whole project."
+        help = "Project font follows the fonts set for the whole project.",
+        advanced
     )]
     pub font_family: String,
+    #[setting(
+        "Card tilt",
+        default = 17,
+        range(min = 0, max = 60),
+        step = 1,
+        unit = "°",
+        advanced
+    )]
+    pub card_tilt: u32,
+    #[setting(
+        "Card gap",
+        default = 92,
+        range(min = 0, max = 400),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub card_gap: u32,
+    #[setting(
+        "Card shape",
+        default = 1.613,
+        range(min = 0.5, max = 3),
+        step = 0.01,
+        help = "Card width divided by its height.",
+        advanced
+    )]
+    pub card_aspect: f64,
+    #[setting(
+        "Card corners",
+        default = 30,
+        range(min = 0, max = 120),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub card_radius: u32,
+    #[setting(
+        "Headline size",
+        default = 42,
+        range(min = 12, max = 140),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub headline_size: u32,
+    #[setting(
+        "Headline weight",
+        default = 600,
+        range(min = 100, max = 900),
+        step = 100,
+        advanced
+    )]
+    pub headline_weight: u32,
+    #[setting(
+        "Fade the edges",
+        default = true,
+        help = "The cards fade into the background at the sides and bottom.",
+        advanced
+    )]
+    pub edge_fade: bool,
 }
 
 pub fn definition() -> ElementMeta {

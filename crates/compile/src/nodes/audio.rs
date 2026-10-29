@@ -4,8 +4,8 @@ use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
 use opsis_types::numbers::{signed, whole, whole_signed};
 use opsis_types::timeline::{
-    Anchor, AudioEnvelope, AudioItem, AudioRole, EditHandles, LinkedParam, ParamRef, ParamUnit,
-    Sign,
+    Anchor, AudioEnvelope, AudioItem, AudioRole, EditHandles, FadeCurve, LinkedParam, ParamRef,
+    ParamUnit, Sign,
 };
 use opsis_types::values::{AudioValue, ClipValue, CompileValue, Hits, MediaKind, MediaValue};
 use opsis_types::workflow::{PortType, WorkflowSettings};
@@ -202,9 +202,16 @@ pub struct Music {
     #[setting(
         "Keyframes",
         help = "Change volume and left–right balance over time. Edit them here or on the timeline.",
-        widget = "envelope"
+        widget = "envelope",
+        advanced
     )]
     pub envelope: AudioEnvelope,
+    #[setting(
+        "Fade curve",
+        labels = { "tri": "Even", "qsin": "Gentle", "exp": "Quick then slow", "log": "Slow then quick" },
+        advanced
+    )]
+    pub fade_curve: FadeCurve,
 }
 
 impl Params for Music {}
@@ -266,7 +273,7 @@ fn music() -> NodeDef {
                     length_frames: None,
                     keep_music: None,
                 };
-                let item = sound_item(
+                let mut item = sound_item(
                     ctx.node_id,
                     src,
                     AudioRole::Music,
@@ -275,6 +282,7 @@ fn music() -> NodeDef {
                     timing,
                     music_handles(ctx.node_id),
                 );
+                item.fade_curve = Some(p.fade_curve).filter(|c| *c != FadeCurve::Tri);
                 let duration = media
                     .and_then(|m| m.duration_ms)
                     .or(song_ms)
@@ -334,9 +342,35 @@ pub struct SoundEffect {
     #[setting(
         "Keyframes",
         help = "Change volume and left–right balance over time. Edit them here or on the timeline.",
-        widget = "envelope"
+        widget = "envelope",
+        advanced
     )]
     pub envelope: AudioEnvelope,
+    #[setting(
+        "Play for",
+        range(min = 0, max = 600000),
+        step = 50,
+        unit = "ms",
+        zero_label = "The whole sound",
+        advanced
+    )]
+    pub length_ms: u32,
+    #[setting(
+        "Before the clip starts",
+        labels = { "later": "Start it with the clip", "cut": "Cut its start" },
+        help = "When the action comes so early the sound would start before the clip.",
+        show_if = { "atAction": ["*"] },
+        advanced
+    )]
+    pub before_clip_start: BeforeClipStart,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum BeforeClipStart {
+    #[default]
+    Later,
+    Cut,
 }
 
 impl Params for SoundEffect {}
@@ -389,13 +423,14 @@ fn sound_effect() -> NodeDef {
                     } else {
                         signed(ms_to_frames_from(f64::from(p.at_ms), fps, 0))
                     },
-                    duration_in_frames: None,
+                    duration_in_frames: frames_if_set(f64::from(p.length_ms), fps),
                     looped: None,
                     trim_before: None,
                     fade_in_frames: None,
                     fade_out_frames: None,
                     anchor: on_action.then(|| Anchor {
                         node_id: p.at_action.clone(),
+                        keep_end: p.before_clip_start == BeforeClipStart::Cut,
                         ..Anchor::default()
                     }),
                     length_frames: length_ms.and_then(|ms| frames_if_set(ms, fps)),
@@ -474,7 +509,8 @@ pub struct RoomTone {
         default = 1000,
         range(min = 0, max = 20000),
         step = 50,
-        unit = "ms"
+        unit = "ms",
+        advanced
     )]
     pub fade_in_ms: u32,
     #[setting(
@@ -482,7 +518,8 @@ pub struct RoomTone {
         default = 1000,
         range(min = 0, max = 20000),
         step = 50,
-        unit = "ms"
+        unit = "ms",
+        advanced
     )]
     pub fade_out_ms: u32,
 }
@@ -614,6 +651,48 @@ pub struct Tones {
     pub offset_ms: i32,
     #[setting("Volume", default = 0.8, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
+    #[setting(
+        "Keep music up",
+        help = "Music set to lower under other sounds stays at full volume for this one.",
+        advanced
+    )]
+    pub keep_music: bool,
+    #[setting(
+        "Wave",
+        labels = { "sine": "Pure", "triangle": "Soft", "square": "Hollow", "saw": "Buzzy" },
+        advanced
+    )]
+    pub wave: ToneWave,
+    #[setting(
+        "Last beep length",
+        default = 3.0,
+        range(min = 1, max = 10),
+        step = 0.5,
+        unit = "×",
+        help = "How much longer the last beep of a countdown is.",
+        show_if = { "kind": ["countdown"] },
+        advanced
+    )]
+    pub final_length: f64,
+    #[setting(
+        "Last beep pitch",
+        range(min = -24, max = 24),
+        step = 1,
+        help = "Semitones up or down from the others.",
+        show_if = { "kind": ["countdown"] },
+        advanced
+    )]
+    pub final_pitch: f64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum ToneWave {
+    #[default]
+    Sine,
+    Triangle,
+    Square,
+    Saw,
 }
 
 impl Params for Tones {}
@@ -639,7 +718,7 @@ fn tones() -> NodeDef {
             ]
         })
         .compiles(|ctx: &Ctx<'_, Tones>| {
-            placed_effect(ctx, &ctx.params.placing(), ctx.params.volume)
+            placed_effect(ctx, &ctx.params.placing(), ctx.params.volume, ctx.params.keep_music)
         })
 }
 
@@ -684,7 +763,12 @@ fn placing_row(placing: &Placing<'_>, inputs: &CardInputs) -> CardRow {
     }
 }
 
-fn placed_effect<P>(ctx: &Ctx<'_, P>, placing: &Placing<'_>, volume: f64) -> Outputs {
+fn placed_effect<P>(
+    ctx: &Ctx<'_, P>,
+    placing: &Placing<'_>,
+    volume: f64,
+    keep_music: bool,
+) -> Outputs {
     let fps = ctx.settings.fps;
     let Some((src, length_ms)) = made_sound(ctx) else {
         return silent_audio();
@@ -706,7 +790,7 @@ fn placed_effect<P>(ctx: &Ctx<'_, P>, placing: &Placing<'_>, volume: f64) -> Out
             ..Anchor::default()
         }),
         length_frames: length_ms.and_then(|ms| frames_if_set(f64::from(ms), fps)),
-        keep_music: None,
+        keep_music: keep_music.then_some(true),
     };
     let handles = EditHandles {
         move_to: Some(param_ref(
@@ -913,6 +997,28 @@ pub struct GenerateSound {
     pub offset_ms: i32,
     #[setting("Volume", default = 0.8, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
+    #[setting(
+        "Keep music up",
+        help = "Music set to lower under other sounds stays at full volume for this one.",
+        advanced
+    )]
+    pub keep_music: bool,
+    #[setting(
+        "Moves",
+        labels = { "left-to-right": "Left to right", "right-to-left": "Right to left", "centre": "Stays in the middle" },
+        show_if = { "preset": ["whoosh"] },
+        advanced
+    )]
+    pub pan: SoundPan,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum SoundPan {
+    #[default]
+    LeftToRight,
+    RightToLeft,
+    Centre,
 }
 
 impl Params for GenerateSound {}
@@ -924,7 +1030,11 @@ pub struct SoundShape {
     pub pitch: f64,
     pub brightness: f64,
     pub seed: u64,
+    pub pan: SoundPan,
+    pub peak_at: f64,
 }
+
+pub const SWELL_PEAK_AT: f64 = 0.75;
 
 const DARKER: f64 = 0.15;
 const BRIGHTER: f64 = 0.9;
@@ -940,6 +1050,8 @@ pub fn sound_shape(p: &GenerateSound) -> SoundShape {
         pitch: 0.0,
         brightness: 0.5,
         seed: 1,
+        pan: p.pan,
+        peak_at: SWELL_PEAK_AT,
     };
     let (shorter, longer) = preset.lengths();
     let click = preset == SoundPreset::Click;
@@ -1033,7 +1145,7 @@ fn generate() -> NodeDef {
             ]
         })
         .compiles(|ctx: &Ctx<'_, GenerateSound>| {
-            placed_effect(ctx, &ctx.params.placing(), ctx.params.volume)
+            placed_effect(ctx, &ctx.params.placing(), ctx.params.volume, ctx.params.keep_music)
         })
 }
 
@@ -1080,8 +1192,20 @@ fn anchor_sounds(
         .collect()
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
-pub struct AddSound {}
+#[settings]
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct AddSound {
+    #[setting(
+        "Fade where the clip ends",
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms",
+        help = "Sounds still playing when the clip ends fade out over this long instead of stopping.",
+        advanced
+    )]
+    pub end_fade_ms: u32,
+}
 
 impl Params for AddSound {}
 
@@ -1100,8 +1224,13 @@ fn add_sound() -> NodeDef {
                 let placed = anchor_sounds(items, clip, ctx.settings).into_iter().filter_map(|a| {
                     let remaining = i64::from(clip.duration_in_frames) - i64::from(a.from);
                     let remaining = u32::try_from(remaining).ok().filter(|r| *r >= 1)?;
-                    let length = a.duration_in_frames.map_or(remaining, |d| d.min(remaining));
-                    Some(AudioItem { duration_in_frames: Some(length.max(1)), ..a })
+                    let natural = a.duration_in_frames.or(if a.looped == Some(true) { None } else { a.length_frames });
+                    let length = a.duration_in_frames.map_or(remaining, |d| d.min(remaining)).max(1);
+                    let cut = natural.is_none_or(|n| n > remaining);
+                    let fade = frames_if_set(f64::from(ctx.params.end_fade_ms), ctx.settings.fps)
+                        .filter(|_| cut)
+                        .map(|f| f.min(length).max(a.fade_out_frames.unwrap_or(0)));
+                    Some(AudioItem { duration_in_frames: Some(length), fade_out_frames: fade.or(a.fade_out_frames), ..a })
                 });
                 let mut clip = clip.clone();
                 clip.audio.extend(placed);
@@ -1111,8 +1240,6 @@ fn add_sound() -> NodeDef {
 }
 
 pub const ACTION_SOUNDS_TYPE: &str = "audio.actionSounds";
-const PITCH_SPREAD: f64 = 0.04;
-const LEVEL_SPREAD: f64 = 0.12;
 
 #[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -1151,9 +1278,46 @@ pub struct ActionSounds {
     #[setting(
         "Vary each hit",
         default = true,
-        help = "Changes the pitch and level of each click and key a little, so typing doesn't sound mechanical."
+        help = "Changes the pitch and level of each click and key a little, so typing doesn't sound mechanical.",
+        advanced
     )]
     pub vary: bool,
+    #[setting(
+        "Pitch change",
+        default = 4,
+        range(min = 0, max = 50),
+        unit = "%",
+        help = "How far each one's pitch may move up or down.",
+        show_if = { "vary": ["true"] },
+        advanced
+    )]
+    pub pitch_spread: u32,
+    #[setting(
+        "Level change",
+        default = 12,
+        range(min = 0, max = 100),
+        unit = "%",
+        help = "How far each one's level may move up or down.",
+        show_if = { "vary": ["true"] },
+        advanced
+    )]
+    pub level_spread: u32,
+    #[setting(
+        "Nudge",
+        range(min = -500, max = 500),
+        step = 5,
+        unit = "ms",
+        help = "Moves every hit earlier or later than the press.",
+        advanced
+    )]
+    pub nudge_ms: i32,
+    #[setting(
+        "Drags",
+        help = "A click where each drag presses and where it lets go.",
+        show_if = { "clicks": ["true"] },
+        advanced
+    )]
+    pub drags: bool,
 }
 
 impl Params for ActionSounds {}
@@ -1162,6 +1326,11 @@ impl ActionSounds {
     fn sound_of(&self, kind: HitKind) -> Option<(&str, Option<f64>)> {
         let (on, src, ms) = match kind {
             HitKind::Click => (self.clicks, &self.click_sound, self.click_sound_ms),
+            HitKind::Drag => (
+                self.clicks && self.drags,
+                &self.click_sound,
+                self.click_sound_ms,
+            ),
             HitKind::Key => (self.keys, &self.key_sound, self.key_sound_ms),
         };
         (on && !src.trim().is_empty()).then_some((src.as_str(), ms))
@@ -1195,16 +1364,9 @@ fn hit_item(
     let src = project_ref(src);
     let length_ms = builtin_sound(&src).map(|s| f64::from(s.duration_ms)).or(ms);
     let seed = seed_of(ctx.node_id) ^ u64::try_from(index).unwrap_or(0).wrapping_mul(2);
-    let (pitch, level) = if p.vary {
-        (
-            1.0 + PITCH_SPREAD * spread(seed),
-            1.0 + LEVEL_SPREAD * spread(seed + 1),
-        )
-    } else {
-        (1.0, 1.0)
-    };
+    let (pitch, level) = varied(p.vary, seed, p.pitch_spread, p.level_spread);
     let timing = Timing {
-        from: whole_signed(hit.frame),
+        from: whole_signed(hit.frame) + ms_to_signed_frames(f64::from(p.nudge_ms), fps),
         duration_in_frames: None,
         looped: None,
         trim_before: None,
@@ -1227,6 +1389,16 @@ fn hit_item(
     item.pitch = p.vary.then_some(pitch);
     item.hit = Some(true);
     item
+}
+
+fn varied(vary: bool, seed: u64, pitch_spread: u32, level_spread: u32) -> (f64, f64) {
+    if !vary {
+        return (1.0, 1.0);
+    }
+    (
+        1.0 + f64::from(pitch_spread) / 100.0 * spread(seed),
+        1.0 + f64::from(level_spread) / 100.0 * spread(seed + 1),
+    )
 }
 
 fn sound_name(src: &str) -> String {
@@ -1277,7 +1449,7 @@ fn action_sounds() -> NodeDef {
                     continue;
                 };
                 match hit.kind {
-                    HitKind::Click => hits.clicks += 1,
+                    HitKind::Click | HitKind::Drag => hits.clicks += 1,
                     HitKind::Key => hits.keys += 1,
                 }
                 items.push(hit_item(ctx, index, *hit, src, ms));
@@ -1350,7 +1522,8 @@ pub struct TransitionSounds {
         "Fit each sound to its transition",
         default = true,
         help = "Makes each sound as long as its transition. Off, every sound has the variation's own length.",
-        show_if = { "soundFrom": ["generated"] }
+        show_if = { "soundFrom": ["generated"] },
+        advanced
     )]
     pub fit: bool,
     #[setting(
@@ -1369,11 +1542,58 @@ pub struct TransitionSounds {
     #[setting(
         "Vary each one",
         default = true,
-        help = "A small change of pitch and level on each, so they don't sound copied."
+        help = "A small change of pitch and level on each, so they don't sound copied.",
+        advanced
     )]
     pub vary: bool,
     #[setting("Volume", default = 0.7, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
+    #[setting(
+        "Pitch change",
+        default = 4,
+        range(min = 0, max = 50),
+        unit = "%",
+        help = "How far each one's pitch may move up or down.",
+        show_if = { "vary": ["true"] },
+        advanced
+    )]
+    pub pitch_spread: u32,
+    #[setting(
+        "Level change",
+        default = 12,
+        range(min = 0, max = 100),
+        unit = "%",
+        help = "How far each one's level may move up or down.",
+        show_if = { "vary": ["true"] },
+        advanced
+    )]
+    pub level_spread: u32,
+    #[setting(
+        "Place on the transition",
+        labels = { "start": "From its start", "middle": "Centred on it", "end": "Ending with it" },
+        advanced
+    )]
+    pub align: TransitionAlign,
+    #[setting(
+        "Length",
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms",
+        zero_label = "The variation's own",
+        help = "Used when Fit is off and at plain cuts.",
+        show_if = { "soundFrom": ["generated"] },
+        advanced
+    )]
+    pub length_ms: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum TransitionAlign {
+    Start,
+    #[default]
+    Middle,
+    End,
 }
 
 impl Params for TransitionSounds {}
@@ -1423,6 +1643,8 @@ impl TransitionSounds {
     pub fn length_ms(&self, cue: &TransitionCue, fps: u32) -> u32 {
         if self.fit && cue.frames > 0.0 {
             whole(cue.frames * 1000.0 / f64::from(fps.max(1))).max(MIN_TRANSITION_SOUND_MS)
+        } else if self.length_ms > 0 {
+            self.length_ms
         } else {
             whole(self.shape().seconds * 1000.0)
         }
@@ -1469,18 +1691,16 @@ fn transition_item(
     let p = &ctx.params;
     let fps = ctx.settings.fps;
     let length_frames = length_ms.and_then(|ms| frames_if_set(ms, fps));
-    let half = f64::from(length_frames.unwrap_or(0)) / 2.0;
+    let own = f64::from(length_frames.unwrap_or(0));
     let seed = seed_of(ctx.node_id) ^ u64::try_from(index).unwrap_or(0).wrapping_mul(2);
-    let (pitch, level) = if p.vary {
-        (
-            1.0 + PITCH_SPREAD * spread(seed),
-            1.0 + LEVEL_SPREAD * spread(seed + 1),
-        )
-    } else {
-        (1.0, 1.0)
+    let (pitch, level) = varied(p.vary, seed, p.pitch_spread, p.level_spread);
+    let start = match p.align {
+        TransitionAlign::Start => cue.middle - cue.frames / 2.0,
+        TransitionAlign::Middle => cue.middle - own / 2.0,
+        TransitionAlign::End => cue.middle + cue.frames / 2.0 - own,
     };
     let timing = Timing {
-        from: whole_signed(cue.middle - half),
+        from: whole_signed(start),
         duration_in_frames: None,
         looped: None,
         trim_before: None,
@@ -1681,6 +1901,31 @@ pub struct Riser {
     pub end_hit: EndHit,
     #[setting("Volume", default = 0.8, range(min = 0, max = 2), step = 0.05)]
     pub volume: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Hit volume",
+        range(min = 0, max = 2),
+        step = 0.05,
+        zero_label = "Same as the riser",
+        advanced
+    )]
+    pub hit_volume: Option<f64>,
+    #[setting(
+        "Loudest at",
+        default = 75,
+        range(min = 10, max = 100),
+        unit = "%",
+        help = "How far through the swell it is loudest before it falls away.",
+        show_if = { "sound": ["swell"] },
+        advanced
+    )]
+    pub peak_at: u32,
+    #[setting(
+        "Keep music up",
+        help = "Music set to lower under other sounds stays at full volume for this one.",
+        advanced
+    )]
+    pub keep_music: bool,
 }
 
 impl Params for Riser {}
@@ -1703,6 +1948,7 @@ impl Riser {
         };
         SoundShape {
             seconds: f64::from(self.length_ms) / 1000.0,
+            peak_at: f64::from(self.peak_at) / 100.0,
             ..sound_shape(&GenerateSound {
                 preset,
                 variation,
@@ -1772,7 +2018,7 @@ fn riser_item(
         fade_out_frames: None,
         anchor,
         length_frames: Some(length_frames),
-        keep_music: None,
+        keep_music: p.keep_music.then_some(true),
     };
     sound_item(
         ctx.node_id,
@@ -1846,6 +2092,9 @@ fn riser() -> NodeDef {
                 let mut item = riser_item(ctx, hit, end_frame, 0, hit_frames);
                 item.id = format!("{}:hit", ctx.node_id);
                 item.trim_before = None;
+                if let Some(volume) = p.hit_volume {
+                    item.volume = Some(volume);
+                }
                 items.push(item);
             }
             outputs([(

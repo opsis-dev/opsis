@@ -232,7 +232,7 @@
     "fps": 60
    },
    "out": {
-    "filter": "[0:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=60,format=yuv420p[v0];[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a0];[1:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=60,format=yuv420p[v1];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]",
+    "filter": "[0:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=#000000,setsar=1,fps=60,format=yuv420p[v0];[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a0];[1:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=#000000,setsar=1,fps=60,format=yuv420p[v1];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]",
     "video": true,
     "audio": true
    }
@@ -256,7 +256,7 @@
     "fps": 29.97003
    },
    "out": {
-    "filter": "[0:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=29.97,format=yuv420p[v0];[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a0];[1:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=29.97,format=yuv420p[v1];anullsrc=r=48000:cl=stereo,atrim=duration=1.234[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]",
+    "filter": "[0:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=#000000,setsar=1,fps=29.97,format=yuv420p[v0];[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a0];[1:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=#000000,setsar=1,fps=29.97,format=yuv420p[v1];anullsrc=r=48000:cl=stereo,atrim=duration=1.234[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]",
     "video": true,
     "audio": true
    }
@@ -280,7 +280,7 @@
     "fps": 60
    },
    "out": {
-    "filter": "color=c=black:s=1920x1080:r=60:d=1.5,format=yuv420p[v0];[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a0];[1:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=60,format=yuv420p[v1];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]",
+    "filter": "color=c=#000000:s=1920x1080:r=60:d=1.5,format=yuv420p[v0];[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a0];[1:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=#000000,setsar=1,fps=60,format=yuv420p[v1];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]",
     "video": true,
     "audio": true
    }
@@ -333,7 +333,7 @@
     "fps": 30
    },
    "out": {
-    "filter": "[0:v]scale=320:240:force_original_aspect_ratio=decrease,pad=320:240:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30,format=yuv420p[v0];[1:v]scale=320:240:force_original_aspect_ratio=decrease,pad=320:240:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30,format=yuv420p[v1];[2:v]scale=320:240:force_original_aspect_ratio=decrease,pad=320:240:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30,format=yuv420p[v2];[v0][v1][v2]concat=n=3:v=1:a=0[v]",
+    "filter": "[0:v]scale=320:240:force_original_aspect_ratio=decrease,pad=320:240:(ow-iw)/2:(oh-ih)/2:color=#000000,setsar=1,fps=30,format=yuv420p[v0];[1:v]scale=320:240:force_original_aspect_ratio=decrease,pad=320:240:(ow-iw)/2:(oh-ih)/2:color=#000000,setsar=1,fps=30,format=yuv420p[v1];[2:v]scale=320:240:force_original_aspect_ratio=decrease,pad=320:240:(ow-iw)/2:(oh-ih)/2:color=#000000,setsar=1,fps=30,format=yuv420p[v2];[v0][v1][v2]concat=n=3:v=1:a=0[v]",
     "video": true,
     "audio": false
    }

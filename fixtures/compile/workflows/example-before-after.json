@@ -400,7 +400,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": []
@@ -420,7 +422,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": []
@@ -440,7 +444,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -450,7 +456,8 @@
        "params": {
         "url": "https://example.com",
         "waitUntil": "load",
-        "after": 2500
+        "after": 2500,
+        "timeoutMs": 30000
        }
       }
      ],
@@ -471,7 +478,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -481,7 +490,8 @@
        "params": {
         "url": "https://example.org",
         "waitUntil": "load",
-        "after": 2500
+        "after": 2500,
+        "timeoutMs": 30000
        }
       }
      ],
@@ -502,7 +512,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -512,7 +524,8 @@
        "params": {
         "url": "https://example.com",
         "waitUntil": "load",
-        "after": 2500
+        "after": 2500,
+        "timeoutMs": 30000
        }
       },
       {
@@ -538,7 +551,9 @@
        "locale": "en-US",
        "timezone": "",
        "colorScheme": "light",
-       "captureScale": 1
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
       }
      },
      "steps": [
@@ -548,7 +563,8 @@
        "params": {
         "url": "https://example.org",
         "waitUntil": "load",
-        "after": 2500
+        "after": 2500,
+        "timeoutMs": 30000
        }
       },
       {
@@ -628,7 +644,17 @@
           "position": "bottom-left",
           "accent": "#a78bfa",
           "color": "#fafafa",
-          "panel": "rgba(10,10,12,0.72)"
+          "panel": "rgba(10,10,12,0.72)",
+          "subtitleOpacity": 0.7,
+          "exitTime": 0.4667,
+          "slide": 120,
+          "margin": 80,
+          "barWidth": 8,
+          "cornerRadius": 18,
+          "panelBlur": 12,
+          "titleSize": 44,
+          "titleWeight": 720,
+          "subtitleSize": 28
          }
         }
        ]
@@ -705,7 +731,17 @@
           "position": "bottom-left",
           "accent": "#a78bfa",
           "color": "#fafafa",
-          "panel": "rgba(10,10,12,0.72)"
+          "panel": "rgba(10,10,12,0.72)",
+          "subtitleOpacity": 0.7,
+          "exitTime": 0.4667,
+          "slide": 120,
+          "margin": 80,
+          "barWidth": 8,
+          "cornerRadius": 18,
+          "panelBlur": 12,
+          "titleSize": 44,
+          "titleWeight": 720,
+          "subtitleSize": 28
          }
         }
        ]
@@ -809,7 +845,17 @@
                "position": "bottom-left",
                "accent": "#a78bfa",
                "color": "#fafafa",
-               "panel": "rgba(10,10,12,0.72)"
+               "panel": "rgba(10,10,12,0.72)",
+               "subtitleOpacity": 0.7,
+               "exitTime": 0.4667,
+               "slide": 120,
+               "margin": 80,
+               "barWidth": 8,
+               "cornerRadius": 18,
+               "panelBlur": 12,
+               "titleSize": 44,
+               "titleWeight": 720,
+               "subtitleSize": 28
               }
              }
             ]
@@ -919,7 +965,17 @@
                "position": "bottom-left",
                "accent": "#a78bfa",
                "color": "#fafafa",
-               "panel": "rgba(10,10,12,0.72)"
+               "panel": "rgba(10,10,12,0.72)",
+               "subtitleOpacity": 0.7,
+               "exitTime": 0.4667,
+               "slide": 120,
+               "margin": 80,
+               "barWidth": 8,
+               "cornerRadius": 18,
+               "panelBlur": 12,
+               "titleSize": 44,
+               "titleWeight": 720,
+               "subtitleSize": 28
               }
              }
             ]
@@ -1050,7 +1106,17 @@
                     "position": "bottom-left",
                     "accent": "#a78bfa",
                     "color": "#fafafa",
-                    "panel": "rgba(10,10,12,0.72)"
+                    "panel": "rgba(10,10,12,0.72)",
+                    "subtitleOpacity": 0.7,
+                    "exitTime": 0.4667,
+                    "slide": 120,
+                    "margin": 80,
+                    "barWidth": 8,
+                    "cornerRadius": 18,
+                    "panelBlur": 12,
+                    "titleSize": 44,
+                    "titleWeight": 720,
+                    "subtitleSize": 28
                    }
                   }
                  ]
@@ -1172,7 +1238,17 @@
                     "position": "bottom-left",
                     "accent": "#a78bfa",
                     "color": "#fafafa",
-                    "panel": "rgba(10,10,12,0.72)"
+                    "panel": "rgba(10,10,12,0.72)",
+                    "subtitleOpacity": 0.7,
+                    "exitTime": 0.4667,
+                    "slide": 120,
+                    "margin": 80,
+                    "barWidth": 8,
+                    "cornerRadius": 18,
+                    "panelBlur": 12,
+                    "titleSize": 44,
+                    "titleWeight": 720,
+                    "subtitleSize": 28
                    }
                   }
                  ]
@@ -1528,7 +1604,17 @@
                   "position": "bottom-left",
                   "accent": "#a78bfa",
                   "color": "#fafafa",
-                  "panel": "rgba(10,10,12,0.72)"
+                  "panel": "rgba(10,10,12,0.72)",
+                  "subtitleOpacity": 0.7,
+                  "exitTime": 0.4667,
+                  "slide": 120,
+                  "margin": 80,
+                  "barWidth": 8,
+                  "cornerRadius": 18,
+                  "panelBlur": 12,
+                  "titleSize": 44,
+                  "titleWeight": 720,
+                  "subtitleSize": 28
                  }
                 }
                ]
@@ -1650,7 +1736,17 @@
                   "position": "bottom-left",
                   "accent": "#a78bfa",
                   "color": "#fafafa",
-                  "panel": "rgba(10,10,12,0.72)"
+                  "panel": "rgba(10,10,12,0.72)",
+                  "subtitleOpacity": 0.7,
+                  "exitTime": 0.4667,
+                  "slide": 120,
+                  "margin": 80,
+                  "barWidth": 8,
+                  "cornerRadius": 18,
+                  "panelBlur": 12,
+                  "titleSize": 44,
+                  "titleWeight": 720,
+                  "subtitleSize": 28
                  }
                 }
                ]
@@ -2223,7 +2319,17 @@
                   "position": "bottom-left",
                   "accent": "#a78bfa",
                   "color": "#fafafa",
-                  "panel": "rgba(10,10,12,0.72)"
+                  "panel": "rgba(10,10,12,0.72)",
+                  "subtitleOpacity": 0.7,
+                  "exitTime": 0.4667,
+                  "slide": 120,
+                  "margin": 80,
+                  "barWidth": 8,
+                  "cornerRadius": 18,
+                  "panelBlur": 12,
+                  "titleSize": 44,
+                  "titleWeight": 720,
+                  "subtitleSize": 28
                  }
                 }
                ]
@@ -2345,7 +2451,17 @@
                   "position": "bottom-left",
                   "accent": "#a78bfa",
                   "color": "#fafafa",
-                  "panel": "rgba(10,10,12,0.72)"
+                  "panel": "rgba(10,10,12,0.72)",
+                  "subtitleOpacity": 0.7,
+                  "exitTime": 0.4667,
+                  "slide": 120,
+                  "margin": 80,
+                  "barWidth": 8,
+                  "cornerRadius": 18,
+                  "panelBlur": 12,
+                  "titleSize": 44,
+                  "titleWeight": 720,
+                  "subtitleSize": 28
                  }
                 }
                ]
@@ -2865,7 +2981,17 @@
        "position": "bottom-left",
        "accent": "#a78bfa",
        "color": "#fafafa",
-       "panel": "rgba(10,10,12,0.72)"
+       "panel": "rgba(10,10,12,0.72)",
+       "subtitleOpacity": 0.7,
+       "exitTime": 0.4667,
+       "slide": 120,
+       "margin": 80,
+       "barWidth": 8,
+       "cornerRadius": 18,
+       "panelBlur": 12,
+       "titleSize": 44,
+       "titleWeight": 720,
+       "subtitleSize": 28
       },
       "thumbnail": null,
       "from": 0.0,
@@ -3008,7 +3134,17 @@
        "position": "bottom-left",
        "accent": "#a78bfa",
        "color": "#fafafa",
-       "panel": "rgba(10,10,12,0.72)"
+       "panel": "rgba(10,10,12,0.72)",
+       "subtitleOpacity": 0.7,
+       "exitTime": 0.4667,
+       "slide": 120,
+       "margin": 80,
+       "barWidth": 8,
+       "cornerRadius": 18,
+       "panelBlur": 12,
+       "titleSize": 44,
+       "titleWeight": 720,
+       "subtitleSize": 28
       },
       "thumbnail": null,
       "from": 120.0,
@@ -3451,7 +3587,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": []
@@ -3471,7 +3609,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": []
@@ -3491,7 +3631,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -3501,7 +3643,8 @@
         "params": {
          "url": "https://example.com",
          "waitUntil": "load",
-         "after": 2500
+         "after": 2500,
+         "timeoutMs": 30000
         }
        }
       ],
@@ -3522,7 +3665,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -3532,7 +3677,8 @@
         "params": {
          "url": "https://example.org",
          "waitUntil": "load",
-         "after": 2500
+         "after": 2500,
+         "timeoutMs": 30000
         }
        }
       ],
@@ -3553,7 +3699,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -3563,7 +3711,8 @@
         "params": {
          "url": "https://example.com",
          "waitUntil": "load",
-         "after": 2500
+         "after": 2500,
+         "timeoutMs": 30000
         }
        },
        {
@@ -3589,7 +3738,9 @@
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
-        "captureScale": 1
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
        }
       },
       "steps": [
@@ -3599,7 +3750,8 @@
         "params": {
          "url": "https://example.org",
          "waitUntil": "load",
-         "after": 2500
+         "after": 2500,
+         "timeoutMs": 30000
         }
        },
        {
@@ -3719,7 +3871,19 @@
            "zoom": false,
            "tuning": {
             "sMax": 1.74,
-            "holdMinS": 1.3
+            "holdMinS": 1.3,
+            "minScale": 1.18,
+            "firstMaxScale": 1.54,
+            "roomPx": 80.0,
+            "targetShare": 0.55,
+            "offCentre": 0.26,
+            "joinWithinS": 2.2,
+            "stayZoomedWithinS": 2.8,
+            "holdAfterTypingS": 0.4,
+            "restAtEndS": 0.6,
+            "longestPanPx": 500.0,
+            "pace": 1.0,
+            "easing": "smooth"
            },
            "motionBlur": true,
            "style": "classic",
@@ -3738,7 +3902,13 @@
             "width": 2.0
            },
            "extraBeats": [],
-           "annotations": []
+           "annotations": [],
+           "stageGround": "#faf6f1",
+           "rimGlow": 1.0,
+           "liftColours": true,
+           "shutterAngle": 180.0,
+           "bleedBlur": 48.0,
+           "bleedDim": 0.55
           }
          }
         ]
@@ -3823,7 +3993,17 @@
            "position": "bottom-left",
            "accent": "#a78bfa",
            "color": "#fafafa",
-           "panel": "rgba(10,10,12,0.72)"
+           "panel": "rgba(10,10,12,0.72)",
+           "subtitleOpacity": 0.7,
+           "exitTime": 0.4667,
+           "slide": 120,
+           "margin": 80,
+           "barWidth": 8,
+           "cornerRadius": 18,
+           "panelBlur": 12,
+           "titleSize": 44,
+           "titleWeight": 720,
+           "subtitleSize": 28
           }
          }
         ]
@@ -3940,7 +4120,19 @@
            "zoom": false,
            "tuning": {
             "sMax": 1.74,
-            "holdMinS": 1.3
+            "holdMinS": 1.3,
+            "minScale": 1.18,
+            "firstMaxScale": 1.54,
+            "roomPx": 80.0,
+            "targetShare": 0.55,
+            "offCentre": 0.26,
+            "joinWithinS": 2.2,
+            "stayZoomedWithinS": 2.8,
+            "holdAfterTypingS": 0.4,
+            "restAtEndS": 0.6,
+            "longestPanPx": 500.0,
+            "pace": 1.0,
+            "easing": "smooth"
            },
            "motionBlur": true,
            "style": "classic",
@@ -3959,7 +4151,13 @@
             "width": 2.0
            },
            "extraBeats": [],
-           "annotations": []
+           "annotations": [],
+           "stageGround": "#faf6f1",
+           "rimGlow": 1.0,
+           "liftColours": true,
+           "shutterAngle": 180.0,
+           "bleedBlur": 48.0,
+           "bleedDim": 0.55
           }
          }
         ]
@@ -4044,7 +4242,17 @@
            "position": "bottom-left",
            "accent": "#a78bfa",
            "color": "#fafafa",
-           "panel": "rgba(10,10,12,0.72)"
+           "panel": "rgba(10,10,12,0.72)",
+           "subtitleOpacity": 0.7,
+           "exitTime": 0.4667,
+           "slide": 120,
+           "margin": 80,
+           "barWidth": 8,
+           "cornerRadius": 18,
+           "panelBlur": 12,
+           "titleSize": 44,
+           "titleWeight": 720,
+           "subtitleSize": 28
           }
          }
         ]
@@ -4133,7 +4341,19 @@
                 "zoom": false,
                 "tuning": {
                  "sMax": 1.74,
-                 "holdMinS": 1.3
+                 "holdMinS": 1.3,
+                 "minScale": 1.18,
+                 "firstMaxScale": 1.54,
+                 "roomPx": 80.0,
+                 "targetShare": 0.55,
+                 "offCentre": 0.26,
+                 "joinWithinS": 2.2,
+                 "stayZoomedWithinS": 2.8,
+                 "holdAfterTypingS": 0.4,
+                 "restAtEndS": 0.6,
+                 "longestPanPx": 500.0,
+                 "pace": 1.0,
+                 "easing": "smooth"
                 },
                 "motionBlur": true,
                 "style": "classic",
@@ -4152,7 +4372,13 @@
                  "width": 2.0
                 },
                 "extraBeats": [],
-                "annotations": []
+                "annotations": [],
+                "stageGround": "#faf6f1",
+                "rimGlow": 1.0,
+                "liftColours": true,
+                "shutterAngle": 180.0,
+                "bleedBlur": 48.0,
+                "bleedDim": 0.55
                }
               }
              ]
@@ -4208,7 +4434,17 @@
                 "position": "bottom-left",
                 "accent": "#a78bfa",
                 "color": "#fafafa",
-                "panel": "rgba(10,10,12,0.72)"
+                "panel": "rgba(10,10,12,0.72)",
+                "subtitleOpacity": 0.7,
+                "exitTime": 0.4667,
+                "slide": 120,
+                "margin": 80,
+                "barWidth": 8,
+                "cornerRadius": 18,
+                "panelBlur": 12,
+                "titleSize": 44,
+                "titleWeight": 720,
+                "subtitleSize": 28
                }
               }
              ]
@@ -4351,7 +4587,19 @@
                 "zoom": false,
                 "tuning": {
                  "sMax": 1.74,
-                 "holdMinS": 1.3
+                 "holdMinS": 1.3,
+                 "minScale": 1.18,
+                 "firstMaxScale": 1.54,
+                 "roomPx": 80.0,
+                 "targetShare": 0.55,
+                 "offCentre": 0.26,
+                 "joinWithinS": 2.2,
+                 "stayZoomedWithinS": 2.8,
+                 "holdAfterTypingS": 0.4,
+                 "restAtEndS": 0.6,
+                 "longestPanPx": 500.0,
+                 "pace": 1.0,
+                 "easing": "smooth"
                 },
                 "motionBlur": true,
                 "style": "classic",
@@ -4370,7 +4618,13 @@
                  "width": 2.0
                 },
                 "extraBeats": [],
-                "annotations": []
+                "annotations": [],
+                "stageGround": "#faf6f1",
+                "rimGlow": 1.0,
+                "liftColours": true,
+                "shutterAngle": 180.0,
+                "bleedBlur": 48.0,
+                "bleedDim": 0.55
                }
               }
              ]
@@ -4426,7 +4680,17 @@
                 "position": "bottom-left",
                 "accent": "#a78bfa",
                 "color": "#fafafa",
-                "panel": "rgba(10,10,12,0.72)"
+                "panel": "rgba(10,10,12,0.72)",
+                "subtitleOpacity": 0.7,
+                "exitTime": 0.4667,
+                "slide": 120,
+                "margin": 80,
+                "barWidth": 8,
+                "cornerRadius": 18,
+                "panelBlur": 12,
+                "titleSize": 44,
+                "titleWeight": 720,
+                "subtitleSize": 28
                }
               }
              ]
@@ -4590,7 +4854,19 @@
                      "zoom": false,
                      "tuning": {
                       "sMax": 1.74,
-                      "holdMinS": 1.3
+                      "holdMinS": 1.3,
+                      "minScale": 1.18,
+                      "firstMaxScale": 1.54,
+                      "roomPx": 80.0,
+                      "targetShare": 0.55,
+                      "offCentre": 0.26,
+                      "joinWithinS": 2.2,
+                      "stayZoomedWithinS": 2.8,
+                      "holdAfterTypingS": 0.4,
+                      "restAtEndS": 0.6,
+                      "longestPanPx": 500.0,
+                      "pace": 1.0,
+                      "easing": "smooth"
                      },
                      "motionBlur": true,
                      "style": "classic",
@@ -4609,7 +4885,13 @@
                       "width": 2.0
                      },
                      "extraBeats": [],
-                     "annotations": []
+                     "annotations": [],
+                     "stageGround": "#faf6f1",
+                     "rimGlow": 1.0,
+                     "liftColours": true,
+                     "shutterAngle": 180.0,
+                     "bleedBlur": 48.0,
+                     "bleedDim": 0.55
                     }
                    }
                   ]
@@ -4665,7 +4947,17 @@
                      "position": "bottom-left",
                      "accent": "#a78bfa",
                      "color": "#fafafa",
-                     "panel": "rgba(10,10,12,0.72)"
+                     "panel": "rgba(10,10,12,0.72)",
+                     "subtitleOpacity": 0.7,
+                     "exitTime": 0.4667,
+                     "slide": 120,
+                     "margin": 80,
+                     "barWidth": 8,
+                     "cornerRadius": 18,
+                     "panelBlur": 12,
+                     "titleSize": 44,
+                     "titleWeight": 720,
+                     "subtitleSize": 28
                     }
                    }
                   ]
@@ -4772,7 +5064,19 @@
                      "zoom": false,
                      "tuning": {
                       "sMax": 1.74,
-                      "holdMinS": 1.3
+                      "holdMinS": 1.3,
+                      "minScale": 1.18,
+                      "firstMaxScale": 1.54,
+                      "roomPx": 80.0,
+                      "targetShare": 0.55,
+                      "offCentre": 0.26,
+                      "joinWithinS": 2.2,
+                      "stayZoomedWithinS": 2.8,
+                      "holdAfterTypingS": 0.4,
+                      "restAtEndS": 0.6,
+                      "longestPanPx": 500.0,
+                      "pace": 1.0,
+                      "easing": "smooth"
                      },
                      "motionBlur": true,
                      "style": "classic",
@@ -4791,7 +5095,13 @@
                       "width": 2.0
                      },
                      "extraBeats": [],
-                     "annotations": []
+                     "annotations": [],
+                     "stageGround": "#faf6f1",
+                     "rimGlow": 1.0,
+                     "liftColours": true,
+                     "shutterAngle": 180.0,
+                     "bleedBlur": 48.0,
+                     "bleedDim": 0.55
                     }
                    }
                   ]
@@ -4847,7 +5157,17 @@
                      "position": "bottom-left",
                      "accent": "#a78bfa",
                      "color": "#fafafa",
-                     "panel": "rgba(10,10,12,0.72)"
+                     "panel": "rgba(10,10,12,0.72)",
+                     "subtitleOpacity": 0.7,
+                     "exitTime": 0.4667,
+                     "slide": 120,
+                     "margin": 80,
+                     "barWidth": 8,
+                     "cornerRadius": 18,
+                     "panelBlur": 12,
+                     "titleSize": 44,
+                     "titleWeight": 720,
+                     "subtitleSize": 28
                     }
                    }
                   ]
@@ -5258,7 +5578,19 @@
                    "zoom": false,
                    "tuning": {
                     "sMax": 1.74,
-                    "holdMinS": 1.3
+                    "holdMinS": 1.3,
+                    "minScale": 1.18,
+                    "firstMaxScale": 1.54,
+                    "roomPx": 80.0,
+                    "targetShare": 0.55,
+                    "offCentre": 0.26,
+                    "joinWithinS": 2.2,
+                    "stayZoomedWithinS": 2.8,
+                    "holdAfterTypingS": 0.4,
+                    "restAtEndS": 0.6,
+                    "longestPanPx": 500.0,
+                    "pace": 1.0,
+                    "easing": "smooth"
                    },
                    "motionBlur": true,
                    "style": "classic",
@@ -5277,7 +5609,13 @@
                     "width": 2.0
                    },
                    "extraBeats": [],
-                   "annotations": []
+                   "annotations": [],
+                   "stageGround": "#faf6f1",
+                   "rimGlow": 1.0,
+                   "liftColours": true,
+                   "shutterAngle": 180.0,
+                   "bleedBlur": 48.0,
+                   "bleedDim": 0.55
                   }
                  }
                 ]
@@ -5333,7 +5671,17 @@
                    "position": "bottom-left",
                    "accent": "#a78bfa",
                    "color": "#fafafa",
-                   "panel": "rgba(10,10,12,0.72)"
+                   "panel": "rgba(10,10,12,0.72)",
+                   "subtitleOpacity": 0.7,
+                   "exitTime": 0.4667,
+                   "slide": 120,
+                   "margin": 80,
+                   "barWidth": 8,
+                   "cornerRadius": 18,
+                   "panelBlur": 12,
+                   "titleSize": 44,
+                   "titleWeight": 720,
+                   "subtitleSize": 28
                   }
                  }
                 ]
@@ -5440,7 +5788,19 @@
                    "zoom": false,
                    "tuning": {
                     "sMax": 1.74,
-                    "holdMinS": 1.3
+                    "holdMinS": 1.3,
+                    "minScale": 1.18,
+                    "firstMaxScale": 1.54,
+                    "roomPx": 80.0,
+                    "targetShare": 0.55,
+                    "offCentre": 0.26,
+                    "joinWithinS": 2.2,
+                    "stayZoomedWithinS": 2.8,
+                    "holdAfterTypingS": 0.4,
+                    "restAtEndS": 0.6,
+                    "longestPanPx": 500.0,
+                    "pace": 1.0,
+                    "easing": "smooth"
                    },
                    "motionBlur": true,
                    "style": "classic",
@@ -5459,7 +5819,13 @@
                     "width": 2.0
                    },
                    "extraBeats": [],
-                   "annotations": []
+                   "annotations": [],
+                   "stageGround": "#faf6f1",
+                   "rimGlow": 1.0,
+                   "liftColours": true,
+                   "shutterAngle": 180.0,
+                   "bleedBlur": 48.0,
+                   "bleedDim": 0.55
                   }
                  }
                 ]
@@ -5515,7 +5881,17 @@
                    "position": "bottom-left",
                    "accent": "#a78bfa",
                    "color": "#fafafa",
-                   "panel": "rgba(10,10,12,0.72)"
+                   "panel": "rgba(10,10,12,0.72)",
+                   "subtitleOpacity": 0.7,
+                   "exitTime": 0.4667,
+                   "slide": 120,
+                   "margin": 80,
+                   "barWidth": 8,
+                   "cornerRadius": 18,
+                   "panelBlur": 12,
+                   "titleSize": 44,
+                   "titleWeight": 720,
+                   "subtitleSize": 28
                   }
                  }
                 ]
@@ -6073,7 +6449,19 @@
                    "zoom": false,
                    "tuning": {
                     "sMax": 1.74,
-                    "holdMinS": 1.3
+                    "holdMinS": 1.3,
+                    "minScale": 1.18,
+                    "firstMaxScale": 1.54,
+                    "roomPx": 80.0,
+                    "targetShare": 0.55,
+                    "offCentre": 0.26,
+                    "joinWithinS": 2.2,
+                    "stayZoomedWithinS": 2.8,
+                    "holdAfterTypingS": 0.4,
+                    "restAtEndS": 0.6,
+                    "longestPanPx": 500.0,
+                    "pace": 1.0,
+                    "easing": "smooth"
                    },
                    "motionBlur": true,
                    "style": "classic",
@@ -6092,7 +6480,13 @@
                     "width": 2.0
                    },
                    "extraBeats": [],
-                   "annotations": []
+                   "annotations": [],
+                   "stageGround": "#faf6f1",
+                   "rimGlow": 1.0,
+                   "liftColours": true,
+                   "shutterAngle": 180.0,
+                   "bleedBlur": 48.0,
+                   "bleedDim": 0.55
                   }
                  }
                 ]
@@ -6148,7 +6542,17 @@
                    "position": "bottom-left",
                    "accent": "#a78bfa",
                    "color": "#fafafa",
-                   "panel": "rgba(10,10,12,0.72)"
+                   "panel": "rgba(10,10,12,0.72)",
+                   "subtitleOpacity": 0.7,
+                   "exitTime": 0.4667,
+                   "slide": 120,
+                   "margin": 80,
+                   "barWidth": 8,
+                   "cornerRadius": 18,
+                   "panelBlur": 12,
+                   "titleSize": 44,
+                   "titleWeight": 720,
+                   "subtitleSize": 28
                   }
                  }
                 ]
@@ -6255,7 +6659,19 @@
                    "zoom": false,
                    "tuning": {
                     "sMax": 1.74,
-                    "holdMinS": 1.3
+                    "holdMinS": 1.3,
+                    "minScale": 1.18,
+                    "firstMaxScale": 1.54,
+                    "roomPx": 80.0,
+                    "targetShare": 0.55,
+                    "offCentre": 0.26,
+                    "joinWithinS": 2.2,
+                    "stayZoomedWithinS": 2.8,
+                    "holdAfterTypingS": 0.4,
+                    "restAtEndS": 0.6,
+                    "longestPanPx": 500.0,
+                    "pace": 1.0,
+                    "easing": "smooth"
                    },
                    "motionBlur": true,
                    "style": "classic",
@@ -6274,7 +6690,13 @@
                     "width": 2.0
                    },
                    "extraBeats": [],
-                   "annotations": []
+                   "annotations": [],
+                   "stageGround": "#faf6f1",
+                   "rimGlow": 1.0,
+                   "liftColours": true,
+                   "shutterAngle": 180.0,
+                   "bleedBlur": 48.0,
+                   "bleedDim": 0.55
                   }
                  }
                 ]
@@ -6330,7 +6752,17 @@
                    "position": "bottom-left",
                    "accent": "#a78bfa",
                    "color": "#fafafa",
-                   "panel": "rgba(10,10,12,0.72)"
+                   "panel": "rgba(10,10,12,0.72)",
+                   "subtitleOpacity": 0.7,
+                   "exitTime": 0.4667,
+                   "slide": 120,
+                   "margin": 80,
+                   "barWidth": 8,
+                   "cornerRadius": 18,
+                   "panelBlur": 12,
+                   "titleSize": 44,
+                   "titleWeight": 720,
+                   "subtitleSize": 28
                   }
                  }
                 ]
@@ -6821,7 +7253,19 @@
         "zoom": false,
         "tuning": {
          "sMax": 1.74,
-         "holdMinS": 1.3
+         "holdMinS": 1.3,
+         "minScale": 1.18,
+         "firstMaxScale": 1.54,
+         "roomPx": 80.0,
+         "targetShare": 0.55,
+         "offCentre": 0.26,
+         "joinWithinS": 2.2,
+         "stayZoomedWithinS": 2.8,
+         "holdAfterTypingS": 0.4,
+         "restAtEndS": 0.6,
+         "longestPanPx": 500.0,
+         "pace": 1.0,
+         "easing": "smooth"
         },
         "motionBlur": true,
         "style": "classic",
@@ -6840,7 +7284,13 @@
          "width": 2.0
         },
         "extraBeats": [],
-        "annotations": []
+        "annotations": [],
+        "stageGround": "#faf6f1",
+        "rimGlow": 1.0,
+        "liftColours": true,
+        "shutterAngle": 180.0,
+        "bleedBlur": 48.0,
+        "bleedDim": 0.55
        },
        "thumbnail": {
         "kind": "filmstrip",
@@ -6915,7 +7365,17 @@
         "position": "bottom-left",
         "accent": "#a78bfa",
         "color": "#fafafa",
-        "panel": "rgba(10,10,12,0.72)"
+        "panel": "rgba(10,10,12,0.72)",
+        "subtitleOpacity": 0.7,
+        "exitTime": 0.4667,
+        "slide": 120,
+        "margin": 80,
+        "barWidth": 8,
+        "cornerRadius": 18,
+        "panelBlur": 12,
+        "titleSize": 44,
+        "titleWeight": 720,
+        "subtitleSize": 28
        },
        "thumbnail": null,
        "from": 0.0,
@@ -7029,7 +7489,19 @@
         "zoom": false,
         "tuning": {
          "sMax": 1.74,
-         "holdMinS": 1.3
+         "holdMinS": 1.3,
+         "minScale": 1.18,
+         "firstMaxScale": 1.54,
+         "roomPx": 80.0,
+         "targetShare": 0.55,
+         "offCentre": 0.26,
+         "joinWithinS": 2.2,
+         "stayZoomedWithinS": 2.8,
+         "holdAfterTypingS": 0.4,
+         "restAtEndS": 0.6,
+         "longestPanPx": 500.0,
+         "pace": 1.0,
+         "easing": "smooth"
         },
         "motionBlur": true,
         "style": "classic",
@@ -7048,7 +7520,13 @@
          "width": 2.0
         },
         "extraBeats": [],
-        "annotations": []
+        "annotations": [],
+        "stageGround": "#faf6f1",
+        "rimGlow": 1.0,
+        "liftColours": true,
+        "shutterAngle": 180.0,
+        "bleedBlur": 48.0,
+        "bleedDim": 0.55
        },
        "thumbnail": {
         "kind": "filmstrip",
@@ -7123,7 +7601,17 @@
         "position": "bottom-left",
         "accent": "#a78bfa",
         "color": "#fafafa",
-        "panel": "rgba(10,10,12,0.72)"
+        "panel": "rgba(10,10,12,0.72)",
+        "subtitleOpacity": 0.7,
+        "exitTime": 0.4667,
+        "slide": 120,
+        "margin": 80,
+        "barWidth": 8,
+        "cornerRadius": 18,
+        "panelBlur": 12,
+        "titleSize": 44,
+        "titleWeight": 720,
+        "subtitleSize": 28
        },
        "thumbnail": null,
        "from": 53.0,

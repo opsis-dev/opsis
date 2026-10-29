@@ -25,6 +25,7 @@ struct Timing {
 
 pub const AUTHORED_FPS: u32 = 30;
 const CUT_OFF_SECONDS: f64 = 0.5;
+const EXIT_STAGGER: f64 = 2.0;
 const RELEASE_TEASER_SECONDS: f64 = 960.0 * 1001.0 / 60000.0;
 const LAUNCH_ANYTHING_SECONDS: f64 = 1600.0 / 60.0;
 
@@ -89,7 +90,7 @@ fn max_of(values: impl IntoIterator<Item = f64>) -> f64 {
     values.into_iter().fold(0.0, f64::max)
 }
 
-fn word_push_end(text: &str, word_gap: f64, accel: f64) -> f64 {
+fn word_push_end(text: &str, word_gap: f64, accel: f64, push: f64) -> f64 {
     let count = words(text);
     if count == 0 {
         return 0.0;
@@ -100,7 +101,7 @@ fn word_push_end(text: &str, word_gap: f64, accel: f64) -> f64 {
     } else {
         word_gap * (1.0 - accel.powf(index)) / (1.0 - accel)
     };
-    reveal.ceil() + 12.0
+    reveal.ceil() + push
 }
 
 const KEYSTROKE_HOLD: f64 = 8.0;
@@ -108,10 +109,11 @@ const KEYSTROKE_EXIT: f64 = 8.0;
 
 fn keystroke_end(s: &Settings) -> f64 {
     let linger = num(s, "linger", 30.0);
+    let hold = num(s, "hold", KEYSTROKE_HOLD);
     max_of(list(s, "steps").iter().filter_map(|step| {
         let at = finite(field(step, "at"))?;
         (!field_str(step, "keys").trim().is_empty())
-            .then(|| at + field_num(step, "hold", KEYSTROKE_HOLD) + linger + KEYSTROKE_EXIT)
+            .then(|| at + field_num(step, "hold", hold) + linger + KEYSTROKE_EXIT)
     }))
 }
 
@@ -121,16 +123,19 @@ const TERMINAL_ELLIPSIS_PAUSE: f64 = 18.0;
 
 fn terminal_end(s: &Settings) -> f64 {
     let per_frame = (num(s, "chunkSize", 1.0) * num(s, "charsPerFrame", 1.0)).max(0.01);
-    list(s, "lines").iter().fold(TERMINAL_START, |end, line| {
-        let text = field_str(line, "text");
-        let pause = match field(line, "pause").and_then(Value::as_f64) {
-            Some(p) => p,
-            None if text.trim_end().ends_with("...") => TERMINAL_ELLIPSIS_PAUSE,
-            None => 0.0,
-        };
-        let typing = (numbers::float(text.encode_utf16().count()) / per_frame).ceil();
-        end + field_num(line, "delay", TERMINAL_DELAY) + typing + pause
-    })
+    let ellipsis = num(s, "ellipsisPause", TERMINAL_ELLIPSIS_PAUSE);
+    list(s, "lines")
+        .iter()
+        .fold(num(s, "startAt", TERMINAL_START), |end, line| {
+            let text = field_str(line, "text");
+            let pause = match field(line, "pause").and_then(Value::as_f64) {
+                Some(p) => p,
+                None if text.trim_end().ends_with("...") => ellipsis,
+                None => 0.0,
+            };
+            let typing = (numbers::float(text.encode_utf16().count()) / per_frame).ceil();
+            end + field_num(line, "delay", TERMINAL_DELAY) + typing + pause
+        })
 }
 
 const MORPH_BASE: f64 = 36.0;
@@ -154,7 +159,10 @@ fn code_morph_end(s: &Settings) -> f64 {
         ready = start + morph;
     }
     let Some(last) = last else { return 0.0 };
-    let highlight = last + MORPH_ENTER_START * morph / MORPH_BASE + MORPH_RISE + MORPH_SHOW;
+    let highlight = last
+        + MORPH_ENTER_START * morph / MORPH_BASE
+        + MORPH_RISE
+        + num(s, "highlightHold", MORPH_SHOW);
     if s.get("highlight") == Some(&Value::Bool(false)) {
         last + morph
     } else {
@@ -350,7 +358,9 @@ const KEEPS_ITS_LENGTH: Timing = Timing {
 
 fn element_timing(key: &str) -> Option<Timing> {
     Some(match key {
-        "soft-blur-in" => authored(|s| last_index(characters(text(s, "text"))) + 27.0),
+        "soft-blur-in" => {
+            authored(|s| last_index(characters(text(s, "text"))) * num(s, "stagger", 1.0) + 27.0)
+        }
         "typewriter" => authored(|s| {
             numbers::float(characters(text(s, "text"))) / num(s, "charsPerSecond", 22.0).max(0.1)
                 * f64::from(AUTHORED_FPS)
@@ -362,19 +372,28 @@ fn element_timing(key: &str) -> Option<Timing> {
                     .encode_utf16()
                     .count()
                     .max(text(s, "to").encode_utf16().count()),
-            ) * 4.0
+            ) * num(s, "columnStagger", 4.0)
         }),
-        "staggered-fade-up" => {
-            authored(|s| last_index(spaced(text(s, "text"))) * num(s, "staggerDelay", 4.0) + 12.0)
-        }
-        "kinetic-center-build" => authored(|s| 10.0 + last_index(spaced(text(s, "text"))) * 13.0),
-        "mask-reveal-up" => authored(|s| last_index(lines(text(s, "text"))) * 5.0),
-        "line-by-line-slide" => authored(|s| last_index(lines(text(s, "text"))) * 6.0),
+        "staggered-fade-up" => authored(|s| {
+            last_index(spaced(text(s, "text"))) * num(s, "staggerDelay", 4.0)
+                + num(s, "wordDuration", 12.0)
+        }),
+        "kinetic-center-build" => authored(|s| {
+            let word = num(s, "wordTime", 13.0);
+            (word * 10.0 / 13.0).round() + last_index(spaced(text(s, "text"))) * word
+        }),
+        "mask-reveal-up" => authored(|s| {
+            last_index(lines(text(s, "text"))) * (num(s, "lineStagger", 3.0) + EXIT_STAGGER)
+        }),
+        "line-by-line-slide" => authored(|s| {
+            last_index(lines(text(s, "text"))) * (num(s, "lineStagger", 4.0) + EXIT_STAGGER)
+        }),
         "word-push" => authored(|s| {
             word_push_end(
                 text(s, "text"),
                 num(s, "wordGap", 10.0),
                 num(s, "accel", 0.8),
+                num(s, "pushTime", 12.0),
             )
         }),
         "rgb-glitch-text" => authored(|s| num(s, "glitchAt", 20.0) + num(s, "glitchDuration", 8.0)),
@@ -397,12 +416,23 @@ fn element_timing(key: &str) -> Option<Timing> {
             (54.0 + numbers::float(characters(text(s, "text"))) * step + 10.0).max(90.0)
         }),
         "agent-run" => authored(agent_run_end),
-        "signup-flow" => authored(|_| 348.0),
+        "signup-flow" => {
+            authored(|s| num(s, "loadingSeconds", 42.0) + num(s, "noticeSeconds", 66.0) + 240.0)
+        }
+        "ai-prompt-flow" => authored(|s| {
+            num(s, "typingSeconds", 50.0)
+                + num(s, "loadingSeconds", 86.0)
+                + num(s, "noticeSeconds", 60.0)
+                + 38.0
+        }),
         "command-menu" => authored(|s| {
             if s.get("autoplay") == Some(&Value::Bool(false)) {
                 0.0
             } else {
-                24.0 + numbers::float(characters(text(s, "query"))) * 2.5 + 8.0 + 18.0 + 6.0
+                24.0 + numbers::float(characters(text(s, "query"))) * num(s, "letterSeconds", 2.5)
+                    + 8.0
+                    + num(s, "pauseSeconds", 18.0)
+                    + 6.0
             }
         }),
         "release-teaser" => seconds(|_| RELEASE_TEASER_SECONDS),

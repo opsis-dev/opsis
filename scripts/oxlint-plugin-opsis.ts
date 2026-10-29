@@ -187,12 +187,46 @@ const usePercentText: Rule = {
   },
 };
 
+const FC_NAMES = new Set(["FC", "FunctionComponent"]);
+
+const isComponentType = (node: MaybeNode): boolean => {
+  if (node?.type !== "TSTypeReference") return false;
+  const name = node.typeName;
+  if (name.type === "Identifier") return FC_NAMES.has(name.name);
+  return name.type === "TSQualifiedName" && FC_NAMES.has(name.right.name);
+};
+
+const useFunctionComponents: Rule = {
+  meta: {
+    type: "suggestion",
+    docs: { description: "Write components as named functions, not React.FC constants" },
+  },
+  create(context) {
+    return {
+      VariableDeclarator(node) {
+        const init = node.init;
+        if (
+          node.id.type === "Identifier" &&
+          isComponentType(node.id.typeAnnotation?.typeAnnotation) &&
+          (init?.type === "ArrowFunctionExpression" || init?.type === "FunctionExpression")
+        )
+          context.report({
+            node,
+            message:
+              "Write the component as a named function with its props type on the parameter.",
+          });
+      },
+    };
+  },
+};
+
 export default {
   meta: { name: "opsis" },
   rules: {
     "no-animate-class": noAnimateClass,
     "no-three-clock": noThreeClock,
     "use-find-by-id": useFindById,
+    "use-function-components": useFunctionComponents,
     "use-parse-json-with": useParseJsonWith,
     "use-percent-text": usePercentText,
     "use-root": useRoot,

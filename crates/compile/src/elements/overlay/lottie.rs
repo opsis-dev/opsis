@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
+use crate::elements::shared::TextAlign;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[derive(
@@ -28,7 +29,7 @@ pub struct Lottie {
     pub r#loop: bool,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
-    #[setting("Play backwards")]
+    #[setting("Play backwards", advanced)]
     pub backwards: bool,
     #[setting(
         "Fit",
@@ -36,8 +37,15 @@ pub struct Lottie {
         labels = { "contain": "Show all", "cover": "Fill the frame" }
     )]
     pub fit: AnimationFit,
-    #[setting("Background", default = "transparent")]
+    #[setting("Background", default = "transparent", advanced)]
     pub background: String,
+    #[setting(
+        "Align",
+        default = TextAlign::Center,
+        labels = { "left": "Left", "center": "Centre", "right": "Right" },
+        advanced
+    )]
+    pub align: TextAlign,
 }
 
 pub fn definition() -> ElementMeta {

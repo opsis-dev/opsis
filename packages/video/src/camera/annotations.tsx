@@ -3,7 +3,6 @@ import { Easing, interpolate } from "remotion";
 import type { Annotation } from "#video/camera/action-log.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { faded } from "#video/camera/lib/style.ts";
-import { TEXT_COLOR } from "#video/common/element-colors.ts";
 import { MAIN_FONT } from "#video/common/fonts.ts";
 import { percent } from "#video/common/format.ts";
 import { rectCenter } from "#video/common/geometry.ts";
@@ -12,25 +11,22 @@ import { drawOn, fadeWindow, isFadedOut } from "#video/core/anim.ts";
 import { HandDrawnMark } from "#video/core/hand-drawn.tsx";
 import type { Viewport, AnnotationKind } from "#video/generated/spec.ts";
 
-const FADE = {
-  in: 0.18,
-  out: 0.18,
+const FADE_S = 0.18;
+
+const fadeOf = (seconds: number) => ({
+  in: seconds,
+  out: seconds,
   easeIn: Easing.out(Easing.cubic),
   easeOut: Easing.in(Easing.cubic),
-};
+});
 
 const POP_SCALE = 1.2;
 const SPOTLIGHT = { radius: 12, dimSpread: 9999 } as const;
-const HIGHLIGHT = { radius: 10, border: 3, fill: "12%", growFrom: 0.96 } as const;
+const HIGHLIGHT = { radius: 10, border: 3, fill: 0.12, growFrom: 0.96 } as const;
 const MARKER = { opacity: 0.5, blend: "multiply" } as const;
 const TOOLTIP = {
   rise: 8,
-  fontSize: 18,
-  fontWeight: 600,
-  padY: 8,
-  padX: 14,
-  radius: 10,
-  arrow: 8,
+  padShare: 8 / 14,
   shadowY: 6,
   shadowBlur: 18,
   shadow: "rgba(0,0,0,0.25)",
@@ -38,15 +34,11 @@ const TOOLTIP = {
 const CALLOUT = {
   width: 140,
   height: 110,
-  stroke: 5,
   line: "M130 10 C 90 20, 40 40, 12 96",
   head: "M4 82 L12 98 L28 88",
   headShownFrom: 0.9,
   textLeft: 120,
   textBottom: 96,
-  fontSize: 30,
-  fontWeight: 800,
-  tilt: "rotate(-4deg)",
 } as const;
 
 type MarkProps = {
@@ -65,21 +57,25 @@ const boxOf = ({ annotation, viewport }: MarkProps) => ({
   height: percent((annotation.rect.h + annotation.padding * 2) / viewport.height),
 });
 
-const Spotlight: React.FC<MarkProps> = (props) => (
-  <div
-    style={{
-      position: "absolute",
-      ...boxOf(props),
-      borderRadius: SPOTLIGHT.radius * props.designScale,
-      boxShadow: `0 0 0 ${SPOTLIGHT.dimSpread}px ${props.annotation.color}`,
-      opacity: props.opacity,
-    }}
-  />
-);
+function Spotlight(props: MarkProps) {
+  const look = props.annotation.markLook;
+  const k = props.designScale;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        ...boxOf(props),
+        borderRadius: (look?.radius ?? SPOTLIGHT.radius) * k,
+        boxShadow: `0 0 ${(look?.softness ?? 0) * k}px ${SPOTLIGHT.dimSpread}px ${props.annotation.color}`,
+        opacity: props.opacity,
+      }}
+    />
+  );
+}
 
 const percentOf = (fraction: number) => fraction * 100;
 
-const SketchedHighlight: React.FC<MarkProps & { look: HandDrawnLook }> = ({ look, ...props }) => {
+function SketchedHighlight({ look, ...props }: MarkProps & { look: HandDrawnLook }) {
   const { annotation, opacity, designScale: k, counter, viewport, timeS } = props;
   const { left, top } = boxOf(props);
   const marker = look === "marker";
@@ -90,17 +86,20 @@ const SketchedHighlight: React.FC<MarkProps & { look: HandDrawnLook }> = ({ look
         position: "absolute",
         left,
         top,
-        opacity: marker ? opacity * MARKER.opacity : opacity,
+        opacity: marker
+          ? opacity * (annotation.markLook?.markerOpacity ?? MARKER.opacity)
+          : opacity,
         mixBlendMode: marker ? MARKER.blend : undefined,
       }}
     >
       <HandDrawnMark
         look={look}
-        progress={drawOn(timeS, annotation.fromS)}
+        progress={drawOn(timeS, annotation.fromS, annotation.markLook?.drawS ?? undefined)}
         color={annotation.color}
-        strokeWidth={HIGHLIGHT.border * k * counter}
+        strokeWidth={(annotation.markLook?.lineWidth ?? HIGHLIGHT.border) * k * counter}
         seed={annotation.seed}
         roughness={annotation.roughness}
+        strokes={annotation.markLook?.strokes ?? undefined}
       >
         <div
           style={{
@@ -111,29 +110,31 @@ const SketchedHighlight: React.FC<MarkProps & { look: HandDrawnLook }> = ({ look
       </HandDrawnMark>
     </div>
   );
-};
+}
 
-const Highlight: React.FC<MarkProps> = (props) => {
+function Highlight(props: MarkProps) {
   const { annotation, opacity, designScale: k, counter } = props;
-  const { look } = annotation;
+  const { look, markLook } = annotation;
   if (look !== "clean") return <SketchedHighlight {...props} look={look} />;
   return (
     <div
       style={{
         position: "absolute",
         ...boxOf(props),
-        borderRadius: HIGHLIGHT.radius * k,
-        border: `${HIGHLIGHT.border * k * counter}px solid ${annotation.color}`,
-        background: faded(annotation.color, HIGHLIGHT.fill),
+        borderRadius: (markLook?.radius ?? HIGHLIGHT.radius) * k,
+        border: `${(markLook?.lineWidth ?? HIGHLIGHT.border) * k * counter}px solid ${annotation.color}`,
+        background: faded(annotation.color, percent(markLook?.fillOpacity ?? HIGHLIGHT.fill)),
         opacity,
         transform: `scale(${interpolate(opacity, [0, 1], [HIGHLIGHT.growFrom, 1])})`,
       }}
     />
   );
-};
+}
 
-const Tooltip: React.FC<MarkProps> = (props) => {
+function Tooltip(props: MarkProps) {
   const { annotation, opacity, designScale: k, counter, viewport } = props;
+  const { labelLook: look, fontSize, textColor } = annotation.label;
+  if (!look || fontSize === undefined) return null;
   return (
     <div
       style={{
@@ -148,14 +149,16 @@ const Tooltip: React.FC<MarkProps> = (props) => {
       <div
         style={{
           background: annotation.color,
-          color: annotation.label.textColor ?? TEXT_COLOR,
+          color: textColor,
           fontFamily: annotation.label.font ?? MAIN_FONT,
-          fontWeight: TOOLTIP.fontWeight,
-          fontSize: (annotation.label.fontSize ?? TOOLTIP.fontSize) * k,
-          padding: `${TOOLTIP.padY * k}px ${TOOLTIP.padX * k}px`,
-          borderRadius: TOOLTIP.radius * k,
+          fontWeight: look.fontWeight,
+          fontSize: fontSize * k,
+          padding: `${look.boxPadding * TOOLTIP.padShare * k}px ${look.boxPadding * k}px`,
+          borderRadius: look.radius * k,
           whiteSpace: "nowrap",
-          boxShadow: `0 ${TOOLTIP.shadowY * k}px ${TOOLTIP.shadowBlur * k}px ${TOOLTIP.shadow}`,
+          boxShadow: look.shadow
+            ? `0 ${TOOLTIP.shadowY * k}px ${TOOLTIP.shadowBlur * k}px ${TOOLTIP.shadow}`
+            : undefined,
         }}
       >
         {annotation.text}
@@ -165,17 +168,20 @@ const Tooltip: React.FC<MarkProps> = (props) => {
           width: 0,
           height: 0,
           margin: "0 auto",
-          borderLeft: `${TOOLTIP.arrow * k}px solid transparent`,
-          borderRight: `${TOOLTIP.arrow * k}px solid transparent`,
-          borderTop: `${TOOLTIP.arrow * k}px solid ${annotation.color}`,
+          borderLeft: `${look.pointerSize * k}px solid transparent`,
+          borderRight: `${look.pointerSize * k}px solid transparent`,
+          borderTop: `${look.pointerSize * k}px solid ${annotation.color}`,
         }}
       />
     </div>
   );
-};
+}
 
-const Callout: React.FC<MarkProps> = (props) => {
+function Callout(props: MarkProps) {
   const { annotation, opacity, designScale: k, counter, viewport } = props;
+  const { labelLook: look, fontSize } = annotation.label;
+  if (!look || fontSize === undefined) return null;
+  const size = look.arrowSize * k;
   return (
     <div
       style={{
@@ -188,8 +194,8 @@ const Callout: React.FC<MarkProps> = (props) => {
       }}
     >
       <svg
-        width={CALLOUT.width * k}
-        height={CALLOUT.height * k}
+        width={CALLOUT.width * size}
+        height={CALLOUT.height * size}
         viewBox={`0 0 ${CALLOUT.width} ${CALLOUT.height}`}
         style={{ position: "absolute", left: 0, bottom: 0, overflow: "visible" }}
       >
@@ -197,7 +203,7 @@ const Callout: React.FC<MarkProps> = (props) => {
           d={CALLOUT.line}
           fill="none"
           stroke={annotation.color}
-          strokeWidth={CALLOUT.stroke}
+          strokeWidth={look.lineWidth}
           strokeLinecap="round"
           pathLength={1}
           strokeDasharray={1}
@@ -207,7 +213,7 @@ const Callout: React.FC<MarkProps> = (props) => {
           d={CALLOUT.head}
           fill="none"
           stroke={annotation.color}
-          strokeWidth={CALLOUT.stroke}
+          strokeWidth={look.lineWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
           opacity={opacity > CALLOUT.headShownFrom ? 1 : 0}
@@ -216,21 +222,21 @@ const Callout: React.FC<MarkProps> = (props) => {
       <div
         style={{
           position: "absolute",
-          left: CALLOUT.textLeft * k,
-          bottom: CALLOUT.textBottom * k,
+          left: CALLOUT.textLeft * size,
+          bottom: CALLOUT.textBottom * size,
           color: annotation.color,
           fontFamily: annotation.label.font ?? MAIN_FONT,
-          fontWeight: CALLOUT.fontWeight,
-          fontSize: (annotation.label.fontSize ?? CALLOUT.fontSize) * k,
+          fontWeight: look.fontWeight,
+          fontSize: fontSize * k,
           whiteSpace: "nowrap",
-          transform: CALLOUT.tilt,
+          transform: `rotate(${look.tilt}deg)`,
         }}
       >
         {annotation.text}
       </div>
     </div>
   );
-};
+}
 
 const MARKS: Record<AnnotationKind, React.FC<MarkProps>> = {
   spotlight: Spotlight,
@@ -239,19 +245,25 @@ const MARKS: Record<AnnotationKind, React.FC<MarkProps>> = {
   callout: Callout,
 };
 
-export const Annotations: React.FC<{
+export function Annotations({
+  annotations,
+  viewport,
+  timeS,
+  cameraScale,
+}: {
   annotations: Annotation[];
   viewport: Viewport;
   timeS: number;
   cameraScale: number;
-}> = ({ annotations, viewport, timeS, cameraScale }) => {
+}) {
   const k = useDesignScale();
   const counter = 1 / Math.max(1, cameraScale);
 
   return (
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none", containerType: "size" }}>
       {annotations.map((annotation) => {
-        const opacity = fadeWindow(timeS, annotation.fromS, annotation.toS, FADE);
+        const fade = fadeOf(annotation.markLook?.fadeS ?? FADE_S);
+        const opacity = fadeWindow(timeS, annotation.fromS, annotation.toS, fade);
         if (isFadedOut(opacity)) return null;
         const Mark = MARKS[annotation.kind];
         return (
@@ -268,4 +280,4 @@ export const Annotations: React.FC<{
       })}
     </div>
   );
-};
+}

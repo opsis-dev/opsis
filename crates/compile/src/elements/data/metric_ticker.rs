@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::shared::NumberFormat;
+use crate::elements::theme::{Theme, ThemeMode, metric_ticker_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -82,7 +83,8 @@ pub struct MetricTicker {
     #[setting(
         "Most cards",
         default = 4,
-        help = "Cards beyond this count are dropped rather than squeezed."
+        help = "Cards beyond this count are dropped rather than squeezed.",
+        advanced
     )]
     pub max_cards: u32,
     #[setting(
@@ -96,15 +98,43 @@ pub struct MetricTicker {
         "Background",
         widget = "color",
         zero_label = "Theme",
-        help = "Leave empty to follow the theme."
+        help = "Leave empty to follow the theme.",
+        advanced
     )]
     pub background_color: String,
     #[setting(
         "Theme",
-        default = DarkOrLight::Dark,
-        help = "Surface palette: text, cards and the change colours."
+        default = Theme::of(ThemeMode::Dark),
+        transform = metric_ticker_themes,
+        widget = "theme"
     )]
-    pub theme: DarkOrLight,
+    pub theme: Theme,
+    #[setting("Show arrows", default = true, advanced)]
+    pub show_arrows: bool,
+    #[setting(
+        "Number format",
+        default = NumberFormat::Compact,
+        labels = { "compact": "Short (1.2K)", "full": "Full (1,200)" },
+        advanced
+    )]
+    pub number_format: NumberFormat,
+    #[setting("Glow", default = 7.0, range(min = 0, max = 100), unit = "%", advanced)]
+    pub glow: f64,
+    #[setting("Capitalise small heading", default = true, advanced)]
+    pub uppercase_eyebrow: bool,
+    #[setting(
+        "Corner radius",
+        default = 18,
+        range(min = 0, max = 60),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub corner_radius: u32,
+    #[setting("Fill under trend", default = true, advanced)]
+    pub trend_fill: bool,
+    #[setting("Font", widget = "font", zero_label = "Main font", advanced)]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {

@@ -1,18 +1,6 @@
 import { AbsoluteFill, interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface ConfettiProps {
-  particleCount?: number;
-  colors?: string[];
-  originX?: number;
-  originY?: number;
-  startFrame?: number;
-  lifetime?: number;
-  power?: number;
-  gravity?: number;
-  size?: number;
-  seed?: number;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export interface Particle {
   angle: number;
@@ -24,8 +12,6 @@ export interface Particle {
   drift: number;
 }
 
-const DEFAULT_COLORS = ["#1d9bf0", "#ff5da2", "#ffd23f", "#22c55e", "#a855f7", "#ff7a45"];
-
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -36,28 +22,35 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
+const DEG = Math.PI / 180;
+
 export function makeParticles({
   count,
   seed,
   colors,
+  spread,
+  direction,
+  spin,
 }: {
   count: number;
   seed: number;
   colors: string[];
+  spread: number;
+  direction: number;
+  spin: number;
 }): Particle[] {
   const rand = mulberry32(seed);
-  const palette = colors.length > 0 ? colors : DEFAULT_COLORS;
   const out: Particle[] = [];
   for (let i = 0; i < count; i++) {
-    const angle = rand() * Math.PI * 2;
+    const angle = (direction - spread / 2 + rand() * spread) * DEG;
     const speed = 0.35 + 0.65 * rand();
     out.push({
       angle,
       speed,
-      color: palette[Math.floor(rand() * palette.length)],
+      color: colors[Math.floor(rand() * colors.length)],
       size: 0.7 + 0.6 * rand(),
       rot0: rand() * Math.PI * 2,
-      spin: (rand() - 0.5) * 0.6,
+      spin: (rand() - 0.5) * 0.6 * spin,
       drift: (rand() - 0.5) * 2,
     });
   }
@@ -78,27 +71,37 @@ export function particleOpacity(tt: number, lifetime: number): number {
 }
 
 export function Confetti({
-  particleCount = 140,
-  colors = DEFAULT_COLORS,
-  originX = 0.5,
-  originY = 0.5,
-  startFrame = 0,
-  lifetime = 90,
-  power = 17,
-  gravity = 0.45,
-  size = 13,
-  seed = 1,
-}: ConfettiProps) {
+  particleCount,
+  colors,
+  originX,
+  originY,
+  lifetime,
+  power,
+  gravity,
+  size,
+  seed,
+  spread,
+  direction,
+  spin,
+  pieceShape,
+}: ElementSettings["confetti"]) {
   const frame = useAuthoredFrame();
   const { width, height } = useAuthoredConfig();
 
-  const tt = frame - startFrame;
+  const tt = frame;
   if (tt < 0 || tt > lifetime) return null;
 
   const sc = height / 720;
   const ox = width * originX;
   const oy = height * originY;
-  const particles = makeParticles({ count: particleCount, seed, colors });
+  const particles = makeParticles({
+    count: particleCount,
+    seed,
+    colors,
+    spread,
+    direction,
+    spin,
+  });
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
@@ -122,7 +125,7 @@ export function Confetti({
               left: x,
               top: y,
               width: w,
-              height: w * 0.62,
+              height: w * pieceShape,
               borderRadius: 2,
               background: p.color,
               opacity,

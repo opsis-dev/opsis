@@ -11,9 +11,8 @@ use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 
 use crate::cdp::{Arg, Result, Tab};
+use opsis_compile::nodes::browser::Chapter;
 
-const FADE_MS: u64 = 300;
-const SHOW_ACTIONS_MS: u64 = 600;
 const ADD: &str = "(injected, id, html) => injected.addUserOverlay(id, html)";
 const REMOVE: &str = "(injected, id) => injected.removeUserOverlay(id)";
 const FADE_OUT: &str = "(injected, id, fade) => { const bg = injected.getUserOverlay(id)?.querySelector('#background'); if (bg) bg.classList.add('fade-out'); return new Promise(f => injected.utils.builtins.setTimeout(f, fade)); }";
@@ -32,6 +31,7 @@ pub struct Overlays {
     next_id: AtomicU64,
     annotation: Arc<AtomicU64>,
     show_actions: bool,
+    label_ms: u64,
     restorer: JoinHandle<()>,
 }
 
@@ -41,7 +41,21 @@ impl Drop for Overlays {
     }
 }
 
-fn chapter_html(title: &str, description: &str) -> String {
+fn faded(html: &str, fade_ms: u32) -> String {
+    format!(
+        "<style>@keyframes opsis-fade-in {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+@keyframes opsis-fade-out {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+#background {{ position: absolute; inset: 0; animation: opsis-fade-in {fade_ms}ms ease-out forwards; }}
+#background.fade-out {{ animation: opsis-fade-out {fade_ms}ms ease-in forwards; }}</style><div id=\"background\">{html}</div>"
+    )
+}
+
+fn chapter_html(p: &Chapter) -> String {
+    let (title, description) = (p.title.as_str(), p.description.as_str());
+    let (fade, blur, width) = (p.fade_ms, p.blur, p.card_width);
+    let (card, edge, text) = (&p.card_color, &p.edge_color, &p.text_color);
+    let (title_size, description_size) = (p.title_size, p.description_size);
+    let place = p.position.flex();
     let description = if description.is_empty() {
         String::new()
     } else {
@@ -53,11 +67,11 @@ fn chapter_html(title: &str, description: &str) -> String {
     let style = format!(
         "@keyframes pw-chapter-fade-in {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
 @keyframes pw-chapter-fade-out {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
-#background {{ position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); animation: pw-chapter-fade-in {FADE_MS}ms ease-out forwards; }}
-#background.fade-out {{ animation: pw-chapter-fade-out {FADE_MS}ms ease-in forwards; }}
-#content {{ background: rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 40px 56px; max-width: 560px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); }}
-#title {{ color: white; font-family: system-ui, -apple-system, sans-serif; font-size: 28px; font-weight: 600; line-height: 1.3; text-align: center; letter-spacing: -0.01em; }}
-#description {{ color: rgba(255, 255, 255, 0.7); font-family: system-ui, -apple-system, sans-serif; font-size: 15px; line-height: 1.5; margin-top: 12px; text-align: center; }}"
+#background {{ position: absolute; inset: 0; display: flex; align-items: {place}; justify-content: center; padding: 48px 0; box-sizing: border-box; backdrop-filter: blur({blur}px); animation: pw-chapter-fade-in {fade}ms ease-out forwards; }}
+#background.fade-out {{ animation: pw-chapter-fade-out {fade}ms ease-in forwards; }}
+#content {{ background: {card}; border: 1px solid {edge}; border-radius: 16px; padding: 40px 56px; max-width: {width}px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); }}
+#title {{ color: {text}; font-family: system-ui, -apple-system, sans-serif; font-size: {title_size}px; font-weight: 600; line-height: 1.3; text-align: center; letter-spacing: -0.01em; }}
+#description {{ color: color-mix(in srgb, {text} 70%, transparent); font-family: system-ui, -apple-system, sans-serif; font-size: {description_size}px; line-height: 1.5; margin-top: 12px; text-align: center; }}"
     );
     format!(
         r#"<style>{style}</style><div id="background"><div id="content"><div id="title">{}</div>{description}</div></div>"#,
@@ -75,7 +89,7 @@ async fn add(tab: &Tab, id: &str, html: &str) {
 }
 
 impl Overlays {
-    pub async fn start(tab: &Arc<Tab>, show_actions: bool) -> Result<Self> {
+    pub async fn start(tab: &Arc<Tab>, show_actions: bool, label_ms: u32) -> Result<Self> {
         let shown: Arc<Mutex<Shown>> = Arc::default();
         let mut navigated = tab.page.event_listener::<EventFrameNavigated>().await?;
         let (t, s) = (Arc::clone(tab), Arc::clone(&shown));
@@ -106,6 +120,7 @@ impl Overlays {
             next_id: AtomicU64::new(0),
             annotation: Arc::default(),
             show_actions,
+            label_ms: u64::from(label_ms),
             restorer,
         })
     }
@@ -135,27 +150,45 @@ impl Overlays {
         }
     }
 
-    pub fn remove_after(self: &Arc<Self>, id: String, after: Duration) {
-        let overlays = Arc::clone(self);
-        tokio::spawn(async move {
-            overlays.tab.clock().wait(after).await;
-            overlays.remove(&id).await;
-        });
+    pub async fn show_faded(&self, html: &str, fade_ms: u32) -> String {
+        if fade_ms == 0 {
+            return self.show(html).await;
+        }
+        self.show(&faded(html, fade_ms)).await
     }
 
-    pub async fn chapter(&self, title: &str, description: &str, duration: Duration) {
-        let id = self.show(&chapter_html(title, description)).await;
-        self.tab.clock().wait(duration).await;
+    async fn fade_out(&self, id: &str, fade_ms: u32) {
+        if fade_ms == 0 {
+            return;
+        }
         if let Err(error) = self
             .tab
             .injected_value::<Value>(
                 FADE_OUT,
-                &[Arg::Value(json!(id)), Arg::Value(json!(FADE_MS))],
+                &[Arg::Value(json!(id)), Arg::Value(json!(fade_ms))],
             )
             .await
         {
-            log::debug!("fading out a chapter: {error}");
+            log::debug!("fading out an overlay: {error}");
         }
+    }
+
+    pub fn remove_after(self: &Arc<Self>, id: String, after: Duration, fade_ms: u32) {
+        let overlays = Arc::clone(self);
+        tokio::spawn(async move {
+            overlays.tab.clock().wait(after).await;
+            overlays.fade_out(&id, fade_ms).await;
+            overlays.remove(&id).await;
+        });
+    }
+
+    pub async fn chapter(&self, p: &Chapter) {
+        let id = self.show(&chapter_html(p)).await;
+        self.tab
+            .clock()
+            .wait(Duration::from_millis(u64::from(p.duration_ms)))
+            .await;
+        self.fade_out(&id, p.fade_ms).await;
         self.remove(&id).await;
     }
 
@@ -170,6 +203,7 @@ impl Overlays {
             Arc::clone(&self.annotation),
         );
         let title = title.to_owned();
+        let label_ms = self.label_ms;
         tokio::spawn(async move {
             let last = {
                 let mut shown = shown.lock().await;
@@ -180,7 +214,7 @@ impl Overlays {
                 last
             };
             let mut annotation =
-                json!({ "actionTitle": title, "duration": SHOW_ACTIONS_MS, "cursor": "pointer" });
+                json!({ "actionTitle": title, "duration": label_ms, "cursor": "pointer" });
             if let Some(point) = point {
                 annotation["point"] = json!(point);
             }
@@ -194,9 +228,7 @@ impl Overlays {
                 log::debug!("showing an action: {error}");
                 return;
             }
-            tab.clock()
-                .wait(Duration::from_millis(SHOW_ACTIONS_MS))
-                .await;
+            tab.clock().wait(Duration::from_millis(label_ms)).await;
             if current.load(Ordering::Relaxed) == generation
                 && let Err(error) = tab
                     .injected_value::<Value>(ANNOTATE, &[Arg::Value(Value::Null)])

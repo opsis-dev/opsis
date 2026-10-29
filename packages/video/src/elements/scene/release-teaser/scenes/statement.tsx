@@ -25,8 +25,8 @@ export function Statement({
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        fontSize: fitText(text),
-        fontWeight: 500,
+        fontSize: fitText(text) * scene.textSize,
+        fontWeight: scene.statementWeight,
         lineHeight: 1.13,
         color: scene.theme.foreground,
         scale: scene.reducedMotion

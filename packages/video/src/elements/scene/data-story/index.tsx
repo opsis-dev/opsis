@@ -1,33 +1,15 @@
 import { TransitionSeries } from "@remotion/transitions";
 import { AbsoluteFill, useVideoConfig } from "remotion";
-import { MetricTicker, type MetricTickerItem } from "#video/elements/data/metric-ticker/index.tsx";
+import { MetricTicker } from "#video/elements/data/metric-ticker/index.tsx";
 import { AnimatedBarChart } from "#video/elements/scene/data-story/animated-bar-chart/index.tsx";
 import { AutoFitTitle } from "#video/elements/scene/data-story/auto-fit-title/index.tsx";
 import { CaptionBumper } from "#video/elements/scene/data-story/caption-bumper/index.tsx";
-import {
-  TimelineSteps,
-  type TimelineStep,
-} from "#video/elements/scene/data-story/timeline-steps/index.tsx";
+import { storyLook } from "#video/elements/scene/data-story/look.ts";
+import { TimelineSteps } from "#video/elements/scene/data-story/timeline-steps/index.tsx";
 import { transitionFade } from "#video/elements/scene/data-story/transition-fade.tsx";
 import { EndCard } from "#video/elements/scene/end-card/index.tsx";
-import type { ChartDatum } from "#video/lib/charts/chart-utils.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { DURATION } from "#video/lib/motion/motion-tokens.ts";
-
-const COLORS = {
-  bg: "#080810",
-  hookBg: "#0c0c14",
-  hookAccent: "#e8b86d",
-  chartBg: "#080810",
-  chartBar: "#2dd4bf",
-  tickerBg: "#0a1014",
-  tickerAccent: "#2dd4bf",
-  timelineBg: "#0c0c14",
-  timelineAccent: "#f59e0b",
-  insightBg: "#080810",
-  insightAccent: "#2dd4bf",
-  endBg: "#080810",
-  endAccent: "#e8b86d",
-} as const;
 
 const SCENE_DURATIONS = {
   hook: 84,
@@ -59,81 +41,77 @@ function sceneLengths(total: number) {
   };
 }
 
-export type DataStoryProps = {
-  title?: string;
-  subtitle?: string;
-  barData: ChartDatum[];
-  metrics: MetricTickerItem[];
-  steps: TimelineStep[];
-  chartTitle?: string;
-  metricsTitle?: string;
-  timelineTitle?: string;
-  insight?: string;
-  insightEyebrow?: string;
-  ctaTitle?: string;
-  ctaLabel?: string;
-  theme?: "dark" | "light";
-  backgroundColor?: string;
-  accentColor?: string;
-  dataColor?: string;
-  timelineColor?: string;
-};
-
-export const DataStory: React.FC<DataStoryProps> = ({
-  title = "Quarterly reach by channel",
-  subtitle = "Short-form climbed while long-form held attention",
-  barData,
-  metrics,
-  steps,
-  chartTitle = "Views by format",
-  metricsTitle = "Signals that mattered",
-  timelineTitle = "How we read the quarter",
-  insight = "Short-form drove reach; long-form kept attention.",
-  insightEyebrow = "Takeaway",
-  ctaTitle = "Turn your data into motion",
-  ctaLabel,
-  theme = "dark",
-  backgroundColor,
-  accentColor = COLORS.hookAccent,
-  dataColor = COLORS.chartBar,
-  timelineColor = COLORS.timelineAccent,
-}) => {
+export function DataStory(settings: ElementSettings["data-story"]) {
+  const {
+    title,
+    subtitle,
+    barData,
+    metrics,
+    steps,
+    chartTitle,
+    metricsTitle,
+    timelineTitle,
+    insight,
+    insightEyebrow,
+    ctaTitle,
+    ctaLabel,
+    theme,
+    backgroundColor,
+    accentColor,
+    dataColor,
+    timelineColor,
+  } = settings;
   const { durationInFrames, fps } = useVideoConfig();
   const scenes = sceneLengths(durationInFrames);
-  const dark = theme === "dark";
-  const sceneBg = (darkTint: string) => backgroundColor ?? (dark ? darkTint : undefined);
+  const look = storyLook(settings);
+  const sceneBg = (themed: string) => backgroundColor || themed;
   return (
-    <AbsoluteFill style={{ backgroundColor: sceneBg(COLORS.bg) }}>
+    <AbsoluteFill style={{ backgroundColor: sceneBg(look.palette.page) }}>
       <TransitionSeries>
         <TransitionSeries.Sequence durationInFrames={scenes.hook}>
           <AutoFitTitle
             title={title}
             subtitle={subtitle}
+            logoSrc={settings.logoSrc || undefined}
             holdSeconds={(scenes.hook - HOOK_EXIT_LEAD) / fps}
             maxFontSize={88}
-            theme={theme}
+            look={look}
             accentColor={accentColor}
-            backgroundColor={sceneBg(COLORS.hookBg)}
+            backgroundColor={sceneBg(look.palette.hookBg)}
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...FADE} />
         <TransitionSeries.Sequence durationInFrames={scenes.chart}>
           <AnimatedBarChart
             title={chartTitle}
+            subtitle={settings.chartSubtitle || undefined}
             data={barData}
-            theme={theme}
-            backgroundColor={sceneBg(COLORS.chartBg)}
+            look={look}
+            backgroundColor={sceneBg(look.palette.page)}
             barColor={dataColor}
+            accentColor={accentColor}
+            highlightLabel={settings.highlightBar || undefined}
+            showAxis={settings.showScale}
+            numberFormat={settings.numberFormat}
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...FADE} />
         <TransitionSeries.Sequence durationInFrames={scenes.metrics}>
           <MetricTicker
             title={metricsTitle}
+            eyebrow=""
             metrics={metrics}
+            maxCards={4}
             theme={theme}
-            backgroundColor={sceneBg(COLORS.tickerBg)}
+            backgroundColor={sceneBg(look.palette.tickerBg)}
             accentColor={dataColor}
+            showArrows
+            numberFormat={settings.numberFormat}
+            glow={7 * look.glow}
+            uppercaseEyebrow={look.eyebrowCaps}
+            cornerRadius={18}
+            trendFill
+            fontFamily={settings.fontFamily}
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition {...FADE} />
@@ -142,8 +120,8 @@ export const DataStory: React.FC<DataStoryProps> = ({
             speed={1.5}
             title={timelineTitle}
             steps={steps}
-            theme={theme}
-            backgroundColor={sceneBg(COLORS.timelineBg)}
+            look={look}
+            backgroundColor={sceneBg(look.palette.timelineBg)}
             accentColor={timelineColor}
           />
         </TransitionSeries.Sequence>
@@ -152,8 +130,9 @@ export const DataStory: React.FC<DataStoryProps> = ({
           <CaptionBumper
             text={insight}
             eyebrow={insightEyebrow}
-            theme={theme}
-            backgroundColor={sceneBg(COLORS.insightBg)}
+            maxFontSize={84}
+            look={look}
+            backgroundColor={sceneBg(look.palette.page)}
             accentColor={dataColor}
           />
         </TransitionSeries.Sequence>
@@ -162,13 +141,25 @@ export const DataStory: React.FC<DataStoryProps> = ({
           <EndCard
             speed={1.4}
             title={ctaTitle}
+            subtitle={settings.ctaSubtitle}
+            eyebrow=""
             cta={ctaLabel}
+            url={settings.ctaUrl}
+            handles={[]}
+            logoSrc=""
             theme={theme}
-            backgroundColor={sceneBg(COLORS.endBg)}
+            backgroundColor={sceneBg(look.palette.page)}
             accentColor={accentColor}
+            fontFamily={settings.fontFamily}
+            glow={Math.round(12 * look.glow)}
+            textSize={look.textSize}
+            titleWeight={700}
+            eyebrowCaps={look.eyebrowCaps}
+            buttonRadius={999}
+            buttonArrow
           />
         </TransitionSeries.Sequence>
       </TransitionSeries>
     </AbsoluteFill>
   );
-};
+}

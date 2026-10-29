@@ -107,7 +107,11 @@ fn uses_the_recording_once_the_capture_node_has_a_result() {
     assert_eq!(props["tuning"]["sMax"], 1.74);
     assert_eq!(
         props["keystrokes"],
-        json!({ "position": "bottom", "typed": true, "chords": true, "keycap": "#0a0a0a", "ink": "#ffffff", "size": 1.0 })
+        json!({
+            "position": "bottom", "typed": true, "chords": true, "keycap": "#0a0a0a", "ink": "#ffffff", "size": 1.0,
+            "chordHoldS": 1.1, "typedHoldS": 0.6, "edge": 56.0, "radius": 26.0, "keyNames": "symbols", "shadow": 0.35,
+            "caret": true
+        })
     );
 }
 

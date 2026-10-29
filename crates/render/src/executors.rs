@@ -6,8 +6,8 @@ use opsis_compile::asset_ref::project_ref;
 use opsis_compile::hosted::hosted;
 use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::output::{
-    ExportImages, ExportVideo, Gl, Variant, export_base_name, still_file_names, variant_size,
-    video_file_names,
+    ExportImages, ExportVideo, Gl, StillFormat, Variant, export_base_name, still_file_names,
+    variant_size, video_file_names,
 };
 use opsis_compile::time::{frames_to_ms, lerp, ms_to_frames_from};
 use opsis_compile::timeline::chapters::{
@@ -146,6 +146,11 @@ async fn render_to(job: &VariantJob<'_>, output: &Path, muted: bool) -> Result<(
         crf: codec_info(p.codec).crf.then_some(f64::from(p.crf)),
         scale: p.scale,
         muted,
+        x264_preset: p.x264_preset(),
+        pixel_format: p.pixel_format(),
+        pro_res_profile: p.prores(),
+        number_of_gif_loops: p.gif_loops(),
+        every_nth_frame: p.every_nth_frame(),
     };
     job.engine
         .sidecar
@@ -165,6 +170,11 @@ async fn picture_for(job: &VariantJob<'_>) -> Result<PathBuf, ExecError> {
         crf: f64::from(p.crf),
         scale: p.scale,
         gl: p.gl,
+        x264_preset: p.x264_preset(),
+        pixel_format: p.pixel_format(),
+        pro_res_profile: p.prores(),
+        number_of_gif_loops: p.gif_loops(),
+        every_nth_frame: p.every_nth_frame(),
     };
     let key = picture_key(&job.spec, &opts, &job.ctx.env.app_version);
     let name = format!("{key}.{}", codec_info(p.codec).ext);
@@ -196,7 +206,7 @@ async fn chapters_for(
     let chapters = if p.codec == Codec::Gif {
         Vec::new()
     } else {
-        film_chapters(spec)
+        film_chapters(spec, &p.first_chapter)
     };
     let metadata = (p.chapters && !chapters.is_empty()).then(|| ctx.dir.join("chapters.txt"));
     if let Some(file) = &metadata {
@@ -251,7 +261,13 @@ async fn render_variant(
                 run_tool(
                     ctx,
                     job.engine,
-                    mux_args(codec, &shown(&picture), &shown(&sound), &shown(&temp)),
+                    mux_args(
+                        codec,
+                        &shown(&picture),
+                        &shown(&sound),
+                        &shown(&temp),
+                        job.p.sound_kbps,
+                    ),
                 )
             })
             .await?;
@@ -402,20 +418,14 @@ async fn export_images(
             target: render_target(
                 &ctx,
                 &engine,
-                sized(
-                    &spec,
-                    size.width,
-                    size.height,
-                    ReframeMode::Follow,
-                    &server.url,
-                ),
+                sized(&spec, size.width, size.height, p.reframe, &server.url),
                 p.gl,
             )?,
             frame: ms_to_frames_from(f64::from(p.at_ms), spec.fps, 0),
             output: out.to_string_lossy().into_owned(),
             format: p.format,
-            scale: None,
-            jpeg_quality: None,
+            scale: (p.scale != 1.0).then_some(p.scale),
+            jpeg_quality: (p.format == StillFormat::Jpeg).then_some(f64::from(p.jpeg_quality)),
         };
         engine
             .sidecar

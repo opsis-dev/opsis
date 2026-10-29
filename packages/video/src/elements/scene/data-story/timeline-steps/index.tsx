@@ -1,9 +1,7 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
+import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-
-const fontFamily = '"Inter"';
 
 export type TimelineStep = {
   title: string;
@@ -15,8 +13,8 @@ export type TimelineStepsProps = {
   title?: string;
   eyebrow?: string;
   backgroundColor?: string;
-  accentColor?: string;
-  theme?: "dark" | "light";
+  accentColor: string;
+  look: StoryLook;
   holdSeconds?: number;
   speed?: number;
 };
@@ -34,37 +32,35 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-const CheckGlyph: React.FC<{
-  size: number;
-  color: string;
-  progress: number;
-}> = ({ size, color, progress }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M4.8 12.6l4.9 4.9 9.5-10.4"
-      stroke={color}
-      strokeWidth={2.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeDasharray={22}
-      strokeDashoffset={22 * (1 - progress)}
-    />
-  </svg>
-);
+function CheckGlyph({ size, color, progress }: { size: number; color: string; progress: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M4.8 12.6l4.9 4.9 9.5-10.4"
+        stroke={color}
+        strokeWidth={2.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray={22}
+        strokeDashoffset={22 * (1 - progress)}
+      />
+    </svg>
+  );
+}
 
-export const TimelineSteps: React.FC<TimelineStepsProps> = ({
+export function TimelineSteps({
   steps,
   title,
   eyebrow,
   backgroundColor,
-  accentColor = "#E8B86D",
-  theme = "dark",
+  accentColor,
+  look,
   holdSeconds,
   speed = 1,
-}) => {
+}: TimelineStepsProps) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
+  const palette = look.palette;
   const safe = getSafeAreaPadding({ width, height });
 
   const now = (frame / fps) * speed;
@@ -138,7 +134,7 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
         width,
         height,
         background: backgroundColor ?? palette.page,
-        fontFamily,
+        fontFamily: look.font,
         position: "relative",
         overflow: "hidden",
       }}
@@ -149,7 +145,7 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
           inset: 0,
           background: `radial-gradient(ellipse 80% 50% at 50% ${
             portrait ? 30 : 40
-          }%, color-mix(in srgb, ${accentColor} 8%, transparent), transparent 70%)`,
+          }%, color-mix(in srgb, ${accentColor} ${8 * look.glow}%, transparent), transparent 70%)`,
         }}
       />
 
@@ -173,8 +169,8 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
               color: accentColor,
               fontSize: 21 * u,
               fontWeight: 600,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
+              letterSpacing: look.eyebrowCaps ? "0.12em" : undefined,
+              textTransform: look.eyebrowCaps ? "uppercase" : "none",
               opacity: titleIn,
               translate: `0 ${(1 - titleIn) * 10 * u}px`,
             }}
@@ -190,7 +186,7 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
               top: eyebrow ? 36 * u : 0,
               margin: 0,
               color: palette.fg,
-              fontSize: 62 * u,
+              fontSize: 62 * look.textSize * u,
               fontWeight: 700,
               lineHeight: 1.05,
               letterSpacing: "-0.02em",
@@ -363,4 +359,4 @@ export const TimelineSteps: React.FC<TimelineStepsProps> = ({
       </div>
     </div>
   );
-};
+}

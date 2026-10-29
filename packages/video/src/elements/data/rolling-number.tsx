@@ -1,27 +1,29 @@
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings, GroupSeparator } from "#video/generated/spec.ts";
 
-const MONO_FAMILY = '"JetBrains Mono"';
+const SEPARATOR_MARK: Record<GroupSeparator, string> = {
+  none: "",
+  space: "",
+  comma: ",",
+  dot: ".",
+};
 
-export interface RollingNumberProps {
-  background?: string;
-  from?: number;
-  to?: number;
-  fontSize?: number;
-  color?: string;
-  speed?: number;
-}
-
-const COUNT_PORTION = 0.8;
 const FIT_WIDTH = 1800;
 const COUNT_EASING = Easing.out(Easing.poly(4));
 const REVEAL_BAND = 0.4;
 const REVEAL_EASING = Easing.inOut(Easing.sin);
 const REVEAL_RISE_EM = 0.32;
 
-function easedProgress(frame: number, speed: number, durationInFrames: number): number {
-  return interpolate(frame * speed, [0, durationInFrames * COUNT_PORTION], [0, 1], {
+function easedProgress(
+  frame: number,
+  speed: number,
+  durationInFrames: number,
+  portion: number,
+): number {
+  return interpolate(frame * speed, [0, durationInFrames * portion], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: COUNT_EASING,
@@ -95,13 +97,19 @@ function DigitColumn({
 }
 
 export function RollingNumber({
-  from = 0,
-  to = 24813,
-  fontSize = 120,
-  color = "#171717",
-  speed = 1,
-  background = "transparent",
-}: RollingNumberProps) {
+  from,
+  to,
+  fontSize,
+  color,
+  speed,
+  background,
+  finishAt,
+  groupSeparator,
+  fontWeight,
+  prefix,
+  suffix,
+  fontFamily,
+}: ElementSettings["rolling-number"]) {
   const frame = useAuthoredFrame();
   const { durationInFrames: clipFrames } = useAuthoredConfig();
   const durationInFrames = clipFrames * speed;
@@ -109,18 +117,19 @@ export function RollingNumber({
   const start = Math.max(0, Math.round(from));
   const end = Math.max(0, Math.round(to));
 
-  const e = easedProgress(frame, speed, durationInFrames);
+  const e = easedProgress(frame, speed, durationInFrames, finishAt / 100);
   const current = start + e * (end - start);
 
   const maxVal = Math.max(start, end);
   const digits = String(maxVal);
-  const groups = Math.floor((digits.length - 1) / 3);
+  const grouped = groupSeparator !== "none";
+  const groups = grouped ? Math.floor((digits.length - 1) / 3) : 0;
   const fittedSize = Math.min(fontSize, FIT_WIDTH / ((digits.length + groups * 0.34) * 0.62));
   const cellHeight = fittedSize * 1.1;
 
   const cells: React.ReactNode[] = [];
   for (let place = 0; place < digits.length; place++) {
-    if (place > 0 && place % 3 === 0) {
+    if (grouped && place > 0 && place % 3 === 0) {
       cells.unshift(
         <span
           key={`s${place}`}
@@ -128,8 +137,12 @@ export function RollingNumber({
             display: "inline-block",
             width: "0.34em",
             height: cellHeight,
+            lineHeight: `${cellHeight}px`,
+            textAlign: "center",
           }}
-        />,
+        >
+          {SEPARATOR_MARK[groupSeparator]}
+        </span>,
       );
     }
     const pow = 10 ** place;
@@ -160,15 +173,17 @@ export function RollingNumber({
           display: "flex",
           alignItems: "flex-start",
           fontSize: fittedSize,
-          fontWeight: 800,
+          fontWeight,
           color,
-          fontFamily: MONO_FAMILY,
+          fontFamily: fontOr(fontFamily, "code"),
           fontVariantNumeric: "tabular-nums",
           letterSpacing: "-0.03em",
           lineHeight: 1,
         }}
       >
+        {prefix ? <span style={{ lineHeight: `${cellHeight}px` }}>{prefix}</span> : null}
         {cells}
+        {suffix ? <span style={{ lineHeight: `${cellHeight}px` }}>{suffix}</span> : null}
       </div>
     </AbsoluteFill>
   );

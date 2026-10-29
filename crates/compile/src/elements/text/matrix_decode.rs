@@ -20,7 +20,8 @@ pub struct MatrixDecode {
         "Scramble characters",
         default = "!@#$%^&*()_+-=<>?/\\|",
         zero_label = "Built-in",
-        help = "Characters the text flickers through before it settles."
+        help = "Characters the text flickers through before it settles.",
+        advanced
     )]
     pub charset: String,
     #[setting("Font size", default = 72, range(min = 12, max = 160), step = 1)]
@@ -53,6 +54,20 @@ pub struct MatrixDecode {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Scramble every",
+        default = 0.0667,
+        range(min = 0.0333, max = 0.5),
+        step = 0.0333,
+        unit = "s",
+        frames_at = 30,
+        advanced
+    )]
+    pub scramble_every: f64,
+    #[setting("Variation", step = 1, advanced)]
+    pub seed: u32,
+    #[setting("Letter spacing", default = 0.05, range(min = -0.2, max = 0.5), unit = "em", advanced)]
+    pub letter_spacing: f64,
 }
 
 pub fn definition() -> ElementMeta {

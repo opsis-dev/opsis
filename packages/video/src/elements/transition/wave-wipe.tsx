@@ -4,40 +4,24 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
-import { ShaderGrainGradient } from "#video/elements/background/shader-grain-gradient.tsx";
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { GrainGradientField } from "#video/parts/shader-fields.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,
   extrapolateRight: "clamp" as const,
 };
 
-const DEFAULT_COLORS = ["#3a3a52", "#4a4a68", "#8f88ae"];
+type WaveWipeProps = ElementSettings["wave-wipe"];
 
-export type WaveWipeProps = {
-  colors?: string[];
-  colorBack?: string;
-  intensity?: number;
-  softness?: number;
-  noise?: number;
-  zoom?: number;
-  speed?: number;
-};
-
-const WaveWipePresentation: React.FC<TransitionPresentationComponentProps<WaveWipeProps>> = ({
+function WaveWipePresentation({
   children,
   presentationProgress,
   presentationDirection,
   passedProps,
-}) => {
-  const {
-    colors = DEFAULT_COLORS,
-    colorBack = "#141318",
-    intensity = 0.2,
-    softness = 0.7,
-    noise = 0.4,
-    zoom = 1.16,
-    speed = 1,
-  } = passedProps;
+}: TransitionPresentationComponentProps<WaveWipeProps>) {
+  const { colors, colorBack, intensity, softness, noise, zoom, speed, direction } = passedProps;
+  const sign = direction === "up" ? 1 : -1;
   const entering = presentationDirection === "entering";
   const p = presentationProgress;
 
@@ -47,7 +31,7 @@ const WaveWipePresentation: React.FC<TransitionPresentationComponentProps<WaveWi
         ...clampOpts,
         easing: Easing.bezier(0.42, 0, 0.58, 1),
       }),
-      translate: `0 ${interpolate(p, [0, 0.7], [0, -70], {
+      translate: `0 ${interpolate(p, [0, 0.7], [0, -70 * sign], {
         ...clampOpts,
         easing: Easing.in(Easing.cubic),
       })}%`,
@@ -59,11 +43,11 @@ const WaveWipePresentation: React.FC<TransitionPresentationComponentProps<WaveWi
     ...clampOpts,
     easing: Easing.bezier(0.42, 0, 0.58, 1),
   });
-  const drift = interpolate(p, [0, 1], [0, 0.7], {
+  const drift = interpolate(p, [0, 1], [0, 0.7 * sign], {
     ...clampOpts,
     easing: Easing.bezier(0.45, 0, 0.55, 1),
   });
-  const rise = interpolate(p, [0.4, 0.82, 1], [100, -3.5, 0], {
+  const rise = interpolate(p, [0.4, 0.82, 1], [100 * sign, -3.5 * sign, 0], {
     ...clampOpts,
     easing: Easing.out(Easing.cubic),
   });
@@ -71,7 +55,7 @@ const WaveWipePresentation: React.FC<TransitionPresentationComponentProps<WaveWi
   return (
     <AbsoluteFill>
       <AbsoluteFill style={{ opacity: fieldOpacity, pointerEvents: "none" }}>
-        <ShaderGrainGradient
+        <GrainGradientField
           speed={speed}
           shape="wave"
           colors={colors}
@@ -86,9 +70,9 @@ const WaveWipePresentation: React.FC<TransitionPresentationComponentProps<WaveWi
       <AbsoluteFill style={{ translate: `0 ${rise}%` }}>{children}</AbsoluteFill>
     </AbsoluteFill>
   );
-};
+}
 
-export function waveWipe(props: WaveWipeProps = {}): TransitionPresentation<WaveWipeProps> {
+export function waveWipe(props: WaveWipeProps): TransitionPresentation<WaveWipeProps> {
   return {
     component: WaveWipePresentation,
     props,

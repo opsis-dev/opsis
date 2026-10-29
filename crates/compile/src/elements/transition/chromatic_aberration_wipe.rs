@@ -29,6 +29,8 @@ pub struct ChromaticAberrationWipe {
         advanced
     )]
     pub slide: f64,
+    #[setting("Fade while sliding", advanced)]
+    pub fade: bool,
 }
 
 pub fn definition() -> ElementMeta {

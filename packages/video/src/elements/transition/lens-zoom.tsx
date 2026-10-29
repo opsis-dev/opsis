@@ -5,52 +5,21 @@ import type {
 import type { ReactNode } from "react";
 import { useId } from "react";
 import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-
-export const LENS_ZOOM_DURATION_IN_FRAMES = 28;
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export const SHAKE_STOPS = [-9 / 11, -3 / 11, 4 / 11, 8 / 11] as const;
 
 export const LENS_ZOOM_EASE_IN = Easing.bezier(0.54, 0, 0.82, 0.8);
 export const LENS_ZOOM_EASE_OUT = Easing.bezier(0.18, 0.2, 0.46, 1);
 
-export type LensZoomProps = {
-  inScaleFrom?: number;
-  inScaleTo?: number;
-  inFovFrom?: number;
-  inFovTo?: number;
-  inBlurFrom?: number;
-  inBlurTo?: number;
-  inRotationFrom?: number;
-  inRotationTo?: number;
-  outScaleFrom?: number;
-  outScaleTo?: number;
-  outFovFrom?: number;
-  outFovTo?: number;
-  outBlurFrom?: number;
-  outBlurTo?: number;
-  outRotationFrom?: number;
-  outRotationTo?: number;
-  anticipateScale?: number;
-  anticipatePortion?: number;
-  lensSteps?: number;
-  blurSamples?: number;
-  blurScaleGain?: number;
-  blurFade?: number;
-  shakeAmount?: number;
-  shakeFrequency?: number;
-  shakeCyclesPerUnit?: number;
-  shakeTranslatePx?: number;
-  shakeRotateDeg?: number;
-  redScale?: number;
-  greenScale?: number;
-  blueScale?: number;
-  colorSplit?: boolean;
-  letterboxAspect?: number;
-  width?: number;
-  height?: number;
-  distortionCenterX?: number;
-  distortionCenterY?: number;
-};
+type LensZoomProps = ElementSettings["lens-zoom"];
+
+const EXIT_ZOOM_SHARE = 0.9;
+const EXIT_BLUR_SHARE = 0.75;
+const EXIT_FOV_SHARE = 135 / 160;
+const ANTICIPATE_PORTION = 0.35;
+const BLUR_SCALE_GAIN = 1;
+const BLUR_FADE = 1.5;
 
 function hashed(seed: number, i: number): number {
   let t = Math.imul(i ^ seed, 0x27d4eb2d);
@@ -226,6 +195,7 @@ interface LensZoomStageProps extends HalfProps {
   greenScale: number;
   blueScale: number;
   letterboxAspect: number;
+  background: string;
 }
 
 function LensZoomStage({
@@ -238,6 +208,7 @@ function LensZoomStage({
   greenScale,
   blueScale,
   letterboxAspect,
+  background,
   ...half
 }: LensZoomStageProps) {
   const frame = useCurrentFrame();
@@ -304,7 +275,7 @@ function LensZoomStage({
         width,
         height,
         overflow: "hidden",
-        backgroundColor: "#000000",
+        backgroundColor: background,
       }}
     >
       {split ? (
@@ -340,7 +311,7 @@ function LensZoomStage({
               right: 0,
               top: 0,
               height: barHeight,
-              backgroundColor: "#000000",
+              backgroundColor: background,
             }}
           />
           <div
@@ -350,7 +321,7 @@ function LensZoomStage({
               right: 0,
               bottom: 0,
               height: barHeight,
-              backgroundColor: "#000000",
+              backgroundColor: background,
             }}
           />
         </>
@@ -359,58 +330,43 @@ function LensZoomStage({
   );
 }
 
-const LensZoomPresentation: React.FC<TransitionPresentationComponentProps<LensZoomProps>> = ({
+function LensZoomPresentation({
   children,
   presentationDirection,
   presentationProgress,
   passedProps,
-}) => {
-  const config = useVideoConfig();
+}: TransitionPresentationComponentProps<LensZoomProps>) {
+  const { width, height } = useVideoConfig();
   const {
-    inScaleFrom = 100,
-    inScaleTo = 150,
-    inFovFrom = 0,
-    inFovTo = 160,
-    inBlurFrom = 0,
-    inBlurTo = 60,
-    inRotationFrom = 0,
-    inRotationTo = -15,
-
-    outScaleFrom = 135,
-    outScaleTo = 100,
-    outFovFrom = 135,
-    outFovTo = 0,
-    outBlurFrom = 45,
-    outBlurTo = 0,
-    outRotationFrom = 345,
-    outRotationTo = 360,
-
-    anticipateScale = 100,
-    anticipatePortion = 0.35,
-
-    lensSteps = 9,
-    blurSamples = 7,
-    blurScaleGain = 1,
-    blurFade = 1.5,
-
-    shakeAmount = 50,
-    shakeFrequency = 1.4,
-    shakeCyclesPerUnit = 8,
-    shakeTranslatePx = 73,
-    shakeRotateDeg = 1.1,
-
-    redScale = 1.01,
-    greenScale = 1.0,
-    blueScale = 0.99,
-    colorSplit = true,
-
-    letterboxAspect = 0,
-
-    width = config.width,
-    height = config.height,
-    distortionCenterX = width / 2,
-    distortionCenterY = height / 2,
+    lensSteps,
+    blurSamples,
+    shakeAmount,
+    shakeTranslatePx,
+    colorSplit,
+    zoom,
+    zoomBlur,
+    distortion,
+    twist,
+    pullBack,
+    shakeSpeed,
+    shakeRotation,
+    fringe,
+    letterbox,
+    background,
   } = passedProps;
+  const inScaleFrom = 100;
+  const outScaleFrom = zoom * EXIT_ZOOM_SHARE;
+  const outScaleTo = 100;
+  const inFovFrom = 0;
+  const outFovFrom = distortion * EXIT_FOV_SHARE;
+  const outFovTo = 0;
+  const inBlurFrom = 0;
+  const outBlurFrom = zoomBlur * EXIT_BLUR_SHARE;
+  const outBlurTo = 0;
+  const inRotationFrom = 0;
+  const outRotationFrom = 360 + twist;
+  const outRotationTo = 360;
+  const anticipatePortion = ANTICIPATE_PORTION;
 
   const exiting = presentationDirection === "exiting";
 
@@ -428,7 +384,7 @@ const LensZoomPresentation: React.FC<TransitionPresentationComponentProps<LensZo
         extrapolateRight: "clamp",
       });
 
-  const anticipating = exiting && anticipatePortion > 0 && anticipateScale < inScaleFrom;
+  const anticipating = exiting && pullBack < inScaleFrom;
 
   const pFx =
     anticipating && exiting
@@ -441,12 +397,12 @@ const LensZoomPresentation: React.FC<TransitionPresentationComponentProps<LensZo
   const lerp = (from: number, to: number) => from + (to - from) * pFx;
 
   const exitScale = anticipating
-    ? interpolate(p, [0, anticipatePortion, 1], [inScaleFrom, anticipateScale, inScaleTo], {
+    ? interpolate(p, [0, anticipatePortion, 1], [inScaleFrom, pullBack, zoom], {
         easing: Easing.inOut(Easing.ease),
         extrapolateLeft: "clamp",
         extrapolateRight: "clamp",
       })
-    : lerp(inScaleFrom, inScaleTo);
+    : lerp(inScaleFrom, zoom);
 
   const shakeEnvelope =
     interpolate(
@@ -460,31 +416,32 @@ const LensZoomPresentation: React.FC<TransitionPresentationComponentProps<LensZo
     <LensZoomStage
       scene={children}
       scale={exiting ? exitScale : lerp(outScaleFrom, outScaleTo)}
-      fov={exiting ? lerp(inFovFrom, inFovTo) : lerp(outFovFrom, outFovTo)}
-      blur={exiting ? lerp(inBlurFrom, inBlurTo) : lerp(outBlurFrom, outBlurTo)}
-      rotation={exiting ? lerp(inRotationFrom, inRotationTo) : lerp(outRotationFrom, outRotationTo)}
-      centerX={distortionCenterX}
-      centerY={distortionCenterY}
+      fov={exiting ? lerp(inFovFrom, distortion) : lerp(outFovFrom, outFovTo)}
+      blur={exiting ? lerp(inBlurFrom, zoomBlur) : lerp(outBlurFrom, outBlurTo)}
+      rotation={exiting ? lerp(inRotationFrom, twist) : lerp(outRotationFrom, outRotationTo)}
+      centerX={width / 2}
+      centerY={height / 2}
       width={width}
       height={height}
       lensSteps={lensSteps}
       blurSamples={blurSamples}
-      blurScaleGain={blurScaleGain}
-      blurFade={blurFade}
+      blurScaleGain={BLUR_SCALE_GAIN}
+      blurFade={BLUR_FADE}
       shakeEnvelope={shakeEnvelope}
-      shakeFrequency={shakeFrequency}
-      shakeCyclesPerUnit={shakeCyclesPerUnit}
+      shakeFrequency={shakeSpeed}
+      shakeCyclesPerUnit={1}
       shakeTranslatePx={shakeTranslatePx}
-      shakeRotateDeg={shakeRotateDeg}
-      redScale={colorSplit ? redScale : greenScale}
-      greenScale={greenScale}
-      blueScale={colorSplit ? blueScale : greenScale}
-      letterboxAspect={letterboxAspect}
+      shakeRotateDeg={shakeRotation}
+      redScale={colorSplit ? 1 + fringe / 100 : 1}
+      greenScale={1}
+      blueScale={colorSplit ? 1 - fringe / 100 : 1}
+      letterboxAspect={letterbox}
+      background={background}
     />
   );
-};
+}
 
-export function lensZoom(props: LensZoomProps = {}): TransitionPresentation<LensZoomProps> {
+export function lensZoom(props: LensZoomProps): TransitionPresentation<LensZoomProps> {
   return {
     component: LensZoomPresentation,
     props,

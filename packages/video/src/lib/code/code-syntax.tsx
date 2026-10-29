@@ -1,3 +1,5 @@
+import type { Theme } from "#video/generated/spec.ts";
+
 export type CodeTokenKind =
   | "plain"
   | "comment"
@@ -84,6 +86,49 @@ export const CODE_THEMES: Record<"dark" | "light", CodeTheme> = {
     },
   },
 };
+
+const TOKEN_KINDS: CodeTokenKind[] = [
+  "plain",
+  "comment",
+  "string",
+  "keyword",
+  "number",
+  "type",
+  "call",
+  "prop",
+  "punct",
+  "tag",
+];
+
+export type ThemedCode = CodeTheme & { added: string; removed: string };
+
+const DIFF = {
+  dark: { removed: "#F87171" },
+  light: { removed: "#DC2626" },
+} as const;
+
+export function codePalette(theme: Theme): ThemedCode {
+  const base = CODE_THEMES[theme.mode];
+  const pick = (key: string, fallback: string) => theme.colors[key] ?? fallback;
+  return {
+    page: pick("page", base.page),
+    window: pick("window", base.window),
+    header: pick("header", base.header),
+    border: pick("border", base.border),
+    highlight: pick("highlight", base.highlight),
+    gutter: pick("gutter", base.gutter),
+    fg: pick("fg", base.fg),
+    dim: pick("dim", base.dim),
+    faint: pick("faint", base.faint),
+    band: pick("band", base.band),
+    shadow: pick("shadow", base.shadow),
+    token: Object.fromEntries(
+      TOKEN_KINDS.map((kind) => [kind, pick(kind, base.token[kind])]),
+    ) as Record<CodeTokenKind, string>,
+    added: pick("added", base.token.string),
+    removed: pick("removed", DIFF[theme.mode].removed),
+  };
+}
 
 const KEYWORDS = new Set([
   "import",
@@ -230,7 +275,7 @@ export type CodeLineProps = {
   muted?: boolean;
 };
 
-export const CodeLine: React.FC<CodeLineProps> = ({ tokens, theme, reveal, muted = false }) => {
+export function CodeLine({ tokens, theme, reveal, muted = false }: CodeLineProps) {
   return (
     <span style={{ whiteSpace: "pre" }}>
       {tokens.map((token, index) => {
@@ -258,7 +303,7 @@ export const CodeLine: React.FC<CodeLineProps> = ({ tokens, theme, reveal, muted
       })}
     </span>
   );
-};
+}
 
 export function lineLength(tokens: CodeToken[]): number {
   return tokens.reduce((total, token) => total + token.text.length, 0);

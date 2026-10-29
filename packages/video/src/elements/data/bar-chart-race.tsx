@@ -1,37 +1,18 @@
-import type React from "react";
+import type { CSSProperties } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
-import { formatCompactNumber } from "#video/lib/charts/chart-utils.ts";
+import { fontOr } from "#video/common/fonts.ts";
+import type { Corner, ElementSettings } from "#video/generated/spec.ts";
+import { formatNumber } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
-export type RaceSeries = {
-  label: string;
-  values: number[];
-  color?: string;
-};
+const EXIT_FRAMES = 20;
 
-export type BarChartRaceProps = {
-  series: RaceSeries[];
-  steps?: string[];
-  framesPerStep?: number;
-  visibleRows?: number;
-  width?: number;
-  rowHeight?: number;
-  gap?: number;
-  colors?: string[];
-  inkColor?: string;
-  barInkColor?: string;
-  labelColor?: string;
-  labelWidth?: number;
-  showStepLabel?: boolean;
-  valueFormatter?: (value: number) => string;
-  delayInFrames?: number;
-  exitAtInFrames?: number;
-  exitInFrames?: number;
-  frame?: number;
+const CORNER_STYLE: Record<Corner, CSSProperties> = {
+  "top-left": { left: 0, top: 0 },
+  "top-right": { right: 0, top: 0 },
+  "bottom-left": { left: 0, bottom: 0 },
+  "bottom-right": { right: 0, bottom: 0 },
 };
-
-const DEFAULT_COLORS = ["#e8b86d", "#2dd4bf", "#f472b6", "#8b8bf5", "#f59e0b", "#5eead4"];
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -44,28 +25,31 @@ function valueAt(values: number[], time: number): number {
   return values[lower] + (values[upper] - values[lower]) * t;
 }
 
-const BarChartRaceView: React.FC<BarChartRaceProps> = ({
+export function BarChartRace({
   series,
   steps,
-  framesPerStep = 26,
-  visibleRows = 6,
-  width = 900,
-  rowHeight = 66,
-  gap = 14,
-  colors = DEFAULT_COLORS,
-  inkColor = "#fafafa",
-  barInkColor = "#0b0b10",
-  labelColor = "rgba(250,250,250,0.55)",
-  labelWidth = 200,
-  showStepLabel = true,
-  valueFormatter = (value: number) => formatCompactNumber(value),
-  delayInFrames = 0,
+  framesPerStep,
+  visibleRows,
+  width,
+  rowHeight,
+  gap,
+  colors,
+  inkColor,
+  barInkColor,
+  labelColor,
+  labelWidth,
+  showStepLabel,
+  numberFormat,
+  cornerRadius,
+  stepLabelPosition,
+  stepLabelSize,
+  stepLabelOpacity,
+  fontFamily,
   exitAtInFrames,
-  exitInFrames = 20,
-  frame: frameOverride,
-}) => {
-  const localFrame = useCurrentFrame();
-  const frame = frameOverride ?? localFrame;
+}: ElementSettings["bar-chart-race"] & { exitAtInFrames?: number }) {
+  const frame = useCurrentFrame();
+  const delayInFrames = 0;
+  const exitInFrames = EXIT_FRAMES;
 
   const stepCount = series.reduce((longest, entry) => Math.max(longest, entry.values.length), 0);
   const lastStep = Math.max(0, stepCount - 1);
@@ -121,103 +105,100 @@ const BarChartRaceView: React.FC<BarChartRaceProps> = ({
   const stepLabel = steps?.[Math.round(time)] ?? "";
 
   return (
-    <div
-      style={{
-        position: "relative",
-        width,
-        height: pitch * visibleRows,
-        opacity: 1 - clamp01(exit / 0.8),
-      }}
-    >
-      {current.map((entry, index) => {
-        const rank = lowerRanks[index] + (upperRanks[index] - lowerRanks[index]) * eased;
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <div
+        style={{
+          position: "relative",
+          width,
+          height: pitch * visibleRows,
+          opacity: 1 - clamp01(exit / 0.8),
+          fontFamily: fontOr(fontFamily, "main"),
+        }}
+      >
+        {current.map((entry, index) => {
+          const rank = lowerRanks[index] + (upperRanks[index] - lowerRanks[index]) * eased;
 
-        const visibility = clamp01(visibleRows - rank) * entry.present;
-        if (visibility <= 0) return null;
+          const visibility = clamp01(visibleRows - rank) * entry.present;
+          if (visibility <= 0) return null;
 
-        return (
-          <div
-            key={index}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width,
-              height: rowHeight,
-              display: "flex",
-              alignItems: "center",
-              gap: gap,
-              translate: `0 ${rank * pitch}px`,
-              opacity: visibility,
-            }}
-          >
-            <span
-              style={{
-                width: labelWidth - gap,
-                textAlign: "right",
-                color: labelColor,
-                fontSize: rowHeight * 0.32,
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {entry.label}
-            </span>
-
+          return (
             <div
+              key={index}
               style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width,
                 height: rowHeight,
-                width: Math.max(rowHeight * 0.6, (entry.current / leader) * barWidth * (1 - exit)),
-                borderRadius: rowHeight * 0.22,
-                background: entry.color,
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "flex-end",
-                paddingRight: rowHeight * 0.28,
-                boxSizing: "border-box",
+                gap: gap,
+                translate: `0 ${rank * pitch}px`,
+                opacity: visibility,
               }}
             >
               <span
                 style={{
-                  color: barInkColor,
-                  fontSize: rowHeight * 0.3,
-                  fontWeight: 700,
-                  fontVariantNumeric: "tabular-nums",
+                  width: labelWidth - gap,
+                  textAlign: "right",
+                  color: labelColor,
+                  fontSize: rowHeight * 0.32,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
               >
-                {valueFormatter(entry.current)}
+                {entry.label}
               </span>
+
+              <div
+                style={{
+                  height: rowHeight,
+                  width: Math.max(
+                    rowHeight * 0.6,
+                    (entry.current / leader) * barWidth * (1 - exit),
+                  ),
+                  borderRadius: (rowHeight * cornerRadius) / 100,
+                  background: entry.color,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  paddingRight: rowHeight * 0.28,
+                  boxSizing: "border-box",
+                }}
+              >
+                <span
+                  style={{
+                    color: barInkColor,
+                    fontSize: rowHeight * 0.3,
+                    fontWeight: 700,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {formatNumber(entry.current, numberFormat)}
+                </span>
+              </div>
             </div>
+          );
+        })}
+
+        {showStepLabel && stepLabel !== "" ? (
+          <div
+            style={{
+              position: "absolute",
+              ...CORNER_STYLE[stepLabelPosition],
+              color: inkColor,
+              fontSize: (rowHeight * stepLabelSize) / 100,
+              fontWeight: 700,
+              opacity: stepLabelOpacity / 100,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {stepLabel}
           </div>
-        );
-      })}
-
-      {showStepLabel && stepLabel !== "" ? (
-        <div
-          style={{
-            position: "absolute",
-            right: 0,
-            bottom: 0,
-            color: inkColor,
-            fontSize: rowHeight * 0.9,
-            fontWeight: 700,
-            opacity: 0.22,
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {stepLabel}
-        </div>
-      ) : null}
-    </div>
-  );
-};
-
-export function BarChartRace(props: ElementProps & { children?: React.ReactNode }) {
-  return (
-    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-      <BarChartRaceView {...(props as unknown as React.ComponentProps<typeof BarChartRaceView>)} />
+        ) : null}
+      </div>
     </AbsoluteFill>
   );
 }

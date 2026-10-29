@@ -3,6 +3,7 @@ use opsis_types::actions::Bounds;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
+use opsis_types::recording::WindowStyle;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
 use opsis_types::values::{BrowserAction, CompileValue, ImageValue, RecordingValue};
 use opsis_types::workflow::{DEFAULT_TAKE_MS, DEFAULT_VIEWPORT, PortType};
@@ -77,7 +78,8 @@ pub struct Record {
         "Frame pictures",
         labels = { "standard": "Standard", "lossless": "Lossless", "full-detail": "Full detail" },
         help = "Standard matches real-time takes. Lossless keeps every pixel exact and takes about 70% longer to record. Full detail uses every pixel of a high-density screen: sharper, with twice the width and height, but about four times as long to record.",
-        show_if = { "timing": ["smooth"] }
+        show_if = { "timing": ["smooth"] },
+        advanced
     )]
     pub pictures: FramePicture,
     #[setting(
@@ -112,8 +114,35 @@ pub struct Record {
         labels = { "synthetic": "Smooth", "baked": "As on screen", "none": "None" }
     )]
     pub cursor: Cursor,
-    #[setting("Quick mode: show action labels on the video")]
+    #[setting("Quick mode: show action labels on the video", advanced)]
     pub show_actions: bool,
+    #[setting(
+        "Action labels shown for",
+        default = 600,
+        range(min = 100, max = 10000),
+        step = 50,
+        unit = "ms",
+        show_if = { "showActions": ["true"] },
+        advanced
+    )]
+    pub action_label_ms: u32,
+    #[setting("Cursor colour", default = "#111418", widget = "color", check = colour, show_if = { "cursor": ["baked"] }, advanced)]
+    pub cursor_fill: String,
+    #[setting("Cursor outline", default = "#ffffff", widget = "color", check = colour, show_if = { "cursor": ["baked"] }, advanced)]
+    pub cursor_outline: String,
+    #[setting("Cursor size", default = 1.0, range(min = 0.5, max = 3), step = 0.1, unit = "×", show_if = { "cursor": ["baked"] }, advanced)]
+    pub cursor_scale: f64,
+    #[setting("Click ring", default = true, show_if = { "cursor": ["baked"] }, advanced)]
+    pub click_ring: bool,
+    #[setting(
+        "Click ring colour",
+        default = "rgba(15, 23, 42, 0.55)",
+        widget = "color",
+        check = colour,
+        show_if = { "cursor": ["baked"], "clickRing": ["true"] },
+        advanced
+    )]
+    pub ring_color: String,
     #[setting(
         "Don't record at the same time as",
         help = "Takes that share this name run one after another, e.g. when they change the same account.",
@@ -152,6 +181,47 @@ pub enum StillLook {
     Bleed,
 }
 
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Default,
+    Serialize,
+    Deserialize,
+    JsonSchema,
+    specta::Type,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum StillAlign {
+    #[default]
+    Top,
+    Middle,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum StillFrame {
+    #[default]
+    None,
+    Macos,
+    Windows,
+    Linux,
+}
+
+impl StillFrame {
+    fn style(self) -> Option<WindowStyle> {
+        match self {
+            Self::None => None,
+            Self::Macos => Some(WindowStyle::Macos),
+            Self::Windows => Some(WindowStyle::Windows),
+            Self::Linux => Some(WindowStyle::Linux),
+        }
+    }
+}
+
 #[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
@@ -172,7 +242,8 @@ pub struct Still {
         default = 24,
         range(min = 0, max = 400),
         unit = "px",
-        show_if = { "region": ["element"] }
+        show_if = { "region": ["element"] },
+        advanced
     )]
     pub padding: u32,
     #[setting(
@@ -194,9 +265,77 @@ pub struct Still {
     #[setting(
         "Keyframes",
         help = "Change opacity, position and size over time. Edit them here or on the timeline.",
-        widget = "envelope"
+        widget = "envelope",
+        advanced
     )]
     pub envelope: VisualEnvelope,
+    #[setting(
+        "Window size",
+        default = 86,
+        range(min = 30, max = 100),
+        unit = "%",
+        help = "How much of the frame the window fills.",
+        show_if = { "look": ["window"] },
+        advanced
+    )]
+    pub window_fit: u32,
+    #[setting(
+        "Cut-out size",
+        default = 80,
+        range(min = 30, max = 100),
+        unit = "%",
+        help = "How much of the frame the element fills.",
+        show_if = { "look": ["cutout"] },
+        advanced
+    )]
+    pub cutout_fit: u32,
+    #[setting("Shadow", default = 45, range(min = 0, max = 100), unit = "%", show_if = { "look": ["cutout"] }, advanced)]
+    pub shadow: u32,
+    #[setting(
+        "Title bar",
+        labels = { "none": "None", "macos": "macOS", "windows": "Windows", "linux": "Linux" },
+        show_if = { "look": ["window"] },
+        advanced
+    )]
+    pub frame: StillFrame,
+    #[setting(
+        "Push in",
+        default = 2.0,
+        range(min = 0, max = 30),
+        step = 0.5,
+        unit = "%",
+        help = "How much closer the picture slowly moves.",
+        advanced
+    )]
+    pub push_in: f64,
+    #[setting(
+        "Push-in time",
+        default = 4000,
+        range(min = 100, max = 600000),
+        step = 50,
+        unit = "ms",
+        advanced
+    )]
+    pub push_in_ms: u32,
+    #[setting(
+        "Keep in view",
+        labels = { "top": "The top", "middle": "The middle" },
+        help = "Which part of a tall picture shows.",
+        show_if = { "look": ["bleed"] },
+        advanced
+    )]
+    pub align: StillAlign,
+}
+
+impl Still {
+    pub fn fit(&self) -> f64 {
+        let percent = if self.look == StillLook::Cutout {
+            self.cutout_fit
+        } else {
+            self.window_fit
+        };
+        f64::from(percent) / 100.0
+    }
 }
 
 impl Params for Still {
@@ -230,12 +369,20 @@ pub struct StillShot {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
 pub struct StillProps {
     pub src: String,
     pub look: StillLook,
     pub backdrop: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub shot: Option<StillShot>,
+    pub fit: f64,
+    pub shadow: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub frame: Option<WindowStyle>,
+    pub push_in: f64,
+    pub push_in_frames: u32,
+    pub align: StillAlign,
 }
 
 fn shot_of(image: &ImageValue) -> Option<StillShot> {
@@ -380,6 +527,12 @@ fn still() -> NodeDef {
                     look: p.look,
                     backdrop: p.backdrop.clone(),
                     shot: shot_of(&image),
+                    fit: p.fit(),
+                    shadow: f64::from(p.shadow) / 100.0,
+                    frame: p.frame.style(),
+                    push_in: 1.0 + p.push_in / 100.0,
+                    push_in_frames: ms_to_frames(f64::from(p.push_in_ms), ctx.settings.fps),
+                    align: p.align,
                 });
                 item_clip(ctx.node_id, STILL, props, frames, extra)
             }

@@ -23,7 +23,9 @@
       "locale": "en-US",
       "timezone": "",
       "colorScheme": "light",
-      "captureScale": 1.0
+      "captureScale": 1.0,
+      "showScrollbars": false,
+      "reduceMotion": false
      }
     },
     "steps": []
@@ -63,7 +65,9 @@
       "locale": "en-US",
       "timezone": "",
       "colorScheme": "light",
-      "captureScale": 1.0
+      "captureScale": 1.0,
+      "showScrollbars": false,
+      "reduceMotion": false
      }
     },
     "steps": []
@@ -547,7 +551,8 @@
       "params": {
        "url": "{{Site address}}",
        "waitUntil": "load",
-       "after": 700
+       "after": 700,
+       "timeoutMs": 30000
       }
      }
     ],
@@ -1749,7 +1754,8 @@
       "type": "browser.setState",
       "params": {
        "script": "localStorage.setItem('onboarded', '1');",
-       "reload": false
+       "reload": false,
+       "everyPage": false
       }
      }
     ]
@@ -1879,7 +1885,8 @@
        "url": "**/api/**",
        "status": 200,
        "contentType": "application/json",
-       "body": "{\"ok\":true}"
+       "body": "{\"ok\":true}",
+       "delayMs": 0
       }
      }
     ]
@@ -2253,7 +2260,17 @@
        "title": "Chapter",
        "description": "",
        "showInVideo": false,
-       "durationMs": 2000
+       "durationMs": 2000,
+       "afterMs": 2000,
+       "cardColor": "rgba(0, 0, 0, 0.7)",
+       "edgeColor": "rgba(255, 255, 255, 0.15)",
+       "textColor": "#ffffff",
+       "titleSize": 28,
+       "descriptionSize": 15,
+       "cardWidth": 560,
+       "position": "center",
+       "blur": 2,
+       "fadeMs": 300
       }
      }
     ]
@@ -2380,7 +2397,8 @@
       "type": "browser.overlayHtml",
       "params": {
        "html": "<div style=\"font:600 32px system-ui\">Hello</div>",
-       "durationMs": 2000
+       "durationMs": 2000,
+       "fadeMs": 0
       }
      }
     ]
@@ -2727,7 +2745,12 @@
           "width": 1920,
           "height": 1080,
           "scale": 2.0
-         }
+         },
+         "fit": 0.86,
+         "shadow": 0.45,
+         "pushIn": 1.02,
+         "pushInFrames": 120,
+         "align": "top"
         }
        }
       ]
@@ -2894,7 +2917,12 @@
           "width": 1920,
           "height": 1080,
           "scale": 2.0
-         }
+         },
+         "fit": 0.86,
+         "shadow": 0.45,
+         "pushIn": 1.02,
+         "pushInFrames": 120,
+         "align": "top"
         }
        }
       ]
@@ -3063,7 +3091,19 @@
          "zoom": true,
          "tuning": {
           "sMax": 1.74,
-          "holdMinS": 1.3
+          "holdMinS": 1.3,
+          "minScale": 1.18,
+          "firstMaxScale": 1.54,
+          "roomPx": 80.0,
+          "targetShare": 0.55,
+          "offCentre": 0.26,
+          "joinWithinS": 2.2,
+          "stayZoomedWithinS": 2.8,
+          "holdAfterTypingS": 0.4,
+          "restAtEndS": 0.6,
+          "longestPanPx": 500.0,
+          "pace": 1.0,
+          "easing": "smooth"
          },
          "motionBlur": true,
          "style": "classic",
@@ -3082,7 +3122,13 @@
           "width": 2.0
          },
          "extraBeats": [],
-         "annotations": []
+         "annotations": [],
+         "stageGround": "#faf6f1",
+         "rimGlow": 1.0,
+         "liftColours": true,
+         "shutterAngle": 180.0,
+         "bleedBlur": 48.0,
+         "bleedDim": 0.55
         }
        }
       ]
@@ -3382,7 +3428,8 @@
        "holdMs": 1500,
        "x": 0.5,
        "y": 0.5,
-       "scale": 1.5
+       "scale": 1.5,
+       "leadMs": 400
       }
      }
     ]
@@ -3506,7 +3553,8 @@
        "fromY": 0.4,
        "toX": 0.7,
        "toY": 0.6,
-       "scale": 1.4
+       "scale": 1.4,
+       "zoomOutWhenFar": true
       }
      }
     ]
@@ -3545,7 +3593,8 @@
       "type": "camera.followCursor",
       "params": {
        "scale": 1.35,
-       "everyMs": 700
+       "everyMs": 700,
+       "zoomOutOnJumps": true
       }
      }
     ]
@@ -3587,7 +3636,8 @@
       "type": "camera.followCursor",
       "params": {
        "scale": 1.35,
-       "everyMs": 700
+       "everyMs": 700,
+       "zoomOutOnJumps": true
       }
      }
     ]
@@ -3623,7 +3673,8 @@
       "params": {
        "thresholdMs": 1500,
        "padMs": 400,
-       "rate": 4.0
+       "rate": 4.0,
+       "easeMs": 0
       }
      }
     ]
@@ -3666,7 +3717,8 @@
       "params": {
        "thresholdMs": 1500,
        "padMs": 400,
-       "rate": 4.0
+       "rate": 4.0,
+       "easeMs": 0
       }
      }
     ]
@@ -3782,7 +3834,8 @@
          "toMs": 1000,
          "rate": 2.0
         }
-       ]
+       ],
+       "easeMs": 0
       }
      }
     ]
@@ -4089,8 +4142,31 @@
          "wrapper": {
           "component": "laptop-frame",
           "props": {
-           "mode": "dark",
-           "entrance": "open"
+           "screenSrc": "app:placeholders/screen-wide.svg",
+           "entrance": "open",
+           "finale": "none",
+           "notchLabel": "Recording started",
+           "showNotch": true,
+           "batteryLevel": 85,
+           "bezelColor": "",
+           "screenColor": "#FFFFFF",
+           "restTilt": 18,
+           "radius": 22,
+           "scale": 0.95,
+           "floatLoop": true,
+           "floatAmplitude": 4,
+           "shadow": "0 40px 80px rgba(10,12,20,0.45)",
+           "theme": {
+            "mode": "dark",
+            "colors": {}
+           },
+           "indicatorColor": "#30D158",
+           "notchLabelSize": 12,
+           "speed": 1.0,
+           "notchAt": 120.0,
+           "zoomAt": 140.0,
+           "zoomLength": 45.0,
+           "floatPeriod": 5.0
           }
          }
         }
@@ -4307,7 +4383,8 @@
       "nodeId": "n",
       "type": "camera.motionBlur",
       "params": {
-       "enabled": true
+       "enabled": true,
+       "shutterAngle": 180
       }
      }
     ]
@@ -4348,7 +4425,8 @@
       "nodeId": "n",
       "type": "camera.motionBlur",
       "params": {
-       "enabled": true
+       "enabled": true,
+       "shutterAngle": 180
       }
      }
     ]
@@ -4386,7 +4464,12 @@
        "look": "arrow",
        "size": 1.0,
        "color": "#111418",
-       "outline": "#ffffff"
+       "outline": "#ffffff",
+       "growWithZoom": 0.58,
+       "outlineWidth": 1.85,
+       "shadow": 0.34,
+       "pressSquash": 0.9,
+       "hideWhileTyping": true
       }
      }
     ]
@@ -4435,7 +4518,12 @@
        "look": "arrow",
        "size": 1.0,
        "color": "#111418",
-       "outline": "#ffffff"
+       "outline": "#ffffff",
+       "growWithZoom": 0.58,
+       "outlineWidth": 1.85,
+       "shadow": 0.34,
+       "pressSquash": 0.9,
+       "hideWhileTyping": true
       }
      }
     ]
@@ -4476,7 +4564,10 @@
        "enabled": true,
        "color": "#0f172a",
        "size": 1.0,
-       "width": 2.0
+       "width": 2.0,
+       "ringOpacity": 47,
+       "fillOpacity": 9,
+       "durationMs": 350
       }
      }
     ]
@@ -4527,7 +4618,10 @@
        "enabled": true,
        "color": "#0f172a",
        "size": 1.0,
-       "width": 2.0
+       "width": 2.0,
+       "ringOpacity": 47,
+       "fillOpacity": 9,
+       "durationMs": 350
       }
      }
     ]
@@ -4573,7 +4667,15 @@
        "chords": true,
        "keycap": "#0a0a0a",
        "ink": "#ffffff",
-       "size": 1.0
+       "size": 1.0,
+       "chordHoldMs": 1100,
+       "typedHoldMs": 600,
+       "edge": 56,
+       "radius": 26,
+       "keyNames": "symbols",
+       "font": "",
+       "shadow": 0.35,
+       "caret": true
       }
      }
     ]
@@ -4619,7 +4721,15 @@
        "chords": true,
        "keycap": "#0a0a0a",
        "ink": "#ffffff",
-       "size": 1.0
+       "size": 1.0,
+       "chordHoldMs": 1100,
+       "typedHoldMs": 600,
+       "edge": 56,
+       "radius": 26,
+       "keyNames": "symbols",
+       "font": "",
+       "shadow": 0.35,
+       "caret": true
       }
      }
     ]
@@ -4654,13 +4764,13 @@
       "type": "cursor.spotlight",
       "params": {
        "match": "",
-       "text": "",
        "color": "rgba(0,0,0,0.55)",
        "padding": 10,
        "leadMs": 250,
        "holdMs": 1400,
-       "look": "clean",
-       "roughness": 1.0
+       "fadeMs": 180,
+       "cornerRadius": 12,
+       "softness": 0
       }
      }
     ]
@@ -4702,13 +4812,13 @@
       "type": "cursor.spotlight",
       "params": {
        "match": "",
-       "text": "",
        "color": "rgba(0,0,0,0.55)",
        "padding": 10,
        "leadMs": 250,
        "holdMs": 1400,
-       "look": "clean",
-       "roughness": 1.0
+       "fadeMs": 180,
+       "cornerRadius": 12,
+       "softness": 0
       }
      }
     ]
@@ -4743,13 +4853,19 @@
       "type": "cursor.highlightBox",
       "params": {
        "match": "",
-       "text": "",
        "color": "#a78bfa",
        "padding": 10,
        "leadMs": 250,
        "holdMs": 1400,
+       "fadeMs": 180,
+       "cornerRadius": 10,
        "look": "clean",
-       "roughness": 1.0
+       "roughness": 1.0,
+       "lineWidth": 3,
+       "fillOpacity": 12,
+       "markerOpacity": 50,
+       "drawMs": 450,
+       "strokes": 2
       }
      }
     ]
@@ -4791,13 +4907,19 @@
       "type": "cursor.highlightBox",
       "params": {
        "match": "",
-       "text": "",
        "color": "#a78bfa",
        "padding": 10,
        "leadMs": 250,
        "holdMs": 1400,
+       "fadeMs": 180,
+       "cornerRadius": 10,
        "look": "clean",
-       "roughness": 1.0
+       "roughness": 1.0,
+       "lineWidth": 3,
+       "fillOpacity": 12,
+       "markerOpacity": 50,
+       "drawMs": 450,
+       "strokes": 2
       }
      }
     ]
@@ -4841,7 +4963,12 @@
        "fontSize": 18,
        "font": "",
        "look": "clean",
-       "roughness": 1.0
+       "roughness": 1.0,
+       "fontWeight": 600,
+       "boxPadding": 14,
+       "radius": 10,
+       "pointerSize": 8,
+       "shadow": true
       }
      }
     ]
@@ -4896,7 +5023,12 @@
        "fontSize": 18,
        "font": "",
        "look": "clean",
-       "roughness": 1.0
+       "roughness": 1.0,
+       "fontWeight": 600,
+       "boxPadding": 14,
+       "radius": 10,
+       "pointerSize": 8,
+       "shadow": true
       }
      }
     ]
@@ -4943,7 +5075,11 @@
        "fontSize": 30,
        "font": "",
        "look": "clean",
-       "roughness": 1.0
+       "roughness": 1.0,
+       "fontWeight": 800,
+       "arrowSize": 1.0,
+       "lineWidth": 5,
+       "tilt": -4.0
       }
      }
     ]
@@ -4997,7 +5133,11 @@
        "fontSize": 30,
        "font": "",
        "look": "clean",
-       "roughness": 1.0
+       "roughness": 1.0,
+       "fontWeight": 800,
+       "arrowSize": 1.0,
+       "lineWidth": 5,
+       "tilt": -4.0
       }
      }
     ]
@@ -5363,6 +5503,14 @@
               "highlightColor": "#facc15",
               "panel": "rgba(0,0,0,0.35)",
               "fontWeight": 800,
+              "unspokenOpacity": 55.0,
+              "wordsPerLine": 6,
+              "lingerMs": 250,
+              "edgeOffset": 90,
+              "sideMargin": 10.0,
+              "panelPadding": 22,
+              "panelRadius": 16,
+              "textShadow": true,
               "captions": [
                {
                 "text": "Hello there",
@@ -5503,7 +5651,8 @@
        "frameMs": 0.0,
        "strength": 0.6,
        "softness": 0.3,
-       "roundness": 0.3
+       "roundness": 0.3,
+       "fadeMs": 200
       }
      }
     ]
@@ -5857,7 +6006,8 @@
       "params": {
        "kind": "bw",
        "tint": "#d8a15b",
-       "strength": 1.0
+       "strength": 1.0,
+       "filter": "none"
       }
      }
     ]
@@ -5900,7 +6050,8 @@
       "params": {
        "kind": "bw",
        "tint": "#d8a15b",
-       "strength": 1.0
+       "strength": 1.0,
+       "filter": "none"
       }
      }
     ]
@@ -5939,7 +6090,9 @@
        "vignette": 0.0,
        "vignetteX": 0.5,
        "vignetteY": 0.5,
-       "grain": 0.0
+       "grain": 0.0,
+       "vignetteShape": "round",
+       "colourGrain": true
       }
      }
     ]
@@ -5986,7 +6139,9 @@
        "vignette": 0.0,
        "vignetteX": 0.5,
        "vignetteY": 0.5,
-       "grain": 0.0
+       "grain": 0.0,
+       "vignetteShape": "round",
+       "colourGrain": true
       }
      }
     ]
@@ -6023,7 +6178,11 @@
       "params": {
        "fringe": 0.0,
        "bulge": 0.0,
-       "trails": 0.0
+       "trails": 0.0,
+       "fringeAngle": 0.0,
+       "bulgeX": 0.5,
+       "bulgeY": 0.5,
+       "cornerColor": "#000000"
       }
      }
     ]
@@ -6067,7 +6226,11 @@
       "params": {
        "fringe": 0.0,
        "bulge": 0.0,
-       "trails": 0.0
+       "trails": 0.0,
+       "fringeAngle": 0.0,
+       "bulgeX": 0.5,
+       "bulgeY": 0.5,
+       "cornerColor": "#000000"
       }
      }
     ]
@@ -6106,7 +6269,9 @@
        "levels": false,
        "levelsStrength": 0.5,
        "levelsSmoothing": 24,
-       "deband": false
+       "deband": false,
+       "levelsEachColour": false,
+       "debandStrength": 0.02
       }
      }
     ]
@@ -6152,7 +6317,9 @@
        "levels": false,
        "levelsStrength": 0.5,
        "levelsSmoothing": 24,
-       "deband": false
+       "deband": false,
+       "levelsEachColour": false,
+       "debandStrength": 0.02
       }
      }
     ]
@@ -6214,7 +6381,19 @@
          "accent": "#a78bfa",
          "background": "transparent",
          "fontSize": 112,
-         "fontWeight": 760
+         "fontWeight": 760,
+         "fadeOut": 0.3333,
+         "sideMargin": 9.0,
+         "lineGap": 0.22,
+         "eyebrowSize": 0.26,
+         "eyebrowUppercase": true,
+         "subtitleSize": 0.34,
+         "letterSpacing": -0.035,
+         "lineStagger": 1.0,
+         "markThickness": 0.045,
+         "markerOpacity": 55.0,
+         "markSeed": 1,
+         "markDrawTime": 0.45
         }
        }
       ]
@@ -6282,7 +6461,19 @@
          "accent": "#a78bfa",
          "background": "transparent",
          "fontSize": 112,
-         "fontWeight": 760
+         "fontWeight": 760,
+         "fadeOut": 0.3333,
+         "sideMargin": 9.0,
+         "lineGap": 0.22,
+         "eyebrowSize": 0.26,
+         "eyebrowUppercase": true,
+         "subtitleSize": 0.34,
+         "letterSpacing": -0.035,
+         "lineStagger": 1.0,
+         "markThickness": 0.045,
+         "markerOpacity": 55.0,
+         "markSeed": 1,
+         "markDrawTime": 0.45
         }
        }
       ]
@@ -6343,7 +6534,16 @@
          "emphasisColor": "#facc15",
          "background": "transparent",
          "fontSize": 104,
-         "wordStagger": 4
+         "wordStagger": 4,
+         "fadeOutInFrames": 10,
+         "fontWeight": 780,
+         "letterSpacing": -0.04,
+         "lineHeight": 1.05,
+         "sideMargin": 8.0,
+         "wordGap": 0.28,
+         "rise": 0.5,
+         "tilt": 4.0,
+         "underlineEmphasis": true
         }
        }
       ]
@@ -6404,7 +6604,16 @@
          "emphasisColor": "#facc15",
          "background": "transparent",
          "fontSize": 104,
-         "wordStagger": 4
+         "wordStagger": 4,
+         "fadeOutInFrames": 10,
+         "fontWeight": 780,
+         "letterSpacing": -0.04,
+         "lineHeight": 1.05,
+         "sideMargin": 8.0,
+         "wordGap": 0.28,
+         "rise": 0.5,
+         "tilt": 4.0,
+         "underlineEmphasis": true
         }
        }
       ]
@@ -6465,7 +6674,17 @@
          "position": "bottom-left",
          "accent": "#a78bfa",
          "color": "#fafafa",
-         "panel": "rgba(10,10,12,0.72)"
+         "panel": "rgba(10,10,12,0.72)",
+         "subtitleOpacity": 0.7,
+         "exitTime": 0.4667,
+         "slide": 120,
+         "margin": 80,
+         "barWidth": 8,
+         "cornerRadius": 18,
+         "panelBlur": 12,
+         "titleSize": 44,
+         "titleWeight": 720,
+         "subtitleSize": 28
         }
        }
       ]
@@ -6526,7 +6745,17 @@
          "position": "bottom-left",
          "accent": "#a78bfa",
          "color": "#fafafa",
-         "panel": "rgba(10,10,12,0.72)"
+         "panel": "rgba(10,10,12,0.72)",
+         "subtitleOpacity": 0.7,
+         "exitTime": 0.4667,
+         "slide": 120,
+         "margin": 80,
+         "barWidth": 8,
+         "cornerRadius": 18,
+         "panelBlur": 12,
+         "titleSize": 44,
+         "titleWeight": 720,
+         "subtitleSize": 28
         }
        }
       ]
@@ -6587,7 +6816,17 @@
          "y": 0.5,
          "side": "top",
          "color": "#fafafa",
-         "accent": "#f43f5e"
+         "accent": "#f43f5e",
+         "fadeOut": 0.3333,
+         "drawTime": 0.6,
+         "labelDistance": 170,
+         "bend": 40,
+         "arrowWidth": 7,
+         "dotSize": 14,
+         "labelRadius": 14,
+         "fontSize": 34,
+         "fontWeight": 700,
+         "slant": 19.29
         }
        }
       ]
@@ -6648,7 +6887,17 @@
          "y": 0.5,
          "side": "top",
          "color": "#fafafa",
-         "accent": "#f43f5e"
+         "accent": "#f43f5e",
+         "fadeOut": 0.3333,
+         "drawTime": 0.6,
+         "labelDistance": 170,
+         "bend": 40,
+         "arrowWidth": 7,
+         "dotSize": 14,
+         "labelRadius": 14,
+         "fontSize": 34,
+         "fontWeight": 700,
+         "slant": 19.29
         }
        }
       ]
@@ -6706,7 +6955,7 @@
         "props": {
          "src": "",
          "fit": "contain",
-         "background": "transparent",
+         "kenBurnsZoom": 1.06,
          "kenBurns": false
         }
        }
@@ -6761,7 +7010,7 @@
         "props": {
          "src": "",
          "fit": "contain",
-         "background": "transparent",
+         "kenBurnsZoom": 1.06,
          "kenBurns": false
         }
        }
@@ -7031,7 +7280,8 @@
          "speed": 1.0,
          "backwards": false,
          "fit": "contain",
-         "background": "transparent"
+         "background": "transparent",
+         "align": "center"
         }
        }
       ]
@@ -7088,7 +7338,8 @@
          "speed": 1.0,
          "backwards": false,
          "fit": "contain",
-         "background": "transparent"
+         "background": "transparent",
+         "align": "center"
         }
        }
       ]
@@ -7363,7 +7614,9 @@
          "from": "#1e1b4b",
          "to": "#0f172a",
          "angle": 135,
-         "grain": 0.08
+         "grain": 0.08,
+         "shape": "linear",
+         "grainSize": 1.0
         }
        }
       ]
@@ -7418,7 +7671,9 @@
          "from": "#1e1b4b",
          "to": "#0f172a",
          "angle": 135,
-         "grain": 0.08
+         "grain": 0.08,
+         "shape": "linear",
+         "grainSize": 1.0
         }
        }
       ]
@@ -7473,7 +7728,15 @@
          "color1": "#0b1020",
          "color2": "#4f46e5",
          "scale": 0.004,
-         "speed": 0.004
+         "speed": 0.004,
+         "blobs": 5,
+         "wander": 40.0,
+         "blobSize": 30.0,
+         "intensity": 0.55,
+         "softness": 40,
+         "seed": 0,
+         "grain": 0.08,
+         "grainSize": 1.0
         }
        }
       ]
@@ -7528,7 +7791,15 @@
          "color1": "#0b1020",
          "color2": "#4f46e5",
          "scale": 0.004,
-         "speed": 0.004
+         "speed": 0.004,
+         "blobs": 5,
+         "wander": 40.0,
+         "blobSize": 30.0,
+         "intensity": 0.55,
+         "softness": 40,
+         "seed": 0,
+         "grain": 0.08,
+         "grainSize": 1.0
         }
        }
       ]
@@ -7583,7 +7854,10 @@
          "color1": "#18181b",
          "color2": "#27272a",
          "rays": 24,
-         "rotationSpeed": 0.15
+         "rotationSpeed": 0.15,
+         "edgeFade": 75.0,
+         "rayWidth": 50.0,
+         "centerX": 50.0
         }
        }
       ]
@@ -7638,7 +7912,10 @@
          "color1": "#18181b",
          "color2": "#27272a",
          "rays": 24,
-         "rotationSpeed": 0.15
+         "rotationSpeed": 0.15,
+         "edgeFade": 75.0,
+         "rayWidth": 50.0,
+         "centerX": 50.0
         }
        }
       ]
@@ -7691,7 +7968,8 @@
         "component": "paper",
         "props": {
          "color": "#f5f1e8",
-         "grain": 0.18
+         "grain": 0.18,
+         "grainSize": 1.0
         }
        }
       ]
@@ -7744,7 +8022,8 @@
         "component": "paper",
         "props": {
          "color": "#f5f1e8",
-         "grain": 0.18
+         "grain": 0.18,
+         "grainSize": 1.0
         }
        }
       ]
@@ -7909,7 +8188,11 @@
         "component": "video-loop",
         "props": {
          "src": "",
-         "dim": 0.3
+         "dim": 0.3,
+         "dimColor": "#000000",
+         "fit": "cover",
+         "playbackRate": 1.0,
+         "trimBeforeMs": 0
         }
        }
       ]
@@ -7962,7 +8245,11 @@
         "component": "video-loop",
         "props": {
          "src": "",
-         "dim": 0.3
+         "dim": 0.3,
+         "dimColor": "#000000",
+         "fit": "cover",
+         "playbackRate": 1.0,
+         "trimBeforeMs": 0
         }
        }
       ]
@@ -8015,7 +8302,9 @@
         "component": "light-leak",
         "props": {
          "seed": 3,
-         "hueShift": 0
+         "hueShift": 0,
+         "strength": 100.0,
+         "blend": "normal"
         }
        }
       ]
@@ -8068,7 +8357,9 @@
         "component": "light-leak",
         "props": {
          "seed": 3,
-         "hueShift": 0
+         "hueShift": 0,
+         "strength": 100.0,
+         "blend": "normal"
         }
        }
       ]
@@ -8120,15 +8411,24 @@
         },
         "component": "logo-3d",
         "props": {
-         "background": "transparent",
+         "lens": 30.0,
          "depth": 0.25,
-         "lighting": "studio",
+         "reverse": false,
          "metalness": 0.3,
          "motion": "spin",
          "camera": {
           "keys": []
          },
-         "speed": 1.0
+         "speed": 1.0,
+         "lighting": "studio",
+         "motionAmount": 1.0,
+         "zoom": 1.0,
+         "roughness": 0.35,
+         "bevel": 0.08,
+         "cornerRadius": 0.12,
+         "tilt": 52,
+         "growIn": true,
+         "endFacing": false
         }
        }
       ]
@@ -8180,15 +8480,24 @@
         },
         "component": "logo-3d",
         "props": {
-         "background": "transparent",
+         "lens": 30.0,
          "depth": 0.25,
-         "lighting": "studio",
+         "reverse": false,
          "metalness": 0.3,
          "motion": "spin",
          "camera": {
           "keys": []
          },
-         "speed": 1.0
+         "speed": 1.0,
+         "lighting": "studio",
+         "motionAmount": 1.0,
+         "zoom": 1.0,
+         "roughness": 0.35,
+         "bevel": 0.08,
+         "cornerRadius": 0.12,
+         "tilt": 52,
+         "growIn": true,
+         "endFacing": false
         }
        }
       ]
@@ -8240,7 +8549,7 @@
         },
         "component": "card-3d",
         "props": {
-         "background": "transparent",
+         "lens": 30.0,
          "cornerRadius": 0.04,
          "depth": 0.04,
          "tilt": 40,
@@ -8249,7 +8558,15 @@
           "keys": []
          },
          "speed": 1.0,
-         "lighting": "soft"
+         "lighting": "soft",
+         "reverse": false,
+         "zoom": 1.0,
+         "edgeColor": "#ffffff",
+         "roughness": 0.6,
+         "shadow": 0.55,
+         "growIn": true,
+         "endFacing": false,
+         "motionAmount": 1.0
         }
        }
       ]
@@ -8301,7 +8618,7 @@
         },
         "component": "card-3d",
         "props": {
-         "background": "transparent",
+         "lens": 30.0,
          "cornerRadius": 0.04,
          "depth": 0.04,
          "tilt": 40,
@@ -8310,7 +8627,15 @@
           "keys": []
          },
          "speed": 1.0,
-         "lighting": "soft"
+         "lighting": "soft",
+         "reverse": false,
+         "zoom": 1.0,
+         "edgeColor": "#ffffff",
+         "roughness": 0.6,
+         "shadow": 0.55,
+         "growIn": true,
+         "endFacing": false,
+         "motionAmount": 1.0
         }
        }
       ]
@@ -8363,7 +8688,7 @@
         "component": "text-3d",
         "props": {
          "text": "Ship faster",
-         "background": "transparent",
+         "reverse": false,
          "fontWeight": 800,
          "italic": false,
          "depth": 0.35,
@@ -8378,6 +8703,15 @@
          },
          "speed": 1.0,
          "lighting": "studio",
+         "background": "transparent",
+         "size": 1.0,
+         "lineHeight": 1.15,
+         "roughness": 0.3,
+         "lens": 30.0,
+         "tilt": 52,
+         "endFacing": false,
+         "motionAmount": 1.0,
+         "growIn": true,
          "typeface": "prepared:typeface/800/app/fonts/bundled/inter/inter-latin-wght-normal.woff2",
          "typefaceItalic": false
         }
@@ -8436,7 +8770,7 @@
         "component": "text-3d",
         "props": {
          "text": "Ship faster",
-         "background": "transparent",
+         "reverse": false,
          "fontWeight": 800,
          "italic": false,
          "depth": 0.35,
@@ -8451,6 +8785,15 @@
          },
          "speed": 1.0,
          "lighting": "studio",
+         "background": "transparent",
+         "size": 1.0,
+         "lineHeight": 1.15,
+         "roughness": 0.3,
+         "lens": 30.0,
+         "tilt": 52,
+         "endFacing": false,
+         "motionAmount": 1.0,
+         "growIn": true,
          "typeface": "prepared:typeface/800/app/fonts/bundled/inter/inter-latin-wght-normal.woff2",
          "typefaceItalic": false
         }
@@ -8520,7 +8863,13 @@
          "zoom": 1.0,
          "lighting": "studio",
          "shadow": true,
-         "background": "transparent"
+         "lens": 30.0,
+         "shadowOpacity": 0.55,
+         "growIn": true,
+         "motionAmount": 1.0,
+         "tilt": 52,
+         "endFacing": false,
+         "reverse": false
         }
        }
       ]
@@ -8584,7 +8933,13 @@
          "zoom": 1.0,
          "lighting": "studio",
          "shadow": true,
-         "background": "transparent"
+         "lens": 30.0,
+         "shadowOpacity": 0.55,
+         "growIn": true,
+         "motionAmount": 1.0,
+         "tilt": 52,
+         "endFacing": false,
+         "reverse": false
         }
        }
       ]
@@ -8644,7 +8999,12 @@
          },
          "endFaceOn": true,
          "lighting": "studio",
-         "background": "#0b0b10"
+         "background": "#0b0b10",
+         "bezelColor": "#0a0a0c",
+         "metalness": 0.6,
+         "roughness": 0.35,
+         "glare": 0.16,
+         "moveEndsAt": 0.85
         }
        }
       ]
@@ -8791,7 +9151,12 @@
            },
            "endFaceOn": true,
            "lighting": "studio",
-           "background": "#0b0b10"
+           "background": "#0b0b10",
+           "bezelColor": "#0a0a0c",
+           "metalness": 0.6,
+           "roughness": 0.35,
+           "glare": 0.16,
+           "moveEndsAt": 0.85
           }
          }
         }
@@ -8859,7 +9224,18 @@
           "keys": []
          },
          "lighting": "studio",
-         "background": "#0b1020"
+         "background": "#0b1020",
+         "depth": 1.0,
+         "size": 1.0,
+         "drift": 0.45,
+         "spin": 1.0,
+         "roughness": 0.4,
+         "metalness": 0.1,
+         "kinds": [
+          "sphere",
+          "ring",
+          "box"
+         ]
         }
        }
       ]
@@ -8935,7 +9311,18 @@
           "keys": []
          },
          "lighting": "studio",
-         "background": "#0b1020"
+         "background": "#0b1020",
+         "depth": 1.0,
+         "size": 1.0,
+         "drift": 0.45,
+         "spin": 1.0,
+         "roughness": 0.4,
+         "metalness": 0.1,
+         "kinds": [
+          "sphere",
+          "ring",
+          "box"
+         ]
         }
        }
       ]
@@ -9004,7 +9391,10 @@
          "color": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.05,
+         "speed": 1.0,
+         "stagger": 1.0,
+         "distance": 16
         }
        }
       ]
@@ -9066,7 +9456,10 @@
          "color": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.05,
+         "speed": 1.0,
+         "stagger": 1.0,
+         "distance": 16
         }
        }
       ]
@@ -9130,7 +9523,11 @@
          "cursorColor": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "cursorWidth": 0.08,
+         "blinkRate": 1.0,
+         "align": "center"
         }
        }
       ]
@@ -9194,7 +9591,11 @@
          "cursorColor": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "cursorWidth": 0.08,
+         "blinkRate": 1.0,
+         "align": "center"
         }
        }
       ]
@@ -9256,7 +9657,11 @@
          "fontSize": 96,
          "fontWeight": "700",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "sweeps": 1,
+         "bandAngle": 110.0,
+         "bandWidth": 40.0
         }
        }
       ]
@@ -9318,7 +9723,11 @@
          "fontSize": 96,
          "fontWeight": "700",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "sweeps": 1,
+         "bandAngle": 110.0,
+         "bandWidth": 40.0
         }
        }
       ]
@@ -9381,7 +9790,10 @@
          "fontWeight": "600",
          "revealDuration": 60.0,
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": 0.05,
+         "speed": 1.0,
+         "scrambleEvery": 2.0,
+         "seed": 0
         }
        }
       ]
@@ -9444,7 +9856,10 @@
          "fontWeight": "600",
          "revealDuration": 60.0,
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": 0.05,
+         "speed": 1.0,
+         "scrambleEvery": 2.0,
+         "seed": 0
         }
        }
       ]
@@ -9506,7 +9921,10 @@
          "color": "#171717",
          "fontWeight": "700",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "columnStagger": 4.0,
+         "direction": "up"
         }
        }
       ]
@@ -9564,7 +9982,10 @@
          "color": "#171717",
          "fontWeight": "700",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "columnStagger": 4.0,
+         "direction": "up"
         }
        }
       ]
@@ -9623,7 +10044,9 @@
          "color": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "wordDuration": 12.0
         }
        }
       ]
@@ -9686,7 +10109,9 @@
          "color": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "wordDuration": 12.0
         }
        }
       ]
@@ -9752,7 +10177,11 @@
          "color": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "wordGap": 10,
+         "wordTime": 13.0,
+         "entryBlur": 3.5
         }
        }
       ]
@@ -9818,7 +10247,11 @@
          "color": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "wordGap": 10,
+         "wordTime": 13.0,
+         "entryBlur": 3.5
         }
        }
       ]
@@ -9880,7 +10313,12 @@
          "color": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "lineHeight": 1.1,
+         "speed": 1.0,
+         "align": "center",
+         "lineStagger": 3.0,
+         "exitDistance": 22,
+         "blur": 6
         }
        }
       ]
@@ -9942,7 +10380,12 @@
          "color": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "lineHeight": 1.1,
+         "speed": 1.0,
+         "align": "center",
+         "lineStagger": 3.0,
+         "exitDistance": 22,
+         "blur": 6
         }
        }
       ]
@@ -10009,7 +10452,9 @@
          "color": "#171717",
          "fontWeight": "700",
          "background": "white",
-         "speed": 1.0
+         "fadeIn": 15.0,
+         "speed": 1.0,
+         "endTracking": -0.03
         }
        }
       ]
@@ -10076,7 +10521,9 @@
          "color": "#171717",
          "fontWeight": "700",
          "background": "white",
-         "speed": 1.0
+         "fadeIn": 15.0,
+         "speed": 1.0,
+         "endTracking": -0.03
         }
        }
       ]
@@ -10143,7 +10590,10 @@
          "color": "#171717",
          "fontWeight": "400",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.02,
+         "speed": 1.0,
+         "pushTime": 12.0,
+         "driveDistance": 0.5
         }
        }
       ]
@@ -10210,7 +10660,10 @@
          "color": "#171717",
          "fontWeight": "400",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.02,
+         "speed": 1.0,
+         "pushTime": 12.0,
+         "driveDistance": 0.5
         }
        }
       ]
@@ -10281,6 +10734,7 @@
          ],
          "blend": "multiply",
          "background": "#fafafa",
+         "letterSpacing": -0.03,
          "speed": 1.0
         }
        }
@@ -10362,6 +10816,7 @@
          ],
          "blend": "multiply",
          "background": "#fafafa",
+         "letterSpacing": -0.03,
          "speed": 1.0
         }
        }
@@ -10446,7 +10901,11 @@
          "ghostColor": "#170b0a",
          "backgroundColor": "#000000",
          "fontWeight": "700",
-         "speed": 1.0
+         "letterSpacing": 0.0,
+         "speed": 1.0,
+         "revealEnd": 33.0,
+         "compactWidth": 87.0,
+         "gradientSpread": 26.0
         }
        }
       ]
@@ -10520,7 +10979,11 @@
          "ghostColor": "#170b0a",
          "backgroundColor": "#000000",
          "fontWeight": "700",
-         "speed": 1.0
+         "letterSpacing": 0.0,
+         "speed": 1.0,
+         "revealEnd": 33.0,
+         "compactWidth": 87.0,
+         "gradientSpread": 26.0
         }
        }
       ]
@@ -10587,7 +11050,10 @@
          "color": "#171717",
          "fontWeight": "700",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "strikeEnd": 0.4,
+         "swapLength": 0.2
         }
        }
       ]
@@ -10650,7 +11116,10 @@
          "color": "#171717",
          "fontWeight": "700",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "strikeEnd": 0.4,
+         "swapLength": 0.2
         }
        }
       ]
@@ -10708,7 +11177,12 @@
          "color": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "lineHeight": 1.1,
+         "speed": 1.0,
+         "align": "left",
+         "lineStagger": 4.0,
+         "exit": true,
+         "letterSpacing": -0.03
         }
        }
       ]
@@ -10770,7 +11244,12 @@
          "color": "#171717",
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "lineHeight": 1.1,
+         "speed": 1.0,
+         "align": "left",
+         "lineStagger": 4.0,
+         "exit": true,
+         "letterSpacing": -0.03
         }
        }
       ]
@@ -10835,7 +11314,11 @@
          "fontSize": 72,
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "y": 0.5,
+         "speed": 1.0,
+         "markerAt": 15.0,
+         "markerHeight": 1.0,
+         "x": 0.5
         }
        }
       ]
@@ -10896,7 +11379,11 @@
          "fontSize": 72,
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "y": 0.5,
+         "speed": 1.0,
+         "markerAt": 15.0,
+         "markerHeight": 1.0,
+         "x": 0.5
         }
        }
       ]
@@ -10956,7 +11443,10 @@
          "fontSize": 72,
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "changeStart": 0.2,
+         "changeEnd": 0.7
         }
        }
       ]
@@ -11016,7 +11506,10 @@
          "fontSize": 72,
          "fontWeight": "600",
          "background": "white",
-         "speed": 1.0
+         "letterSpacing": -0.03,
+         "speed": 1.0,
+         "changeStart": 0.2,
+         "changeEnd": 0.7
         }
        }
       ]
@@ -11082,7 +11575,10 @@
          "seed": "ink",
          "step": 3.0,
          "x": 0.5,
-         "y": 0.62
+         "y": 0.62,
+         "wobble": 1.2,
+         "angle": 0.0,
+         "opacity": 0.85
         }
        }
       ]
@@ -11148,7 +11644,10 @@
          "seed": "ink",
          "step": 3.0,
          "x": 0.5,
-         "y": 0.62
+         "y": 0.62,
+         "wobble": 1.2,
+         "angle": 0.0,
+         "opacity": 0.85
         }
        }
       ]
@@ -11216,7 +11715,11 @@
          "y": 0.5,
          "width": 420,
          "height": 220,
-         "release": 1.0
+         "release": 1.0,
+         "wobble": 0.035,
+         "startAngle": 0.0,
+         "clockwise": true,
+         "opacity": 0.85
         }
        }
       ]
@@ -11284,7 +11787,11 @@
          "y": 0.5,
          "width": 420,
          "height": 220,
-         "release": 1.0
+         "release": 1.0,
+         "wobble": 0.035,
+         "startAngle": 0.0,
+         "clockwise": true,
+         "opacity": 0.85
         }
        }
       ]
@@ -11354,7 +11861,10 @@
          "fromX": 0.3,
          "fromY": 0.72,
          "toX": 0.48,
-         "toY": 0.5
+         "toY": 0.5,
+         "headAngle": 41.25,
+         "wobble": 0.06,
+         "opacity": 0.85
         }
        }
       ]
@@ -11424,7 +11934,10 @@
          "fromX": 0.3,
          "fromY": 0.72,
          "toX": 0.48,
-         "toY": 0.5
+         "toY": 0.5,
+         "headAngle": 41.25,
+         "wobble": 0.06,
+         "opacity": 0.85
         }
        }
       ]
@@ -11477,7 +11990,10 @@
         "component": "keystroke",
         "props": {
          "platform": "mac",
-         "theme": "light",
+         "theme": {
+          "mode": "light",
+          "colors": {}
+         },
          "accent": "#0a84ff",
          "size": 64,
          "linger": 30.0,
@@ -11497,7 +12013,11 @@
            "at": 114.0
           }
          ],
-         "speed": 1.0
+         "speed": 1.0,
+         "roundness": 0.16,
+         "fontWeight": 500,
+         "thenText": "then",
+         "hold": 8.0
         }
        }
       ]
@@ -11509,6 +12029,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "sun",
+     "text": "Light theme"
+    },
     {
      "icon": "clock",
      "text": "6 s"
@@ -11550,7 +12074,10 @@
         "component": "keystroke",
         "props": {
          "platform": "mac",
-         "theme": "light",
+         "theme": {
+          "mode": "light",
+          "colors": {}
+         },
          "accent": "#0a84ff",
          "size": 64,
          "linger": 30.0,
@@ -11570,7 +12097,11 @@
            "at": 114.0
           }
          ],
-         "speed": 1.0
+         "speed": 1.0,
+         "roundness": 0.16,
+         "fontWeight": 500,
+         "thenText": "then",
+         "hold": 8.0
         }
        }
       ]
@@ -11582,6 +12113,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "sun",
+     "text": "Light theme"
+    },
     {
      "icon": "clock",
      "text": "6 s"
@@ -11641,7 +12176,11 @@
          ],
          "originX": 0.5,
          "originY": 0.5,
-         "lifetime": 90.0
+         "lifetime": 90.0,
+         "spread": 360.0,
+         "direction": 180.0,
+         "spin": 1.0,
+         "pieceShape": 0.62
         }
        }
       ]
@@ -11725,7 +12264,11 @@
          ],
          "originX": 0.5,
          "originY": 0.5,
-         "lifetime": 90.0
+         "lifetime": 90.0,
+         "spread": 360.0,
+         "direction": 180.0,
+         "spin": 1.0,
+         "pieceShape": 0.62
         }
        }
       ]
@@ -11801,7 +12344,10 @@
          "accentColor": "#f4e4a7",
          "backgroundColor": "#a800b7",
          "loop": false,
-         "speed": 1.0
+         "speed": 1.0,
+         "echoOpacity": 0.36,
+         "x": 0.5,
+         "y": 0.5
         }
        }
       ]
@@ -11864,7 +12410,10 @@
          "accentColor": "#f4e4a7",
          "backgroundColor": "#a800b7",
          "loop": false,
-         "speed": 1.0
+         "speed": 1.0,
+         "echoOpacity": 0.36,
+         "x": 0.5,
+         "y": 0.5
         }
        }
       ]
@@ -11924,7 +12473,10 @@
           "#232338",
           "#3a3a5c",
           "#52527a"
-         ]
+         ],
+         "grainOverlay": 0.0,
+         "grainMixer": 0.0,
+         "scale": 1.0
         }
        }
       ]
@@ -11995,7 +12547,10 @@
           "#232338",
           "#3a3a5c",
           "#52527a"
-         ]
+         ],
+         "grainOverlay": 0.0,
+         "grainMixer": 0.0,
+         "scale": 1.0
         }
        }
       ]
@@ -12216,7 +12771,11 @@
           "#3a3a5c",
           "#12121a",
           "#52527a"
-         ]
+         ],
+         "shape": "checks",
+         "shapeScale": 0.1,
+         "swirlIterations": 10,
+         "scale": 1.0
         }
        }
       ]
@@ -12289,7 +12848,11 @@
           "#3a3a5c",
           "#12121a",
           "#52527a"
-         ]
+         ],
+         "shape": "checks",
+         "shapeScale": 0.1,
+         "swirlIterations": 10,
+         "scale": 1.0
         }
        }
       ]
@@ -12361,7 +12924,12 @@
           "#52527a",
           "#3a3a5c",
           "#232338"
-         ]
+         ],
+         "center": 0.2,
+         "proportion": 0.5,
+         "noise": 0.2,
+         "noiseFrequency": 0.4,
+         "scale": 1.0
         }
        }
       ]
@@ -12432,7 +13000,12 @@
           "#52527a",
           "#3a3a5c",
           "#232338"
-         ]
+         ],
+         "center": 0.2,
+         "proportion": 0.5,
+         "noise": 0.2,
+         "noiseFrequency": 0.4,
+         "scale": 1.0
         }
        }
       ]
@@ -12505,7 +13078,12 @@
           "#ffffff",
           "#3a3a5c"
          ],
-         "colorBloom": "#3a3a5c"
+         "colorBloom": "#3a3a5c",
+         "offsetY": -0.55,
+         "offsetX": 0.0,
+         "spotty": 0.3,
+         "midIntensity": 0.4,
+         "midSize": 0.2
         }
        }
       ]
@@ -12579,7 +13157,12 @@
           "#ffffff",
           "#3a3a5c"
          ],
-         "colorBloom": "#3a3a5c"
+         "colorBloom": "#3a3a5c",
+         "offsetY": -0.55,
+         "offsetX": 0.0,
+         "spotty": 0.3,
+         "midIntensity": 0.4,
+         "midSize": 0.2
         }
        }
       ]
@@ -12646,7 +13229,11 @@
          "proportion": 0.35,
          "softness": 0.1,
          "colorBack": "#12121a",
-         "colorFront": "#6a6a85"
+         "colorFront": "#6a6a85",
+         "octaveCount": 1,
+         "persistence": 1.0,
+         "lacunarity": 1.5,
+         "scale": 1.0
         }
        }
       ]
@@ -12702,7 +13289,11 @@
          "proportion": 0.35,
          "softness": 0.1,
          "colorBack": "#12121a",
-         "colorFront": "#6a6a85"
+         "colorFront": "#6a6a85",
+         "octaveCount": 1,
+         "persistence": 1.0,
+         "lacunarity": 1.5,
+         "scale": 1.0
         }
        }
       ]
@@ -12759,7 +13350,9 @@
          "colorBack": "#12121a",
          "colorFront": "#6a6a85",
          "shape": "wave",
-         "type": "4x4"
+         "type": "4x4",
+         "scale": 0.6,
+         "rotation": 0.0
         }
        }
       ]
@@ -12816,7 +13409,9 @@
          "colorBack": "#12121a",
          "colorFront": "#6a6a85",
          "shape": "wave",
-         "type": "4x4"
+         "type": "4x4",
+         "scale": 0.6,
+         "rotation": 0.0
         }
        }
       ]
@@ -12871,7 +13466,12 @@
          "curvature": 1.0,
          "scanlines": 1.0,
          "maskScale": 2,
-         "vignette": 1.0
+         "vignette": 1.0,
+         "scanlineCount": 240,
+         "mask": 0.66,
+         "glow": 0.75,
+         "flicker": 0.012,
+         "bezelColor": "#000000"
         }
        }
       ]
@@ -13013,7 +13613,12 @@
            "curvature": 1.0,
            "scanlines": 1.0,
            "maskScale": 2,
-           "vignette": 1.0
+           "vignette": 1.0,
+           "scanlineCount": 240,
+           "mask": 0.66,
+           "glow": 0.75,
+           "flicker": 0.012,
+           "bezelColor": "#000000"
           }
          }
         }
@@ -13071,7 +13676,9 @@
          "bleed": 1.0,
          "wobble": 1.0,
          "noise": 1.0,
-         "intensity": 1.0
+         "intensity": 1.0,
+         "headSwitch": 1.0,
+         "scanlines": 1.0
         }
        }
       ]
@@ -13213,7 +13820,9 @@
            "bleed": 1.0,
            "wobble": 1.0,
            "noise": 1.0,
-           "intensity": 1.0
+           "intensity": 1.0,
+           "headSwitch": 1.0,
+           "scanlines": 1.0
           }
          }
         }
@@ -13271,7 +13880,10 @@
          "dotSize": 10,
          "angle": 0,
          "misregistration": 1.2,
-         "paperTint": "#f4efe4"
+         "paperTint": "#f4efe4",
+         "cyanInk": "#14e0fa",
+         "magentaInk": "#e61ff0",
+         "yellowInk": "#f7e61a"
         }
        }
       ]
@@ -13413,7 +14025,10 @@
            "dotSize": 10,
            "angle": 0,
            "misregistration": 1.2,
-           "paperTint": "#f4efe4"
+           "paperTint": "#f4efe4",
+           "cyanInk": "#14e0fa",
+           "magentaInk": "#e61ff0",
+           "yellowInk": "#f7e61a"
           }
          }
         }
@@ -13472,7 +14087,9 @@
          "bloom": 0.5,
          "aberration": 0.5,
          "vignette": 0.5,
-         "distortion": 0.05
+         "distortion": 0.05,
+         "sharpCentre": 0.22,
+         "bloomThreshold": 0.62
         }
        }
       ]
@@ -13615,7 +14232,9 @@
            "bloom": 0.5,
            "aberration": 0.5,
            "vignette": 0.5,
-           "distortion": 0.05
+           "distortion": 0.05,
+           "sharpCentre": 0.22,
+           "bloomThreshold": 0.62
           }
          }
         }
@@ -13675,7 +14294,13 @@
          "width": 652,
          "step": 3.0,
          "frameColor": "#fdfcf8",
-         "captionColor": "#26242c"
+         "captionColor": "#26242c",
+         "photoShape": "16:9",
+         "captionStrip": 62,
+         "cornerRadius": 4,
+         "captionWeight": 600,
+         "writeSpeed": 1.4,
+         "photoColor": "#100f14"
         }
        }
       ]
@@ -13819,7 +14444,13 @@
            "width": 652,
            "step": 3.0,
            "frameColor": "#fdfcf8",
-           "captionColor": "#26242c"
+           "captionColor": "#26242c",
+           "photoShape": "16:9",
+           "captionStrip": 62,
+           "cornerRadius": 4,
+           "captionWeight": 600,
+           "writeSpeed": 1.4,
+           "photoColor": "#100f14"
           }
          }
         }
@@ -13877,7 +14508,8 @@
          "durationInFrames": 18,
          "gain": 1.0,
          "afterglow": 1.0,
-         "phosphor": "#d8ecff"
+         "phosphor": "#d8ecff",
+         "screenColor": "#000000"
         }
        }
       ]
@@ -14019,7 +14651,8 @@
            "durationInFrames": 18,
            "gain": 1.0,
            "afterglow": 1.0,
-           "phosphor": "#d8ecff"
+           "phosphor": "#d8ecff",
+           "screenColor": "#000000"
           }
          }
         }
@@ -14086,7 +14719,11 @@
          "delay": 0,
          "color": "#ffffff",
          "seed": 1,
-         "speed": 1.0
+         "speed": 1.0,
+         "fromX": -0.25,
+         "fromY": 0.5,
+         "hold": 8.0,
+         "streakLength": 1.6
         }
        }
       ]
@@ -14150,7 +14787,11 @@
          "delay": 0,
          "color": "#ffffff",
          "seed": 1,
-         "speed": 1.0
+         "speed": 1.0,
+         "fromX": -0.25,
+         "fromY": 0.5,
+         "hold": 8.0,
+         "streakLength": 1.6
         }
        }
       ]
@@ -14898,6 +15539,7 @@
            "springStiffness": 320,
            "bgFadeFrames": 4,
            "loop": false,
+           "enterStaggerJitter": 1,
            "gapFrames": 1
           },
           "backgrounds": [
@@ -15008,7 +15650,15 @@
            "delay": 12.0
           }
          ],
-         "speed": 1.0
+         "speed": 1.0,
+         "width": 900,
+         "height": 480,
+         "ellipsisPause": 18.0,
+         "startAt": 10.0,
+         "windowDots": true,
+         "cornerRadius": 12,
+         "lineHeight": 1.6,
+         "titleColor": "#71717a"
         }
        }
       ]
@@ -15108,7 +15758,15 @@
            "delay": 12.0
           }
          ],
-         "speed": 1.0
+         "speed": 1.0,
+         "width": 900,
+         "height": 480,
+         "ellipsisPause": 18.0,
+         "startAt": 10.0,
+         "windowDots": true,
+         "cornerRadius": 12,
+         "lineHeight": 1.6,
+         "titleColor": "#71717a"
         }
        }
       ]
@@ -15173,7 +15831,21 @@
          "showTrafficLights": true,
          "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
          "aura": false,
-         "speed": 1.0
+         "speed": 1.0,
+         "frost": 16,
+         "cornerRadius": 16,
+         "lineHeight": 1.55,
+         "auraColors": [
+          "rgba(56,189,248,0.22)",
+          "rgba(168,85,247,0.18)"
+         ],
+         "codeColor": "#e4e4e7",
+         "commentColor": "#52525b",
+         "stringColor": "#86efac",
+         "keywordColor": "#c4b5fd",
+         "numberColor": "#fcd34d",
+         "titleColor": "#a1a1aa",
+         "lineNumberColor": "#3f3f46"
         }
        }
       ]
@@ -15188,6 +15860,15 @@
     {
      "icon": "type",
      "text": "“hero.tsx”"
+    },
+    {
+     "icon": "palette",
+     "text": "2 colours",
+     "title": "rgba(56,189,248,0.22), rgba(168,85,247,0.18)",
+     "swatches": [
+      "rgba(56,189,248,0.22)",
+      "rgba(168,85,247,0.18)"
+     ]
     },
     {
      "icon": "clock",
@@ -15238,7 +15919,21 @@
          "showTrafficLights": true,
          "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
          "aura": false,
-         "speed": 1.0
+         "speed": 1.0,
+         "frost": 16,
+         "cornerRadius": 16,
+         "lineHeight": 1.55,
+         "auraColors": [
+          "rgba(56,189,248,0.22)",
+          "rgba(168,85,247,0.18)"
+         ],
+         "codeColor": "#e4e4e7",
+         "commentColor": "#52525b",
+         "stringColor": "#86efac",
+         "keywordColor": "#c4b5fd",
+         "numberColor": "#fcd34d",
+         "titleColor": "#a1a1aa",
+         "lineNumberColor": "#3f3f46"
         }
        }
       ]
@@ -15255,6 +15950,15 @@
      "text": "“hero.tsx”"
     },
     {
+     "icon": "palette",
+     "text": "2 colours",
+     "title": "rgba(56,189,248,0.22), rgba(168,85,247,0.18)",
+     "swatches": [
+      "rgba(56,189,248,0.22)",
+      "rgba(168,85,247,0.18)"
+     ]
+    },
+    {
      "icon": "clock",
      "text": "6 s"
     }
@@ -15295,7 +15999,10 @@
         "component": "code-morph",
         "props": {
          "filename": "invoices.tsx",
-         "theme": "dark",
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
          "accentColor": "#0ea5e9",
          "morphDuration": 36.0,
          "fontSize": 20,
@@ -15312,7 +16019,11 @@
            "at": 48.0
           }
          ],
-         "speed": 1.0
+         "speed": 1.0,
+         "lineHeight": 1.55,
+         "cornerRadius": 14,
+         "maxSize": 0.9,
+         "highlightHold": 24.0
         }
        }
       ]
@@ -15324,6 +16035,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
     {
      "icon": "clock",
      "text": "4.6 s"
@@ -15365,7 +16080,10 @@
         "component": "code-morph",
         "props": {
          "filename": "invoices.tsx",
-         "theme": "dark",
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
          "accentColor": "#0ea5e9",
          "morphDuration": 36.0,
          "fontSize": 20,
@@ -15382,7 +16100,11 @@
            "at": 48.0
           }
          ],
-         "speed": 1.0
+         "speed": 1.0,
+         "lineHeight": 1.55,
+         "cornerRadius": 14,
+         "maxSize": 0.9,
+         "highlightHold": 24.0
         }
        }
       ]
@@ -15394,6 +16116,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
     {
      "icon": "clock",
      "text": "4.6 s"
@@ -15461,7 +16187,12 @@
            "background": "#7c3aed"
           }
          ],
-         "speed": 1.0
+         "speed": 1.0,
+         "bounce": 13,
+         "ringWidth": 5,
+         "shadow": 0.5,
+         "logoScale": 52,
+         "firstOnTop": true
         }
        }
       ]
@@ -15540,7 +16271,12 @@
            "background": "#7c3aed"
           }
          ],
-         "speed": 1.0
+         "speed": 1.0,
+         "bounce": 13,
+         "ringWidth": 5,
+         "shadow": 0.5,
+         "logoScale": 52,
+         "firstOnTop": true
         }
        }
       ]
@@ -15618,7 +16354,8 @@
          "boxColor": "#26242c",
          "weight": "600",
          "seed": "checklist",
-         "background": "white"
+         "background": "white",
+         "wobble": 1.0
         }
        }
       ]
@@ -15696,7 +16433,8 @@
          "boxColor": "#26242c",
          "weight": "600",
          "seed": "checklist",
-         "background": "white"
+         "background": "white",
+         "wobble": 1.0
         }
        }
       ]
@@ -15761,6 +16499,7 @@
          "accentColor": "#e8f99a",
          "backgroundColor": "#f5f1f5",
          "reducedMotion": false,
+         "weight": "400",
          "speed": 1.0
         }
        }
@@ -15830,6 +16569,7 @@
          "accentColor": "#e8f99a",
          "backgroundColor": "#f5f1f5",
          "reducedMotion": false,
+         "weight": "400",
          "speed": 1.0
         }
        }
@@ -15886,7 +16626,10 @@
         },
         "component": "agent-run",
         "props": {
-         "theme": "light",
+         "theme": {
+          "mode": "light",
+          "colors": {}
+         },
          "accentColor": "#2563eb",
          "compression": 3.0,
          "seed": 1,
@@ -15937,7 +16680,11 @@
           }
          ],
          "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
-         "speed": 1.0
+         "speed": 1.0,
+         "thinkingLabel": "Thinking",
+         "thoughtLabel": "Thought for",
+         "showTimer": true,
+         "cornerRadius": 18
         }
        }
       ]
@@ -15949,6 +16696,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "sun",
+     "text": "Light theme"
+    },
     {
      "icon": "clock",
      "text": "11.8 s"
@@ -15989,7 +16740,10 @@
         },
         "component": "agent-run",
         "props": {
-         "theme": "light",
+         "theme": {
+          "mode": "light",
+          "colors": {}
+         },
          "accentColor": "#2563eb",
          "compression": 3.0,
          "seed": 1,
@@ -16040,7 +16794,11 @@
           }
          ],
          "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
-         "speed": 1.0
+         "speed": 1.0,
+         "thinkingLabel": "Thinking",
+         "thoughtLabel": "Thought for",
+         "showTimer": true,
+         "cornerRadius": 18
         }
        }
       ]
@@ -16052,6 +16810,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "sun",
+     "text": "Light theme"
+    },
     {
      "icon": "clock",
      "text": "11.8 s"
@@ -16137,7 +16899,10 @@
          "height": 500,
          "baselineColor": "#27272a",
          "labelColor": "#a1a1aa",
-         "speed": 1.0
+         "speed": 1.0,
+         "cornerRadius": 6,
+         "glow": 33.0,
+         "labelSize": 16
         }
        }
       ]
@@ -16234,7 +16999,10 @@
          "height": 500,
          "baselineColor": "#27272a",
          "labelColor": "#a1a1aa",
-         "speed": 1.0
+         "speed": 1.0,
+         "cornerRadius": 6,
+         "glow": 33.0,
+         "labelSize": 16
         }
        }
       ]
@@ -16303,7 +17071,12 @@
          ],
          "width": 1000,
          "height": 500,
-         "speed": 1.0
+         "speed": 1.0,
+         "startAtZero": false,
+         "finishAt": 85.0,
+         "gridRows": 4,
+         "showColumns": true,
+         "glow": 33.0
         }
        }
       ]
@@ -16372,7 +17145,12 @@
          ],
          "width": 1000,
          "height": 500,
-         "speed": 1.0
+         "speed": 1.0,
+         "startAtZero": false,
+         "finishAt": 85.0,
+         "gridRows": 4,
+         "showColumns": true,
+         "glow": 33.0
         }
        }
       ]
@@ -16433,7 +17211,12 @@
          "fontSize": 120,
          "color": "#171717",
          "background": "white",
-         "speed": 1.0
+         "speed": 1.0,
+         "finishAt": 80.0,
+         "groupSeparator": "space",
+         "fontWeight": 800,
+         "prefix": "",
+         "suffix": ""
         }
        }
       ]
@@ -16494,7 +17277,12 @@
          "fontSize": 120,
          "color": "#171717",
          "background": "white",
-         "speed": 1.0
+         "speed": 1.0,
+         "finishAt": 80.0,
+         "groupSeparator": "space",
+         "fontWeight": 800,
+         "prefix": "",
+         "suffix": ""
         }
        }
       ]
@@ -16561,7 +17349,20 @@
          "email": "m@example.com",
          "password": "••••••••",
          "createLabel": "Create account",
-         "toastTitle": "Account created"
+         "toastTitle": "Account created",
+         "nameLabel": "Full Name",
+         "emailLabel": "Email",
+         "emailHelp": "We'll use this to contact you.",
+         "passwordLabel": "Password",
+         "passwordHelp": "Must be at least 8 characters long.",
+         "confirmLabel": "Confirm Password",
+         "speed": 1.0,
+         "loadingSeconds": 42.0,
+         "noticeSeconds": 66.0,
+         "cursorShape": "pointer",
+         "cursorSize": 28,
+         "noticeCorner": "bottom-right",
+         "radius": 10
         }
        }
       ]
@@ -16636,7 +17437,20 @@
          "email": "m@example.com",
          "password": "••••••••",
          "createLabel": "Create account",
-         "toastTitle": "Account created"
+         "toastTitle": "Account created",
+         "nameLabel": "Full Name",
+         "emailLabel": "Email",
+         "emailHelp": "We'll use this to contact you.",
+         "passwordLabel": "Password",
+         "passwordHelp": "Must be at least 8 characters long.",
+         "confirmLabel": "Confirm Password",
+         "speed": 1.0,
+         "loadingSeconds": 42.0,
+         "noticeSeconds": 66.0,
+         "cursorShape": "pointer",
+         "cursorSize": 28,
+         "noticeCorner": "bottom-right",
+         "radius": 10
         }
        }
       ]
@@ -16712,7 +17526,17 @@
           "defer billing to Q4, and pull the migration forward so",
           "infra is unblocked before the team scales next quarter."
          ],
-         "toastTitle": "Response ready"
+         "toastTitle": "Response ready",
+         "typingSeconds": 50.1,
+         "loadingSeconds": 86.1,
+         "noticeSeconds": 60.0,
+         "speed": 1.0,
+         "fieldWidth": 320,
+         "answerWidth": 560,
+         "answerSize": 18,
+         "radius": 10,
+         "buttonVariant": "default",
+         "noticeCorner": "bottom-right"
         }
        }
       ]
@@ -16784,7 +17608,17 @@
           "defer billing to Q4, and pull the migration forward so",
           "infra is unblocked before the team scales next quarter."
          ],
-         "toastTitle": "Response ready"
+         "toastTitle": "Response ready",
+         "typingSeconds": 50.1,
+         "loadingSeconds": 86.1,
+         "noticeSeconds": 60.0,
+         "speed": 1.0,
+         "fieldWidth": 320,
+         "answerWidth": 560,
+         "answerSize": 18,
+         "radius": 10,
+         "buttonVariant": "default",
+         "noticeCorner": "bottom-right"
         }
        }
       ]
@@ -16875,7 +17709,17 @@
           }
          ],
          "autoplay": true,
-         "pressedIndex": -1
+         "pressedIndex": -1,
+         "letterSeconds": 2.5,
+         "pauseSeconds": 18.0,
+         "speed": 1.0,
+         "pickIndex": 0,
+         "placeholder": "Type a command or search…",
+         "emptyText": "No results found.",
+         "backdropOpacity": 0.5,
+         "panelWidth": 440,
+         "top": 18.0,
+         "radius": 10
         }
        }
       ]
@@ -16966,7 +17810,17 @@
           }
          ],
          "autoplay": true,
-         "pressedIndex": -1
+         "pressedIndex": -1,
+         "letterSeconds": 2.5,
+         "pauseSeconds": 18.0,
+         "speed": 1.0,
+         "pickIndex": 0,
+         "placeholder": "Type a command or search…",
+         "emptyText": "No results found.",
+         "backdropOpacity": 0.5,
+         "panelWidth": 440,
+         "top": 18.0,
+         "radius": 10
         }
        }
       ]
@@ -17034,7 +17888,14 @@
           "Move together.\nGo further.",
           "A fresh chapter.\nNo starting over."
          ],
-         "lightIntensity": 1.0
+         "logoSize": 34,
+         "themeBackground": "#050709",
+         "themeSurface": "#151C22",
+         "themeForeground": "#F2F5F7",
+         "themeMuted": "#A4ADB5",
+         "lightIntensity": 1.0,
+         "statementWeight": 500,
+         "textSize": 1.0
         }
        }
       ]
@@ -17098,7 +17959,14 @@
           "Move together.\nGo further.",
           "A fresh chapter.\nNo starting over."
          ],
-         "lightIntensity": 1.0
+         "logoSize": 34,
+         "themeBackground": "#050709",
+         "themeSurface": "#151C22",
+         "themeForeground": "#F2F5F7",
+         "themeMuted": "#A4ADB5",
+         "lightIntensity": 1.0,
+         "statementWeight": 500,
+         "textSize": 1.0
         }
        }
       ]
@@ -17178,7 +18046,82 @@
           "Messages",
           "Calendar"
          ],
-         "logoImages": []
+         "copyIdeasNote": "Collect ideas. Connect the details.",
+         "copyIdeasCard": "Project notes",
+         "reviewRows": [
+          {
+           "label": "Files reviewed",
+           "value": "12 files"
+          },
+          {
+           "label": "Comments resolved",
+           "value": "28 / 28"
+          },
+          {
+           "label": "Contributors",
+           "value": "4 people"
+          },
+          {
+           "label": "Next milestone",
+           "value": "Ready to share"
+          }
+         ],
+         "copyReviewButtons": [
+          "Approve",
+          "Revise"
+         ],
+         "copyReviewProject": "Autumn release",
+         "copyReviewTitle": "Review activity",
+         "copyShopNote": "A collection for slower mornings.",
+         "dashboardActivity": [
+          "Brief approved",
+          "Review completed",
+          "Project completed",
+          "Files organized",
+          "Milestone reached"
+         ],
+         "copyActivityTitle": "Recent activity",
+         "copyMomentum": "Project momentum",
+         "dashboardStats": [
+          {
+           "label": "Tasks closed",
+           "value": "128"
+          },
+          {
+           "label": "Active projects",
+           "value": "12"
+          },
+          {
+           "label": "On track",
+           "value": "92%"
+          }
+         ],
+         "logoImages": [],
+         "copyDashboardNote": "Demo workspace · this month",
+         "copyDashboardPeriod": "This month",
+         "copyDashboard": "Your week, in focus",
+         "fontFamily": "\"Manrope\", sans-serif",
+         "nightColor": "#122d24",
+         "paperColor": "#faf6ec",
+         "lightTextColor": "#fff9f3",
+         "inkColor": "#17392b",
+         "sageColor": "#497761",
+         "openingShimmer": 1.0,
+         "openingSize": 430,
+         "headlineWeight": 500,
+         "textSize": 1.0,
+         "photoDimming": 0.66,
+         "logoSize": 64,
+         "copyAppName": "Workroom",
+         "copyDashboardMenu": [
+          "Workspace",
+          "Overview",
+          "Milestones",
+          "Projects",
+          "Teammates",
+          "Reports",
+          "Settings"
+         ]
         }
        }
       ]
@@ -17258,7 +18201,82 @@
           "Messages",
           "Calendar"
          ],
-         "logoImages": []
+         "copyIdeasNote": "Collect ideas. Connect the details.",
+         "copyIdeasCard": "Project notes",
+         "reviewRows": [
+          {
+           "label": "Files reviewed",
+           "value": "12 files"
+          },
+          {
+           "label": "Comments resolved",
+           "value": "28 / 28"
+          },
+          {
+           "label": "Contributors",
+           "value": "4 people"
+          },
+          {
+           "label": "Next milestone",
+           "value": "Ready to share"
+          }
+         ],
+         "copyReviewButtons": [
+          "Approve",
+          "Revise"
+         ],
+         "copyReviewProject": "Autumn release",
+         "copyReviewTitle": "Review activity",
+         "copyShopNote": "A collection for slower mornings.",
+         "dashboardActivity": [
+          "Brief approved",
+          "Review completed",
+          "Project completed",
+          "Files organized",
+          "Milestone reached"
+         ],
+         "copyActivityTitle": "Recent activity",
+         "copyMomentum": "Project momentum",
+         "dashboardStats": [
+          {
+           "label": "Tasks closed",
+           "value": "128"
+          },
+          {
+           "label": "Active projects",
+           "value": "12"
+          },
+          {
+           "label": "On track",
+           "value": "92%"
+          }
+         ],
+         "logoImages": [],
+         "copyDashboardNote": "Demo workspace · this month",
+         "copyDashboardPeriod": "This month",
+         "copyDashboard": "Your week, in focus",
+         "fontFamily": "\"Manrope\", sans-serif",
+         "nightColor": "#122d24",
+         "paperColor": "#faf6ec",
+         "lightTextColor": "#fff9f3",
+         "inkColor": "#17392b",
+         "sageColor": "#497761",
+         "openingShimmer": 1.0,
+         "openingSize": 430,
+         "headlineWeight": 500,
+         "textSize": 1.0,
+         "photoDimming": 0.66,
+         "logoSize": 64,
+         "copyAppName": "Workroom",
+         "copyDashboardMenu": [
+          "Workspace",
+          "Overview",
+          "Milestones",
+          "Projects",
+          "Teammates",
+          "Reports",
+          "Settings"
+         ]
         }
        }
       ]
@@ -17333,7 +18351,12 @@
           "colors": {}
          },
          "indicatorColor": "#30D158",
-         "speed": 1.0
+         "notchLabelSize": 12,
+         "speed": 1.0,
+         "notchAt": 120.0,
+         "zoomAt": 140.0,
+         "zoomLength": 45.0,
+         "floatPeriod": 5.0
         }
        }
       ]
@@ -17417,7 +18440,12 @@
           "colors": {}
          },
          "indicatorColor": "#30D158",
-         "speed": 1.0
+         "notchLabelSize": 12,
+         "speed": 1.0,
+         "notchAt": 120.0,
+         "zoomAt": 140.0,
+         "zoomLength": 45.0,
+         "floatPeriod": 5.0
         }
        }
       ]
@@ -17499,6 +18527,7 @@
           "mode": "dark",
           "colors": {}
          },
+         "floatPeriod": 4.5,
          "speed": 1.0
         }
        }
@@ -17581,6 +18610,7 @@
           "mode": "dark",
           "colors": {}
          },
+         "floatPeriod": 4.5,
          "speed": 1.0
         }
        }
@@ -17839,7 +18869,20 @@
          "glowStrength": 0.139,
          "taglineColor": "#f2f8ff",
          "inkColor": "#ffffff",
-         "speed": 1.0
+         "taglineTint": [
+          "#8a2447",
+          "#862547",
+          "#7b2a4f",
+          "#633864",
+          "#4f467d",
+          "#3c519f",
+          "#2f5ed2",
+          "#3266e5"
+         ],
+         "speed": 1.0,
+         "fontWeight": 400,
+         "textScale": 1.0,
+         "symbolGlow": 1.0
         }
        }
       ]
@@ -17854,6 +18897,21 @@
     {
      "icon": "type",
      "text": "“Acme 2.0”"
+    },
+    {
+     "icon": "palette",
+     "text": "8 colours",
+     "title": "#8a2447, #862547, #7b2a4f, #633864, #4f467d, #3c519f, #2f5ed2, #3266e5",
+     "swatches": [
+      "#8a2447",
+      "#862547",
+      "#7b2a4f",
+      "#633864",
+      "#4f467d",
+      "#3c519f",
+      "#2f5ed2",
+      "#3266e5"
+     ]
     },
     {
      "icon": "clock",
@@ -17910,7 +18968,20 @@
          "glowStrength": 0.139,
          "taglineColor": "#f2f8ff",
          "inkColor": "#ffffff",
-         "speed": 1.0
+         "taglineTint": [
+          "#8a2447",
+          "#862547",
+          "#7b2a4f",
+          "#633864",
+          "#4f467d",
+          "#3c519f",
+          "#2f5ed2",
+          "#3266e5"
+         ],
+         "speed": 1.0,
+         "fontWeight": 400,
+         "textScale": 1.0,
+         "symbolGlow": 1.0
         }
        }
       ]
@@ -17925,6 +18996,21 @@
     {
      "icon": "type",
      "text": "“Acme 2.0”"
+    },
+    {
+     "icon": "palette",
+     "text": "8 colours",
+     "title": "#8a2447, #862547, #7b2a4f, #633864, #4f467d, #3c519f, #2f5ed2, #3266e5",
+     "swatches": [
+      "#8a2447",
+      "#862547",
+      "#7b2a4f",
+      "#633864",
+      "#4f467d",
+      "#3c519f",
+      "#2f5ed2",
+      "#3266e5"
+     ]
     },
     {
      "icon": "clock",
@@ -18144,17 +19230,14 @@
          "highlight": "Northwind",
          "after": "",
          "preset": "logo-wipe",
-         "speed": 1.0,
+         "markGap": 0.3,
          "accentColor": "#266DF0",
-         "theme": {
-          "mode": "dark",
-          "colors": {}
-         },
+         "shineWidth": 40.0,
          "replaceWith": "Acme",
          "startAt": 6.0,
          "drawDuration": 14.0,
          "thickness": 4,
-         "shineColor": "#FAFAFA",
+         "markerOpacity": 16.0,
          "logoSrc": "app:placeholders/logo-mark.svg",
          "logoScale": 1.05,
          "spinTurns": 1.0,
@@ -18163,9 +19246,16 @@
          "rushScale": 42,
          "rushDrift": 0.55,
          "swingOut": 0.25,
-         "coverColor": "#266DF0",
+         "textWidth": 80.0,
          "fontSize": 56,
-         "fontWeight": "600"
+         "fontWeight": "600",
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "lineHeight": 1.25,
+         "letterSpacing": -0.02,
+         "speed": 1.0
         }
        }
       ]
@@ -18230,17 +19320,14 @@
          "highlight": "Northwind",
          "after": "",
          "preset": "logo-wipe",
-         "speed": 1.0,
+         "markGap": 0.3,
          "accentColor": "#266DF0",
-         "theme": {
-          "mode": "dark",
-          "colors": {}
-         },
+         "shineWidth": 40.0,
          "replaceWith": "Acme",
          "startAt": 6.0,
          "drawDuration": 14.0,
          "thickness": 4,
-         "shineColor": "#FAFAFA",
+         "markerOpacity": 16.0,
          "logoSrc": "app:placeholders/logo-mark.svg",
          "logoScale": 1.05,
          "spinTurns": 1.0,
@@ -18249,9 +19336,16 @@
          "rushScale": 42,
          "rushDrift": 0.55,
          "swingOut": 0.25,
-         "coverColor": "#266DF0",
+         "textWidth": 80.0,
          "fontSize": 56,
-         "fontWeight": "600"
+         "fontWeight": "600",
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "lineHeight": 1.25,
+         "letterSpacing": -0.02,
+         "speed": 1.0
         }
        }
       ]
@@ -18315,22 +19409,32 @@
          "prefix": "Acme is",
          "statuses": "recording, editing, exporting, live",
          "chips": "Record, Auto zoom, Captions, Export, Share",
-         "speed": 1.0,
-         "statusHold": 30.0,
-         "theme": {
-          "mode": "dark",
-          "colors": {}
-         },
-         "startAt": 0.0,
-         "pillCenterY": 0.516,
+         "introZoom": 1.16,
+         "letterStagger": 1.0,
+         "fieldFadeTime": 0.3,
+         "rollTime": 0.5,
+         "pillResizeTime": 0.6,
          "chipFills": [],
-         "chipStagger": 8.0,
-         "chipBorderColor": "rgb(160, 160, 160)",
+         "chipGap": 0.057,
+         "chipInset": 0.04,
          "fontWeight": "400",
          "chipFontWeight": "400",
          "fontSize": 63,
          "chipFontSize": 160,
-         "introFrames": 24.0
+         "introFrames": 24.0,
+         "statusHold": 30.0,
+         "chipStagger": 8.0,
+         "pillCenterY": 0.516,
+         "startAt": 0.0,
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "chipPadding": 0.42,
+         "speed": 1.0,
+         "pillHeight": 1.128,
+         "pillPadding": 0.19,
+         "pillGap": 0.147
         }
        }
       ]
@@ -18389,22 +19493,32 @@
          "prefix": "Acme is",
          "statuses": "recording, editing, exporting, live",
          "chips": "Record, Auto zoom, Captions, Export, Share",
-         "speed": 1.0,
-         "statusHold": 30.0,
-         "theme": {
-          "mode": "dark",
-          "colors": {}
-         },
-         "startAt": 0.0,
-         "pillCenterY": 0.516,
+         "introZoom": 1.16,
+         "letterStagger": 1.0,
+         "fieldFadeTime": 0.3,
+         "rollTime": 0.5,
+         "pillResizeTime": 0.6,
          "chipFills": [],
-         "chipStagger": 8.0,
-         "chipBorderColor": "rgb(160, 160, 160)",
+         "chipGap": 0.057,
+         "chipInset": 0.04,
          "fontWeight": "400",
          "chipFontWeight": "400",
          "fontSize": 63,
          "chipFontSize": 160,
-         "introFrames": 24.0
+         "introFrames": 24.0,
+         "statusHold": 30.0,
+         "chipStagger": 8.0,
+         "pillCenterY": 0.516,
+         "startAt": 0.0,
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "chipPadding": 0.42,
+         "speed": 1.0,
+         "pillHeight": 1.128,
+         "pillPadding": 0.19,
+         "pillGap": 0.147
         }
        }
       ]
@@ -18464,7 +19578,7 @@
          "middleText": "Product demos, made simple",
          "logoSrc": "app:placeholders/logo-mark.svg",
          "count": 10,
-         "speed": 1.0,
+         "fontWeight": 600,
          "theme": {
           "mode": "dark",
           "colors": {}
@@ -18494,7 +19608,19 @@
           {
            "image": "app:backdrops/flare.jpg"
           }
-         ]
+         ],
+         "middleTextSize": 4.0,
+         "speed": 1.0,
+         "orbitSeconds": 50.1,
+         "orbitSpeed": 1.0,
+         "cardRatio": 1.22,
+         "cardShadow": 0.4,
+         "cardRadius": 4,
+         "ringSize": 36.0,
+         "cardSize": 15.0,
+         "logoSize": 12.5,
+         "logoGap": 3.5,
+         "nameSize": 5.5
         }
        }
       ]
@@ -18559,7 +19685,7 @@
          "middleText": "Product demos, made simple",
          "logoSrc": "app:placeholders/logo-mark.svg",
          "count": 10,
-         "speed": 1.0,
+         "fontWeight": 600,
          "theme": {
           "mode": "dark",
           "colors": {}
@@ -18589,7 +19715,19 @@
           {
            "image": "app:backdrops/flare.jpg"
           }
-         ]
+         ],
+         "middleTextSize": 4.0,
+         "speed": 1.0,
+         "orbitSeconds": 50.1,
+         "orbitSpeed": 1.0,
+         "cardRatio": 1.22,
+         "cardShadow": 0.4,
+         "cardRadius": 4,
+         "ringSize": 36.0,
+         "cardSize": 15.0,
+         "logoSize": 12.5,
+         "logoGap": 3.5,
+         "nameSize": 5.5
         }
        }
       ]
@@ -18666,12 +19804,13 @@
          "fontSize": 20.0,
          "glow": true,
          "glowOpacity": 0.07,
-         "speed": 1.0,
+         "headlineWidth": 88,
          "theme": {
           "mode": "light",
           "colors": {}
          },
          "fontWeight": "500",
+         "labelOpacity": 0.72,
          "tiles": [
           {
            "glyph": "Rc",
@@ -18733,7 +19872,14 @@
            "size": 214,
            "at": 1.55
           }
-         ]
+         ],
+         "labelScale": 0.1,
+         "speed": 1.0,
+         "wordAt": 0.017,
+         "exitScale": 0.8,
+         "exitBlur": 6.5,
+         "glowSize": 1.0,
+         "glyphWeight": 600
         }
        }
       ]
@@ -18809,12 +19955,13 @@
          "fontSize": 20.0,
          "glow": true,
          "glowOpacity": 0.07,
-         "speed": 1.0,
+         "headlineWidth": 88,
          "theme": {
           "mode": "light",
           "colors": {}
          },
          "fontWeight": "500",
+         "labelOpacity": 0.72,
          "tiles": [
           {
            "glyph": "Rc",
@@ -18876,7 +20023,14 @@
            "size": 214,
            "at": 1.55
           }
-         ]
+         ],
+         "labelScale": 0.1,
+         "speed": 1.0,
+         "wordAt": 0.017,
+         "exitScale": 0.8,
+         "exitBlur": 6.5,
+         "glowSize": 1.0,
+         "glyphWeight": 600
         }
        }
       ]
@@ -18942,7 +20096,14 @@
          "theme": {
           "mode": "dark",
           "colors": {}
-         }
+         },
+         "edgeFade": true,
+         "cardTilt": 17,
+         "cardGap": 92,
+         "cardAspect": 1.613,
+         "cardRadius": 30,
+         "headlineSize": 42,
+         "headlineWeight": 600
         }
        }
       ]
@@ -19013,7 +20174,14 @@
          "theme": {
           "mode": "dark",
           "colors": {}
-         }
+         },
+         "edgeFade": true,
+         "cardTilt": 17,
+         "cardGap": 92,
+         "cardAspect": 1.613,
+         "cardRadius": 30,
+         "headlineSize": 42,
+         "headlineWeight": 600
         }
        }
       ]
@@ -19087,9 +20255,16 @@
          "delta": 4,
          "deltaSuffix": "%",
          "accentColor": "#2DD4BF",
-         "theme": "dark",
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
          "speed": 1.0,
-         "showDelta": true
+         "showDelta": true,
+         "ringGlow": 10,
+         "glow": 10.0,
+         "ringThickness": 9,
+         "groupSeparator": "none"
         }
        }
       ]
@@ -19104,6 +20279,10 @@
     {
      "icon": "type",
      "text": "“Satisfaction”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -19154,9 +20333,16 @@
          "delta": 4,
          "deltaSuffix": "%",
          "accentColor": "#2DD4BF",
-         "theme": "dark",
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
          "speed": 1.0,
-         "showDelta": true
+         "showDelta": true,
+         "ringGlow": 10,
+         "glow": 10.0,
+         "ringThickness": 9,
+         "groupSeparator": "none"
         }
        }
       ]
@@ -19171,6 +20357,10 @@
     {
      "icon": "type",
      "text": "“Satisfaction”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -19260,7 +20450,16 @@
          "title": "Growth this quarter",
          "eyebrow": "Quarter recap",
          "maxCards": 4,
-         "theme": "dark"
+         "cornerRadius": 18,
+         "trendFill": true,
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "showArrows": true,
+         "numberFormat": "compact",
+         "glow": 7.0,
+         "uppercaseEyebrow": true
         }
        }
       ]
@@ -19275,6 +20474,10 @@
     {
      "icon": "type",
      "text": "“Growth this quarter”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -19364,7 +20567,16 @@
          "title": "Growth this quarter",
          "eyebrow": "Quarter recap",
          "maxCards": 4,
-         "theme": "dark"
+         "cornerRadius": 18,
+         "trendFill": true,
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "showArrows": true,
+         "numberFormat": "compact",
+         "glow": 7.0,
+         "uppercaseEyebrow": true
         }
        }
       ]
@@ -19381,6 +20593,10 @@
      "text": "“Growth this quarter”"
     },
     {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
+    {
      "icon": "clock",
      "text": "4 s"
     }
@@ -19457,7 +20673,9 @@
          "color": "#e8b86d",
          "inkColor": "#fafafa",
          "labelColor": "rgba(250,250,250,0.55)",
-         "dropoffColor": "#f472b6"
+         "dropoffColor": "#f472b6",
+         "numberFormat": "compact",
+         "dropoffHeading": "Drop-off"
         }
        }
       ]
@@ -19546,7 +20764,9 @@
          "color": "#e8b86d",
          "inkColor": "#fafafa",
          "labelColor": "rgba(250,250,250,0.55)",
-         "dropoffColor": "#f472b6"
+         "dropoffColor": "#f472b6",
+         "numberFormat": "compact",
+         "dropoffHeading": "Drop-off"
         }
        }
       ]
@@ -19637,7 +20857,13 @@
          "labelColor": "rgba(250,250,250,0.58)",
          "inkColor": "#fafafa",
          "upColor": "#2dd4bf",
-         "downColor": "#f87171"
+         "downColor": "#f87171",
+         "numberFormat": "compact",
+         "segmentGap": 1.2,
+         "roundEnds": false,
+         "startAngle": 0.0,
+         "uppercaseLabel": true,
+         "legendShows": "percent"
         }
        }
       ]
@@ -19739,7 +20965,13 @@
          "labelColor": "rgba(250,250,250,0.58)",
          "inkColor": "#fafafa",
          "upColor": "#2dd4bf",
-         "downColor": "#f87171"
+         "downColor": "#f87171",
+         "numberFormat": "compact",
+         "segmentGap": 1.2,
+         "roundEnds": false,
+         "startAngle": 0.0,
+         "uppercaseLabel": true,
+         "legendShows": "percent"
         }
        }
       ]
@@ -19844,7 +21076,10 @@
          "staggerInFrames": 12,
          "pairOffsetInFrames": 6,
          "barInkColor": "#0b0b10",
-         "labelColor": "rgba(250,250,250,0.55)"
+         "labelColor": "rgba(250,250,250,0.55)",
+         "numberFormat": "compact",
+         "cornerRadius": 28.0,
+         "showBeforeValue": false
         }
        }
       ]
@@ -19938,7 +21173,10 @@
          "staggerInFrames": 12,
          "pairOffsetInFrames": 6,
          "barInkColor": "#0b0b10",
-         "labelColor": "rgba(250,250,250,0.55)"
+         "labelColor": "rgba(250,250,250,0.55)",
+         "numberFormat": "compact",
+         "cornerRadius": 28.0,
+         "showBeforeValue": false
         }
        }
       ]
@@ -20087,7 +21325,12 @@
          ],
          "inkColor": "#fafafa",
          "barInkColor": "#0b0b10",
-         "labelColor": "rgba(250,250,250,0.55)"
+         "labelColor": "rgba(250,250,250,0.55)",
+         "numberFormat": "compact",
+         "cornerRadius": 22.0,
+         "stepLabelPosition": "bottom-right",
+         "stepLabelSize": 90.0,
+         "stepLabelOpacity": 22.0
         }
        }
       ]
@@ -20249,7 +21492,12 @@
          ],
          "inkColor": "#fafafa",
          "barInkColor": "#0b0b10",
-         "labelColor": "rgba(250,250,250,0.55)"
+         "labelColor": "rgba(250,250,250,0.55)",
+         "numberFormat": "compact",
+         "cornerRadius": 22.0,
+         "stepLabelPosition": "bottom-right",
+         "stepLabelSize": 90.0,
+         "stepLabelOpacity": 22.0
         }
        }
       ]
@@ -20327,7 +21575,10 @@
          "color": "#e8b86d",
          "trackColor": "rgba(250,250,250,0.10)",
          "inkColor": "#fafafa",
-         "labelColor": "rgba(250,250,250,0.58)"
+         "labelColor": "rgba(250,250,250,0.58)",
+         "roundEnds": true,
+         "showNeedle": true,
+         "uppercaseLabel": true
         }
        }
       ]
@@ -20396,7 +21647,10 @@
          "color": "#e8b86d",
          "trackColor": "rgba(250,250,250,0.10)",
          "inkColor": "#fafafa",
-         "labelColor": "rgba(250,250,250,0.58)"
+         "labelColor": "rgba(250,250,250,0.58)",
+         "roundEnds": true,
+         "showNeedle": true,
+         "uppercaseLabel": true
         }
        }
       ]
@@ -20542,10 +21796,19 @@
          "insightEyebrow": "Takeaway",
          "ctaTitle": "Turn your data into motion",
          "ctaLabel": "Get started",
-         "theme": "dark",
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
          "accentColor": "#e8b86d",
          "dataColor": "#2dd4bf",
-         "timelineColor": "#f59e0b"
+         "timelineColor": "#f59e0b",
+         "eyebrowCaps": true,
+         "showScale": true,
+         "glow": 1.0,
+         "chartSubtitle": "",
+         "numberFormat": "compact",
+         "textSize": 1.0
         }
        }
       ]
@@ -20560,6 +21823,10 @@
     {
      "icon": "type",
      "text": "“Quarterly reach by channel”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -20691,10 +21958,19 @@
          "insightEyebrow": "Takeaway",
          "ctaTitle": "Turn your data into motion",
          "ctaLabel": "Get started",
-         "theme": "dark",
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
          "accentColor": "#e8b86d",
          "dataColor": "#2dd4bf",
-         "timelineColor": "#f59e0b"
+         "timelineColor": "#f59e0b",
+         "eyebrowCaps": true,
+         "showScale": true,
+         "glow": 1.0,
+         "chartSubtitle": "",
+         "numberFormat": "compact",
+         "textSize": 1.0
         }
        }
       ]
@@ -20709,6 +21985,10 @@
     {
      "icon": "type",
      "text": "“Quarterly reach by channel”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -20755,7 +22035,16 @@
          "tagline": "Ship your next release faster",
          "stroke": "#e8b86d",
          "backgroundColor": "#080810",
-         "textColor": "#f4f4f5"
+         "textColor": "#f4f4f5",
+         "fontWeight": 600,
+         "taglineSize": 40,
+         "nameSize": 84,
+         "speed": 1.0,
+         "drawSeconds": 2.4,
+         "pathStagger": 0.27,
+         "nameAt": 1.37,
+         "glow": true,
+         "penTip": true
         }
        }
       ]
@@ -20812,7 +22101,16 @@
          "tagline": "Ship your next release faster",
          "stroke": "#e8b86d",
          "backgroundColor": "#080810",
-         "textColor": "#f4f4f5"
+         "textColor": "#f4f4f5",
+         "fontWeight": 600,
+         "taglineSize": 40,
+         "nameSize": 84,
+         "speed": 1.0,
+         "drawSeconds": 2.4,
+         "pathStagger": 0.27,
+         "nameAt": 1.37,
+         "glow": true,
+         "penTip": true
         }
        }
       ]
@@ -20883,8 +22181,13 @@
          "featuresAtSeconds": 1.05,
          "featureStaggerSeconds": 0.22,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "rollFrom": 0,
+         "cardWidth": 460
         }
        }
       ]
@@ -20896,6 +22199,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
     {
      "icon": "clock",
      "text": "4 s"
@@ -20955,8 +22262,13 @@
          "featuresAtSeconds": 1.05,
          "featureStaggerSeconds": 0.22,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "rollFrom": 0,
+         "cardWidth": 460
         }
        }
       ]
@@ -20968,6 +22280,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
     {
      "icon": "clock",
      "text": "4 s"
@@ -21064,13 +22380,21 @@
           }
          ],
          "title": "What you get",
+         "highlight": true,
          "highlightColumn": 1,
          "highlightLabel": "Most picked",
          "startAtSeconds": 0.5,
          "rowStaggerSeconds": 0.26,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "uppercaseHeadings": true,
+         "tickColor": "#9BD4A0",
+         "labelWidth": 36.0,
+         "cardWidth": 880
         }
        }
       ]
@@ -21085,6 +22409,10 @@
     {
      "icon": "type",
      "text": "“What you get”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -21182,13 +22510,21 @@
           }
          ],
          "title": "What you get",
+         "highlight": true,
          "highlightColumn": 1,
          "highlightLabel": "Most picked",
          "startAtSeconds": 0.5,
          "rowStaggerSeconds": 0.26,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "uppercaseHeadings": true,
+         "tickColor": "#9BD4A0",
+         "labelWidth": 36.0,
+         "cardWidth": 880
         }
        }
       ]
@@ -21205,6 +22541,10 @@
      "text": "“What you get”"
     },
     {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
+    {
      "icon": "clock",
      "text": "4 s"
     }
@@ -21271,8 +22611,16 @@
          "summary": "Captions, webhooks, and a queue that stops sulking.",
          "startAtSeconds": 0.66,
          "staggerSeconds": 0.28,
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "addedLabel": "Added",
+         "cardWidth": 760,
+         "removedLabel": "Removed",
+         "changedLabel": "Changed",
+         "fixedLabel": "Fixed"
         }
        }
       ]
@@ -21284,6 +22632,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
     {
      "icon": "clock",
      "text": "4 s"
@@ -21351,8 +22703,16 @@
          "summary": "Captions, webhooks, and a queue that stops sulking.",
          "startAtSeconds": 0.66,
          "staggerSeconds": 0.28,
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "addedLabel": "Added",
+         "cardWidth": 760,
+         "removedLabel": "Removed",
+         "changedLabel": "Changed",
+         "fixedLabel": "Fixed"
         }
        }
       ]
@@ -21364,6 +22724,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
     {
      "icon": "clock",
      "text": "4 s"
@@ -21446,8 +22810,21 @@
          "staggerSeconds": 0.24,
          "warmSeconds": 0.6,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "startBrightness": 0.72,
+         "showMark": true,
+         "imageSize": 46,
+         "wallWidth": 900,
+         "gap": 14,
+         "tileHeight": 88,
+         "tileRadius": 14,
+         "titleSize": 30,
+         "eyebrowUppercase": true,
+         "nameSize": 19
         }
        }
       ]
@@ -21462,6 +22839,10 @@
     {
      "icon": "type",
      "text": "“Teams that ship with us”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -21545,8 +22926,21 @@
          "staggerSeconds": 0.24,
          "warmSeconds": 0.6,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "startBrightness": 0.72,
+         "showMark": true,
+         "imageSize": 46,
+         "wallWidth": 900,
+         "gap": 14,
+         "tileHeight": 88,
+         "tileRadius": 14,
+         "titleSize": 30,
+         "eyebrowUppercase": true,
+         "nameSize": 19
         }
        }
       ]
@@ -21561,6 +22955,10 @@
     {
      "icon": "type",
      "text": "“Teams that ship with us”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -21613,8 +23011,17 @@
          ],
          "logoSrc": "",
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "buttonArrow": true,
+         "buttonRadius": 999,
+         "glow": 12,
+         "textSize": 1.0,
+         "titleWeight": 700,
+         "eyebrowCaps": true
         }
        }
       ]
@@ -21629,6 +23036,10 @@
     {
      "icon": "type",
      "text": "“Ready to try it?”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -21681,8 +23092,17 @@
          ],
          "logoSrc": "",
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "buttonArrow": true,
+         "buttonRadius": 999,
+         "glow": 12,
+         "textSize": 1.0,
+         "titleWeight": 700,
+         "eyebrowCaps": true
         }
        }
       ]
@@ -21697,6 +23117,10 @@
     {
      "icon": "type",
      "text": "“Ready to try it?”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -21747,8 +23171,24 @@
          "startLine": 1,
          "showLineNumbers": true,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "windowDots": true,
+         "fontSize": 21,
+         "windowWidth": 940,
+         "lineHeight": 1.62,
+         "visibleLines": 10,
+         "typingSpeed": 55.0,
+         "linePause": 0.07,
+         "startAt": 0.4,
+         "highlightAfter": 0.34,
+         "dimOthers": 0.34,
+         "glow": true,
+         "vignette": true,
+         "cornerRadius": 16
         }
        }
       ]
@@ -21763,6 +23203,10 @@
     {
      "icon": "type",
      "text": "“checkout.ts”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -21813,8 +23257,24 @@
          "startLine": 1,
          "showLineNumbers": true,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "windowDots": true,
+         "fontSize": 21,
+         "windowWidth": 940,
+         "lineHeight": 1.62,
+         "visibleLines": 10,
+         "typingSpeed": 55.0,
+         "linePause": 0.07,
+         "startAt": 0.4,
+         "highlightAfter": 0.34,
+         "dimOthers": 0.34,
+         "glow": true,
+         "vignette": true,
+         "cornerRadius": 16
         }
        }
       ]
@@ -21829,6 +23289,10 @@
     {
      "icon": "type",
      "text": "“checkout.ts”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -21875,8 +23339,23 @@
          "title": "render.ts",
          "wipeSeconds": 1.7,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "windowDots": true,
+         "fontSize": 20,
+         "windowWidth": 940,
+         "lineHeight": 1.7,
+         "startAt": 0.7,
+         "collapseRemoved": true,
+         "showCounts": true,
+         "dimUnchanged": true,
+         "strikeRemoved": true,
+         "glow": true,
+         "vignette": true,
+         "cornerRadius": 16
         }
        }
       ]
@@ -21891,6 +23370,10 @@
     {
      "icon": "type",
      "text": "“render.ts”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -21937,8 +23420,23 @@
          "title": "render.ts",
          "wipeSeconds": 1.7,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "windowDots": true,
+         "fontSize": 20,
+         "windowWidth": 940,
+         "lineHeight": 1.7,
+         "startAt": 0.7,
+         "collapseRemoved": true,
+         "showCounts": true,
+         "dimUnchanged": true,
+         "strikeRemoved": true,
+         "glow": true,
+         "vignette": true,
+         "cornerRadius": 16
         }
        }
       ]
@@ -21953,6 +23451,10 @@
     {
      "icon": "type",
      "text": "“render.ts”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -22044,8 +23546,12 @@
          "moveSeconds": 0.62,
          "dealStaggerSeconds": 0.08,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "showCounts": true
         }
        }
       ]
@@ -22057,6 +23563,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
     {
      "icon": "clock",
      "text": "4 s"
@@ -22147,8 +23657,12 @@
          "moveSeconds": 0.62,
          "dealStaggerSeconds": 0.08,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "showCounts": true
         }
        }
       ]
@@ -22160,6 +23674,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
     {
      "icon": "clock",
      "text": "4 s"
@@ -22213,8 +23731,13 @@
          "selectedPath": "src/components/checkout.tsx",
          "rowStagger": 0.18,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "panelWidth": 480,
+         "countLabel": "files"
         }
        }
       ]
@@ -22229,6 +23752,10 @@
     {
      "icon": "type",
      "text": "“acme-app”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -22283,8 +23810,13 @@
          "selectedPath": "src/components/checkout.tsx",
          "rowStagger": 0.18,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "panelWidth": 480,
+         "countLabel": "files"
         }
        }
       ]
@@ -22299,6 +23831,10 @@
     {
      "icon": "type",
      "text": "“acme-app”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -22352,9 +23888,15 @@
          "activeLabel": "Release to upload",
          "doneLabel": "Uploaded",
          "accentColor": "#E8B86D",
-         "theme": "dark",
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
          "speed": 1.0,
-         "uploadingLabel": "Uploading"
+         "uploadingLabel": "Uploading",
+         "draggedRow": 1,
+         "uploadSeconds": 1.26,
+         "showPercent": true
         }
        }
       ]
@@ -22369,6 +23911,10 @@
     {
      "icon": "type",
      "text": "“Drop your clip”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -22422,9 +23968,15 @@
          "activeLabel": "Release to upload",
          "doneLabel": "Uploaded",
          "accentColor": "#E8B86D",
-         "theme": "dark",
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
          "speed": 1.0,
-         "uploadingLabel": "Uploading"
+         "uploadingLabel": "Uploading",
+         "draggedRow": 1,
+         "uploadSeconds": 1.26,
+         "showPercent": true
         }
        }
       ]
@@ -22439,6 +23991,10 @@
     {
      "icon": "type",
      "text": "“Drop your clip”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
     },
     {
      "icon": "clock",
@@ -22525,8 +24081,19 @@
           "#9BD4A0",
           "#E8B86D"
          ],
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "windowDots": true,
+         "cornerRadius": 18,
+         "textSize": 15.5,
+         "windowWidth": 860,
+         "rowSpacing": 48,
+         "laneSpacing": 30,
+         "dotSize": 6.5,
+         "lineWidth": 2.2
         }
        }
       ]
@@ -22634,8 +24201,19 @@
           "#9BD4A0",
           "#E8B86D"
          ],
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "windowDots": true,
+         "cornerRadius": 18,
+         "textSize": 15.5,
+         "windowWidth": 860,
+         "rowSpacing": 48,
+         "laneSpacing": 30,
+         "dotSize": 6.5,
+         "lineWidth": 2.2
         }
        }
       ]
@@ -22730,8 +24308,15 @@
          "lifeSeconds": 2.3,
          "showProgress": true,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "margin": 80,
+         "size": 1.0,
+         "toastWidth": 370,
+         "cornerRadius": 14
         }
        }
       ]
@@ -22743,6 +24328,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
     {
      "icon": "clock",
      "text": "5.27 s"
@@ -22815,8 +24404,15 @@
          "lifeSeconds": 2.3,
          "showProgress": true,
          "accentColor": "#E8B86D",
-         "theme": "dark",
-         "speed": 1.0
+         "theme": {
+          "mode": "dark",
+          "colors": {}
+         },
+         "speed": 1.0,
+         "margin": 80,
+         "size": 1.0,
+         "toastWidth": 370,
+         "cornerRadius": 14
         }
        }
       ]
@@ -22828,6 +24424,10 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
     {
      "icon": "clock",
      "text": "5.27 s"
@@ -22868,13 +24468,35 @@
         },
         "component": "device-mockup-zoom",
         "props": {
-         "textColor": "#f8fafc",
+         "subtitleSize": 24,
          "title": "",
          "subtitle": "",
          "eyebrow": "",
          "device": "laptop",
          "backgroundColor": "#080810",
-         "accentColor": "#e8b86d"
+         "accentColor": "#e8b86d",
+         "textColor": "#f8fafc",
+         "deviceColor": "#171b26",
+         "deviceEdgeColor": "#242a3a",
+         "bezelColor": "#0d111b",
+         "buttonColor": "#0c0e15",
+         "cameraColor": "#05060a",
+         "islandColor": "#000000",
+         "lensColor": "#1e2230",
+         "baseGradient": "linear-gradient(180deg, #30384b 0%, #171b26 60%, #0b0d14 100%)",
+         "secondAccent": "#2dd4bf",
+         "thirdAccent": "#f472b6",
+         "screenColor": "#f6f1e8",
+         "screenTextColor": "#111827",
+         "screenMutedColor": "#6b7280",
+         "backgroundTint": "#5b6b9a",
+         "shadow": 0.42,
+         "glow": 0.2,
+         "showGrid": true,
+         "pullBackFrom": 1.18,
+         "scale": 1.0,
+         "titleSize": 64,
+         "titleWeight": 800
         }
        }
       ]
@@ -22886,6 +24508,16 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "blend",
+     "text": "Straight gradient",
+     "title": "linear-gradient(180deg, #30384b 0%, #171b26 60%, #0b0d14 100%)",
+     "swatches": [
+      "#30384b",
+      "#171b26",
+      "#0b0d14"
+     ]
+    },
     {
      "icon": "clock",
      "text": "3 s"
@@ -23012,13 +24644,35 @@
          "wrapper": {
           "component": "device-mockup-zoom",
           "props": {
-           "textColor": "#f8fafc",
+           "subtitleSize": 24,
            "title": "",
            "subtitle": "",
            "eyebrow": "",
            "device": "laptop",
            "backgroundColor": "#080810",
-           "accentColor": "#e8b86d"
+           "accentColor": "#e8b86d",
+           "textColor": "#f8fafc",
+           "deviceColor": "#171b26",
+           "deviceEdgeColor": "#242a3a",
+           "bezelColor": "#0d111b",
+           "buttonColor": "#0c0e15",
+           "cameraColor": "#05060a",
+           "islandColor": "#000000",
+           "lensColor": "#1e2230",
+           "baseGradient": "linear-gradient(180deg, #30384b 0%, #171b26 60%, #0b0d14 100%)",
+           "secondAccent": "#2dd4bf",
+           "thirdAccent": "#f472b6",
+           "screenColor": "#f6f1e8",
+           "screenTextColor": "#111827",
+           "screenMutedColor": "#6b7280",
+           "backgroundTint": "#5b6b9a",
+           "shadow": 0.42,
+           "glow": 0.2,
+           "showGrid": true,
+           "pullBackFrom": 1.18,
+           "scale": 1.0,
+           "titleSize": 64,
+           "titleWeight": 800
           }
          }
         }
@@ -23032,6 +24686,16 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "blend",
+     "text": "Straight gradient",
+     "title": "linear-gradient(180deg, #30384b 0%, #171b26 60%, #0b0d14 100%)",
+     "swatches": [
+      "#30384b",
+      "#171b26",
+      "#0b0d14"
+     ]
+    },
     {
      "icon": "clock",
      "text": "Matches the clip",
@@ -23084,7 +24748,15 @@
          "labelColor": "#7A828F",
          "phoneLabel": "Phone",
          "tabletLabel": "Tablet",
-         "laptopLabel": "Laptop"
+         "laptopLabel": "Laptop",
+         "baseGradient": "linear-gradient(180deg, #23262E 0%, #14161B 100%)",
+         "islandColor": "#05060A",
+         "cameraColor": "rgba(255,255,255,0.28)",
+         "edgeColor": "rgba(255,255,255,0.10)",
+         "shadow": 0.55,
+         "gap": 26,
+         "labelSize": 12,
+         "labelUppercase": true
         }
        }
       ]
@@ -23096,6 +24768,15 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "blend",
+     "text": "Straight gradient",
+     "title": "linear-gradient(180deg, #23262E 0%, #14161B 100%)",
+     "swatches": [
+      "#23262E",
+      "#14161B"
+     ]
+    },
     {
      "icon": "clock",
      "text": "Matches the clip",
@@ -23230,7 +24911,15 @@
            "labelColor": "#7A828F",
            "phoneLabel": "Phone",
            "tabletLabel": "Tablet",
-           "laptopLabel": "Laptop"
+           "laptopLabel": "Laptop",
+           "baseGradient": "linear-gradient(180deg, #23262E 0%, #14161B 100%)",
+           "islandColor": "#05060A",
+           "cameraColor": "rgba(255,255,255,0.28)",
+           "edgeColor": "rgba(255,255,255,0.10)",
+           "shadow": 0.55,
+           "gap": 26,
+           "labelSize": 12,
+           "labelUppercase": true
           }
          },
          "design": {
@@ -23248,6 +24937,15 @@
   "error": null,
   "card": {
    "rows": [
+    {
+     "icon": "blend",
+     "text": "Straight gradient",
+     "title": "linear-gradient(180deg, #23262E 0%, #14161B 100%)",
+     "swatches": [
+      "#23262E",
+      "#14161B"
+     ]
+    },
     {
      "icon": "clock",
      "text": "Matches the clip",
@@ -23295,9 +24993,11 @@
          "inkSoftness": 0.18,
          "wobble": 1.6,
          "staggerInFrames": 3,
-         "fontWeight": "600",
+         "wordSpacing": 0.26,
          "seed": "handwriting",
-         "color": "#f4f4f5"
+         "color": "#f4f4f5",
+         "fontWeight": "600",
+         "durationInFrames": 10
         }
        }
       ]
@@ -23359,9 +25059,11 @@
          "inkSoftness": 0.18,
          "wobble": 1.6,
          "staggerInFrames": 3,
-         "fontWeight": "600",
+         "wordSpacing": 0.26,
          "seed": "handwriting",
-         "color": "#f4f4f5"
+         "color": "#f4f4f5",
+         "fontWeight": "600",
+         "durationInFrames": 10
         }
        }
       ]
@@ -23428,7 +25130,10 @@
          "staggerInFrames": 2,
          "seed": 1,
          "color": "#fdf2f8",
-         "fontWeight": "600"
+         "fontWeight": "600",
+         "wordSpacing": 0.26,
+         "durationInFrames": 20,
+         "humRate": 2.0
         }
        }
       ]
@@ -23495,7 +25200,10 @@
          "staggerInFrames": 2,
          "seed": 1,
          "color": "#fdf2f8",
-         "fontWeight": "600"
+         "fontWeight": "600",
+         "wordSpacing": 0.26,
+         "durationInFrames": 20,
+         "humRate": 2.0
         }
        }
       ]
@@ -23552,14 +25260,17 @@
         "component": "text-mask-video",
         "props": {
          "text": "LAUNCH\nDAY",
-         "lineHeight": 0.98,
+         "startFrom": 0.0,
          "gradient": "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)",
          "reveal": "left",
          "drift": 26.0,
          "zoom": 0.12,
          "durationInFrames": 30,
+         "fitMax": 150.0,
+         "fontWeight": 800,
          "letterSpacing": 0.0,
-         "fontWeight": 800
+         "lineHeight": 0.98,
+         "driftSpeed": 1.0
         }
        }
       ]
@@ -23626,14 +25337,17 @@
         "component": "text-mask-video",
         "props": {
          "text": "LAUNCH\nDAY",
-         "lineHeight": 0.98,
+         "startFrom": 0.0,
          "gradient": "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)",
          "reveal": "left",
          "drift": 26.0,
          "zoom": 0.12,
          "durationInFrames": 30,
+         "fitMax": 150.0,
+         "fontWeight": 800,
          "letterSpacing": 0.0,
-         "fontWeight": 800
+         "lineHeight": 0.98,
+         "driftSpeed": 1.0
         }
        }
       ]
@@ -23715,7 +25429,11 @@
          "intensity": 1.3,
          "horizonGlow": 0.5,
          "striation": 0.55,
-         "seed": 1
+         "seed": 1,
+         "folds": 2.0,
+         "sidewaysDrift": 13.0,
+         "raySpacing": 72,
+         "vignette": 0.55
         }
        }
       ]
@@ -23793,7 +25511,11 @@
          "intensity": 1.3,
          "horizonGlow": 0.5,
          "striation": 0.55,
-         "seed": 1
+         "seed": 1,
+         "folds": 2.0,
+         "sidewaysDrift": 13.0,
+         "raySpacing": 72,
+         "vignette": 0.55
         }
        }
       ]
@@ -23866,7 +25588,8 @@
          "drift": 4.0,
          "intensity": 1.0,
          "glow": 1.6,
-         "seed": 1
+         "seed": 1,
+         "twinkle": 0.3
         }
        }
       ]
@@ -23929,7 +25652,8 @@
          "drift": 4.0,
          "intensity": 1.0,
          "glow": 1.6,
-         "seed": 1
+         "seed": 1,
+         "twinkle": 0.3
         }
        }
       ]
@@ -24857,7 +26581,8 @@
          "kind": "flip",
          "durationInFrames": 24,
          "params": {
-          "direction": "from-right"
+          "direction": "from-right",
+          "perspective": 1000
          }
         },
         "slot": {
@@ -24913,7 +26638,8 @@
          "kind": "flip",
          "durationInFrames": 24,
          "params": {
-          "direction": "from-right"
+          "direction": "from-right",
+          "perspective": 1000
          }
         },
         "slot": {
@@ -25624,7 +27350,8 @@
          "durationInFrames": 74,
          "params": {
           "direction": "left",
-          "blur": 24
+          "blur": 24,
+          "stretch": 12.0
          }
         },
         "slot": {
@@ -25681,7 +27408,8 @@
          "durationInFrames": 74,
          "params": {
           "direction": "left",
-          "blur": 24
+          "blur": 24,
+          "stretch": 12.0
          }
         },
         "slot": {
@@ -25890,7 +27618,8 @@
          "durationInFrames": 74,
          "params": {
           "zoom": 2.4,
-          "blur": 14
+          "blur": 14,
+          "approachFrom": 0.68
          }
         },
         "slot": {
@@ -25947,7 +27676,8 @@
          "durationInFrames": 74,
          "params": {
           "zoom": 2.4,
-          "blur": 14
+          "blur": 14,
+          "approachFrom": 0.68
          }
         },
         "slot": {
@@ -26156,7 +27886,8 @@
          "durationInFrames": 74,
          "params": {
           "blur": 16,
-          "rise": 0
+          "rise": 0,
+          "zoom": 1.12
          }
         },
         "slot": {
@@ -26213,7 +27944,8 @@
          "durationInFrames": 74,
          "params": {
           "blur": 16,
-          "rise": 0
+          "rise": 0,
+          "zoom": 1.12
          }
         },
         "slot": {
@@ -26421,7 +28153,9 @@
          "kind": "focus-pull",
          "durationInFrames": 74,
          "params": {
-          "blur": 16
+          "blur": 16,
+          "glow": 30.0,
+          "zoom": 5.0
          }
         },
         "slot": {
@@ -26477,7 +28211,9 @@
          "kind": "focus-pull",
          "durationInFrames": 74,
          "params": {
-          "blur": 16
+          "blur": 16,
+          "glow": 30.0,
+          "zoom": 5.0
          }
         },
         "slot": {
@@ -26689,7 +28425,17 @@
           "blurSamples": 7,
           "shakeAmount": 50,
           "shakeTranslatePx": 73,
-          "colorSplit": true
+          "colorSplit": true,
+          "zoom": 150.0,
+          "zoomBlur": 60.0,
+          "distortion": 160.0,
+          "twist": -15.0,
+          "pullBack": 100.0,
+          "shakeSpeed": 11.2,
+          "shakeRotation": 1.1,
+          "fringe": 1.0,
+          "letterbox": 0.0,
+          "background": "#000000"
          }
         },
         "slot": {
@@ -26749,7 +28495,17 @@
           "blurSamples": 7,
           "shakeAmount": 50,
           "shakeTranslatePx": 73,
-          "colorSplit": true
+          "colorSplit": true,
+          "zoom": 150.0,
+          "zoomBlur": 60.0,
+          "distortion": 160.0,
+          "twist": -15.0,
+          "pullBack": 100.0,
+          "shakeSpeed": 11.2,
+          "shakeRotation": 1.1,
+          "fringe": 1.0,
+          "letterbox": 0.0,
+          "background": "#000000"
          }
         },
         "slot": {
@@ -26967,7 +28723,8 @@
            "#8f88ae"
           ],
           "speed": 1.0,
-          "noise": 0.5
+          "noise": 0.5,
+          "originX": 0.5
          }
         },
         "slot": {
@@ -27033,7 +28790,8 @@
            "#8f88ae"
           ],
           "speed": 1.0,
-          "noise": 0.5
+          "noise": 0.5,
+          "originX": 0.5
          }
         },
         "slot": {
@@ -27251,7 +29009,8 @@
            "#8f88ae"
           ],
           "speed": 1.0,
-          "zoom": 1.16
+          "zoom": 1.16,
+          "direction": "up"
          }
         },
         "slot": {
@@ -27317,7 +29076,8 @@
            "#8f88ae"
           ],
           "speed": 1.0,
-          "zoom": 1.16
+          "zoom": 1.16,
+          "direction": "up"
          }
         },
         "slot": {
@@ -27525,12 +29285,13 @@
          "kind": "smoke-dissolve",
          "durationInFrames": 74,
          "params": {
-          "ringColor": "#8f88ae",
           "colorBack": "#141318",
           "colors": [
            "#8f88ae"
           ],
-          "speed": 1.0
+          "speed": 1.0,
+          "detail": 3.0,
+          "originX": 0.5
          }
         },
         "slot": {
@@ -27586,12 +29347,13 @@
          "kind": "smoke-dissolve",
          "durationInFrames": 74,
          "params": {
-          "ringColor": "#8f88ae",
           "colorBack": "#141318",
           "colors": [
            "#8f88ae"
           ],
-          "speed": 1.0
+          "speed": 1.0,
+          "detail": 3.0,
+          "originX": 0.5
          }
         },
         "slot": {
@@ -27802,7 +29564,10 @@
           "intensity": 1.0,
           "slices": 24,
           "rgbSplit": 1.0,
-          "blockNoise": 0.6
+          "blockNoise": 0.6,
+          "flicker": 22,
+          "blockColumns": 16,
+          "tint": "#0d0417"
          }
         },
         "slot": {
@@ -27861,7 +29626,10 @@
           "intensity": 1.0,
           "slices": 24,
           "rgbSplit": 1.0,
-          "blockNoise": 0.6
+          "blockNoise": 0.6,
+          "flicker": 22,
+          "blockColumns": 16,
+          "tint": "#0d0417"
          }
         },
         "slot": {
@@ -28070,7 +29838,8 @@
          "durationInFrames": 74,
          "params": {
           "angle": -7,
-          "poses": 8
+          "poses": 8,
+          "hingeX": 0.18
          }
         },
         "slot": {
@@ -28127,7 +29896,8 @@
          "durationInFrames": 74,
          "params": {
           "angle": -7,
-          "poses": 8
+          "poses": 8,
+          "hingeX": 0.18
          }
         },
         "slot": {
@@ -28344,7 +30114,9 @@
            "#4a4a68",
            "#8f88ae"
           ],
-          "speed": 1.0
+          "speed": 1.0,
+          "sceneBlur": 10,
+          "rotation": 0.0
          }
         },
         "slot": {
@@ -28409,7 +30181,9 @@
            "#4a4a68",
            "#8f88ae"
           ],
-          "speed": 1.0
+          "speed": 1.0,
+          "sceneBlur": 10,
+          "rotation": 0.0
          }
         },
         "slot": {
@@ -28620,7 +30394,9 @@
           "shape": "simplex",
           "colorBack": "#141318",
           "colorFront": "#8f88ae",
-          "speed": 1.5
+          "speed": 1.5,
+          "dotSize": 1.6,
+          "pattern": "4x4"
          }
         },
         "slot": {
@@ -28679,7 +30455,9 @@
           "shape": "simplex",
           "colorBack": "#141318",
           "colorFront": "#8f88ae",
-          "speed": 1.5
+          "speed": 1.5,
+          "dotSize": 1.6,
+          "pattern": "4x4"
          }
         },
         "slot": {
@@ -28895,7 +30673,8 @@
            "#413d56",
            "#8f88ae"
           ],
-          "speed": 1.0
+          "speed": 1.0,
+          "noise": 0.2
          }
         },
         "slot": {
@@ -28959,7 +30738,8 @@
            "#413d56",
            "#8f88ae"
           ],
-          "speed": 1.0
+          "speed": 1.0,
+          "noise": 0.2
          }
         },
         "slot": {
@@ -29172,7 +30952,9 @@
           "shimmer": 0.6,
           "aberration": 0.5,
           "direction": "reveal",
-          "stagger": 0.55
+          "stagger": 0.55,
+          "dustColor": 0.0,
+          "raggedness": 0.45
          }
         },
         "slot": {
@@ -29233,7 +31015,9 @@
           "shimmer": 0.6,
           "aberration": 0.5,
           "direction": "reveal",
-          "stagger": 0.55
+          "stagger": 0.55,
+          "dustColor": 0.0,
+          "raggedness": 0.45
          }
         },
         "slot": {
@@ -29445,7 +31229,8 @@
           "rows": 8,
           "order": "from-left",
           "shape": "square",
-          "stagger": 0.82
+          "stagger": 0.82,
+          "reverse": false
          }
         },
         "slot": {
@@ -29505,7 +31290,8 @@
           "rows": 8,
           "order": "from-left",
           "shape": "square",
-          "stagger": 0.82
+          "stagger": 0.82,
+          "reverse": false
          }
         },
         "slot": {
@@ -29710,7 +31496,9 @@
           "blur": 20.0,
           "panelWidth": 0.14,
           "direction": "from-left",
-          "frostColor": "rgba(255,255,255,0.12)"
+          "frostColor": "rgba(255,255,255,0.12)",
+          "edgeColor": "rgba(255,255,255,0.22)",
+          "glow": 28
          }
         },
         "slot": {
@@ -29769,7 +31557,9 @@
           "blur": 20.0,
           "panelWidth": 0.14,
           "direction": "from-left",
-          "frostColor": "rgba(255,255,255,0.12)"
+          "frostColor": "rgba(255,255,255,0.12)",
+          "edgeColor": "rgba(255,255,255,0.22)",
+          "glow": 28
          }
         },
         "slot": {
@@ -29973,7 +31763,8 @@
          "params": {
           "intensity": 12.0,
           "axis": "horizontal",
-          "slide": 1.0
+          "slide": 1.0,
+          "fade": false
          }
         },
         "slot": {
@@ -30031,7 +31822,8 @@
          "params": {
           "intensity": 12.0,
           "axis": "horizontal",
-          "slide": 1.0
+          "slide": 1.0,
+          "fade": false
          }
         },
         "slot": {
@@ -30237,7 +32029,8 @@
           "slats": 12,
           "stagger": 0.45,
           "alternate": false,
-          "edgeSoftness": 0.06
+          "edgeSoftness": 0.06,
+          "reverse": false
          }
         },
         "slot": {
@@ -30297,7 +32090,8 @@
           "slats": 12,
           "stagger": 0.45,
           "alternate": false,
-          "edgeSoftness": 0.06
+          "edgeSoftness": 0.06,
+          "reverse": false
          }
         },
         "slot": {
@@ -30503,7 +32297,9 @@
           "to": "squircle",
           "originX": 0.5,
           "originY": 0.5,
-          "warp": 0.0
+          "warp": 0.0,
+          "warpDetail": 0.008,
+          "seed": 7
          }
         },
         "slot": {
@@ -30563,7 +32359,9 @@
           "to": "squircle",
           "originX": 0.5,
           "originY": 0.5,
-          "warp": 0.0
+          "warp": 0.0,
+          "warpDetail": 0.008,
+          "seed": 7
          }
         },
         "slot": {
@@ -30893,7 +32691,9 @@
              "component": "light-leak",
              "props": {
               "seed": 3,
-              "hueShift": 0.0
+              "hueShift": 0.0,
+              "strength": 100.0,
+              "blend": "normal"
              }
             }
            ]

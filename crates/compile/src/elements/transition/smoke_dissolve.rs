@@ -14,8 +14,6 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct SmokeDissolve {
-    #[setting("Ring", default = "#8f88ae", check = colour)]
-    pub ring_color: String,
     #[setting("Background", default = "#141318", check = colour)]
     pub color_back: String,
     #[setting("Colours", default = vec!["#8f88ae".into()], length(min = 1, max = 10))]
@@ -28,6 +26,10 @@ pub struct SmokeDissolve {
         advanced
     )]
     pub speed: f64,
+    #[setting("Smoke detail", default = 3.0, range(min = 0.5, max = 8), advanced)]
+    pub detail: f64,
+    #[setting("Horizontal centre", default = 0.5, range(min = 0, max = 1), advanced)]
+    pub origin_x: f64,
 }
 
 pub fn definition() -> ElementMeta {

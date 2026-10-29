@@ -1,3 +1,4 @@
+import type { GroupSeparator, NumberFormat } from "#video/generated/spec.ts";
 export type ChartDatum = {
   label: string;
   value: number;
@@ -175,6 +176,23 @@ export function formatCompactNumber(value: number, maximumFractionDigits = 1): s
     notation: "compact",
     maximumFractionDigits,
   }).format(value);
+}
+
+export function formatNumber(value: number, format: NumberFormat): string {
+  return format === "compact"
+    ? formatCompactNumber(value)
+    : new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(value);
+}
+
+const SEPARATORS: Record<GroupSeparator, string> = {
+  none: "",
+  space: "\u2009",
+  comma: ",",
+  dot: ".",
+};
+
+export function groupDigits(digits: string, separator: GroupSeparator): string {
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, SEPARATORS[separator]);
 }
 
 export function formatAxisValue(value: number): string {

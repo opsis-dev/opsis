@@ -1,14 +1,11 @@
-import React from "react";
 import { AbsoluteFill } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { Grain } from "#video/lib/backgrounds/grain.tsx";
 
-const PAPER_GRAIN = 0.18;
-
-export const Paper: React.FC<{ color: string; grain?: number }> = ({
-  color,
-  grain = PAPER_GRAIN,
-}) => (
-  <AbsoluteFill style={{ background: color }}>
-    <Grain amount={grain} seed={11} />
-  </AbsoluteFill>
-);
+export function Paper({ color, grain, grainSize }: ElementSettings["paper"]) {
+  return (
+    <AbsoluteFill style={{ background: color }}>
+      <Grain amount={grain} size={grainSize} seed={11} />
+    </AbsoluteFill>
+  );
+}

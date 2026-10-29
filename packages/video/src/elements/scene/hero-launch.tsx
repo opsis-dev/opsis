@@ -1,5 +1,4 @@
 import { type CSSProperties, useCallback, useState } from "react";
-import type React from "react";
 import {
   AbsoluteFill,
   continueRender,
@@ -10,9 +9,9 @@ import {
   OffthreadVideo,
   staticFile,
 } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
-import { isTheme, themeColors } from "#video/common/theme.ts";
+import { themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import {
   Item,
   mixOklch,
@@ -25,27 +24,13 @@ import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
 const SANS = '"Inter"';
 
-export interface HeroLaunchProps {
-  heading?: string;
-  image1?: string;
-  image2?: string;
-  theme?: Partial<WarmTheme>;
-  mode?: "light" | "dark";
-  fontFamily?: string;
-}
+type HeroLaunchProps = Omit<ElementSettings["hero-launch"], "theme"> & {
+  theme: Partial<WarmTheme>;
+  mode: "light" | "dark";
+};
 
 const PERSP = 1000;
-const TILT = 17;
-const GAP = 92;
-const placeholder = (t: WarmTheme) =>
-  `linear-gradient(135deg,${mixOklch(t.background, t.card, 0.55)},${mixOklch(
-    t.background,
-    t.card,
-    0.2,
-  )})`;
-
 const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
-const isGradient = (src: string) => src.startsWith("linear-gradient");
 
 const OUT = Easing.bezier(0.22, 1, 0.36, 1);
 const FALL = Easing.bezier(0.5, 0, 0.9, 0.4);
@@ -68,7 +53,7 @@ function HeroImage({ src, style }: { src: string; style: CSSProperties }) {
   return <img src={resolveSrc(src)} alt="" style={style} onLoad={release} onError={release} />;
 }
 
-function CardMedia({ src, t }: { src: string; t: WarmTheme }) {
+function CardMedia({ src }: { src: string }) {
   const media: CSSProperties = {
     position: "absolute",
     inset: 0,
@@ -76,35 +61,38 @@ function CardMedia({ src, t }: { src: string; t: WarmTheme }) {
     height: "100%",
     objectFit: "cover",
   };
-  const effective = src || placeholder(t);
-  if (isGradient(effective)) {
-    return <div style={{ ...media, background: effective }} />;
+  if (isVideo(src)) {
+    return <OffthreadVideo src={resolveSrc(src)} muted style={media} />;
   }
-  if (isVideo(effective)) {
-    return <OffthreadVideo src={resolveSrc(effective)} muted style={media} />;
-  }
-  return <HeroImage src={effective} style={media} />;
+  return <HeroImage src={src} style={media} />;
 }
 
 function HeroLaunchView({
-  heading = "Launch day, done right",
-  image1 = "",
-  image2 = "",
+  heading,
+  image1,
+  image2,
   theme,
   mode,
   fontFamily,
+  cardTilt,
+  cardGap,
+  cardAspect,
+  cardRadius,
+  headlineSize,
+  headlineWeight,
+  edgeFade,
 }: HeroLaunchProps) {
   const frame = useAuthoredFrame();
   const { width, height } = useAuthoredConfig();
-  const t = useWarmTheme(theme, mode ?? "dark");
-  const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
+  const t = useWarmTheme(theme, mode);
+  const face = resolveFont(fontFamily || t.fontFamily) ?? SANS;
   const s = Math.min(height / 720, width / 1280);
 
   const cardW = 1000 * s;
-  const cardH = 620 * s;
+  const cardH = cardW / cardAspect;
   const centerLeft = (width - cardW) / 2;
   const cardTop = 0.3 * height;
-  const restOffset = (cardW + GAP * s) / 2;
+  const restOffset = (cardW + cardGap * s) / 2;
   const leftXFinal = -restOffset;
   const rightXFinal = restOffset;
   const rightXStart = 1.08 * width;
@@ -126,7 +114,7 @@ function HeroLaunchView({
 
   const leftScale = interpolate(recede, [0, 1], [1.5, 1]);
   const leftX = interpolate(slideL, [0, 1], [0, leftXFinal]);
-  const leftDeg = interpolate(angle, [0, 1], [0, -TILT]);
+  const leftDeg = interpolate(angle, [0, 1], [0, -cardTilt]);
   const leftOpacity = interpolate(frame, [2, 12], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -182,25 +170,27 @@ function HeroLaunchView({
           <div style={cardBox(leftX, leftOpacity)}>
             <div style={zoom(leftScale)}>
               <div style={tilt(leftDeg, "100% 50%")}>
-                <ImageCard s={s} src={image1} t={t} />
+                <ImageCard s={s} src={image1} t={t} radius={cardRadius} />
               </div>
             </div>
           </div>
         </Item>
         <Item index={1}>
           <div style={cardBox(rightX, rightOpacity)}>
-            <div style={tilt(TILT, "0% 50%")}>
-              <ImageCard s={s} src={image2} t={t} />
+            <div style={tilt(cardTilt, "0% 50%")}>
+              <ImageCard s={s} src={image2} t={t} radius={cardRadius} />
             </div>
           </div>
         </Item>
       </AbsoluteFill>
 
-      <AbsoluteFill style={{ opacity: vignette, pointerEvents: "none" }}>
-        <div style={fade(`linear-gradient(to left, ${t.background} 0%, transparent 30%)`)} />
-        <div style={fade(`linear-gradient(to right, ${t.background} 0%, transparent 22%)`)} />
-        <div style={fade(`linear-gradient(to top, ${t.background} 0%, transparent 30%)`)} />
-      </AbsoluteFill>
+      {edgeFade ? (
+        <AbsoluteFill style={{ opacity: vignette, pointerEvents: "none" }}>
+          <div style={fade(`linear-gradient(to left, ${t.background} 0%, transparent 30%)`)} />
+          <div style={fade(`linear-gradient(to right, ${t.background} 0%, transparent 22%)`)} />
+          <div style={fade(`linear-gradient(to top, ${t.background} 0%, transparent 30%)`)} />
+        </AbsoluteFill>
+      ) : null}
 
       <div
         style={{
@@ -211,9 +201,9 @@ function HeroLaunchView({
           padding: `0 ${40 * s}px`,
           textAlign: "center",
           color: t.foreground,
-          fontWeight: 600,
+          fontWeight: headlineWeight,
           letterSpacing: "-0.02em",
-          fontSize: 42 * s,
+          fontSize: headlineSize * s,
           opacity: title,
           filter: `blur(${titleBlur}px)`,
           transform: `translateY(${titleY}px) scale(${titleScale})`,
@@ -225,7 +215,17 @@ function HeroLaunchView({
   );
 }
 
-function ImageCard({ s, src, t }: { s: number; src: string; t: WarmTheme }) {
+function ImageCard({
+  s,
+  src,
+  t,
+  radius,
+}: {
+  s: number;
+  src: string;
+  t: WarmTheme;
+  radius: number;
+}) {
   return (
     <div
       style={{
@@ -233,7 +233,7 @@ function ImageCard({ s, src, t }: { s: number; src: string; t: WarmTheme }) {
         width: "100%",
         height: "100%",
         overflow: "hidden",
-        borderRadius: 30 * s,
+        borderRadius: radius * s,
         background: mixOklch(t.background, t.card, 0.35),
         boxShadow: `0 ${20 * s}px ${52 * s}px -${28 * s}px ${withAlpha(
           mixOklch(t.background, "#000", 0.75),
@@ -241,7 +241,7 @@ function ImageCard({ s, src, t }: { s: number; src: string; t: WarmTheme }) {
         )}, inset 0 0 0 1px ${withAlpha(t.foreground, 0.22)}`,
       }}
     >
-      {src ? <CardMedia src={src} t={t} /> : null}
+      {src ? <CardMedia src={src} /> : null}
       <div
         style={{
           position: "absolute",
@@ -269,19 +269,10 @@ function ImageCard({ s, src, t }: { s: number; src: string; t: WarmTheme }) {
   );
 }
 
-export function HeroLaunch(props: ElementProps & { children?: React.ReactNode }) {
-  const { theme } = props;
-  if (!isTheme(theme))
-    return (
-      <HeroLaunchView {...(props as unknown as React.ComponentProps<typeof HeroLaunchView>)} />
-    );
+export function HeroLaunch({ theme, ...settings }: ElementSettings["hero-launch"]) {
   return (
     <WarmUIProvider mode={theme.mode}>
-      <HeroLaunchView
-        {...(props as unknown as React.ComponentProps<typeof HeroLaunchView>)}
-        theme={themeColors(theme)}
-        mode={theme.mode}
-      />
+      <HeroLaunchView {...settings} theme={themeColors(theme)} mode={theme.mode} />
     </WarmUIProvider>
   );
 }

@@ -19,10 +19,9 @@ export interface InputProps {
   theme?: Partial<NeutralTheme>;
   primary?: string;
   fullWidth?: boolean;
+  fieldWidth?: number;
   className?: string;
 }
-
-const FIELD_WIDTH = 320;
 
 const SIZE_STYLES: Record<InputSize, { height: number; padding: number; fontSize: number }> = {
   sm: { height: 36, padding: 12, fontSize: 13 },
@@ -142,6 +141,7 @@ export function Input({
   theme: themeOverride,
   primary,
   fullWidth = false,
+  fieldWidth = 320,
   className,
 }: InputProps) {
   const theme = useNeutralTheme({ ...themeOverride, ...(primary ? { primary } : {}) }, "light");
@@ -169,7 +169,7 @@ export function Input({
           position: "relative",
           display: "flex",
           alignItems: "center",
-          width: fullWidth ? "100%" : FIELD_WIDTH,
+          width: fullWidth ? "100%" : fieldWidth,
           height: sizeStyle.height,
           padding: `0 ${sizeStyle.padding}px`,
           fontSize: sizeStyle.fontSize,

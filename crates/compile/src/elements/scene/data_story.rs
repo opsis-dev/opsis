@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::shared::NumberFormat;
+use crate::elements::theme::{Theme, ThemeMode, data_story_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -43,6 +44,9 @@ pub struct DataStoryMetric {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting("Suffix", "type" = "string")]
     pub suffix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting("Prefix", "type" = "string")]
+    pub prefix: Option<String>,
 }
 
 #[settings]
@@ -117,6 +121,7 @@ pub struct DataStory {
                 suffix: Some("min".into()),
                 delta: "+6%".into(),
                 trend: vec![39.0, 41.0, 40.0, 43.0, 45.0, 44.0, 48.0],
+                ..Default::default()
             },
             DataStoryMetric {
                 trend: vec![36.0, 35.0, 37.0, 34.0, 33.0, 33.5, 32.0],
@@ -186,10 +191,11 @@ pub struct DataStory {
     pub cta_label: String,
     #[setting(
         "Theme",
-        default = DarkOrLight::Dark,
-        help = "Light or dark surfaces for every scene."
+        default = Theme::of(ThemeMode::Dark),
+        transform = data_story_themes,
+        widget = "theme"
     )]
-    pub theme: DarkOrLight,
+    pub theme: Theme,
     #[setting(
         "Accent color",
         default = "#e8b86d",
@@ -204,15 +210,73 @@ pub struct DataStory {
         check = colour
     )]
     pub data_color: String,
-    #[setting("Timeline color", default = "#f59e0b", check = colour)]
+    #[setting("Timeline color", default = "#f59e0b", check = colour, advanced)]
     pub timeline_color: String,
     #[setting(
         "Background",
         widget = "color",
         zero_label = "Theme",
-        help = "Leave empty to follow the theme."
+        help = "Leave empty to follow the theme.",
+        advanced
     )]
     pub background_color: String,
+    #[setting(
+        "Chart scale",
+        default = true,
+        help = "The value axis under the bars.",
+        advanced
+    )]
+    pub show_scale: bool,
+    #[setting(
+        "Highlighted bar",
+        zero_label = "None",
+        help = "The label of the bar drawn in the accent color.",
+        advanced
+    )]
+    pub highlight_bar: String,
+    #[setting("Chart subtitle", advanced)]
+    pub chart_subtitle: String,
+    #[setting("Numbers", default = NumberFormat::Compact, advanced)]
+    pub number_format: NumberFormat,
+    #[setting(
+        "Text size",
+        default = 1.0,
+        range(min = 0.5, max = 2),
+        step = 0.05,
+        help = "Scales every scene's headline together.",
+        advanced
+    )]
+    pub text_size: f64,
+    #[setting(
+        "Logo",
+        widget = "asset",
+        accept = "image/*",
+        zero_label = "None",
+        help = "Shown above the opening title."
+    )]
+    pub logo_src: String,
+    #[setting("Closing web address", zero_label = "None")]
+    pub cta_url: String,
+    #[setting("Closing subtitle", zero_label = "None", advanced)]
+    pub cta_subtitle: String,
+    #[setting("Uppercase small headings", default = true, advanced)]
+    pub eyebrow_caps: bool,
+    #[setting(
+        "Glow",
+        default = 1.0,
+        range(min = 0, max = 3),
+        step = 0.05,
+        help = "How strongly each scene's accent glows behind it.",
+        advanced
+    )]
+    pub glow: f64,
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project.",
+        advanced
+    )]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {
@@ -225,7 +289,6 @@ pub fn definition() -> ElementMeta {
                 ElementCategory::Scene,
                 420,
             )
-                .fonts(&["Inter"])
                 .look(NodeLook::of("lucide:chart-area")),
         )
 }

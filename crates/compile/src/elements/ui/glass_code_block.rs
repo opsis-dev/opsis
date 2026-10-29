@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
+use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -29,10 +30,11 @@ pub struct GlassCodeBlock {
         range(min = 0, max = 1),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub stagger_frames: f64,
-    #[setting("Traffic lights", default = true)]
+    #[setting("Traffic lights", default = true, advanced)]
     pub show_traffic_lights: bool,
     #[setting(
         "Code",
@@ -44,6 +46,49 @@ pub struct GlassCodeBlock {
     pub aura: bool,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Frost",
+        default = 16,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub frost: u32,
+    #[setting(
+        "Corner radius",
+        default = 16,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub corner_radius: u32,
+    #[setting("Line height", default = 1.55, range(min = 1.2, max = 2.4), advanced)]
+    pub line_height: f64,
+    #[setting("Font", widget = "font", advanced)]
+    pub font: String,
+    #[setting("Code colour", default = "#e4e4e7", widget = "color", check = colour, advanced)]
+    pub code_color: String,
+    #[setting("Comment colour", default = "#52525b", widget = "color", check = colour, advanced)]
+    pub comment_color: String,
+    #[setting("Text in quotes colour", default = "#86efac", widget = "color", check = colour, advanced)]
+    pub string_color: String,
+    #[setting("Keyword colour", default = "#c4b5fd", widget = "color", check = colour, advanced)]
+    pub keyword_color: String,
+    #[setting("Number colour", default = "#fcd34d", widget = "color", check = colour, advanced)]
+    pub number_color: String,
+    #[setting("Title colour", default = "#a1a1aa", widget = "color", check = colour, advanced)]
+    pub title_color: String,
+    #[setting("Line number colour", default = "#3f3f46", widget = "color", check = colour, advanced)]
+    pub line_number_color: String,
+    #[setting(
+        "Glow colours",
+        default = vec!["rgba(56,189,248,0.22)".into(), "rgba(168,85,247,0.18)".into()],
+        length(min = 2, max = 2),
+        advanced
+    )]
+    pub aura_colors: Vec<Colour>,
 }
 
 pub fn definition() -> ElementMeta {

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
+use crate::elements::shared::BlendMode;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -17,6 +18,21 @@ pub struct LightLeak {
     pub seed: u32,
     #[setting("Hue shift", range(min = 0, max = 360), step = 1)]
     pub hue_shift: u32,
+    #[setting(
+        "Strength",
+        default = 100.0,
+        range(min = 0, max = 100),
+        unit = "%",
+        advanced
+    )]
+    pub strength: f64,
+    #[setting(
+        "Blend",
+        default = BlendMode::Normal,
+        labels = { "normal": "Normal", "screen": "Lighten", "multiply": "Darken" },
+        advanced
+    )]
+    pub blend: BlendMode,
 }
 
 pub fn definition() -> ElementMeta {

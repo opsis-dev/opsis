@@ -1,31 +1,29 @@
-import React from "react";
 import { AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED, exitOpacity } from "#video/core/anim.ts";
 import { useOverlayFrame } from "#video/core/frame.ts";
-import type { ElementSettings } from "#video/generated/spec.ts";
+import type { ElementSettings, Side } from "#video/generated/spec.ts";
 
 const CALLOUT = {
-  drawFrames: 18,
-  offsetPx: 170,
-  bendPx: 40,
-  strokePx: 7,
   dashSlack: 1.3,
-  dotPx: 14,
   labelPaddingPx: [12, 22],
-  labelRadiusPx: 14,
-  labelSizePx: 34,
-  labelWeight: 700,
 } as const;
 
-const CALLOUT_DIRECTION = {
-  top: [0.35, -1],
-  bottom: [0.35, 1],
-  left: [-1, -0.35],
-  right: [1, -0.35],
-} as const;
+const directionOf = (side: Side, slant: number): [number, number] => {
+  const s = Math.tan((slant * Math.PI) / 180);
+  switch (side) {
+    case "top":
+      return [s, -1];
+    case "bottom":
+      return [s, 1];
+    case "left":
+      return [-1, -s];
+    case "right":
+      return [1, -s];
+  }
+};
 
-export const Callout: React.FC<ElementSettings["callout"]> = ({
+export function Callout({
   text,
   x,
   y,
@@ -33,33 +31,46 @@ export const Callout: React.FC<ElementSettings["callout"]> = ({
   color,
   accent,
   fontFamily,
-}) => {
+  drawTime,
+  labelDistance,
+  bend,
+  arrowWidth,
+  dotSize,
+  labelRadius,
+  fontSize,
+  fontWeight,
+  slant,
+  fadeOut,
+  labelBackground,
+}: ElementSettings["callout"]) {
   const frame = useCurrentFrame();
-  const { width, height, durationInFrames } = useVideoConfig();
+  const { width, height, durationInFrames, fps } = useVideoConfig();
   const { k } = useOverlayFrame();
-  const draw = interpolate(frame, [0, CALLOUT.drawFrames], [0, 1], {
+  const draw = interpolate(frame, [0, drawTime * fps], [0, 1], {
     ...CLAMPED,
     easing: Easing.out(Easing.cubic),
   });
-  const off = CALLOUT.offsetPx * k;
-  const [dx, dy] = CALLOUT_DIRECTION[side];
+  const off = labelDistance * k;
+  const [dx, dy] = directionOf(side, slant);
   const sx = x * width + dx * off;
   const sy = y * height + dy * off;
   const len = Math.hypot(dx * off, dy * off);
   const [labelPadY, labelPadX] = CALLOUT.labelPaddingPx;
   return (
-    <AbsoluteFill style={{ opacity: exitOpacity(frame, durationInFrames) }}>
+    <AbsoluteFill
+      style={{ opacity: exitOpacity(frame, durationInFrames, Math.round(fadeOut * fps)) }}
+    >
       <svg width={width} height={height} style={{ position: "absolute", inset: 0 }}>
         <path
-          d={`M ${sx} ${sy} Q ${(sx + x * width) / 2 + CALLOUT.bendPx * k} ${(sy + y * height) / 2} ${x * width} ${y * height}`}
+          d={`M ${sx} ${sy} Q ${(sx + x * width) / 2 + bend * k} ${(sy + y * height) / 2} ${x * width} ${y * height}`}
           fill="none"
           stroke={accent}
-          strokeWidth={CALLOUT.strokePx * k}
+          strokeWidth={arrowWidth * k}
           strokeLinecap="round"
           strokeDasharray={len * CALLOUT.dashSlack}
           strokeDashoffset={len * CALLOUT.dashSlack * (1 - draw)}
         />
-        <circle cx={x * width} cy={y * height} r={CALLOUT.dotPx * k * draw} fill={accent} />
+        <circle cx={x * width} cy={y * height} r={dotSize * k * draw} fill={accent} />
       </svg>
       <div
         style={{
@@ -68,12 +79,12 @@ export const Callout: React.FC<ElementSettings["callout"]> = ({
           top: sy,
           transform: `translate(-50%, ${dy > 0 ? "0" : "-100%"})`,
           padding: `${labelPadY * k}px ${labelPadX * k}px`,
-          borderRadius: CALLOUT.labelRadiusPx * k,
-          background: accent,
+          borderRadius: labelRadius * k,
+          background: labelBackground || accent,
           color,
           fontFamily: fontOr(fontFamily, "main"),
-          fontWeight: CALLOUT.labelWeight,
-          fontSize: CALLOUT.labelSizePx * k,
+          fontWeight,
+          fontSize: fontSize * k,
           opacity: draw,
           whiteSpace: "nowrap",
         }}
@@ -82,4 +93,4 @@ export const Callout: React.FC<ElementSettings["callout"]> = ({
       </div>
     </AbsoluteFill>
   );
-};
+}

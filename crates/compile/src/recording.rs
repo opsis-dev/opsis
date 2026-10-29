@@ -52,6 +52,7 @@ pub fn default_recording_props(src: String, log: ActionLog, name: String) -> Rec
         cursor: true,
         cursor_scale: 1.0,
         cursor_look: default_cursor_look(),
+        cursor_feel: None,
         ripple: Some(default_ripple()),
         extra_beats: Vec::new(),
         keystrokes: None,
@@ -59,6 +60,15 @@ pub fn default_recording_props(src: String, log: ActionLog, name: String) -> Rec
         blur_areas: None,
         look: None,
         screen: None,
+        window_fit: None,
+        stage_ground: None,
+        window_radius: None,
+        rim_glow: None,
+        lift_colours: None,
+        shutter_angle: None,
+        bleed_blur: None,
+        bleed_dim: None,
+        frame_font: None,
     }
 }
 

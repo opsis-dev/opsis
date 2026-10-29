@@ -5,18 +5,8 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::{Colour, FontWeight};
+use crate::elements::shared::{BlendMode, Colour, FontWeight};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "kebab-case")]
-pub enum BlendMode {
-    Multiply,
-    Screen,
-    Normal,
-}
 
 #[settings]
 #[derive(
@@ -52,20 +42,22 @@ pub struct RgbGlitchText {
     pub glitch_duration: f64,
     #[setting("Intensity (px)", default = 6, range(min = 0, max = 30), step = 1)]
     pub intensity: u32,
-    #[setting("Seed", default = "glitch")]
+    #[setting("Seed", default = "glitch", advanced)]
     pub seed: String,
     #[setting(
         "Glitch colours",
         default = vec!["#ff0040".into(), "#00ff80".into(), "#0080ff".into()],
         length(min = 3, max = 3),
-        help = "The three copies that split off while the text glitches."
+        help = "The three copies that split off while the text glitches.",
+        advanced
     )]
     pub glitch_colors: Vec<Colour>,
     #[setting(
         "Glitch blend",
         default = BlendMode::Multiply,
         help = "How the split copies mix with what is behind them.",
-        labels = { "multiply": "On a light background", "screen": "On a dark background", "normal": "On any background" }
+        labels = { "multiply": "On a light background", "screen": "On a dark background", "normal": "On any background" },
+        advanced
     )]
     pub blend: BlendMode,
     #[setting(
@@ -83,6 +75,8 @@ pub struct RgbGlitchText {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting("Letter spacing", default = -0.03, range(min = -0.2, max = 0.5), unit = "em", advanced)]
+    pub letter_spacing: f64,
 }
 
 pub fn definition() -> ElementMeta {

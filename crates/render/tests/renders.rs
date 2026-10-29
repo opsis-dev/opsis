@@ -193,6 +193,11 @@ impl Setup {
             crf: Some(18.0),
             scale: 1.0,
             muted: true,
+            x264_preset: None,
+            pixel_format: None,
+            pro_res_profile: None,
+            number_of_gif_loops: None,
+            every_nth_frame: None,
         })
     }
 

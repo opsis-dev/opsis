@@ -19,13 +19,19 @@ pub struct RadialBurst {
     pub radius: u32,
     #[setting("Thickness", default = 30, range(min = 8, max = 60), step = 1)]
     pub thickness: u32,
-    #[setting("Rotation", default = 135, range(min = -360, max = 360), step = 15)]
+    #[setting("Rotation", default = 135, range(min = -360, max = 360), step = 15, advanced)]
     pub rotation: i32,
     #[setting("Intensity", default = 1.0, range(min = 0, max = 1.5), step = 0.1)]
     pub intensity: f64,
-    #[setting("Ribbon twist", default = 110, range(min = -180, max = 180), step = 10)]
+    #[setting("Ribbon twist", default = 110, range(min = -180, max = 180), step = 10, advanced)]
     pub twist: i32,
-    #[setting("Contour echoes", default = 3, range(min = 0, max = 5), step = 1)]
+    #[setting(
+        "Contour echoes",
+        default = 3,
+        range(min = 0, max = 5),
+        step = 1,
+        advanced
+    )]
     pub echoes: u32,
     #[setting("Shape color", default = "#ffffff", check = colour)]
     pub color: String,
@@ -35,8 +41,20 @@ pub struct RadialBurst {
     pub background_color: String,
     #[setting("Loop animation")]
     pub r#loop: bool,
-    #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
+    #[setting(
+        "Speed",
+        default = 1.0,
+        range(min = 0.25, max = 4),
+        step = 0.25,
+        advanced
+    )]
     pub speed: f64,
+    #[setting("Echo strength", default = 0.36, range(min = 0, max = 1), advanced)]
+    pub echo_opacity: f64,
+    #[setting("Centre across", default = 0.5, range(min = 0, max = 1), step = 0.01)]
+    pub x: f64,
+    #[setting("Centre down", default = 0.5, range(min = 0, max = 1), step = 0.01)]
+    pub y: f64,
 }
 
 pub fn definition() -> ElementMeta {

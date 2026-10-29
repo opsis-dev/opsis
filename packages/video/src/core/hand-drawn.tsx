@@ -4,7 +4,7 @@ import type { HandDrawnLook } from "#video/common/recording.ts";
 
 export type MarkLook = HandDrawnLook | "crossed-off";
 
-const ITERATIONS = 2;
+const STROKES = 2;
 
 type HandDrawnMarkProps = {
   look: MarkLook;
@@ -13,16 +13,18 @@ type HandDrawnMarkProps = {
   strokeWidth: number;
   seed: number;
   roughness?: number;
+  strokes?: number;
   children: React.ReactNode;
 };
 
-export const HandDrawnMark: React.FC<HandDrawnMarkProps> = ({
+export function HandDrawnMark({
   look,
   strokeWidth,
+  strokes = STROKES,
   children,
   ...mark
-}) => {
-  const drawn = { ...mark, seed: Math.max(1, mark.seed), iterations: ITERATIONS };
+}: HandDrawnMarkProps) {
+  const drawn = { ...mark, seed: Math.max(1, mark.seed), iterations: strokes };
   switch (look) {
     case "box":
       return (
@@ -51,4 +53,4 @@ export const HandDrawnMark: React.FC<HandDrawnMarkProps> = ({
     case "marker":
       return <Highlight {...drawn}>{children}</Highlight>;
   }
-};
+}

@@ -65,8 +65,30 @@ pub struct TransitionMorphShape {
         "type" = "number"
     )]
     pub overshoot: Option<f64>,
-    #[setting("Warp", help = "0 keeps the silhouette crisp.", advanced)]
+    #[setting(
+        "Warp",
+        range(min = 0, max = 100),
+        step = 1,
+        unit = "px",
+        help = "0 keeps the silhouette crisp.",
+        advanced
+    )]
     pub warp: f64,
+    #[setting(
+        "Warp detail",
+        default = 0.008,
+        range(min = 0.001, max = 0.05),
+        advanced
+    )]
+    pub warp_detail: f64,
+    #[setting(
+        "Variation",
+        default = 7,
+        range(min = 0, max = 100),
+        step = 1,
+        advanced
+    )]
+    pub seed: u32,
 }
 
 pub fn definition() -> ElementMeta {

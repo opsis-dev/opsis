@@ -26,6 +26,7 @@ fn take_log() -> ActionLog {
             json!({ "id": "t", "kind": "type", "t": 5000, "tDown": 5000, "tEnd": 5600, "keyTimes": [5100, 5200, 5300], "text": "abc", "point": point, "nodeId": "name" }),
             json!({ "id": "q", "kind": "type", "t": 6000, "tDown": 6000, "tEnd": 6300, "keyTimes": [6100], "text": "x", "point": point, "silent": true, "nodeId": "hushed" }),
             json!({ "id": "k", "kind": "key", "t": 7000, "text": "Enter", "nodeId": "send" }),
+            json!({ "id": "g", "kind": "drag", "t": 8400, "tDown": 8000, "point": point, "nodeId": "move" }),
         ]
         .into_iter()
         .map(action)
@@ -288,4 +289,46 @@ fn sets_the_volume_of_every_hit_from_their_bar_and_refuses_to_move_them() {
         Some(&json!(0.9))
     );
     assert!(edit(&|e| e.move_audio(bar, 6.0)).0.is_err());
+}
+
+#[test]
+fn clicks_where_drags_press_and_let_go_only_when_asked_and_nudges_every_hit() {
+    let clip = take(&[]);
+    let plain = sounds(&clip, json!({}));
+    let with_drags = sounds(&clip, json!({ "drags": true }));
+    assert_eq!(with_drags.items.len(), plain.items.len() + 2);
+    assert_eq!(
+        with_drags.hits.map(|h| h.clicks),
+        plain.hits.map(|h| h.clicks + 2)
+    );
+    let nudged = sounds(&clip, json!({ "nudgeMs": -100 }));
+    let fps = f64::from(WorkflowSettings::default().fps);
+    let step = whole_signed(-0.1 * fps);
+    assert!(
+        froms(&nudged)
+            .iter()
+            .zip(froms(&plain))
+            .all(|(n, p)| *n == p + step)
+    );
+}
+
+#[test]
+fn varies_each_hit_within_the_spread_asked() {
+    let audio = sounds(
+        &take(&[]),
+        json!({ "pitchSpread": 20, "levelSpread": 0, "volume": 1.0 }),
+    );
+    assert!(
+        audio
+            .items
+            .iter()
+            .all(|i| i.pitch.is_some_and(|p| (0.8..=1.2).contains(&p)))
+    );
+    assert!(audio.items.iter().all(|i| i.volume == Some(1.0)));
+    assert!(
+        audio
+            .items
+            .iter()
+            .any(|i| i.pitch.is_some_and(|p| (p - 1.0).abs() > 0.04))
+    );
 }

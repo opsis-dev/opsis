@@ -120,7 +120,7 @@ import { particleDissolve } from "#video/elements/transition/particle-dissolve.t
 import { pushThrough } from "#video/elements/transition/push-through.tsx";
 import { rippleZoom } from "#video/elements/transition/ripple-zoom.tsx";
 import { slide } from "#video/elements/transition/slide.ts";
-import { smokeDissolve } from "#video/elements/transition/smoke-dissolve/index.tsx";
+import { smokeDissolve } from "#video/elements/transition/smoke-dissolve.tsx";
 import { swirlDissolve } from "#video/elements/transition/swirl-dissolve.tsx";
 import { blinds } from "#video/elements/transition/transition-blinds.tsx";
 import { morphShape } from "#video/elements/transition/transition-morph-shape/index.tsx";

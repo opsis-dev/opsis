@@ -4,24 +4,22 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,
   extrapolateRight: "clamp" as const,
 };
 
-export type WhipPanProps = {
-  direction?: "left" | "right" | "up" | "down";
-  blur?: number;
-};
+type WhipPanProps = ElementSettings["whip-pan"];
 
-const WhipPanPresentation: React.FC<TransitionPresentationComponentProps<WhipPanProps>> = ({
+function WhipPanPresentation({
   children,
   presentationProgress,
   presentationDirection,
   passedProps,
-}) => {
-  const { direction = "left", blur = 24 } = passedProps;
+}: TransitionPresentationComponentProps<WhipPanProps>) {
+  const { direction, blur, stretch: stretchPercent } = passedProps;
   const entering = presentationDirection === "entering";
   const p = presentationProgress;
 
@@ -35,7 +33,7 @@ const WhipPanPresentation: React.FC<TransitionPresentationComponentProps<WhipPan
   const sign = direction === "left" || direction === "up" ? -1 : 1;
 
   const offset = entering ? (travel - 1) * 110 * sign : travel * 110 * sign;
-  const stretch = 1 + velocity * 0.12;
+  const stretch = 1 + (velocity * stretchPercent) / 100;
 
   const translate = axis === "x" ? `${offset}%` : `0 ${offset}%`;
   const smear = axis === "x" ? `${stretch} 1` : `1 ${stretch}`;
@@ -47,9 +45,9 @@ const WhipPanPresentation: React.FC<TransitionPresentationComponentProps<WhipPan
   };
 
   return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
-};
+}
 
-export function whipPan(props: WhipPanProps = {}): TransitionPresentation<WhipPanProps> {
+export function whipPan(props: WhipPanProps): TransitionPresentation<WhipPanProps> {
   return {
     component: WhipPanPresentation,
     props,

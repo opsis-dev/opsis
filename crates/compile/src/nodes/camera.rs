@@ -4,7 +4,7 @@ use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
 use opsis_types::recording::{
-    AddressMode, CameraStyle, CameraTuning, FrameTheme, RecordingProps, WindowStyle,
+    AddressMode, CameraEasing, CameraStyle, CameraTuning, FrameTheme, RecordingProps, WindowStyle,
 };
 use opsis_types::timeline::{ElementRef, GroupProps};
 use opsis_types::values::{ClipValue, CompileValue, StyleEntry, TaggedRecording};
@@ -22,23 +22,29 @@ use crate::clip::{
     wrap_clip,
 };
 use crate::color::is_color;
+use crate::elements::device::laptop_frame::LaptopFinale;
+use crate::elements::device::phone_frame::{PhoneEntrance, PhoneVariant};
+use crate::elements::element_meta;
+use crate::elements::theme::{Theme, ThemeMode, warm_themes};
 use crate::errors::SettingsError;
 use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, InputTake, NodeDef, Phase, Platform, RECORDING_PORT, RowExt,
     STYLE_PORT, missing, opt, outputs, port, row, with_clip,
 };
+use crate::nodes::elements::element_props;
 use crate::params::{Params, Values};
 use crate::recording::{
     DEFAULT_ADDRESS_BAR, DEFAULT_FRAME_THEME, DEFAULT_WINDOW_STYLE, default_recording_props,
     follow_cursor_beats, host_window_style, idle_spans, point_rect, recording_speed,
     window_style_label,
 };
-use crate::remap::{RemapSegment, remap_duration, remap_from_segments};
+use crate::remap::{RemapSegment, eased_segments, remap_duration, remap_from_segments};
+
+const NO_PAN_LIMIT_PX: f64 = 1.0e9;
 use crate::style::{restyle_with, retime_with};
 use crate::text::{display_address, format_duration, humanize, percent_text, plural};
 use crate::time::{EPSILON, ms_to_frames, recording_ms_to_frames, whole_frames};
 
-const FOCUS_LEAD_MS: f64 = 400.0;
 pub const FOLLOW_CURSOR_TYPE: &str = "camera.followCursor";
 const CURSOR_STYLE_TYPE: &str = crate::nodes::cursor::CURSOR_STYLE_TYPE;
 
@@ -82,7 +88,8 @@ pub struct AutoZoom {
         default = 1300,
         range(min = 0, max = 10000),
         step = 50,
-        unit = "ms"
+        unit = "ms",
+        advanced
     )]
     pub hold: u32,
     #[setting(
@@ -127,16 +134,229 @@ pub struct AutoZoom {
         "Show",
         default = AddressMode::Fixed,
         labels = { "fixed": "This address", "host": "This host with the page's path" },
-        show_if = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"], "address": ["*"] }
+        show_if = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"], "address": ["*"] },
+        advanced
     )]
     pub address_mode: AddressMode,
-    #[setting("Motion blur", default = true)]
+    #[setting("Motion blur", default = true, advanced)]
     pub motion_blur: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Window size",
+        range(min = 40, max = 100),
+        unit = "%",
+        zero_label = "The style's own",
+        help = "How much of the frame the window fills.",
+        show_if = { "style": ["classic", "stage"] },
+        "type" = "integer",
+        advanced
+    )]
+    pub window_size: Option<u32>,
+    #[setting("Ground colour", default = "#faf6f1", widget = "color", check = colour, show_if = { "style": ["stage"] })]
+    pub ground: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Window corners",
+        range(min = 0, max = 60),
+        unit = "px",
+        zero_label = "The frame's own",
+        show_if = { "style": ["classic", "stage"] },
+        "type" = "integer",
+        advanced
+    )]
+    pub corner_radius: Option<u32>,
+    #[setting(
+        "Window shadow",
+        default = 1.0,
+        range(min = 0, max = 1),
+        step = 0.05,
+        show_if = { "style": ["classic", "stage"] },
+        advanced
+    )]
+    pub shadow: f64,
+    #[setting(
+        "Lift the colours",
+        default = true,
+        help = "A touch more saturation, contrast and brightness on the page.",
+        advanced
+    )]
+    pub lift_colours: bool,
+    #[setting(
+        "Motion blur amount",
+        default = 180,
+        range(min = 0, max = 360),
+        step = 10,
+        unit = "°",
+        help = "How long each frame's shutter stays open, as an angle.",
+        show_if = { "motionBlur": ["true"] },
+        advanced
+    )]
+    pub shutter_angle: u32,
+    #[setting(
+        "Background blur",
+        default = 48,
+        range(min = 0, max = 200),
+        step = 1,
+        unit = "px",
+        help = "Behind a full-page style in another shape.",
+        show_if = { "style": ["proof", "ledger"] },
+        advanced
+    )]
+    pub bleed_blur: u32,
+    #[setting(
+        "Background brightness",
+        default = 0.55,
+        range(min = 0, max = 1.5),
+        step = 0.05,
+        show_if = { "style": ["proof", "ledger"] },
+        advanced
+    )]
+    pub bleed_dim: f64,
+    #[setting(
+        "Camera easing",
+        labels = { "smooth": "Smooth", "gentle": "Gentle", "snappy": "Snappy", "linear": "Even" },
+        advanced
+    )]
+    pub camera_easing: CameraEasing,
+    #[setting(
+        "Camera move time",
+        default = 1.0,
+        range(min = 0.25, max = 4),
+        step = 0.05,
+        unit = "×",
+        help = "Longer than 1 makes every camera move slower.",
+        advanced
+    )]
+    pub camera_pace: f64,
+    #[setting(
+        "Least zoom",
+        default = 1.18,
+        range(min = 1, max = 2),
+        step = 0.02,
+        unit = "×",
+        advanced
+    )]
+    pub min_scale: f64,
+    #[setting(
+        "First zoom at most",
+        default = 1.54,
+        range(min = 1, max = 2.5),
+        step = 0.02,
+        unit = "×",
+        help = "The first shot stays wider so the page is seen first.",
+        advanced
+    )]
+    pub first_max_scale: f64,
+    #[setting(
+        "Room around the target",
+        default = 80,
+        range(min = 0, max = 400),
+        step = 5,
+        unit = "px",
+        advanced
+    )]
+    pub room: u32,
+    #[setting(
+        "Target size",
+        default = 55,
+        range(min = 10, max = 100),
+        step = 1,
+        unit = "%",
+        help = "How much of the frame the target and its room fill.",
+        advanced
+    )]
+    pub target_share: u32,
+    #[setting(
+        "Off centre",
+        default = 0.26,
+        range(min = 0, max = 0.5),
+        step = 0.01,
+        help = "How far a target sits from the middle, leaving room on the side it faces.",
+        advanced
+    )]
+    pub off_centre: f64,
+    #[setting(
+        "Join actions within",
+        default = 2200,
+        range(min = 0, max = 20000),
+        step = 100,
+        unit = "ms",
+        help = "Actions this close share one zoom.",
+        advanced
+    )]
+    pub join_within_ms: u32,
+    #[setting(
+        "Stay zoomed within",
+        default = 2800,
+        range(min = 0, max = 20000),
+        step = 100,
+        unit = "ms",
+        help = "Shots this close stay zoomed in between.",
+        advanced
+    )]
+    pub stay_zoomed_within_ms: u32,
+    #[setting(
+        "Hold after typing",
+        default = 400,
+        range(min = 0, max = 5000),
+        step = 50,
+        unit = "ms",
+        advanced
+    )]
+    pub hold_after_typing_ms: u32,
+    #[setting(
+        "Rest at the end",
+        default = 600,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms",
+        help = "Time zoomed out before the take ends.",
+        advanced
+    )]
+    pub rest_at_end_ms: u32,
+    #[setting(
+        "Longest pan",
+        default = 500,
+        range(min = 50, max = 5000),
+        step = 10,
+        unit = "px",
+        help = "Farther moves zoom out and back in instead.",
+        advanced
+    )]
+    pub longest_pan: u32,
+    #[setting(
+        "Title bar font",
+        widget = "font",
+        zero_label = "The computer's",
+        show_if = { "frame": ["macos", "windows", "linux"] },
+        advanced
+    )]
+    pub frame_font: String,
 }
 
 impl Params for AutoZoom {}
 
 impl AutoZoom {
+    fn tuning(&self) -> CameraTuning {
+        let seconds = |ms: u32| Some(f64::from(ms) / 1000.0);
+        CameraTuning {
+            s_max: Some(self.max_scale),
+            hold_min_s: seconds(self.hold),
+            min_scale: Some(self.min_scale),
+            first_max_scale: Some(self.first_max_scale),
+            room_px: Some(f64::from(self.room)),
+            target_share: Some(f64::from(self.target_share) / 100.0),
+            off_centre: Some(self.off_centre),
+            join_within_s: seconds(self.join_within_ms),
+            stay_zoomed_within_s: seconds(self.stay_zoomed_within_ms),
+            hold_after_typing_s: seconds(self.hold_after_typing_ms),
+            rest_at_end_s: seconds(self.rest_at_end_ms),
+            longest_pan_px: Some(f64::from(self.longest_pan)),
+            pace: Some(self.camera_pace),
+            easing: Some(self.camera_easing),
+        }
+    }
+
     fn bar(&self) -> Bar<'_> {
         Bar {
             shown: self.address_bar,
@@ -192,6 +412,16 @@ pub struct ManualZoom {
         unit = "×"
     )]
     pub scale: f64,
+    #[setting(
+        "Start moving before",
+        default = 400,
+        range(min = 0, max = 5000),
+        step = 50,
+        unit = "ms",
+        help = "How long before the moment the camera starts to move.",
+        advanced
+    )]
+    pub lead_ms: u32,
 }
 
 impl Params for ManualZoom {}
@@ -260,6 +490,13 @@ pub struct Pan {
         unit = "×"
     )]
     pub scale: f64,
+    #[setting(
+        "Zoom out for far moves",
+        default = true,
+        help = "When the spots are far apart, the camera zooms out and back in instead of sliding.",
+        advanced
+    )]
+    pub zoom_out_when_far: bool,
 }
 
 impl Params for Pan {}
@@ -281,9 +518,17 @@ pub struct FollowCursor {
         default = 700,
         range(min = 200, max = 5000),
         step = 50,
-        unit = "ms"
+        unit = "ms",
+        advanced
     )]
     pub every_ms: u32,
+    #[setting(
+        "Zoom out on big jumps",
+        default = true,
+        help = "When the cursor jumps far, the camera zooms out and back in instead of sliding.",
+        advanced
+    )]
+    pub zoom_out_on_jumps: bool,
 }
 
 impl Params for FollowCursor {}
@@ -305,7 +550,8 @@ pub struct IdleSpeedup {
         default = 400,
         range(min = 0, max = 5000),
         step = 50,
-        unit = "ms"
+        unit = "ms",
+        advanced
     )]
     pub pad_ms: u32,
     #[setting(
@@ -316,6 +562,15 @@ pub struct IdleSpeedup {
         unit = "×"
     )]
     pub rate: f64,
+    #[setting(
+        "Ease into the speed",
+        range(min = 0, max = 2000),
+        step = 50,
+        unit = "ms",
+        help = "Changes speed gradually over this long instead of at once.",
+        advanced
+    )]
+    pub ease_ms: u32,
 }
 
 impl Params for IdleSpeedup {}
@@ -344,6 +599,15 @@ pub struct SpeedSegment {
 pub struct SpeedRamp {
     #[setting("Parts", default = vec![SpeedSegment::default()])]
     pub segments: Vec<SpeedSegment>,
+    #[setting(
+        "Ease into the speed",
+        range(min = 0, max = 2000),
+        step = 50,
+        unit = "ms",
+        help = "Changes speed gradually over this long instead of at once.",
+        advanced
+    )]
+    pub ease_ms: u32,
 }
 
 impl Params for SpeedRamp {}
@@ -360,6 +624,12 @@ pub struct Crop {
     pub w: f64,
     #[setting("Height", default = 0.8, range(min = 0.05, max = 1), step = 0.01)]
     pub h: f64,
+    #[setting(
+        "Fill the frame",
+        help = "Crops further so the area fills the frame instead of showing bars.",
+        advanced
+    )]
+    pub fill: bool,
 }
 
 impl Params for Crop {
@@ -439,9 +709,131 @@ pub struct DeviceFrame {
         show_if = { "device": ["laptop"] }
     )]
     pub entrance: DeviceEntrance,
+    #[setting(
+        "Entrance",
+        default = PhoneEntrance::Rise,
+        labels = { "rise": "Slide in", "rotate-in": "Turn in", "float": "Float" },
+        show_if = { "device": ["phone"] }
+    )]
+    pub phone_entrance: PhoneEntrance,
+    #[setting(
+        "Angle",
+        default = PhoneVariant::Flat,
+        labels = { "flat": "Straight on", "tilt": "Turned", "showcase": "Showcase" },
+        show_if = { "device": ["phone"] }
+    )]
+    pub variant: PhoneVariant,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = warm_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
+    #[setting("Body colour", widget = "color", zero_label = "Theme", check = colour_or_empty, advanced)]
+    pub bezel_color: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Size",
+        range(min = 0.3, max = 1.5),
+        step = 0.05,
+        zero_label = "The device's usual"
+    )]
+    pub scale: Option<f64>,
+    #[setting("Notch", default = true, show_if = { "device": ["laptop"] }, advanced)]
+    pub show_notch: bool,
+    #[setting("Notch label", default = "Recording started", show_if = { "device": ["laptop"], "showNotch": ["true"] }, advanced)]
+    pub notch_label: String,
+    #[setting("Battery level", default = 85, range(min = 0, max = 100), unit = "%", show_if = { "device": ["laptop"], "showNotch": ["true"] }, advanced)]
+    pub battery_level: u32,
+    #[setting("Recording light", default = "#30D158", widget = "color", check = colour, show_if = { "device": ["laptop"], "showNotch": ["true"] }, advanced)]
+    pub indicator_color: String,
+    #[setting("Float", default = true, advanced)]
+    pub float_loop: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting("Float amplitude", range(min = 0, max = 30), step = 1, zero_label = "The device's usual", show_if = { "floatLoop": ["true"] }, "type" = "integer", advanced)]
+    pub float_amplitude: Option<u32>,
+    #[setting("Lid tilt", default = 18, range(min = 0, max = 45), unit = "°", show_if = { "device": ["laptop"] }, advanced)]
+    pub rest_tilt: u32,
+    #[setting(
+        "Finale",
+        default = LaptopFinale::None,
+        labels = { "none": "None", "zoom-to-screen": "Zoom into the screen" },
+        show_if = { "device": ["laptop"] },
+        advanced
+    )]
+    pub finale: LaptopFinale,
+    #[setting("Shadow", zero_label = "The device's usual", advanced)]
+    pub shadow: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting("Corner radius", range(min = 0, max = 90), unit = "px", zero_label = "The device's usual", "type" = "integer", advanced)]
+    pub radius: Option<u32>,
+    #[setting("Turn", default = -12, range(min = -30, max = 30), unit = "°", show_if = { "device": ["phone"], "variant": ["tilt"] }, advanced)]
+    pub tilt_angle: i32,
+    #[setting("Dynamic island", default = true, show_if = { "device": ["phone"] }, advanced)]
+    pub show_dynamic_island: bool,
 }
 
 impl Params for DeviceFrame {}
+
+impl DeviceFrame {
+    fn element_values(&self) -> Values {
+        let laptop = self.device == Device::Laptop;
+        let mut values = Values::new();
+        let mut set = |key: &str, value: Value| {
+            values.insert(key.to_owned(), value);
+        };
+        set(
+            "theme",
+            serde_json::to_value(&self.theme).unwrap_or(Value::Null),
+        );
+        set("bezelColor", Value::from(self.bezel_color.clone()));
+        set(
+            "scale",
+            Value::from(self.scale.unwrap_or(if laptop { 0.95 } else { 1.0 })),
+        );
+        set("floatLoop", Value::from(self.float_loop));
+        set(
+            "floatAmplitude",
+            Value::from(self.float_amplitude.unwrap_or(if laptop { 4 } else { 6 })),
+        );
+        if !self.shadow.trim().is_empty() {
+            set("shadow", Value::from(self.shadow.clone()));
+        }
+        if let Some(radius) = self.radius {
+            set("radius", Value::from(radius));
+        } else if laptop {
+            set("radius", Value::from(22));
+        }
+        if laptop {
+            set(
+                "entrance",
+                serde_json::to_value(self.entrance).unwrap_or(Value::Null),
+            );
+            set("showNotch", Value::from(self.show_notch));
+            set("notchLabel", Value::from(self.notch_label.clone()));
+            set("batteryLevel", Value::from(self.battery_level));
+            set("indicatorColor", Value::from(self.indicator_color.clone()));
+            set("restTilt", Value::from(self.rest_tilt));
+            set(
+                "finale",
+                serde_json::to_value(self.finale).unwrap_or(Value::Null),
+            );
+        } else {
+            set(
+                "entrance",
+                serde_json::to_value(self.phone_entrance).unwrap_or(Value::Null),
+            );
+            set(
+                "variant",
+                serde_json::to_value(self.variant).unwrap_or(Value::Null),
+            );
+            set("tiltAngle", Value::from(self.tilt_angle));
+            set("showDynamicIsland", Value::from(self.show_dynamic_island));
+        }
+        values
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "lowercase")]
@@ -521,6 +913,16 @@ impl BackdropStyle {
 pub struct MotionBlur {
     #[setting("Motion blur", default = true)]
     pub enabled: bool,
+    #[setting(
+        "Amount",
+        default = 180,
+        range(min = 0, max = 360),
+        step = 10,
+        unit = "°",
+        help = "How long each frame's shutter stays open, as an angle.",
+        show_if = { "enabled": ["true"] }
+    )]
+    pub shutter_angle: u32,
 }
 
 impl Params for MotionBlur {}
@@ -554,7 +956,8 @@ pub struct WindowFrame {
         "Show",
         default = AddressMode::Fixed,
         labels = { "fixed": "This address", "host": "This host with the page's path" },
-        show_if = { "addressBar": ["true"], "address": ["*"] }
+        show_if = { "addressBar": ["true"], "address": ["*"] },
+        advanced
     )]
     pub address_mode: AddressMode,
 }
@@ -761,7 +1164,16 @@ fn auto_zoom() -> NodeDef {
             own.proxy_src = rec.proxy_src.clone().filter(|s| !s.is_empty());
             own.speed = p.speed;
             own.zoom = p.zoom;
-            own.tuning = CameraTuning { s_max: Some(p.max_scale), hold_min_s: Some(f64::from(p.hold) / 1000.0) };
+            own.tuning = p.tuning();
+            own.window_fit = p.window_size.map(|percent| f64::from(percent) / 100.0);
+            own.stage_ground = Some(p.ground.clone());
+            own.window_radius = p.corner_radius.map(f64::from);
+            own.rim_glow = Some(p.shadow);
+            own.lift_colours = Some(p.lift_colours);
+            own.shutter_angle = Some(f64::from(p.shutter_angle));
+            own.bleed_blur = Some(f64::from(p.bleed_blur));
+            own.bleed_dim = Some(p.bleed_dim);
+            own.frame_font = crate::fonts::font_prop(&p.frame_font);
             own.motion_blur = p.motion_blur;
             own.style = p.style;
             own = match p.frame.style() {
@@ -863,7 +1275,7 @@ fn manual_zoom() -> NodeDef {
                         t: at,
                         x: p.x,
                         y: p.y,
-                        t_depart: Some((at - FOCUS_LEAD_MS).max(0.0)),
+                        t_depart: Some((at - f64::from(p.lead_ms)).max(0.0)),
                     },
                     FocusSpot {
                         id: "b",
@@ -898,7 +1310,10 @@ fn pan() -> NodeDef {
                 ),
             ]
         })
-        .restyle(|props: RecordingProps, p: &Pan, node_id| {
+        .restyle(|mut props: RecordingProps, p: &Pan, node_id| {
+            if !p.zoom_out_when_far {
+                props.tuning.longest_pan_px = Some(NO_PAN_LIMIT_PX);
+            }
             let at = f64::from(p.at_ms);
             focus_beats(
                 props,
@@ -940,6 +1355,9 @@ fn follow_cursor() -> NodeDef {
             ))]
         })
         .restyle(|mut props: RecordingProps, p: &FollowCursor, node_id| {
+            if !p.zoom_out_on_jumps {
+                props.tuning.longest_pan_px = Some(NO_PAN_LIMIT_PX);
+            }
             let beats = follow_cursor_beats(&props.log, p.scale, f64::from(p.every_ms), node_id);
             props.extra_beats.extend(beats);
             props
@@ -982,7 +1400,12 @@ fn idle_speedup() -> NodeDef {
             .into_iter()
             .map(|(from, to)| (from, to, p.rate))
             .collect();
-        remap_clip(clip, at.node_id, at.fps, &segments)
+        remap_clip(
+            clip,
+            at.node_id,
+            at.fps,
+            &eased_segments(&segments, f64::from(p.ease_ms)),
+        )
     })
 }
 
@@ -1002,7 +1425,12 @@ fn speed_ramp() -> NodeDef {
                 .map(|s| (f64::from(s.from_ms), f64::from(s.to_ms), s.rate))
                 .collect();
             segments.sort_by(|a, b| a.0.total_cmp(&b.0));
-            remap_clip(clip, at.node_id, at.fps, &segments)
+            remap_clip(
+                clip,
+                at.node_id,
+                at.fps,
+                &eased_segments(&segments, f64::from(p.ease_ms)),
+            )
         })
 }
 
@@ -1033,6 +1461,7 @@ fn crop() -> NodeDef {
                         w: p.w,
                         h: p.h,
                     }),
+                    crop_fill: p.fill.then_some(true),
                     ..GroupProps::default()
                 };
                 wrap_clip(clip, ctx.node_id, props, None)
@@ -1054,14 +1483,11 @@ fn device_frame() -> NodeDef {
         .compiles(|ctx: &Ctx<'_, DeviceFrame>| {
             let p = &ctx.params;
             with_clip(ctx, |clip| {
-                let mut props = Map::new();
-                props.insert("mode".into(), Value::from("dark"));
-                if p.device == Device::Laptop {
-                    props.insert(
-                        "entrance".into(),
-                        serde_json::to_value(p.entrance).expect("entrance serializes"),
-                    );
-                }
+                let props = element_meta(p.device.component()).map_or_else(Map::new, |meta| {
+                    let mut values = meta.default_props.clone();
+                    values.extend(p.element_values());
+                    element_props(meta, &values)
+                });
                 let screened = patch_recordings(clip, &|r| RecordingProps {
                     screen: Some(true),
                     ..r
@@ -1137,6 +1563,7 @@ fn motion_blur() -> NodeDef {
         })
         .restyle(|props: RecordingProps, p: &MotionBlur, _| RecordingProps {
             motion_blur: p.enabled,
+            shutter_angle: Some(f64::from(p.shutter_angle)),
             ..props
         })
 }

@@ -4,24 +4,22 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,
   extrapolateRight: "clamp" as const,
 };
 
-export type PushThroughProps = {
-  zoom?: number;
-  blur?: number;
-};
+type PushThroughProps = ElementSettings["push-through"];
 
-const PushThroughPresentation: React.FC<TransitionPresentationComponentProps<PushThroughProps>> = ({
+function PushThroughPresentation({
   children,
   presentationProgress,
   presentationDirection,
   passedProps,
-}) => {
-  const { zoom = 2.4, blur = 14 } = passedProps;
+}: TransitionPresentationComponentProps<PushThroughProps>) {
+  const { zoom, blur, approachFrom } = passedProps;
   const entering = presentationDirection === "entering";
   const p = presentationProgress;
 
@@ -42,7 +40,7 @@ const PushThroughPresentation: React.FC<TransitionPresentationComponentProps<Pus
 
   const childStyle: React.CSSProperties = {
     opacity: interpolate(p, [0.3, 0.5], [0, 1], clampOpts),
-    scale: `${interpolate(p, [0.3, 0.88, 1], [0.68, 1.02, 1], {
+    scale: `${interpolate(p, [0.3, 0.88, 1], [approachFrom, 1.02, 1], {
       ...clampOpts,
       easing: Easing.out(Easing.cubic),
     })}`,
@@ -50,11 +48,9 @@ const PushThroughPresentation: React.FC<TransitionPresentationComponentProps<Pus
   };
 
   return <AbsoluteFill style={childStyle}>{children}</AbsoluteFill>;
-};
+}
 
-export function pushThrough(
-  props: PushThroughProps = {},
-): TransitionPresentation<PushThroughProps> {
+export function pushThrough(props: PushThroughProps): TransitionPresentation<PushThroughProps> {
   return {
     component: PushThroughPresentation,
     props,

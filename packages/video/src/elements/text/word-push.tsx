@@ -1,40 +1,26 @@
 import { useMemo } from "react";
 import { Easing, interpolate } from "remotion";
-import { MAIN_FONT } from "#video/common/fonts.ts";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface WordPushProps {
-  background?: string;
-  fontFamily?: string;
-  text: string;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  wordGap?: number;
-  accel?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 const REVEAL_FRAMES = 2;
-const SLIDE_FRAMES = 12;
-const OVERSHOOT_EM = 0.5;
 const CHAR_WIDTH_EM = 0.5;
 const SPACE_WIDTH_EM = 0.22;
-const LETTER_SPACING_EM = -0.02;
 
 function measureWords(
   words: string[],
   fontSize: number,
-  fontWeight: number,
+  fontWeight: string,
   fontFamily: string,
+  letterSpacing: number,
 ): number[] {
   const guess = () => words.map((word) => word.length * CHAR_WIDTH_EM * fontSize);
   if (typeof document === "undefined") return guess();
   const ctx = document.createElement("canvas").getContext("2d");
   if (!ctx) return guess();
   ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-  ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
+  ctx.letterSpacing = `${letterSpacing * fontSize}px`;
   return words.map((word) => ctx.measureText(word).width);
 }
 
@@ -43,36 +29,51 @@ function revealFrame(index: number, wordGap: number, accel: number): number {
   return (wordGap * (1 - accel ** index)) / (1 - accel);
 }
 
-export function wordPushLength(text: string, wordGap = 10, accel = 0.8): number {
+export function wordPushLength(
+  text: string,
+  wordGap: number,
+  accel: number,
+  pushTime: number,
+): number {
   const words = text.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return 0;
-  return Math.ceil(revealFrame(words.length - 1, wordGap, accel)) + SLIDE_FRAMES;
+  return Math.ceil(revealFrame(words.length - 1, wordGap, accel)) + pushTime;
 }
 
 const pushEasing = Easing.out(Easing.cubic);
 const driveEasing = Easing.bezier(0.15, 0.7, 0.25, 1);
 
 export function WordPush({
-  fontFamily = MAIN_FONT,
+  fontFamily,
   text,
-  fontSize = 72,
-  color = "#171717",
-  fontWeight = 400,
-  wordGap = 10,
-  accel = 0.8,
-  speed = 1,
-  className,
-  background = "transparent",
-}: WordPushProps) {
+  fontSize,
+  color,
+  fontWeight,
+  wordGap,
+  accel,
+  speed,
+  background,
+  pushTime,
+  driveDistance,
+  letterSpacing,
+}: ElementSettings["word-push"]) {
+  const face = fontOr(fontFamily, "main");
   const frame = useAuthoredFrame() * speed;
 
   const words = text.trim().split(/\s+/).filter(Boolean);
   const widths = useMemo(
-    () => measureWords(text.trim().split(/\s+/).filter(Boolean), fontSize, fontWeight, fontFamily),
-    [text, fontSize, fontWeight, fontFamily],
+    () =>
+      measureWords(
+        text.trim().split(/\s+/).filter(Boolean),
+        fontSize,
+        fontWeight,
+        face,
+        letterSpacing,
+      ),
+    [text, fontSize, fontWeight, face, letterSpacing],
   );
 
-  let lineX = interpolate(frame, [0, SLIDE_FRAMES], [-OVERSHOOT_EM * fontSize, 0], {
+  let lineX = interpolate(frame, [0, pushTime], [-driveDistance * fontSize, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: driveEasing,
@@ -80,7 +81,7 @@ export function WordPush({
   for (let j = 1; j < words.length; j++) {
     const wordWidth = widths[j] + SPACE_WIDTH_EM * fontSize;
     const revealAt = revealFrame(j, wordGap, accel);
-    const pushed = interpolate(frame, [revealAt + 1, revealAt + 1 + SLIDE_FRAMES], [0, 1], {
+    const pushed = interpolate(frame, [revealAt + 1, revealAt + 1 + pushTime], [0, 1], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
       easing: pushEasing,
@@ -102,13 +103,12 @@ export function WordPush({
       }}
     >
       <span
-        className={className}
         style={{
           fontSize,
           fontWeight,
           color,
-          letterSpacing: `${LETTER_SPACING_EM}em`,
-          fontFamily,
+          letterSpacing: `${letterSpacing}em`,
+          fontFamily: face,
         }}
       >
         {words.map((word, j) => {
@@ -122,7 +122,7 @@ export function WordPush({
           const driven =
             j === 0
               ? 1
-              : interpolate(frame, [revealAt, revealAt + SLIDE_FRAMES], [0, 1], {
+              : interpolate(frame, [revealAt, revealAt + pushTime], [0, 1], {
                   extrapolateLeft: "clamp",
                   extrapolateRight: "clamp",
                   easing: driveEasing,
@@ -136,7 +136,7 @@ export function WordPush({
                 whiteSpace: "pre",
                 marginRight: j < words.length - 1 ? "0.22em" : undefined,
                 opacity,
-                translate: `${OVERSHOOT_EM * fontSize * (1 - driven)}px 0`,
+                translate: `${driveDistance * fontSize * (1 - driven)}px 0`,
               }}
             >
               {word}

@@ -1,25 +1,13 @@
-import type React from "react";
 import { AbsoluteFill, random } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
   makeFilterShader,
 } from "#video/lib/transitions/canvas-presentation.tsx";
 
-export type VhsFilterProps = {
-  bleed?: number;
-  wobble?: number;
-  noise?: number;
-  intensity?: number;
-};
-
-const DEFAULTS = {
-  bleed: 1,
-  wobble: 1,
-  noise: 1,
-  intensity: 1,
-};
+type VhsFilterProps = ElementSettings["vhs-filter"];
 
 const FRAGMENT_SHADER = `#version 300 es
 precision highp float;
@@ -31,6 +19,8 @@ uniform float u_bleed;
 uniform float u_wobble;
 uniform float u_noise;
 uniform float u_intensity;
+uniform float u_head_switch;
+uniform float u_scanlines;
 
 in vec2 v_uv;
 out vec4 outColor;
@@ -77,7 +67,7 @@ void main() {
   float jitter = valueNoise(line * 0.61 + u_time * 24.0) - 0.5;
   float wobble = (drift * 0.35 + jitter * 0.9) * 0.007 * u_wobble * u_intensity;
 
-  float band = smoothstep(0.955, 0.994, v_uv.y);
+  float band = smoothstep(0.955, 0.994, v_uv.y) * u_head_switch;
   float tear = valueNoise(line * 2.7 + u_time * 43.0) - 0.5;
   float headSwitch = band * tear * 0.085 * u_intensity;
 
@@ -98,7 +88,7 @@ void main() {
 
   vec3 color = yiq2rgb(vec3(luma, chroma / total));
 
-  float scan = 0.94 + 0.06 * cos(v_uv.y * LINES * PI);
+  float scan = 1.0 - 0.06 * u_scanlines + 0.06 * u_scanlines * cos(v_uv.y * LINES * PI);
   color *= mix(1.0, scan, u_intensity);
 
   float grain =
@@ -112,25 +102,22 @@ void main() {
 }`;
 
 const shader = makeFilterShader<VhsFilterProps>(FRAGMENT_SHADER, ({ gl, uniform, passedProps }) => {
-  const {
-    bleed = DEFAULTS.bleed,
-    wobble = DEFAULTS.wobble,
-    noise = DEFAULTS.noise,
-    intensity = DEFAULTS.intensity,
-  } = passedProps;
+  const { bleed, wobble, noise, intensity, headSwitch, scanlines } = passedProps;
   gl.uniform1f(uniform("u_bleed"), bleed);
   gl.uniform1f(uniform("u_wobble"), wobble);
   gl.uniform1f(uniform("u_noise"), noise);
   gl.uniform1f(uniform("u_intensity"), intensity);
+  gl.uniform1f(uniform("u_head_switch"), headSwitch);
+  gl.uniform1f(uniform("u_scanlines"), scanlines);
 });
 
-const VhsFilterFallback: React.FC<VhsFilterProps & CanvasFilterProps> = ({
+function VhsFilterFallback({
   children,
-  bleed = DEFAULTS.bleed,
-  wobble = DEFAULTS.wobble,
-  noise = DEFAULTS.noise,
-  intensity = DEFAULTS.intensity,
-}) => {
+  bleed,
+  wobble,
+  noise,
+  intensity,
+}: VhsFilterProps & CanvasFilterProps) {
   const frame = useAuthoredFrame();
   const shift = (random(`vhs-wobble-${frame}`) - 0.5) * 3.4 * wobble * intensity;
   const flicker = 1 + (random(`vhs-flicker-${frame}`) - 0.5) * 0.07 * noise * intensity;
@@ -176,7 +163,7 @@ const VhsFilterFallback: React.FC<VhsFilterProps & CanvasFilterProps> = ({
       />
     </AbsoluteFill>
   );
-};
+}
 
 export const VhsFilter = makeCanvasFilter<VhsFilterProps>({
   shader,

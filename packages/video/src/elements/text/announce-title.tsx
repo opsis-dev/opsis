@@ -1,35 +1,16 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { AbsoluteFill, continueRender, delayRender, getRemotionEnvironment } from "remotion";
+import { fontOr, MAIN_FONT } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { resolveFont, WarmUIProvider, useWarmTheme } from "#video/lib/warm-ui/index.ts";
-
-const SANS = '"Google Sans"';
-
-export interface AnnounceTitleProps {
-  fontFamily?: string;
-  eyebrow?: string;
-  title?: string;
-  tagline?: string;
-  voidColor?: string;
-  fieldColor?: string;
-  paperColor?: string;
-  titleColor?: string;
-  nightColor?: string;
-  glowColor?: string;
-  glowStrength?: number;
-  taglineColor?: string;
-  inkColor?: string;
-  symbolPath?: string;
-  symbolColors?: string[] | string;
-  symbolScale?: number;
-  speed?: number;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
+import { WarmUIProvider, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 
 interface SymbolStyle {
   path: string;
   colors: string[];
   scale: number;
+  glow: number;
 }
 
 const PLANE_OUT = 18;
@@ -91,7 +72,7 @@ function lineStyle(fontSize: number, tracking: number, face: string): CSSPropert
   return {
     fontFamily: face,
     fontSize,
-    fontWeight: 400,
+    fontWeight: "inherit",
     lineHeight: 1,
     letterSpacing: `${tracking}em`,
     marginRight: `${-tracking}em`,
@@ -129,7 +110,7 @@ function Line({
   height: number;
   style?: CSSProperties;
 }) {
-  const face = useWarmTheme().fontFamily ?? SANS;
+  const face = useWarmTheme().fontFamily ?? MAIN_FONT;
   return (
     <Stage offset={(baseline - 0.5) * height - BASELINE_DROP * fontSize}>
       <div style={{ ...lineStyle(fontSize, tracking, face), ...style }}>{children}</div>
@@ -164,7 +145,7 @@ function useFitScales(lines: LineFit[]): {
   probes: ReactNode;
   scales: number[];
 } {
-  const face = useWarmTheme().fontFamily ?? SANS;
+  const face = useWarmTheme().fontFamily ?? MAIN_FONT;
   const refs = useRef<(HTMLSpanElement | null)[]>([]);
   const [handle] = useState(() => delayRender("announce-title: measure lines"));
   const [measured, setMeasured] = useState<{
@@ -217,10 +198,7 @@ function useFitScales(lines: LineFit[]): {
   return { probes, scales };
 }
 
-export const MARK_PATH =
-  "M15.757 15.459c-3.324 0.816 -6.07 2.966 -7.563 5.911 -1.194 2.388 -1.174 1.672 -1.174 24.66 0 19.982 0.02 21.077 0.378 22.132 0.955 2.926 2.946 4.498 6.588 5.215 1.99 0.398 2.528 0.657 3.702 1.732 1.055 0.975 1.473 2.169 1.473 4.219 0.02 2.408 0.836 3.901 2.647 4.856l1.035 0.537 19.505 0.06c17.574 0.06 19.624 0.02 20.739 -0.259 1.493 -0.418 2.647 -1.333 3.403 -2.766l0.537 -1.015 0.06 -6.269c0.04 -3.443 0.04 -6.807 0 -7.444l-0.06 -1.194 -0.617 0.995c-0.717 1.174 -2.01 2.289 -3.383 2.906l-0.975 0.458 -16.121 0.06c-11.763 0.04 -16.42 -0 -17.216 -0.159 -2.548 -0.557 -5.135 -2.408 -6.468 -4.657 -1.294 -2.189 -1.314 -2.548 -1.254 -16.44l0.06 -12.439 0.478 -1.154c0.876 -2.209 2.926 -4.18 5.374 -5.155l1.115 -0.458 16.519 -0.06c16.101 -0.04 16.539 -0.04 17.813 0.358 1.592 0.498 2.966 1.473 3.941 2.826l0.736 1.035 0.06 -6.648c0.06 -7.304 -0.06 -8.319 -1.115 -9.832 -0.597 -0.876 -1.95 -1.811 -3.025 -2.11 -0.438 -0.119 -9.096 -0.199 -23.386 -0.179 -18.37 0.02 -22.908 0.06 -23.804 0.279zM79.665 31.819c-6.508 3.901 -11.902 7.185 -11.981 7.304 -0.08 0.119 -0.139 5.055 -0.1 10.947l0.04 10.748 2.886 1.811c1.592 0.995 4.14 2.587 5.672 3.523 1.533 0.935 5.632 3.463 9.096 5.613 3.463 2.15 6.488 3.901 6.707 3.901 0.219 -0 0.537 -0.139 0.697 -0.318 0.279 -0.279 0.318 -2.806 0.318 -24.958 0 -15.544 -0.08 -24.839 -0.199 -25.157 -0.139 -0.398 -0.318 -0.517 -0.736 -0.517 -0.358 0.02 -4.617 2.448 -12.399 7.105z";
-
-export const SPARK_RAMP: readonly (readonly [number, string])[] = [
+const SPARK_RAMP: readonly (readonly [number, string])[] = [
   [0, "#0365f3"],
   [0.17, "#1c5cf1"],
   [0.31, "#3a54ec"],
@@ -234,11 +212,6 @@ export const SPARK_RAMP: readonly (readonly [number, string])[] = [
 ];
 
 const BLOOM_PASSES = [0.0825, 0.0315, 0.009, 0.009];
-
-function symbolColorList(colors?: string[] | string): string[] {
-  const list = typeof colors === "string" ? colors.split(",") : (colors ?? []);
-  return list.map((c) => c.trim()).filter(Boolean);
-}
 
 function symbolStops(colors: string[]): readonly (readonly [number, string])[] {
   if (colors.length === 0) return SPARK_RAMP;
@@ -257,6 +230,7 @@ function Mark({
   width,
   rotation,
   spread = 1,
+  glow,
   id,
 }: {
   path: string;
@@ -265,12 +239,13 @@ function Mark({
   width: number;
   rotation: number;
   spread?: number;
+  glow: number;
   id: string;
 }) {
   if (!path) return null;
   const stops = symbolStops(colors);
   const edge = 0.5 + spread / 2;
-  const blur = (f: number) => (f * width * 100) / size;
+  const blur = (f: number) => (f * glow * width * 100) / size;
   return (
     <svg
       viewBox="0 0 100 100"
@@ -354,7 +329,7 @@ function RecedingPlane({
   fontSize: number;
   ink: string;
 }) {
-  const face = useWarmTheme().fontFamily ?? SANS;
+  const face = useWarmTheme().fontFamily ?? MAIN_FONT;
   const mag = sample(PLANE_MAG, frame);
   const rake = sample(PLANE_RAKE, frame);
   return (
@@ -518,6 +493,7 @@ function MacroShot({
   width,
   height,
   ink,
+  textScale,
 }: {
   tagline: string;
   symbol: SymbolStyle;
@@ -525,10 +501,11 @@ function MacroShot({
   width: number;
   height: number;
   ink: string;
+  textScale: number;
 }) {
-  const face = useWarmTheme().fontFamily ?? SANS;
+  const face = useWarmTheme().fontFamily ?? MAIN_FONT;
   const pan = (macroPan(frame) * width) / REF_W;
-  const fontSize = MACRO_SIZE * width;
+  const fontSize = MACRO_SIZE * textScale * width;
   return (
     <>
       <Stage align="flex-start" offset={(MACRO_BASELINE - 0.5) * height - BASELINE_DROP * fontSize}>
@@ -552,6 +529,7 @@ function MacroShot({
             path={symbol.path}
             colors={symbol.colors}
             size={MACRO_STAR_SIZE * symbol.scale * width}
+            glow={symbol.glow}
             width={width}
             rotation={MACRO_STAR_SPIN * (frame - MACRO_HOLD) - 50}
             spread={MACRO_STAR_SPREAD}
@@ -573,34 +551,24 @@ const WIPE_START = 124.6;
 const WIPE_SPEED = 31.7 / TAGLINE_INK;
 const WIPE_EDGE = 165 / TAGLINE_INK;
 
-const TINT_RAMP: readonly (readonly [number, string])[] = [
-  [0, "#8a2447"],
-  [0.24, "#842647"],
-  [0.33, "#722e57"],
-  [0.5, "#58406d"],
-  [0.66, "#434e90"],
-  [0.76, "#3654ab"],
-  [0.85, "#2f5ed1"],
-  [1, "#3266e5"],
-];
-
 function hexToRgb(hex: string): [number, number, number] {
   const n = Number.parseInt(hex.slice(1), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-function taglineFill(front: number, rest: string): string {
+function taglineFill(front: number, rest: string, tint: string[]): string {
+  const ramp = symbolStops(tint);
   const [rr, rg, rb] = hexToRgb(rest);
   const stops: string[] = [];
   const n = 14;
   for (let i = 0; i <= n; i++) {
     const p = i / n;
-    let below = TINT_RAMP[0];
-    let above = TINT_RAMP[TINT_RAMP.length - 1];
-    for (let j = 1; j < TINT_RAMP.length; j++) {
-      if (p <= TINT_RAMP[j][0]) {
-        below = TINT_RAMP[j - 1];
-        above = TINT_RAMP[j];
+    let below = ramp[0];
+    let above = ramp[ramp.length - 1];
+    for (let j = 1; j < ramp.length; j++) {
+      if (p <= ramp[j][0]) {
+        below = ramp[j - 1];
+        above = ramp[j];
         break;
       }
     }
@@ -633,6 +601,7 @@ function ClosingShot({
   height,
   fontSize,
   rest,
+  tint,
 }: {
   words: string[];
   symbol: SymbolStyle;
@@ -641,6 +610,7 @@ function ClosingShot({
   height: number;
   fontSize: number;
   rest: string;
+  tint: string[];
 }) {
   const slide =
     -TAGLINE_TRAVEL * width * (1 - settle(frame - MACRO_OUT, TAGLINE_SPAN, TAGLINE_DECAY));
@@ -656,7 +626,7 @@ function ClosingShot({
         style={{
           display: "flex",
           transform: `translateX(${slide}px)`,
-          backgroundImage: taglineFill(front, rest),
+          backgroundImage: taglineFill(front, rest, tint),
           backgroundClip: "text",
           WebkitBackgroundClip: "text",
           color: "transparent",
@@ -688,6 +658,7 @@ function ClosingShot({
               path={symbol.path}
               colors={symbol.colors}
               size={STAR_SIZE * symbol.scale * width}
+              glow={symbol.glow}
               width={width}
               rotation={-STAR_TURN * (1 - settle(frame - MACRO_OUT, TAGLINE_SPAN, TAGLINE_DECAY))}
               id="announce-title-symbol"
@@ -700,32 +671,37 @@ function ClosingShot({
 }
 
 export function AnnounceTitle({
-  eyebrow = "Introducing",
-  title = "Acme 2.0",
-  tagline = "Ready-made scenes for Remotion, in one command.",
-  voidColor = "#100022",
-  fieldColor = "#5600f5",
-  paperColor = "#fcfcfa",
-  titleColor = "#4800c9",
-  nightColor = "#000028",
-  glowColor = "#08ff4b",
-  glowStrength = 0.139,
-  taglineColor = "#f2f8ff",
-  inkColor = "#ffffff",
-  symbolPath = MARK_PATH,
+  eyebrow,
+  title,
+  tagline,
+  voidColor,
+  fieldColor,
+  paperColor,
+  titleColor,
+  nightColor,
+  glowColor,
+  glowStrength,
+  taglineColor,
+  inkColor,
+  symbolPath,
   symbolColors,
-  symbolScale = 1,
+  symbolScale,
   fontFamily,
-  speed = 1,
-}: AnnounceTitleProps) {
-  const face = resolveFont(fontFamily) ?? SANS;
+  speed,
+  fontWeight,
+  textScale,
+  symbolGlow,
+  taglineTint,
+}: ElementSettings["announce-title"]) {
+  const face = fontOr(fontFamily, "main");
   const frame = useAuthoredFrame() * speed;
   const { width, height } = useAuthoredConfig();
 
   const symbol: SymbolStyle = {
     path: symbolPath,
-    colors: symbolColorList(symbolColors),
+    colors: symbolColors,
     scale: symbolScale,
+    glow: symbolGlow,
   };
   const titleWords = title.split(/\s+/).filter(Boolean);
   const taglineWords = tagline.split(/\s+/).filter(Boolean);
@@ -733,26 +709,26 @@ export function AnnounceTitle({
   const { probes, scales } = useFitScales([
     {
       text: eyebrow,
-      fontSize: EYEBROW_SIZE * width,
+      fontSize: EYEBROW_SIZE * textScale * width,
       tracking: EYEBROW_TRACK,
       maxWidth: 0.55 * width,
     },
     {
       text: title,
-      fontSize: TITLE_SIZE * width,
+      fontSize: TITLE_SIZE * textScale * width,
       tracking: TITLE_TRACK,
       maxWidth: 0.8 * width,
     },
     {
       text: tagline,
-      fontSize: TAGLINE_SIZE * width,
+      fontSize: TAGLINE_SIZE * textScale * width,
       tracking: TAGLINE_TRACK,
       maxWidth: 0.88 * width,
     },
   ]);
-  const eyebrowSize = EYEBROW_SIZE * width * scales[0];
-  const titleSize = TITLE_SIZE * width * scales[1];
-  const taglineSize = TAGLINE_SIZE * width * scales[2];
+  const eyebrowSize = EYEBROW_SIZE * textScale * width * scales[0];
+  const titleSize = TITLE_SIZE * textScale * width * scales[1];
+  const taglineSize = TAGLINE_SIZE * textScale * width * scales[2];
 
   const shot = () => {
     if (frame < PLANE_OUT) {
@@ -828,6 +804,7 @@ export function AnnounceTitle({
             width={width}
             height={height}
             ink={inkColor}
+            textScale={textScale}
           />
         ) : (
           <ClosingShot
@@ -838,6 +815,7 @@ export function AnnounceTitle({
             height={height}
             fontSize={taglineSize}
             rest={taglineColor}
+            tint={taglineTint}
           />
         )}
       </AbsoluteFill>
@@ -846,7 +824,7 @@ export function AnnounceTitle({
 
   return (
     <WarmUIProvider theme={{ fontFamily: face }}>
-      <AbsoluteFill>
+      <AbsoluteFill style={{ fontWeight }}>
         {probes}
         {shot()}
       </AbsoluteFill>

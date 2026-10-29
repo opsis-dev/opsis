@@ -1,6 +1,5 @@
-import React from "react";
 import { AbsoluteFill } from "remotion";
 
-export const Solid: React.FC<{ color: string }> = ({ color }) => (
-  <AbsoluteFill style={{ background: color }} />
-);
+export function Solid({ color }: { color: string }) {
+  return <AbsoluteFill style={{ background: color }} />;
+}

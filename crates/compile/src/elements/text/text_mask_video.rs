@@ -77,9 +77,9 @@ pub struct TextMaskVideo {
     pub font_family: String,
     #[setting("Font weight", default = 800)]
     pub font_weight: u32,
-    #[setting("Letter spacing")]
+    #[setting("Letter spacing", advanced)]
     pub letter_spacing: f64,
-    #[setting("Line height", default = 0.98, step = 0.01)]
+    #[setting("Line height", default = 0.98, step = 0.01, advanced)]
     pub line_height: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
@@ -88,10 +88,27 @@ pub struct TextMaskVideo {
         zero_label = "Fit",
         unit = "px",
         help = "Leave empty to fit the text to the frame.",
-        advanced,
         "type" = "number"
     )]
     pub font_size: Option<f64>,
+    #[setting(
+        "Drift speed",
+        default = 1.0,
+        range(min = 0, max = 4),
+        unit = "×",
+        advanced
+    )]
+    pub drift_speed: f64,
+    #[setting(
+        "Largest fitted size",
+        default = 150.0,
+        range(min = 40, max = 600),
+        unit = "px per 1080 px of width",
+        advanced
+    )]
+    pub fit_max: f64,
+    #[setting("Video starts at", default = 0.0, range(min = 0), unit = "s", advanced)]
+    pub start_from: f64,
 }
 
 pub fn definition() -> ElementMeta {

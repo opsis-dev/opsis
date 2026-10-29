@@ -16,6 +16,8 @@ const HEAD_LENGTH: f64 = 4.5;
 const HEAD_WIDTH: f64 = 3.2;
 const SMALLEST_HEAD: f64 = 12.0;
 const STEP_TEXT: f64 = 0.6;
+const TEXT_PAD: f64 = 0.3;
+const TEXT_RADIUS: f64 = 0.25;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {
@@ -81,12 +83,12 @@ pub struct Arrow {
     pub head: [(f64, f64); 3],
 }
 
-pub fn arrow_shape(tail: (f64, f64), tip: (f64, f64), width: f64) -> Arrow {
+pub fn arrow_shape(tail: (f64, f64), tip: (f64, f64), width: f64, head: f64) -> Arrow {
     let (dx, dy) = (tip.0 - tail.0, tip.1 - tail.1);
     let length = dx.hypot(dy).max(1e-6);
     let (ux, uy) = (dx / length, dy / length);
-    let head_length = (width * HEAD_LENGTH).max(SMALLEST_HEAD).min(length);
-    let half = (width * HEAD_WIDTH).max(SMALLEST_HEAD * 0.7) / 2.0;
+    let head_length = ((width * HEAD_LENGTH).max(SMALLEST_HEAD) * head).min(length);
+    let half = (width * HEAD_WIDTH).max(SMALLEST_HEAD * 0.7) * head / 2.0;
     let base = (tip.0 - ux * head_length, tip.1 - uy * head_length);
     Arrow {
         tail,
@@ -110,14 +112,19 @@ fn ellipse_distance(point: (f64, f64), centre: (f64, f64), radii: (f64, f64)) ->
     (r - 1.0) / gradient.max(1e-9)
 }
 
-fn box_distance(point: (f64, f64), bounds: Bounds) -> f64 {
+fn box_distance(point: (f64, f64), bounds: Bounds, radius: f64) -> f64 {
     let (cx, cy) = (
         (bounds.left + bounds.right) / 2.0,
         (bounds.top + bounds.bottom) / 2.0,
     );
-    let qx = (point.0 - cx).abs() - (bounds.right - bounds.left) / 2.0;
-    let qy = (point.1 - cy).abs() - (bounds.bottom - bounds.top) / 2.0;
-    qx.max(0.0).hypot(qy.max(0.0)) + qx.max(qy).min(0.0)
+    let (hw, hh) = (
+        (bounds.right - bounds.left) / 2.0,
+        (bounds.bottom - bounds.top) / 2.0,
+    );
+    let r = radius.min(hw).min(hh).max(0.0);
+    let qx = (point.0 - cx).abs() - hw + r;
+    let qy = (point.1 - cy).abs() - hh + r;
+    qx.max(0.0).hypot(qy.max(0.0)) + qx.max(qy).min(0.0) - r
 }
 
 fn paint(
@@ -158,7 +165,7 @@ fn draw_mark(canvas: &mut Rgba32FImage, mark: &Mark, step: u32, fonts: &MarkFont
     let (start, end) = corners(mark, size);
     match mark.kind {
         MarkKind::Arrow => {
-            let arrow = arrow_shape(start, end, width);
+            let arrow = arrow_shape(start, end, width, mark.head_size);
             let bounds = Bounds::around(&[start, end, arrow.head[1], arrow.head[2]], width + 2.0);
             paint(canvas, bounds, colour, |p| {
                 let line = segment_distance(p, arrow.tail, arrow.base) - width / 2.0;
@@ -177,13 +184,21 @@ fn draw_mark(canvas: &mut Rgba32FImage, mark: &Mark, step: u32, fonts: &MarkFont
                 (area.right - area.left) / 2.0,
                 (area.bottom - area.top) / 2.0,
             );
-            paint(canvas, bounds, colour, |p| {
-                let edge = if oval {
+            let radius = f64::from(mark.radius);
+            let edge = |p| {
+                if oval {
                     ellipse_distance(p, centre, radii)
                 } else {
-                    box_distance(p, area)
-                };
-                coverage(edge.abs() - width / 2.0)
+                    box_distance(p, area, radius)
+                }
+            };
+            if mark.fill > 0.0 {
+                let mut inside = colour;
+                inside[3] *= numbers::narrow(mark.fill.clamp(0.0, 1.0));
+                paint(canvas, bounds, inside, |p| coverage(edge(p)));
+            }
+            paint(canvas, bounds, colour, |p| {
+                coverage(edge(p).abs() - width / 2.0)
             });
         }
         MarkKind::Step => {
@@ -200,11 +215,36 @@ fn draw_mark(canvas: &mut Rgba32FImage, mark: &Mark, step: u32, fonts: &MarkFont
                     start.0 - measured.width / 2.0,
                     start.1 - measured.height / 2.0,
                 );
-                draw_text(canvas, font, text_size, origin, &text, [1.0, 1.0, 1.0, 1.0]);
+                draw_text(
+                    canvas,
+                    font,
+                    text_size,
+                    origin,
+                    &text,
+                    unit_colour(&mark.text_color),
+                );
             }
         }
         MarkKind::Text => {
             if let Some(font) = fonts.get(&(mark.font.clone(), mark.weight)) {
+                if !mark.text_background.trim().is_empty() {
+                    let text_size = f64::from(mark.size);
+                    let measured = measure(font, text_size, &mark.text);
+                    let pad = text_size * TEXT_PAD;
+                    let area = Bounds {
+                        left: start.0 - pad,
+                        top: start.1 - pad,
+                        right: start.0 + measured.width + pad,
+                        bottom: start.1 + measured.height + pad,
+                    };
+                    let radius = text_size * TEXT_RADIUS;
+                    paint(
+                        canvas,
+                        Bounds::around(&[(area.left, area.top), (area.right, area.bottom)], 2.0),
+                        unit_colour(&mark.text_background),
+                        |p| coverage(box_distance(p, area, radius)),
+                    );
+                }
                 draw_text(
                     canvas,
                     font,
@@ -218,14 +258,19 @@ fn draw_mark(canvas: &mut Rgba32FImage, mark: &Mark, step: u32, fonts: &MarkFont
     }
 }
 
-pub fn annotate(image: &DynamicImage, marks: &[Mark], fonts: &MarkFonts) -> DynamicImage {
+pub fn annotate(
+    image: &DynamicImage,
+    marks: &[Mark],
+    first_step: u32,
+    fonts: &MarkFonts,
+) -> DynamicImage {
     let mut canvas = image.to_rgba32f();
-    let mut steps = 0;
+    let mut step = first_step;
     for mark in marks {
+        draw_mark(&mut canvas, mark, step, fonts);
         if mark.kind == MarkKind::Step {
-            steps += 1;
+            step += 1;
         }
-        draw_mark(&mut canvas, mark, steps, fonts);
     }
     let out = DynamicImage::ImageRgba32F(canvas);
     if is_deep(image) {

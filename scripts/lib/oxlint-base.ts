@@ -42,6 +42,7 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
       "import/no-cycle": "off",
       "unicorn/filename-case": ["error", { case: "kebabCase", ignore: ["^__root\\.tsx$"] }],
       "opsis/use-find-by-id": "error",
+      "opsis/use-function-components": "error",
       "opsis/use-parse-json-with": "error",
       "opsis/use-percent-text": "error",
       "opsis/use-type-guards": "error",

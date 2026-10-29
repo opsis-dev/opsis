@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
+use crate::elements::shared::NumberFormat;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -96,7 +97,8 @@ pub struct ComparisonBars {
         "Decrease color",
         default = "#f472b6",
         help = "Delta colour when the change is a fall.",
-        check = colour
+        check = colour,
+        advanced
     )]
     pub down_color: String,
     #[setting(
@@ -138,10 +140,29 @@ pub struct ComparisonBars {
         advanced
     )]
     pub pair_offset_in_frames: u32,
-    #[setting("Bar text color", default = "#0b0b10", check = colour)]
+    #[setting("Bar text color", default = "#0b0b10", check = colour, advanced)]
     pub bar_ink_color: String,
-    #[setting("Label color", default = "rgba(250,250,250,0.55)", check = colour)]
+    #[setting("Label color", default = "rgba(250,250,250,0.55)", check = colour, advanced)]
     pub label_color: String,
+    #[setting(
+        "Number format",
+        default = NumberFormat::Compact,
+        labels = { "compact": "Short (1.2K)", "full": "Full (1,200)" },
+        advanced
+    )]
+    pub number_format: NumberFormat,
+    #[setting(
+        "Corner rounding",
+        default = 28.0,
+        range(min = 0, max = 50),
+        unit = "%",
+        advanced
+    )]
+    pub corner_radius: f64,
+    #[setting("Show before value", advanced)]
+    pub show_before_value: bool,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {

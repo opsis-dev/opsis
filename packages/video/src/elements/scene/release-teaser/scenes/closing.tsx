@@ -34,21 +34,21 @@ export function ReleaseLockup({ scene, frame }: { scene: ReleaseTeaserScene; fra
           marginBottom: 16,
         }}
       >
-        <div style={{ width: 34, height: 34, flexShrink: 0 }}>
+        <div style={{ width: scene.logoSize, height: scene.logoSize, flexShrink: 0 }}>
           {scene.logoSrc ? (
             <BrandImage
               src={scene.logoSrc}
-              style={{ width: 34, height: 34, objectFit: "contain" }}
+              style={{ width: scene.logoSize, height: scene.logoSize, objectFit: "contain" }}
             />
           ) : (
-            <OrbitMark size={34} color={scene.theme.accent} />
+            <OrbitMark size={scene.logoSize} color={scene.theme.accent} />
           )}
         </div>
         <Interactive.Div
           name="Brand and release"
           style={{
-            fontSize: fitText(title, 70, 750),
-            fontWeight: 600,
+            fontSize: fitText(title, 70, 750) * scene.textSize,
+            fontWeight: Math.min(900, scene.statementWeight + 100),
             lineHeight: 1,
             color: scene.theme.foreground,
             whiteSpace: "pre",
@@ -61,7 +61,7 @@ export function ReleaseLockup({ scene, frame }: { scene: ReleaseTeaserScene; fra
       <Interactive.Div
         name="Closing line"
         style={{
-          fontSize: fitText(scene.tagline, 20, 740),
+          fontSize: fitText(scene.tagline, 20, 740) * scene.textSize,
           lineHeight: 1.3,
           color: scene.theme.muted,
           whiteSpace: "pre",

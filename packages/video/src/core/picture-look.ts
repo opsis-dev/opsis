@@ -12,9 +12,20 @@ export function lookEffects(
   frame: number,
 ): EffectDescriptor<unknown>[] {
   if (!look) return [];
-  const { brightness = 0, contrast = 1, saturation = 1, warmth = 0, vignette: edges = 0 } = look;
+  const {
+    brightness = 0,
+    contrast = 1,
+    saturation = 1,
+    warmth = 0,
+    tint = 0,
+    vignette: edges = 0,
+    vignetteSize,
+    vignetteSoftness,
+    vignetteColor,
+  } = look;
   const grain = look.grain ?? 0;
-  const colour = brightness !== 0 || contrast !== 1 || saturation !== 1 || warmth !== 0;
+  const colour =
+    brightness !== 0 || contrast !== 1 || saturation !== 1 || warmth !== 0 || tint !== 0;
   return [
     ...(colour
       ? [
@@ -23,10 +34,20 @@ export function lookEffects(
             contrast,
             saturation,
             temperature: warmth,
+            tint,
           }),
         ]
       : []),
-    ...(edges > 0 ? [vignette({ amount: edges })] : []),
+    ...(edges > 0
+      ? [
+          vignette({
+            amount: edges,
+            radius: vignetteSize,
+            feather: vignetteSoftness,
+            color: vignetteColor,
+          }),
+        ]
+      : []),
     ...(grain > 0 ? [noise({ amount: grain * GRAIN_AMOUNT, seed: frame })] : []),
   ];
 }

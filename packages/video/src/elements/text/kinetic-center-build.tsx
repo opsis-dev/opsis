@@ -1,27 +1,17 @@
 import { useMemo } from "react";
 import { Easing, interpolate } from "remotion";
-import { MAIN_FONT } from "#video/common/fonts.ts";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 
-export interface KineticCenterBuildProps {
-  background?: string;
-  fontFamily?: string;
-  text: string;
-  entryOffset?: number;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
-
-const LETTER_SPACING_EM = -0.03;
+const FIRST_WORD_SHARE = 10 / 13;
 
 function measureWidths(
   words: string[],
   fontSize: number,
-  fontWeight: number,
+  fontWeight: string,
   fontFamily: string,
+  letterSpacing: number,
 ): number[] {
   if (typeof document === "undefined") {
     return words.map((w) => w.length * fontSize * 0.55);
@@ -29,35 +19,38 @@ function measureWidths(
   const ctx = document.createElement("canvas").getContext("2d");
   if (!ctx) return words.map((w) => w.length * fontSize * 0.55);
   ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-  ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
+  ctx.letterSpacing = `${letterSpacing * fontSize}px`;
   return words.map((w) => ctx.measureText(w).width);
 }
 
 export function KineticCenterBuild({
-  fontFamily = MAIN_FONT,
+  fontFamily,
   text,
-  entryOffset = 88,
-  fontSize = 72,
-  color = "#171717",
-  fontWeight = 600,
-  speed = 1,
-  className,
-  background = "transparent",
-}: KineticCenterBuildProps) {
+  entryOffset,
+  fontSize,
+  color,
+  fontWeight,
+  speed,
+  background,
+  wordGap,
+  wordTime,
+  entryBlur,
+  letterSpacing,
+}: ElementSettings["kinetic-center-build"]) {
+  const face = fontOr(fontFamily, "main");
   const frame = useAuthoredFrame() * speed;
 
   const words = useMemo(() => text.split(" "), [text]);
   const widths = useMemo(
-    () => measureWidths(words, fontSize, fontWeight, fontFamily),
-    [words, fontSize, fontWeight, fontFamily],
+    () => measureWidths(words, fontSize, fontWeight, face, letterSpacing),
+    [words, fontSize, fontWeight, face, letterSpacing],
   );
 
-  const gap = 10;
-  const firstDur = 10;
-  const pushDur = 13;
+  const gap = wordGap;
+  const pushDur = wordTime;
+  const firstDur = Math.round(pushDur * FIRST_WORD_SHARE);
   const travelDur = 7;
   const entryScale = 0.992;
-  const entryBlur = 3.5;
   const reflowBlur = 0.8;
   const firstWordY = 6;
   const easing = Easing.bezier(0.2, 0.8, 0.2, 1);
@@ -76,7 +69,7 @@ export function KineticCenterBuild({
       out.push(xs);
     }
     return out;
-  }, [words, widths]);
+  }, [words, widths, gap]);
 
   const n = words.length;
 
@@ -92,14 +85,13 @@ export function KineticCenterBuild({
       }}
     >
       <div
-        className={className}
         style={{
           position: "relative",
           fontSize,
           fontWeight,
           color,
-          letterSpacing: `${LETTER_SPACING_EM}em`,
-          fontFamily,
+          letterSpacing: `${letterSpacing}em`,
+          fontFamily: face,
           whiteSpace: "nowrap",
         }}
       >

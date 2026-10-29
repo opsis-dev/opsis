@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::DarkOrLight;
+use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -138,8 +138,13 @@ pub struct LogoWall {
         check = colour
     )]
     pub accent_color: String,
-    #[setting("Theme", default = DarkOrLight::Dark, help = "Surface palette.")]
-    pub theme: DarkOrLight,
+    #[setting(
+        "Theme",
+        default = Theme::of(ThemeMode::Dark),
+        transform = code_themes,
+        widget = "theme"
+    )]
+    pub theme: Theme,
     #[setting(
         "Speed",
         default = 1.0,
@@ -155,6 +160,102 @@ pub struct LogoWall {
         help = "Leave empty to follow the theme."
     )]
     pub background_color: String,
+    #[setting(
+        "Mark text color",
+        widget = "color",
+        zero_label = "Theme",
+        check = colour_or_empty,
+        advanced
+    )]
+    pub glyph_color: String,
+    #[setting(
+        "Font",
+        widget = "font",
+        help = "Project font follows the fonts set for the whole project.",
+        advanced
+    )]
+    pub font_family: String,
+    #[setting(
+        "Wall width",
+        default = 900,
+        range(min = 300, max = 1800),
+        step = 10,
+        unit = "px",
+        advanced
+    )]
+    pub wall_width: u32,
+    #[setting(
+        "Gap",
+        default = 14,
+        range(min = 0, max = 60),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub gap: u32,
+    #[setting(
+        "Tile height",
+        default = 88,
+        range(min = 40, max = 240),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub tile_height: u32,
+    #[setting(
+        "Tile corners",
+        default = 14,
+        range(min = 0, max = 60),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub tile_radius: u32,
+    #[setting(
+        "Title size",
+        default = 30,
+        range(min = 12, max = 80),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub title_size: u32,
+    #[setting("Uppercase small heading", default = true, advanced)]
+    pub eyebrow_uppercase: bool,
+    #[setting(
+        "Name size",
+        default = 19,
+        range(min = 10, max = 48),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub name_size: u32,
+    #[setting(
+        "Logo image height",
+        default = 46,
+        range(min = 16, max = 120),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub image_size: u32,
+    #[setting(
+        "Mark",
+        default = true,
+        help = "The small badge with the first letter or glyph.",
+        advanced
+    )]
+    pub show_mark: bool,
+    #[setting(
+        "Starting brightness",
+        default = 0.72,
+        range(min = 0, max = 1),
+        step = 0.01,
+        help = "How dim the grey logos are before they warm up.",
+        advanced
+    )]
+    pub start_brightness: f64,
 }
 
 pub fn definition() -> ElementMeta {
@@ -167,7 +268,6 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Scene,
             120,
         )
-        .fonts(&["Inter"])
         .look(NodeLook::of("lucide:layout-grid")),
     )
 }

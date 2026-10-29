@@ -30,9 +30,15 @@ pub enum GrainDissolveShape {
 pub struct GrainDissolve {
     #[setting("Shape", default = GrainDissolveShape::Blob)]
     pub shape: GrainDissolveShape,
-    #[setting("Noise", default = 0.3, range(min = 0, max = 1), step = 0.05)]
+    #[setting("Noise", default = 0.3, range(min = 0, max = 1), step = 0.05, advanced)]
     pub noise: f64,
-    #[setting("Zoom", default = 2.0, range(min = 0.5, max = 4), step = 0.25)]
+    #[setting(
+        "Zoom",
+        default = 2.0,
+        range(min = 0.5, max = 4),
+        step = 0.25,
+        advanced
+    )]
     pub zoom: f64,
     #[setting("Background", default = "#141318", check = colour)]
     pub color_back: String,
@@ -50,6 +56,23 @@ pub struct GrainDissolve {
         advanced
     )]
     pub speed: f64,
+    #[setting(
+        "Scene blur",
+        default = 10,
+        range(min = 0, max = 40),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub scene_blur: u32,
+    #[setting(
+        "Rotation",
+        default = 0.0,
+        range(min = 0, max = 360),
+        unit = "°",
+        advanced
+    )]
+    pub rotation: f64,
 }
 
 pub fn definition() -> ElementMeta {

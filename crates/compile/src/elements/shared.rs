@@ -2,6 +2,75 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum NumberFormat {
+    Compact,
+    Full,
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum GroupSeparator {
+    None,
+    Space,
+    Comma,
+    Dot,
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
+#[serde(rename_all = "kebab-case")]
+pub enum Corner {
+    BottomLeft,
+    BottomRight,
+    TopLeft,
+    TopRight,
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum LegendValue {
+    Percent,
+    Value,
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
+#[serde(rename_all = "kebab-case")]
+pub enum BlendMode {
+    Multiply,
+    Screen,
+    Normal,
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum VerticalDirection {
+    Up,
+    Down,
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum TextAlign {
+    Center,
+    Left,
+    Right,
+}
+
+#[derive(
     Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema, specta::Type,
 )]
 #[serde(transparent)]

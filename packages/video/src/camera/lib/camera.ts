@@ -1,9 +1,14 @@
 import { Easing } from "remotion";
 import { designScaleFor } from "#video/camera/lib/design-width.ts";
 import { clamp, clamp01, lerp } from "#video/common/math.ts";
-import type { Viewport } from "#video/generated/spec.ts";
+import type { CameraEasing, Viewport } from "#video/generated/spec.ts";
 
-const CAMERA_BEZIER = Easing.bezier(0.2, 0.2, 0.15, 1);
+const CAMERA_EASINGS: Record<CameraEasing, (t: number) => number> = {
+  smooth: Easing.bezier(0.2, 0.2, 0.15, 1),
+  gentle: Easing.bezier(0.45, 0, 0.55, 1),
+  snappy: Easing.bezier(0.1, 0.9, 0.2, 1),
+  linear: (t) => t,
+};
 
 export type CameraPose = {
   scale: number;
@@ -19,12 +24,17 @@ export type ZoomState = {
 
 export const BASE_POSE: CameraPose = { scale: 1, cx: 0.5, cy: 0.48 };
 
-export function cameraEase(t01: number): number {
-  return CAMERA_BEZIER(clamp01(t01));
+export function cameraEase(t01: number, easing: CameraEasing = "smooth"): number {
+  return CAMERA_EASINGS[easing](clamp01(t01));
 }
 
-export function interpolatePose(a: CameraPose, b: CameraPose, t01: number): CameraPose {
-  const p = cameraEase(t01);
+export function interpolatePose(
+  a: CameraPose,
+  b: CameraPose,
+  t01: number,
+  easing: CameraEasing,
+): CameraPose {
+  const p = cameraEase(t01, easing);
   return {
     scale: lerp(a.scale, b.scale, p),
     cx: lerp(a.cx, b.cx, p),

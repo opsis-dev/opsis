@@ -13,10 +13,12 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct PageTurn {
-    #[setting("Angle", default = -7, range(min = -20, max = 20), step = 1)]
+    #[setting("Angle", default = -7, range(min = -20, max = 20), step = 1, unit = "°")]
     pub angle: i32,
     #[setting("Poses", default = 8, range(min = 2, max = 16), step = 1)]
     pub poses: u32,
+    #[setting("Hinge position", default = 0.18, range(min = 0, max = 1), advanced)]
+    pub hinge_x: f64,
 }
 
 pub fn definition() -> ElementMeta {

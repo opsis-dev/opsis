@@ -7,7 +7,7 @@ use fundsp::prelude32::{
 
 use crate::generate::RATE;
 
-use opsis_compile::nodes::audio::{SoundPreset, SoundShape};
+use opsis_compile::nodes::audio::{SoundPan, SoundPreset, SoundShape};
 use opsis_types::numbers;
 
 const PEAK: f32 = 0.7;
@@ -155,7 +155,8 @@ fn swell(s: &SoundShape) -> Vec<f32> {
     let cutoff = envelope(move |t: f32| {
         300.0 + (open - 300.0) * numbers::narrow(hump(f64::from(t) / d, 0.7))
     });
-    let loudness = envelope(move |t: f32| numbers::narrow(hump(f64::from(t) / d, 0.75)));
+    let peak = s.peak_at.clamp(0.1, 1.0);
+    let loudness = envelope(move |t: f32| numbers::narrow(hump(f64::from(t) / d, peak)));
     let voices = saw_hz(220.0 * factor)
         + saw_hz(220.0 * factor * 1.005 * drift)
         + saw_hz(220.0 * factor * 0.995)
@@ -198,16 +199,22 @@ pub fn make(shape: &SoundShape) -> [Vec<f32>; 2] {
         },
         edge,
     );
-    if shape.preset != SoundPreset::Whoosh {
+    if shape.preset != SoundPreset::Whoosh || shape.pan == SoundPan::Centre {
         return [mono.clone(), mono];
     }
+    let travel = if shape.pan == SoundPan::RightToLeft {
+        -1.0
+    } else {
+        1.0
+    };
     let len = numbers::float(mono.len().max(1));
     let (mut left, mut right) = (
         Vec::with_capacity(mono.len()),
         Vec::with_capacity(mono.len()),
     );
     for (i, v) in mono.iter().enumerate() {
-        let angle = (0.15 + 0.7 * numbers::float(i) / len) * PI / 2.0;
+        let along = numbers::float(i) / len;
+        let angle = (0.5 + travel * (0.7 * along - 0.35)) * PI / 2.0;
         left.push(v * numbers::narrow(angle.cos()) * 1.4);
         right.push(v * numbers::narrow(angle.sin()) * 1.4);
     }
@@ -217,6 +224,7 @@ pub fn make(shape: &SoundShape) -> [Vec<f32>; 2] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use opsis_compile::nodes::audio::SWELL_PEAK_AT;
 
     fn shape(preset: SoundPreset) -> SoundShape {
         SoundShape {
@@ -225,6 +233,8 @@ mod tests {
             pitch: 0.0,
             brightness: 0.5,
             seed: 3,
+            pan: SoundPan::LeftToRight,
+            peak_at: SWELL_PEAK_AT,
         }
     }
 
@@ -253,6 +263,7 @@ mod tests {
 #[cfg(test)]
 mod clicks {
     use super::*;
+    use opsis_compile::nodes::audio::SWELL_PEAK_AT;
 
     #[test]
     fn clicks_with_a_press_then_a_quieter_release_a_few_hundredths_of_a_second_later() {
@@ -262,6 +273,8 @@ mod clicks {
             pitch: 0.0,
             brightness: 0.5,
             seed: 1,
+            pan: SoundPan::LeftToRight,
+            peak_at: SWELL_PEAK_AT,
         };
         let [samples, _] = make(&shape);
         let loudest = |from: f32, to: f32| {

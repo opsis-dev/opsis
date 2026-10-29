@@ -6,18 +6,9 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
+use crate::elements::shared::TextAlign;
 use crate::elements::shared::{Lighting, Motion};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
-pub enum TextAlign {
-    Center,
-    Left,
-    Right,
-}
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -46,11 +37,17 @@ pub struct Text3d {
     pub italic: bool,
     #[setting("Depth", default = 0.35, range(min = 0.05, max = 1), step = 0.05)]
     pub depth: f64,
-    #[setting("Rounded edges", default = 0.4, range(min = 0, max = 1), step = 0.05)]
+    #[setting(
+        "Rounded edges",
+        default = 0.4,
+        range(min = 0, max = 1),
+        step = 0.05,
+        advanced
+    )]
     pub bevel: f64,
     #[setting("Colour", default = "#fafafa", check = colour)]
     pub color: String,
-    #[setting("Metal", default = 0.2, range(min = 0, max = 1), step = 0.05)]
+    #[setting("Metal", default = 0.2, range(min = 0, max = 1), step = 0.05, advanced)]
     pub metalness: f64,
     #[setting("Alignment", default = TextAlign::Center)]
     pub align: TextAlign,
@@ -60,7 +57,8 @@ pub struct Text3d {
         range(min = 4, max = 60),
         step = 1,
         unit = "letters",
-        help = "Long text wraps onto a new line after about this many letters."
+        help = "Long text wraps onto a new line after about this many letters.",
+        advanced
     )]
     pub line_width: u32,
     #[setting(
@@ -94,6 +92,49 @@ pub struct Text3d {
     pub lighting: Lighting,
     #[setting("Background", default = "transparent")]
     pub background: String,
+    #[setting(
+        "Size in frame",
+        default = 1.0,
+        range(min = 0.3, max = 1.5),
+        unit = "×",
+        advanced
+    )]
+    pub size: f64,
+    #[setting(
+        "Line spacing",
+        default = 1.15,
+        range(min = 0.8, max = 2),
+        unit = "em",
+        advanced
+    )]
+    pub line_height: f64,
+    #[setting("Roughness", default = 0.3, range(min = 0, max = 1), advanced)]
+    pub roughness: f64,
+    #[setting(
+        "Lens",
+        default = 30.0,
+        range(min = 10, max = 70),
+        unit = "°",
+        advanced
+    )]
+    pub lens: f64,
+    #[setting(
+        "Tilt",
+        default = 52,
+        range(min = 0, max = 80),
+        step = 1,
+        unit = "°",
+        advanced
+    )]
+    pub tilt: u32,
+    #[setting("End facing the camera", advanced)]
+    pub end_facing: bool,
+    #[setting("Motion amount", default = 1.0, range(min = 0, max = 2), advanced)]
+    pub motion_amount: f64,
+    #[setting("Grow in", default = true, advanced)]
+    pub grow_in: bool,
+    #[setting("Turn the other way", advanced)]
+    pub reverse: bool,
 }
 
 pub fn definition() -> ElementMeta {

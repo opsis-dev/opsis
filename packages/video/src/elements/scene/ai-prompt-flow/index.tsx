@@ -1,9 +1,10 @@
-import type React from "react";
-import { type ElementProps } from "#video/common/spec.ts";
-import { isTheme, themeColors } from "#video/common/theme.ts";
+import type { CSSProperties } from "react";
+import { fontOr } from "#video/common/fonts.ts";
+import { themeColors } from "#video/common/theme.ts";
 import { SkeletonBlock } from "#video/elements/scene/ai-prompt-flow/skeleton-block.tsx";
 import { Skeleton } from "#video/elements/scene/ai-prompt-flow/skeleton.tsx";
 import { useSkeletonTransition } from "#video/elements/scene/ai-prompt-flow/use-skeleton-transition.ts";
+import type { Corner, ElementSettings } from "#video/generated/spec.ts";
 import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 import {
   NeutralUIProvider,
@@ -17,13 +18,16 @@ import { useButtonTransition } from "#video/parts/use-button-transition.ts";
 import { useInputTransition } from "#video/parts/use-input-transition.ts";
 import { useToastTransition } from "#video/parts/use-toast-transition.ts";
 
-export interface AiPromptFlowProps {
-  prompt?: string;
-  buttonLabel?: string;
-  answerLines?: string[];
-  toastTitle?: string;
+type AiPromptFlowViewProps = Omit<ElementSettings["ai-prompt-flow"], "theme" | "radius"> & {
   theme?: Partial<NeutralTheme>;
-}
+};
+
+const NOTICE_PLACE: Record<Corner, CSSProperties> = {
+  "bottom-left": { left: 32, bottom: 32 },
+  "bottom-right": { right: 32, bottom: 32 },
+  "top-left": { left: 32, top: 32 },
+  "top-right": { right: 32, top: 32 },
+};
 
 const STAGE_W = 1280;
 const PROMPT_W = 520;
@@ -36,59 +40,65 @@ const BTN_LEFT = (STAGE_W - BTN_W) / 2;
 const BTN_TOP = 278;
 const BTN_H = 64;
 
-const ANSWER_W = 560;
-const ANSWER_LEFT = (STAGE_W - ANSWER_W) / 2;
 const ANSWER_TOP = 380;
 
-const DEFAULT_ANSWER = [
-  "The thread debates the Q3 roadmap: ship the editor first,",
-  "defer billing to Q4, and pull the migration forward so",
-  "infra is unblocked before the team scales next quarter.",
-];
-
 function AiPromptFlowView({
-  prompt = "Summarize this thread",
-  buttonLabel = "Generate",
-  answerLines = DEFAULT_ANSWER,
-  toastTitle = "Response ready",
+  prompt,
+  buttonLabel,
+  answerLines,
+  toastTitle,
   theme,
-}: AiPromptFlowProps) {
+  typingSeconds: typing,
+  loadingSeconds: loading,
+  noticeSeconds: notice,
+  speed,
+  fieldWidth,
+  answerWidth,
+  answerSize,
+  fontFamily,
+  buttonVariant,
+  noticeCorner,
+  backgroundColor,
+}: AiPromptFlowViewProps) {
   const resolved = useNeutralTheme(theme);
-  const opts = { theme };
+  const opts = { theme, speed };
+  const pressAt = typing + 2;
+  const loadedAt = pressAt + 12 + loading;
+  const noticeAt = loadedAt + 10;
 
   const inputStyle = useInputTransition(
     [
       { at: 0, state: "active", duration: 1 },
-      { at: 0, state: "typing", duration: 50 },
+      { at: 0, state: "typing", duration: typing },
     ],
     opts,
   );
 
   const buttonStyle = useButtonTransition(
     [
-      { at: 52, state: "hover", duration: 6 },
-      { at: 58, state: "press", duration: 4 },
-      { at: 62, state: "loading", duration: 4 },
+      { at: pressAt, state: "hover", duration: 6 },
+      { at: pressAt + 6, state: "press", duration: 4 },
+      { at: pressAt + 10, state: "loading", duration: 4 },
     ],
     opts,
   );
 
   const skeletonStyle = useSkeletonTransition(
     [
-      { at: 64, state: "loading", duration: 1 },
-      { at: 150, state: "loaded", duration: 16 },
+      { at: pressAt + 12, state: "loading", duration: 1 },
+      { at: loadedAt, state: "loaded", duration: 16 },
     ],
-    {},
+    { speed },
   );
 
   const panelOpacity = buttonStyle.spinnerOpacity;
 
   const toastStyle = useToastTransition(
     [
-      { at: 160, state: "visible", duration: 14 },
-      { at: 220, state: "hidden", duration: 14 },
+      { at: noticeAt, state: "visible", duration: 14 },
+      { at: noticeAt + notice, state: "hidden", duration: 14 },
     ],
-    {},
+    { speed },
   );
 
   return (
@@ -97,7 +107,7 @@ function AiPromptFlowView({
         position: "relative",
         width: "100%",
         height: "100%",
-        background: "transparent",
+        background: backgroundColor || "transparent",
       }}
     >
       <div
@@ -109,7 +119,13 @@ function AiPromptFlowView({
           height: PROMPT_H,
         }}
       >
-        <Input placeholder="Ask anything…" value={prompt} style={inputStyle} theme={theme} />
+        <Input
+          placeholder="Ask anything…"
+          value={prompt}
+          style={inputStyle}
+          theme={theme}
+          fieldWidth={fieldWidth}
+        />
       </div>
 
       <div
@@ -121,15 +137,15 @@ function AiPromptFlowView({
           height: BTN_H,
         }}
       >
-        <Button label={buttonLabel} style={buttonStyle} theme={theme} />
+        <Button label={buttonLabel} variant={buttonVariant} style={buttonStyle} theme={theme} />
       </div>
 
       <div
         style={{
           position: "absolute",
-          left: ANSWER_LEFT,
+          left: (STAGE_W - answerWidth) / 2,
           top: ANSWER_TOP,
-          width: ANSWER_W,
+          width: answerWidth,
           display: "flex",
           justifyContent: "center",
           opacity: panelOpacity,
@@ -144,14 +160,14 @@ function AiPromptFlowView({
                 display: "flex",
                 flexDirection: "column",
                 gap: 14,
-                width: ANSWER_W,
+                width: answerWidth,
               }}
             >
               {answerLines.map((_, i) => (
                 <SkeletonBlock
                   key={i}
                   width={i === answerLines.length - 1 ? "70%" : "100%"}
-                  height={18}
+                  height={answerSize}
                   baseColor={resolved.muted}
                 />
               ))}
@@ -163,9 +179,9 @@ function AiPromptFlowView({
               display: "flex",
               flexDirection: "column",
               gap: 8,
-              width: ANSWER_W,
-              fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
-              fontSize: 18,
+              width: answerWidth,
+              fontFamily: fontOr(fontFamily, "main"),
+              fontSize: answerSize,
               lineHeight: 1.45,
               letterSpacing: "-0.01em",
               color: resolved.foreground,
@@ -178,29 +194,22 @@ function AiPromptFlowView({
         </Skeleton>
       </div>
 
-      <div style={{ position: "absolute", right: 32, bottom: 32 }}>
+      <div style={{ position: "absolute", ...NOTICE_PLACE[noticeCorner] }}>
         <Toast title={toastTitle} variant="success" style={toastStyle} theme={theme} />
       </div>
     </div>
   );
 }
 
-export function AiPromptFlow(props: ElementProps & { children?: React.ReactNode }) {
-  const { theme } = props;
-  if (!isTheme(theme))
-    return (
-      <AiPromptFlowView {...(props as unknown as React.ComponentProps<typeof AiPromptFlowView>)} />
-    );
+export function AiPromptFlow({ theme, radius, ...settings }: ElementSettings["ai-prompt-flow"]) {
   const tokens = {
     ...(theme.mode === "dark" ? defaultDarkTheme : defaultLightTheme),
     ...themeColors(theme),
+    radius,
   };
   return (
     <NeutralUIProvider mode={theme.mode} theme={tokens}>
-      <AiPromptFlowView
-        {...(props as unknown as React.ComponentProps<typeof AiPromptFlowView>)}
-        theme={tokens}
-      />
+      <AiPromptFlowView {...settings} theme={tokens} />
     </NeutralUIProvider>
   );
 }

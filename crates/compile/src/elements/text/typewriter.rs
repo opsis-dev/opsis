@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::FontWeight;
+use crate::elements::shared::{FontWeight, TextAlign};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -24,7 +24,7 @@ pub struct Typewriter {
     pub font_size: u32,
     #[setting("Color", default = "#171717", check = colour)]
     pub color: String,
-    #[setting("Cursor color", default = "#171717", check = colour)]
+    #[setting("Cursor color", default = "#171717", check = colour, advanced)]
     pub cursor_color: String,
     #[setting("Font weight", default = FontWeight::W600)]
     pub font_weight: FontWeight,
@@ -43,6 +43,31 @@ pub struct Typewriter {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Cursor width",
+        default = 0.08,
+        range(min = 0.02, max = 0.6),
+        unit = "em",
+        advanced
+    )]
+    pub cursor_width: f64,
+    #[setting(
+        "Blinks per second",
+        default = 1.0,
+        range(min = 0, max = 4),
+        unit = "/s",
+        advanced
+    )]
+    pub blink_rate: f64,
+    #[setting(
+        "Align",
+        default = TextAlign::Center,
+        labels = { "left": "Left", "center": "Centre", "right": "Right" },
+        advanced
+    )]
+    pub align: TextAlign,
+    #[setting("Letter spacing", default = -0.03, range(min = -0.1, max = 0.3), unit = "em", advanced)]
+    pub letter_spacing: f64,
 }
 
 pub fn definition() -> ElementMeta {

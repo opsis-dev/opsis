@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
+use crate::elements::shared::NumberFormat;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -93,11 +94,11 @@ pub struct FunnelChart {
     pub stagger_in_frames: u32,
     #[setting("Color", default = "#e8b86d", check = colour)]
     pub color: String,
-    #[setting("Text color", default = "#fafafa", check = colour)]
+    #[setting("Text color", default = "#fafafa", check = colour, advanced)]
     pub ink_color: String,
-    #[setting("Label color", default = "rgba(250,250,250,0.55)", check = colour)]
+    #[setting("Label color", default = "rgba(250,250,250,0.55)", check = colour, advanced)]
     pub label_color: String,
-    #[setting("Drop-off color", default = "#f472b6", check = colour)]
+    #[setting("Drop-off color", default = "#f472b6", check = colour, advanced)]
     pub dropoff_color: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
@@ -110,6 +111,17 @@ pub struct FunnelChart {
         "type" = "integer"
     )]
     pub label_width: Option<u32>,
+    #[setting(
+        "Number format",
+        default = NumberFormat::Compact,
+        labels = { "compact": "Short (1.2K)", "full": "Full (1,200)" },
+        advanced
+    )]
+    pub number_format: NumberFormat,
+    #[setting("Drop-off heading", default = "Drop-off", advanced)]
+    pub dropoff_heading: String,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {

@@ -14,7 +14,8 @@ type Settings = Record<string, unknown>;
 type Steps<T> = T[];
 
 const OWN_LENGTH: Record<string, (s: Settings) => number> = {
-  "word-push": (s) => wordPushLength(String(s.text)),
+  "word-push": (s) =>
+    wordPushLength(String(s.text), Number(s.wordGap), Number(s.accel), Number(s.pushTime)),
   "search-reveal": (s) =>
     getSearchRevealDuration({
       text: String(s.text),
@@ -36,6 +37,7 @@ const OWN_LENGTH: Record<string, (s: Settings) => number> = {
     getKeystrokeDuration({
       steps: s.steps as Steps<{ at: number; keys: string }>,
       linger: Number(s.linger),
+      hold: Number(s.hold),
     }),
   "agent-run": (s) =>
     getAgentRunDuration({
@@ -45,7 +47,8 @@ const OWN_LENGTH: Record<string, (s: Settings) => number> = {
       steps: s.runSteps as Steps<{ name: string; duration: number }>,
       answer: String(s.runAnswer),
     }),
-  "command-menu": (s) => commandMenuPlayEnd(String(s.query)),
+  "command-menu": (s) =>
+    commandMenuPlayEnd(String(s.query), Number(s.letterSeconds), Number(s.pauseSeconds)),
   "punch-lines": (s) => punchLinesDuration(String(s.script), String(s.holds)),
 };
 

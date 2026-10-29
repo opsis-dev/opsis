@@ -9,35 +9,35 @@ import {
 
 export type PathDrawProps = {
   d: string | string[];
-  durationInFrames?: number;
-  delayInFrames?: number;
-  staggerInFrames?: number;
-  stroke?: string;
-  strokeWidth?: number;
-  width?: number;
-  height?: number;
+  durationInFrames: number;
+  delayInFrames: number;
+  staggerInFrames: number;
+  stroke: string;
+  strokeWidth: number;
+  width: number;
+  height: number;
   viewBox?: string;
   fill?: string;
-  head?: boolean;
-  glow?: boolean;
+  head: boolean;
+  glow: boolean;
 };
 
 const AUTO_FIT_PADDING = 8;
 
-export const PathDraw: React.FC<PathDrawProps> = ({
+export function PathDraw({
   d,
-  durationInFrames = 60,
-  delayInFrames = 0,
-  staggerInFrames = 8,
-  stroke = "#e8b86d",
-  strokeWidth = 4,
-  width = 200,
-  height = 200,
+  durationInFrames,
+  delayInFrames,
+  staggerInFrames,
+  stroke,
+  strokeWidth,
+  width,
+  height,
   viewBox,
   fill,
-  head = true,
-  glow = true,
-}) => {
+  head,
+  glow,
+}: PathDrawProps) {
   const frame = useCurrentFrame();
   const { id } = useVideoConfig();
   const paths = (Array.isArray(d) ? d : [d]).filter(Boolean);
@@ -119,4 +119,4 @@ export const PathDraw: React.FC<PathDrawProps> = ({
       })}
     </svg>
   );
-};
+}

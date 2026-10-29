@@ -1,40 +1,30 @@
 import { interpolate, interpolateColors, spring } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface MarkerHighlightProps {
-  background?: string;
-  fontFamily?: string;
-  before?: string;
-  highlight: string;
-  after?: string;
-  markerColor?: string;
-  baseColor?: string;
-  highlightedTextColor?: string;
-  fontSize?: number;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function MarkerHighlight({
-  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
-  before = "",
+  fontFamily,
+  before,
   highlight,
-  after = "",
-  markerColor = "#facc15",
-  baseColor = "#171717",
-  highlightedTextColor = "#171717",
-  fontSize = 72,
-  fontWeight = 600,
-  speed = 1,
-  className,
-  background = "transparent",
-}: MarkerHighlightProps) {
+  after,
+  markerColor,
+  baseColor,
+  highlightedTextColor,
+  fontSize,
+  fontWeight,
+  speed,
+  background,
+  markerAt,
+  markerHeight,
+  x,
+  y,
+}: ElementSettings["marker-highlight"]) {
   const frame = useAuthoredFrame() * speed;
   const { fps } = useAuthoredConfig();
 
   const markerScale = spring({
-    frame: frame - 15,
+    frame: frame - markerAt,
     fps,
     config: { damping: 14 },
   });
@@ -53,20 +43,21 @@ export function MarkerHighlight({
       style={{
         position: "absolute",
         inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
         background,
       }}
     >
       <span
-        className={className}
         style={{
+          position: "absolute",
+          left: `${x * 100}%`,
+          top: `${y * 100}%`,
+          translate: "-50% -50%",
+          whiteSpace: "nowrap",
           fontSize,
           fontWeight,
           color: baseColor,
           letterSpacing: "-0.03em",
-          fontFamily,
+          fontFamily: fontOr(fontFamily, "main"),
         }}
       >
         {before}
@@ -75,7 +66,7 @@ export function MarkerHighlight({
             aria-hidden
             style={{
               position: "absolute",
-              inset: "0 -0.1em",
+              inset: `${(1 - markerHeight) * 100}% -0.1em 0`,
               background: markerColor,
               transformOrigin: "left center",
               scale: `${markerScale} 1`,

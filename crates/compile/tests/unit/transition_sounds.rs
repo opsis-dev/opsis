@@ -95,6 +95,17 @@ fn centres_each_sound_on_its_transition_and_counts_them() {
     );
     let from_file = audio(json!({ "soundFrom": "file" }), None);
     assert_eq!(from_file.items[0].src, "app:sfx/whoosh.wav");
+    let placed = |align: &str| {
+        let item = &audio(json!({ "soundFrom": "file", "align": align }), None).items[0];
+        (item.from, f64::from(item.length_frames.unwrap()))
+    };
+    assert_eq!(placed("start").0, 45, "from the transition's start");
+    let (end_from, length) = placed("end");
+    assert_eq!(
+        f64::from(end_from),
+        (60.0 - length).round(),
+        "ending with it"
+    );
     assert_eq!(
         card_texts("audio.transitionSounds", json!({}), CardInputs::default()),
         ["Connect a clip with transitions"]
@@ -148,5 +159,49 @@ fn adds_plain_cuts_when_asked_with_the_variations_own_length() {
             p.length_ms(&with_cuts[1], 30)
         ),
         (500, 800)
+    );
+}
+
+#[test]
+fn fades_sounds_still_playing_where_the_clip_ends_only_when_asked() {
+    let under = |end_fade_ms: u32| {
+        let wf = film(|g| {
+            g.node("a", TITLE, json!({ "clipDuration": 60 }));
+            g.node(
+                "hit",
+                "audio.sfx",
+                json!({ "src": "app:sfx/whoosh.wav", "atMs": 1900 }),
+            );
+            g.node(
+                "early",
+                "audio.sfx",
+                json!({ "src": "app:sfx/whoosh.wav", "atMs": 0 }),
+            );
+            g.node("mix", "audio.mix", json!({ "endFadeMs": end_fade_ms }));
+            g.link("a", "mix")
+                .link_ports("hit", "mix", "audio", "sounds")
+                .link_ports("early", "mix", "audio", "sounds");
+            "mix".into()
+        });
+        let clip = clip_of(&wf, "mix");
+        let fade = |id: &str| {
+            clip.audio
+                .iter()
+                .find(|a| a.node_id.as_deref() == Some(id))
+                .map(|a| (a.fade_out_frames, a.duration_in_frames))
+                .unwrap()
+        };
+        (fade("hit"), fade("early"))
+    };
+    let ((hard, _), _) = under(0);
+    assert_eq!(hard, None);
+    let ((faded, length), (early, _)) = under(1000);
+    assert_eq!(
+        faded, length,
+        "a cut shorter than the fade fades all the way"
+    );
+    assert_eq!(
+        early, None,
+        "a sound that ends inside the clip is left alone"
     );
 }

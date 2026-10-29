@@ -1,4 +1,3 @@
-import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import {
   PLACEHOLDER_COLOR,
@@ -19,10 +18,13 @@ const TITLE_SIZE_PX = 56;
 const TITLE_WEIGHT = 650;
 const SUBTITLE_SIZE_PX = 30;
 
-export const Placeholder: React.FC<{ title?: string; subtitle?: string }> = ({
+export function Placeholder({
   title = "Not captured yet",
   subtitle,
-}) => {
+}: {
+  title?: string;
+  subtitle?: string;
+}) {
   const frame = useCurrentFrame();
   const sweep = interpolate(
     frame % SWEEP_FRAMES,
@@ -76,4 +78,4 @@ export const Placeholder: React.FC<{ title?: string; subtitle?: string }> = ({
       </div>
     </AbsoluteFill>
   );
-};
+}

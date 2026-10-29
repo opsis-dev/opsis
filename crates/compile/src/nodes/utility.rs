@@ -28,6 +28,8 @@ impl Params for Group {}
 pub struct Note {
     #[setting("Text", default = "Notes…", widget = "textarea")]
     pub text: String,
+    #[setting("Colour", default = "#fcd34d", widget = "color", check = colour)]
+    pub color: String,
 }
 
 impl Params for Note {}

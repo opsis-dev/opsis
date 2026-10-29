@@ -59,17 +59,19 @@ pub struct Model3d {
     pub speed: f64,
     #[setting(
         "Animation",
-        help = "The name of the model's own animation to play. Leave empty for the first one."
+        help = "The name of the model's own animation to play. Leave empty for the first one.",
+        advanced
     )]
     pub animation: String,
     #[setting(
         "Animation speed",
         default = 1.0,
         range(min = 0.1, max = 4),
-        step = 0.05
+        step = 0.05,
+        advanced
     )]
     pub animation_speed: f64,
-    #[setting("Loop the animation", default = true)]
+    #[setting("Loop the animation", default = true, advanced)]
     pub r#loop: bool,
     #[setting("Zoom", default = 1.0, range(min = 0.3, max = 3), step = 0.05)]
     pub zoom: f64,
@@ -81,8 +83,40 @@ pub struct Model3d {
     pub lighting: Lighting,
     #[setting("Floor shadow", default = true)]
     pub shadow: bool,
-    #[setting("Background", default = "transparent")]
+    #[setting(
+        "Background",
+        widget = "color",
+        zero_label = "None",
+        check = colour_or_empty
+    )]
     pub background: String,
+    #[setting("Shadow strength", default = 0.55, range(min = 0, max = 1), advanced)]
+    pub shadow_opacity: f64,
+    #[setting("Grow in", default = true, advanced)]
+    pub grow_in: bool,
+    #[setting("Motion amount", default = 1.0, range(min = 0, max = 2), advanced)]
+    pub motion_amount: f64,
+    #[setting(
+        "Tilt",
+        default = 52,
+        range(min = 0, max = 80),
+        step = 1,
+        unit = "°",
+        advanced
+    )]
+    pub tilt: u32,
+    #[setting("End facing the camera", advanced)]
+    pub end_facing: bool,
+    #[setting("Turn the other way", advanced)]
+    pub reverse: bool,
+    #[setting(
+        "Lens",
+        default = 30.0,
+        range(min = 10, max = 70),
+        unit = "°",
+        advanced
+    )]
+    pub lens: f64,
 }
 
 pub fn definition() -> ElementMeta {

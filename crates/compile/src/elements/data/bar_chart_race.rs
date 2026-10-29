@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::Colour;
+use crate::elements::shared::{Colour, Corner, NumberFormat};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -73,8 +73,7 @@ pub struct BarChartRace {
         range(min = 1, max = 300),
         step = 1,
         unit = "frames",
-        help = "Frames spent travelling between two keyframes.",
-        advanced
+        help = "Frames spent travelling between two keyframes."
     )]
     pub frames_per_step: u32,
     #[setting(
@@ -127,12 +126,52 @@ pub struct BarChartRace {
         length(min = 1)
     )]
     pub colors: Vec<Colour>,
-    #[setting("Text color", default = "#fafafa", check = colour)]
+    #[setting("Text color", default = "#fafafa", check = colour, advanced)]
     pub ink_color: String,
-    #[setting("Bar text color", default = "#0b0b10", check = colour)]
+    #[setting("Bar text color", default = "#0b0b10", check = colour, advanced)]
     pub bar_ink_color: String,
-    #[setting("Label color", default = "rgba(250,250,250,0.55)", check = colour)]
+    #[setting("Label color", default = "rgba(250,250,250,0.55)", check = colour, advanced)]
     pub label_color: String,
+    #[setting(
+        "Number format",
+        default = NumberFormat::Compact,
+        labels = { "compact": "Short (1.2K)", "full": "Full (1,200)" },
+        advanced
+    )]
+    pub number_format: NumberFormat,
+    #[setting(
+        "Corner rounding",
+        default = 22.0,
+        range(min = 0, max = 50),
+        unit = "%",
+        advanced
+    )]
+    pub corner_radius: f64,
+    #[setting(
+        "Step label position",
+        default = Corner::BottomRight,
+        labels = { "top-left": "Top left", "top-right": "Top right", "bottom-left": "Bottom left", "bottom-right": "Bottom right" },
+        advanced
+    )]
+    pub step_label_position: Corner,
+    #[setting(
+        "Step label size",
+        default = 90.0,
+        range(min = 20, max = 300),
+        unit = "%",
+        advanced
+    )]
+    pub step_label_size: f64,
+    #[setting(
+        "Step label opacity",
+        default = 22.0,
+        range(min = 0, max = 100),
+        unit = "%",
+        advanced
+    )]
+    pub step_label_opacity: f64,
+    #[setting("Font", widget = "font", advanced)]
+    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {

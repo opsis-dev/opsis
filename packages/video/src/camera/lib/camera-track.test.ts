@@ -9,6 +9,8 @@ import {
   S_MAX,
   sampleTrack,
   stickify,
+  NO_TUNING,
+  tunedFrom,
 } from "#video/camera/lib/camera-track.ts";
 import { BASE_POSE, posesNearlyEqual } from "#video/camera/lib/camera.ts";
 import type { ClickEvent, ClickLog } from "#video/camera/lib/click-log.ts";
@@ -60,6 +62,7 @@ describe("clusterize", () => {
         click(6000, 1400, 1010, { cluster: "c1" }),
       ],
       VP,
+      tunedFrom(NO_TUNING),
     );
     expect(groups.length, "far-apart targets stayed in one cluster").toBe(2);
     expect(groups[0].length).toBe(1);
@@ -70,6 +73,7 @@ describe("clusterize", () => {
     const groups = clusterize(
       [click(1000, 476, 159, { cluster: "c0" }), click(3000, 557, 236, { cluster: "c0" })],
       VP,
+      tunedFrom(NO_TUNING),
     );
     expect(groups.length).toBe(1);
   });
@@ -84,6 +88,7 @@ describe("clusterize", () => {
         click(7000, 1520, 920),
       ],
       VP,
+      tunedFrom(NO_TUNING),
     );
     expect(groups.map((g) => g.length)).toEqual([1, 1, 2, 1]);
   });
@@ -91,8 +96,8 @@ describe("clusterize", () => {
 
 describe("stickify", () => {
   it("never merges different explicit cluster ids", () => {
-    const groups = clusterize(clusteredLog.clicks, VP);
-    const stuck = stickify(groups, VP);
+    const groups = clusterize(clusteredLog.clicks, VP, tunedFrom(NO_TUNING));
+    const stuck = stickify(groups, VP, tunedFrom(NO_TUNING));
     expect(stuck.length).toBe(4);
     expect(stuck.map((g) => g[0].cluster)).toEqual(["language", "domain", "category", "payoff"]);
   });
@@ -111,8 +116,8 @@ describe("buildCameraTrack", () => {
   it("holds still at base for a beat before the cut", () => {
     const keys = buildCameraTrack(smokeLog, 1, {});
     const end = smokeLog.durationMs / 1000;
-    const a = sampleTrack(keys, end - 0.3);
-    const b = sampleTrack(keys, end);
+    const a = sampleTrack(keys, end - 0.3, NO_TUNING);
+    const b = sampleTrack(keys, end, NO_TUNING);
     expect(a.scale).toBe(BASE_POSE.scale);
     expect(b.scale).toBe(BASE_POSE.scale);
   });
@@ -185,8 +190,8 @@ describe("buildCameraTrack", () => {
     const keys = buildCameraTrack(smokeLog, 1, {});
     const holdStart = 4338 / 1000 + 0.9;
     const holdEnd = 4338 / 1000 + 1.25;
-    const a = sampleTrack(keys, holdStart);
-    const b = sampleTrack(keys, holdEnd);
+    const a = sampleTrack(keys, holdStart, NO_TUNING);
+    const b = sampleTrack(keys, holdEnd, NO_TUNING);
     expect(Math.abs(a.scale - b.scale), "hold drifted").toBeLessThan(0.01);
     expect(Math.abs(a.cx - b.cx)).toBeLessThan(0.01);
   });
@@ -209,8 +214,8 @@ describe("buildCameraTrack", () => {
       1,
       {},
     );
-    const a = sampleTrack(keys, 0.2);
-    const b = sampleTrack(keys, 3.5);
+    const a = sampleTrack(keys, 0.2, NO_TUNING);
+    const b = sampleTrack(keys, 3.5, NO_TUNING);
     expect(a.scale).toBe(1);
     expect(b.scale).toBe(1);
   });
@@ -255,7 +260,7 @@ describe("typing beats", () => {
   };
 
   const scaleAt = (log: ClickLog, tS: number) =>
-    sampleTrack(buildCameraTrack(log, 1, {}), tS).scale;
+    sampleTrack(buildCameraTrack(log, 1, {}), tS, NO_TUNING).scale;
 
   it("stays zoomed until the last keystroke", () => {
     for (const t of [3.5, 4.5, 5.5, 5.9]) {
@@ -283,25 +288,49 @@ describe("typing beats", () => {
 
 describe("frameFor", () => {
   it("does not dead-center the subject", () => {
-    const pose = frameFor(click(0, 1600, 800, box(1500, 760, 200, 80)), VP, 1.6);
+    const pose = frameFor(
+      click(0, 1600, 800, box(1500, 760, 200, 80)),
+      VP,
+      1.6,
+      false,
+      tunedFrom(NO_TUNING),
+    );
     expect(pose.scale >= 1.22 && pose.scale <= 1.6).toBe(true);
     expect(Math.round(pose.cx * 100)).not.toBe(Math.round((1600 / 1920) * 100));
   });
 
   it("keeps the click in shot when the framed region cannot fit", () => {
-    const pose = frameFor(click(0, 1866, 1058, box(1160, 0, 760, 1080)), VP, S_MAX);
+    const pose = frameFor(
+      click(0, 1866, 1058, box(1160, 0, 760, 1080)),
+      VP,
+      S_MAX,
+      false,
+      tunedFrom(NO_TUNING),
+    );
     expect(isInFrame(pose, VP, 1866, 1058), "the clicked button must be on screen").toBe(true);
   });
 
   it("does NOT surrender the zoom just because the region is oversized", () => {
-    const pose = frameFor(click(0, 1721, 655, box(1280, 0, 640, 1080)), VP, S_MAX);
+    const pose = frameFor(
+      click(0, 1721, 655, box(1280, 0, 640, 1080)),
+      VP,
+      S_MAX,
+      false,
+      tunedFrom(NO_TUNING),
+    );
     expect(pose, "should still be zoomed in").not.toEqual(BASE_POSE);
     expect(pose.scale, "expected a real zoom").toBeGreaterThan(1.1);
     expect(isInFrame(pose, VP, 1721, 655)).toBe(true);
   });
 
   it("keeps a click visible when it sits at the edge of a big framed region", () => {
-    const pose = frameFor(click(0, 1500, 880, box(300, 250, 1200, 640)), VP, S_MAX);
+    const pose = frameFor(
+      click(0, 1500, 880, box(300, 250, 1200, 640)),
+      VP,
+      S_MAX,
+      false,
+      tunedFrom(NO_TUNING),
+    );
     expect(
       isInFrame(pose, VP, 1500, 880),
       `click fell outside the frame: ${JSON.stringify(pose)}`,
@@ -309,7 +338,13 @@ describe("frameFor", () => {
   });
 
   it("still frames ordinary controls off-centre", () => {
-    const pose = frameFor(click(0, 476, 223, box(273, 190, 406, 66)), VP, 1.54);
+    const pose = frameFor(
+      click(0, 476, 223, box(273, 190, 406, 66)),
+      VP,
+      1.54,
+      false,
+      tunedFrom(NO_TUNING),
+    );
     expect(pose.scale, "expected a real zoom").toBeGreaterThan(1.2);
     expect(isInFrame(pose, VP, 476, 223)).toBe(true);
     expect(pose).not.toEqual(BASE_POSE);
@@ -317,12 +352,15 @@ describe("frameFor", () => {
 
   it("frames the whole target, centred, in a narrow frame", () => {
     const wide = click(1000, 400, 200, box(300, 180, 800, 40));
-    const pose = frameFor(wide, VP, S_MAX * 1.69, true);
+    const pose = frameFor(wide, VP, S_MAX * 1.69, true, tunedFrom(NO_TUNING));
     const visible = 1 / pose.scale;
     expect(visible * VP.width, "the target fits the visible width").toBeGreaterThanOrEqual(800);
     expect(pose.cx).toBeCloseTo((0.8 * 700 + 0.2 * 400) / VP.width, 9);
     const small = click(1000, 960, 500, box(940, 490, 40, 20));
-    expect(frameFor(small, VP, S_MAX * 1.69, true).scale).toBeCloseTo(S_MAX * 1.69, 9);
+    expect(frameFor(small, VP, S_MAX * 1.69, true, tunedFrom(NO_TUNING)).scale).toBeCloseTo(
+      S_MAX * 1.69,
+      9,
+    );
   });
 
   it("keeps every click in shot in any frame and never inverts its clamps at any zoom", () => {
@@ -342,7 +380,7 @@ describe("frameFor", () => {
                 size[1],
               )
             : {};
-          const pose = frameFor(click(0, x, y, target), VP, sMax, narrow);
+          const pose = frameFor(click(0, x, y, target), VP, sMax, narrow, tunedFrom(NO_TUNING));
           const half = 1 / (2 * pose.scale);
           expect(Number.isFinite(pose.cx) && Number.isFinite(pose.cy)).toBe(true);
           expect(pose.scale).toBeGreaterThanOrEqual(1 - 1e-9);
@@ -441,7 +479,7 @@ describe("any take", () => {
     fc.assert(
       fc.property(randomLog, (log) => {
         const keys = buildCameraTrack(log, 1, {});
-        expect(posesNearlyEqual(sampleTrack(keys, 0), BASE_POSE)).toBe(true);
+        expect(posesNearlyEqual(sampleTrack(keys, 0, NO_TUNING), BASE_POSE)).toBe(true);
         const last = keys[keys.length - 1];
         expect(posesNearlyEqual(last.pose, BASE_POSE)).toBe(true);
         expect(last.t).toBeGreaterThanOrEqual(log.durationMs / 1000 - 0.1);

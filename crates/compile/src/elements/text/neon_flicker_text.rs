@@ -68,10 +68,11 @@ pub struct NeonFlickerText {
     #[setting(
         "Flicker on exit",
         default = true,
-        help = "Stutter back off instead of fading cleanly."
+        help = "Stutter back off instead of fading cleanly.",
+        advanced
     )]
     pub flicker_on_exit: bool,
-    #[setting("Order", default = FlickerOrder::Start, help = "Which tube strikes first.")]
+    #[setting("Order", default = FlickerOrder::Start, help = "Which tube strikes first.", advanced)]
     pub order: FlickerOrder,
     #[setting(
         "Stagger",
@@ -102,9 +103,35 @@ pub struct NeonFlickerText {
         "Unlit color",
         widget = "color",
         zero_label = "From the glow",
-        help = "The tube with no gas lit: cold glass, not invisible. Leave empty for a faint glow colour."
+        help = "The tube with no gas lit: cold glass, not invisible. Leave empty for a faint glow colour.",
+        advanced
     )]
     pub off_color: String,
+    #[setting(
+        "Strike time",
+        default = 20,
+        range(min = 2, max = 60),
+        step = 1,
+        unit = "frames",
+        advanced
+    )]
+    pub duration_in_frames: u32,
+    #[setting(
+        "Hum rate",
+        default = 2.0,
+        range(min = 0.2, max = 10),
+        unit = "Hz",
+        advanced
+    )]
+    pub hum_rate: f64,
+    #[setting(
+        "Word spacing",
+        default = 0.26,
+        range(min = 0, max = 1),
+        unit = "em",
+        advanced
+    )]
+    pub word_spacing: f64,
 }
 
 pub fn definition() -> ElementMeta {

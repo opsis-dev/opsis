@@ -1,24 +1,30 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { Img, useCurrentFrame, useVideoConfig } from "remotion";
 import { zoomOver } from "#video/core/anim.ts";
 import { lookEffects } from "#video/core/picture-look.ts";
 import type { Fit, PictureLook } from "#video/generated/spec.ts";
 import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
 
-const KEN_BURNS_SCALE = 1.06;
-
-export const ImageElement: React.FC<{
+export function ImageElement({
+  src,
+  fit = "contain",
+  background,
+  kenBurns,
+  kenBurnsZoom,
+  look,
+}: {
   src: string;
   fit?: Fit;
   background?: string;
   kenBurns?: boolean;
+  kenBurnsZoom: number;
   look?: PictureLook;
-}> = ({ src, fit = "contain", background, kenBurns, look }) => {
+}) {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const effects = useMemo(() => lookEffects(look, frame), [look, frame]);
   if (!src) return null;
-  const scale = kenBurns ? zoomOver(frame, durationInFrames, KEN_BURNS_SCALE) : 1;
+  const scale = kenBurns ? zoomOver(frame, durationInFrames, kenBurnsZoom) : 1;
   return (
     <Backgrounded background={background}>
       <Img
@@ -28,4 +34,4 @@ export const ImageElement: React.FC<{
       />
     </Backgrounded>
   );
-};
+}

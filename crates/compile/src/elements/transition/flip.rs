@@ -16,6 +16,15 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 pub struct Flip {
     #[setting("Direction", default = Direction::FromRight)]
     pub direction: Direction,
+    #[setting(
+        "Perspective",
+        default = 1000,
+        range(min = 200, max = 5000),
+        step = 1,
+        unit = "px",
+        advanced
+    )]
+    pub perspective: u32,
 }
 
 pub fn definition() -> ElementMeta {

@@ -47,7 +47,7 @@ const LOOKS: Record<Lighting, LightingLook> = {
   },
 };
 
-const Reflections: React.FC = () => {
+function Reflections() {
   const gl = useThree((state) => state.gl);
   const map = useMemo(() => {
     const pmrem = new PMREMGenerator(gl);
@@ -59,9 +59,9 @@ const Reflections: React.FC = () => {
   }, [gl]);
   useEffect(() => () => map.dispose(), [map]);
   return <primitive object={map} attach="environment" />;
-};
+}
 
-const Lights: React.FC<{ lighting: Lighting }> = ({ lighting }) => {
+function Lights({ lighting }: { lighting: Lighting }) {
   const look = LOOKS[lighting];
   return (
     <>
@@ -73,17 +73,29 @@ const Lights: React.FC<{ lighting: Lighting }> = ({ lighting }) => {
       <Reflections />
     </>
   );
-};
+}
 
-export const Posed: React.FC<{ pose: Pose; children: React.ReactNode }> = ({ pose, children }) => (
-  <group rotation={pose.rotation} position={pose.position} scale={pose.scale}>
-    {children}
-  </group>
-);
+export function Posed({ pose, children }: { pose: Pose; children: React.ReactNode }) {
+  return (
+    <group rotation={pose.rotation} position={pose.position} scale={pose.scale}>
+      {children}
+    </group>
+  );
+}
 
 export const STAGE_FOV = FOV;
 
-export const Stage3D: React.FC<{
+export function Stage3D({
+  lighting,
+  background,
+  radius = SUBJECT_RADIUS,
+  distance: fixed,
+  box,
+  overlay,
+  fov,
+  children,
+}: {
+  fov: number;
   lighting: Lighting;
   background?: string;
   radius?: number;
@@ -91,19 +103,11 @@ export const Stage3D: React.FC<{
   box?: { width: number; height: number };
   overlay?: React.ReactNode;
   children: React.ReactNode;
-}> = ({
-  lighting,
-  background,
-  radius = SUBJECT_RADIUS,
-  distance: fixed,
-  box,
-  overlay,
-  children,
-}) => {
+}) {
   const { width, height } = useVideoConfig();
   const aspect = width / height;
   const distance =
-    fixed ?? Math.max(fitDistance(radius, FOV, aspect), box ? boxDistance(box, FOV, aspect) : 0);
+    fixed ?? Math.max(fitDistance(radius, fov, aspect), box ? boxDistance(box, fov, aspect) : 0);
   return (
     <Backgrounded background={background}>
       <ThreeCanvas
@@ -111,7 +115,7 @@ export const Stage3D: React.FC<{
         width={width}
         height={height}
         gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true }}
-        camera={{ fov: FOV, position: [0, 0, distance], near: 0.1, far: distance * 10 }}
+        camera={{ fov, position: [0, 0, distance], near: 0.1, far: distance * 10 }}
         scene={{ environmentIntensity: LOOKS[lighting].reflections }}
       >
         <Lights lighting={lighting} />
@@ -120,4 +124,4 @@ export const Stage3D: React.FC<{
       {overlay}
     </Backgrounded>
   );
-};
+}

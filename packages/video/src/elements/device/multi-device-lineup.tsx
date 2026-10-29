@@ -1,31 +1,16 @@
 import type { ReactNode } from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { AbsoluteFill } from "remotion";
-import type { ElementProps } from "#video/common/spec.ts";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { ScreenFit } from "#video/lib/layout/screen-fit.tsx";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { nestedFrom } from "#video/lib/settings/shape.ts";
 
-const fontFamily = '"Inter"';
-
-export type LineupScreen = {
-  content?: ReactNode;
-  label?: string;
-};
-
-export type MultiDeviceLineupProps = {
-  phone?: LineupScreen;
-  tablet?: LineupScreen;
-  laptop?: LineupScreen;
+type MultiDeviceLineupProps = ElementSettings["multi-device-lineup"] & {
   children?: ReactNode;
-  scale?: number;
   delayInFrames?: number;
-  staggerInFrames?: number;
   exitAtInFrames?: number;
   exitInFrames?: number;
-  bezelColor?: string;
-  screenColor?: string;
-  labelColor?: string;
 };
 
 const clamp = {
@@ -41,20 +26,29 @@ const HARDWARE = {
 
 type DeviceKind = keyof typeof HARDWARE;
 
-const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
-  phone,
-  tablet,
-  laptop,
+function MultiDeviceLineupView({
+  phoneLabel,
+  tabletLabel,
+  laptopLabel,
   children,
-  scale = 1,
+  scale,
   delayInFrames = 4,
-  staggerInFrames = 9,
+  staggerInFrames,
   exitAtInFrames,
   exitInFrames = 16,
-  bezelColor = "#15171D",
-  screenColor = "#0B0C11",
-  labelColor = "#7A828F",
-}) => {
+  bezelColor,
+  screenColor,
+  labelColor,
+  baseGradient,
+  islandColor,
+  cameraColor,
+  edgeColor,
+  shadow,
+  gap,
+  labelSize,
+  labelUppercase,
+  fontFamily,
+}: MultiDeviceLineupProps) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -66,10 +60,10 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
           ...clamp,
         });
 
-  const devices: { kind: DeviceKind; screen?: LineupScreen }[] = [
-    { kind: "phone", screen: phone },
-    { kind: "tablet", screen: tablet },
-    { kind: "laptop", screen: laptop },
+  const devices: { kind: DeviceKind; label: string }[] = [
+    { kind: "phone", label: phoneLabel },
+    { kind: "tablet", label: tabletLabel },
+    { kind: "laptop", label: laptopLabel },
   ];
 
   const chrome = (kind: DeviceKind) => {
@@ -87,7 +81,7 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "center",
-        gap: 26 * scale,
+        gap: gap * scale,
         opacity: 1 - exit,
         translate: `0 ${exit * 26 * scale}px`,
       }}
@@ -134,10 +128,10 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
                 height: spec.height * scale,
                 borderRadius: spec.radius * scale,
                 background: bezelColor,
-                border: `${1 * scale}px solid rgba(255,255,255,0.10)`,
-                boxShadow: `inset 0 ${1 * scale}px 0 rgba(255,255,255,0.10), 0 ${
+                border: `${1 * scale}px solid ${edgeColor}`,
+                boxShadow: `inset 0 ${1 * scale}px 0 ${edgeColor}, 0 ${
                   18 * scale
-                }px ${44 * scale}px rgba(0,0,0,0.55)`,
+                }px ${44 * scale}px rgba(0,0,0,${shadow})`,
                 padding: spec.bezel * scale,
               }}
             >
@@ -159,7 +153,7 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
                     flexDirection: "column",
                   }}
                 >
-                  {device.screen?.content ?? children}
+                  {children}
                 </div>
               </div>
 
@@ -173,7 +167,7 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
                     width: 44 * scale,
                     height: 9 * scale,
                     borderRadius: 999,
-                    background: "#05060A",
+                    background: islandColor,
                   }}
                 />
               ) : null}
@@ -188,7 +182,7 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
                     width: 4 * scale,
                     height: 4 * scale,
                     borderRadius: 999,
-                    background: "rgba(255,255,255,0.28)",
+                    background: cameraColor,
                   }}
                 />
               ) : null}
@@ -201,8 +195,8 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
                   height: 9 * scale,
                   marginTop: -8 * scale,
                   borderRadius: `0 0 ${7 * scale}px ${7 * scale}px`,
-                  background: "linear-gradient(180deg, #23262E 0%, #14161B 100%)",
-                  boxShadow: `0 ${8 * scale}px ${18 * scale}px rgba(0,0,0,0.5)`,
+                  background: baseGradient,
+                  boxShadow: `0 ${8 * scale}px ${18 * scale}px rgba(0,0,0,${(shadow * 0.5) / 0.55})`,
                   position: "relative",
                 }}
               >
@@ -221,18 +215,18 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
               </div>
             ) : null}
 
-            {device.screen?.label ? (
+            {device.label ? (
               <div
                 style={{
                   color: labelColor,
-                  fontSize: 12 * scale,
+                  fontSize: labelSize * scale,
                   fontWeight: 600,
                   letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  fontFamily,
+                  textTransform: labelUppercase ? "uppercase" : "none",
+                  fontFamily: fontOr(fontFamily, "main"),
                 }}
               >
-                {device.screen.label}
+                {device.label}
               </div>
             ) : null}
           </div>
@@ -240,19 +234,12 @@ const MultiDeviceLineupView: React.FC<MultiDeviceLineupProps> = ({
       })}
     </div>
   );
-};
+}
 
-export function MultiDeviceLineup(all: ElementProps & { children?: React.ReactNode }) {
-  const { children, ...props } = all;
+export function MultiDeviceLineup({ children, ...settings }: MultiDeviceLineupProps) {
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-      <MultiDeviceLineupView
-        {...(nestedFrom(props, {
-          phoneLabel: "phone.label",
-          tabletLabel: "tablet.label",
-          laptopLabel: "laptop.label",
-        }) as unknown as MultiDeviceLineupProps)}
-      >
+      <MultiDeviceLineupView {...settings}>
         {children ? <ScreenFit>{children}</ScreenFit> : undefined}
       </MultiDeviceLineupView>
     </AbsoluteFill>

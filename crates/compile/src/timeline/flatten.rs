@@ -279,6 +279,7 @@ pub struct FlatTimeline {
 pub enum HitKind {
     Click,
     Key,
+    Drag,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -660,10 +661,16 @@ fn action_hits(action: &Action) -> Vec<(f64, HitKind)> {
         _ => Vec::new(),
     };
     let chord = (action.kind == ActionKind::Key).then_some(action.t);
+    let drag = if action.kind == ActionKind::Drag {
+        vec![action.t_down.unwrap_or(action.t), action.t]
+    } else {
+        Vec::new()
+    };
     presses
         .into_iter()
         .chain(action.t_second_down)
         .map(|t| (t, HitKind::Click))
+        .chain(drag.into_iter().map(|t| (t, HitKind::Drag)))
         .chain(
             chord
                 .into_iter()

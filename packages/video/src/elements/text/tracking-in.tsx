@@ -1,31 +1,21 @@
 import { interpolate, spring } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface TrackingInProps {
-  background?: string;
-  fontFamily?: string;
-  text: string;
-  startTracking?: number;
-  startBlur?: number;
-  fontSize?: number;
-  color?: string;
-  fontWeight?: number;
-  speed?: number;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export function TrackingIn({
-  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily,
   text,
-  startTracking = 0.5,
-  startBlur = 12,
-  fontSize = 96,
-  color = "#171717",
-  fontWeight = 700,
-  speed = 1,
-  className,
-  background = "transparent",
-}: TrackingInProps) {
+  startTracking,
+  startBlur,
+  fontSize,
+  color,
+  fontWeight,
+  speed,
+  background,
+  endTracking,
+  fadeIn,
+}: ElementSettings["tracking-in"]) {
   const frame = useAuthoredFrame() * speed;
   const { fps } = useAuthoredConfig();
 
@@ -35,9 +25,9 @@ export function TrackingIn({
     config: { damping: 18, stiffness: 90 },
   });
 
-  const letterSpacing = `${interpolate(t, [0, 1], [startTracking, -0.03])}em`;
+  const letterSpacing = `${interpolate(t, [0, 1], [startTracking, endTracking])}em`;
   const blurAmount = interpolate(t, [0, 1], [startBlur, 0]);
-  const opacity = interpolate(frame, [0, 15], [0, 1], {
+  const opacity = interpolate(frame, [0, fadeIn], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -54,7 +44,6 @@ export function TrackingIn({
       }}
     >
       <span
-        className={className}
         style={{
           fontSize,
           fontWeight,
@@ -62,7 +51,7 @@ export function TrackingIn({
           letterSpacing,
           opacity,
           filter: `blur(${blurAmount}px)`,
-          fontFamily,
+          fontFamily: fontOr(fontFamily, "main"),
           whiteSpace: "nowrap",
         }}
       >

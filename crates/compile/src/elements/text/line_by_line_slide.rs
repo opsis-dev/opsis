@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::FontWeight;
+use crate::elements::shared::{FontWeight, TextAlign};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings]
@@ -20,7 +20,13 @@ pub struct LineByLineSlide {
         widget = "textarea"
     )]
     pub text: String,
-    #[setting("Distance", default = 48, range(min = 0, max = 160), step = 1)]
+    #[setting(
+        "Distance",
+        default = 48,
+        range(min = 0, max = 160),
+        step = 1,
+        advanced
+    )]
     pub distance: u32,
     #[setting("Font size", default = 72, range(min = 12, max = 160), step = 1)]
     pub font_size: u32,
@@ -43,6 +49,28 @@ pub struct LineByLineSlide {
     pub font_family: String,
     #[setting("Speed", default = 1.0, range(min = 0.25, max = 4), step = 0.25)]
     pub speed: f64,
+    #[setting(
+        "Align",
+        default = TextAlign::Left,
+        labels = { "left": "Left", "center": "Centre", "right": "Right" }
+    )]
+    pub align: TextAlign,
+    #[setting(
+        "Line stagger",
+        default = 0.1333,
+        range(min = 0, max = 1),
+        step = 0.0333,
+        unit = "s",
+        frames_at = 30,
+        advanced
+    )]
+    pub line_stagger: f64,
+    #[setting("Slide out at the end", default = true, advanced)]
+    pub exit: bool,
+    #[setting("Letter spacing", default = -0.03, range(min = -0.2, max = 0.5), unit = "em", advanced)]
+    pub letter_spacing: f64,
+    #[setting("Line height", default = 1.1, range(min = 0.7, max = 2), advanced)]
+    pub line_height: f64,
 }
 
 pub fn definition() -> ElementMeta {

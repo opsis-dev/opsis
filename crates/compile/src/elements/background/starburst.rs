@@ -27,6 +27,30 @@ pub struct Starburst {
         unit = "°/frame"
     )]
     pub rotation_speed: f64,
+    #[setting(
+        "Edge fade",
+        default = 75.0,
+        range(min = 20, max = 150),
+        unit = "%",
+        advanced
+    )]
+    pub edge_fade: f64,
+    #[setting(
+        "Ray width",
+        default = 50.0,
+        range(min = 10, max = 90),
+        unit = "%",
+        advanced
+    )]
+    pub ray_width: f64,
+    #[setting(
+        "Centre across",
+        default = 50.0,
+        range(min = 0, max = 100),
+        unit = "%",
+        advanced
+    )]
+    pub center_x: f64,
 }
 
 pub fn definition() -> ElementMeta {

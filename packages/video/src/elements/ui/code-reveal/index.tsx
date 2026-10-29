@@ -1,6 +1,8 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import {
-  CODE_THEMES,
+  codePalette,
   CodeLine,
   lineLength,
   MONO_ADVANCE,
@@ -9,63 +11,49 @@ import {
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 import { Caret, stageScale } from "#video/lib/text/ai-composer-utils.tsx";
 
-const fontFamily = '"JetBrains Mono"';
-
 const REF_WIDTH = 1280;
 const REF_HEIGHT = 720;
 
-const WINDOW_WIDTH = 940;
 const HEADER_HEIGHT = 46;
 const BODY_PADDING = 24;
-const ROW_HEIGHT = 34;
-const FONT_SIZE = 21;
 const GUTTER_WIDTH = 62;
 const CODE_INSET = 20;
-const MAX_VISIBLE_ROWS = 10;
-
-const WRITE_CPS = 55;
-const NEWLINE_PAUSE = 0.07;
-
-const DEFAULT_CODE = `import { CodeReveal } from "#video/elements/ui/code-reveal/index.tsx";
-
-export const Explainer = () => (
-  <CodeReveal
-    title="pipeline.ts"
-    highlightedLines={[4, 5]}
-  />
-);`;
-
-export type CodeRevealProps = {
-  code?: string;
-  highlightedLines?: number[];
-  title?: string;
-  language?: string;
-  startLine?: number;
-  showLineNumbers?: boolean;
-  accentColor?: string;
-  backgroundColor?: string;
-  theme?: "dark" | "light";
-  speed?: number;
-};
 
 const CHROME_LIGHTS = ["#FF5F57", "#FEBC2E", "#28C840"] as const;
 
-export const CodeReveal: React.FC<CodeRevealProps> = ({
-  code = DEFAULT_CODE,
-  highlightedLines = [],
-  title = "explainer.tsx",
-  language = "tsx",
-  startLine = 1,
-  showLineNumbers = true,
-  accentColor = "#E8B86D",
+export function CodeReveal({
+  code,
+  highlightedLines,
+  title,
+  language,
+  startLine,
+  showLineNumbers,
+  accentColor,
+  theme,
+  speed,
   backgroundColor,
-  theme = "dark",
-  speed = 1,
-}) => {
+  fontSize: FONT_SIZE,
+  windowWidth: WINDOW_WIDTH,
+  lineHeight,
+  visibleLines: MAX_VISIBLE_ROWS,
+  typingSpeed: WRITE_CPS,
+  linePause: NEWLINE_PAUSE,
+  startAt,
+  highlightAfter,
+  dimOthers,
+  glow,
+  vignette,
+  cornerRadius,
+  windowDots,
+  font,
+}: ElementSettings["code-reveal"]) {
+  const ROW_HEIGHT = FONT_SIZE * lineHeight;
+  const fontFamily = fontOr(font, "code");
   const rawFrame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
-  const palette = CODE_THEMES[theme];
-  const page = backgroundColor ?? palette.page;
+  const palette = codePalette(theme);
+  const dark = theme.mode === "dark";
+  const page = backgroundColor || palette.page;
   const scale = stageScale(width, height, REF_WIDTH, REF_HEIGHT);
   const frame = rawFrame * speed;
 
@@ -93,7 +81,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
   const focused = new Set(highlightedLines);
   const hasFocus = highlightedLines.length > 0;
 
-  const writeStart = seconds(0.4);
+  const writeStart = seconds(startAt);
   const plan: Array<{
     tokens: (typeof tokenLines)[number];
     indent: number;
@@ -113,7 +101,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
   }
 
   const writeEnd = plan[plan.length - 1]?.endsAt ?? writeStart;
-  const focusAt = writeEnd + seconds(0.34);
+  const focusAt = writeEnd + seconds(highlightAfter);
 
   const writtenChars = (row: (typeof plan)[number]) =>
     row.indent +
@@ -181,7 +169,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 70% 50% at 50% 38%, color-mix(in srgb, ${accentColor} 11%, transparent), transparent 70%)`,
+          background: `radial-gradient(ellipse 70% 50% at 50% 38%, color-mix(in srgb, ${accentColor} ${glow ? 11 : 0}%, transparent), transparent 70%)`,
           opacity: chromeIn * (0.55 + focusProgress * 0.45),
         }}
       />
@@ -189,8 +177,9 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background:
-            theme === "dark"
+          background: !vignette
+            ? undefined
+            : dark
               ? "radial-gradient(ellipse 120% 90% at 50% 50%, transparent 45%, rgba(0,0,0,0.55) 100%)"
               : "radial-gradient(ellipse 120% 90% at 50% 50%, transparent 55%, rgba(15,18,25,0.07) 100%)",
         }}
@@ -201,7 +190,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
           width: windowWidth,
           transform: `scale(${scale * fit * interpolate(enter, [0, 1], [0.965, 1])}) translateY(${interpolate(enter, [0, 1], [26, 0])}px)`,
           opacity: enter,
-          borderRadius: 16,
+          borderRadius: cornerRadius,
           background: palette.window,
           border: `1px solid ${palette.border}`,
           boxShadow: `inset 0 1px 0 ${palette.highlight}, 0 34px 90px ${palette.shadow}`,
@@ -221,7 +210,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
             position: "relative",
           }}
         >
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: windowDots ? "flex" : "none", gap: 8 }}>
             {CHROME_LIGHTS.map((color) => (
               <div
                 key={color}
@@ -331,7 +320,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
                       display: "flex",
                       alignItems: "center",
                       position: "relative",
-                      opacity: started ? interpolate(recede, [0, 1], [1, 0.34]) : 0,
+                      opacity: started ? interpolate(recede, [0, 1], [1, dimOthers]) : 0,
                     }}
                   >
                     {isFocused ? (
@@ -456,4 +445,4 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
       </div>
     </div>
   );
-};
+}

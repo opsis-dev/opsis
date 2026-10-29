@@ -3,11 +3,17 @@ import { lerpPoint } from "#video/common/geometry.ts";
 import { clamp01, lerp, partitionPoint, sampleKeyed } from "#video/common/math.ts";
 import type { Point } from "#video/generated/spec.ts";
 
-const CLICK_SQUASH = 0.9;
 const CLICK_SQUASH_S = 0.12;
 const CURSOR_FADE_S = 0.18;
-const RIPPLE_S = 0.35;
 export const ARROW_SHAPE = "default";
+
+export type CursorMotion = { pressSquash: number; hideWhileTyping: boolean; rippleS: number };
+
+export const DEFAULT_CURSOR_MOTION: CursorMotion = {
+  pressSquash: 0.9,
+  hideWhileTyping: true,
+  rippleS: 0.35,
+};
 
 export type Ring = { progress: number; hollow: boolean };
 
@@ -51,19 +57,20 @@ function shapeAt(track: CursorSample[], tS: number): string {
   return ARROW_SHAPE;
 }
 
-function squashAfter(releasedS: number): number {
-  if (releasedS <= 0) return CLICK_SQUASH;
+function squashAfter(releasedS: number, pressed: number): number {
+  if (releasedS <= 0) return pressed;
   if (releasedS > CLICK_SQUASH_S) return 1;
-  return lerp(CLICK_SQUASH, 1, releasedS / CLICK_SQUASH_S);
+  return lerp(pressed, 1, releasedS / CLICK_SQUASH_S);
 }
 
-const rippleFor = (sinceS: number): number | null =>
-  sinceS <= RIPPLE_S ? clamp01(sinceS / RIPPLE_S) : null;
+const rippleFor = (sinceS: number, rippleS: number): number | null =>
+  sinceS <= rippleS && rippleS > 0 ? clamp01(sinceS / rippleS) : null;
 
 export function cursorAt(
   track: CursorSample[],
   clicks: ClickEvent[],
   tS: number,
+  motion: CursorMotion = DEFAULT_CURSOR_MOTION,
 ): CursorState | null {
   const here = trackPointAt(track, tS);
   if (!here) return null;
@@ -76,8 +83,8 @@ export function cursorAt(
       const sinceS = tS - pressMs / 1000;
       if (sinceS < 0) continue;
       const heldS = c.tUpMs != null ? Math.max(0, (c.tUpMs - pressMs) / 1000) : 0;
-      squash = Math.min(squash, squashAfter(sinceS - heldS));
-      const progress = rippleFor(sinceS);
+      squash = Math.min(squash, squashAfter(sinceS - heldS, motion.pressSquash));
+      const progress = rippleFor(sinceS, motion.rippleS);
       if (progress !== null) rings.push({ progress, hollow: c.button === "right" });
     }
   }
@@ -87,7 +94,7 @@ export function cursorAt(
     y: here.y,
     squash,
     rings,
-    opacity: cursorOpacity(clicks, tS),
+    opacity: motion.hideWhileTyping ? cursorOpacity(clicks, tS) : 1,
     shape: shapeAt(track, tS),
   };
 }

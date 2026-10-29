@@ -1,39 +1,13 @@
-import type React from "react";
+import type { ReactNode } from "react";
 import { AbsoluteFill, Img, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { type ElementProps } from "#video/common/spec.ts";
+import { fontOr } from "#video/common/fonts.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
 import { ScreenFit } from "#video/lib/layout/screen-fit.tsx";
 import { DURATION, EASING, STAGGER } from "#video/lib/motion/motion-tokens.ts";
 import { springSmooth } from "#video/lib/motion/springs.ts";
 
-const fontFamily = '"Inter"';
-
-export type DeviceMockupZoomProps = {
-  src?: string;
-  title?: string;
-  subtitle?: string;
-  eyebrow?: string;
-  children?: React.ReactNode;
-  device?: "phone" | "browser" | "laptop";
-  backgroundColor?: string;
-  accentColor?: string;
-  textColor?: string;
-};
-
-const COLORS = {
-  bg: "#080810",
-  panel: "#0d111b",
-  panelSoft: "#111827",
-  screen: "#f6f1e8",
-  ink: "#111827",
-  muted: "#6b7280",
-  line: "rgba(17, 24, 39, 0.12)",
-  chrome: "#171b26",
-  chromeLight: "#242a3a",
-  accent: "#e8b86d",
-  teal: "#2dd4bf",
-  rose: "#f472b6",
-} as const;
+type Look = ElementSettings["device-mockup-zoom"];
 
 const clampProgress = (frame: number, input: [number, number], output: [number, number]) =>
   interpolate(frame, input, output, {
@@ -44,10 +18,12 @@ const clampProgress = (frame: number, input: [number, number], output: [number, 
 
 type MockupContentProps = {
   frame: number;
-  accentColor: string;
+  look: Look;
 };
 
-const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) => {
+function BrowserDashboard({ frame, look }: MockupContentProps) {
+  const { accentColor } = look;
+  const fontFamily = fontOr(look.fontFamily, "main");
   const bars = [0.46, 0.72, 0.58, 0.9, 0.66, 0.82, 0.54];
   const graphProgress = clampProgress(frame, [18, 64], [0, 1]);
   const rowProgress = clampProgress(frame, [28, 70], [0, 1]);
@@ -57,8 +33,8 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
       style={{
         width: "100%",
         height: "100%",
-        background: COLORS.screen,
-        color: COLORS.ink,
+        background: look.screenColor,
+        color: look.screenTextColor,
         display: "grid",
         gridTemplateColumns: "22% 1fr",
         fontFamily,
@@ -66,7 +42,7 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
     >
       <div
         style={{
-          borderRight: `1px solid ${COLORS.line}`,
+          borderRight: `1px solid ${`color-mix(in srgb, ${look.screenTextColor} 12%, transparent)`}`,
           padding: "5% 6%",
           display: "flex",
           flexDirection: "column",
@@ -92,8 +68,9 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
               display: "flex",
               alignItems: "center",
               gap: "9%",
-              background: index === 0 ? "rgba(232, 184, 109, 0.22)" : "transparent",
-              color: index === 0 ? COLORS.ink : COLORS.muted,
+              background:
+                index === 0 ? `color-mix(in srgb, ${accentColor} 22%, transparent)` : "transparent",
+              color: index === 0 ? look.screenTextColor : look.screenMutedColor,
               fontSize: 12,
               fontWeight: 700,
             }}
@@ -103,7 +80,10 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
                 width: 8,
                 height: 8,
                 borderRadius: 99,
-                background: index === 0 ? accentColor : COLORS.line,
+                background:
+                  index === 0
+                    ? accentColor
+                    : `color-mix(in srgb, ${look.screenTextColor} 12%, transparent)`,
               }}
             />
             {item}
@@ -114,7 +94,7 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
           style={{
             borderRadius: 18,
             padding: "11%",
-            background: COLORS.ink,
+            background: look.screenTextColor,
             color: "#fffaf1",
             display: "flex",
             flexDirection: "column",
@@ -136,7 +116,7 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
                 width: `${72 * rowProgress}%`,
                 height: "100%",
                 borderRadius: 99,
-                background: COLORS.teal,
+                background: look.secondAccent,
               }}
             />
           </div>
@@ -160,14 +140,16 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
           }}
         >
           <div>
-            <div style={{ fontSize: 13, color: COLORS.muted, fontWeight: 700 }}>Launch console</div>
+            <div style={{ fontSize: 13, color: look.screenMutedColor, fontWeight: 700 }}>
+              Launch console
+            </div>
             <div style={{ fontSize: 34, lineHeight: 1.05, fontWeight: 800 }}>Campaign health</div>
           </div>
           <div
             style={{
               borderRadius: 999,
               padding: "10px 16px",
-              background: COLORS.ink,
+              background: look.screenTextColor,
               color: "#fffaf1",
               fontSize: 13,
               fontWeight: 800,
@@ -189,7 +171,7 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
             style={{
               borderRadius: 26,
               background: "#ffffff",
-              border: `1px solid ${COLORS.line}`,
+              border: `1px solid ${`color-mix(in srgb, ${look.screenTextColor} 12%, transparent)`}`,
               padding: "5%",
               display: "flex",
               flexDirection: "column",
@@ -212,7 +194,8 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
                     flex: 1,
                     height: `${Math.max(10, bar * 100 * graphProgress)}%`,
                     borderRadius: "16px 16px 6px 6px",
-                    background: index === 3 ? accentColor : index === 5 ? COLORS.teal : "#d8deea",
+                    background:
+                      index === 3 ? accentColor : index === 5 ? look.secondAccent : "#d8deea",
                   }}
                 />
               ))}
@@ -225,9 +208,9 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
               }}
             >
               {[
-                ["Reach", "1.8M", COLORS.teal],
+                ["Reach", "1.8M", look.secondAccent],
                 ["CTR", "8.4%", accentColor],
-                ["Trial", "+312", COLORS.rose],
+                ["Trial", "+312", look.thirdAccent],
               ].map(([label, value, color]) => (
                 <div
                   key={label}
@@ -235,10 +218,12 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
                     borderRadius: 18,
                     padding: "12%",
                     background: "#f8fafc",
-                    border: `1px solid ${COLORS.line}`,
+                    border: `1px solid ${`color-mix(in srgb, ${look.screenTextColor} 12%, transparent)`}`,
                   }}
                 >
-                  <div style={{ fontSize: 11, color: COLORS.muted, fontWeight: 700 }}>{label}</div>
+                  <div style={{ fontSize: 11, color: look.screenMutedColor, fontWeight: 700 }}>
+                    {label}
+                  </div>
                   <div
                     style={{
                       marginTop: 5,
@@ -264,7 +249,7 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
             }}
           >
             {[
-              ["Audience matched", "84%", COLORS.teal],
+              ["Audience matched", "84%", look.secondAccent],
               ["Creative ready", "12", accentColor],
             ].map(([label, value, color]) => (
               <div
@@ -273,13 +258,15 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
                   borderRadius: 24,
                   padding: "10%",
                   background: "#ffffff",
-                  border: `1px solid ${COLORS.line}`,
+                  border: `1px solid ${`color-mix(in srgb, ${look.screenTextColor} 12%, transparent)`}`,
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
                 }}
               >
-                <div style={{ fontSize: 12, color: COLORS.muted, fontWeight: 700 }}>{label}</div>
+                <div style={{ fontSize: 12, color: look.screenMutedColor, fontWeight: 700 }}>
+                  {label}
+                </div>
                 <div style={{ fontSize: 34, lineHeight: 1, fontWeight: 800 }}>{value}</div>
                 <div
                   style={{
@@ -317,8 +304,8 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
                 borderRadius: 16,
                 padding: "12px 14px",
                 background: "#ffffff",
-                border: `1px solid ${COLORS.line}`,
-                color: index === 1 ? COLORS.ink : COLORS.muted,
+                border: `1px solid ${`color-mix(in srgb, ${look.screenTextColor} 12%, transparent)`}`,
+                color: index === 1 ? look.screenTextColor : look.screenMutedColor,
                 fontSize: 12,
                 fontWeight: 800,
               }}
@@ -330,9 +317,11 @@ const BrowserDashboard: React.FC<MockupContentProps> = ({ frame, accentColor }) 
       </div>
     </div>
   );
-};
+}
 
-const PhoneChecklist: React.FC<MockupContentProps> = ({ frame, accentColor }) => {
+function PhoneChecklist({ frame, look }: MockupContentProps) {
+  const { accentColor } = look;
+  const fontFamily = fontOr(look.fontFamily, "main");
   const progress = clampProgress(frame, [18, 62], [0, 1]);
 
   return (
@@ -341,7 +330,7 @@ const PhoneChecklist: React.FC<MockupContentProps> = ({ frame, accentColor }) =>
         width: "100%",
         height: "100%",
         background: "#fff8ed",
-        color: COLORS.ink,
+        color: look.screenTextColor,
         fontFamily,
         padding: "9% 8%",
         display: "flex",
@@ -357,7 +346,9 @@ const PhoneChecklist: React.FC<MockupContentProps> = ({ frame, accentColor }) =>
         }}
       >
         <div>
-          <div style={{ fontSize: 10, color: COLORS.muted, fontWeight: 800 }}>Launch app</div>
+          <div style={{ fontSize: 10, color: look.screenMutedColor, fontWeight: 800 }}>
+            Launch app
+          </div>
           <div style={{ fontSize: 24, lineHeight: 1, fontWeight: 800 }}>Today</div>
         </div>
         <div
@@ -365,7 +356,7 @@ const PhoneChecklist: React.FC<MockupContentProps> = ({ frame, accentColor }) =>
             width: 38,
             height: 38,
             borderRadius: 14,
-            background: COLORS.ink,
+            background: look.screenTextColor,
             color: "#fffaf1",
             display: "grid",
             placeItems: "center",
@@ -381,7 +372,7 @@ const PhoneChecklist: React.FC<MockupContentProps> = ({ frame, accentColor }) =>
         style={{
           borderRadius: 28,
           padding: "8%",
-          background: COLORS.ink,
+          background: look.screenTextColor,
           color: "#fffaf1",
           display: "flex",
           flexDirection: "column",
@@ -411,9 +402,9 @@ const PhoneChecklist: React.FC<MockupContentProps> = ({ frame, accentColor }) =>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {[
-          ["Audience locked", COLORS.teal],
+          ["Audience locked", look.secondAccent],
           ["Brief approved", accentColor],
-          ["Exports queued", COLORS.rose],
+          ["Exports queued", look.thirdAccent],
         ].map(([label, color], index) => {
           const itemProgress = clampProgress(
             frame,
@@ -427,7 +418,7 @@ const PhoneChecklist: React.FC<MockupContentProps> = ({ frame, accentColor }) =>
                 borderRadius: 18,
                 padding: "13px 14px",
                 background: "#ffffff",
-                border: `1px solid ${COLORS.line}`,
+                border: `1px solid ${`color-mix(in srgb, ${look.screenTextColor} 12%, transparent)`}`,
                 display: "flex",
                 alignItems: "center",
                 gap: 11,
@@ -450,23 +441,17 @@ const PhoneChecklist: React.FC<MockupContentProps> = ({ frame, accentColor }) =>
       </div>
     </div>
   );
-};
+}
 
 type DeviceShellProps = {
-  children: React.ReactNode;
-  device: "phone" | "browser" | "laptop";
-  accentColor: string;
+  children: ReactNode;
+  look: Look;
   progress: number;
   width: number;
 };
 
-const DeviceShell: React.FC<DeviceShellProps> = ({
-  children,
-  device,
-  accentColor,
-  progress,
-  width,
-}) => {
+function DeviceShell({ children, look, progress, width }: DeviceShellProps) {
+  const { device, accentColor, shadow } = look;
   const isPhone = device === "phone";
   const isLaptop = device === "laptop";
   const isBrowser = device === "browser";
@@ -483,7 +468,7 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
       ? scaleFont(12, width)
       : scaleFont(3, width);
   const buttonWidth = scaleFont(3, width);
-  const buttonColor = "#0c0e15";
+  const buttonColor = look.buttonColor;
 
   return (
     <div
@@ -500,9 +485,9 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
           width: isLaptop ? "92%" : "100%",
           aspectRatio: isPhone ? "0.4615" : "1.6",
           borderRadius: radius,
-          background: `linear-gradient(145deg, ${COLORS.chromeLight}, ${COLORS.chrome})`,
+          background: `linear-gradient(145deg, ${look.deviceEdgeColor}, ${look.deviceColor})`,
           padding: chromePad,
-          boxShadow: `0 ${scaleFont(34, width)}px ${scaleFont(90, width)}px rgba(0,0,0,0.42), 0 0 ${scaleFont(96, width) * progress}px color-mix(in srgb, ${accentColor} 20%, transparent), inset 0 0 0 1px rgba(255,255,255,0.1)`,
+          boxShadow: `0 ${scaleFont(34, width)}px ${scaleFont(90, width)}px rgba(0,0,0,${shadow}), 0 0 ${scaleFont(96, width) * progress}px color-mix(in srgb, ${accentColor} ${look.glow * 100}%, transparent), inset 0 0 0 1px rgba(255,255,255,0.1)`,
           display: "flex",
           flexDirection: "column",
           gap: isBrowser ? scaleFont(8, width) : 0,
@@ -567,9 +552,9 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
               padding: `0 ${scaleFont(12, width)}px`,
             }}
           >
-            {[COLORS.rose, COLORS.accent, COLORS.teal].map((color) => (
+            {[look.thirdAccent, accentColor, look.secondAccent].map((color, index) => (
               <span
-                key={color}
+                key={index}
                 style={{
                   width: scaleFont(10, width),
                   height: scaleFont(10, width),
@@ -602,7 +587,7 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
                 width: scaleFont(5, width),
                 height: scaleFont(5, width),
                 borderRadius: "50%",
-                background: "#05060a",
+                background: look.cameraColor,
                 boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.18)",
               }}
             />
@@ -616,7 +601,7 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
             position: "relative",
             borderRadius: screenRadius,
             overflow: "hidden",
-            background: COLORS.panel,
+            background: look.bezelColor,
             border: "1px solid rgba(255,255,255,0.08)",
           }}
         >
@@ -631,7 +616,7 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
                 width: "34%",
                 height: scaleFont(9, width),
                 borderRadius: 999,
-                background: "#000",
+                background: look.islandColor,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "flex-end",
@@ -644,7 +629,7 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
                   width: scaleFont(4, width),
                   height: scaleFont(4, width),
                   borderRadius: "50%",
-                  background: "#1e2230",
+                  background: look.lensColor,
                   boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
                 }}
               />
@@ -668,8 +653,8 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
               width: "104%",
               height: scaleFont(30, width),
               borderRadius: `0 0 ${scaleFont(16, width)}px ${scaleFont(16, width)}px`,
-              background: "linear-gradient(180deg, #30384b 0%, #171b26 60%, #0b0d14 100%)",
-              boxShadow: `0 ${scaleFont(24, width)}px ${scaleFont(50, width)}px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.16)`,
+              background: look.baseGradient,
+              boxShadow: `0 ${scaleFont(24, width)}px ${scaleFont(50, width)}px rgba(0,0,0,${(shadow * 0.38) / 0.42}), inset 0 1px 0 rgba(255,255,255,0.16)`,
               display: "flex",
               justifyContent: "center",
             }}
@@ -689,7 +674,7 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
               width: "82%",
               height: scaleFont(18, width),
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.28)",
+              background: `rgba(0,0,0,${(shadow * 0.28) / 0.42})`,
               filter: `blur(${scaleFont(12, width)}px)`,
               marginTop: scaleFont(10, width),
             }}
@@ -698,19 +683,22 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
       ) : null}
     </div>
   );
-};
+}
 
-const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
-  src,
-  title,
-  subtitle,
-  eyebrow,
-  children,
-  device = "laptop",
-  backgroundColor = COLORS.bg,
-  accentColor = COLORS.accent,
-  textColor = "#f8fafc",
-}) => {
+function DeviceMockupZoomView({ children, look }: { children?: ReactNode; look: Look }) {
+  const {
+    src,
+    title,
+    subtitle,
+    eyebrow,
+    device,
+    backgroundColor,
+    accentColor,
+    textColor,
+    pullBackFrom,
+    scale,
+  } = look;
+  const fontFamily = fontOr(look.fontFamily, "main");
   const frame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
   const safe = getSafeAreaPadding({ width, height });
@@ -728,7 +716,7 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
   const copyProgress = clampProgress(frame, [0, DURATION.normal], [0, 1]);
   const deviceProgress = clampProgress(frame, [STAGGER.normal, 64], [0, 1]);
   const accentProgress = clampProgress(frame, [20, 72], [0, 1]);
-  const cameraScale = interpolate(camera, [0, 1], [1.18, 0.95], {
+  const cameraScale = interpolate(camera, [0, 1], [pullBackFrom, 0.95], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     output: "perceptual-scale",
@@ -738,24 +726,25 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
     extrapolateRight: "clamp",
   });
   const gridTemplateColumns = hasCopy && !portrait ? "0.66fr 1.34fr" : "1fr";
-  const mainMaxWidth =
+  const mainShare =
     resolvedDevice === "phone"
       ? portrait
-        ? "58%"
+        ? 58
         : hasCopy
-          ? "42%"
-          : "32%"
+          ? 42
+          : 32
       : resolvedDevice === "laptop"
         ? portrait
-          ? "96%"
+          ? 96
           : hasCopy
-            ? "100%"
-            : "86%"
+            ? 100
+            : 86
         : portrait
-          ? "96%"
+          ? 96
           : hasCopy
-            ? "100%"
-            : "82%";
+            ? 100
+            : 82;
+  const mainMaxWidth = `${mainShare * scale}%`;
 
   const screenContent = children ?? (
     <>
@@ -770,9 +759,9 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
           }}
         />
       ) : resolvedDevice === "phone" ? (
-        <PhoneChecklist frame={frame} accentColor={accentColor} />
+        <PhoneChecklist frame={frame} look={look} />
       ) : (
-        <BrowserDashboard frame={frame} accentColor={accentColor} />
+        <BrowserDashboard frame={frame} look={look} />
       )}
     </>
   );
@@ -781,18 +770,20 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
     <AbsoluteFill style={{ background: backgroundColor, overflow: "hidden" }}>
       <AbsoluteFill
         style={{
-          background: `radial-gradient(circle at 72% 42%, color-mix(in srgb, ${accentColor} 19%, transparent) 0, transparent 32%), radial-gradient(circle at 16% 82%, ${COLORS.teal}20 0, transparent 26%), linear-gradient(135deg, ${backgroundColor} 0%, color-mix(in srgb, ${backgroundColor} 93%, #5b6b9a) 54%, color-mix(in srgb, ${backgroundColor} 97%, black) 100%)`,
+          background: `radial-gradient(circle at 72% 42%, color-mix(in srgb, ${accentColor} 19%, transparent) 0, transparent 32%), radial-gradient(circle at 16% 82%, color-mix(in srgb, ${look.secondAccent} 12.5%, transparent) 0, transparent 26%), linear-gradient(135deg, ${backgroundColor} 0%, color-mix(in srgb, ${backgroundColor} 93%, ${look.backgroundTint}) 54%, color-mix(in srgb, ${backgroundColor} 97%, black) 100%)`,
         }}
       />
-      <AbsoluteFill
-        style={{
-          opacity: 0.16,
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)",
-          backgroundSize: `${scaleFont(56, width)}px ${scaleFont(56, width)}px`,
-          maskImage: "radial-gradient(circle at 68% 44%, black, transparent 72%)",
-        }}
-      />
+      {look.showGrid ? (
+        <AbsoluteFill
+          style={{
+            opacity: 0.16,
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)",
+            backgroundSize: `${scaleFont(56, width)}px ${scaleFont(56, width)}px`,
+            maskImage: "radial-gradient(circle at 68% 44%, black, transparent 72%)",
+          }}
+        />
+      ) : null}
 
       <div
         style={{
@@ -834,7 +825,7 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
                   color: accentColor,
                   fontSize: scaleFont(16, width),
                   lineHeight: 1,
-                  fontWeight: 800,
+                  fontWeight: look.titleWeight,
                 }}
               >
                 {eyebrow}
@@ -843,9 +834,9 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
             {title ? (
               <div
                 style={{
-                  fontSize: scaleFont(portrait ? 58 : 64, width),
+                  fontSize: scaleFont(look.titleSize * (portrait ? 58 / 64 : 1), width),
                   lineHeight: 0.98,
-                  fontWeight: 800,
+                  fontWeight: look.titleWeight,
                   maxWidth: "11ch",
                 }}
               >
@@ -856,7 +847,7 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
               <div
                 style={{
                   color: `color-mix(in srgb, ${textColor} 78%, ${backgroundColor})`,
-                  fontSize: scaleFont(portrait ? 28 : 24, width),
+                  fontSize: scaleFont(look.subtitleSize * (portrait ? 28 / 24 : 1), width),
                   lineHeight: 1.35,
                   fontWeight: 600,
                   maxWidth: "28ch",
@@ -878,26 +869,18 @@ const DeviceMockupZoomView: React.FC<DeviceMockupZoomProps> = ({
             translate: `0px ${cameraY}px`,
           }}
         >
-          <DeviceShell
-            device={resolvedDevice}
-            accentColor={accentColor}
-            progress={accentProgress}
-            width={width}
-          >
+          <DeviceShell look={look} progress={accentProgress} width={width}>
             {screenContent}
           </DeviceShell>
         </div>
       </div>
     </AbsoluteFill>
   );
-};
+}
 
-export function DeviceMockupZoom(all: ElementProps & { children?: React.ReactNode }) {
-  const { children, ...props } = all;
+export function DeviceMockupZoom({ children, ...look }: Look & { children?: ReactNode }) {
   return (
-    <DeviceMockupZoomView
-      {...(props as unknown as React.ComponentProps<typeof DeviceMockupZoomView>)}
-    >
+    <DeviceMockupZoomView look={look}>
       {children ? <ScreenFit>{children}</ScreenFit> : undefined}
     </DeviceMockupZoomView>
   );

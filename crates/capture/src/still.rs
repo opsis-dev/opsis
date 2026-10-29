@@ -11,9 +11,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::cdp::{CaptureError, Handle, Tab};
-use crate::still_layout::{
-    Area, Size, WINDOW_FIT, capture_canvas, capture_scale, padded_region, tallest_shot,
-};
+use crate::still_layout::{Area, Size, capture_canvas, capture_scale, padded_region, tallest_shot};
 use crate::take::{Played, StepError, TakeEnv, TakeRun, play_take};
 use crate::trace::CallInfo;
 
@@ -165,7 +163,7 @@ async fn capture_shot(take: &TakeRun<'_>, request: &StillRequest<'_>) -> Result<
         },
         canvas,
         body,
-        WINDOW_FIT,
+        p.fit(),
         view.dpr,
     );
     let beyond =

@@ -3,8 +3,6 @@ import { cameraAt } from "#video/common/camera-path.ts";
 import type { ScreenMove, CameraPath } from "#video/generated/spec.ts";
 import { viewPose, type Pose, type Vec3 } from "#video/three/motion.ts";
 
-const MOVE_SHARE = 0.85;
-
 type Keyed = { rotation: Vec3; position: Vec3 };
 
 const FACE_ON: Keyed = { rotation: [0, 0, 0], position: [0, 0, 0] };
@@ -28,10 +26,11 @@ export function screenPoseAt(
   frame: number,
   durationInFrames: number,
   endFaceOn: boolean,
+  moveEndsAt: number,
   camera?: CameraPath,
 ): Pose {
   if (move === "keyframes") return viewPose(cameraAt(camera, frame, { endFaceOn }));
-  const t = interpolate(frame, [0, Math.max(1, durationInFrames * MOVE_SHARE)], [0, 1], {
+  const t = interpolate(frame, [0, Math.max(1, durationInFrames * moveEndsAt)], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.inOut(Easing.cubic),

@@ -1,21 +1,8 @@
-import { mixOklch, type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { mixOklch, type NeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
 export type CommandMenuItemState = "idle" | "hover" | "press" | "selected";
 
-export interface CommandMenuItemProps {
-  state?: CommandMenuItemState;
-  style?: CommandMenuItemStyle;
-  label?: string;
-  icon?: CommandMenuIcon;
-  shortcut?: string;
-  width?: number;
-  theme?: Partial<NeutralTheme>;
-  className?: string;
-}
-
 export type CommandMenuIcon = "search" | "settings" | "user" | "file";
-
-const ROW_WIDTH = 360;
 
 export interface CommandMenuItemStyle {
   background: string;
@@ -196,46 +183,6 @@ export function CommandMenuItemRow({
           {shortcut}
         </kbd>
       )}
-    </div>
-  );
-}
-
-export function CommandMenuItem({
-  state = "idle",
-  style,
-  label = "Settings",
-  icon = "settings",
-  shortcut,
-  width = ROW_WIDTH,
-  theme: themeOverride,
-  className,
-}: CommandMenuItemProps) {
-  const theme = useNeutralTheme(themeOverride, "light");
-  const ctx = commandMenuItemStyleContext(theme);
-
-  return (
-    <div
-      className={className}
-      style={{
-        position: "absolute",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "transparent",
-        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
-      }}
-    >
-      <CommandMenuItemRow
-        style={style}
-        state={state}
-        ctx={ctx}
-        label={label}
-        icon={icon}
-        shortcut={shortcut}
-        width={width}
-        radius={theme.radius}
-      />
     </div>
   );
 }

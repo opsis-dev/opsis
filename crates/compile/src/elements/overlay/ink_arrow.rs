@@ -21,17 +21,19 @@ pub struct InkArrow {
         "Opening pressure",
         default = 0.2,
         range(min = 0.05, max = 1),
-        step = 0.05
+        step = 0.05,
+        advanced
     )]
     pub pressure: f64,
     #[setting(
         "Closing pressure",
         default = 1.0,
         range(min = 0.05, max = 1),
-        step = 0.05
+        step = 0.05,
+        advanced
     )]
     pub release: f64,
-    #[setting("Grain", default = 1.0, range(min = 0, max = 2), step = 0.1)]
+    #[setting("Grain", default = 1.0, range(min = 0, max = 2), step = 0.1, advanced)]
     pub grain: f64,
     #[setting("Head size", default = 24, range(min = 8, max = 48), step = 1)]
     pub head_size: u32,
@@ -50,12 +52,13 @@ pub struct InkArrow {
         range(min = 0.1333, max = 1.6),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub head_dur: f64,
     #[setting("Ink color", default = "#26242c", check = colour)]
     pub color: String,
-    #[setting("Seed", default = "arrow")]
+    #[setting("Seed", default = "arrow", advanced)]
     pub seed: String,
     #[setting(
         "Time per pose",
@@ -63,7 +66,8 @@ pub struct InkArrow {
         range(min = 0.0333, max = 0.2),
         step = 0.01,
         unit = "s",
-        frames_at = 30
+        frames_at = 30,
+        advanced
     )]
     pub step: f64,
     #[setting(
@@ -100,6 +104,19 @@ pub struct InkArrow {
         hidden
     )]
     pub to_y: f64,
+    #[setting(
+        "Head angle",
+        default = 41.25,
+        range(min = 15, max = 75),
+        step = 0.25,
+        unit = "°",
+        advanced
+    )]
+    pub head_angle: f64,
+    #[setting("Wobble", default = 0.06, range(min = 0, max = 0.3), advanced)]
+    pub wobble: f64,
+    #[setting("Ink opacity", default = 0.85, range(min = 0.1, max = 1), advanced)]
+    pub opacity: f64,
 }
 
 pub fn definition() -> ElementMeta {

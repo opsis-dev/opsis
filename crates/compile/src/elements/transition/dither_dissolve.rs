@@ -4,6 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
+use crate::elements::background::shader_dithering::DitherPattern;
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::DitherShape;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -28,6 +29,21 @@ pub struct DitherDissolve {
         advanced
     )]
     pub speed: f64,
+    #[setting(
+        "Dot size",
+        default = 1.6,
+        range(min = 1, max = 8),
+        unit = "px",
+        advanced
+    )]
+    pub dot_size: f64,
+    #[setting(
+        "Dot grid",
+        default = DitherPattern::Grid4x4,
+        labels = { "random": "Random", "2x2": "2 × 2", "4x4": "4 × 4", "8x8": "8 × 8" },
+        advanced
+    )]
+    pub pattern: DitherPattern,
 }
 
 pub fn definition() -> ElementMeta {

@@ -1,21 +1,6 @@
 import { Easing, interpolateColors, spring } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-
-export interface RadialBurstProps {
-  segments?: number;
-  radius?: number;
-  thickness?: number;
-  rotation?: number;
-  intensity?: number;
-  twist?: number;
-  echoes?: number;
-  color?: string;
-  accentColor?: string;
-  backgroundColor?: string;
-  speed?: number;
-  loop?: boolean;
-  className?: string;
-}
+import type { ElementSettings } from "#video/generated/spec.ts";
 
 export const radialBurstLength = 114;
 const CYCLE = 120;
@@ -27,29 +12,27 @@ const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
 const progress = (frame: number, start: number, end: number) =>
   clamp((frame - start) / (end - start));
 
-export function getRadialBurstDuration({ speed = 1 }: Pick<RadialBurstProps, "speed"> = {}) {
-  const rate = finite(speed, 1);
-  return rate <= 0 ? 1 : Math.max(1, Math.ceil(CYCLE / rate));
-}
-
 export function getRadialBurstState(
   frame: number,
   {
-    segments = 8,
-    radius = 210,
-    thickness = 30,
-    rotation = 135,
-    intensity = 1,
-    loop = false,
-    width = 1280,
-    height = 720,
-  }: Omit<RadialBurstProps, "color" | "accentColor" | "backgroundColor" | "speed" | "className"> & {
-    width?: number;
-    height?: number;
-  } = {},
+    segments,
+    radius,
+    thickness,
+    rotation,
+    intensity,
+    loop,
+    width,
+    height,
+  }: Pick<
+    ElementSettings["radial-burst"],
+    "segments" | "radius" | "thickness" | "rotation" | "intensity" | "loop"
+  > & {
+    width: number;
+    height: number;
+  },
 ) {
-  const w = Math.max(1, finite(width, 1280));
-  const h = Math.max(1, finite(height, 720));
+  const w = Math.max(1, width);
+  const h = Math.max(1, height);
   const unit = Math.min(w, h) / 720;
   const time = Math.max(0, finite(frame, 0));
   const local = loop ? time % CYCLE : time;
@@ -207,23 +190,25 @@ export function getRadialBurstRibbonPath(
 }
 
 export function RadialBurst({
-  segments = 8,
-  radius = 210,
-  thickness = 30,
-  rotation = 135,
-  intensity = 1,
-  twist = 110,
-  echoes = 3,
-  color = "#ffffff",
-  accentColor = "#f4e4a7",
-  backgroundColor = "#a800b7",
-  speed = 1,
-  loop = false,
-  className,
-}: RadialBurstProps) {
+  segments,
+  radius,
+  thickness,
+  rotation,
+  intensity,
+  twist,
+  echoes,
+  color,
+  accentColor,
+  backgroundColor,
+  speed,
+  loop,
+  echoOpacity,
+  x,
+  y,
+}: ElementSettings["radial-burst"]) {
   const frame = useAuthoredFrame();
   const { width, height, fps } = useAuthoredConfig();
-  const time = frame * (30 / fps) * Math.max(0, finite(speed, 1));
+  const time = frame * (30 / fps) * Math.max(0, speed);
   const options = {
     segments,
     radius,
@@ -236,7 +221,7 @@ export function RadialBurst({
   };
   const state = getRadialBurstState(time, options);
   const path = getRadialBurstSegmentPath(state);
-  const echoCount = Math.round(Math.min(5, Math.max(0, finite(echoes, 3))));
+  const echoCount = Math.round(Math.min(5, Math.max(0, echoes)));
   const plane = (pose: typeof state) =>
     `translate(${pose.offsetX} ${pose.offsetY}) rotate(${pose.planeAngle}) scale(1 ${pose.planeScale})`;
   const ribbons = (pose: typeof state, outline: boolean) =>
@@ -259,7 +244,6 @@ export function RadialBurst({
 
   return (
     <div
-      className={className}
       style={{
         position: "absolute",
         inset: 0,
@@ -275,7 +259,7 @@ export function RadialBurst({
         aria-label="Geometric radial burst"
         style={{ display: "block" }}
       >
-        <g transform={`translate(${width / 2} ${height / 2})`}>
+        <g transform={`translate(${width * x} ${height * y})`}>
           {state.strength > 0 && state.frame >= 18 && state.frame < radialBurstLength
             ? Array.from({ length: echoCount }, (_, index) => {
                 const lag = (echoCount - index) * 2.2;
@@ -284,7 +268,7 @@ export function RadialBurst({
                   loop: false,
                 });
                 const opacity =
-                  0.36 *
+                  echoOpacity *
                   (1 - index / (echoCount + 1)) *
                   Math.min(1, state.strength) *
                   (1 - easeOut(progress(state.frame, 107, 114)));

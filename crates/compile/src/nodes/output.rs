@@ -12,7 +12,7 @@ use smart_default::SmartDefault;
 use crate::node::{
     CLIP_PORT, CardCtx, Category, Claim, Ctx, NodeDef, Outputs, Phase, RowExt, port, row,
 };
-use crate::nodes::media::Codec;
+use crate::nodes::media::{Codec, EncodePreset, ProresProfile};
 use crate::params::Params;
 use crate::text::{format_duration, slug_name};
 use crate::time::{even_px, frames_to_ms};
@@ -267,7 +267,8 @@ pub struct ExportVideo {
         "Chapters in the file",
         default = true,
         help = "Players list the film's chapters, taken from its Chapter actions.",
-        show_if = { "codec": ["h264", "h265", "vp8", "vp9", "prores"] }
+        show_if = { "codec": ["h264", "h265", "vp8", "vp9", "prores"] },
+        advanced
     )]
     pub chapters: bool,
     #[setting(
@@ -290,9 +291,120 @@ pub struct ExportVideo {
         advanced
     )]
     pub gl: Gl,
+    #[setting(
+        "First chapter name",
+        default = "Intro",
+        help = "Names the chapter added at the start when the first one comes later.",
+        show_if = { "chapters": ["true"] },
+        advanced
+    )]
+    pub first_chapter: String,
+    #[setting(
+        "Speed vs file size",
+        default = EncodePreset::Medium,
+        labels = {
+            "ultrafast": "Fastest, biggest",
+            "fast": "Fast",
+            "medium": "Balanced",
+            "slow": "Small",
+            "veryslow": "Smallest, slowest"
+        },
+        show_if = { "codec": ["h264"] },
+        advanced
+    )]
+    pub preset: EncodePreset,
+    #[setting(
+        "Full colour detail",
+        help = "Keeps every pixel's own colour instead of sharing it between neighbours. Sharper coloured text; fewer players open it.",
+        show_if = { "codec": ["h264", "h265"] },
+        advanced
+    )]
+    pub full_colour: bool,
+    #[setting(
+        "ProRes kind",
+        labels = { "proxy": "Proxy", "lt": "Light", "standard": "Standard", "hq": "High quality" },
+        show_if = { "codec": ["prores"] },
+        advanced
+    )]
+    pub prores_profile: ProresProfile,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Sound bit rate",
+        range(min = 64, max = 512),
+        step = 32,
+        unit = "kbps",
+        zero_label = "The format's own",
+        show_if = { "codec": ["h264", "h265", "vp8", "vp9"] },
+        "type" = "integer",
+        advanced
+    )]
+    pub sound_kbps: Option<u32>,
+    #[setting(
+        "Plays",
+        range(min = 0, max = 100),
+        zero_label = "Forever",
+        help = "How many times the GIF plays. 0 plays it forever.",
+        show_if = { "codec": ["gif"] },
+        advanced
+    )]
+    pub gif_plays: u32,
+    #[setting(
+        "Every nth frame",
+        default = 1,
+        range(min = 1, max = 10),
+        help = "Keeps one frame in this many, for a smaller GIF.",
+        show_if = { "codec": ["gif"] },
+        advanced
+    )]
+    pub gif_every_nth: u32,
 }
 
 impl Params for ExportVideo {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
+pub enum PixelFormat {
+    #[serde(rename = "yuv444p")]
+    Yuv444p,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "lowercase")]
+pub enum RenderProres {
+    Proxy,
+    Light,
+    Standard,
+}
+
+impl ExportVideo {
+    pub fn x264_preset(&self) -> Option<EncodePreset> {
+        (self.codec == Codec::H264 && self.preset != EncodePreset::Medium).then_some(self.preset)
+    }
+
+    pub fn pixel_format(&self) -> Option<PixelFormat> {
+        (self.full_colour && matches!(self.codec, Codec::H264 | Codec::H265))
+            .then_some(PixelFormat::Yuv444p)
+    }
+
+    pub fn prores(&self) -> Option<RenderProres> {
+        if self.codec != Codec::Prores {
+            return None;
+        }
+        match self.prores_profile {
+            ProresProfile::Hq => None,
+            ProresProfile::Proxy => Some(RenderProres::Proxy),
+            ProresProfile::Lt => Some(RenderProres::Light),
+            ProresProfile::Standard => Some(RenderProres::Standard),
+        }
+    }
+
+    pub fn gif_loops(&self) -> Option<u32> {
+        (self.codec == Codec::Gif && self.gif_plays > 0).then(|| self.gif_plays - 1)
+    }
+
+    pub fn every_nth_frame(&self) -> Option<u32> {
+        (self.codec == Codec::Gif && self.gif_every_nth > 1).then_some(self.gif_every_nth)
+    }
+}
 
 #[settings]
 #[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
@@ -333,6 +445,31 @@ pub struct ExportImages {
         advanced
     )]
     pub gl: Gl,
+    #[setting(
+        "Other shapes",
+        default = ReframeMode::Follow,
+        labels = { "follow": "Follow the action", "center": "Crop the centre", "fit": "Add bars" },
+        advanced
+    )]
+    pub reframe: ReframeMode,
+    #[setting(
+        "JPEG quality",
+        default = 80,
+        range(min = 1, max = 100),
+        show_if = { "format": ["jpeg"] },
+        advanced
+    )]
+    pub jpeg_quality: u32,
+    #[setting(
+        "Size",
+        default = 1.0,
+        range(min = 0.25, max = 2),
+        step = 0.25,
+        unit = "×",
+        labels = { "0.5": "Half", "1": "Full", "2": "Double" },
+        advanced
+    )]
+    pub scale: f64,
 }
 
 impl Params for ExportImages {}
