@@ -87,7 +87,6 @@
     "@mynaui/icons": "^0.4.11",
     "@oxlint/plugins": "^1.89.0",
     "@remotion/bundler": "4.0.537",
-    "@remotion/tailwind-v4": "4.0.537",
     "@tabler/icons": "^3.49.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/router-cli": "^1.167.44",

@@ -29,7 +29,11 @@ function importing(context: Context, fixer: Fixer, name: string, module: string)
   }
   const line = `import { ${name} } from "${module}";`;
   const after = imports.at(-1);
-  return [after ? fixer.insertTextAfter(after, `\n${line}`) : fixer.insertTextBeforeRange([0, 0], `${line}\n`)];
+  return [
+    after
+      ? fixer.insertTextAfter(after, `\n${line}`)
+      : fixer.insertTextBeforeRange([0, 0], `${line}\n`),
+  ];
 }
 
 function fixWith(
@@ -155,8 +159,8 @@ const useFindById = callRule(
     const equality = strictEqualityBody(call.arguments[0]);
     if (!equality || !isMember(call.callee, "find")) return undefined;
     function text(node: Node) {
-  return context.sourceCode.getText(node);
-}
+      return context.sourceCode.getText(node);
+    }
     const id = equality.sides.find(
       (side) => !(isMember(side, "id") && isIdentifier(side.object, equality.name)),
     );
@@ -237,8 +241,8 @@ const PERCENT_AFTER = /^\s?%/;
 function hundredths(node: Node): Node | null {
   if (node.type !== "BinaryExpression" || node.operator !== "*") return null;
   function isHundred(side: Node) {
-  return side.type === "Literal" && side.value === 100;
-}
+    return side.type === "Literal" && side.value === 100;
+  }
   if (isHundred(node.right)) return node.left;
   if (isHundred(node.left)) return node.right;
   return null;
@@ -275,10 +279,7 @@ const usePercentText: Rule = {
           fix:
             exact && fraction
               ? fixWith(context, "percentText", "format", (fixer) => [
-                  fixer.replaceText(
-                    call,
-                    `percentText(${context.sourceCode.getText(fraction)})`,
-                  ),
+                  fixer.replaceText(call, `percentText(${context.sourceCode.getText(fraction)})`),
                   fixer.removeRange([sign, sign + 1]),
                 ])
               : undefined,
@@ -314,8 +315,8 @@ function componentFix(
   )
     return undefined;
   function text(node: Node) {
-  return context.sourceCode.getText(node);
-}
+    return context.sourceCode.getText(node);
+  }
   const annotation = declarator.id.typeAnnotation?.typeAnnotation;
   const props =
     annotation?.type === "TSTypeReference" ? annotation.typeArguments?.params[0] : undefined;
@@ -327,9 +328,7 @@ function componentFix(
         ? `${text(param)}${props ? `: ${text(props)}` : ""}`
         : "";
   const body =
-    init.body.type === "BlockStatement"
-      ? text(init.body)
-      : `{\n  return ${text(init.body)};\n}`;
+    init.body.type === "BlockStatement" ? text(init.body) : `{\n  return ${text(init.body)};\n}`;
   const name = declarator.id.name;
   return (fixer) => fixer.replaceText(declaration, `function ${name}(${typed}) ${body}`);
 }
