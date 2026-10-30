@@ -9,7 +9,8 @@ import {
   exitOpacity,
   type Entrance,
 } from "#video/core/anim.ts";
-import { HandDrawnMark, type MarkLook } from "#video/core/hand-drawn.tsx";
+import type { MarkLook } from "#video/core/hand-drawn-marks.ts";
+import { HandDrawnMark } from "#video/core/hand-drawn.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
 

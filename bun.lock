@@ -122,13 +122,13 @@
         "@remotion/effects": "4.0.537",
         "@remotion/media": "4.0.537",
         "@remotion/paths": "4.0.537",
-        "@remotion/rough-notation": "4.0.537",
         "@remotion/transitions": "4.0.537",
         "culori": "^4.0.2",
         "fflate": "^0.8.3",
         "lottie-web": "^5.13.0",
         "react": "^19.3.1",
         "remotion": "4.0.537",
+        "roughjs": "^4.6.6",
         "simplex-noise": "^4.0.3",
         "three": "^0.186.1",
         "zod": "^4.6.7",
@@ -524,8 +524,6 @@
     "@remotion/player": ["@remotion/player@4.0.537", "", { "dependencies": { "remotion": "4.0.537" }, "peerDependencies": { "react": ">=16.8.0", "react-dom": ">=16.8.0" } }, "sha512-zXY13uIqBr6q1fHAaiDvnXVMB8Wqs2BVoJTcXHlhhpoPoH4tGByzLc+961hhxMJjUR4Ubc2JRIaNbUckHEh46A=="],
 
     "@remotion/renderer": ["@remotion/renderer@4.0.537", "", { "dependencies": { "@remotion/licensing": "4.0.537", "@remotion/streaming": "4.0.537", "execa": "5.1.1", "remotion": "4.0.537", "source-map": "0.8.0", "ws": "8.21.0" }, "optionalDependencies": { "@remotion/compositor-darwin-arm64": "4.0.537", "@remotion/compositor-darwin-x64": "4.0.537", "@remotion/compositor-linux-arm64-gnu": "4.0.537", "@remotion/compositor-linux-arm64-musl": "4.0.537", "@remotion/compositor-linux-x64-gnu": "4.0.537", "@remotion/compositor-linux-x64-musl": "4.0.537", "@remotion/compositor-win32-x64-msvc": "4.0.537" }, "peerDependencies": { "react": ">=16.8.0", "react-dom": ">=16.8.0" } }, "sha512-3EsvIFRLfRyuZKM8J1myr7JN9AyGPd8AuEDhUyDo8ntNoNXQsA/TPO8LpnXu90H7ZCdytO3Z1HyFJZujlBMptg=="],
-
-    "@remotion/rough-notation": ["@remotion/rough-notation@4.0.537", "", { "dependencies": { "@remotion/paths": "4.0.537", "remotion": "4.0.537", "roughjs": "4.6.6" }, "peerDependencies": { "react": ">=16.8.0", "react-dom": ">=16.8.0" } }, "sha512-rPZnSVODBq3n2lBrkdeRFAB+Ly+Nht/kb/Z48lV/k3JXPPfCmLJdbxRL0kc4BJ52E1K7AUoe7fPx6j8JeV4gMw=="],
 
     "@remotion/sdk": ["@remotion/sdk@4.0.537", "", { "dependencies": { "@remotion/player": "4.0.537", "@remotion/studio-shared": "4.0.537", "remotion": "4.0.537" }, "peerDependencies": { "react": ">=16.8.0", "react-dom": ">=16.8.0" } }, "sha512-H+qeWGidqHLgyG4ChE8uQ2p5c1aXDiTcf4cqI7wfNZ+KYLLWOGUmMQud6mT2u79MznrRqetN7xndzzLCB8Co8w=="],
 

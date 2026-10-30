@@ -33,7 +33,7 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins:
 | --------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------------- |
 | Web motion components | 18 new elements: text effects, highlight frames, integration diagrams, a status pill, backgrounds, animated icons | MIT (+ ISC for icon shapes)            | not built       |
 | Liquid contours       | A flowing two-colour contour background                                                                           | Remotion licence (`@remotion/effects`) | not built       |
-| Crossed-off highlight | Hand-drawn crossing out of a part of the page in a take                                                           | MIT (`@remotion/rough-notation`)       | partly in place |
+| Crossed-off highlight | Hand-drawn crossing out of a part of the page in a take                                                           | MIT (`roughjs`)                        | partly in place |
 | Rive animations       | Play `.riv` files from the project, offline                                                                       | MIT (Rive runtime), Remotion licence   | not built       |
 | Element thumbnails    | A picture of every element in the node list's hover card                                                          | Opsis's own                            | partly in place |
 | Visual check in CI    | Every element rendered and compared on each change, so a registry update can't silently break one                 | Opsis's own                            | not built       |
@@ -67,7 +67,7 @@ For users, 18 elements that product demos use often and that Opsis doesn't have 
 | 17  | Assistant orb         | SmoothUI `siri-orb`                                                                                                                                                                                                                                     | `background` | Rotating conic gradients through CSS animation. Angles from the frame.                                                                                                                                      |
 | 18  | Animated icon         | lucide-animated (about 20 icons: `check`, `bell`, `sparkles`, `rocket`, `send`, `download`, `upload`, `search`, `settings`, `heart`, `zap`, `lock`, `clock`, `refresh-cw`, `cloud-upload`, `bot`, `party-popper`, `arrow-right`, `copy`, `trending-up`) | `overlay`    | Motion `variants` started on hover (`useAnimation`). One element with an `icon` choice; each icon's variant keyframes become a table of `interpolate` ranges played once at the element's start, or looped. |
 
-Left out on purpose because Opsis already has them: number tickers (Rolling Number, Slot Machine Roll), text scramble (Matrix Decode), shimmer text (Shimmer Sweep), typewriters, blur-in text (Soft Blur In), notification lists (Notification stack), terminals, device mockups, file trees, confetti, particles, gauges, hand-drawn highlights (Marker Highlight, Ink Underline, Scribble Circle, and the hand-drawn looks of Highlight box and Title card, built on `@remotion/rough-notation`). SmoothUI's `soft-blur-in`, `shimmer-sweep`, `mask-reveal-up`, `line-by-line-slide` and `kinetic-center-build` share names with elements Opsis already has; skip them. Hover-, scroll- and pointer-driven components (Magic UI `magic-card`, `lens`, `dock`, `smooth-cursor`, `scroll-progress`, Motion Primitives `magnetic`, `tilt`) have no meaning in a video.
+Left out on purpose because Opsis already has them: number tickers (Rolling Number, Slot Machine Roll), text scramble (Matrix Decode), shimmer text (Shimmer Sweep), typewriters, blur-in text (Soft Blur In), notification lists (Notification stack), terminals, device mockups, file trees, confetti, particles, gauges, hand-drawn highlights (Marker Highlight, Ink Underline, Scribble Circle, and the hand-drawn looks of Highlight box and Title card, drawn by `HandDrawnMark` on `roughjs`). SmoothUI's `soft-blur-in`, `shimmer-sweep`, `mask-reveal-up`, `line-by-line-slide` and `kinetic-center-build` share names with elements Opsis already has; skip them. Hover-, scroll- and pointer-driven components (Magic UI `magic-card`, `lens`, `dock`, `smooth-cursor`, `scroll-progress`, Motion Primitives `magnetic`, `tilt`) have no meaning in a video.
 
 ### Fit with Opsis
 
@@ -200,15 +200,15 @@ A hand-drawn cross over a part of the page in a take. The Remotion Elements "Cro
 
 ### Work
 
-1. Add `CrossedOff` and `StruckThrough` to `HighlightLook` with their labels ("Crossed out", "Struck through"), run `bun run types:export`, and draw them in `SketchedHighlight` (`packages/video/src/camera/annotations.tsx`) with `<CrossedOff>` and `<StrikeThrough>`, as `HandDrawnMark` already does for Title card.
+1. Add `CrossedOff` and `StruckThrough` to `HighlightLook` with their labels ("Crossed out", "Struck through"), run `bun run types:export`, and draw them in `SketchedHighlight` (`packages/video/src/camera/annotations.tsx`) through `HandDrawnMark`, which already draws the crossing out for Title card; struck through is a new look in `markPaths` (`packages/video/src/core/hand-drawn-marks.ts`): strokes back and forth across the middle of the box.
 
 ### Licence
 
-MIT (`@remotion/rough-notation`, `roughjs`), already listed in `THIRD_PARTY_NOTICES.md`.
+MIT (`roughjs`), already listed in `THIRD_PARTY_NOTICES.md`.
 
 ### Risks
 
-- Seed 0 is random in rough-notation; pass the highlight's own seed. Sizes come from the measured box, as for the other looks.
+- Seed 0 is random in roughjs (`HandDrawnMark` raises it to 1); pass the highlight's own seed. Sizes come from the measured box, as for the other looks.
 
 ### Sources
 
