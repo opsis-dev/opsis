@@ -1,5 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings, ToastTone } from "#video/generated/spec.ts";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
@@ -20,19 +21,15 @@ const T = {
   leaveFor: 0.3,
 } as const;
 
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
-} as const;
-
-const toneColor = (tone: ToastTone, accentColor: string, palette: Palette): string =>
-  tone === "success"
+function toneColor(tone: ToastTone, accentColor: string, palette: Palette): string {
+  return tone === "success"
     ? palette.success
     : tone === "error"
       ? palette.error
       : tone === "warn"
         ? accentColor
         : palette.info;
+}
 
 function ToneGlyph({ tone, size, color }: { tone: ToastTone; size: number; color: string }) {
   if (tone === "success") {
@@ -101,9 +98,12 @@ export function NotificationStack({
   const edge = Math.round(((margin * VERTICAL_SHARE) / 1080) * height);
   const safe = { paddingLeft: side, paddingRight: side, paddingTop: edge, paddingBottom: edge };
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const portrait = height > width;
   const u =
@@ -153,7 +153,7 @@ export function NotificationStack({
 
           const life = beat.life;
           const remaining = showProgress
-            ? 1 - interpolate(frame, [at(beat.spawn), at(beat.spawn + life)], [0, 1], clamp)
+            ? 1 - interpolate(frame, [at(beat.spawn), at(beat.spawn + life)], [0, 1], CLAMPED)
             : 1;
 
           const slide = spring({

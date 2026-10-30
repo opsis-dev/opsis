@@ -1,23 +1,13 @@
 import type { CSSProperties, ReactNode } from "react";
-import {
-  Easing,
-  getRemotionEnvironment,
-  Img,
-  interpolate,
-  OffthreadVideo,
-  staticFile,
-} from "remotion";
+import { Easing, getRemotionEnvironment, interpolate } from "remotion";
 import { themeColors } from "#video/common/theme.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-import type { ElementSettings } from "#video/generated/spec.ts";
-import {
-  mixOklch,
-  resolveFont,
-  type WarmTheme,
-  useWarmTheme,
-  withAlpha,
-} from "#video/lib/warm-ui/index.ts";
+import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
+import { mixOklch, withAlpha } from "#video/lib/ui-kit/color.ts";
+import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import { floatOffset, ScreenMedia } from "#video/parts/device-screen.tsx";
 
 export type LaptopFrameEntrance = "rise" | "open" | "none";
 export type LaptopFrameFinale = "none" | "zoom-to-screen";
@@ -25,6 +15,7 @@ export type NotchPhase = "idle" | "loading" | "done";
 
 type LaptopFrameProps = Omit<ElementSettings["laptop-frame"], "theme"> & {
   children?: ReactNode;
+  screenKind?: MediaKind;
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
@@ -66,10 +57,7 @@ export interface EntrancePose {
 }
 
 export function entrancePose(frame: number, entrance: LaptopFrameEntrance): EntrancePose {
-  const clamp = {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  } as const;
+  const clamp = CLAMPED;
   const easeOut = Easing.out(Easing.cubic);
 
   if (entrance === "none") {
@@ -107,8 +95,7 @@ export function lidTilt(
   const opened =
     entrance === "open"
       ? interpolate(frame, [0, ENTRANCE_FRAMES], [82, restTilt], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
+          ...CLAMPED,
           easing: Easing.out(Easing.cubic),
         })
       : restTilt;
@@ -116,8 +103,7 @@ export function lidTilt(
   if (finale !== "zoom-to-screen" || frame < zoom.start) return opened;
 
   return interpolate(frame, [zoom.start, zoom.end], [restTilt, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: CAMERA_EASE,
   });
 }
@@ -137,11 +123,7 @@ export function cameraPose(
 ): CameraPose {
   if (finale !== "zoom-to-screen") return { scale: 1, translateY: 0 };
 
-  const p = interpolate(frame, [zoom.start, zoom.end], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: CAMERA_EASE,
-  });
+  const p = interpolate(frame, [zoom.start, zoom.end], [0, 1], { ...CLAMPED, easing: CAMERA_EASE });
 
   const innerW = (LID_WIDTH - 2 * BEZEL_WIDTH) * baseScale;
   const innerH = (LID_HEIGHT - 2 * BEZEL_WIDTH) * baseScale;
@@ -157,18 +139,6 @@ export function cameraPose(
   return { scale, translateY };
 }
 
-export function floatOffset(
-  frame: number,
-  fps: number,
-  amplitude: number,
-  startFrame: number,
-  periodSeconds: number,
-): number {
-  const local = Math.max(0, frame - startFrame);
-  const value = Math.sin((local / (fps * periodSeconds)) * Math.PI * 2) * amplitude;
-  return value === 0 ? 0 : -value;
-}
-
 export interface NotchState {
   phase: NotchPhase;
   width: number;
@@ -182,10 +152,7 @@ export function notchState(
   timing: { loadingStart: number; doneStart: number },
 ): NotchState {
   const { loadingStart, doneStart } = timing;
-  const clamp = {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  } as const;
+  const clamp = CLAMPED;
 
   const phase: NotchPhase = frame < loadingStart ? "idle" : frame < doneStart ? "loading" : "done";
 
@@ -206,43 +173,6 @@ export function notchState(
   const done = interpolate(frame, [doneStart - 4, doneStart + 6], [0, 1], clamp);
 
   return { phase, width, idle, loading, done };
-}
-
-const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
-
-function resolveSrc(src: string): string {
-  const isLocal = src.startsWith("/") && !src.startsWith("//");
-  if (!isLocal || getRemotionEnvironment().isPlayer) return src;
-  const base = staticFile("_").slice(0, -2);
-  if (base && src.startsWith(`${base}/`)) return src;
-  try {
-    return staticFile(src.replace(/^\/+/, ""));
-  } catch {
-    return src;
-  }
-}
-
-function ScreenMedia({ src, frame }: { src: string; frame: number }) {
-  const t = interpolate(frame, [4, 22], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const style: CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    width: "100%",
-    height: "100%",
-    maxWidth: "none",
-    objectFit: "cover",
-    opacity: t,
-    filter: `blur(${(1 - t) * 8}px)`,
-  };
-  const resolved = resolveSrc(src);
-  return isVideo(src) ? (
-    <OffthreadVideo src={resolved} muted style={style} />
-  ) : (
-    <Img src={resolved} style={style} />
-  );
 }
 
 function Dot({ size, color, style }: { size: number; color: string; style?: CSSProperties }) {
@@ -364,6 +294,7 @@ function Notch({
 function LaptopFrameView({
   children,
   screenSrc,
+  screenKind,
   entrance,
   finale,
   bezelColor,
@@ -408,14 +339,12 @@ function LaptopFrameView({
       : 0;
   const notchFade =
     finale === "zoom-to-screen"
-      ? interpolate(frame, [zoom.start, zoom.start + 10], [1, 0], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        })
+      ? interpolate(frame, [zoom.start, zoom.start + 10], [1, 0], CLAMPED)
       : 1;
 
   const screenContent =
-    children ?? (screenSrc ? <ScreenMedia src={screenSrc} frame={frame} /> : null);
+    children ??
+    (screenSrc ? <ScreenMedia src={screenSrc} kind={screenKind} frame={frame} /> : null);
 
   return (
     <div
@@ -531,7 +460,7 @@ function LaptopFrameView({
 export function LaptopFrame({
   theme,
   ...settings
-}: ElementSettings["laptop-frame"] & { children?: ReactNode }) {
+}: ElementSettings["laptop-frame"] & { children?: ReactNode; screenKind?: MediaKind }) {
   return (
     <WarmUIProvider mode={theme.mode}>
       <LaptopFrameView {...settings} theme={themeColors(theme)} mode={theme.mode} />

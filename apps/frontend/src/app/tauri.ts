@@ -23,7 +23,9 @@ export function on<T>(event: WindowEvent<T>, listener: (payload: T) => void): ()
   };
 }
 
-export const windowLabel = (): string => getCurrentWebviewWindow().label;
+export function windowLabel(): string {
+  return getCurrentWebviewWindow().label;
+}
 
 export type FrameHeader = {
   width: number;
@@ -43,8 +45,9 @@ export function readFrame(buffer: ArrayBuffer): StreamFrame {
   return { header, jpeg: new Uint8Array(buffer.slice(4 + length)) };
 }
 
-export const frameChannel = (listener: (frame: StreamFrame) => void): Channel<ArrayBuffer> =>
-  new Channel<ArrayBuffer>((buffer) => listener(readFrame(buffer)));
+export function frameChannel(listener: (frame: StreamFrame) => void): Channel<ArrayBuffer> {
+  return new Channel<ArrayBuffer>((buffer) => listener(readFrame(buffer)));
+}
 
 export type LiveMessage =
   | {
@@ -88,4 +91,6 @@ export function rememberDrops(): void {
   });
 }
 
-export const pathForFile = (file: File): string => droppedPaths.get(file.name) ?? "";
+export function pathForFile(file: File): string {
+  return droppedPaths.get(file.name) ?? "";
+}

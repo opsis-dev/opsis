@@ -39,12 +39,12 @@ type CardProps = {
   look: CardLook;
 };
 
-const imageSize = (texture: Texture) => {
+function imageSize(texture: Texture) {
   const image: unknown = texture.image;
   const w = image instanceof HTMLImageElement ? image.naturalWidth || image.width : 1;
   const h = image instanceof HTMLImageElement ? image.naturalHeight || image.height : 1;
   return { w: w || 1, h: h || 1 };
-};
+}
 
 export function Card({ texture, longest, radius, depth, look }: CardProps) {
   const { w, h } = imageSize(texture);

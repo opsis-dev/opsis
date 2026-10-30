@@ -1,5 +1,6 @@
 import { AbsoluteFill, Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
@@ -9,11 +10,6 @@ const T = {
   head: 0.08,
   headFor: 0.4,
   exitFor: 0.42,
-} as const;
-
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
 } as const;
 
 export function LogoWall({
@@ -48,9 +44,12 @@ export function LogoWall({
   const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const portrait = height > width;
   const u = portrait ? Math.min(width / 496, height / 896) : Math.min(width / 1024, height / 576);
@@ -62,7 +61,7 @@ export function LogoWall({
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   const wallW = Math.min(width - safe.paddingLeft - safe.paddingRight, wallWidth * u);
@@ -128,7 +127,7 @@ export function LogoWall({
             const warmAt = startAtSeconds + 0.3 + (row + column) * staggerSeconds;
             const arrive = ease(arriveAt, arriveAt + 0.36);
             const warm = ease(warmAt, warmAt + warmSeconds, EASING.editorial);
-            const markWarm = interpolate(warm, [0, 0.7], [0, 1], clamp);
+            const markWarm = interpolate(warm, [0, 0.7], [0, 1], CLAMPED);
             const color = logo.color ?? accentColor;
 
             return (

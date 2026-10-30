@@ -6,7 +6,9 @@ import { Grain } from "#video/lib/backgrounds/grain.tsx";
 const BLOB_RADIUS_SPREAD_PCT = 25;
 const BLOB_NOISE_SPACING = 1000;
 
-const seeded = (key: string, seed: number): string => (seed === 0 ? key : `${key}-${seed}`);
+function seeded(key: string, seed: number): string {
+  return seed === 0 ? key : `${key}-${seed}`;
+}
 
 export function NoiseField({
   color1,

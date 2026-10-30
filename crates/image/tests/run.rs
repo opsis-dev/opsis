@@ -1,3 +1,4 @@
+use opsis_golden::{edge, home, node};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -13,18 +14,6 @@ use opsis_types::settings::AppSettings;
 use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
 use tokio_util::sync::CancellationToken;
-
-fn home() -> PathBuf {
-    std::env::var_os("HOME").map(PathBuf::from).expect("HOME")
-}
-
-fn node(id: &str, kind: &str, params: Value) -> Value {
-    json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 }, "params": params })
-}
-
-fn edge(source: &str, out: &str, target: &str, port: &str) -> Value {
-    json!({ "id": format!("{source}-{target}-{port}"), "source": source, "sourceHandle": out, "target": target, "targetHandle": port })
-}
 
 fn workflow() -> Workflow {
     let nodes = [

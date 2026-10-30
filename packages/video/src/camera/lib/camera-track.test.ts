@@ -19,14 +19,18 @@ import { zoomAt } from "#video/camera/lib/zoom.ts";
 
 const VP = { width: 1920, height: 1080 };
 
-const click = (tMs: number, x: number, y: number, more: Partial<ClickEvent> = {}): ClickEvent => ({
-  tMs,
-  x,
-  y,
-  ...more,
-});
+function click(tMs: number, x: number, y: number, more: Partial<ClickEvent> = {}): ClickEvent {
+  return {
+    tMs,
+    x,
+    y,
+    ...more,
+  };
+}
 
-const box = (x: number, y: number, w: number, h: number) => ({ rect: { x, y, w, h } });
+function box(x: number, y: number, w: number, h: number) {
+  return { rect: { x, y, w, h } };
+}
 
 const smokeLog: ClickLog = {
   name: "smoke",
@@ -175,10 +179,10 @@ describe("buildCameraTrack", () => {
   it("scales move durations so they land right on screen at speed", () => {
     const fast = buildCameraTrack(smokeLog, 1.25, {});
     const real = buildCameraTrack(smokeLog, 1, {});
-    const firstMove = (keys: typeof fast) => {
+    function firstMove(keys: typeof fast) {
       const i = keys.findIndex((k, n) => n > 0 && k.pose.scale > 1.05);
       return keys[i].t - keys[i - 1].t;
-    };
+    }
     const ratio = firstMove(fast) / firstMove(real);
     expect(Math.abs(ratio - 1.25), `ratio ${ratio}`).toBeLessThan(0.02);
     const onScreenMs = (firstMove(fast) / 1.25) * 1000;
@@ -259,8 +263,9 @@ describe("typing beats", () => {
     clicks: [{ ...typingLog.clicks[0], typeEndMs: undefined }],
   };
 
-  const scaleAt = (log: ClickLog, tS: number) =>
-    sampleTrack(buildCameraTrack(log, 1, {}), tS, NO_TUNING).scale;
+  function scaleAt(log: ClickLog, tS: number) {
+    return sampleTrack(buildCameraTrack(log, 1, {}), tS, NO_TUNING).scale;
+  }
 
   it("stays zoomed until the last keystroke", () => {
     for (const t of [3.5, 4.5, 5.5, 5.9]) {

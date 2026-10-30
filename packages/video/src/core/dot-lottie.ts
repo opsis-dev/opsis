@@ -4,14 +4,16 @@ import { z } from "zod";
 import { isRecord, isString } from "#video/common/guards.ts";
 import { extensionOf, IMAGE_MIME } from "#video/common/mime.ts";
 
-const toBase64 = (bytes: Uint8Array) => {
+function toBase64(bytes: Uint8Array) {
   let out = "";
   for (let i = 0; i < bytes.length; i += 0x8000)
     out += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(out);
-};
+}
 
-const parseJson = (bytes: Uint8Array): unknown => JSON.parse(strFromU8(bytes));
+function parseJson(bytes: Uint8Array): unknown {
+  return JSON.parse(strFromU8(bytes));
+}
 
 const assetSchema = z.looseObject({ p: z.string().optional(), e: z.number().optional() });
 
@@ -33,10 +35,13 @@ function asAnimation(value: unknown): Animation {
   return parsed.data;
 }
 
-const isZip = (bytes: Uint8Array) => bytes[0] === 0x50 && bytes[1] === 0x4b;
+function isZip(bytes: Uint8Array) {
+  return bytes[0] === 0x50 && bytes[1] === 0x4b;
+}
 
-export const readLottie = (bytes: Uint8Array): LottieAnimationData =>
-  isZip(bytes) ? readDotLottie(bytes) : asAnimation(parseJson(bytes));
+export function readLottie(bytes: Uint8Array): LottieAnimationData {
+  return isZip(bytes) ? readDotLottie(bytes) : asAnimation(parseJson(bytes));
+}
 
 function firstAnimationId(manifest: unknown): string | undefined {
   const animations = isRecord(manifest) ? manifest.animations : undefined;
@@ -52,8 +57,11 @@ function embedImage(asset: LottieAsset, files: Unzipped): LottieAsset {
   return { ...asset, p: `data:${mime};base64,${toBase64(file)}`, u: "", e: 1 };
 }
 
-const withEmbeddedImages = (data: Animation, files: Unzipped): Animation =>
-  data.assets ? { ...data, assets: data.assets.map((asset) => embedImage(asset, files)) } : data;
+function withEmbeddedImages(data: Animation, files: Unzipped): Animation {
+  return data.assets
+    ? { ...data, assets: data.assets.map((asset) => embedImage(asset, files)) }
+    : data;
+}
 
 function readDotLottie(bytes: Uint8Array): LottieAnimationData {
   const files = unzipSync(bytes);

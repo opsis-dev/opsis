@@ -136,11 +136,11 @@ function ColorPanel({
 }) {
   const { color, setLocal } = useHsva(value);
   const [format, setFormat] = useState<ColorFormat>(() => formatOf(value));
-  const pick = (next: Hsva, as: ColorFormat = format) => {
+  function pick(next: Hsva, as: ColorFormat = format) {
     const text = formatColor(next, as);
     setLocal({ value: text, color: next });
     onChange(text);
-  };
+  }
   return (
     <div className="flex flex-col gap-3">
       <SaturationArea color={color} onChange={(c) => pick(c)} />
@@ -234,12 +234,12 @@ function ColorText({ value, onChange }: { value: string; onChange: (value: strin
 
 function SaturationArea({ color, onChange }: { color: Hsva; onChange: (color: Hsva) => void }) {
   const area = useRef<HTMLDivElement>(null);
-  const update = (e: PointerEvent<HTMLDivElement>) => {
+  function update(e: PointerEvent<HTMLDivElement>) {
     const rect = area.current?.getBoundingClientRect();
     if (!rect) return;
     const { x, y } = fractionIn(rect, e.clientX, e.clientY);
     onChange(withChannel(color, { s: x, v: 1 - y }));
-  };
+  }
   const drag = usePointerDrag<HTMLDivElement, null>({
     start: (e) => {
       update(e);
@@ -247,8 +247,9 @@ function SaturationArea({ color, onChange }: { color: Hsva; onChange: (color: Hs
     },
     move: (e) => update(e),
   });
-  const nudge = (ds: number, dv: number) =>
-    onChange(withChannel(color, { s: color.s + ds, v: color.v + dv }));
+  function nudge(ds: number, dv: number) {
+    return onChange(withChannel(color, { s: color.s + ds, v: color.v + dv }));
+  }
   return (
     <div
       ref={area}

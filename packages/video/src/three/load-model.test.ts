@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { modelExtensions } from "#video/three/load-model.ts";
 
-const encode = (json: object) => new TextEncoder().encode(JSON.stringify(json));
+function encode(json: object) {
+  return new TextEncoder().encode(JSON.stringify(json));
+}
 
 function glb(json: object): ArrayBuffer {
   const text = encode(json);

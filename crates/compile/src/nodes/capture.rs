@@ -16,6 +16,7 @@ use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Phase, RECORDING_PORT, RowExt, SESSION_PORT,
     outputs, port, row,
 };
+use crate::nodes::camera::FrameChoice;
 use crate::params::Params;
 use crate::params::to_values;
 use crate::text::{format_duration, plural};
@@ -178,30 +179,6 @@ pub enum StillAlign {
     Middle,
 }
 
-#[choice]
-pub enum StillFrame {
-    #[default]
-    #[label("None")]
-    None,
-    #[label("macOS")]
-    Macos,
-    #[label("Windows")]
-    Windows,
-    #[label("Linux")]
-    Linux,
-}
-
-impl StillFrame {
-    fn style(self) -> Option<WindowStyle> {
-        match self {
-            Self::None => None,
-            Self::Macos => Some(WindowStyle::Macos),
-            Self::Windows => Some(WindowStyle::Windows),
-            Self::Linux => Some(WindowStyle::Linux),
-        }
-    }
-}
-
 #[settings(check)]
 pub struct Still {
     #[setting(
@@ -272,7 +249,7 @@ pub struct Still {
         show_if = { "look": ["window"] },
         advanced
     )]
-    pub frame: StillFrame,
+    pub frame: FrameChoice,
     #[setting(
         "Push in",
         default = 2.0,
@@ -480,14 +457,7 @@ fn still() -> NodeDef {
         let frames = ms_to_frames(f64::from(p.duration_ms), ctx.settings.fps);
         let extra = ItemExtra {
             handles: Some(EditHandles {
-                trim_end: Some(ParamRef {
-                    node_id: ctx.node_id.to_owned(),
-                    param: "durationMs".into(),
-                    unit: ParamUnit::Ms,
-                    scale: None,
-                    index: None,
-                    linked: None,
-                }),
+                trim_end: Some(ParamRef::new(ctx.node_id, "durationMs", ParamUnit::Ms)),
                 ..EditHandles::default()
             }),
             envelope: Some(p.envelope.clone()),

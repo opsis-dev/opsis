@@ -47,13 +47,14 @@ function svgBounds(svg: SVGResult): number {
   return Math.max(size.x, size.y) || 1;
 }
 
-const material = (color: string, look: Look) =>
-  new MeshStandardMaterial({
+function material(color: string, look: Look) {
+  return new MeshStandardMaterial({
     color: look.color ?? color,
     metalness: look.metalness,
     roughness: look.roughness,
     side: DoubleSide,
   });
+}
 
 function strokeTube(points: Vector3[], radius: number): TubeGeometry | null {
   if (points.length < 2) return null;

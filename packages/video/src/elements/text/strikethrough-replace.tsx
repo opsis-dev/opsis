@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { interpolate } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -28,24 +29,12 @@ export function StrikethroughReplace({
   const fadeStart = durationInFrames * strikeEnd;
   const fadeEnd = durationInFrames * (strikeEnd + swapLength);
 
-  const linePct = interpolate(frame, [0, struck], [0, 100], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const linePct = interpolate(frame, [0, struck], [0, 100], CLAMPED);
 
-  const fromOpacity = interpolate(frame, [fadeStart, fadeEnd], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const fromOpacity = interpolate(frame, [fadeStart, fadeEnd], [1, 0], CLAMPED);
 
-  const toOpacity = interpolate(frame, [fadeStart, fadeEnd], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const toY = interpolate(frame, [fadeStart, fadeEnd], [8, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const toOpacity = interpolate(frame, [fadeStart, fadeEnd], [0, 1], CLAMPED);
+  const toY = interpolate(frame, [fadeStart, fadeEnd], [8, 0], CLAMPED);
 
   const textStyle: CSSProperties = {
     fontSize,

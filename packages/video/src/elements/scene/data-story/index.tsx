@@ -30,7 +30,9 @@ const HOOK_EXIT_LEAD = 26;
 
 function sceneLengths(total: number) {
   const factor = (total + OVERLAP) / (AUTHORED_TOTAL + OVERLAP);
-  const scaled = (frames: number) => Math.max(2 * DURATION.fast + 1, Math.round(frames * factor));
+  function scaled(frames: number) {
+    return Math.max(2 * DURATION.fast + 1, Math.round(frames * factor));
+  }
   return {
     hook: scaled(SCENE_DURATIONS.hook),
     chart: scaled(SCENE_DURATIONS.chart),
@@ -64,7 +66,9 @@ export function DataStory(settings: ElementSettings["data-story"]) {
   const { durationInFrames, fps } = useVideoConfig();
   const scenes = sceneLengths(durationInFrames);
   const look = storyLook(settings);
-  const sceneBg = (themed: string) => backgroundColor || themed;
+  function sceneBg(themed: string) {
+    return backgroundColor || themed;
+  }
   return (
     <AbsoluteFill style={{ backgroundColor: sceneBg(look.palette.page) }}>
       <TransitionSeries>

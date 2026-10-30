@@ -3,11 +3,11 @@ use std::process::Stdio;
 use std::sync::LazyLock;
 
 use futures::future::BoxFuture;
+use opsis_engine::children::read_lines;
 use opsis_engine::paths::EngineMissing;
 use opsis_engine::tools::EngineFiles;
 use opsis_probe::Probe;
 use regex::Regex;
-use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
 use tokio::process::{Child, Command};
 use tokio_util::sync::CancellationToken;
 
@@ -76,13 +76,6 @@ fn progress_in(line: &str, opts: &RunOptions<'_>) {
     for found in PROGRESS.captures_iter(line) {
         let ms = found[1].parse::<f64>().unwrap_or(0.0) / 1000.0;
         on_progress((ms / duration).clamp(0.0, 1.0));
-    }
-}
-
-async fn read_lines(stream: impl AsyncRead + Unpin, mut each: impl FnMut(&str)) {
-    let mut lines = BufReader::new(stream).lines();
-    while let Ok(Some(line)) = lines.next_line().await {
-        each(&line);
     }
 }
 

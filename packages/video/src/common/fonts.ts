@@ -5,8 +5,9 @@ function roleStack(role: FontRole): string {
   return `"df-${role}", ${fallback}`;
 }
 
-export const fontOr = (family: string | undefined, role: FontRole): string =>
-  family || roleStack(role);
+export function fontOr(family: string | undefined, role: FontRole): string {
+  return family || roleStack(role);
+}
 
 export const MAIN_FONT = roleStack("main");
 

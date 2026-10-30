@@ -9,16 +9,21 @@ import { fractionToValue, snapValue, valueToFraction, type KnobRange } from "./k
 const STEP_DB = 0.5;
 const BIG_STEP_DB = 6;
 
-const faderRange = (): KnobRange => ({
-  min: mixerBook().minDb,
-  max: mixerBook().maxDb,
-  step: STEP_DB,
-});
+function faderRange(): KnobRange {
+  return {
+    min: mixerBook().minDb,
+    max: mixerBook().maxDb,
+    step: STEP_DB,
+  };
+}
 
-const faderPosition = (value: number) => valueToFraction(faderRange(), value);
+function faderPosition(value: number) {
+  return valueToFraction(faderRange(), value);
+}
 
-const valueAt = (el: HTMLElement, clientY: number): number =>
-  fractionToValue(faderRange(), 1 - fractionIn(el.getBoundingClientRect(), 0, clientY).y);
+function valueAt(el: HTMLElement, clientY: number): number {
+  return fractionToValue(faderRange(), 1 - fractionIn(el.getBoundingClientRect(), 0, clientY).y);
+}
 
 export function Fader({
   value,

@@ -42,14 +42,18 @@ export function markerChoices(ctx: FormContext): SelectChoices {
   };
 }
 
-export const variableChoices = (ctx: FormContext, value: string): SelectChoices => ({
-  options: withCurrent(
-    ctx.vars.map((v) => v.name),
-    value,
-  ),
-});
+export function variableChoices(ctx: FormContext, value: string): SelectChoices {
+  return {
+    options: withCurrent(
+      ctx.vars.map((v) => v.name),
+      value,
+    ),
+  };
+}
 
-export const backdropChoices = (): SelectChoices => ({ options: [...BACKDROPS], format: humanize });
+export function backdropChoices(): SelectChoices {
+  return { options: [...BACKDROPS], format: humanize };
+}
 
 function portChoices(ports: FormContext["ports"], value: string): SelectChoices {
   const names = new Map(ports.map((p) => [p.port, p.label]));
@@ -62,11 +66,13 @@ function portChoices(ports: FormContext["ports"], value: string): SelectChoices 
   };
 }
 
-export const anyPortChoices = (ctx: FormContext, value: string): SelectChoices =>
-  portChoices(ctx.ports, value);
+export function anyPortChoices(ctx: FormContext, value: string): SelectChoices {
+  return portChoices(ctx.ports, value);
+}
 
-export const cutChoices = (ctx: FormContext, value: string): SelectChoices =>
-  portChoices(ctx.ports.slice(1), value);
+export function cutChoices(ctx: FormContext, value: string): SelectChoices {
+  return portChoices(ctx.ports.slice(1), value);
+}
 
 export function CodeField({ id, label, value, onChange, meta }: StringProps) {
   return (

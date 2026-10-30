@@ -16,11 +16,13 @@ import { ROOT } from "./lib/tool-config";
 const RESOURCES = path.join(ROOT, "resources");
 const SIDECAR = "opsis-render";
 
-const run = (program: string, args: string[]) =>
-  execFileSync(program, args, { cwd: ROOT, stdio: "inherit" });
+function run(program: string, args: string[]) {
+  return execFileSync(program, args, { cwd: ROOT, stdio: "inherit" });
+}
 
-const output = (program: string, args: string[]) =>
-  execFileSync(program, args, { cwd: ROOT, encoding: "utf8" });
+function output(program: string, args: string[]) {
+  return execFileSync(program, args, { cwd: ROOT, encoding: "utf8" });
+}
 
 function targetTriple(): string {
   const host = /^host: (.+)$/m.exec(output("rustc", ["-vV"]))?.[1];

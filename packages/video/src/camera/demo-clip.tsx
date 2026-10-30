@@ -62,19 +62,21 @@ type DemoClipProps = {
 const FILL = { width: "100%", height: "100%" } as const;
 const PAGE_BG = "#fcfcfc";
 const BLEED_BG = "#0b0b10";
-const bleedBlur = (clip: DemoClipProps): React.CSSProperties => ({
-  filter: `blur(${clip.bleedBlur ?? 48}px) brightness(${clip.bleedDim ?? 0.55}) saturate(1.2)`,
-  transform: "scale(1.15)",
-});
+function bleedBlur(clip: DemoClipProps): React.CSSProperties {
+  return {
+    filter: `blur(${clip.bleedBlur ?? 48}px) brightness(${clip.bleedDim ?? 0.55}) saturate(1.2)`,
+    transform: "scale(1.15)",
+  };
+}
 const BLEED_SHADOW = "0 30px 80px rgba(0,0,0,0.45)";
 const BLUR_SHUTTER_ANGLE = 180;
 const BLUR_SAMPLES = 8;
 
-export const useClipTime = (speed: number): number => {
+export function useClipTime(speed: number): number {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   return logTimeS(frame, fps, speed);
-};
+}
 
 function Footage({
   src,
@@ -101,8 +103,9 @@ function Footage({
   );
 }
 
-const cameraTransform = (z: ZoomState) =>
-  `translate(${percent(z.translateX)}, ${percent(z.translateY)}) scale(${z.scale})`;
+function cameraTransform(z: ZoomState) {
+  return `translate(${percent(z.translateX)}, ${percent(z.translateY)}) scale(${z.scale})`;
+}
 
 type Framing = { chrome: boolean; fit: number; zoom: boolean };
 
@@ -131,11 +134,13 @@ function useCamera(clip: CameraClip, framing: Framing) {
   return { z, style };
 }
 
-const windowFraming = (clip: CameraClip, shot: WindowShot): Framing => ({
-  chrome: clip.chrome,
-  fit: clip.windowFit ?? shot.windowFit,
-  zoom: shot.zoom,
-});
+function windowFraming(clip: CameraClip, shot: WindowShot): Framing {
+  return {
+    chrome: clip.chrome,
+    fit: clip.windowFit ?? shot.windowFit,
+    zoom: shot.zoom,
+  };
+}
 
 function ShadowGroup({
   clip,

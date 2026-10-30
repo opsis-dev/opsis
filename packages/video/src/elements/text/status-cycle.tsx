@@ -9,23 +9,14 @@ import {
   spring,
 } from "remotion";
 import { isTheme, themeColors } from "#video/common/theme.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import {
-  Item,
-  mixOklch,
-  resolveFont,
-  type WarmTheme,
-  useWarmTheme,
-} from "#video/lib/warm-ui/index.ts";
+import { mixOklch } from "#video/lib/ui-kit/color.ts";
+import { Item, resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
 const SANS = '"Inter"';
-
-const CLAMP = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
-} as const;
 
 const PILL_R = 0.229;
 const CHIP_PAD_Y = 0.165;
@@ -245,13 +236,15 @@ function StatusCycleView({
     });
   }, [metrics, handle, glyphs, labels, chipLabels, measureKey]);
 
-  const swapAt = (i: number) => introFrames + (i - 1) * statusHold;
+  function swapAt(i: number) {
+    return introFrames + (i - 1) * statusHold;
+  }
   const act1End = swapAt(labels.length) + statusHold;
   const fadeStart = act1End;
   const fadeFrames = m.fadeSeconds * fps;
   const beat = fadeStart + fadeFrames / 2;
 
-  const fadeP = interpolate(frame, [fadeStart, fadeStart + fadeFrames], [0, 1], CLAMP);
+  const fadeP = interpolate(frame, [fadeStart, fadeStart + fadeFrames], [0, 1], CLAMPED);
 
   const rawPad = pillPadding * pillHeight * nominalEm;
   const rawGap = pillGap * pillHeight * nominalEm;
@@ -512,24 +505,26 @@ function Pill({
 }) {
   const showOutgoing = rollP < 1 && index > 0;
 
-  const label = (text: string, offset: number) => (
-    <div
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: 0,
-        height,
-        display: "flex",
-        alignItems: "center",
-        transform: `translate(-50%, ${offset}px)`,
-        color: ink,
-        fontSize: em,
-        ...typeStyle,
-      }}
-    >
-      {text}
-    </div>
-  );
+  function label(text: string, offset: number) {
+    return (
+      <div
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: 0,
+          height,
+          display: "flex",
+          alignItems: "center",
+          transform: `translate(-50%, ${offset}px)`,
+          color: ink,
+          fontSize: em,
+          ...typeStyle,
+        }}
+      >
+        {text}
+      </div>
+    );
+  }
 
   return (
     <div

@@ -1,5 +1,6 @@
 import { Easing, interpolate } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -10,11 +11,6 @@ const GIANT_Y = -28;
 const GIANT_X_CORRECTION = -48;
 const COMPACT_Y = 5;
 const COMPACT_START_X_CORRECTION = 28;
-const clamp = {
-  extrapolateLeft: "clamp" as const,
-  extrapolateRight: "clamp" as const,
-};
-
 interface TextLayerProps {
   text: string;
   fontFamily: string;
@@ -105,7 +101,7 @@ export function GradientScaleCutText({
   const safeSoftness = Math.max(revealSoftness, 0);
   const safeBlur = Math.max(compactBlur, 0);
   const revealProgress = interpolate(frame, [0, revealEnd], [0.02, 1], {
-    ...clamp,
+    ...CLAMPED,
     easing: Easing.bezier(0.22, 0.74, 0.24, 1),
   });
   const revealEdge = revealProgress * (100 + safeSoftness / 2);
@@ -113,22 +109,22 @@ export function GradientScaleCutText({
   const revealFade = revealEdge + safeSoftness / 2;
   const maskImage = `linear-gradient(90deg, #000 0%, #000 ${revealSolid}%, transparent ${revealFade}%, transparent ${revealFade}%)`;
   const giantProgress = interpolate(frame, [0, Math.max(safeCutFrame - 1, 1)], [0, 1], {
-    ...clamp,
+    ...CLAMPED,
     easing: Easing.out(Easing.cubic),
   });
   const settleProgress = interpolate(frame, [safeCutFrame, safeCutFrame + SETTLE_FRAMES], [0, 1], {
-    ...clamp,
+    ...CLAMPED,
     easing: Easing.out(Easing.cubic),
   });
   const moveProgress = interpolate(
     frame,
     [safeCutFrame + 1, safeCutFrame + 2, safeCutFrame + 4, safeCutFrame + SETTLE_FRAMES],
     [0, 0.58, 0.875, 1],
-    clamp,
+    CLAMPED,
   );
   const showGiant = frame < safeCutFrame;
   const compactX =
-    interpolate(moveProgress, [0, 1], [settleTravel, 0], clamp) +
+    interpolate(moveProgress, [0, 1], [settleTravel, 0], CLAMPED) +
     COMPACT_START_X_CORRECTION * (1 - moveProgress);
   const compactBlurValue = safeBlur * (1 - settleProgress);
 

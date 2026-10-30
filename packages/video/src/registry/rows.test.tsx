@@ -53,17 +53,19 @@ it.each(ROW_ELEMENTS)("%s draws a repeated row as a row of its own", (key, Compo
     errors.push(args.map(String).join(" "));
   });
   const props = withRepeatedRow(key);
-  const frame = (at: number) => (
-    <TestFrame
-      component={Component}
-      inputProps={props}
-      durationInFrames={240}
-      fps={30}
-      compositionWidth={1920}
-      compositionHeight={1080}
-      frameToDisplay={at}
-    />
-  );
+  function frame(at: number) {
+    return (
+      <TestFrame
+        component={Component}
+        inputProps={props}
+        durationInFrames={240}
+        fps={30}
+        compositionWidth={1920}
+        compositionHeight={1080}
+        frameToDisplay={at}
+      />
+    );
+  }
   const view = render(frame(60));
   for (const at of [90, 150, 230]) view.rerender(frame(at));
   expect(errors.filter((error) => /same key/.test(error))).toEqual([]);

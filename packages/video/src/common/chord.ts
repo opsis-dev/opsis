@@ -20,5 +20,6 @@ export function chordFromEvent(e: KeyLike): string | null {
     .join("+");
 }
 
-export const chordKeys = (chord: string): string[] =>
-  chord.split(/\+(?=.)/).map((key) => key.trim());
+export function chordKeys(chord: string): string[] {
+  return chord.split(/\+(?=.)/).map((key) => key.trim());
+}

@@ -6,14 +6,13 @@ use opsis_compile::clip::{
 use opsis_compile::recording::default_recording_props;
 use opsis_compile::remap::remap_frame;
 use opsis_compile::timeline::flatten::{flatten_spec, node_spans};
+use opsis_golden::typed;
 use opsis_types::timeline::{
     AudioItem, GroupProps, ItemBase, ParamRef, SequencerProps, TimelineItem, TransitionRef,
 };
 use opsis_types::values::ClipValue;
 use opsis_types::workflow::WorkflowSettings;
 use serde_json::{Map, Value, json};
-
-use crate::helpers::typed;
 
 fn settings() -> WorkflowSettings {
     WorkflowSettings {
@@ -51,7 +50,7 @@ fn plain() -> SequenceSlots<'static> {
 
 fn pop(id: &str) -> AudioItem {
     typed(
-        json!({ "id": format!("{id}:a"), "src": "app:sfx/pop.wav", "from": 0, "volume": 1, "role": "effect" }),
+        &json!({ "id": format!("{id}:a"), "src": "app:sfx/pop.wav", "from": 0, "volume": 1, "role": "effect" }),
     )
 }
 
@@ -200,7 +199,7 @@ fn a_speed_change_drops_a_clips_own_sound() {
         60,
         ItemExtra::default(),
     );
-    let base: ItemBase = typed(json!({ "id": "g", "from": 0, "durationInFrames": 30 }));
+    let base: ItemBase = typed(&json!({ "id": "g", "from": 0, "durationInFrames": 30 }));
     let grouped = group_item(
         base,
         GroupProps {
@@ -210,7 +209,7 @@ fn a_speed_change_drops_a_clips_own_sound() {
         },
     );
     let clip = ClipValue {
-        tracks: vec![typed(json!({ "id": "t", "items": [grouped] }))],
+        tracks: vec![typed(&json!({ "id": "t", "items": [grouped] }))],
         duration_in_frames: 30,
         ..video
     };
@@ -237,7 +236,7 @@ fn layered(offsets: &[u32], front: ClipValue) -> ClipValue {
     let ports = ["in1".to_owned(), "in2".to_owned()];
     let move_for = |index: usize| -> Option<ParamRef> {
         Some(typed(
-            json!({ "nodeId": "l", "param": "offsetsMs", "unit": "ms", "index": index }),
+            &json!({ "nodeId": "l", "param": "offsetsMs", "unit": "ms", "index": index }),
         ))
     };
     mark_layers(stack_clips(
@@ -393,7 +392,7 @@ fn moves_a_layers_sound_back_with_it_and_every_scenes_sound_to_its_start() {
 #[test]
 fn compiles_built_in_items_to_their_kind() {
     let log = typed(
-        json!({ "viewport": { "width": 1280, "height": 720 }, "dpr": 1, "t0": 0, "durationMs": 1000, "actions": [] }),
+        &json!({ "viewport": { "width": 1280, "height": 720 }, "dpr": 1, "t0": 0, "durationMs": 1000, "actions": [] }),
     );
     let recording = recording_clip(
         "rec",
@@ -429,7 +428,7 @@ fn beep(from: i32, frames: Option<u32>) -> AudioItem {
     if let Some(f) = frames {
         value["durationInFrames"] = json!(f);
     }
-    typed(value)
+    typed(&value)
 }
 
 fn placed(items: Vec<AudioItem>) -> Vec<(i32, Option<u32>, u32, f64)> {

@@ -9,8 +9,9 @@ type EnvironmentState = {
   refresh: () => Promise<EnvStatus | null>;
 };
 
-export const needsEngine = (engine: EngineStatus): boolean =>
-  [engine.browser, engine.ffmpeg].some((tool) => !tool.path || !!tool.problem);
+export function needsEngine(engine: EngineStatus): boolean {
+  return [engine.browser, engine.ffmpeg].some((tool) => !tool.path || !!tool.problem);
+}
 
 export const useEnvironment = create<EnvironmentState>()((set) => ({
   env: null,

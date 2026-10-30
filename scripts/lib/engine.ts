@@ -10,12 +10,17 @@ const installedSchema = z.object({ browser: z.string(), ffmpeg: z.string() });
 
 export type InstalledEngine = z.infer<typeof installedSchema>;
 
-const cargoRun = (crate: string, bin: string, args: string[]): string =>
-  execFileSync("cargo", ["run", "-q", "--release", "-p", crate, "--bin", bin, "--", ...args], {
-    cwd: ROOT,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "inherit"],
-  });
+function cargoRun(crate: string, bin: string, args: string[]): string {
+  return execFileSync(
+    "cargo",
+    ["run", "-q", "--release", "-p", crate, "--bin", bin, "--", ...args],
+    {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "inherit"],
+    },
+  );
+}
 
 export function installEngine(dir = STAGED_ENGINE): InstalledEngine {
   const lines = cargoRun("opsis-engine", "install-engine", [dir]).trim().split("\n");

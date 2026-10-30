@@ -1,7 +1,7 @@
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import { hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
+import { randomBetween, steppedRamp } from "#video/lib/motion/stop-motion.ts";
 import {
   BrushGrain,
   type BrushPoint,
@@ -35,10 +35,12 @@ export function inkArrowControls(
   const bow = curvature * distance;
   const wobble = distance * wobbleShare;
 
-  const at = (t: number, key: string): InkArrowPoint => ({
-    x: from.x + dx * t + normalX * bow + hashRange(`${seed}:${key}:x`, -wobble, wobble),
-    y: from.y + dy * t + normalY * bow + hashRange(`${seed}:${key}:y`, -wobble, wobble),
-  });
+  function at(t: number, key: string): InkArrowPoint {
+    return {
+      x: from.x + dx * t + normalX * bow + randomBetween(`${seed}:${key}:x`, -wobble, wobble),
+      y: from.y + dy * t + normalY * bow + randomBetween(`${seed}:${key}:y`, -wobble, wobble),
+    };
+  }
 
   return { c1: at(0.3, "c1"), c2: at(0.7, "c2") };
 }
@@ -55,10 +57,12 @@ export function inkArrowHead(
   const backX = -dx / length;
   const backY = -dy / length;
 
-  const arm = (angle: number): InkArrowPoint => ({
-    x: to.x + headSize * (backX * Math.cos(angle) - backY * Math.sin(angle)),
-    y: to.y + headSize * (backX * Math.sin(angle) + backY * Math.cos(angle)),
-  });
+  function arm(angle: number): InkArrowPoint {
+    return {
+      x: to.x + headSize * (backX * Math.cos(angle) - backY * Math.sin(angle)),
+      y: to.y + headSize * (backX * Math.sin(angle) + backY * Math.cos(angle)),
+    };
+  }
 
   return { left: arm(headAngle), right: arm(-headAngle) };
 }
@@ -143,13 +147,14 @@ function InkArrowView({
   const filterId = brushFilterId(seed, strokeWidth, grain);
   const filter = grain > 0 ? `url(#${filterId})` : undefined;
 
-  const armRibbon = (tip: InkArrowPoint, armProgress: number) =>
-    brushRibbon(sampleLine(apex, tip, ARM_SAMPLES), {
+  function armRibbon(tip: InkArrowPoint, armProgress: number) {
+    return brushRibbon(sampleLine(apex, tip, ARM_SAMPLES), {
       strokeWidth: inkArrowArmWidth(strokeWidth, release),
       pressure: 1,
       release: ARM_TAPER,
       progress: armProgress,
     });
+  }
 
   return (
     <svg
@@ -187,7 +192,9 @@ function InkArrowView({
 
 export function InkArrow({ fromX, fromY, toX, toY, ...settings }: ElementSettings["ink-arrow"]) {
   const { width, height } = useVideoConfig();
-  const point = (x: number, y: number) => ({ x: x * width, y: y * height });
+  function point(x: number, y: number) {
+    return { x: x * width, y: y * height };
+  }
   return (
     <AbsoluteFill>
       <InkArrowView {...settings} from={point(fromX, fromY)} to={point(toX, toY)} />

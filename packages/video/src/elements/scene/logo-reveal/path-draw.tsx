@@ -1,4 +1,5 @@
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 import {
   clampProgress,
@@ -70,8 +71,7 @@ export function PathDraw({
         const start = delayInFrames + index * staggerInFrames;
         const progress = clampProgress(
           interpolate(frame, [start, start + durationInFrames], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
+            ...CLAMPED,
             easing: EASING.enter,
           }),
         );
@@ -81,11 +81,7 @@ export function PathDraw({
               frame,
               [start + durationInFrames * 0.75, start + durationInFrames * 1.3],
               [0, 1],
-              {
-                extrapolateLeft: "clamp",
-                extrapolateRight: "clamp",
-                easing: EASING.enter,
-              },
+              { ...CLAMPED, easing: EASING.enter },
             )
           : 0;
         const tip = head && progress > 0 && progress < 1 ? samplePath(path, progress) : null;

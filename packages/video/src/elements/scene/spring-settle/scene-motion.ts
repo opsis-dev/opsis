@@ -1,9 +1,5 @@
 import { Easing, interpolate, random } from "remotion";
-
-export const CLAMP = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
-} as const;
+import { CLAMPED } from "#video/core/anim.ts";
 
 export const EXPO = Easing.bezier(0.16, 1, 0.3, 1);
 
@@ -23,13 +19,16 @@ export const SETTLE_MARK = Easing.spring({
   mass: 1,
 });
 
-export const stagger = (
+export function stagger(
   index: number,
   base = 5,
   power = 0.8,
   jitter = 1.5,
   seed = "stagger",
-): number => Math.max(0, index ** power * base + (random(`${seed}-${index}`) - 0.5) * 2 * jitter);
+): number {
+  return Math.max(0, index ** power * base + (random(`${seed}-${index}`) - 0.5) * 2 * jitter);
+}
 
-export const fadeIn = (frame: number, at: number, frames = 7): number =>
-  interpolate(frame, [at, at + frames], [0, 1], { ...CLAMP, easing: FADE });
+export function fadeIn(frame: number, at: number, frames = 7): number {
+  return interpolate(frame, [at, at + frames], [0, 1], { ...CLAMPED, easing: FADE });
+}

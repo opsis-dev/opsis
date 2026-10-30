@@ -14,8 +14,9 @@ export const NO_FONTS: FilmFonts = { families: {}, preload: [] };
 
 let current: FilmFonts = NO_FONTS;
 
-const familyNamed = (name: string, fonts: FilmFonts): FontFamilyDef | undefined =>
-  fonts.families[name.toLowerCase()];
+function familyNamed(name: string, fonts: FilmFonts): FontFamilyDef | undefined {
+  return fonts.families[name.toLowerCase()];
+}
 
 function ensureFont(name: string, fonts: FilmFonts): Promise<void> {
   const def = familyNamed(name, fonts);

@@ -36,47 +36,54 @@ const BACK: Easing = [0.34, 1.56, 0.64, 1];
 const LINEAR: Easing = "linear";
 const STEP = steps(1, "end");
 
-const scale = (s: number | string) => ({ transform: `scale(${s})` });
-const blurred = (px: number, rest: Record<string, string | number> = {}) => ({
-  filter: `blur(${px}px)`,
-  ...rest,
-});
-const outAndBack = (
+function scale(s: number | string) {
+  return { transform: `scale(${s})` };
+}
+function blurred(px: number, rest: Record<string, string | number> = {}) {
+  return {
+    filter: `blur(${px}px)`,
+    ...rest,
+  };
+}
+function outAndBack(
   prop: MotionProp,
   rest: string | number,
   mid: string | number,
   ms: number,
   ease = EASE,
-): MotionSpec => ({
-  frames: [{ [prop]: rest, ease }, { [prop]: mid, ease }, { [prop]: rest }],
-  ms,
-});
-const away = (
-  prop: MotionProp,
-  rest: string,
-  gone: string,
-  back: string,
-  ms: number,
-  ease = EASE,
-) => ({
-  frames: [
-    { [prop]: rest, opacity: 1, ease },
-    { [prop]: gone, opacity: 0, offset: 0.45, ease: STEP },
-    { [prop]: back, opacity: 0, offset: 0.46, ease },
-    { [prop]: rest, opacity: 1 },
-  ],
-  ms,
-  clip: true,
-});
-const split = (dx: number, dy: number) => `translate(${dx}%, ${dy}%)`;
-const rgb = (px: number) =>
-  `drop-shadow(${-px}px 0px 0px #ff2d55) drop-shadow(${px}px 0px 0px #00e5ff)`;
-const ghost = (x: number, alpha: number) =>
-  `drop-shadow(${x}px 0px 0px color-mix(in srgb, currentColor ${alpha}%, transparent))`;
-const smear = (on: boolean) =>
-  [ghost(on ? -3 : 0, 45), ghost(on ? -6 : 0, 25), ghost(on ? -9 : 0, 12)].join(" ");
-const orbit = (i: number) =>
-  `translate(${(Math.sin((i * Math.PI) / 4) * 12).toFixed(2)}%, ${(12 - Math.cos((i * Math.PI) / 4) * 12).toFixed(2)}%)`;
+): MotionSpec {
+  return {
+    frames: [{ [prop]: rest, ease }, { [prop]: mid, ease }, { [prop]: rest }],
+    ms,
+  };
+}
+function away(prop: MotionProp, rest: string, gone: string, back: string, ms: number, ease = EASE) {
+  return {
+    frames: [
+      { [prop]: rest, opacity: 1, ease },
+      { [prop]: gone, opacity: 0, offset: 0.45, ease: STEP },
+      { [prop]: back, opacity: 0, offset: 0.46, ease },
+      { [prop]: rest, opacity: 1 },
+    ],
+    ms,
+    clip: true,
+  };
+}
+function split(dx: number, dy: number) {
+  return `translate(${dx}%, ${dy}%)`;
+}
+function rgb(px: number) {
+  return `drop-shadow(${-px}px 0px 0px #ff2d55) drop-shadow(${px}px 0px 0px #00e5ff)`;
+}
+function ghost(x: number, alpha: number) {
+  return `drop-shadow(${x}px 0px 0px color-mix(in srgb, currentColor ${alpha}%, transparent))`;
+}
+function smear(on: boolean) {
+  return [ghost(on ? -3 : 0, 45), ghost(on ? -6 : 0, 25), ghost(on ? -9 : 0, 12)].join(" ");
+}
+function orbit(i: number) {
+  return `translate(${(Math.sin((i * Math.PI) / 4) * 12).toFixed(2)}%, ${(12 - Math.cos((i * Math.PI) / 4) * 12).toFixed(2)}%)`;
+}
 
 export const NODE_MOTION_SPECS: Record<NodeMotion, MotionSpec> = {
   press: outAndBack("transform", "scale(1)", "scale(0.8)", 320, OUT),
@@ -346,8 +353,9 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 
 type Prepared = { targets: Element[]; restore: () => void };
 
-const svgPieces = (svg: SVGSVGElement): SVGElement[] =>
-  [...svg.children].filter((el): el is SVGElement => el instanceof SVGElement);
+function svgPieces(svg: SVGSVGElement): SVGElement[] {
+  return [...svg.children].filter((el): el is SVGElement => el instanceof SVGElement);
+}
 
 function marchingOutline(svg: SVGSVGElement): Prepared {
   const pieces = svgPieces(svg);

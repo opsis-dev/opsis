@@ -10,7 +10,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const errorsAtFrame = (Component: React.FC, frame: number) => {
+function errorsAtFrame(Component: React.FC, frame: number) {
   const errors: string[] = [];
   vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
     errors.push(args.map(String).join(" "));
@@ -26,28 +26,32 @@ const errorsAtFrame = (Component: React.FC, frame: number) => {
     />,
   );
   return errors;
-};
+}
 
 it("draws nothing for no scenes instead of failing", () => {
-  const Empty = () => <SpringSettleScenes scenes={[]} />;
+  function Empty() {
+    return <SpringSettleScenes scenes={[]} />;
+  }
   expect(errorsAtFrame(Empty, 10)).toEqual([]);
 });
 
 it("shows the first scene with no fade-in instead of failing", () => {
-  const Instant = () => (
-    <SpringSettleScenes
-      scenes={[
-        {
-          content: (
-            <SpringSettleItem>
-              <p>first</p>
-            </SpringSettleItem>
-          ),
-          durationInFrames: 60,
-        },
-      ]}
-      config={{ enterFadeFrames: 0 }}
-    />
-  );
+  function Instant() {
+    return (
+      <SpringSettleScenes
+        scenes={[
+          {
+            content: (
+              <SpringSettleItem>
+                <p>first</p>
+              </SpringSettleItem>
+            ),
+            durationInFrames: 60,
+          },
+        ]}
+        config={{ enterFadeFrames: 0 }}
+      />
+    );
+  }
   expect(errorsAtFrame(Instant, 0)).toEqual([]);
 });

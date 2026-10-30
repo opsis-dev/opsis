@@ -1,5 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
@@ -19,11 +20,6 @@ const T = {
   head: 0.2,
   headFor: 0.4,
   exitFor: 0.42,
-} as const;
-
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
 } as const;
 
 function Tick({ color, size, progress }: { color: string; size: number; progress: number }) {
@@ -88,9 +84,12 @@ function ComparisonTableView({
   const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const portrait = height > width;
   const designU = portrait
@@ -112,7 +111,7 @@ function ComparisonTableView({
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, cardWidth * u);

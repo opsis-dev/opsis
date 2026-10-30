@@ -1,12 +1,7 @@
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, random, useCurrentFrame, useVideoConfig } from "remotion";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import type { SplitUnitState } from "#video/lib/text/text-split.ts";
 import { SplitTextChars } from "#video/parts/split-text-chars.tsx";
-
-function noise(index: number, beat: number, seed: number): number {
-  const value = Math.sin(index * 73.19 + beat * 137.51 + seed * 311.7) * 43758.5453;
-  return value - Math.floor(value);
-}
 
 export function NeonFlickerText({
   text,
@@ -32,7 +27,7 @@ export function NeonFlickerText({
   const offColor = offSetting || `color-mix(in srgb, ${glowColor} 16%, transparent)`;
   const humStep = (humRate * Math.PI * 2) / fps;
 
-  const renderUnit = (unit: SplitUnitState) => {
+  function renderUnit(unit: SplitUnitState) {
     const striking = unit.enter > 0 && unit.enter < 1;
     const leaving = flickerOnExit && unit.exit > 0;
 
@@ -41,15 +36,16 @@ export function NeonFlickerText({
       lit = 0;
     } else if (striking) {
       const beat = Math.floor(frame / 2);
-      lit = noise(unit.index, beat, seed) < 0.22 + 0.78 * unit.enter ? 1 : offLevel;
+      lit = random(`${seed}:${unit.index}:${beat}`) < 0.22 + 0.78 * unit.enter ? 1 : offLevel;
     } else {
       const wave = 0.5 + 0.5 * Math.sin(frame * humStep + unit.index * 1.3);
-      const stutter = buzz > 0 && noise(unit.index, Math.floor(frame / 3), seed + 7) < buzz;
+      const stutter =
+        buzz > 0 && random(`${seed + 7}:${unit.index}:${Math.floor(frame / 3)}`) < buzz;
       lit = stutter ? offLevel + 0.2 : 1 - hum * wave;
     }
 
     if (leaving) {
-      const dying = noise(unit.index, Math.floor(frame / 2), seed + 3);
+      const dying = random(`${seed + 3}:${unit.index}:${Math.floor(frame / 2)}`);
       if (dying < unit.exit) lit = offLevel;
     }
 
@@ -71,7 +67,7 @@ export function NeonFlickerText({
         {unit.text}
       </span>
     );
-  };
+  }
 
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>

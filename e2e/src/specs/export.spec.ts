@@ -46,16 +46,17 @@ describe("exports", function () {
     const played = await browser.executeAsync((name: string, done: (answer: string) => void) => {
       const element = document.querySelector<HTMLVideoElement>(`video[src$="${name}"]`);
       if (element === null) return done("no video");
-      const answer = () =>
-        done(
-          element.error === null
-            ? `duration ${element.duration}`
-            : `error ${element.error.code} ${element.error.message}`,
+      function answer(video: HTMLVideoElement) {
+        return done(
+          video.error === null
+            ? `duration ${video.duration}`
+            : `error ${video.error.code} ${video.error.message}`,
         );
+      }
       if (element.readyState >= HTMLMediaElement.HAVE_METADATA || element.error !== null)
-        return answer();
-      element.addEventListener("loadedmetadata", answer);
-      element.addEventListener("error", answer);
+        return answer(element);
+      element.addEventListener("loadedmetadata", () => answer(element));
+      element.addEventListener("error", () => answer(element));
       element.load();
     }, EXPORTED_VIDEO);
     expect(played).toMatch(/^duration \d/);

@@ -1,5 +1,6 @@
 import { Easing, interpolate } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -46,18 +47,15 @@ export function SoftBlurIn({
           const local = frame - i * stagger;
           const easing = Easing.bezier(0.22, 1, 0.36, 1);
           const opacity = interpolate(local, [0, charDurationFrames], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
+            ...CLAMPED,
             easing,
           });
           const y = interpolate(local, [0, charTravelFrames], [distance, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
+            ...CLAMPED,
             easing,
           });
           const blurAmount = interpolate(local, [0, charDurationFrames], [blur, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
+            ...CLAMPED,
             easing,
           });
           return (

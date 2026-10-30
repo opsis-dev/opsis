@@ -1,6 +1,7 @@
+import { clamp01, lerp } from "#video/common/math.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { CursorStyle } from "#video/elements/scene/signup-flow/cursor.tsx";
-import { clamp01, type EasingName, easings } from "#video/lib/neutral-ui/index.ts";
+import { type EasingName, easings } from "#video/lib/ui-kit/motion.ts";
 
 export interface CursorWaypoint {
   at: number;
@@ -21,10 +22,6 @@ export const PRESS_FRAMES = 8;
 export interface CursorPathOptions {
   speed?: number;
   defaultDuration?: number;
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }
 
 export function ripplePhase(framesSinceClick: number): {

@@ -23,10 +23,13 @@ import { rangeProps } from "./knob-math";
 import { sampleAt } from "./meter-levels";
 import { FaderMeter } from "./strip-parts";
 
-const loudnessChoice = (target: LoudnessTarget) =>
-  mixerBook().loudness.find((c) => c.target === target);
+function loudnessChoice(target: LoudnessTarget) {
+  return mixerBook().loudness.find((c) => c.target === target);
+}
 
-const loudnessGoal = (target: LoudnessTarget) => loudnessChoice(target)?.goal ?? null;
+function loudnessGoal(target: LoudnessTarget) {
+  return loudnessChoice(target)?.goal ?? null;
+}
 
 function loudnessLabel(target: LoudnessTarget): string {
   const choice = loudnessChoice(target);
@@ -36,7 +39,9 @@ function loudnessLabel(target: LoudnessTarget): string {
 
 const QUIET_LUFS = -70;
 
-const updateMaster = (patch: MasterPatch) => workflowEdits.mix({ op: "master", patch });
+function updateMaster(patch: MasterPatch) {
+  return workflowEdits.mix({ op: "master", patch });
+}
 
 function Readout({
   label,

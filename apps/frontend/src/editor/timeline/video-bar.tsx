@@ -59,8 +59,9 @@ const SPEED_CORNER = "speed";
 
 const WRAPPER_SEPARATOR = " · ";
 
-const onSpeedCorner = (e: React.PointerEvent) =>
-  e.target instanceof HTMLElement && e.target.dataset.corner === SPEED_CORNER;
+function onSpeedCorner(e: React.PointerEvent) {
+  return e.target instanceof HTMLElement && e.target.dataset.corner === SPEED_CORNER;
+}
 
 function barTitles(wf: Workflow, bar: VideoBar) {
   const wrappers = bar.chain
@@ -138,10 +139,10 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
     toLocal: (abs) => barLocalAt(ctx.localFrames[bar.key], bar, abs),
   });
 
-  const onPress = (e: React.PointerEvent<HTMLDivElement>) => {
+  function onPress(e: React.PointerEvent<HTMLDivElement>) {
     const { kind, ripple } = editFor(tool, hitEdge(e, box.width), onSpeedCorner(e));
     drag.startEdit(e, { domain: "video", kind, bar }, ripple);
-  };
+  }
 
   return (
     <BarFrame

@@ -7,8 +7,9 @@ import { clampZoom, useTimeline } from "./timeline-state";
 
 const WHEEL_ZOOM_STEP = 1.15;
 
-const isPinchOrPrimary = (e: { ctrlKey: boolean; metaKey: boolean }): boolean =>
-  e.ctrlKey || isPrimaryModifier(e, platform);
+function isPinchOrPrimary(e: { ctrlKey: boolean; metaKey: boolean }): boolean {
+  return e.ctrlKey || isPrimaryModifier(e, platform);
+}
 
 export type TimelineZoom = {
   ppf: number;
@@ -32,14 +33,14 @@ export function useTimelineZoom(
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
-    const block = (e: WheelEvent) => {
+    function block(e: WheelEvent) {
       if (isPinchOrPrimary(e)) e.preventDefault();
-    };
+    }
     el.addEventListener("wheel", block, { passive: false });
     return () => el.removeEventListener("wheel", block);
   }, [scroller]);
 
-  const zoomAround = (factor: number, anchorFrame?: number) => {
+  function zoomAround(factor: number, anchorFrame?: number) {
     const el = scroller.current;
     if (!el) return;
     const anchor = anchorFrame ?? usePlayback.getState().frame;
@@ -49,9 +50,9 @@ export function useTimelineZoom(
     requestAnimationFrame(() => {
       el.scrollLeft = Math.max(0, anchor * next - screenX);
     });
-  };
+  }
 
-  const onWheel = (e: React.WheelEvent<HTMLElement>) => {
+  function onWheel(e: React.WheelEvent<HTMLElement>) {
     const el = e.currentTarget;
     if (isPinchOrPrimary(e)) {
       const factor = e.deltaY < 0 ? WHEEL_ZOOM_STEP : 1 / WHEEL_ZOOM_STEP;
@@ -63,7 +64,7 @@ export function useTimelineZoom(
     ) {
       el.scrollLeft += e.deltaY;
     }
-  };
+  }
 
   return {
     ppf,

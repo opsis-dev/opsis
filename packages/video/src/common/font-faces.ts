@@ -6,17 +6,25 @@ type Entry = { signature: string; faces: FontFace[]; ready: Promise<void> };
 
 const registered = new Map<string, Entry>();
 
-export const canRegister = () => typeof document !== "undefined" && typeof FontFace !== "undefined";
+export function canRegister() {
+  return typeof document !== "undefined" && typeof FontFace !== "undefined";
+}
 
-export const urlsOf = (def: FontFamilyDef, resolve: Resolve) =>
-  def.faces.map((f) => resolve(f.file));
+export function urlsOf(def: FontFamilyDef, resolve: Resolve) {
+  return def.faces.map((f) => resolve(f.file));
+}
 
-export const signatureOf = (def: FontFamilyDef, urls: string[]) =>
-  [def.id, ...def.faces.map((f, i) => `${urls[i]} ${f.weight} ${f.style}`)].join("|");
+export function signatureOf(def: FontFamilyDef, urls: string[]) {
+  return [def.id, ...def.faces.map((f, i) => `${urls[i]} ${f.weight} ${f.style}`)].join("|");
+}
 
-const settled = (face: FontFace) => face.status === "loaded" || face.status === "error";
+function settled(face: FontFace) {
+  return face.status === "loaded" || face.status === "error";
+}
 
-export const registeredNames = (): string[] => [...registered.keys()];
+export function registeredNames(): string[] {
+  return [...registered.keys()];
+}
 
 export function loadedSignature(cssName: string): string | null {
   const entry = registered.get(cssName);

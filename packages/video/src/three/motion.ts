@@ -34,18 +34,18 @@ const DEG = Math.PI / 180;
 const DISTANCE_UNITS = 3;
 const SPIN_PITCH = 0.12;
 
-const still = (scale: number): Pose => ({ rotation: [0, 0, 0], position: [0, 0, 0], scale });
+function still(scale: number): Pose {
+  return { rotation: [0, 0, 0], position: [0, 0, 0], scale };
+}
 
-const lerp3 = (a: Vec3, b: Vec3, t: number): Vec3 => [
-  a[0] + (b[0] - a[0]) * t,
-  a[1] + (b[1] - a[1]) * t,
-  a[2] + (b[2] - a[2]) * t,
-];
+function lerp3(a: Vec3, b: Vec3, t: number): Vec3 {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}
 
-const tiltFrom = (deg: number): Vec3 => {
+function tiltFrom(deg: number): Vec3 {
   const rad = (deg * Math.PI) / 180;
   return [-rad, rad, 0];
-};
+}
 
 export function poseAt(
   motion: Motion,
@@ -98,17 +98,21 @@ export function poseAt(
   }
 }
 
-export const viewPose = (view: CameraView): Pose => ({
-  rotation: [view.pitch * DEG, -view.yaw * DEG, 0],
-  position: [0, -view.height, -(view.distance - 1) * DISTANCE_UNITS],
-  scale: 1,
-});
+export function viewPose(view: CameraView): Pose {
+  return {
+    rotation: [view.pitch * DEG, -view.yaw * DEG, 0],
+    position: [0, -view.height, -(view.distance - 1) * DISTANCE_UNITS],
+    scale: 1,
+  };
+}
 
-export const elementPose = (
+export function elementPose(
   motion: Motion,
   camera: CameraPath | undefined,
   time: MotionTime,
-): Pose => (motion === "keyframes" ? viewPose(cameraAt(camera, time.frame)) : poseAt(motion, time));
+): Pose {
+  return motion === "keyframes" ? viewPose(cameraAt(camera, time.frame)) : poseAt(motion, time);
+}
 
 export function fitDistance(radius: number, fovDeg: number, aspect: number): number {
   const vertical = (fovDeg * Math.PI) / 360;

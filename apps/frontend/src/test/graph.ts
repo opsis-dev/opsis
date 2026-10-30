@@ -65,20 +65,24 @@ export class GraphBuilder {
   }
 }
 
-export const workflowNode = (
+export function workflowNode(
   type: string,
   params: Record<string, unknown> = {},
   id = "n",
-): WorkflowNode => ({ id, type, position: { x: 0, y: 0 }, params });
+): WorkflowNode {
+  return { id, type, position: { x: 0, y: 0 }, params };
+}
 
-export const nodeResult = (fields: Partial<NodeResult> = {}): NodeResult => ({
-  hash: "h",
-  outputs: {},
-  artifacts: [],
-  finishedAt: 0,
-  durationMs: 0,
-  ...fields,
-});
+export function nodeResult(fields: Partial<NodeResult> = {}): NodeResult {
+  return {
+    hash: "h",
+    outputs: {},
+    artifacts: [],
+    finishedAt: 0,
+    durationMs: 0,
+    ...fields,
+  };
+}
 
 export function must<T>(value: T | null | undefined, what: string): T {
   if (value === null || value === undefined) throw new Error(`no ${what}`);
@@ -99,6 +103,10 @@ type Film = {
   localFrames: Record<string, LocalFrames>;
 };
 
-export const film = (wf: Workflow): Film => editorData("film", JSON.stringify(wf)) as Film;
+export function film(wf: Workflow): Film {
+  return editorData("film", JSON.stringify(wf)) as Film;
+}
 
-export const flatFilm = (wf: Workflow): FlatTimeline => must(film(wf).flat, "film to flatten");
+export function flatFilm(wf: Workflow): FlatTimeline {
+  return must(film(wf).flat, "film to flatten");
+}

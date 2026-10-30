@@ -4,6 +4,7 @@ use opsis_types::workflow::{Workflow, WorkflowNode};
 use serde_json::{Map, Value};
 
 use crate::edits::EditError;
+use crate::edits::workflow::node_mut;
 use crate::envelope::{envelope_at, envelope_track, sort_keys};
 use crate::text::round_to;
 use crate::timeline::camera_path::{CAMERA_DIALS, CameraDialKey, camera_key_at};
@@ -12,13 +13,6 @@ const ENVELOPE_PARAM: &str = "envelope";
 const CAMERA_PARAM: &str = "camera";
 const VALUE_DIGITS: i32 = 3;
 const NEW_KEY_GAP_SECONDS: f64 = 1.0;
-
-fn node_mut<'a>(wf: &'a mut Workflow, id: &str) -> Result<&'a mut WorkflowNode, EditError> {
-    wf.nodes
-        .iter_mut()
-        .find(|n| n.id == id)
-        .ok_or_else(|| EditError::NoNode(id.to_owned()))
-}
 
 fn envelope_of(node: &WorkflowNode) -> Result<Map<String, Value>, EditError> {
     match node.params.get(ENVELOPE_PARAM) {

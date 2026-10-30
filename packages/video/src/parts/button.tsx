@@ -1,4 +1,5 @@
-import { mixOklch, type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { mixOklch } from "#video/lib/ui-kit/color.ts";
 import { Spinner } from "#video/parts/spinner.tsx";
 
 export type ButtonState = "idle" | "hover" | "press" | "loading" | "success";

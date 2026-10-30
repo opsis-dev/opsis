@@ -1,4 +1,5 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
 import type { NumberFormat } from "#video/generated/spec.ts";
 import {
@@ -74,9 +75,8 @@ export function AnimatedBarChart({
     holdSeconds === undefined
       ? 0
       : interpolate(frame, [holdSeconds * fps, (holdSeconds + EXIT_FOR) * fps], [0, 1], {
+          ...CLAMPED,
           easing: EASING.exit,
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
         });
   const leaving = {
     opacity: 1 - exit,
@@ -84,29 +84,20 @@ export function AnimatedBarChart({
   };
 
   const headerProgress = interpolate(frame, [0, DURATION.normal], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: EASING.enter,
   });
   const subtitleProgress = interpolate(
     frame,
     [STAGGER.tight, STAGGER.tight + DURATION.normal],
     [0, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: EASING.enter,
-    },
+    { ...CLAMPED, easing: EASING.enter },
   );
   const axisProgress = interpolate(
     frame,
     [STAGGER.normal, STAGGER.normal + DURATION.normal],
     [0, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: EASING.enter,
-    },
+    { ...CLAMPED, easing: EASING.enter },
   );
 
   return (
@@ -295,10 +286,7 @@ export function AnimatedBarChart({
                             : delta.direction === "up"
                               ? COLORS.up
                               : COLORS.label,
-                        opacity: interpolate(enter, [0.7, 1], [0, 1], {
-                          extrapolateLeft: "clamp",
-                          extrapolateRight: "clamp",
-                        }),
+                        opacity: interpolate(enter, [0.7, 1], [0, 1], CLAMPED),
                       }}
                     >
                       {delta.text}

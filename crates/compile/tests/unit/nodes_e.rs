@@ -10,13 +10,9 @@ use opsis_types::values::ClipValue;
 use serde_json::{Map, Value, json};
 
 use crate::helpers::{
-    CLIP, card_texts, clip_value, compile_clip, compile_node, make_log, node_card, parse_params,
-    style_entries, take_recording, zoomed,
+    CLIP, card_texts, clip_value, compile_clip, compile_node, group_value, make_log, node_card,
+    problem, style_entries, take_recording, zoomed,
 };
-
-fn problem(kind: &str, params: Value) -> Option<String> {
-    parse_params(kind, params).err()
-}
 
 #[test]
 fn keeps_a_crop_inside_the_recording_and_asks_backdrops_for_what_their_kind_needs() {
@@ -111,13 +107,6 @@ fn places_a_second_speed_ramp_at_its_own_recording_time() {
     );
     let style = serde_json::to_value(&out["recording"]).unwrap()["style"].clone();
     assert_eq!(style[0]["type"], "camera.speedRamp");
-}
-
-fn group_value(clip: &ClipValue) -> Value {
-    match &clip.tracks[0].items[0] {
-        TimelineItem::Group { props, .. } => serde_json::to_value(props).unwrap(),
-        other => panic!("{other:?}"),
-    }
 }
 
 #[test]

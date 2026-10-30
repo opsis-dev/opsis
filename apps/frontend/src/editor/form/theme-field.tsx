@@ -18,10 +18,10 @@ export function ThemeField({ id, label, meta, value, onChange, ctx }: FieldProps
   const tokens = Object.keys(preset);
   const changed = Object.values(value.colors).filter((c) => c.trim()).length;
   const swatches = [...new Set([...ctx.swatches, ...Object.values(preset)])];
-  const setColor = (token: string, color: string) => {
+  function setColor(token: string, color: string) {
     const rest = Object.fromEntries(Object.entries(value.colors).filter(([k]) => k !== token));
     onChange({ ...value, colors: color.trim() ? { ...rest, [token]: color } : rest });
-  };
+  }
   return (
     <Field>
       <div className="flex items-center justify-between gap-2">

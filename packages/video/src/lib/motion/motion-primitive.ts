@@ -7,6 +7,7 @@ import {
   useVideoConfig,
   type SpringConfig,
 } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import { springBouncy, springSmooth, springSnappy } from "#video/lib/motion/springs.ts";
 import { EASING_ENTER, EASING_EXIT } from "#video/lib/motion/timing.ts";
 
@@ -68,11 +69,6 @@ export type MotionState = {
   enterTime: number;
 };
 
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
-} as const;
-
 export function useEnterExit({
   durationInFrames = DEFAULT_ENTER_FRAMES,
   delayInFrames = 0,
@@ -89,7 +85,7 @@ export function useEnterExit({
   const duration = Math.max(1, Math.round(durationInFrames));
   const delay = Math.max(0, Math.round(delayInFrames));
 
-  const enterTime = interpolate(frame, [delay, delay + duration], [0, 1], clamp);
+  const enterTime = interpolate(frame, [delay, delay + duration], [0, 1], CLAMPED);
 
   const enterMotion = springProp
     ? spring({
@@ -101,12 +97,12 @@ export function useEnterExit({
       })
     : interpolate(enterTime, [0, 1], [0, 1], {
         easing: EASING_ARRIVE,
-        ...clamp,
+        ...CLAMPED,
       });
 
   const enterOpacity = interpolate(enterTime, [0, ENTER_OPACITY_LEAD], [0, 1], {
     easing: EASING_ENTER,
-    ...clamp,
+    ...CLAMPED,
   });
 
   const exitFrames =
@@ -130,14 +126,14 @@ export function useEnterExit({
   }
 
   const exitStart = Math.max(requested, delay + duration);
-  const exitTime = interpolate(frame, [exitStart, exitStart + exitFrames], [0, 1], clamp);
+  const exitTime = interpolate(frame, [exitStart, exitStart + exitFrames], [0, 1], CLAMPED);
   const exitProgress = interpolate(exitTime, [0, 1], [0, 1], {
     easing: EASING_EXIT,
-    ...clamp,
+    ...CLAMPED,
   });
   const exitOpacity = interpolate(exitTime, [0, EXIT_OPACITY_LEAD], [1, 0], {
     easing: EASING_EXIT,
-    ...clamp,
+    ...CLAMPED,
   });
   const exiting = frame >= exitStart;
 

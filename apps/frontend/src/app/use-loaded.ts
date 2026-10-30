@@ -24,5 +24,6 @@ export function useLoaded<T>(load: () => Promise<T>, failure: string, key = ""):
   return loaded?.key === key ? loaded.value : null;
 }
 
-export const useProjectLocations = (key = "") =>
-  useLoaded(() => commands.projectLocations(), "Couldn't find the projects folder", key);
+export function useProjectLocations(key = "") {
+  return useLoaded(() => commands.projectLocations(), "Couldn't find the projects folder", key);
+}

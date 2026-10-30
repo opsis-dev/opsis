@@ -20,12 +20,15 @@ import type { TimelineCommands } from "./use-timeline-commands";
 
 type VideoChoice = EnvelopeKey | "off";
 
-const tracksFor = (audio: boolean): EnvelopeKey[] =>
-  timelineBook()
+function tracksFor(audio: boolean): EnvelopeKey[] {
+  return timelineBook()
     .envelopes.filter((t) => t.audio === audio)
     .map((t) => t.key);
+}
 
-const videoLabel = (v: VideoChoice) => (v === "off" ? "No keyframes" : envelopeTrack(v).label);
+function videoLabel(v: VideoChoice) {
+  return v === "off" ? "No keyframes" : envelopeTrack(v).label;
+}
 
 function IconTip({
   label,
@@ -173,10 +176,10 @@ function PlayButton() {
 function Clock({ fps, duration }: { fps: number; duration: number }) {
   const frame = usePlayback((s) => s.frame);
   const timeAt = useFormatTime(fps);
-  const switchMode = () => {
+  function switchMode() {
     const { rulerMode, setRulerMode } = useTimeline.getState();
     setRulerMode(rulerMode === "seconds" ? "timecode" : "seconds");
-  };
+  }
   return (
     <WithTooltip
       trigger={

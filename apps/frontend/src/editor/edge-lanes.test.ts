@@ -29,12 +29,12 @@ const graph = fc
     }));
   });
 
-const span = (boxes: ReadonlyMap<string, LaneBox>, e: LaneEdge) => {
+function span(boxes: ReadonlyMap<string, LaneBox>, e: LaneEdge) {
   const a = boxes.get(e.source);
   const b = boxes.get(e.target);
   if (!a || !b) throw new Error("missing box");
   return { top: Math.min(a.y, b.y), bottom: Math.max(a.y + a.height, b.y + b.height), column: b.x };
-};
+}
 
 describe("edge lanes", () => {
   it("keeps every turn inside the gap between the two cards", () => {

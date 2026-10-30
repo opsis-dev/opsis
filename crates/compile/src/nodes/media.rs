@@ -509,14 +509,7 @@ fn import() -> NodeDef {
             has_audio: None,
         });
         let handles = EditHandles {
-            trim_end: Some(ParamRef {
-                node_id: ctx.node_id.to_owned(),
-                param: "stillMs".into(),
-                unit: ParamUnit::Ms,
-                scale: None,
-                index: None,
-                linked: None,
-            }),
+            trim_end: Some(ParamRef::new(ctx.node_id, "stillMs", ParamUnit::Ms)),
             ..EditHandles::default()
         };
         let look = ClipLook {

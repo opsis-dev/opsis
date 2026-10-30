@@ -12,7 +12,7 @@ use serde_json::json;
 
 use crate::cdp::{CaptureError, Handle, Tab};
 use crate::still_layout::{Area, Size, capture_canvas, capture_scale, padded_region, tallest_shot};
-use crate::take::{Played, StepError, TakeEnv, TakeRun, play_take};
+use crate::take::{Played, StepError, TakeEnv, TakeRun, failed, play_take};
 use crate::trace::CallInfo;
 
 const SIZE_TRIES: usize = 20;
@@ -55,10 +55,6 @@ pub struct StillRequest<'a> {
     pub params: &'a Still,
     pub project: Size,
     pub file: &'a Path,
-}
-
-fn failed(message: impl Into<String>) -> StepError {
-    StepError::Capture(CaptureError::failed(message))
 }
 
 async fn sized_box(

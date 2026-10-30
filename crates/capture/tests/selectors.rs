@@ -1,5 +1,6 @@
+mod support;
+
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::time::Duration;
 
 use base64::Engine;
@@ -12,14 +13,8 @@ use opsis_compile::nodes::browser::{Open, WaitUntil};
 use opsis_engine::paths::downloaded_browser;
 use opsis_types::actions::Point;
 use serde_json::json;
+use support::engine_dir;
 use tokio_util::sync::CancellationToken;
-
-fn engine_dir() -> PathBuf {
-    std::env::var_os("HOME")
-        .map(PathBuf::from)
-        .expect("HOME")
-        .join(".config/Opsis/engine")
-}
 
 struct Page {
     session: Session,

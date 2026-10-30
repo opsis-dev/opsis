@@ -1,65 +1,25 @@
 import { interpolate, Sequence } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredFrame, useRealFrames } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-
-const KEYWORDS = new Set([
-  "import",
-  "from",
-  "export",
-  "function",
-  "const",
-  "let",
-  "var",
-  "return",
-  "if",
-  "else",
-  "for",
-  "while",
-  "new",
-  "class",
-  "extends",
-  "default",
-  "true",
-  "false",
-  "null",
-  "undefined",
-]);
-
-type Token = {
-  text: string;
-  kind: "code" | "comment" | "string" | "keyword" | "number";
-};
+import { type CodeToken, type CodeTokenKind, tokenizeCode } from "#video/lib/code/code-syntax.tsx";
 
 const MIN_FONT_SIZE = 9;
 
-function tokenizeLine(line: string): Token[] {
-  const trimmed = line.trimStart();
-  if (trimmed.startsWith("//")) {
-    return [{ text: line, kind: "comment" }];
-  }
+type TokenColors = Record<"code" | "comment" | "string" | "keyword" | "number", string>;
 
-  const tokens: Token[] = [];
-  const re = /("[^"]*"|'[^']*'|`[^`]*`|\b\d+\b|\b[A-Za-z_$][\w$]*\b|[^\w"'`]+|["'`])/g;
-  let match: RegExpExecArray | null = re.exec(line);
-  while (match !== null) {
-    const t = match[0];
-    const first = t[0];
-    if (first === '"' || first === "'" || first === "`") {
-      tokens.push({ text: t, kind: "string" });
-    } else if (/^\d+$/.test(t)) {
-      tokens.push({ text: t, kind: "number" });
-    } else if (/^[A-Za-z_$][\w$]*$/.test(t) && KEYWORDS.has(t)) {
-      tokens.push({ text: t, kind: "keyword" });
-    } else {
-      tokens.push({ text: t, kind: "code" });
-    }
-    match = re.exec(line);
+function colorOf(colors: TokenColors, kind: CodeTokenKind): string {
+  switch (kind) {
+    case "comment":
+    case "string":
+    case "keyword":
+    case "number":
+      return colors[kind];
+    default:
+      return colors.code;
   }
-  return tokens;
 }
-
-type TokenColors = Record<Token["kind"], string>;
 
 export function GlassCodeBlock({
   code,
@@ -94,6 +54,7 @@ export function GlassCodeBlock({
   };
   const realFrames = useRealFrames();
   const lines = code.split("\n");
+  const tokenized = tokenizeCode(lines);
   const digits = String(lines.length).length;
   const longest = Math.max(1, ...lines.map((line) => line.length));
   const bodyHeight = height - 2 - 40 - 40;
@@ -202,14 +163,14 @@ export function GlassCodeBlock({
                 translate: `0 ${-scroll}px`,
               }}
             >
-              {lines.map((line, i) => (
+              {tokenized.map((tokens, i) => (
                 <Sequence
                   key={i}
                   from={Math.round(realFrames((i * staggerFrames) / speed))}
                   layout="none"
                 >
                   <CodeLine
-                    line={line}
+                    tokens={tokens}
                     index={i}
                     digits={digits}
                     fontSize={fitted}
@@ -241,14 +202,14 @@ function Light({ color }: { color: string }) {
 }
 
 function CodeLine({
-  line,
+  tokens,
   index,
   digits,
   fontSize,
   colors,
   gutter,
 }: {
-  line: string;
+  tokens: CodeToken[];
   index: number;
   digits: number;
   fontSize: number;
@@ -256,16 +217,9 @@ function CodeLine({
   gutter: string;
 }) {
   const frame = useAuthoredFrame();
-  const opacity = interpolate(frame, [0, 8], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const ty = interpolate(frame, [0, 8], [4, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const opacity = interpolate(frame, [0, 8], [0, 1], CLAMPED);
+  const ty = interpolate(frame, [0, 8], [4, 0], CLAMPED);
 
-  const tokens = tokenizeLine(line);
   if (tokens.length === 0) {
     return <div style={{ height: fontSize * 0.8, opacity }} />;
   }
@@ -284,7 +238,7 @@ function CodeLine({
       </span>
       <span>
         {tokens.map((t, i) => (
-          <span key={i} style={{ color: colors[t.kind] }}>
+          <span key={i} style={{ color: colorOf(colors, t.kind) }}>
             {t.text}
           </span>
         ))}

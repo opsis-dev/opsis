@@ -25,10 +25,10 @@ function useCatalog(): { catalog: Catalog; retry: () => void; reload: () => void
     );
   }, []);
   useEffect(fetchCatalog, [fetchCatalog]);
-  const retry = () => {
+  function retry() {
     setCatalog({ status: "loading" });
     fetchCatalog();
-  };
+  }
   return { catalog, retry, reload: fetchCatalog };
 }
 
@@ -120,12 +120,13 @@ export function OnlineDialog({
     matchesQuery(query, f.family, categoryLabel(f.category)),
   );
 
-  const download = (entry: FontCatalogEntry) =>
-    run(entry.id, async () => {
+  function download(entry: FontCatalogEntry) {
+    return run(entry.id, async () => {
       announceDownload(await commands.downloadFont(entry.id));
       await onAdded();
       reload();
     });
+  }
 
   return (
     <SearchListDialog

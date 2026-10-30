@@ -1,11 +1,8 @@
-import {
-  easings,
-  mixOklch,
-  type NeutralTheme,
-  type Step,
-  useNeutralTheme,
-  useStateTransition,
-} from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { mixOklch } from "#video/lib/ui-kit/color.ts";
+import { easings } from "#video/lib/ui-kit/motion.ts";
+import { useStateTransition } from "#video/lib/ui-kit/timeline.ts";
+import { type Step } from "#video/lib/ui-kit/types.ts";
 import {
   type InputState,
   type InputStyle,

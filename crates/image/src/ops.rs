@@ -1236,7 +1236,7 @@ fn shape_distance(px: f64, py: f64, rect: Rect, p: &Magnify) -> f64 {
     rounded_distance(px, py, rect, corner)
 }
 
-fn segment_distance(point: (f64, f64), from: (f64, f64), to: (f64, f64)) -> f64 {
+pub(crate) fn segment_distance(point: (f64, f64), from: (f64, f64), to: (f64, f64)) -> f64 {
     let (dx, dy) = (to.0 - from.0, to.1 - from.1);
     let length = dx * dx + dy * dy;
     let t = if length > 0.0 {

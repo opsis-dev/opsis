@@ -1,6 +1,8 @@
 import { getLength, getPointAtLength } from "@remotion/paths";
 import { useId } from "react";
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { clamp01 } from "#video/common/math.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import {
   buildAreaPath,
   buildLinePath,
@@ -37,8 +39,6 @@ export type LineChartDrawProps = {
   frame?: number;
 };
 
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-
 export function LineChartDraw({
   points,
   width: widthProp,
@@ -68,7 +68,9 @@ export function LineChartDraw({
   const height = heightProp ?? Math.round(config.height * 0.4);
 
   const unit = width / 960;
-  const scale = (value: number) => Math.max(1, Math.round(value * unit));
+  function scale(value: number) {
+    return Math.max(1, Math.round(value * unit));
+  }
   const labelSize = scale(22);
   const strokeWidth = strokeWidthProp ?? scale(5);
 
@@ -92,8 +94,7 @@ export function LineChartDraw({
   const areaPath = buildAreaPath(linePath, plotted, plot.bottom);
 
   const progress = interpolate(frame, [delayInFrames, delayInFrames + durationInFrames], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: EASING.enter,
   });
 
@@ -107,10 +108,7 @@ export function LineChartDraw({
   const clipId = `${uid}-clip`;
 
   const endPoint = plotted[plotted.length - 1];
-  const endLabelOpacity = interpolate(progress, [0.88, 1], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const endLabelOpacity = interpolate(progress, [0.88, 1], [0, 1], CLAMPED);
 
   return (
     <svg

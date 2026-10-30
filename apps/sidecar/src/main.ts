@@ -9,11 +9,15 @@ console.log = console.error;
 console.info = console.error;
 console.debug = console.error;
 
-const send = (message: SidecarMessage) => writeMessage(`${JSON.stringify(message)}\n`);
+function send(message: SidecarMessage) {
+  return writeMessage(`${JSON.stringify(message)}\n`);
+}
 
 const running = new Map<number, { controller: AbortController; done: Promise<void> }>();
 
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error));
+function messageOf(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
 
 function work(request: SidecarRequest, signal: AbortSignal): Promise<void> {
   switch (request.method) {

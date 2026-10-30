@@ -44,7 +44,9 @@ function useEditorSetup(projectDir: string): void {
     useProjectFiles.getState().forget();
   }, [projectDir]);
   useEffect(() => {
-    const checkAgain = () => void useProjectFiles.getState().checkAgain();
+    function checkAgain() {
+      return void useProjectFiles.getState().checkAgain();
+    }
     window.addEventListener("focus", checkAgain);
     return () => window.removeEventListener("focus", checkAgain);
   }, []);

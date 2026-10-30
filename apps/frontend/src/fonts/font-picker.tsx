@@ -45,10 +45,11 @@ const NO_CHOICES: FontChoices = { project: [], builtIn: [], library: [] };
 
 const NO_FAMILIES: FontFamilyDef[] = [];
 
-const fetchChoices = (value: string, project: FontFamilyDef[], show: (c: FontChoices) => void) =>
-  commands
+function fetchChoices(value: string, project: FontFamilyDef[], show: (c: FontChoices) => void) {
+  return commands
     .fontChoices(value, project)
     .then(show, (e: unknown) => reportError("Couldn't list the fonts", e));
+}
 
 function useFontChoices(value: string): [FontChoices, () => void] {
   const project = useWorkflowStore((s) => s.workflow?.settings.fonts.families) ?? NO_FAMILIES;
@@ -86,23 +87,24 @@ export function FontPicker({
   const { isBusy, run } = useBusy();
   const [{ project, builtIn, library, current }, refresh] = useFontChoices(value);
 
-  const toggle = (next: boolean) => {
+  function toggle(next: boolean) {
     setOpen(next);
     if (next) refresh();
-  };
+  }
 
-  const choose = (choice: FontChoice | null) => {
+  function choose(choice: FontChoice | null) {
     setOpen(false);
     const def = choice?.def;
     if (def && library.includes(choice))
       void run(def.id, async () => onChange((await copyIntoProject(def)).family));
     else onChange(def?.family ?? "");
-  };
+  }
 
-  const items = (choices: FontChoice[]) =>
-    choices.map((choice) => (
+  function items(choices: FontChoice[]) {
+    return choices.map((choice) => (
       <FontCommandItem key={choice.preview} choice={choice} onPick={choose} />
     ));
+  }
 
   return (
     <Popover open={open} onOpenChange={toggle}>

@@ -11,10 +11,17 @@ type Box = { left: number; top: number; width: number; height: number };
 type Mark = { kind: string; x: number; y: number; x2: number; y2: number };
 type Project = { workflow: { nodes: Array<{ id: string; params?: { marks?: Mark[] } }> } };
 
-const marksOf = async (): Promise<Mark[]> => {
+async function marksOf(): Promise<Mark[]> {
   const project = (await api("GET", "/project")).body as Project;
   return findById(project.workflow.nodes, "notes")?.params?.marks ?? [];
-};
+}
+
+function pointIn(box: Box, fx: number, fy: number) {
+  return {
+    x: Math.round(box.left + box.width * fx),
+    y: Math.round(box.top + box.height * fy),
+  };
+}
 
 describe("annotate", function () {
   this.timeout(120_000);
@@ -62,11 +69,7 @@ describe("annotate", function () {
       return { left: b.left, top: b.top, width: b.width, height: b.height };
     });
     if (!stage) throw new Error("no marks canvas");
-    const at = (fx: number, fy: number) => ({
-      x: Math.round(stage.left + stage.width * fx),
-      y: Math.round(stage.top + stage.height * fy),
-    });
-    const [from, to] = [at(0.25, 0.25), at(0.6, 0.7)];
+    const [from, to] = [pointIn(stage, 0.25, 0.25), pointIn(stage, 0.6, 0.7)];
     await browser.performActions([
       {
         type: "pointer",

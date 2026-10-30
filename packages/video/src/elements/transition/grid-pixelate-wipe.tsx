@@ -1,6 +1,7 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import { useMemo } from "react";
 import { AbsoluteFill, Easing, interpolate, useVideoConfig } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings, PixelateOrder, PixelShape } from "#video/generated/spec.ts";
 import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
@@ -43,11 +44,7 @@ function cellOpacity(progress: number, rank: number, stagger: number): number {
   const span = Math.max(1 - stagger, 0.001);
   const raw = Math.min(1, Math.max(0, (progress - revealAt) / span));
 
-  return interpolate(raw, [0, 1], [0, 1], {
-    easing: Easing.out(Easing.cubic),
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  return interpolate(raw, [0, 1], [0, 1], { ...CLAMPED, easing: Easing.out(Easing.cubic) });
 }
 
 function buildGridMask(

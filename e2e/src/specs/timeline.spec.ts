@@ -5,17 +5,23 @@ import { PROJECTS } from "../support/paths";
 
 const WAIT_MS = 30_000;
 
-const clock = () => $("//*[@data-timeline-root]//button[contains(., ' / ')]");
+function clock() {
+  return $("//*[@data-timeline-root]//button[contains(., ' / ')]");
+}
 
-const hasActiveNode = () =>
-  browser.execute(() =>
+function hasActiveNode() {
+  return browser.execute(() =>
     [...document.querySelectorAll(".react-flow__node *")].some((el) =>
       el.classList.contains("ring-primary/70"),
     ),
   );
+}
 
-const hasHighlightedBar = () =>
-  browser.execute(() => document.querySelector("[data-timeline-root] .brightness-125") !== null);
+function hasHighlightedBar() {
+  return browser.execute(
+    () => document.querySelector("[data-timeline-root] .brightness-125") !== null,
+  );
+}
 
 describe("timeline", function () {
   this.timeout(120_000);

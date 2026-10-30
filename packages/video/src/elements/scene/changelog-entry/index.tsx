@@ -1,5 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
@@ -27,11 +28,6 @@ const T = {
   rule: 0.34,
   ruleFor: 0.5,
   exitFor: 0.42,
-} as const;
-
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
 } as const;
 
 function ChangelogEntryView({
@@ -69,9 +65,12 @@ function ChangelogEntryView({
   const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const portrait = height > width;
   const u = portrait ? Math.min(width / 496, height / 896) : Math.min(width / 1024, height / 576);
@@ -90,14 +89,16 @@ function ChangelogEntryView({
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, cardWidth * u);
   const pad = 30 * u;
   const tagW = 74 * u;
 
-  const colorFor = (kind: ChangeKind) => kindColors[kind] || DEFAULT_KIND_COLORS[kind];
+  function colorFor(kind: ChangeKind) {
+    return kindColors[kind] || DEFAULT_KIND_COLORS[kind];
+  }
 
   return (
     <AbsoluteFill
@@ -166,7 +167,7 @@ function ChangelogEntryView({
               color: palette.dim,
               fontSize: 16.5 * u,
               fontWeight: 500,
-              opacity: interpolate(versionIn, [0.4, 1], [0, 1], clamp),
+              opacity: interpolate(versionIn, [0.4, 1], [0, 1], CLAMPED),
             }}
           >
             {summary}

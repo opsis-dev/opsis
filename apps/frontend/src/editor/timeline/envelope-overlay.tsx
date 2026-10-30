@@ -28,8 +28,9 @@ function envelopeLine({ keys, width, rest, toX, y }: LineShape): string {
   ].join(" ");
 }
 
-const onKeyframe = (e: React.PointerEvent) =>
-  e.target instanceof Element && e.target.closest("[data-keyframe]") !== null;
+function onKeyframe(e: React.PointerEvent) {
+  return e.target instanceof Element && e.target.closest("[data-keyframe]") !== null;
+}
 
 function useKeyframeAdder(
   target: EnvelopeTarget | null,
@@ -86,9 +87,13 @@ export function EnvelopeOverlay({
   if (!target) return null;
   const { nodeId, prop, keys } = target;
   const { rest, label } = envelopeTrack(prop);
-  const y = (v: number) => envelopeY(prop, v * scale, height);
+  function y(v: number) {
+    return envelopeY(prop, v * scale, height);
+  }
   const ids = uniqueKeys(keys.map((k) => String(k.frame)));
-  const remove = (index: number) => editKeys({ op: "removeKey", nodeId, track: prop, index });
+  function remove(index: number) {
+    return editKeys({ op: "removeKey", nodeId, track: prop, index });
+  }
   return (
     <svg className="absolute inset-0 overflow-visible" width={width} height={height}>
       <polyline

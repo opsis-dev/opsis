@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createCutBoard } from "#video/core/transition-cuts.tsx";
 
-const image = () => ({}) as OffscreenCanvas;
+function image() {
+  return {} as OffscreenCanvas;
+}
 
 describe("cut board", () => {
   it("draws both scenes through the incoming side once both report the same progress", () => {

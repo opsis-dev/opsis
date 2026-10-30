@@ -6,12 +6,13 @@ import {
   Img,
   interpolate,
   OffthreadVideo,
-  staticFile,
   useVideoConfig,
 } from "remotion";
+import { lerp } from "#video/common/math.ts";
 import { themeColors } from "#video/common/theme.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-import type { ElementSettings } from "#video/generated/spec.ts";
+import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
 import { type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
@@ -34,6 +35,7 @@ export interface CameraMove {
 }
 
 type ScreenRecordingProps = Omit<ElementSettings["screen-recording"], "theme"> & {
+  srcKind?: MediaKind;
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
@@ -58,15 +60,9 @@ export interface CameraPose {
 
 export const RESTING_POSE: CameraPose = { zoom: 1, x: 0.5, y: 0.5 };
 
-const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
-
 function moveProgress(frame: number, at: number, duration: number): number {
   if (duration <= 0) return 1;
-  return interpolate(frame, [at, at + duration], [0, 1], {
-    easing: CAMERA_EASE,
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  return interpolate(frame, [at, at + duration], [0, 1], { ...CLAMPED, easing: CAMERA_EASE });
 }
 
 export function cameraPoseAt(frame: number, moves?: CameraMove[]): CameraPose {
@@ -176,24 +172,13 @@ export function shotLayout(
   };
 }
 
-const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
-
-const pct = (value: number, of: number) => `${(value / of) * 100}%`;
-
-function resolveSrc(src: string): string {
-  const isLocal = src.startsWith("/") && !src.startsWith("//");
-  if (!isLocal || getRemotionEnvironment().isPlayer) return src;
-  const base = staticFile("_").slice(0, -2);
-  if (base && src.startsWith(`${base}/`)) return src;
-  try {
-    return staticFile(src.replace(/^\/+/, ""));
-  } catch {
-    return src;
-  }
+function pct(value: number, of: number) {
+  return `${(value / of) * 100}%`;
 }
 
 function ScreenRecordingView({
   src,
+  srcKind,
   cropTop,
   cropRight,
   cropBottom,
@@ -231,10 +216,7 @@ function ScreenRecordingView({
   const arrival =
     entrance === "none"
       ? 1
-      : interpolate(frame, [ENTRANCE_START, ENTRANCE_START + ENTRANCE_FRAMES], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        });
+      : interpolate(frame, [ENTRANCE_START, ENTRANCE_START + ENTRANCE_FRAMES], [0, 1], CLAMPED);
 
   const mediaStyle: CSSProperties = {
     position: "absolute",
@@ -247,7 +229,7 @@ function ScreenRecordingView({
     opacity: arrival,
     ...(arrival < 1 ? { filter: `blur(${(1 - arrival) * ENTRANCE_BLUR}px)` } : null),
   };
-  const resolved = resolveSrc(src);
+  const resolved = src;
 
   return (
     <AbsoluteFill
@@ -276,7 +258,7 @@ function ScreenRecordingView({
             overflow: "hidden",
           }}
         >
-          {isVideo(src) ? (
+          {srcKind === "video" ? (
             <OffthreadVideo
               src={resolved}
               muted={!audio}
@@ -293,7 +275,10 @@ function ScreenRecordingView({
   );
 }
 
-export function ScreenRecording({ theme, ...settings }: ElementSettings["screen-recording"]) {
+export function ScreenRecording({
+  theme,
+  ...settings
+}: ElementSettings["screen-recording"] & { srcKind?: MediaKind }) {
   return (
     <WarmUIProvider mode={theme.mode}>
       <ScreenRecordingView {...settings} theme={themeColors(theme)} mode={theme.mode} />

@@ -4,7 +4,9 @@ import { iconNames } from "lucide-react/dynamic";
 import { describe, expect, it } from "vitest";
 import { NODE_ICONS } from "./icons";
 
-const exportName = (name: string): string => `${pascalCase(name)}Icon`;
+function exportName(name: string): string {
+  return `${pascalCase(name)}Icon`;
+}
 
 const lucideExports: Record<string, unknown> = lucide;
 

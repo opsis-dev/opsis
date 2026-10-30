@@ -9,13 +9,17 @@ export type Reduction = number[] | null | undefined;
 
 export type Level = { peak: number; rms: number; hold: number } | null;
 
-export const sampleAt = (values: number[] | null | undefined, frame: number): number | null =>
-  values?.length ? values[clampFrame(frame, values.length)] : null;
+export function sampleAt(values: number[] | null | undefined, frame: number): number | null {
+  return values?.length ? values[clampFrame(frame, values.length)] : null;
+}
 
-export const reductionAt = (reduction: Reduction, frame: number): number | null =>
-  reduction ? (sampleAt(reduction, frame) ?? 0) : null;
+export function reductionAt(reduction: Reduction, frame: number): number | null {
+  return reduction ? (sampleAt(reduction, frame) ?? 0) : null;
+}
 
-const power = (db: number) => 10 ** (db / 10);
+function power(db: number) {
+  return 10 ** (db / 10);
+}
 
 export function share(result: MixResult | null, levels: Levels, frame: number): number {
   const master = sampleAt(result?.levels.master?.rms, frame);

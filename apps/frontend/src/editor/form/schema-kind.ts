@@ -70,12 +70,22 @@ export type TypedField = {
   [K in FieldKind["kind"]]: Extract<FieldKind, { kind: K }> & { value: FieldValue[K] };
 }[FieldKind["kind"]];
 
-const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every(isString);
-const isNumberList = (v: unknown): v is number[] => Array.isArray(v) && v.every(isNumber);
-const isOptionalNumber = (v: unknown): v is number | undefined => v === undefined || isNumber(v);
-const isRecordList = (v: unknown): v is ParamValues[] => Array.isArray(v) && v.every(isRecord);
+function isStringList(v: unknown): v is string[] {
+  return Array.isArray(v) && v.every(isString);
+}
+function isNumberList(v: unknown): v is number[] {
+  return Array.isArray(v) && v.every(isNumber);
+}
+function isOptionalNumber(v: unknown): v is number | undefined {
+  return v === undefined || isNumber(v);
+}
+function isRecordList(v: unknown): v is ParamValues[] {
+  return Array.isArray(v) && v.every(isRecord);
+}
 
-const stringOptions = (schema: JsonSchema): string[] => (schema.enum ?? []).filter(isString);
+function stringOptions(schema: JsonSchema): string[] {
+  return (schema.enum ?? []).filter(isString);
+}
 
 function arrayKind(list: JsonSchema): SchemaKind | null {
   const element = list.items;
@@ -108,16 +118,19 @@ function schemaKind(schema: JsonSchema): SchemaKind | null {
   return null;
 }
 
-const envelopeTracks = (schema: JsonSchema): EnvelopeKey[] =>
-  shapeEntries(schema)
+function envelopeTracks(schema: JsonSchema): EnvelopeKey[] {
+  return shapeEntries(schema)
     .map(([key]) => key)
     .filter(isEnvelopeKey);
+}
 
-const typed = <K extends { kind: string }, V>(
+function typed<K extends { kind: string }, V>(
   kind: K,
   value: unknown,
   is: (v: unknown) => v is V,
-): (K & { value: V }) | null => (is(value) ? { ...kind, value } : null);
+): (K & { value: V }) | null {
+  return is(value) ? { ...kind, value } : null;
+}
 
 export function typedField(schema: JsonSchema, raw: unknown): TypedField | null {
   const value = raw === null ? undefined : raw;

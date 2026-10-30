@@ -5,6 +5,7 @@ import type {
 import type { ReactNode } from "react";
 import { useId } from "react";
 import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
 export const SHAKE_STOPS = [-9 / 11, -3 / 11, 4 / 11, 8 / 11] as const;
@@ -71,10 +72,10 @@ function ringClip(
   cx: number,
   cy: number,
 ): string {
-  const circle = (r: number, clockwise: boolean) => {
+  function circle(r: number, clockwise: boolean) {
     const s = clockwise ? 1 : 0;
     return `M ${cx + r} ${cy} A ${r} ${r} 0 1 ${s} ${cx - r} ${cy} A ${r} ${r} 0 1 ${s} ${cx + r} ${cy} Z`;
-  };
+  }
   const outer = rOuter === null ? `M 0 0 L ${w} 0 L ${w} ${h} L 0 ${h} Z` : circle(rOuter, true);
   return rInner > 0 ? `${outer} ${circle(rInner, false)}` : outer;
 }
@@ -260,7 +261,9 @@ function LensZoomStage({
   );
 
   const t = (frame / fps) * shakeFrequency * shakeCyclesPerUnit;
-  const octave = (seed: number) => valueNoise(seed, t) + 0.45 * valueNoise(seed + 977, t * 2.6);
+  function octave(seed: number) {
+    return valueNoise(seed, t) + 0.45 * valueNoise(seed + 977, t * 2.6);
+  }
   const shakeX = octave(11) * shakeTranslatePx * shakeEnvelope;
   const shakeY = octave(23) * shakeTranslatePx * shakeEnvelope;
   const shakeR = octave(41) * shakeRotateDeg * shakeEnvelope;
@@ -373,34 +376,24 @@ function LensZoomPresentation({
   if (exiting ? presentationProgress >= 0.5 : presentationProgress < 0.5) return null;
 
   const p = exiting
-    ? interpolate(presentationProgress, [0, 0.5], [0, 1], {
-        easing: LENS_ZOOM_EASE_IN,
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-      })
+    ? interpolate(presentationProgress, [0, 0.5], [0, 1], { ...CLAMPED, easing: LENS_ZOOM_EASE_IN })
     : interpolate(presentationProgress, [0.5, 1], [0, 1], {
+        ...CLAMPED,
         easing: LENS_ZOOM_EASE_OUT,
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
       });
 
   const anticipating = exiting && pullBack < inScaleFrom;
 
-  const pFx =
-    anticipating && exiting
-      ? interpolate(p, [anticipatePortion, 1], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        })
-      : p;
+  const pFx = anticipating && exiting ? interpolate(p, [anticipatePortion, 1], [0, 1], CLAMPED) : p;
 
-  const lerp = (from: number, to: number) => from + (to - from) * pFx;
+  function lerp(from: number, to: number) {
+    return from + (to - from) * pFx;
+  }
 
   const exitScale = anticipating
     ? interpolate(p, [0, anticipatePortion, 1], [inScaleFrom, pullBack, zoom], {
+        ...CLAMPED,
         easing: Easing.inOut(Easing.ease),
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
       })
     : lerp(inScaleFrom, zoom);
 
@@ -409,7 +402,7 @@ function LensZoomPresentation({
       presentationProgress,
       SHAKE_STOPS.map((s) => 0.5 + s / 2),
       [0, shakeAmount, shakeAmount, 0],
-      { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+      CLAMPED,
     ) / 100;
 
   return (

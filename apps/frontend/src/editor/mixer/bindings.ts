@@ -20,20 +20,24 @@ export type EqGestures = (band?: number) => Gesture<Eq>;
 
 export const MASTER_TARGET: PreviewTarget = { key: "master", fraction: () => 1 };
 
-export const previewTarget = (
+export function previewTarget(
   key: string,
   result: MixResult | null,
   levels: Levels,
-): PreviewTarget => ({
-  key,
-  fraction: () => share(result, levels, usePlayback.getState().frame),
-});
+): PreviewTarget {
+  return {
+    key,
+    fraction: () => share(result, levels, usePlayback.getState().frame),
+  };
+}
 
-export const bindChange = <T>(apply: (value: T) => void): Gesture<T> => ({
-  begin: () => workflowEdits.beginGesture(),
-  set: apply,
-  end: () => workflowEdits.endGesture(),
-});
+export function bindChange<T>(apply: (value: T) => void): Gesture<T> {
+  return {
+    begin: () => workflowEdits.beginGesture(),
+    set: apply,
+    end: () => workflowEdits.endGesture(),
+  };
+}
 
 function previewChange(
   id: string,
@@ -50,43 +54,45 @@ function gainContribution(fraction: number, deltaDb: number): Contribution {
   return { gainDb: 10 * Math.log10(powerRatio) };
 }
 
-export const bindGain = (
+export function bindGain(
   target: PreviewTarget,
   name: string,
   current: number,
   apply: (v: number) => void,
-): Gesture<number> =>
-  bindChange((v) => {
+): Gesture<number> {
+  return bindChange((v) => {
     previewChange(`${target.key}:${name}`, current, v, (d) =>
       gainContribution(target.fraction(), d),
     );
     apply(v);
   });
+}
 
-export const bindPan = (
+export function bindPan(
   target: PreviewTarget,
   current: number,
   apply: (v: number) => void,
-): Gesture<number> =>
-  bindChange((v) => {
+): Gesture<number> {
+  return bindChange((v) => {
     previewChange(`${target.key}:pan`, current, v, (d) => ({ pan: d * target.fraction() }));
     apply(v);
   });
+}
 
-export const bindHighpass = (
+export function bindHighpass(
   target: PreviewTarget,
   apply: (freq: number) => void,
-): Gesture<number> =>
-  bindChange((freq) => {
+): Gesture<number> {
+  return bindChange((freq) => {
     useAudioPreview.getState().contribute(`${target.key}:hp`, {
       filters: [{ type: "highpass", freq, gain: 0, q: HIGHPASS_Q }],
     });
     apply(freq);
   });
+}
 
-export const bindEq =
-  (target: PreviewTarget, before: Eq, apply: (eq: Eq) => void): EqGestures =>
-  (band) =>
+export function bindEq(target: PreviewTarget, before: Eq, apply: (eq: Eq) => void): EqGestures {
+  return (band) =>
     bindChange((eq) => {
       if (band !== undefined) {
         const b = eq.bands[band];
@@ -98,3 +104,4 @@ export const bindEq =
       }
       apply(eq);
     });
+}

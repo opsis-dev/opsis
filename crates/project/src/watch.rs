@@ -1,3 +1,4 @@
+use opsis_engine::tools::shown;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -16,10 +17,6 @@ use crate::paths::to_posix_rel;
 use crate::stamps::file_stamp;
 
 const DEBOUNCE: Duration = Duration::from_millis(150);
-
-fn shown(dir: &Path) -> String {
-    dir.to_string_lossy().into_owned()
-}
 
 fn real(dir: &Path) -> PathBuf {
     std::fs::canonicalize(dir).unwrap_or_else(|_| dir.to_path_buf())

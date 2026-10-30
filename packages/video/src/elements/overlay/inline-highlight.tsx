@@ -1,5 +1,6 @@
 import { interpolate, interpolateColors } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -26,10 +27,7 @@ export function InlineHighlight({
     frame,
     [durationInFrames * changeStart, durationInFrames * changeEnd],
     [0, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    },
+    CLAMPED,
   );
 
   const color = interpolateColors(progress, [0, 1], [baseColor, highlightColor]);

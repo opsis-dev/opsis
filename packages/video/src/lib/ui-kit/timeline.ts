@@ -1,18 +1,11 @@
-import { useCurrentFrame, useVideoConfig } from "remotion";
-import type { Step } from "#video/lib/warm-ui/types.ts";
-
-export function framesFor(d: number | { seconds: number }, fps: number): number {
-  return typeof d === "number" ? d : Math.round(d.seconds * fps);
-}
+import { clamp01 } from "#video/common/math.ts";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { Step } from "#video/lib/ui-kit/types.ts";
 
 export function revealCount(localFrame: number, fps: number, len: number, cps: number): number {
   const over = (len / cps) * fps;
   if (over <= 0) return len;
   return Math.max(0, Math.min(len, Math.floor((localFrame / over) * len)));
-}
-
-export function clamp01(t: number): number {
-  return Math.max(0, Math.min(1, t));
 }
 
 export function revealedText(full: string, count: number): string {
@@ -35,8 +28,8 @@ export interface TypewriterState {
 
 export function useTypewriter(full: string, options: TypewriterOptions = {}): TypewriterState {
   const { cps = 20, speed = 1, startFrame = 0 } = options;
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps } = useAuthoredConfig();
   const local = frame * speed - startFrame;
   const count = local <= 0 ? 0 : revealCount(local, fps, full.length, cps);
   return {
@@ -48,7 +41,7 @@ export function useTypewriter(full: string, options: TypewriterOptions = {}): Ty
 }
 
 export function useCurrentState<S extends string>(steps: Step<S>[], defaultState: S, speed = 1): S {
-  const effectiveFrame = useCurrentFrame() * speed;
+  const effectiveFrame = useAuthoredFrame() * speed;
   let current = defaultState;
   let bestAt = -Infinity;
   steps.forEach((step) => {
@@ -66,7 +59,7 @@ export function useStateTransition<S extends string>(
   speed = 1,
   defaultDuration = 8,
 ): { from: S; to: S; progress: number } {
-  const effectiveFrame = useCurrentFrame() * speed;
+  const effectiveFrame = useAuthoredFrame() * speed;
   const started = steps
     .map((step, index) => ({ step, index }))
     .sort((a, b) => a.step.at - b.step.at || a.index - b.index)

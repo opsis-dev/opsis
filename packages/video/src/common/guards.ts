@@ -1,20 +1,23 @@
 import type { z } from "zod";
 
-export const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
-const hasStringType = (value: unknown): value is Record<string, unknown> & { type: string } =>
-  isRecord(value) && typeof value.type === "string";
+function hasStringType(value: unknown): value is Record<string, unknown> & { type: string } {
+  return isRecord(value) && typeof value.type === "string";
+}
 
-export const isKeyOf = <K extends string>(
+export function isKeyOf<K extends string>(
   table: Readonly<Record<K, unknown>>,
   key: string,
-): key is K => Object.hasOwn(table, key);
+): key is K {
+  return Object.hasOwn(table, key);
+}
 
-export const hasTypeIn =
-  <T extends { type: string }>(types: Record<T["type"], true>) =>
-  (value: unknown): value is T =>
-    hasStringType(value) && isKeyOf(types, value.type);
+export function hasTypeIn<T extends { type: string }>(types: Record<T["type"], true>) {
+  return (value: unknown): value is T => hasStringType(value) && isKeyOf(types, value.type);
+}
 
 type ParsedJson = { ok: true; value: unknown } | { ok: false };
 
@@ -34,13 +37,23 @@ export function parseJsonWith<T>(
   return json.ok ? schema.safeParse(json.value) : null;
 }
 
-export const isString = (v: unknown): v is string => typeof v === "string";
+export function isString(v: unknown): v is string {
+  return typeof v === "string";
+}
 
-export const nonBlankString = (v: unknown): string | undefined =>
-  isString(v) && v.trim() ? v.trim() : undefined;
-export const isNumber = (v: unknown): v is number => typeof v === "number";
-export const isBoolean = (v: unknown): v is boolean => typeof v === "boolean";
-export const isStringOrNumber = (v: unknown): v is string | number => isString(v) || isNumber(v);
+export function nonBlankString(v: unknown): string | undefined {
+  return isString(v) && v.trim() ? v.trim() : undefined;
+}
+export function isNumber(v: unknown): v is number {
+  return typeof v === "number";
+}
+export function isBoolean(v: unknown): v is boolean {
+  return typeof v === "boolean";
+}
+export function isStringOrNumber(v: unknown): v is string | number {
+  return isString(v) || isNumber(v);
+}
 
-export const isOneOf = <T extends string>(values: readonly T[], value: unknown): value is T =>
-  values.some((v) => v === value);
+export function isOneOf<T extends string>(values: readonly T[], value: unknown): value is T {
+  return values.some((v) => v === value);
+}

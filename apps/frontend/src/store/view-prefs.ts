@@ -11,7 +11,9 @@ export function setViewProject(dir: string | null, stored: ViewPrefs): void {
   prefs = { ...stored };
 }
 
-export const viewPrefs = (): ViewPrefs => prefs;
+export function viewPrefs(): ViewPrefs {
+  return prefs;
+}
 
 export function readPref<T>(name: string, fallback: T, valid: (v: unknown) => v is T): T {
   const value = prefs[name];

@@ -5,10 +5,11 @@ import { commands, type FontChoice } from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
 import { fileUrl } from "../editor/file-url";
 
-const registerPreview = (choice: FontChoice) =>
-  void registerFaces(choice.preview, choice.def, fileUrl, () =>
+function registerPreview(choice: FontChoice) {
+  return void registerFaces(choice.preview, choice.def, fileUrl, () =>
     console.warn(`Couldn't load every style of ${choice.def.family} for its preview.`),
   );
+}
 
 export function usePreviewFont(choice: FontChoice | undefined): void {
   useEffect(() => {

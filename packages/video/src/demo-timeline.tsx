@@ -139,8 +139,9 @@ function Element({ item }: { item: ElementItem }) {
   ) : null;
 }
 
-const cropScale = (crop: Rect, fill: boolean): number =>
-  1 / Math.max(MIN_CROP, fill ? Math.min(crop.w, crop.h) : Math.max(crop.w, crop.h));
+function cropScale(crop: Rect, fill: boolean): number {
+  return 1 / Math.max(MIN_CROP, fill ? Math.min(crop.w, crop.h) : Math.max(crop.w, crop.h));
+}
 
 const FILL: React.CSSProperties = { position: "absolute", inset: 0 };
 
@@ -218,9 +219,9 @@ function Group({
   );
 }
 
-type Wrap<P> = React.FC<P & { children: React.ReactNode }>;
+type Wrapping<P> = P & { children: React.ReactNode };
 
-const CropBox: Wrap<{ crop: Rect; fill: boolean }> = ({ crop, fill, children }) => {
+function CropBox({ crop, fill, children }: Wrapping<{ crop: Rect; fill: boolean }>) {
   const scale = cropScale(crop, fill);
   const w = crop.w * scale;
   const h = crop.h * scale;
@@ -252,9 +253,9 @@ const CropBox: Wrap<{ crop: Rect; fill: boolean }> = ({ crop, fill, children }) 
       </div>
     </AbsoluteFill>
   );
-};
+}
 
-const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children }) => {
+function Wrapped({ wrapper, children }: Wrapping<{ wrapper?: GroupProps["wrapper"] }>) {
   const element = resolveElement(wrapper?.component, getComponent);
   if (!wrapper) return <>{children}</>;
   if (element?.status !== "ready")
@@ -269,9 +270,9 @@ const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children 
     withAppFiles(wrapper.props),
     <AbsoluteFill>{children}</AbsoluteFill>,
   );
-};
+}
 
-const DesignBox: Wrap<{ design?: Size; fill?: boolean }> = ({ design, fill, children }) => {
+function DesignBox({ design, fill, children }: Wrapping<{ design?: Size; fill?: boolean }>) {
   const { width, height } = useVideoConfig();
   if (!design || (width === design.width && height === design.height)) return <>{children}</>;
   const scale = Math.min(width / design.width, height / design.height);
@@ -295,7 +296,7 @@ const DesignBox: Wrap<{ design?: Size; fill?: boolean }> = ({ design, fill, chil
       </div>
     </AbsoluteFill>
   );
-};
+}
 
 function TransitionWrap({ item, children }: { item: TimelineItem; children: React.ReactNode }) {
   const frame = useCurrentFrame();
@@ -334,11 +335,12 @@ type ActiveTransition = {
 
 function activeTransition(item: TimelineItem, frame: number): ActiveTransition | null {
   const { enter, exit, durationInFrames } = item;
-  const progressFrom = (ref: TransitionRef, start: number) =>
-    ease(
+  function progressFrom(ref: TransitionRef, start: number) {
+    return ease(
       ref.easing ?? "linear",
       interpolate(frame, [start, start + ref.durationInFrames], [0, 1], CLAMP_RIGHT),
     );
+  }
   if (enter && frame < enter.durationInFrames)
     return { ref: enter, direction: "entering", progress: progressFrom(enter, 0) };
   const exitStart = exit ? durationInFrames - exit.durationInFrames : 0;

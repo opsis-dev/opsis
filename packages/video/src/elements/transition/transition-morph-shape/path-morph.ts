@@ -6,10 +6,9 @@ import {
   scalePath,
   translatePath,
 } from "@remotion/paths";
+import { clamp01 } from "#video/common/math.ts";
 
 export type MorphPair = { from: string; to: string };
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 const MAX_CACHE_ENTRIES = 256;
 const alignmentCache = new Map<string, string>();

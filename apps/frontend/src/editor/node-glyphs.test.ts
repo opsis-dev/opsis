@@ -9,8 +9,9 @@ const SAMPLES_PER_SUBPATH = 160;
 
 type Drawing = { points: number[]; byCell: Map<string, number[]> };
 
-const cellKey = (x: number, y: number) =>
-  `${Math.floor(x / HALF_STROKE)},${Math.floor(y / HALF_STROKE)}`;
+function cellKey(x: number, y: number) {
+  return `${Math.floor(x / HALF_STROKE)},${Math.floor(y / HALF_STROKE)}`;
+}
 
 function drawingOf(glyph: string): Drawing {
   const points = resampleIcon(NODE_GLYPHS[glyph], SAMPLES_PER_SUBPATH).flatMap(({ pts }) => [
@@ -44,7 +45,9 @@ function liesOn(drawing: Drawing, other: Drawing): boolean {
   return true;
 }
 
-const sameDrawing = (a: Drawing, b: Drawing) => liesOn(a, b) && liesOn(b, a);
+function sameDrawing(a: Drawing, b: Drawing) {
+  return liesOn(a, b) && liesOn(b, a);
+}
 
 describe("node glyphs", () => {
   it("holds exactly the glyphs the node looks use (run bun run glyphs:bundle after changing them)", () => {
@@ -64,7 +67,9 @@ describe("node glyphs", () => {
   it("never gives nodes that move alike two names for the same drawing", () => {
     const looked = catalogNodes().flatMap((node) => (node.look ? [{ ...node.look, node }] : []));
     const drawings = new Map(Object.keys(NODE_GLYPHS).map((glyph) => [glyph, drawingOf(glyph)]));
-    const moves = (look: (typeof looked)[number]) => look.motion ?? look.morph ?? "still";
+    function moves(look: (typeof looked)[number]) {
+      return look.motion ?? look.morph ?? "still";
+    }
     const clashes: string[] = [];
     for (const [i, a] of looked.entries()) {
       for (const b of looked.slice(i + 1)) {

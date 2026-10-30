@@ -8,7 +8,9 @@ import DEFAULT_PROPS from "#video/registry/default-props.generated.json";
 const usual = DEFAULT_PROPS["logo-assemble"] as unknown as ElementSettings["logo-assemble"];
 
 it("never loads sample pictures from the internet when no images are set", () => {
-  const Cleared = () => <LogoAssemble {...usual} images={[]} logoSrc="" />;
+  function Cleared() {
+    return <LogoAssemble {...usual} images={[]} logoSrc="" />;
+  }
   const sources = [30, 90, 150].flatMap((frame) => {
     const view = render(
       <TestFrame

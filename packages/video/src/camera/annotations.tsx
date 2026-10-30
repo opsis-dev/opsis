@@ -13,12 +13,14 @@ import type { Viewport, AnnotationKind } from "#video/generated/spec.ts";
 
 const FADE_S = 0.18;
 
-const fadeOf = (seconds: number) => ({
-  in: seconds,
-  out: seconds,
-  easeIn: Easing.out(Easing.cubic),
-  easeOut: Easing.in(Easing.cubic),
-});
+function fadeOf(seconds: number) {
+  return {
+    in: seconds,
+    out: seconds,
+    easeIn: Easing.out(Easing.cubic),
+    easeOut: Easing.in(Easing.cubic),
+  };
+}
 
 const POP_SCALE = 1.2;
 const SPOTLIGHT = { radius: 12, dimSpread: 9999 } as const;
@@ -50,12 +52,14 @@ type MarkProps = {
   timeS: number;
 };
 
-const boxOf = ({ annotation, viewport }: MarkProps) => ({
-  left: percent((annotation.rect.x - annotation.padding) / viewport.width),
-  top: percent((annotation.rect.y - annotation.padding) / viewport.height),
-  width: percent((annotation.rect.w + annotation.padding * 2) / viewport.width),
-  height: percent((annotation.rect.h + annotation.padding * 2) / viewport.height),
-});
+function boxOf({ annotation, viewport }: MarkProps) {
+  return {
+    left: percent((annotation.rect.x - annotation.padding) / viewport.width),
+    top: percent((annotation.rect.y - annotation.padding) / viewport.height),
+    width: percent((annotation.rect.w + annotation.padding * 2) / viewport.width),
+    height: percent((annotation.rect.h + annotation.padding * 2) / viewport.height),
+  };
+}
 
 function Spotlight(props: MarkProps) {
   const look = props.annotation.markLook;
@@ -73,13 +77,17 @@ function Spotlight(props: MarkProps) {
   );
 }
 
-const percentOf = (fraction: number) => fraction * 100;
+function percentOf(fraction: number) {
+  return fraction * 100;
+}
 
 function SketchedHighlight({ look, ...props }: MarkProps & { look: HandDrawnLook }) {
   const { annotation, opacity, designScale: k, counter, viewport, timeS } = props;
   const { left, top } = boxOf(props);
   const marker = look === "marker";
-  const padded = (size: number, of: number) => (size + annotation.padding * 2) / of;
+  function padded(size: number, of: number) {
+    return (size + annotation.padding * 2) / of;
+  }
   return (
     <div
       style={{

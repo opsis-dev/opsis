@@ -40,8 +40,9 @@ async function chooseAsset(projectDir: string | null, apply: (path: string) => v
   }, "Couldn't add the file");
 }
 
-const ofNode = (inspector: InspectorContext | null, nodeId: string) =>
-  inspector?.nodeId === nodeId ? inspector : null;
+function ofNode(inspector: InspectorContext | null, nodeId: string) {
+  return inspector?.nodeId === nodeId ? inspector : null;
+}
 
 export function useFormContext(workflow: Workflow, nodeId: string): FormContext {
   const projectDir = useWorkflowStore((s) => s.projectDir);

@@ -17,11 +17,13 @@ const BUTTONS: MouseButton[] = ["left", "middle", "right", "back", "forward"];
 
 type Modifiable = { altKey: boolean; ctrlKey: boolean; metaKey: boolean; shiftKey: boolean };
 
-const modifiers = (e: Modifiable): number =>
-  (e.altKey ? 1 : 0) | (e.ctrlKey ? 2 : 0) | (e.metaKey ? 4 : 0) | (e.shiftKey ? 8 : 0);
+function modifiers(e: Modifiable): number {
+  return (e.altKey ? 1 : 0) | (e.ctrlKey ? 2 : 0) | (e.metaKey ? 4 : 0) | (e.shiftKey ? 8 : 0);
+}
 
-const buttonsOf = (buttons: number): number =>
-  (buttons & 1) | (buttons & 2) | (buttons & 4) | (buttons & 8) | (buttons & 16);
+function buttonsOf(buttons: number): number {
+  return (buttons & 1) | (buttons & 2) | (buttons & 4) | (buttons & 8) | (buttons & 16);
+}
 
 type Dialog = Extract<ViewEvent, { kind: "dialog" }>;
 
@@ -107,10 +109,10 @@ function AddressBar({ id, url }: { id: string; url: string }) {
 
 function DialogBar({ id, dialog, onDone }: { id: string; dialog: Dialog; onDone: () => void }) {
   const [prompt, setPrompt] = useState(dialog.defaultPrompt);
-  const answer = (accept: boolean) => {
+  function answer(accept: boolean) {
     void commands.viewAnswerDialog(id, accept, prompt);
     onDone();
-  };
+  }
   return (
     <div className="bg-muted flex items-center gap-2 border-b px-3 py-2 text-sm">
       <span className="min-w-0 flex-1 truncate">{dialog.message}</span>
@@ -168,7 +170,9 @@ export function StreamView({ id }: { id: string }) {
       }),
     );
   }, [id]);
-  const send = (input: ViewInput) => void commands.viewInput(id, input);
+  function send(input: ViewInput) {
+    return void commands.viewInput(id, input);
+  }
   const active = tabs.tabs[tabs.active];
   return (
     <div className="flex min-h-0 flex-1 flex-col">

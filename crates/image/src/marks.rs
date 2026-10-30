@@ -7,7 +7,7 @@ use opsis_compile::nodes::image::{Mark, MarkKind};
 use opsis_types::numbers;
 use opsis_types::numbers::whole;
 
-use crate::ops::{background_rgba, is_deep, over};
+use crate::ops::{background_rgba, is_deep, over, segment_distance};
 use crate::text::{draw_text, measure};
 
 pub type MarkFonts = HashMap<(String, u32), FontVec>;
@@ -46,17 +46,6 @@ fn unit_colour(css: &str) -> [f32; 4] {
 
 fn coverage(distance: f64) -> f32 {
     numbers::narrow((0.5 - distance).clamp(0.0, 1.0))
-}
-
-fn segment_distance(point: (f64, f64), from: (f64, f64), to: (f64, f64)) -> f64 {
-    let (dx, dy) = (to.0 - from.0, to.1 - from.1);
-    let length = dx * dx + dy * dy;
-    let t = if length > 0.0 {
-        (((point.0 - from.0) * dx + (point.1 - from.1) * dy) / length).clamp(0.0, 1.0)
-    } else {
-        0.0
-    };
-    (point.0 - from.0 - t * dx).hypot(point.1 - from.1 - t * dy)
 }
 
 fn triangle_distance(point: (f64, f64), corners: [(f64, f64); 3]) -> f64 {

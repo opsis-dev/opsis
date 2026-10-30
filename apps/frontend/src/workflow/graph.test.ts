@@ -3,7 +3,9 @@ import type { Workflow, WorkflowEdge } from "@/generated/bindings";
 import { getNodeDef } from "@/store/catalog";
 import { connects, inputsBeforeCompile, portOf } from "./graph";
 
-const node = (id: string, type: string) => ({ id, type, position: { x: 0, y: 0 }, params: {} });
+function node(id: string, type: string) {
+  return { id, type, position: { x: 0, y: 0 }, params: {} };
+}
 
 const workflow = {
   version: 1,
@@ -37,14 +39,15 @@ describe("inputs before the first compile", () => {
   it("shows every connected numbered input and one empty one after the last", () => {
     const def = getNodeDef("timeline.sequence");
     if (!def) throw new Error("no sequence");
-    const edge = (handle: string): WorkflowEdge =>
-      ({
+    function edge(handle: string): WorkflowEdge {
+      return {
         id: handle,
         source: "a",
         sourceHandle: "clip",
         target: "seq",
         targetHandle: handle,
-      }) as WorkflowEdge;
+      } as WorkflowEdge;
+    }
     expect(Object.keys(inputsBeforeCompile(def, [], "seq"))).toEqual(Object.keys(def.inputs));
     const shown = inputsBeforeCompile(def, [edge("in1"), edge("in3")], "seq");
     expect(Object.keys(shown).filter((k) => k.startsWith("in"))).toEqual([

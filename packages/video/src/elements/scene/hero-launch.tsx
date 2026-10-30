@@ -4,56 +4,38 @@ import {
   continueRender,
   delayRender,
   Easing,
-  getRemotionEnvironment,
   interpolate,
   OffthreadVideo,
-  staticFile,
 } from "remotion";
 import { themeColors } from "#video/common/theme.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-import type { ElementSettings } from "#video/generated/spec.ts";
-import {
-  Item,
-  mixOklch,
-  resolveFont,
-  type WarmTheme,
-  useWarmTheme,
-  withAlpha,
-} from "#video/lib/warm-ui/index.ts";
+import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
+import { mixOklch, withAlpha } from "#video/lib/ui-kit/color.ts";
+import { Item, resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
 const SANS = '"Inter"';
 
 type HeroLaunchProps = Omit<ElementSettings["hero-launch"], "theme"> & {
+  image1Kind?: MediaKind;
+  image2Kind?: MediaKind;
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
 
 const PERSP = 1000;
-const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
 
 const OUT = Easing.bezier(0.22, 1, 0.36, 1);
 const FALL = Easing.bezier(0.5, 0, 0.9, 0.4);
 
-function resolveSrc(src: string): string {
-  const isLocal = src.startsWith("/") && !src.startsWith("//");
-  if (!isLocal || getRemotionEnvironment().isPlayer) return src;
-  const base = staticFile("_").slice(0, -2);
-  if (base && src.startsWith(`${base}/`)) return src;
-  try {
-    return staticFile(src.replace(/^\/+/, ""));
-  } catch {
-    return src;
-  }
-}
-
 function HeroImage({ src, style }: { src: string; style: CSSProperties }) {
   const [handle] = useState(() => delayRender(`hero image: ${src}`));
   const release = useCallback(() => continueRender(handle), [handle]);
-  return <img src={resolveSrc(src)} alt="" style={style} onLoad={release} onError={release} />;
+  return <img src={src} alt="" style={style} onLoad={release} onError={release} />;
 }
 
-function CardMedia({ src }: { src: string }) {
+function CardMedia({ src, kind }: { src: string; kind: MediaKind | undefined }) {
   const media: CSSProperties = {
     position: "absolute",
     inset: 0,
@@ -61,8 +43,8 @@ function CardMedia({ src }: { src: string }) {
     height: "100%",
     objectFit: "cover",
   };
-  if (isVideo(src)) {
-    return <OffthreadVideo src={resolveSrc(src)} muted style={media} />;
+  if (kind === "video") {
+    return <OffthreadVideo src={src} muted style={media} />;
   }
   return <HeroImage src={src} style={media} />;
 }
@@ -70,7 +52,9 @@ function CardMedia({ src }: { src: string }) {
 function HeroLaunchView({
   heading,
   image1,
+  image1Kind,
   image2,
+  image2Kind,
   theme,
   mode,
   fontFamily,
@@ -98,12 +82,9 @@ function HeroLaunchView({
   const rightXStart = 1.08 * width;
   const groupYFinal = 0.16 * height;
 
-  const seg = (start: number, dur: number, easing = OUT) =>
-    interpolate(frame, [start, start + dur], [0, 1], {
-      easing,
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    });
+  function seg(start: number, dur: number, easing = OUT) {
+    return interpolate(frame, [start, start + dur], [0, 1], { ...CLAMPED, easing });
+  }
 
   const recede = seg(40, 30);
   const angle = seg(46, 36);
@@ -115,10 +96,7 @@ function HeroLaunchView({
   const leftScale = interpolate(recede, [0, 1], [1.5, 1]);
   const leftX = interpolate(slideL, [0, 1], [0, leftXFinal]);
   const leftDeg = interpolate(angle, [0, 1], [0, -cardTilt]);
-  const leftOpacity = interpolate(frame, [2, 12], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const leftOpacity = interpolate(frame, [2, 12], [0, 1], CLAMPED);
 
   const rightX = interpolate(slideR, [0, 1], [rightXStart, rightXFinal]);
   const rightOpacity = interpolate(slideR, [0, 0.35], [0, 1], {
@@ -135,33 +113,41 @@ function HeroLaunchView({
 
   const vignette = seg(50, 40, Easing.linear);
 
-  const cardBox = (x: number, opacity: number): CSSProperties => ({
-    position: "absolute",
-    left: centerLeft,
-    top: cardTop,
-    width: cardW,
-    height: cardH,
-    opacity,
-    transform: `translateX(${x}px)`,
-  });
+  function cardBox(x: number, opacity: number): CSSProperties {
+    return {
+      position: "absolute",
+      left: centerLeft,
+      top: cardTop,
+      width: cardW,
+      height: cardH,
+      opacity,
+      transform: `translateX(${x}px)`,
+    };
+  }
 
-  const zoom = (scale: number): CSSProperties => ({
-    width: "100%",
-    height: "100%",
-    transform: `scale(${scale})`,
-    transformOrigin: "center center",
-  });
-  const tilt = (deg: number, origin: string): CSSProperties => ({
-    width: "100%",
-    height: "100%",
-    transform: `perspective(${PERSP * s}px) rotateY(${deg}deg)`,
-    transformOrigin: origin,
-  });
-  const fade = (gradient: string): CSSProperties => ({
-    position: "absolute",
-    inset: 0,
-    background: gradient,
-  });
+  function zoom(scale: number): CSSProperties {
+    return {
+      width: "100%",
+      height: "100%",
+      transform: `scale(${scale})`,
+      transformOrigin: "center center",
+    };
+  }
+  function tilt(deg: number, origin: string): CSSProperties {
+    return {
+      width: "100%",
+      height: "100%",
+      transform: `perspective(${PERSP * s}px) rotateY(${deg}deg)`,
+      transformOrigin: origin,
+    };
+  }
+  function fade(gradient: string): CSSProperties {
+    return {
+      position: "absolute",
+      inset: 0,
+      background: gradient,
+    };
+  }
 
   return (
     <AbsoluteFill style={{ backgroundColor: t.background, fontFamily: face }}>
@@ -170,7 +156,7 @@ function HeroLaunchView({
           <div style={cardBox(leftX, leftOpacity)}>
             <div style={zoom(leftScale)}>
               <div style={tilt(leftDeg, "100% 50%")}>
-                <ImageCard s={s} src={image1} t={t} radius={cardRadius} />
+                <ImageCard s={s} src={image1} kind={image1Kind} t={t} radius={cardRadius} />
               </div>
             </div>
           </div>
@@ -178,7 +164,7 @@ function HeroLaunchView({
         <Item index={1}>
           <div style={cardBox(rightX, rightOpacity)}>
             <div style={tilt(cardTilt, "0% 50%")}>
-              <ImageCard s={s} src={image2} t={t} radius={cardRadius} />
+              <ImageCard s={s} src={image2} kind={image2Kind} t={t} radius={cardRadius} />
             </div>
           </div>
         </Item>
@@ -218,11 +204,13 @@ function HeroLaunchView({
 function ImageCard({
   s,
   src,
+  kind,
   t,
   radius,
 }: {
   s: number;
   src: string;
+  kind: MediaKind | undefined;
   t: WarmTheme;
   radius: number;
 }) {
@@ -241,7 +229,7 @@ function ImageCard({
         )}, inset 0 0 0 1px ${withAlpha(t.foreground, 0.22)}`,
       }}
     >
-      {src ? <CardMedia src={src} /> : null}
+      {src ? <CardMedia src={src} kind={kind} /> : null}
       <div
         style={{
           position: "absolute",
@@ -269,7 +257,10 @@ function ImageCard({
   );
 }
 
-export function HeroLaunch({ theme, ...settings }: ElementSettings["hero-launch"]) {
+export function HeroLaunch({
+  theme,
+  ...settings
+}: ElementSettings["hero-launch"] & { image1Kind?: MediaKind; image2Kind?: MediaKind }) {
   return (
     <WarmUIProvider mode={theme.mode}>
       <HeroLaunchView {...settings} theme={themeColors(theme)} mode={theme.mode} />

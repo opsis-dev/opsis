@@ -1,16 +1,12 @@
 import { Easing, interpolateColors, spring } from "remotion";
+import { clamp01, lerp, normalize, numberOr } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
 export const radialBurstLength = 114;
 const CYCLE = 120;
-const finite = (value: number, fallback: number) => (Number.isFinite(value) ? value : fallback);
-const clamp = (value: number) => Math.min(1, Math.max(0, value));
-const mix = (from: number, to: number, progress: number) => from + (to - from) * progress;
 const easeInOut = Easing.bezier(0.65, 0, 0.25, 1);
 const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
-const progress = (frame: number, start: number, end: number) =>
-  clamp((frame - start) / (end - start));
 
 export function getRadialBurstState(
   frame: number,
@@ -34,17 +30,17 @@ export function getRadialBurstState(
   const w = Math.max(1, width);
   const h = Math.max(1, height);
   const unit = Math.min(w, h) / 720;
-  const time = Math.max(0, finite(frame, 0));
+  const time = Math.max(0, numberOr(frame, 0));
   const local = loop ? time % CYCLE : time;
-  const count = Math.round(Math.min(16, Math.max(4, finite(segments, 8))));
-  const burstRadius = Math.min(280, Math.max(100, finite(radius, 210))) * unit;
-  const stroke = Math.min(60, Math.max(8, finite(thickness, 30))) * unit;
+  const count = Math.round(Math.min(16, Math.max(4, numberOr(segments, 8))));
+  const burstRadius = Math.min(280, Math.max(100, numberOr(radius, 210))) * unit;
+  const stroke = Math.min(60, Math.max(8, numberOr(thickness, 30))) * unit;
   const ringRadius = burstRadius * 0.68;
-  const assemble = easeInOut(progress(local, 44, 76));
-  const curl = easeInOut(progress(local, 48, 78));
-  const close = easeInOut(progress(local, 72, 84));
-  const anticipate = easeInOut(progress(local, 86, 96));
-  const exit = progress(local, 96, radialBurstLength) ** 2.6;
+  const assemble = easeInOut(normalize(local, 44, 76));
+  const curl = easeInOut(normalize(local, 48, 78));
+  const close = easeInOut(normalize(local, 72, 84));
+  const anticipate = easeInOut(normalize(local, 86, 96));
+  const exit = normalize(local, 96, radialBurstLength) ** 2.6;
   const launch = spring({
     frame: Math.max(0, local - 18),
     fps: 30,
@@ -57,14 +53,14 @@ export function getRadialBurstState(
     durationInFrames: 16,
     config: { damping: 11, stiffness: 180, mass: 0.65 },
   });
-  const ringStroke = mix(stroke * 0.8, stroke * 1.1, anticipate);
-  const exitStroke = mix(ringStroke, stroke * 2.2, exit);
+  const ringStroke = lerp(stroke * 0.8, stroke * 1.1, anticipate);
+  const exitStroke = lerp(ringStroke, stroke * 2.2, exit);
   const clearRadius = Math.hypot(w, h) / 2 + stroke * 2.2 + 2;
-  const orbitRadius = mix(mix(28 * unit, burstRadius, launch), ringRadius, assemble);
-  const finalRadius = mix(ringRadius, ringRadius * 0.84, anticipate);
-  const strength = Math.min(1.5, Math.max(0, finite(intensity, 1)));
-  const energy = Math.sin(Math.PI * progress(local, 18, 84));
-  const tilt = easeOut(progress(local, 18, 48)) * (1 - easeInOut(progress(local, 96, 114)));
+  const orbitRadius = lerp(lerp(28 * unit, burstRadius, launch), ringRadius, assemble);
+  const finalRadius = lerp(ringRadius, ringRadius * 0.84, anticipate);
+  const strength = Math.min(1.5, Math.max(0, numberOr(intensity, 1)));
+  const energy = Math.sin(Math.PI * normalize(local, 18, 84));
+  const tilt = easeOut(normalize(local, 18, 48)) * (1 - easeInOut(normalize(local, 96, 114)));
 
   return {
     frame: local,
@@ -73,24 +69,24 @@ export function getRadialBurstState(
     strength,
     energy: Math.max(0, energy) * strength,
     planeScale: 1 - tilt * 0.46 * Math.min(1.5, strength),
-    planeAngle: Math.sin(progress(local, 18, 114) * Math.PI * 1.6) * 32 * strength,
-    offsetX: Math.sin(Math.PI * progress(local, 18, 114)) * 65 * unit * strength,
-    offsetY: -Math.sin(Math.PI * progress(local, 18, 114)) * 32 * unit * strength,
-    dotRadius: 37 * unit * pop * (1 - easeOut(progress(local, 18, 26))),
-    dotSquash: 1 - Math.sin(Math.PI * progress(local, 2, 18)) * 0.16,
+    planeAngle: Math.sin(normalize(local, 18, 114) * Math.PI * 1.6) * 32 * strength,
+    offsetX: Math.sin(Math.PI * normalize(local, 18, 114)) * 65 * unit * strength,
+    offsetY: -Math.sin(Math.PI * normalize(local, 18, 114)) * 32 * unit * strength,
+    dotRadius: 37 * unit * pop * (1 - easeOut(normalize(local, 18, 26))),
+    dotSquash: 1 - Math.sin(Math.PI * normalize(local, 2, 18)) * 0.16,
     showSegments: local >= 18 && local < 84,
     showRing: local >= 84 && local < radialBurstLength,
-    segmentOpacity: easeOut(progress(local, 18, 23)),
-    radius: local < 84 ? orbitRadius : mix(finalRadius, clearRadius, exit),
-    strokeWidth: local < 84 ? mix(stroke, stroke * 0.8, assemble) : exitStroke,
-    segmentLength: mix(
+    segmentOpacity: easeOut(normalize(local, 18, 23)),
+    radius: local < 84 ? orbitRadius : lerp(finalRadius, clearRadius, exit),
+    strokeWidth: local < 84 ? lerp(stroke, stroke * 0.8, assemble) : exitStroke,
+    segmentLength: lerp(
       12 * unit,
       Math.min(82 * unit, burstRadius * 0.42),
-      easeOut(progress(local, 18, 36)),
+      easeOut(normalize(local, 18, 36)),
     ),
     curl,
-    arcAngle: ((Math.PI * 2) / count) * mix(0.62, 1.002, close),
-    rotation: finite(rotation, 135) * easeInOut(progress(local, 34, 84)),
+    arcAngle: ((Math.PI * 2) / count) * lerp(0.62, 1.002, close),
+    rotation: numberOr(rotation, 135) * easeInOut(normalize(local, 34, 84)),
   };
 }
 
@@ -114,7 +110,7 @@ function getSegmentPoints({
   return [-0.5, -1 / 6, 1 / 6, 0.5].map((offset, index) => {
     const px = radius + segmentLength * offset * Math.cos(angle);
     const py = segmentLength * offset * Math.sin(angle);
-    return [mix(px, arc[index][0], curl), mix(py, arc[index][1], curl)];
+    return [lerp(px, arc[index][0], curl), lerp(py, arc[index][1], curl)];
   });
 }
 
@@ -137,14 +133,16 @@ export function getRadialBurstRibbonPath(
     segmentLength: state.segmentLength * (1 + energy * 2.8),
   });
   const bend =
-    (Math.min(180, Math.max(-180, finite(twist, 110))) / 110) * energy * 145 * state.unit;
+    (Math.min(180, Math.max(-180, numberOr(twist, 110))) / 110) * energy * 145 * state.unit;
   points[1][1] += bend * 0.55;
   points[2][1] += bend;
   points[3][1] += bend * 1.25;
   points[2][0] += energy * 38 * state.unit;
   const upper: string[] = [];
   const lower: string[] = [];
-  const format = (x: number, y: number) => `${x.toFixed(3)} ${y.toFixed(3)}`;
+  function format(x: number, y: number) {
+    return `${x.toFixed(3)} ${y.toFixed(3)}`;
+  }
   let firstWidth = 0;
   let lastWidth = 0;
   for (let sample = 0; sample <= 36; sample++) {
@@ -222,10 +220,11 @@ export function RadialBurst({
   const state = getRadialBurstState(time, options);
   const path = getRadialBurstSegmentPath(state);
   const echoCount = Math.round(Math.min(5, Math.max(0, echoes)));
-  const plane = (pose: typeof state) =>
-    `translate(${pose.offsetX} ${pose.offsetY}) rotate(${pose.planeAngle}) scale(1 ${pose.planeScale})`;
-  const ribbons = (pose: typeof state, outline: boolean) =>
-    Array.from({ length: pose.count }, (_, index) => (
+  function plane(pose: typeof state) {
+    return `translate(${pose.offsetX} ${pose.offsetY}) rotate(${pose.planeAngle}) scale(1 ${pose.planeScale})`;
+  }
+  function ribbons(pose: typeof state, outline: boolean) {
+    return Array.from({ length: pose.count }, (_, index) => (
       <path
         key={index}
         d={getRadialBurstRibbonPath(pose, index, twist)}
@@ -234,13 +233,14 @@ export function RadialBurst({
           outline
             ? "none"
             : index % 3 === 0
-              ? interpolateColors(clamp(pose.energy), [0, 1], [color, accentColor])
+              ? interpolateColors(clamp01(pose.energy), [0, 1], [color, accentColor])
               : color
         }
         stroke={outline ? color : "none"}
         strokeWidth={1.5 * pose.unit}
       />
     ));
+  }
 
   return (
     <div
@@ -271,7 +271,7 @@ export function RadialBurst({
                   echoOpacity *
                   (1 - index / (echoCount + 1)) *
                   Math.min(1, state.strength) *
-                  (1 - easeOut(progress(state.frame, 107, 114)));
+                  (1 - easeOut(normalize(state.frame, 107, 114)));
                 return (
                   <g key={index} transform={plane(echo)} opacity={opacity}>
                     {echo.showSegments ? (

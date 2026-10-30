@@ -1,6 +1,7 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import { useId, useMemo } from "react";
 import { AbsoluteFill, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
@@ -32,10 +33,7 @@ function ChromaticPresentation({
     fade,
   });
 
-  const separation = interpolate(phase.displace, [0, 0.5, 1], [0, intensity, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const separation = interpolate(phase.displace, [0, 0.5, 1], [0, intensity, 0], CLAMPED);
   const travel = phase.displace * (phase.isEntering ? 100 : -100) * slide;
 
   const shift = useMemo(

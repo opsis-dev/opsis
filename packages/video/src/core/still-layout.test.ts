@@ -18,8 +18,9 @@ const CANVASES = [
   { width: 3840, height: 2160 },
 ];
 
-const size = (min: number, max: number) =>
-  fc.record({ width: fc.integer({ min, max }), height: fc.integer({ min, max }) });
+function size(min: number, max: number) {
+  return fc.record({ width: fc.integer({ min, max }), height: fc.integer({ min, max }) });
+}
 
 const canvas = fc.constantFrom(...CANVASES);
 
@@ -43,9 +44,11 @@ const bodyShot = anyShot.chain((s) =>
     ),
 );
 
-const aspect = (s: { width: number; height: number }) => s.width / s.height;
+function aspect(s: { width: number; height: number }) {
+  return s.width / s.height;
+}
 
-const elementBox = (shot: Shot & { body: Box }, img: Box): Box => {
+function elementBox(shot: Shot & { body: Box }, img: Box): Box {
   const s = img.width / shot.width;
   return {
     x: img.x + shot.body.x * s,
@@ -53,7 +56,7 @@ const elementBox = (shot: Shot & { body: Box }, img: Box): Box => {
     width: shot.body.width * s,
     height: shot.body.height * s,
   };
-};
+}
 
 describe("containBox", () => {
   it("fits the shape inside the frame, touching two of its sides", () => {

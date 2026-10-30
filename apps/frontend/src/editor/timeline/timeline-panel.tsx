@@ -13,7 +13,9 @@ import { TimelineView, useScrollerView, type TimelineFilm } from "./timeline-vie
 import { useTimelineCommands } from "./use-timeline-commands";
 import { useTimelineZoom } from "./use-timeline-zoom";
 
-const hasFlat = (film: Film): film is TimelineFilm => film.flat !== null;
+function hasFlat(film: Film): film is TimelineFilm {
+  return film.flat !== null;
+}
 
 const timelineFocus = focusTargetRef("timeline");
 
@@ -30,14 +32,14 @@ function TimelineEditor({ film, workflow }: { film: TimelineFilm; workflow: Work
     zoom,
   });
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
+  function onKeyDown(e: React.KeyboardEvent) {
     if (isEditingElement(e.target)) return;
     const action = timelineKeyAction(e);
     if (!action) return;
     action({ commands, fps, duration, shift: e.shiftKey });
     e.preventDefault();
     e.stopPropagation();
-  };
+  }
 
   return (
     <div

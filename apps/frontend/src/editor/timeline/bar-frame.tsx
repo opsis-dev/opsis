@@ -47,12 +47,12 @@ export function BarFrame({
   const [hoverCursor, setHoverCursor] = useState("");
   const selected = !!nodeId && ctx.selected.has(nodeId);
   const underPlayhead = usePlayback((s) => s.frame >= span.from && s.frame < span.to);
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (!ctx.drag.beginPointer(e)) return;
     if (ctx.tool === "blade" && split) return bladeSplit(ctx, split, e.clientX, e.altKey);
     if (nodeId) selectOnPress(ctx, nodeId, e.shiftKey);
     onPress(e);
-  };
+  }
   return (
     <div
       className={cn(

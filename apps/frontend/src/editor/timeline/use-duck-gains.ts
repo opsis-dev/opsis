@@ -3,7 +3,9 @@ import type { TimelineSpec } from "@/generated/bindings";
 import { duckGain } from "@/timeline/duck";
 import type { Gain } from "./bar-canvas";
 
-const NO_GAIN: Gain = () => 1;
+function noGain(): number {
+  return 1;
+}
 
 type DuckedFilm = { levelled: TimelineSpec | null };
 
@@ -18,5 +20,5 @@ export function useDuckGains({ levelled }: DuckedFilm): (id: string) => Gain {
     }
     return out;
   }, [levelled]);
-  return (id) => gains.get(id) ?? NO_GAIN;
+  return (id) => gains.get(id) ?? noGain;
 }

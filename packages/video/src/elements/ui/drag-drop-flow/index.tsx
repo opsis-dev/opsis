@@ -1,6 +1,7 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { percentText } from "#video/common/format.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
@@ -23,11 +24,6 @@ const T = {
   uploadEnd: 3.68,
   doneEnd: 4.05,
   exitFor: 0.42,
-} as const;
-
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
 } as const;
 
 function FileGlyph({ size, color }: { size: number; color: string }) {
@@ -127,9 +123,12 @@ export function DragDropFlow({
   const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const stage = {
     x: safe.paddingLeft,
@@ -167,7 +166,9 @@ export function DragDropFlow({
       };
 
   const rowsTop = tray.y + trayPad + 46 * u;
-  const rowY = (index: number) => rowsTop + index * (rowH + rowGap);
+  function rowY(index: number) {
+    return rowsTop + index * (rowH + rowGap);
+  }
 
   const cardW = Math.min(tray.w - trayPad * 2, 360 * u);
   const cardH = rowH;
@@ -210,13 +211,13 @@ export function DragDropFlow({
     frame,
     [at(T.press), at(T.press + 0.09), at(T.liftEnd)],
     [0, 1, 0],
-    clamp,
+    CLAMPED,
   );
   const lift = interpolate(
     frame,
     [at(T.press), at(T.liftEnd), at(T.release), at(T.settleEnd)],
     [0, 1, 1, 0],
-    { easing: EASING.editorial, ...clamp },
+    { easing: EASING.editorial, ...CLAMPED },
   );
   const released = frame >= at(T.release);
   const settle = spring({
@@ -228,7 +229,7 @@ export function DragDropFlow({
     frame,
     [at(T.over), at(T.over + 0.22), at(T.release), at(T.release + 0.3)],
     [0, 1, 1, 0],
-    clamp,
+    CLAMPED,
   );
   const uploadEnd = T.uploadStart + uploadSeconds;
   const upload = ease(T.uploadStart, uploadEnd, EASING.editorial);
@@ -253,7 +254,7 @@ export function DragDropFlow({
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   const zoneArmed = armed > 0 || released;
@@ -338,7 +339,7 @@ export function DragDropFlow({
             frame,
             [at(T.rows + index * 0.08), at(T.rows + index * 0.08 + 0.4)],
             [0, 1],
-            { easing: EASING.enter, ...clamp },
+            { easing: EASING.enter, ...CLAMPED },
           );
 
           if (isDragged) {
@@ -469,7 +470,7 @@ export function DragDropFlow({
             transform: `scale(${1 + lift * 0.06 - press * 0.04}) rotate(${
               lift * -2.2 * (1 - settle)
             }deg)`,
-            opacity: interpolate(frame, [at(T.rows), at(T.rows + 0.4)], [0, 1], clamp),
+            opacity: interpolate(frame, [at(T.rows), at(T.rows + 0.4)], [0, 1], CLAMPED),
             display: "flex",
             alignItems: "center",
             gap: 14 * u,
@@ -524,13 +525,13 @@ export function DragDropFlow({
             borderRadius: "50%",
             border: `${2 * u}px solid ${accentColor}`,
             opacity: released
-              ? interpolate(frame, [at(T.release), at(T.release + 0.34)], [0.75, 0], clamp)
+              ? interpolate(frame, [at(T.release), at(T.release + 0.34)], [0.75, 0], CLAMPED)
               : 0,
             transform: `scale(${interpolate(
               frame,
               [at(T.release), at(T.release + 0.34)],
               [0.4, 1.5],
-              { ...clamp, output: "perceptual-scale" },
+              { ...CLAMPED, output: "perceptual-scale" },
             )})`,
           }}
         />
@@ -543,7 +544,7 @@ export function DragDropFlow({
               frame,
               [at(T.cursorIn), at(T.cursorIn + 0.2), at(T.release + 0.25), at(T.release + 0.6)],
               [0, 1, 1, 0],
-              clamp,
+              CLAMPED,
             ),
             transform: `scale(${1 - press * 0.14})`,
             transformOrigin: "top left",

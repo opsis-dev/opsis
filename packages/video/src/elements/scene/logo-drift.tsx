@@ -1,14 +1,10 @@
 import { AbsoluteFill, Easing, getRemotionEnvironment, interpolate } from "remotion";
 import { themeColors } from "#video/common/theme.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings, LogoDriftTile } from "#video/generated/spec.ts";
-import {
-  Item,
-  resolveFont,
-  type WarmTheme,
-  useWarmTheme,
-  withAlpha,
-} from "#video/lib/warm-ui/index.ts";
+import { withAlpha } from "#video/lib/ui-kit/color.ts";
+import { Item, resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
 const SANS = '"Inter"';
@@ -71,15 +67,8 @@ export function wordState(
 ): WordState {
   const start = o.at + index * o.stagger;
   if (t < start) return { scale: o.scale, blur: o.blur, opacity: 0 };
-  const p = interpolate(t, [start, start + o.dur], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: WORD_EASE,
-  });
-  const q = interpolate(t, [o.exitAt, o.exitAt + o.exitDur], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const p = interpolate(t, [start, start + o.dur], [0, 1], { ...CLAMPED, easing: WORD_EASE });
+  const q = interpolate(t, [o.exitAt, o.exitAt + o.exitDur], [0, 1], CLAMPED);
   return {
     scale: (o.scale + (1 - o.scale) * p) * (1 + (o.exitScale - 1) * q),
     blur: o.blur * (1 - p) + o.exitBlur * q,

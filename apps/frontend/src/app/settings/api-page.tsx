@@ -18,12 +18,13 @@ function useCopied() {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
-  const copy = (text: string) =>
-    navigator.clipboard.writeText(text).then(() => {
+  function copy(text: string) {
+    return navigator.clipboard.writeText(text).then(() => {
       clearTimeout(timer.current);
       setCopied(true);
       timer.current = setTimeout(() => setCopied(false), COPIED_MS);
     });
+  }
   return { copied, copy };
 }
 
@@ -78,8 +79,9 @@ function ApiStatusCard({ on, status }: { on: boolean; status: ApiServerStatus })
   );
 }
 
-const curl = (address: string, route: string) =>
-  `curl --unix-socket ${singleQuoted(address)} http://localhost${route}`;
+function curl(address: string, route: string) {
+  return `curl --unix-socket ${singleQuoted(address)} http://localhost${route}`;
+}
 
 function ApiUsageCard({ address }: { address: string }) {
   return (

@@ -14,7 +14,7 @@ const SETTINGS: ElementSettings["chromatic-aberration-wipe"] = {
 
 it("keeps the scene mounted as the colour split opens", () => {
   const events: string[] = [];
-  const Scene = () => {
+  function Scene() {
     useEffect(() => {
       events.push("mount");
       return () => {
@@ -22,32 +22,36 @@ it("keeps the scene mounted as the colour split opens", () => {
       };
     }, []);
     return <p>scene</p>;
-  };
+  }
   const { component: Presentation } = chromaticAberrationWipe(SETTINGS);
-  const AtProgress = ({ progress }: { progress: number }) => (
-    <Presentation
-      presentationProgress={progress}
-      presentationDirection="entering"
-      presentationDurationInFrames={20}
-      passedProps={SETTINGS}
-      onElementImage={() => undefined}
-      onUnmount={() => undefined}
-      bothEnteringAndExiting={false}
-    >
-      <Scene />
-    </Presentation>
-  );
-  const thumbnail = (progress: number) => (
-    <TestFrame
-      component={AtProgress}
-      inputProps={{ progress }}
-      durationInFrames={20}
-      fps={30}
-      compositionWidth={320}
-      compositionHeight={180}
-      frameToDisplay={0}
-    />
-  );
+  function AtProgress({ progress }: { progress: number }) {
+    return (
+      <Presentation
+        presentationProgress={progress}
+        presentationDirection="entering"
+        presentationDurationInFrames={20}
+        passedProps={SETTINGS}
+        onElementImage={() => undefined}
+        onUnmount={() => undefined}
+        bothEnteringAndExiting={false}
+      >
+        <Scene />
+      </Presentation>
+    );
+  }
+  function thumbnail(progress: number) {
+    return (
+      <TestFrame
+        component={AtProgress}
+        inputProps={{ progress }}
+        durationInFrames={20}
+        fps={30}
+        compositionWidth={320}
+        compositionHeight={180}
+        frameToDisplay={0}
+      />
+    );
+  }
   const view = render(thumbnail(0));
   events.length = 0;
   view.rerender(thumbnail(0.5));

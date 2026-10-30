@@ -10,7 +10,9 @@ const FONT_CATEGORY_LABELS: Record<CatalogCategory, string> = {
   other: "Other",
 };
 
-export const categoryLabel = (category: CatalogCategory): string => FONT_CATEGORY_LABELS[category];
+export function categoryLabel(category: CatalogCategory): string {
+  return FONT_CATEGORY_LABELS[category];
+}
 
 const WEIGHT_NAMES: Partial<Record<string, string>> = {
   "100": "Thin",
@@ -24,12 +26,14 @@ const WEIGHT_NAMES: Partial<Record<string, string>> = {
   "900": "Black",
 };
 
-const weightName = (weight: string): string =>
-  weight.includes(" ")
+function weightName(weight: string): string {
+  return weight.includes(" ")
     ? `All weights (${weight.replace(" ", "–")})`
     : (WEIGHT_NAMES[weight] ?? weight);
+}
 
-export const describeFaces = (faces: Array<{ weight: string; style: string }>): string =>
-  faces
+export function describeFaces(faces: Array<{ weight: string; style: string }>): string {
+  return faces
     .map((f) => (f.style === "italic" ? `${weightName(f.weight)} italic` : weightName(f.weight)))
     .join(", ");
+}

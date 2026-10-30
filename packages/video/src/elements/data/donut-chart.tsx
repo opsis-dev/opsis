@@ -1,13 +1,13 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { percentText } from "#video/common/format.ts";
+import { clamp01 } from "#video/common/math.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { formatNumber, readDelta } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
 const EXIT_FRAMES = 20;
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 export function DonutChart({
   segments,
@@ -46,8 +46,7 @@ export function DonutChart({
     exitAtInFrames === undefined
       ? 0
       : interpolate(frame, [exitAtInFrames, exitAtInFrames + exitInFrames], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
+          ...CLAMPED,
           easing: EASING.exit,
         });
 
@@ -62,7 +61,7 @@ export function DonutChart({
         delayInFrames + index * staggerInFrames + durationInFrames,
       ],
       [0, 1],
-      { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASING.enter },
+      { ...CLAMPED, easing: EASING.enter },
     );
 
     return {

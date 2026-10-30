@@ -8,16 +8,16 @@ const track: CursorSample[] = [
   { t: 1000, x: 500, y: 400 },
 ];
 
-const at = (clicks: ClickEvent[], tS: number) => {
+function at(clicks: ClickEvent[], tS: number) {
   const state = cursorAt(track, clicks, tS);
   if (!state) throw new Error(`no cursor at ${tS}s`);
   return state;
-};
+}
 
-const pointAt = (tS: number) => {
+function pointAt(tS: number) {
   const { x, y } = at([], tS);
   return { x, y };
-};
+}
 
 describe("cursor path", () => {
   it("holds the ends outside the recorded range", () => {
@@ -94,7 +94,9 @@ describe("cursorAt", () => {
 
 describe("cursor opacity", () => {
   const typing = [{ tMs: 500, x: 300, y: 200, tDownMs: 450, typeEndMs: 3000 }];
-  const cursorOpacity = (clicks: ClickEvent[], tS: number) => at(clicks, tS).opacity;
+  function cursorOpacity(clicks: ClickEvent[], tS: number) {
+    return at(clicks, tS).opacity;
+  }
 
   it("hides the arrow while the app's text caret is up", () => {
     expect(cursorOpacity(typing, 1.5)).toBe(0);
@@ -128,7 +130,9 @@ describe("cursor shape", () => {
     { t: 600, x: 300, y: 200, c: "default" },
     { t: 1000, x: 500, y: 400, c: "text" },
   ];
-  const shapeAt = (tS: number) => cursorAt(shaped, [], tS)?.shape;
+  function shapeAt(tS: number) {
+    return cursorAt(shaped, [], tS)?.shape;
+  }
 
   it("shows the arrow until the page asks for another cursor", () => {
     expect(shapeAt(0)).toBe("default");

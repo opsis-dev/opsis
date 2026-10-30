@@ -4,12 +4,8 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-
-const clampOpts = {
-  extrapolateLeft: "clamp" as const,
-  extrapolateRight: "clamp" as const,
-};
 
 type WhipPanProps = ElementSettings["whip-pan"];
 
@@ -24,7 +20,7 @@ function WhipPanPresentation({
   const p = presentationProgress;
 
   const travel = interpolate(p, [0, 1], [0, 1], {
-    ...clampOpts,
+    ...CLAMPED,
     easing: Easing.bezier(0.7, 0, 0.2, 1),
   });
   const velocity = Math.sin(Math.PI * travel);

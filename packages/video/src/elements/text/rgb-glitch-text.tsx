@@ -24,8 +24,9 @@ export function RGBGlitchText({
 
   const isGlitching = frame >= glitchAt && frame < glitchAt + glitchDuration;
 
-  const offset = (axisSeed: string, scale: number) =>
-    (random(`${seed}-${axisSeed}-${frame}`) * 2 - 1) * scale;
+  function offset(axisSeed: string, scale: number) {
+    return (random(`${seed}-${axisSeed}-${frame}`) * 2 - 1) * scale;
+  }
 
   const rX = isGlitching ? offset("r-x", intensity) : 0;
   const rY = isGlitching ? offset("r-y", intensity * 0.4) : 0;

@@ -9,22 +9,28 @@ type Drag = DragTarget & { x: number; y: number; origin: Bounds; box: Bounds };
 
 const MIN_SIDE = 0.01;
 
-const boxFrom = (x0: number, y0: number, x1: number, y1: number): Bounds => ({
-  x: round3(Math.min(x0, x1)),
-  y: round3(Math.min(y0, y1)),
-  width: round3(Math.abs(x1 - x0)),
-  height: round3(Math.abs(y1 - y0)),
-});
+function boxFrom(x0: number, y0: number, x1: number, y1: number): Bounds {
+  return {
+    x: round3(Math.min(x0, x1)),
+    y: round3(Math.min(y0, y1)),
+    width: round3(Math.abs(x1 - x0)),
+    height: round3(Math.abs(y1 - y0)),
+  };
+}
 
-const moved = (d: Drag, x: number, y: number): Bounds => ({
-  ...d.origin,
-  x: round3(clamp(d.origin.x + x - d.x, 0, 1 - d.origin.width)),
-  y: round3(clamp(d.origin.y + y - d.y, 0, 1 - d.origin.height)),
-});
+function moved(d: Drag, x: number, y: number): Bounds {
+  return {
+    ...d.origin,
+    x: round3(clamp(d.origin.x + x - d.x, 0, 1 - d.origin.width)),
+    y: round3(clamp(d.origin.y + y - d.y, 0, 1 - d.origin.height)),
+  };
+}
 
 const BOX_INDEX = "data-box-index";
 
-export const boxHandle = (index: number) => ({ [BOX_INDEX]: index });
+export function boxHandle(index: number) {
+  return { [BOX_INDEX]: index };
+}
 
 function grabbedBox(e: PointerEvent): number | null {
   const handle = e.target instanceof Element ? e.target.closest(`[${BOX_INDEX}]`) : null;
@@ -35,11 +41,11 @@ export function useBoxDrag(boxes: Bounds[], onChange: (boxes: Bounds[]) => void,
   const area = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState<Drag | null>(null);
 
-  const pointIn = (e: PointerEvent) => {
+  function pointIn(e: PointerEvent) {
     const r = area.current?.getBoundingClientRect();
     return r ? fractionIn(r, e.clientX, e.clientY) : null;
-  };
-  const begin = (e: PointerEvent): Drag | null => {
+  }
+  function begin(e: PointerEvent): Drag | null {
     const at = pointIn(e);
     const index = grabbedBox(e);
     if (!at) return null;
@@ -48,7 +54,7 @@ export function useBoxDrag(boxes: Bounds[], onChange: (boxes: Bounds[]) => void,
     const origin =
       target?.mode === "move" ? boxes.at(target.index) : boxFrom(at.x, at.y, at.x, at.y);
     return target && origin ? { ...target, x: at.x, y: at.y, origin, box: origin } : null;
-  };
+  }
   const frame = usePointerDrag<HTMLDivElement, { drag: Drag | null }>({
     start: (e) => {
       const drag = begin(e);

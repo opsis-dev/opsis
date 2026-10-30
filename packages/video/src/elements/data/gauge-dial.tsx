@@ -1,30 +1,12 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { arcPath, polar } from "#video/common/geometry.ts";
+import { clamp01 } from "#video/common/math.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
 const EXIT_FRAMES = 20;
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-
-function polar(cx: number, cy: number, radius: number, degrees: number) {
-  const radians = ((degrees - 90) * Math.PI) / 180;
-  return { x: cx + radius * Math.cos(radians), y: cy + radius * Math.sin(radians) };
-}
-
-function arcPath(
-  cx: number,
-  cy: number,
-  radius: number,
-  startAngle: number,
-  endAngle: number,
-): string {
-  if (endAngle - startAngle <= 0.001) return "";
-  const start = polar(cx, cy, radius, startAngle);
-  const middle = polar(cx, cy, radius, (startAngle + endAngle) / 2);
-  const end = polar(cx, cy, radius, endAngle);
-  return `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 1 ${middle.x} ${middle.y} A ${radius} ${radius} 0 0 1 ${end.x} ${end.y}`;
-}
 
 function decimalsOf(value: number): number {
   return Math.min(3, (String(value).split(".")[1] ?? "").length);
@@ -60,7 +42,9 @@ export function GaugeDial({
   const sweepInDegrees = Math.min(360, Math.max(1, sweepSetting));
   const fullCircle = sweepInDegrees >= 360;
   const tickSteps = fullCircle ? tickCount : tickCount - 1;
-  const format = (input: number) => input.toFixed(decimals ?? decimalsOf(value));
+  function format(input: number) {
+    return input.toFixed(decimals ?? decimalsOf(value));
+  }
   const centre = size / 2;
   const radius = (size - thickness) / 2;
   const startAngle = -sweepInDegrees / 2;
@@ -70,14 +54,9 @@ export function GaugeDial({
   const target = clamp01((value - min) / span);
 
   const enterWindow: [number, number] = [delayInFrames, delayInFrames + durationInFrames];
-  const arcProgress = interpolate(frame, enterWindow, [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASING.enter,
-  });
+  const arcProgress = interpolate(frame, enterWindow, [0, 1], { ...CLAMPED, easing: EASING.enter });
   const needleProgress = interpolate(frame, enterWindow, [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: EASING.pop,
   });
 
@@ -85,8 +64,7 @@ export function GaugeDial({
     exitAtInFrames === undefined
       ? 0
       : interpolate(frame, [exitAtInFrames, exitAtInFrames + exitInFrames], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
+          ...CLAMPED,
           easing: EASING.exit,
         });
 

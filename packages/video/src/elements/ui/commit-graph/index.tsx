@@ -1,5 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
@@ -10,11 +11,6 @@ const T = {
   windowFor: 0.46,
   chrome: 0.14,
   exitFor: 0.42,
-} as const;
-
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
 } as const;
 
 export function CommitGraph({
@@ -46,9 +42,12 @@ export function CommitGraph({
   const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const portrait = height > width;
   const designU = portrait
@@ -56,8 +55,11 @@ export function CommitGraph({
     : Math.min(width / 1024, height / 576);
 
   const commits = commitsProp.map((commit, index) => {
-    const earlier = (ref: number | undefined) =>
-      ref !== undefined && Number.isInteger(ref) && ref >= 0 && ref < index ? ref : undefined;
+    function earlier(ref: number | undefined) {
+      return ref !== undefined && Number.isInteger(ref) && ref >= 0 && ref < index
+        ? ref
+        : undefined;
+    }
     return {
       ...commit,
       lane: Math.max(0, Math.round(commit.lane ?? 0)),
@@ -84,7 +86,7 @@ export function CommitGraph({
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   const windowW = Math.min(width - safe.paddingLeft - safe.paddingRight, windowWidth * u);
@@ -96,20 +98,26 @@ export function CommitGraph({
   const bodyH = rowH * commits.length;
   const dotR = dotSize * u;
 
-  const laneColor = (lane: number) =>
-    lane === 0 ? accentColor : laneColors[(lane - 1) % laneColors.length];
+  function laneColor(lane: number) {
+    return lane === 0 ? accentColor : laneColors[(lane - 1) % laneColors.length];
+  }
 
-  const rowY = (index: number) => index * rowH + rowH / 2;
-  const laneX = (lane: number) => gutterX + lane * laneW;
+  function rowY(index: number) {
+    return index * rowH + rowH / 2;
+  }
+  function laneX(lane: number) {
+    return gutterX + lane * laneW;
+  }
 
-  const arrivalOf = (index: number) =>
-    ease(
+  function arrivalOf(index: number) {
+    return ease(
       startAtSeconds + index * stepSeconds,
       startAtSeconds + (index + 1) * stepSeconds,
       EASING.editorial,
     );
+  }
 
-  const edgePath = (fromIndex: number, toIndex: number) => {
+  function edgePath(fromIndex: number, toIndex: number) {
     const from = commits[fromIndex];
     const to = commits[toIndex];
     const x1 = laneX(from.lane ?? 0);
@@ -119,7 +127,7 @@ export function CommitGraph({
     if (x1 === x2) return `M ${x1} ${y1} L ${x2} ${y2}`;
     const bend = (y2 - y1) * 0.55;
     return `M ${x1} ${y1} C ${x1} ${y1 + bend}, ${x2} ${y2 - bend}, ${x2} ${y2}`;
-  };
+  }
 
   return (
     <AbsoluteFill
@@ -224,7 +232,7 @@ export function CommitGraph({
             {commits.map((commit, index) => {
               const progress =
                 index === 0 ? ease(startAtSeconds - 0.24, startAtSeconds) : arrivalOf(index);
-              const pop = interpolate(progress, [0.82, 1], [0, 1], clamp);
+              const pop = interpolate(progress, [0.82, 1], [0, 1], CLAMPED);
               if (pop <= 0) return null;
               const color = laneColor(commit.lane ?? 0);
               return (
@@ -245,7 +253,7 @@ export function CommitGraph({
           {commits.map((commit, index) => {
             const progress =
               index === 0 ? ease(startAtSeconds - 0.24, startAtSeconds) : arrivalOf(index);
-            const textIn = interpolate(progress, [0.86, 1], [0, 1], clamp);
+            const textIn = interpolate(progress, [0.86, 1], [0, 1], CLAMPED);
             return (
               <div
                 key={index}

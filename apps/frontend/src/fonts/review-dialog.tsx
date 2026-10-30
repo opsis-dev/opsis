@@ -33,18 +33,20 @@ export function ReviewDialog({
   const { isBusy, run } = useBusy();
 
   useEffect(() => {
-    const release = () => void commands.releaseInspectedFonts(fonts.token);
+    function release() {
+      return void commands.releaseInspectedFonts(fonts.token);
+    }
     window.addEventListener("pagehide", release);
     return () => window.removeEventListener("pagehide", release);
   }, [fonts.token]);
 
-  const close = () => {
+  function close() {
     void commands.releaseInspectedFonts(fonts.token);
     onClose();
-  };
+  }
 
-  const add = () =>
-    run("add", async () => {
+  function add() {
+    return run("add", async () => {
       const added = await commands.addInspectedFonts(fonts.token, chosen);
       toast.success(
         added.length === 1 ? `Added ${added[0].family}` : `Added ${plural(added.length, "font")}`,
@@ -52,6 +54,7 @@ export function ReviewDialog({
       await onAdded();
       close();
     });
+  }
 
   return (
     <FontDialog

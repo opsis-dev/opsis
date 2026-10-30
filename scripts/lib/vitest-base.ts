@@ -8,14 +8,14 @@ type TestConfig = {
   globalSetup?: string[];
 };
 
-export const testConfig = ({
+export function testConfig({
   alias = {},
   nodeTests = ["src/**/*.test.ts"],
   domTests = ["src/**/*.test.tsx"],
   setupFiles = [],
   globalSetup = [],
-}: TestConfig = {}) =>
-  defineConfig({
+}: TestConfig = {}) {
+  return defineConfig({
     resolve: { alias },
     test: {
       fsModuleCachePath: "node_modules/.vitest-cache",
@@ -33,3 +33,4 @@ export const testConfig = ({
       ],
     },
   });
+}

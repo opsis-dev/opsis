@@ -1,8 +1,10 @@
 import { commands } from "@/generated/bindings";
 import { PROJECT_DIRS } from "@/workflow/project-dirs";
 
-export const revealOutputs = (projectDir: string) =>
-  commands.revealInFolder(projectDir, PROJECT_DIRS.out);
+export function revealOutputs(projectDir: string) {
+  return commands.revealInFolder(projectDir, PROJECT_DIRS.out);
+}
 
-export const revealProjectFile = (projectDir: string, ref: string) =>
-  commands.revealInFolder(projectDir, ref);
+export function revealProjectFile(projectDir: string, ref: string) {
+  return commands.revealInFolder(projectDir, ref);
+}

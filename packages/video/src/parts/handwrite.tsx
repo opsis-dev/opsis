@@ -1,5 +1,5 @@
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { DEFAULT_STEP, hashRange, qf, qstep } from "#video/lib/motion/stop-motion.ts";
+import { DEFAULT_STEP, randomBetween, qf, qstep } from "#video/lib/motion/stop-motion.ts";
 
 export const HAND_FAMILY = '"Caveat"';
 
@@ -59,8 +59,8 @@ export function Handwrite({
       >
         {chars.map((char, i) => {
           const visible = i < shown;
-          const slant = hashRange(`hw:${text}:${i}:r`, -3.2, 3.2) * wobble;
-          const dy = hashRange(`hw:${text}:${i}:y`, -1.8, 1.8) * wobble;
+          const slant = randomBetween(`hw:${text}:${i}:r`, -3.2, 3.2) * wobble;
+          const dy = randomBetween(`hw:${text}:${i}:y`, -1.8, 1.8) * wobble;
           const fresh = visible && i >= freshFrom;
           return (
             <span

@@ -1,10 +1,14 @@
 import { commands, type PageLogLevel } from "@/generated/bindings";
 
-const describe = (value: unknown): string =>
-  value instanceof Error ? (value.stack ?? `${value.name}: ${value.message}`) : String(value);
+function describe(value: unknown): string {
+  return value instanceof Error
+    ? (value.stack ?? `${value.name}: ${value.message}`)
+    : String(value);
+}
 
-const send = (level: PageLogLevel, parts: unknown[]) =>
-  void commands.pageLog(level, parts.map(describe).join(" ")).catch(() => undefined);
+function send(level: PageLogLevel, parts: unknown[]) {
+  return void commands.pageLog(level, parts.map(describe).join(" ")).catch(() => undefined);
+}
 
 export function forwardConsole(): void {
   const error = console.error.bind(console);

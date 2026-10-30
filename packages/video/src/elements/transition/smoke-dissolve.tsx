@@ -4,13 +4,9 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { SmokeRingField } from "#video/parts/shader-fields.tsx";
-
-const clampOpts = {
-  extrapolateLeft: "clamp" as const,
-  extrapolateRight: "clamp" as const,
-};
 
 type SmokeDissolveProps = ElementSettings["smoke-dissolve"];
 
@@ -32,20 +28,20 @@ function SmokeDissolvePresentation({
         )
       : 1;
 
-  const radius = interpolate(p, [0, 1], [0, 1], clampOpts);
-  const scale = interpolate(p, [0, 1], [1, 2], clampOpts);
-  const thickness = interpolate(p, [0, 1], [1, 1.5], clampOpts);
+  const radius = interpolate(p, [0, 1], [0, 1], CLAMPED);
+  const scale = interpolate(p, [0, 1], [1, 2], CLAMPED);
+  const thickness = interpolate(p, [0, 1], [1, 1.5], CLAMPED);
 
   const childStyle: React.CSSProperties = entering
     ? {
-        opacity: interpolate(p, [0.55, 0.68], [0, 1], clampOpts),
+        opacity: interpolate(p, [0.55, 0.68], [0, 1], CLAMPED),
         scale: `${interpolate(p, [0.55, 1], [0.3, 1], {
-          ...clampOpts,
+          ...CLAMPED,
           easing: Easing.out(Easing.cubic),
         })}`,
-        filter: `blur(${interpolate(p, [0.55, 0.75], [10, 0], clampOpts)}px)`,
+        filter: `blur(${interpolate(p, [0.55, 0.75], [10, 0], CLAMPED)}px)`,
       }
-    : { opacity: interpolate(p, [0.06, 0.13], [1, 0], clampOpts) };
+    : { opacity: interpolate(p, [0.06, 0.13], [1, 0], CLAMPED) };
 
   return (
     <AbsoluteFill>

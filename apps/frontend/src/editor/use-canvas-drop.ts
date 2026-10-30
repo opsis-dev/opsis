@@ -14,12 +14,12 @@ export function useCanvasDrop(projectDir: string): (event: React.DragEvent) => P
   const flow = useReactFlow();
   return useCallback(
     async (event: React.DragEvent) => {
-      const addAt = (type: string, clientX: number, clientY: number, params?: { path: string }) => {
+      function addAt(type: string, clientX: number, clientY: number, params?: { path: string }) {
         const pos = flow.screenToFlowPosition({ x: clientX, y: clientY });
         void workflowEdits
           .addNode(type, snapToGrid(pos), params)
           .then((id) => id && useUiStore.getState().setSelected([id]));
-      };
+      }
       event.preventDefault();
       const type = event.dataTransfer.getData(NODE_DRAG_TYPE);
       if (type) {

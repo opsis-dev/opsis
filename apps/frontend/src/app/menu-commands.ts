@@ -12,8 +12,9 @@ const PROJECT_COMMANDS: Partial<Record<MenuCommand, ProjectAction>> = {
   "project:open": "open",
 };
 
-export const projectActionOf = (command: MenuCommand): ProjectAction | undefined =>
-  PROJECT_COMMANDS[command];
+export function projectActionOf(command: MenuCommand): ProjectAction | undefined {
+  return PROJECT_COMMANDS[command];
+}
 
 export const PROJECT_SWITCH_COMMANDS: ReadonlySet<MenuCommand> = new Set<MenuCommand>([
   "view:projects",

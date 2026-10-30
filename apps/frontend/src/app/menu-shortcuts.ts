@@ -6,9 +6,13 @@ import { isMac, platform } from "@/lib/platform";
 import { appMenu } from "@/store/catalog";
 import { dispatchMenuCommand } from "./menu-commands";
 
-export const shortcutLabel = (accelerator: string) => acceleratorLabel(accelerator, platform);
+export function shortcutLabel(accelerator: string) {
+  return acceleratorLabel(accelerator, platform);
+}
 
-export const commandLabel = (cmd: MenuCommand): string => menuCommandEntry(cmd)?.label ?? cmd;
+export function commandLabel(cmd: MenuCommand): string {
+  return menuCommandEntry(cmd)?.label ?? cmd;
+}
 
 export function commandShortcut(cmd: MenuCommand): string | null {
   const accelerator = menuCommandEntry(cmd)?.accelerator;
@@ -19,8 +23,9 @@ export const menuSections = appMenu;
 
 export type MenuItem = Exclude<MenuEntry, { kind: "separator" }>;
 
-export const menuItemId = (entry: MenuItem): MenuCommand | WindowRole =>
-  entry.kind === "command" ? entry.command : entry.role;
+export function menuItemId(entry: MenuItem): MenuCommand | WindowRole {
+  return entry.kind === "command" ? entry.command : entry.role;
+}
 
 export function runMenuItem(entry: MenuItem): void {
   if (entry.kind === "command") dispatchMenuCommand(entry.command);
@@ -45,7 +50,7 @@ export function useMenuShortcuts(): void {
       .filter(
         (e): e is MenuItem & { accelerator: string } => e.kind !== "separator" && !!e.accelerator,
       );
-    const onKey = (e: KeyboardEvent) => {
+    function onKey(e: KeyboardEvent) {
       if (e.defaultPrevented) return;
       const entry = entries.find((x) => matchesAccelerator(x.accelerator, e, platform));
       if (!entry) return;
@@ -53,7 +58,7 @@ export function useMenuShortcuts(): void {
         return;
       e.preventDefault();
       runMenuItem(entry);
-    };
+    }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);

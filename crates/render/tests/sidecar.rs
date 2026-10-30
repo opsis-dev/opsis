@@ -1,15 +1,11 @@
+use opsis_golden::repo;
 use std::ffi::OsString;
-use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use opsis_render::protocol::{COMPOSITION_ID, RenderTarget, SidecarCall, StillJob};
 use opsis_render::sidecar::{Sidecar, SidecarCommand, SidecarError};
 use serde_json::json;
 use tokio_util::sync::CancellationToken;
-
-fn repo() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
-}
 
 fn bun(args: &[&str], env: Vec<(OsString, OsString)>) -> SidecarCommand {
     SidecarCommand {

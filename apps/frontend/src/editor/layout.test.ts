@@ -3,21 +3,27 @@ import { describe, expect, it } from "vitest";
 import type { Workflow, WorkflowNode } from "@/generated/bindings";
 import { autoLayout, type CardShape } from "./layout";
 
-const node = (id: string, type: string): WorkflowNode =>
-  ({ id, type, position: { x: 0, y: 0 }, params: {} }) as unknown as WorkflowNode;
+function node(id: string, type: string): WorkflowNode {
+  return { id, type, position: { x: 0, y: 0 }, params: {} } as unknown as WorkflowNode;
+}
 
-const edge = (source: string, target: string, targetHandle: string) => ({
-  id: `${source}->${target}:${targetHandle}`,
-  source,
-  sourceHandle: "clip",
-  target,
-  targetHandle,
-});
+function edge(source: string, target: string, targetHandle: string) {
+  return {
+    id: `${source}->${target}:${targetHandle}`,
+    source,
+    sourceHandle: "clip",
+    target,
+    targetHandle,
+  };
+}
 
-const workflow = (nodes: WorkflowNode[], edges: ReturnType<typeof edge>[]) =>
-  ({ version: 1, id: "wf", name: "Test", nodes, edges, markers: [] }) as unknown as Workflow;
+function workflow(nodes: WorkflowNode[], edges: ReturnType<typeof edge>[]) {
+  return { version: 1, id: "wf", name: "Test", nodes, edges, markers: [] } as unknown as Workflow;
+}
 
-const unmeasured = (): CardShape => ({ width: 256, height: 160, ports: null });
+function unmeasured(): CardShape {
+  return { width: 256, height: 160, ports: null };
+}
 
 describe("tidy up layout", () => {
   it("lays out a sequence whatever numbered inputs its clips use", async () => {

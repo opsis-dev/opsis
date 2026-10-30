@@ -27,16 +27,20 @@ import { CATEGORY_STYLES } from "./ports";
 
 type PaletteGroup = { category: NodeCategory; defs: NodeDef[] };
 
-const paletteGroups = (): PaletteGroup[] =>
-  nodeCategories().map((category) => ({
+function paletteGroups(): PaletteGroup[] {
+  return nodeCategories().map((category) => ({
     category,
     defs: visibleNodes().filter((d) => d.category === category),
   }));
+}
 
-const groupsFor = (only?: NodeCategory): PaletteGroup[] =>
-  paletteGroups().filter((g) => !only || g.category === only);
+function groupsFor(only?: NodeCategory): PaletteGroup[] {
+  return paletteGroups().filter((g) => !only || g.category === only);
+}
 
-const portLabels = (ports: NodeDef["inputs"]): string[] => Object.values(ports).map((p) => p.label);
+function portLabels(ports: NodeDef["inputs"]): string[] {
+  return Object.values(ports).map((p) => p.label);
+}
 
 function useAddAtCenter() {
   const flowStore = useStoreApi();

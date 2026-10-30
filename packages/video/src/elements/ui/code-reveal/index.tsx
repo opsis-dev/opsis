@@ -1,5 +1,6 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import {
   codePalette,
@@ -57,11 +58,10 @@ export function CodeReveal({
   const scale = stageScale(width, height, REF_WIDTH, REF_HEIGHT);
   const frame = rawFrame * speed;
 
-  const seconds = (value: number) => value * fps;
-  const clamp = {
-    extrapolateLeft: "clamp" as const,
-    extrapolateRight: "clamp" as const,
-  };
+  function seconds(value: number) {
+    return value * fps;
+  }
+  const clamp = CLAMPED;
 
   const lines = code
     .replace(/\s+$/, "")
@@ -103,16 +103,19 @@ export function CodeReveal({
   const writeEnd = plan[plan.length - 1]?.endsAt ?? writeStart;
   const focusAt = writeEnd + seconds(highlightAfter);
 
-  const writtenChars = (row: (typeof plan)[number]) =>
-    row.indent +
-    Math.round(
-      interpolate(
-        frame,
-        [row.startsAt, Math.max(row.endsAt, row.startsAt + 1)],
-        [0, row.cost],
-        clamp,
-      ),
+  function writtenChars(row: (typeof plan)[number]) {
+    return (
+      row.indent +
+      Math.round(
+        interpolate(
+          frame,
+          [row.startsAt, Math.max(row.endsAt, row.startsAt + 1)],
+          [0, row.cost],
+          clamp,
+        ),
+      )
     );
+  }
 
   const enter = spring({
     fps,

@@ -10,7 +10,7 @@ use serde_json::{Map, Value, json};
 
 use crate::helpers::{
     CLIP, action, card_texts, clip_value, compile_clip, compile_node_in, compile_node_with,
-    make_log, node_card, node_card_with, node_result, parse_params, record_result,
+    group_value, make_log, node_card, node_card_with, node_result, parse_params, record_result,
 };
 
 #[test]
@@ -235,13 +235,6 @@ fn shows_a_placeholder_until_the_screenshot_is_taken_then_the_screenshot() {
 
 fn over(kind: &str, params: Value) -> ClipValue {
     compile_clip(kind, params, json!({ CLIP: clip_value(&empty_clip(90)) }))
-}
-
-fn group_value(clip: &ClipValue) -> Value {
-    match &clip.tracks[0].items[0] {
-        TimelineItem::Group { props, .. } => serde_json::to_value(props).unwrap(),
-        other => panic!("{other:?}"),
-    }
 }
 
 #[test]

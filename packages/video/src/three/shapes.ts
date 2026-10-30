@@ -48,7 +48,8 @@ export function fitToSize(object: Object3D, size: number): void {
   object.position.sub(center.multiplyScalar(scale));
 }
 
-export const fittedSize = (width: number, height: number, longest: number) =>
-  width >= height
+export function fittedSize(width: number, height: number, longest: number) {
+  return width >= height
     ? { width: longest, height: (longest * height) / width }
     : { width: (longest * width) / height, height: longest };
+}

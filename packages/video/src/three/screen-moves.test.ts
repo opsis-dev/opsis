@@ -50,7 +50,9 @@ describe("camera moves around a 3D screen", () => {
           const frame = Math.floor(share * (length - 1));
           const now = screenPoseAt(move, frame, length, true, 0.85);
           const next = screenPoseAt(move, frame + 1, length, true, 0.85);
-          const parts = (p: typeof now) => [...p.rotation, ...p.position];
+          function parts(p: typeof now) {
+            return [...p.rotation, ...p.position];
+          }
           for (const [a, b] of parts(now).map((v, i) => [v, parts(next)[i]])) {
             expect(Number.isFinite(a)).toBe(true);
             expect(Math.abs(b - a)).toBeLessThan(Math.PI / 4);

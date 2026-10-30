@@ -1,6 +1,7 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import { useMemo } from "react";
 import { AbsoluteFill, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings, WipeFrom } from "#video/generated/spec.ts";
 import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
@@ -49,10 +50,7 @@ function FrostedGlassWipePresentation({
   const panelStyle = useMemo(() => {
     const widthPct = panelWidth * 100;
     const offset = swept * (100 + widthPct) - widthPct;
-    const glow = interpolate(swept, [0, 0.15, 0.85, 1], [0, 1, 1, 0], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    });
+    const glow = interpolate(swept, [0, 0.15, 0.85, 1], [0, 1, 1, 0], CLAMPED);
     const edge = `1px solid color-mix(in srgb, ${edgeColor} ${(glow * 100).toFixed(1)}%, transparent)`;
 
     return {

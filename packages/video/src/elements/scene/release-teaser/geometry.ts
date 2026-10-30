@@ -7,17 +7,19 @@ export interface RingFace {
   edgeNormals?: [Vec3, Vec3];
 }
 
-const normalize = (v: Vec3): Vec3 => {
+function normalize(v: Vec3): Vec3 {
   const length = Math.hypot(...v) || 1;
   return [v[0] / length, v[1] / length, v[2] / length];
-};
-const subtract = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const cross = (a: Vec3, b: Vec3): Vec3 => [
-  a[1] * b[2] - a[2] * b[1],
-  a[2] * b[0] - a[0] * b[2],
-  a[0] * b[1] - a[1] * b[0],
-];
-export const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+function subtract(a: Vec3, b: Vec3): Vec3 {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+function cross(a: Vec3, b: Vec3): Vec3 {
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+}
+export function dot(a: Vec3, b: Vec3) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
 
 function face(vertices: Vec3[], bevel: boolean): RingFace {
   return {
@@ -49,10 +51,10 @@ export function createRing(segments = 96): RingFace[] {
     [134, -22],
     [134, 22],
   ];
-  const section = (i: number): Vec3[] => {
+  function section(i: number): Vec3[] {
     const angle = ((-18 + (i / count) * 320) * Math.PI) / 180;
     return profile.map(([r, z]) => [r * Math.cos(angle), r * Math.sin(angle), z]);
-  };
+  }
   const faces: RingFace[] = [];
   for (let i = 0; i < count; i++) {
     const a = section(i);

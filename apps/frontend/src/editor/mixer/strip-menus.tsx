@@ -16,7 +16,9 @@ import { useMixerState } from "./mixer-state";
 
 type Apply<T> = (patch: T) => void;
 
-const busPart = (settings: Partial<StripSettings>): BusPatch => busSettings(settings);
+function busPart(settings: Partial<StripSettings>): BusPatch {
+  return busSettings(settings);
+}
 
 function SettingsMenu({
   label,
@@ -123,7 +125,9 @@ export function BusMenu({
   onSounds: Apply<StripPatch>;
   onSoundsReset: () => void;
 }) {
-  const toBus = (settings: Partial<StripSettings>) => onBus(busPart(settings));
+  function toBus(settings: Partial<StripSettings>) {
+    return onBus(busPart(settings));
+  }
   const toSounds = onSounds;
   return (
     <SettingsMenu label="Bus settings" className="w-56">

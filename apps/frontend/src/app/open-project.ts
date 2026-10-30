@@ -10,8 +10,9 @@ import { showDocument } from "../store/workflow";
 
 export const PROJECT_DIR_PARAM = z.coerce.string().default("");
 
-export const openEditor = (navigate: NavigateFn, dir: string): void =>
-  void navigate({ to: "/editor", search: { dir } });
+export function openEditor(navigate: NavigateFn, dir: string): void {
+  return void navigate({ to: "/editor", search: { dir } });
+}
 
 function openProjectIntoStores(p: OpenProject): void {
   loadViewState(p.dir, p.view);

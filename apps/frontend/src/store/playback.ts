@@ -64,19 +64,19 @@ export function runPlaybackCommand(command: PlaybackCall): void {
   if (local) callPlayer(local, command);
 }
 
-const dispatch = (command: PlaybackCall) => {
+function dispatch(command: PlaybackCall) {
   if (local) runPlaybackCommand(command);
   else remote.send(command);
-};
+}
 
 const MAX_SHUTTLE_RATE = 4;
 const SHUTTLE_RATE_STEP = 2;
 
 export const usePlayback = create<PlaybackState>()((set, get) => {
-  const setRate = (rate: number) => {
+  function setRate(rate: number) {
     set({ rate });
     dispatch({ call: "rate", rate });
-  };
+  }
   return {
     frame: 0,
     playing: false,
@@ -143,5 +143,6 @@ const PLAYBACK_SYNC_KEYS = [
 
 export type PlaybackSnapshot = Pick<PlaybackState, (typeof PLAYBACK_SYNC_KEYS)[number]>;
 
-export const playbackSnapshot = (): PlaybackSnapshot =>
-  pick(usePlayback.getState(), PLAYBACK_SYNC_KEYS);
+export function playbackSnapshot(): PlaybackSnapshot {
+  return pick(usePlayback.getState(), PLAYBACK_SYNC_KEYS);
+}

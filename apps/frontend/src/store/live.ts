@@ -39,25 +39,29 @@ const MAX_CLICKS = 9;
 
 export const CLICK_RIPPLE_MS = 600;
 
-const recentClicks = (clicks: LiveCapture["clicks"], now: number): LiveCapture["clicks"] =>
-  clicks.filter((c) => now - c.at < CLICK_RIPPLE_MS);
+function recentClicks(clicks: LiveCapture["clicks"], now: number): LiveCapture["clicks"] {
+  return clicks.filter((c) => now - c.at < CLICK_RIPPLE_MS);
+}
 
-const blank = (captureId: string, nodeId: string): LiveCapture => ({
-  captureId,
-  nodeId,
-  title: "",
-  viewport: null,
-  steps: [],
-  frameUrl: null,
-  cursor: null,
-  target: null,
-  clicks: [],
-  status: "live",
-  startedAt: Date.now(),
-});
+function blank(captureId: string, nodeId: string): LiveCapture {
+  return {
+    captureId,
+    nodeId,
+    title: "",
+    viewport: null,
+    steps: [],
+    frameUrl: null,
+    cursor: null,
+    target: null,
+    clicks: [],
+    status: "live",
+    startedAt: Date.now(),
+  };
+}
 
-const objectUrl = (jpeg: Uint8Array<ArrayBuffer>) =>
-  URL.createObjectURL(new Blob([jpeg], { type: "image/jpeg" }));
+function objectUrl(jpeg: Uint8Array<ArrayBuffer>) {
+  return URL.createObjectURL(new Blob([jpeg], { type: "image/jpeg" }));
+}
 
 function applyEvent(prev: LiveCapture, e: LiveEvent): LiveCapture {
   switch (e.kind) {

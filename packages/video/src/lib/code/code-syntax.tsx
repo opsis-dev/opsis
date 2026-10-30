@@ -109,7 +109,9 @@ const DIFF = {
 
 export function codePalette(theme: Theme): ThemedCode {
   const base = CODE_THEMES[theme.mode];
-  const pick = (key: string, fallback: string) => theme.colors[key] ?? fallback;
+  function pick(key: string, fallback: string) {
+    return theme.colors[key] ?? fallback;
+  }
   return {
     page: pick("page", base.page),
     window: pick("window", base.window),

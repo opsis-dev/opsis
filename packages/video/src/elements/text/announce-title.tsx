@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { AbsoluteFill, continueRender, delayRender, getRemotionEnvironment } from "remotion";
 import { fontOr, MAIN_FONT } from "#video/common/fonts.ts";
+import { clamp01 } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { WarmUIProvider, useWarmTheme } from "#video/lib/warm-ui/index.ts";
@@ -25,10 +26,6 @@ function settle(t: number, span: number, decay: number): number {
   if (t <= 0) return 0;
   if (t >= span) return 1;
   return (1 - decay ** t) / (1 - decay ** span);
-}
-
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
 function sample(table: readonly (readonly [number, number])[], p: number) {
@@ -245,7 +242,9 @@ function Mark({
   if (!path) return null;
   const stops = symbolStops(colors);
   const edge = 0.5 + spread / 2;
-  const blur = (f: number) => (f * glow * width * 100) / size;
+  function blur(f: number) {
+    return (f * glow * width * 100) / size;
+  }
   return (
     <svg
       viewBox="0 0 100 100"
@@ -577,8 +576,9 @@ function taglineFill(front: number, rest: string, tint: string[]): string {
     const [r0, g0, b0] = hexToRgb(below[1]);
     const [r1, g1, b1] = hexToRgb(above[1]);
     const drained = clamp01((front - p) / WIPE_EDGE + 0.5);
-    const mix = (a: number, b: number, target: number) =>
-      Math.round((a + (b - a) * local) * (1 - drained) + target * drained);
+    function mix(a: number, b: number, target: number) {
+      return Math.round((a + (b - a) * local) * (1 - drained) + target * drained);
+    }
     stops.push(
       `rgb(${mix(r0, r1, rr)},${mix(g0, g1, rg)},${mix(b0, b1, rb)}) ${(p * 100).toFixed(1)}%`,
     );
@@ -730,7 +730,7 @@ export function AnnounceTitle({
   const titleSize = TITLE_SIZE * textScale * width * scales[1];
   const taglineSize = TAGLINE_SIZE * textScale * width * scales[2];
 
-  const shot = () => {
+  function shot() {
     if (frame < PLANE_OUT) {
       return (
         <AbsoluteFill style={{ backgroundColor: voidColor }}>
@@ -820,7 +820,7 @@ export function AnnounceTitle({
         )}
       </AbsoluteFill>
     );
-  };
+  }
 
   return (
     <WarmUIProvider theme={{ fontFamily: face }}>

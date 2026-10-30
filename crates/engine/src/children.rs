@@ -3,6 +3,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, Signal, System, UpdateKind};
+use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
 
 static STARTED: Mutex<BTreeSet<u32>> = Mutex::new(BTreeSet::new());
 
@@ -82,6 +83,13 @@ pub fn end_children_of_gone_apps(root: &Path, alive: &dyn Fn(u32) -> bool) -> Ve
         .into_iter()
         .filter(|&pid| end(&system, pid))
         .collect()
+}
+
+pub async fn read_lines(stream: impl AsyncRead + Unpin, mut each: impl FnMut(&str)) {
+    let mut lines = BufReader::new(stream).lines();
+    while let Ok(Some(line)) = lines.next_line().await {
+        each(&line);
+    }
 }
 
 #[cfg(test)]

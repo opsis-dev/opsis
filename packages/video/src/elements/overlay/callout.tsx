@@ -9,7 +9,7 @@ const CALLOUT = {
   labelPaddingPx: [12, 22],
 } as const;
 
-const directionOf = (side: Side, slant: number): [number, number] => {
+function directionOf(side: Side, slant: number): [number, number] {
   const s = Math.tan((slant * Math.PI) / 180);
   switch (side) {
     case "top":
@@ -21,7 +21,7 @@ const directionOf = (side: Side, slant: number): [number, number] => {
     case "right":
       return [1, -s];
   }
-};
+}
 
 export function Callout({
   text,

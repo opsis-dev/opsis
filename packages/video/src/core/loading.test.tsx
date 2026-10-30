@@ -51,7 +51,9 @@ describe("holding a render while something loads", () => {
     events.log.length = 0;
     const first = deferred();
     const second = deferred();
-    const load = (key: string) => (key === "a" ? first.promise : second.promise);
+    function load(key: string) {
+      return key === "a" ? first.promise : second.promise;
+    }
     const view = render(<Loader id="a" load={load} />);
     view.rerender(<Loader id="b" load={load} />);
     expect(events.log).toEqual(["hold file a", "release file a", "hold file b"]);

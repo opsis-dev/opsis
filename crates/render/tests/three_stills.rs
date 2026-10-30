@@ -1,3 +1,6 @@
+mod support;
+
+use opsis_golden::{home, repo};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -18,34 +21,13 @@ use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::{CompileValue, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use serde_json::{Value, json};
+use support::{sidecar_args, sidecar_program};
 use tokio_util::sync::CancellationToken;
 
 const STILLS: &str = "prepare/stills";
 const FRAME: u32 = 45;
 const CHANNEL_SLACK: u8 = 24;
 const MOSTLY_SAME: f64 = 0.995;
-
-fn repo() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
-}
-
-fn sidecar_program() -> PathBuf {
-    std::env::var_os("OPSIS_SIDECAR").map_or_else(|| PathBuf::from("bun"), PathBuf::from)
-}
-
-fn sidecar_args() -> Vec<OsString> {
-    if std::env::var_os("OPSIS_SIDECAR").is_some() {
-        Vec::new()
-    } else {
-        ["run", "apps/sidecar/src/main.ts"]
-            .map(OsString::from)
-            .to_vec()
-    }
-}
-
-fn home() -> PathBuf {
-    std::env::var_os("HOME").map(PathBuf::from).expect("HOME")
-}
 
 fn cases() -> Vec<(&'static str, &'static str, Value)> {
     vec![

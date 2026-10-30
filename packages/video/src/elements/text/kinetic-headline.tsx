@@ -25,14 +25,15 @@ const KINETIC = {
 
 type EmphasisedWord = { word: string; em: boolean };
 
-export const emphasisedWords = (text: string): EmphasisedWord[] =>
-  text
+export function emphasisedWords(text: string): EmphasisedWord[] {
+  return text
     .split(/\s+/)
     .filter(Boolean)
     .map((w) => ({
       word: w.replace(/^\*|\*$/g, ""),
       em: w.startsWith("*") || w.endsWith("*"),
     }));
+}
 
 export function KineticHeadline({
   text,

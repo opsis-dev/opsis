@@ -15,15 +15,17 @@ function installPicker(interactive) {
   const TAG_BACKGROUND = "#18181b";
   const TAG_TEXT = "#fafafa";
 
-  const clean = (s) => (s || "").replace(/\s+/g, " ").trim();
+  function clean(s) {
+    return (s || "").replace(/\s+/g, " ").trim();
+  }
 
-  const labelFor = (el) => {
+  function labelFor(el) {
     if (!el.id) return null;
     const label = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
     return label ? clean(label.textContent) : null;
-  };
+  }
 
-  const nameOf = (el) => {
+  function nameOf(el) {
     const aria = el.getAttribute("aria-label");
     if (aria) return clean(aria);
     const label = labelFor(el);
@@ -35,17 +37,17 @@ function installPicker(interactive) {
     const testId = el.getAttribute("data-testid");
     if (testId) return testId;
     return clean(el.getAttribute("title"));
-  };
+  }
 
-  const pathStep = (el) => {
+  function pathStep(el) {
     const step = el.tagName.toLowerCase();
     const parent = el.parentElement;
     if (!parent) return step;
     const same = [...parent.children].filter((c) => c.tagName === el.tagName);
     return same.length > 1 ? `${step}:nth-of-type(${same.indexOf(el) + 1})` : step;
-  };
+  }
 
-  const cssPath = (el) => {
+  function cssPath(el) {
     const parts = [];
     let cur = el;
     while (cur && parts.length < MAX_PATH_DEPTH) {
@@ -57,25 +59,25 @@ function installPicker(interactive) {
       cur = cur.parentElement;
     }
     return parts.join(" > ");
-  };
+  }
 
-  const cssOf = (el) => {
+  function cssOf(el) {
     if (el.id && !/\d{3,}/.test(el.id)) return `#${CSS.escape(el.id)}`;
     const testId = el.getAttribute("data-testid");
     if (testId) return `[data-testid="${CSS.escape(testId)}"]`;
     return cssPath(el);
-  };
+  }
 
-  const inputRole = (el) => {
+  function inputRole(el) {
     const type = (el.getAttribute("type") || "text").toLowerCase();
     if (type === "checkbox" || type === "radio") return type;
     if (type === "search") return "searchbox";
     if (["button", "submit", "reset"].includes(type)) return "button";
     if (type === "range") return "slider";
     return "textbox";
-  };
+  }
 
-  const implicitRole = (el) => {
+  function implicitRole(el) {
     const tagName = el.tagName.toLowerCase();
     if (tagName === "a" && el.hasAttribute("href")) return "link";
     if (tagName === "button") return "button";
@@ -85,21 +87,23 @@ function installPicker(interactive) {
     if (/^h[1-6]$/.test(tagName)) return "heading";
     if (tagName === "input") return inputRole(el);
     return "";
-  };
+  }
 
-  const roleOf = (el) => el.getAttribute("role") || implicitRole(el);
+  function roleOf(el) {
+    return el.getAttribute("role") || implicitRole(el);
+  }
 
-  const overlay = (css) => {
+  function overlay(css) {
     const el = document.createElement("div");
     el.style.cssText = `${OVERLAY};${css}`;
     document.documentElement.appendChild(el);
     return el;
-  };
+  }
   const box = overlay(`border:2px solid ${ACCENT};background:${ACCENT_FILL};border-radius:4px`);
   const tag = overlay(
     `background:${TAG_BACKGROUND};color:${TAG_TEXT};font:600 12px system-ui;padding:4px 8px;border-radius:6px`,
   );
-  const place = (rect, label, labelAt) => {
+  function place(rect, label, labelAt) {
     Object.assign(box.style, {
       left: `${rect.left}px`,
       top: `${rect.top}px`,
@@ -108,43 +112,46 @@ function installPicker(interactive) {
     });
     tag.textContent = label;
     Object.assign(tag.style, { left: `${labelAt.left}px`, top: `${labelAt.top}px` });
-  };
+  }
 
-  const spotOf = (e) => {
+  function spotOf(e) {
     const x = Math.round(e.clientX);
     const y = Math.round(e.clientY);
     return { x, y, text: `${x}, ${y}` };
-  };
+  }
 
-  const pick = (target) =>
-    target instanceof Element ? target.closest(interactive) || target : null;
-  const report = (result) => window.opsisPick(JSON.stringify(result));
+  function pick(target) {
+    return target instanceof Element ? target.closest(interactive) || target : null;
+  }
+  function report(result) {
+    return window.opsisPick(JSON.stringify(result));
+  }
 
-  const showSpot = (e) => {
+  function showSpot(e) {
     const { x, y, text } = spotOf(e);
     const half = SPOT_SIZE / 2;
     place({ left: x - half, top: y - half, width: SPOT_SIZE, height: SPOT_SIZE }, text, {
       left: x + SPOT_TAG_OFFSET,
       top: Math.max(0, y - SPOT_TAG_RISE),
     });
-  };
+  }
 
-  const showElement = (e) => {
+  function showElement(e) {
     const el = pick(e.target);
     if (!el) return;
     const r = el.getBoundingClientRect();
     const label = nameOf(el) || cssOf(el);
     place(r, label, { left: r.left, top: Math.max(0, r.top - TAG_GAP) });
-  };
+  }
 
   let last = null;
-  const show = (e, shift) => {
+  function show(e, shift) {
     if (!e) return;
     if (shift) showSpot(e);
     else showElement(e);
-  };
+  }
 
-  const reportClick = (e) => {
+  function reportClick(e) {
     if (e.shiftKey) {
       report({ target: spotOf(e).text, css: "", role: "", selectorUsed: "spot" });
       return;
@@ -159,9 +166,11 @@ function installPicker(interactive) {
       role: name ? roleOf(el) : "",
       selectorUsed: name ? "accessible name" : "css",
     });
-  };
+  }
 
-  const capture = (type, listener) => document.addEventListener(type, listener, true);
+  function capture(type, listener) {
+    return document.addEventListener(type, listener, true);
+  }
   capture("mousemove", (e) => {
     last = e;
     show(e, e.shiftKey);

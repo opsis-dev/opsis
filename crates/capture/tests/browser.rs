@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+mod support;
 
 use opsis_capture::browser::{Session, check_browser};
 use opsis_capture::cdp::Arg;
@@ -6,13 +6,7 @@ use opsis_capture::locators::{TextPattern, first, role_selector};
 use opsis_compile::nodes::browser::Open;
 use opsis_engine::paths::downloaded_browser;
 use serde_json::json;
-
-fn engine_dir() -> PathBuf {
-    std::env::var_os("HOME")
-        .map(PathBuf::from)
-        .expect("HOME")
-        .join(".config/Opsis/engine")
-}
+use support::engine_dir;
 
 #[tokio::test]
 #[ignore = "needs the dev engine"]

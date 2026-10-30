@@ -170,7 +170,7 @@ impl From<ResolveError> for StepError {
     }
 }
 
-fn failed(message: impl Into<String>) -> StepError {
+pub(crate) fn failed(message: impl Into<String>) -> StepError {
     StepError::Capture(CaptureError::failed(message))
 }
 

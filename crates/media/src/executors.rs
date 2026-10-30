@@ -29,8 +29,7 @@ use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput
 use opsis_types::events::LogLevel;
 use opsis_types::numbers;
 use opsis_types::values::{
-    Artifact, ArtifactKind, CompileValue, ImageValue, Measured, MediaKind, MediaValue, PortValues,
-    StyleEntry,
+    ArtifactKind, CompileValue, ImageValue, Measured, MediaKind, MediaValue, PortValues, StyleEntry,
 };
 
 use crate::codecs::{
@@ -196,16 +195,6 @@ fn output(port: &str, value: CompileValue) -> PortValues {
     [(port.to_owned(), value)].into_iter().collect()
 }
 
-fn artifact(ctx: &ExecutorContext, kind: ArtifactKind, file: &str, label: &str) -> Artifact {
-    Artifact {
-        kind,
-        path: ctx.rel(file),
-        label: Some(label.to_owned()),
-        bytes: None,
-        stamp: None,
-    }
-}
-
 async fn media_result(
     ctx: &ExecutorContext,
     tools: &dyn MediaTools,
@@ -215,7 +204,7 @@ async fn media_result(
     let probe = tools.probe(&ctx.dir.join(file)).await.map_err(tool_error)?;
     let src = ctx.project_file_ref(file);
     let media = media_value_from(&probe, &src, media_kind(&probe, &src));
-    let artifacts = vec![artifact(ctx, artifact_kind(media.kind), file, label)];
+    let artifacts = vec![ctx.artifact(artifact_kind(media.kind), file, label)];
     Ok(ExecutorOutput {
         outputs: output(MEDIA_PORT, CompileValue::Media(media)),
         artifacts,
@@ -1114,7 +1103,7 @@ async fn sound_picture(
     };
     Ok(ExecutorOutput {
         outputs: output(SOUND_PICTURE_PORT, CompileValue::Image(value)),
-        artifacts: vec![artifact(&ctx, ArtifactKind::Image, file, "Sound picture")],
+        artifacts: vec![ctx.artifact(ArtifactKind::Image, file, "Sound picture")],
         trace_id: None,
         measured: Vec::new(),
     })
@@ -1143,7 +1132,7 @@ fn made_sound(
     };
     Ok(ExecutorOutput {
         outputs: output(SOUND_PORT, CompileValue::Media(value)),
-        artifacts: vec![artifact(ctx, ArtifactKind::Audio, file, label)],
+        artifacts: vec![ctx.artifact(ArtifactKind::Audio, file, label)],
         trace_id: None,
         measured: Vec::new(),
     })
@@ -1315,7 +1304,7 @@ async fn make_generated(
     };
     Ok(ExecutorOutput {
         outputs: output(SOUND_PORT, CompileValue::Media(value)),
-        artifacts: vec![artifact(&ctx, ArtifactKind::Audio, file, "Generated sound")],
+        artifacts: vec![ctx.artifact(ArtifactKind::Audio, file, "Generated sound")],
         trace_id: None,
         measured: Vec::new(),
     })
@@ -1352,12 +1341,7 @@ async fn make_transition_sounds(
         let file = transition_sound_file(ms);
         crate::generate::write_stereo_pcm(&ctx.dir.join(&file), &channels)
             .map_err(|e| ExecError::new(e.to_string()))?;
-        artifacts.push(artifact(
-            &ctx,
-            ArtifactKind::Audio,
-            &file,
-            "Transition sound",
-        ));
+        artifacts.push(ctx.artifact(ArtifactKind::Audio, &file, "Transition sound"));
     }
     Ok(ExecutorOutput {
         artifacts,
@@ -1381,7 +1365,7 @@ async fn make_riser(
             .map_err(|e| ExecError::new(e.to_string()))?;
         crate::generate::write_stereo_pcm(&ctx.dir.join(file), &channels)
             .map_err(|e| ExecError::new(e.to_string()))?;
-        artifacts.push(artifact(&ctx, ArtifactKind::Audio, file, "Riser"));
+        artifacts.push(ctx.artifact(ArtifactKind::Audio, file, "Riser"));
     }
     Ok(ExecutorOutput {
         artifacts,
@@ -1632,7 +1616,7 @@ async fn thumbnail(
         scale: None,
         body: None,
     };
-    let artifacts = vec![artifact(&ctx, ArtifactKind::Image, file, "Thumbnail")];
+    let artifacts = vec![ctx.artifact(ArtifactKind::Image, file, "Thumbnail")];
     Ok(ExecutorOutput {
         outputs: output("image", CompileValue::Image(image)),
         artifacts,

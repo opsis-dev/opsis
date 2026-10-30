@@ -1,10 +1,12 @@
 import { AbsoluteFill } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
+import { DEFAULT_STEP, randomBetween, steppedRamp } from "#video/lib/motion/stop-motion.ts";
 import { HAND_FAMILY, Handwrite, handwriteDuration } from "#video/parts/handwrite.tsx";
 
-const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+function easeOutCubic(t: number) {
+  return 1 - (1 - t) ** 3;
+}
 
 const DEFAULT_PER_STEP = 1.6;
 
@@ -139,8 +141,10 @@ export function checkListDuration(
   );
 }
 
-const boxPath = (size: number, seed: string, index: number, wobble: number): string => {
-  const nudge = (n: number) => hashRange(`${seed}:${index}:c${n}`, -1.5, 1.5) * wobble;
+function boxPath(size: number, seed: string, index: number, wobble: number): string {
+  function nudge(n: number) {
+    return randomBetween(`${seed}:${index}:c${n}`, -1.5, 1.5) * wobble;
+  }
   const lo = size * 0.08;
   const hi = size - lo;
   const corners: [number, number][] = [
@@ -151,10 +155,11 @@ const boxPath = (size: number, seed: string, index: number, wobble: number): str
   ];
   const [start, ...rest] = corners;
   return `M ${start[0]} ${start[1]} ${rest.map(([x, y]) => `L ${x} ${y}`).join(" ")} Z`;
-};
+}
 
-const tickPath = (size: number): string =>
-  `M ${size * 0.2} ${size * 0.52} L ${size * 0.42} ${size * 0.78} L ${size * 0.88} ${size * 0.14}`;
+function tickPath(size: number): string {
+  return `M ${size * 0.2} ${size * 0.52} L ${size * 0.42} ${size * 0.78} L ${size * 0.88} ${size * 0.14}`;
+}
 
 const CAVEAT_ADVANCE = 0.36;
 
@@ -162,19 +167,21 @@ export function checkListStrikeWidth(text: string, fontSize: number, labelWidth:
   return Math.min(labelWidth, Array.from(text).length * fontSize * CAVEAT_ADVANCE);
 }
 
-const strikePath = (
+function strikePath(
   reach: number,
   fontSize: number,
   rowHeight: number,
   seed: string,
   index: number,
   wobble: number,
-): string => {
-  const lift = (n: number) => hashRange(`${seed}:${index}:s${n}`, -1.6, 1.6) * wobble;
+): string {
+  function lift(n: number) {
+    return randomBetween(`${seed}:${index}:s${n}`, -1.6, 1.6) * wobble;
+  }
   const overshoot = fontSize * 0.07;
   const mid = rowHeight / 2;
   return `M ${-overshoot} ${mid + lift(0)} C ${reach * 0.35} ${mid + lift(1)}, ${reach * 0.7} ${mid + lift(2)}, ${reach + overshoot} ${mid + lift(3)}`;
-};
+}
 
 export function CheckList({
   background,
@@ -207,8 +214,9 @@ export function CheckList({
     step,
   });
   const { boxSize, boxGap, rowHeight, labelWidth } = checkListGeometry(width, fontSize);
-  const labelSize = (text: string) =>
-    Math.min(fontSize, labelWidth / Math.max(1, Array.from(text).length * CAVEAT_ADVANCE));
+  function labelSize(text: string) {
+    return Math.min(fontSize, labelWidth / Math.max(1, Array.from(text).length * CAVEAT_ADVANCE));
+  }
 
   return (
     <AbsoluteFill

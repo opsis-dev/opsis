@@ -1,5 +1,7 @@
 import { AbsoluteFill, Easing, interpolate } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { clamp, numberOr } from "#video/common/math.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -14,27 +16,22 @@ export type SearchRevealProps = {
 
 export const searchRevealLength = 90;
 const MIN_FIELD_FONT = 16;
-const finite = (value: number | undefined, fallback: number) =>
-  typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const letters = (text: string) =>
-  Array.from(
+function letters(text: string) {
+  return Array.from(
     new Intl.Segmenter("en", { granularity: "grapheme" }).segment(text),
     (part) => part.segment,
   );
+}
 const curve = Easing.bezier(0.22, 1, 0.36, 1);
-const tween = (frame: number, start: number, end: number, from = 0, to = 1) =>
-  interpolate(frame, [start, end], [from, to], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: curve,
-  });
+function tween(frame: number, start: number, end: number, from = 0, to = 1) {
+  return interpolate(frame, [start, end], [from, to], { ...CLAMPED, easing: curve });
+}
 
 function timing(props: SearchRevealProps) {
   const characters = letters(props.text ?? "acme");
-  const step = clamp(finite(props.framesPerCharacter, 4), 1, 12);
+  const step = clamp(numberOr(props.framesPerCharacter, 4), 1, 12);
   const end = Math.max(searchRevealLength, 54 + characters.length * step + 10);
-  return { characters, step, end, speed: Math.max(0, finite(props.speed, 1)) };
+  return { characters, step, end, speed: Math.max(0, numberOr(props.speed, 1)) };
 }
 
 export function getSearchRevealDuration(props: SearchRevealProps = {}) {
@@ -44,9 +41,9 @@ export function getSearchRevealDuration(props: SearchRevealProps = {}) {
 
 export function getSearchRevealState(frame: number, props: SearchRevealProps = {}) {
   const { characters, step, end, speed } = timing(props);
-  const t = props.reducedMotion ? end : Math.max(0, finite(frame, 0)) * speed;
+  const t = props.reducedMotion ? end : Math.max(0, numberOr(frame, 0)) * speed;
   const typedCount = clamp(Math.floor((t - 54) / step), 0, characters.length);
-  const width = clamp(finite(props.fieldWidth, 464), 320, 640);
+  const width = clamp(numberOr(props.fieldWidth, 464), 320, 640);
   const reveal = props.showPanel === false ? 0 : tween(t, 56, 90);
   const fieldWidth = tween(t, 26, 48, 130, width);
   const fieldHeight = tween(t, 26, 46, 24, 80);
@@ -111,7 +108,7 @@ export function SearchReveal({
   const fittedFont = Math.max(
     MIN_FIELD_FONT,
     Math.min(
-      clamp(finite(fontSize, 34), 18, 54),
+      clamp(numberOr(fontSize, 34), 18, 54),
       (state.fieldWidth - 120) / Math.max(1, letters(text).length * 0.65),
     ),
   );

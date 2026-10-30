@@ -29,20 +29,25 @@ type DragOptions = Pick<GestureEnv, "flat" | "layout" | "sourceNodeId" | "master
 
 export type TimelineDrag = ReturnType<typeof useTimelineDrag>;
 
-const inStickyRuler = (y: number, scrollTop: number) => y >= scrollTop && y < scrollTop + RULER_H;
+function inStickyRuler(y: number, scrollTop: number) {
+  return y >= scrollTop && y < scrollTop + RULER_H;
+}
 
 function useTimelineSnap(
   { flat, markers, beats }: Pick<DragOptions, "flat" | "markers" | "beats">,
   ppf: number,
 ) {
   const snapping = useTimeline((s) => s.snapping);
-  const snapOn = (alt: boolean) => snapping && !alt;
-  const snapTargets = (exclude: string | null) => {
+  function snapOn(alt: boolean) {
+    return snapping && !alt;
+  }
+  function snapTargets(exclude: string | null) {
     const { frame, inPoint, outPoint } = usePlayback.getState();
     return snapTargetsFor({ flat, markers, beats, playhead: frame, inPoint, outPoint }, exclude);
-  };
-  const snapAt = (at: number, alt: boolean) =>
-    snapOn(alt) ? snapFrame(at, snapTargets(null), SNAP_PX / ppf).frame : at;
+  }
+  function snapAt(at: number, alt: boolean) {
+    return snapOn(alt) ? snapFrame(at, snapTargets(null), SNAP_PX / ppf).frame : at;
+  }
   return { snapOn, snapTargets, snapAt };
 }
 
@@ -55,16 +60,16 @@ function useDragSession(scroller: DragOptions["scroller"], zoom: TimelineZoom, o
       active.finish?.();
     },
   });
-  const scrollerEl = () => {
+  function scrollerEl() {
     const el = scroller.current;
     if (!el) throw new Error("The timeline is not on screen.");
     return el;
-  };
-  const begin = (e: React.PointerEvent, active: ActiveDrag) => {
+  }
+  function begin(e: React.PointerEvent, active: ActiveDrag) {
     scrollerEl().setPointerCapture(e.pointerId);
     session.track(active);
     zoom.hold();
-  };
+  }
   return { scrollerEl, begin, isDragging: session.isActive, handlers: session.handlers };
 }
 
@@ -77,8 +82,12 @@ export function useTimelineDrag(opts: DragOptions) {
   const { begin, scrollerEl } = session;
   const [marquee, setMarquee] = useState<MarqueeBox | null>(null);
 
-  const point = (clientX: number, clientY: number) => contentPoint(scrollerEl(), clientX, clientY);
-  const xToFrame = (clientX: number) => clientXToFrame(scrollerEl(), clientX, ppf);
+  function point(clientX: number, clientY: number) {
+    return contentPoint(scrollerEl(), clientX, clientY);
+  }
+  function xToFrame(clientX: number) {
+    return clientXToFrame(scrollerEl(), clientX, ppf);
+  }
   const env: GestureEnv = {
     flat,
     layout,
@@ -91,47 +100,50 @@ export function useTimelineDrag(opts: DragOptions) {
     snapTargets,
   };
 
-  const beginPointer = (e: React.PointerEvent<HTMLElement>): boolean => {
+  function beginPointer(e: React.PointerEvent<HTMLElement>): boolean {
     if (e.button !== 0) return false;
     e.stopPropagation();
     e.currentTarget.closest<HTMLElement>("[data-timeline-root]")?.focus();
     return true;
-  };
+  }
 
-  const startEdit = (e: React.PointerEvent, target: EditTarget, ripple: boolean) =>
-    begin(e, editGesture(env, e, target, ripple, setGuide));
+  function startEdit(e: React.PointerEvent, target: EditTarget, ripple: boolean) {
+    return begin(e, editGesture(env, e, target, ripple, setGuide));
+  }
 
-  const startVolume = (e: React.PointerEvent, bar: AudioBar, height: number) =>
-    begin(e, volumeGesture(e, bar, height));
+  function startVolume(e: React.PointerEvent, bar: AudioBar, height: number) {
+    return begin(e, volumeGesture(e, bar, height));
+  }
 
-  const startKey = (e: React.PointerEvent, key: KeyStart) => {
+  function startKey(e: React.PointerEvent, key: KeyStart) {
     e.stopPropagation();
     if (e.button !== 0) return;
     begin(e, keyGesture(env, e, key));
-  };
+  }
 
-  const startCameraKey = (e: React.PointerEvent, mark: CameraKeyMark) => {
+  function startCameraKey(e: React.PointerEvent, mark: CameraKeyMark) {
     e.stopPropagation();
     if (e.button !== 0) return;
     begin(e, cameraKeyGesture(env, e, mark));
-  };
+  }
 
-  const startMarker = (e: React.PointerEvent, marker: Marker) =>
-    begin(e, markerGesture(env, e, marker));
+  function startMarker(e: React.PointerEvent, marker: Marker) {
+    return begin(e, markerGesture(env, e, marker));
+  }
 
-  const onRulerDown = (e: React.PointerEvent) => {
+  function onRulerDown(e: React.PointerEvent) {
     if (e.button !== 0) return;
     e.stopPropagation();
     begin(e, scrubGesture(env));
     scrubTo(env, xToFrame(e.clientX));
-  };
+  }
 
-  const onEmptyDown = (e: React.PointerEvent) => {
+  function onEmptyDown(e: React.PointerEvent) {
     if (e.button !== 0) return;
     const { x, y, scrollTop } = point(e.clientX, e.clientY);
     if (inStickyRuler(y, scrollTop)) return;
     begin(e, marqueeGesture(env, { x, y }, e.shiftKey, setMarquee));
-  };
+  }
 
   return {
     guide,

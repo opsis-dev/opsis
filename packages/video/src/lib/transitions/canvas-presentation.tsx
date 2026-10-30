@@ -10,7 +10,7 @@ import {
   useDelayRender,
   useVideoConfig,
 } from "remotion";
-import { parseColor } from "#video/lib/neutral-ui/color.ts";
+import { parseColor } from "#video/lib/ui-kit/color.ts";
 
 const QUAD = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
 
@@ -31,9 +31,13 @@ const LAYER: React.CSSProperties = {
 
 const OUTPUT_LAYER: React.CSSProperties = { ...LAYER, pointerEvents: "none" };
 
-export const isCanvasTransitionSupported = (): boolean => isHtmlInCanvasSupported();
+export function isCanvasTransitionSupported(): boolean {
+  return isHtmlInCanvasSupported();
+}
 
-export const isCanvasFilterSupported = (): boolean => isHtmlInCanvasSupported();
+export function isCanvasFilterSupported(): boolean {
+  return isHtmlInCanvasSupported();
+}
 
 export type SceneShaderFrame<Props> = {
   gl: WebGL2RenderingContext;
@@ -152,7 +156,10 @@ function createQuadSurface(canvas: OffscreenCanvas, fragment: string) {
   if (!gl) {
     throw new Error("canvas-presentation: WebGL2 is unavailable");
   }
+  return quadSurface(gl, fragment);
+}
 
+function quadSurface(gl: WebGL2RenderingContext, fragment: string) {
   const program = createProgram(gl, fragment);
   const vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
@@ -164,7 +171,7 @@ function createQuadSurface(canvas: OffscreenCanvas, fragment: string) {
   gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
   const locations = new Map<string, WebGLUniformLocation | null>();
-  const uniform = (name: string) => {
+  function uniform(name: string) {
     const cached = locations.get(name);
     if (cached !== undefined) {
       return cached;
@@ -172,51 +179,53 @@ function createQuadSurface(canvas: OffscreenCanvas, fragment: string) {
     const location = gl.getUniformLocation(program, name);
     locations.set(name, location);
     return location;
-  };
+  }
 
-  const clear = () => {
+  function clear() {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
-  };
+  }
 
   const textures: WebGLTexture[] = [];
-  const createTexture = () => {
+  function createTexture() {
     const texture = createSceneTexture(gl);
     textures.push(texture);
     return texture;
-  };
+  }
 
-  const begin = (width: number, height: number) => {
+  function begin(width: number, height: number) {
     gl.viewport(0, 0, width, height);
     clear();
     gl.useProgram(program);
     gl.bindVertexArray(vao);
-  };
+  }
 
-  const bindScene = (
+  function bindScene(
     image: OffscreenCanvas | null,
     texture: WebGLTexture,
     unit: number,
     name: string,
-  ) => {
+  ) {
     gl.activeTexture(gl.TEXTURE0 + unit);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     if (image) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     }
     gl.uniform1i(uniform(name), unit);
-  };
+  }
 
-  const draw = () => gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  function draw() {
+    return gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
 
-  const cleanup = () => {
+  function cleanup() {
     gl.deleteProgram(program);
     for (const texture of textures) {
       gl.deleteTexture(texture);
     }
     gl.deleteBuffer(buffer);
     gl.deleteVertexArray(vao);
-  };
+  }
 
   return {
     gl,
@@ -415,14 +424,15 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
         return;
       }
       layout.layoutSubtree = true;
-      const handlePaint = () => {
-        const scene = layout.firstElementChild;
+      function handlePaint() {
+        const painted = layoutRef.current;
+        const scene = painted?.firstElementChild;
         const capture = captureRef.current;
         const context = captureContextRef.current;
-        if (!scene || !capture || !context) {
+        if (!painted || !scene || !capture || !context) {
           return;
         }
-        const elementImage = layout.captureElementImage(scene);
+        const elementImage = painted.captureElementImage(scene);
         try {
           context.reset();
           context.drawElementImage(elementImage, 0, 0);
@@ -430,7 +440,7 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
           elementImage.close();
         }
         onElementImageRef.current(capture, draw);
-      };
+      }
       layout.addEventListener("paint", handlePaint);
       return () => layout.removeEventListener("paint", handlePaint);
     }, [passThrough, draw]);
@@ -548,15 +558,16 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
         return;
       }
       layout.layoutSubtree = true;
-      const handlePaint = () => {
-        const scene = layout.firstElementChild;
+      function handlePaint() {
+        const painted = layoutRef.current;
+        const scene = painted?.firstElementChild;
         const capture = captureRef.current;
         const context = captureContextRef.current;
         const instance = instanceRef.current;
-        if (!scene || !capture || !context || !instance) {
+        if (!painted || !scene || !capture || !context || !instance) {
           return;
         }
-        const elementImage = layout.captureElementImage(scene);
+        const elementImage = painted.captureElementImage(scene);
         try {
           context.reset();
           context.drawElementImage(elementImage, 0, 0);
@@ -575,7 +586,7 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
           time: timeRef.current,
           passedProps: passedPropsRef.current,
         });
-      };
+      }
       layout.addEventListener("paint", handlePaint);
       return () => layout.removeEventListener("paint", handlePaint);
     }, []);
@@ -609,7 +620,9 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
         return;
       }
       const handle = delayRender("canvas-presentation: filter paint");
-      const settle = () => continueRender(handle);
+      function settle() {
+        return continueRender(handle);
+      }
       layout.addEventListener("paint", settle, { once: true });
       layout.requestPaint?.();
       return () => {

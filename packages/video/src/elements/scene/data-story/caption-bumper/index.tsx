@@ -1,4 +1,5 @@
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
 import { fitHeadline } from "#video/elements/scene/data-story/text-fit-utils.ts";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
@@ -26,11 +27,6 @@ const T = {
   exitFor: 0.36,
 } as const;
 
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
-} as const;
-
 export function CaptionBumper({
   text,
   eyebrow,
@@ -46,9 +42,12 @@ export function CaptionBumper({
   const palette = look.palette;
   const safe = getSafeAreaPadding({ width, height });
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const stage = {
     w: width - safe.paddingLeft - safe.paddingRight,
@@ -78,7 +77,7 @@ export function CaptionBumper({
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   return (

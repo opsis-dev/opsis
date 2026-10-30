@@ -1,5 +1,6 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { formatNumber, readDelta } from "#video/lib/charts/chart-utils.ts";
 import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
@@ -69,8 +70,7 @@ export function MetricTicker({
   const sparkHeight = scaleFont(isPortrait ? 56 : 64, width);
 
   const headerProgress = interpolate(frame, [0, DURATION.normal], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: EASING.enter,
   });
 
@@ -78,8 +78,7 @@ export function MetricTicker({
     holdSeconds === undefined
       ? 0
       : interpolate(frame, [holdSeconds * fps, (holdSeconds + 0.4) * fps], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
+          ...CLAMPED,
           easing: EASING.exit,
         });
 
@@ -167,10 +166,7 @@ export function MetricTicker({
                 ? COLORS.up
                 : COLORS.label;
           const cardColor = metric.color ?? accentColor;
-          const detailOpacity = interpolate(enter, [0.55, 1], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          });
+          const detailOpacity = interpolate(enter, [0.55, 1], [0, 1], CLAMPED);
 
           return (
             <div

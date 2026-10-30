@@ -291,13 +291,11 @@ async fn render_variant(
         })
         .await?;
     }
-    let mut artifacts = vec![Artifact {
-        kind: artifact_kind(codec),
-        path: project_path(ctx, out)?,
-        label: Some(variant.id().to_owned()),
-        bytes: None,
-        stamp: None,
-    }];
+    let mut artifacts = vec![Artifact::labelled(
+        artifact_kind(codec),
+        project_path(ctx, out)?,
+        variant.id(),
+    )];
     if chapters.listed {
         let stem = out
             .file_stem()
@@ -305,13 +303,11 @@ async fn render_variant(
             .unwrap_or_default();
         let list = out.with_file_name(format!("{stem}.youtube-chapters.txt"));
         tokio::fs::write(&list, chapter_list(&chapters.chapters)).await?;
-        artifacts.push(Artifact {
-            kind: ArtifactKind::File,
-            path: project_path(ctx, &list)?,
-            label: Some(format!("{} chapter list", variant.id())),
-            bytes: None,
-            stamp: None,
-        });
+        artifacts.push(Artifact::labelled(
+            ArtifactKind::File,
+            project_path(ctx, &list)?,
+            format!("{} chapter list", variant.id()),
+        ));
     }
     Ok(artifacts)
 }
@@ -431,13 +427,11 @@ async fn export_images(
             .call(SidecarCall::RenderStill(still), &ctx.cancel, None)
             .await
             .map_err(sidecar_error)?;
-        artifacts.push(Artifact {
-            kind: ArtifactKind::Image,
-            path: project_path(&ctx, &out)?,
-            label: Some(preset.id().to_owned()),
-            bytes: None,
-            stamp: None,
-        });
+        artifacts.push(Artifact::labelled(
+            ArtifactKind::Image,
+            project_path(&ctx, &out)?,
+            preset.id(),
+        ));
     }
     drop(server);
     let image = ImageValue {

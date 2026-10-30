@@ -2,7 +2,7 @@ import { AbsoluteFill } from "remotion";
 import type { ElementSettings, GradientShape } from "#video/generated/spec.ts";
 import { Grain } from "#video/lib/backgrounds/grain.tsx";
 
-const fill = (shape: GradientShape, angle: number, from: string, to: string): string => {
+function fill(shape: GradientShape, angle: number, from: string, to: string): string {
   switch (shape) {
     case "radial":
       return `radial-gradient(circle, ${from}, ${to})`;
@@ -11,7 +11,7 @@ const fill = (shape: GradientShape, angle: number, from: string, to: string): st
     case "linear":
       return `linear-gradient(${angle}deg, ${from}, ${to})`;
   }
-};
+}
 
 export function Gradient({
   from,

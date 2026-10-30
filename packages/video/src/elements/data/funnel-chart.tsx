@@ -1,12 +1,12 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { clamp01 } from "#video/common/math.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { formatNumber } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
 const EXIT_FRAMES = 20;
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 export function FunnelChart({
   stages,
@@ -46,12 +46,13 @@ export function FunnelChart({
     exitAtInFrames === undefined
       ? 0
       : interpolate(frame, [exitAtInFrames, exitAtInFrames + exitInFrames], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
+          ...CLAMPED,
           easing: EASING.exit,
         });
 
-  const bandWidth = (value: number) => (Math.max(0, value) / (peak || 1)) * funnelWidth;
+  function bandWidth(value: number) {
+    return (Math.max(0, value) / (peak || 1)) * funnelWidth;
+  }
 
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
@@ -70,8 +71,7 @@ export function FunnelChart({
 
           const start = delayInFrames + index * staggerInFrames;
           const progress = interpolate(frame, [start, start + durationInFrames], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
+            ...CLAMPED,
             easing: EASING.enter,
           });
           const drain = clamp01((exit - ((count - 1 - index) / count) * 0.3) / 0.7);
@@ -97,7 +97,7 @@ export function FunnelChart({
               start + staggerInFrames + durationInFrames * 0.6 + 12,
             ],
             [0, 1],
-            { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASING.enter },
+            { ...CLAMPED, easing: EASING.enter },
           );
 
           return (

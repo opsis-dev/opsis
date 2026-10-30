@@ -1,3 +1,4 @@
+use opsis_engine::tools::shown;
 use std::path::{Path, PathBuf};
 
 use opsis_project::files::{clear_cache as clear_project_cache, expand_home};
@@ -15,10 +16,6 @@ use tauri_plugin_dialog::DialogExt;
 use crate::error::CommandResult;
 use crate::state::AppState;
 use crate::windows::{MAIN_WINDOW, apply_project_window};
-
-fn shown(path: &Path) -> String {
-    path.to_string_lossy().into_owned()
-}
 
 fn locations(app: &AppHandle, state: &AppState) -> CommandResult<ProjectLocations> {
     let settings = state.settings();

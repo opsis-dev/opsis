@@ -64,7 +64,9 @@ export function BusStrip({
   result: MixResult | null;
 }) {
   const levels = result?.levels.buses[bus.id];
-  const update = (patch: BusPatch) => workflowEdits.mix({ op: "bus", id: bus.id, patch });
+  function update(patch: BusPatch) {
+    return workflowEdits.mix({ op: "bus", id: bus.id, patch });
+  }
   const binding = stripBinding(bus, previewTarget(`bus:${bus.id}`, result, levels), update);
   return (
     <StripShell className="bg-muted/30">

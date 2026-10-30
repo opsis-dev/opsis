@@ -28,15 +28,15 @@ function DimensionalRing({ scene, frame }: { scene: ReleaseTeaserScene; frame: n
     const ctx = canvas.current?.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    const colorChannels = (color: string) => {
+    function colorChannels(context: CanvasRenderingContext2D, color: string) {
       const cached = colorCache.current.get(color);
       if (cached) return cached;
-      const value = channels(ctx, color);
+      const value = channels(context, color);
       colorCache.current.set(color, value);
       return value;
-    };
-    const accent = colorChannels(scene.theme.accent);
-    const surface = colorChannels(scene.theme.surface);
+    }
+    const accent = colorChannels(ctx, scene.theme.accent);
+    const surface = colorChannels(ctx, scene.theme.surface);
     ctx.clearRect(0, 0, 1920, 1080);
     ctx.scale(2, 2);
     const pose = ringPose(frame, scene.reducedMotion);
@@ -61,7 +61,7 @@ function DimensionalRing({ scene, frame }: { scene: ReleaseTeaserScene; frame: n
         ) <= 0
       )
         continue;
-      const shade = (normal: Vec3) => {
+      function shade(normal: Vec3) {
         const diffuse = Math.max(0, dot(normal, key));
         const rimLight = Math.max(0, dot(normal, rim));
         const specular = Math.max(0, dot(normal, half)) ** (face.bevel ? 26 : 48);
@@ -75,7 +75,7 @@ function DimensionalRing({ scene, frame }: { scene: ReleaseTeaserScene; frame: n
           ),
         );
         return `rgb(${rgb.join(",")})`;
-      };
+      }
       const points = face.vertices.map((v) => project(v, pose.scale, pose.x, pose.y));
       ctx.beginPath();
       ctx.moveTo(...points[0]);

@@ -9,18 +9,22 @@ const REMOTION_ENTRY = path.join(...VIDEO_SOURCE, "index.ts");
 const STUDIO_ENTRY = "./internals.mjs";
 const STUDIO_PACKAGE = /@remotion[+/]studio/;
 
-const withoutStudio = (stub: string): RspackPluginInstance => ({
-  apply(compiler) {
-    compiler.hooks.normalModuleFactory.tap("opsis-without-studio", (factory) => {
-      factory.hooks.beforeResolve.tap("opsis-without-studio", (data) => {
-        if (data.request === STUDIO_ENTRY && STUDIO_PACKAGE.test(data.context)) data.request = stub;
+function withoutStudio(stub: string): RspackPluginInstance {
+  return {
+    apply(compiler) {
+      compiler.hooks.normalModuleFactory.tap("opsis-without-studio", (factory) => {
+        factory.hooks.beforeResolve.tap("opsis-without-studio", (data) => {
+          if (data.request === STUDIO_ENTRY && STUDIO_PACKAGE.test(data.context))
+            data.request = stub;
+        });
       });
-    });
-  },
-});
+    },
+  };
+}
 
-export const getPrebuiltRemotionBundlePath = (appRoot: string) =>
-  path.join(appRoot, PREBUILT_REMOTION_BUNDLE_DIR);
+export function getPrebuiltRemotionBundlePath(appRoot: string) {
+  return path.join(appRoot, PREBUILT_REMOTION_BUNDLE_DIR);
+}
 
 export async function bundleRemotionProject({
   projectRoot,

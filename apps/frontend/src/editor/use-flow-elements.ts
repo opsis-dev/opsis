@@ -21,8 +21,8 @@ type LiveFields = Partial<
   Pick<CanvasNode, "measured" | "position" | "dragging" | "resizing" | "width" | "height">
 >;
 
-const liveFields = (n: CanvasNode): LiveFields =>
-  n.dragging || n.resizing
+function liveFields(n: CanvasNode): LiveFields {
+  return n.dragging || n.resizing
     ? {
         measured: n.measured,
         position: n.position,
@@ -32,12 +32,14 @@ const liveFields = (n: CanvasNode): LiveFields =>
         height: n.height,
       }
     : { measured: n.measured };
+}
 
-const withLive = (base: CanvasNode[], live: ReadonlyMap<string, LiveFields>): CanvasNode[] =>
-  base.map((n) => {
+function withLive(base: CanvasNode[], live: ReadonlyMap<string, LiveFields>): CanvasNode[] {
+  return base.map((n) => {
     const fields = live.get(n.id);
     return fields ? { ...n, ...fields } : n;
   });
+}
 
 function selectFromChanges(changes: NodeChange<CanvasNode>[]): void {
   const picks = changes.flatMap((c) => (c.type === "select" ? [c] : []));
@@ -85,11 +87,11 @@ export function useFlowNodes(workflow: Workflow, selected: ReadonlySet<string>) 
 
 function laneBoxes(nodes: readonly CanvasNode[]): Map<string, LaneBox> {
   const byId = new Map(nodes.map((n) => [n.id, n]));
-  const origin = (n: CanvasNode | undefined): { x: number; y: number } => {
+  function origin(n: CanvasNode | undefined): { x: number; y: number } {
     if (!n) return { x: 0, y: 0 };
     const parent = n.parentId ? origin(byId.get(n.parentId)) : { x: 0, y: 0 };
     return { x: parent.x + n.position.x, y: parent.y + n.position.y };
-  };
+  }
   return new Map(
     nodes.map((n) => [
       n.id,

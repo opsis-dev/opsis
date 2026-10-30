@@ -6,10 +6,10 @@ import { BACKDROPS, DEFAULT_BACKDROP } from "#video/common/backdrops.ts";
 
 const PUBLIC_DIR = path.resolve(import.meta.dirname, "../../../../../public");
 
-const fileOf = (backdrop?: string) => {
+function fileOf(backdrop?: string) {
   const source = backdropSource(backdrop);
   return source.kind === "file" ? source.path : null;
-};
+}
 
 describe("backdropSource", () => {
   it("falls back to the default when unset or blank", () => {

@@ -22,8 +22,9 @@ type ZoomOptions = TrackOptions & {
   fit?: number;
 };
 
-export const logTimeS = (frame: number, fps: number, speed: number): number =>
-  (frame / fps) * speed;
+export function logTimeS(frame: number, fps: number, speed: number): number {
+  return (frame / fps) * speed;
+}
 
 type CachedTrack = { options: string; keys: CameraTrack };
 

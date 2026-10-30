@@ -32,7 +32,9 @@ function FontLicenceText({ def }: { def: FontFamilyDef }) {
   const [read, setRead] = useState<{ def: FontFamilyDef; text: string } | null>(null);
   useEffect(() => {
     let current = true;
-    const show = (text: string) => current && setRead({ def, text });
+    function show(text: string) {
+      return current && setRead({ def, text });
+    }
     readFontLicence(def).then(show, (e: unknown) =>
       show(`This licence file couldn't be read. ${errorMessage(e)}`),
     );

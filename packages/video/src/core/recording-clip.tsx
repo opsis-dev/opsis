@@ -137,7 +137,9 @@ export function RecordingClip(props: RecordingProps) {
   );
 
   const { keystrokes } = props;
-  const followX = () => poseAt(frame, fps, log, { speed: props.speed, tuning: props.tuning }).cx;
+  function followX() {
+    return poseAt(frame, fps, log, { speed: props.speed, tuning: props.tuning }).cx;
+  }
   return (
     <AbsoluteFill>
       <LayoutFrame layout={layout} followX={followX}>

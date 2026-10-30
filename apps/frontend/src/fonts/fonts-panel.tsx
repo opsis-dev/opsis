@@ -36,7 +36,9 @@ const SOURCE_LABEL: Record<FontFamilyDef["source"], string> = {
   installed: "From this computer",
 };
 
-const refreshLibrary = () => useFontLibrary.getState().refresh();
+function refreshLibrary() {
+  return useFontLibrary.getState().refresh();
+}
 
 function LibraryRow({ choice, onRemove }: { choice: FontChoice; onRemove: () => void }) {
   const { def } = choice;
@@ -88,10 +90,10 @@ function OnlineConsentDialog({
 
 function RemoveFontDialog({ font, onClose }: { font: FontChoice; onClose: () => void }) {
   const { family } = font.def;
-  const remove = async () => {
+  async function remove() {
     await attempt(() => useFontLibrary.getState().remove(font), `Couldn't remove ${family}`);
     onClose();
-  };
+  }
 
   return (
     <AlertDialog open onOpenChange={(o) => !o && onClose()}>
@@ -123,25 +125,28 @@ type PanelDialog =
 export function FontsPanel() {
   const library = useFontLibrary((s) => s.library);
   const [dialog, setDialog] = useState<PanelDialog | null>(null);
-  const closeIfStill = (kind: PanelDialog["kind"]) =>
-    setDialog((d) => (d?.kind === kind ? null : d));
+  function closeIfStill(kind: PanelDialog["kind"]) {
+    return setDialog((d) => (d?.kind === kind ? null : d));
+  }
 
   useEffect(() => {
     void refreshLibrary();
   }, []);
 
-  const addFiles = () =>
-    attempt(async () => {
+  function addFiles() {
+    return attempt(async () => {
       const fonts = await commands.inspectFontFiles(null);
       if (!fonts) return;
       if (!fonts.families.length) throw new Error("No fonts found in those files.");
       setDialog({ kind: "review", review: { fonts, installed: false } });
     });
+  }
 
-  const openInstalled = () =>
-    attempt(async () => {
+  function openInstalled() {
+    return attempt(async () => {
       setDialog({ kind: "installed", fonts: await commands.installedFontFamilies() });
     });
+  }
 
   return (
     <SettingsCard

@@ -1,4 +1,5 @@
-import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { interpolate, random, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import {
   defaultExitFrames,
   resolveSpringConfig,
@@ -117,11 +118,6 @@ export function splitText(text: string, mode: SplitMode = "chars"): SplitResult 
   return { mode, lines, words, units, total };
 }
 
-function hash01(index: number, seed: number): number {
-  const value = Math.sin(index * 127.1 + seed * 311.7) * 43758.5453;
-  return value - Math.floor(value);
-}
-
 export function staggerRanks(total: number, order: SplitOrder = "start", seed = 1): number[] {
   if (total <= 0) {
     return [];
@@ -138,7 +134,7 @@ export function staggerRanks(total: number, order: SplitOrder = "start", seed = 
     case "edges":
       return indices.map((index) => Math.round(middle - Math.abs(index - middle)));
     case "random": {
-      const shuffled = [...indices].sort((a, b) => hash01(a, seed) - hash01(b, seed));
+      const shuffled = [...indices].sort((a, b) => random(`${seed}:${a}`) - random(`${seed}:${b}`));
       const ranks = Array.from({ length: total }, () => 0);
       shuffled.forEach((originalIndex, rank) => {
         ranks[originalIndex] = rank;
@@ -205,11 +201,6 @@ export type SplitTextState = {
   lastEnterFrame: number;
 };
 
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
-} as const;
-
 const ENTER_OPACITY_LEAD = 0.55;
 const EXIT_OPACITY_LEAD = 0.7;
 
@@ -255,11 +246,11 @@ export function useSplitText({
 
   const springConfig = springProp ? resolveSpringConfig(springProp) : null;
 
-  const stateFor = (unit: SplitUnit): SplitUnitState => {
+  function stateFor(unit: SplitUnit): SplitUnitState {
     const rank = ranks[unit.index] ?? unit.index;
     const start = delay + rank * stagger;
 
-    const enterTime = interpolate(frame, [start, start + duration], [0, 1], clamp);
+    const enterTime = interpolate(frame, [start, start + duration], [0, 1], CLAMPED);
     const enter = springConfig
       ? spring({
           frame,
@@ -270,9 +261,9 @@ export function useSplitText({
         })
       : interpolate(enterTime, [0, 1], [0, 1], {
           easing: EASING_ENTER,
-          ...clamp,
+          ...CLAMPED,
         });
-    const enterOpacity = interpolate(enterTime, [0, ENTER_OPACITY_LEAD], [0, 1], clamp);
+    const enterOpacity = interpolate(enterTime, [0, ENTER_OPACITY_LEAD], [0, 1], CLAMPED);
 
     if (exitStart === null) {
       return {
@@ -288,12 +279,17 @@ export function useSplitText({
     }
 
     const unitExitStart = exitStart + rank * exitStagger;
-    const exitTime = interpolate(frame, [unitExitStart, unitExitStart + exitFrames], [0, 1], clamp);
+    const exitTime = interpolate(
+      frame,
+      [unitExitStart, unitExitStart + exitFrames],
+      [0, 1],
+      CLAMPED,
+    );
     const exitProgress = interpolate(exitTime, [0, 1], [0, 1], {
       easing: EASING_EXIT,
-      ...clamp,
+      ...CLAMPED,
     });
-    const exitOpacity = interpolate(exitTime, [0, EXIT_OPACITY_LEAD], [1, 0], clamp);
+    const exitOpacity = interpolate(exitTime, [0, EXIT_OPACITY_LEAD], [1, 0], CLAMPED);
 
     return {
       ...unit,
@@ -305,7 +301,7 @@ export function useSplitText({
       opacity: enterOpacity * exitOpacity,
       value: enter * (1 - exitProgress),
     };
-  };
+  }
 
   const states = split.units.map(stateFor);
 

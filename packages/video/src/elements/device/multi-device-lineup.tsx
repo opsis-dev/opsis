@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { AbsoluteFill } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { ScreenFit } from "#video/lib/layout/screen-fit.tsx";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
@@ -12,11 +13,6 @@ type MultiDeviceLineupProps = ElementSettings["multi-device-lineup"] & {
   exitAtInFrames?: number;
   exitInFrames?: number;
 };
-
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
-} as const;
 
 const HARDWARE = {
   phone: { screenW: 148, screenH: 320, bezel: 8, radius: 26 },
@@ -57,7 +53,7 @@ function MultiDeviceLineupView({
       ? 0
       : interpolate(frame, [exitAtInFrames, exitAtInFrames + exitInFrames], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   const devices: { kind: DeviceKind; label: string }[] = [
@@ -66,14 +62,14 @@ function MultiDeviceLineupView({
     { kind: "laptop", label: laptopLabel },
   ];
 
-  const chrome = (kind: DeviceKind) => {
+  function chrome(kind: DeviceKind) {
     const spec = HARDWARE[kind];
     return {
       ...spec,
       width: spec.screenW + spec.bezel * 2,
       height: spec.screenH + spec.bezel * 2,
     };
-  };
+  }
 
   return (
     <div
@@ -101,11 +97,11 @@ function MultiDeviceLineupView({
         });
         const fade = interpolate(frame, [start, start + 10], [0, 1], {
           easing: EASING.enter,
-          ...clamp,
+          ...CLAMPED,
         });
         const riseScale = interpolate(rise, [0, 1], [0.94, 1], {
           output: "perceptual-scale",
-          ...clamp,
+          ...CLAMPED,
         });
 
         return (

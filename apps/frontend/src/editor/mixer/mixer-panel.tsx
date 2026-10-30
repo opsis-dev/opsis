@@ -17,11 +17,11 @@ function useCollapsedBuses() {
   const [collapsed, setCollapsed] = useState<string[]>(() =>
     readPref<string[]>("mixerCollapsed", [], Array.isArray),
   );
-  const toggle = (id: string) => {
+  function toggle(id: string) {
     const next = toggleIds(collapsed, [id]);
     setCollapsed(next);
     writePref("mixerCollapsed", next);
-  };
+  }
   return { collapsed, toggle };
 }
 

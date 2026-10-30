@@ -44,11 +44,11 @@ describe("keycapAt", () => {
     expect(keycapAt(keys, 0.5)).toBe(null);
   });
 
-  const lastShown = (events: KeyEvent[], fromS: number) => {
+  function lastShown(events: KeyEvent[], fromS: number) {
     let t = fromS;
     while (keycapAt(events, t + 0.005)) t += 0.005;
     return t;
-  };
+  }
 
   it("shows a chord for about a second and then stops", () => {
     expect(keycapAt(keys, 1.2)?.chord).toBe("Alt+Enter");

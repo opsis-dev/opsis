@@ -1,6 +1,7 @@
 import { linearTiming, springTiming } from "@remotion/transitions";
 import type { TransitionPresentationComponentProps } from "@remotion/transitions";
 import { Easing, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import { springSmooth } from "#video/lib/motion/springs.ts";
 
 export type TransitionVariant = "linear" | "spring" | "editorial";
@@ -52,40 +53,24 @@ export function transitionPhase(
   if (isEntering) {
     const arrived = spansWindow
       ? presentationProgress
-      : interpolate(presentationProgress, [0, lead, 1], [0, 1, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        });
+      : interpolate(presentationProgress, [0, lead, 1], [0, 1, 1], CLAMPED);
 
     return {
       isEntering,
       displace: 1 - arrived,
-      opacity: fade
-        ? interpolate(presentationProgress, [0, 0.42, 1], [0, 0.72, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        : 1,
+      opacity: fade ? interpolate(presentationProgress, [0, 0.42, 1], [0, 0.72, 1], CLAMPED) : 1,
       progress: presentationProgress,
     };
   }
 
   const left = spansWindow
     ? presentationProgress
-    : interpolate(presentationProgress, [0, 1 - lead, 1], [0, 0, 1], {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-      });
+    : interpolate(presentationProgress, [0, 1 - lead, 1], [0, 0, 1], CLAMPED);
 
   return {
     isEntering,
     displace: left,
-    opacity: fade
-      ? interpolate(presentationProgress, [0, 0.58, 1], [1, 0.42, 0], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        })
-      : 1,
+    opacity: fade ? interpolate(presentationProgress, [0, 0.58, 1], [1, 0.42, 0], CLAMPED) : 1,
     progress: presentationProgress,
   };
 }

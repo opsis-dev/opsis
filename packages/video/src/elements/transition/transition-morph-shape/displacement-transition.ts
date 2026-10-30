@@ -1,3 +1,4 @@
+import { clamp01 } from "#video/common/math.ts";
 import {
   prepareMorph,
   MORPH_SHAPES,
@@ -29,8 +30,6 @@ export const DISPLACEMENT_DEFAULTS = {
   blur: 0,
   profile: "peak",
 } as const satisfies Omit<Required<DisplacementCoreConfig>, "scaleRatio">;
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 export function displacementIntensity(
   displace: number,

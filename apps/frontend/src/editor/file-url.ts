@@ -6,4 +6,6 @@ export async function loadFileRoot(): Promise<void> {
   fileRoot = await commands.fileRoot();
 }
 
-export const fileUrl = (ref: string): string => `${fileRoot}${encodeURIComponent(ref)}`;
+export function fileUrl(ref: string): string {
+  return `${fileRoot}${encodeURIComponent(ref)}`;
+}

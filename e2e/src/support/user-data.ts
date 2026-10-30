@@ -32,10 +32,11 @@ function seedDatabase(settings: Record<string, unknown>): void {
 const EXE = process.platform === "win32" ? ".exe" : "";
 const SHELL_NAMES = ["headless_shell", `chrome-headless-shell${EXE}`];
 
-const foldersIn = (dir: string): string[] =>
-  readdirSync(dir, { withFileTypes: true })
+function foldersIn(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => path.join(dir, entry.name));
+}
 
 function downloadedBrowser(engine: string): string | null {
   const root = path.join(engine, "chrome-headless-shell");
@@ -46,7 +47,9 @@ function downloadedBrowser(engine: string): string | null {
 }
 
 function engineSettings(engine: string): Record<string, { path: string } | null> {
-  const tool = (file: string) => (existsSync(file) ? { path: file } : null);
+  function tool(file: string) {
+    return existsSync(file) ? { path: file } : null;
+  }
   const browser = downloadedBrowser(engine);
   return {
     browser: browser ? { path: browser } : null,

@@ -1,3 +1,5 @@
+mod support;
+
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
@@ -14,6 +16,7 @@ use opsis_types::numbers;
 use opsis_types::settings::AppSettings;
 use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
+use support::engine_dir;
 use tokio_util::sync::CancellationToken;
 
 const TAKE: &str = "capture/todomvc-take.json";
@@ -35,13 +38,6 @@ impl Login for NoSignIns {
     fn login(&self, _: LoginRequest, _: CancellationToken) -> BoxFuture<Result<String, ExecError>> {
         Box::pin(async { Err(ExecError::new("No sign-in window in tests.")) })
     }
-}
-
-fn engine_dir() -> PathBuf {
-    std::env::var_os("OPSIS_ENGINE_DIR").map_or_else(
-        || PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/Opsis/engine"),
-        PathBuf::from,
-    )
 }
 
 fn without_times(log: &ActionLog) -> Vec<Value> {

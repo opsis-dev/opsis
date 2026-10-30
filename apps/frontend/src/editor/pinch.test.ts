@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import { MAX_ZOOM, MIN_ZOOM } from "./canvas-grid";
 import { pinchViewport } from "./pinch";
 
-const at = (zoom: number) => ({ x: 0, y: 0, zoom });
-const zoomAfter = (zoom: number, deltaY: number) => pinchViewport(at(zoom), deltaY, 0, 0).zoom;
+function at(zoom: number) {
+  return { x: 0, y: 0, zoom };
+}
+function zoomAfter(zoom: number, deltaY: number) {
+  return pinchViewport(at(zoom), deltaY, 0, 0).zoom;
+}
 
 describe("pinch zoom", () => {
   it("zooms in when the fingers spread and out when they pinch", () => {

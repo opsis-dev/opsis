@@ -40,14 +40,15 @@ function cursorOpacity(clicks: ClickEvent[], tS: number): number {
   return opacity;
 }
 
-const trackPointAt = (track: CursorSample[], tS: number): Point | undefined =>
-  sampleKeyed(
+function trackPointAt(track: CursorSample[], tS: number): Point | undefined {
+  return sampleKeyed(
     track,
     tS * 1000,
     (s) => s.t,
     (s) => ({ x: s.x, y: s.y }),
     lerpPoint,
   );
+}
 
 function shapeAt(track: CursorSample[], tS: number): string {
   for (let i = partitionPoint(track, (s) => s.t <= tS * 1000) - 1; i >= 0; i--) {
@@ -63,8 +64,9 @@ function squashAfter(releasedS: number, pressed: number): number {
   return lerp(pressed, 1, releasedS / CLICK_SQUASH_S);
 }
 
-const rippleFor = (sinceS: number, rippleS: number): number | null =>
-  sinceS <= rippleS && rippleS > 0 ? clamp01(sinceS / rippleS) : null;
+function rippleFor(sinceS: number, rippleS: number): number | null {
+  return sinceS <= rippleS && rippleS > 0 ? clamp01(sinceS / rippleS) : null;
+}
 
 export function cursorAt(
   track: CursorSample[],

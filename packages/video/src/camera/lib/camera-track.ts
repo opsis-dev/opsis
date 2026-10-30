@@ -67,24 +67,30 @@ type Tuned = {
   maxPanPx: number;
 };
 
-const tuned = (t: CameraTuning): Tuned => ({
-  minScale: t.minScale ?? ZOOM.min,
-  firstShotMax: t.firstMaxScale ?? ZOOM.firstShotMax,
-  padPx: t.roomPx ?? SUBJECT.padPx,
-  targetShare: t.targetShare ?? FRAMING.targetShare,
-  offCentre: t.offCentre ?? FRAMING.offCenter.x,
-  joinGapS: t.joinWithinS ?? GROUPING.gapS,
-  stickyGapS: t.stayZoomedWithinS ?? STICKY.gapS,
-  maxPanPx: t.longestPanPx ?? TRACK.maxPanPx,
-});
+function tuned(t: CameraTuning): Tuned {
+  return {
+    minScale: t.minScale ?? ZOOM.min,
+    firstShotMax: t.firstMaxScale ?? ZOOM.firstShotMax,
+    padPx: t.roomPx ?? SUBJECT.padPx,
+    targetShare: t.targetShare ?? FRAMING.targetShare,
+    offCentre: t.offCentre ?? FRAMING.offCenter.x,
+    joinGapS: t.joinWithinS ?? GROUPING.gapS,
+    stickyGapS: t.stayZoomedWithinS ?? STICKY.gapS,
+    maxPanPx: t.longestPanPx ?? TRACK.maxPanPx,
+  };
+}
 
 export const NO_TUNING: CameraTuning = {};
 
 type Aim = Pick<CameraPose, "cx" | "cy">;
 
-const narrowFactor = (tuning: CameraTuning): number => tuning.narrow ?? 1;
+function narrowFactor(tuning: CameraTuning): number {
+  return tuning.narrow ?? 1;
+}
 
-export const isNarrow = (tuning: CameraTuning): boolean => narrowFactor(tuning) > 1;
+export function isNarrow(tuning: CameraTuning): boolean {
+  return narrowFactor(tuning) > 1;
+}
 
 export function cursorAim(log: ClickLog, tS: number): Aim | null {
   const track = log.cursorTrack;
@@ -109,7 +115,9 @@ export function cursorAim(log: ClickLog, tS: number): Aim | null {
   return { cx: x / n / log.viewport.width, cy: y / n / log.viewport.height };
 }
 
-const zoomCeiling = (tuning: CameraTuning): number => (tuning.sMax ?? S_MAX) * narrowFactor(tuning);
+function zoomCeiling(tuning: CameraTuning): number {
+  return (tuning.sMax ?? S_MAX) * narrowFactor(tuning);
+}
 
 export function narrowPose(pose: CameraPose, tuning: CameraTuning, aim: Aim | null): CameraPose {
   if (!isNarrow(tuning)) return pose;
@@ -123,21 +131,29 @@ export function narrowPose(pose: CameraPose, tuning: CameraTuning, aim: Aim | nu
   };
 }
 
-const zoomable = (clicks: ClickEvent[]): ClickEvent[] => clicks.filter((c) => c.zoom !== false);
+function zoomable(clicks: ClickEvent[]): ClickEvent[] {
+  return clicks.filter((c) => c.zoom !== false);
+}
 
-const apartFrac = (a: ClickEvent, b: ClickEvent, vp: Viewport): number =>
-  distance(a, b) / Math.hypot(vp.width, vp.height);
+function apartFrac(a: ClickEvent, b: ClickEvent, vp: Viewport): number {
+  return distance(a, b) / Math.hypot(vp.width, vp.height);
+}
 
-const gapS = (a: ClickEvent, b: ClickEvent): number => (b.tMs - a.tMs) / 1000;
+function gapS(a: ClickEvent, b: ClickEvent): number {
+  return (b.tMs - a.tMs) / 1000;
+}
 
 export const tunedFrom = tuned;
 
 export function clusterize(clicks: ClickEvent[], vp: Viewport, t: Tuned): ClickEvent[][] {
   const list = zoomable(clicks);
-  const startsGroup = (prev: ClickEvent, c: ClickEvent): boolean =>
-    apartFrac(prev, c, vp) > GROUPING.distFrac ||
-    prev.cluster !== c.cluster ||
-    (c.cluster === undefined && gapS(prev, c) > t.joinGapS);
+  function startsGroup(prev: ClickEvent, c: ClickEvent): boolean {
+    return (
+      apartFrac(prev, c, vp) > GROUPING.distFrac ||
+      prev.cluster !== c.cluster ||
+      (c.cluster === undefined && gapS(prev, c) > t.joinGapS)
+    );
+  }
   const groups: ClickEvent[][] = [];
   list.forEach((c, i) => {
     if (i === 0 || startsGroup(list[i - 1], c)) groups.push([c]);
@@ -197,7 +213,9 @@ function scaleFor(
   return clamp(Math.min(byWidth, byHeight), least, sMax);
 }
 
-const inView = (v: number, half: number): number => clamp(v, half, 1 - half);
+function inView(v: number, half: number): number {
+  return clamp(v, half, 1 - half);
+}
 
 function keepingClick(aimed: number, click: number, half: number): number {
   const margin = Math.min(FRAMING.clickEdgeMargin, half * FRAMING.clickEdgeMarginMaxShare);
@@ -267,17 +285,22 @@ type TrackPlan = {
   endS: number;
 };
 
-const lastT = (keys: CameraKey[]): number => keys[keys.length - 1].t;
+function lastT(keys: CameraKey[]): number {
+  return keys[keys.length - 1].t;
+}
 
-const holdUntil = (c: ClickEvent, plan: TrackPlan): number =>
-  c.typeEndMs != null
+function holdUntil(c: ClickEvent, plan: TrackPlan): number {
+  return c.typeEndMs != null
     ? Math.max(c.tMs / 1000 + plan.holdMin, c.typeEndMs / 1000 + plan.typeTail)
     : c.tMs / 1000 + plan.holdMin;
+}
 
-const move = (t: number, from: CameraPose, to: CameraPose, duration: number): CameraKey[] => [
-  { t, pose: from },
-  { t: t + duration, pose: to },
-];
+function move(t: number, from: CameraPose, to: CameraPose, duration: number): CameraKey[] {
+  return [
+    { t, pose: from },
+    { t: t + duration, pose: to },
+  ];
+}
 
 function zoomIn(from: CameraPose, shot: Shot, afterT: number, plan: TrackPlan): CameraKey[] {
   const to = shot.poses[0];
@@ -361,8 +384,9 @@ function planShots(log: ClickLog, tuning: CameraTuning): Shot[] {
   const t = tuned(tuning);
   const firstShotMax = Math.min(t.firstShotMax, sMax);
   const vp = log.viewport;
-  const shotMax = (i: number, c: ClickEvent): number =>
-    i === 0 && c.zoomScale == null && !narrow ? firstShotMax : sMax;
+  function shotMax(i: number, c: ClickEvent): number {
+    return i === 0 && c.zoomScale == null && !narrow ? firstShotMax : sMax;
+  }
   return stickify(clusterize(log.clicks, vp, t), vp, t).map((group, i) => ({
     group,
     poses: group.map((c) => frameFor(c, vp, shotMax(i, c), narrow, t)),
@@ -370,15 +394,17 @@ function planShots(log: ClickLog, tuning: CameraTuning): Shot[] {
   }));
 }
 
-const trackPlan = (log: ClickLog, speed: number, tuning: CameraTuning): TrackPlan => ({
-  vp: log.viewport,
-  speed: speed * (tuning.pace ?? 1),
-  maxPanPx: tuned(tuning).maxPanPx,
-  holdMin: (tuning.holdMinS ?? TIMING.holdMinS) * speed,
-  typeTail: (tuning.holdAfterTypingS ?? TIMING.typeTailS) * speed,
-  baseBeat: (tuning.restAtEndS ?? TIMING.baseBeatS) * speed,
-  endS: log.durationMs / 1000,
-});
+function trackPlan(log: ClickLog, speed: number, tuning: CameraTuning): TrackPlan {
+  return {
+    vp: log.viewport,
+    speed: speed * (tuning.pace ?? 1),
+    maxPanPx: tuned(tuning).maxPanPx,
+    holdMin: (tuning.holdMinS ?? TIMING.holdMinS) * speed,
+    typeTail: (tuning.holdAfterTypingS ?? TIMING.typeTailS) * speed,
+    baseBeat: (tuning.restAtEndS ?? TIMING.baseBeatS) * speed,
+    endS: log.durationMs / 1000,
+  };
+}
 
 export function buildCameraTrack(log: ClickLog, speed: number, tuning: CameraTuning): CameraTrack {
   const shots = planShots(log, tuning);

@@ -1,24 +1,11 @@
 import type React from "react";
-import {
-  Easing,
-  getRemotionEnvironment,
-  Img,
-  interpolate,
-  interpolateColors,
-  spring,
-  staticFile,
-} from "remotion";
+import { Easing, Img, interpolate, interpolateColors, spring } from "remotion";
 import { isTheme, themeColors } from "#video/common/theme.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import {
-  parseColor,
-  resolveFont,
-  rgbToOklch,
-  type WarmTheme,
-  useWarmTheme,
-  withAlpha,
-} from "#video/lib/warm-ui/index.ts";
+import { parseColor, rgbToOklch, withAlpha } from "#video/lib/ui-kit/color.ts";
+import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
 export type TextHighlightPreset =
@@ -33,18 +20,6 @@ export interface TextHighlightSpringConfig {
   damping?: number;
   mass?: number;
   stiffness?: number;
-}
-
-function resolveSrc(src: string): string {
-  const isLocal = src.startsWith("/") && !src.startsWith("//");
-  if (!isLocal || getRemotionEnvironment().isPlayer) return src;
-  const base = staticFile("_").slice(0, -2);
-  if (base && src.startsWith(`${base}/`)) return src;
-  try {
-    return staticFile(src.replace(/^\/+/, ""));
-  } catch {
-    return src;
-  }
 }
 
 function lighterOf(a: string, b: string): string {
@@ -197,16 +172,14 @@ function TextHighlightView({
 
   if (preset === "logo-wipe") {
     const wipe = interpolate(frame, [startAt, startAt + drawDuration], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
+      ...CLAMPED,
       easing: WIPE_EASE,
     });
     const edge = (1 - wipe) * 100;
 
     const rushStart = startAt + drawDuration + holdDuration;
     const travel = interpolate(frame, [rushStart, rushStart + rushDuration], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
+      ...CLAMPED,
       easing: RUSH_EASE,
     });
 
@@ -219,10 +192,7 @@ function TextHighlightView({
     const worldBow = (swingOut * width) / swingGain(rushScale);
     const swingPx = rushed * swingWorldX(travel, worldDrift, worldBow);
 
-    const flood = interpolate(markBox, [diagonal * 0.55, diagonal * 1.45], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    });
+    const flood = interpolate(markBox, [diagonal * 0.55, diagonal * 1.45], [0, 1], CLAMPED);
     const inkPx = swingPx * (1 - INK_LAG);
     const floodRadius =
       flood <= 0
@@ -300,17 +270,12 @@ function TextHighlightView({
                 style={{
                   transformOrigin: "50% 50%",
                   rotate: `${spinTurns * 360 * wipe + 30 * travel}deg`,
-                  scale: `${
-                    interpolate(wipe, [0, 1], [0.55, 1], {
-                      extrapolateLeft: "clamp",
-                      extrapolateRight: "clamp",
-                    }) * rushed
-                  }`,
+                  scale: `${interpolate(wipe, [0, 1], [0.55, 1], CLAMPED) * rushed}`,
                 }}
               >
                 {logoSrc ? (
                   <Img
-                    src={resolveSrc(logoSrc)}
+                    src={logoSrc}
                     alt=""
                     style={{
                       display: "block",
@@ -353,10 +318,7 @@ function TextHighlightView({
             position: "relative",
             zIndex: 1,
             color: interpolateColors(
-              interpolate(sweep, [0.5, 0.85], [0, 1], {
-                extrapolateLeft: "clamp",
-                extrapolateRight: "clamp",
-              }),
+              interpolate(sweep, [0.5, 0.85], [0, 1], CLAMPED),
               [0, 1],
               [base, emphasisColor],
             ),
@@ -371,10 +333,7 @@ function TextHighlightView({
       <span
         style={{
           color: interpolateColors(
-            interpolate(frame, [startAt, startAt + drawDuration], [0, 1], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            }),
+            interpolate(frame, [startAt, startAt + drawDuration], [0, 1], CLAMPED),
             [0, 1],
             [base, emphasisColor],
           ),
@@ -389,10 +348,7 @@ function TextHighlightView({
         <span
           style={{
             color: interpolateColors(
-              interpolate(sweep, [0.5, 0.85], [0, 1], {
-                extrapolateLeft: "clamp",
-                extrapolateRight: "clamp",
-              }),
+              interpolate(sweep, [0.5, 0.85], [0, 1], CLAMPED),
               [0, 1],
               [base, emphasisColor],
             ),
@@ -431,10 +387,7 @@ function TextHighlightView({
             gridArea: "1 / 1",
             position: "relative",
             whiteSpace: "pre",
-            opacity: interpolate(frame, [phases.fadeStart, phases.fadeEnd], [1, 0], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            }),
+            opacity: interpolate(frame, [phases.fadeStart, phases.fadeEnd], [1, 0], CLAMPED),
           }}
         >
           {highlight}
@@ -445,10 +398,7 @@ function TextHighlightView({
               left: 0,
               top: "50%",
               height: lineThickness,
-              width: `${interpolate(frame, [phases.drawStart, phases.drawEnd], [0, 100], {
-                extrapolateLeft: "clamp",
-                extrapolateRight: "clamp",
-              })}%`,
+              width: `${interpolate(frame, [phases.drawStart, phases.drawEnd], [0, 100], CLAMPED)}%`,
               background: accent,
               transform: "translateY(-50%)",
               borderRadius: lineThickness / 2,
@@ -460,15 +410,12 @@ function TextHighlightView({
             gridArea: "1 / 1",
             whiteSpace: "pre",
             color: emphasisColor,
-            opacity: interpolate(frame, [phases.fadeStart, phases.fadeEnd], [0, 1], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            }),
+            opacity: interpolate(frame, [phases.fadeStart, phases.fadeEnd], [0, 1], CLAMPED),
             transform: `translateY(${interpolate(
               frame,
               [phases.fadeStart, phases.fadeEnd],
               [8, 0],
-              { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+              CLAMPED,
             )}px)`,
           }}
         >
@@ -494,7 +441,7 @@ function TextHighlightView({
               frame,
               [startAt, startAt + drawDuration],
               [200, -100],
-              { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+              CLAMPED,
             )}% 50%`,
           }}
         >

@@ -14,11 +14,13 @@ import { saveWithToast } from "./save";
 
 type MenuActions = Partial<Record<MenuCommand, () => void>>;
 
-const actionsFor = <T>(
+function actionsFor<T>(
   items: readonly T[],
   command: (item: T) => MenuCommand,
   run: (item: T) => void,
-): MenuActions => Object.fromEntries(items.map((item) => [command(item), () => run(item)]));
+): MenuActions {
+  return Object.fromEntries(items.map((item) => [command(item), () => run(item)]));
+}
 
 const MENU_ACTIONS: MenuActions = {
   "edit:undo": () => workflowEdits.undo(),

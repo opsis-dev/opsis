@@ -19,29 +19,39 @@ export type Viewport = { left: number; width: number; pxPerFrame: number };
 
 export type LaneLayout = { videoLanes: number; audioTop: number };
 
-export const videoRowTop = (layout: LaneLayout, lane: number): number =>
-  VIDEO_TOP + (layout.videoLanes - 1 - lane) * VIDEO_H;
+export function videoRowTop(layout: LaneLayout, lane: number): number {
+  return VIDEO_TOP + (layout.videoLanes - 1 - lane) * VIDEO_H;
+}
 
-export const audioRowTop = (layout: LaneLayout, lane: number): number =>
-  layout.audioTop + lane * AUDIO_H;
+export function audioRowTop(layout: LaneLayout, lane: number): number {
+  return layout.audioTop + lane * AUDIO_H;
+}
 
-export const barHeight = (rowHeight: number): number => rowHeight - BAR_INSET;
+export function barHeight(rowHeight: number): number {
+  return rowHeight - BAR_INSET;
+}
 
-export const markerFrame = (marker: Pick<Marker, "atMs">, fps: number): number =>
-  msToExactFrames(marker.atMs, fps);
+export function markerFrame(marker: Pick<Marker, "atMs">, fps: number): number {
+  return msToExactFrames(marker.atMs, fps);
+}
 
 export type BarBox = { left: number; width: number };
 
 const MIN_BAR_PX = 2;
 
-export const barBox = (from: number, to: number, ppf: number): BarBox => ({
-  left: from * ppf,
-  width: Math.max(MIN_BAR_PX, (to - from) * ppf),
-});
+export function barBox(from: number, to: number, ppf: number): BarBox {
+  return {
+    left: from * ppf,
+    width: Math.max(MIN_BAR_PX, (to - from) * ppf),
+  };
+}
 
-export const inView = (view: Viewport, from: number, to: number): boolean =>
-  to * view.pxPerFrame >= view.left - OFFSCREEN_PX &&
-  from * view.pxPerFrame <= view.left + view.width + OFFSCREEN_PX;
+export function inView(view: Viewport, from: number, to: number): boolean {
+  return (
+    to * view.pxPerFrame >= view.left - OFFSCREEN_PX &&
+    from * view.pxPerFrame <= view.left + view.width + OFFSCREEN_PX
+  );
+}
 
 export function hitEdge(e: React.PointerEvent<HTMLElement>, width: number): "start" | "end" | null {
   const rect = e.currentTarget.getBoundingClientRect();
@@ -52,19 +62,25 @@ export function hitEdge(e: React.PointerEvent<HTMLElement>, width: number): "sta
   return null;
 }
 
-export const contentX = (el: HTMLElement, clientX: number): number =>
-  clientX - el.getBoundingClientRect().left + el.scrollLeft;
+export function contentX(el: HTMLElement, clientX: number): number {
+  return clientX - el.getBoundingClientRect().left + el.scrollLeft;
+}
 
-export const contentPoint = (el: HTMLElement, clientX: number, clientY: number) => ({
-  x: contentX(el, clientX),
-  y: clientY - el.getBoundingClientRect().top + el.scrollTop,
-  scrollTop: el.scrollTop,
-});
+export function contentPoint(el: HTMLElement, clientX: number, clientY: number) {
+  return {
+    x: contentX(el, clientX),
+    y: clientY - el.getBoundingClientRect().top + el.scrollTop,
+    scrollTop: el.scrollTop,
+  };
+}
 
-export const frameAtX = (x: number, ppf: number): number => (x - HEADER_W) / ppf;
+export function frameAtX(x: number, ppf: number): number {
+  return (x - HEADER_W) / ppf;
+}
 
-export const clientXToFrame = (el: HTMLElement, clientX: number, ppf: number): number =>
-  frameAtX(contentX(el, clientX), ppf);
+export function clientXToFrame(el: HTMLElement, clientX: number, ppf: number): number {
+  return frameAtX(contentX(el, clientX), ppf);
+}
 
 export function timelineGeometry(
   flat: Pick<FlatTimeline, "lanes" | "audioLanes" | "durationInFrames">,

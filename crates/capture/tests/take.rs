@@ -1,22 +1,13 @@
+mod support;
+
 use opsis_capture::page_scripts::hiding_css;
 use opsis_capture::take::{
     at_take_start, click_kind_of, landed_on_sign_in, trace_group_title, video_start,
 };
-use opsis_compile::registry::default_params;
 use opsis_types::actions::{Action, ActionKind};
-use opsis_types::values::{BrowserAction, SessionStep};
-use serde_json::{Value, json};
-
-fn step(kind: BrowserAction, params: Value, id: &str) -> SessionStep {
-    let mut all = default_params(kind.kind());
-    all.extend(params.as_object().cloned().unwrap_or_default());
-    SessionStep {
-        id: id.to_owned(),
-        kind,
-        label: None,
-        params: all,
-    }
-}
+use opsis_types::values::BrowserAction;
+use serde_json::json;
+use support::step;
 
 #[test]
 fn names_a_trace_group_after_what_the_action_acts_on() {
@@ -25,8 +16,8 @@ fn names_a_trace_group_after_what_the_action_acts_on() {
             "Navigate",
             &step(
                 BrowserAction::Navigate,
-                json!({ "url": "https://x.test/login" }),
-                "n"
+                "n",
+                json!({ "url": "https://x.test/login" })
             )
         ),
         "Navigate · https://x.test/login"
@@ -36,8 +27,8 @@ fn names_a_trace_group_after_what_the_action_acts_on() {
             "Type",
             &step(
                 BrowserAction::Type,
-                json!({ "target": "Username", "text": "tom" }),
-                "n"
+                "n",
+                json!({ "target": "Username", "text": "tom" })
             )
         ),
         "Type · Username"
@@ -47,8 +38,8 @@ fn names_a_trace_group_after_what_the_action_acts_on() {
             "Assert",
             &step(
                 BrowserAction::Assert,
-                json!({ "text": "Welcome", "target": "" }),
-                "n"
+                "n",
+                json!({ "text": "Welcome", "target": "" })
             )
         ),
         "Assert · Welcome"
@@ -56,7 +47,7 @@ fn names_a_trace_group_after_what_the_action_acts_on() {
     assert_eq!(
         trace_group_title(
             "Wait",
-            &step(BrowserAction::Wait, json!({ "ms": 500 }), "n")
+            &step(BrowserAction::Wait, "n", json!({ "ms": 500 }))
         ),
         "Wait"
     );
@@ -95,20 +86,20 @@ fn notices_a_take_that_lands_on_the_sign_in_page() {
 #[test]
 fn leaves_the_actions_before_start_recording_out_of_the_video() {
     let steps = [
-        step(BrowserAction::SignIn, json!({}), "login"),
+        step(BrowserAction::SignIn, "login", json!({})),
         step(
             BrowserAction::Navigate,
-            json!({ "url": "https://example.com" }),
             "go",
+            json!({ "url": "https://example.com" }),
         ),
         step(
             BrowserAction::Wait,
-            json!({ "mode": "element", "target": "Board" }),
             "wait",
+            json!({ "mode": "element", "target": "Board" }),
         ),
-        step(BrowserAction::StartRecording, json!({}), "start"),
-        step(BrowserAction::Click, json!({ "target": "Open" }), "open"),
-        step(BrowserAction::StartRecording, json!({}), "again"),
+        step(BrowserAction::StartRecording, "start", json!({})),
+        step(BrowserAction::Click, "open", json!({ "target": "Open" })),
+        step(BrowserAction::StartRecording, "again", json!({})),
     ];
     let before: Vec<&str> = steps[..video_start(&steps)]
         .iter()
@@ -122,10 +113,10 @@ fn films_from_the_first_action_without_start_recording() {
     let steps = [
         step(
             BrowserAction::Navigate,
-            json!({ "url": "https://example.com" }),
             "go",
+            json!({ "url": "https://example.com" }),
         ),
-        step(BrowserAction::Click, json!({ "target": "Open" }), "open"),
+        step(BrowserAction::Click, "open", json!({ "target": "Open" })),
     ];
     assert_eq!(video_start(&steps), 0);
 }

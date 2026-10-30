@@ -1,8 +1,9 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 
-const visibleBackground = (background?: string): string | undefined =>
-  background && background !== "transparent" ? background : undefined;
+function visibleBackground(background?: string): string | undefined {
+  return background && background !== "transparent" ? background : undefined;
+}
 
 export function Backgrounded({
   background,

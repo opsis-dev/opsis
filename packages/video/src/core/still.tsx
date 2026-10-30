@@ -30,13 +30,15 @@ function PushIn({
   );
 }
 
-const placed = (box: Box): React.CSSProperties => ({
-  position: "absolute",
-  left: box.x,
-  top: box.y,
-  width: box.width,
-  height: box.height,
-});
+function placed(box: Box): React.CSSProperties {
+  return {
+    position: "absolute",
+    left: box.x,
+    top: box.y,
+    width: box.width,
+    height: box.height,
+  };
+}
 
 type StillLookProps = { box: Box; props: StillProps };
 

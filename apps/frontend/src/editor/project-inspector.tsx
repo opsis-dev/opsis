@@ -210,7 +210,7 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
   const setVariables = workflowEdits.setVariables;
   const renameVariable = workflowEdits.renameVariable;
   const list = useItemKeys(Object.entries(variables));
-  const renameAt = (from: string, raw: string) => {
+  function renameAt(from: string, raw: string) {
     const to = raw.replace(/[{}]/g, "").trim();
     if (!to) return;
     if (to in variables) {
@@ -218,14 +218,14 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
       return;
     }
     renameVariable(from, to);
-  };
-  const addVariable = () => {
+  }
+  function addVariable() {
     const name = firstFree(
       (n) => `Variable ${n}`,
       (taken) => taken in variables,
     );
     setVariables(Object.fromEntries(list.add([name, ""])));
-  };
+  }
   return (
     <FieldSet>
       <FieldLegend variant="label">Variables</FieldLegend>
@@ -270,14 +270,15 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
 
 function SavedResults() {
   const running = useRunStore((s) => s.running);
-  const clear = () =>
-    attempt(async () => {
+  function clear() {
+    return attempt(async () => {
       const dir = useWorkflowStore.getState().projectDir;
       if (!dir) return;
       await commands.clearCache(dir);
       useMedia.getState().reset(dir);
       toast.success("Cleared. The next run records and exports everything again.");
     }, "Couldn't clear the saved results");
+  }
   return (
     <FieldSet>
       <FieldLegend variant="label">Saved results</FieldLegend>

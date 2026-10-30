@@ -63,7 +63,9 @@ export function chordGlyphs(chord: string, names: KeyNames = "symbols"): string 
   return keys.join(names === "words" ? " + " : "");
 }
 
-export const keycapEase = (u: number): number => KEYCAP_BEZIER(clamp01(u));
+export function keycapEase(u: number): number {
+  return KEYCAP_BEZIER(clamp01(u));
+}
 
 export function keycapAt(
   keys: KeyEvent[],

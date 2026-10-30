@@ -5,7 +5,8 @@ use std::process::Stdio;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 
-use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWriteExt, BufReader};
+use opsis_engine::children::read_lines;
+use tokio::io::AsyncWriteExt;
 use tokio::process::{Child, ChildStdin, Command};
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
@@ -59,13 +60,6 @@ pub struct Sidecar {
     on_log: OnLine,
     running: tokio::sync::Mutex<Option<Running>>,
     next_id: AtomicU32,
-}
-
-async fn read_lines(stream: impl AsyncRead + Unpin, mut each: impl FnMut(&str)) {
-    let mut lines = BufReader::new(stream).lines();
-    while let Ok(Some(line)) = lines.next_line().await {
-        each(&line);
-    }
 }
 
 fn hand_over<T>(sent: Result<(), T>, id: u32) {

@@ -16,11 +16,21 @@ type KeyAction = (c: KeyContext) => void;
 
 type Keymap = Partial<Record<string, KeyAction>>;
 
-const playback = () => usePlayback.getState();
+function playback() {
+  return usePlayback.getState();
+}
 
-const zoomIn: KeyAction = (c) => c.commands.zoomBy(ZOOM_STEP);
-const zoomOut: KeyAction = (c) => c.commands.zoomBy(1 / ZOOM_STEP);
-const remove: KeyAction = (c) => c.commands.remove();
+function zoomIn(c: KeyContext): void {
+  c.commands.zoomBy(ZOOM_STEP);
+}
+
+function zoomOut(c: KeyContext): void {
+  c.commands.zoomBy(1 / ZOOM_STEP);
+}
+
+function remove(c: KeyContext): void {
+  c.commands.remove();
+}
 
 const ZOOM_MAP: Keymap = Object.fromEntries([
   ...ZOOM_KEYS.in.keys.map((k) => [k, zoomIn]),
@@ -29,7 +39,9 @@ const ZOOM_MAP: Keymap = Object.fromEntries([
 
 const ALT_KEYS: Keymap = { x: () => playback().clearRange() };
 
-const commandKey = (key: string) => key.toLowerCase();
+function commandKey(key: string) {
+  return key.toLowerCase();
+}
 
 const PLAIN_KEYS: Keymap = {
   " ": () => playback().toggle(),

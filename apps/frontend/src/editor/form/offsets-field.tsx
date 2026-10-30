@@ -5,8 +5,9 @@ import { MS_SCALE, parseShown, shownText, useDecimalInput } from "./decimal";
 import { Help } from "./field-shell";
 import type { FieldProps } from "./types";
 
-const withOffset = (list: number[], index: number, ms: number): string =>
-  formatNumberList(list.map((v, i) => (i === index ? ms : v)));
+function withOffset(list: number[], index: number, ms: number): string {
+  return formatNumberList(list.map((v, i) => (i === index ? ms : v)));
+}
 
 export function OffsetsField({ label, value, onChange, ctx, meta }: FieldProps<string>) {
   const parts = parseNumberList(value);

@@ -1,4 +1,6 @@
 import { Easing, interpolate } from "remotion";
+import { normalize } from "#video/common/math.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 
 export const LAUNCH_FPS = 60;
 export const LAUNCH_FRAMES = 1600;
@@ -28,10 +30,8 @@ export const showcaseTimeline = [
 ] as const;
 
 export type ShowcaseId = (typeof showcaseTimeline)[number]["id"];
-export const clamp = (n: number) => Math.min(1, Math.max(0, n));
 export const settle = Easing.bezier(0.16, 1, 0.3, 1);
 export const smooth = Easing.bezier(0.65, 0, 0.25, 1);
-export const ramp = (t: number, a: number, b: number) => clamp((t - a) / (b - a));
 
 export function actionFrame(t: number) {
   const enter = tween(t, 4.65, 5.05, 0, 1, smooth);
@@ -50,13 +50,10 @@ export function actionFrame(t: number) {
   };
 }
 export function tween(t: number, a: number, b: number, from = 0, to = 1, easing = settle) {
-  return from + (to - from) * easing(ramp(t, a, b));
+  return from + (to - from) * easing(normalize(t, a, b));
 }
 export function key(t: number, times: number[], values: number[]) {
-  return interpolate(t, times, values, {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  return interpolate(t, times, values, CLAMPED);
 }
 export function getShowcase(t: number) {
   const frame = Math.max(440, Math.min(906, Math.round(t * LAUNCH_FPS)));

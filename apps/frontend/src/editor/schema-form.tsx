@@ -78,21 +78,27 @@ type Render<K extends TypedField["kind"]> = (
 
 type Widget = { string: Render<"string"> } | { number: Render<"number"> };
 
-const stringWidget = (Control: ComponentType<ParamFieldProps<string>>): Widget => ({
-  string: (field, props) => <Control {...props} value={field.value} />,
-});
+function stringWidget(Control: ComponentType<ParamFieldProps<string>>): Widget {
+  return {
+    string: (field, props) => <Control {...props} value={field.value} />,
+  };
+}
 
-const selectWidget = (choices: (ctx: FormContext, value: string) => SelectChoices): Widget => ({
-  string: (field, props) => (
-    <EnumField {...props} {...choices(props.ctx, field.value)} value={field.value} forceSelect />
-  ),
-});
+function selectWidget(choices: (ctx: FormContext, value: string) => SelectChoices): Widget {
+  return {
+    string: (field, props) => (
+      <EnumField {...props} {...choices(props.ctx, field.value)} value={field.value} forceSelect />
+    ),
+  };
+}
 
-const presetsWidget = (presets: () => Array<[string, number]>): Widget => ({
-  number: (field, props) => (
-    <PresetNumber {...props} value={field.value} presets={Object.fromEntries(presets())} />
-  ),
-});
+function presetsWidget(presets: () => Array<[string, number]>): Widget {
+  return {
+    number: (field, props) => (
+      <PresetNumber {...props} value={field.value} presets={Object.fromEntries(presets())} />
+    ),
+  };
+}
 
 const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
   action: selectWidget(actionChoices),
@@ -116,10 +122,10 @@ const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
   loudness: presetsWidget(loudnessPresets),
 };
 
-export const widgetTakes = (widget: FieldWidget, kind: TypedField["kind"]): boolean => {
+export function widgetTakes(widget: FieldWidget, kind: TypedField["kind"]): boolean {
   const entry = WIDGETS[widget];
   return !entry || Object.hasOwn(entry, kind);
-};
+}
 
 function fileKindsMatch(meta: FieldMeta, ctx: FormContext): boolean {
   return Object.entries(meta.showIfFile ?? {}).every(([k, kinds]) => {
@@ -160,8 +166,8 @@ export function SchemaForm({
   if (entries.length === 0) return <p className="text-muted-foreground text-sm">No settings.</p>;
   const basic = entries.filter(({ meta }) => !meta.advanced);
   const advanced = entries.filter(({ meta }) => meta.advanced);
-  const render = (list: Entry[]) =>
-    list.map(({ key, field, meta }) => (
+  function render(list: Entry[]) {
+    return list.map(({ key, field, meta }) => (
       <FieldControl
         key={key}
         schema={field}
@@ -178,6 +184,7 @@ export function SchemaForm({
         }}
       />
     ));
+  }
   if (!tabs || advanced.length === 0)
     return (
       <FieldGroup className="gap-4">
@@ -374,14 +381,16 @@ function rowSummary(
   ports: FormContext["ports"],
 ): string {
   const fields = shapeEntries(item);
-  const portLabel = (port: string) => ports.find((p) => p.port === port)?.label ?? "Not connected";
-  const textOf = (key: string) => {
+  function portLabel(port: string) {
+    return ports.find((p) => p.port === port)?.label ?? "Not connected";
+  }
+  function textOf(key: string) {
     const v = entry[key];
     if (typeof v !== "string") return undefined;
     const field = fields.find(([k]) => k === key)?.[1];
     if (field && PORT_WIDGETS.has(fieldMeta(field).widget)) return portLabel(v);
     return v.split("\n")[0]?.trim();
-  };
+  }
   const text = fields
     .filter(
       ([, f]) =>
@@ -412,12 +421,13 @@ function ObjectListField({
   const [closed, setClosed] = useState<ReadonlySet<string>>(() =>
     value.length < COLLAPSE_FROM ? new Set() : new Set(list.rows.map((r) => r.key)),
   );
-  const toggle = (key: string) =>
-    setClosed((prev) => {
+  function toggle(key: string) {
+    return setClosed((prev) => {
       const next = new Set(prev);
       if (!next.delete(key)) next.add(key);
       return next;
     });
+  }
   return (
     <FieldSet>
       <FieldLegend variant="label">{label}</FieldLegend>

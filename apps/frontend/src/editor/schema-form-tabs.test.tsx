@@ -22,22 +22,26 @@ const ctx: FormContext = {
   fileKinds: {},
 };
 
-const schemaOf = (fields: Array<{ label: string; advanced: boolean }>) => ({
-  type: "object",
-  properties: Object.fromEntries(
-    fields.map(({ label, advanced }, i) => [
-      `field${i}`,
-      {
-        type: "number",
-        description: label,
-        default: i,
-        ...(advanced ? { "x-advanced": true } : {}),
-      },
-    ]),
-  ),
-});
+function schemaOf(fields: Array<{ label: string; advanced: boolean }>) {
+  return {
+    type: "object",
+    properties: Object.fromEntries(
+      fields.map(({ label, advanced }, i) => [
+        `field${i}`,
+        {
+          type: "number",
+          description: label,
+          default: i,
+          ...(advanced ? { "x-advanced": true } : {}),
+        },
+      ]),
+    ),
+  };
+}
 
-const shown = (label: string) => screen.queryByText(label) !== null;
+function shown(label: string) {
+  return screen.queryByText(label) !== null;
+}
 
 const fields = fc
   .uniqueArray(fc.stringMatching(/^[A-Z][a-z]{3,8}$/), { minLength: 1, maxLength: 8 })

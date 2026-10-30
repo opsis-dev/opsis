@@ -1,3 +1,4 @@
+use opsis_engine::tools::shown;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::Ordering;
 use std::time::Duration;
@@ -41,10 +42,6 @@ pub enum DiskChoice {
     Load,
     KeepMine,
     Wait,
-}
-
-fn shown(path: &Path) -> String {
-    path.to_string_lossy().into_owned()
 }
 
 fn announce(app: &AppHandle) {

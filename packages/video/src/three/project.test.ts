@@ -14,14 +14,16 @@ const H = 1080;
 const FOV = 30;
 const screen = { width: 2, height: 2 / (W / H), z: 0 };
 const faceOn: Pose = { rotation: [0, 0, 0], position: [0, 0, 0], scale: 1 };
-const view = (pose: Pose): ScreenView => ({
-  fovDeg: FOV,
-  distance: screenDistance(screen.height, FOV),
-  width: W,
-  height: H,
-  pose,
-  screen,
-});
+function view(pose: Pose): ScreenView {
+  return {
+    fovDeg: FOV,
+    distance: screenDistance(screen.height, FOV),
+    width: W,
+    height: H,
+    pose,
+    screen,
+  };
+}
 
 function mapPoint(matrix: string, x: number, y: number): Point2 {
   const m = matrix.slice("matrix3d(".length, -1).split(",").map(Number);
@@ -29,10 +31,10 @@ function mapPoint(matrix: string, x: number, y: number): Point2 {
   return { x: (m[0] * x + m[4] * y + m[12]) / w, y: (m[1] * x + m[5] * y + m[13]) / w };
 }
 
-const close = (a: Point2, b: Point2) => {
+function close(a: Point2, b: Point2) {
   expect(a.x).toBeCloseTo(b.x, 3);
   expect(a.y).toBeCloseTo(b.y, 3);
-};
+}
 
 describe("placing the clip on a 3D screen", () => {
   it("fills the whole frame when the screen faces the camera", () => {

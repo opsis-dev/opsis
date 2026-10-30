@@ -3,7 +3,9 @@ import type { MenuCommand } from "@/generated/bindings";
 import type { Platform } from "@/lib/platform";
 import { appMenu } from "@/store/catalog";
 
-const isMacPlatform = (platform: Platform) => platform === "darwin";
+function isMacPlatform(platform: Platform) {
+  return platform === "darwin";
+}
 
 export function menuCommandEntry(
   cmd: MenuCommand,
@@ -18,12 +20,16 @@ const ZOOM_KEYS_SHIFT_MAY_TYPE: ReadonlySet<string> = new Set(["=", "-"]);
 
 const ZOOM_KEYS_SHIFTED: Partial<Record<string, string>> = { "=": "+" };
 
-const primaryKey = (platform: Platform) => (isMacPlatform(platform) ? "metaKey" : "ctrlKey");
+function primaryKey(platform: Platform) {
+  return isMacPlatform(platform) ? "metaKey" : "ctrlKey";
+}
 
-export const isPrimaryModifier = (
+export function isPrimaryModifier(
   e: { ctrlKey: boolean; metaKey: boolean },
   platform: Platform,
-): boolean => e[primaryKey(platform)];
+): boolean {
+  return e[primaryKey(platform)];
+}
 
 export function matchesAccelerator(accelerator: string, e: KeyLike, platform: Platform): boolean {
   const key = accelerator.slice(accelerator.lastIndexOf("+") + 1).toLowerCase();

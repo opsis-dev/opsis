@@ -4,11 +4,7 @@ use opsis_compile::graph::{
 use opsis_types::workflow::Workflow;
 use serde_json::json;
 
-use crate::helpers::{Graph, template};
-
-fn todo_mvc() -> Workflow {
-    serde_json::from_value(template("todomvc")).unwrap()
-}
+use crate::helpers::{Graph, todo_mvc};
 
 fn disable(wf: &mut Workflow, id: &str, disabled: bool) {
     wf.nodes.iter_mut().find(|n| n.id == id).unwrap().disabled = Some(disabled);

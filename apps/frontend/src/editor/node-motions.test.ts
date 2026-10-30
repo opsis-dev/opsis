@@ -17,11 +17,12 @@ describe("node motions", () => {
 
   it("gives every frame of a motion the same properties, in rising order", () => {
     const broken = Object.entries(NODE_MOTION_SPECS).filter(([, spec]) => {
-      const props = (f: object) =>
-        Object.keys(f)
+      function props(f: object) {
+        return Object.keys(f)
           .filter((k) => k !== "offset" && k !== "ease")
           .sort()
           .join();
+      }
       const { times } = motionTimeline(spec.frames);
       const sameProps = spec.frames.every((f) => props(f) === props(spec.frames[0]));
       const rising = times.every((t, i) => i === 0 || t >= times[i - 1]);

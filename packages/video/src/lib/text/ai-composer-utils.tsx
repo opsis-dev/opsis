@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
 import { Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
+import { caretBlinkOpacity } from "#video/parts/caret.tsx";
 
 export const AI_TYPING_START = 42;
 export const AI_TYPING_START_TUI = 48;
@@ -81,10 +83,7 @@ export function sendBeatAt(
     startFrame = AI_TYPING_START,
     pauseSeconds = 0.34,
   } = opts;
-  const clampBoth = {
-    extrapolateLeft: "clamp" as const,
-    extrapolateRight: "clamp" as const,
-  };
+  const clampBoth = CLAMPED;
   const at = startFrame + (cps > 0 ? (promptLength / cps) * fps : 0) + pauseSeconds * fps;
 
   return {
@@ -124,24 +123,11 @@ export function fadeUpAt(
   frame: number,
   range: [number, number],
 ): { opacity: number; translateY: number } {
-  const opts = {
-    extrapolateLeft: "clamp" as const,
-    extrapolateRight: "clamp" as const,
-  };
+  const opts = CLAMPED;
   return {
     opacity: interpolate(frame, range, [0, 1], opts),
     translateY: interpolate(frame, range, [12, 0], opts),
   };
-}
-
-export function caretBlinkOpacity(
-  frame: number,
-  opts: { fps: number; blinkPerSecond: number; speed: number },
-): number {
-  const cycles = opts.blinkPerSecond <= 0 ? 1 : opts.blinkPerSecond;
-  const halfPeriod = opts.fps / cycles / 2;
-  if (halfPeriod <= 0) return 1;
-  return Math.floor((frame * opts.speed) / halfPeriod) % 2 === 0 ? 1 : 0;
 }
 
 export interface CaretProps {

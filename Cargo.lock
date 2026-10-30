@@ -5006,6 +5006,7 @@ dependencies = [
  "num-traits",
  "opsis-compile",
  "opsis-engine",
+ "opsis-golden",
  "opsis-media",
  "opsis-runner",
  "opsis-types",

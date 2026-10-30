@@ -27,10 +27,11 @@ const KIND_ICON = { music: Music, effect: AudioLines, clip: Clapperboard } as co
 
 const CHANNEL_FALLBACK = "Sound";
 
-const useChannelName = (nodeId: string): string =>
-  useWorkflowStore((s) =>
+function useChannelName(nodeId: string): string {
+  return useWorkflowStore((s) =>
     s.workflow ? nodeNameById(s.workflow.nodes, nodeId, CHANNEL_FALLBACK) : CHANNEL_FALLBACK,
   );
+}
 
 function BusSelect({
   bus,
@@ -113,8 +114,9 @@ export function ChannelStrip({
     ),
   );
   const targets = group.length > 1 ? group : [channel.id];
-  const update = (patch: StripPatch) =>
-    workflowEdits.mix({ op: "channels", ids: [channel.id], patch });
+  function update(patch: StripPatch) {
+    return workflowEdits.mix({ op: "channels", ids: [channel.id], patch });
+  }
   const target = previewTarget(`ch:${channel.id}`, result, levels);
   const binding = stripBinding(strip, target, update);
   const name = useChannelName(channel.id);

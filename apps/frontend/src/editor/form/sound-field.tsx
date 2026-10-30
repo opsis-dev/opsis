@@ -12,8 +12,8 @@ import type { ParamFieldProps } from "./types";
 
 const OWN_FILE = "own-file";
 
-const lengthMsOf = (ref: string): Promise<number | undefined> =>
-  new Promise((resolve) => {
+function lengthMsOf(ref: string): Promise<number | undefined> {
+  return new Promise((resolve) => {
     const audio = new Audio();
     audio.preload = "metadata";
     audio.addEventListener("loadedmetadata", () =>
@@ -22,17 +22,18 @@ const lengthMsOf = (ref: string): Promise<number | undefined> =>
     audio.addEventListener("error", () => resolve(undefined));
     audio.src = fileUrl(ref);
   });
+}
 
 function usePlayer(): { playing: boolean; toggle: (ref: string) => void } {
   const audio = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
-  const stop = () => {
+  function stop() {
     audio.current?.pause();
     audio.current = null;
     setPlaying(false);
-  };
+  }
   useEffect(() => () => audio.current?.pause(), []);
-  const toggle = (ref: string) => {
+  function toggle(ref: string) {
     if (audio.current) return stop();
     const player = new Audio(fileUrl(ref));
     player.addEventListener("ended", stop);
@@ -42,7 +43,7 @@ function usePlayer(): { playing: boolean; toggle: (ref: string) => void } {
       stop();
       toast.error("Couldn't play this sound.");
     });
-  };
+  }
   return { playing, toggle };
 }
 
@@ -61,8 +62,9 @@ function BuiltinAudioField({
 }: ParamFieldProps<string> & { builtins: Builtins }) {
   const { lengthKey } = meta;
   const { playing, toggle } = usePlayer();
-  const choose = (ref: string, lengthMs?: number) =>
-    lengthKey ? onPatch({ [name]: ref, [lengthKey]: lengthMs }) : onChange(ref);
+  function choose(ref: string, lengthMs?: number) {
+    return lengthKey ? onPatch({ [name]: ref, [lengthKey]: lengthMs }) : onChange(ref);
+  }
   const choices = builtins.choices();
   const builtin = choices.find((s) => s.reference === value);
   const ownLabel = value && !builtin ? fileName(value) : "Your own file…";
@@ -111,10 +113,10 @@ const SOUNDS: Builtins = {
 
 const MUSIC: Builtins = { choices: builtinMusic, placeholder: "Choose a song", play: "Play song" };
 
-export const SoundField = (props: ParamFieldProps<string>) => (
-  <BuiltinAudioField {...props} builtins={SOUNDS} />
-);
+export function SoundField(props: ParamFieldProps<string>) {
+  return <BuiltinAudioField {...props} builtins={SOUNDS} />;
+}
 
-export const MusicField = (props: ParamFieldProps<string>) => (
-  <BuiltinAudioField {...props} builtins={MUSIC} />
-);
+export function MusicField(props: ParamFieldProps<string>) {
+  return <BuiltinAudioField {...props} builtins={MUSIC} />;
+}

@@ -1,6 +1,7 @@
 import { Easing, interpolate } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { themeColors } from "#video/common/theme.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   type CommandMenuIcon,
@@ -11,12 +12,13 @@ import {
   commandMenuItemStyleContext,
 } from "#video/elements/scene/command-menu/command-menu-item.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import { type NeutralTheme, revealedText, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 import {
   NeutralUIProvider,
   defaultDarkTheme,
   defaultLightTheme,
 } from "#video/lib/neutral-ui/theme.ts";
+import { revealedText } from "#video/lib/ui-kit/timeline.ts";
 
 export type CommandMenuState = "opened" | "closed";
 
@@ -153,8 +155,7 @@ function CommandMenuView({
   const theme = useNeutralTheme(themeOverride, "light");
   const ctx = commandMenuStyleContext(theme);
   const opened = interpolate(frame, [OPEN_AT, OPEN_AT + OPEN_FOR], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: Easing.out(Easing.cubic),
   });
   const typed = Math.max(0, Math.floor((frame - TYPE_AT) / perLetter) + 1);

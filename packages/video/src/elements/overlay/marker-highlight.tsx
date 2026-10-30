@@ -1,5 +1,6 @@
 import { interpolate, interpolateColors, spring } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -30,10 +31,7 @@ export function MarkerHighlight({
   });
 
   const textColor = interpolateColors(
-    interpolate(markerScale, [0.5, 0.8], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    }),
+    interpolate(markerScale, [0.5, 0.8], [0, 1], CLAMPED),
     [0, 1],
     [baseColor, highlightedTextColor],
   );

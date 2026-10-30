@@ -33,8 +33,9 @@ export function InstalledDialog({
   );
   const shown = families.filter(({ family }) => matchesQuery(query, family));
 
-  const pick = (family: string) =>
-    run(family, async () => onPicked(await commands.inspectInstalledFonts([family])));
+  function pick(family: string) {
+    return run(family, async () => onPicked(await commands.inspectInstalledFonts([family])));
+  }
 
   return (
     <SearchListDialog

@@ -1,6 +1,8 @@
 import type { CSSProperties } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { clamp01 } from "#video/common/math.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { Corner, ElementSettings } from "#video/generated/spec.ts";
 import { formatNumber } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
@@ -13,8 +15,6 @@ const CORNER_STYLE: Record<Corner, CSSProperties> = {
   "bottom-left": { left: 0, bottom: 0 },
   "bottom-right": { right: 0, bottom: 0 },
 };
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 function valueAt(values: number[], time: number): number {
   if (values.length === 0) return 0;
@@ -71,7 +71,7 @@ export function BarChartRace({
       0,
     ) || 1;
 
-  const ranksAt = (step: number) => {
+  function ranksAt(step: number) {
     const live = series
       .map((entry, index) => ({
         index,
@@ -84,7 +84,7 @@ export function BarChartRace({
       const place = live.findIndex((entry) => entry.index === index);
       return place === -1 ? live.length : place;
     });
-  };
+  }
   const lowerStep = Math.floor(time);
   const lowerRanks = ranksAt(lowerStep);
   const upperRanks = ranksAt(Math.min(lastStep, lowerStep + 1));
@@ -95,8 +95,7 @@ export function BarChartRace({
     exitAtInFrames === undefined
       ? 0
       : interpolate(frame, [exitAtInFrames, exitAtInFrames + exitInFrames], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
+          ...CLAMPED,
           easing: EASING.exit,
         });
 

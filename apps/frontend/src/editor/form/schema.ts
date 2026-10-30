@@ -62,7 +62,9 @@ const META_KEYWORDS: Record<string, keyof FieldMeta> = {
   "x-themes": "themes",
 };
 
-export const asSchema = (value: unknown): JsonSchema => (isRecord(value) ? value : {});
+export function asSchema(value: unknown): JsonSchema {
+  return isRecord(value) ? value : {};
+}
 
 export function fieldMeta(schema: JsonSchema): FieldMeta {
   const out: Record<string, unknown> = {};
@@ -72,16 +74,21 @@ export function fieldMeta(schema: JsonSchema): FieldMeta {
   return out as FieldMeta;
 }
 
-export const targetRoleKey = (targetKey: string): string => `${targetKey}Role`;
+export function targetRoleKey(targetKey: string): string {
+  return `${targetKey}Role`;
+}
 
-export const spotYKey = (spotXKey: string): string =>
-  spotXKey === "x" ? "y" : spotXKey.replace(/X$/, "Y");
+export function spotYKey(spotXKey: string): string {
+  return spotXKey === "x" ? "y" : spotXKey.replace(/X$/, "Y");
+}
 
-export const shapeEntries = (schema: JsonSchema): Array<[string, JsonSchema]> =>
-  Object.entries(schema.properties ?? {});
+export function shapeEntries(schema: JsonSchema): Array<[string, JsonSchema]> {
+  return Object.entries(schema.properties ?? {});
+}
 
-export const schemaDefaults = (schema: JsonSchema): Record<string, unknown> =>
-  isRecord(schema.default) ? structuredClone(schema.default) : {};
+export function schemaDefaults(schema: JsonSchema): Record<string, unknown> {
+  return isRecord(schema.default) ? structuredClone(schema.default) : {};
+}
 
 export function withDefaults(
   schema: JsonSchema,
@@ -92,17 +99,21 @@ export function withDefaults(
   return out;
 }
 
-const typesOf = (schema: JsonSchema): string[] =>
-  Array.isArray(schema.type) ? schema.type : schema.type ? [schema.type] : [];
+function typesOf(schema: JsonSchema): string[] {
+  return Array.isArray(schema.type) ? schema.type : schema.type ? [schema.type] : [];
+}
 
-export const takesNull = (schema: JsonSchema): boolean => typesOf(schema).includes("null");
+export function takesNull(schema: JsonSchema): boolean {
+  return typesOf(schema).includes("null");
+}
 
-export const baseType = (schema: JsonSchema): string | undefined =>
-  typesOf(schema).find((t) => t !== "null");
+export function baseType(schema: JsonSchema): string | undefined {
+  return typesOf(schema).find((t) => t !== "null");
+}
 
 const COLOUR_RULE = "colour";
 
-export const isColorSchema = (schema: JsonSchema): boolean => {
+export function isColorSchema(schema: JsonSchema): boolean {
   const check = schema["x-check"];
   return schema["x-widget"] === "color" || (isRecord(check) && check.rule === COLOUR_RULE);
-};
+}

@@ -31,7 +31,9 @@ function slab(width: number, height: number, radius: number, depth: number): Ext
   return geometry;
 }
 
-const front = (width: number, height: number, radius: number) => ({ width, height, radius });
+function front(width: number, height: number, radius: number) {
+  return { width, height, radius };
+}
 
 function partsFor(device: Device, { width: w, height: h }: ScreenSize): Build {
   const unit = Math.min(w, h);

@@ -6,7 +6,7 @@ export type CameraView = Pick<CameraKey, "yaw" | "pitch" | "distance" | "height"
 
 const REST_VIEW: CameraView = { yaw: 0, pitch: 0, distance: 1, height: 0 };
 
-const mixViews = (a: CameraKey, b: CameraKey, t: number): CameraView => {
+function mixViews(a: CameraKey, b: CameraKey, t: number): CameraView {
   const e = ease(a.ease, t);
   return {
     yaw: lerp(a.yaw, b.yaw, e),
@@ -14,17 +14,20 @@ const mixViews = (a: CameraKey, b: CameraKey, t: number): CameraView => {
     distance: lerp(a.distance, b.distance, e),
     height: lerp(a.height, b.height, e),
   };
-};
+}
 
-const viewOf = ({ yaw, pitch, distance, height }: CameraKey): CameraView => ({
-  yaw,
-  pitch,
-  distance,
-  height,
-});
+function viewOf({ yaw, pitch, distance, height }: CameraKey): CameraView {
+  return {
+    yaw,
+    pitch,
+    distance,
+    height,
+  };
+}
 
-const sortedCameraKeys = (path: CameraPath | undefined): CameraKey[] =>
-  (path?.keys ?? []).toSorted((a, b) => a.frame - b.frame);
+function sortedCameraKeys(path: CameraPath | undefined): CameraKey[] {
+  return (path?.keys ?? []).toSorted((a, b) => a.frame - b.frame);
+}
 
 export function cameraAt(
   path: CameraPath | undefined,

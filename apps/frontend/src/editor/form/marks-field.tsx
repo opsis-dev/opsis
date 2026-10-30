@@ -82,7 +82,9 @@ function useNaturalWidth(ctx: FormContext): number | undefined {
   useEffect(() => {
     if (!src) return;
     const image = new window.Image();
-    const loaded = () => setWidth(image.naturalWidth);
+    function loaded() {
+      return setWidth(image.naturalWidth);
+    }
     image.addEventListener("load", loaded);
     image.src = src;
     return () => image.removeEventListener("load", loaded);
@@ -90,15 +92,15 @@ function useNaturalWidth(ctx: FormContext): number | undefined {
   return src ? width : undefined;
 }
 
-const numberIn = (mark: ParamValues, key: string, fallback: number): number => {
+function numberIn(mark: ParamValues, key: string, fallback: number): number {
   const v = mark[key];
   return typeof v === "number" ? v : fallback;
-};
+}
 
-const textIn = (mark: ParamValues, key: string): string => {
+function textIn(mark: ParamValues, key: string): string {
   const v = mark[key];
   return typeof v === "string" ? v : "";
-};
+}
 
 type Drawing = { kind: MarkKind; start: Point; end: Point };
 
@@ -228,10 +230,12 @@ function EndHandle({
   onMove: (to: Point) => void;
   onDone: (to: Point) => void;
 }) {
-  const where = (e: Konva.KonvaEventObject<DragEvent>): Point => ({
-    x: e.target.x() / size.width,
-    y: e.target.y() / size.height,
-  });
+  function where(e: Konva.KonvaEventObject<DragEvent>): Point {
+    return {
+      x: e.target.x() / size.width,
+      y: e.target.y() / size.height,
+    };
+  }
   return (
     <Circle
       x={at.x * size.width}
@@ -294,18 +298,19 @@ export function MarksField({
   const full = marks.length >= MAX_MARKS;
   const current = selected !== null && selected < marks.length ? selected : null;
 
-  const pointer = (e: Konva.KonvaEventObject<PointerEvent>): Point | null => {
+  function pointer(e: Konva.KonvaEventObject<PointerEvent>): Point | null {
     const at = e.target.getStage()?.getPointerPosition();
     return at && size.width && size.height ? { x: at.x / size.width, y: at.y / size.height } : null;
-  };
-  const update = (index: number, patch: ParamValues) =>
-    onChange(marks.map((m, i) => (i === index ? { ...m, ...patch } : m)));
-  const remove = (index: number) => {
+  }
+  function update(index: number, patch: ParamValues) {
+    return onChange(marks.map((m, i) => (i === index ? { ...m, ...patch } : m)));
+  }
+  function remove(index: number) {
     onChange(marks.filter((_, i) => i !== index));
     setSelected(null);
-  };
+  }
 
-  const begin = (e: Konva.KonvaEventObject<PointerEvent>) => {
+  function begin(e: Konva.KonvaEventObject<PointerEvent>) {
     const at = pointer(e);
     if (!at) return;
     if (tool === "select") {
@@ -313,12 +318,12 @@ export function MarksField({
       return;
     }
     if (!full) setDrawing({ kind: tool, start: at, end: at });
-  };
-  const follow = (e: Konva.KonvaEventObject<PointerEvent>) => {
+  }
+  function follow(e: Konva.KonvaEventObject<PointerEvent>) {
     const at = pointer(e);
     if (drawing && at) setDrawing({ ...drawing, end: at });
-  };
-  const finish = () => {
+  }
+  function finish() {
     if (!drawing) return;
     const points = drawn(drawing.kind, drawing.start, drawing.end);
     setDrawing(null);
@@ -331,10 +336,11 @@ export function MarksField({
     };
     onChange([...marks, mark]);
     setSelected(marks.length);
-  };
+  }
 
-  const shownPoints = (mark: ParamValues, index: number): MarkPoints =>
-    dragged?.index === index ? dragged.points : pointsOf(mark);
+  function shownPoints(mark: ParamValues, index: number): MarkPoints {
+    return dragged?.index === index ? dragged.points : pointsOf(mark);
+  }
 
   return (
     <FieldShell label={label} meta={meta}>

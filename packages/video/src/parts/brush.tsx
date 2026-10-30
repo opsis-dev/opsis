@@ -1,4 +1,4 @@
-import { hash01 } from "#video/lib/motion/stop-motion.ts";
+import { random } from "remotion";
 
 const GRAIN_RATIO = 0.5;
 const GRAIN_FREQUENCY = 0.7;
@@ -27,7 +27,7 @@ export function brushReach(strokeWidth: number, grain: number): number {
 }
 
 export function brushFilterId(seed: string, strokeWidth: number, grain: number): string {
-  return `brush-${Math.floor(hash01(`${seed}:${strokeWidth}:${grain}`) * 1e9)}`;
+  return `brush-${Math.floor(random(`${seed}:${strokeWidth}:${grain}`) * 1e9)}`;
 }
 
 export function sampleCubic(
@@ -63,17 +63,17 @@ export function sampleLine(from: BrushPoint, to: BrushPoint, points = 8): BrushP
   });
 }
 
-const normalAt = (points: BrushPoint[], i: number): BrushPoint => {
+function normalAt(points: BrushPoint[], i: number): BrushPoint {
   const before = points[i - 1] ?? points[i];
   const after = points[i + 1] ?? points[i];
   const tx = after.x - before.x;
   const ty = after.y - before.y;
   const length = Math.hypot(tx, ty) || 1;
   return { x: -ty / length, y: tx / length };
-};
+}
 
-const curveSegments = (points: BrushPoint[]): string =>
-  points
+function curveSegments(points: BrushPoint[]): string {
+  return points
     .slice(0, -1)
     .map((p1, i) => {
       const p0 = points[i - 1] ?? p1;
@@ -82,6 +82,7 @@ const curveSegments = (points: BrushPoint[]): string =>
       return `C ${p1.x + (p2.x - p0.x) / 6} ${p1.y + (p2.y - p0.y) / 6}, ${p2.x - (p3.x - p1.x) / 6} ${p2.y - (p3.y - p1.y) / 6}, ${p2.x} ${p2.y}`;
     })
     .join(" ");
+}
 
 export function brushRibbon(
   spine: BrushPoint[],
@@ -131,7 +132,7 @@ export function BrushGrain({
           type="fractalNoise"
           baseFrequency={GRAIN_FREQUENCY}
           numOctaves={GRAIN_OCTAVES}
-          seed={Math.floor(hash01(`${seed}:grain`) * 1000)}
+          seed={Math.floor(random(`${seed}:grain`) * 1000)}
           result="brushGrain"
         />
         <feDisplacementMap

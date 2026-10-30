@@ -1,5 +1,6 @@
+import { clamp01 } from "#video/common/math.ts";
 import { type SceneProps, shade, tint } from "#video/elements/scene/launch-anything/content.ts";
-import { clamp, smooth, tween } from "#video/elements/scene/launch-anything/motion.ts";
+import { smooth, tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { BrandMark, Center, Title } from "#video/elements/scene/launch-anything/ui.tsx";
 
 export function Address({ scene, t }: SceneProps) {
@@ -7,7 +8,7 @@ export function Address({ scene, t }: SceneProps) {
   const prefixLength = url.toLowerCase().startsWith(scene.content.launch.toLowerCase())
     ? scene.content.launch.length
     : 0;
-  const typing = clamp((t - 21.94) / 0.59);
+  const typing = clamp01((t - 21.94) / 0.59);
   const text = url.slice(0, prefixLength + Math.floor((url.length - prefixLength) * typing));
   const glow = tween(t, 22.15, 22.45) * (1 - tween(t, 22.6, 23.25));
   return (

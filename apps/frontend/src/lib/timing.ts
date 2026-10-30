@@ -2,17 +2,17 @@ type Debounced<A extends unknown[]> = ((...args: A) => void) & { cancel: () => v
 
 export function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: number): Debounced<A> {
   let timer: ReturnType<typeof setTimeout> | null = null;
-  const cancel = () => {
+  function cancel() {
     if (timer) clearTimeout(timer);
     timer = null;
-  };
-  const run = (...args: A) => {
+  }
+  function run(...args: A) {
     cancel();
     timer = setTimeout(() => {
       timer = null;
       fn(...args);
     }, ms);
-  };
+  }
   return Object.assign(run, { cancel });
 }
 
@@ -24,11 +24,11 @@ export function whenReady<T>(
   const ready = check();
   if (ready !== null) return Promise.resolve(ready);
   return new Promise((resolve) => {
-    const finish = (value: T | null) => {
+    function finish(value: T | null) {
       clearTimeout(timer);
       stop();
       resolve(value);
-    };
+    }
     const timer = setTimeout(() => finish(null), ms);
     const stop = subscribe(() => {
       const value = check();

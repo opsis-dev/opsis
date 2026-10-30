@@ -23,8 +23,9 @@ const manifestSchema = z.object({
 
 export type CompositorSources = z.infer<typeof manifestSchema>;
 
-export const readCompositorSources = (): CompositorSources =>
-  manifestSchema.parse(JSON.parse(readFileSync(MANIFEST, "utf8")));
+export function readCompositorSources(): CompositorSources {
+  return manifestSchema.parse(JSON.parse(readFileSync(MANIFEST, "utf8")));
+}
 
 export function installedRemotion(): string {
   const fromSidecar = createRequire(path.join(ROOT, "apps", "sidecar", "package.json"));
@@ -43,8 +44,9 @@ export function appVersion(): string {
   return version;
 }
 
-export const assetName = (url: string): string =>
-  decodeURIComponent(new URL(url).pathname.split("/").filter(Boolean).at(-1) ?? "source");
+export function assetName(url: string): string {
+  return decodeURIComponent(new URL(url).pathname.split("/").filter(Boolean).at(-1) ?? "source");
+}
 
 export function sourcesNote(manifest: CompositorSources, release: string): string {
   const lines = [

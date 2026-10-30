@@ -1,4 +1,5 @@
 import { Interactive, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ReleaseTeaserScene } from "#video/elements/scene/release-teaser/content.ts";
 import { ease, fitText } from "#video/elements/scene/release-teaser/motion.ts";
 import { BrandImage, OrbitMark } from "#video/elements/scene/release-teaser/ui.tsx";
@@ -18,12 +19,7 @@ export function ReleaseLockup({ scene, frame }: { scene: ReleaseTeaserScene; fra
         justifyContent: "center",
         opacity: reveal,
         filter: !scene.reducedMotion && reveal < 0.99 ? `blur(${(1 - reveal) * 6}px)` : undefined,
-        scale: scene.reducedMotion
-          ? 1
-          : interpolate(frame, [0, 350], [0.97, 1.03], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            }),
+        scale: scene.reducedMotion ? 1 : interpolate(frame, [0, 350], [0.97, 1.03], CLAMPED),
       }}
     >
       <div

@@ -1,15 +1,12 @@
-use std::path::PathBuf;
+mod support;
+
 use std::sync::Arc;
 
-use opsis_capture::take::{SignInError, SignIns, TakeEnv, play_take};
-use opsis_compile::nodes::browser::OPEN_BROWSER_TYPE;
-use opsis_compile::registry::default_params;
-use opsis_engine::paths::downloaded_browser;
+use opsis_capture::take::play_take;
 use opsis_types::actions::{ActionKind, ActionLog, ClickButton};
-use opsis_types::values::{BrowserAction, BrowserSessionValue, SessionBrowser, SessionStep};
+use opsis_types::values::{BrowserAction, SessionStep};
 use serde_json::{Value, json};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio_util::sync::CancellationToken;
+use support::{NoSignIns, serve, session, step, take_env};
 
 const PAGE: &str = r#"<!doctype html><body style="margin:0"><button id="folder" style="margin:200px;width:240px;height:80px">Reports folder</button><button id="out">click 0 · double 0 · menu 0</button><a href="/settings" id="settings">Settings</a> <a href="/reports">Reports</a><script>
 document.getElementById("settings").addEventListener("click", (e) => { e.preventDefault(); history.pushState({}, "", "/settings"); });
@@ -21,76 +18,22 @@ folder.addEventListener("dblclick", () => { n.double++; show(); });
 folder.addEventListener("contextmenu", (e) => { e.preventDefault(); n.menu++; show(); });
 </script>"#;
 
-struct NoSignIns;
-
-impl SignIns for NoSignIns {
-    fn read(&self, _: &str) -> Result<Option<String>, SignInError> {
-        Ok(None)
-    }
-}
-
-async fn serve() -> u16 {
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let port = listener.local_addr().unwrap().port();
-    tokio::spawn(async move {
-        while let Ok((mut socket, _)) = listener.accept().await {
-            let mut request = [0; 4096];
-            if socket.read(&mut request).await.is_ok() {
-                let response = format!(
-                    "HTTP/1.1 200 OK\r\ncontent-type: text/html; charset=utf-8\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{PAGE}",
-                    PAGE.len()
-                );
-                socket.write_all(response.as_bytes()).await.unwrap();
-            }
-        }
-    });
-    port
-}
-
-fn step(kind: BrowserAction, id: &str, params: Value) -> SessionStep {
-    let mut all = default_params(kind.kind());
-    all.extend(params.as_object().cloned().unwrap_or_default());
-    SessionStep {
-        id: id.to_owned(),
-        kind,
-        label: None,
-        params: all,
-    }
-}
-
 async fn play(steps: Vec<SessionStep>) -> ActionLog {
     let temp = tempfile::tempdir().unwrap();
-    let engine = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/Opsis/engine");
-    let env = TakeEnv {
-        project_dir: temp.path().to_path_buf(),
-        executable: downloaded_browser(&engine).unwrap(),
-        temp_dir: temp.path().to_path_buf(),
-        live: None,
-        trace: false,
-        sign_ins: Arc::new(NoSignIns),
-        cancel: CancellationToken::new(),
-        log: Arc::new(|_, _| {}),
-        step: Arc::new(|_, _, _| {}),
-    };
-    let session = BrowserSessionValue {
-        browser: SessionBrowser {
-            node_id: "browser".into(),
-            params: default_params(OPEN_BROWSER_TYPE),
-        },
-        steps,
-        address: None,
-    };
-    play_take(&env, &session, None, |_| Box::pin(async { Ok(()) }))
-        .await
-        .outcome
-        .unwrap()
-        .log
+    let env = take_env(temp.path(), Arc::new(NoSignIns));
+    play_take(&env, &session(json!({}), steps), None, |_| {
+        Box::pin(async { Ok(()) })
+    })
+    .await
+    .outcome
+    .unwrap()
+    .log
 }
 
 #[tokio::test]
 #[ignore = "needs the dev engine"]
 async fn clicks_double_clicks_and_right_clicks_as_the_page_counts_them() {
-    let port = serve().await;
+    let port = serve(PAGE).await;
     let click = |id: &str, extra: Value| {
         let mut params = json!({ "target": "Reports folder", "after": 0, "hoverMs": 0 });
         params
@@ -140,7 +83,7 @@ async fn clicks_double_clicks_and_right_clicks_as_the_page_counts_them() {
 #[tokio::test]
 #[ignore = "needs the dev engine"]
 async fn logs_every_address_the_page_shows_with_route_changes_in_place() {
-    let port = serve().await;
+    let port = serve(PAGE).await;
     let site = format!("http://127.0.0.1:{port}");
     let click = |id: &str, target: &str| {
         step(

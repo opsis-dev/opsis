@@ -1,4 +1,6 @@
 import { Easing, interpolate } from "remotion";
+import { normalize } from "#video/common/math.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 
 export const RELEASE_TEASER_FPS = 60000 / 1001;
 export const RELEASE_TEASER_FRAMES = 960;
@@ -14,20 +16,20 @@ export const releaseTeaserTimeline = [
   { name: "Release reveal", from: 610, to: 960 },
 ] as const;
 
-export const atFps = (frame: number, fps: number) => Math.round((frame / RELEASE_TEASER_FPS) * fps);
-export const clamp = (value: number) => Math.max(0, Math.min(1, value));
-export const progress = (frame: number, from: number, to: number) =>
-  clamp((frame - from) / (to - from));
-export const ease = (frame: number, from: number, to: number) =>
-  interpolate(frame, [from, to], [0, 1], {
+export function atFps(frame: number, fps: number) {
+  return Math.round((frame / RELEASE_TEASER_FPS) * fps);
+}
+export function ease(frame: number, from: number, to: number) {
+  return interpolate(frame, [from, to], [0, 1], {
+    ...CLAMPED,
     easing: Easing.bezier(0.5, 0, 0.2, 1),
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
   });
+}
 
 const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" });
-export const graphemes = (text: string) =>
-  Array.from(segmenter.segment(text), (part) => part.segment);
+export function graphemes(text: string) {
+  return Array.from(segmenter.segment(text), (part) => part.segment);
+}
 
 export function textUnits(text: string) {
   return graphemes(text).reduce((sum, char) => {
@@ -61,7 +63,7 @@ export function characterState(frame: number, end: number, index: number, count:
 
 export function ringPose(frame: number, reducedMotion = false) {
   const f = reducedMotion ? 760 : Math.max(0, Math.min(959, frame));
-  const travel = progress(f, 0, 610);
+  const travel = normalize(f, 0, 610);
   const reveal = ease(f, 602, 702);
   return {
     x: 480 + (1 - reveal) * (18 - travel * 26),

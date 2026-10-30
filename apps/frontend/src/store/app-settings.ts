@@ -8,12 +8,12 @@ type Section = Exclude<keyof AppSettings, "engine">;
 
 export type SettingsPatch = { [K in Section]?: Partial<AppSettings[K]> };
 
-const merged = (current: AppSettings, patch: SettingsPatch): AppSettings => {
+function merged(current: AppSettings, patch: SettingsPatch): AppSettings {
   const next = { ...current };
   for (const [section, values] of Object.entries(patch))
     Object.assign(next, { [section]: { ...current[section as Section], ...values } });
   return next;
-};
+}
 
 type AppSettingsState = {
   settings: AppSettings | null;
@@ -22,8 +22,9 @@ type AppSettingsState = {
 
 export const useAppSettings = create<AppSettingsState>()(() => ({ settings: null, api: null }));
 
-export const liveAutoOpen = () =>
-  (useAppSettings.getState().settings ?? settingsBook().defaults).live.autoOpen;
+export function liveAutoOpen() {
+  return (useAppSettings.getState().settings ?? settingsBook().defaults).live.autoOpen;
+}
 
 async function reloadSettings(): Promise<void> {
   const settings = await loadOrReport(() => commands.getSettings(), "Couldn't read the settings");

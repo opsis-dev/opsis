@@ -9,6 +9,7 @@ use opsis_compile::nodes::transitions::presentations;
 use opsis_compile::ports::{can_connect, convert_input};
 use opsis_compile::registry::registry;
 use opsis_compile::sounds::{BuiltinSong, BuiltinSound, Mood, builtin_songs, builtin_sounds};
+use opsis_golden::typed;
 use opsis_types::cards::Tone;
 use opsis_types::numbers::whole;
 use opsis_types::timeline::TimelineItem;
@@ -18,7 +19,7 @@ use serde_json::{Map, Value, json};
 
 use crate::helpers::{
     CLIP, card_texts, clip_value, compile_clip, compile_node, compile_node_with, node_card,
-    node_card_with, node_result, parse_params, typed, zoomed,
+    node_card_with, node_result, parse_params, zoomed,
 };
 
 #[test]
@@ -78,7 +79,7 @@ fn generates_one_node_per_placeable_registry_element() {
 
 fn recording() -> CompileValue {
     typed(
-        json!({ "type": "recording", "src": "project:take.mp4", "log": null, "durationMs": 4000, "viewport": { "width": 1280, "height": 720 }, "nodeId": "rec", "style": [] }),
+        &json!({ "type": "recording", "src": "project:take.mp4", "log": null, "durationMs": 4000, "viewport": { "width": 1280, "height": 720 }, "nodeId": "rec", "style": [] }),
     )
 }
 
@@ -117,7 +118,7 @@ fn connects_the_same_resource_and_converts_images_and_recordings_to_files() {
         json!({ "type": "media", "kind": "video", "src": "project:take.mp4", "durationMs": 4000, "width": 1280, "height": 720, "hasAudio": false })
     );
     let image: CompileValue =
-        typed(json!({ "type": "image", "src": "project:s.png", "width": 3, "height": 2 }));
+        typed(&json!({ "type": "image", "src": "project:s.png", "width": 3, "height": 2 }));
     let converted = serde_json::to_value(
         convert_input(Some(&image), Some(&spec(PortType::Media, None))).unwrap(),
     )
@@ -399,7 +400,7 @@ fn says_how_before_and_after_lays_out_and_the_size_it_will_make() {
 }
 
 fn magnify_with(params: Value) -> opsis_compile::nodes::image::Magnify {
-    typed(crate::helpers::defaults_with("image.magnify", params))
+    typed(&crate::helpers::defaults_with("image.magnify", params))
 }
 
 #[test]
@@ -573,7 +574,7 @@ fn names_the_voice_effect_and_its_mix() {
 fn stretches_a_song_within_the_limit_and_loops_or_cuts_it_otherwise() {
     use opsis_compile::nodes::media::{FitPlan, fit_plan};
     let fit = |params: Value| {
-        typed::<opsis_compile::nodes::media::FitMusic>(crate::helpers::defaults_with(
+        typed::<opsis_compile::nodes::media::FitMusic>(&crate::helpers::defaults_with(
             "media.fitMusic",
             params,
         ))
@@ -680,7 +681,7 @@ fn counts_the_marks_and_steps_and_warns_about_empty_text() {
 fn starts_each_generated_sound_at_the_pick_and_reaches_the_other_variations() {
     use opsis_compile::nodes::audio::{GenerateSound, SoundPreset, sound_shape};
     let shape = |params: Value| {
-        sound_shape(&typed::<GenerateSound>(crate::helpers::defaults_with(
+        sound_shape(&typed::<GenerateSound>(&crate::helpers::defaults_with(
             "audio.generate",
             params,
         )))

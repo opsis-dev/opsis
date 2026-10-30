@@ -1,15 +1,21 @@
 import { textRules } from "@/store/catalog";
 
-const varPattern = () => new RegExp(textRules().variablePattern, "g");
+function varPattern() {
+  return new RegExp(textRules().variablePattern, "g");
+}
 
-export const pauseMark = (): string => textRules().pauseMark;
+export function pauseMark(): string {
+  return textRules().pauseMark;
+}
 
 export type TextToken =
   | { kind: "text"; text: string }
   | { kind: "var"; name: string }
   | { kind: "pause" };
 
-const plainText = (text: string): TextToken[] => (text ? [{ kind: "text", text }] : []);
+function plainText(text: string): TextToken[] {
+  return text ? [{ kind: "text", text }] : [];
+}
 
 function textWithPauses(text: string): TextToken[] {
   const out: TextToken[] = [];
@@ -32,4 +38,6 @@ export function tokenize(value: string, pauses = false): TextToken[] {
   return out;
 }
 
-export const varToken = (name: string): string => `{{${name}}}`;
+export function varToken(name: string): string {
+  return `{{${name}}}`;
+}

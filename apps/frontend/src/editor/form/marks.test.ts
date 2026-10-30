@@ -16,8 +16,9 @@ const anywhere = fc.double({ min: -2, max: 3, noNaN: true });
 const points = fc.record({ x: unit, y: unit, x2: unit, y2: unit });
 const point = fc.record({ x: anywhere, y: anywhere });
 
-const onPicture = (p: { x: number; y: number; x2: number; y2: number }) =>
-  [p.x, p.y, p.x2, p.y2].every((v) => v >= 0 && v <= 1 && Math.round(v * 1000) === v * 1000);
+function onPicture(p: { x: number; y: number; x2: number; y2: number }) {
+  return [p.x, p.y, p.x2, p.y2].every((v) => v >= 0 && v <= 1 && Math.round(v * 1000) === v * 1000);
+}
 
 describe("marks", () => {
   it("moves a mark as a whole as far as the picture lets it", () => {

@@ -7,8 +7,9 @@ import {
 } from "#video/elements/scene/launch-anything/content.ts";
 import { actionFrame, smooth, tween } from "#video/elements/scene/launch-anything/motion.ts";
 
-export const actionBackground = (scene: LaunchScene) =>
-  `linear-gradient(${shade(scene.palette.paper, 3)}, ${scene.palette.paper} 75%)`;
+export function actionBackground(scene: LaunchScene) {
+  return `linear-gradient(${shade(scene.palette.paper, 3)}, ${scene.palette.paper} 75%)`;
+}
 
 export function ActionFrame({ scene, t }: SceneProps) {
   const shape = actionFrame(t);

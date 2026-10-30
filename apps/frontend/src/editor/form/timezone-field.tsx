@@ -17,14 +17,16 @@ import type { FieldProps } from "./types";
 const ZONES = Intl.supportedValuesOf("timeZone");
 const SAME_AS_COMPUTER = "Same as this computer";
 
-const zoneName = (zone: string) => zone.replaceAll("_", " ");
+function zoneName(zone: string) {
+  return zone.replaceAll("_", " ");
+}
 
 export function TimezoneField({ id, label, value, onChange, meta }: FieldProps<string>) {
   const [open, setOpen] = useState(false);
-  const pick = (zone: string) => {
+  function pick(zone: string) {
     onChange(zone);
     setOpen(false);
-  };
+  }
   return (
     <FieldShell id={id} label={label} meta={meta}>
       <Popover open={open} onOpenChange={setOpen}>

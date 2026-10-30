@@ -1,3 +1,4 @@
+use opsis_golden::typed;
 use serde_json::Value;
 
 pub fn fixture(name: &str) -> Value {
@@ -166,10 +167,6 @@ pub fn action(value: Value) -> Action {
     serde_json::from_value(value).unwrap()
 }
 
-pub fn typed<T: serde::de::DeserializeOwned>(value: Value) -> T {
-    serde_json::from_value(value.clone()).unwrap_or_else(|e| panic!("{e}: {value}"))
-}
-
 use opsis_compile::node::{CardInputs, Ctx};
 use opsis_compile::vars::Vars;
 use opsis_types::cards::CardRow;
@@ -196,9 +193,9 @@ pub fn compile_node_in(
     let values = def
         .parse(defaults_with(kind, params).as_object().unwrap(), None)
         .map_err(|e| e.to_string())?;
-    let inputs: PortValues = typed(inputs);
+    let inputs: PortValues = typed(&inputs);
     let wf: Workflow =
-        typed(json!({ "version": 1, "id": "wf", "name": "Test", "nodes": [], "edges": [] }));
+        typed(&json!({ "version": 1, "id": "wf", "name": "Test", "nodes": [], "edges": [] }));
     let settings = WorkflowSettings::default();
     let ctx = Ctx {
         node_id: "n",
@@ -295,4 +292,25 @@ pub fn zoomed(
             json!({ "type": "recording-style", "entries": style_entries(style, "s") });
     }
     compile_clip("camera.autoZoom", camera, inputs)
+}
+
+pub fn near(a: f64, b: f64, tolerance: f64) -> bool {
+    (a - b).abs() <= tolerance
+}
+
+pub fn problem(kind: &str, params: Value) -> Option<String> {
+    parse_params(kind, params).err()
+}
+
+pub fn group_value(clip: &ClipValue) -> Value {
+    match &clip.tracks[0].items[0] {
+        opsis_types::timeline::TimelineItem::Group { props, .. } => {
+            serde_json::to_value(props).unwrap()
+        }
+        other => panic!("{other:?}"),
+    }
+}
+
+pub fn todo_mvc() -> Workflow {
+    serde_json::from_value(template("todomvc")).unwrap()
 }

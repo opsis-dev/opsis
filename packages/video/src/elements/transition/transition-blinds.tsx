@@ -1,12 +1,11 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import { useMemo } from "react";
 import { AbsoluteFill } from "remotion";
+import { clamp01 } from "#video/common/math.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
 type BlindsProps = ElementSettings["transition-blinds"];
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 function slatProgress(coverage: number, index: number, count: number, stagger: number): number {
   if (count <= 1 || stagger <= 0) {

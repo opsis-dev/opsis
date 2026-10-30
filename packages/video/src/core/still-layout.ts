@@ -35,10 +35,16 @@ function windowBox(aspect: number, canvas: Size, fit: number): Size {
   return { width: Math.max(1, Math.round(box.width)), height: Math.max(1, Math.round(box.height)) };
 }
 
-const centeredLeft = (size: Size, canvas: Size) => (canvas.width - size.width) / 2;
-const centeredTop = (size: Size, canvas: Size) => (canvas.height - size.height) / 2;
+function centeredLeft(size: Size, canvas: Size) {
+  return (canvas.width - size.width) / 2;
+}
+function centeredTop(size: Size, canvas: Size) {
+  return (canvas.height - size.height) / 2;
+}
 
-const aspectOf = (s: Size) => s.width / s.height;
+function aspectOf(s: Size) {
+  return s.width / s.height;
+}
 
 function windowLayout(shot: ShotArea, canvas: Size, fit: number): Box {
   const tall = aspectOf(shot) * TALL_SHOT < aspectOf(canvas);
@@ -99,8 +105,11 @@ function maxScaleFor(region: Size): number {
   );
 }
 
-export const tallestShot = (look: StillLook, width: number, canvas: Size): number =>
-  Math.ceil(look === "cutout" ? width * TALLEST_CUTOUT : (width * TALL_SHOT) / aspectOf(canvas));
+export function tallestShot(look: StillLook, width: number, canvas: Size): number {
+  return Math.ceil(
+    look === "cutout" ? width * TALLEST_CUTOUT : (width * TALL_SHOT) / aspectOf(canvas),
+  );
+}
 
 export function paddedRegion(
   box: Box,

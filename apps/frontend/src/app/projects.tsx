@@ -146,17 +146,19 @@ function useProjectActions() {
   const [dialog, setDialog] = useState<NewDialog>({ template: DEFAULT_TEMPLATE, fixed: false });
   const [creating, setCreating] = useState(false);
 
-  const go = (dir: string) => openEditor(navigate, dir);
+  function go(dir: string) {
+    return openEditor(navigate, dir);
+  }
 
   async function open(dir?: string) {
     const target = dir ?? (await commands.pickProjectDir());
     if (target) go(target);
   }
 
-  const startNew = (template?: string) => {
+  function startNew(template?: string) {
     setDialog((d) => ({ template: template ?? d.template, fixed: template !== undefined }));
     setCreating(true);
-  };
+  }
 
   return { dialog, creating, setCreating, go, open, startNew };
 }

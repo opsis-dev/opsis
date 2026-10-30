@@ -10,7 +10,7 @@ use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
 
 use crate::helpers::{
-    Graph, TITLE, action, export_film, make_log, node_result, record_result, template,
+    Graph, TITLE, action, export_film, make_log, node_result, record_result, todo_mvc,
 };
 
 fn log() -> opsis_types::actions::ActionLog {
@@ -28,10 +28,6 @@ fn log() -> opsis_types::actions::ActionLog {
         ],
         12_000.0,
     )
-}
-
-fn todo_mvc() -> Workflow {
-    serde_json::from_value(template("todomvc")).unwrap()
 }
 
 fn with_results(wf: &Workflow, results: Vec<(&str, NodeResult)>) -> CompileResult {

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { interpolate } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -23,11 +24,7 @@ export function ShimmerSweep({
   const durationInFrames = clipFrames * speed;
 
   const passes = Math.max(1, sweeps);
-  const progress =
-    interpolate(frame, [0, durationInFrames * 0.8], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    }) * passes;
+  const progress = interpolate(frame, [0, durationInFrames * 0.8], [0, 1], CLAMPED) * passes;
   const pass = progress >= passes ? 1 : progress % 1;
   const position = 200 - 300 * pass;
 

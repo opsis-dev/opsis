@@ -1,4 +1,5 @@
-import { AbsoluteFill, interpolate } from "remotion";
+import { AbsoluteFill, interpolate, random } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -10,16 +11,6 @@ export interface Particle {
   rot0: number;
   spin: number;
   drift: number;
-}
-
-export function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }
 
 const DEG = Math.PI / 180;
@@ -39,19 +30,23 @@ export function makeParticles({
   direction: number;
   spin: number;
 }): Particle[] {
-  const rand = mulberry32(seed);
+  let draws = 0;
+  function next(): number {
+    draws += 1;
+    return random(`${seed}:${draws}`);
+  }
   const out: Particle[] = [];
   for (let i = 0; i < count; i++) {
-    const angle = (direction - spread / 2 + rand() * spread) * DEG;
-    const speed = 0.35 + 0.65 * rand();
+    const angle = (direction - spread / 2 + next() * spread) * DEG;
+    const speed = 0.35 + 0.65 * next();
     out.push({
       angle,
       speed,
-      color: colors[Math.floor(rand() * colors.length)],
-      size: 0.7 + 0.6 * rand(),
-      rot0: rand() * Math.PI * 2,
-      spin: (rand() - 0.5) * 0.6 * spin,
-      drift: (rand() - 0.5) * 2,
+      color: colors[Math.floor(next() * colors.length)],
+      size: 0.7 + 0.6 * next(),
+      rot0: next() * Math.PI * 2,
+      spin: (next() - 0.5) * 0.6 * spin,
+      drift: (next() - 0.5) * 2,
     });
   }
   return out;
@@ -59,14 +54,8 @@ export function makeParticles({
 
 export function particleOpacity(tt: number, lifetime: number): number {
   if (tt < 0 || tt > lifetime) return 0;
-  const fadeIn = interpolate(tt, [0, 4], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const fadeOut = interpolate(tt, [lifetime * 0.7, lifetime], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const fadeIn = interpolate(tt, [0, 4], [0, 1], CLAMPED);
+  const fadeOut = interpolate(tt, [lifetime * 0.7, lifetime], [1, 0], CLAMPED);
   return Math.min(fadeIn, fadeOut);
 }
 

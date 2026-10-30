@@ -5,9 +5,13 @@ import { describe, expect, it } from "vitest";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..", "..", "..");
 
-const read = (...parts: string[]) => readFileSync(path.join(ROOT, ...parts), "utf8");
+function read(...parts: string[]) {
+  return readFileSync(path.join(ROOT, ...parts), "utf8");
+}
 
-const hexByte = (text: string) => Number.parseInt(text, 16).toString(16).padStart(2, "0");
+function hexByte(text: string) {
+  return Number.parseInt(text, 16).toString(16).padStart(2, "0");
+}
 
 describe("window background", () => {
   it("matches the canvas colour token, so no other colour shows while the page loads", () => {

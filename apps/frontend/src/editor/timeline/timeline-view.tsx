@@ -38,22 +38,27 @@ const FALLBACK_VIEW = { left: 0, width: 800, height: 300 };
 
 type ScrollerView = ReturnType<typeof useScrollerView>;
 
+function scrollerView(el: HTMLDivElement): typeof FALLBACK_VIEW {
+  return { left: el.scrollLeft, width: el.clientWidth, height: el.clientHeight };
+}
+
 export function useScrollerView(scroller: React.RefObject<HTMLDivElement | null>) {
   const [view, setView] = useState(FALLBACK_VIEW);
   useLayoutEffect(() => {
     const el = scroller.current;
     if (!el) return;
-    const update = () =>
-      setView({ left: el.scrollLeft, width: el.clientWidth, height: el.clientHeight });
-    update();
-    const ro = new ResizeObserver(update);
+    function update(target: HTMLDivElement) {
+      setView(scrollerView(target));
+    }
+    update(el);
+    const ro = new ResizeObserver(() => update(el));
     ro.observe(el);
     return () => ro.disconnect();
   }, [scroller]);
-  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  function onScroll(e: React.UIEvent<HTMLDivElement>) {
     const left = e.currentTarget.scrollLeft;
     setView((v) => (v.left === left ? v : { ...v, left }));
-  };
+  }
   return { view, onScroll };
 }
 
@@ -186,7 +191,9 @@ function useTimelineScene({ scroller, scroll, zoom, film, workflow, commands }: 
     preloadScrub(masterSrc);
   }, [masterSrc]);
 
-  const select = (ids: string[], additive: boolean) => selectNodes(ids, additive, sourceNodeId);
+  function select(ids: string[], additive: boolean) {
+    return selectNodes(ids, additive, sourceNodeId);
+  }
   const ctx: BarContext = {
     workflow,
     flat,

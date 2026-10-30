@@ -24,6 +24,10 @@ export type SceneSequencer = {
 
 export type ElementImpl = ElementComponent | PresentationFactory | SceneSequencer;
 
-export const isPresentation = (impl: ElementImpl): impl is PresentationFactory => "create" in impl;
+export function isPresentation(impl: ElementImpl): impl is PresentationFactory {
+  return "create" in impl;
+}
 
-export const isSequencer = (impl: ElementImpl): impl is SceneSequencer => "Scenes" in impl;
+export function isSequencer(impl: ElementImpl): impl is SceneSequencer {
+  return "Scenes" in impl;
+}

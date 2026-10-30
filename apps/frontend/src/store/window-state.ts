@@ -14,7 +14,9 @@ let started = false;
 export function watchWindowState(): void {
   if (started || isMac) return;
   started = true;
-  const apply = (state: WindowState) => useWindowState.setState(state);
+  function apply(state: WindowState) {
+    return useWindowState.setState(state);
+  }
   void commands.getWindowState().then(apply);
   on(events.windowStateChanged, apply);
 }

@@ -1,5 +1,6 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { CodeLine, codePalette, MONO_ADVANCE, tokenizeCode } from "#video/lib/code/code-syntax.tsx";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
@@ -115,11 +116,10 @@ export function CodeDiffWipe({
   const scale = stageScale(width, height, REF_WIDTH, REF_HEIGHT);
   const frame = rawFrame * speed;
 
-  const seconds = (value: number) => value * fps;
-  const clamp = {
-    extrapolateLeft: "clamp" as const,
-    extrapolateRight: "clamp" as const,
-  };
+  function seconds(value: number) {
+    return value * fps;
+  }
+  const clamp = CLAMPED;
 
   const rows = diffLines(
     before
@@ -148,15 +148,17 @@ export function CodeDiffWipe({
 
   const wipeStart = seconds(startAt);
   const wipeFrames = seconds(wipeSeconds);
-  const rowTrigger = (index: number) =>
-    wipeStart + (rows.length <= 1 ? 0 : (index / rows.length) * wipeFrames);
+  function rowTrigger(index: number) {
+    return wipeStart + (rows.length <= 1 ? 0 : (index / rows.length) * wipeFrames);
+  }
   const wipeEnd = wipeStart + wipeFrames;
 
-  const rowProgress = (index: number) =>
-    interpolate(frame, [rowTrigger(index), rowTrigger(index) + seconds(0.3)], [0, 1], {
+  function rowProgress(index: number) {
+    return interpolate(frame, [rowTrigger(index), rowTrigger(index) + seconds(0.3)], [0, 1], {
       easing: EASING.enter,
       ...clamp,
     });
+  }
 
   const enter = spring({
     fps,

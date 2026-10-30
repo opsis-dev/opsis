@@ -15,13 +15,17 @@ export const PANEL_TOGGLES: Record<PanelSide, { icon: LucideIcon; command: MenuC
   right: { icon: PanelRight, command: "view:toggle-right" },
 };
 
-export const isDockPanel = (v: unknown): v is DockPanelName => isOneOf(DOCK_PANELS, v);
+export function isDockPanel(v: unknown): v is DockPanelName {
+  return isOneOf(DOCK_PANELS, v);
+}
 
 const handles: Partial<Record<PanelSide, PanelImperativeHandle | null>> = {};
 
 const focusTargets: Partial<Record<DockPanelName, HTMLElement | null>> = {};
 
-export const storedTab = (): DockPanelName => readPref("dockTab", "timeline", isDockPanel);
+export function storedTab(): DockPanelName {
+  return readPref("dockTab", "timeline", isDockPanel);
+}
 
 export const usePanels = create<{
   open: Record<PanelSide, boolean>;
@@ -44,9 +48,11 @@ export const usePanels = create<{
   setPopped: (popped) => set({ popped }),
 }));
 
-const handleRef = (side: PanelSide) => (handle: PanelImperativeHandle | null) => {
-  handles[side] = handle;
-};
+function handleRef(side: PanelSide) {
+  return (handle: PanelImperativeHandle | null) => {
+    handles[side] = handle;
+  };
+}
 
 export const PANEL_REFS: Record<PanelSide, (handle: PanelImperativeHandle | null) => void> = {
   left: handleRef("left"),
@@ -54,9 +60,11 @@ export const PANEL_REFS: Record<PanelSide, (handle: PanelImperativeHandle | null
   right: handleRef("right"),
 };
 
-export const focusTargetRef = (panel: DockPanelName) => (el: HTMLElement | null) => {
-  focusTargets[panel] = el;
-};
+export function focusTargetRef(panel: DockPanelName) {
+  return (el: HTMLElement | null) => {
+    focusTargets[panel] = el;
+  };
+}
 
 export function togglePanel(side: PanelSide): void {
   const handle = handles[side];
@@ -80,8 +88,9 @@ export function showPanel(panel: DockPanelName): boolean {
   return true;
 }
 
-const focusAfterPaint = (target: () => HTMLElement | null) =>
-  requestAnimationFrame(() => target()?.focus());
+function focusAfterPaint(target: () => HTMLElement | null) {
+  return requestAnimationFrame(() => target()?.focus());
+}
 
 export function focusPanel(panel: DockPanelName): void {
   if (!showPanel(panel)) return;

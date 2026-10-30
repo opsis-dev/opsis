@@ -9,16 +9,21 @@ import type {
   SceneSequencer,
 } from "#video/registry/types.ts";
 
-export const component = (element: React.FC<never>): ElementComponent =>
-  element as ElementComponent;
+export function component(element: React.FC<never>): ElementComponent {
+  return element as ElementComponent;
+}
 
-export const sequencer = (Scenes: React.FC<never>, Item: React.FC<never>): SceneSequencer => ({
-  Scenes: Scenes as SceneSequencer["Scenes"],
-  Item: Item as SceneSequencer["Item"],
-});
+export function sequencer(Scenes: React.FC<never>, Item: React.FC<never>): SceneSequencer {
+  return {
+    Scenes: Scenes as SceneSequencer["Scenes"],
+    Item: Item as SceneSequencer["Item"],
+  };
+}
 
-export const presentation = <P extends Record<string, unknown>>(
+export function presentation<P extends Record<string, unknown>>(
   make: (props: never, size: Size) => TransitionPresentation<P>,
-): PresentationFactory => ({
-  create: make as (props: ElementProps, size: Size) => Presentation,
-});
+): PresentationFactory {
+  return {
+    create: make as (props: ElementProps, size: Size) => Presentation,
+  };
+}

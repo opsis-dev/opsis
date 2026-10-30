@@ -20,8 +20,12 @@ type Format = {
   fromShown: (v: number) => number;
 };
 
-const fromFraction = (v: number) => v * 100;
-const toFraction = (v: number) => v / 100;
+function fromFraction(v: number) {
+  return v * 100;
+}
+function toFraction(v: number) {
+  return v / 100;
+}
 const FRACTION_AS_PERCENT = { unit: "%", toShown: fromFraction, fromShown: toFraction };
 
 const PLAIN: Format = { unit: "×", toShown: (v) => v, fromShown: (v) => v };

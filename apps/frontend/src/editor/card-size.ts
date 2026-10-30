@@ -6,8 +6,9 @@ const UNKNOWN_HEIGHT = 120;
 
 export type MeasuredPort = { handle: string; side: "in" | "out"; y: number };
 
-const cardElement = (id: string) =>
-  document.querySelector<HTMLElement>(`.react-flow__node[data-id="${CSS.escape(id)}"]`);
+function cardElement(id: string) {
+  return document.querySelector<HTMLElement>(`.react-flow__node[data-id="${CSS.escape(id)}"]`);
+}
 
 function measured(id: string): { width: number; height: number } | null {
   const el = cardElement(id);
@@ -16,11 +17,14 @@ function measured(id: string): { width: number; height: number } | null {
     : null;
 }
 
-export const cardSize = (node: Pick<WorkflowNode, "id" | "type">) =>
-  measured(node.id) ?? {
-    width: CARD_WIDTH,
-    height: getNodeDef(node.type)?.cardHeight ?? UNKNOWN_HEIGHT,
-  };
+export function cardSize(node: Pick<WorkflowNode, "id" | "type">) {
+  return (
+    measured(node.id) ?? {
+      width: CARD_WIDTH,
+      height: getNodeDef(node.type)?.cardHeight ?? UNKNOWN_HEIGHT,
+    }
+  );
+}
 
 export function measuredPorts(id: string): MeasuredPort[] | null {
   const el = cardElement(id);

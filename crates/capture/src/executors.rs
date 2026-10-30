@@ -25,8 +25,7 @@ use opsis_types::secrets::{secret_file, secret_name};
 use opsis_types::settings::TraceRetention;
 use opsis_types::values::BrowserAction;
 use opsis_types::values::{
-    Artifact, ArtifactKind, BrowserSessionValue, CompileValue, ImageValue, PortValues,
-    RecordingValue,
+    ArtifactKind, BrowserSessionValue, CompileValue, ImageValue, PortValues, RecordingValue,
 };
 use tokio_util::sync::CancellationToken;
 
@@ -94,16 +93,6 @@ fn session_input(inputs: &PortValues) -> Result<&BrowserSessionValue, ExecError>
         _ => Err(ExecError::new(
             "Connect Open browser and its actions to this node.",
         )),
-    }
-}
-
-fn artifact(ctx: &ExecutorContext, kind: ArtifactKind, file: &str, label: &str) -> Artifact {
-    Artifact {
-        kind,
-        path: ctx.rel(file),
-        label: Some(label.to_owned()),
-        bytes: None,
-        stamp: None,
     }
 }
 
@@ -363,8 +352,8 @@ async fn record(
             CompileValue::Recording(recording),
         )]),
         artifacts: vec![
-            artifact(&ctx, ArtifactKind::Video, RECORDING_FILE, "Recording"),
-            artifact(&ctx, ArtifactKind::Json, ACTIONS_FILE, "Action log"),
+            ctx.artifact(ArtifactKind::Video, RECORDING_FILE, "Recording"),
+            ctx.artifact(ArtifactKind::Json, ACTIONS_FILE, "Action log"),
         ],
         trace_id,
         measured: Vec::new(),
@@ -408,12 +397,7 @@ async fn still(
     };
     Ok(ExecutorOutput {
         outputs: PortValues::from([(IMAGE_PORT.to_owned(), CompileValue::Image(image))]),
-        artifacts: vec![artifact(
-            &ctx,
-            ArtifactKind::Image,
-            STILL_FILE,
-            "Screenshot",
-        )],
+        artifacts: vec![ctx.artifact(ArtifactKind::Image, STILL_FILE, "Screenshot")],
         trace_id,
         measured: Vec::new(),
     })

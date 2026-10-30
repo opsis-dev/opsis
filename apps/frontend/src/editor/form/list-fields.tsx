@@ -122,7 +122,9 @@ function useFocusItem(selector = "[data-list-input]") {
   };
 }
 
-const itemName = (label: string, i: number) => `${label.toLowerCase()} ${i + 1}`;
+function itemName(label: string, i: number) {
+  return `${label.toLowerCase()} ${i + 1}`;
+}
 
 export function StringListField({
   id,

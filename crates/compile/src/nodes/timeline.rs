@@ -33,17 +33,6 @@ use crate::text::{format_duration, parse_number_text, plural};
 use crate::time::{at_least_one_frame, frames_to_ms, ms_to_frames, ms_to_frames_from};
 use crate::vars::Vars;
 
-fn param_ref(node_id: &str, param: &str, unit: ParamUnit) -> ParamRef {
-    ParamRef {
-        node_id: node_id.to_owned(),
-        param: param.to_owned(),
-        unit,
-        scale: None,
-        index: None,
-        linked: None,
-    }
-}
-
 fn with_connected_clips(
     inputs: &Inputs,
     build: impl FnOnce(Vec<ClipValue>, Vec<String>) -> ClipValue,
@@ -403,7 +392,7 @@ fn layers() -> NodeDef {
             let move_for = |index: usize| {
                 Some(ParamRef {
                     index: u32::try_from(index).ok(),
-                    ..param_ref(node_id, "offsetsMs", ParamUnit::Ms)
+                    ..ParamRef::new(node_id, "offsetsMs", ParamUnit::Ms)
                 })
             };
             let stacked = mark_layers(stack_clips(
@@ -486,7 +475,7 @@ fn trim() -> NodeDef {
             } else {
                 rest
             };
-            let mut trim_start = param_ref(ctx.node_id, "startMs", ParamUnit::Ms);
+            let mut trim_start = ParamRef::new(ctx.node_id, "startMs", ParamUnit::Ms);
             trim_start.linked = Some(vec![LinkedParam {
                 param: "durationMs".into(),
                 sign: Sign::Opposite,
@@ -494,7 +483,7 @@ fn trim() -> NodeDef {
             }]);
             let handles = EditHandles {
                 trim_start: Some(trim_start),
-                trim_end: Some(param_ref(ctx.node_id, "durationMs", ParamUnit::Ms)),
+                trim_end: Some(ParamRef::new(ctx.node_id, "durationMs", ParamUnit::Ms)),
                 ..EditHandles::default()
             };
             let wrapped = wrap_clip(
@@ -579,7 +568,7 @@ fn delay() -> NodeDef {
             with_clip(ctx, |clip| {
                 let offset = ms_to_frames_from(f64::from(ctx.params.ms), ctx.settings.fps, 0);
                 let node_id = ctx.node_id;
-                let move_for = |_: usize| Some(param_ref(node_id, "ms", ParamUnit::Ms));
+                let move_for = |_: usize| Some(ParamRef::new(node_id, "ms", ParamUnit::Ms));
                 stack_clips(
                     node_id,
                     std::slice::from_ref(clip),
@@ -621,7 +610,7 @@ fn speed() -> NodeDef {
                     ..GroupProps::default()
                 };
                 let handles = EditHandles {
-                    speed: Some(param_ref(ctx.node_id, "rate", ParamUnit::Rate)),
+                    speed: Some(ParamRef::new(ctx.node_id, "rate", ParamUnit::Rate)),
                     ..EditHandles::default()
                 };
                 with_handles(
@@ -774,7 +763,7 @@ fn fit_length() -> NodeDef {
                 None => with_handles(
                     fitted,
                     EditHandles {
-                        trim_end: Some(param_ref(ctx.node_id, "targetMs", ParamUnit::Ms)),
+                        trim_end: Some(ParamRef::new(ctx.node_id, "targetMs", ParamUnit::Ms)),
                         ..EditHandles::default()
                     },
                     None,

@@ -46,6 +46,7 @@ const CURSOR_STYLE_TYPE: &str = crate::nodes::cursor::CURSOR_STYLE_TYPE;
 
 #[choice]
 pub enum FrameChoice {
+    #[default]
     #[label("None")]
     None,
     #[label("macOS")]
@@ -57,7 +58,7 @@ pub enum FrameChoice {
 }
 
 impl FrameChoice {
-    fn style(self) -> Option<WindowStyle> {
+    pub(crate) fn style(self) -> Option<WindowStyle> {
         match self {
             Self::None => None,
             Self::Macos => Some(WindowStyle::Macos),

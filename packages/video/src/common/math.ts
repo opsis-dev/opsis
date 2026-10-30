@@ -1,33 +1,58 @@
 export const EPSILON = 1e-6;
 
-export const clamp = (value: number, lo: number, hi: number): number =>
-  Math.min(hi, Math.max(lo, value));
+export function clamp(value: number, lo: number, hi: number): number {
+  return Math.min(hi, Math.max(lo, value));
+}
 
 export type MinMax = { min: number; max: number };
 
 export type StepRange = MinMax & { step: number };
 
-export const clamp01 = (value: number): number => clamp(value, 0, 1);
+export function clamp01(value: number): number {
+  return clamp(value, 0, 1);
+}
 
-export const normalize = (value: number, min: number, max: number): number =>
-  clamp01((value - min) / (max - min));
+export function normalize(value: number, min: number, max: number): number {
+  return clamp01((value - min) / (max - min));
+}
 
-export const lerp = (from: number, to: number, t: number): number => from + (to - from) * t;
+export function lerp(from: number, to: number, t: number): number {
+  return from + (to - from) * t;
+}
 
-export const roundTo = (value: number, digits: number): number => {
+export function smoothstep(value: number): number {
+  const t = clamp01(value);
+  return t * t * (3 - 2 * t);
+}
+
+export function easeOutQuad(value: number): number {
+  return 1 - (1 - clamp01(value)) ** 2;
+}
+
+export function easeOutCubic(value: number): number {
+  return 1 - (1 - clamp01(value)) ** 3;
+}
+
+export function roundTo(value: number, digits: number): number {
   const scale = 10 ** digits;
   return Math.round(value * scale) / scale;
-};
+}
 
-export const round2 = (value: number): number => roundTo(value, 2);
+export function round2(value: number): number {
+  return roundTo(value, 2);
+}
 
-export const round3 = (value: number): number => roundTo(value, 3);
+export function round3(value: number): number {
+  return roundTo(value, 3);
+}
 
-export const finiteNumber = (value: unknown): number | undefined =>
-  typeof value === "number" && Number.isFinite(value) ? value : undefined;
+export function finiteNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
 
-export const numberOr = (value: unknown, fallback: number): number =>
-  finiteNumber(value) ?? fallback;
+export function numberOr(value: unknown, fallback: number): number {
+  return finiteNumber(value) ?? fallback;
+}
 
 export function partitionPoint<T>(items: readonly T[], before: (item: T) => boolean): number {
   let lo = 0;

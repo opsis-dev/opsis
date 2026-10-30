@@ -3,20 +3,19 @@ import type {
   TransitionPresentationComponentProps,
 } from "@remotion/transitions";
 import { AbsoluteFill, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { DitheringField } from "#video/parts/shader-fields.tsx";
 
-const clampOpts = {
-  extrapolateLeft: "clamp" as const,
-  extrapolateRight: "clamp" as const,
-};
+function coverEnvelope(p: number) {
+  return interpolate(p, [0, 0.3, 0.65, 1], [0, 1, 1, 0], CLAMPED);
+}
 
-const coverEnvelope = (p: number) => interpolate(p, [0, 0.3, 0.65, 1], [0, 1, 1, 0], clampOpts);
-
-const coverChildOpacity = (p: number, entering: boolean) =>
-  entering
-    ? interpolate(p, [0.58, 0.66], [0, 1], clampOpts)
-    : interpolate(p, [0.28, 0.36], [1, 0], clampOpts);
+function coverChildOpacity(p: number, entering: boolean) {
+  return entering
+    ? interpolate(p, [0.58, 0.66], [0, 1], CLAMPED)
+    : interpolate(p, [0.28, 0.36], [1, 0], CLAMPED);
+}
 
 type DitherDissolveProps = ElementSettings["dither-dissolve"];
 
@@ -31,7 +30,7 @@ function DitherDissolvePresentation({
   const { colorBack, colorFront, shape, speed, dotSize, pattern } = passedProps;
   const entering = presentationDirection === "entering";
   const p = presentationProgress;
-  const size = interpolate(p, [0, 1], [dotSize, dotSize * DOT_GROWTH], clampOpts);
+  const size = interpolate(p, [0, 1], [dotSize, dotSize * DOT_GROWTH], CLAMPED);
 
   return (
     <AbsoluteFill>

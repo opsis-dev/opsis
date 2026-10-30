@@ -10,10 +10,14 @@ const BUS_SETTING_KEYS: (keyof BusSettings)[] = ["highpass", "eq", "comp", "fade
 
 const STRIP_SETTING_KEYS: (keyof StripSettings)[] = ["trim", ...BUS_SETTING_KEYS, "pan"];
 
-export const busSettings = (settings: Partial<StripSettings>): Partial<BusSettings> =>
-  pick(settings, BUS_SETTING_KEYS);
+export function busSettings(settings: Partial<StripSettings>): Partial<BusSettings> {
+  return pick(settings, BUS_SETTING_KEYS);
+}
 
-export const stripSettings = (strip: StripSettings): StripSettings =>
-  pick(strip, STRIP_SETTING_KEYS);
+export function stripSettings(strip: StripSettings): StripSettings {
+  return pick(strip, STRIP_SETTING_KEYS);
+}
 
-export const dbToGain = (db: number): number => (db <= mixerBook().minDb ? 0 : 10 ** (db / 20));
+export function dbToGain(db: number): number {
+  return db <= mixerBook().minDb ? 0 : 10 ** (db / 20);
+}

@@ -4,12 +4,8 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-
-const clampOpts = {
-  extrapolateLeft: "clamp" as const,
-  extrapolateRight: "clamp" as const,
-};
 
 type FocusPullProps = ElementSettings["focus-pull"];
 
@@ -31,31 +27,31 @@ function FocusPullPresentation({
   if (!entering) {
     const exitStyle: React.CSSProperties = {
       opacity: interpolate(p, [0.42, 0.68], [1, 0], {
-        ...clampOpts,
+        ...CLAMPED,
         easing: Easing.bezier(0.42, 0, 0.58, 1),
       }),
       scale: `${interpolate(p, [0, 0.6], [1, 1 + zoom / 100], {
-        ...clampOpts,
+        ...CLAMPED,
         easing: Easing.bezier(0.42, 0, 0.58, 1),
       })}`,
       filter: `blur(${interpolate(p, [0.05, 0.55], [0, blur], {
-        ...clampOpts,
+        ...CLAMPED,
         easing: Easing.in(Easing.quad),
-      })}px) brightness(${interpolate(p, [0.1, 0.55], [1, outGlow], clampOpts)})`,
+      })}px) brightness(${interpolate(p, [0.1, 0.55], [1, outGlow], CLAMPED)})`,
     };
     return <AbsoluteFill style={exitStyle}>{children}</AbsoluteFill>;
   }
 
   const childStyle: React.CSSProperties = {
-    opacity: interpolate(p, [0.32, 0.52], [0, 1], clampOpts),
+    opacity: interpolate(p, [0.32, 0.52], [0, 1], CLAMPED),
     scale: `${interpolate(p, [0.35, 1], [1 - (zoom / 100) * ENTER_ZOOM_SHARE, 1], {
-      ...clampOpts,
+      ...CLAMPED,
       easing: Easing.out(Easing.cubic),
     })}`,
     filter: `blur(${interpolate(p, [0.35, 0.9], [blur, 0], {
-      ...clampOpts,
+      ...CLAMPED,
       easing: Easing.out(Easing.quad),
-    })}px) brightness(${interpolate(p, [0.4, 0.85], [inGlow, 1], clampOpts)})`,
+    })}px) brightness(${interpolate(p, [0.4, 0.85], [inGlow, 1], CLAMPED)})`,
   };
 
   return <AbsoluteFill style={childStyle}>{children}</AbsoluteFill>;

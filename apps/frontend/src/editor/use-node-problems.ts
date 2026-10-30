@@ -1,9 +1,9 @@
 import { useRunStore } from "../store/run";
 import { useCompiledContext } from "./use-compiled";
 
-const unique = (messages: Array<string | undefined>): string[] => [
-  ...new Set(messages.filter((m): m is string => !!m)),
-];
+function unique(messages: Array<string | undefined>): string[] {
+  return [...new Set(messages.filter((m): m is string => !!m))];
+}
 
 export function useNodeProblems(nodeId: string): { errors: string[]; warnings: string[] } {
   const runError = useRunStore((s) => s.errors[nodeId]);

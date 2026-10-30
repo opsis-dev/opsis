@@ -19,7 +19,9 @@ const FAILURE_LINE = "text-destructive px-2 pb-2 text-xs";
 const SETTLED = new Set<RowState>(["done", "cached", "fromLastRun"]);
 
 function FailureLinks({ failed, nameOf }: { failed: string[]; nameOf: (id: string) => string }) {
-  const select = (id: string) => useUiStore.getState().setSelected([id]);
+  function select(id: string) {
+    return useUiStore.getState().setSelected([id]);
+  }
   return failed.map((id, i) => (
     <span key={id}>
       {i > 0 ? ", " : null}
@@ -134,7 +136,9 @@ export function RunNodeList({ nodes, filter }: { nodes: WorkflowNode[]; filter: 
     () => nodes.filter((n) => statuses[n.id] || errors[n.id] || results[n.id]?.artifacts.length),
     [nodes, statuses, errors, results],
   );
-  const nameOf = (id: string) => nodeNameById(nodes, id, "A deleted node");
+  function nameOf(id: string) {
+    return nodeNameById(nodes, id, "A deleted node");
+  }
 
   return (
     <ScrollArea className="h-full">

@@ -8,22 +8,31 @@ const CENTRE_PAN = 0.01;
 
 const MINUS_INFINITY = `${MINUS}∞`;
 
-export const formatSignedDb = (v: number): string => signedText(v, { digits: 1, plus: true });
+export function formatSignedDb(v: number): string {
+  return signedText(v, { digits: 1, plus: true });
+}
 
-export const formatReading = (v: number, floor = -Infinity, plus = false): string =>
-  Number.isNaN(v) || v <= floor ? MINUS_INFINITY : signedText(v, { digits: 1, plus });
+export function formatReading(v: number, floor = -Infinity, plus = false): string {
+  return Number.isNaN(v) || v <= floor ? MINUS_INFINITY : signedText(v, { digits: 1, plus });
+}
 
-export const formatDb = (v: number): string => formatReading(v, mixerBook().minDb, true);
+export function formatDb(v: number): string {
+  return formatReading(v, mixerBook().minDb, true);
+}
 
-export const formatLevelDb = (v: number): string => formatReading(v, mixerBook().silenceDb, true);
+export function formatLevelDb(v: number): string {
+  return formatReading(v, mixerBook().silenceDb, true);
+}
 
-export const formatHz = (v: number): string =>
-  v >= KILOHERTZ_FROM
+export function formatHz(v: number): string {
+  return v >= KILOHERTZ_FROM
     ? `${(v / KILOHERTZ_FROM).toFixed(v >= WHOLE_KILOHERTZ_FROM ? 0 : 1)}k`
     : `${Math.round(v)}`;
+}
 
-export const formatMs = (v: number): string =>
-  v >= WHOLE_MS_FROM ? `${Math.round(v)}` : v.toFixed(1);
+export function formatMs(v: number): string {
+  return v >= WHOLE_MS_FROM ? `${Math.round(v)}` : v.toFixed(1);
+}
 
 export function formatPan(v: number): string {
   if (Math.abs(v) < CENTRE_PAN) return "C";

@@ -56,4 +56,6 @@ export function useCompiled({ drive }: { drive: boolean }): Compiled {
 }
 
 export const CompiledContext = createContext<Compiled>(EMPTY);
-export const useCompiledContext = () => useContext(CompiledContext);
+export function useCompiledContext() {
+  return useContext(CompiledContext);
+}

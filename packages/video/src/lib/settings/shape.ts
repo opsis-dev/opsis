@@ -25,8 +25,9 @@ export function nestedFrom<P extends ElementProps>(
   return out;
 }
 
-export const rowsOf = (value: unknown): ElementProps[] =>
-  Array.isArray(value) ? value.filter(isRecord) : [];
+export function rowsOf(value: unknown): ElementProps[] {
+  return Array.isArray(value) ? value.filter(isRecord) : [];
+}
 
 export function listsFrom<P extends ElementProps>(
   props: P,
@@ -46,15 +47,16 @@ export function listsFrom<P extends ElementProps>(
 
 const TICK_WORDS: Partial<Record<string, boolean>> = { yes: true, no: false };
 
-export const ticksFromWords = <Row extends { cells: unknown[] }>(
+export function ticksFromWords<Row extends { cells: unknown[] }>(
   rows: Row[],
-): (Omit<Row, "cells"> & { cells: (Row["cells"][number] | boolean)[] })[] =>
-  rows.map((row) => ({
+): (Omit<Row, "cells"> & { cells: (Row["cells"][number] | boolean)[] })[] {
+  return rows.map((row) => ({
     ...row,
     cells: row.cells.map((cell) =>
       isString(cell) ? (TICK_WORDS[cell.trim().toLowerCase()] ?? cell) : cell,
     ),
   }));
+}
 
 export type TreeNode = { name: string; children?: TreeNode[] };
 

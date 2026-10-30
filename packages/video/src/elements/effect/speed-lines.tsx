@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { random } from "remotion";
+import { clamp, easeOutQuad, numberOr, round2, smoothstep } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -118,7 +119,9 @@ const RELAX = 0.12;
 const RELAX_RATE = 1.5;
 const RELEASE_JITTER = 1.5;
 const RETRACT = 3.5;
-const focusEnd = (release: number) => release + RELEASE_JITTER + RETRACT;
+function focusEnd(release: number) {
+  return release + RELEASE_JITTER + RETRACT;
+}
 const ANGLE_JITTER = 0.6;
 const RADIUS_JITTER = 0.6;
 const MAX_COUNT = 64;
@@ -129,29 +132,21 @@ const MAX_SPREAD = 480;
 const MIN_DURATION = 4;
 const MAX_DURATION = 120;
 
-const finite = (value: number | undefined, fallback: number) =>
-  typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const round = (value: number) => Math.round(value * 100) / 100;
-const fine = (value: number) => Math.round(value * 10000) / 10000;
-const fraction = (value: number) => value - Math.floor(value);
-const modeOf = (value: string | undefined): SpeedLinesMode =>
-  value === "focus" ? "focus" : "trail";
-const travelOf = (value: number | undefined) =>
-  clamp(finite(value, speedLinesDefaults.duration), MIN_DURATION, MAX_DURATION);
-
-function smoothstep(value: number) {
-  const t = clamp(value, 0, 1);
-  return t * t * (3 - 2 * t);
+function fine(value: number) {
+  return Math.round(value * 10000) / 10000;
 }
-
-function easeOut(value: number) {
-  const t = clamp(value, 0, 1);
-  return 1 - (1 - t) * (1 - t);
+function fraction(value: number) {
+  return value - Math.floor(value);
+}
+function modeOf(value: string | undefined): SpeedLinesMode {
+  return value === "focus" ? "focus" : "trail";
+}
+function travelOf(value: number | undefined) {
+  return clamp(numberOr(value, speedLinesDefaults.duration), MIN_DURATION, MAX_DURATION);
 }
 
 function pointOf(value: SpeedLinesPoint | undefined, fallback: SpeedLinesPoint) {
-  return { x: finite(value?.x, fallback.x), y: finite(value?.y, fallback.y) };
+  return { x: numberOr(value?.x, fallback.x), y: numberOr(value?.y, fallback.y) };
 }
 
 function key(seed: number, index: number, name: string) {
@@ -159,17 +154,17 @@ function key(seed: number, index: number, name: string) {
 }
 
 function settingsOf(options: SpeedLinesOptions) {
-  const height = Math.max(1, finite(options.height, 720));
-  const x = finite(options.x, speedLinesDefaults.x);
-  const y = finite(options.y, speedLinesDefaults.y);
-  const count = finite(options.count, speedLinesDefaults.count);
-  const weight = finite(options.weight, speedLinesDefaults.weight);
-  const spread = finite(options.spread, speedLinesDefaults.spread);
+  const height = Math.max(1, numberOr(options.height, 720));
+  const x = numberOr(options.x, speedLinesDefaults.x);
+  const y = numberOr(options.y, speedLinesDefaults.y);
+  const count = numberOr(options.count, speedLinesDefaults.count);
+  const weight = numberOr(options.weight, speedLinesDefaults.weight);
+  const spread = numberOr(options.spread, speedLinesDefaults.spread);
   return {
     mode: modeOf(options.mode),
-    width: Math.max(1, finite(options.width, 1280)),
+    width: Math.max(1, numberOr(options.width, 1280)),
     height,
-    fps: Math.max(1, finite(options.fps, 30)),
+    fps: Math.max(1, numberOr(options.fps, 30)),
     unit: height / REFERENCE,
     from: pointOf(options.from, speedLinesDefaults.from),
     to: pointOf(options.to, { x, y }),
@@ -179,13 +174,13 @@ function settingsOf(options: SpeedLinesOptions) {
     weight: clamp(weight, MIN_WEIGHT, MAX_WEIGHT),
     spread: clamp(spread, MIN_SPREAD, MAX_SPREAD),
     duration: travelOf(options.duration),
-    bounce: clamp(finite(options.bounce, speedLinesDefaults.bounce), 0, 1),
-    squash: clamp(finite(options.squash, speedLinesDefaults.squash), 0, 1),
-    seed: finite(options.seed, speedLinesDefaults.seed),
-    delay: Math.max(0, finite(options.delay, speedLinesDefaults.delay)),
-    speed: Math.max(0, finite(options.speed, speedLinesDefaults.speed)),
-    release: Math.max(0, finite(options.hold, speedLinesDefaults.hold)),
-    shutter: Math.max(0, finite(options.streakLength, speedLinesDefaults.streakLength)),
+    bounce: clamp(numberOr(options.bounce, speedLinesDefaults.bounce), 0, 1),
+    squash: clamp(numberOr(options.squash, speedLinesDefaults.squash), 0, 1),
+    seed: numberOr(options.seed, speedLinesDefaults.seed),
+    delay: Math.max(0, numberOr(options.delay, speedLinesDefaults.delay)),
+    speed: Math.max(0, numberOr(options.speed, speedLinesDefaults.speed)),
+    release: Math.max(0, numberOr(options.hold, speedLinesDefaults.hold)),
+    shutter: Math.max(0, numberOr(options.streakLength, speedLinesDefaults.streakLength)),
   };
 }
 
@@ -276,13 +271,13 @@ export function getSpeedLinesDuration(options: SpeedLinesOptions = {}) {
 
 export function getSpeedLinesTime(frame: number, options: SpeedLinesOptions = {}) {
   const { fps, delay, speed } = settingsOf(options);
-  const elapsed = Math.max(0, finite(frame, 0) - delay);
+  const elapsed = Math.max(0, numberOr(frame, 0) - delay);
   return elapsed * (30 / fps) * speed;
 }
 
 export function getSpeedLinesEase(time: number, options: SpeedLinesOptions = {}) {
   const { duration, bounce } = settingsOf(options);
-  return easeOf(finite(time, 0), duration, bounce);
+  return easeOf(numberOr(time, 0), duration, bounce);
 }
 
 function positionAt(time: number, settings: Settings) {
@@ -301,7 +296,7 @@ function positionAt(time: number, settings: Settings) {
 }
 
 export function getSpeedLinesPosition(time: number, options: SpeedLinesOptions = {}) {
-  const { x, y } = positionAt(finite(time, 0), settingsOf(options));
+  const { x, y } = positionAt(numberOr(time, 0), settingsOf(options));
   return { x, y };
 }
 
@@ -326,14 +321,14 @@ function shapeAt(time: number, settings: Settings) {
 }
 
 export function getSpeedLinesShape(time: number, options: SpeedLinesOptions = {}) {
-  return shapeAt(finite(time, 0), settingsOf(options));
+  return shapeAt(numberOr(time, 0), settingsOf(options));
 }
 
 export type SpeedLinesShape = ReturnType<typeof getSpeedLinesShape>;
 
 export function getSpeedLinesVelocity(frame: number, options: SpeedLinesOptions = {}) {
   const settings = settingsOf(options);
-  const current = finite(frame, 0);
+  const current = numberOr(frame, 0);
   const now = positionAt(getSpeedLinesTime(current, options), settings);
   const before = positionAt(getSpeedLinesTime(current - 1, options), settings);
   const scale = settings.fps / 30;
@@ -384,7 +379,7 @@ export function getSpeedLinesStreaks(
     const age = (progress - streak.spawn) / life;
     if (age <= 0 || age >= 1) continue;
     const reach = settings.shutter * streak.factor * forward * gate;
-    const drawn = easeOut(age / DRAW);
+    const drawn = easeOutQuad(age / DRAW);
     const erased = smoothstep((age - ERASE) / (1 - ERASE));
     const length = reach * (drawn - erased);
     if (length < minimum) continue;
@@ -399,10 +394,10 @@ export function getSpeedLinesStreaks(
       index: streak.index,
       offset: streak.offset,
       reach,
-      x1: round(laneX - dx * front),
-      y1: round(laneY - dy * front),
-      x2: round(laneX - dx * back),
-      y2: round(laneY - dy * back),
+      x1: round2(laneX - dx * front),
+      y1: round2(laneY - dy * front),
+      x2: round2(laneX - dx * back),
+      y2: round2(laneY - dy * back),
       length,
     });
   }
@@ -411,13 +406,15 @@ export function getSpeedLinesStreaks(
 
 export function getSpeedLinesRadius(time: number, ray: SpeedLinesRayTiming) {
   const { rest, outer, start = 0, release = speedLinesDefaults.hold } = ray;
-  const t = finite(time, 0);
+  const t = numberOr(time, 0);
   if (t <= start) return outer;
   if (t < IMPACT) {
     const q = (t - start) / (IMPACT - start);
     return outer + (rest - outer) * q * q;
   }
-  const settle = (at: number) => rest * (1 + RELAX * (1 - Math.exp(-(at - IMPACT) / RELAX_RATE)));
+  function settle(at: number) {
+    return rest * (1 + RELAX * (1 - Math.exp(-(at - IMPACT) / RELAX_RATE)));
+  }
   if (t < release) return settle(t);
   const held = settle(release);
   const q = clamp((t - release) / RETRACT, 0, 1);
@@ -457,10 +454,10 @@ export function getSpeedLinesRays(frame: number, options: SpeedLinesOptions = {}
       rest,
       inner,
       outer,
-      x1: round(cx + cos * inner),
-      y1: round(cy + sin * inner),
-      x2: round(cx + cos * outer),
-      y2: round(cy + sin * outer),
+      x1: round2(cx + cos * inner),
+      y1: round2(cy + sin * inner),
+      x2: round2(cx + cos * outer),
+      y2: round2(cy + sin * outer),
       length,
     });
   }
@@ -472,7 +469,7 @@ export function getSpeedLinesState(frame: number, options: SpeedLinesOptions = {
   const time = getSpeedLinesTime(frame, options);
   const point = positionAt(time, settings);
   const shape = shapeAt(time, settings);
-  const rotation = round(shape.rotation);
+  const rotation = round2(shape.rotation);
   const scale = `scale(${fine(shape.along)}, ${fine(shape.across)})`;
   const streaks = getSpeedLinesStreaks(frame, options);
   const rays = getSpeedLinesRays(frame, options);

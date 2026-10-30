@@ -26,7 +26,7 @@ export function HandwritingText({
   const nib = penColor;
   const softness = Math.max(0, inkSoftness) * 100;
 
-  const renderUnit = (unit: SplitUnitState) => {
+  function renderUnit(unit: SplitUnitState) {
     const written = Math.max(0, Math.min(1, unit.enter));
     const stop = written * 100;
     const ink = `linear-gradient(to right, #000 ${stop.toFixed(2)}%, rgba(0,0,0,0) ${Math.min(100, stop + softness).toFixed(2)}%)`;
@@ -72,7 +72,7 @@ export function HandwritingText({
         ) : null}
       </span>
     );
-  };
+  }
 
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>

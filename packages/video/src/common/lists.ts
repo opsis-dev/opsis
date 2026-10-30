@@ -1,14 +1,14 @@
-export const keepLast = <T>(items: readonly T[], count: number): T[] =>
-  count > 0 ? items.slice(-count) : [];
+export function keepLast<T>(items: readonly T[], count: number): T[] {
+  return count > 0 ? items.slice(-count) : [];
+}
 
-export const appendCapped = <T>(items: readonly T[], item: T, max: number): T[] => [
-  ...keepLast(items, max - 1),
-  item,
-];
+export function appendCapped<T>(items: readonly T[], item: T, max: number): T[] {
+  return [...keepLast(items, max - 1), item];
+}
 
-export const withCurrent = (options: readonly string[], current: string): string[] => [
-  ...new Set(current ? [...options, current] : options),
-];
+export function withCurrent(options: readonly string[], current: string): string[] {
+  return [...new Set(current ? [...options, current] : options)];
+}
 
 export function uniqueKeys(keys: readonly string[]): string[] {
   const seen = new Map<string, number>();
@@ -45,9 +45,13 @@ export function firstFree(
   }
 }
 
-export const findById = <T extends { id: string }>(
+export function findById<T extends { id: string }>(
   items: readonly T[] | undefined,
   id: string | null | undefined,
-): T | undefined => items?.find((item) => item.id === id);
+): T | undefined {
+  return items?.find((item) => item.id === id);
+}
 
-export const isNonEmpty = <T>(list: readonly T[]): list is readonly [T, ...T[]] => list.length > 0;
+export function isNonEmpty<T>(list: readonly T[]): list is readonly [T, ...T[]] {
+  return list.length > 0;
+}

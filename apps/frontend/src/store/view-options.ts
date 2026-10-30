@@ -6,9 +6,11 @@ type ViewOptions = {
   minimap: boolean;
 };
 
-export const storedViewOptions = (): ViewOptions => ({
-  minimap: readPref("minimap", true, isBoolean),
-});
+export function storedViewOptions(): ViewOptions {
+  return {
+    minimap: readPref("minimap", true, isBoolean),
+  };
+}
 
 type ViewOptionsState = ViewOptions & {
   setViewOption: <K extends keyof ViewOptions>(key: K, value: ViewOptions[K]) => void;

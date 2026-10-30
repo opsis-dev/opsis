@@ -1,11 +1,6 @@
 import { useId } from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, random, useCurrentFrame, useVideoConfig } from "remotion";
 import type { ElementSettings } from "#video/generated/spec.ts";
-
-function hash(index: number, salt: number, seed: number): number {
-  const value = Math.sin(index * 37.31 + salt * 91.7 + seed * 13.9) * 43758.5453;
-  return value - Math.floor(value);
-}
 
 const SAMPLES = 30;
 const OVERSCAN = 12;
@@ -43,14 +38,14 @@ function buildRibbons(
     return {
       color: colors[index % colors.length],
       band: t - 0.5,
-      slowRate: 0.8 + hash(index, 1, seed) * 0.5,
-      fastRate: 0.75 + hash(index, 2, seed) * 0.6,
-      slowPhase: hash(index, 3, seed) * Math.PI * 2,
-      fastPhase: hash(index, 4, seed) * Math.PI * 2,
-      waves: folds * (0.65 + hash(index, 5, seed) * 0.7),
-      drift: (hash(index, 6, seed) - 0.5) * 2 * sidewaysDrift,
-      scale: 0.65 + hash(index, 7, seed) * 0.6,
-      alpha: 0.5 + hash(index, 8, seed) * 0.5,
+      slowRate: 0.8 + random(`${seed}:${index}:1`) * 0.5,
+      fastRate: 0.75 + random(`${seed}:${index}:2`) * 0.6,
+      slowPhase: random(`${seed}:${index}:3`) * Math.PI * 2,
+      fastPhase: random(`${seed}:${index}:4`) * Math.PI * 2,
+      waves: folds * (0.65 + random(`${seed}:${index}:5`) * 0.7),
+      drift: (random(`${seed}:${index}:6`) - 0.5) * 2 * sidewaysDrift,
+      scale: 0.65 + random(`${seed}:${index}:7`) * 0.6,
+      alpha: 0.5 + random(`${seed}:${index}:8`) * 0.5,
     };
   });
 }

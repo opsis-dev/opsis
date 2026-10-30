@@ -35,10 +35,10 @@ export function DiskChangeDialog() {
   const [asked, setAsked] = useState<Asked | null>(null);
   useDiskChangeEvents(setAsked);
   if (!asked) return null;
-  const choose = (choice: DiskChoice) => {
+  function choose(choice: DiskChoice) {
     setAsked(null);
     void attempt(() => commands.resolveDiskChange(choice), "Couldn't save the project");
-  };
+  }
   return (
     <AlertDialog open>
       <AlertDialogContent>

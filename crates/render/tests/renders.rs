@@ -1,3 +1,6 @@
+mod support;
+
+use opsis_golden::home;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -19,6 +22,7 @@ use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::{ClipValue, CompileValue, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use serde_json::{Map, Value, json};
+use support::{sidecar_args, sidecar_program};
 use tokio_util::sync::CancellationToken;
 
 const STILLS: [&str; 5] = [
@@ -36,24 +40,6 @@ fn from_env(name: &str) -> PathBuf {
     std::env::var_os(name)
         .map(PathBuf::from)
         .unwrap_or_else(|| panic!("{name} isn't set"))
-}
-
-fn sidecar_program() -> PathBuf {
-    std::env::var_os("OPSIS_SIDECAR").map_or_else(|| PathBuf::from("bun"), PathBuf::from)
-}
-
-fn sidecar_args() -> Vec<OsString> {
-    if std::env::var_os("OPSIS_SIDECAR").is_some() {
-        Vec::new()
-    } else {
-        ["run", "apps/sidecar/src/main.ts"]
-            .map(OsString::from)
-            .to_vec()
-    }
-}
-
-fn home() -> PathBuf {
-    std::env::var_os("HOME").map(PathBuf::from).expect("HOME")
 }
 
 fn existing(path: PathBuf, what: &str) -> PathBuf {

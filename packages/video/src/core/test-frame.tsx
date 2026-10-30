@@ -13,7 +13,9 @@ const ENVIRONMENT = {
 
 const SCALE = { type: "scale", scale: 1 } as const;
 
-const DRAWN_ELSEWHERE = () => null;
+function DRAWN_ELSEWHERE() {
+  return null;
+}
 
 type TestFrameProps<P extends object> = {
   component: ComponentType<P>;

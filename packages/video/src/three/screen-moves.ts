@@ -1,5 +1,6 @@
 import { Easing, interpolate } from "remotion";
 import { cameraAt } from "#video/common/camera-path.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ScreenMove, CameraPath } from "#video/generated/spec.ts";
 import { viewPose, type Pose, type Vec3 } from "#video/three/motion.ts";
 
@@ -15,11 +16,9 @@ const STARTS: Record<Exclude<ScreenMove, "keyframes">, Keyed> = {
   rise: { rotation: [0.35, 0, 0], position: [0, -1.3, -3.6] },
 };
 
-const mix = (a: Vec3, b: Vec3, t: number): Vec3 => [
-  a[0] + (b[0] - a[0]) * t,
-  a[1] + (b[1] - a[1]) * t,
-  a[2] + (b[2] - a[2]) * t,
-];
+function mix(a: Vec3, b: Vec3, t: number): Vec3 {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}
 
 export function screenPoseAt(
   move: ScreenMove,
@@ -31,8 +30,7 @@ export function screenPoseAt(
 ): Pose {
   if (move === "keyframes") return viewPose(cameraAt(camera, frame, { endFaceOn }));
   const t = interpolate(frame, [0, Math.max(1, durationInFrames * moveEndsAt)], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: Easing.inOut(Easing.cubic),
   });
   const start = STARTS[move];

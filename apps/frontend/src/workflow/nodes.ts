@@ -11,25 +11,37 @@ export const NOTE_TYPE = "core.note";
 
 export const CLIP_PORT = "clip";
 
-export const isGroupNode = (node: Pick<WorkflowNode, "type">): boolean => node.type === GROUP_TYPE;
+export function isGroupNode(node: Pick<WorkflowNode, "type">): boolean {
+  return node.type === GROUP_TYPE;
+}
 
-export const isNoteNode = (node: Pick<WorkflowNode, "type">): boolean => node.type === NOTE_TYPE;
+export function isNoteNode(node: Pick<WorkflowNode, "type">): boolean {
+  return node.type === NOTE_TYPE;
+}
 
-const textParam = (node: WorkflowNode, key: string): string => {
+function textParam(node: WorkflowNode, key: string): string {
   const own = node.params[key];
   const fallback = getNodeDef(node.type)?.defaults[key];
   return isString(own) ? own : isString(fallback) ? fallback : "";
-};
+}
 
-export const groupLook = (node: WorkflowNode) => ({
-  title: textParam(node, "title"),
-  color: textParam(node, "color"),
-});
+export function groupLook(node: WorkflowNode) {
+  return {
+    title: textParam(node, "title"),
+    color: textParam(node, "color"),
+  };
+}
 
-export const noteText = (node: WorkflowNode): string => textParam(node, "text");
+export function noteText(node: WorkflowNode): string {
+  return textParam(node, "text");
+}
 
-export const noteColor = (node: WorkflowNode): string => textParam(node, "color");
+export function noteColor(node: WorkflowNode): string {
+  return textParam(node, "color");
+}
 
 const TRANSITION_WARN_RATIO = 0.4;
 
-export const coversTooMuch = (ratio: number): boolean => ratio > TRANSITION_WARN_RATIO;
+export function coversTooMuch(ratio: number): boolean {
+  return ratio > TRANSITION_WARN_RATIO;
+}

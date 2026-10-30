@@ -28,10 +28,10 @@ export function ExitDialog() {
     [],
   );
 
-  const answer = (close: boolean) => {
+  function answer(close: boolean) {
     void commands.decideClose({ close, dontAsk: close && dontAsk });
     setRequest(null);
-  };
+  }
 
   const busy = request?.busy ?? [];
   return (

@@ -50,7 +50,9 @@ const FLOW_OPTIONS = {
   defaultEdgeOptions: { type: "smoothstep" },
 } satisfies ReactFlowProps<CanvasNode, Edge>;
 
-const minimapColor = (n: CanvasNode) => categoryColor(n.data.node.type);
+function minimapColor(n: CanvasNode) {
+  return categoryColor(n.data.node.type);
+}
 
 function connect(c: Connection): void {
   if (!c.sourceHandle || !c.targetHandle) return;
@@ -62,14 +64,21 @@ function connect(c: Connection): void {
   });
 }
 
-const dropDragged = (_e: unknown, _node: CanvasNode, dragged: CanvasNode[]) =>
-  workflowEdits.moveNodes(Object.fromEntries(dragged.map((n) => [n.id, n.position])));
+function dropDragged(_e: unknown, _node: CanvasNode, dragged: CanvasNode[]) {
+  return workflowEdits.moveNodes(Object.fromEntries(dragged.map((n) => [n.id, n.position])));
+}
 
-const deleteNodes = (deleted: CanvasNode[]) => workflowEdits.removeNodes(deleted.map((n) => n.id));
+function deleteNodes(deleted: CanvasNode[]) {
+  return workflowEdits.removeNodes(deleted.map((n) => n.id));
+}
 
-const deleteEdges = (deleted: Edge[]) => workflowEdits.removeEdges(deleted.map((e) => e.id));
+function deleteEdges(deleted: Edge[]) {
+  return workflowEdits.removeEdges(deleted.map((e) => e.id));
+}
 
-const clearSelection = () => useUiStore.getState().setSelected([]);
+function clearSelection() {
+  return useUiStore.getState().setSelected([]);
+}
 
 export function Canvas({ projectDir }: { projectDir: string }) {
   const workflow = useRequiredWorkflow();

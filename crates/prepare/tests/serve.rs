@@ -1,14 +1,10 @@
-use std::path::Path;
+use opsis_golden::repo;
 
 use axum::body::Body;
 use axum::http::{Request, StatusCode, header};
 use http_body_util::BodyExt;
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use tower::ServiceExt;
-
-fn repo() -> std::path::PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
-}
 
 async fn get(dirs: &PreparedDirs, path: &str) -> (StatusCode, String, Vec<u8>) {
     let response = prepared_routes(dirs.clone())

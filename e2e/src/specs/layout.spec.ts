@@ -10,21 +10,25 @@ type Placed = { id: string; position: { x: number; y: number }; parentId?: strin
 type Joined = { id: string; target: string; targetHandle: string };
 type Project = { workflow: { nodes: Placed[]; edges: Joined[] } };
 
-const project = async () => ((await api("GET", "/project")).body as Project).workflow;
+async function project() {
+  return ((await api("GET", "/project")).body as Project).workflow;
+}
 
-const positions = async () =>
-  JSON.stringify(Object.fromEntries((await project()).nodes.map((n) => [n.id, n.position])));
+async function positions() {
+  return JSON.stringify(Object.fromEntries((await project()).nodes.map((n) => [n.id, n.position])));
+}
 
-const cardBoxes = () =>
-  browser.execute(() =>
+function cardBoxes() {
+  return browser.execute(() =>
     [...document.querySelectorAll<HTMLElement>(".react-flow__node-opsis")].map((el) => {
       const box = el.getBoundingClientRect();
       return { id: el.dataset.id ?? "", x: box.x, y: box.y, w: box.width, h: box.height };
     }),
   );
+}
 
-const edgePaths = () =>
-  browser.execute(() =>
+function edgePaths() {
+  return browser.execute(() =>
     Object.fromEntries(
       [...document.querySelectorAll<SVGGElement>(".react-flow__edge")].map((g) => [
         g.dataset.id ?? "",
@@ -32,6 +36,7 @@ const edgePaths = () =>
       ]),
     ),
   );
+}
 
 function verticalRuns(d: string): Array<{ x: number; top: number; bottom: number }> {
   const numbers = (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);

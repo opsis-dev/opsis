@@ -7,11 +7,11 @@ export function useItemKeys<T>(items: readonly T[], order?: (a: T, b: T) => numb
   const [keys, setKeys] = useState(() => items.map(() => randomId()));
   const rows = items.map((item, i): KeyedItem<T> => ({ item, key: keys[i] ?? randomId() }));
   if (keys.length !== items.length) setKeys(rows.map((r) => r.key));
-  const commit = (next: KeyedItem<T>[]): T[] => {
+  function commit(next: KeyedItem<T>[]): T[] {
     const arranged = order ? next.toSorted((a, b) => order(a.item, b.item)) : next;
     setKeys(arranged.map((r) => r.key));
     return arranged.map((r) => r.item);
-  };
+  }
   return {
     rows,
     add: (item: T): T[] => commit([...rows, { item, key: randomId() }]),

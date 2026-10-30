@@ -38,6 +38,7 @@ pub fn spec_types() -> String {
             .register::<ElementSettings>()
             .register::<crate::elements::introspect::FieldWidget>()
             .register::<opsis_types::looks::NodeLook>()
+            .register::<opsis_types::values::MediaKind>()
             .register::<crate::elements::text::text_3d::PreparedTypeface>(),
     )
 }

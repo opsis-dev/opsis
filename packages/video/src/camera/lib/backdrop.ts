@@ -29,7 +29,9 @@ function luma(colour: string): number | null {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-const isBackdropName = (value: string): value is BackdropName => isKeyOf(BACKDROP_TONES, value);
+function isBackdropName(value: string): value is BackdropName {
+  return isKeyOf(BACKDROP_TONES, value);
+}
 
 export function isLightBackdrop(backdrop?: string): boolean {
   const value = nonBlankString(backdrop) ?? "";

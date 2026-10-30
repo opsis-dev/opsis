@@ -2,11 +2,13 @@ import { fontOr } from "#video/common/fonts.ts";
 import { launchMedia } from "#video/elements/scene/launch-anything/assets.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
-export const shade = (color: string, percent: number) =>
-  `color-mix(in srgb, ${color}, black ${percent}%)`;
+export function shade(color: string, percent: number) {
+  return `color-mix(in srgb, ${color}, black ${percent}%)`;
+}
 
-export const tint = (color: string, percent: number) =>
-  `color-mix(in srgb, ${color}, white ${percent}%)`;
+export function tint(color: string, percent: number) {
+  return `color-mix(in srgb, ${color}, white ${percent}%)`;
+}
 
 export function launchScene(s: ElementSettings["launch-anything"]) {
   return {

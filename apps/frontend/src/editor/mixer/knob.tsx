@@ -1,3 +1,4 @@
+import { arcPath, polar } from "@opsis/video/common/geometry";
 import { clamp01 } from "@opsis/video/common/math";
 import { useRef, useState } from "react";
 import { endIfStarted, onArrowKey, startOnceMoved, type ThresholdDrag } from "@/lib/dom";
@@ -9,9 +10,7 @@ import {
   START_DEG,
   SWEEP_DEG,
   angleOf,
-  arcPath,
   fractionToValue,
-  polar,
   snapValue,
   valueToFraction,
   type KnobRange,
@@ -33,7 +32,9 @@ const BIG_NUDGE = 0.1;
 const RING_INSET = 3;
 const POINTER_INSET = 4;
 
-const withUnit = (text: string, unit: string | undefined) => (unit ? `${text} ${unit}` : text);
+function withUnit(text: string, unit: string | undefined) {
+  return unit ? `${text} ${unit}` : text;
+}
 
 function KnobValue({
   label,
@@ -90,11 +91,11 @@ function KnobDial({ size, t, centerT }: { size: number; t: number; centerT: numb
   const r = c - RING_INSET;
   const angle = angleOf(t);
   const center = angleOf(centerT);
-  const tip = polar(c, r - POINTER_INSET, angle);
+  const tip = polar(c, c, r - POINTER_INSET, angle);
   return (
     <svg width={size} height={size}>
       <path
-        d={arcPath(c, r, START_DEG, START_DEG + SWEEP_DEG)}
+        d={arcPath(c, c, r, START_DEG, START_DEG + SWEEP_DEG)}
         className="stroke-muted"
         strokeWidth={3}
         fill="none"
@@ -102,7 +103,7 @@ function KnobDial({ size, t, centerT }: { size: number; t: number; centerT: numb
       />
       {Math.abs(angle - center) > 0.5 ? (
         <path
-          d={arcPath(c, r, Math.min(center, angle), Math.max(center, angle))}
+          d={arcPath(c, c, r, Math.min(center, angle), Math.max(center, angle))}
           className="stroke-primary"
           strokeWidth={3}
           fill="none"
@@ -162,7 +163,9 @@ export function Knob({
   }) {
   const range = { min, max, step, log };
   const fraction = clamp01(valueToFraction(range, value));
-  const nudge = (by: number) => commitOnce(gesture, fractionToValue(range, fraction + by));
+  function nudge(by: number) {
+    return commitOnce(gesture, fractionToValue(range, fraction + by));
+  }
   const centerT = min < 0 && max > 0 && !log ? valueToFraction(range, 0) : 0;
   const dragProps = useKnobDrag(range, fraction, gesture, disabled);
   const spoken = `${label}: ${withUnit(format(value), unit)}`;

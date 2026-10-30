@@ -1,23 +1,19 @@
-import type { CSSProperties, ReactNode } from "react";
-import {
-  Easing,
-  getRemotionEnvironment,
-  Img,
-  interpolate,
-  OffthreadVideo,
-  staticFile,
-} from "remotion";
+import type { ReactNode } from "react";
+import { Easing, interpolate } from "remotion";
 import { themeColors } from "#video/common/theme.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-import type { ElementSettings } from "#video/generated/spec.ts";
+import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
 import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
+import { floatOffset, ScreenMedia } from "#video/parts/device-screen.tsx";
 
 export type PhoneFrameVariant = "flat" | "tilt" | "showcase";
 export type PhoneFrameEntrance = "rise" | "rotate-in" | "float";
 
 type PhoneFrameProps = Omit<ElementSettings["phone-frame"], "theme"> & {
   children?: ReactNode;
+  screenKind?: MediaKind;
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
@@ -39,10 +35,7 @@ export interface EntrancePose {
 }
 
 export function entrancePose(frame: number, entrance: PhoneFrameEntrance): EntrancePose {
-  const clamp = {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  } as const;
+  const clamp = CLAMPED;
   const easeOut = Easing.out(Easing.cubic);
 
   if (entrance === "rotate-in") {
@@ -86,18 +79,6 @@ export function entrancePose(frame: number, entrance: PhoneFrameEntrance): Entra
   };
 }
 
-export function floatOffset(
-  frame: number,
-  fps: number,
-  amplitude: number,
-  startFrame: number,
-  periodSeconds: number,
-): number {
-  const local = Math.max(0, frame - startFrame);
-  const value = Math.sin((local / (fps * periodSeconds)) * Math.PI * 2) * amplitude;
-  return value === 0 ? 0 : -value;
-}
-
 export const SIDE_BUTTONS: Array<{
   side: "left" | "right";
   top: number;
@@ -131,7 +112,9 @@ const SHOWCASE_KEYS: Record<keyof ShowcasePose, number[]> = {
 export function showcasePose(frame: number, durationInFrames: number): ShowcasePose {
   const p = Math.max(0, Math.min(1, frame / Math.max(1, durationInFrames - 1)));
   const easing = Easing.inOut(Easing.cubic);
-  const at = (values: number[]) => interpolate(p, SHOWCASE_STOPS, values, { easing });
+  function at(values: number[]) {
+    return interpolate(p, SHOWCASE_STOPS, values, { easing });
+  }
   return {
     rotateX: at(SHOWCASE_KEYS.rotateX),
     rotateY: at(SHOWCASE_KEYS.rotateY),
@@ -142,45 +125,10 @@ export function showcasePose(frame: number, durationInFrames: number): ShowcaseP
   };
 }
 
-const CLAMP = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
-
-const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
-
-function resolveSrc(src: string): string {
-  const isLocal = src.startsWith("/") && !src.startsWith("//");
-  if (!isLocal || getRemotionEnvironment().isPlayer) return src;
-  const base = staticFile("_").slice(0, -2);
-  if (base && src.startsWith(`${base}/`)) return src;
-  try {
-    return staticFile(src.replace(/^\/+/, ""));
-  } catch {
-    return src;
-  }
-}
-
-function ScreenMedia({ src, frame }: { src: string; frame: number }) {
-  const t = interpolate(frame, [4, 22], [0, 1], CLAMP);
-  const style: CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    width: "100%",
-    height: "100%",
-    maxWidth: "none",
-    objectFit: "cover",
-    opacity: t,
-    filter: `blur(${(1 - t) * 8}px)`,
-  };
-  const resolved = resolveSrc(src);
-  return isVideo(src) ? (
-    <OffthreadVideo src={resolved} muted style={style} />
-  ) : (
-    <Img src={resolved} style={style} />
-  );
-}
-
 function PhoneFrameView({
   children,
   screenSrc,
+  screenKind,
   variant,
   entrance,
   bezelColor,
@@ -287,7 +235,10 @@ function PhoneFrameView({
                   overflow: "hidden",
                 }}
               >
-                {children ?? (screenSrc ? <ScreenMedia src={screenSrc} frame={frame} /> : null)}
+                {children ??
+                  (screenSrc ? (
+                    <ScreenMedia src={screenSrc} kind={screenKind} frame={frame} />
+                  ) : null)}
 
                 {showDynamicIsland && (
                   <div
@@ -330,7 +281,7 @@ function PhoneFrameView({
 export function PhoneFrame({
   theme,
   ...settings
-}: ElementSettings["phone-frame"] & { children?: ReactNode }) {
+}: ElementSettings["phone-frame"] & { children?: ReactNode; screenKind?: MediaKind }) {
   return (
     <WarmUIProvider mode={theme.mode}>
       <PhoneFrameView {...settings} theme={themeColors(theme)} mode={theme.mode} />

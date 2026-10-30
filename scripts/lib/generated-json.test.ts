@@ -3,7 +3,9 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { PLAYWRIGHT_DIR, playwrightFiles } from "./playwright-scripts";
 
-const read = (file: string) => readFileSync(file, "utf8");
+function read(file: string) {
+  return readFileSync(file, "utf8");
+}
 
 describe("files Rust reads", () => {
   it("hold the page scripts and tables taken from the installed Playwright", () => {

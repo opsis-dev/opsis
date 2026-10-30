@@ -336,6 +336,18 @@ pub struct Artifact {
 }
 
 impl Artifact {
+    pub fn labelled(kind: ArtifactKind, path: String, label: impl Into<String>) -> Self {
+        Self {
+            kind,
+            path,
+            label: Some(label.into()),
+            bytes: None,
+            stamp: None,
+        }
+    }
+}
+
+impl Artifact {
     pub fn name(&self) -> &str {
         self.label.as_deref().unwrap_or(&self.path)
     }

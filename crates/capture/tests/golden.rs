@@ -14,36 +14,9 @@ use opsis_capture::still_layout::{
     tallest_shot,
 };
 use opsis_capture::url_match::{glob_to_regex_pattern, url_matches};
+use opsis_golden::{cases, number, text, typed};
 use opsis_types::actions::{Point, Viewport};
-use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
-
-fn typed<T: DeserializeOwned>(value: &Value) -> T {
-    serde_json::from_value(value.clone()).unwrap_or_else(|e| panic!("{e}: {value}"))
-}
-
-fn number(value: &Value) -> f64 {
-    value
-        .as_f64()
-        .unwrap_or_else(|| panic!("not a number: {value}"))
-}
-
-fn text(value: &Value) -> &str {
-    value
-        .as_str()
-        .unwrap_or_else(|| panic!("not a string: {value}"))
-}
-
-fn cases(value: &Value, record: impl Fn(&Value) -> Value) -> Value {
-    Value::Array(
-        value
-            .as_array()
-            .unwrap_or_else(|| panic!("not a list: {value}"))
-            .iter()
-            .map(record)
-            .collect(),
-    )
-}
 
 fn with(case: &Value, outputs: Value) -> Value {
     let mut case = case.clone();

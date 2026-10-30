@@ -3,7 +3,9 @@ import {
   type SkeletonStyle,
   skeletonStyle,
 } from "#video/elements/scene/ai-prompt-flow/skeleton.tsx";
-import { easings, type Step, useStateTransition } from "#video/lib/neutral-ui/index.ts";
+import { easings } from "#video/lib/ui-kit/motion.ts";
+import { useStateTransition } from "#video/lib/ui-kit/timeline.ts";
+import { type Step } from "#video/lib/ui-kit/types.ts";
 
 export const DEFAULT_DURATION = 12;
 

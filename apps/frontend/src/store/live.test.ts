@@ -12,15 +12,17 @@ afterEach(() => {
   useLiveStore.setState({ pipOpen: false, windowWatching: false });
 });
 
-const frame = (width: number, height: number) => ({
-  type: "frame" as const,
-  captureId: "c1",
-  nodeId: "record",
-  jpeg: new Uint8Array(new ArrayBuffer(1)),
-  width,
-  height,
-  t: 0,
-});
+function frame(width: number, height: number) {
+  return {
+    type: "frame" as const,
+    captureId: "c1",
+    nodeId: "record",
+    jpeg: new Uint8Array(new ArrayBuffer(1)),
+    width,
+    height,
+    t: 0,
+  };
+}
 
 describe("the live view", () => {
   it("brings the picture-in-picture back when the live window stops watching", () => {

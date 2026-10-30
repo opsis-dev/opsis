@@ -15,8 +15,9 @@ export function formatBytes(n: number): string {
 
 export const MINUS = "−";
 
-const signOf = (value: number, plus = false): string =>
-  value < 0 ? MINUS : plus && value > 0 ? "+" : "";
+function signOf(value: number, plus = false): string {
+  return value < 0 ? MINUS : plus && value > 0 ? "+" : "";
+}
 
 export function signedText(
   value: number,
@@ -53,8 +54,9 @@ export function formatPreciseDuration(ms: number): string {
   return s >= SECONDS_PER_MINUTE ? minutesAndSeconds(s) : `${s} s`;
 }
 
-export const pascalCase = (key: string): string =>
-  key.replace(/(^|[-_])([a-z0-9])/g, (_match, _sep, c: string) => c.toUpperCase());
+export function pascalCase(key: string): string {
+  return key.replace(/(^|[-_])([a-z0-9])/g, (_match, _sep, c: string) => c.toUpperCase());
+}
 
 export function humanize(key: string): string {
   const text = key
@@ -94,16 +96,24 @@ export function formatTimeAgo(at: number, now = Date.now()): string {
   return "just now";
 }
 
-export const plural = (n: number, word: string, many = `${word}s`): string =>
-  `${n} ${n === 1 ? word : many}`;
+export function plural(n: number, word: string, many = `${word}s`): string {
+  return `${n} ${n === 1 ? word : many}`;
+}
 
-export const singleQuoted = (text: string): string => `'${text.replaceAll("'", "'\\''")}'`;
+export function singleQuoted(text: string): string {
+  return `'${text.replaceAll("'", "'\\''")}'`;
+}
 
 const PERCENT_DIGITS = 6;
 
-export const percent = (fraction: number): string => `${roundTo(fraction * 100, PERCENT_DIGITS)}%`;
+export function percent(fraction: number): string {
+  return `${roundTo(fraction * 100, PERCENT_DIGITS)}%`;
+}
 
-export const wholePercent = (fraction: number): number => Math.round(fraction * 100);
+export function wholePercent(fraction: number): number {
+  return Math.round(fraction * 100);
+}
 
-export const percentText = (fraction: number, { max = Infinity }: { max?: number } = {}): string =>
-  `${Math.min(max, wholePercent(fraction))}%`;
+export function percentText(fraction: number, { max = Infinity }: { max?: number } = {}): string {
+  return `${Math.min(max, wholePercent(fraction))}%`;
+}

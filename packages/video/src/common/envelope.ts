@@ -17,20 +17,25 @@ export function ease(kind: Ease, t: number): number {
   }
 }
 
-export const sortKeys = (keys: Keyframe[]): Keyframe[] =>
-  keys.toSorted((a, b) => a.frame - b.frame);
+export function sortKeys(keys: Keyframe[]): Keyframe[] {
+  return keys.toSorted((a, b) => a.frame - b.frame);
+}
 
-const sortedEnvelopeAt = (sorted: Keyframe[], frame: number, fallback: number): number =>
-  sampleKeyed(
-    sorted,
-    frame,
-    (k) => k.frame,
-    (k) => k.value,
-    (a, b, t) => lerp(a.value, b.value, ease(a.ease, t)),
-  ) ?? fallback;
+function sortedEnvelopeAt(sorted: Keyframe[], frame: number, fallback: number): number {
+  return (
+    sampleKeyed(
+      sorted,
+      frame,
+      (k) => k.frame,
+      (k) => k.value,
+      (a, b, t) => lerp(a.value, b.value, ease(a.ease, t)),
+    ) ?? fallback
+  );
+}
 
-export const envelopeAt = (keys: Keyframe[] | undefined, frame: number, fallback: number): number =>
-  sortedEnvelopeAt(sortKeys(keys ?? []), frame, fallback);
+export function envelopeAt(keys: Keyframe[] | undefined, frame: number, fallback: number): number {
+  return sortedEnvelopeAt(sortKeys(keys ?? []), frame, fallback);
+}
 
 const STEPS_PER_SEGMENT = 8;
 const HOLD_STEP_FRAMES = 1e-3;

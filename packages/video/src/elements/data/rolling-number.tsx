@@ -1,6 +1,7 @@
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings, GroupSeparator } from "#video/generated/spec.ts";
 
@@ -24,8 +25,7 @@ function easedProgress(
   portion: number,
 ): number {
   return interpolate(frame * speed, [0, durationInFrames * portion], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: COUNT_EASING,
   });
 }
@@ -46,8 +46,7 @@ function placeReveal(current: number, place: number): number {
   if (place === 0) return 1;
   const threshold = 10 ** place;
   return interpolate(current, [threshold * REVEAL_BAND, threshold], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: REVEAL_EASING,
   });
 }

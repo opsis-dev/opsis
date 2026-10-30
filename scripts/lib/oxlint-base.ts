@@ -10,7 +10,9 @@ const NODE_ONLY = ["node:*", "playwright-core", "@remotion/renderer", "@remotion
 
 export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfig {
   const prefix = path.relative(dir, ROOT).split(path.sep).join("/");
-  const fromRoot = (rel: string) => (prefix ? `${prefix}/${rel}` : `./${rel}`);
+  function fromRoot(rel: string) {
+    return prefix ? `${prefix}/${rel}` : `./${rel}`;
+  }
   const own = path.relative(ROOT, dir).split(path.sep).join("/");
   return {
     plugins: ["typescript", "react", "unicorn", "oxc", "import", "vitest"],
@@ -43,6 +45,7 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
       "unicorn/filename-case": ["error", { case: "kebabCase", ignore: ["^__root\\.tsx$"] }],
       "opsis/use-find-by-id": "error",
       "opsis/use-function-components": "error",
+      "opsis/use-function-declarations": "error",
       "opsis/use-parse-json-with": "error",
       "opsis/use-percent-text": "error",
       "opsis/use-type-guards": "error",
@@ -59,45 +62,47 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
   };
 }
 
-export const runtimeNeutral = (
+export function runtimeNeutral(
   who: string,
   { relativeOnly = false }: { relativeOnly?: boolean } = {},
-): Override => ({
-  files: ["src/**/*.ts", "src/**/*.tsx"],
-  excludeFiles: ["**/*.test.ts", "**/*.test.tsx"],
-  rules: {
-    "no-restricted-imports": [
-      "error",
-      {
-        patterns: [
-          {
-            group: NODE_ONLY,
-            message: `${who} must stay runtime-neutral (AGENTS.md, Runtime boundaries).`,
-          },
-          ...(relativeOnly
-            ? [
-                {
-                  group: ["@/**"],
-                  message:
-                    "packages/video imports its own files by relative path: the UI compiles them too, with its own @/ alias.",
-                },
-              ]
-            : []),
-        ],
-        paths: [
-          ...WALL_CLOCK_LIBS.map((name) => ({
-            name,
-            message:
-              "Animations in packages/video must be a pure function of useCurrentFrame() (AGENTS.md).",
-          })),
-          {
-            name: "@react-three/fiber",
-            importNames: ["useFrame"],
-            message:
-              "useFrame runs on the wall clock. Derive the scene from useCurrentFrame() instead (AGENTS.md).",
-          },
-        ],
-      },
-    ],
-  },
-});
+): Override {
+  return {
+    files: ["src/**/*.ts", "src/**/*.tsx"],
+    excludeFiles: ["**/*.test.ts", "**/*.test.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: NODE_ONLY,
+              message: `${who} must stay runtime-neutral (AGENTS.md, Runtime boundaries).`,
+            },
+            ...(relativeOnly
+              ? [
+                  {
+                    group: ["@/**"],
+                    message:
+                      "packages/video imports its own files by relative path: the UI compiles them too, with its own @/ alias.",
+                  },
+                ]
+              : []),
+          ],
+          paths: [
+            ...WALL_CLOCK_LIBS.map((name) => ({
+              name,
+              message:
+                "Animations in packages/video must be a pure function of useCurrentFrame() (AGENTS.md).",
+            })),
+            {
+              name: "@react-three/fiber",
+              importNames: ["useFrame"],
+              message:
+                "useFrame runs on the wall clock. Derive the scene from useCurrentFrame() instead (AGENTS.md).",
+            },
+          ],
+        },
+      ],
+    },
+  };
+}

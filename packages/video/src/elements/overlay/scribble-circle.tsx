@@ -1,7 +1,7 @@
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import { hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
+import { randomBetween, steppedRamp } from "#video/lib/motion/stop-motion.ts";
 import {
   BrushGrain,
   type BrushPoint,
@@ -30,8 +30,8 @@ type ScribbleCircleGeometry = {
 
 function scribbleCircleCentre(width: number, height: number, seed: string): BrushPoint {
   return {
-    x: width / 2 + hashRange(`${seed}:cx`, -CENTRE, CENTRE) * width,
-    y: height / 2 + hashRange(`${seed}:cy`, -CENTRE, CENTRE) * height,
+    x: width / 2 + randomBetween(`${seed}:cx`, -CENTRE, CENTRE) * width,
+    y: height / 2 + randomBetween(`${seed}:cy`, -CENTRE, CENTRE) * height,
   };
 }
 
@@ -46,7 +46,7 @@ function scribbleCirclePoints(args: ScribbleCircleGeometry): BrushPoint[] {
 
   return Array.from({ length: count }, (_, i) => {
     const angle = start + turn * laps * Math.PI * 2 * (i / (count - 1));
-    const scale = 1 + hashRange(`${seed}:r${i}`, -wobble, wobble);
+    const scale = 1 + randomBetween(`${seed}:r${i}`, -wobble, wobble);
     return {
       x: cx + rx * scale * Math.cos(angle),
       y: cy + ry * scale * Math.sin(angle),

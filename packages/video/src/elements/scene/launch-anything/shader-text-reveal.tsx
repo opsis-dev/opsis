@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { useDelayRender } from "remotion";
+import { clamp01 } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export type ShaderTextRevealProps = {
@@ -11,16 +12,14 @@ export type ShaderTextRevealProps = {
   intensity?: number;
 };
 
-const clamp = (n: number, min = 0, max = 1) => Math.min(max, Math.max(min, n));
-
 export function getShaderTextState(frame: number, wordCount: number, wordDuration: number) {
   const duration = Math.max(12, Math.round(wordDuration));
   const count = Math.max(1, wordCount);
   const f = Math.max(0, frame);
   const index = Math.min(count - 1, Math.floor(f / duration));
   const local = f - index * duration;
-  const enter = clamp((local / duration + 0.16) / 0.76);
-  const exit = index === count - 1 ? 0 : clamp((local / duration - 0.65) / 0.35);
+  const enter = clamp01((local / duration + 0.16) / 0.76);
+  const exit = index === count - 1 ? 0 : clamp01((local / duration - 0.65) / 0.35);
   return {
     index,
     enter,
@@ -256,17 +255,21 @@ function createRenderer(canvas: HTMLCanvasElement) {
     depth: false,
   });
   if (!gl) throw new Error("Shader Text Reveal requires WebGL2.");
+  return rendererOn(canvas, gl);
+}
+
+function rendererOn(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext) {
   const shaders: WebGLShader[] = [];
   const programs: WebGLProgram[] = [];
   const textures: WebGLTexture[] = [];
   const buffers: WebGLFramebuffer[] = [];
-  const dispose = () => {
+  function dispose() {
     for (const shader of shaders) gl.deleteShader(shader);
     for (const program of programs) gl.deleteProgram(program);
-    for (const texture of textures) gl.deleteTexture(texture);
+    for (const made of textures) gl.deleteTexture(made);
     for (const buffer of buffers) gl.deleteFramebuffer(buffer);
-  };
-  const compile = (fragment: string) => {
+  }
+  function compile(fragment: string) {
     const program = gl.createProgram();
     if (!program) throw new Error("Shader Text Reveal: GPU allocation failed.");
     programs.push(program);
@@ -287,10 +290,10 @@ function createRenderer(canvas: HTMLCanvasElement) {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS))
       throw new Error(gl.getProgramInfoLog(program) ?? "Shader link failed.");
     const locations = new Map<string, WebGLUniformLocation | null>();
-    const uniform = (name: string) => {
+    function uniform(name: string) {
       if (!locations.has(name)) locations.set(name, gl.getUniformLocation(program, name));
       return locations.get(name) ?? null;
-    };
+    }
     return {
       uniform,
       begin: (time: number) => {
@@ -304,8 +307,8 @@ function createRenderer(canvas: HTMLCanvasElement) {
         gl.uniform1f(uniform("uPixelRatio"), 1);
       },
     };
-  };
-  const texture = () => {
+  }
+  function newTexture() {
     const value = gl.createTexture();
     if (!value) throw new Error("Shader Text Reveal: texture allocation failed.");
     textures.push(value);
@@ -316,9 +319,9 @@ function createRenderer(canvas: HTMLCanvasElement) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     return value;
-  };
-  const target = () => {
-    const value = texture();
+  }
+  function target() {
+    const value = newTexture();
     const buffer = gl.createFramebuffer();
     if (!buffer) throw new Error("Shader Text Reveal: framebuffer allocation failed.");
     buffers.push(buffer);
@@ -338,16 +341,16 @@ function createRenderer(canvas: HTMLCanvasElement) {
     if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE)
       throw new Error("Shader Text Reveal: incomplete framebuffer.");
     return { value, buffer };
-  };
-  const bind = (value: WebGLTexture, unit: number) => {
+  }
+  function bind(value: WebGLTexture, unit: number) {
     gl.activeTexture(gl.TEXTURE0 + unit);
     gl.bindTexture(gl.TEXTURE_2D, value);
-  };
+  }
   try {
     const field = compile(HERO_FIELD);
     const halftone = compile(HERO_HALFTONE);
     const composite = compile(FRAGMENT);
-    const text = texture();
+    const text = newTexture();
     const raw = target();
     const hero = target();
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -390,7 +393,7 @@ function createRenderer(canvas: HTMLCanvasElement) {
         gl.uniform1f(composite.uniform("uExit"), state.exit);
         gl.uniform1f(composite.uniform("uScale"), state.scale);
         gl.uniform1f(composite.uniform("uTime"), time);
-        gl.uniform1f(composite.uniform("uIntensity"), clamp(intensity));
+        gl.uniform1f(composite.uniform("uIntensity"), clamp01(intensity));
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       },
     };
@@ -468,7 +471,7 @@ export function ShaderTextReveal({
     const handle = delayRender("Load Shader Text Reveal font");
     const phrases = text.includes("\n") ? text.split("\n") : text.split(/\s+/);
     const words = phrases.map((word) => word.trim()).filter(Boolean);
-    const draw = () => {
+    function draw() {
       const resource = resources.current;
       if (!resource || resource.words.length === 0) return;
       const clock = current.current;
@@ -479,7 +482,7 @@ export function ShaderTextReveal({
         clock.frame / clock.fps,
         clock.intensity,
       );
-    };
+    }
     void document.fonts
       .load(`${fontWeight} ${fontSize}px ${fontFamily}`, text || " ")
       .then(() => {

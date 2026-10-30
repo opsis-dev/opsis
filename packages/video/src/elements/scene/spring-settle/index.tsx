@@ -8,7 +8,8 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { CLAMP, FADE, stagger } from "#video/elements/scene/spring-settle/scene-motion.ts";
+import { CLAMPED } from "#video/core/anim.ts";
+import { FADE, stagger } from "#video/elements/scene/spring-settle/scene-motion.ts";
 
 export type SpringSettleConfig = {
   sceneFrames: number;
@@ -67,20 +68,23 @@ type SceneClock = {
 
 const SceneCtx = createContext<SceneClock | null>(null);
 
-const resolveConfig = (config?: Partial<SpringSettleConfig>): SpringSettleConfig => ({
-  ...SPRING_SETTLE_DEFAULTS,
-  ...config,
-});
+function resolveConfig(config?: Partial<SpringSettleConfig>): SpringSettleConfig {
+  return {
+    ...SPRING_SETTLE_DEFAULTS,
+    ...config,
+  };
+}
 
-const dwellOf = (scene: SpringSettleSceneDef, cfg: SpringSettleConfig) =>
-  scene.durationInFrames ?? cfg.sceneFrames;
+function dwellOf(scene: SpringSettleSceneDef, cfg: SpringSettleConfig) {
+  return scene.durationInFrames ?? cfg.sceneFrames;
+}
 
-export const springSettleTimeline = (
+export function springSettleTimeline(
   frame: number,
   scenes: SpringSettleSceneDef[],
   config?: Partial<SpringSettleConfig>,
   opts?: { loop?: boolean },
-): SpringSettleTimeline => {
+): SpringSettleTimeline {
   const cfg = resolveConfig(config);
   const lens = scenes.map((s) => dwellOf(s, cfg) + cfg.gapFrames);
   const total = lens.reduce((a, b) => a + b, 0);
@@ -92,13 +96,13 @@ export const springSettleTimeline = (
   }
   const local = Math.min(w, lens[index] - 1);
   return { index, local, dwellFrames: dwellOf(scenes[index], cfg) };
-};
+}
 
-export const springSettlePhase = (
+export function springSettlePhase(
   timeline: SpringSettleTimeline,
   fps: number,
   config?: Partial<SpringSettleConfig>,
-): SpringSettlePhase => {
+): SpringSettlePhase {
   const cfg = resolveConfig(config);
   const { local, dwellFrames } = timeline;
   if (local >= dwellFrames) return "gap";
@@ -114,15 +118,15 @@ export const springSettlePhase = (
       },
     }) > 0.985;
   return settled ? "dwell" : "enter";
-};
+}
 
-export const springSettleExitStyle = (
+export function springSettleExitStyle(
   local: number,
   dwellFrames: number,
   config?: Partial<SpringSettleConfig>,
-): CSSProperties => {
+): CSSProperties {
   const cfg = resolveConfig(config);
-  const tExit = interpolate(local, [dwellFrames - cfg.exitFrames, dwellFrames], [0, 1], CLAMP);
+  const tExit = interpolate(local, [dwellFrames - cfg.exitFrames, dwellFrames], [0, 1], CLAMPED);
   if (tExit <= 0) return {};
   const eExit = tExit ** cfg.exitPower;
   return {
@@ -130,7 +134,7 @@ export const springSettleExitStyle = (
     opacity: 1 - eExit,
     willChange: "transform, opacity",
   };
-};
+}
 
 export interface SpringSettleEnterProps {
   local: number;
@@ -172,7 +176,7 @@ export function SpringSettleItem({ index = 0, style, children }: SpringSettleIte
   });
   const scaleEnter = interpolate(enterP, [0, 1], [cfg.enterScale, 1]);
   const opacityEnter = interpolate(tEnter, [0, Math.max(cfg.enterFadeFrames, 0.001)], [0, 1], {
-    ...CLAMP,
+    ...CLAMPED,
     easing: FADE,
   });
   return (
@@ -189,7 +193,9 @@ export function SpringSettleItem({ index = 0, style, children }: SpringSettleIte
   );
 }
 
-const wrapSigned = (d: number, total: number) => (((d % total) + total * 1.5) % total) - total / 2;
+function wrapSigned(d: number, total: number) {
+  return (((d % total) + total * 1.5) % total) - total / 2;
+}
 
 export interface SpringSettleScenesProps {
   scenes: SpringSettleSceneDef[];

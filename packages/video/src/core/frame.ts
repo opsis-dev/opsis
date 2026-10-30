@@ -14,13 +14,15 @@ const SQUARISH_ASPECT = 0.7;
 const SQUARISH_INSETS: Insets = { top: 0.03, right: 0.03, bottom: 0.05, left: 0.03 };
 const TALL_INSETS: Insets = { top: 0.1, right: 0.05, bottom: 0.16, left: 0.05 };
 
-export const isLandscape = (width: number, height: number): boolean =>
-  width / height >= LANDSCAPE_ASPECT;
+export function isLandscape(width: number, height: number): boolean {
+  return width / height >= LANDSCAPE_ASPECT;
+}
 
 const SAME_SHAPE_TOLERANCE = 0.02;
 
-export const sameShape = (a: Size, b: Size): boolean =>
-  Math.abs(a.width / a.height - b.width / b.height) <= SAME_SHAPE_TOLERANCE;
+export function sameShape(a: Size, b: Size): boolean {
+  return Math.abs(a.width / a.height - b.width / b.height) <= SAME_SHAPE_TOLERANCE;
+}
 
 export function shapeInsets(width: number, height: number): Insets {
   if (isLandscape(width, height)) return NONE;
@@ -33,22 +35,28 @@ export function shapeInsets(width: number, height: number): Insets {
   };
 }
 
-export const verticalInsets = ({ top, bottom }: Insets): Insets => ({ ...NONE, top, bottom });
+export function verticalInsets({ top, bottom }: Insets): Insets {
+  return { ...NONE, top, bottom };
+}
 
-export const overlayPadding = (pad: number, insets: Insets): React.CSSProperties => ({
-  paddingTop: pad + insets.top,
-  paddingRight: pad + insets.right,
-  paddingBottom: pad + insets.bottom,
-  paddingLeft: pad + insets.left,
-});
+export function overlayPadding(pad: number, insets: Insets): React.CSSProperties {
+  return {
+    paddingTop: pad + insets.top,
+    paddingRight: pad + insets.right,
+    paddingBottom: pad + insets.bottom,
+    paddingLeft: pad + insets.left,
+  };
+}
 
 export const JUSTIFY_AT = { top: "flex-start", center: "center", bottom: "flex-end" } as const;
 
-const overlayScale = (width: number, height: number): number =>
-  designScaleFor(Math.max(width, height));
+function overlayScale(width: number, height: number): number {
+  return designScaleFor(Math.max(width, height));
+}
 
-export const zoomBoost = (sourceAspect: number, outAspect: number): number =>
-  clamp(Math.sqrt(sourceAspect / outAspect), 1, 2);
+export function zoomBoost(sourceAspect: number, outAspect: number): number {
+  return clamp(Math.sqrt(sourceAspect / outAspect), 1, 2);
+}
 
 export type Reframe =
   | { mode: "same" }

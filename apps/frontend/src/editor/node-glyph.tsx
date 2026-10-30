@@ -11,7 +11,9 @@ const GLYPH_HOST_ATTRIBUTE = "data-glyph-host";
 
 export const GLYPH_HOST = { [GLYPH_HOST_ATTRIBUTE]: "" };
 
-const glyphNode = (glyph: string) => NODE_GLYPHS[glyph] ?? NODE_GLYPHS[FALLBACK_LOOK.glyph];
+function glyphNode(glyph: string) {
+  return NODE_GLYPHS[glyph] ?? NODE_GLYPHS[FALLBACK_LOOK.glyph];
+}
 
 function useHostHover(ref: RefObject<HTMLElement | null>): boolean {
   const [hovered, setHovered] = useState(false);
@@ -19,8 +21,12 @@ function useHostHover(ref: RefObject<HTMLElement | null>): boolean {
     const own = ref.current;
     const host = own?.closest(`[${GLYPH_HOST_ATTRIBUTE}]`) ?? own;
     if (!host) return;
-    const enter = () => setHovered(true);
-    const leave = () => setHovered(false);
+    function enter() {
+      return setHovered(true);
+    }
+    function leave() {
+      return setHovered(false);
+    }
     host.addEventListener("pointerenter", enter);
     host.addEventListener("pointerleave", leave);
     return () => {

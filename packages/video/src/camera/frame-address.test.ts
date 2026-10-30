@@ -26,7 +26,9 @@ describe("the address in the window frame", () => {
   });
 
   it("puts the typed host in front of the path of the page on screen", () => {
-    const at = (ms: number) => frameAddress(log, ms, "https://app.example.com/ignored", "host");
+    function at(ms: number) {
+      return frameAddress(log, ms, "https://app.example.com/ignored", "host");
+    }
     expect(at(1000)).toBe("app.example.com/inbox");
     expect(at(3999)).toBe("app.example.com/inbox");
     expect(at(4000)).toBe("app.example.com/settings#billing");

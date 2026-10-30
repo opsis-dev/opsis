@@ -8,16 +8,16 @@ export function ScreenFit({ children }: { children: React.ReactNode }) {
   useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
-    const measure = () => {
-      const width = Math.round(el.clientWidth);
-      const height = Math.round(el.clientHeight);
+    function measure(target: HTMLDivElement) {
+      const width = Math.round(target.clientWidth);
+      const height = Math.round(target.clientHeight);
       if (width > 0 && height > 0)
         setSize((prev) =>
           prev && prev.width === width && prev.height === height ? prev : { width, height },
         );
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
+    }
+    measure(el);
+    const observer = new ResizeObserver(() => measure(el));
     observer.observe(el);
     return () => observer.disconnect();
   }, []);

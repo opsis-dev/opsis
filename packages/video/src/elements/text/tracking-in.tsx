@@ -1,5 +1,6 @@
 import { interpolate, spring } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -27,10 +28,7 @@ export function TrackingIn({
 
   const letterSpacing = `${interpolate(t, [0, 1], [startTracking, endTracking])}em`;
   const blurAmount = interpolate(t, [0, 1], [startBlur, 0]);
-  const opacity = interpolate(frame, [0, fadeIn], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const opacity = interpolate(frame, [0, fadeIn], [0, 1], CLAMPED);
 
   return (
     <div

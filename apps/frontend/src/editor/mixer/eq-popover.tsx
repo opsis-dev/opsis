@@ -15,36 +15,38 @@ const BAND_LABELS: Record<EqType, string> = {
   highshelf: "High shelf",
 };
 
-const bandKnobs = (defaults: EqBand): Array<KnobSpec<"freq" | "gain" | "q">> => [
-  {
-    field: "freq",
-    label: "Freq",
-    ...mixerBook().eqBand.freq,
-    step: 1,
-    reset: defaults.freq,
-    log: true,
-    format: formatHz,
-    unit: "Hz",
-  },
-  {
-    field: "gain",
-    label: "Gain",
-    ...mixerBook().eqBand.gain,
-    step: 0.5,
-    reset: defaults.gain,
-    format: formatDb,
-    unit: "dB",
-  },
-  {
-    field: "q",
-    label: "Width",
-    ...mixerBook().eqBand.q,
-    step: 0.05,
-    reset: defaults.q,
-    log: true,
-    format: (v) => v.toFixed(2),
-  },
-];
+function bandKnobs(defaults: EqBand): Array<KnobSpec<"freq" | "gain" | "q">> {
+  return [
+    {
+      field: "freq",
+      label: "Freq",
+      ...mixerBook().eqBand.freq,
+      step: 1,
+      reset: defaults.freq,
+      log: true,
+      format: formatHz,
+      unit: "Hz",
+    },
+    {
+      field: "gain",
+      label: "Gain",
+      ...mixerBook().eqBand.gain,
+      step: 0.5,
+      reset: defaults.gain,
+      format: formatDb,
+      unit: "dB",
+    },
+    {
+      field: "q",
+      label: "Width",
+      ...mixerBook().eqBand.q,
+      step: 0.05,
+      reset: defaults.q,
+      log: true,
+      format: (v) => v.toFixed(2),
+    },
+  ];
+}
 
 function BandControls({
   band,
@@ -86,11 +88,12 @@ export function EqPopover({
   highpass: number | null;
   gestures: EqGestures;
 }) {
-  const bandGesture = (i: number): Gesture<Partial<EqBand>> =>
-    mapGesture(gestures(i), (patch: Partial<EqBand>) => ({
+  function bandGesture(i: number): Gesture<Partial<EqBand>> {
+    return mapGesture(gestures(i), (patch: Partial<EqBand>) => ({
       ...eq,
       bands: eq.bands.map((b, k) => (k === i ? { ...b, ...patch } : b)),
     }));
+  }
   return (
     <Popover>
       <PopoverTrigger

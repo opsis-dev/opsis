@@ -9,8 +9,9 @@ import {
   type SceneSequencer,
 } from "#video/registry/types.ts";
 
-const implOf = (key: string): ElementImpl | undefined =>
-  Object.hasOwn(ELEMENTS, key) ? ELEMENTS[key] : undefined;
+function implOf(key: string): ElementImpl | undefined {
+  return Object.hasOwn(ELEMENTS, key) ? ELEMENTS[key] : undefined;
+}
 
 export function getComponent(key: string): ElementComponent | undefined {
   const impl = implOf(key);

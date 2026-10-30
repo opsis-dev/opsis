@@ -83,7 +83,9 @@ const shader = makeFilterShader<NormalizedProps>(
   FRAGMENT_SHADER,
   ({ gl, uniform, passedProps }) => {
     const { cell, angle, shift, paper, inks } = passedProps;
-    const absorb = (ink: string) => rgbUniform(ink).map((c) => 1 - c);
+    function absorb(ink: string) {
+      return rgbUniform(ink).map((c) => 1 - c);
+    }
     gl.uniform3fv(uniform("u_cyan_absorb"), absorb(inks[0]));
     gl.uniform3fv(uniform("u_magenta_absorb"), absorb(inks[1]));
     gl.uniform3fv(uniform("u_yellow_absorb"), absorb(inks[2]));

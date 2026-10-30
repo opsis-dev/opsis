@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { pageTurnLift } from "#video/elements/transition/page-turn.tsx";
 
-const lowestAfterTurn = (width: number, height: number, angle: number) => {
+function lowestAfterTurn(width: number, height: number, angle: number) {
   const theta = (angle * Math.PI) / 180;
   const lift = pageTurnLift(width, height, 0.18, angle);
   const corners = [
@@ -16,7 +16,7 @@ const lowestAfterTurn = (width: number, height: number, angle: number) => {
         height + (x - 0.18 * width) * Math.sin(theta) + (y - height) * Math.cos(theta) - lift,
     ),
   );
-};
+}
 
 it("lifts the turned page clear of the frame at every angle and shape", () => {
   for (const [width, height] of [

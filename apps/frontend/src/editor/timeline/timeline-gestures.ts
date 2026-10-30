@@ -38,10 +38,13 @@ export type GestureEnv = {
   snapTargets: (exclude: string | null) => SnapTarget[];
 };
 
-const startEditOnceMoved = (d: ThresholdDrag, distance: number): boolean =>
-  startOnceMoved(d, distance, () => workflowEdits.beginGesture());
+function startEditOnceMoved(d: ThresholdDrag, distance: number): boolean {
+  return startOnceMoved(d, distance, () => workflowEdits.beginGesture());
+}
 
-const endEdit = (d: ThresholdDrag): boolean => endIfStarted(d, () => workflowEdits.endGesture());
+function endEdit(d: ThresholdDrag): boolean {
+  return endIfStarted(d, () => workflowEdits.endGesture());
+}
 
 export function editGesture(
   env: GestureEnv,
@@ -149,8 +152,9 @@ export function markerGesture(env: GestureEnv, e: React.PointerEvent, marker: Ma
   };
 }
 
-const timelineFrame = (env: GestureEnv, frame: number): number =>
-  clampFrame(frame, env.flat.durationInFrames);
+function timelineFrame(env: GestureEnv, frame: number): number {
+  return clampFrame(frame, env.flat.durationInFrames);
+}
 
 export function scrubTo(env: GestureEnv, frame: number): void {
   const at = timelineFrame(env, frame);
@@ -158,9 +162,11 @@ export function scrubTo(env: GestureEnv, frame: number): void {
   scrubAt(env.masterSrc, at / env.flat.fps);
 }
 
-export const scrubGesture = (env: GestureEnv): ActiveDrag => ({
-  move: (e) => scrubTo(env, env.xToFrame(e.clientX)),
-});
+export function scrubGesture(env: GestureEnv): ActiveDrag {
+  return {
+    move: (e) => scrubTo(env, env.xToFrame(e.clientX)),
+  };
+}
 
 export function marqueeGesture(
   env: GestureEnv,

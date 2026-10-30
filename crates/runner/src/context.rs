@@ -16,7 +16,7 @@ use opsis_engine::tools::EngineFiles;
 use opsis_project::paths::ref_to_path;
 use opsis_types::events::{LogLevel, RunEvent};
 use opsis_types::settings::AppSettings;
-use opsis_types::values::{Artifact, Measured, NodeResult, PortValues};
+use opsis_types::values::{Artifact, ArtifactKind, Measured, NodeResult, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowNode};
 use serde::de::DeserializeOwned;
 use tokio_util::sync::CancellationToken;
@@ -292,6 +292,10 @@ impl ExecutorContext {
 
     pub fn rel(&self, file: &str) -> String {
         format!("{}/{file}", self.rel_dir)
+    }
+
+    pub fn artifact(&self, kind: ArtifactKind, file: &str, label: &str) -> Artifact {
+        Artifact::labelled(kind, self.rel(file), label)
     }
 
     pub fn project_file_ref(&self, file: &str) -> String {

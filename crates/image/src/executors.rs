@@ -69,13 +69,7 @@ fn saved(
         outputs: [(IMAGE_PORT.to_owned(), CompileValue::Image(value))]
             .into_iter()
             .collect(),
-        artifacts: vec![Artifact {
-            kind: ArtifactKind::Image,
-            path: ctx.rel(&file),
-            label: Some("Image".to_owned()),
-            bytes: None,
-            stamp: None,
-        }],
+        artifacts: vec![ctx.artifact(ArtifactKind::Image, &file, "Image")],
         trace_id: None,
         measured: Vec::new(),
     })
@@ -384,13 +378,7 @@ fn saved_png(
         scale: None,
         body: None,
     });
-    let artifact = Artifact {
-        kind: ArtifactKind::Image,
-        path: ctx.rel(file),
-        label: Some(label.to_owned()),
-        bytes: None,
-        stamp: None,
-    };
+    let artifact = ctx.artifact(ArtifactKind::Image, file, label);
     Ok((value, artifact))
 }
 

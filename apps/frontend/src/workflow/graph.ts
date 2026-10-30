@@ -9,8 +9,9 @@ import type {
 } from "@/generated/bindings";
 import { canConnect, getNodeDef } from "@/store/catalog";
 
-const inFamily = (family: CatalogFamily, handle: string): boolean =>
-  handle.startsWith(family.prefix) && /^[1-9]\d*$/.test(handle.slice(family.prefix.length));
+function inFamily(family: CatalogFamily, handle: string): boolean {
+  return handle.startsWith(family.prefix) && /^[1-9]\d*$/.test(handle.slice(family.prefix.length));
+}
 
 function familyPort(def: EditorNode, handle: string): CatalogPort | undefined {
   const family = def.family;

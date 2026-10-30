@@ -1,24 +1,36 @@
 import { clamp } from "#video/common/math.ts";
 
-export const msToSeconds = (ms: number): number => ms / 1000;
+export function msToSeconds(ms: number): number {
+  return ms / 1000;
+}
 
-export const msToExactFrames = (ms: number, fps: number): number => msToSeconds(ms) * fps;
+export function msToExactFrames(ms: number, fps: number): number {
+  return msToSeconds(ms) * fps;
+}
 
-export const wholeFrames = (frames: number, min = 0): number => Math.max(min, Math.round(frames));
+export function wholeFrames(frames: number, min = 0): number {
+  return Math.max(min, Math.round(frames));
+}
 
-export const atLeastOneFrame = (frames: number): number => wholeFrames(frames, 1);
+export function atLeastOneFrame(frames: number): number {
+  return wholeFrames(frames, 1);
+}
 
-export const msToFrames = (ms: number, fps: number, min = 1): number =>
-  wholeFrames(msToExactFrames(ms, fps), min);
+export function msToFrames(ms: number, fps: number, min = 1): number {
+  return wholeFrames(msToExactFrames(ms, fps), min);
+}
 
-export const framesToMs = (frames: number, fps: number): number =>
-  Math.round((frames * 1000) / fps);
+export function framesToMs(frames: number, fps: number): number {
+  return Math.round((frames * 1000) / fps);
+}
 
-export const framesToRecordingMs = (frames: number, speed: number, fps: number): number =>
-  (frames / fps) * speed * 1000;
+export function framesToRecordingMs(frames: number, speed: number, fps: number): number {
+  return (frames / fps) * speed * 1000;
+}
 
-export const clampFrame = (frame: number, total: number): number =>
-  clamp(Math.round(frame), 0, Math.max(0, total - 1));
+export function clampFrame(frame: number, total: number): number {
+  return clamp(Math.round(frame), 0, Math.max(0, total - 1));
+}
 
 export function playRange(
   inPoint: number | null,
@@ -31,13 +43,17 @@ export function playRange(
   return { inFrame, outFrame: clamp(outPoint ?? last, inFrame + 1, last) };
 }
 
-const pad2 = (n: number) => String(n).padStart(2, "0");
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
 
-const clock = (totalSeconds: number) => ({
-  h: Math.floor(totalSeconds / 3600),
-  m: Math.floor((totalSeconds % 3600) / 60),
-  s: totalSeconds % 60,
-});
+function clock(totalSeconds: number) {
+  return {
+    h: Math.floor(totalSeconds / 3600),
+    m: Math.floor((totalSeconds % 3600) / 60),
+    s: totalSeconds % 60,
+  };
+}
 
 export function formatTime(frame: number, fps: number, mode: "seconds" | "timecode"): string {
   const f = wholeFrames(frame);

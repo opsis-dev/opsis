@@ -5,12 +5,13 @@ use opsis_compile::nodes::media::{QUALITY_PRESETS, loudness_name, loudness_prese
 use opsis_compile::nodes::output::{Variant, variant_canvas, variant_size, video_file_names};
 use opsis_compile::params::ParamSchema;
 use opsis_compile::registry::node_def;
+use opsis_golden::typed;
 use opsis_types::workflow::WorkflowSettings;
 use proptest::prelude::*;
 use serde_json::{Value, json};
 
 use crate::helpers::{
-    CLIP, card_texts, clip_value, compile_clip, node_card, node_result, parse_params, typed, zoomed,
+    CLIP, card_texts, clip_value, compile_clip, node_card, node_result, parse_params, zoomed,
 };
 
 fn size(variant: &str) -> (u32, u32) {
@@ -19,12 +20,12 @@ fn size(variant: &str) -> (u32, u32) {
         height: 1080,
         ..WorkflowSettings::default()
     };
-    let s = variant_size(typed(json!(variant)), &settings);
+    let s = variant_size(typed(&json!(variant)), &settings);
     (s.width, s.height)
 }
 
 fn canvas(variant: &str) -> (u32, u32) {
-    let s = variant_canvas(typed(json!(variant)), 1080);
+    let s = variant_canvas(typed(&json!(variant)), 1080);
     (s.width, s.height)
 }
 
@@ -73,7 +74,7 @@ fn shows_export_lengths_sizes_shapes_and_folders_on_cards() {
 
 #[test]
 fn names_export_files_stably_and_refuses_repeated_shapes() {
-    let variants = |v: Value| -> Vec<Variant> { typed(v) };
+    let variants = |v: Value| -> Vec<Variant> { typed(&v) };
     assert_eq!(
         video_file_names("demo", Codec::H264, &variants(json!(["16:9"]))),
         ["demo.mp4"]

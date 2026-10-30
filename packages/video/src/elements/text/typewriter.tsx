@@ -1,6 +1,6 @@
 import { fontOr } from "#video/common/fonts.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import { useTypewriter } from "#video/lib/neutral-ui/index.ts";
+import { useTypewriter } from "#video/lib/ui-kit/timeline.ts";
 import { Caret } from "#video/parts/caret.tsx";
 
 export function Typewriter({

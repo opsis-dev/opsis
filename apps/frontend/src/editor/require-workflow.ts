@@ -7,4 +7,6 @@ export function requireWorkflow(state: { workflow: Workflow | null }): Workflow 
   return state.workflow;
 }
 
-export const useRequiredWorkflow = (): Workflow => useWorkflowStore(requireWorkflow);
+export function useRequiredWorkflow(): Workflow {
+  return useWorkflowStore(requireWorkflow);
+}

@@ -1,5 +1,6 @@
 import { interpolate } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -42,14 +43,8 @@ export function StaggeredFadeUp({
       >
         {words.map((word, i) => {
           const local = frame - i * staggerDelay;
-          const opacity = interpolate(local, [0, wordDuration], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          });
-          const y = interpolate(local, [0, wordDuration], [distance, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          });
+          const opacity = interpolate(local, [0, wordDuration], [0, 1], CLAMPED);
+          const y = interpolate(local, [0, wordDuration], [distance, 0], CLAMPED);
           return (
             <span
               key={i}

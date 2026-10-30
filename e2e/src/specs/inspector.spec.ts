@@ -37,11 +37,12 @@ async function select(id: string): Promise<void> {
   }, id);
 }
 
-const cardText = (id: string) =>
-  browser.execute(
+function cardText(id: string) {
+  return browser.execute(
     (nodeId: string) => document.querySelector(`[data-id="${nodeId}"]`)?.textContent ?? "",
     id,
   );
+}
 
 describe("inspector", function () {
   this.timeout(180_000);

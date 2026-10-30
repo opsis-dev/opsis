@@ -18,7 +18,9 @@ import { CompiledContext, useCompiled } from "../editor/use-compiled";
 import { useFileChanges } from "../editor/use-file-changes";
 import { useWorkflowStore } from "../store/workflow";
 
-const close = () => void commands.windowRole("close");
+function close() {
+  return void commands.windowRole("close");
+}
 
 function PanelBody({ panel }: { panel: DockPanelName }) {
   const compiled = useCompiled({ drive: false });

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Easing, interpolate } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -119,11 +120,7 @@ export function KineticCenterBuild({
               entryStart,
               Math.min(entryStart + travelDur, entryEnd),
             ];
-            const opts = {
-              extrapolateLeft: "clamp" as const,
-              extrapolateRight: "clamp" as const,
-              easing,
-            };
+            const opts = { ...CLAMPED, easing };
             x = interpolate(frame, travelRange, [xFrom, targetX], opts);
             opacity = interpolate(frame, range, [0, 1], opts);
             scale = interpolate(frame, range, [entryScale, 1], opts);
@@ -142,17 +139,13 @@ export function KineticCenterBuild({
                   frame,
                   [pushStart, Math.min(pushStart + travelDur, pushEnd)],
                   [fromX, toX],
-                  {
-                    extrapolateLeft: "clamp",
-                    extrapolateRight: "clamp",
-                    easing,
-                  },
+                  { ...CLAMPED, easing },
                 );
                 blur = interpolate(
                   frame,
                   [pushStart, (pushStart + pushEnd) / 2, pushEnd],
                   [0, reflowBlur, 0],
-                  { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+                  CLAMPED,
                 );
                 break;
               } else {

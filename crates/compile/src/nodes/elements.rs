@@ -211,14 +211,7 @@ fn element_sounds(
             item.channel = Some(node_id.to_owned());
             item.role = Some(AudioRole::Music);
             item.handles = Some(EditHandles {
-                volume: Some(ParamRef {
-                    node_id: node_id.to_owned(),
-                    param: volume_key,
-                    unit: ParamUnit::Number,
-                    scale: None,
-                    index: None,
-                    linked: None,
-                }),
+                volume: Some(ParamRef::new(node_id, volume_key, ParamUnit::Number)),
                 ..EditHandles::default()
             });
             Some(item)
@@ -251,14 +244,7 @@ fn split_timing(values: &Values) -> (u32, VisualEnvelope, Values) {
 
 fn trim_end_handles(node_id: &str) -> EditHandles {
     EditHandles {
-        trim_end: Some(ParamRef {
-            node_id: node_id.to_owned(),
-            param: CLIP_DURATION.to_owned(),
-            unit: ParamUnit::Frames,
-            scale: None,
-            index: None,
-            linked: None,
-        }),
+        trim_end: Some(ParamRef::new(node_id, CLIP_DURATION, ParamUnit::Frames)),
         ..EditHandles::default()
     }
 }

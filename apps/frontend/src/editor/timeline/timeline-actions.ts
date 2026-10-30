@@ -19,15 +19,18 @@ export function selectNodes(ids: string[], additive: boolean, sourceNodeId: stri
   if (ids.length === 1) ui.revealNode(ids[0]);
 }
 
-export const editTimeline = (edit: TimelineEdit): Promise<TimelineReply> =>
-  commands.editTimeline(edit).catch((e: unknown) => ({ error: errorMessage(e) }));
+export function editTimeline(edit: TimelineEdit): Promise<TimelineReply> {
+  return commands.editTimeline(edit).catch((e: unknown) => ({ error: errorMessage(e) }));
+}
 
 export function reportEdit(reply: TimelineReply): void {
   if (reply.error) toast.error(reply.error);
   else if (reply.message) toast.success(reply.message);
 }
 
-export const commitEdit = (edit: TimelineEdit): void => void editTimeline(edit).then(reportEdit);
+export function commitEdit(edit: TimelineEdit): void {
+  return void editTimeline(edit).then(reportEdit);
+}
 
 export function splitAtPlayhead(selected: ReadonlySet<string>): void {
   commitEdit({ op: "split", at: usePlayback.getState().frame, selected: [...selected] });
@@ -38,7 +41,9 @@ export function removeNow(removal: Removal, sourceNodeId: string | null): void {
   useUiStore.getState().selectPinned([], sourceNodeId);
 }
 
-export const hasSelectedMarker = (): boolean => useTimeline.getState().selectedMarker !== null;
+export function hasSelectedMarker(): boolean {
+  return useTimeline.getState().selectedMarker !== null;
+}
 
 export function removeSelectedMarker(): void {
   const marker = useTimeline.getState().selectedMarker;

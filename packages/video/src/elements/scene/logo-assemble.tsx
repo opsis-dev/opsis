@@ -1,15 +1,10 @@
-import { Easing, getRemotionEnvironment, Img, interpolate, staticFile } from "remotion";
+import { Easing, getRemotionEnvironment, Img, interpolate } from "remotion";
 import { themeColors } from "#video/common/theme.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import {
-  Item,
-  mixOklch,
-  resolveFont,
-  type WarmTheme,
-  useWarmTheme,
-  withAlpha,
-} from "#video/lib/warm-ui/index.ts";
+import { mixOklch, withAlpha } from "#video/lib/ui-kit/color.ts";
+import { Item, resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
 type LogoAssembleProps = Omit<ElementSettings["logo-assemble"], "theme"> & {
@@ -46,11 +41,9 @@ export const DRAIN_SPIN = Math.PI * 1.1;
 
 export const EASE = Easing.bezier(0.2, 0.6, 0.35, 1);
 export const EASE_IN = Easing.bezier(0.5, 0, 0.75, 0.4);
-const CLAMP = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
-
 export function contractProgress(frame: number, b: Beats): number {
   return interpolate(frame, [b.contractStart, b.contractEnd], [0, 1], {
-    ...CLAMP,
+    ...CLAMPED,
     easing: EASE_IN,
   });
 }
@@ -68,7 +61,7 @@ export function cardScale(frame: number, b: Beats): number {
 }
 
 export function cardOpacity(frame: number, b: Beats): number {
-  return interpolate(frame, [b.contractEnd - 8, b.contractEnd], [1, 0], CLAMP);
+  return interpolate(frame, [b.contractEnd - 8, b.contractEnd], [1, 0], CLAMPED);
 }
 
 export function middleTextOpacity(frame: number, b: Beats): number {
@@ -77,7 +70,7 @@ export function middleTextOpacity(frame: number, b: Beats): number {
     frame,
     [Math.min(6, fadeIn - 1), fadeIn, b.middleOut - 6, b.middleOut],
     [0, 1, 1, 0],
-    CLAMP,
+    CLAMPED,
   );
 }
 
@@ -88,9 +81,9 @@ export interface LogoPose {
 
 export function logoPose(frame: number, b: Beats): LogoPose {
   return {
-    opacity: interpolate(frame, [b.logoIn, b.logoIn + 8], [0, 1], CLAMP),
+    opacity: interpolate(frame, [b.logoIn, b.logoIn + 8], [0, 1], CLAMPED),
     scale: interpolate(frame, [b.logoIn, b.logoIn + 10, b.logoIn + 18], [0.6, 1.05, 1], {
-      ...CLAMP,
+      ...CLAMPED,
       easing: EASE,
     }),
   };
@@ -98,7 +91,7 @@ export function logoPose(frame: number, b: Beats): LogoPose {
 
 export function logoShift(frame: number, b: Beats): number {
   return interpolate(frame, [b.logoShiftStart, b.logoShiftEnd], [0, 1], {
-    ...CLAMP,
+    ...CLAMPED,
     easing: EASE,
   });
 }
@@ -110,24 +103,12 @@ export interface NamePose {
 
 export function namePose(frame: number, b: Beats): NamePose {
   return {
-    opacity: interpolate(frame, [b.nameIn, b.nameIn + 10], [0, 1], CLAMP),
+    opacity: interpolate(frame, [b.nameIn, b.nameIn + 10], [0, 1], CLAMPED),
     dx: interpolate(frame, [b.nameIn, b.nameIn + 12], [18, 0], {
-      ...CLAMP,
+      ...CLAMPED,
       easing: EASE,
     }),
   };
-}
-
-function resolveSrc(src: string): string {
-  const isLocal = src.startsWith("/") && !src.startsWith("//");
-  if (!isLocal || getRemotionEnvironment().isPlayer) return src;
-  const base = staticFile("_").slice(0, -2);
-  if (base && src.startsWith(`${base}/`)) return src;
-  try {
-    return staticFile(src.replace(/^\/+/, ""));
-  } catch {
-    return src;
-  }
 }
 
 function LogoAssembleView({
@@ -224,7 +205,7 @@ function LogoAssembleView({
                 }}
               >
                 <Img
-                  src={resolveSrc(images[k] ?? images[0])}
+                  src={images[k] ?? images[0]}
                   style={{
                     position: "absolute",
                     inset: 0,
@@ -266,7 +247,7 @@ function LogoAssembleView({
 
       {logo.opacity > 0 && logoSrc.trim() !== "" && (
         <Img
-          src={resolveSrc(logoSrc)}
+          src={logoSrc}
           style={{
             position: "absolute",
             left: logoCX - logoSize / 2,

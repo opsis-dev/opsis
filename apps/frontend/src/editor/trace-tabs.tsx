@@ -26,11 +26,13 @@ const LEVEL_VARIANTS: Record<TraceConsole["level"], "destructive" | "secondary" 
 
 type TraceTabProps = { trace: TraceModel; action: TraceAction | undefined };
 
-const within = (time: number, action: TraceAction | undefined) =>
-  !!action && time >= action.start && time <= action.end;
+function within(time: number, action: TraceAction | undefined) {
+  return !!action && time >= action.start && time <= action.end;
+}
 
-export const traceClock = (trace: TraceModel) => (t: number) =>
-  `+${formatPreciseDuration(t - trace.start)}`;
+export function traceClock(trace: TraceModel) {
+  return (t: number) => `+${formatPreciseDuration(t - trace.start)}`;
+}
 
 function TabScroll({ children, className }: { children: ReactNode; className?: string }) {
   return <ScrollArea className={cn("h-48 rounded-md", className)}>{children}</ScrollArea>;

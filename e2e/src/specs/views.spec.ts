@@ -47,7 +47,9 @@ describe("streamed views", function () {
       PAGE_WIDTH,
       PAGE_HEIGHT,
     );
-    const pickedSoFar = () => browser.execute(() => (window as unknown as Picking).opsisPicked);
+    function pickedSoFar() {
+      return browser.execute(() => (window as unknown as Picking).opsisPicked);
+    }
     await browser.waitUntil(
       async () =>
         (await browser.getWindowHandles()).length > 1 || (await pickedSoFar()) !== "waiting",

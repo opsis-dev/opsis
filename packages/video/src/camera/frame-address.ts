@@ -9,8 +9,9 @@ function pageAt(log: ActionLog, timeMs: number): string | undefined {
   return shown?.url;
 }
 
-const firstPage = (log: ActionLog): string | undefined =>
-  log.actions.find((a) => a.kind === "navigate")?.label;
+function firstPage(log: ActionLog): string | undefined {
+  return log.actions.find((a) => a.kind === "navigate")?.label;
+}
 
 function pathOf(url: string): string {
   if (!URL.canParse(url)) return "";
@@ -18,7 +19,9 @@ function pathOf(url: string): string {
   return protocol === "http:" || protocol === "https:" ? `${pathname}${hash}` : "";
 }
 
-const hostOf = (typed: string): string => typed.replace(SCHEME, "").split(/[/?#]/, 1)[0];
+function hostOf(typed: string): string {
+  return typed.replace(SCHEME, "").split(/[/?#]/, 1)[0];
+}
 
 export function frameAddress(
   log: ActionLog,

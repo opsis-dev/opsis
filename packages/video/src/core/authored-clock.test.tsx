@@ -3,11 +3,11 @@ import { expect, it } from "vitest";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import { TestFrame } from "#video/core/test-frame.tsx";
 
-const Clock = () => {
+function Clock() {
   const frame = useAuthoredFrame();
   const { fps, durationInFrames } = useAuthoredConfig();
   return <p>{`${frame} ${fps} ${durationInFrames}`}</p>;
-};
+}
 
 it("counts time in frames of 30 a second at any frame rate", () => {
   const view = render(

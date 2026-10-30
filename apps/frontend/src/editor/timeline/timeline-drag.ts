@@ -76,10 +76,12 @@ type EditOutcome = { edit: TimelineEdit; snappedAt: number | null };
 
 type Snapped = { delta: number; snappedAt: number | null };
 
-const settled = (delta: number, target: SnapTarget | null): Snapped => ({
-  delta: Math.round(delta),
-  snappedAt: target?.frame ?? null,
-});
+function settled(delta: number, target: SnapTarget | null): Snapped {
+  return {
+    delta: Math.round(delta),
+    snappedAt: target?.frame ?? null,
+  };
+}
 
 function snapMove(d: EditDrag, { raw, threshold }: SnapInput): Snapped {
   if (!threshold) return settled(raw, null);
@@ -140,8 +142,9 @@ function audioOutcome(
   return { edit: { op: atStart ? "audioTrimStart" : "audioTrimEnd", bar, delta }, snappedAt };
 }
 
-export const editOutcome = (d: EditDrag, snap: SnapInput, shift: boolean): EditOutcome =>
-  d.domain === "audio" ? audioOutcome(d, snap, shift) : videoOutcome(d, snap, shift);
+export function editOutcome(d: EditDrag, snap: SnapInput, shift: boolean): EditOutcome {
+  return d.domain === "audio" ? audioOutcome(d, snap, shift) : videoOutcome(d, snap, shift);
+}
 
 type SnapSources = {
   flat: FlatTimeline;
@@ -168,8 +171,9 @@ export function snapTargetsFor(src: SnapSources, exclude: string | null): SnapTa
 
 export type MarqueeBox = { x0: number; x1: number; y0: number; y1: number };
 
-export const isClick = (box: MarqueeBox) =>
-  box.x1 - box.x0 < DRAG_START_PX && box.y1 - box.y0 < DRAG_START_PX;
+export function isClick(box: MarqueeBox) {
+  return box.x1 - box.x0 < DRAG_START_PX && box.y1 - box.y0 < DRAG_START_PX;
+}
 
 export function normalizeMarquee(d: MarqueeBox): MarqueeBox {
   return {
@@ -187,8 +191,9 @@ export function marqueeIds(
   ppf: number,
 ): string[] {
   const ids = new Set<string>();
-  const hits = (from: number, to: number, top: number, height: number) =>
-    from * ppf < box.x1 && to * ppf > box.x0 && top < box.y1 && top + height > box.y0;
+  function hits(from: number, to: number, top: number, height: number) {
+    return from * ppf < box.x1 && to * ppf > box.x0 && top < box.y1 && top + height > box.y0;
+  }
   for (const b of flat.bars)
     if (hits(b.from, b.to, videoRowTop(layout, b.lane), VIDEO_H)) ids.add(b.nodeId);
   for (const a of flat.audio)

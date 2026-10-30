@@ -16,89 +16,93 @@ import { SwitchHeader } from "./switch-header";
 
 type CompField = keyof CompRanges;
 
-const compKnobs = (ranges = mixerBook().comp): Array<KnobSpec<CompField>> => [
-  {
-    field: "threshold",
-    label: "Threshold",
-    ...rangeProps(ranges.threshold),
-    step: 0.5,
-    format: formatDb,
-    unit: "dB",
-  },
-  {
-    field: "ratio",
-    label: "Ratio",
-    ...rangeProps(ranges.ratio),
-    step: 0.1,
-    log: true,
-    format: (v) => `${v.toFixed(1)}:1`,
-  },
-  {
-    field: "attack",
-    label: "Attack",
-    ...rangeProps(ranges.attack),
-    step: 0.1,
-    log: true,
-    format: formatMs,
-    unit: "ms",
-  },
-  {
-    field: "release",
-    label: "Release",
-    ...rangeProps(ranges.release),
-    step: 1,
-    log: true,
-    format: formatMs,
-    unit: "ms",
-  },
-  {
-    field: "makeup",
-    label: "Makeup",
-    ...rangeProps(ranges.makeup),
-    step: 0.5,
-    format: formatDb,
-    unit: "dB",
-  },
-];
+function compKnobs(ranges = mixerBook().comp): Array<KnobSpec<CompField>> {
+  return [
+    {
+      field: "threshold",
+      label: "Threshold",
+      ...rangeProps(ranges.threshold),
+      step: 0.5,
+      format: formatDb,
+      unit: "dB",
+    },
+    {
+      field: "ratio",
+      label: "Ratio",
+      ...rangeProps(ranges.ratio),
+      step: 0.1,
+      log: true,
+      format: (v) => `${v.toFixed(1)}:1`,
+    },
+    {
+      field: "attack",
+      label: "Attack",
+      ...rangeProps(ranges.attack),
+      step: 0.1,
+      log: true,
+      format: formatMs,
+      unit: "ms",
+    },
+    {
+      field: "release",
+      label: "Release",
+      ...rangeProps(ranges.release),
+      step: 1,
+      log: true,
+      format: formatMs,
+      unit: "ms",
+    },
+    {
+      field: "makeup",
+      label: "Makeup",
+      ...rangeProps(ranges.makeup),
+      step: 0.5,
+      format: formatDb,
+      unit: "dB",
+    },
+  ];
+}
 
 type DuckField = keyof DuckRanges;
 
-const duckKnobs = (ranges = mixerBook().duck): Array<KnobSpec<DuckField>> => [
-  {
-    field: "amount",
-    label: "Amount",
-    ...rangeProps(ranges.amount),
-    step: 0.5,
-    format: (v) => v.toFixed(1),
-    unit: "dB",
-  },
-  {
-    field: "attack",
-    label: "Attack",
-    ...rangeProps(ranges.attack),
-    step: 1,
-    log: true,
-    format: formatMs,
-    unit: "ms",
-  },
-  {
-    field: "release",
-    label: "Release",
-    ...rangeProps(ranges.release),
-    step: 1,
-    log: true,
-    format: formatMs,
-    unit: "ms",
-  },
-  {
-    field: "ignoreShorterMs",
-    label: "Ignore under",
-    ...rangeProps(ranges.ignoreShorterMs),
-    step: 50,
-    format: (v) => (v ? formatMs(v) : "Off"),
-    unit: "ms",
-  },
-];
+function duckKnobs(ranges = mixerBook().duck): Array<KnobSpec<DuckField>> {
+  return [
+    {
+      field: "amount",
+      label: "Amount",
+      ...rangeProps(ranges.amount),
+      step: 0.5,
+      format: (v) => v.toFixed(1),
+      unit: "dB",
+    },
+    {
+      field: "attack",
+      label: "Attack",
+      ...rangeProps(ranges.attack),
+      step: 1,
+      log: true,
+      format: formatMs,
+      unit: "ms",
+    },
+    {
+      field: "release",
+      label: "Release",
+      ...rangeProps(ranges.release),
+      step: 1,
+      log: true,
+      format: formatMs,
+      unit: "ms",
+    },
+    {
+      field: "ignoreShorterMs",
+      label: "Ignore under",
+      ...rangeProps(ranges.ignoreShorterMs),
+      step: 50,
+      format: (v) => (v ? formatMs(v) : "Off"),
+      unit: "ms",
+    },
+  ];
+}
 
 function PopoverButton({ on, className, ...props }: ComponentProps<"button"> & { on: boolean }) {
   return (

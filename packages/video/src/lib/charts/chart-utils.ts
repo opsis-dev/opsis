@@ -1,3 +1,4 @@
+import { clamp01, round2 } from "#video/common/math.ts";
 import type { GroupSeparator, NumberFormat } from "#video/generated/spec.ts";
 export type ChartDatum = {
   label: string;
@@ -40,8 +41,6 @@ export type PlottedPoint = {
   value: number;
   label?: string;
 };
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 export function getChartDomain(
   values: number[],
@@ -128,14 +127,14 @@ export function plotPoints(
 export function buildLinePath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return "";
   return points
-    .map((point, index) => `${index === 0 ? "M" : "L"} ${round(point.x)} ${round(point.y)}`)
+    .map((point, index) => `${index === 0 ? "M" : "L"} ${round2(point.x)} ${round2(point.y)}`)
     .join(" ");
 }
 
 export function buildSmoothPath(points: { x: number; y: number }[], tension = 0.42): string {
   if (points.length < 3) return buildLinePath(points);
 
-  const parts = [`M ${round(points[0].x)} ${round(points[0].y)}`];
+  const parts = [`M ${round2(points[0].x)} ${round2(points[0].y)}`];
 
   for (let index = 0; index < points.length - 1; index += 1) {
     const previous = points[index - 1] ?? points[index];
@@ -145,7 +144,9 @@ export function buildSmoothPath(points: { x: number; y: number }[], tension = 0.
 
     const lowerBound = Math.min(current.y, next.y);
     const upperBound = Math.max(current.y, next.y);
-    const clampY = (value: number) => Math.min(upperBound, Math.max(lowerBound, value));
+    function clampY(value: number) {
+      return Math.min(upperBound, Math.max(lowerBound, value));
+    }
 
     const c1x = current.x + ((next.x - previous.x) / 6) * tension * 2;
     const c1y = clampY(current.y + ((next.y - previous.y) / 6) * tension * 2);
@@ -153,7 +154,7 @@ export function buildSmoothPath(points: { x: number; y: number }[], tension = 0.
     const c2y = clampY(next.y - ((after.y - current.y) / 6) * tension * 2);
 
     parts.push(
-      `C ${round(c1x)} ${round(c1y)}, ${round(c2x)} ${round(c2y)}, ${round(next.x)} ${round(next.y)}`,
+      `C ${round2(c1x)} ${round2(c1y)}, ${round2(c2x)} ${round2(c2y)}, ${round2(next.x)} ${round2(next.y)}`,
     );
   }
 
@@ -168,7 +169,7 @@ export function buildAreaPath(
   if (points.length === 0 || linePath === "") return "";
   const first = points[0];
   const last = points[points.length - 1];
-  return `${linePath} L ${round(last.x)} ${round(baselineY)} L ${round(first.x)} ${round(baselineY)} Z`;
+  return `${linePath} L ${round2(last.x)} ${round2(baselineY)} L ${round2(first.x)} ${round2(baselineY)} Z`;
 }
 
 export function formatCompactNumber(value: number, maximumFractionDigits = 1): string {
@@ -210,8 +211,4 @@ export function readDelta(delta: string | undefined): {
     return { direction: "down", text: trimmed };
   }
   return { direction: "flat", text: trimmed };
-}
-
-function round(value: number): number {
-  return Math.round(value * 100) / 100;
 }

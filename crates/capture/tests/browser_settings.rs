@@ -1,21 +1,17 @@
-use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+mod support;
+
+use std::path::Path;
+use std::sync::Arc;
 
 use image::RgbImage;
 use opsis_capture::encoder::{FrameEncoder, FrameImage};
-use opsis_capture::take::{Recording, SignInError, SignIns, TakeEnv, play_take};
-use opsis_compile::nodes::browser::OPEN_BROWSER_TYPE;
+use opsis_capture::take::{Recording, play_take};
 use opsis_compile::nodes::capture::{FramePicture, Record, Timing};
-use opsis_compile::registry::default_params;
-use opsis_engine::paths::downloaded_browser;
-use opsis_media::ffmpeg::{FramePipe, MediaTools, RunOptions, ToolError, ToolFuture};
-use opsis_probe::Probe;
 use opsis_types::actions::{ActionKind, ActionLog};
 use opsis_types::numbers;
-use opsis_types::values::{BrowserAction, BrowserSessionValue, SessionBrowser, SessionStep};
+use opsis_types::values::{BrowserAction, BrowserSessionValue, SessionStep};
 use serde_json::{Value, json};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio_util::sync::CancellationToken;
+use support::{FakeTools, NoSignIns, serve, session, step, take_env};
 
 const FPS: u32 = 30;
 const WIDTH: u32 = 640;
@@ -52,87 +48,6 @@ const SHADED_PAGE: &str = r#"<!doctype html><html><body style="margin:0">
 <button style="position:absolute;left:300px;top:1400px;width:200px;height:40px">Far target</button>
 </body></html>"#;
 
-struct NoSignIns;
-
-impl SignIns for NoSignIns {
-    fn read(&self, _: &str) -> Result<Option<String>, SignInError> {
-        Ok(None)
-    }
-}
-
-#[derive(Default)]
-struct FramesWritten {
-    bytes: Arc<Mutex<Vec<u8>>>,
-}
-
-impl MediaTools for FramesWritten {
-    fn run<'a>(&'a self, _: &'a [String], _: RunOptions<'a>) -> ToolFuture<'a, ()> {
-        Box::pin(async { Ok(()) })
-    }
-
-    fn probe<'a>(&'a self, _: &'a Path) -> ToolFuture<'a, Probe> {
-        Box::pin(async {
-            Err(ToolError::Failed {
-                output: "no probe in this test".into(),
-            })
-        })
-    }
-
-    fn pipe(&self, _: &[String], _: Option<CancellationToken>) -> Result<FramePipe, ToolError> {
-        let (stdin, mut reader) = tokio::io::duplex(1 << 20);
-        let bytes = Arc::clone(&self.bytes);
-        let reading = tokio::spawn(async move {
-            let mut all = Vec::new();
-            reader.read_to_end(&mut all).await.map(|_| all)
-        });
-        let done = Box::pin(async move {
-            let all = reading
-                .await
-                .map_err(|e| ToolError::Failed {
-                    output: e.to_string(),
-                })?
-                .map_err(|e| ToolError::Failed {
-                    output: e.to_string(),
-                })?;
-            bytes.lock().unwrap().extend(all);
-            Ok(())
-        });
-        Ok(FramePipe {
-            stdin: Box::pin(stdin),
-            done,
-        })
-    }
-}
-
-async fn serve(page: &'static str) -> u16 {
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let port = listener.local_addr().unwrap().port();
-    tokio::spawn(async move {
-        while let Ok((mut socket, _)) = listener.accept().await {
-            let mut request = [0; 4096];
-            if socket.read(&mut request).await.is_ok() {
-                let response = format!(
-                    "HTTP/1.1 200 OK\r\ncontent-type: text/html; charset=utf-8\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{page}",
-                    page.len()
-                );
-                socket.write_all(response.as_bytes()).await.unwrap();
-            }
-        }
-    });
-    port
-}
-
-fn step(kind: BrowserAction, id: &str, params: Value) -> SessionStep {
-    let mut all = default_params(kind.kind());
-    all.extend(params.as_object().cloned().unwrap_or_default());
-    SessionStep {
-        id: id.to_owned(),
-        kind,
-        label: None,
-        params: all,
-    }
-}
-
 fn shows(text: &str) -> SessionStep {
     step(
         BrowserAction::Assert,
@@ -141,52 +56,25 @@ fn shows(text: &str) -> SessionStep {
     )
 }
 
-fn env(temp: &Path) -> TakeEnv {
-    let engine = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/Opsis/engine");
-    TakeEnv {
-        project_dir: temp.to_path_buf(),
-        executable: downloaded_browser(&engine).unwrap(),
-        temp_dir: temp.to_path_buf(),
-        live: None,
-        trace: false,
-        sign_ins: Arc::new(NoSignIns),
-        cancel: CancellationToken::new(),
-        log: Arc::new(|_, _| {}),
-        step: Arc::new(|_, _, _| {}),
-    }
-}
-
-fn session(port: u16, browser: Value, steps: Vec<SessionStep>) -> BrowserSessionValue {
-    let mut params = default_params(OPEN_BROWSER_TYPE);
-    params.extend(
-        json!({ "viewportWidth": WIDTH, "viewportHeight": HEIGHT, "dpr": 1.0 })
-            .as_object()
-            .cloned()
-            .unwrap(),
+fn opened(port: u16, browser: Value, steps: Vec<SessionStep>) -> BrowserSessionValue {
+    let mut params = json!({ "viewportWidth": WIDTH, "viewportHeight": HEIGHT, "dpr": 1.0 });
+    params
+        .as_object_mut()
+        .unwrap()
+        .extend(browser.as_object().cloned().unwrap_or_default());
+    let navigate = step(
+        BrowserAction::Navigate,
+        "go",
+        json!({ "url": format!("http://127.0.0.1:{port}/"), "after": 0 }),
     );
-    params.extend(browser.as_object().cloned().unwrap_or_default());
-    BrowserSessionValue {
-        browser: SessionBrowser {
-            node_id: "browser".into(),
-            params,
-        },
-        steps: [step(
-            BrowserAction::Navigate,
-            "go",
-            json!({ "url": format!("http://127.0.0.1:{port}/"), "after": 0 }),
-        )]
-        .into_iter()
-        .chain(steps)
-        .collect(),
-        address: None,
-    }
+    session(params, [navigate].into_iter().chain(steps).collect())
 }
 
 async fn play(page: &'static str, browser: Value, steps: Vec<SessionStep>) -> ActionLog {
     let port = serve(page).await;
     let temp = tempfile::tempdir().unwrap();
-    let env = env(temp.path());
-    let played = play_take(&env, &session(port, browser, steps), None, |_| {
+    let env = take_env(temp.path(), Arc::new(NoSignIns));
+    let played = play_take(&env, &opened(port, browser, steps), None, |_| {
         Box::pin(async { Ok(()) })
     })
     .await;
@@ -219,9 +107,9 @@ async fn record(
 ) -> (Vec<RgbImage>, ActionLog) {
     let port = serve(page).await;
     let temp = tempfile::tempdir().unwrap();
-    let env = env(temp.path());
-    let tools = FramesWritten::default();
-    let written = Arc::clone(&tools.bytes);
+    let env = take_env(temp.path(), Arc::new(NoSignIns));
+    let tools = FakeTools::new(1 << 20, None);
+    let written = Arc::clone(&tools.written);
     let encoder =
         FrameEncoder::start(&tools, Path::new("take.mp4"), FPS, FrameImage::Jpeg).unwrap();
     let record = Record {
@@ -238,7 +126,7 @@ async fn record(
         .collect();
     let played = play_take(
         &env,
-        &session(port, browser, steps),
+        &opened(port, browser, steps),
         Some(Recording { encoder, record }),
         |_| Box::pin(async { Ok(()) }),
     )

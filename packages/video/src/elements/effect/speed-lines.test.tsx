@@ -23,12 +23,14 @@ const DEFAULTS: ElementSettings["speed-lines"] = {
   streakLength: 1.6,
 };
 
-const drawn = (mode: "trail" | "focus", frame: number) => {
-  const Lines = () => (
-    <SpeedLines {...DEFAULTS} mode={mode}>
-      {null}
-    </SpeedLines>
-  );
+function drawn(mode: "trail" | "focus", frame: number) {
+  function Lines() {
+    return (
+      <SpeedLines {...DEFAULTS} mode={mode}>
+        {null}
+      </SpeedLines>
+    );
+  }
   const view = render(
     <TestFrame
       component={Lines}
@@ -43,7 +45,7 @@ const drawn = (mode: "trail" | "focus", frame: number) => {
     path: view.container.querySelector("path")?.getAttribute("d") ?? "",
     discs: view.container.querySelectorAll("ellipse").length,
   };
-};
+}
 
 it("draws only its lines", () => {
   const trail = drawn("trail", 6);

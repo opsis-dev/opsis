@@ -1,5 +1,6 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings, GroupSeparator } from "#video/generated/spec.ts";
 import { groupDigits } from "#video/lib/charts/chart-utils.ts";
 import { CODE_THEMES } from "#video/lib/code/code-syntax.tsx";
@@ -21,11 +22,11 @@ const PALETTES = {
   },
 };
 
-const formatValue = (value: number, decimals: number, separator: GroupSeparator): string => {
+function formatValue(value: number, decimals: number, separator: GroupSeparator): string {
   const [whole, fraction] = value.toFixed(decimals).split(".");
   const grouped = groupDigits(whole, separator);
   return fraction === undefined ? grouped : `${grouped}.${fraction}`;
-};
+}
 
 const T = {
   ring: 0.1,
@@ -36,11 +37,6 @@ const T = {
   caption: 0.78,
   delta: 2.7,
   exitFor: 0.4,
-} as const;
-
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
 } as const;
 
 export function StatCard({
@@ -73,15 +69,18 @@ export function StatCard({
   const palette = { ...PALETTES[theme.mode], ...theme.colors };
   const safe = getSafeAreaPadding({ width, height });
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
   const exit =
     holdSeconds === undefined
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   const stage = {
@@ -110,7 +109,7 @@ export function StatCard({
     frame,
     [at(T.ring + T.ringFor), at(T.ring + T.ringFor + 0.45)],
     [1, 0],
-    clamp,
+    CLAMPED,
   );
 
   const size = Math.min(stage.w * 0.62, stage.h * 0.62, 380 * u);
@@ -190,7 +189,7 @@ export function StatCard({
               fontVariantNumeric: "tabular-nums",
               scale: interpolate(land, [0, 1], [1, 1.03], {
                 output: "perceptual-scale",
-                ...clamp,
+                ...CLAMPED,
               }),
             }}
           >

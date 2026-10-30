@@ -1,5 +1,6 @@
+use opsis_golden::{edge, home, node, repo};
 use std::ffi::OsString;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 
 use opsis_engine::tools::EngineFiles;
@@ -12,24 +13,8 @@ use opsis_runner::runner::{RunDeps, run_workflow};
 use opsis_types::events::{RunEvent, RunRequest};
 use opsis_types::settings::AppSettings;
 use opsis_types::workflow::Workflow;
-use serde_json::{Value, json};
+use serde_json::json;
 use tokio_util::sync::CancellationToken;
-
-fn home() -> PathBuf {
-    std::env::var_os("HOME").map(PathBuf::from).expect("HOME")
-}
-
-fn repo() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
-}
-
-fn node(id: &str, kind: &str, params: Value) -> Value {
-    json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 }, "params": params })
-}
-
-fn edge(source: &str, out: &str, target: &str, port: &str) -> Value {
-    json!({ "id": format!("{source}-{target}-{port}"), "source": source, "sourceHandle": out, "target": target, "targetHandle": port })
-}
 
 fn workflow() -> Workflow {
     let nodes = [

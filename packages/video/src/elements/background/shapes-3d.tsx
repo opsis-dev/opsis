@@ -29,7 +29,9 @@ type Layout = {
 
 function place({ count, colors, seed, aspect, kinds, depth, size }: Layout): Placed[] {
   return Array.from({ length: count }, (_, i) => {
-    const r = (key: string) => random(`${seed}:${i}:${key}`);
+    function r(key: string) {
+      return random(`${seed}:${i}:${key}`);
+    }
     const z = (DEPTH.far + r("z") * (DEPTH.near - DEPTH.far)) * depth;
     const halfH = (STAGE_DISTANCE - z) * Math.tan(FOV_HALF) * SPREAD;
     return {
@@ -108,10 +110,12 @@ export function Shapes3D({
     <Stage3D lighting={lighting} background={background} fov={STAGE_FOV}>
       <Posed pose={viewPose(cameraAt(camera, frame))}>
         {placed.map((p, i) => {
-          const drift = (axis: string) =>
-            noise3D(`${seed}:${axis}`, i * 7.3, 0, t * DRIFT.pace) * reach;
-          const turn = (axis: string) =>
-            noise3D(`${seed}:r${axis}`, i * 3.1, 0, t * DRIFT.spin * spin) * Math.PI;
+          function drift(axis: string) {
+            return noise3D(`${seed}:${axis}`, i * 7.3, 0, t * DRIFT.pace) * reach;
+          }
+          function turn(axis: string) {
+            return noise3D(`${seed}:r${axis}`, i * 3.1, 0, t * DRIFT.spin * spin) * Math.PI;
+          }
           const material = parts.materials[p.color];
           if (!material) return null;
           return (

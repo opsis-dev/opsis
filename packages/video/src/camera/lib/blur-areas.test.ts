@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import { blurParams } from "#video/camera/lib/blur-areas.ts";
 import type { BlurArea } from "#video/generated/spec.ts";
 
-const unit = (min: number, max: number) => fc.double({ min, max, noNaN: true });
+function unit(min: number, max: number) {
+  return fc.double({ min, max, noNaN: true });
+}
 
 const area: fc.Arbitrary<BlurArea> = fc.record({
   x: unit(-0.5, 1.5),
@@ -72,7 +74,9 @@ describe("blur areas on a recording", () => {
       fromMs: 1000,
       untilMs: 3000,
     };
-    const strength = (t: number) => blurParams([timedArea], t, 1000)[0].blurRadius;
+    function strength(t: number) {
+      return blurParams([timedArea], t, 1000)[0].blurRadius;
+    }
     expect(strength(1100)).toBeCloseTo(10);
     expect(strength(2000)).toBeCloseTo(20);
     expect(strength(2900)).toBeCloseTo(10);

@@ -14,7 +14,9 @@ function columnWidths(
   fontFamily: string,
   letterSpacing: number,
 ): number[] {
-  const fixed = () => Array.from(from, () => COLUMN_EM * fontSize);
+  function fixed() {
+    return Array.from(from, () => COLUMN_EM * fontSize);
+  }
   if (typeof document === "undefined") return fixed();
   const ctx = document.createElement("canvas").getContext("2d");
   if (!ctx) return fixed();

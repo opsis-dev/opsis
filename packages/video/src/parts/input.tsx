@@ -1,9 +1,6 @@
-import {
-  mixOklch,
-  type NeutralTheme,
-  revealedText,
-  useNeutralTheme,
-} from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { mixOklch } from "#video/lib/ui-kit/color.ts";
+import { revealedText } from "#video/lib/ui-kit/timeline.ts";
 import { Caret } from "#video/parts/caret.tsx";
 
 export type InputState = "idle" | "hover" | "active" | "typing" | "blur" | "invalid";

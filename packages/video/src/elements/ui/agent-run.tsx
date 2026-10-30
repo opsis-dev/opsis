@@ -2,6 +2,7 @@ import { type CSSProperties, useMemo } from "react";
 import type React from "react";
 import { Easing, random } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { clamp, clamp01, easeOutCubic, numberOr, round3, smoothstep } from "#video/common/math.ts";
 import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { Theme } from "#video/generated/spec.ts";
@@ -238,37 +239,50 @@ const MONO =
 
 const EXPO = Easing.bezier(0.16, 1, 0.3, 1);
 
-const finite = (value: number | undefined, fallback: number) =>
-  typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const progress = (value: number) => (Number.isNaN(value) ? 0 : clamp(value, 0, 1));
-const round = (value: number) => Math.round(value * 1000) / 1000;
-const expo = (value: number) => EXPO(progress(value));
-const easeOut = (value: number) => 1 - (1 - progress(value)) ** 3;
-const smoothstep = (value: number) => {
-  const t = progress(value);
-  return t * t * (3 - 2 * t);
-};
-const backOut = (value: number, overshoot: number) => {
+function progress(value: number) {
+  return Number.isNaN(value) ? 0 : clamp01(value);
+}
+function expo(value: number) {
+  return EXPO(progress(value));
+}
+function easeOut(value: number) {
+  return easeOutCubic(progress(value));
+}
+function eased(value: number) {
+  return smoothstep(progress(value));
+}
+function backOut(value: number, overshoot: number) {
   const t = progress(value) - 1;
   return 1 + (overshoot + 1) * t ** 3 + overshoot * t ** 2;
-};
-const rateOf = (speed: number | undefined) => Math.max(0, finite(speed, agentRunDefaults.speed));
-const seedOf = (seed: number | undefined) => finite(seed, agentRunDefaults.seed);
-const compressionOf = (compression: number | undefined) =>
-  clamp(finite(compression, agentRunDefaults.compression), MIN_COMPRESSION, MAX_COMPRESSION);
+}
+function rateOf(speed: number | undefined) {
+  return Math.max(0, numberOr(speed, agentRunDefaults.speed));
+}
+function seedOf(seed: number | undefined) {
+  return numberOr(seed, agentRunDefaults.seed);
+}
+function compressionOf(compression: number | undefined) {
+  return clamp(
+    numberOr(compression, agentRunDefaults.compression),
+    MIN_COMPRESSION,
+    MAX_COMPRESSION,
+  );
+}
 
 export function formatAgentRunSeconds(seconds: number) {
-  const value = Math.max(0, finite(seconds, 0));
+  const value = Math.max(0, numberOr(seconds, 0));
   if (value < 60) return `${value.toFixed(1)}s`;
   const minutes = Math.floor(value / 60);
   const rest = Math.floor(value - minutes * 60);
   return `${minutes}m ${String(rest).padStart(2, "0")}s`;
 }
 
-const isLetter = (code: number) =>
-  (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code >= 192;
-const isDigit = (code: number) => code >= 48 && code <= 57;
+function isLetter(code: number) {
+  return (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code >= 192;
+}
+function isDigit(code: number) {
+  return code >= 48 && code <= 57;
+}
 
 export function tokenizeAgentRun(text: string): number[] {
   const ends: number[] = [];
@@ -327,8 +341,12 @@ export function getAgentRunChunks(
   stream = "answer",
 ): AgentRunChunk[] {
   const ends = tokenizeAgentRun(text);
-  const startOf = (token: number) => (token > 0 ? ends[token - 1] : 0);
-  const isNewline = (token: number) => token < ends.length && text[startOf(token)] === "\n";
+  function startOf(token: number) {
+    return token > 0 ? ends[token - 1] : 0;
+  }
+  function isNewline(token: number) {
+    return token < ends.length && text[startOf(token)] === "\n";
+  }
   const key = `agent-run-${seedOf(seed)}-${stream}`;
   const chunks: AgentRunChunk[] = [];
   let token = 0;
@@ -462,12 +480,12 @@ function parseInline(source: string, base: number): AgentRunInline[] {
   const out: AgentRunInline[] = [];
   let text = "";
   let textStart = 0;
-  const flush = (at: number) => {
+  function flush(at: number) {
     if (text.length > 0) {
       out.push({ kind: "text", text, raw: base + textStart, end: base + at });
     }
     text = "";
-  };
+  }
   let index = 0;
   while (index < source.length) {
     if (source.startsWith("**", index)) {
@@ -675,17 +693,17 @@ function atomsOf(inline: readonly AgentRunInline[], size: number): Atom[] {
   const atoms: Atom[] = [];
   let word: AgentRunPiece[] = [];
   let wordWidth = 0;
-  const add = (piece: AgentRunPiece) => {
+  function add(piece: AgentRunPiece) {
     word.push(piece);
     wordWidth += pieceWidth(piece, size);
-  };
-  const close = () => {
+  }
+  function close() {
     if (word.length > 0) {
       atoms.push({ pieces: word, width: wordWidth, space: false });
     }
     word = [];
     wordWidth = 0;
-  };
+  }
   for (const segment of inline) {
     if (segment.kind === "cite" || segment.kind === "code") {
       add({ ...segment });
@@ -792,7 +810,7 @@ const PUNCT = "<>{}()[]/=;,.:+-*&|!?";
 
 export function getAgentRunCodePieces(line: AgentRunCodeLine): AgentRunPiece[] {
   const pieces: AgentRunPiece[] = [];
-  const push = (kind: AgentRunPieceKind, from: number, to: number) => {
+  function push(kind: AgentRunPieceKind, from: number, to: number) {
     if (to <= from) return;
     const last = pieces.at(-1);
     if (last?.kind === kind && last.end === line.raw + from) {
@@ -809,7 +827,7 @@ export function getAgentRunCodePieces(line: AgentRunCodeLine): AgentRunPiece[] {
       raw: line.raw + from,
       end: line.raw + to,
     });
-  };
+  }
   let index = 0;
   while (index < line.text.length) {
     const char = line.text[index];
@@ -836,17 +854,17 @@ export function getAgentRunCodePieces(line: AgentRunCodeLine): AgentRunPiece[] {
 }
 
 export function getAgentRunFrame(width?: number, height?: number) {
-  const frameWidth = Math.max(1, finite(width, 1280));
-  const frameHeight = Math.max(1, finite(height, 720));
+  const frameWidth = Math.max(1, numberOr(width, 1280));
+  const frameHeight = Math.max(1, numberOr(height, 720));
   const scale = Math.min(frameHeight / REF_HEIGHT, frameWidth / (PANEL_W + 2 * MARGIN_X));
   const panelHeight = clamp(frameHeight / scale - 2 * MARGIN_Y, MIN_PANEL_H, MAX_PANEL_H);
   return {
     width: frameWidth,
     height: frameHeight,
-    unit: round(scale),
+    unit: round3(scale),
     panelWidth: PANEL_W,
-    panelHeight: round(panelHeight),
-    viewport: round(panelHeight - HEADER_H - 2),
+    panelHeight: round3(panelHeight),
+    viewport: round3(panelHeight - HEADER_H - 2),
   };
 }
 
@@ -887,10 +905,10 @@ export function getAgentRunTimeline(
   const thinkEnd = planEnd + THINK_TAIL;
   const segments: AgentRunSegment[] = [];
   let real = 0;
-  const push = (kind: AgentRunSegment["kind"], from: number, to: number, seconds: number) => {
+  function push(kind: AgentRunSegment["kind"], from: number, to: number, seconds: number) {
     segments.push({ kind, from, to, realFrom: real, real: seconds });
     real += seconds;
-  };
+  }
   push("think", RUN_START, thinkEnd, (thinkEnd - RUN_START) * perFrame);
   const thinkSeconds = real;
   const tools: AgentRunToolSpan[] = [];
@@ -898,7 +916,7 @@ export function getAgentRunTimeline(
   for (const [index, step] of (run.steps ?? []).entries()) {
     push("gap", cursor, cursor + TOOL_GAP, TOOL_GAP * perFrame);
     cursor += TOOL_GAP;
-    const duration = Math.max(0, finite(step.duration, 0));
+    const duration = Math.max(0, numberOr(step.duration, 0));
     const span = clamp(Math.round(duration / perFrame), TOOL_MIN, TOOL_MAX);
     const realStart = real;
     push("tool", cursor, cursor + span, duration);
@@ -947,12 +965,12 @@ export function getAgentRunDuration(
   const rate = rateOf(options.speed);
   if (rate === 0) return HOLD;
   const { settled } = getAgentRunTimeline(run, options);
-  return Math.ceil(round(settled / rate)) + HOLD;
+  return Math.ceil(round3(settled / rate)) + HOLD;
 }
 
 export function getAgentRunTime(frame: number, playback: AgentRunPlayback = {}) {
-  const fps = Math.max(1, finite(playback.fps, 30));
-  return Math.max(0, finite(frame, 0)) * (30 / fps) * rateOf(playback.speed);
+  const fps = Math.max(1, numberOr(playback.fps, 30));
+  return Math.max(0, numberOr(frame, 0)) * (30 / fps) * rateOf(playback.speed);
 }
 
 export function getAgentRunElapsed(time: number, timeline: AgentRunTimeline) {
@@ -1061,7 +1079,9 @@ export function fitAgentRunChips(sources: readonly string[]) {
   return { chips, more: sources.length - chips.length };
 }
 
-const lineText = (line: readonly AgentRunPiece[]) => line.map((piece) => piece.text).join("");
+function lineText(line: readonly AgentRunPiece[]) {
+  return line.map((piece) => piece.text).join("");
+}
 
 function blockGap(previous: AgentRunBlock["kind"] | undefined, next: AgentRunBlock["kind"]) {
   if (previous === undefined) return 0;
@@ -1121,7 +1141,7 @@ export function getAgentRunLayout(run: AgentRunScript = defaultAgentRun) {
         icon: step.icon ?? (sources.length > 0 ? "book" : "terminal"),
         name: step.name,
         detail: step.detail ?? "",
-        duration: formatAgentRunSeconds(finite(step.duration, 0)),
+        duration: formatAgentRunSeconds(numberOr(step.duration, 0)),
         chips: fit.chips,
         more: fit.more,
       });
@@ -1151,7 +1171,7 @@ export function getAgentRunLayout(run: AgentRunScript = defaultAgentRun) {
         raw: block.raw,
         end: block.end,
         mark,
-        markWidth: round(estimateAgentRunWidth(mark, BODY_SIZE)),
+        markWidth: round3(estimateAgentRunWidth(mark, BODY_SIZE)),
         lines,
       });
       y += lines.length * spec.line;
@@ -1226,8 +1246,9 @@ export function getAgentRunGrowth(layout: AgentRunLayout, timeline: AgentRunTime
       events.push({ at: span.start, bottom: tools.y + row.y + row.height + 2 });
     }
   }
-  const arrival = (offset: number) =>
-    timeline.answerStart + getAgentRunArrival(timeline.answerChunks, offset);
+  function arrival(offset: number) {
+    return timeline.answerStart + getAgentRunArrival(timeline.answerChunks, offset);
+  }
   for (const block of layout.blocks) {
     if (block.kind === "code") {
       events.push({
@@ -1263,7 +1284,7 @@ export function getAgentRunScrollSteps(
   for (const event of getAgentRunGrowth(layout, timeline)) {
     const next = Math.max(target, event.bottom + SAFE - viewport);
     if (next > target) {
-      steps.push({ at: event.at, delta: round(next - target) });
+      steps.push({ at: event.at, delta: round3(next - target) });
     }
     target = next;
   }
@@ -1275,7 +1296,7 @@ export function getAgentRunScroll(time: number, steps: readonly AgentRunScrollSt
   for (const step of steps) {
     const since = time - step.at + SCROLL_LEAD;
     if (since <= 0) break;
-    total += step.delta * smoothstep(since / SCROLL);
+    total += step.delta * eased(since / SCROLL);
   }
   return total;
 }
@@ -1307,10 +1328,10 @@ export function getAgentRunSpinner(time: number, start: number, end: number): Ag
   const settle = progress(since / RESOLVE);
   const coast = SPIN * RESOLVE * (settle - (settle * settle) / 2);
   return {
-    angle: round(spinning * SPIN + coast - 90),
-    arc: round(ARC + (1 - ARC) * expo(since / RESOLVE)),
-    done: round(smoothstep(since / RESOLVE)),
-    check: round(easeOut((since - CHECK_FROM) / (CHECK_TO - CHECK_FROM))),
+    angle: round3(spinning * SPIN + coast - 90),
+    arc: round3(ARC + (1 - ARC) * expo(since / RESOLVE)),
+    done: round3(eased(since / RESOLVE)),
+    check: round3(easeOut((since - CHECK_FROM) / (CHECK_TO - CHECK_FROM))),
     resolved: since >= 0,
   };
 }
@@ -1322,7 +1343,7 @@ export function getAgentRunShimmer(time: number, length: number) {
   return Array.from({ length }, (_, index) => {
     const distance = Math.abs(index + 0.5 - center) / SHIMMER_BAND;
     const band = distance < 1 ? (1 - distance * distance) ** 2 : 0;
-    return round(SHIMMER_BASE + (1 - SHIMMER_BASE) * band);
+    return round3(SHIMMER_BASE + (1 - SHIMMER_BASE) * band);
   });
 }
 
@@ -1345,7 +1366,9 @@ export interface AgentRunLineState {
   spans: AgentRunSpan[];
 }
 
-const fadeOf = (since: number) => round(easeOut((since + 1) / FADE));
+function fadeOf(since: number) {
+  return round3(easeOut((since + 1) / FADE));
+}
 
 function spansOf(
   pieces: readonly AgentRunPiece[],
@@ -1361,8 +1384,8 @@ function spansOf(
       spans.push({
         kind: "cite",
         fragments: [{ text: piece.text, opacity: 1 }],
-        opacity: round(easeOut((since + 1) / 4)),
-        scale: round(0.6 + 0.4 * backOut((since + 1) / POP, CITE_BACK)),
+        opacity: round3(easeOut((since + 1) / 4)),
+        scale: round3(0.6 + 0.4 * backOut((since + 1) / POP, CITE_BACK)),
       });
       continue;
     }
@@ -1428,7 +1451,7 @@ function blockState(
   revealed: number,
 ): AgentRunBlockState | null {
   const key = `block-${block.index}`;
-  const lineStates = (from: number) => {
+  function lineStates(from: number) {
     const lines: AgentRunLineState[] = [];
     for (const [row, line] of block.lines.entries()) {
       if (revealed <= (row === 0 ? from : line.raw)) break;
@@ -1440,7 +1463,7 @@ function blockState(
       });
     }
     return lines;
-  };
+  }
   if (block.kind === "code") {
     if (revealed < block.open) return null;
     const since = local - getAgentRunArrival(chunks, block.open - 1);
@@ -1462,8 +1485,8 @@ function blockState(
       kind: "code",
       key,
       y: block.y,
-      height: round(height),
-      opacity: round(easeOut((since + 1) / 4)),
+      height: round3(height),
+      opacity: round3(easeOut((since + 1) / 4)),
       lang: block.lang.slice(0, langShown),
       lines,
     };
@@ -1472,7 +1495,7 @@ function blockState(
   if (block.kind === "heading") {
     const complete = revealed > block.end || (block.end >= text.length && revealed >= block.end);
     const completeAt = getAgentRunArrival(chunks, Math.min(block.end, text.length - 1));
-    const morph = complete ? round(expo((local - completeAt) / MORPH)) : 0;
+    const morph = complete ? round3(expo((local - completeAt) / MORPH)) : 0;
     const markShown = clamp(revealed - block.raw, 0, block.mark.length);
     return {
       kind: "heading",
@@ -1492,8 +1515,8 @@ function blockState(
       kind: "item",
       key,
       y: block.y,
-      dot: round(backOut((since + 1) / POP, DOT_BACK)),
-      dotOpacity: round(easeOut((since + 1) / 3)),
+      dot: round3(backOut((since + 1) / POP, DOT_BACK)),
+      dotOpacity: round3(easeOut((since + 1) / 3)),
       lines: lineStates(block.raw),
     };
   }
@@ -1536,7 +1559,7 @@ function planState(plan: AgentRunPlanSection, chunks: readonly AgentRunChunk[], 
       lines,
     });
   }
-  return { y: plan.y, rule: round(rule), items };
+  return { y: plan.y, rule: round3(rule), items };
 }
 
 function chipPops(count: number, since: number, span: number) {
@@ -1546,8 +1569,8 @@ function chipPops(count: number, since: number, span: number) {
     const age = since - CHIP_LEAD - index * step;
     return {
       visible: age >= 0,
-      opacity: round(easeOut((age + 1) / 4)),
-      scale: round(0.8 + 0.2 * backOut((age + 1) / POP, CHIP_BACK)),
+      opacity: round3(easeOut((age + 1) / 4)),
+      scale: round3(0.8 + 0.2 * backOut((age + 1) / POP, CHIP_BACK)),
     };
   });
 }
@@ -1567,21 +1590,21 @@ function toolsState(tools: AgentRunToolsSection, timeline: AgentRunTimeline, tim
         key: `tool-${row.index}`,
         index: row.index,
         y: row.y,
-        height: round(row.height * open),
+        height: round3(row.height * open),
         divider: row.divider,
         icon: row.icon,
         name: row.name,
         detail: row.detail,
         duration: row.duration,
-        content: round(easeOut((since - 1) / ROW_FADE)),
+        content: round3(easeOut((since - 1) / ROW_FADE)),
         spinner: getAgentRunSpinner(time, span.start, span.end),
-        label: round(easeOut((time - span.end - LABEL_DELAY) / LABEL_FADE)),
+        label: round3(easeOut((time - span.end - LABEL_DELAY) / LABEL_FADE)),
         chips: row.chips.map((chip, index) => ({ ...chip, ...pops[index] })),
         more: row.more > 0 && more ? { count: row.more, ...more } : null,
         sources: row.chips.length + row.more > 0,
       };
     });
-  return { y: tools.y, height: round(height), rows };
+  return { y: tools.y, height: round3(height), rows };
 }
 
 export function getAgentRunState(
@@ -1606,19 +1629,19 @@ export function getAgentRunState(
   return {
     time,
     elapsed,
-    scroll: round(getAgentRunScroll(time, model.scroll)),
+    scroll: round3(getAgentRunScroll(time, model.scroll)),
     panel: {
       width: stage.panelWidth,
       height: stage.panelHeight,
       viewport: stage.viewport,
       unit: stage.unit,
-      opacity: round(easeOut((time + 1) / PANEL_IN)),
-      lift: round(PANEL_RISE * (1 - expo(time / PANEL_IN))),
+      opacity: round3(easeOut((time + 1) / PANEL_IN)),
+      lift: round3(PANEL_RISE * (1 - expo(time / PANEL_IN))),
     },
     header: {
       title: run.title ?? "",
       label: formatAgentRunSeconds(elapsed),
-      opacity: round(easeOut((running + 1) / STATUS_IN)),
+      opacity: round3(easeOut((running + 1) / STATUS_IN)),
       spinner: getAgentRunSpinner(time, RUN_START, timeline.runEnd),
       done: time >= timeline.runEnd,
     },
@@ -1626,18 +1649,18 @@ export function getAgentRunState(
       y: layout.bubble.y,
       height: layout.bubble.height,
       lines: layout.bubble.lines,
-      opacity: round(easeOut((time - BUBBLE_AT + 1) / BUBBLE_IN)),
-      lift: round(BUBBLE_RISE * (1 - expo((time - BUBBLE_AT) / BUBBLE_IN))),
+      opacity: round3(easeOut((time - BUBBLE_AT + 1) / BUBBLE_IN)),
+      lift: round3(BUBBLE_RISE * (1 - expo((time - BUBBLE_AT) / BUBBLE_IN))),
     },
     status: {
       y: layout.status.y,
       visible: running >= 0,
-      opacity: round(easeOut((running + 1) / STATUS_IN)),
+      opacity: round3(easeOut((running + 1) / STATUS_IN)),
       thinking,
       shimmer: getAgentRunShimmer(time, thinking.length),
       thought: `${playback.thoughtLabel ?? "Thought for"} ${Math.max(1, Math.round(timeline.thinkSeconds))}s`,
-      swap: round(swap),
-      lift: round(SWAP_RISE * (1 - swap)),
+      swap: round3(swap),
+      lift: round3(SWAP_RISE * (1 - swap)),
     },
     plan: layout.plan ? planState(layout.plan, timeline.planChunks, planLocal) : null,
     tools: layout.tools ? toolsState(layout.tools, timeline, time) : null,
@@ -1845,15 +1868,15 @@ function Spinner({
         r={10}
         stroke={palette.accent}
         opacity={active}
-        strokeDasharray={`${round(state.arc * CIRCLE)} ${round(CIRCLE)}`}
+        strokeDasharray={`${round3(state.arc * CIRCLE)} ${round3(CIRCLE)}`}
         transform={`rotate(${state.angle} 12 12)`}
       />
       <circle cx={12} cy={12} r={10} stroke={palette.muted} opacity={state.done} />
       <path
         d="m9 12 2 2 4-4"
         stroke={palette.muted}
-        strokeDasharray={round(CHECK_LENGTH)}
-        strokeDashoffset={round(CHECK_LENGTH * (1 - state.check))}
+        strokeDasharray={round3(CHECK_LENGTH)}
+        strokeDashoffset={round3(CHECK_LENGTH * (1 - state.check))}
         opacity={state.check > 0 ? 1 : 0}
       />
     </svg>
@@ -2007,7 +2030,7 @@ function AnswerBlock({ block, palette }: { block: AgentRunBlockState; palette: A
                 fontSize: block.styled ? spec.size : BODY_SIZE,
                 fontWeight: Math.round(400 + 200 * block.morph),
                 lineHeight: 1.25,
-                transform: `scale(${round(scale)})`,
+                transform: `scale(${round3(scale)})`,
                 transformOrigin: "0 50%",
               }}
             >

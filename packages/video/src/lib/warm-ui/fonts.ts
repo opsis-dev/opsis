@@ -10,5 +10,6 @@ export const FONTS: Record<string, string> = {
 export const DEFAULT_FONT = "Default";
 export const FONT_NAMES = [DEFAULT_FONT, ...Object.keys(FONTS)];
 
-export const resolveFont = (name?: string): string | undefined =>
-  !name || name === DEFAULT_FONT ? undefined : (FONTS[name] ?? name);
+export function resolveFont(name?: string): string | undefined {
+  return !name || name === DEFAULT_FONT ? undefined : (FONTS[name] ?? name);
+}

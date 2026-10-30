@@ -14,19 +14,19 @@ const DIRECTIVE = /^\/\/\/ <reference|^\/[/*]\s*(oxlint-|@ts-)/;
 const LINE_COMMENT = /^\s*\/\/|\/\*|\*\//;
 const QUOTED_MARK = /"[^"]*(\/\*|\*\/)[^"]*"/;
 
-const scriptComments = (file: string, text: string): number[] => {
+function scriptComments(file: string, text: string): number[] {
   const kind = file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
   const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, kind);
   const starts = new Set<number>();
-  const collect = (pos: number) => {
+  function collect(pos: number) {
     for (const range of [
       ...(ts.getLeadingCommentRanges(text, pos) ?? []),
       ...(ts.getTrailingCommentRanges(text, pos) ?? []),
     ]) {
       if (!DIRECTIVE.test(text.slice(range.pos, range.end))) starts.add(range.pos);
     }
-  };
-  const visit = (node: ts.Node) => {
+  }
+  function visit(node: ts.Node) {
     if (node.kind === ts.SyntaxKind.JsxText) return;
     const children = node.getChildren(source);
     if (children.length === 0) {
@@ -34,15 +34,16 @@ const scriptComments = (file: string, text: string): number[] => {
       collect(node.end);
     }
     children.forEach(visit);
-  };
+  }
   visit(source);
   return [...starts].map((pos) => source.getLineAndCharacterOfPosition(pos).line);
-};
+}
 
-const otherComments = (text: string): number[] =>
-  text
+function otherComments(text: string): number[] {
+  return text
     .split("\n")
     .flatMap((line, index) => (LINE_COMMENT.test(line) && !QUOTED_MARK.test(line) ? [index] : []));
+}
 
 const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], {
   cwd: ROOT,

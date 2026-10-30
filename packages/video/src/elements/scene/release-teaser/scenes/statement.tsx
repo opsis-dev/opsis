@@ -1,4 +1,5 @@
 import { Interactive, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ReleaseTeaserScene } from "#video/elements/scene/release-teaser/content.ts";
 import { characterState, fitText, graphemes } from "#video/elements/scene/release-teaser/motion.ts";
 
@@ -29,12 +30,7 @@ export function Statement({
         fontWeight: scene.statementWeight,
         lineHeight: 1.13,
         color: scene.theme.foreground,
-        scale: scene.reducedMotion
-          ? 1
-          : interpolate(frame, [0, duration], [0.99, 1.025], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            }),
+        scale: scene.reducedMotion ? 1 : interpolate(frame, [0, duration], [0.99, 1.025], CLAMPED),
       }}
     >
       {text.split("\n").map((line, lineIndex) => {

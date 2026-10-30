@@ -1,6 +1,14 @@
 import { useMemo } from "react";
 import { Easing } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import {
+  clamp,
+  clamp01,
+  easeOutCubic,
+  easeOutQuad,
+  numberOr,
+  smoothstep,
+} from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -358,19 +366,11 @@ interface Lexed {
   col: number;
 }
 
-const finite = (value: number | undefined, fallback: number) =>
-  typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const unit01 = (value: number) => clamp(value, 0, 1);
-const easeOut = (value: number) => 1 - (1 - unit01(value)) ** 3;
-const easeOutQuad = (value: number) => 1 - (1 - unit01(value)) ** 2;
-const phase = (value: number, morph: number) => (value * morph) / BASE;
-const range = (start: number, end: number) =>
-  Array.from({ length: Math.max(0, end - start) }, (_, k) => start + k);
-
-function smoothstep(value: number) {
-  const t = unit01(value);
-  return t * t * (3 - 2 * t);
+function phase(value: number, morph: number) {
+  return (value * morph) / BASE;
+}
+function range(start: number, end: number) {
+  return Array.from({ length: Math.max(0, end - start) }, (_, k) => start + k);
 }
 
 export function normalizeCodeMorphCode(code: string) {
@@ -409,10 +409,10 @@ function matchAt(pattern: RegExp, line: string, index: number) {
 
 function scanLine(line: string, open: Open): { pieces: Piece[]; open: Open } {
   const pieces: Piece[] = [];
-  const emit = (start: number, end: number, lexeme: Lexeme) => {
+  function emit(start: number, end: number, lexeme: Lexeme) {
     pieces.push({ start, end, lexeme });
     return end;
-  };
+  }
   let index = 0;
   if (open !== null) {
     const comment = open === "comment";
@@ -584,8 +584,9 @@ function costOf(sides: Sides, i: number, j: number, before: Shift | null, after:
   if (before === null && after === null) {
     return Math.min(MAX_COST, expectedCost(sides, i, j, STILL));
   }
-  const via = (shift: Shift | null) =>
-    shift === null ? MAX_COST : expectedCost(sides, i, j, shift);
+  function via(shift: Shift | null) {
+    return shift === null ? MAX_COST : expectedCost(sides, i, j, shift);
+  }
   return Math.min(MAX_COST, via(before), via(after));
 }
 
@@ -605,7 +606,9 @@ function align(
     }
   }
   const table = new Float64Array((rows + 1) * width);
-  const at = (a: number, b: number) => table[a * width + b];
+  function at(a: number, b: number) {
+    return table[a * width + b];
+  }
   for (let a = rows - 1; a >= 0; a -= 1) {
     for (let b = cols - 1; b >= 0; b -= 1) {
       const gain = worth[a * cols + b];
@@ -754,10 +757,10 @@ export function diffCodeMorphTokens(from: CodeMorphToken[], to: CodeMorphToken[]
   });
   const fromTo = from.map(() => -1);
   const toFrom = to.map(() => -1);
-  const link = ([i, j]: Pair) => {
+  function link([i, j]: Pair) {
     fromTo[i] = j;
     toFrom[j] = i;
-  };
+  }
   const bounds: Pair[] = [[-1, -1], ...words, [from.length, to.length]];
   for (let k = 0; k + 1 < bounds.length; k += 1) {
     const [a0, b0] = bounds[k];
@@ -836,7 +839,9 @@ function changedLines(from: CodeMorphVersion, to: CodeMorphVersion, diff: CodeMo
   for (const [line, indices] of members) {
     const sources = indices.map((j) => diff.toFrom[j]);
     const origin = sources[0] >= 0 ? from.tokens[sources[0]].line : -1;
-    const inLine = (i: number) => i >= 0 && from.tokens[i].line === origin;
+    function inLine(i: number) {
+      return i >= 0 && from.tokens[i].line === origin;
+    }
     const copied = sources.every(inLine);
     if (!(copied && sizes.get(origin) === indices.length)) changed.push(line);
   }
@@ -876,7 +881,7 @@ function stepsOf(steps: CodeMorphStep[] | undefined) {
   const ordered = source
     .map((step, index) => ({
       index,
-      at: Math.max(0, finite(step.at, 0)),
+      at: Math.max(0, numberOr(step.at, 0)),
       code: typeof step.code === "string" ? step.code : "",
     }))
     .sort((a, b) => a.at - b.at || a.index - b.index);
@@ -884,9 +889,9 @@ function stepsOf(steps: CodeMorphStep[] | undefined) {
 }
 
 export function getCodeMorphLayout(options: CodeMorphOptions = {}) {
-  const width = Math.max(1, finite(options.width, REFERENCE_WIDTH));
-  const height = Math.max(1, finite(options.height, REFERENCE_HEIGHT));
-  const requested = finite(options.fontSize, codeMorphDefaults.fontSize);
+  const width = Math.max(1, numberOr(options.width, REFERENCE_WIDTH));
+  const height = Math.max(1, numberOr(options.height, REFERENCE_HEIGHT));
+  const requested = numberOr(options.fontSize, codeMorphDefaults.fontSize);
   const size = clamp(requested, MIN_FONT, MAX_FONT);
   const lineNumbers = options.lineNumbers !== false;
   const windowDots = options.windowDots !== false;
@@ -901,10 +906,10 @@ export function getCodeMorphLayout(options: CodeMorphOptions = {}) {
   const digits = lineNumbers ? Math.max(2, String(rows).length) : 0;
   const gutter = lineNumbers ? digits + GUTTER_GAP : 0;
   const header = windowDots || filename !== "" ? HEADER : 0;
-  const leading = size * finite(options.lineHeight, LEADING);
+  const leading = size * numberOr(options.lineHeight, LEADING);
   const panelWidth = PAD_LEFT + PAD_RIGHT + (gutter + columns) * ADVANCE * size;
   const panelHeight = header + PAD_TOP + PAD_BOTTOM + rows * leading;
-  const share = finite(options.maxSize, MAX_SHARE) / MAX_SHARE;
+  const share = numberOr(options.maxSize, MAX_SHARE) / MAX_SHARE;
   const fit = Math.min(1, (MAX_WIDTH * share) / panelWidth, (MAX_HEIGHT * share) / panelHeight);
   const scale = Math.min(width / REFERENCE_WIDTH, height / REFERENCE_HEIGHT);
   const unit = scale * fit;
@@ -935,7 +940,7 @@ export function getCodeMorphLayout(options: CodeMorphOptions = {}) {
 export type CodeMorphLayout = ReturnType<typeof getCodeMorphLayout>;
 
 export function getCodeMorphTimeline(options: CodeMorphOptions = {}) {
-  const requested = finite(options.morphDuration, codeMorphDefaults.morphDuration);
+  const requested = numberOr(options.morphDuration, codeMorphDefaults.morphDuration);
   const morph = clamp(requested, MIN_MORPH, MAX_MORPH);
   const highlight = options.highlight !== false;
   const steps = stepsOf(options.steps).map((step) => step.at);
@@ -948,7 +953,7 @@ export function getCodeMorphTimeline(options: CodeMorphOptions = {}) {
   }
   const morphs = starts.map((start, index) => {
     const highlightStart = start + phase(ENTER_START, morph);
-    const natural = highlightStart + RISE + finite(options.highlightHold, SHOW);
+    const natural = highlightStart + RISE + numberOr(options.highlightHold, SHOW);
     const next = index + 1 < starts.length ? starts[index + 1] : natural;
     const fallStart = Math.min(natural, next);
     return {
@@ -974,16 +979,16 @@ export type CodeMorphTimeline = ReturnType<typeof getCodeMorphTimeline>;
 export const codeMorphLength = getCodeMorphTimeline().settled;
 
 export function getCodeMorphDuration(options: CodeMorphOptions = {}) {
-  const speed = Math.max(0, finite(options.speed, codeMorphDefaults.speed));
+  const speed = Math.max(0, numberOr(options.speed, codeMorphDefaults.speed));
   if (speed === 0) return 1;
   const { duration } = getCodeMorphTimeline(options);
   return Math.max(1, Math.ceil(duration / speed));
 }
 
 export function getCodeMorphTime(frame: number, options: CodeMorphOptions = {}) {
-  const fps = Math.max(1, finite(options.fps, 30));
-  const speed = Math.max(0, finite(options.speed, codeMorphDefaults.speed));
-  return Math.max(0, finite(frame, 0)) * (30 / fps) * speed;
+  const fps = Math.max(1, numberOr(options.fps, 30));
+  const speed = Math.max(0, numberOr(options.speed, codeMorphDefaults.speed));
+  return Math.max(0, numberOr(frame, 0)) * (30 / fps) * speed;
 }
 
 function rowsOf(count: number, opacity: (row: number) => number) {
@@ -1021,7 +1026,7 @@ function morphFrame(layout: CodeMorphLayout, index: number, local: number, morph
     const delay = phase(EXIT_SPREAD, morph) * rank;
     const progress = (local - delay) / phase(EXIT_DURATION, morph);
     if (progress >= 1) continue;
-    const eased = easeOut(progress);
+    const eased = easeOutCubic(progress);
     tokens.push({
       key: `${index}>${i}`,
       text: token.text,
@@ -1034,8 +1039,9 @@ function morphFrame(layout: CodeMorphLayout, index: number, local: number, morph
       blur: blur * eased,
     });
   }
-  const travel = (delay: number) =>
-    (local - phase(MOVE_START, morph) - delay) / phase(MOVE_DURATION, morph);
+  function travel(delay: number) {
+    return (local - phase(MOVE_START, morph) - delay) / phase(MOVE_DURATION, morph);
+  }
   for (const [j, token] of to.tokens.entries()) {
     const i = data.diff.toFrom[j];
     if (i < 0) continue;
@@ -1043,8 +1049,8 @@ function morphFrame(layout: CodeMorphLayout, index: number, local: number, morph
     const still = source.line === token.line && source.col === token.col;
     const rank = data.moveRank.get(token.line) ?? 0;
     const progress = travel(phase(CASCADE, morph) * rank);
-    const vertical = glide(unit01(progress / (1 - ARC)));
-    const horizontal = glide(unit01((progress - ARC) / (1 - ARC)));
+    const vertical = glide(clamp01(progress / (1 - ARC)));
+    const horizontal = glide(clamp01((progress - ARC) / (1 - ARC)));
     tokens.push({
       key: `${index + 1}:${j}`,
       text: token.text,
@@ -1063,7 +1069,7 @@ function morphFrame(layout: CodeMorphLayout, index: number, local: number, morph
     const start = phase(ENTER_START + ENTER_SPREAD * rank, morph);
     const progress = (local - start) / phase(ENTER_DURATION, morph);
     if (progress <= 0) continue;
-    const eased = easeOut(progress);
+    const eased = easeOutCubic(progress);
     tokens.push({
       key: `${index + 1}:${j}`,
       text: token.text,
@@ -1078,7 +1084,7 @@ function morphFrame(layout: CodeMorphLayout, index: number, local: number, morph
   }
   const shrinking = to.lines < from.lines;
   const lag = shrinking ? phase(CASCADE, morph) : 0;
-  const grown = glide(unit01(travel(lag) / (1 - ARC)));
+  const grown = glide(clamp01(travel(lag) / (1 - ARC)));
   const lines = from.lines + (to.lines - from.lines) * grown;
   const shared = Math.min(from.lines, to.lines);
   const lineNumbers = rowsOf(Math.max(from.lines, to.lines), (row) => {
@@ -1201,8 +1207,9 @@ export function CodeMorph({
   const top = layout.header + layout.padTop;
   const blend = `${palette.share}%, ${palette.mix}`;
   const accentText = `color-mix(in oklab, ${accentColor} ${blend})`;
-  const colorOf = (kind: CodeMorphKind) =>
-    kind === "string" || kind === "number" ? accentText : palette[kind];
+  function colorOf(kind: CodeMorphKind) {
+    return kind === "string" || kind === "number" ? accentText : palette[kind];
+  }
   const panelColumns = `${layout.gutter + layout.columns}ch`;
   const panelPadding = layout.padLeft + layout.padRight;
   const codeLeft = `${layout.gutter}ch`;

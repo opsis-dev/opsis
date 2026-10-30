@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Easing, interpolate } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -15,7 +16,9 @@ function measureWords(
   fontFamily: string,
   letterSpacing: number,
 ): number[] {
-  const guess = () => words.map((word) => word.length * CHAR_WIDTH_EM * fontSize);
+  function guess() {
+    return words.map((word) => word.length * CHAR_WIDTH_EM * fontSize);
+  }
   if (typeof document === "undefined") return guess();
   const ctx = document.createElement("canvas").getContext("2d");
   if (!ctx) return guess();
@@ -74,16 +77,14 @@ export function WordPush({
   );
 
   let lineX = interpolate(frame, [0, pushTime], [-driveDistance * fontSize, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: driveEasing,
   });
   for (let j = 1; j < words.length; j++) {
     const wordWidth = widths[j] + SPACE_WIDTH_EM * fontSize;
     const revealAt = revealFrame(j, wordGap, accel);
     const pushed = interpolate(frame, [revealAt + 1, revealAt + 1 + pushTime], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
+      ...CLAMPED,
       easing: pushEasing,
     });
     lineX += (wordWidth / 2) * (1 - pushed);
@@ -114,17 +115,13 @@ export function WordPush({
         {words.map((word, j) => {
           const revealAt = revealFrame(j, wordGap, accel);
 
-          const opacity = interpolate(frame, [revealAt, revealAt + REVEAL_FRAMES], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          });
+          const opacity = interpolate(frame, [revealAt, revealAt + REVEAL_FRAMES], [0, 1], CLAMPED);
 
           const driven =
             j === 0
               ? 1
               : interpolate(frame, [revealAt, revealAt + pushTime], [0, 1], {
-                  extrapolateLeft: "clamp",
-                  extrapolateRight: "clamp",
+                  ...CLAMPED,
                   easing: driveEasing,
                 });
 

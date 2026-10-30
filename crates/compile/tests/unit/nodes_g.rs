@@ -9,7 +9,7 @@ use opsis_types::values::{BrowserSessionValue, CompileValue};
 use opsis_types::workflow::Workflow;
 use serde_json::{Map, Value, json};
 
-use crate::helpers::{Graph, card_texts, node_card, parse_params};
+use crate::helpers::{Graph, card_texts, node_card, parse_params, problem};
 
 fn icon_text(kind: &str, params: Value) -> Vec<(Icon, String)> {
     node_card(kind, params, CardInputs::default())
@@ -136,10 +136,6 @@ fn says_on_the_click_card_when_it_double_clicks_or_right_clicks() {
         first(json!({ "target": "", "double": true })),
         "Pick an element"
     );
-}
-
-fn problem(kind: &str, params: Value) -> Option<String> {
-    parse_params(kind, params).err()
 }
 
 #[test]

@@ -31,7 +31,9 @@ const idle: RunMirror = {
 
 export const useRunStore = create<RunMirror>()(() => idle);
 
-const flat = ({ progress, ...rest }: RunView) => ({ ...progress, ...rest });
+function flat({ progress, ...rest }: RunView) {
+  return { ...progress, ...rest };
+}
 
 export function showRunView(view: RunView): void {
   if (view.seq >= useRunStore.getState().seq) useRunStore.setState(flat(view));
@@ -41,9 +43,12 @@ export function showRunState({ view, logs }: RunState): void {
   if (view.seq >= useRunStore.getState().seq) useRunStore.setState({ ...flat(view), logs });
 }
 
-export const addLogLine = (line: LogLine): void =>
-  useRunStore.setState((s) =>
+export function addLogLine(line: LogLine): void {
+  return useRunStore.setState((s) =>
     line.id > (s.logs.at(-1)?.id ?? 0) ? { logs: [...s.logs, line].slice(-MAX_LOG_LINES) } : {},
   );
+}
 
-export const clearLogs = (): void => void commands.clearRunLog();
+export function clearLogs(): void {
+  return void commands.clearRunLog();
+}

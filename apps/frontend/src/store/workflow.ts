@@ -61,7 +61,9 @@ export function showDocument(state: DocumentState): void {
   });
 }
 
-export const editWorkflow = (edit: WorkflowEdit): Promise<Edited> => commands.editWorkflow(edit);
+export function editWorkflow(edit: WorkflowEdit): Promise<Edited> {
+  return commands.editWorkflow(edit);
+}
 
 const CHANGE_FAILED = "Couldn't make that change";
 
@@ -69,19 +71,20 @@ function send(edit: WorkflowEdit): void {
   editWorkflow(edit).catch((e: unknown) => reportError(CHANGE_FAILED, e));
 }
 
-const created = (edit: WorkflowEdit): Promise<string[]> =>
-  editWorkflow(edit).then(
+function created(edit: WorkflowEdit): Promise<string[]> {
+  return editWorkflow(edit).then(
     (edited) => edited.ids,
     (e: unknown) => {
       reportError(CHANGE_FAILED, e);
       return [];
     },
   );
+}
 
-const integerSize = (node: WorkflowNode) => {
+function integerSize(node: WorkflowNode) {
   const { width, height } = cardSize(node);
   return { width: Math.round(width), height: Math.round(height) };
-};
+}
 
 export const workflowEdits = {
   addNode: async (

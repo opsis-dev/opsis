@@ -28,7 +28,9 @@ describe("registering font faces", () => {
     vi.stubGlobal("document", { fonts: { add: () => undefined, delete: () => true } });
     vi.stubGlobal("FontFace", UnreadableFace);
     const warnings: string[] = [];
-    const warn = () => warnings.push(broken.family);
+    function warn() {
+      return warnings.push(broken.family);
+    }
     for (let i = 0; i < 3; i++) await registerFaces("df-test", broken, (ref) => ref, warn);
     expect(warnings).toEqual(["Broken Sans"]);
     const changed = { ...broken, faces: [{ ...broken.faces[0], weight: "700" }] };

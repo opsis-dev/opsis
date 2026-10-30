@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 import { playbackSnapshot, usePlayback } from "./playback";
 import { selection, useUiStore } from "./ui";
 
-const stateKeys = (state: object): string[] =>
-  Object.entries(state)
+function stateKeys(state: object): string[] {
+  return Object.entries(state)
     .filter(([, value]) => typeof value !== "function")
     .map(([key]) => key)
     .toSorted();
+}
 
 const STORES = [
   {

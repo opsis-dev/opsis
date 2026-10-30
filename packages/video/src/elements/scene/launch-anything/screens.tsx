@@ -1,7 +1,8 @@
 import { useId } from "react";
 import { Img } from "remotion";
+import { clamp01 } from "#video/common/math.ts";
 import { type SceneProps, tint } from "#video/elements/scene/launch-anything/content.ts";
-import { clamp, getShowcase, key, tween } from "#video/elements/scene/launch-anything/motion.ts";
+import { getShowcase, key, tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { LogoGlyph } from "#video/elements/scene/launch-anything/ui.tsx";
 
 const surface = {
@@ -347,7 +348,7 @@ function Exchange({ scene, t }: SceneProps) {
 function Builder({ scene, t }: SceneProps) {
   const prompt = scene.content.builderPrompt.slice(
     0,
-    Math.floor(clamp((t - 10.35) / 0.55) * scene.content.builderPrompt.length),
+    Math.floor(clamp01((t - 10.35) / 0.55) * scene.content.builderPrompt.length),
   );
   return (
     <div style={surface}>
@@ -647,7 +648,7 @@ function Loyalty({ scene, t }: SceneProps) {
 
 function Integrations({ scene, t }: SceneProps) {
   const names = scene.content.integrations;
-  const index = Math.min(names.length - 1, Math.floor(clamp((t - 14.017) / 1.1) * names.length));
+  const index = Math.min(names.length - 1, Math.floor(clamp01((t - 14.017) / 1.1) * names.length));
   const progress = (((t - 14.017) * names.length) / 1.1) % 1;
   return (
     <div

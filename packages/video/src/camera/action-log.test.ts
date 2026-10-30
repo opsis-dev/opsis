@@ -140,19 +140,21 @@ describe("ActionLog → ClickLog", () => {
 
   it("gives the target more room, waits longer and moves slower when tuned to", () => {
     const cl = toClickLog(log, "demo");
-    const most = (tuning: CameraTuning) =>
-      Math.max(...buildCameraTrack(cl, 1, tuning).map((k) => k.pose.scale));
+    function most(tuning: CameraTuning) {
+      return Math.max(...buildCameraTrack(cl, 1, tuning).map((k) => k.pose.scale));
+    }
     expect(most({ roomPx: 300, firstMaxScale: 2.5 })).toBeLessThan(most({ firstMaxScale: 2.5 }));
-    const last = (tuning: CameraTuning) => {
+    function last(tuning: CameraTuning) {
       const keys = buildCameraTrack(cl, 1, tuning);
       return keys[keys.length - 1].t;
-    };
+    }
     expect(last({ pace: 2 })).toBeGreaterThanOrEqual(last({}));
     const keys = buildCameraTrack(cl, 1, {});
     const moving = keys.findIndex((k, i) => i > 0 && k.pose.scale !== keys[i - 1].pose.scale);
     const quarter = keys[moving - 1].t + (keys[moving].t - keys[moving - 1].t) / 4;
-    const halfway = (easing: CameraTuning["easing"]) =>
-      sampleTrack(keys, quarter, { easing }).scale;
+    function halfway(easing: CameraTuning["easing"]) {
+      return sampleTrack(keys, quarter, { easing }).scale;
+    }
     expect(halfway("linear")).not.toBe(halfway("snappy"));
   });
 
@@ -173,22 +175,24 @@ describe("ActionLog → ClickLog", () => {
     expect(ann[0].toS).toBeCloseTo(3);
   });
 
-  const dragLog = (drop: Rect): ActionLog => ({
-    ...log,
-    actions: [
-      {
-        id: "d",
-        kind: "drag",
-        t: 4000,
-        tDepart: 2400,
-        tDown: 3000,
-        point: rectCenter(drop),
-        rect: { x: 300, y: 300, w: 200, h: 80 },
-        drop,
-        label: "Card",
-      },
-    ],
-  });
+  function dragLog(drop: Rect): ActionLog {
+    return {
+      ...log,
+      actions: [
+        {
+          id: "d",
+          kind: "drag",
+          t: 4000,
+          tDepart: 2400,
+          tDown: 3000,
+          point: rectCenter(drop),
+          rect: { x: 300, y: 300, w: 200, h: 80 },
+          drop,
+          label: "Card",
+        },
+      ],
+    };
+  }
 
   it("frames a short drag as one event covering both ends", () => {
     const [event, ...rest] = toClickLog(dragLog({ x: 700, y: 320, w: 200, h: 200 }), "d").clicks;

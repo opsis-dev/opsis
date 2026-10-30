@@ -7,7 +7,9 @@ export const CLAMP_RIGHT = { extrapolateRight: "clamp" } as const;
 
 const FADED_OUT_OPACITY = 0.001;
 
-export const isFadedOut = (opacity: number): boolean => opacity <= FADED_OUT_OPACITY;
+export function isFadedOut(opacity: number): boolean {
+  return opacity <= FADED_OUT_OPACITY;
+}
 
 export type Entrance = "rise" | "fade" | "blur" | "scale" | "none";
 
@@ -61,14 +63,16 @@ export function fadeWindow(
 
 const DRAW_ON_S = 0.45;
 
-export const drawOn = (t: number, fromT: number, length = DRAW_ON_S): number =>
-  interpolate(t, [fromT, fromT + length], [0, 1], {
+export function drawOn(t: number, fromT: number, length = DRAW_ON_S): number {
+  return interpolate(t, [fromT, fromT + length], [0, 1], {
     ...CLAMPED,
     easing: Easing.inOut(Easing.cubic),
   });
+}
 
-export const zoomOver = (frame: number, frames: number, to: number): number =>
-  interpolate(frame, [0, frames], [1, to], CLAMP_RIGHT);
+export function zoomOver(frame: number, frames: number, to: number): number {
+  return interpolate(frame, [0, frames], [1, to], CLAMP_RIGHT);
+}
 
 export function exitOpacity(frame: number, duration: number, frames = 10): number {
   return interpolate(frame, [duration - frames, duration], [1, 0], {

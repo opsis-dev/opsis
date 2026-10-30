@@ -32,10 +32,10 @@ function StopBar({
   onEdit: Edit;
 }) {
   const bar = useRef<HTMLDivElement>(null);
-  const atOf = (e: PointerEvent) => {
+  function atOf(e: PointerEvent) {
     const rect = bar.current?.getBoundingClientRect();
     return rect ? fractionIn(rect, e.clientX, e.clientY).x * 100 : 0;
-  };
+  }
   const drag = usePointerDrag<HTMLButtonElement, number>({
     start: (e) => {
       const index = Number(e.currentTarget.dataset.stop);
@@ -148,7 +148,7 @@ function useGradientView(
       live = false;
     };
   }, [value]);
-  const edit: Edit = (change) =>
+  function edit(change: GradientEdit): void {
     void commands.editGradient(css.current, change).then((view) => {
       if (!view) return;
       css.current = view.css;
@@ -156,6 +156,7 @@ function useGradientView(
       if (view.selected !== undefined) onSelect(view.selected);
       onChange(view.css);
     });
+  }
   return { shown, edit };
 }
 

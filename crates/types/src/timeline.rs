@@ -253,6 +253,19 @@ pub struct ParamRef {
     pub linked: Option<Vec<LinkedParam>>,
 }
 
+impl ParamRef {
+    pub fn new(node_id: &str, param: impl Into<String>, unit: ParamUnit) -> Self {
+        Self {
+            node_id: node_id.to_owned(),
+            param: param.into(),
+            unit,
+            scale: None,
+            index: None,
+            linked: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EditHandles {

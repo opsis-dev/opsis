@@ -1959,6 +1959,8 @@ export type MatrixDecode = {
 	letterSpacing: number,
 };
 
+export type MediaKind = "video" | "audio" | "image";
+
 export type MenuIcon = "search" | "settings" | "user" | "file";
 
 export type MenuState = "opened" | "closed";

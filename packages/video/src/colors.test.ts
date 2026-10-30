@@ -110,9 +110,9 @@ function sourceFiles(): string[] {
   ];
 }
 
-const literalsIn = (file: string): string[] => [
-  ...new Set(readFileSync(path.join(root, file), "utf8").match(COLOR_LITERAL) ?? []),
-];
+function literalsIn(file: string): string[] {
+  return [...new Set(readFileSync(path.join(root, file), "utf8").match(COLOR_LITERAL) ?? [])];
+}
 
 describe("colour literals in Opsis's own video code", () => {
   const found = new Map(sourceFiles().map((file) => [file, literalsIn(file)]));

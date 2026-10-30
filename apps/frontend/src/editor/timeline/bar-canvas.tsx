@@ -41,9 +41,13 @@ function newImage(url: string): HTMLImageElement {
   return img;
 }
 
-const isLoaded = (img: HTMLImageElement): boolean => img.complete && img.naturalWidth > 0;
+function isLoaded(img: HTMLImageElement): boolean {
+  return img.complete && img.naturalWidth > 0;
+}
 
-const cachedImage = (url: string): HTMLImageElement => images.use(url, () => newImage(url));
+function cachedImage(url: string): HTMLImageElement {
+  return images.use(url, () => newImage(url));
+}
 
 function loadedImage(url: string | null): HTMLImageElement | null {
   if (!url) return null;
@@ -106,13 +110,15 @@ function MediaCanvas({
   );
 }
 
-const tileStart = (left: number, offset: number, tileW: number) =>
-  Math.floor((left + offset) / tileW) * tileW - left;
+function tileStart(left: number, offset: number, tileW: number) {
+  return Math.floor((left + offset) / tileW) * tileW - left;
+}
 
 type Filmed = Extract<BarThumbnail, { kind: "filmstrip" }>;
 
-const sourceMs = (thumb: Filmed, local: number, fps: number): number =>
-  framesToRecordingMs(local, thumb.speed, fps) + thumb.trimMs;
+function sourceMs(thumb: Filmed, local: number, fps: number): number {
+  return framesToRecordingMs(local, thumb.speed, fps) + thumb.trimMs;
+}
 
 type SpriteGeometry = {
   bar: VideoBar;

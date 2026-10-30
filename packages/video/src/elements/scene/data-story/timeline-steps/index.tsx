@@ -1,4 +1,5 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
@@ -25,11 +26,6 @@ const T = {
   dwell: 0.78,
   travel: 0.42,
   exitFor: 0.42,
-} as const;
-
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
 } as const;
 
 function CheckGlyph({ size, color, progress }: { size: number; color: string; progress: number }) {
@@ -64,9 +60,12 @@ export function TimelineSteps({
   const safe = getSafeAreaPadding({ width, height });
 
   const now = (frame / fps) * speed;
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const stage = {
     x: safe.paddingLeft,
@@ -79,8 +78,12 @@ export function TimelineSteps({
   const list = steps.slice(0, 5);
   const count = list.length;
 
-  const arrival = (index: number) => T.start + index * (T.dwell + T.travel);
-  const completion = (index: number) => arrival(index) + T.dwell;
+  function arrival(index: number) {
+    return T.start + index * (T.dwell + T.travel);
+  }
+  function completion(index: number) {
+    return arrival(index) + T.dwell;
+  }
   const finished = completion(count - 1);
 
   const node = 60 * u;
@@ -95,8 +98,9 @@ export function TimelineSteps({
     ? node / 2
     : headerH + Math.max(node / 2, (stage.h - headerH - (copyDrop + node / 2)) / 2 + node / 2);
 
-  const nodeAt = (index: number) =>
-    railStart + (count === 1 ? railSpan / 2 : (index / (count - 1)) * railSpan);
+  function nodeAt(index: number) {
+    return railStart + (count === 1 ? railSpan / 2 : (index / (count - 1)) * railSpan);
+  }
 
   const headIndex = (() => {
     if (now <= arrival(0)) {
@@ -109,7 +113,7 @@ export function TimelineSteps({
       if (now < arrival(index + 1)) {
         return interpolate(now, [completion(index), arrival(index + 1)], [index, index + 1], {
           easing: EASING.editorial,
-          ...clamp,
+          ...CLAMPED,
         });
       }
     }
@@ -125,7 +129,7 @@ export function TimelineSteps({
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   return (
@@ -229,11 +233,11 @@ export function TimelineSteps({
           const landed = ease(arrival(index), arrival(index) + 0.3);
           const work = interpolate(now, [arrival(index), completion(index)], [0, 1], {
             easing: EASING.editorial,
-            ...clamp,
+            ...CLAMPED,
           });
           const check = interpolate(now, [completion(index), completion(index) + 0.32], [0, 1], {
             easing: EASING.enter,
-            ...clamp,
+            ...CLAMPED,
           });
           const active = landed * (1 - check * 0.55);
           const pop = spring({

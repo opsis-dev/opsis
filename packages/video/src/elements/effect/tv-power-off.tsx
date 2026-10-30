@@ -1,5 +1,6 @@
 import type React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
+import { clamp } from "#video/common/math.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import {
@@ -120,8 +121,6 @@ void main() {
     mix(texture(u_scene, v_uv).a, 1.0, blackout)
   );
 }`;
-
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function powerProgress({ durationInFrames, delay }: TvPowerOffProps, frame: number): number {
   return clamp((frame - delay) / Math.max(1, durationInFrames), 0, 1);

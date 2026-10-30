@@ -1,4 +1,5 @@
 import { Easing, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 
 export const DEFAULT_FPS = 30;
 
@@ -29,9 +30,8 @@ export function enterProgress(
   easing = EASING_ENTER,
 ): number {
   return interpolate(frame, [delayInFrames, delayInFrames + durationInFrames], [0, 1], {
+    ...CLAMPED,
     easing,
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
   });
 }
 
@@ -42,8 +42,7 @@ export function exitProgress(
   easing = EASING_EXIT,
 ): number {
   return interpolate(frame, [delayInFrames, delayInFrames + durationInFrames], [0, 1], {
+    ...CLAMPED,
     easing,
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
   });
 }

@@ -1,5 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { codePalette, type CodeTheme } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
@@ -20,11 +21,6 @@ const T = {
   beforeSelect: 0.24,
   selectFor: 0.4,
   exitFor: 0.42,
-} as const;
-
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
 } as const;
 
 const HEADER_U = 42;
@@ -132,9 +128,12 @@ function FileTreeRevealView({
   const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const portrait = height > width;
   const rows = flatten(nodes);
@@ -144,7 +143,9 @@ function FileTreeRevealView({
     ? Math.min(width / 560, height / 1000)
     : Math.min(width / 640, height / 360);
   const u = Math.min(fitU, (height - safe.paddingTop - safe.paddingBottom) / panelUnits);
-  const revealAt = (index: number) => T.rows + rowStagger * index;
+  function revealAt(index: number) {
+    return T.rows + rowStagger * index;
+  }
   const lastRowEnd = rows.length > 0 ? revealAt(rows.length - 1) + T.rowFor : T.rows;
   const selectAt = lastRowEnd + T.beforeSelect;
   const select = selectedPath ? ease(selectAt, selectAt + T.selectFor, EASING.editorial) : 0;
@@ -167,7 +168,7 @@ function FileTreeRevealView({
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   const panelW = Math.min(width - safe.paddingLeft - safe.paddingRight, panelWidth * u);

@@ -19,10 +19,11 @@ const PROJECTS = path.join(CHECK_DIR, "projects");
 const DEV_ENGINE = path.join(os.homedir(), ".config", "Opsis", "engine");
 const SHELL_NAMES = ["headless_shell", "chrome-headless-shell"];
 
-const foldersIn = (dir: string): string[] =>
-  readdirSync(dir, { withFileTypes: true })
+function foldersIn(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => path.join(dir, entry.name));
+}
 
 function browserIn(engine: string): string | null {
   const root = path.join(engine, "chrome-headless-shell");
@@ -34,7 +35,9 @@ function browserIn(engine: string): string | null {
 }
 
 function engineSettings(engine: string): Record<string, { path: string } | null> {
-  const tool = (file: string) => (existsSync(file) ? { path: file } : null);
+  function tool(file: string) {
+    return existsSync(file) ? { path: file } : null;
+  }
   const browser = browserIn(engine);
   return {
     browser: browser ? { path: browser } : null,

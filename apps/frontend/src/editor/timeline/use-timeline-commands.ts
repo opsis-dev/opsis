@@ -32,13 +32,13 @@ export function useTimelineCommands({
 }) {
   const [removal, setRemoval] = useState<Removal | null>(null);
 
-  const remove = async () => {
+  async function remove() {
     if (hasSelectedMarker()) return removeSelectedMarker();
     const next = await commands.timelineRemoval([...selectedSet()]);
     if (!next) return;
     if (next.nodeIds.length > 1) setRemoval(next);
     else removeNow(next, sourceNodeId);
-  };
+  }
 
   const timelineCommands: TimelineCommands = {
     split: () => splitAtPlayhead(selectedSet()),

@@ -1,11 +1,12 @@
 import { create } from "zustand";
 import { fileUrl } from "../editor/file-url";
 
-const isThere = (ref: string): Promise<boolean> =>
-  fetch(fileUrl(ref.trim()), { method: "HEAD" }).then(
+function isThere(ref: string): Promise<boolean> {
+  return fetch(fileUrl(ref.trim()), { method: "HEAD" }).then(
     (reply) => reply.ok,
     () => false,
   );
+}
 
 export type FileVersions = Record<string, string>;
 
@@ -34,16 +35,18 @@ export const useProjectFiles = create<{
   forget: () => set({ gone: {}, versions: NO_VERSIONS }),
 }));
 
-export const versionsOf = (refs: readonly string[], versions: FileVersions): FileVersions =>
-  Object.fromEntries(refs.flatMap((ref) => (versions[ref] ? [[ref, versions[ref]]] : [])));
+export function versionsOf(refs: readonly string[], versions: FileVersions): FileVersions {
+  return Object.fromEntries(refs.flatMap((ref) => (versions[ref] ? [[ref, versions[ref]]] : [])));
+}
 
 function versionedUrl(ref: string, versions: FileVersions): string {
   const version = versions[ref];
   return version ? `${fileUrl(ref)}?v=${encodeURIComponent(version)}` : fileUrl(ref);
 }
 
-export const currentFileUrl = (ref: string): string =>
-  versionedUrl(ref, useProjectFiles.getState().versions);
+export function currentFileUrl(ref: string): string {
+  return versionedUrl(ref, useProjectFiles.getState().versions);
+}
 
 export function useFileUrl(ref: string | null): string | null {
   const versions = useProjectFiles((s) => s.versions);

@@ -16,8 +16,12 @@ const value = fc.oneof(
   fc.array(fc.integer(), { maxLength: 3 }),
 );
 
-const at = (target: unknown, path: string[]): unknown =>
-  path.reduce<unknown>((node, key) => (node as Record<string, unknown> | undefined)?.[key], target);
+function at(target: unknown, path: string[]): unknown {
+  return path.reduce<unknown>(
+    (node, key) => (node as Record<string, unknown> | undefined)?.[key],
+    target,
+  );
+}
 
 describe("nestedFrom", () => {
   it("puts every set value at its path, keeps the other settings and leaves unset ones out", () => {
@@ -89,10 +93,11 @@ describe("ticksFromWords", () => {
 });
 
 describe("treeFromPaths", () => {
-  const files = (nodes: TreeNode[], prefix = ""): string[] =>
-    nodes.flatMap((n) =>
+  function files(nodes: TreeNode[], prefix = ""): string[] {
+    return nodes.flatMap((n) =>
       n.children ? files(n.children, `${prefix}${n.name}/`) : [`${prefix}${n.name}`],
     );
+  }
 
   it("builds folders from paths with every file once where its path puts it", () => {
     fc.assert(
@@ -108,9 +113,12 @@ describe("treeFromPaths", () => {
           );
           const expected = [...new Set(paths)].filter((p) => !folders.has(p)).toSorted();
           expect(files(tree).toSorted()).toEqual(expected);
-          const unique = (nodes: TreeNode[]): boolean =>
-            new Set(nodes.map((n) => n.name)).size === nodes.length &&
-            nodes.every((n) => unique(n.children ?? []));
+          function unique(nodes: TreeNode[]): boolean {
+            return (
+              new Set(nodes.map((n) => n.name)).size === nodes.length &&
+              nodes.every((n) => unique(n.children ?? []))
+            );
+          }
           expect(unique(tree)).toBe(true);
         },
       ),

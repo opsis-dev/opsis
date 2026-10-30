@@ -12,7 +12,9 @@ const MAX_REDUCTION_DB = 24;
 const CLIP_DB = -0.5;
 const HOLD_SECONDS = 1.5;
 
-const levelHeight = (level: number) => percent(normalize(level, METER_MIN, METER_MAX));
+function levelHeight(level: number) {
+  return percent(normalize(level, METER_MIN, METER_MAX));
+}
 
 function Meter({ level, reduction }: { level: Level; reduction: number | null }) {
   const peak = level?.peak ?? METER_MIN;

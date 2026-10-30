@@ -1,4 +1,5 @@
-import { mixOklch, type NeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { type NeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { mixOklch } from "#video/lib/ui-kit/color.ts";
 
 export type CommandMenuItemState = "idle" | "hover" | "press" | "selected";
 

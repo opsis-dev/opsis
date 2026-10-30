@@ -5,8 +5,8 @@ const ROOT = path.resolve(import.meta.dirname, "..", "..", "..", "..");
 
 export const EDITOR_DATA = path.join(ROOT, "target", "release", "editor-data");
 
-export const buildEditorData = (): void =>
-  void execFileSync(
+export function buildEditorData(): void {
+  return void execFileSync(
     "cargo",
     ["build", "-q", "--release", "-p", "opsis-compile", "--bin", "editor-data"],
     {
@@ -14,6 +14,10 @@ export const buildEditorData = (): void =>
       stdio: "inherit",
     },
   );
+}
 
-export const editorData = (kind: "catalog" | "film", input?: string): unknown =>
-  JSON.parse(execFileSync(EDITOR_DATA, [kind], { input, encoding: "utf8", maxBuffer: 1 << 26 }));
+export function editorData(kind: "catalog" | "film", input?: string): unknown {
+  return JSON.parse(
+    execFileSync(EDITOR_DATA, [kind], { input, encoding: "utf8", maxBuffer: 1 << 26 }),
+  );
+}

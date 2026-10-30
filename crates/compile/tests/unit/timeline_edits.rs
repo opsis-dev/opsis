@@ -9,7 +9,7 @@ use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit};
 use opsis_types::workflow::{PortType, Workflow};
 use serde_json::{Value, json};
 
-use crate::helpers::{Graph, TITLE, film, flat_film};
+use crate::helpers::{Graph, TITLE, film, flat_film, near};
 
 const DELTA: f64 = 6.0;
 const FED_FAMILY_INPUTS: usize = 6;
@@ -63,10 +63,6 @@ fn audio_of<'a>(flat: &'a FlatTimeline, node: &str) -> &'a AudioBar {
 
 fn len(from: f64, to: f64) -> f64 {
     to - from
-}
-
-fn near(a: f64, b: f64, tolerance: f64) -> bool {
-    (a - b).abs() <= tolerance
 }
 
 fn by_start(flat: &FlatTimeline) -> Vec<(f64, f64)> {

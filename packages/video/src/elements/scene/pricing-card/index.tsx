@@ -1,5 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
@@ -13,11 +14,6 @@ const T = {
   ctaAfterFeatures: 0.16,
   ctaFor: 0.42,
   exitFor: 0.42,
-} as const;
-
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
 } as const;
 
 export function PricingCard({
@@ -49,9 +45,12 @@ export function PricingCard({
   const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const portrait = height > width;
   const u = portrait ? Math.min(width / 496, height / 896) : Math.min(width / 1024, height / 576);
@@ -79,7 +78,7 @@ export function PricingCard({
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, cardWidth * u);
@@ -197,7 +196,7 @@ export function PricingCard({
                   color: palette.dim,
                   fontSize: 19 * u,
                   fontWeight: 600,
-                  opacity: interpolate(roll, [0.5, 1], [0, 1], clamp),
+                  opacity: interpolate(roll, [0.5, 1], [0, 1], CLAMPED),
                 }}
               >
                 {period}
@@ -212,7 +211,7 @@ export function PricingCard({
                   fontWeight: 600,
                   textDecoration: "line-through",
                   fontVariantNumeric: "tabular-nums",
-                  opacity: interpolate(roll, [0.7, 1], [0, 1], clamp),
+                  opacity: interpolate(roll, [0.7, 1], [0, 1], CLAMPED),
                 }}
               >
                 {currency}
@@ -228,7 +227,7 @@ export function PricingCard({
                 color: palette.dim,
                 fontSize: 14.5 * u,
                 fontWeight: 500,
-                opacity: interpolate(roll, [0.6, 1], [0, 1], clamp),
+                opacity: interpolate(roll, [0.6, 1], [0, 1], CLAMPED),
               }}
             >
               {note}

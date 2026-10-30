@@ -1,11 +1,6 @@
 import { useMemo } from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, random, useCurrentFrame, useVideoConfig } from "remotion";
 import type { ElementSettings } from "#video/generated/spec.ts";
-
-function hash(index: number, salt: number, seed: number): number {
-  const value = Math.sin(index * 53.17 + salt * 79.3 + seed * 27.1) * 43758.5453;
-  return value - Math.floor(value);
-}
 
 const TRACK = 140;
 const CROSSING_SECONDS = 8;
@@ -23,14 +18,14 @@ type Particle = {
 
 function buildParticles(count: number, seed: number): Particle[] {
   return Array.from({ length: count }, (_, index) => ({
-    depth: hash(index, 1, seed) ** 2,
-    offset: hash(index, 2, seed),
-    lane: hash(index, 3, seed),
-    driftAmount: 0.4 + hash(index, 4, seed) * 1.6,
-    driftPeriod: 1.1 + hash(index, 5, seed) * 1.3,
-    driftPhase: hash(index, 6, seed) * Math.PI * 2,
-    twinklePeriod: 0.9 + hash(index, 7, seed) * 1.2,
-    twinklePhase: hash(index, 8, seed) * Math.PI * 2,
+    depth: random(`${seed}:${index}:1`) ** 2,
+    offset: random(`${seed}:${index}:2`),
+    lane: random(`${seed}:${index}:3`),
+    driftAmount: 0.4 + random(`${seed}:${index}:4`) * 1.6,
+    driftPeriod: 1.1 + random(`${seed}:${index}:5`) * 1.3,
+    driftPhase: random(`${seed}:${index}:6`) * Math.PI * 2,
+    twinklePeriod: 0.9 + random(`${seed}:${index}:7`) * 1.2,
+    twinklePhase: random(`${seed}:${index}:8`) * Math.PI * 2,
   }));
 }
 

@@ -3,9 +3,10 @@ import { attempt } from "@/lib/toast";
 import { useLiveStore } from "../store/live";
 import { showPanel } from "./panels";
 
-export const startRun = (targets: RunTargets = {}): Promise<void> =>
-  attempt(async () => {
+export function startRun(targets: RunTargets = {}): Promise<void> {
+  return attempt(async () => {
     useLiveStore.getState().reset();
     await commands.runWorkflow(targets);
     showPanel("run");
   }, "Couldn't start the run");
+}

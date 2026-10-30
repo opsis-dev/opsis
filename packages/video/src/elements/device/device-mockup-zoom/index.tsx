@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AbsoluteFill, Img, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
 import { ScreenFit } from "#video/lib/layout/screen-fit.tsx";
@@ -9,12 +10,9 @@ import { springSmooth } from "#video/lib/motion/springs.ts";
 
 type Look = ElementSettings["device-mockup-zoom"];
 
-const clampProgress = (frame: number, input: [number, number], output: [number, number]) =>
-  interpolate(frame, input, output, {
-    easing: EASING.enter,
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+function clampProgress(frame: number, input: [number, number], output: [number, number]) {
+  return interpolate(frame, input, output, { ...CLAMPED, easing: EASING.enter });
+}
 
 type MockupContentProps = {
   frame: number;
@@ -717,14 +715,10 @@ function DeviceMockupZoomView({ children, look }: { children?: ReactNode; look: 
   const deviceProgress = clampProgress(frame, [STAGGER.normal, 64], [0, 1]);
   const accentProgress = clampProgress(frame, [20, 72], [0, 1]);
   const cameraScale = interpolate(camera, [0, 1], [pullBackFrom, 0.95], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     output: "perceptual-scale",
   });
-  const cameraY = interpolate(camera, [0, 1], [scaleFont(20, width), 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const cameraY = interpolate(camera, [0, 1], [scaleFont(20, width), 0], CLAMPED);
   const gridTemplateColumns = hasCopy && !portrait ? "0.66fr 1.34fr" : "1fr";
   const mainShare =
     resolvedDevice === "phone"

@@ -1,5 +1,6 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { PathDraw } from "#video/elements/scene/logo-reveal/path-draw.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
@@ -57,8 +58,7 @@ export function LogoReveal({
     durationInFrames: DURATION.normal,
   });
   const taglineIn = interpolate(frame, [taglineFrame, taglineFrame + DURATION.normal], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...CLAMPED,
     easing: EASING.enter,
   });
 
@@ -66,9 +66,8 @@ export function LogoReveal({
     holdSeconds === undefined
       ? 0
       : interpolate(frame, [holdSeconds * fps, (holdSeconds + EXIT_FOR) * fps], [0, 1], {
+          ...CLAMPED,
           easing: EASING.exit,
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
         });
   const leaving = {
     opacity: 1 - exit,

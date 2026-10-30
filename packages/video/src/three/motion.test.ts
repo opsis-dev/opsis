@@ -3,18 +3,20 @@ import { describe, expect, it } from "vitest";
 import type { Motion } from "#video/generated/spec.ts";
 import { boxDistance, fitDistance, poseAt, type MotionTime } from "#video/three/motion.ts";
 
-const at = (frame: number, extra: Partial<MotionTime> = {}): MotionTime => ({
-  frame,
-  fps: 30,
-  speed: 1,
-  seed: 1,
-  tiltDeg: 52,
-  endFacing: false,
-  amount: 1,
-  reverse: false,
-  growIn: true,
-  ...extra,
-});
+function at(frame: number, extra: Partial<MotionTime> = {}): MotionTime {
+  return {
+    frame,
+    fps: 30,
+    speed: 1,
+    seed: 1,
+    tiltDeg: 52,
+    endFacing: false,
+    amount: 1,
+    reverse: false,
+    growIn: true,
+    ...extra,
+  };
+}
 
 const MOTIONS: Motion[] = ["spin", "tilt-in", "float", "orbit", "swing", "still", "keyframes"];
 
@@ -64,7 +66,9 @@ describe("3D motion presets", () => {
         (motion, frame, speed, seed) => {
           const now = poseAt(motion, at(frame, { speed, seed }));
           const next = poseAt(motion, at(frame + 1, { speed, seed }));
-          const parts = (p: typeof now) => [...p.rotation, ...p.position, p.scale];
+          function parts(p: typeof now) {
+            return [...p.rotation, ...p.position, p.scale];
+          }
           for (const [a, b] of parts(now).map((v, i) => [v, parts(next)[i]])) {
             expect(Number.isFinite(a)).toBe(true);
             expect(Math.abs(b - a)).toBeLessThan(Math.PI / 4);

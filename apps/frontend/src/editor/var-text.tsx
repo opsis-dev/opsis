@@ -39,7 +39,9 @@ function nodesFor(tokens: TextToken[], vars: VarInfo[]): Node[] {
   return tokens.map((t) => (t.kind === "text" ? document.createTextNode(t.text) : chip(t, vars)));
 }
 
-const blockBreak = (index: number) => (index > 0 ? "\n" : "");
+function blockBreak(index: number) {
+  return index > 0 ? "\n" : "";
+}
 
 function serializeNode(n: Node, index: number): string {
   if (n.nodeType === Node.TEXT_NODE) return n.nodeValue ?? "";
@@ -61,7 +63,9 @@ function serialize(root: Node): string {
   return [...root.childNodes].map(serializeNode).join("");
 }
 
-const isBreak = (n: Node | undefined): boolean => n instanceof HTMLElement && n.tagName === "BR";
+function isBreak(n: Node | undefined): boolean {
+  return n instanceof HTMLElement && n.tagName === "BR";
+}
 
 function serializeField(root: Node): string {
   const nodes = [...root.childNodes];
@@ -81,24 +85,24 @@ type Editable = {
 
 function useSelectionRange(ref: RefObject<HTMLElement | null>) {
   const range = useRef<Range | null>(null);
-  const save = () => {
+  function save() {
     const sel = window.getSelection();
     if (sel?.rangeCount && ref.current?.contains(sel.anchorNode))
       range.current = sel.getRangeAt(0).cloneRange();
-  };
-  const target = (el: HTMLElement): Range => {
+  }
+  function target(el: HTMLElement): Range {
     if (range.current && el.contains(range.current.startContainer)) return range.current;
     const r = document.createRange();
     r.selectNodeContents(el);
     r.collapse(false);
     return r;
-  };
-  const place = (r: Range) => {
+  }
+  function place(r: Range) {
     const sel = window.getSelection();
     sel?.removeAllRanges();
     sel?.addRange(r);
     range.current = r.cloneRange();
-  };
+  }
   return { save, target, place };
 }
 
@@ -137,15 +141,15 @@ function useEditable({
     rendered.current = { vars: varsKey, text: value };
   }, [value, pauses, vars, varsKey]);
 
-  const commit = () => {
+  function commit() {
     const el = ref.current;
     if (!el) return;
     const next = serializeField(el);
     rendered.current = { vars: varsKey, text: next };
     if (next !== value) onChange(next);
-  };
+  }
 
-  const insert = (tokens: TextToken[]) => {
+  function insert(tokens: TextToken[]) {
     const el = ref.current;
     if (!el) return;
     el.focus();
@@ -153,7 +157,7 @@ function useEditable({
     insertNodes(r, nodesFor(tokens, vars));
     selection.place(r);
     commit();
-  };
+  }
 
   return {
     ref,
@@ -164,7 +168,9 @@ function useEditable({
   };
 }
 
-const flattenLines = (text: string) => text.replace(/\s*\n\s*/g, " ");
+function flattenLines(text: string) {
+  return text.replace(/\s*\n\s*/g, " ");
+}
 
 const INSERT_VARIABLE = "Insert variable";
 

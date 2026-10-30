@@ -27,17 +27,6 @@ const MEDIA_PORT: &str = "media";
 const AUDIO_PORT: &str = "audio";
 const SOUNDS_PORT: &str = "sounds";
 
-fn param_ref(node_id: &str, param: &str, unit: ParamUnit) -> ParamRef {
-    ParamRef {
-        node_id: node_id.to_owned(),
-        param: param.to_owned(),
-        unit,
-        scale: None,
-        index: None,
-        linked: None,
-    }
-}
-
 fn silent_audio() -> Outputs {
     outputs([(
         AUDIO_PORT,
@@ -105,7 +94,7 @@ fn sound_item(
     item.role = Some(role);
     item.envelope = has_audio_keys(Some(envelope)).then(|| envelope.clone());
     item.handles = Some(EditHandles {
-        volume: Some(param_ref(node_id, "volume", ParamUnit::Number)),
+        volume: Some(ParamRef::new(node_id, "volume", ParamUnit::Number)),
         ..handles
     });
     item
@@ -205,7 +194,7 @@ pub struct Music {
 }
 
 fn music_handles(node_id: &str) -> EditHandles {
-    let mut trim_start = param_ref(node_id, "trimMs", ParamUnit::Ms);
+    let mut trim_start = ParamRef::new(node_id, "trimMs", ParamUnit::Ms);
     trim_start.linked = Some(vec![
         LinkedParam {
             param: "startMs".into(),
@@ -219,9 +208,9 @@ fn music_handles(node_id: &str) -> EditHandles {
         },
     ]);
     EditHandles {
-        move_to: Some(param_ref(node_id, "startMs", ParamUnit::Ms)),
+        move_to: Some(ParamRef::new(node_id, "startMs", ParamUnit::Ms)),
         trim_start: Some(trim_start),
-        trim_end: Some(param_ref(node_id, "lengthMs", ParamUnit::Ms)),
+        trim_end: Some(ParamRef::new(node_id, "lengthMs", ParamUnit::Ms)),
         ..EditHandles::default()
     }
 }
@@ -421,7 +410,7 @@ fn sound_effect() -> NodeDef {
                     keep_music: p.keep_music.then_some(true),
                 };
                 let handles = EditHandles {
-                    move_to: Some(param_ref(
+                    move_to: Some(ParamRef::new(
                         ctx.node_id,
                         if on_action { "offsetMs" } else { "atMs" },
                         ParamUnit::Ms,
@@ -770,7 +759,7 @@ fn placed_effect<P>(
         keep_music: keep_music.then_some(true),
     };
     let handles = EditHandles {
-        move_to: Some(param_ref(
+        move_to: Some(ParamRef::new(
             ctx.node_id,
             if on_action { "offsetMs" } else { "atMs" },
             ParamUnit::Ms,

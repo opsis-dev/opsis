@@ -27,9 +27,13 @@ export function commitHeldDrafts(): void {
   for (const ref of held) release(ref);
 }
 
-const anyHeld = () => held.size > 0;
+function anyHeld() {
+  return held.size > 0;
+}
 
-export const useHeldDrafts = (): boolean => useSyncExternalStore(heldChanges.add, anyHeld);
+export function useHeldDrafts(): boolean {
+  return useSyncExternalStore(heldChanges.add, anyHeld);
+}
 
 export function useCommitDraft(
   value: string,
@@ -46,11 +50,11 @@ export function useCommitDraft(
       flush();
     };
   }, [flush]);
-  const commitText = (text: string) => {
+  function commitText(text: string) {
     setDraft(null);
     hold(pending, null);
     if (text !== value) onCommit(text);
-  };
+  }
   return {
     text: draft ?? value,
     change: (text: string) => {

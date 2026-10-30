@@ -12,8 +12,9 @@ const LOWER_THIRD = {
   subtitleGapPx: 4,
 } as const;
 
-const slideOffset = (enter: number, exit: number, dir: number, slide: number): number =>
-  slide * dir * (1 - enter + exit);
+function slideOffset(enter: number, exit: number, dir: number, slide: number): number {
+  return slide * dir * (1 - enter + exit);
+}
 
 export function LowerThird({
   title,

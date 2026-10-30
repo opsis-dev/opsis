@@ -2,8 +2,9 @@ import { SRGBColorSpace, TextureLoader, type Texture } from "three";
 import { SVGLoader, type SVGResult } from "three/addons/loaders/SVGLoader.js";
 import { useHeldLoad } from "#video/core/loading.ts";
 
-export const isSvg = (src: string): boolean =>
-  /\.svg(\?|#|$)/i.test(src) || src.startsWith("data:image/svg");
+export function isSvg(src: string): boolean {
+  return /\.svg(\?|#|$)/i.test(src) || src.startsWith("data:image/svg");
+}
 
 async function loadSvg(src: string): Promise<SVGResult> {
   const res = await fetch(src);

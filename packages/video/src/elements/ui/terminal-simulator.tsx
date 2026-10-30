@@ -1,8 +1,9 @@
 import { interpolate, Sequence } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import { parseColor } from "#video/lib/neutral-ui/color.ts";
+import { parseColor } from "#video/lib/ui-kit/color.ts";
 
 export type TerminalLineType = "command" | "log" | "success" | "error";
 
@@ -243,10 +244,7 @@ function TerminalLineRow({
   const totalChars = line.text.length;
 
   const linearRevealed = Math.floor(
-    interpolate(localFrame, [0, totalChars / charsPerFrame], [0, totalChars], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    }),
+    interpolate(localFrame, [0, totalChars / charsPerFrame], [0, totalChars], CLAMPED),
   );
   const revealed = Math.min(totalChars, Math.ceil(linearRevealed / chunkSize) * chunkSize);
   const visible = line.text.substring(0, revealed);

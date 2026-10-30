@@ -30,14 +30,15 @@ export function SpotField({
   const yKey = spotYKey(name);
   const y = numberOr(all[yKey], SPOT_CENTRE);
   const box = useRef<HTMLDivElement>(null);
-  const place = (nextX: number, nextY: number) =>
-    onPatch({ [name]: round3(clamp01(nextX)), [yKey]: round3(clamp01(nextY)) });
-  const placeAt = (e: PointerEvent) => {
+  function place(nextX: number, nextY: number) {
+    return onPatch({ [name]: round3(clamp01(nextX)), [yKey]: round3(clamp01(nextY)) });
+  }
+  function placeAt(e: PointerEvent) {
     const r = box.current?.getBoundingClientRect();
     if (!r) return;
     const at = fractionIn(r, e.clientX, e.clientY);
     place(at.x, at.y);
-  };
+  }
   const drag = usePointerDrag({ start: placeAt, move: placeAt });
   return (
     <FieldShell label={label} meta={meta}>

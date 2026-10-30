@@ -1,5 +1,6 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import { AbsoluteFill, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import {
   resolveTransitionTiming,
   transitionPhase,
@@ -24,10 +25,7 @@ function FadePresentation({
   if (dipTo === undefined) {
     return <AbsoluteFill style={{ opacity: phase.opacity }}>{children}</AbsoluteFill>;
   }
-  const veil = interpolate(phase.displace, [0, 0.5, 1], [0, 1, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const veil = interpolate(phase.displace, [0, 0.5, 1], [0, 1, 1], CLAMPED);
 
   return (
     <AbsoluteFill>

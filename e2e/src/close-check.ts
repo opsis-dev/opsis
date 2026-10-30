@@ -33,8 +33,8 @@ async function until<T>(what: string, ms: number, check: () => Promise<T | null>
   throw new Error(`Timed out waiting for ${what}.`);
 }
 
-const element = (session: string, xpath: string) =>
-  until(xpath, CLOSE_MS, async () => {
+function element(session: string, xpath: string) {
+  return until(xpath, CLOSE_MS, async () => {
     const reply = await call("POST", `/session/${session}/element`, {
       using: "xpath",
       value: xpath,
@@ -42,9 +42,11 @@ const element = (session: string, xpath: string) =>
     const id = reply.value[W3C_ELEMENT];
     return typeof id === "string" ? id : null;
   });
+}
 
-const click = (session: string, id: string) =>
-  call("POST", `/session/${session}/element/${id}/click`, {});
+function click(session: string, id: string) {
+  return call("POST", `/session/${session}/element/${id}/click`, {});
+}
 
 const offScreen =
   process.env.GDK_BACKEND === "x11" &&

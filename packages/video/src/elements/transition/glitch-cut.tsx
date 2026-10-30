@@ -94,7 +94,9 @@ const shader = makeSceneShader<GlitchCutProps>(FRAGMENT_SHADER, ({ gl, uniform, 
   gl.uniform3fv(uniform("u_tint"), rgbUniform(tint));
 });
 
-const bandCut = (band: number) => 0.5 + (random(`glitch-cut-handoff-${band}`) - 0.5) * 0.32;
+function bandCut(band: number) {
+  return 0.5 + (random(`glitch-cut-handoff-${band}`) - 0.5) * 0.32;
+}
 
 function GlitchCutFallback({
   children,

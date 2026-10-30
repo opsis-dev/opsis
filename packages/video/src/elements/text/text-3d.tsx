@@ -33,10 +33,12 @@ type TextLook = {
 
 function textModel(data: FontData, look: TextLook): Group {
   const font = new Font(data);
-  const advance = (char: string) =>
-    (data.glyphs[char] ?? data.glyphs["?"] ?? data.glyphs[" "])?.ha ?? 0;
-  const widthOf = (s: string) =>
-    Array.from(s).reduce((sum, c) => sum + advance(c), 0) / data.resolution;
+  function advance(char: string) {
+    return (data.glyphs[char] ?? data.glyphs["?"] ?? data.glyphs[" "])?.ha ?? 0;
+  }
+  function widthOf(s: string) {
+    return Array.from(s).reduce((sum, c) => sum + advance(c), 0) / data.resolution;
+  }
   const lines = wrapLines(look.text, look.lineWidth * LETTER_EM, widthOf);
   const material = new MeshStandardMaterial({
     color: look.color,
@@ -91,8 +93,9 @@ function dispose(model: Group): void {
   });
 }
 
-const outlinesFor = (url: string) =>
-  url ? loadOutlines(url) : Promise.reject(new Error(FONT_UNREADABLE));
+function outlinesFor(url: string) {
+  return url ? loadOutlines(url) : Promise.reject(new Error(FONT_UNREADABLE));
+}
 
 export function Text3D({
   text,

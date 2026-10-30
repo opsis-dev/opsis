@@ -14,23 +14,30 @@ export type MarkPoints = { x: number; y: number; x2: number; y2: number };
 
 const MIN_DRAG = 0.01;
 
-export const isMarkKind = (v: unknown): v is MarkKind =>
-  isString(v) && (MARK_KINDS as readonly string[]).includes(v);
+export function isMarkKind(v: unknown): v is MarkKind {
+  return isString(v) && (MARK_KINDS as readonly string[]).includes(v);
+}
 
-export const kindOf = (mark: ParamValues): MarkKind =>
-  isMarkKind(mark.kind) ? mark.kind : "arrow";
+export function kindOf(mark: ParamValues): MarkKind {
+  return isMarkKind(mark.kind) ? mark.kind : "arrow";
+}
 
-export const twoEnded = (kind: MarkKind): boolean =>
-  kind === "arrow" || kind === "rectangle" || kind === "oval";
+export function twoEnded(kind: MarkKind): boolean {
+  return kind === "arrow" || kind === "rectangle" || kind === "oval";
+}
 
-const unit = (v: number): number => round3(clamp(v, 0, 1));
+function unit(v: number): number {
+  return round3(clamp(v, 0, 1));
+}
 
-export const pointsOf = (mark: ParamValues): MarkPoints => ({
-  x: numberOr(mark.x, 0),
-  y: numberOr(mark.y, 0),
-  x2: numberOr(mark.x2, 0),
-  y2: numberOr(mark.y2, 0),
-});
+export function pointsOf(mark: ParamValues): MarkPoints {
+  return {
+    x: numberOr(mark.x, 0),
+    y: numberOr(mark.y, 0),
+    x2: numberOr(mark.x2, 0),
+    y2: numberOr(mark.y2, 0),
+  };
+}
 
 export function moved(points: MarkPoints, dx: number, dy: number): MarkPoints {
   const left = Math.min(points.x, points.x2);

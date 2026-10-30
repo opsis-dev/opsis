@@ -6,8 +6,10 @@ export function commitOnce<T>(gesture: Gesture<T>, value: T): void {
   gesture.end();
 }
 
-export const mapGesture = <A, B>(gesture: Gesture<B>, map: (value: A) => B): Gesture<A> => ({
-  begin: gesture.begin,
-  set: (value) => gesture.set(map(value)),
-  end: gesture.end,
-});
+export function mapGesture<A, B>(gesture: Gesture<B>, map: (value: A) => B): Gesture<A> {
+  return {
+    begin: gesture.begin,
+    set: (value) => gesture.set(map(value)),
+    end: gesture.end,
+  };
+}

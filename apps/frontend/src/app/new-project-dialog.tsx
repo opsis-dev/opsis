@@ -113,8 +113,8 @@ function useNewProject(initialTemplate: string, onCreated: (dir: string) => void
   const dir = location.trim();
   const folder = useProjectFolder(dir, name);
 
-  const create = () =>
-    run(
+  function create() {
+    return run(
       "create",
       async () => {
         const p = await commands.createProject(name, template, dir);
@@ -122,6 +122,7 @@ function useNewProject(initialTemplate: string, onCreated: (dir: string) => void
       },
       "Couldn't create the project",
     );
+  }
 
   return {
     name,

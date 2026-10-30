@@ -23,19 +23,20 @@ const CONTROLS = [
   "[data-no-drag]",
 ].join(", ");
 
-const onControl = (e: MouseEvent): boolean =>
-  e.target instanceof Element && e.target.closest(CONTROLS) !== null;
+function onControl(e: MouseEvent): boolean {
+  return e.target instanceof Element && e.target.closest(CONTROLS) !== null;
+}
 
 function dragOnceMoved(x0: number, y0: number): void {
-  const stop = () => {
+  function stop() {
     window.removeEventListener("mousemove", move);
     window.removeEventListener("mouseup", stop);
-  };
-  const move = (e: globalThis.MouseEvent) => {
+  }
+  function move(e: globalThis.MouseEvent) {
     if (Math.hypot(e.clientX - x0, e.clientY - y0) < DRAG_START_PX) return;
     stop();
     void getCurrentWebviewWindow().startDragging();
-  };
+  }
   window.addEventListener("mousemove", move);
   window.addEventListener("mouseup", stop);
 }

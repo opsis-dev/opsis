@@ -1,12 +1,12 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { clamp01 } from "#video/common/math.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { formatNumber, readDelta } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
 const EXIT_FRAMES = 20;
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 export function ComparisonBars({
   rows,
@@ -33,7 +33,9 @@ export function ComparisonBars({
   const frame = useCurrentFrame();
   const delayInFrames = 0;
   const exitInFrames = EXIT_FRAMES;
-  const radius = (h: number) => (h * cornerRadius) / 100;
+  function radius(h: number) {
+    return (h * cornerRadius) / 100;
+  }
 
   const peak = rows.reduce((highest, row) => Math.max(highest, row.before, row.after), 0) || 1;
   const barWidth = width - labelWidth;
@@ -47,17 +49,16 @@ export function ComparisonBars({
     exitAtInFrames === undefined
       ? 0
       : interpolate(frame, [exitAtInFrames, exitAtInFrames + exitInFrames], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
+          ...CLAMPED,
           easing: EASING.exit,
         });
 
-  const grow = (start: number) =>
-    interpolate(frame, [start, start + durationInFrames], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
+  function grow(start: number) {
+    return interpolate(frame, [start, start + durationInFrames], [0, 1], {
+      ...CLAMPED,
       easing: EASING.enter,
     });
+  }
 
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>

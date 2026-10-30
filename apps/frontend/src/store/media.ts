@@ -56,14 +56,18 @@ const MIX_DEBOUNCE_MS = 250;
 
 const IDLE: MixStatus = { kind: "idle" };
 
-const engineMissing = (r: AnalysisResult) => r.kind === "error" && !!r.engineMissing;
+function engineMissing(r: AnalysisResult) {
+  return r.kind === "error" && !!r.engineMissing;
+}
 
-const emptyMedia = (projectDir: string | null) => ({
-  projectDir,
-  analyses: { waveform: {}, filmstrip: {} },
-  mix: { results: {}, latest: {}, status: IDLE },
-  unavailable: false,
-});
+function emptyMedia(projectDir: string | null) {
+  return {
+    projectDir,
+    analyses: { waveform: {}, filmstrip: {} },
+    mix: { results: {}, latest: {}, status: IDLE },
+    unavailable: false,
+  };
+}
 
 function keepNewestResult(
   results: MixState["results"],
@@ -77,14 +81,13 @@ function keepNewestResult(
   return { ...Object.fromEntries(older.map((k) => [k, results[k]])), [key]: result };
 }
 
-const pruneLatest = (
-  latest: MixState["latest"],
-  results: MixState["results"],
-): MixState["latest"] =>
-  Object.fromEntries(Object.entries(latest).filter(([, k]) => Object.hasOwn(results, k)));
+function pruneLatest(latest: MixState["latest"], results: MixState["results"]): MixState["latest"] {
+  return Object.fromEntries(Object.entries(latest).filter(([, k]) => Object.hasOwn(results, k)));
+}
 
-const waitingForAnother = (status: MixStatus, key: string): boolean =>
-  status.kind === "pending" && status.key !== key;
+function waitingForAnother(status: MixStatus, key: string): boolean {
+  return status.kind === "pending" && status.key !== key;
+}
 
 function mixDone(mix: MixState, source: string, key: string, result: MixResult): MixState {
   const results = keepNewestResult(mix.results, key, result);
@@ -95,10 +98,12 @@ function mixDone(mix: MixState, source: string, key: string, result: MixResult):
   };
 }
 
-const mixFailed = (mix: MixState, key: string, error: string): MixState => ({
-  ...mix,
-  status: waitingForAnother(mix.status, key) ? mix.status : { kind: "failed", key, error },
-});
+function mixFailed(mix: MixState, key: string, error: string): MixState {
+  return {
+    ...mix,
+    status: waitingForAnother(mix.status, key) ? mix.status : { kind: "failed", key, error },
+  };
+}
 
 function updateMixClearingPreview(
   update: (mix: MixState) => MixState,
@@ -157,7 +162,9 @@ export const useMedia = create<MediaState>()((set, get) => ({
 
   reloadChanged: (refs) => {
     const changed = new Set(refs);
-    const isChanged = (src: string) => changed.has(src);
+    function isChanged(src: string) {
+      return changed.has(src);
+    }
     for (const kind of MEDIA_KINDS) {
       for (const src of Object.keys(get().analyses[kind]).filter(isChanged))
         loadAnalysis(kind, src, true);
@@ -173,10 +180,11 @@ const MEDIA_VALUE: { [K in MediaKind]: (r: AnalysisResult) => MediaOf[K] | undef
 function loadAnalysis<K extends MediaKind>(kind: K, src: string, again = false): void {
   const { projectDir, unavailable, analyses } = useMedia.getState();
   if (!projectDir || unavailable || (analyses[kind][src] && !again)) return;
-  const put = (entry: Entry<MediaOf[K]>) =>
-    useMedia.setState((s) => ({
+  function put(entry: Entry<MediaOf[K]>) {
+    return useMedia.setState((s) => ({
       analyses: { ...s.analyses, [kind]: { ...s.analyses[kind], [src]: entry } },
     }));
+  }
   if (!again) put("loading");
   const request: Extract<AnalysisRequest, { kind: MediaKind }> = { kind, projectDir, src };
   void analyze(request).then((r) => {
@@ -186,17 +194,18 @@ function loadAnalysis<K extends MediaKind>(kind: K, src: string, again = false):
   });
 }
 
-export const mixFailure = (s: MediaState) => (s.mix.status.kind === "failed" ? s.mix.status : null);
+export function mixFailure(s: MediaState) {
+  return s.mix.status.kind === "failed" ? s.mix.status : null;
+}
 
-export const loaded = <T extends object>(entry: Entry<T> | undefined): T | null =>
-  typeof entry === "object" ? entry : null;
+export function loaded<T extends object>(entry: Entry<T> | undefined): T | null {
+  return typeof entry === "object" ? entry : null;
+}
 
-export const loadedWaveform =
-  (src: string | null) =>
-  (s: MediaState): Waveform | null =>
-    src ? loaded(s.analyses.waveform[src]) : null;
+export function loadedWaveform(src: string | null) {
+  return (s: MediaState): Waveform | null => (src ? loaded(s.analyses.waveform[src]) : null);
+}
 
-export const loadedFilmstrip =
-  (src: string | null) =>
-  (s: MediaState): Filmstrip | null =>
-    src ? loaded(s.analyses.filmstrip[src]) : null;
+export function loadedFilmstrip(src: string | null) {
+  return (s: MediaState): Filmstrip | null => (src ? loaded(s.analyses.filmstrip[src]) : null);
+}

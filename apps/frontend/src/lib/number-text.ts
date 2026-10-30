@@ -5,8 +5,9 @@ export function parseNumberText(text: string, { lenient = false } = {}): number 
   return Number.isFinite(n) ? n : null;
 }
 
-export const parseNumberList = (text: string | undefined): number[] =>
-  (text ?? "").split(",").map((part) => parseNumberText(part) ?? 0);
+export function parseNumberList(text: string | undefined): number[] {
+  return (text ?? "").split(",").map((part) => parseNumberText(part) ?? 0);
+}
 
 export function formatNumberList(parts: number[]): string {
   const trimmed = [...parts];

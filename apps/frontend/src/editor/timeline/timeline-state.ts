@@ -11,14 +11,16 @@ type RulerMode = "seconds" | "timecode";
 
 type Prefs = { rulerMode: RulerMode; snapping: boolean };
 
-const storedTimelinePrefs = (): Prefs => ({
-  rulerMode: readPref<RulerMode>(
-    "rulerMode",
-    "seconds",
-    (v) => v === "seconds" || v === "timecode",
-  ),
-  snapping: readPref("snapping", true, isBoolean),
-});
+function storedTimelinePrefs(): Prefs {
+  return {
+    rulerMode: readPref<RulerMode>(
+      "rulerMode",
+      "seconds",
+      (v) => v === "seconds" || v === "timecode",
+    ),
+    snapping: readPref("snapping", true, isBoolean),
+  };
+}
 
 type TimelineState = Prefs & {
   pxPerFrame: number;
@@ -41,8 +43,9 @@ type TimelineState = Prefs & {
 const MIN_PX_PER_FRAME = 0.01;
 const MAX_PX_PER_FRAME = 24;
 
-export const clampZoom = (pxPerFrame: number): number =>
-  clamp(pxPerFrame, MIN_PX_PER_FRAME, MAX_PX_PER_FRAME);
+export function clampZoom(pxPerFrame: number): number {
+  return clamp(pxPerFrame, MIN_PX_PER_FRAME, MAX_PX_PER_FRAME);
+}
 
 export const useTimeline = create<TimelineState>()((set) => ({
   ...storedTimelinePrefs(),

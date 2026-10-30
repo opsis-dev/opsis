@@ -1,7 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Img, Interactive } from "remotion";
+import { clamp01 } from "#video/common/math.ts";
 import { type LaunchScene, shade, tint } from "#video/elements/scene/launch-anything/content.ts";
-import { clamp, tween } from "#video/elements/scene/launch-anything/motion.ts";
+import { tween } from "#video/elements/scene/launch-anything/motion.ts";
 
 export function Center({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
@@ -104,7 +105,7 @@ export function RevealCopy({
       text={text}
       size={size}
       style={{
-        opacity: clamp((t - start) * 14),
+        opacity: clamp01((t - start) * 14),
         backgroundImage: `linear-gradient(105deg, ${dark ? shade(ink, 88) : "#fff"} ${amount * 140 - 35}%, ${tint(sage, 45)} ${amount * 140 - 18}%, ${sage} ${amount * 140}%, ${dark ? shade(ink, 88) : tint(sage, 72)} ${amount * 140 + 26}%)`,
         backgroundClip: "text",
         WebkitBackgroundClip: "text",

@@ -1,11 +1,11 @@
 import { useId } from "react";
 import { AbsoluteFill, Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
-import type { ElementSettings, MaskReveal } from "#video/generated/spec.ts";
+import type { ElementSettings, MaskReveal, MediaKind } from "#video/generated/spec.ts";
 import { scaleFont } from "#video/lib/layout/layout.ts";
 import { useEnterExit } from "#video/lib/motion/motion-primitive.ts";
 
-export type TextMaskMedia = "video" | "image" | "gradient";
+type MaskFill = "video" | "image" | "gradient";
 
 const GLYPH_WIDTH = 0.72;
 
@@ -33,13 +33,12 @@ export function TextMaskVideo({
   driftSpeed,
   fitMax,
   startFrom,
-}: ElementSettings["text-mask-video"] & { media: TextMaskMedia }) {
+}: ElementSettings["text-mask-video"] & { media?: MediaKind }) {
   const frame = useCurrentFrame();
   const { width: videoWidth, height: videoHeight, fps } = useVideoConfig();
   const clipId = `mask-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
 
-  const kind: TextMaskMedia =
-    !src || media === "gradient" ? "gradient" : media === "image" ? "image" : "video";
+  const kind: MaskFill = !src ? "gradient" : media === "image" ? "image" : "video";
   const lines = text.split(/\r?\n/);
   const longest = Math.max(1, ...lines.map((line) => Array.from(line).length));
   const fittedSize = Math.min(

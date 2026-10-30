@@ -46,6 +46,18 @@ Ideas you approved but left for later.
 
 Ideas that were discussed but never finalized or planned.
 
+- [ ] Replacing the small Remotion packages the video uses with what they wrap or with our own code: `@remotion/noise`, `@remotion/rough-notation`, `@remotion/lottie` and `@remotion/three` with the libraries underneath (`simplex-noise`, `roughjs`, `lottie-web`, `@react-three/fiber`); our own motion blur, Mac cursors (drawn from Lucide's ISC shapes), light leaks (a shader) and effects (shaders, or baked by FFmpeg) in place of `@remotion/motion-blur`, `@remotion/mac-cursors`, `@remotion/light-leaks` and `@remotion/effects`; `@remotion/paths` copied in; and the sidecar's `@remotion/tailwind-v4` replaced by our own loader config. `plans/motion-library.md` plans a new element on `@remotion/rough-notation`, so the two have to agree.
+- [ ] An `#[element(…)]` macro that writes the 138 element `definition()` functions from attributes on their settings structs, the third part of the macros research after `#[settings]` and `#[choice]`.
+- [ ] A way to see the film before exporting, in place of the removed Preview (its window, streamed page and Fast/Exact copies). Undecided.
+- [ ] Measuring how fast a low-resolution draft export renders (for example 480p), and whether one can hold more than 20 frames a second.
+- [ ] Shipping the ffmpeg-static binary inside the deb and rpm instead of downloading it in Settings → Engine. This would reverse "no FFmpeg of ours inside" in `plans/release.md` and bring its GPLv3 source offer into the release.
+- [ ] Settings the audit left out because the code under them can't take them yet:
+  - the transitions Remotion draws: the clock wipe's direction and start angle, the iris's centre and direction, a fade through a colour and the lens zoom's centre;
+  - the light leak's colours (`@remotion/light-leaks` has none);
+  - which side a tooltip or callout sits on (needs placement that keeps the box on screen, `packages/video/src/camera/annotations.tsx`);
+  - each transition's own settings in a Sequence's cuts (a nested form per cut from the chosen transition's schema);
+  - the agent-run panel's width and text size (they feed its whole layout and length model).
+
 ## Unverified
 
 Behaviour that was never checked and isn't in the release test pass in `plans/release.md` (section 8).

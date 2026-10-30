@@ -99,7 +99,7 @@ export function useClipboardShortcuts(wrapper: React.RefObject<HTMLDivElement | 
   useEffect(() => {
     const el = wrapper.current;
     if (!el) return;
-    const onKey = (e: KeyboardEvent) => {
+    function onKey(e: KeyboardEvent) {
       if (isEditingElement(e.target)) return;
       if (matchesAccelerator("CmdOrCtrl+C", e, platform)) void copySelection();
       else if (matchesAccelerator("CmdOrCtrl+V", e, platform)) void pasteClipboard();
@@ -107,7 +107,7 @@ export function useClipboardShortcuts(wrapper: React.RefObject<HTMLDivElement | 
         e.preventDefault();
         duplicateSelection();
       }
-    };
+    }
     el.addEventListener("keydown", onKey);
     return () => el.removeEventListener("keydown", onKey);
   }, [wrapper]);

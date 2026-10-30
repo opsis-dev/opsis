@@ -121,6 +121,7 @@ pub fn definition() -> ElementMeta {
             )
                 .authored_clock()
                 .fonts(&["Geist", "Instrument Serif", "Inter", "Montserrat", "Outfit", "Space Grotesk"])
+                .kind_prop("srcKind", "src")
                 .look(NodeLook::of("lucide:monitor-play")),
         )
 }

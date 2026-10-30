@@ -27,7 +27,9 @@ export function modelExtensions(buffer: ArrayBuffer): string[] {
   return [...(parsed.data.extensionsUsed ?? []), ...(parsed.data.extensionsRequired ?? [])];
 }
 
-const folderOf = (url: string) => url.slice(0, url.lastIndexOf("/") + 1);
+function folderOf(url: string) {
+  return url.slice(0, url.lastIndexOf("/") + 1);
+}
 
 async function fetchModel(url: string): Promise<GLTF> {
   const res = await fetch(url);

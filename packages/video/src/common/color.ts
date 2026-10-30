@@ -55,20 +55,28 @@ export function formatColor(color: Hsva, format: ColorFormat): string {
   }
 }
 
-export const hueColor = (h: number): string => formatColor({ h, s: 1, v: 1, a: 1 }, "hex");
+export function hueColor(h: number): string {
+  return formatColor({ h, s: 1, v: 1, a: 1 }, "hex");
+}
 
-export const opaqueHex = (color: Hsva): string => formatColor({ ...color, a: 1 }, "hex");
+export function opaqueHex(color: Hsva): string {
+  return formatColor({ ...color, a: 1 }, "hex");
+}
 
-export const colorKey = (color: string): string => {
+export function colorKey(color: string): string {
   const parsed = parseColor(color);
   return parsed ? formatColor(parsed, "hex") : color.trim();
-};
+}
 
-export const sameColor = (a: string, b: string): boolean => colorKey(a) === colorKey(b);
+export function sameColor(a: string, b: string): boolean {
+  return colorKey(a) === colorKey(b);
+}
 
-export const withChannel = (color: Hsva, patch: Partial<Hsva>): Hsva => ({
-  h: clamp(patch.h ?? color.h, 0, 360),
-  s: clamp(patch.s ?? color.s, 0, 1),
-  v: clamp(patch.v ?? color.v, 0, 1),
-  a: clamp(roundTo(patch.a ?? color.a, 2), 0, 1),
-});
+export function withChannel(color: Hsva, patch: Partial<Hsva>): Hsva {
+  return {
+    h: clamp(patch.h ?? color.h, 0, 360),
+    s: clamp(patch.s ?? color.s, 0, 1),
+    v: clamp(patch.v ?? color.v, 0, 1),
+    a: clamp(roundTo(patch.a ?? color.a, 2), 0, 1),
+  };
+}

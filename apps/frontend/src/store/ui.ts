@@ -1,7 +1,9 @@
 import { pick } from "@opsis/video/common/objects";
 import { create } from "zustand";
 
-export const singleSelected = (ids: string[]): string | null => (ids.length === 1 ? ids[0] : null);
+export function singleSelected(ids: string[]): string | null {
+  return ids.length === 1 ? ids[0] : null;
+}
 
 let selectionIds: string[] = [];
 let selectionSet: ReadonlySet<string> = new Set();
@@ -47,8 +49,9 @@ type UiState = {
   keepNodes: (ids: ReadonlySet<string>) => void;
 };
 
-const sameIds = (a: string[], b: string[]) =>
-  a.length === b.length && a.every((x, i) => x === b[i]);
+function sameIds(a: string[], b: string[]) {
+  return a.length === b.length && a.every((x, i) => x === b[i]);
+}
 
 export const useUiStore = create<UiState>()((set) => ({
   selectedIds: [],
@@ -81,4 +84,6 @@ const SELECTION_KEYS = ["selectedIds", "activeIds", "pinnedSource"] as const;
 
 export type Selection = Pick<UiState, (typeof SELECTION_KEYS)[number]>;
 
-export const selection = (): Selection => pick(useUiStore.getState(), SELECTION_KEYS);
+export function selection(): Selection {
+  return pick(useUiStore.getState(), SELECTION_KEYS);
+}

@@ -1,1 +1,3 @@
-export const fileName = (path: string): string => path.replace(/\/+$/, "").split("/").pop() || path;
+export function fileName(path: string): string {
+  return path.replace(/\/+$/, "").split("/").pop() || path;
+}

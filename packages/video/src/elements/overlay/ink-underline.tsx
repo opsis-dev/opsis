@@ -1,7 +1,7 @@
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import { hashRange, steppedRamp } from "#video/lib/motion/stop-motion.ts";
+import { randomBetween, steppedRamp } from "#video/lib/motion/stop-motion.ts";
 import {
   BrushGrain,
   type BrushPoint,
@@ -19,7 +19,7 @@ export function inkUnderlineSpine(
   seed: string,
   wobbleSize: number,
 ): BrushPoint[] {
-  const wobble = hashRange(`${seed}:w`, -wobbleSize, wobbleSize);
+  const wobble = randomBetween(`${seed}:w`, -wobbleSize, wobbleSize);
   const mid = thickness / 2 + 2;
   return sampleCubic(
     { x: 2, y: mid },

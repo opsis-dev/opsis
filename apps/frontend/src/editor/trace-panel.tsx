@@ -42,14 +42,14 @@ function useTrace(projectDir: string, traceId: string) {
 function depths(actions: TraceAction[]): Map<string, number> {
   const parents = new Map(actions.map((a) => [a.id, a.parentId]));
   const out = new Map<string, number>();
-  const depthOf = (id: string | undefined): number => {
+  function depthOf(id: string | undefined): number {
     if (!id || !parents.has(id)) return -1;
     const known = out.get(id);
     if (known !== undefined) return known;
     const depth = depthOf(parents.get(id)) + 1;
     out.set(id, depth);
     return depth;
-  };
+  }
   for (const a of actions) depthOf(a.id);
   return out;
 }

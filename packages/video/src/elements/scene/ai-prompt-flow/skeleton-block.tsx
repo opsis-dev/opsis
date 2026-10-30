@@ -1,5 +1,6 @@
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { mixOklch, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
+import { mixOklch } from "#video/lib/ui-kit/color.ts";
 
 export interface SkeletonBlockProps {
   width?: number | string;

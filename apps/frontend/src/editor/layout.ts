@@ -16,7 +16,9 @@ type Side = MeasuredPort["side"];
 
 export type CardShape = { width: number; height: number; ports: MeasuredPort[] | null };
 
-const portId = (nodeId: string, side: Side, port: string) => `${nodeId}::${side}::${port}`;
+function portId(nodeId: string, side: Side, port: string) {
+  return `${nodeId}::${side}::${port}`;
+}
 
 function listedPorts(wf: Workflow, n: WorkflowNode): Array<{ handle: string; side: Side }> {
   const def = getNodeDef(n.type);
@@ -97,10 +99,12 @@ export function layoutGraph(wf: Workflow, shapeOf: (n: WorkflowNode) => CardShap
   };
 }
 
-const shownShape = (n: WorkflowNode): CardShape => ({
-  ...cardSize(n),
-  ports: measuredPorts(n.id),
-});
+function shownShape(n: WorkflowNode): CardShape {
+  return {
+    ...cardSize(n),
+    ports: measuredPorts(n.id),
+  };
+}
 
 export async function autoLayout(
   wf: Workflow,

@@ -1,63 +1,59 @@
-import { spring } from "remotion";
+import { random, spring } from "remotion";
 
 export const DEFAULT_STEP = 3;
 
-export const qf = (frame: number, step = DEFAULT_STEP): number => Math.floor(frame / step) * step;
+export function qf(frame: number, step = DEFAULT_STEP): number {
+  return Math.floor(frame / step) * step;
+}
 
-export const qstep = (frame: number, step = DEFAULT_STEP): number => Math.floor(frame / step);
+export function qstep(frame: number, step = DEFAULT_STEP): number {
+  return Math.floor(frame / step);
+}
 
-export const hash01 = (seed: string): number => {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  h = Math.imul(h ^ (h >>> 13), 2246822519);
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-};
-
-export const hashRange = (seed: string, lo: number, hi: number): number =>
-  lo + hash01(seed) * (hi - lo);
+export function randomBetween(seed: string, lo: number, hi: number): number {
+  return lo + random(seed) * (hi - lo);
+}
 
 export type Jitter = { x: number; y: number; rot: number };
 
-export const paperJitter = (
+export function paperJitter(
   frame: number,
   seed: string,
   options?: { amp?: number; rotAmp?: number; step?: number },
-): Jitter => {
+): Jitter {
   const amp = options?.amp ?? 1.4;
   const rotAmp = options?.rotAmp ?? 0.35;
   const s = qstep(frame, options?.step ?? DEFAULT_STEP);
   return {
-    x: hashRange(`${seed}:x:${s}`, -amp, amp),
-    y: hashRange(`${seed}:y:${s}`, -amp, amp),
-    rot: hashRange(`${seed}:r:${s}`, -rotAmp, rotAmp),
+    x: randomBetween(`${seed}:x:${s}`, -amp, amp),
+    y: randomBetween(`${seed}:y:${s}`, -amp, amp),
+    rot: randomBetween(`${seed}:r:${s}`, -rotAmp, rotAmp),
   };
-};
+}
 
-export const steppedSpring = (args: {
+export function steppedSpring(args: {
   frame: number;
   fps: number;
   delay?: number;
   step?: number;
   config?: { damping?: number; stiffness?: number; mass?: number };
-}): number =>
-  spring({
+}): number {
+  return spring({
     frame: qf(Math.max(0, args.frame - (args.delay ?? 0)), args.step ?? DEFAULT_STEP),
     fps: args.fps,
     config: args.config,
   });
+}
 
-export const steppedRamp = (
+export function steppedRamp(
   frame: number,
   from: number,
   to: number,
   options?: { ease?: (t: number) => number; step?: number },
-): number => {
+): number {
   const f = qf(frame, options?.step ?? DEFAULT_STEP);
   if (f <= from) return 0;
   if (f >= to) return 1;
   const ease = options?.ease ?? ((t: number) => t);
   return ease((f - from) / (to - from));
-};
+}

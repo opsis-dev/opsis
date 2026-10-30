@@ -72,14 +72,16 @@ export function slideSwing(from: number, kick: number, settle: number): number {
   return Math.max(Math.abs(from), Math.abs(peak));
 }
 
-const list = (s: string | undefined): string[] =>
-  (s ?? "")
+function list(s: string | undefined): string[] {
+  return (s ?? "")
     .split(",")
     .map((v) => v.trim())
     .filter(Boolean);
+}
 
-const at = <T,>(values: T[], i: number, fallback: T): T =>
-  values.length === 0 ? fallback : (values[Math.min(i, values.length - 1)] as T);
+function at<T>(values: T[], i: number, fallback: T): T {
+  return values.length === 0 ? fallback : (values[Math.min(i, values.length - 1)] as T);
+}
 
 export interface PunchBeat {
   lines: string[][];
@@ -470,12 +472,13 @@ function Card({
         >
           {beat.lines.map((words, li) => {
             const lt = t - (li * lineStagger) / fps;
-            const slide = (u: number) =>
-              beat.style !== "slide"
+            function slide(u: number) {
+              return beat.style !== "slide"
                 ? 0
                 : u <= 0
                   ? slideFrom * em
                   : (slideFrom * em + slideKick * em * u) * Math.exp(-slideSettle * u);
+            }
             const x = slide(lt);
             const sigma = (motionBlur * Math.abs(x - slide(lt - 1 / fps))) / Math.sqrt(12);
             const blurId = `punch-lines-${beatIndex}-${li}`;

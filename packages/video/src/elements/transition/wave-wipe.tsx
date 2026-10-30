@@ -4,13 +4,9 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { GrainGradientField } from "#video/parts/shader-fields.tsx";
-
-const clampOpts = {
-  extrapolateLeft: "clamp" as const,
-  extrapolateRight: "clamp" as const,
-};
 
 type WaveWipeProps = ElementSettings["wave-wipe"];
 
@@ -28,11 +24,11 @@ function WaveWipePresentation({
   if (!entering) {
     const exitStyle: React.CSSProperties = {
       opacity: interpolate(p, [0.3, 0.5], [1, 0], {
-        ...clampOpts,
+        ...CLAMPED,
         easing: Easing.bezier(0.42, 0, 0.58, 1),
       }),
       translate: `0 ${interpolate(p, [0, 0.7], [0, -70 * sign], {
-        ...clampOpts,
+        ...CLAMPED,
         easing: Easing.in(Easing.cubic),
       })}%`,
     };
@@ -40,15 +36,15 @@ function WaveWipePresentation({
   }
 
   const fieldOpacity = interpolate(p, [0.18, 0.45], [0, 1], {
-    ...clampOpts,
+    ...CLAMPED,
     easing: Easing.bezier(0.42, 0, 0.58, 1),
   });
   const drift = interpolate(p, [0, 1], [0, 0.7 * sign], {
-    ...clampOpts,
+    ...CLAMPED,
     easing: Easing.bezier(0.45, 0, 0.55, 1),
   });
   const rise = interpolate(p, [0.4, 0.82, 1], [100 * sign, -3.5 * sign, 0], {
-    ...clampOpts,
+    ...CLAMPED,
     easing: Easing.out(Easing.cubic),
   });
 

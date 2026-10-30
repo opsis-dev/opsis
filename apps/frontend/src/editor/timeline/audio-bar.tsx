@@ -70,12 +70,12 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
   });
   const showLine = audioEnvelope === "volume" && !envelope.target?.keys.length;
   const lineY = showLine ? envelopeY("volume", bar.volume, HEIGHT) : null;
-  const hitAt = (e: React.PointerEvent<HTMLElement>): Hit => {
+  function hitAt(e: React.PointerEvent<HTMLElement>): Hit {
     const hit = audioHit(e, box.width, lineY);
     return bar.hits && hit !== "line" ? "body" : hit;
-  };
+  }
 
-  const onPress = (e: React.PointerEvent<HTMLDivElement>) => {
+  function onPress(e: React.PointerEvent<HTMLDivElement>) {
     const hit = hitAt(e);
     if (hit === "line") drag.startVolume(e, bar, HEIGHT);
     else if (!bar.hits)
@@ -84,7 +84,7 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
         { domain: "audio", kind: hit === "body" ? "audio-move" : EDGE_KIND[hit], bar },
         tool === "ripple",
       );
-  };
+  }
 
   return (
     <BarFrame

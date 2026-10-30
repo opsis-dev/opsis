@@ -1,5 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
@@ -22,11 +23,6 @@ const T = {
   exitFor: 0.42,
 } as const;
 
-const clamp = {
-  extrapolateLeft: "clamp",
-  extrapolateRight: "clamp",
-} as const;
-
 export function KanbanMove({
   columns,
   cards: cardsProp,
@@ -45,9 +41,12 @@ export function KanbanMove({
   const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 
-  const at = (seconds: number) => (seconds * fps) / speed;
-  const ease = (from: number, to: number, easing = EASING.enter) =>
-    interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...clamp });
+  function at(seconds: number) {
+    return (seconds * fps) / speed;
+  }
+  function ease(from: number, to: number, easing = EASING.enter) {
+    return interpolate(frame, [at(from), at(to)], [0, 1], { easing, ...CLAMPED });
+  }
 
   const portrait = height > width;
   const designU = portrait
@@ -55,7 +54,9 @@ export function KanbanMove({
     : Math.min(width / 1024, height / 576);
 
   const lastColumn = Math.max(0, columns.length - 1);
-  const onBoard = (column: number) => Math.min(lastColumn, Math.max(0, Math.round(column)));
+  function onBoard(column: number) {
+    return Math.min(lastColumn, Math.max(0, Math.round(column)));
+  }
   const cards: KanbanCard[] = cardsProp.map((card) => {
     const column = onBoard(card.column);
     const moveTo =
@@ -65,10 +66,12 @@ export function KanbanMove({
     return { ...card, column, moveTo: moveTo === column ? undefined : moveTo };
   });
 
-  const startSlot = (card: KanbanCard, index: number) =>
-    cards.filter((other, otherIndex) => other.column === card.column && otherIndex < index).length;
+  function startSlot(card: KanbanCard, index: number) {
+    return cards.filter((other, otherIndex) => other.column === card.column && otherIndex < index)
+      .length;
+  }
 
-  const landingSlot = (card: KanbanCard, index: number) => {
+  function landingSlot(card: KanbanCard, index: number) {
     const arrivesAt = card.moveAtSeconds ?? 0;
     const resident = cards.filter((other) => other.column === card.moveTo).length;
     const gone = cards.filter(
@@ -84,7 +87,7 @@ export function KanbanMove({
         (other.moveAtSeconds ?? 0) < arrivesAt,
     ).length;
     return resident - gone + earlier;
-  };
+  }
 
   const rows = Math.max(
     3,
@@ -111,7 +114,7 @@ export function KanbanMove({
       ? 0
       : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
           easing: EASING.exit,
-          ...clamp,
+          ...CLAMPED,
         });
 
   const boardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 1000 * u);
@@ -122,22 +125,28 @@ export function KanbanMove({
   const headerH = 34 * u;
   const listH = cardH * rows + cardGap * (rows - 1);
 
-  const progressOf = (card: KanbanCard) =>
-    card.moveTo === undefined || card.moveAtSeconds === undefined
+  function progressOf(card: KanbanCard) {
+    return card.moveTo === undefined || card.moveAtSeconds === undefined
       ? 0
       : ease(card.moveAtSeconds, card.moveAtSeconds + moveSeconds, EASING.editorial);
+  }
 
-  const closedUpBy = (column: number, ownSlot: number, presentFromSeconds: number, index: number) =>
-    cards.reduce((sum, other, otherIndex) => {
+  function closedUpBy(column: number, ownSlot: number, presentFromSeconds: number, index: number) {
+    return cards.reduce((sum, other, otherIndex) => {
       if (otherIndex === index) return sum;
       if (other.column !== column || other.moveTo === undefined) return sum;
       if ((other.moveAtSeconds ?? 0) < presentFromSeconds) return sum;
       if (startSlot(other, otherIndex) >= ownSlot) return sum;
       return sum + progressOf(other);
     }, 0);
+  }
 
-  const columnX = (columnIndex: number) => columnIndex * (columnW + gutter);
-  const slotY = (slot: number) => headerH + slot * (cardH + cardGap);
+  function columnX(columnIndex: number) {
+    return columnIndex * (columnW + gutter);
+  }
+  function slotY(slot: number) {
+    return headerH + slot * (cardH + cardGap);
+  }
 
   return (
     <AbsoluteFill

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { groupCaptions } from "#video/elements/overlay/captions.tsx";
 
-const words = (text: string) =>
-  text.split(" ").map((word, i) => ({ text: word, startMs: i * 100, endMs: i * 100 + 90 }));
+function words(text: string) {
+  return text.split(" ").map((word, i) => ({ text: word, startMs: i * 100, endMs: i * 100 + 90 }));
+}
 
 describe("groupCaptions", () => {
   it("ends a line at six words", () => {

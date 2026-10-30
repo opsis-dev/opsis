@@ -54,8 +54,9 @@ function biquadResponse({ b, a }: Biquad, freq: number): number {
   return 20 * Math.log10(magnitude(b, w) / magnitude(a, w));
 }
 
-const highpassResponse = (cutoff: number, freq: number) =>
-  -10 * Math.log10(1 + (cutoff / freq) ** HIGHPASS_POWER);
+function highpassResponse(cutoff: number, freq: number) {
+  return -10 * Math.log10(1 + (cutoff / freq) ** HIGHPASS_POWER);
+}
 
 export function EqCurve({
   bands,

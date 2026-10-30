@@ -2,13 +2,15 @@ import { describe, expect, it } from "vitest";
 import type { MixResult } from "@/generated/bindings";
 import { levelAt, reductionAt, sampleAt, share } from "./meter-levels";
 
-const withMaster = (rms: number[]): MixResult => ({
-  key: "k",
-  master: null,
-  levels: { channels: {}, buses: {}, master: { fps: 30, peak: rms, rms } },
-  reduction: { channels: {}, master: null },
-  loudness: null,
-});
+function withMaster(rms: number[]): MixResult {
+  return {
+    key: "k",
+    master: null,
+    levels: { channels: {}, buses: {}, master: { fps: 30, peak: rms, rms } },
+    reduction: { channels: {}, master: null },
+    loudness: null,
+  };
+}
 
 describe("meter levels", () => {
   it("samples the nearest frame inside the list", () => {

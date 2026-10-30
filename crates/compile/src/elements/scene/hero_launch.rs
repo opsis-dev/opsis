@@ -109,6 +109,8 @@ pub fn definition() -> ElementMeta {
             )
                 .authored_clock()
                 .fonts(&["Geist", "Instrument Serif", "Inter", "Montserrat", "Outfit", "Space Grotesk"])
+                .kind_prop("image1Kind", "image1")
+                .kind_prop("image2Kind", "image2")
                 .look(NodeLook::of("lucide:presentation")),
         )
 }

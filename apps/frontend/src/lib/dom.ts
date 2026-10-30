@@ -12,10 +12,12 @@ export const DRAG_START_PX = 3;
 
 type Rect = Pick<DOMRect, "left" | "top" | "width" | "height">;
 
-export const fractionIn = (rect: Rect, clientX: number, clientY: number) => ({
-  x: clamp01((clientX - rect.left) / Math.max(1, rect.width)),
-  y: clamp01((clientY - rect.top) / Math.max(1, rect.height)),
-});
+export function fractionIn(rect: Rect, clientX: number, clientY: number) {
+  return {
+    x: clamp01((clientX - rect.left) / Math.max(1, rect.width)),
+    y: clamp01((clientY - rect.top) / Math.max(1, rect.height)),
+  };
+}
 
 export function capturePrimaryPointer(e: ReactPointerEvent<Element>): boolean {
   if (e.button !== 0) return false;

@@ -4161,12 +4161,13 @@
             "colors": {}
            },
            "indicatorColor": "#30D158",
-           "notchLabelSize": 12,
+           "screenKind": "image",
            "speed": 1.0,
            "notchAt": 120.0,
            "zoomAt": 140.0,
            "zoomLength": 45.0,
-           "floatPeriod": 5.0
+           "floatPeriod": 5.0,
+           "notchLabelSize": 12
           }
          }
         }
@@ -18351,12 +18352,13 @@
           "colors": {}
          },
          "indicatorColor": "#30D158",
-         "notchLabelSize": 12,
+         "screenKind": "image",
          "speed": 1.0,
          "notchAt": 120.0,
          "zoomAt": 140.0,
          "zoomLength": 45.0,
-         "floatPeriod": 5.0
+         "floatPeriod": 5.0,
+         "notchLabelSize": 12
         }
        }
       ]
@@ -18440,12 +18442,13 @@
           "colors": {}
          },
          "indicatorColor": "#30D158",
-         "notchLabelSize": 12,
+         "screenKind": "image",
          "speed": 1.0,
          "notchAt": 120.0,
          "zoomAt": 140.0,
          "zoomLength": 45.0,
-         "floatPeriod": 5.0
+         "floatPeriod": 5.0,
+         "notchLabelSize": 12
         }
        }
       ]
@@ -18527,8 +18530,9 @@
           "mode": "dark",
           "colors": {}
          },
-         "floatPeriod": 4.5,
-         "speed": 1.0
+         "screenKind": "image",
+         "speed": 1.0,
+         "floatPeriod": 4.5
         }
        }
       ]
@@ -18610,8 +18614,9 @@
           "mode": "dark",
           "colors": {}
          },
-         "floatPeriod": 4.5,
-         "speed": 1.0
+         "screenKind": "image",
+         "speed": 1.0,
+         "floatPeriod": 4.5
         }
        }
       ]
@@ -18702,7 +18707,8 @@
            "x": 0.5,
            "y": 0.5
           }
-         ]
+         ],
+         "srcKind": "image"
         }
        }
       ]
@@ -18793,7 +18799,8 @@
            "x": 0.5,
            "y": 0.5
           }
-         ]
+         ],
+         "srcKind": "image"
         }
        }
       ]
@@ -20097,13 +20104,15 @@
           "mode": "dark",
           "colors": {}
          },
-         "edgeFade": true,
+         "image2Kind": "image",
          "cardTilt": 17,
          "cardGap": 92,
          "cardAspect": 1.613,
          "cardRadius": 30,
          "headlineSize": 42,
-         "headlineWeight": 600
+         "headlineWeight": 600,
+         "edgeFade": true,
+         "image1Kind": "image"
         }
        }
       ]
@@ -20175,13 +20184,15 @@
           "mode": "dark",
           "colors": {}
          },
-         "edgeFade": true,
+         "image2Kind": "image",
          "cardTilt": 17,
          "cardGap": 92,
          "cardAspect": 1.613,
          "cardRadius": 30,
          "headlineSize": 42,
-         "headlineWeight": 600
+         "headlineWeight": 600,
+         "edgeFade": true,
+         "image1Kind": "image"
         }
        }
       ]

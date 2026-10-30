@@ -1,14 +1,58 @@
 use std::path::{Path, PathBuf};
 
-use serde_json::Value;
+use serde::de::DeserializeOwned;
 use serde_json::ser::{PrettyFormatter, Serializer};
+use serde_json::{Value, json};
 
 const WRITE: &str = "OPSIS_WRITE_GOLDEN";
 const SHOWN: usize = 40;
 const NUMBER_SLACK: f64 = 1e-9;
 
+pub fn repo() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+}
+
 pub fn root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../fixtures")
+    repo().join("fixtures")
+}
+
+pub fn home() -> PathBuf {
+    std::env::var_os("HOME").map(PathBuf::from).expect("HOME")
+}
+
+pub fn typed<T: DeserializeOwned>(value: &Value) -> T {
+    serde_json::from_value(value.clone()).unwrap_or_else(|e| panic!("{e}: {value}"))
+}
+
+pub fn text(value: &Value) -> &str {
+    value
+        .as_str()
+        .unwrap_or_else(|| panic!("not a string: {value}"))
+}
+
+pub fn number(value: &Value) -> f64 {
+    value
+        .as_f64()
+        .unwrap_or_else(|| panic!("not a number: {value}"))
+}
+
+pub fn cases(value: &Value, record: impl Fn(&Value) -> Value) -> Value {
+    Value::Array(
+        value
+            .as_array()
+            .unwrap_or_else(|| panic!("not a list: {value}"))
+            .iter()
+            .map(record)
+            .collect(),
+    )
+}
+
+pub fn node(id: &str, kind: &str, params: Value) -> Value {
+    json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 }, "params": params })
+}
+
+pub fn edge(source: &str, out: &str, target: &str, port: &str) -> Value {
+    json!({ "id": format!("{source}-{target}-{port}"), "source": source, "sourceHandle": out, "target": target, "targetHandle": port })
 }
 
 pub fn path(name: &str) -> PathBuf {

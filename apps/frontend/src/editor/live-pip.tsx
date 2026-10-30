@@ -10,7 +10,9 @@ import { useLiveStore, type LiveCapture } from "../store/live";
 import { useWorkflowStore } from "../store/workflow";
 import { LiveView } from "./live-view";
 
-const openLiveWindow = () => void commands.openLiveWindow();
+function openLiveWindow() {
+  return void commands.openLiveWindow();
+}
 
 function useCaptureTitle(capture: LiveCapture): string {
   const node = useWorkflowStore((s) => findById(s.workflow?.nodes, capture.nodeId));

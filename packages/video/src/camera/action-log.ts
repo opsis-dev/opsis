@@ -36,12 +36,14 @@ export const TYPED_LINGER_S = 0.6;
 const TYPED_FALLBACK_MS = 1000;
 const DRAG_FIT_FRACTION = 0.5;
 
-const carried = (a: Action) => ({
-  label: a.label,
-  cluster: a.cluster || undefined,
-  zoom: a.zoom,
-  zoomScale: a.zoomScale,
-});
+function carried(a: Action) {
+  return {
+    label: a.label,
+    cluster: a.cluster || undefined,
+    zoom: a.zoom,
+    zoomScale: a.zoomScale,
+  };
+}
 
 export function toClickLog(
   log: ActionLog,
@@ -136,14 +138,17 @@ export function resolveAnnotations(log: ActionLog, specs: AnnotationSpec[]): Ann
   return out;
 }
 
-const isTyped = (a: Action): a is Action & { text: string } => a.kind === "type" && !!a.text;
+function isTyped(a: Action): a is Action & { text: string } {
+  return a.kind === "type" && !!a.text;
+}
 
-export const typedBeats = (
+export function typedBeats(
   log: ActionLog,
   lingerS = TYPED_LINGER_S,
-): Array<{ text: string; fromS: number; toS: number }> =>
-  log.actions.filter(isTyped).map((a) => ({
+): Array<{ text: string; fromS: number; toS: number }> {
+  return log.actions.filter(isTyped).map((a) => ({
     text: a.text,
     fromS: a.t / 1000,
     toS: (a.tEnd ?? a.t + TYPED_FALLBACK_MS) / 1000 + lingerS,
   }));
+}

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Easing } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { clamp, numberOr, round3, smoothstep } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -381,24 +382,30 @@ const NAMED_KEYS: Record<KeystrokePlatform, Record<Named, NamedSpec>> = {
   },
 };
 
-const finite = (value: number | undefined, fallback: number) =>
-  typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const within = (value: number | undefined, fallback: number, min: number, max: number) =>
-  clamp(finite(value, fallback), min, max);
-const round = (value: number) => Math.round(value * 1000) / 1000 + 0;
-const smoothstep = (value: number) => {
-  const t = clamp(value, 0, 1);
-  return t * t * (3 - 2 * t);
-};
-const fpsOf = (fps: number | undefined) => Math.max(1, finite(fps, 30));
-const rateOf = (speed: number | undefined) => Math.max(0, finite(speed, keystrokeDefaults.speed));
-const platformOf = (value: string | undefined): KeystrokePlatform =>
-  value === "windows" ? value : "mac";
-const themeOf = (value: string | undefined): KeystrokeTheme => (value === "dark" ? value : "light");
-const accentOf = (value: string | undefined) =>
-  typeof value === "string" && value.trim() !== "" ? value.trim() : keystrokeDefaults.accent;
-const modOf = (platform: KeystrokePlatform): Modifier => (platform === "mac" ? "meta" : "ctrl");
+function within(value: number | undefined, fallback: number, min: number, max: number) {
+  return clamp(numberOr(value, fallback), min, max);
+}
+function round(value: number) {
+  return round3(value) + 0;
+}
+function fpsOf(fps: number | undefined) {
+  return Math.max(1, numberOr(fps, 30));
+}
+function rateOf(speed: number | undefined) {
+  return Math.max(0, numberOr(speed, keystrokeDefaults.speed));
+}
+function platformOf(value: string | undefined): KeystrokePlatform {
+  return value === "windows" ? value : "mac";
+}
+function themeOf(value: string | undefined): KeystrokeTheme {
+  return value === "dark" ? value : "light";
+}
+function accentOf(value: string | undefined) {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : keystrokeDefaults.accent;
+}
+function modOf(platform: KeystrokePlatform): Modifier {
+  return platform === "mac" ? "meta" : "ctrl";
+}
 
 function eased(frames: number, duration: number, curve: (t: number) => number) {
   if (Number.isNaN(frames) || frames <= 0) return 0;
@@ -680,7 +687,7 @@ export function getKeystrokeTime(
   frame: number,
   options: Pick<KeystrokeOptions, "fps" | "speed"> = {},
 ) {
-  const elapsed = Math.max(0, finite(frame, 0));
+  const elapsed = Math.max(0, numberOr(frame, 0));
   return (elapsed * rateOf(options.speed) * 30) / fpsOf(options.fps);
 }
 
@@ -799,14 +806,14 @@ export function getKeystrokeState(
   options: KeystrokeOptions = {},
   timeline: KeystrokeTimeline = getKeystrokeTimeline(options),
 ) {
-  const width = Math.max(1, finite(options.width, 1280));
-  const height = Math.max(1, finite(options.height, 720));
+  const width = Math.max(1, numberOr(options.width, 1280));
+  const height = Math.max(1, numberOr(options.height, 720));
   const unit = Math.min(height / 720, width / 1280);
   const reference = within(options.size, keystrokeDefaults.size, MIN_SIZE, MAX_SIZE);
   const metrics = getKeystrokeMetrics(reference * unit, unit, options.roundness);
   const time = getKeystrokeTime(frame, options);
-  const x = finite(options.x, keystrokeDefaults.x);
-  const y = finite(options.y, keystrokeDefaults.y);
+  const x = numberOr(options.x, keystrokeDefaults.x);
+  const y = numberOr(options.y, keystrokeDefaults.y);
   const theme = themeOf(options.theme);
   const palette = { ...keystrokePalettes[theme], ...options.colors };
   const accent = accentOf(options.accent);

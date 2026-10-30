@@ -7,12 +7,8 @@ use opsis_compile::timeline::flatten::node_spans;
 use serde_json::{Value, json};
 
 use crate::helpers::{
-    Graph, TITLE, action, export_film, film, film_spec, flat_film, make_log, record_result,
+    Graph, TITLE, action, export_film, film, film_spec, flat_film, make_log, near, record_result,
 };
-
-fn near(a: f64, b: f64, tolerance: f64) -> bool {
-    (a - b).abs() <= tolerance
-}
 
 #[test]
 fn maps_bars_through_speed_and_trims() {

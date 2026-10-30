@@ -65,17 +65,18 @@ const loaded: {
 type CatalogData = { catalog: EditorCatalog; menu: MenuSection[]; templates: TemplateInfo[] };
 
 export async function loadCatalog(): Promise<void> {
-  const [catalog, menu, templates] = await Promise.all([
+  const [catalog, menu, listed] = await Promise.all([
     commands.editorCatalog(),
     commands.appMenuSections(),
     commands.listTemplates(),
   ]);
-  applyCatalog({ catalog, menu, templates });
+  applyCatalog({ catalog, menu, templates: listed });
 }
 
-export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
-  loaded.templates = templates;
-  const { nodes, transitions, connects, text, mixer, bundledFonts, settings } = catalog;
+export function applyCatalog(data: CatalogData): void {
+  const { catalog, menu } = data;
+  loaded.templates = data.templates;
+  const { nodes, transitions, connects, text, mixer, settings } = catalog;
   loaded.settings = settings;
   loaded.themeBackgrounds = catalog.themeBackgrounds;
   loaded.shapes = catalog.shapes;
@@ -86,7 +87,7 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
   loaded.music = catalog.music;
   loaded.text = text;
   loaded.mixer = mixer;
-  loaded.bundledFonts = bundledFonts;
+  loaded.bundledFonts = catalog.bundledFonts;
   loaded.nodes = nodes;
   loaded.transitions = transitions;
   loaded.connects = new Set(connects.map((link) => `${link.from}>${link.to}`));
@@ -94,23 +95,41 @@ export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
   loaded.menu = menu;
 }
 
-export const textRules = (): TextRules => loaded.text;
+export function textRules(): TextRules {
+  return loaded.text;
+}
 
-export const bundledFonts = (): FontFamilyDef[] => loaded.bundledFonts;
+export function bundledFonts(): FontFamilyDef[] {
+  return loaded.bundledFonts;
+}
 
-export const shapes = (): ShapeChoice[] => loaded.shapes;
+export function shapes(): ShapeChoice[] {
+  return loaded.shapes;
+}
 
-export const timelineBook = (): TimelineBook => loaded.timeline;
+export function timelineBook(): TimelineBook {
+  return loaded.timeline;
+}
 
-export const builtinSounds = (): SoundChoice[] => loaded.sounds;
+export function builtinSounds(): SoundChoice[] {
+  return loaded.sounds;
+}
 
-export const builtinMusic = (): SoundChoice[] => loaded.music;
+export function builtinMusic(): SoundChoice[] {
+  return loaded.music;
+}
 
-export const qualityPresets = (): Array<[string, number]> => loaded.qualityPresets;
+export function qualityPresets(): Array<[string, number]> {
+  return loaded.qualityPresets;
+}
 
-export const loudnessPresets = (): Array<[string, number]> => loaded.loudnessPresets;
+export function loudnessPresets(): Array<[string, number]> {
+  return loaded.loudnessPresets;
+}
 
-export const themeBackground = (theme: Theme): string => loaded.themeBackgrounds[theme] ?? "";
+export function themeBackground(theme: Theme): string {
+  return loaded.themeBackgrounds[theme] ?? "";
+}
 
 export function settingsBook(): SettingsBook {
   if (!loaded.settings) throw new Error("The node catalogue hasn't loaded yet.");
@@ -124,32 +143,49 @@ export function mixerBook(): MixerBook {
 
 export const NO_TRANSITION = "none";
 
-export const transitionTitle = (kind: string): string => loaded.transitions[kind] ?? kind;
+export function transitionTitle(kind: string): string {
+  return loaded.transitions[kind] ?? kind;
+}
 
-export const catalogNodes = (): readonly EditorNode[] => loaded.nodes;
+export function catalogNodes(): readonly EditorNode[] {
+  return loaded.nodes;
+}
 
-export const nodeLook = (type: string): NodeLook => loaded.byType.get(type)?.look ?? FALLBACK_LOOK;
+export function nodeLook(type: string): NodeLook {
+  return loaded.byType.get(type)?.look ?? FALLBACK_LOOK;
+}
 
-export const visibleNodes = (): EditorNode[] => loaded.nodes.filter((n) => !n.hidden);
+export function visibleNodes(): EditorNode[] {
+  return loaded.nodes.filter((n) => !n.hidden);
+}
 
-export const appMenu = (): readonly MenuSection[] => loaded.menu;
+export function appMenu(): readonly MenuSection[] {
+  return loaded.menu;
+}
 
-export const getNodeDef = (type: string): EditorNode | undefined => loaded.byType.get(type);
+export function getNodeDef(type: string): EditorNode | undefined {
+  return loaded.byType.get(type);
+}
 
-export const defaultParams = (type: string): Params =>
-  structuredClone(getNodeDef(type)?.defaults ?? {});
+export function defaultParams(type: string): Params {
+  return structuredClone(getNodeDef(type)?.defaults ?? {});
+}
 
-export const newNodeParams = (type: string, params?: Params): Params => ({
-  ...defaultParams(type),
-  ...structuredClone(getNodeDef(type)?.hostDefaults ?? {}),
-  ...params,
-});
+export function newNodeParams(type: string, params?: Params): Params {
+  return {
+    ...defaultParams(type),
+    ...structuredClone(getNodeDef(type)?.hostDefaults ?? {}),
+    ...params,
+  };
+}
 
-export const customLabel = (node: { label?: string }): string | undefined =>
-  nonBlankString(node.label);
+export function customLabel(node: { label?: string }): string | undefined {
+  return nonBlankString(node.label);
+}
 
-export const nodeName = (node: Named, fallback?: string): string =>
-  customLabel(node) ?? fallback ?? (getNodeDef(node.type)?.title || node.type);
+export function nodeName(node: Named, fallback?: string): string {
+  return customLabel(node) ?? fallback ?? (getNodeDef(node.type)?.title || node.type);
+}
 
 export function nodeNameById(
   nodes: ReadonlyArray<Named & { id: string }>,
@@ -160,7 +196,9 @@ export function nodeNameById(
   return node ? nodeName(node) : whenMissing;
 }
 
-export const isOutputType = (type: string): boolean => getNodeDef(type)?.category === "Output";
+export function isOutputType(type: string): boolean {
+  return getNodeDef(type)?.category === "Output";
+}
 
 const CATEGORY_ORDER: Category[] = [
   "Browser",
@@ -180,15 +218,22 @@ const CATEGORY_ORDER: Category[] = [
   "Utility",
 ];
 
-export const categoryLabel = (category: Category): string =>
-  loaded.nodes.find((n) => n.category === category)?.categoryLabel ?? category;
+export function categoryLabel(category: Category): string {
+  return loaded.nodes.find((n) => n.category === category)?.categoryLabel ?? category;
+}
 
-export const nodeCategories = (): Category[] =>
-  CATEGORY_ORDER.filter((c) => loaded.nodes.some((n) => n.category === c && !n.hidden));
+export function nodeCategories(): Category[] {
+  return CATEGORY_ORDER.filter((c) => loaded.nodes.some((n) => n.category === c && !n.hidden));
+}
 
-export const canConnect = (from: PortType, to: PortType): boolean =>
-  loaded.connects.has(`${from}>${to}`);
+export function canConnect(from: PortType, to: PortType): boolean {
+  return loaded.connects.has(`${from}>${to}`);
+}
 
-export const templates = (): readonly TemplateInfo[] => loaded.templates;
+export function templates(): readonly TemplateInfo[] {
+  return loaded.templates;
+}
 
-export const getTemplate = (id: string): TemplateInfo | undefined => findById(loaded.templates, id);
+export function getTemplate(id: string): TemplateInfo | undefined {
+  return findById(loaded.templates, id);
+}

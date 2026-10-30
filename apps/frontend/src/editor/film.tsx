@@ -47,7 +47,9 @@ const EMPTY: Film = {
 
 const FILM_SOURCE = "film";
 
-const hasSound = (plan: MixPlan): boolean => plan.channels.some((c) => c.sounds.length > 0);
+function hasSound(plan: MixPlan): boolean {
+  return plan.channels.some((c) => c.sounds.length > 0);
+}
 
 function keyedByFiles(plan: MixPlan, versions: FileVersions): MixPlan {
   const sounds = plan.channels.flatMap((c) => c.sounds.map((s) => s.src));
@@ -107,4 +109,6 @@ export function FilmProvider({ children }: { children: ReactNode }) {
   return <FilmContext.Provider value={film}>{children}</FilmContext.Provider>;
 }
 
-export const useFilm = () => useContext(FilmContext);
+export function useFilm() {
+  return useContext(FilmContext);
+}

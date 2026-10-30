@@ -14,12 +14,14 @@ import { boxHandle, useBoxDrag } from "./use-box-drag";
 const MAX_BOXES = 8;
 const FRAME_STEP_MS = 100;
 
-const boxStyle = (b: Bounds) => ({
-  left: percent(b.x),
-  top: percent(b.y),
-  width: percent(b.width),
-  height: percent(b.height),
-});
+function boxStyle(b: Bounds) {
+  return {
+    left: percent(b.x),
+    top: percent(b.y),
+    width: percent(b.width),
+    height: percent(b.height),
+  };
+}
 
 function BoxOverlay({
   box,

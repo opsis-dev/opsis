@@ -43,8 +43,8 @@ function watchChanges<T extends object>(
   });
 }
 
-const sharePlayhead = (applying: Flag): (() => void) =>
-  watchChanges(usePlayback, playbackSnapshot, applying, (next, last) => {
+function sharePlayhead(applying: Flag): () => void {
+  return watchChanges(usePlayback, playbackSnapshot, applying, (next, last) => {
     const rangeMoved = next.inPoint !== last.inPoint || next.outPoint !== last.outPoint;
     if (!usePlayback.getState().hasPlayer && !rangeMoved) return;
     const { inPoint, outPoint, ...rest } = next;
@@ -54,6 +54,7 @@ const sharePlayhead = (applying: Flag): (() => void) =>
       ...(outPoint === null ? {} : { outPoint }),
     });
   });
+}
 
 function showPlayhead({ inPoint, outPoint, ...rest }: Playhead): void {
   const range = { inPoint: inPoint ?? null, outPoint: outPoint ?? null };
@@ -126,5 +127,6 @@ export function useWindowSync(): void {
   }, []);
 }
 
-export const forwardMenuCommand = (command: MenuCommand): void =>
-  void commands.sendMenuToEditor(command);
+export function forwardMenuCommand(command: MenuCommand): void {
+  return void commands.sendMenuToEditor(command);
+}
