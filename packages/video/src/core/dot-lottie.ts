@@ -1,4 +1,3 @@
-import type { LottieAnimationData } from "@remotion/lottie";
 import { strFromU8, unzipSync, type Unzipped } from "fflate";
 import { z } from "zod";
 import { isRecord, isString } from "#video/common/guards.ts";
@@ -21,15 +20,16 @@ type LottieAsset = z.infer<typeof assetSchema>;
 
 const animationSchema = z.looseObject({
   fr: z.number(),
+  ip: z.number().optional(),
   w: z.number(),
   h: z.number(),
   op: z.number(),
   assets: z.array(assetSchema).optional(),
 });
 
-type Animation = z.infer<typeof animationSchema>;
+export type LottieAnimation = z.infer<typeof animationSchema>;
 
-function asAnimation(value: unknown): Animation {
+function asAnimation(value: unknown): LottieAnimation {
   const parsed = animationSchema.safeParse(value);
   if (!parsed.success) throw new Error("This file isn't an animation.");
   return parsed.data;
@@ -39,7 +39,7 @@ function isZip(bytes: Uint8Array) {
   return bytes[0] === 0x50 && bytes[1] === 0x4b;
 }
 
-export function readLottie(bytes: Uint8Array): LottieAnimationData {
+export function readLottie(bytes: Uint8Array): LottieAnimation {
   return isZip(bytes) ? readDotLottie(bytes) : asAnimation(parseJson(bytes));
 }
 
@@ -57,13 +57,13 @@ function embedImage(asset: LottieAsset, files: Unzipped): LottieAsset {
   return { ...asset, p: `data:${mime};base64,${toBase64(file)}`, u: "", e: 1 };
 }
 
-function withEmbeddedImages(data: Animation, files: Unzipped): Animation {
+function withEmbeddedImages(data: LottieAnimation, files: Unzipped): LottieAnimation {
   return data.assets
     ? { ...data, assets: data.assets.map((asset) => embedImage(asset, files)) }
     : data;
 }
 
-function readDotLottie(bytes: Uint8Array): LottieAnimationData {
+function readDotLottie(bytes: Uint8Array): LottieAnimation {
   const files = unzipSync(bytes);
   const id = files["manifest.json"]
     ? firstAnimationId(parseJson(files["manifest.json"]))
@@ -73,4 +73,22 @@ function readDotLottie(bytes: Uint8Array): LottieAnimationData {
     Object.entries(files).find(([name]) => /^(animations|a)\/[^/]+\.json$/.test(name))?.[1];
   if (!entry) throw new Error("This .lottie file has no animation inside.");
   return withEmbeddedImages(asAnimation(parseJson(entry)), files);
+}
+
+export type LottieTiming = {
+  frame: number;
+  fps: number;
+  speed: number;
+  loop: boolean;
+  backwards: boolean;
+};
+
+export function animationFrame(data: LottieAnimation, timing: LottieTiming): number {
+  const first = data.ip ?? 0;
+  const length = Math.max(1, data.op - first);
+  const last = length - 1;
+  const played = (timing.frame / timing.fps) * timing.speed * data.fr;
+  const wrapped = timing.loop ? ((played % length) + length) % length : Math.max(played, 0);
+  const along = Math.min(wrapped, last);
+  return first + (timing.backwards ? last - along : along);
 }
