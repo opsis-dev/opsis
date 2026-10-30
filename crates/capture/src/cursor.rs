@@ -13,7 +13,9 @@ use crate::drag_path::{
 };
 use crate::ease::camera_ease;
 use crate::input::Input;
-use crate::page_scripts::{CURSOR_UNDER, CursorUnder, DEFAULT_CURSOR, call, cursor_keyword};
+use crate::page_scripts::{
+    CURSOR_UNDER, CursorUnder, DEFAULT_CURSOR, WHOLLY_ON_SCREEN, call, cursor_keyword,
+};
 use crate::selectors::Target;
 
 const SAMPLE_MS: u64 = 8;
@@ -446,7 +448,13 @@ impl CursorDriver {
         let handle = self.tab.wait_visible(selector, VISIBLE_TIMEOUT).await?;
         let measured = async {
             let before = self.tab.bounding_box(&handle).await?;
-            if smooth_scroll {
+            if !smooth_scroll {
+                self.tab.scroll_into_view_if_needed(&handle).await?;
+            } else if !self
+                .tab
+                .call_on::<bool>(&handle, WHOLLY_ON_SCREEN, &[])
+                .await?
+            {
                 crate::take::smooth_scroll_into_view(
                     &self.tab,
                     &handle,
@@ -454,8 +462,6 @@ impl CursorDriver {
                     SCROLL_SETTLE_MS,
                 )
                 .await?;
-            } else {
-                self.tab.scroll_into_view_if_needed(&handle).await?;
             }
             let found = self
                 .tab

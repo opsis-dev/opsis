@@ -426,6 +426,15 @@ pub const STEP_FRAME: &str = r#"async function stepFrame(ms) {
   };
 }"#;
 
+pub const WHOLLY_ON_SCREEN: &str = "function() { const r = this.getBoundingClientRect(); return r.top >= 0 && r.left >= 0 && r.bottom <= innerHeight && r.right <= innerWidth; }";
+
+pub const STEP_OVERLAYS: &str = r#"(injected, ms) => {
+  for (const animation of injected._highlight?._glassPaneShadow?.getAnimations() ?? []) {
+    if (animation.playState === "running")
+      animation.currentTime = (animation.currentTime ?? 0) + ms * animation.playbackRate;
+  }
+}"#;
+
 pub const HOLD_PAGE_CLOCK: &str = r#"async function holdPageClock({ time, keepFixed }) {
   const clock = globalThis.__pwClock.controller;
   const fixed = keepFixed && clock._now.isFixedTime;

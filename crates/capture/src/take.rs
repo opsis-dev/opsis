@@ -65,6 +65,24 @@ const SCROLL_SMOOTHLY: &str =
     "function(block) { this.scrollIntoView({ behavior: 'smooth', block }); }";
 const SCROLL_INSTANTLY: &str =
     "function(block) { this.scrollIntoView({ behavior: 'instant', block }); }";
+const ELEMENT_PLACE: &str =
+    "function() { const r = this.getBoundingClientRect(); return [r.left, r.top]; }";
+const SCROLL_POLL: Duration = Duration::from_millis(50);
+const SCROLL_SETTLE_LIMIT_MS: f64 = 3000.0;
+
+async fn scrolling_stopped(tab: &crate::cdp::Tab, handle: &Handle) -> Result<(), CaptureError> {
+    let start = tab.clock().now();
+    let mut last: Option<(f64, f64)> = None;
+    while tab.clock().now() - start < SCROLL_SETTLE_LIMIT_MS {
+        let place: (f64, f64) = tab.call_on(handle, ELEMENT_PLACE, &[]).await?;
+        if last.is_some_and(|(x, y)| (x - place.0).abs() < 0.5 && (y - place.1).abs() < 0.5) {
+            break;
+        }
+        last = Some(place);
+        tab.clock().wait(SCROLL_POLL).await;
+    }
+    Ok(())
+}
 
 pub(crate) async fn smooth_scroll_into_view(
     tab: &crate::cdp::Tab,
@@ -78,7 +96,7 @@ pub(crate) async fn smooth_scroll_into_view(
         tab.clock()
             .wait(Duration::from_secs_f64(duration_ms.max(0.0) / 1000.0))
             .await;
-        return Ok(());
+        return scrolling_stopped(tab, handle).await;
     }
     tab.call_on::<Value>(handle, PLAN_ELEMENT_SCROLL, &[Arg::Value(json!(block))])
         .await?;

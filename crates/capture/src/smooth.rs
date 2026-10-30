@@ -9,11 +9,13 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use tokio::sync::Mutex;
 
-use crate::cdp::{Result, Tab};
+use crate::cdp::{Arg, Result, Tab};
 use crate::clock::wall_ms;
 use crate::encoder::FrameFeed;
 use crate::live::FrameSink;
-use crate::page_scripts::{PageNow, STEP_FRAME, SteppedPage, call, page_time_for_new_pages};
+use crate::page_scripts::{
+    PageNow, STEP_FRAME, STEP_OVERLAYS, SteppedPage, call, page_time_for_new_pages,
+};
 use crate::take_clock::{Stepper, TickFuture};
 
 pub struct FramePictures {
@@ -128,6 +130,12 @@ impl Smooth {
                 return;
             }
         };
+        if let Err(error) = tab
+            .injected_value::<Value>(STEP_OVERLAYS, &[Arg::Value(json!(ms))])
+            .await
+        {
+            log::debug!("moving the overlays on a frame: {error}");
+        }
         *self.scrolled.lock().expect("scroll") = (stepped.left, stepped.top);
         self.keep_page_time(tab, stepped.page).await;
     }

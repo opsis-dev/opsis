@@ -15,7 +15,7 @@ use opsis_compile::nodes::browser::Chapter;
 
 const ADD: &str = "(injected, id, html) => injected.addUserOverlay(id, html)";
 const REMOVE: &str = "(injected, id) => injected.removeUserOverlay(id)";
-const FADE_OUT: &str = "(injected, id, fade) => { const bg = injected.getUserOverlay(id)?.querySelector('#background'); if (bg) bg.classList.add('fade-out'); return new Promise(f => injected.utils.builtins.setTimeout(f, fade)); }";
+const FADE_OUT: &str = "(injected, id) => { injected.getUserOverlay(id)?.querySelector('#background')?.classList.add('fade-out'); }";
 const ANNOTATE: &str = "(injected, annotation) => injected.setScreencastAnnotation(annotation)";
 const RESTORE_CURSOR: &str = "(injected, point) => injected.restoreScreencastCursor(point)";
 
@@ -163,14 +163,16 @@ impl Overlays {
         }
         if let Err(error) = self
             .tab
-            .injected_value::<Value>(
-                FADE_OUT,
-                &[Arg::Value(json!(id)), Arg::Value(json!(fade_ms))],
-            )
+            .injected_value::<Value>(FADE_OUT, &[Arg::Value(json!(id))])
             .await
         {
             log::debug!("fading out an overlay: {error}");
+            return;
         }
+        self.tab
+            .clock()
+            .wait(Duration::from_millis(u64::from(fade_ms)))
+            .await;
     }
 
     pub fn remove_after(self: &Arc<Self>, id: String, after: Duration, fade_ms: u32) {

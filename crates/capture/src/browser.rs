@@ -20,15 +20,15 @@ use crate::page_scripts::{FIT_PAGE_TO_SCALE, call};
 use crate::playwright::tables;
 use crate::still_layout::{Size, scaled_viewport};
 
-const HEADLESS_SWITCHES: [&str; 6] = [
+const HEADLESS_SWITCHES: [&str; 5] = [
     "--enable-unsafe-swiftshader",
     "--headless",
-    "--hide-scrollbars",
     "--mute-audio",
     "--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
     "--no-sandbox",
 ];
-const TAKE_SWITCHES: [&str; 2] = ["--hide-scrollbars", "--disable-features=Translate"];
+const TAKE_SWITCHES: [&str; 1] = ["--disable-features=Translate"];
+const HIDE_SCROLLBARS: &str = "--hide-scrollbars";
 const STARTUP_SWITCHES: [&str; 1] = ["--no-startup-window"];
 const MOBILE_USER_AGENT: &str = "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Mobile/15E148 Safari/604.1";
 const LAUNCH_TIMEOUT: Duration = Duration::from_secs(30);
@@ -234,7 +234,12 @@ impl Session {
         temp_dir: &Path,
         switches: &[&str],
     ) -> Result<Self> {
-        let launched = launch(executable, temp_dir, switches).await?;
+        let scrollbars = (!params.show_scrollbars).then_some(HIDE_SCROLLBARS);
+        let extra: Vec<&str> = scrollbars
+            .into_iter()
+            .chain(switches.iter().copied())
+            .collect();
+        let launched = launch(executable, temp_dir, &extra).await?;
         let page = match new_page(&launched).await {
             Ok(page) => page,
             Err(error) => {
@@ -381,10 +386,6 @@ impl Session {
             json!({ "media": "", "features": features }),
         )
         .await?;
-        if params.show_scrollbars {
-            tab.send("Emulation.setScrollbarsHidden", json!({ "hidden": false }))
-                .await?;
-        }
         Ok(())
     }
 

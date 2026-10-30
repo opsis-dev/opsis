@@ -58,7 +58,7 @@ function LiveViewCard({ live }: { live: AppSettings["live"] }) {
       <FieldGroup>
         <Field>
           <div className="flex items-center justify-between">
-            <FieldLabel>Preview frame rate</FieldLabel>
+            <FieldLabel>Live view frame rate</FieldLabel>
             <span className="text-muted-foreground text-sm tabular-nums">{live.fps} fps</span>
           </div>
           <SingleSlider
