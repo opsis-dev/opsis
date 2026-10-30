@@ -2,11 +2,11 @@
 
 Opsis v1 was Electron, v2 is Rust and Tauri with Remotion drawing the film. v3 is a greenfield renderer written for Opsis: one Rust engine that drives the recording browser for takes, stills and exports, with a film page Opsis owns end to end. Nothing about v2's film code is a constraint: elements, nodes, the page runtime, the authoring model and the build can all change if the result is faster or simpler. Opsis is pre-alpha (never published, never pushed, one local deb install for checks), so no file format, setting or element needs a migration.
 
-Status: research done (2026-10-30), plan only. Work happens on `exp/rs-renderer` in the worktree `~/projects/opsis-v3`, building into the main checkout's target with `CARGO_TARGET_DIR=/home/panda/projects/demoflow/target` (never a symlink, never a change to the tracked `.cargo/config.toml`).
+Status: phase 1 done and on `main` (2026-10-31); phase 2 in progress. Work happens on `exp/rs-renderer` in the worktree `~/projects/opsis-v3`, building into the main checkout's target with `CARGO_TARGET_DIR=/home/panda/projects/demoflow/target` (never a symlink, never a change to the tracked `.cargo/config.toml`).
 
 ## How to read this plan
 
-- Section 1 is v2 as it stands, with numbers. Section 2 is the research on Remotion, HyperFrames, Motion Canvas, the Rust toolchain crates and other people's experiments, plus measurements made on Opsis's own pinned browser. Section 3 is the v3 design. Section 4 is the work, in the order agreed: leaf packages first (smallest first), then the page runtime, then the Rust renderer, then cleanup. Section 5 lists measurements still to take, 6 decisions for the user, 7 risks, 8 sources.
+- Section 1 is v2 as it stands, with numbers. Section 2 is the research on Remotion, HyperFrames, Motion Canvas, the Rust toolchain crates and other people's experiments, plus measurements made on Opsis's own pinned browser. Section 3 is the v3 design. Section 4 is the work, in the order agreed: leaf packages first (smallest first), then footage from Rust, then the page runtime, then the Rust renderer, then cleanup. Section 5 lists measurements still to take, 6 decisions for the user, 7 risks, 8 sources.
 - Each phase in section 4 ends with the same checks: `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, the element stills compared against the previous run (`bun run elements:render`, 138 stills, byte comparison), and the dev-engine tests of any crate touched. Visual changes are allowed (greenfield) but each one is looked at and named.
 - Rules from `AGENTS.md` hold unless this plan changes them on purpose; every such change updates `AGENTS.md` in the same commit.
 - Remotion is leaving, so it informs nothing below except as a record of what v2 does today. Its licence also forbids copying or modifying its code to sell a derivative, so no Remotion code is copied into v3; everything replacing it is written for Opsis. HyperFrames (Apache-2.0) and Motion Canvas (MIT) may be borrowed from with their notices in `THIRD_PARTY_NOTICES.md`.
@@ -196,9 +196,13 @@ One Rust process does takes, stills, exports and (later) a preview; no Node or B
 
 ### 3.4 Media in the film
 
-- **Video and takes.** Rust decodes frames with ffmpeg-static (seek, scale to the drawn size, cache by file stamp and time), served by the render file server; the page shows them as images. This works for HEVC, which the headless shell can't decode (TODO.md bug), and for HDR (tone mapping in FFmpeg).
-- **Picture look and Blur areas.** Applied to the footage before the page sees it, as prepared files: Picture look through the grade filter builders (`crates/media/src/grade.rs`), Blur areas as timed `boxblur` regions in the take's own coordinates, so they stay on the page while the camera moves. No WebGL effects pipeline in the page.
-- **Sound.** Unchanged: Rust mix, master stem, mux.
+- **Footage frames come from Rust.** Every video the film shows (the Video element and recordings in every style) is a footage source: a file plus a processing chain. During a render Rust runs one decoder per source (ffmpeg-static), streaming frames in order through the chain and handing each as a JPEG 4:4:4 to the render file server; the page shows the frame for its time as an image and holds the frame until it has loaded. A render asks for frames in order (one tab), so each frame is decoded once; the last few frames stay in memory (styles that draw the same footage twice), a jump backwards or far forward restarts the decoder at that time (stills take that path), and a decoder ends with its render or when idle. This also plays HEVC, which the headless shell can't decode (TODO.md bug), and tone-maps HDR in FFmpeg.
+- **No frame cache on disk.** JPEG 4:4:4 at high quality measured 240 to 500 KiB per 1920×1080 frame of UI and dense text (2026-10-31), so a 10 minute take at 30 fps would be 4 to 8 GiB, and exact repeats were only 2% and 41% of frames in two UI recordings. Exports already cache the finished picture by its key, so a re-render is rare; decoding again then costs less than gigabytes kept per take.
+- **The chain.** In order: trim and rate, a grade (the grade steps' filter graph, `grade_filters`), then Rust per-frame operations on drawn areas (Redact's large pixels, blur or solid colour, with time ranges, in the source's own pixels), then JPEG. Footage operations run before the camera, so the camera moves over a graded, redacted page.
+- **One colour system.** Picture look goes: a grade (the list the grade nodes build) is applied either to a file (Apply grade, an encode, for files that leave the film) or to footage (Grade footage, `clip → clip`, into the chain). Picture look's colour, noise and vignette are Colour and light, Texture's grain and Lens's dark edges.
+- **One redaction.** Blur areas goes: Redact works on pictures (as today) and on footage (`recording → recording` and `clip → clip`, areas with time ranges), one implementation (`crates/image`) for both, so footage gains large pixels and solid colour.
+- **Later.** The chain can run more of the image operations on footage (crop, rotate and flip, adjust, blur and sharpen, spotlight, magnify); each needs its own node design (a crop changes the footage's size, which the camera and window frame depend on) and isn't part of phase 2.
+- **Sound.** Unchanged: Rust mix, master stem, mux. The film's `<Audio>` is never heard (pictures are rendered muted and the stem is muxed after; unmuted renders are formats without sound or films without a mix) and is deleted.
 
 ### 3.5 Build
 
@@ -206,32 +210,37 @@ One Rust process does takes, stills, exports and (later) a preview; no Node or B
 - Tailwind leaves the film (11 files use `className`); elements style themselves with style objects. The editor keeps Tailwind through its Vite plugin.
 - Bundler: Vite (already used for the editor) first. Later, optionally, a Rust build step with Rolldown and oxc (2.6), which would remove Rspack and `@remotion/bundler` from the toolchain; it's dev-time only (the bundle ships prebuilt), so it's a tooling simplification, not a run-time gain.
 
-### 3.6 What replaces each leaf package (phase 1)
+### 3.6 What replaced each leaf package (phase 1, done)
 
-| #   | Package                    | Replacement                                                                                                                                                                                                                                      |
-| --- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | `@remotion/tailwind-v4`    | The film stops using Tailwind: the 11 files that use `className` move to style objects, `video.css` loses `@import "tailwindcss"`, the sidecar's bundler override drops `enableTailwind`                                                         |
-| 2   | `@remotion/noise`          | `simplex-noise` directly (MIT), seeded per element                                                                                                                                                                                               |
-| 3   | `@remotion/light-leaks`    | Our own light-leak shader element with colour settings (the audit's missing "light-leak colours" become possible)                                                                                                                                |
-| 4   | `@remotion/lottie`         | `lottie-web` directly, `goToAndStop(frame, true)` per frame, held until loaded                                                                                                                                                                   |
-| 5   | `@remotion/mac-cursors`    | Our own cursor SVGs drawn from Lucide's ISC shapes, keyed by CSS cursor keyword                                                                                                                                                                  |
-| 6   | `@remotion/motion-blur`    | Our own sub-frame trail component now; renderer-level sub-frame blur in phase 3                                                                                                                                                                  |
-| 7   | `@remotion/three`          | `@react-three/fiber` directly with `frameloop="never"` and an explicit render per frame, held until assets load                                                                                                                                  |
-| 8   | `@remotion/rough-notation` | `roughjs` directly with our own path drawing and seeds                                                                                                                                                                                           |
-| 9   | `@remotion/paths`          | Our own SVG path helpers in `lib/paths` (length, point and tangent at length, bounding box, normalise, reverse, scale, translate, interpolate, evolve), property-tested                                                                          |
-| 10  | `@remotion/transitions`    | Our own transition series and presentation interface (the 24 presentations are ours already); `fade`, `slide`, `wipe`, `flip`, `iris`, `clockWipe` rewritten with the settings the audit couldn't offer (direction, start angle, centre, colour) |
-| 11  | `@remotion/media`          | Recording and video frames from Rust (3.4); the `<Audio>` for the mix disappears with Remotion                                                                                                                                                   |
-| 12  | `@remotion/effects`        | Picture look and Blur areas as FFmpeg pre-passes (3.4)                                                                                                                                                                                           |
+| #   | Package                    | Replaced by                                                                                                                                                                               |
+| --- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `@remotion/tailwind-v4`    | No Tailwind in the film: style objects, our own reset in `video.css`                                                                                                                      |
+| 2   | `@remotion/noise`          | `simplex-noise`, one seeded field per element (`noiseField`)                                                                                                                              |
+| 3   | `@remotion/light-leaks`    | Our own light-leak shader with 1 to 4 colours                                                                                                                                             |
+| 4   | `@remotion/lottie`         | `lottie-web`'s SVG player, `goToAndStop` per frame, held until loaded                                                                                                                     |
+| 5   | `@remotion/mac-cursors`    | apple_cursor's macOS set (GPL-3.0), generated by `cursors:bundle`                                                                                                                         |
+| 6   | `@remotion/motion-blur`    | Our own shutter samples (`MotionBlur`, `shutterOffsets`)                                                                                                                                  |
+| 7   | `@remotion/three`          | `@react-three/fiber`'s own `Canvas`, frame loop off, one draw per scene change held until drawn                                                                                           |
+| 8   | `@remotion/rough-notation` | `roughjs`'s public generator, a seed per stroke                                                                                                                                           |
+| 9   | `@remotion/paths`          | `svg-path-commander`'s public util (length, point, box, transform, `equalizePaths` for the morph); the old package's arcs and relative-path boxes were up to 20 and 30 px off the browser |
+| 10  | `@remotion/transitions`    | Our own presentation types, timings, per-cut `SceneSeries`, and fade, slide, wipe, flip, iris and clock wipe                                                                              |
 
-Until phase 2, replacements still read the frame through Remotion's hooks; phase 2 swaps those for the runtime's.
+`@remotion/media` and `@remotion/effects` turned out not to be leaves: they are the frame source and the processing of frames, and both depend on Remotion's core. They are phase 2 (3.4).
 
 ## 4. Work, in order
 
-### Phase 1: leaf packages, smallest first
+Phases 2 to 4 stay on `exp/rs-renderer` and go to `main` only when the phase is proven end to end. The app isn't kept working between steps; tests and the end-to-end proof are what count. No compatibility with Remotion's looks or settings is kept: elements and nodes change where that's simpler or better.
 
-One package at a time, in the order of 1.3 and 3.6. Each step: replace, remove the package with `bun remove`, update `THIRD_PARTY_NOTICES.md` and `AGENTS.md`, run the checks, compare the element stills, and name every still that changed and why. The user stages each step; it's committed before the next starts.
+### Phase 1: leaf packages (done, on `main` at `af466ca`)
 
-### Phase 2: the page runtime
+The ten packages of 3.6, one at a time, smallest first.
+
+### Phase 2: footage from Rust (3.4)
+
+1. **Footage pipeline in Rust.** The streaming decoder per source with its chain (trim and rate, grade, area operations with time ranges, JPEG 4:4:4), served by the render file server. Tested by string for the filter graphs, against FFmpeg's own extraction for frame accuracy, for decoding each frame once in order, for seeks, for area operations matching Redact on the same picture, and for decoders ending when idle.
+2. **The film and the nodes on it.** One `<Video>` for every footage source, holding each frame until it has loaded; Grade footage replaces Picture look; Redact on recordings and clips replaces Blur areas; compile emits each source's chain; `<Audio>`, `@remotion/media`, `@remotion/effects` and mediabunny deleted; `examples/`, fixtures and docs updated. Proven by an end-to-end export in the off-screen app: a real take with a grade and redacted areas, and a Video element trimmed, rate-changed and looping.
+
+### Phase 3: the page runtime
 
 1. Measure first (5.1) with the current elements under a stub runtime.
 2. Decide the authoring model (6.1).
@@ -239,17 +248,16 @@ One package at a time, in the order of 1.3 and 3.6. Each step: replace, remove t
 4. Move every element and part to it (184 files import Remotion's core today); delete `registerRoot`, `Composition`, `Freeze`, `Loop`, `Interactive`, `getRemotionEnvironment` uses.
 5. A test harness that renders an element at a frame without any browser test runner hacks (replaces `core/test-frame.tsx`).
 
-### Phase 3: the Rust renderer
+### Phase 4: the Rust renderer
 
 1. FrameDriver in `opsis-capture` with the capture paths of 3.3, the probe and the fallback.
-2. The frame server for video and takes, and the footage pre-passes (3.4).
-3. Exports: picture through FrameEncoder, codecs (h264, h265, vp8, vp9, ProRes, GIF through `palettegen`/`paletteuse`), quality, every Nth frame, scale; then mux as today.
-4. Stills.
-5. Static-frame skipping from the spec.
-6. Workers.
-7. Remove the sidecar, `@remotion/renderer`, `@remotion/bundler`, the compositor staging, `scripts/video-bundle.ts`'s Remotion path.
+2. Exports: picture through FrameEncoder, codecs (h264, h265, vp8, vp9, ProRes, GIF through `palettegen`/`paletteuse`), quality, every Nth frame, scale; then mux as today.
+3. Stills.
+4. Static-frame skipping from the spec.
+5. Workers.
+6. Remove the sidecar, `@remotion/renderer`, `@remotion/bundler`, the compositor staging, `scripts/video-bundle.ts`'s Remotion path.
 
-### Phase 4: cleanup
+### Phase 5: cleanup
 
 - `LICENSE`: drop the section 7 Remotion permission.
 - Settings and first-run: drop the Remotion licence key and notice.
@@ -264,7 +272,7 @@ One package at a time, in the order of 1.3 and 3.6. Each step: replace, remove t
 1. Where a 1920×1080 frame's time goes with real films: seek and commit, readiness, paint, capture, transport, encode; for a text element, a chart, a shader background, a recording with the camera, a 3D model.
 2. `beginFrame` against `captureScreenshot` against `drawElementImage` with in-page JPEG, with `gl` set to `angle`, `swangle` and `egl`, at 1080p and 4K.
 3. CDP base64 against binary frames posted to the file server.
-4. Rust-decoded video frames as images against `<video>` seeking and against mediabunny in the page.
+4. Footage frames from the Rust decoder: time per frame for 1080p and 4K sources, decoder memory, and the restart cost of a seek.
 5. Static-frame savings on the example projects.
 6. Tabs and browsers in parallel, with and without WebGL, with recordings.
 7. Install size and memory against v2.
