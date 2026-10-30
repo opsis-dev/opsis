@@ -28,6 +28,7 @@ type WorkflowState = {
   workflow: Workflow | null;
   revision: number;
   savedRevision: number;
+  saving: boolean;
   canUndo: boolean;
   canRedo: boolean;
 };
@@ -38,6 +39,7 @@ const NO_DOCUMENT: WorkflowState = {
   workflow: null,
   revision: 0,
   savedRevision: 0,
+  saving: false,
   canUndo: false,
   canRedo: false,
 };
@@ -53,6 +55,7 @@ export function showDocument(state: DocumentState): void {
     workflow: state.workflow,
     revision: state.revision,
     savedRevision: state.savedRevision,
+    saving: state.saving,
     canUndo: state.canUndo,
     canRedo: state.canRedo,
   });

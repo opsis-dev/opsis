@@ -76,6 +76,7 @@ impl Document {
             workflow: self.workflow.clone(),
             revision: self.revision,
             saved_revision: self.saved_revision,
+            saving: false,
             can_undo: !self.past.is_empty(),
             can_redo: !self.future.is_empty(),
         }

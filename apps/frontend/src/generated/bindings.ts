@@ -676,6 +676,7 @@ export type DocumentState = {
 	workflow: Workflow,
 	revision: number,
 	savedRevision: number,
+	saving: boolean,
 	canUndo: boolean,
 	canRedo: boolean,
 };

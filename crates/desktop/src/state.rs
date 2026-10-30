@@ -102,6 +102,7 @@ pub struct AppState {
     pub tasks: Tasks,
     pub saving: tokio::sync::Mutex<()>,
     pub autosave: AtomicU64,
+    pub save_due: AtomicBool,
     pub compiles: CompileQueue,
 }
 
@@ -131,6 +132,7 @@ impl AppState {
             tasks: Tasks::default(),
             saving: tokio::sync::Mutex::new(()),
             autosave: AtomicU64::new(0),
+            save_due: AtomicBool::new(false),
             compiles: CompileQueue::default(),
             paths,
         })

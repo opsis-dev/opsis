@@ -105,7 +105,9 @@ function RunControls() {
 
 export function TopBar({ projectDir }: { projectDir: string }) {
   const name = useWorkflowStore((s) => s.workflow?.name);
-  const dirty = useWorkflowStore((s) => s.revision !== s.savedRevision);
+  const saved = useWorkflowStore((s) =>
+    s.revision === s.savedRevision ? "Saved" : s.saving ? "Saving" : "Unsaved",
+  );
 
   return (
     <AppBar>
@@ -119,7 +121,7 @@ export function TopBar({ projectDir }: { projectDir: string }) {
       </Button>
       <span className="truncate font-semibold">{name}</span>
       <Badge variant="outline" className="font-normal">
-        {dirty ? "Unsaved" : "Saved"}
+        {saved}
       </Badge>
       <Separator orientation="vertical" className="mx-1 h-5 data-vertical:self-center" />
       <HistoryButtons />

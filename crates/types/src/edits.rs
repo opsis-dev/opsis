@@ -314,6 +314,7 @@ pub struct DocumentState {
     pub workflow: Workflow,
     pub revision: u64,
     pub saved_revision: u64,
+    pub saving: bool,
     pub can_undo: bool,
     pub can_redo: bool,
 }

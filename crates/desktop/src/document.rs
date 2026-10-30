@@ -48,15 +48,11 @@ fn shown(path: &Path) -> String {
 }
 
 fn announce(app: &AppHandle) {
-    let changed = app
-        .state::<AppState>()
-        .editor()
-        .document
-        .as_mut()
-        .map(|doc| DocumentChanged {
-            document: doc.state(),
-            edited: doc.take_edited(),
-        });
+    let state = app.state::<AppState>();
+    let changed = state.editor().document.as_mut().map(|doc| DocumentChanged {
+        document: shown_state(&state, doc),
+        edited: doc.take_edited(),
+    });
     let Some(changed) = changed else {
         return;
     };
@@ -66,8 +62,16 @@ fn announce(app: &AppHandle) {
     }
 }
 
+fn shown_state(state: &AppState, doc: &Document) -> DocumentState {
+    DocumentState {
+        saving: state.save_due.load(Ordering::Relaxed),
+        ..doc.state()
+    }
+}
+
 fn schedule_autosave(app: &AppHandle) {
     let state = app.state::<AppState>();
+    state.save_due.store(true, Ordering::Relaxed);
     let turn = state.autosave.fetch_add(1, Ordering::Relaxed) + 1;
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
@@ -82,8 +86,8 @@ fn schedule_autosave(app: &AppHandle) {
 }
 
 pub fn changed(app: &AppHandle) {
-    announce(app);
     schedule_autosave(app);
+    announce(app);
     crate::compile::request(app);
 }
 
@@ -108,6 +112,17 @@ fn ask_about_disk(app: &AppHandle, workflow: Option<Workflow>, version: String) 
 pub async fn save(app: &AppHandle) -> CommandResult<bool> {
     let state = app.state::<AppState>();
     let _turn = state.saving.lock().await;
+    let due = state.autosave.load(Ordering::Relaxed);
+    let saved = write(app).await;
+    if state.autosave.load(Ordering::Relaxed) == due {
+        state.save_due.store(false, Ordering::Relaxed);
+    }
+    announce(app);
+    saved
+}
+
+async fn write(app: &AppHandle) -> CommandResult<bool> {
+    let state = app.state::<AppState>();
     let (dir, workflow, revision, base) = {
         let editor = state.editor();
         let Some(doc) = editor.document.as_ref() else {
@@ -135,7 +150,6 @@ pub async fn save(app: &AppHandle) -> CommandResult<bool> {
                 .db()
                 .touch_recent(&shown(&dir), &workflow.name, now_ms())
                 .await?;
-            announce(app);
             Ok(true)
         }
         SaveResult::Changed { version, workflow } => {
@@ -319,7 +333,11 @@ fn with_document(state: &AppState, change: impl FnOnce(&mut Document)) {
 #[tauri::command]
 #[specta::specta]
 pub fn document_state(state: State<'_, AppState>) -> Option<DocumentState> {
-    state.editor().document.as_ref().map(Document::state)
+    state
+        .editor()
+        .document
+        .as_ref()
+        .map(|doc| shown_state(&state, doc))
 }
 
 #[tauri::command]
