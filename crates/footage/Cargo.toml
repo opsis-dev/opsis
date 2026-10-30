@@ -1,0 +1,31 @@
+[package]
+name = "opsis-footage"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+axum = "0.8.9"
+image = "0.25.10"
+jpeg-encoder = { version = "0.7.1", features = ["simd"] }
+log = "0.4.35"
+opsis-compile = { version = "0.1.0", path = "../compile" }
+opsis-engine = { version = "0.1.0", path = "../engine" }
+opsis-image = { version = "0.1.0", path = "../image" }
+opsis-media = { version = "0.1.0", path = "../media" }
+opsis-types = { version = "0.1.0", path = "../types" }
+serde = "1.0.229"
+serde_json = "1.0.154"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["rt", "sync"] }
+
+[dev-dependencies]
+opsis-golden = { path = "../golden" }
+pretty_assertions = "1.4.1"
+proptest = "1.12.0"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros"] }
+tower = { version = "0.5.3", features = ["util"] }

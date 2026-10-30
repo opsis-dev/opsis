@@ -752,6 +752,10 @@ SOFTWARE.
 
 Decodes 3D models with compressed meshes (Draco and meshoptimizer) into plain ones before they're drawn, in `crates/prepare`. https://github.com/Filyus/draco-rust, a Rust implementation of Google's Draco format (https://github.com/google/draco). Licensed under the Apache License, Version 2.0, the same licence as Opsis; its full text is in `LICENSE`.
 
+## Footage frames — the jpeg-encoder crate
+
+Encodes every footage frame the film shows as a JPEG, in `crates/footage`. https://github.com/vstroebel/jpeg-encoder, by Volker Ströbel, licensed under the MIT License or the Apache License, Version 2.0, and partly under the Independent JPEG Group's licence. This software is based in part on the work of the Independent JPEG Group.
+
 ## Speech noise removal — the nnnoiseless crate
 
 Removes background noise from a voice in Clean speech, in `crates/media`. https://github.com/jneem/nnnoiseless, a Rust port of RNNoise (https://github.com/xiph/rnnoise) with its trained weights built in. Licensed under the BSD 3-Clause licence:

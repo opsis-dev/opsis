@@ -148,6 +148,7 @@ pub fn kind_from_path(path: &str) -> opsis_types::values::MediaKind {
 
 pub const PREPARED_SCHEME: &str = "prepared:";
 pub const PREPARED_FOLDER: &str = ".opsis/prepared";
+pub const FOOTAGE_FOLDER: &str = ".opsis/footage";
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PreparedKind {

@@ -1,0 +1,18 @@
+pub mod chain;
+pub mod decoder;
+pub mod footage;
+pub mod serve;
+
+#[derive(Debug, thiserror::Error)]
+pub enum FootageError {
+    #[error("No footage named {0} in this film.")]
+    Unknown(String),
+    #[error("Couldn't start reading the video: {0}")]
+    Start(std::io::Error),
+    #[error("Couldn't read the video: {0}")]
+    Decode(String),
+    #[error("The video has no frames.")]
+    NoFrames,
+    #[error("Couldn't save a frame: {0}")]
+    Encode(String),
+}
