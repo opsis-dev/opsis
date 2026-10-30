@@ -7,7 +7,6 @@
   "exports": {
     "./spec": "./src/spec.ts",
     "./root": "./src/index.ts",
-    "./player": "./src/player.ts",
     "./common/*": "./src/common/*.ts",
     "./generated/spec": "./src/generated/spec.ts"
   },
@@ -25,7 +24,6 @@
     "@paper-design/shaders-react": "^0.0.82",
     "@react-three/fiber": "^9.8.2",
     "@remotion/effects": "4.0.537",
-    "@remotion/layout-utils": "4.0.537",
     "@remotion/light-leaks": "4.0.537",
     "@remotion/lottie": "4.0.537",
     "@remotion/mac-cursors": "4.0.537",
@@ -34,7 +32,6 @@
     "@remotion/noise": "4.0.537",
     "@remotion/paths": "4.0.537",
     "@remotion/rough-notation": "4.0.537",
-    "@remotion/shapes": "4.0.537",
     "@remotion/three": "4.0.537",
     "@remotion/transitions": "4.0.537",
     "culori": "^4.0.2",
@@ -45,7 +42,6 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@remotion/player": "4.0.537",
     "fast-check": "^4.10.2"
   }
 }

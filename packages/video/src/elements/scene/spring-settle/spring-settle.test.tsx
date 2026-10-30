@@ -1,6 +1,6 @@
-import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import { TestFrame } from "#video/core/test-frame.tsx";
 import {
   SpringSettleItem,
   SpringSettleScenes,
@@ -16,7 +16,7 @@ const errorsAtFrame = (Component: React.FC, frame: number) => {
     errors.push(args.map(String).join(" "));
   });
   render(
-    <Thumbnail
+    <TestFrame
       component={Component}
       durationInFrames={120}
       fps={30}

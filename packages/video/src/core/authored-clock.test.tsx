@@ -1,7 +1,7 @@
-import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { TestFrame } from "#video/core/test-frame.tsx";
 
 const Clock = () => {
   const frame = useAuthoredFrame();
@@ -11,7 +11,7 @@ const Clock = () => {
 
 it("counts time in frames of 30 a second at any frame rate", () => {
   const view = render(
-    <Thumbnail
+    <TestFrame
       component={Clock}
       durationInFrames={240}
       fps={60}

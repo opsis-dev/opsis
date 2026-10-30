@@ -13,7 +13,7 @@
     "background": "transparent",
     "fontSize": 112,
     "fontWeight": 760,
-    "fontFamily": "",
+    "fadeOut": 0.3333,
     "sideMargin": 9.0,
     "lineGap": 0.22,
     "eyebrowSize": 0.26,
@@ -24,9 +24,7 @@
     "markThickness": 0.045,
     "markerOpacity": 55.0,
     "markSeed": 1,
-    "markDrawTime": 0.45,
-    "fadeOut": 0.3333,
-    "subtitleColor": ""
+    "markDrawTime": 0.45
   },
   "kinetic-headline": {
     "text": "Ship *faster* with demos that *move*",
@@ -35,7 +33,7 @@
     "background": "transparent",
     "fontSize": 104,
     "wordStagger": 4,
-    "fontFamily": "",
+    "fadeOutInFrames": 10,
     "fontWeight": 780,
     "letterSpacing": -0.04,
     "lineHeight": 1.05,
@@ -43,8 +41,7 @@
     "wordGap": 0.28,
     "rise": 0.5,
     "tilt": 4.0,
-    "underlineEmphasis": true,
-    "fadeOutInFrames": 10
+    "underlineEmphasis": true
   },
   "lower-third": {
     "title": "Ada Lovelace",
@@ -53,7 +50,7 @@
     "accent": "#a78bfa",
     "color": "#fafafa",
     "panel": "rgba(10,10,12,0.72)",
-    "fontFamily": "",
+    "subtitleOpacity": 0.7,
     "exitTime": 0.4667,
     "slide": 120,
     "margin": 80,
@@ -62,8 +59,7 @@
     "panelBlur": 12,
     "titleSize": 44,
     "titleWeight": 720,
-    "subtitleSize": 28,
-    "subtitleOpacity": 0.7
+    "subtitleSize": 28
   },
   "callout": {
     "text": "Click here",
@@ -72,7 +68,7 @@
     "side": "top",
     "color": "#fafafa",
     "accent": "#f43f5e",
-    "fontFamily": "",
+    "fadeOut": 0.3333,
     "drawTime": 0.6,
     "labelDistance": 170,
     "bend": 40,
@@ -81,9 +77,7 @@
     "labelRadius": 14,
     "fontSize": 34,
     "fontWeight": 700,
-    "slant": 19.29,
-    "fadeOut": 0.3333,
-    "labelBackground": ""
+    "slant": 19.29
   },
   "captions": {
     "style": "word-by-word",
@@ -93,22 +87,20 @@
     "highlightColor": "#facc15",
     "panel": "rgba(0,0,0,0.35)",
     "fontWeight": 800,
-    "fontFamily": "",
+    "unspokenOpacity": 55.0,
     "wordsPerLine": 6,
     "lingerMs": 250,
     "edgeOffset": 90,
     "sideMargin": 10.0,
     "panelPadding": 22,
     "panelRadius": 16,
-    "textShadow": true,
-    "unspokenOpacity": 55.0
+    "textShadow": true
   },
   "image": {
     "src": "",
     "fit": "contain",
-    "background": "",
-    "kenBurns": false,
-    "kenBurnsZoom": 1.06
+    "kenBurnsZoom": 1.06,
+    "kenBurns": false
   },
   "mosaic": {
     "boxes": [
@@ -138,8 +130,7 @@
     "muted": true,
     "volume": 1.0,
     "playbackRate": 1.0,
-    "trimBeforeMs": 0,
-    "background": ""
+    "trimBeforeMs": 0
   },
   "solid": {
     "color": "#09090b"
@@ -198,9 +189,9 @@
     "blend": "normal"
   },
   "logo-3d": {
-    "src": "",
+    "lens": 30.0,
     "depth": 0.25,
-    "color": "",
+    "reverse": false,
     "metalness": 0.3,
     "motion": "spin",
     "camera": {
@@ -208,20 +199,17 @@
     },
     "speed": 1.0,
     "lighting": "studio",
-    "background": "",
+    "motionAmount": 1.0,
     "zoom": 1.0,
     "roughness": 0.35,
     "bevel": 0.08,
     "cornerRadius": 0.12,
     "tilt": 52,
     "growIn": true,
-    "endFacing": false,
-    "motionAmount": 1.0,
-    "reverse": false,
-    "lens": 30.0
+    "endFacing": false
   },
   "card-3d": {
-    "src": "",
+    "lens": 30.0,
     "cornerRadius": 0.04,
     "depth": 0.04,
     "tilt": 40,
@@ -231,20 +219,18 @@
     },
     "speed": 1.0,
     "lighting": "soft",
-    "background": "",
+    "reverse": false,
     "zoom": 1.0,
     "edgeColor": "#ffffff",
     "roughness": 0.6,
     "shadow": 0.55,
     "growIn": true,
     "endFacing": false,
-    "motionAmount": 1.0,
-    "reverse": false,
-    "lens": 30.0
+    "motionAmount": 1.0
   },
   "text-3d": {
     "text": "Ship faster",
-    "fontFamily": "",
+    "reverse": false,
     "fontWeight": 800,
     "italic": false,
     "depth": 0.35,
@@ -267,8 +253,7 @@
     "tilt": 52,
     "endFacing": false,
     "motionAmount": 1.0,
-    "growIn": true,
-    "reverse": false
+    "growIn": true
   },
   "model-3d": {
     "src": "",
@@ -283,14 +268,13 @@
     "zoom": 1.0,
     "lighting": "studio",
     "shadow": true,
-    "background": "",
+    "lens": 30.0,
     "shadowOpacity": 0.55,
     "growIn": true,
     "motionAmount": 1.0,
     "tilt": 52,
     "endFacing": false,
-    "reverse": false,
-    "lens": 30.0
+    "reverse": false
   },
   "screen-3d": {
     "device": "laptop",
@@ -355,11 +339,10 @@
     "color": "#171717",
     "fontWeight": "600",
     "background": "white",
-    "fontFamily": "",
+    "letterSpacing": -0.05,
     "speed": 1.0,
-    "stagger": 0.0333,
-    "distance": 16,
-    "letterSpacing": -0.05
+    "stagger": 1.0,
+    "distance": 16
   },
   "typewriter": {
     "text": "console.log('hello, world')",
@@ -370,12 +353,11 @@
     "cursorColor": "#171717",
     "fontWeight": "600",
     "background": "white",
-    "fontFamily": "",
+    "letterSpacing": -0.03,
     "speed": 1.0,
     "cursorWidth": 0.08,
     "blinkRate": 1.0,
-    "align": "center",
-    "letterSpacing": -0.03
+    "align": "center"
   },
   "shimmer-sweep": {
     "text": "Generating",
@@ -384,12 +366,11 @@
     "fontSize": 96,
     "fontWeight": "700",
     "background": "white",
-    "fontFamily": "",
+    "letterSpacing": -0.03,
     "speed": 1.0,
     "sweeps": 1,
     "bandAngle": 110.0,
-    "bandWidth": 40.0,
-    "letterSpacing": -0.03
+    "bandWidth": 40.0
   },
   "matrix-decode": {
     "text": "DECRYPTED",
@@ -397,13 +378,12 @@
     "fontSize": 72,
     "color": "#22c55e",
     "fontWeight": "600",
-    "revealDuration": 2.0,
+    "revealDuration": 60.0,
     "background": "white",
-    "fontFamily": "",
+    "letterSpacing": 0.05,
     "speed": 1.0,
-    "scrambleEvery": 0.0667,
-    "seed": 0,
-    "letterSpacing": 0.05
+    "scrambleEvery": 2.0,
+    "seed": 0
   },
   "slot-machine-roll": {
     "from": "$99",
@@ -412,24 +392,22 @@
     "color": "#171717",
     "fontWeight": "700",
     "background": "white",
-    "fontFamily": "",
+    "letterSpacing": -0.03,
     "speed": 1.0,
-    "columnStagger": 0.1333,
-    "direction": "up",
-    "letterSpacing": -0.03
+    "columnStagger": 4.0,
+    "direction": "up"
   },
   "staggered-fade-up": {
     "text": "Ship your demo in minutes",
-    "staggerDelay": 0.1333,
+    "staggerDelay": 4.0,
     "distance": 20,
     "fontSize": 72,
     "color": "#171717",
     "fontWeight": "600",
     "background": "white",
-    "fontFamily": "",
+    "letterSpacing": -0.03,
     "speed": 1.0,
-    "wordDuration": 0.4,
-    "letterSpacing": -0.03
+    "wordDuration": 12.0
   },
   "kinetic-center-build": {
     "text": "Words push left.",
@@ -438,12 +416,11 @@
     "color": "#171717",
     "fontWeight": "600",
     "background": "white",
-    "fontFamily": "",
+    "letterSpacing": -0.03,
     "speed": 1.0,
     "wordGap": 10,
-    "wordTime": 0.4333,
-    "entryBlur": 3.5,
-    "letterSpacing": -0.03
+    "wordTime": 13.0,
+    "entryBlur": 3.5
   },
   "mask-reveal-up": {
     "text": "Designed to move.\nBuilt to focus.",
@@ -452,13 +429,12 @@
     "color": "#171717",
     "fontWeight": "600",
     "background": "white",
-    "fontFamily": "",
+    "lineHeight": 1.1,
     "speed": 1.0,
     "align": "center",
-    "lineStagger": 0.1,
+    "lineStagger": 3.0,
     "exitDistance": 22,
-    "blur": 6,
-    "lineHeight": 1.1
+    "blur": 6
   },
   "tracking-in": {
     "text": "tracking in",
@@ -468,10 +444,9 @@
     "color": "#171717",
     "fontWeight": "700",
     "background": "white",
-    "fontFamily": "",
+    "fadeIn": 15.0,
     "speed": 1.0,
-    "endTracking": -0.03,
-    "fadeIn": 0.5
+    "endTracking": -0.03
   },
   "word-push": {
     "text": "move at your own pace",
@@ -481,19 +456,18 @@
     "color": "#171717",
     "fontWeight": "400",
     "background": "white",
-    "fontFamily": "",
+    "letterSpacing": -0.02,
     "speed": 1.0,
-    "pushTime": 0.4,
-    "driveDistance": 0.5,
-    "letterSpacing": -0.02
+    "pushTime": 12.0,
+    "driveDistance": 0.5
   },
   "rgb-glitch-text": {
     "text": "GLITCH",
     "fontSize": 96,
     "color": "#171717",
     "fontWeight": "700",
-    "glitchAt": 0.6667,
-    "glitchDuration": 0.2667,
+    "glitchAt": 20.0,
+    "glitchDuration": 8.0,
     "intensity": 6,
     "seed": "glitch",
     "glitchColors": [
@@ -503,9 +477,8 @@
     ],
     "blend": "multiply",
     "background": "#fafafa",
-    "fontFamily": "",
-    "speed": 1.0,
-    "letterSpacing": -0.03
+    "letterSpacing": -0.03,
+    "speed": 1.0
   },
   "gradient-scale-cut-text": {
     "text": "Introducing",
@@ -514,7 +487,7 @@
     "anchorOffsetX": -16,
     "giantTravel": 400,
     "settleTravel": 160,
-    "cutFrame": 0.4333,
+    "cutFrame": 13.0,
     "revealSoftness": 14,
     "compactBlur": 12,
     "gradientStart": "#f04a14",
@@ -522,12 +495,11 @@
     "ghostColor": "#170b0a",
     "backgroundColor": "#000000",
     "fontWeight": "700",
-    "fontFamily": "",
+    "letterSpacing": 0.0,
     "speed": 1.0,
-    "revealEnd": 1.1,
+    "revealEnd": 33.0,
     "compactWidth": 87.0,
-    "gradientSpread": 26.0,
-    "letterSpacing": 0.0
+    "gradientSpread": 26.0
   },
   "strikethrough-replace": {
     "from": "$49/mo",
@@ -537,12 +509,10 @@
     "color": "#171717",
     "fontWeight": "700",
     "background": "white",
-    "fontFamily": "",
+    "letterSpacing": -0.03,
     "speed": 1.0,
     "strikeEnd": 0.4,
-    "swapLength": 0.2,
-    "letterSpacing": -0.03,
-    "toColor": ""
+    "swapLength": 0.2
   },
   "line-by-line-slide": {
     "text": "Record once.\nShare everywhere.",
@@ -551,13 +521,12 @@
     "color": "#171717",
     "fontWeight": "600",
     "background": "white",
-    "fontFamily": "",
+    "lineHeight": 1.1,
     "speed": 1.0,
     "align": "left",
-    "lineStagger": 0.1333,
+    "lineStagger": 4.0,
     "exit": true,
-    "letterSpacing": -0.03,
-    "lineHeight": 1.1
+    "letterSpacing": -0.03
   },
   "marker-highlight": {
     "before": "Made for ",
@@ -569,12 +538,11 @@
     "fontSize": 72,
     "fontWeight": "600",
     "background": "white",
-    "fontFamily": "",
+    "y": 0.5,
     "speed": 1.0,
-    "markerAt": 0.5,
+    "markerAt": 15.0,
     "markerHeight": 1.0,
-    "x": 0.5,
-    "y": 0.5
+    "x": 0.5
   },
   "inline-highlight": {
     "before": "Ship faster with ",
@@ -585,11 +553,10 @@
     "fontSize": 72,
     "fontWeight": "600",
     "background": "white",
-    "fontFamily": "",
+    "letterSpacing": -0.03,
     "speed": 1.0,
     "changeStart": 0.2,
-    "changeEnd": 0.7,
-    "letterSpacing": -0.03
+    "changeEnd": 0.7
   },
   "ink-underline": {
     "width": 420,
@@ -600,7 +567,7 @@
     "grain": 1.0,
     "durationSteps": 5,
     "seed": "ink",
-    "step": 0.1,
+    "step": 3.0,
     "x": 0.5,
     "y": 0.62,
     "wobble": 1.2,
@@ -615,7 +582,7 @@
     "durationSteps": 10,
     "color": "#6f7f35",
     "seed": "scribble",
-    "step": 0.1,
+    "step": 3.0,
     "x": 0.5,
     "y": 0.5,
     "width": 420,
@@ -633,11 +600,11 @@
     "release": 1.0,
     "grain": 1.0,
     "headSize": 24,
-    "drawDur": 1.2,
-    "headDur": 0.4,
+    "drawDur": 36.0,
+    "headDur": 12.0,
     "color": "#26242c",
     "seed": "arrow",
-    "step": 0.1,
+    "step": 3.0,
     "fromX": 0.3,
     "fromY": 0.72,
     "toX": 0.48,
@@ -654,29 +621,28 @@
     },
     "accent": "#0a84ff",
     "size": 64,
-    "linger": 1.0,
+    "linger": 30.0,
     "x": 0.5,
     "y": 0.86,
     "steps": [
       {
         "keys": "mod+k",
-        "at": 0.6667
+        "at": 20.0
       },
       {
         "keys": "g i",
-        "at": 2.6
+        "at": 78.0
       },
       {
         "keys": "shift+mod+p",
-        "at": 3.8
+        "at": 114.0
       }
     ],
     "speed": 1.0,
-    "fontFamily": "",
+    "roundness": 0.16,
     "fontWeight": 500,
     "thenText": "then",
-    "hold": 0.2667,
-    "roundness": 0.16
+    "hold": 8.0
   },
   "confetti": {
     "particleCount": 140,
@@ -694,7 +660,7 @@
     ],
     "originX": 0.5,
     "originY": 0.5,
-    "lifetime": 3.0,
+    "lifetime": 90.0,
     "spread": 360.0,
     "direction": 180.0,
     "spin": 1.0,
@@ -993,7 +959,7 @@
     "caption": "first light",
     "captionAt": 0,
     "width": 652,
-    "step": 0.1,
+    "step": 3.0,
     "frameColor": "#fdfcf8",
     "captionColor": "#26242c",
     "photoShape": "16:9",
@@ -1001,7 +967,6 @@
     "cornerRadius": 4,
     "captionWeight": 600,
     "writeSpeed": 1.4,
-    "captionFont": "",
     "photoColor": "#100f14"
   },
   "tv-power-off": {
@@ -1012,6 +977,7 @@
     "screenColor": "#000000"
   },
   "speed-lines": {
+    "children": null,
     "mode": "trail",
     "count": 12,
     "weight": 2.0,
@@ -1026,9 +992,8 @@
     "speed": 1.0,
     "fromX": -0.25,
     "fromY": 0.5,
-    "hold": 0.2667,
-    "streakLength": 1.6,
-    "children": null
+    "hold": 8.0,
+    "streakLength": 1.6
   },
   "terminal-simulator": {
     "prompt": "$",
@@ -1047,49 +1012,42 @@
       {
         "text": "Running tests...",
         "type": "log",
-        "delay": 0.2
+        "delay": 6.0
       },
       {
         "text": "128 tests passed",
         "type": "success",
-        "delay": 0.3333
+        "delay": 10.0
       },
       {
         "text": "Building the image...",
         "type": "log",
-        "delay": 0.2667
+        "delay": 8.0
       },
       {
         "text": "Image ready in 41s",
         "type": "success",
-        "delay": 0.3333
+        "delay": 10.0
       },
       {
         "text": "Rolling out to everyone...",
         "type": "log",
-        "delay": 0.2667
+        "delay": 8.0
       },
       {
         "text": "Live in production",
         "type": "success",
-        "delay": 0.4
+        "delay": 12.0
       }
     ],
     "speed": 1.0,
     "width": 900,
     "height": 480,
-    "ellipsisPause": 0.6,
-    "startAt": 0.3333,
+    "ellipsisPause": 18.0,
+    "startAt": 10.0,
     "windowDots": true,
     "cornerRadius": 12,
     "lineHeight": 1.6,
-    "font": "",
-    "commandColor": "",
-    "logColor": "",
-    "successColor": "",
-    "errorColor": "",
-    "promptColor": "",
-    "cursorColor": "",
     "titleColor": "#71717a"
   },
   "glass-code-block": {
@@ -1098,7 +1056,7 @@
     "height": 460,
     "fontSize": 16,
     "glassColor": "rgba(10, 10, 10, 0.6)",
-    "staggerFrames": 0.1333,
+    "staggerFrames": 4.0,
     "showTrafficLights": true,
     "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
     "aura": false,
@@ -1106,18 +1064,17 @@
     "frost": 16,
     "cornerRadius": 16,
     "lineHeight": 1.55,
-    "font": "",
+    "auraColors": [
+      "rgba(56,189,248,0.22)",
+      "rgba(168,85,247,0.18)"
+    ],
     "codeColor": "#e4e4e7",
     "commentColor": "#52525b",
     "stringColor": "#86efac",
     "keywordColor": "#c4b5fd",
     "numberColor": "#fcd34d",
     "titleColor": "#a1a1aa",
-    "lineNumberColor": "#3f3f46",
-    "auraColors": [
-      "rgba(56,189,248,0.22)",
-      "rgba(168,85,247,0.18)"
-    ]
+    "lineNumberColor": "#3f3f46"
   },
   "code-morph": {
     "filename": "invoices.tsx",
@@ -1126,7 +1083,7 @@
       "colors": {}
     },
     "accentColor": "#0ea5e9",
-    "morphDuration": 1.2,
+    "morphDuration": 36.0,
     "fontSize": 20,
     "highlight": true,
     "lineNumbers": true,
@@ -1138,23 +1095,21 @@
       },
       {
         "code": "import { loadInvoices } from \"./api\";\nimport { renderRows } from \"./rows\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  renderRows(list, await loadInvoices());\n}",
-        "at": 1.6
+        "at": 48.0
       }
     ],
     "speed": 1.0,
     "lineHeight": 1.55,
     "cornerRadius": 14,
     "maxSize": 0.9,
-    "highlightHold": 0.8,
-    "font": "",
-    "backgroundColor": ""
+    "highlightHold": 24.0
   },
   "logo-enter": {
     "diameter": 118,
     "overlap": 38,
     "ringColor": "#fff",
     "orientation": "horizontal",
-    "stagger": 0.2333,
+    "stagger": 7.0,
     "logos": [
       {
         "image": "app:placeholders/logo-mark.svg",
@@ -1182,13 +1137,13 @@
   },
   "check-list": {
     "fontSize": 40,
-    "itemGap": 0.6,
-    "closeGap": 0.3,
+    "itemGap": 18.0,
+    "closeGap": 9.0,
     "perStep": 1.6,
     "strokeWidth": 3,
     "color": "#26242c",
     "tickColor": "#6f7f35",
-    "step": 0.1,
+    "step": 3.0,
     "items": [
       {
         "text": "Record the walkthrough",
@@ -1208,15 +1163,13 @@
     "weight": "600",
     "seed": "checklist",
     "background": "white",
-    "wobble": 1.0,
-    "fontFamily": "",
-    "strikeColor": ""
+    "wobble": 1.0
   },
   "search-reveal": {
     "text": "acme",
     "fieldWidth": 464,
     "fontSize": 34,
-    "framesPerCharacter": 0.1333,
+    "framesPerCharacter": 4.0,
     "showPanel": true,
     "showGuides": true,
     "color": "#26232b",
@@ -1226,9 +1179,8 @@
     "accentColor": "#e8f99a",
     "backgroundColor": "#f5f1f5",
     "reducedMotion": false,
-    "fontFamily": "",
-    "speed": 1.0,
-    "weight": "400"
+    "weight": "400",
+    "speed": 1.0
   },
   "agent-run": {
     "theme": {
@@ -1289,13 +1241,12 @@
     "thinkingLabel": "Thinking",
     "thoughtLabel": "Thought for",
     "showTimer": true,
-    "cornerRadius": 18,
-    "font": ""
+    "cornerRadius": 18
   },
   "animated-bar-chart": {
     "barColor": "#0ea5e9",
     "gap": 16,
-    "staggerFrames": 0.2,
+    "staggerFrames": 6.0,
     "bars": [
       {
         "label": "",
@@ -1337,8 +1288,7 @@
     "speed": 1.0,
     "cornerRadius": 6,
     "glow": 33.0,
-    "labelSize": 16,
-    "fontFamily": ""
+    "labelSize": 16
   },
   "animated-line-chart": {
     "strokeColor": "#22c55e",
@@ -1376,8 +1326,7 @@
     "groupSeparator": "space",
     "fontWeight": 800,
     "prefix": "",
-    "suffix": "",
-    "fontFamily": ""
+    "suffix": ""
   },
   "spring-settle": {
     "enterScale": 1.24,
@@ -1410,14 +1359,12 @@
     "passwordHelp": "Must be at least 8 characters long.",
     "confirmLabel": "Confirm Password",
     "speed": 1.0,
-    "loadingSeconds": 1.4,
-    "noticeSeconds": 2.2,
+    "loadingSeconds": 42.0,
+    "noticeSeconds": 66.0,
     "cursorShape": "pointer",
     "cursorSize": 28,
     "noticeCorner": "bottom-right",
-    "backgroundColor": "",
-    "radius": 10,
-    "fontFamily": ""
+    "radius": 10
   },
   "ai-prompt-flow": {
     "theme": {
@@ -1432,18 +1379,16 @@
       "infra is unblocked before the team scales next quarter."
     ],
     "toastTitle": "Response ready",
-    "typingSeconds": 1.67,
-    "loadingSeconds": 2.87,
-    "noticeSeconds": 2.0,
+    "typingSeconds": 50.1,
+    "loadingSeconds": 86.1,
+    "noticeSeconds": 60.0,
     "speed": 1.0,
     "fieldWidth": 320,
     "answerWidth": 560,
     "answerSize": 18,
-    "fontFamily": "",
+    "radius": 10,
     "buttonVariant": "default",
-    "noticeCorner": "bottom-right",
-    "backgroundColor": "",
-    "radius": 10
+    "noticeCorner": "bottom-right"
   },
   "command-menu": {
     "state": "opened",
@@ -1477,8 +1422,8 @@
     ],
     "autoplay": true,
     "pressedIndex": -1,
-    "letterSeconds": 0.0833,
-    "pauseSeconds": 0.6,
+    "letterSeconds": 2.5,
+    "pauseSeconds": 18.0,
     "speed": 1.0,
     "pickIndex": 0,
     "placeholder": "Type a command or search…",
@@ -1486,7 +1431,6 @@
     "backdropOpacity": 0.5,
     "panelWidth": 440,
     "top": 18.0,
-    "fontFamily": "",
     "radius": 10
   },
   "release-teaser": {
@@ -1502,18 +1446,15 @@
       "Move together.\nGo further.",
       "A fresh chapter.\nNo starting over."
     ],
-    "logoSrc": "",
+    "logoSize": 34,
     "themeBackground": "#050709",
     "themeSurface": "#151C22",
     "themeForeground": "#F2F5F7",
     "themeMuted": "#A4ADB5",
     "lightIntensity": 1.0,
-    "music": "",
-    "musicVolume": 1.0,
-    "fontFamily": "",
-    "textSize": 1.0,
     "statementWeight": 500,
-    "logoSize": 34
+    "musicVolume": 1.0,
+    "textSize": 1.0
   },
   "launch-anything": {
     "opening": "Good",
@@ -1544,22 +1485,61 @@
       "Messages",
       "Calendar"
     ],
-    "screenDashboard": "",
-    "screenShoppers": "",
-    "screenExchange": "",
-    "screenBuilder": "",
-    "screenTrading": "",
-    "screenLoyalty": "",
-    "screenIntegrations": "",
-    "photoDesk": "",
-    "photoHorizon": "",
-    "photoRocket": "",
-    "photoEarth": "",
+    "copyIdeasNote": "Collect ideas. Connect the details.",
+    "copyIdeasCard": "Project notes",
+    "reviewRows": [
+      {
+        "label": "Files reviewed",
+        "value": "12 files"
+      },
+      {
+        "label": "Comments resolved",
+        "value": "28 / 28"
+      },
+      {
+        "label": "Contributors",
+        "value": "4 people"
+      },
+      {
+        "label": "Next milestone",
+        "value": "Ready to share"
+      }
+    ],
+    "copyReviewButtons": [
+      "Approve",
+      "Revise"
+    ],
+    "copyReviewProject": "Autumn release",
+    "copyReviewTitle": "Review activity",
+    "copyShopNote": "A collection for slower mornings.",
+    "dashboardActivity": [
+      "Brief approved",
+      "Review completed",
+      "Project completed",
+      "Files organized",
+      "Milestone reached"
+    ],
+    "copyActivityTitle": "Recent activity",
+    "copyMomentum": "Project momentum",
+    "dashboardStats": [
+      {
+        "label": "Tasks closed",
+        "value": "128"
+      },
+      {
+        "label": "Active projects",
+        "value": "12"
+      },
+      {
+        "label": "On track",
+        "value": "92%"
+      }
+    ],
     "logoImages": [],
-    "logoSrc": "",
-    "music": "",
+    "copyDashboardNote": "Demo workspace · this month",
+    "copyDashboardPeriod": "This month",
     "musicVolume": 1.0,
-    "fontFamily": "Manrope",
+    "fontFamily": "\"Manrope\", sans-serif",
     "nightColor": "#122d24",
     "paperColor": "#faf6ec",
     "lightTextColor": "#fff9f3",
@@ -1581,59 +1561,7 @@
       "Reports",
       "Settings"
     ],
-    "copyDashboard": "Your week, in focus",
-    "copyDashboardPeriod": "This month",
-    "copyDashboardNote": "Demo workspace · this month",
-    "dashboardStats": [
-      {
-        "label": "Tasks closed",
-        "value": "128"
-      },
-      {
-        "label": "Active projects",
-        "value": "12"
-      },
-      {
-        "label": "On track",
-        "value": "92%"
-      }
-    ],
-    "copyMomentum": "Project momentum",
-    "copyActivityTitle": "Recent activity",
-    "dashboardActivity": [
-      "Brief approved",
-      "Review completed",
-      "Project completed",
-      "Files organized",
-      "Milestone reached"
-    ],
-    "copyShopNote": "A collection for slower mornings.",
-    "copyReviewTitle": "Review activity",
-    "copyReviewProject": "Autumn release",
-    "copyReviewButtons": [
-      "Approve",
-      "Revise"
-    ],
-    "reviewRows": [
-      {
-        "label": "Files reviewed",
-        "value": "12 files"
-      },
-      {
-        "label": "Comments resolved",
-        "value": "28 / 28"
-      },
-      {
-        "label": "Contributors",
-        "value": "4 people"
-      },
-      {
-        "label": "Next milestone",
-        "value": "Ready to share"
-      }
-    ],
-    "copyIdeasCard": "Project notes",
-    "copyIdeasNote": "Collect ideas. Connect the details."
+    "copyDashboard": "Your week, in focus"
   },
   "laptop-frame": {
     "screenSrc": "app:placeholders/screen-wide.svg",
@@ -1655,13 +1583,12 @@
       "colors": {}
     },
     "indicatorColor": "#30D158",
-    "fontFamily": "",
+    "notchLabelSize": 12,
     "speed": 1.0,
-    "notchAt": 4.0,
-    "zoomAt": 4.6667,
-    "zoomLength": 1.5,
-    "floatPeriod": 5.0,
-    "notchLabelSize": 12
+    "notchAt": 120.0,
+    "zoomAt": 140.0,
+    "zoomLength": 45.0,
+    "floatPeriod": 5.0
   },
   "phone-frame": {
     "variant": "showcase",
@@ -1681,9 +1608,8 @@
       "mode": "dark",
       "colors": {}
     },
-    "fontFamily": "",
-    "speed": 1.0,
-    "floatPeriod": 4.5
+    "floatPeriod": 4.5,
+    "speed": 1.0
   },
   "screen-recording": {
     "src": "app:placeholders/screen-wide.svg",
@@ -1692,7 +1618,7 @@
     "cropBottom": 0.0,
     "cropLeft": 0.0,
     "fit": "cover",
-    "backdropColor": "",
+    "speed": 1.0,
     "entrance": "fade",
     "radius": 0,
     "trimBefore": 0,
@@ -1703,21 +1629,20 @@
     },
     "camera": [
       {
-        "at": 1.1333,
-        "duration": 0.8333,
+        "at": 34.0,
+        "duration": 25.0,
         "zoom": 1.6,
         "x": 0.36,
         "y": 0.42
       },
       {
-        "at": 3.2,
-        "duration": 0.8333,
+        "at": 96.0,
+        "duration": 25.0,
         "zoom": 1.0,
         "x": 0.5,
         "y": 0.5
       }
-    ],
-    "speed": 1.0
+    ]
   },
   "announce-title": {
     "eyebrow": "Introducing",
@@ -1735,11 +1660,6 @@
     "glowStrength": 0.139,
     "taglineColor": "#f2f8ff",
     "inkColor": "#ffffff",
-    "fontFamily": "",
-    "speed": 1.0,
-    "fontWeight": 400,
-    "textScale": 1.0,
-    "symbolGlow": 1.0,
     "taglineTint": [
       "#8a2447",
       "#862547",
@@ -1749,128 +1669,115 @@
       "#3c519f",
       "#2f5ed2",
       "#3266e5"
-    ]
+    ],
+    "speed": 1.0,
+    "fontWeight": 400,
+    "textScale": 1.0,
+    "symbolGlow": 1.0
   },
   "punch-lines": {
     "script": "Record it. / Edit it. | One take. | Ship.",
     "styles": "slide,punch",
     "sizes": "1,0.945,2.7",
-    "holds": "1.6",
+    "holds": "48",
     "accentBeat": 3,
     "fontSize": 93,
     "fontWeight": "600",
     "lineHeight": 0.89,
     "letterSpacing": "-0.022em",
     "wordSpacing": "-0.02em",
-    "ground": "",
-    "ink": "",
-    "accentColor": "#ff1c8e",
-    "lead": 0.1333,
-    "slideFrom": -0.737,
-    "slideKick": 7.34,
-    "slideSettle": 2.846,
-    "lineStagger": 0.1167,
-    "slideDrop": 0.313,
-    "motionBlur": 1.0,
-    "punchFrom": 0.32,
-    "punchFrames": 0.5,
-    "wordStagger": 0.0933,
-    "pushFrom": 0.778,
-    "pushRate": 0.205,
-    "rushLead": 0.4067,
-    "rushFrames": 0.6,
-    "rushTravel": 0.85,
-    "fit": 0.92,
+    "speed": 1.0,
     "theme": {
       "mode": "light",
       "colors": {}
     },
-    "fontFamily": "",
-    "speed": 1.0
+    "accentColor": "#ff1c8e",
+    "lead": 4.0,
+    "slideFrom": -0.737,
+    "slideKick": 7.34,
+    "slideSettle": 2.846,
+    "lineStagger": 3.5,
+    "slideDrop": 0.313,
+    "motionBlur": 1.0,
+    "punchFrom": 0.32,
+    "punchFrames": 15.0,
+    "wordStagger": 2.8,
+    "pushFrom": 0.778,
+    "pushRate": 0.205,
+    "rushLead": 12.2,
+    "rushFrames": 18.0,
+    "rushTravel": 0.85,
+    "fit": 0.92
   },
   "text-highlight": {
     "before": "Powered by ",
     "highlight": "Northwind",
     "after": "",
     "preset": "logo-wipe",
-    "baseColor": "",
+    "markGap": 0.3,
     "accentColor": "#266DF0",
-    "highlightedTextColor": "",
+    "shineWidth": 40.0,
     "replaceWith": "Acme",
-    "startAt": 0.2,
-    "drawDuration": 0.4667,
+    "startAt": 6.0,
+    "drawDuration": 14.0,
     "thickness": 4,
-    "shineColor": "",
+    "markerOpacity": 16.0,
     "logoSrc": "app:placeholders/logo-mark.svg",
     "logoScale": 1.05,
     "spinTurns": 1.0,
-    "holdDuration": 0.4,
-    "rushDuration": 0.8,
+    "holdDuration": 12.0,
+    "rushDuration": 24.0,
     "rushScale": 42,
     "rushDrift": 0.55,
     "swingOut": 0.25,
-    "coverColor": "",
+    "textWidth": 80.0,
     "fontSize": 56,
     "fontWeight": "600",
     "theme": {
       "mode": "dark",
       "colors": {}
     },
-    "background": "",
-    "fontFamily": "",
-    "speed": 1.0,
-    "letterSpacing": -0.02,
     "lineHeight": 1.25,
-    "textWidth": 80.0,
-    "markerOpacity": 16.0,
-    "shineWidth": 40.0,
-    "markGap": 0.3
+    "letterSpacing": -0.02,
+    "speed": 1.0
   },
   "status-cycle": {
     "prefix": "Acme is",
     "statuses": "recording, editing, exporting, live",
     "chips": "Record, Auto zoom, Captions, Export, Share",
-    "fieldColor": "",
-    "pageColor": "",
-    "pillColor": "",
-    "pillLabelColor": "",
-    "prefixColor": "",
+    "introZoom": 1.16,
+    "letterStagger": 1.0,
+    "fieldFadeTime": 0.3,
+    "rollTime": 0.5,
+    "pillResizeTime": 0.6,
     "chipFills": [],
-    "chipTextColor": "",
-    "chipBorderColor": "",
+    "chipGap": 0.057,
+    "chipInset": 0.04,
     "fontWeight": "400",
     "chipFontWeight": "400",
     "fontSize": 63,
     "chipFontSize": 160,
-    "introFrames": 0.8,
-    "statusHold": 1.0,
-    "chipStagger": 0.2667,
+    "introFrames": 24.0,
+    "statusHold": 30.0,
+    "chipStagger": 8.0,
     "pillCenterY": 0.516,
     "startAt": 0.0,
     "theme": {
       "mode": "dark",
       "colors": {}
     },
-    "fontFamily": "",
+    "chipPadding": 0.42,
     "speed": 1.0,
     "pillHeight": 1.128,
     "pillPadding": 0.19,
-    "pillGap": 0.147,
-    "chipPadding": 0.42,
-    "chipInset": 0.04,
-    "chipGap": 0.057,
-    "pillResizeTime": 0.6,
-    "rollTime": 0.5,
-    "fieldFadeTime": 0.3,
-    "letterStagger": 0.0333,
-    "introZoom": 1.16
+    "pillGap": 0.147
   },
   "logo-assemble": {
     "brandName": "Acme",
     "middleText": "Product demos, made simple",
     "logoSrc": "app:placeholders/logo-mark.svg",
     "count": 10,
-    "background": "",
+    "fontWeight": 600,
     "theme": {
       "mode": "dark",
       "colors": {}
@@ -1901,9 +1808,9 @@
         "image": "app:backdrops/flare.jpg"
       }
     ],
-    "fontFamily": "",
+    "middleTextSize": 4.0,
     "speed": 1.0,
-    "orbitSeconds": 1.67,
+    "orbitSeconds": 50.1,
     "orbitSpeed": 1.0,
     "cardRatio": 1.22,
     "cardShadow": 0.4,
@@ -1912,9 +1819,7 @@
     "cardSize": 15.0,
     "logoSize": 12.5,
     "logoGap": 3.5,
-    "nameSize": 5.5,
-    "middleTextSize": 4.0,
-    "fontWeight": 600
+    "nameSize": 5.5
   },
   "logo-drift": {
     "headline": "Built for the stack you already use.",
@@ -1933,13 +1838,13 @@
     "fontSize": 20.0,
     "glow": true,
     "glowOpacity": 0.07,
-    "accentColor": "",
+    "headlineWidth": 88,
     "theme": {
       "mode": "light",
       "colors": {}
     },
     "fontWeight": "500",
-    "glowColor": "",
+    "labelOpacity": 0.72,
     "tiles": [
       {
         "glyph": "Rc",
@@ -2002,16 +1907,13 @@
         "at": 1.55
       }
     ],
-    "fontFamily": "",
+    "labelScale": 0.1,
     "speed": 1.0,
     "wordAt": 0.017,
     "exitScale": 0.8,
     "exitBlur": 6.5,
     "glowSize": 1.0,
-    "glyphWeight": 600,
-    "labelScale": 0.1,
-    "labelOpacity": 0.72,
-    "headlineWidth": 88
+    "glyphWeight": 600
   },
   "hero-launch": {
     "image1": "app:placeholders/screen-wide.svg",
@@ -2021,14 +1923,13 @@
       "mode": "dark",
       "colors": {}
     },
-    "fontFamily": "",
+    "edgeFade": true,
     "cardTilt": 17,
     "cardGap": 92,
     "cardAspect": 1.613,
     "cardRadius": 30,
     "headlineSize": 42,
-    "headlineWeight": 600,
-    "edgeFade": true
+    "headlineWeight": 600
   },
   "grid-pixelate-wipe": {
     "cols": 12,
@@ -2085,13 +1986,10 @@
     },
     "speed": 1.0,
     "showDelta": true,
-    "backgroundColor": "",
+    "ringGlow": 10,
     "glow": 10.0,
     "ringThickness": 9,
-    "groupSeparator": "none",
-    "fontFamily": "",
-    "downColor": "",
-    "ringGlow": 10
+    "groupSeparator": "none"
   },
   "metric-ticker": {
     "metrics": [
@@ -2142,8 +2040,8 @@
     "title": "Growth this quarter",
     "eyebrow": "Quarter recap",
     "maxCards": 4,
-    "accentColor": "",
-    "backgroundColor": "",
+    "cornerRadius": 18,
+    "trendFill": true,
     "theme": {
       "mode": "dark",
       "colors": {}
@@ -2151,10 +2049,7 @@
     "showArrows": true,
     "numberFormat": "compact",
     "glow": 7.0,
-    "uppercaseEyebrow": true,
-    "cornerRadius": 18,
-    "trendFill": true,
-    "fontFamily": ""
+    "uppercaseEyebrow": true
   },
   "funnel-chart": {
     "stages": [
@@ -2192,8 +2087,7 @@
     "labelColor": "rgba(250,250,250,0.55)",
     "dropoffColor": "#f472b6",
     "numberFormat": "compact",
-    "dropoffHeading": "Drop-off",
-    "fontFamily": ""
+    "dropoffHeading": "Drop-off"
   },
   "donut-chart": {
     "segments": [
@@ -2237,8 +2131,7 @@
     "roundEnds": false,
     "startAngle": 0.0,
     "uppercaseLabel": true,
-    "legendShows": "percent",
-    "fontFamily": ""
+    "legendShows": "percent"
   },
   "comparison-bars": {
     "rows": [
@@ -2282,8 +2175,7 @@
     "labelColor": "rgba(250,250,250,0.55)",
     "numberFormat": "compact",
     "cornerRadius": 28.0,
-    "showBeforeValue": false,
-    "fontFamily": ""
+    "showBeforeValue": false
   },
   "bar-chart-race": {
     "series": [
@@ -2384,8 +2276,7 @@
     "cornerRadius": 22.0,
     "stepLabelPosition": "bottom-right",
     "stepLabelSize": 90.0,
-    "stepLabelOpacity": 22.0,
-    "fontFamily": ""
+    "stepLabelOpacity": 22.0
   },
   "gauge-dial": {
     "value": 78.0,
@@ -2404,8 +2295,7 @@
     "labelColor": "rgba(250,250,250,0.58)",
     "roundEnds": true,
     "showNeedle": true,
-    "uppercaseLabel": true,
-    "fontFamily": ""
+    "uppercaseLabel": true
   },
   "data-story": {
     "title": "Quarterly reach by channel",
@@ -2505,18 +2395,12 @@
     "accentColor": "#e8b86d",
     "dataColor": "#2dd4bf",
     "timelineColor": "#f59e0b",
-    "backgroundColor": "",
+    "eyebrowCaps": true,
     "showScale": true,
-    "highlightBar": "",
+    "glow": 1.0,
     "chartSubtitle": "",
     "numberFormat": "compact",
-    "textSize": 1.0,
-    "logoSrc": "",
-    "ctaUrl": "",
-    "ctaSubtitle": "",
-    "eyebrowCaps": true,
-    "glow": 1.0,
-    "fontFamily": ""
+    "textSize": 1.0
   },
   "logo-reveal": {
     "pathD": "M 100 20 L 170 60 L 170 140 L 100 180 L 30 140 L 30 60 Z M 100 64 L 138 86 L 138 130 L 100 152 L 62 130 L 62 86 Z",
@@ -2525,19 +2409,15 @@
     "stroke": "#e8b86d",
     "backgroundColor": "#080810",
     "textColor": "#f4f4f5",
-    "viewBox": "",
-    "fill": "",
-    "fontFamily": "",
+    "fontWeight": 600,
+    "taglineSize": 40,
+    "nameSize": 84,
     "speed": 1.0,
     "drawSeconds": 2.4,
     "pathStagger": 0.27,
     "nameAt": 1.37,
     "glow": true,
-    "penTip": true,
-    "nameSize": 84,
-    "fontWeight": 600,
-    "taglineSize": 40,
-    "taglineColor": ""
+    "penTip": true
   },
   "pricing-card": {
     "tier": "Studio",
@@ -2564,11 +2444,8 @@
       "colors": {}
     },
     "speed": 1.0,
-    "backgroundColor": "",
-    "ctaTextColor": "",
     "rollFrom": 0,
-    "cardWidth": 460,
-    "fontFamily": ""
+    "cardWidth": 460
   },
   "comparison-table": {
     "columns": [
@@ -2638,12 +2515,10 @@
       "colors": {}
     },
     "speed": 1.0,
-    "backgroundColor": "",
+    "uppercaseHeadings": true,
     "tickColor": "#9BD4A0",
     "labelWidth": 36.0,
-    "cardWidth": 880,
-    "fontFamily": "",
-    "uppercaseHeadings": true
+    "cardWidth": 880
   },
   "changelog-entry": {
     "changes": [
@@ -2678,17 +2553,11 @@
       "colors": {}
     },
     "speed": 1.0,
-    "backgroundColor": "",
-    "kindAdded": "",
-    "kindFixed": "",
-    "kindChanged": "",
-    "kindRemoved": "",
     "addedLabel": "Added",
-    "fixedLabel": "Fixed",
-    "changedLabel": "Changed",
-    "removedLabel": "Removed",
     "cardWidth": 760,
-    "fontFamily": ""
+    "removedLabel": "Removed",
+    "changedLabel": "Changed",
+    "fixedLabel": "Fixed"
   },
   "logo-wall": {
     "logos": [
@@ -2738,19 +2607,16 @@
       "colors": {}
     },
     "speed": 1.0,
-    "backgroundColor": "",
-    "glyphColor": "",
-    "fontFamily": "",
+    "startBrightness": 0.72,
+    "showMark": true,
+    "imageSize": 46,
     "wallWidth": 900,
     "gap": 14,
     "tileHeight": 88,
     "tileRadius": 14,
     "titleSize": 30,
     "eyebrowUppercase": true,
-    "nameSize": 19,
-    "imageSize": 46,
-    "showMark": true,
-    "startBrightness": 0.72
+    "nameSize": 19
   },
   "end-card": {
     "title": "Ready to try it?",
@@ -2769,14 +2635,12 @@
       "colors": {}
     },
     "speed": 1.0,
-    "backgroundColor": "",
-    "fontFamily": "",
+    "buttonArrow": true,
+    "buttonRadius": 999,
     "glow": 12,
     "textSize": 1.0,
     "titleWeight": 700,
-    "eyebrowCaps": true,
-    "buttonRadius": 999,
-    "buttonArrow": true
+    "eyebrowCaps": true
   },
   "code-reveal": {
     "code": "export async function checkout(cart: Cart) {\n  const total = cart.items.reduce((sum, item) => sum + item.price, 0);\n  const order = await api.orders.create({ items: cart.items, total });\n\n  return order.id;\n}",
@@ -2793,7 +2657,7 @@
       "colors": {}
     },
     "speed": 1.0,
-    "backgroundColor": "",
+    "windowDots": true,
     "fontSize": 21,
     "windowWidth": 940,
     "lineHeight": 1.62,
@@ -2805,9 +2669,7 @@
     "dimOthers": 0.34,
     "glow": true,
     "vignette": true,
-    "cornerRadius": 16,
-    "windowDots": true,
-    "font": ""
+    "cornerRadius": 16
   },
   "code-diff-wipe": {
     "before": "export function render(scene) {\n  const frames = scene.frames;\n  return frames.map(draw);\n}",
@@ -2820,7 +2682,7 @@
       "colors": {}
     },
     "speed": 1.0,
-    "backgroundColor": "",
+    "windowDots": true,
     "fontSize": 20,
     "windowWidth": 940,
     "lineHeight": 1.7,
@@ -2831,9 +2693,7 @@
     "strikeRemoved": true,
     "glow": true,
     "vignette": true,
-    "cornerRadius": 16,
-    "windowDots": true,
-    "font": ""
+    "cornerRadius": 16
   },
   "kanban-move": {
     "columns": [
@@ -2891,9 +2751,7 @@
       "colors": {}
     },
     "speed": 1.0,
-    "backgroundColor": "",
-    "showCounts": true,
-    "fontFamily": ""
+    "showCounts": true
   },
   "file-tree-reveal": {
     "nodes": [
@@ -2914,10 +2772,8 @@
       "colors": {}
     },
     "speed": 1.0,
-    "backgroundColor": "",
-    "countLabel": "files",
     "panelWidth": 480,
-    "fontFamily": ""
+    "countLabel": "files"
   },
   "drag-drop-flow": {
     "fileName": "hero-take.mp4",
@@ -2938,12 +2794,9 @@
     },
     "speed": 1.0,
     "uploadingLabel": "Uploading",
-    "backgroundColor": "",
-    "uploadSeconds": 1.26,
-    "showPercent": true,
     "draggedRow": 1,
-    "fontFamily": "",
-    "cursorColor": ""
+    "uploadSeconds": 1.26,
+    "showPercent": true
   },
   "commit-graph": {
     "commits": [
@@ -2996,17 +2849,14 @@
       "colors": {}
     },
     "speed": 1.0,
-    "backgroundColor": "",
-    "codeFont": "",
-    "font": "",
+    "windowDots": true,
+    "cornerRadius": 18,
+    "textSize": 15.5,
     "windowWidth": 860,
     "rowSpacing": 48,
     "laneSpacing": 30,
     "dotSize": 6.5,
-    "lineWidth": 2.2,
-    "textSize": 15.5,
-    "cornerRadius": 18,
-    "windowDots": true
+    "lineWidth": 2.2
   },
   "notification-stack": {
     "toasts": [
@@ -3046,14 +2896,13 @@
       "colors": {}
     },
     "speed": 1.0,
-    "fontFamily": "",
+    "margin": 80,
     "size": 1.0,
     "toastWidth": 370,
-    "cornerRadius": 14,
-    "margin": 80
+    "cornerRadius": 14
   },
   "device-mockup-zoom": {
-    "src": "",
+    "subtitleSize": 24,
     "title": "",
     "subtitle": "",
     "eyebrow": "",
@@ -3081,9 +2930,7 @@
     "pullBackFrom": 1.18,
     "scale": 1.0,
     "titleSize": 64,
-    "titleWeight": 800,
-    "subtitleSize": 24,
-    "fontFamily": ""
+    "titleWeight": 800
   },
   "multi-device-lineup": {
     "scale": 1.6,
@@ -3101,8 +2948,7 @@
     "shadow": 0.55,
     "gap": 26,
     "labelSize": 12,
-    "labelUppercase": true,
-    "fontFamily": ""
+    "labelUppercase": true
   },
   "handwriting-text": {
     "text": "Signed by hand",
@@ -3111,12 +2957,11 @@
     "inkSoftness": 0.18,
     "wobble": 1.6,
     "staggerInFrames": 3,
-    "fontFamily": "",
+    "wordSpacing": 0.26,
     "seed": "handwriting",
     "color": "#f4f4f5",
     "fontWeight": "600",
-    "durationInFrames": 10,
-    "wordSpacing": 0.26
+    "durationInFrames": 10
   },
   "neon-flicker-text": {
     "text": "Open all night",
@@ -3131,26 +2976,23 @@
     "seed": 1,
     "color": "#fdf2f8",
     "fontWeight": "600",
-    "offColor": "",
+    "wordSpacing": 0.26,
     "durationInFrames": 20,
-    "humRate": 2.0,
-    "wordSpacing": 0.26
+    "humRate": 2.0
   },
   "text-mask-video": {
     "text": "LAUNCH\nDAY",
-    "src": "",
+    "startFrom": 0.0,
     "gradient": "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)",
     "reveal": "left",
     "drift": 26.0,
     "zoom": 0.12,
     "durationInFrames": 30,
-    "fontFamily": "",
+    "fitMax": 150.0,
     "fontWeight": 800,
     "letterSpacing": 0.0,
     "lineHeight": 0.98,
-    "driftSpeed": 1.0,
-    "fitMax": 150.0,
-    "startFrom": 0.0
+    "driftSpeed": 1.0
   },
   "aurora-bg": {
     "backgroundColor": "#050505",
@@ -3173,8 +3015,7 @@
     "folds": 2.0,
     "sidewaysDrift": 13.0,
     "raySpacing": 72,
-    "vignette": 0.55,
-    "horizonGlowColor": ""
+    "vignette": 0.55
   },
   "particle-field": {
     "backgroundColor": "#05070f",

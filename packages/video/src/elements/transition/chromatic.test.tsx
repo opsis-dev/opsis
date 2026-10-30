@@ -1,7 +1,7 @@
-import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { useEffect } from "react";
 import { expect, it } from "vitest";
+import { TestFrame } from "#video/core/test-frame.tsx";
 import { chromaticAberrationWipe } from "#video/elements/transition/chromatic-aberration-wipe.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -38,7 +38,7 @@ it("keeps the scene mounted as the colour split opens", () => {
     </Presentation>
   );
   const thumbnail = (progress: number) => (
-    <Thumbnail
+    <TestFrame
       component={AtProgress}
       inputProps={{ progress }}
       durationInFrames={20}

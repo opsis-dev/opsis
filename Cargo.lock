@@ -4806,7 +4806,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_path_to_error",
- "specta",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
@@ -4873,8 +4872,6 @@ dependencies = [
  "slug",
  "smart-default",
  "specta",
- "specta-serde",
- "specta-typescript",
  "thiserror 2.0.21",
  "url",
  "xxhash-rust",
@@ -4887,7 +4884,6 @@ dependencies = [
  "axum",
  "env_logger",
  "futures",
- "http-body-util",
  "indexmap 2.14.2",
  "log",
  "opsis-api",
@@ -5006,7 +5002,6 @@ dependencies = [
  "fast_image_resize",
  "image",
  "imageproc",
- "log",
  "moxcms 0.9.1",
  "num-traits",
  "opsis-compile",
@@ -5014,7 +5009,6 @@ dependencies = [
  "opsis-media",
  "opsis-runner",
  "opsis-types",
- "proptest",
  "serde_json",
  "tempfile",
  "thiserror 2.0.21",
@@ -5078,7 +5072,6 @@ dependencies = [
  "opsis-golden",
  "opsis-types",
  "percent-encoding",
- "serde",
  "serde_json",
  "skrifa 0.49.0",
  "tempfile",
@@ -5129,9 +5122,7 @@ dependencies = [
 name = "opsis-render"
 version = "0.1.0"
 dependencies = [
- "futures",
  "image",
- "indexmap 2.14.2",
  "log",
  "opsis-capture",
  "opsis-compile",
@@ -5143,8 +5134,6 @@ dependencies = [
  "opsis-project",
  "opsis-runner",
  "opsis-types",
- "pretty_assertions",
- "regex",
  "serde",
  "serde_json",
  "specta",
@@ -5152,7 +5141,6 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
- "walkdir",
 ]
 
 [[package]]
@@ -5217,7 +5205,6 @@ dependencies = [
  "serde_json",
  "specta",
  "tempfile",
- "thiserror 2.0.21",
  "tokio",
  "tokio-util",
  "url",

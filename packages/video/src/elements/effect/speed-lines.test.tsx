@@ -1,6 +1,6 @@
-import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
+import { TestFrame } from "#video/core/test-frame.tsx";
 import { SpeedLines } from "#video/elements/effect/speed-lines.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -30,7 +30,7 @@ const drawn = (mode: "trail" | "focus", frame: number) => {
     </SpeedLines>
   );
   const view = render(
-    <Thumbnail
+    <TestFrame
       component={Lines}
       durationInFrames={60}
       fps={30}

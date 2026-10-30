@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 import { ROOT } from "./lib/tool-config";
@@ -49,7 +49,8 @@ const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclud
   encoding: "utf8",
 })
   .split("\n")
-  .filter((file) => CHECKED.test(file) && !SKIPPED.some((skip) => skip.test(file)));
+  .filter((file) => CHECKED.test(file) && !SKIPPED.some((skip) => skip.test(file)))
+  .filter((file) => existsSync(path.join(ROOT, file)));
 
 const found = files.flatMap((file) => {
   const text = readFileSync(path.join(ROOT, file), "utf8");

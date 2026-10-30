@@ -26,8 +26,6 @@ serde_path_to_error = "0.1.20"
 slug = "0.1.6"
 smart-default = "0.7.1"
 specta = { version = "=2.0.0-rc.26", features = ["derive", "indexmap", "serde_json"] }
-specta-serde = "=0.0.13"
-specta-typescript = "=0.0.13"
 thiserror = "2.0.21"
 url = "2.5.8"
 xxhash-rust = { version = "0.8.19", features = ["xxh3"] }

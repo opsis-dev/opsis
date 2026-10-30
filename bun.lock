@@ -104,7 +104,6 @@
       "name": "@opsis/sidecar",
       "version": "0.1.0",
       "dependencies": {
-        "@opsis/video": "workspace:*",
         "@remotion/bundler": "4.0.537",
         "@remotion/renderer": "4.0.537",
         "@remotion/tailwind-v4": "4.0.537",
@@ -122,7 +121,6 @@
         "@paper-design/shaders-react": "^0.0.82",
         "@react-three/fiber": "^9.8.2",
         "@remotion/effects": "4.0.537",
-        "@remotion/layout-utils": "4.0.537",
         "@remotion/light-leaks": "4.0.537",
         "@remotion/lottie": "4.0.537",
         "@remotion/mac-cursors": "4.0.537",
@@ -131,7 +129,6 @@
         "@remotion/noise": "4.0.537",
         "@remotion/paths": "4.0.537",
         "@remotion/rough-notation": "4.0.537",
-        "@remotion/shapes": "4.0.537",
         "@remotion/three": "4.0.537",
         "@remotion/transitions": "4.0.537",
         "culori": "^4.0.2",
@@ -142,7 +139,6 @@
         "zod": "^4.6.7",
       },
       "devDependencies": {
-        "@remotion/player": "4.0.537",
         "fast-check": "^4.10.2",
       },
     },
@@ -521,8 +517,6 @@
     "@remotion/effects": ["@remotion/effects@4.0.537", "", { "dependencies": { "remotion": "4.0.537" } }, "sha512-Mo77V4lLtSO3UycxqRqS/ltYUp+rldG9lWQLvLjqS6xDqlu1Xl+jMuWpFLayIZhtW+zAoCPFAZv94MwdO+3Stg=="],
 
     "@remotion/elevenlabs": ["@remotion/elevenlabs@4.0.537", "", { "dependencies": { "@remotion/captions": "4.0.537", "zod": "4.5.4" } }, "sha512-NRW6rEdhSnxq40YY/i9WKFki3iTV6lj1ns+B5xQrpZTGMtOEww2GXsTg/t6dlNJqBx1pTj8r+n+VwMiMuny3Ow=="],
-
-    "@remotion/layout-utils": ["@remotion/layout-utils@4.0.537", "", {}, "sha512-OjVC+26uHqBZcsQJLFPwivItvbxKwHgLjV7HBBp1t9t3K+TxA0GX24/o81HtqnDQ+XbyLyknfxT+YRFW38SgZA=="],
 
     "@remotion/licensing": ["@remotion/licensing@4.0.537", "", {}, "sha512-D1FFftZ1VbANJXWW9xREuQFaE7whQCkhB6deklQqknQta9Vb9b/CKFqjk7ZBT8Nan+Bs7m+9+5wsd6FKF2wU1g=="],
 
