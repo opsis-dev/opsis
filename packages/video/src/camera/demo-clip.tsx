@@ -1,5 +1,4 @@
 import { Video } from "@remotion/media";
-import { CameraMotionBlur } from "@remotion/motion-blur";
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, type EffectDescriptor } from "remotion";
 import type { Annotation } from "#video/camera/action-log.ts";
@@ -12,6 +11,7 @@ import type { ClickLog } from "#video/camera/lib/click-log.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { SHOT_STYLES, type WindowShot } from "#video/camera/lib/style.ts";
 import { logTimeS, zoomAt } from "#video/camera/lib/zoom.ts";
+import { MotionBlur } from "#video/camera/motion-blur.tsx";
 import { RimLight, Stage } from "#video/camera/stage.tsx";
 import { CHROME_H, WindowFrame } from "#video/camera/window-frame.tsx";
 import { percent } from "#video/common/format.ts";
@@ -182,7 +182,15 @@ function Marks({
   ) : null;
 }
 
-function WindowGroup({ clip, shot }: { clip: DemoClipProps; shot: WindowShot }) {
+function WindowGroup({
+  clip,
+  shot,
+  muted,
+}: {
+  clip: DemoClipProps;
+  shot: WindowShot;
+  muted?: boolean;
+}) {
   const { z, style } = useCamera(clip, windowFraming(clip, shot));
   const timeS = useClipTime(clip.speed);
 
@@ -199,7 +207,13 @@ function WindowGroup({ clip, shot }: { clip: DemoClipProps; shot: WindowShot }) 
           lift={clip.liftColours ?? true}
           font={clip.frameFont}
         >
-          <Footage src={clip.src} speed={clip.speed} fit="fill" effects={clip.effects} />
+          <Footage
+            src={clip.src}
+            speed={clip.speed}
+            fit="fill"
+            muted={muted}
+            effects={clip.effects}
+          />
           <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
           <Cursor clip={clip} timeS={timeS} cameraScale={z.scale} />
         </WindowFrame>
@@ -278,20 +292,16 @@ export function DemoClip(props: DemoClipProps) {
 
   const ground = shot.ground && (props.stageGround ?? shot.ground);
   const backdrop = props.backdropChosen ? props.backdrop : ground || props.backdrop;
-  const windowGroup = <WindowGroup clip={props} shot={shot} />;
   return (
     <AbsoluteFill>
       <Backdrop name={backdrop} />
       <ShadowGroup clip={props} shot={shot} light={isLightBackdrop(backdrop)} />
       {shot.zoom && props.motionBlur ? (
-        <CameraMotionBlur
-          shutterAngle={props.shutterAngle ?? BLUR_SHUTTER_ANGLE}
-          samples={BLUR_SAMPLES}
-        >
-          {windowGroup}
-        </CameraMotionBlur>
+        <MotionBlur shutterAngle={props.shutterAngle ?? BLUR_SHUTTER_ANGLE} samples={BLUR_SAMPLES}>
+          {(muted) => <WindowGroup clip={props} shot={shot} muted={muted} />}
+        </MotionBlur>
       ) : (
-        windowGroup
+        <WindowGroup clip={props} shot={shot} />
       )}
     </AbsoluteFill>
   );

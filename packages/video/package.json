@@ -25,7 +25,6 @@
     "@react-three/fiber": "^9.8.2",
     "@remotion/effects": "4.0.537",
     "@remotion/media": "4.0.537",
-    "@remotion/motion-blur": "4.0.537",
     "@remotion/paths": "4.0.537",
     "@remotion/rough-notation": "4.0.537",
     "@remotion/three": "4.0.537",
