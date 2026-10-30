@@ -29,7 +29,6 @@
     "@remotion/mac-cursors": "4.0.537",
     "@remotion/media": "4.0.537",
     "@remotion/motion-blur": "4.0.537",
-    "@remotion/noise": "4.0.537",
     "@remotion/paths": "4.0.537",
     "@remotion/rough-notation": "4.0.537",
     "@remotion/three": "4.0.537",
@@ -38,6 +37,7 @@
     "fflate": "^0.8.3",
     "react": "^19.3.1",
     "remotion": "4.0.537",
+    "simplex-noise": "^4.0.3",
     "three": "^0.186.1",
     "zod": "^4.6.7"
   },

@@ -1,10 +1,10 @@
-import { noise3D } from "@remotion/noise";
 import { useEffect, useMemo } from "react";
 import { random, useCurrentFrame, useVideoConfig } from "remotion";
 import { MeshStandardMaterial, SphereGeometry, TorusGeometry, type BufferGeometry } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { cameraAt } from "#video/common/camera-path.ts";
 import type { ElementSettings, ShapeKind } from "#video/generated/spec.ts";
+import { noiseField } from "#video/lib/motion/noise.ts";
 import { viewPose } from "#video/three/motion.ts";
 import { Posed, STAGE_FOV, Stage3D } from "#video/three/stage.tsx";
 
@@ -111,10 +111,10 @@ export function Shapes3D({
       <Posed pose={viewPose(cameraAt(camera, frame))}>
         {placed.map((p, i) => {
           function drift(axis: string) {
-            return noise3D(`${seed}:${axis}`, i * 7.3, 0, t * DRIFT.pace) * reach;
+            return noiseField(`${seed}:${axis}`)(i * 7.3, 0, t * DRIFT.pace) * reach;
           }
           function turn(axis: string) {
-            return noise3D(`${seed}:r${axis}`, i * 3.1, 0, t * DRIFT.spin * spin) * Math.PI;
+            return noiseField(`${seed}:r${axis}`)(i * 3.1, 0, t * DRIFT.spin * spin) * Math.PI;
           }
           const material = parts.materials[p.color];
           if (!material) return null;
