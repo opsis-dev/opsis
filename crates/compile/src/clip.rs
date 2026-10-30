@@ -970,7 +970,6 @@ pub fn clip_to_spec(clip: &ClipValue, settings: &WorkflowSettings) -> TimelineSp
         audio: clip.audio.clone(),
         assets: None,
         reframe: None,
-        quality: None,
         fonts: Some(film_fonts(&settings.fonts, &clip.tracks)),
         mix: None,
     }

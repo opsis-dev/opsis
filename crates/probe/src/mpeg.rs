@@ -1,12 +1,10 @@
-use opsis_types::numbers;
-
 use crate::pictures::aac_rate_of;
 use crate::read::{Bits, Bytes, Source};
-use crate::{AudioStream, Found, ProbeError};
+use crate::{AudioStream, Found, Length, ProbeError};
 
 const SEARCH: usize = 64 * 1024;
 
-pub fn stream_info_with_length(data: &[u8]) -> Option<(AudioStream, Option<f64>)> {
+pub(crate) fn stream_info_with_length(data: &[u8]) -> Option<(AudioStream, Option<Length>)> {
     let mut bits = Bits::new(data.get(10..)?);
     let rate = bits.bits(20).ok()?;
     let channels = bits.bits(3).ok()? + 1;
@@ -17,8 +15,7 @@ pub fn stream_info_with_length(data: &[u8]) -> Option<(AudioStream, Option<f64>)
         sample_rate: Some(rate).filter(|&r| r > 0),
         channels: Some(channels),
     };
-    let seconds = (rate > 0 && total > 0).then(|| numbers::float_wide(total) / f64::from(rate));
-    Some((stream, seconds))
+    Some((stream, Length::ratio(total, u64::from(rate))))
 }
 
 pub fn stream_info(data: &[u8]) -> Option<AudioStream> {
@@ -45,10 +42,10 @@ fn flac(source: &mut Source, at: u64) -> Result<Found, ProbeError> {
         let size = r.be24()?;
         if kind & 0x7F == 0 {
             let body = source.bytes(block + 4, usize::try_from(size).unwrap_or(0))?;
-            let (audio, seconds) = stream_info_with_length(&body).ok_or(ProbeError::Damaged)?;
+            let (audio, length) = stream_info_with_length(&body).ok_or(ProbeError::Damaged)?;
             return Ok(Found {
                 format: "flac",
-                seconds,
+                length,
                 video: None,
                 audio: Some(audio),
             });
@@ -165,16 +162,16 @@ fn vbr_frames(bytes: &[u8], f: &Frame) -> Option<u32> {
 }
 
 fn mp3(source: &mut Source, at: u64, bytes: &[u8], f: &Frame) -> Found {
-    let seconds = vbr_frames(bytes, f).map_or_else(
+    let length = vbr_frames(bytes, f).map_or_else(
         || {
-            let audio = source.len().saturating_sub(at);
-            (f.bitrate > 0).then(|| numbers::float_wide(audio) * 8.0 / f64::from(f.bitrate))
+            let bits = source.len().saturating_sub(at).checked_mul(8)?;
+            Length::ratio(bits, u64::from(f.bitrate))
         },
-        |frames| Some(f64::from(frames) * f64::from(f.samples) / f64::from(f.rate)),
+        |frames| Length::ratio(u64::from(frames) * u64::from(f.samples), u64::from(f.rate)),
     );
     Found {
         format: "mp3",
-        seconds,
+        length,
         video: None,
         audio: Some(AudioStream {
             codec: match f.layer {
@@ -220,7 +217,7 @@ fn adts(source: &mut Source, start: u64) -> Result<Found, ProbeError> {
     let (rate, channels) = stream.ok_or(ProbeError::Damaged)?;
     Ok(Found {
         format: "aac",
-        seconds: rate.map(|r| numbers::float_wide(frames * 1024) / f64::from(r)),
+        length: rate.and_then(|r| Length::ratio(frames * 1024, u64::from(r))),
         video: None,
         audio: Some(AudioStream {
             codec: "aac".to_owned(),

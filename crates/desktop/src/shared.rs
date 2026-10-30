@@ -1,14 +1,12 @@
 use std::sync::Mutex;
 
-use opsis_types::shell::{
-    MenuCommand, PlaybackCall, Playhead, ReplayTab, Selection, SharedState, SharedView,
-};
+use opsis_types::shell::{MenuCommand, PlaybackCall, Playhead, ReplayTab, Selection, SharedState};
 use tauri::{AppHandle, Manager, State, WebviewWindow};
 use tauri_specta::Event;
 
 use crate::error::CommandResult;
 use crate::events::{
-    MenuCommandFired, PlaybackCalled, PlayheadShared, ReplayRequested, SelectionShared, ViewShared,
+    MenuCommandFired, PlaybackCalled, PlayheadShared, ReplayRequested, SelectionShared,
 };
 use crate::windows::MAIN_WINDOW;
 
@@ -51,22 +49,6 @@ pub fn share_selection(
     Ok(SelectionShared {
         from: window.label().to_owned(),
         selection,
-    }
-    .emit(&app)?)
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn share_view(
-    app: AppHandle,
-    window: WebviewWindow,
-    shared: State<'_, Shared>,
-    view: SharedView,
-) -> CommandResult<()> {
-    shared.state().view = Some(view.clone());
-    Ok(ViewShared {
-        from: window.label().to_owned(),
-        view,
     }
     .emit(&app)?)
 }

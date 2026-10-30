@@ -5,7 +5,6 @@ use crate::backdrops::DEFAULT_BACKDROP;
 use crate::node::Platform;
 use crate::nodes::cursor::{default_cursor_look, default_ripple};
 
-pub const PREVIEW_FILE_WIDTH: f64 = 960.0;
 pub const DEFAULT_WINDOW_STYLE: WindowStyle = WindowStyle::Macos;
 pub const DEFAULT_FRAME_THEME: FrameTheme = FrameTheme::Light;
 pub const DEFAULT_ADDRESS_BAR: bool = true;
@@ -25,7 +24,6 @@ pub fn recording_speed(props: &RecordingProps) -> f64 {
 pub fn default_recording_props(src: String, log: ActionLog, name: String) -> RecordingProps {
     RecordingProps {
         src,
-        proxy_src: None,
         log,
         name,
         speed: 1.25,

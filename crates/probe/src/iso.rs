@@ -6,7 +6,7 @@ use crate::pictures::{
     FullRange, Layout, aac_config, av1_config, avc_config, hevc_config, vp9_config,
 };
 use crate::read::{Bytes, Short, Source};
-use crate::{AudioStream, Found, ProbeError, VideoStream};
+use crate::{AudioStream, Found, Length, ProbeError, VideoStream};
 
 const FORMAT: &str = "mov,mp4,m4a,3gp,3g2,mj2";
 const MOOV_LIMIT: u64 = 512 * 1024 * 1024;
@@ -373,8 +373,9 @@ fn audio(kind: [u8; 4], entry: &[u8]) -> Option<AudioStream> {
     })
 }
 
-fn seconds(count: u64, scale: u32) -> Option<f64> {
-    (scale > 0 && count > 0).then(|| numbers::float_wide(count) / f64::from(scale))
+fn rate(count: u64, time: u64, scale: u32) -> Option<f64> {
+    (count > 0 && time > 0)
+        .then(|| numbers::float_wide(count) * f64::from(scale) / numbers::float_wide(time))
 }
 
 pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
@@ -407,7 +408,7 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
     let moov = moov.ok_or(ProbeError::Unknown)?;
     let (scale, length) = child(&moov, b"mvhd").map_or(Ok((0, 0)), timing)?;
     let mut defaults = HashMap::new();
-    let mut whole = seconds(length, scale);
+    let mut whole = Length::ratio(length, u64::from(scale));
     if let Some(mvex) = child(&moov, b"mvex") {
         for (kind, payload) in children(mvex) {
             let mut r = Bytes::new(payload);
@@ -436,10 +437,11 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
         })
         .collect();
     if whole.is_none() {
-        whole = tracks
-            .iter()
-            .filter_map(|t| seconds(t.duration.max(t.samples.time), t.timescale))
-            .reduce(f64::max);
+        whole = Length::longest(
+            tracks
+                .iter()
+                .map(|t| Length::ratio(t.duration.max(t.samples.time), u64::from(t.timescale))),
+        );
     }
     let video = tracks.iter().find_map(|t| {
         let (kind, entry) = t.entry.as_ref()?;
@@ -447,9 +449,7 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
             .then(|| video(*kind, entry))
             .flatten()
             .map(|v| VideoStream {
-                fps: seconds(t.samples.time, t.timescale)
-                    .map(|s| numbers::float_wide(t.samples.count) / s)
-                    .filter(|f| f.is_finite() && *f > 0.0),
+                fps: rate(t.samples.count, t.samples.time, t.timescale),
                 ..v
             })
     });
@@ -461,7 +461,7 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
     });
     Ok(Found {
         format: FORMAT,
-        seconds: whole,
+        length: whole,
         video,
         audio,
     })

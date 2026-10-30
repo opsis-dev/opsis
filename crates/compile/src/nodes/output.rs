@@ -2,9 +2,9 @@ use opsis_macros::{choice, settings};
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers::whole;
-use opsis_types::timeline::{ReframeMode, TimelineSpec};
+use opsis_types::timeline::ReframeMode;
 use opsis_types::values::{Artifact, CompileValue};
-use opsis_types::workflow::{PortType, Workflow, WorkflowNode, WorkflowSettings};
+use opsis_types::workflow::{PortType, WorkflowSettings};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -124,16 +124,6 @@ pub fn variant_canvas(variant: Variant, short: u32) -> Size {
 }
 
 pub const CANVAS_SHORT_SIDE: u32 = 1080;
-
-pub fn shaped_preview(spec: &TimelineSpec, shape: Variant, workflow: &Workflow) -> TimelineSpec {
-    let size = variant_size(shape, &workflow.settings);
-    TimelineSpec {
-        width: size.width,
-        height: size.height,
-        reframe: Some(export_reframe(&workflow.nodes)),
-        ..spec.clone()
-    }
-}
 
 fn exported_short_side(variant: Variant, settings: &WorkflowSettings, scale: f64) -> u32 {
     let size = variant_size(variant, settings);
@@ -570,15 +560,6 @@ fn export_images() -> NodeDef {
                 }),
         ]
     })
-}
-
-pub fn export_reframe(nodes: &[WorkflowNode]) -> ReframeMode {
-    nodes
-        .iter()
-        .find(|n| n.kind == RENDER_TYPE && !n.is_disabled())
-        .and_then(|n| n.params.get("reframe"))
-        .and_then(|v| serde_json::from_value(v.clone()).ok())
-        .unwrap_or(ReframeMode::Follow)
 }
 
 pub fn nodes() -> Vec<NodeDef> {

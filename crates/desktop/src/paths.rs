@@ -11,7 +11,6 @@ use crate::startup::StartupError;
 const APP_FOLDER: &str = "Opsis";
 const USER_DATA_ENV: &str = "OPSIS_USER_DATA";
 const VIDEO_BUNDLE_DIR: &str = "remotion-bundle";
-const PREVIEW_PAGE_DIR: &str = "apps/preview/dist";
 const SIDECAR_ENTRY: &str = "apps/sidecar/src/main.ts";
 const SIDECAR_PROGRAM: &str = "opsis-render";
 const COMPOSITOR_DIR: &str = "compositor";
@@ -22,7 +21,6 @@ pub struct AppPaths {
     pub resources: PathBuf,
     pub packaged: bool,
     pub public_dir: PathBuf,
-    pub preview_page: PathBuf,
     pub video_bundle: PathBuf,
     pub temp_root: PathBuf,
     pub views_temp: PathBuf,
@@ -60,7 +58,6 @@ impl AppPaths {
         };
         Ok(Self {
             public_dir,
-            preview_page: resources.join(PREVIEW_PAGE_DIR),
             video_bundle: resources.join(VIDEO_BUNDLE_DIR),
             temp_root: user_data.join("tmp"),
             views_temp: user_data.join("tmp").join(child_temp_name(

@@ -3,12 +3,9 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use opsis_capture::live::FrameSink;
-use opsis_compile::nodes::output::{Variant, shaped_preview};
 use opsis_stream::host::{ViewEnv, ViewHost};
 use opsis_stream::picker::{PickRequest, PickResult, pick};
-use opsis_stream::preview::{PlayerState, Preview, PreviewDirs};
 use opsis_stream::view::{StreamView, ViewEvent, ViewInput, ViewSink, ViewSize};
-use opsis_types::timeline::TimelineSpec;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::{AppHandle, Manager, State, WebviewUrl, WebviewWindowBuilder};
@@ -22,8 +19,6 @@ use crate::frames::{FrameChannel, send};
 use crate::state::AppState;
 
 const VIEW_PREFIX: &str = "view-";
-const PREVIEW_VIEW: &str = "preview";
-const PREVIEW_QUALITY: u32 = 80;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, tauri_specta::Event)]
 #[serde(rename_all = "camelCase")]
@@ -31,13 +26,6 @@ pub struct ViewEventFired {
     pub id: String,
     #[specta(type = ViewEvent)]
     pub event: serde_json::Value,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type, tauri_specta::Event)]
-#[serde(rename_all = "camelCase")]
-pub struct PreviewReported {
-    pub frame: f64,
-    pub playing: bool,
 }
 
 struct Entry {
@@ -48,16 +36,9 @@ struct Entry {
 #[derive(Default)]
 pub struct Views {
     open: Mutex<HashMap<String, Entry>>,
-    preview: tokio::sync::Mutex<Option<(PathBuf, Preview)>>,
 }
 
 impl Views {
-    pub async fn close_preview(&self) {
-        if let Some((_, preview)) = self.preview.lock().await.take() {
-            preview.close().await;
-        }
-    }
-
     fn view(&self, id: &str) -> CommandResult<Arc<StreamView>> {
         self.open
             .lock()
@@ -283,125 +264,4 @@ pub fn view_close(views: State<'_, Views>, id: String) {
     if let Some(entry) = views.open.lock().expect("views").get(&id) {
         entry.closed.cancel();
     }
-}
-
-async fn with_preview<T>(
-    views: &Views,
-    act: impl AsyncFnOnce(&Preview) -> opsis_capture::cdp::Result<T>,
-) -> CommandResult<T> {
-    let held = views.preview.lock().await;
-    let (_, preview) = held
-        .as_ref()
-        .ok_or_else(|| CommandError("The preview isn't open.".into()))?;
-    Ok(act(preview).await?)
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn preview_open(
-    app: AppHandle,
-    state: State<'_, AppState>,
-    views: State<'_, Views>,
-    project_dir: String,
-    size: ViewSize,
-    frames: FrameChannel,
-) -> CommandResult<String> {
-    let project = PathBuf::from(project_dir);
-    let mut held = views.preview.lock().await;
-    let reuse = held.as_ref().is_some_and(|(dir, _)| *dir == project);
-    if !reuse {
-        if let Some((_, old)) = held.take() {
-            old.close().await;
-        }
-        let env = view_env(&state)?;
-        let dirs = PreviewDirs {
-            page: &state.paths.preview_page,
-            public: &state.paths.public_dir,
-            project: &project,
-        };
-        let preview = Preview::open(&env, &dirs, size, PREVIEW_QUALITY).await?;
-        let mut frames = preview.frames();
-        let mut states = preview.states();
-        let emitter = app.clone();
-        tauri::async_runtime::spawn(async move {
-            loop {
-                let changed = tokio::select! {
-                    changed = frames.changed() => changed,
-                    changed = states.changed() => changed,
-                };
-                if changed.is_err() {
-                    break;
-                }
-                let reported = PreviewReported {
-                    frame: *frames.borrow(),
-                    playing: *states.borrow() == PlayerState::Playing,
-                };
-                if let Err(error) = reported.emit(&emitter) {
-                    log::warn!("sending the preview frame: {error}");
-                }
-            }
-        });
-        *held = Some((project, preview));
-    }
-    let (_, preview) = held.as_ref().expect("the preview was just opened");
-    if reuse {
-        preview.view().resize(size).await?;
-    }
-    preview.view().attach(Arc::new(ChannelSink {
-        app,
-        id: PREVIEW_VIEW.to_owned(),
-        frames,
-    }));
-    Ok(PREVIEW_VIEW.to_owned())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn preview_load(views: State<'_, Views>, spec: TimelineSpec) -> CommandResult<()> {
-    with_preview(&views, async |p| p.load(&spec).await).await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn preview_spec(
-    state: State<'_, AppState>,
-    spec: TimelineSpec,
-    shape: Variant,
-) -> TimelineSpec {
-    let editor = state.editor();
-    match editor.document.as_ref() {
-        Some(doc) => shaped_preview(&spec, shape, doc.workflow()),
-        None => spec,
-    }
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn preview_play(views: State<'_, Views>) -> CommandResult<()> {
-    with_preview(&views, async |p| p.play().await).await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn preview_pause(views: State<'_, Views>) -> CommandResult<()> {
-    with_preview(&views, async |p| p.pause().await).await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn preview_seek(views: State<'_, Views>, frame: f64) -> CommandResult<()> {
-    with_preview(&views, async |p| p.seek(frame).await).await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn preview_resize(views: State<'_, Views>, size: ViewSize) -> CommandResult<()> {
-    with_preview(&views, async |p| p.view().resize(size).await).await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn preview_close(views: State<'_, Views>) -> CommandResult<()> {
-    views.close_preview().await;
-    Ok(())
 }

@@ -12,7 +12,7 @@ bun run video:bundle
 bun start
 ```
 
-Then open **Settings → Engine** and download the engine (the recording browser and FFmpeg), or choose programs you already have. Editing works without it; previews, recordings and exports need it.
+Then open **Settings → Engine** and download the engine (the recording browser and FFmpeg), or choose programs you already have. Editing works without it; recordings and exports need it.
 
 ## Before you send a change
 

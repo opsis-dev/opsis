@@ -223,7 +223,6 @@ async fn draws_3d_elements_as_recorded() {
         let spec = hosted(&TimelineSpec {
             assets: Some(SpecAssets {
                 project_base: Some(server.url.clone()),
-                versions: None,
             }),
             ..spec_for(key, &params)
         });

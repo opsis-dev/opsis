@@ -133,7 +133,7 @@ The named pipe is created with the default security descriptor, which grants rea
 
 ## 8. Release test pass
 
-**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display) has six spec files: the start screen (`start`), every example opening (`examples`), the streamed preview and the element picker (`views`), the Timeline (`timeline`), a run and export of the changelog with the export played back (`export`), and drawing a mark in Annotate's marks editor (`annotate`), then the close check. The whole suite passed on 2026-10-27 with the first five; `annotate` was added and passed on its own on 2026-10-28. The packaged deb was checked off-screen through the Local API: it opened the changelog and exported it with the packed sidecar.
+**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display) has six spec files: the start screen (`start`), every example opening (`examples`), the element picker (`views`), the Timeline (`timeline`), a run and export of the changelog with the export played back (`export`), and drawing a mark in Annotate's marks editor (`annotate`), then the close check. The whole suite passed on 2026-10-27 with the first five; `annotate` was added and passed on its own on 2026-10-28. The packaged deb was checked off-screen through the Local API: it opened the changelog and exported it with the packed sidecar.
 
 **Work, before each release** (Linux by hand, Windows and macOS through the runner checks in section 3):
 

@@ -2260,8 +2260,6 @@ export type PreparedTypeface = {
 	typefaceItalic: boolean,
 };
 
-export type PreviewQuality = "fast" | "exact";
-
 export type PricingCard = {
 	tier: string,
 	price: number,
@@ -2351,7 +2349,6 @@ export type RecordingFit = "cover" | "contain";
 
 export type RecordingProps = {
 	src: string,
-	proxySrc?: string,
 	log: ActionLog,
 	name: string,
 	speed: number,
@@ -2761,7 +2758,6 @@ export type Solid = {
 
 export type SpecAssets = {
 	projectBase?: string,
-	versions?: { [key in string]: string },
 };
 
 export type SpeedLinesMode = "trail" | "focus";
@@ -3089,7 +3085,6 @@ export type TimelineSpec = {
 	audio: AudioItem[],
 	assets?: SpecAssets,
 	reframe?: ReframeMode,
-	quality?: PreviewQuality,
 	fonts?: FilmFonts,
 	mix?: MasterStem,
 };

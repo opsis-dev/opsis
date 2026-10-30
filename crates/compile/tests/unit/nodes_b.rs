@@ -2,13 +2,10 @@ use opsis_compile::clip::recording_props;
 use opsis_compile::node::CardInputs;
 use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::media::{QUALITY_PRESETS, loudness_name, loudness_presets, quality_name};
-use opsis_compile::nodes::output::{
-    Variant, export_reframe, shaped_preview, variant_canvas, variant_size, video_file_names,
-};
+use opsis_compile::nodes::output::{Variant, variant_canvas, variant_size, video_file_names};
 use opsis_compile::params::ParamSchema;
 use opsis_compile::registry::node_def;
-use opsis_types::timeline::{ReframeMode, TimelineSpec};
-use opsis_types::workflow::{Workflow, WorkflowNode, WorkflowSettings};
+use opsis_types::workflow::WorkflowSettings;
 use proptest::prelude::*;
 use serde_json::{Value, json};
 
@@ -41,47 +38,6 @@ fn sizes_export_shapes_by_their_long_or_short_edge() {
         [canvas("16:9"), canvas("1:1"), canvas("4:5"), canvas("9:16")],
         [(1920, 1080), (1080, 1080), (1080, 1350), (1080, 1920)]
     );
-}
-
-fn render(id: &str, params: Value, disabled: bool) -> WorkflowNode {
-    typed(
-        json!({ "id": id, "type": "output.render", "position": { "x": 0, "y": 0 }, "params": params, "disabled": disabled }),
-    )
-}
-
-#[test]
-fn a_preview_in_another_shape_takes_its_size_and_the_exports_reframe() {
-    let workflow: Workflow = typed(json!({
-        "version": 1,
-        "id": "w",
-        "name": "Shapes",
-        "nodes": [render("a", json!({ "reframe": "fit" }), false)],
-        "edges": [],
-    }));
-    let spec: TimelineSpec = typed(
-        json!({ "width": 1920, "height": 1080, "fps": 30, "durationInFrames": 30, "tracks": [] }),
-    );
-    let shaped = shaped_preview(&spec, Variant::Tall, &workflow);
-    assert_eq!((shaped.width, shaped.height), (1080, 1920));
-    assert_eq!(shaped.reframe, Some(ReframeMode::Fit));
-}
-
-#[test]
-fn reframes_like_the_first_enabled_export_or_follows_the_action() {
-    let reframe = |nodes: &[WorkflowNode]| serde_json::to_value(export_reframe(nodes)).unwrap();
-    assert_eq!(
-        reframe(&[
-            render("a", json!({ "reframe": "fit" }), true),
-            render("b", json!({ "reframe": "center" }), false)
-        ]),
-        "center"
-    );
-    assert_eq!(reframe(&[]), "follow");
-    assert_eq!(
-        reframe(&[render("a", json!({ "reframe": "sideways" }), false)]),
-        "follow"
-    );
-    assert_eq!(reframe(&[render("a", json!({}), false)]), "follow");
 }
 
 #[test]

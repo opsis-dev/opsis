@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { assetUrl, useQuality, useReframe } from "#video/assets.tsx";
+import { assetUrl, useReframe } from "#video/assets.tsx";
 import {
   resolveAnnotations,
   toClickLog,
@@ -19,7 +19,6 @@ import { STAGE_COLOR } from "#video/common/element-colors.ts";
 import { CODE_FONT } from "#video/common/fonts.ts";
 import { clamp } from "#video/common/math.ts";
 import { pick } from "#video/common/objects.ts";
-import { PREVIEW_FILE_WIDTH } from "#video/common/recording.ts";
 import { CLAMPED, fadeWindow } from "#video/core/anim.ts";
 import {
   JUSTIFY_AT,
@@ -74,10 +73,7 @@ const CLIP_KEYS = [
 ] as const satisfies ReadonlyArray<keyof RecordingProps>;
 
 export function RecordingClip(props: RecordingProps) {
-  const fast = useQuality() === "fast";
-  const proxy = fast && !!props.proxySrc;
-  const shown = proxy && props.proxySrc ? props.proxySrc : props.src;
-  const src = shown ? assetUrl(shown) : null;
+  const src = props.src ? assetUrl(props.src) : null;
   const backdrop = props.backdrop ? assetUrl(props.backdrop) : props.backdrop;
   const { width, height, fps } = useVideoConfig();
   const frame = useCurrentFrame();
@@ -92,7 +88,7 @@ export function RecordingClip(props: RecordingProps) {
     () => resolveAnnotations(props.log, props.annotations),
     [props.log, props.annotations],
   );
-  const fileWidth = proxy ? PREVIEW_FILE_WIDTH : props.log.viewport.width;
+  const fileWidth = props.log.viewport.width;
   const timeMs = timeS * 1000;
   const effects = useMemo(
     () => [
@@ -133,7 +129,7 @@ export function RecordingClip(props: RecordingProps) {
       src={src}
       log={log}
       address={frameAddress(props.log, timeMs, props.address, props.addressMode)}
-      motionBlur={props.motionBlur && !fast}
+      motionBlur={props.motionBlur}
       tuning={narrow ? { ...props.tuning, narrow } : props.tuning}
       annotations={annotations}
       effects={effects}

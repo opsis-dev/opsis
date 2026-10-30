@@ -426,7 +426,6 @@ fn record() -> NodeDef {
             .cloned()
             .unwrap_or_else(|| RecordingValue {
                 src: None,
-                proxy_src: None,
                 log: None,
                 duration_ms: DEFAULT_TAKE_MS,
                 viewport: DEFAULT_VIEWPORT,

@@ -145,7 +145,6 @@ fn still_for(
     let spec = hosted(&TimelineSpec {
         assets: Some(SpecAssets {
             project_base: Some(host.project_base.clone()),
-            versions: None,
         }),
         ..clip_to_spec(clip, &settings)
     });

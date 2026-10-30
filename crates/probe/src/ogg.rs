@@ -1,10 +1,8 @@
 use std::collections::HashMap;
 
-use opsis_types::numbers;
-
 use crate::mpeg::stream_info;
 use crate::read::{Bytes, Source};
-use crate::{AudioStream, Found, ProbeError, VideoStream};
+use crate::{AudioStream, Found, Length, ProbeError, VideoStream};
 
 const TAIL: usize = 128 * 1024;
 const HEADER_PAGES: usize = 16;
@@ -110,14 +108,13 @@ fn stream(codec: &str, rate: u32, channels: u32) -> AudioStream {
     }
 }
 
-fn seconds(codec: &Codec, granule: i64) -> Option<f64> {
-    let g = u64::try_from(granule).ok()?;
+fn length(codec: &Codec, granule: i64) -> Option<Length> {
     let per = match codec {
         Codec::Opus => 48_000,
         Codec::Vorbis(rate) | Codec::Flac(rate) | Codec::Speex(rate) => *rate,
         Codec::Theora => return None,
     };
-    (per > 0).then(|| numbers::float_wide(g) / f64::from(per))
+    Length::ratio(u64::try_from(granule).ok()?, u64::from(per))
 }
 
 pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
@@ -155,13 +152,14 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
         }
         i += found + 4;
     }
-    let seconds = codecs
-        .iter()
-        .filter_map(|(serial, codec)| seconds(codec, *last.get(serial)?))
-        .reduce(f64::max);
+    let longest = Length::longest(
+        codecs
+            .iter()
+            .map(|(serial, codec)| length(codec, *last.get(serial)?)),
+    );
     Ok(Found {
         format: "ogg",
-        seconds,
+        length: longest,
         video,
         audio,
     })

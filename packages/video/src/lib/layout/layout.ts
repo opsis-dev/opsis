@@ -72,7 +72,3 @@ export function clampRectToSafeArea(rect: Rect, frameWidth: number, frameHeight:
 
   return { x, y, width, height };
 }
-
-export const PREVIEW_LANDSCAPE = { width: 960, height: 540 } as const;
-export const PREVIEW_PORTRAIT = { width: 1080, height: 1920 } as const;
-export const PREVIEW_HD = { width: 1920, height: 1080 } as const;

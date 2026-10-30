@@ -196,17 +196,17 @@ fn pick_spec(wf: &Workflow, result: &CompileResult, id: &str) -> Option<Timeline
 
 #[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct PreviewTarget {
+pub struct FilmTarget {
     pub spec: TimelineSpec,
     pub spans: IndexMap<String, crate::timeline::flatten::FrameRange>,
     pub source_node_id: String,
 }
 
-pub fn preview_spec(
+pub fn picked_film(
     wf: &Workflow,
     result: &CompileResult,
     selected: Option<&str>,
-) -> Option<PreviewTarget> {
+) -> Option<FilmTarget> {
     let candidates = selected
         .into_iter()
         .map(str::to_owned)
@@ -215,7 +215,7 @@ pub fn preview_spec(
     for id in candidates {
         if let Some(spec) = pick_spec(wf, result, &id) {
             let spans = crate::timeline::flatten::node_spans(&spec);
-            return Some(PreviewTarget {
+            return Some(FilmTarget {
                 spec,
                 spans,
                 source_node_id: id,

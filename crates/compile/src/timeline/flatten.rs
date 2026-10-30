@@ -325,11 +325,7 @@ pub fn action_label(action: &Action) -> Option<String> {
 fn thumbnail_of(item: &TimelineItem) -> Option<BarThumbnail> {
     match item {
         TimelineItem::Recording { props, .. } => {
-            let src = props
-                .proxy_src
-                .clone()
-                .filter(|s| !s.is_empty())
-                .unwrap_or_else(|| props.src.clone());
+            let src = props.src.clone();
             (!src.is_empty()).then(|| BarThumbnail::Filmstrip {
                 src,
                 speed: recording_speed(props),

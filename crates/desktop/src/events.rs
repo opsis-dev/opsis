@@ -6,7 +6,7 @@ use opsis_types::project::ProjectFilesChange;
 use opsis_types::settings::AppSettings;
 use opsis_types::shell::{
     ApiServerStatus, CloseRequest, DockPanelName, MenuCommand, PlaybackCall, Playhead, ReplayTab,
-    Selection, SettingsPage, SharedView, ViewPrefChange, WindowState,
+    Selection, SettingsPage, ViewPrefChange, WindowState,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -92,12 +92,6 @@ pub struct Compiled(#[specta(type = EditorCompile)] pub Value);
 pub struct SelectionShared {
     pub from: String,
     pub selection: Selection,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
-pub struct ViewShared {
-    pub from: String,
-    pub view: SharedView,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]

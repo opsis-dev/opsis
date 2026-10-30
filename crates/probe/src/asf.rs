@@ -1,8 +1,6 @@
-use opsis_types::numbers;
-
 use crate::read::{Bytes, Source};
 use crate::riff::{wave_audio, wave_format};
-use crate::{Found, ProbeError, VideoStream};
+use crate::{Found, Length, ProbeError, VideoStream};
 
 pub const HEADER: [u8; 16] = [
     0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9, 0x00, 0xAA, 0x00, 0x62, 0xCE, 0x6C,
@@ -55,7 +53,7 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
     let mut r = Bytes::new(header.get(30..).ok_or(ProbeError::Damaged)?);
     let mut found = Found {
         format: "asf",
-        seconds: None,
+        length: None,
         video: None,
         audio: None,
     };
@@ -69,9 +67,10 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
             let play = b.le64()?;
             b.skip(8)?;
             let preroll = b.le64()?;
-            found.seconds =
-                Some(numbers::float_wide(play) / 1e7 - numbers::float_wide(preroll) / 1000.0)
-                    .filter(|s| *s > 0.0);
+            found.length = preroll
+                .checked_mul(10_000)
+                .and_then(|p| play.checked_sub(p))
+                .and_then(|ticks| Length::ratio(ticks, 10_000_000));
         } else if guid == STREAM_PROPERTIES {
             let kind = b.take(16)?;
             b.skip(16 + 8)?;

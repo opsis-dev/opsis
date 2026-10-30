@@ -22,8 +22,6 @@ pub struct RecordingValue {
     #[serde(deserialize_with = "Option::deserialize")]
     #[specta(type = Option<String>)]
     pub src: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub proxy_src: Option<String>,
     #[serde(deserialize_with = "Option::deserialize")]
     #[specta(type = Option<ActionLog>)]
     pub log: Option<ActionLog>,

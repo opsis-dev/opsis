@@ -1,9 +1,9 @@
 import { playRange } from "@opsis/video/common/time";
-import type { PreviewTarget } from "@/generated/bindings";
+import type { FilmTarget } from "@/generated/bindings";
 
 export type Loop = { from: number; to: number };
 
-export function activeAt(spans: PreviewTarget["spans"], frame: number): string[] {
+export function activeAt(spans: FilmTarget["spans"], frame: number): string[] {
   return Object.entries(spans)
     .filter(([, s]) => frame >= s.from && frame < s.to)
     .map(([id]) => id)

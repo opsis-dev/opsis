@@ -6,12 +6,10 @@ use opsis_compile::node::{RECORDING_PORT, SESSION_PORT};
 use opsis_compile::nodes::browser::{DoneWhen, Open, SignIn};
 use opsis_compile::nodes::capture::{FramePicture, Record, Still, Timing};
 use opsis_compile::params::Values;
-use opsis_compile::recording::PREVIEW_FILE_WIDTH;
 use opsis_compile::registry::node_name;
 use opsis_compile::text::{format_duration, plural};
-use opsis_compile::time::at_least_one_frame;
 use opsis_engine::files::write_json;
-use opsis_media::codecs::{H264, h264_args, strings};
+use opsis_media::codecs::strings;
 use opsis_media::executors::{Tools, tool_error};
 use opsis_media::ffmpeg::RunOptions;
 use opsis_project::stamps::file_stamp;
@@ -44,13 +42,10 @@ use crate::trace::FRAME_GAP_MS;
 
 const RECORDING_FILE: &str = "recording.mp4";
 const SIGN_IN_STAMP: &str = "secret:secretName";
-const PREVIEW_FILE: &str = "recording.preview.mp4";
 const ACTIONS_FILE: &str = "actions.json";
 const STILL_FILE: &str = "still.png";
 const IMAGE_PORT: &str = "image";
 const TRACE_NOT_SAVED: &str = "Couldn't save the trace";
-const PREVIEW_CRF: f64 = 26.0;
-const PREVIEW_KEYFRAMES_PER_SECOND: f64 = 2.0;
 const TRACE_FRAME_WIDTH: u32 = 960;
 const TRACE_FRAME_QUALITY: &str = "5";
 
@@ -310,49 +305,6 @@ async fn finished<T>(
     }
 }
 
-async fn preview_copy(
-    ctx: &ExecutorContext,
-    tools: &Tools,
-    mp4: &Path,
-    fps: u32,
-) -> Result<Option<&'static str>, ExecError> {
-    let mut args = strings(&[
-        "-i",
-        &mp4.to_string_lossy(),
-        "-an",
-        "-vf",
-        &format!("scale={PREVIEW_FILE_WIDTH}:-2"),
-    ]);
-    args.extend(h264_args(&H264 {
-        crf: PREVIEW_CRF,
-        preset: Some("veryfast"),
-        keyframe_every: Some(f64::from(at_least_one_frame(
-            f64::from(fps) / PREVIEW_KEYFRAMES_PER_SECOND,
-        ))),
-        faststart: true,
-    }));
-    args.push(ctx.dir.join(PREVIEW_FILE).to_string_lossy().into_owned());
-    match tools
-        .run(
-            &args,
-            RunOptions {
-                cancel: Some(&ctx.cancel),
-                duration_ms: None,
-                on_progress: None,
-                on_log: None,
-            },
-        )
-        .await
-    {
-        Ok(()) => Ok(Some(PREVIEW_FILE)),
-        Err(_) if ctx.cancel.is_cancelled() => Err(ExecError::Cancelled),
-        Err(error) => {
-            warn_failed(ctx, "Couldn't make the preview copy", error);
-            Ok(None)
-        }
-    }
-}
-
 fn encode_error(error: EncodeError) -> ExecError {
     match error {
         EncodeError::Cancelled => ExecError::Cancelled,
@@ -380,7 +332,6 @@ async fn record(
     };
     let encoder =
         FrameEncoder::start(deps.tools.as_ref(), &mp4, p.fps, image).map_err(encode_error)?;
-    let fps = p.fps;
     let played = record_take(&env, session, Recording { encoder, record: p }).await;
     let frames = played.encoded.as_ref().map_or(0, |e| e.frames);
     let ((), mut log, trace_id) = finished(&ctx, &deps.tools, played, Some(&mp4)).await?;
@@ -389,8 +340,6 @@ async fn record(
         log.duration_ms = log.duration_ms.min(f64::from(probed));
     }
     write_json(&ctx.dir.join(ACTIONS_FILE), &log)?;
-    ctx.progress(0.95, Some("Making a preview copy"));
-    let proxy = preview_copy(&ctx, &deps.tools, &mp4, fps).await?;
     ctx.log(
         LogLevel::Info,
         format!(
@@ -402,7 +351,6 @@ async fn record(
     );
     let recording = RecordingValue {
         src: Some(ctx.project_file_ref(RECORDING_FILE)),
-        proxy_src: proxy.map(|file| ctx.project_file_ref(file)),
         duration_ms: log.duration_ms,
         viewport: log.viewport,
         log: Some(log),

@@ -226,8 +226,8 @@ In place:
 
 - `LottieElement` (`packages/video/src/elements/overlay/lottie.tsx`) is the pattern: an `asset` setting given the host's project address by `hosted`, `fetch()` under `delayRender`, `cancelRender` on failure; its settings accept `.json,.lottie` through `x-accept`.
 - `import_assets` (`crates/project/src/import.rs`) copies any file into `assets/`; the file servers are `tower-http`'s `ServeDir` (`crates/engine/src/http_files.rs`), whose MIME table already maps `.wasm` to `application/wasm` and serves unknown types such as `.riv` as `application/octet-stream`.
-- Video code runs only in the headless shell (the preview page, `apps/preview`, and the render bundle), never in the editor's webview, so the editor's CSP doesn't apply; the preview page sets none.
-- No bundler swaps an import today; the sidecar's Rspack override takes aliases (`makeBundlerOverride` in `apps/sidecar/src/bundler-override.ts`), and `apps/preview`'s Vite config can take a `resolve.alias`. Rive's runtime goes through those.
+- Video code runs only in the headless shell (the render bundle), never in the editor's webview, so the editor's CSP doesn't apply.
+- No bundler swaps an import today; the sidecar's Rspack override takes aliases (`makeBundlerOverride` in `apps/sidecar/src/bundler-override.ts`). Rive's runtime goes through it.
 
 What the packages do (from the tarballs of `@remotion/rive` and `@rive-app/canvas-advanced@2.31.5`, checked 2026-10-19; `@remotion/rive@4.0.537` still pins 2.31.5, checked 2026-10-26):
 
@@ -300,7 +300,7 @@ Missing:
 
 ### Decided
 
-- **No live preview in the hover card.** The editor's webview has no Player; a streamed preview per hover isn't worth a headless shell tab. The card shows the still only.
+- **No live preview in the hover card.** The editor's webview has no Player and nothing streams a film. The card shows the still only.
 
 ### Licence
 

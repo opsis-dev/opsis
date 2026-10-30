@@ -99,8 +99,6 @@ pub enum MenuCommand {
     ViewToggleRight,
     #[serde(rename = "view:toggle-minimap")]
     ViewToggleMinimap,
-    #[serde(rename = "view:preview")]
-    ViewPreview,
     #[serde(rename = "view:focus-timeline")]
     ViewFocusTimeline,
     #[serde(rename = "view:focus-mixer")]
@@ -206,13 +204,6 @@ pub struct Selection {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
-pub struct SharedView {
-    pub preview_quality: crate::timeline::PreviewQuality,
-    pub preview_shape: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct Playhead {
     pub frame: f64,
     pub playing: bool,
@@ -245,6 +236,5 @@ pub enum ReplayTab {
 #[serde(rename_all = "camelCase")]
 pub struct SharedState {
     pub selection: Selection,
-    pub view: Option<SharedView>,
     pub playhead: Option<Playhead>,
 }

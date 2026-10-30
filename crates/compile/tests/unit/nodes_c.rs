@@ -102,10 +102,10 @@ fn sums_up_media_nodes_on_their_cards() {
     };
     assert_eq!(texts("h264"), ["MP4 · High quality"]);
     assert_eq!(texts("vp9"), ["WebM · High quality"]);
-    assert_eq!(texts("prores"), ["ProRes · no Preview"]);
+    assert_eq!(texts("prores"), ["ProRes · can't play in a film"]);
     assert_eq!(
         texts("h265"),
-        ["MP4 (HEVC) · High quality · may not preview"]
+        ["MP4 (HEVC) · High quality · may not play in a film"]
     );
     let join = |connected: &[&str]| {
         card_texts(

@@ -1,7 +1,7 @@
 use opsis_types::numbers;
 
 use crate::read::{Bytes, Short, Source};
-use crate::{AudioStream, Found, ProbeError};
+use crate::{AudioStream, Found, Length, ProbeError};
 
 pub fn extended(bytes: &[u8]) -> Result<f64, Short> {
     let mut r = Bytes::new(bytes);
@@ -46,7 +46,7 @@ pub fn aiff(source: &mut Source) -> Result<Found, ProbeError> {
             };
             return Ok(Found {
                 format: "aiff",
-                seconds: (rate > 0.0).then(|| f64::from(frames) / rate),
+                length: Length::frames_at(u64::from(frames), rate),
                 video: None,
                 audio: Some(AudioStream {
                     codec,

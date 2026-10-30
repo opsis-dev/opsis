@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MainRouteImport } from './routes/_main'
 import { Route as LiveRouteImport } from './routes/live'
-import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainEditorRouteImport } from './routes/_main/editor'
@@ -26,11 +25,6 @@ const MainRoute = MainRouteImport.update({
 const LiveRoute = LiveRouteImport.update({
   id: '/live',
   path: '/live',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PreviewRoute = PreviewRouteImport.update({
-  id: '/preview',
-  path: '/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -67,7 +61,6 @@ const ViewIdRoute = ViewIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
   '/live': typeof LiveRoute
-  '/preview': typeof PreviewRoute
   '/settings': typeof SettingsRoute
   '/editor': typeof MainEditorRoute
   '/setup': typeof MainSetupRoute
@@ -76,7 +69,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/live': typeof LiveRoute
-  '/preview': typeof PreviewRoute
   '/settings': typeof SettingsRoute
   '/editor': typeof MainEditorRoute
   '/setup': typeof MainSetupRoute
@@ -88,7 +80,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_main': typeof MainRouteWithChildren
   '/live': typeof LiveRoute
-  '/preview': typeof PreviewRoute
   '/settings': typeof SettingsRoute
   '/_main/editor': typeof MainEditorRoute
   '/_main/setup': typeof MainSetupRoute
@@ -101,7 +92,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/live'
-    | '/preview'
     | '/settings'
     | '/editor'
     | '/setup'
@@ -110,7 +100,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/live'
-    | '/preview'
     | '/settings'
     | '/editor'
     | '/setup'
@@ -121,7 +110,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_main'
     | '/live'
-    | '/preview'
     | '/settings'
     | '/_main/editor'
     | '/_main/setup'
@@ -133,7 +121,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   MainRoute: typeof MainRouteWithChildren
   LiveRoute: typeof LiveRoute
-  PreviewRoute: typeof PreviewRoute
   SettingsRoute: typeof SettingsRoute
   PanelNameRoute: typeof PanelNameRoute
   ViewIdRoute: typeof ViewIdRoute
@@ -153,13 +140,6 @@ declare module '@tanstack/react-router' {
       path: '/live'
       fullPath: '/live'
       preLoaderRoute: typeof LiveRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/preview': {
-      id: '/preview'
-      path: '/preview'
-      fullPath: '/preview'
-      preLoaderRoute: typeof PreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -224,7 +204,6 @@ const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   MainRoute: MainRouteWithChildren,
   LiveRoute: LiveRoute,
-  PreviewRoute: PreviewRoute,
   SettingsRoute: SettingsRoute,
   PanelNameRoute: PanelNameRoute,
   ViewIdRoute: ViewIdRoute,

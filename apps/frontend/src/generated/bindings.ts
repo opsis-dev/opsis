@@ -39,7 +39,6 @@ export const commands = {
 	readTrace: (dir: string, traceId: string) => __TAURI_INVOKE<TraceModel>("read_trace", { dir, traceId }),
 	openSettings: (page: SettingsPage | null) => __TAURI_INVOKE<null>("open_settings", { page }),
 	openPanelWindow: (panel: DockPanelName) => __TAURI_INVOKE<null>("open_panel_window", { panel }),
-	openPreviewWindow: () => __TAURI_INVOKE<null>("open_preview_window"),
 	openLiveWindow: () => __TAURI_INVOKE<null>("open_live_window"),
 	focusPanelWindow: (panel: DockPanelName) => __TAURI_INVOKE<void>("focus_panel_window", { panel }),
 	closePanelWindow: (panel: DockPanelName) => __TAURI_INVOKE<null>("close_panel_window", { panel }),
@@ -88,19 +87,10 @@ export const commands = {
 	viewAnswerDialog: (id: string, accept: boolean, prompt: string) => __TAURI_INVOKE<null>("view_answer_dialog", { id, accept, prompt }),
 	viewChooseFiles: (id: string) => __TAURI_INVOKE<null>("view_choose_files", { id }),
 	viewClose: (id: string) => __TAURI_INVOKE<void>("view_close", { id }),
-	previewOpen: (projectDir: string, size: ViewSize, frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<string>("preview_open", { projectDir, size, frames }),
-	previewLoad: (spec: TimelineSpec) => __TAURI_INVOKE<null>("preview_load", { spec }),
-	previewSpec: (spec: TimelineSpec, shape: Variant) => __TAURI_INVOKE<TimelineSpec>("preview_spec", { spec, shape }),
-	previewPlay: () => __TAURI_INVOKE<null>("preview_play"),
-	previewPause: () => __TAURI_INVOKE<null>("preview_pause"),
-	previewSeek: (frame: number) => __TAURI_INVOKE<null>("preview_seek", { frame }),
-	previewResize: (size: ViewSize) => __TAURI_INVOKE<null>("preview_resize", { size }),
-	previewClose: () => __TAURI_INVOKE<null>("preview_close"),
 	pageLog: (level: PageLogLevel, message: string) => __TAURI_INVOKE<void>("page_log", { level, message }),
 	sendMenuToEditor: (command: MenuCommand) => __TAURI_INVOKE<null>("send_menu_to_editor", { command }),
 	sharedState: () => __TAURI_INVOKE<SharedState>("shared_state"),
 	shareSelection: (selection: Selection) => __TAURI_INVOKE<null>("share_selection", { selection }),
-	shareView: (view: SharedView) => __TAURI_INVOKE<null>("share_view", { view }),
 	sharePlayhead: (playhead: Playhead) => __TAURI_INVOKE<null>("share_playhead", { playhead }),
 	controlPlayback: (call: PlaybackCall) => __TAURI_INVOKE<null>("control_playback", { call }),
 	showReplay: (nodeId: string | null, tab: ReplayTab) => __TAURI_INVOKE<null>("show_replay", { nodeId, tab }),
@@ -124,7 +114,6 @@ export const events = {
 	panelWindowsChanged: makeEvent<PanelWindowsChanged, PanelWindowsChanged>("panel-windows-changed"),
 	playbackCalled: makeEvent<PlaybackCalled, PlaybackCalled>("playback-called"),
 	playheadShared: makeEvent<PlayheadShared, PlayheadShared>("playhead-shared"),
-	previewReported: makeEvent<PreviewReported, PreviewReported>("preview-reported"),
 	projectFilesChanged: makeEvent<ProjectFilesChanged, ProjectFilesChanged>("project-files-changed"),
 	projectReloaded: makeEvent<ProjectReloaded, ProjectReloaded>("project-reloaded"),
 	replayRequested: makeEvent<ReplayRequested, ReplayRequested>("replay-requested"),
@@ -137,7 +126,6 @@ export const events = {
 	settingsPageShown: makeEvent<SettingsPageShown, SettingsPageShown>("settings-page-shown"),
 	viewEventFired: makeEvent<ViewEventFired, ViewEventFired>("view-event-fired"),
 	viewPrefChanged: makeEvent<ViewPrefChanged, ViewPrefChanged>("view-pref-changed"),
-	viewShared: makeEvent<ViewShared, ViewShared>("view-shared"),
 	windowStateChanged: makeEvent<WindowStateChanged, WindowStateChanged>("window-state-changed"),
 };
 
@@ -758,7 +746,7 @@ export type EditorCompile = {
 	seq: number,
 	result: CompileResult,
 	issues: GraphIssue[],
-	preview: PreviewTarget | null,
+	film: FilmTarget | null,
 	flat: FlatTimeline | null,
 	plan: MixPlan | null,
 	levelled: TimelineSpec | null,
@@ -892,6 +880,12 @@ export type FilmChapter = {
 export type FilmFonts = {
 	families: { [key in string]: FontFamilyDef },
 	preload: string[],
+};
+
+export type FilmTarget = {
+	spec: TimelineSpec,
+	spans: { [key in string]: FrameRange },
+	sourceNodeId: string,
 };
 
 export type Filmstrip = {
@@ -1266,7 +1260,7 @@ export type MediaValue = {
 	hasAudio?: boolean,
 };
 
-export type MenuCommand = "project:new" | "project:open" | "project:save" | "edit:undo" | "edit:redo" | "edit:group" | "edit:select-all" | "edit:layout" | "edit:add-node" | "run:start" | "run:cancel" | "view:settings" | "view:projects" | "view:toggle-left" | "view:toggle-bottom" | "view:toggle-right" | "view:toggle-minimap" | "view:preview" | "view:focus-timeline" | "view:focus-mixer" | "view:focus-run";
+export type MenuCommand = "project:new" | "project:open" | "project:save" | "edit:undo" | "edit:redo" | "edit:group" | "edit:select-all" | "edit:layout" | "edit:add-node" | "run:start" | "run:cancel" | "view:settings" | "view:projects" | "view:toggle-left" | "view:toggle-bottom" | "view:toggle-right" | "view:toggle-minimap" | "view:focus-timeline" | "view:focus-mixer" | "view:focus-run";
 
 export type MenuCommandFired = MenuCommand;
 
@@ -1504,19 +1498,6 @@ export type Position = {
 	y: number,
 };
 
-export type PreviewQuality = "fast" | "exact";
-
-export type PreviewReported = {
-	frame: number,
-	playing: boolean,
-};
-
-export type PreviewTarget = {
-	spec: TimelineSpec,
-	spans: { [key in string]: FrameRange },
-	sourceNodeId: string,
-};
-
 export type ProjectFilesChange = {
 	dir: string,
 	files: { [key in string]: string },
@@ -1551,7 +1532,6 @@ export type RecentProject = {
 
 export type RecordingProps = {
 	src: string,
-	proxySrc?: string,
 	log: ActionLog,
 	name: string,
 	speed: number,
@@ -1591,7 +1571,6 @@ export type RecordingProps = {
 
 export type RecordingValue = {
 	src: string | null,
-	proxySrc?: string,
 	log: ActionLog | null,
 	durationMs: number,
 	viewport: Viewport,
@@ -1734,13 +1713,7 @@ export type ShapeChoice = {
 
 export type SharedState = {
 	selection: Selection,
-	view: SharedView | null,
 	playhead: Playhead | null,
-};
-
-export type SharedView = {
-	previewQuality: PreviewQuality,
-	previewShape: string,
 };
 
 export type Slot = {
@@ -1778,7 +1751,6 @@ export type SoundWindow = {
 
 export type SpecAssets = {
 	projectBase?: string,
-	versions?: { [key in string]: string },
 };
 
 export type SpotBackground = {
@@ -1863,7 +1835,6 @@ export type TimelineBook = {
 	eases: ([Ease, string])[],
 	envelopes: EnvelopeTrack[],
 	cameraDials: CameraDial[],
-	previewQualities: PreviewQuality[],
 };
 
 export type TimelineEdit = { op: "move"; bar: string; delta: number; ripple: boolean } | { op: "trimStart"; bar: string; delta: number } | { op: "trimEnd"; bar: string; delta: number; ripple: boolean } | { op: "slip"; bar: string; delta: number } | { op: "speed"; bar: string; delta: number } | { op: "rollStart"; bar: string; delta: number } | { op: "rollEnd"; bar: string; delta: number } | { op: "audioMove"; bar: string; delta: number; ripple: boolean } | { op: "audioTrimStart"; bar: string; delta: number } | { op: "audioTrimEnd"; bar: string; delta: number } | { op: "volume"; bar: string; volume: number } | { op: "split"; at: number; selected: string[] } | { op: "splitBar"; bar: string; at: number } | { op: "cameraKey"; key: string; delta: number } | { op: "keyframes"; edit: KeyframeEdit };
@@ -1898,7 +1869,6 @@ export type TimelineSpec = {
 	audio: AudioItem[],
 	assets?: SpecAssets,
 	reframe?: ReframeMode,
-	quality?: PreviewQuality,
 	fonts?: FilmFonts,
 	mix?: MasterStem,
 };
@@ -2063,11 +2033,6 @@ export type ViewPrefChange = {
 };
 
 export type ViewPrefChanged = ViewPrefChange;
-
-export type ViewShared = {
-	from: string,
-	view: SharedView,
-};
 
 export type ViewSize = {
 	width: number,

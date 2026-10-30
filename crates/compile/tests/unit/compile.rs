@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 use opsis_compile::clip::walk_items;
-use opsis_compile::compile::{CompileResult, compile_workflow, film_of, preview_spec};
+use opsis_compile::compile::{CompileResult, compile_workflow, film_of, picked_film};
 use opsis_compile::graph::connection_problem;
 use opsis_compile::timeline::flatten::{BarKind, flatten_spec};
 use opsis_types::actions::ActionKind;
@@ -135,20 +135,6 @@ fn marks_every_action_of_the_recording_on_the_timeline_at_its_frame() {
 }
 
 #[test]
-fn passes_the_small_preview_copy_along_with_the_full_recording() {
-    let mut result = record_result(&log());
-    if let Some(CompileValue::Recording(r)) = result.outputs.get_mut("recording") {
-        r.proxy_src = Some("project:.opsis/cache/h/recording.preview.mp4".into());
-    }
-    let props = recording_in(&todo_film(vec![("record", result)])).unwrap();
-    assert_eq!(props["src"], "project:.opsis/cache/h/recording.mp4");
-    assert_eq!(
-        props["proxySrc"],
-        "project:.opsis/cache/h/recording.preview.mp4"
-    );
-}
-
-#[test]
 fn sequences_clips_with_overlapping_transitions_and_fills_variables() {
     let spec = &todo_film(vec![("record", record_result(&log()))]);
     let seq = &spec.tracks[0].items;
@@ -234,7 +220,7 @@ fn trims_speeds_and_bypasses_through_groups() {
 }
 
 #[test]
-fn reports_invalid_params_per_node_and_previews_the_selected_nodes_clip() {
+fn reports_invalid_params_per_node_and_picks_the_selected_nodes_clip() {
     let (mut wf, _) = title_workflow(|_| "title".into());
     wf.nodes[0].params.insert("fontSize".into(), json!("huge"));
     assert_eq!(
@@ -247,10 +233,10 @@ fn reports_invalid_params_per_node_and_previews_the_selected_nodes_clip() {
         "loop".into()
     });
     let out = compile_workflow(&wf, None);
-    let selected = preview_spec(&wf, &out, Some("title")).unwrap();
+    let selected = picked_film(&wf, &out, Some("title")).unwrap();
     assert_eq!(selected.spec.duration_in_frames, 90);
     assert_eq!(
-        preview_spec(&wf, &out, None)
+        picked_film(&wf, &out, None)
             .unwrap()
             .spec
             .duration_in_frames,

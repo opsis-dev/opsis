@@ -6,7 +6,7 @@ use specta::Types;
 
 use crate::catalog::{CatalogEntry, CatalogNode};
 use crate::check::CheckResult;
-use crate::compile::{CompileResult, PreviewTarget};
+use crate::compile::{CompileResult, FilmTarget};
 use crate::elements::props::ElementSettings;
 use crate::graph::{ConnectionProblem, GraphIssue};
 use crate::mix::plan::MixPlan;
@@ -16,7 +16,7 @@ use crate::timeline::flatten::FlatTimeline;
 pub fn frontend_types() -> Types {
     boundary_types()
         .register::<CompileResult>()
-        .register::<PreviewTarget>()
+        .register::<FilmTarget>()
         .register::<GraphIssue>()
         .register::<ConnectionProblem>()
         .register::<FlatTimeline>()

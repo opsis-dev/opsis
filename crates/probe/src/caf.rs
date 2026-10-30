@@ -1,7 +1,7 @@
 use opsis_types::numbers;
 
 use crate::read::{Bytes, Source};
-use crate::{AudioStream, Found, ProbeError};
+use crate::{AudioStream, Found, Length, ProbeError};
 
 struct Description {
     rate: f64,
@@ -80,9 +80,7 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
         });
     Ok(Found {
         format: "caf",
-        seconds: frames
-            .filter(|_| d.rate > 0.0)
-            .map(|f| numbers::float_wide(f) / d.rate),
+        length: frames.and_then(|f| Length::frames_at(f, d.rate)),
         video: None,
         audio: Some(AudioStream {
             codec: codec(&d),

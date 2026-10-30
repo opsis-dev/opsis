@@ -5,7 +5,7 @@ use indexmap::IndexMap;
 use opsis_compile::asset_ref::project_refs_in;
 use opsis_compile::cards::{CardSources, workflow_cards};
 use opsis_compile::catalog::{CatalogPort, EditorCatalog, editor_bundle, node_inputs};
-use opsis_compile::compile::{CompileResult, PreviewTarget, compile_workflow, preview_spec};
+use opsis_compile::compile::{CompileResult, FilmTarget, compile_workflow, picked_film};
 use opsis_compile::edits::timeline::Film;
 use opsis_compile::graph::{GraphIssue, validate_workflow};
 use opsis_compile::inspector::{InspectorContext, inspector_context};
@@ -36,7 +36,7 @@ pub struct EditorCompile {
     pub seq: u64,
     pub result: CompileResult,
     pub issues: Vec<GraphIssue>,
-    pub preview: Option<PreviewTarget>,
+    pub film: Option<FilmTarget>,
     pub flat: Option<FlatTimeline>,
     pub plan: Option<MixPlan>,
     pub levelled: Option<TimelineSpec>,
@@ -78,9 +78,9 @@ fn editor_compile(input: &CompileInput) -> EditorCompile {
     let seq = COMPILES.fetch_add(1, Ordering::Relaxed) + 1;
     let result = compile_workflow(workflow, Some(&input.results));
     let issues = validate_workflow(workflow, Some(&result));
-    let preview = preview_spec(workflow, &result, input.selected.as_deref());
-    let flat = preview.as_ref().map(|p| flatten_spec(&p.spec));
-    let film = preview.as_ref().zip(flat.as_ref());
+    let picked = picked_film(workflow, &result, input.selected.as_deref());
+    let flat = picked.as_ref().map(|p| flatten_spec(&p.spec));
+    let film = picked.as_ref().zip(flat.as_ref());
     let plan = film.map(|(p, f)| build_mix_plan(&p.spec, workflow.mix.as_ref(), f));
     let levelled = film.map(|(p, f)| apply_mix_levels(&p.spec, workflow.mix.as_ref(), f));
     let secrets = list_secrets(&input.dir).unwrap_or_else(|error| {
@@ -114,7 +114,7 @@ fn editor_compile(input: &CompileInput) -> EditorCompile {
         result,
         issues,
         outdated: Vec::new(),
-        preview,
+        film: picked,
         flat,
         plan,
         levelled,
@@ -140,7 +140,7 @@ fn refreshed_compile(app: &AppHandle, input: &mut CompileInput) -> EditorCompile
 fn film_of(compiled: &EditorCompile) -> Option<Film> {
     Some(Film {
         flat: compiled.flat.clone()?,
-        source: compiled.preview.as_ref().map(|p| p.source_node_id.clone()),
+        source: compiled.film.as_ref().map(|p| p.source_node_id.clone()),
     })
 }
 

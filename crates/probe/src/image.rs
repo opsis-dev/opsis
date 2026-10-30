@@ -1,7 +1,7 @@
 use crate::read::{Bytes, Source};
-use crate::{Found, ProbeError, STILL_FPS, VideoStream};
+use crate::{Found, Length, ProbeError, STILL_FPS, VideoStream};
 
-const JPEG_FRAME_SECONDS: f64 = 0.04;
+const JPEG_FRAMES_PER_SECOND: u64 = 25;
 const GIF_DEFAULT_DELAY: u32 = 10;
 const GIF_MIN_DELAY: u32 = 2;
 const SVG_HEAD: usize = 4096;
@@ -9,7 +9,7 @@ const SVG_HEAD: usize = 4096;
 fn still(format: &'static str, codec: &str, width: u32, height: u32, pix_fmt: &str) -> Found {
     Found {
         format,
-        seconds: None,
+        length: None,
         video: Some(VideoStream {
             codec: codec.to_owned(),
             width,
@@ -87,7 +87,7 @@ pub fn jpeg(source: &mut Source) -> Result<Found, ProbeError> {
                 components.push((sampling >> 4, sampling & 0x0F));
             }
             let mut found = still("image2", "mjpeg", width, height, jpeg_pix(&components));
-            found.seconds = Some(JPEG_FRAME_SECONDS);
+            found.length = Length::ratio(1, JPEG_FRAMES_PER_SECOND);
             return Ok(found);
         }
         at += 2 + length;
@@ -147,15 +147,14 @@ pub fn gif(source: &mut Source) -> Result<Found, ProbeError> {
             _ => break,
         }
     }
-    let seconds = f64::from(centiseconds) / 100.0;
     Ok(Found {
         format: "gif",
-        seconds: (seconds > 0.0).then_some(seconds),
+        length: Length::ratio(u64::from(centiseconds), 100),
         video: Some(VideoStream {
             codec: "gif".to_owned(),
             width,
             height,
-            fps: (seconds > 0.0).then(|| f64::from(frames) / seconds),
+            fps: (centiseconds > 0).then(|| f64::from(frames) * 100.0 / f64::from(centiseconds)),
             pix_fmt: "bgra".to_owned(),
         }),
         audio: None,

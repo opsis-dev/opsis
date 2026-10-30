@@ -104,7 +104,7 @@ function EngineAlert() {
       <Download />
       <AlertTitle>Set up the recording engine</AlertTitle>
       <AlertDescription className="flex flex-col items-start gap-2">
-        <span>Editing and preview work now. Recording and exporting need the engine.</span>
+        <span>Editing works now. Recording and exporting need the engine.</span>
         <Button size="sm" variant="outline" onClick={() => void commands.openSettings("engine")}>
           Open Settings
         </Button>

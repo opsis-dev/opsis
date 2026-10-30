@@ -287,8 +287,6 @@ pub enum CameraEasing {
 #[serde(rename_all = "camelCase")]
 pub struct RecordingProps {
     pub src: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub proxy_src: Option<String>,
     pub log: ActionLog,
     pub name: String,
     pub speed: f64,

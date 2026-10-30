@@ -1,6 +1,6 @@
 import { atLeastOneFrame } from "@opsis/video/common/time";
 import { useEffect, useState } from "react";
-import type { PreviewTarget } from "@/generated/bindings";
+import type { FilmTarget } from "@/generated/bindings";
 import { registerPlayer, usePlayback } from "@/store/playback";
 import { singleSelected, useUiStore } from "@/store/ui";
 import { activeAt, loopOf, wrapInLoop, type Loop } from "@/timeline/playhead";
@@ -57,32 +57,32 @@ function useFilmLength(fps: number, durationInFrames: number): void {
   }, [fps, durationInFrames]);
 }
 
-function useActiveNodes(preview: PreviewTarget | null): void {
+function useActiveNodes(film: FilmTarget | null): void {
   useEffect(() => {
     const setActive = useUiStore.getState().setActive;
-    if (!preview) {
+    if (!film) {
       setActive([]);
       return;
     }
-    setActive(activeAt(preview.spans, usePlayback.getState().frame));
+    setActive(activeAt(film.spans, usePlayback.getState().frame));
     return usePlayback.subscribe((s, last) => {
-      if (s.frame !== last.frame) setActive(activeAt(preview.spans, s.frame));
+      if (s.frame !== last.frame) setActive(activeAt(film.spans, s.frame));
     });
-  }, [preview]);
+  }, [film]);
 }
 
-function useSeekToSelection(preview: PreviewTarget | null): void {
+function useSeekToSelection(film: FilmTarget | null): void {
   const selectedId = useUiStore((s) => (s.pinnedSource ? null : singleSelected(s.selectedIds)));
   useEffect(() => {
-    if (!selectedId || !preview) return;
-    const span = preview.spans[selectedId];
+    if (!selectedId || !film) return;
+    const span = film.spans[selectedId];
     if (span) usePlayback.getState().seek(span.from);
-  }, [selectedId, preview]);
+  }, [selectedId, film]);
 }
 
 export function TimelineClock(): null {
   const film = useFilm();
-  const { preview } = useCompiledContext();
+  const { film: picked } = useCompiledContext();
   const [sound] = useState(() => new StemPlayer(usePlayback));
   const [clock] = useState(() => new PlayheadClock(sound));
   useFilmLength(film.spec?.fps ?? 30, atLeastOneFrame(film.spec?.durationInFrames ?? 1));
@@ -96,7 +96,7 @@ export function TimelineClock(): null {
     };
   }, [sound, clock]);
   useEffect(() => sound.play(film.stem), [sound, film.stem]);
-  useActiveNodes(preview);
-  useSeekToSelection(preview);
+  useActiveNodes(picked);
+  useSeekToSelection(picked);
   return null;
 }

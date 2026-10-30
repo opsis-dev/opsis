@@ -177,7 +177,6 @@ impl Setup {
             spec: hosted(&TimelineSpec {
                 assets: Some(SpecAssets {
                     project_base: Some(self.assets.url.clone()),
-                    versions: None,
                 }),
                 ..spec
             }),

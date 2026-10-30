@@ -36,7 +36,7 @@ describe("blur areas on a recording", () => {
     );
   });
 
-  it("blurs the same share of the width in the small preview copy and the full take", () => {
+  it("blurs the same share of the width whatever the width of the file", () => {
     fc.assert(
       fc.property(area, unit(0, 30_000), fc.integer({ min: 100, max: 4000 }), (a, t, width) => {
         const [small] = blurParams([a], t, width);

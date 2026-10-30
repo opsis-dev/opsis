@@ -13,7 +13,7 @@ export type Compiled = Omit<EditorCompile, "seq" | "result" | "mix"> & {
 const EMPTY: Compiled = {
   result: null,
   issues: [],
-  preview: null,
+  film: null,
   flat: null,
   plan: null,
   levelled: null,

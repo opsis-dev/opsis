@@ -370,7 +370,7 @@
             "y": 340
           },
           "params": {
-            "text": "Sample project.\n\n1. Press Run. Opsis records the flow in a hidden browser.\n2. The preview updates with the real footage, camera moves and cursor.\n3. Finished videos appear in Outputs."
+            "text": "Sample project.\n\n1. Press Run. Opsis records the flow in a hidden browser.\n2. The Timeline fills with the real footage and its actions.\n3. Finished videos appear in Outputs."
           }
         }
       ],

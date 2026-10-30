@@ -113,7 +113,7 @@ fn mutes_and_solos_channels_and_buses() {
 }
 
 #[test]
-fn applies_gains_to_sounds_and_clip_sound_in_the_live_preview() {
+fn applies_gains_to_sounds_and_clip_sound_in_the_film_the_timeline_plays() {
     let mut mix = Mix::default();
     mix.channels
         .insert("music".into(), strip(json!({ "fader": -20 })));

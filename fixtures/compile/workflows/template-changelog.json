@@ -1357,7 +1357,7 @@
    ]
   }
  },
- "preview": {
+ "film": {
   "spec": {
    "width": 1920,
    "height": 1080,
@@ -4856,7 +4856,7 @@
     ]
    }
   },
-  "preview": {
+  "film": {
    "spec": {
     "width": 1920,
     "height": 1080,

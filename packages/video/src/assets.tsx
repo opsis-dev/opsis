@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 import { staticFile } from "remotion";
 import { isString } from "#video/common/guards.ts";
 import type { ElementProps } from "#video/common/spec.ts";
-import type { PreviewQuality, ReframeMode } from "#video/generated/spec.ts";
+import type { ReframeMode } from "#video/generated/spec.ts";
 
 const APP_SCHEME = "app:";
 
@@ -28,8 +28,3 @@ export const DEFAULT_REFRAME: ReframeMode = "follow";
 const ReframeContext = createContext<ReframeMode>(DEFAULT_REFRAME);
 export const ReframeProvider = ReframeContext.Provider;
 export const useReframe = (): ReframeMode => useContext(ReframeContext);
-
-export const DEFAULT_QUALITY: PreviewQuality = "exact";
-const QualityContext = createContext<PreviewQuality>(DEFAULT_QUALITY);
-export const QualityProvider = QualityContext.Provider;
-export const useQuality = (): PreviewQuality => useContext(QualityContext);

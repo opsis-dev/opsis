@@ -1,4 +1,3 @@
-use indexmap::IndexMap;
 use opsis_macros::choice;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -567,8 +566,6 @@ pub struct MasterStem {
 pub struct SpecAssets {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub project_base: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub versions: Option<IndexMap<String, String>>,
 }
 
 #[choice(export)]
@@ -580,19 +577,6 @@ pub enum ReframeMode {
     Center,
     #[label("Add bars")]
     Fit,
-}
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
-)]
-#[serde(rename_all = "lowercase")]
-pub enum PreviewQuality {
-    Fast,
-    Exact,
-}
-
-impl PreviewQuality {
-    pub const ALL: [Self; 2] = [Self::Fast, Self::Exact];
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
@@ -611,8 +595,6 @@ pub struct TimelineSpec {
     pub assets: Option<SpecAssets>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reframe: Option<ReframeMode>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub quality: Option<PreviewQuality>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fonts: Option<FilmFonts>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

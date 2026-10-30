@@ -1,13 +1,7 @@
 import { useEffect } from "react";
 import { shallow } from "zustand/vanilla/shallow";
 import { on, windowLabel } from "@/app/tauri";
-import {
-  commands,
-  events,
-  type MenuCommand,
-  type Playhead,
-  type SharedView,
-} from "@/generated/bindings";
+import { commands, events, type MenuCommand, type Playhead } from "@/generated/bindings";
 import { loadViewState } from "../editor/view-state";
 import { useMedia } from "../store/media";
 import {
@@ -18,7 +12,6 @@ import {
 } from "../store/playback";
 import { useProjectFiles } from "../store/project-files";
 import { selection, useUiStore } from "../store/ui";
-import { isPreviewShape, syncedView, useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 
 type Flag = { current: boolean };
@@ -68,25 +61,15 @@ function showPlayhead({ inPoint, outPoint, ...rest }: Playhead): void {
   else usePlayback.setState({ ...rest, ...range });
 }
 
-const showView = ({ previewQuality, previewShape }: SharedView): void =>
-  useViewOptions.setState({
-    previewQuality,
-    previewShape: isPreviewShape(previewShape) ? previewShape : "project",
-  });
-
 function useSharedState(): void {
   useEffect(() => {
     const applying = { current: false };
     const own = windowLabel();
     const offs = [
       watchChanges(useUiStore, selection, applying, (next) => void commands.shareSelection(next)),
-      watchChanges(useViewOptions, syncedView, applying, (next) => void commands.shareView(next)),
       sharePlayhead(applying),
       on(events.selectionShared, ({ from, selection: shared }) => {
         if (from !== own) whileApplying(applying, () => useUiStore.setState(shared));
-      }),
-      on(events.viewShared, ({ from, view }) => {
-        if (from !== own) whileApplying(applying, () => showView(view));
       }),
       on(events.playheadShared, ({ from, playhead }) => {
         if (from !== own) whileApplying(applying, () => showPlayhead(playhead));
@@ -95,7 +78,6 @@ function useSharedState(): void {
     void commands.sharedState().then((shared) =>
       whileApplying(applying, () => {
         useUiStore.setState(shared.selection);
-        if (shared.view) showView(shared.view);
         if (shared.playhead) showPlayhead(shared.playhead);
       }),
     );

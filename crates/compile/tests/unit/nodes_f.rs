@@ -323,11 +323,11 @@ fn sums_up_the_grade_an_apply_grade_node_applies() {
     );
     assert_eq!(
         texts("media.applyGrade", json!({ "codec": "h265" })).join(","),
-        "Connect a grade,MP4 (HEVC) · High quality · may not preview"
+        "Connect a grade,MP4 (HEVC) · High quality · may not play in a film"
     );
     assert_eq!(
         texts("media.applyGrade", json!({ "codec": "prores" })).join(","),
-        "Connect a grade,ProRes · no Preview"
+        "Connect a grade,ProRes · can't play in a film"
     );
     assert_eq!(
         card_texts(

@@ -8,7 +8,7 @@ fn element(id: &str, props: Value) -> Value {
     json!({ "id": id, "from": 0, "durationInFrames": 30, "kind": "element", "component": "title", "props": props })
 }
 
-fn spec(base: &str, versions: Value, fonts: Value) -> TimelineSpec {
+fn spec(base: &str, fonts: Value) -> TimelineSpec {
     serde_json::from_value(json!({
         "width": 1920,
         "height": 1080,
@@ -38,7 +38,7 @@ fn spec(base: &str, versions: Value, fonts: Value) -> TimelineSpec {
             ],
         }],
         "audio": [{ "id": "m", "src": "project:assets/music.mp3", "from": 0 }],
-        "assets": { "projectBase": base, "versions": versions },
+        "assets": { "projectBase": base },
         "fonts": fonts,
         "mix": { "src": "project:.opsis/cache/mix/master.wav", "hash": "h" },
     }))
@@ -71,20 +71,12 @@ fn a_hosted_spec_names_every_project_and_prepared_file_by_its_address_on_the_hos
         &[],
     ))
     .unwrap();
-    let versions = json!({
-        "project:assets/shot one.png": "5:1",
-        "project:assets/robot.glb": "9:2",
-        "project:assets/inner.mp4": "7:3",
-    });
-    let out = as_json(&hosted(&spec("http://127.0.0.1:9/p/", versions, fonts)));
+    let out = as_json(&hosted(&spec("http://127.0.0.1:9/p/", fonts)));
     let props = &out["tracks"][0]["items"][0]["props"];
-    assert_eq!(
-        props["image"],
-        "http://127.0.0.1:9/p/assets/shot%20one.png?v=5%3A1"
-    );
+    assert_eq!(props["image"], "http://127.0.0.1:9/p/assets/shot%20one.png");
     assert_eq!(
         props["model"],
-        "http://127.0.0.1:9/p/.opsis/prepared/model/project/assets/robot.glb?v=9%3A2"
+        "http://127.0.0.1:9/p/.opsis/prepared/model/project/assets/robot.glb"
     );
     assert_eq!(props["logo"], "app:placeholders/logo.svg");
     assert_eq!(
@@ -103,7 +95,7 @@ fn a_hosted_spec_names_every_project_and_prepared_file_by_its_address_on_the_hos
     );
     assert_eq!(
         group["tracks"][0]["items"][0]["props"]["src"],
-        "http://127.0.0.1:9/p/assets/inner.mp4?v=7%3A3"
+        "http://127.0.0.1:9/p/assets/inner.mp4"
     );
     assert_eq!(
         out["audio"][0]["src"],
@@ -126,7 +118,7 @@ fn a_hosted_spec_names_every_project_and_prepared_file_by_its_address_on_the_hos
 
 #[test]
 fn a_spec_without_fonts_gets_the_default_project_fonts() {
-    let out = hosted(&spec("http://127.0.0.1:9/p/", Value::Null, Value::Null));
+    let out = hosted(&spec("http://127.0.0.1:9/p/", Value::Null));
     let fonts = out.fonts.unwrap();
     assert_eq!(fonts.families["df-main"].family, "Inter");
     assert_eq!(fonts.families["df-code"].family, "JetBrains Mono");

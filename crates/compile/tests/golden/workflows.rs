@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use opsis_compile::cards::{CardSources, named_project_files, workflow_cards};
 use opsis_compile::check::workflow_problems;
-use opsis_compile::compile::{CompileResult, compile_workflow, films, preview_spec};
+use opsis_compile::compile::{CompileResult, compile_workflow, films, picked_film};
 use opsis_compile::graph::{connection_problem, run_targets, validate_workflow};
 use opsis_compile::mix::plan::build_mix_plan;
 use opsis_compile::registry::node_def;
@@ -92,8 +92,8 @@ fn outcome(wf: &Workflow, results: Option<&IndexMap<String, NodeResult>>) -> Map
     );
     out.insert("cards".into(), cards(wf, &compiled, results));
     out.insert(
-        "preview".into(),
-        serde_json::to_value(preview_spec(wf, &compiled, None)).expect("preview"),
+        "film".into(),
+        serde_json::to_value(picked_film(wf, &compiled, None)).expect("film"),
     );
     out.insert(
         "films".into(),

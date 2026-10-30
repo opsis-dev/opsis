@@ -9,7 +9,7 @@ pub fn template(id: &str) -> Value {
 }
 
 use indexmap::IndexMap;
-use opsis_compile::compile::{compile_workflow, film_of, preview_spec};
+use opsis_compile::compile::{compile_workflow, film_of, picked_film};
 use opsis_compile::registry::node_def;
 use opsis_compile::timeline::flatten::{FlatTimeline, flatten_spec};
 use opsis_types::actions::{Action, ActionLog};
@@ -121,8 +121,8 @@ pub fn film(make: impl FnOnce(&mut Graph) -> String) -> Workflow {
 }
 
 pub fn film_spec(wf: &Workflow) -> TimelineSpec {
-    preview_spec(wf, &compile_workflow(wf, None), None)
-        .expect("a film to preview")
+    picked_film(wf, &compile_workflow(wf, None), None)
+        .expect("a film")
         .spec
 }
 

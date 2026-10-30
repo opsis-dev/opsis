@@ -20,7 +20,6 @@
     ],
     "externalBin": ["../../resources/binaries/opsis-render"],
     "resources": {
-      "../../apps/preview/dist/": "apps/preview/dist/",
       "../../remotion-bundle/": "remotion-bundle/",
       "../../resources/compositor/": "compositor/",
       "../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md",

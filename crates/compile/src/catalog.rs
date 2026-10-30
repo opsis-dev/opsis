@@ -4,7 +4,7 @@ use opsis_types::fonts::FontFamilyDef;
 use opsis_types::looks::NodeLook;
 use opsis_types::mix::{MixerBook, mixer_book};
 use opsis_types::settings::{SettingsBook, settings_book};
-use opsis_types::timeline::{Ease, PreviewQuality};
+use opsis_types::timeline::Ease;
 use opsis_types::workflow::{PortType, Theme, Workflow};
 use serde::Serialize;
 use serde_json::Value;
@@ -264,7 +264,6 @@ pub struct TimelineBook {
     pub eases: Vec<(Ease, String)>,
     pub envelopes: Vec<EnvelopeTrack>,
     pub camera_dials: Vec<CameraDial>,
-    pub preview_qualities: Vec<PreviewQuality>,
 }
 
 fn timeline_book() -> TimelineBook {
@@ -275,7 +274,6 @@ fn timeline_book() -> TimelineBook {
             .collect(),
         envelopes: envelope_tracks(),
         camera_dials: CAMERA_DIALS.to_vec(),
-        preview_qualities: PreviewQuality::ALL.to_vec(),
     }
 }
 

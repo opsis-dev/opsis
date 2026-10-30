@@ -9,14 +9,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import {
-  assetUrl,
-  DEFAULT_QUALITY,
-  DEFAULT_REFRAME,
-  QualityProvider,
-  ReframeProvider,
-  withAppFiles,
-} from "#video/assets.tsx";
+import { assetUrl, DEFAULT_REFRAME, ReframeProvider, withAppFiles } from "#video/assets.tsx";
 import { groupOf } from "#video/common/clip.ts";
 import { ERROR_COLOR, STAGE_COLOR } from "#video/common/element-colors.ts";
 import { ease, envelopeAt } from "#video/common/envelope.ts";
@@ -59,20 +52,18 @@ const PREMOUNT_FRAMES = 30;
 export function DemoTimeline(spec: TimelineSpec) {
   return (
     <ReframeProvider value={spec.reframe ?? DEFAULT_REFRAME}>
-      <QualityProvider value={spec.quality ?? DEFAULT_QUALITY}>
-        <AbsoluteFill
-          style={{
-            ...ELEMENT_FONTS,
-            background: spec.background ?? STAGE_COLOR,
-            overflow: "hidden",
-          }}
-        >
-          <FontProvider fonts={spec.fonts}>
-            <Tracks tracks={spec.tracks} />
-          </FontProvider>
-          {spec.mix ? <Audio src={assetUrl(spec.mix.src)} /> : null}
-        </AbsoluteFill>
-      </QualityProvider>
+      <AbsoluteFill
+        style={{
+          ...ELEMENT_FONTS,
+          background: spec.background ?? STAGE_COLOR,
+          overflow: "hidden",
+        }}
+      >
+        <FontProvider fonts={spec.fonts}>
+          <Tracks tracks={spec.tracks} />
+        </FontProvider>
+        {spec.mix ? <Audio src={assetUrl(spec.mix.src)} /> : null}
+      </AbsoluteFill>
     </ReframeProvider>
   );
 }

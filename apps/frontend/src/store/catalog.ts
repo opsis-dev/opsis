@@ -56,7 +56,7 @@ const loaded: {
   shapes: [],
   qualityPresets: [],
   loudnessPresets: [],
-  timeline: { eases: [], envelopes: [], cameraDials: [], previewQualities: [] },
+  timeline: { eases: [], envelopes: [], cameraDials: [] },
   sounds: [],
   music: [],
   templates: [],

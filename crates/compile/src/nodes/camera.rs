@@ -1091,7 +1091,6 @@ fn auto_zoom() -> NodeDef {
                 return Ok(Some(outputs([(CLIP_PORT, CompileValue::Clip(retime_with(placeholder, &entries, ctx.settings.fps)?))])));
             };
             let mut own = default_recording_props(src, log, rec.node_id.clone());
-            own.proxy_src = rec.proxy_src.clone().filter(|s| !s.is_empty());
             own.speed = p.speed;
             own.zoom = p.zoom;
             own.tuning = p.tuning();

@@ -4,7 +4,7 @@ use crate::pictures::{
     FullRange, Layout, aac_config, av1_config, avc_config, hevc_config, vp9_frame,
 };
 use crate::read::{Bytes, Source};
-use crate::{AudioStream, Found, ProbeError, VideoStream};
+use crate::{AudioStream, Found, Length, ProbeError, VideoStream};
 
 const FORMAT: &str = "matroska,webm";
 
@@ -395,17 +395,15 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
         }
     });
     let audio = tracks.iter().find(|t| t.kind == 2).map(audio_stream);
-    let seconds = duration.map(to_seconds).or_else(|| {
-        let first = blocks.first?;
-        let last = blocks.last?;
-        let frame = step.unwrap_or(0);
-        Some(to_seconds(numbers::float_wide(
-            (last - first + frame).unsigned_abs(),
-        )))
-    });
+    let length = duration
+        .and_then(|ticks| Length::seconds(to_seconds(ticks)))
+        .or_else(|| {
+            let ticks = (blocks.last? - blocks.first? + step.unwrap_or(0)).unsigned_abs();
+            Length::ratio(ticks.checked_mul(scale)?, 1_000_000_000)
+        });
     Ok(Found {
         format: FORMAT,
-        seconds,
+        length,
         video,
         audio,
     })

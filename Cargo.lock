@@ -5204,18 +5204,13 @@ dependencies = [
 name = "opsis-stream"
 version = "0.1.0"
 dependencies = [
- "axum",
- "base64 0.23.1",
  "chromiumoxide",
  "futures",
- "imagesize",
  "indexmap 2.14.2",
  "log",
  "opsis-capture",
  "opsis-compile",
  "opsis-engine",
- "opsis-prepare",
- "opsis-project",
  "opsis-runner",
  "opsis-types",
  "serde",
@@ -5225,7 +5220,6 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
- "tower-http 0.7.1",
  "url",
 ]
 

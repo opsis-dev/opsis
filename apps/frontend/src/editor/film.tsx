@@ -72,22 +72,19 @@ function useMixResult(sounding: MixPlan | null, source: string): MixState {
 }
 
 function useFilmState(): Film {
-  const { preview, flat, plan: planned, levelled, localFrames, mix, solo } = useCompiledContext();
-  const spec = preview?.spec ?? null;
+  const { film, flat, plan: planned, levelled, localFrames, mix, solo } = useCompiledContext();
+  const spec = film?.spec ?? null;
   const versions = useProjectFiles((s) => s.versions);
   const plan = useMemo(
     () => (planned ? keyedByFiles(planned, versions) : null),
     [planned, versions],
   );
   const sounding = plan !== null && hasSound(plan) ? plan : null;
-  const { result, mixing, failedKey } = useMixResult(
-    sounding,
-    preview?.sourceNodeId ?? FILM_SOURCE,
-  );
-  if (!preview) return EMPTY;
+  const { result, mixing, failedKey } = useMixResult(sounding, film?.sourceNodeId ?? FILM_SOURCE);
+  if (!film) return EMPTY;
   const current = !!sounding && result?.key === sounding.key;
   return {
-    sourceNodeId: preview.sourceNodeId,
+    sourceNodeId: film.sourceNodeId,
     spec,
     flat,
     mix,

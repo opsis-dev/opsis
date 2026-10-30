@@ -1,5 +1,4 @@
 import { clamp } from "@opsis/video/common/math";
-import { useEffect, useState } from "react";
 import type { StoreApi } from "zustand";
 import { dbToGain } from "@/editor/mixer/strip-settings";
 import { MAX_PREVIEW_FILTERS, previewTotals, useAudioPreview } from "../store/audio-preview";
@@ -53,14 +52,6 @@ function applyMixerDrags(chain: Chain): void {
     node.gain.setTargetAtTime(spec.gain, now, SMOOTHING_S);
   });
 }
-
-export type StemSound = {
-  volume: number;
-  muted: boolean;
-  setVolume: (volume: number) => void;
-  toggleMute: () => void;
-  start: () => void;
-};
 
 function followClock(audio: HTMLAudioElement, clock: Clock): () => void {
   return clock.subscribe((s) => {
@@ -135,26 +126,4 @@ export class StemPlayer {
     this.audio.currentTime = frame / fps;
     void this.audio.play().catch(() => undefined);
   }
-}
-
-export function useStemSound(clock: Clock, stem: string | null): StemSound {
-  const [player] = useState(() => new StemPlayer(clock));
-  const [volume, setVolumeState] = useState(1);
-  const [muted, setMuted] = useState(false);
-  useEffect(() => {
-    player.open();
-    return () => player.close();
-  }, [player]);
-  useEffect(() => player.play(stem), [player, stem]);
-  useEffect(() => player.level(volume, muted), [player, volume, muted]);
-  return {
-    volume: muted ? 0 : volume,
-    muted,
-    setVolume: (next) => {
-      setVolumeState(next);
-      if (next > 0) setMuted(false);
-    },
-    toggleMute: () => setMuted((m) => !m),
-    start: () => player.start(),
-  };
 }

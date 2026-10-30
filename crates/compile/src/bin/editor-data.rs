@@ -1,7 +1,7 @@
 use std::io::Read;
 
 use opsis_compile::catalog::editor_bundle;
-use opsis_compile::compile::{compile_workflow, preview_spec};
+use opsis_compile::compile::{compile_workflow, picked_film};
 use opsis_compile::node::Platform;
 use opsis_compile::timeline::flatten::flatten_spec;
 use opsis_types::workflow::Workflow;
@@ -14,14 +14,14 @@ fn film() -> serde_json::Value {
         .expect("a workflow on standard input");
     let workflow: Workflow = serde_json::from_str(&text).expect("a workflow");
     let compiled = compile_workflow(&workflow, None);
-    let preview = preview_spec(&workflow, &compiled, None);
-    let flat = preview.as_ref().map(|p| flatten_spec(&p.spec));
+    let picked = picked_film(&workflow, &compiled, None);
+    let flat = picked.as_ref().map(|p| flatten_spec(&p.spec));
     let local_frames: serde_json::Map<String, serde_json::Value> = flat
         .iter()
         .flat_map(|f| f.bars.iter())
         .map(|b| (b.key.clone(), json!(b.local_frames())))
         .collect();
-    json!({ "spec": preview.map(|p| p.spec), "flat": flat, "localFrames": local_frames })
+    json!({ "spec": picked.map(|p| p.spec), "flat": flat, "localFrames": local_frames })
 }
 
 fn main() {

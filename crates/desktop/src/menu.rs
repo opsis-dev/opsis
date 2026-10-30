@@ -88,8 +88,6 @@ pub fn app_menu(mac: bool) -> Vec<MenuSection> {
                     "CmdOrCtrl+Shift+M",
                 ),
                 MenuEntry::Separator,
-                command("Preview", MenuCommand::ViewPreview, "CmdOrCtrl+Alt+P"),
-                MenuEntry::Separator,
                 command("Timeline", MenuCommand::ViewFocusTimeline, "CmdOrCtrl+1"),
                 command("Mixer", MenuCommand::ViewFocusMixer, "CmdOrCtrl+2"),
                 command("Run", MenuCommand::ViewFocusRun, "CmdOrCtrl+3"),

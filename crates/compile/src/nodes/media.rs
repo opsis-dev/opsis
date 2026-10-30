@@ -236,8 +236,8 @@ fn format_row(codec: ConvertCodec, crf: u32) -> CardRow {
             ConvertCodec::H264 | ConvertCodec::H265 | ConvertCodec::Vp9
         )
         .then(|| format!("{} quality", quality_name(crf))),
-        (codec == ConvertCodec::Prores).then(|| "no Preview".to_owned()),
-        (codec == ConvertCodec::H265).then(|| "may not preview".to_owned()),
+        (codec == ConvertCodec::Prores).then(|| "can't play in a film".to_owned()),
+        (codec == ConvertCodec::H265).then(|| "may not play in a film".to_owned()),
     ]
     .into_iter()
     .flatten()

@@ -259,18 +259,7 @@ fn rounds_delays_and_trim_starts_to_whole_frames() {
 }
 
 #[test]
-fn notes_fast_speeds_and_counts_sequence_cuts() {
-    let notes = |rate: f64| {
-        node_card(
-            "timeline.speed",
-            json!({ "rate": rate }),
-            CardInputs::default(),
-        )
-        .into_iter()
-        .filter(|r| r.tone == Some(Tone::Muted))
-        .count()
-    };
-    assert_eq!((notes(2.0), notes(4.0)), (0, 1));
+fn counts_sequence_cuts() {
     let cuts = json!([
         { "before": "in3", "transition": "wipe", "transitionDuration": 50, "keepWhole": false },
         { "before": "in5", "transition": "iris", "transitionDuration": 10, "keepWhole": false }

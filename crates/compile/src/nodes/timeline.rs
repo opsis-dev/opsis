@@ -33,8 +33,6 @@ use crate::text::{format_duration, parse_number_text, plural};
 use crate::time::{at_least_one_frame, frames_to_ms, ms_to_frames, ms_to_frames_from};
 use crate::vars::Vars;
 
-const SLOW_PREVIEW_RATE: f64 = 4.0;
-
 fn param_ref(node_id: &str, param: &str, unit: ParamUnit) -> ParamRef {
     ParamRef {
         node_id: node_id.to_owned(),
@@ -612,16 +610,7 @@ fn speed() -> NodeDef {
         .describe("Plays a clip faster or slower.")
         .card(|ctx: &CardCtx<'_, Speed>| {
             let rate = ctx.params.rate;
-            vec![
-                Some(row(Icon::Gauge, format!("{}×", rate))),
-                (rate >= SLOW_PREVIEW_RATE).then(|| {
-                    row(
-                        Icon::Info,
-                        "Very fast: the Preview plays slowly. The export is smooth.",
-                    )
-                    .tone(Tone::Muted)
-                }),
-            ]
+            vec![Some(row(Icon::Gauge, format!("{}×", rate)))]
         })
         .compiles(|ctx: &Ctx<'_, Speed>| {
             with_clip(ctx, |clip| {

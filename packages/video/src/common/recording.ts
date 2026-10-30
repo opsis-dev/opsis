@@ -16,8 +16,6 @@ export const DEFAULT_CURSOR_FEEL: CursorFeel = {
   hideWhileTyping: true,
 };
 
-export const PREVIEW_FILE_WIDTH = 960;
-
 export const POINTER_KINDS = new Set<ActionKind>(["click", "type", "hover", "focus", "drag"]);
 
 export type HandDrawnLook = Exclude<HighlightLook, "clean">;

@@ -1485,7 +1485,7 @@
    ]
   }
  },
- "preview": {
+ "film": {
   "spec": {
    "width": 1920,
    "height": 1080,
@@ -3447,7 +3447,6 @@
      "recording": {
       "type": "recording",
       "src": "project:.opsis/cache/before-record/recording.mp4",
-      "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
       "log": {
        "viewport": {
         "width": 1920,
@@ -3503,7 +3502,6 @@
      "recording": {
       "type": "recording",
       "src": "project:.opsis/cache/after-record/recording.mp4",
-      "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
       "log": {
        "viewport": {
         "width": 1920,
@@ -3767,7 +3765,6 @@
      "recording": {
       "type": "recording",
       "src": "project:.opsis/cache/before-record/recording.mp4",
-      "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
       "log": {
        "viewport": {
         "width": 1920,
@@ -3829,7 +3826,6 @@
           "nodeId": "before-camera",
           "props": {
            "src": "project:.opsis/cache/before-record/recording.mp4",
-           "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
            "log": {
             "viewport": {
              "width": 1920,
@@ -3918,7 +3914,6 @@
       "recording": {
        "type": "recording",
        "src": "project:.opsis/cache/before-record/recording.mp4",
-       "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
        "log": {
         "viewport": {
          "width": 1920,
@@ -4016,7 +4011,6 @@
      "recording": {
       "type": "recording",
       "src": "project:.opsis/cache/after-record/recording.mp4",
-      "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
       "log": {
        "viewport": {
         "width": 1920,
@@ -4078,7 +4072,6 @@
           "nodeId": "after-camera",
           "props": {
            "src": "project:.opsis/cache/after-record/recording.mp4",
-           "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
            "log": {
             "viewport": {
              "width": 1920,
@@ -4167,7 +4160,6 @@
       "recording": {
        "type": "recording",
        "src": "project:.opsis/cache/after-record/recording.mp4",
-       "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
        "log": {
         "viewport": {
          "width": 1920,
@@ -4299,7 +4291,6 @@
                "nodeId": "before-camera",
                "props": {
                 "src": "project:.opsis/cache/before-record/recording.mp4",
-                "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
                 "log": {
                  "viewport": {
                   "width": 1920,
@@ -4460,7 +4451,6 @@
       "recording": {
        "type": "recording",
        "src": "project:.opsis/cache/before-record/recording.mp4",
-       "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
        "log": {
         "viewport": {
          "width": 1920,
@@ -4545,7 +4535,6 @@
                "nodeId": "after-camera",
                "props": {
                 "src": "project:.opsis/cache/after-record/recording.mp4",
-                "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
                 "log": {
                  "viewport": {
                   "width": 1920,
@@ -4706,7 +4695,6 @@
       "recording": {
        "type": "recording",
        "src": "project:.opsis/cache/after-record/recording.mp4",
-       "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
        "log": {
         "viewport": {
          "width": 1920,
@@ -4812,7 +4800,6 @@
                     "nodeId": "before-camera",
                     "props": {
                      "src": "project:.opsis/cache/before-record/recording.mp4",
-                     "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
                      "log": {
                       "viewport": {
                        "width": 1920,
@@ -5022,7 +5009,6 @@
                     "nodeId": "after-camera",
                     "props": {
                      "src": "project:.opsis/cache/after-record/recording.mp4",
-                     "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
                      "log": {
                       "viewport": {
                        "width": 1920,
@@ -5188,7 +5174,6 @@
       "recording": {
        "type": "recording",
        "src": "project:.opsis/cache/before-record/recording.mp4",
-       "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
        "log": {
         "viewport": {
          "width": 1920,
@@ -5474,7 +5459,7 @@
     ]
    }
   },
-  "preview": {
+  "film": {
    "spec": {
     "width": 1920,
     "height": 1080,
@@ -5536,7 +5521,6 @@
                   "nodeId": "before-camera",
                   "props": {
                    "src": "project:.opsis/cache/before-record/recording.mp4",
-                   "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
                    "log": {
                     "viewport": {
                      "width": 1920,
@@ -5746,7 +5730,6 @@
                   "nodeId": "after-camera",
                   "props": {
                    "src": "project:.opsis/cache/after-record/recording.mp4",
-                   "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
                    "log": {
                     "viewport": {
                      "width": 1920,
@@ -6407,7 +6390,6 @@
                   "nodeId": "before-camera",
                   "props": {
                    "src": "project:.opsis/cache/before-record/recording.mp4",
-                   "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
                    "log": {
                     "viewport": {
                      "width": 1920,
@@ -6617,7 +6599,6 @@
                   "nodeId": "after-camera",
                   "props": {
                    "src": "project:.opsis/cache/after-record/recording.mp4",
-                   "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
                    "log": {
                     "viewport": {
                      "width": 1920,
@@ -7211,7 +7192,6 @@
        "kind": "recording",
        "props": {
         "src": "project:.opsis/cache/before-record/recording.mp4",
-        "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
         "log": {
          "viewport": {
           "width": 1920,
@@ -7294,7 +7274,7 @@
        },
        "thumbnail": {
         "kind": "filmstrip",
-        "src": "project:.opsis/cache/before-record/recording.preview.mp4",
+        "src": "project:.opsis/cache/before-record/recording.mp4",
         "speed": 1.25,
         "trimMs": 0.0
        },
@@ -7447,7 +7427,6 @@
        "kind": "recording",
        "props": {
         "src": "project:.opsis/cache/after-record/recording.mp4",
-        "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
         "log": {
          "viewport": {
           "width": 1920,
@@ -7530,7 +7509,7 @@
        },
        "thumbnail": {
         "kind": "filmstrip",
-        "src": "project:.opsis/cache/after-record/recording.preview.mp4",
+        "src": "project:.opsis/cache/after-record/recording.mp4",
         "speed": 1.25,
         "trimMs": 0.0
        },

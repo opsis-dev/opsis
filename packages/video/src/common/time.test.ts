@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { playRange } from "#video/common/time.ts";
 
-describe("the range the preview plays between in and out points", () => {
+describe("the range the playhead plays between in and out points", () => {
   it("plays everything when neither point is set or the film is a frame long", () => {
     expect(playRange(null, null, 300)).toEqual({});
     expect(playRange(10, 20, 1)).toEqual({});

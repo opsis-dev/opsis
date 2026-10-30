@@ -1,7 +1,5 @@
-use opsis_types::numbers;
-
 use crate::read::{Bytes, Source};
-use crate::{AudioStream, Found, ProbeError, VideoStream};
+use crate::{AudioStream, Found, Length, ProbeError, VideoStream};
 
 const LIST_LIMIT: u64 = 16 * 1024 * 1024;
 
@@ -117,12 +115,9 @@ pub fn wav(source: &mut Source) -> Result<Found, ProbeError> {
         at = next(&c);
     }
     let format = format.ok_or(ProbeError::Damaged)?;
-    let seconds = data_size
-        .filter(|_| format.byte_rate > 0)
-        .map(|size| numbers::float_wide(size) / f64::from(format.byte_rate));
     Ok(Found {
         format: "wav",
-        seconds,
+        length: data_size.and_then(|size| Length::ratio(size, u64::from(format.byte_rate))),
         video: None,
         audio: Some(wave_audio(&format)),
     })
@@ -170,7 +165,7 @@ pub fn avi(source: &mut Source) -> Result<Found, ProbeError> {
     let hdrl = hdrl.ok_or(ProbeError::Damaged)?;
     let mut video = None;
     let mut audio = None;
-    let mut seconds = None;
+    let mut longest = None;
     let mut r = Bytes::new(&hdrl[4..]);
     while r.left() >= 8 {
         let id: [u8; 4] = r.take(4)?.try_into().map_err(|_| ProbeError::Damaged)?;
@@ -210,11 +205,10 @@ pub fn avi(source: &mut Source) -> Result<Found, ProbeError> {
         h.skip(4)?;
         let length = h.le32()?;
         let fps = (scale > 0 && rate > 0).then(|| f64::from(rate) / f64::from(scale));
-        let length_seconds = fps.map(|f| f64::from(length) / f);
-        seconds = match (seconds, length_seconds) {
-            (Some(a), Some(b)) => Some(f64::max(a, b)),
-            (a, b) => a.or(b),
-        };
+        longest = Length::longest([
+            longest,
+            Length::ratio(u64::from(length) * u64::from(scale), u64::from(rate)),
+        ]);
         match &kind {
             b"vids" if video.is_none() => {
                 if let Some((codec, pix_fmt, width, height)) = avi_video(handler, strf) {
@@ -235,7 +229,7 @@ pub fn avi(source: &mut Source) -> Result<Found, ProbeError> {
     }
     Ok(Found {
         format: "avi",
-        seconds,
+        length: longest,
         video,
         audio,
     })

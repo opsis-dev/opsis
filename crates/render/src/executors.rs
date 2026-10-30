@@ -123,7 +123,6 @@ fn sized(
         reframe: Some(reframe),
         assets: Some(SpecAssets {
             project_base: Some(project_base.to_owned()),
-            versions: None,
         }),
         ..spec.clone()
     }
