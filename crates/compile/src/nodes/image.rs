@@ -2479,8 +2479,8 @@ pub fn nodes() -> Vec<NodeDef> {
         frame().look(NodeLook::of("hugeicons:image-composition")),
         before_after().look(NodeLook::of("lucide:columns-2")),
         magnify().look(NodeLook::of("tabler:zoom-in-area")),
-        compare().look(NodeLook::of("lucide:diff")),
-        annotate().look(NodeLook::of("tabler:arrow-up-right-circle")),
+        compare().look(NodeLook::of("tabler:layers-difference")),
+        annotate().look(NodeLook::of("tabler:photo-edit")),
     ]
     .into_iter()
     .map(|def| def.needs(FileNeed::Image))

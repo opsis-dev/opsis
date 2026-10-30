@@ -38,6 +38,6 @@ pub fn definition() -> ElementMeta {
                 ElementCategory::Effect,
                 90,
             )
-                .look(NodeLook::of("tabler:grid-dots")),
+                .look(NodeLook::of("lucide:newspaper")),
         )
 }

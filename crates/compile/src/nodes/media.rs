@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 
 use opsis_macros::{choice, settings};
 use opsis_types::cards::{CardRow, Icon, Tone};
-use opsis_types::looks::NodeLook;
+use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::mix::LOUDNESS_TARGETS;
 use opsis_types::numbers;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
@@ -1830,7 +1830,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 length_row(ctx.result, Icon::Clock),
             ]
         })
-        .look(NodeLook::of("tabler:music-up"))
+        .look(NodeLook::of("tabler:music-up").morphs("tabler:music-down"))
         .needs(FileNeed::Sound),
         one_file_op::<VoiceEffects>(
             VOICE_TYPE,
@@ -1889,7 +1889,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 length_row(ctx.result, Icon::Clock),
             ]
         })
-        .look(NodeLook::of("tabler:arrows-horizontal"))
+        .look(NodeLook::of("tabler:arrow-autofit-width").moves(NodeMotion::Stretch))
         .needs(FileNeed::SoundFile),
         one_file_op::<ShortenPauses>(
             PAUSES_TYPE,

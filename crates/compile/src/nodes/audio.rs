@@ -2063,9 +2063,9 @@ pub fn nodes() -> Vec<NodeDef> {
         add_sound().look(NodeLook::of("lucide:audio-waveform")),
         action_sounds().look(NodeLook::of("lucide:keyboard-music")),
         room_tone().look(NodeLook::of("iconoir:sound-low")),
-        tones().look(NodeLook::of("lucide:bell-ring")),
+        tones().look(NodeLook::of("lucide:alarm-clock")),
         generate().look(NodeLook::of("tabler:music-bolt")),
-        transition_sounds().look(NodeLook::of("tabler:wind")),
-        riser().look(NodeLook::of("tabler:trending-up-2")),
+        transition_sounds().look(NodeLook::of("tabler:arrow-wave-right-up")),
+        riser().look(NodeLook::of("lucide:arrow-up-to-line")),
     ]
 }
