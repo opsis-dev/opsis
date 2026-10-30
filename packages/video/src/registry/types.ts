@@ -1,7 +1,7 @@
-import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
 import type { ElementProps } from "#video/common/spec.ts";
 import type { Size } from "#video/core/still-layout.ts";
+import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";
 
 export type ElementComponent = React.ComponentType<ElementProps & { children?: React.ReactNode }>;
 

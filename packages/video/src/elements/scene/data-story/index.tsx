@@ -1,4 +1,3 @@
-import { TransitionSeries } from "@remotion/transitions";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import { MetricTicker } from "#video/elements/data/metric-ticker/index.tsx";
 import { AnimatedBarChart } from "#video/elements/scene/data-story/animated-bar-chart/index.tsx";
@@ -10,6 +9,7 @@ import { transitionFade } from "#video/elements/scene/data-story/transition-fade
 import { EndCard } from "#video/elements/scene/end-card/index.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { DURATION } from "#video/lib/motion/motion-tokens.ts";
+import { cutOverlaps, SceneSeries, seriesCut } from "#video/lib/transitions/scene-series.tsx";
 
 const SCENE_DURATIONS = {
   hook: 84,
@@ -20,10 +20,13 @@ const SCENE_DURATIONS = {
   end: 62,
 } as const;
 
-const FADE = transitionFade({ durationInFrames: DURATION.fast });
+const FADE = seriesCut(transitionFade({ durationInFrames: DURATION.fast }));
 
 const SCENE_COUNT = Object.keys(SCENE_DURATIONS).length;
-const OVERLAP = (SCENE_COUNT - 1) * DURATION.fast;
+const CUTS = Array.from({ length: SCENE_COUNT - 1 }, () => FADE);
+const OVERLAPS = cutOverlaps(CUTS, SCENE_COUNT);
+const OVERLAP = OVERLAPS.reduce((sum, frames) => sum + frames, 0);
+const SHORTEST_SCENE = 2 * Math.max(0, ...OVERLAPS) + 1;
 const AUTHORED_TOTAL =
   Object.values(SCENE_DURATIONS).reduce((sum, frames) => sum + frames, 0) - OVERLAP;
 const HOOK_EXIT_LEAD = 26;
@@ -31,7 +34,7 @@ const HOOK_EXIT_LEAD = 26;
 function sceneLengths(total: number) {
   const factor = (total + OVERLAP) / (AUTHORED_TOTAL + OVERLAP);
   function scaled(frames: number) {
-    return Math.max(2 * DURATION.fast + 1, Math.round(frames * factor));
+    return Math.max(SHORTEST_SCENE, Math.round(frames * factor));
   }
   return {
     hook: scaled(SCENE_DURATIONS.hook),
@@ -71,99 +74,115 @@ export function DataStory(settings: ElementSettings["data-story"]) {
   }
   return (
     <AbsoluteFill style={{ backgroundColor: sceneBg(look.palette.page) }}>
-      <TransitionSeries>
-        <TransitionSeries.Sequence durationInFrames={scenes.hook}>
-          <AutoFitTitle
-            title={title}
-            subtitle={subtitle}
-            logoSrc={settings.logoSrc || undefined}
-            holdSeconds={(scenes.hook - HOOK_EXIT_LEAD) / fps}
-            maxFontSize={88}
-            look={look}
-            accentColor={accentColor}
-            backgroundColor={sceneBg(look.palette.hookBg)}
-          />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...FADE} />
-        <TransitionSeries.Sequence durationInFrames={scenes.chart}>
-          <AnimatedBarChart
-            title={chartTitle}
-            subtitle={settings.chartSubtitle || undefined}
-            data={barData}
-            look={look}
-            backgroundColor={sceneBg(look.palette.page)}
-            barColor={dataColor}
-            accentColor={accentColor}
-            highlightLabel={settings.highlightBar || undefined}
-            showAxis={settings.showScale}
-            numberFormat={settings.numberFormat}
-          />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...FADE} />
-        <TransitionSeries.Sequence durationInFrames={scenes.metrics}>
-          <MetricTicker
-            title={metricsTitle}
-            eyebrow=""
-            metrics={metrics}
-            maxCards={4}
-            theme={theme}
-            backgroundColor={sceneBg(look.palette.tickerBg)}
-            accentColor={dataColor}
-            showArrows
-            numberFormat={settings.numberFormat}
-            glow={7 * look.glow}
-            uppercaseEyebrow={look.eyebrowCaps}
-            cornerRadius={18}
-            trendFill
-            fontFamily={settings.fontFamily}
-          />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...FADE} />
-        <TransitionSeries.Sequence durationInFrames={scenes.timeline}>
-          <TimelineSteps
-            speed={1.5}
-            title={timelineTitle}
-            steps={steps}
-            look={look}
-            backgroundColor={sceneBg(look.palette.timelineBg)}
-            accentColor={timelineColor}
-          />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...FADE} />
-        <TransitionSeries.Sequence durationInFrames={scenes.insight}>
-          <CaptionBumper
-            text={insight}
-            eyebrow={insightEyebrow}
-            maxFontSize={84}
-            look={look}
-            backgroundColor={sceneBg(look.palette.page)}
-            accentColor={dataColor}
-          />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition {...FADE} />
-        <TransitionSeries.Sequence durationInFrames={scenes.end}>
-          <EndCard
-            speed={1.4}
-            title={ctaTitle}
-            subtitle={settings.ctaSubtitle}
-            eyebrow=""
-            cta={ctaLabel}
-            url={settings.ctaUrl}
-            handles={[]}
-            logoSrc=""
-            theme={theme}
-            backgroundColor={sceneBg(look.palette.page)}
-            accentColor={accentColor}
-            fontFamily={settings.fontFamily}
-            glow={Math.round(12 * look.glow)}
-            textSize={look.textSize}
-            titleWeight={700}
-            eyebrowCaps={look.eyebrowCaps}
-            buttonRadius={999}
-            buttonArrow
-          />
-        </TransitionSeries.Sequence>
-      </TransitionSeries>
+      <SceneSeries
+        cuts={CUTS}
+        scenes={[
+          {
+            durationInFrames: scenes.hook,
+            content: (
+              <AutoFitTitle
+                title={title}
+                subtitle={subtitle}
+                logoSrc={settings.logoSrc || undefined}
+                holdSeconds={(scenes.hook - HOOK_EXIT_LEAD) / fps}
+                maxFontSize={88}
+                look={look}
+                accentColor={accentColor}
+                backgroundColor={sceneBg(look.palette.hookBg)}
+              />
+            ),
+          },
+          {
+            durationInFrames: scenes.chart,
+            content: (
+              <AnimatedBarChart
+                title={chartTitle}
+                subtitle={settings.chartSubtitle || undefined}
+                data={barData}
+                look={look}
+                backgroundColor={sceneBg(look.palette.page)}
+                barColor={dataColor}
+                accentColor={accentColor}
+                highlightLabel={settings.highlightBar || undefined}
+                showAxis={settings.showScale}
+                numberFormat={settings.numberFormat}
+              />
+            ),
+          },
+          {
+            durationInFrames: scenes.metrics,
+            content: (
+              <MetricTicker
+                title={metricsTitle}
+                eyebrow=""
+                metrics={metrics}
+                maxCards={4}
+                theme={theme}
+                backgroundColor={sceneBg(look.palette.tickerBg)}
+                accentColor={dataColor}
+                showArrows
+                numberFormat={settings.numberFormat}
+                glow={7 * look.glow}
+                uppercaseEyebrow={look.eyebrowCaps}
+                cornerRadius={18}
+                trendFill
+                fontFamily={settings.fontFamily}
+              />
+            ),
+          },
+          {
+            durationInFrames: scenes.timeline,
+            content: (
+              <TimelineSteps
+                speed={1.5}
+                title={timelineTitle}
+                steps={steps}
+                look={look}
+                backgroundColor={sceneBg(look.palette.timelineBg)}
+                accentColor={timelineColor}
+              />
+            ),
+          },
+          {
+            durationInFrames: scenes.insight,
+            content: (
+              <CaptionBumper
+                text={insight}
+                eyebrow={insightEyebrow}
+                maxFontSize={84}
+                look={look}
+                backgroundColor={sceneBg(look.palette.page)}
+                accentColor={dataColor}
+              />
+            ),
+          },
+          {
+            durationInFrames: scenes.end,
+            content: (
+              <EndCard
+                speed={1.4}
+                title={ctaTitle}
+                subtitle={settings.ctaSubtitle}
+                eyebrow=""
+                cta={ctaLabel}
+                url={settings.ctaUrl}
+                handles={[]}
+                logoSrc=""
+                theme={theme}
+                backgroundColor={sceneBg(look.palette.page)}
+                accentColor={accentColor}
+                fontFamily={settings.fontFamily}
+                glow={Math.round(12 * look.glow)}
+                textSize={look.textSize}
+                titleWeight={700}
+                eyebrowCaps={look.eyebrowCaps}
+                buttonRadius={999}
+                buttonArrow
+              />
+            ),
+          },
+        ]}
+      />
     </AbsoluteFill>
   );
 }

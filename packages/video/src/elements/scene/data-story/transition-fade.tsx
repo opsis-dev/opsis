@@ -1,6 +1,6 @@
-import type { TransitionPresentation } from "@remotion/transitions";
 import { AbsoluteFill, interpolate } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
+import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";
 import {
   resolveTransitionTiming,
   transitionPhase,
@@ -54,8 +54,4 @@ export function transitionFade({
     presentation: crossfade({ dipTo }),
     timing: resolveTransitionTiming({ durationInFrames, variant }),
   };
-}
-
-export function getTransitionFadeDuration(config: TransitionFadeConfig = {}, fps: number): number {
-  return transitionFade(config).timing.getDurationInFrames({ fps });
 }

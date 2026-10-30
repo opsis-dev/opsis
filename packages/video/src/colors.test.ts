@@ -28,12 +28,12 @@ const ELEMENT_FILES = [
   "elements/text/kinetic-headline.tsx",
   "elements/text/text-3d.tsx",
   "elements/text/title.tsx",
-  "elements/transition/clock-wipe.ts",
-  "elements/transition/fade.ts",
-  "elements/transition/flip.ts",
-  "elements/transition/iris.ts",
-  "elements/transition/slide.ts",
-  "elements/transition/wipe.ts",
+  "elements/transition/clock-wipe.tsx",
+  "elements/transition/fade.tsx",
+  "elements/transition/flip.tsx",
+  "elements/transition/iris.tsx",
+  "elements/transition/slide.tsx",
+  "elements/transition/wipe.tsx",
 ];
 
 const COLOR_LITERAL = /#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)|oklch\([^)]*\)/g;

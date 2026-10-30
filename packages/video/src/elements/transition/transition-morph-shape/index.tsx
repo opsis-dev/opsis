@@ -1,9 +1,9 @@
-import type { TransitionPresentation } from "@remotion/transitions";
 import {
   displacementPresentation,
   type DisplacementPresentationProps,
 } from "#video/elements/transition/transition-morph-shape/displacement-presentation.tsx";
 import type { ElementSettings, MorphShape } from "#video/generated/spec.ts";
+import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";
 
 type MorphShapeProps = ElementSettings["transition-morph-shape"];
 

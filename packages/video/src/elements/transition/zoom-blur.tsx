@@ -1,10 +1,10 @@
-import type {
-  TransitionPresentation,
-  TransitionPresentationComponentProps,
-} from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill } from "remotion";
 import type { ElementSettings } from "#video/generated/spec.ts";
+import type {
+  TransitionPresentation,
+  TransitionPresentationComponentProps,
+} from "#video/lib/transitions/presentation.ts";
 
 type ZoomBlurProps = ElementSettings["zoom-blur"];
 

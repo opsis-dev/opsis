@@ -1,8 +1,8 @@
-import type { TransitionPresentation } from "@remotion/transitions";
 import { useMemo } from "react";
 import { AbsoluteFill } from "remotion";
 import { clamp01 } from "#video/common/math.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
+import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";
 import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
 type BlindsProps = ElementSettings["transition-blinds"];

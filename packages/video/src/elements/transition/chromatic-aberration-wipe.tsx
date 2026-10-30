@@ -1,8 +1,8 @@
-import type { TransitionPresentation } from "@remotion/transitions";
 import { useId, useMemo } from "react";
 import { AbsoluteFill, interpolate } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
+import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";
 import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
 type ChromaticAberrationWipeProps = ElementSettings["chromatic-aberration-wipe"];

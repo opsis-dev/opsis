@@ -1,8 +1,8 @@
-import type { TransitionPresentation } from "@remotion/transitions";
 import { useMemo } from "react";
 import { AbsoluteFill, Easing, interpolate, useVideoConfig } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings, PixelateOrder, PixelShape } from "#video/generated/spec.ts";
+import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";
 import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
 type GridPixelateWipeProps = ElementSettings["grid-pixelate-wipe"];

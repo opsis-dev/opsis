@@ -1,4 +1,3 @@
-import type { TransitionPresentation } from "@remotion/transitions";
 import { useId, useMemo } from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import {
@@ -12,11 +11,8 @@ import {
   type DisplacementMaskConfig,
 } from "#video/elements/transition/transition-morph-shape/displacement-transition.ts";
 import { morphPath } from "#video/elements/transition/transition-morph-shape/path-morph.ts";
-import {
-  resolveTransitionTiming,
-  transitionPhase,
-  type TransitionVariant,
-} from "#video/lib/transitions/transition-timing.ts";
+import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";
+import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
 export type DisplacementPresentationProps = DisplacementCoreConfig & {
   mask?: DisplacementMaskConfig;
@@ -136,29 +132,6 @@ export function displacementPresentation(
   props: DisplacementPresentationProps = {},
 ): TransitionPresentation<DisplacementPresentationProps> {
   return { component: DisplacementPresentationComponent, props };
-}
-
-export type TransitionDisplacementConfig = DisplacementPresentationProps & {
-  durationInFrames?: number;
-  variant?: TransitionVariant;
-};
-
-export function transitionDisplacement({
-  durationInFrames = 20,
-  variant = "editorial",
-  ...presentationProps
-}: TransitionDisplacementConfig = {}) {
-  return {
-    presentation: displacementPresentation(presentationProps),
-    timing: resolveTransitionTiming({ durationInFrames, variant }),
-  };
-}
-
-export function getTransitionDisplacementDuration(
-  config: TransitionDisplacementConfig = {},
-  fps: number,
-): number {
-  return transitionDisplacement(config).timing.getDurationInFrames({ fps });
 }
 
 export { MASK_DEFAULTS };

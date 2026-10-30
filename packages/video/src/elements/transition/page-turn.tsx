@@ -1,9 +1,9 @@
+import { AbsoluteFill, useVideoConfig } from "remotion";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import type {
   TransitionPresentation,
   TransitionPresentationComponentProps,
-} from "@remotion/transitions";
-import { AbsoluteFill, useVideoConfig } from "remotion";
-import type { ElementSettings } from "#video/generated/spec.ts";
+} from "#video/lib/transitions/presentation.ts";
 
 const LIFT_RATIO = 1.28;
 

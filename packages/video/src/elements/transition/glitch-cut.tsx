@@ -1,7 +1,3 @@
-import type {
-  TransitionPresentation,
-  TransitionPresentationComponentProps,
-} from "@remotion/transitions";
 import { AbsoluteFill, random } from "remotion";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import {
@@ -9,6 +5,10 @@ import {
   makeSceneShader,
   rgbUniform,
 } from "#video/lib/transitions/canvas-presentation.tsx";
+import type {
+  TransitionPresentation,
+  TransitionPresentationComponentProps,
+} from "#video/lib/transitions/presentation.ts";
 
 type GlitchCutProps = ElementSettings["glitch-cut"];
 

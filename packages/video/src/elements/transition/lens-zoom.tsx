@@ -1,12 +1,12 @@
-import type {
-  TransitionPresentation,
-  TransitionPresentationComponentProps,
-} from "@remotion/transitions";
 import type { ReactNode } from "react";
 import { useId } from "react";
 import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
+import type {
+  TransitionPresentation,
+  TransitionPresentationComponentProps,
+} from "#video/lib/transitions/presentation.ts";
 
 export const SHAKE_STOPS = [-9 / 11, -3 / 11, 4 / 11, 8 / 11] as const;
 

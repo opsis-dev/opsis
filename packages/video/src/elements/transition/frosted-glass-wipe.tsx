@@ -1,8 +1,8 @@
-import type { TransitionPresentation } from "@remotion/transitions";
 import { useMemo } from "react";
 import { AbsoluteFill, interpolate } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings, WipeFrom } from "#video/generated/spec.ts";
+import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";
 import { transitionPhase } from "#video/lib/transitions/transition-timing.ts";
 
 type FrostedGlassWipeProps = ElementSettings["frosted-glass-wipe"];

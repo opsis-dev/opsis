@@ -1,10 +1,13 @@
-import { linearTiming, springTiming } from "@remotion/transitions";
-import type { TransitionPresentationComponentProps } from "@remotion/transitions";
 import { Easing, interpolate } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
-import { springSmooth } from "#video/lib/motion/springs.ts";
+import type { PresentationDirection } from "#video/lib/transitions/presentation.ts";
 
-export type TransitionVariant = "linear" | "spring" | "editorial";
+export type TransitionVariant = "linear" | "editorial";
+
+export type TransitionTiming = {
+  durationInFrames: number;
+  progressAt: (frame: number) => number;
+};
 
 const EASING_CUT = Easing.bezier(0.45, 0, 0.55, 1);
 
@@ -14,20 +17,16 @@ export function resolveTransitionTiming({
 }: {
   durationInFrames: number;
   variant?: TransitionVariant;
-}) {
-  if (variant === "spring") {
-    return springTiming({ config: springSmooth, durationInFrames });
-  }
-
-  return linearTiming({
+}): TransitionTiming {
+  const easing = variant === "editorial" ? EASING_CUT : undefined;
+  return {
     durationInFrames,
-    easing: variant === "editorial" ? EASING_CUT : undefined,
-  });
+    progressAt: (frame) =>
+      interpolate(frame, [0, durationInFrames], [0, 1], { ...CLAMPED, easing }),
+  };
 }
 
-export type TransitionDirection = TransitionPresentationComponentProps<
-  Record<string, unknown>
->["presentationDirection"];
+export type TransitionDirection = PresentationDirection;
 
 export type TransitionPhase = {
   isEntering: boolean;

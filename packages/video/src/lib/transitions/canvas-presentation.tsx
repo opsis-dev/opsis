@@ -1,7 +1,3 @@
-import type {
-  TransitionPresentation,
-  TransitionPresentationComponentProps,
-} from "@remotion/transitions";
 import React from "react";
 import {
   AbsoluteFill,
@@ -11,6 +7,10 @@ import {
   useVideoConfig,
 } from "remotion";
 import { createQuadSurface } from "#video/lib/shaders/quad.ts";
+import type {
+  TransitionPresentation,
+  TransitionPresentationComponentProps,
+} from "#video/lib/transitions/presentation.ts";
 import { parseColor } from "#video/lib/ui-kit/color.ts";
 
 const LAYER: React.CSSProperties = {

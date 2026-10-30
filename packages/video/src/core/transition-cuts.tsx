@@ -1,10 +1,5 @@
 import { createContext, useContext, useState } from "react";
-
-type DrawFunction = (
-  incoming: OffscreenCanvas | null,
-  outgoing: OffscreenCanvas | null,
-  progress: number,
-) => void;
+import type { DrawFunction } from "#video/lib/transitions/presentation.ts";
 
 type CutSide = { image: OffscreenCanvas; progress: number; draw: DrawFunction };
 

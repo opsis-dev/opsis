@@ -1,10 +1,10 @@
-import type {
-  TransitionPresentation,
-  TransitionPresentationComponentProps,
-} from "@remotion/transitions";
 import { AbsoluteFill, interpolate } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
+import type {
+  TransitionPresentation,
+  TransitionPresentationComponentProps,
+} from "#video/lib/transitions/presentation.ts";
 import { DitheringField } from "#video/parts/shader-fields.tsx";
 
 function coverEnvelope(p: number) {

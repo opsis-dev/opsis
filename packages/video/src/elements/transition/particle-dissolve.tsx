@@ -1,13 +1,13 @@
-import type {
-  TransitionPresentation,
-  TransitionPresentationComponentProps,
-} from "@remotion/transitions";
 import { AbsoluteFill } from "remotion";
 import type { ElementSettings, ParticleDissolveDirection } from "#video/generated/spec.ts";
 import {
   makeCanvasPresentation,
   makeSceneShader,
 } from "#video/lib/transitions/canvas-presentation.tsx";
+import type {
+  TransitionPresentation,
+  TransitionPresentationComponentProps,
+} from "#video/lib/transitions/presentation.ts";
 
 type ParticleDissolveProps = ElementSettings["particle-dissolve"];
 
