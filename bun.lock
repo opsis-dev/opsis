@@ -123,7 +123,6 @@
         "@remotion/media": "4.0.537",
         "@remotion/paths": "4.0.537",
         "@remotion/rough-notation": "4.0.537",
-        "@remotion/three": "4.0.537",
         "@remotion/transitions": "4.0.537",
         "culori": "^4.0.2",
         "fflate": "^0.8.3",
@@ -539,8 +538,6 @@
     "@remotion/studio-protocol": ["@remotion/studio-protocol@4.0.537", "", { "dependencies": { "zod": "4.5.4" } }, "sha512-wuMNVmqOmT/hqjS7wNItmytUOnEEQCOAcxouGratpenUDUcQhk3OyvoiQZABxr17X4TMssjoAlz6drXV/Cc67A=="],
 
     "@remotion/studio-shared": ["@remotion/studio-shared@4.0.537", "", { "dependencies": { "remotion": "4.0.537" } }, "sha512-h7MWhjEdSR7PlW0TawdRDjlFk0BfsmiS4avzYqLEzOxIlHcV45CiiMwcGgr7IlIzvILyLVETAgYdcYYCaH4Alw=="],
-
-    "@remotion/three": ["@remotion/three@4.0.537", "", { "dependencies": { "remotion": "4.0.537" }, "peerDependencies": { "@react-three/fiber": ">=8.0.0", "react": ">=16.8.0", "react-dom": ">=16.8.0", "three": ">=0.137.0" } }, "sha512-9nth5iWLbFZW4EyBao36B7o7wctQ62XjK3QKIMRV3kzhC+yCR/rCh0PVV/y0v2kZOt2DgBvUr9F4MYIPR4xq3w=="],
 
     "@remotion/timeline-utils": ["@remotion/timeline-utils@4.0.537", "", { "dependencies": { "mediabunny": "1.61.6", "remotion": "4.0.537" } }, "sha512-d7nZ2m+3KojaDE6M58VD+X4kMSfyebbYBvMltF6fvg2UxYN0hH3SFk1nU/Yl24y+oeCokWPg0/00Mca7PQo6QA=="],
 

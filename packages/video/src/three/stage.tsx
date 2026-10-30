@@ -1,9 +1,9 @@
-import { useThree } from "@react-three/fiber";
-import { ThreeCanvas } from "@remotion/three";
-import React, { useEffect, useMemo } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useVideoConfig } from "remotion";
 import { PMREMGenerator } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { holdRender } from "#video/core/loading.ts";
 import type { Lighting } from "#video/generated/spec.ts";
 import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
 import { boxDistance, fitDistance, type Pose, type Vec3 } from "#video/three/motion.ts";
@@ -75,6 +75,44 @@ function Lights({ lighting }: { lighting: Lighting }) {
   );
 }
 
+type Drawn = (scene: object) => void;
+
+function Draw({
+  scene,
+  width,
+  height,
+  onDrawn,
+}: {
+  scene: object;
+  width: number;
+  height: number;
+  onDrawn: Drawn;
+}) {
+  const setSize = useThree((state) => state.setSize);
+  const advance = useThree((state) => state.advance);
+  useLayoutEffect(() => setSize(width, height), [setSize, width, height]);
+  useLayoutEffect(() => {
+    advance(performance.now());
+    onDrawn(scene);
+  }, [advance, onDrawn, scene]);
+  return null;
+}
+
+function useDrawnScene(scene: object): Drawn {
+  const drawn = useRef<object | null>(null);
+  const pending = useRef<{ scene: object; release: () => void } | null>(null);
+  useLayoutEffect(() => {
+    if (drawn.current === scene) return;
+    const release = holdRender("Drawing the 3D scene");
+    pending.current = { scene, release };
+    return release;
+  }, [scene]);
+  return useCallback((done: object) => {
+    drawn.current = done;
+    if (pending.current?.scene === done) pending.current.release();
+  }, []);
+}
+
 export function Posed({ pose, children }: { pose: Pose; children: React.ReactNode }) {
   return (
     <group rotation={pose.rotation} position={pose.position} scale={pose.scale}>
@@ -108,19 +146,23 @@ export function Stage3D({
   const aspect = width / height;
   const distance =
     fixed ?? Math.max(fitDistance(radius, fov, aspect), box ? boxDistance(box, fov, aspect) : 0);
+  const scene = useMemo(() => ({ children }), [children]);
+  const onDrawn = useDrawnScene(scene);
   return (
     <Backgrounded background={background}>
-      <ThreeCanvas
+      <Canvas
         key={`${width}x${height}:${lighting}:${distance}`}
-        width={width}
-        height={height}
+        frameloop="never"
+        resize={{ scroll: false }}
+        style={{ width, height }}
         gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true }}
         camera={{ fov, position: [0, 0, distance], near: 0.1, far: distance * 10 }}
         scene={{ environmentIntensity: LOOKS[lighting].reflections }}
       >
         <Lights lighting={lighting} />
         {children}
-      </ThreeCanvas>
+        <Draw scene={scene} width={width} height={height} onDrawn={onDrawn} />
+      </Canvas>
       {overlay}
     </Backgrounded>
   );
