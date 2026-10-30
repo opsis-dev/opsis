@@ -46,7 +46,7 @@ Ideas you approved but left for later.
 
 Ideas that were discussed but never finalized or planned.
 
-- [ ] Replacing the small Remotion packages the video uses with what they wrap or with our own code: `@remotion/rough-notation` and `@remotion/three` with the libraries underneath (`roughjs`, `@react-three/fiber`); our own motion blur, Mac cursors (drawn from Lucide's ISC shapes) and effects (shaders, or baked by FFmpeg) in place of `@remotion/motion-blur`, `@remotion/mac-cursors` and `@remotion/effects`; and `@remotion/paths` copied in. `plans/motion-library.md` plans a new element on `@remotion/rough-notation`, so the two have to agree.
+- [ ] Replacing the small Remotion packages the video uses with what they wrap or with our own code: `@remotion/rough-notation` and `@remotion/three` with the libraries underneath (`roughjs`, `@react-three/fiber`); our own motion blur and effects (shaders, or baked by FFmpeg) in place of `@remotion/motion-blur` and `@remotion/effects`; and `@remotion/paths` copied in. `plans/motion-library.md` plans a new element on `@remotion/rough-notation`, so the two have to agree.
 - [ ] An `#[element(…)]` macro that writes the 138 element `definition()` functions from attributes on their settings structs, the third part of the macros research after `#[settings]` and `#[choice]`.
 - [ ] A way to see the film before exporting, in place of the removed Preview (its window, streamed page and Fast/Exact copies). Undecided.
 - [ ] Measuring how fast a low-resolution draft export renders (for example 480p), and whether one can hold more than 20 frames a second.

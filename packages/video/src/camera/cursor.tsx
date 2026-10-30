@@ -1,8 +1,12 @@
-import { resolveCursor } from "@remotion/mac-cursors";
 import { Img } from "remotion";
 import type { ClickLog } from "#video/camera/lib/click-log.ts";
 import { cursorAt, type Ring } from "#video/camera/lib/cursor.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
+import {
+  MAC_CURSOR_BOX,
+  MAC_CURSOR_KEYWORDS,
+  MAC_CURSORS,
+} from "#video/camera/lib/mac-cursors.generated.ts";
 import { faded, ink } from "#video/camera/lib/style.ts";
 import { percent } from "#video/common/format.ts";
 import {
@@ -26,8 +30,7 @@ const RIPPLE_S = 0.35;
 const RIPPLE_FROM = 0.3;
 const RIPPLE_GROWTH = 1.05;
 const ARROW_PATH = "M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z";
-const MAC_CURSOR_PX = 64;
-const MAC_ARTWORK_PX = 32;
+const MAC_CURSOR_PX = 44;
 
 function Ripple({
   ring: { progress, hollow },
@@ -104,12 +107,17 @@ function Arrow({
   );
 }
 
+function macCursor(keyword: string) {
+  if (keyword === "none") return null;
+  return MAC_CURSORS[MAC_CURSOR_KEYWORDS[keyword] ?? MAC_CURSOR_KEYWORDS.default ?? ""] ?? null;
+}
+
 function MacCursor({ shape, squash, k }: { shape: string; squash: number; k: number }) {
-  const resolved = resolveCursor(shape);
+  const resolved = macCursor(shape);
   if (!resolved) return null;
   const size = MAC_CURSOR_PX * k;
-  const { x, y } = resolved.hotspot;
-  const scale = size / (resolved.width ?? MAC_ARTWORK_PX);
+  const [x, y] = resolved.hotspot;
+  const scale = size / MAC_CURSOR_BOX;
   return (
     <Img
       src={resolved.src}

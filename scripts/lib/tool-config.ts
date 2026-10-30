@@ -30,6 +30,7 @@ export const IGNORED_PATHS = [
   "apps/frontend/src/components/*.tsx",
   "apps/frontend/src/hooks/**",
   "apps/frontend/src/editor/node-glyphs.generated.ts",
+  "packages/video/src/camera/lib/mac-cursors.generated.ts",
   "packages/video/src/generated/**",
   "packages/video/src/registry/length-cases.generated.json",
   "packages/video/src/registry/default-props.generated.json",

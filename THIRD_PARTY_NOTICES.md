@@ -329,6 +329,10 @@ Opsis doesn't include the recording browser: Settings → Engine downloads Chrom
 
 Videos are rendered with Remotion (https://www.remotion.dev), which is not under an open-source licence: it is free for individuals, non-profits and for-profit organisations with up to 3 employees, and larger companies need a Remotion company licence (https://www.remotion.dev/license). Opsis passes the key entered in Settings → Video export licence, or the free licence when it is empty. Remotion packages are installed from npm and keep their own `LICENSE.md`.
 
+## apple_cursor — packages/video/src/camera/lib/mac-cursors.generated.ts
+
+The Mac cursor style draws the macOS cursor set of apple_cursor by ful1e5 (https://github.com/ful1e5/apple_cursor), commit fe044a4, licensed under the GNU General Public License version 3, the licence of Opsis itself (`LICENSE`). `bun run cursors:bundle <checkout>` copies the SVGs the CSS cursor keywords use, recoloured as its `macOS` theme does, with their hotspots.
+
 ## React Flow UI — apps/frontend/src/components/{base-node,labeled-handle,…}.tsx
 
 MIT, https://github.com/xyflow/xyflow
