@@ -15,6 +15,7 @@ use opsis_compile::timeline::chapters::{
 };
 use opsis_engine::files::write_via_temp;
 use opsis_engine::http_files::FileServer;
+use opsis_footage::serve::footage_routes;
 use opsis_media::codecs::{codec_info, finish_args, has_sound_track, is_image_codec, mux_args};
 use opsis_media::executors::{Tools, tool_error};
 use opsis_media::ffmpeg::RunOptions;
@@ -30,6 +31,7 @@ use opsis_types::values::{
 };
 
 use crate::film::{Stage, mixed, spec_for};
+use crate::footage::film_footage;
 use crate::picture::{PictureOptions, cached_picture, picture_key};
 use crate::protocol::{COMPOSITION_ID, MediaJob, RenderTarget, SidecarCall, StillJob};
 use crate::sidecar::{Sidecar, SidecarError};
@@ -312,12 +314,14 @@ async fn render_variant(
     Ok(artifacts)
 }
 
-async fn asset_server(ctx: &ExecutorContext) -> std::io::Result<FileServer> {
+async fn asset_server(ctx: &ExecutorContext, spec: &TimelineSpec) -> Result<FileServer, ExecError> {
     let dirs = PreparedDirs {
         project: ctx.project_dir.clone(),
         public: ctx.env.public_dir.clone(),
     };
-    FileServer::start_with(&ctx.project_dir, prepared_routes(dirs)).await
+    let footage = Arc::new(film_footage(ctx, spec)?);
+    let routes = prepared_routes(dirs).merge(footage_routes(footage));
+    Ok(FileServer::start_with(&ctx.project_dir, routes).await?)
 }
 
 async fn export_video(
@@ -329,7 +333,7 @@ async fn export_video(
     let spec = mixed(&ctx, &*engine.tools, spec_for(&ctx)?, MIX_STAGE).await?;
     let names = video_file_names(&export_base_name(&p.file_name), p.codec, &p.variants);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let server = asset_server(&ctx).await?;
+    let server = asset_server(&ctx, &spec).await?;
     let chapters = chapters_for(&ctx, &spec, &p).await?;
     let count = numbers::float(p.variants.len());
     let mut artifacts = Vec::new();
@@ -399,7 +403,7 @@ async fn export_images(
     let spec = spec_for(&ctx)?;
     let names = still_file_names(&export_base_name(&p.file_name), &p.presets, p.format);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let server = asset_server(&ctx).await?;
+    let server = asset_server(&ctx, &spec).await?;
     let count = numbers::float(p.presets.len());
     let mut artifacts = Vec::new();
     for (i, (preset, name)) in p.presets.iter().zip(&names).enumerate() {

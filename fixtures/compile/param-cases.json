@@ -23295,7 +23295,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "defaults",
    "key": null,
    "change": null,
@@ -23304,22 +23304,23 @@
     "data": {
      "areas": [
       {
-       "x": 0.62,
-       "y": 0.06,
+       "x": 0.35,
+       "y": 0.4,
        "width": 0.3,
-       "height": 0.08
+       "height": 0.2
       }
      ],
      "frameMs": 0.0,
-     "strength": 0.6,
-     "softness": 0.3,
-     "roundness": 0.3,
-     "fadeMs": 200
+     "style": "pixelate",
+     "blockSize": 16,
+     "blur": 16.0,
+     "color": "#000000",
+     "radius": 0.0
     }
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "empty",
    "key": null,
    "change": null,
@@ -23328,22 +23329,23 @@
     "data": {
      "areas": [
       {
-       "x": 0.62,
-       "y": 0.06,
+       "x": 0.35,
+       "y": 0.4,
        "width": 0.3,
-       "height": 0.08
+       "height": 0.2
       }
      ],
      "frameMs": 0.0,
-     "strength": 0.6,
-     "softness": 0.3,
-     "roundness": 0.3,
-     "fadeMs": 200
+     "style": "pixelate",
+     "blockSize": 16,
+     "blur": 16.0,
+     "color": "#000000",
+     "radius": 0.0
     }
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "missing",
    "key": "areas",
    "change": {
@@ -23353,17 +23355,17 @@
     "ok": true,
     "value": [
      {
-      "x": 0.62,
-      "y": 0.06,
+      "x": 0.35,
+      "y": 0.4,
       "width": 0.3,
-      "height": 0.08
+      "height": 0.2
      }
     ],
-    "keys": 6
+    "keys": 7
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "null",
    "key": "areas",
    "change": {
@@ -23371,11 +23373,11 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Areas to blur isn't valid"
+    "problem": "Areas to hide isn't valid"
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "not a list",
    "key": "areas",
    "change": {
@@ -23383,24 +23385,23 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Areas to blur isn't valid"
+    "problem": "Areas to hide isn't valid"
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "empty",
    "key": "areas",
    "change": {
     "set": []
    },
    "outcome": {
-    "ok": true,
-    "value": [],
-    "keys": 6
+    "ok": false,
+    "problem": "Areas to hide needs at least 1"
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "many",
    "key": "areas",
    "change": {
@@ -23449,11 +23450,11 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Areas to blur takes at most 8"
+    "problem": "Areas to hide takes at most 8"
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "missing",
    "key": "frameMs",
    "change": {
@@ -23462,11 +23463,11 @@
    "outcome": {
     "ok": true,
     "value": 0.0,
-    "keys": 6
+    "keys": 7
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "null",
    "key": "frameMs",
    "change": {
@@ -23478,7 +23479,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "text",
    "key": "frameMs",
    "change": {
@@ -23490,7 +23491,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "variable",
    "key": "frameMs",
    "change": {
@@ -23502,7 +23503,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "fraction",
    "key": "frameMs",
    "change": {
@@ -23511,11 +23512,11 @@
    "outcome": {
     "ok": true,
     "value": 0.5,
-    "keys": 6
+    "keys": 7
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "huge",
    "key": "frameMs",
    "change": {
@@ -23527,7 +23528,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "below",
    "key": "frameMs",
    "change": {
@@ -23539,7 +23540,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "at low bound",
    "key": "frameMs",
    "change": {
@@ -23548,11 +23549,11 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 6
+    "keys": 7
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "above",
    "key": "frameMs",
    "change": {
@@ -23564,7 +23565,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "at high bound",
    "key": "frameMs",
    "change": {
@@ -23573,400 +23574,15 @@
    "outcome": {
     "ok": true,
     "value": 3600000,
-    "keys": 6
+    "keys": 7
    }
   },
   {
-   "type": "effect.blurAreas",
-   "label": "missing",
-   "key": "strength",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.6,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "null",
-   "key": "strength",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Strength isn't valid"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "text",
-   "key": "strength",
-   "change": {
-    "set": "abc"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Strength isn't valid"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "variable",
-   "key": "strength",
-   "change": {
-    "set": "{{Speed}}"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Strength takes a number. Variables work only in text settings"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "fraction",
-   "key": "strength",
-   "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "huge",
-   "key": "strength",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Strength must be at most 1"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "below",
-   "key": "strength",
-   "change": {
-    "set": -0.95
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Strength must be at least 0.05"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "at low bound",
-   "key": "strength",
-   "change": {
-    "set": 0.05
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.05,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "above",
-   "key": "strength",
-   "change": {
-    "set": 2
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Strength must be at most 1"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "at high bound",
-   "key": "strength",
-   "change": {
-    "set": 1
-   },
-   "outcome": {
-    "ok": true,
-    "value": 1,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "missing",
-   "key": "softness",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.3,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "null",
-   "key": "softness",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Soft edge isn't valid"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "text",
-   "key": "softness",
-   "change": {
-    "set": "abc"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Soft edge isn't valid"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "variable",
-   "key": "softness",
-   "change": {
-    "set": "{{Speed}}"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Soft edge takes a number. Variables work only in text settings"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "fraction",
-   "key": "softness",
-   "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "huge",
-   "key": "softness",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Soft edge must be at most 1"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "below",
-   "key": "softness",
-   "change": {
-    "set": -1
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Soft edge must be at least 0"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "at low bound",
-   "key": "softness",
-   "change": {
-    "set": 0
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "above",
-   "key": "softness",
-   "change": {
-    "set": 2
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Soft edge must be at most 1"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "at high bound",
-   "key": "softness",
-   "change": {
-    "set": 1
-   },
-   "outcome": {
-    "ok": true,
-    "value": 1,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "missing",
-   "key": "roundness",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.3,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "null",
-   "key": "roundness",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Rounded corners isn't valid"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "text",
-   "key": "roundness",
-   "change": {
-    "set": "abc"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Rounded corners isn't valid"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "variable",
-   "key": "roundness",
-   "change": {
-    "set": "{{Speed}}"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Rounded corners takes a number. Variables work only in text settings"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "fraction",
-   "key": "roundness",
-   "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "huge",
-   "key": "roundness",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Rounded corners must be at most 1"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "below",
-   "key": "roundness",
-   "change": {
-    "set": -1
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Rounded corners must be at least 0"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "at low bound",
-   "key": "roundness",
-   "change": {
-    "set": 0
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "above",
-   "key": "roundness",
-   "change": {
-    "set": 2
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Rounded corners must be at most 1"
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "at high bound",
-   "key": "roundness",
-   "change": {
-    "set": 1
-   },
-   "outcome": {
-    "ok": true,
-    "value": 1,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "missing",
    "key": "fromMs",
    "change": {
     "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": null,
-    "keys": 6
-   }
-  },
-  {
-   "type": "effect.blurAreas",
-   "label": "null",
-   "key": "fromMs",
-   "change": {
-    "set": null
    },
    "outcome": {
     "ok": true,
@@ -23975,7 +23591,20 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
+   "label": "null",
+   "key": "fromMs",
+   "change": {
+    "set": null
+   },
+   "outcome": {
+    "ok": true,
+    "value": null,
+    "keys": 8
+   }
+  },
+  {
+   "type": "effect.redactTake",
    "label": "text",
    "key": "fromMs",
    "change": {
@@ -23987,7 +23616,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "variable",
    "key": "fromMs",
    "change": {
@@ -23999,7 +23628,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "fraction",
    "key": "fromMs",
    "change": {
@@ -24011,7 +23640,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "huge",
    "key": "fromMs",
    "change": {
@@ -24023,7 +23652,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "below",
    "key": "fromMs",
    "change": {
@@ -24035,7 +23664,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "at low bound",
    "key": "fromMs",
    "change": {
@@ -24044,11 +23673,11 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 7
+    "keys": 8
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "above",
    "key": "fromMs",
    "change": {
@@ -24060,7 +23689,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "at high bound",
    "key": "fromMs",
    "change": {
@@ -24069,11 +23698,11 @@
    "outcome": {
     "ok": true,
     "value": 3600000,
-    "keys": 7
+    "keys": 8
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "missing",
    "key": "untilMs",
    "change": {
@@ -24082,11 +23711,11 @@
    "outcome": {
     "ok": true,
     "value": null,
-    "keys": 6
+    "keys": 7
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "null",
    "key": "untilMs",
    "change": {
@@ -24095,11 +23724,11 @@
    "outcome": {
     "ok": true,
     "value": null,
-    "keys": 7
+    "keys": 8
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "text",
    "key": "untilMs",
    "change": {
@@ -24111,7 +23740,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "variable",
    "key": "untilMs",
    "change": {
@@ -24123,7 +23752,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "fraction",
    "key": "untilMs",
    "change": {
@@ -24135,7 +23764,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "huge",
    "key": "untilMs",
    "change": {
@@ -24147,7 +23776,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "below",
    "key": "untilMs",
    "change": {
@@ -24159,7 +23788,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "at low bound",
    "key": "untilMs",
    "change": {
@@ -24168,11 +23797,11 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 7
+    "keys": 8
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "above",
    "key": "untilMs",
    "change": {
@@ -24184,7 +23813,7 @@
    }
   },
   {
-   "type": "effect.blurAreas",
+   "type": "effect.redactTake",
    "label": "at high bound",
    "key": "untilMs",
    "change": {
@@ -24193,793 +23822,27 @@
    "outcome": {
     "ok": true,
     "value": 3600000,
-    "keys": 7
+    "keys": 8
    }
   },
   {
-   "type": "effect.look",
+   "type": "effect.gradeFootage",
    "label": "defaults",
    "key": null,
    "change": null,
    "outcome": {
     "ok": true,
-    "data": {
-     "brightness": 0.0,
-     "contrast": 1.0,
-     "saturation": 1.0,
-     "warmth": 0.0,
-     "vignette": 0.0,
-     "grain": 0.0,
-     "vignetteSize": 0.65,
-     "vignetteSoftness": 0.35,
-     "vignetteColor": "#000000",
-     "tint": 0.0
-    }
+    "data": {}
    }
   },
   {
-   "type": "effect.look",
+   "type": "effect.gradeFootage",
    "label": "empty",
    "key": null,
    "change": null,
    "outcome": {
     "ok": true,
-    "data": {
-     "brightness": 0.0,
-     "contrast": 1.0,
-     "saturation": 1.0,
-     "warmth": 0.0,
-     "vignette": 0.0,
-     "grain": 0.0,
-     "vignetteSize": 0.65,
-     "vignetteSoftness": 0.35,
-     "vignetteColor": "#000000",
-     "tint": 0.0
-    }
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "missing",
-   "key": "brightness",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.0,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "null",
-   "key": "brightness",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Brightness isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "text",
-   "key": "brightness",
-   "change": {
-    "set": "abc"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Brightness isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "variable",
-   "key": "brightness",
-   "change": {
-    "set": "{{Speed}}"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Brightness takes a number. Variables work only in text settings"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "fraction",
-   "key": "brightness",
-   "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "huge",
-   "key": "brightness",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Brightness must be at most 1"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "below",
-   "key": "brightness",
-   "change": {
-    "set": -2
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Brightness must be at least −1"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at low bound",
-   "key": "brightness",
-   "change": {
-    "set": -1
-   },
-   "outcome": {
-    "ok": true,
-    "value": -1,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "above",
-   "key": "brightness",
-   "change": {
-    "set": 2
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Brightness must be at most 1"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at high bound",
-   "key": "brightness",
-   "change": {
-    "set": 1
-   },
-   "outcome": {
-    "ok": true,
-    "value": 1,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "missing",
-   "key": "contrast",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": 1.0,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "null",
-   "key": "contrast",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Contrast isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "text",
-   "key": "contrast",
-   "change": {
-    "set": "abc"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Contrast isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "variable",
-   "key": "contrast",
-   "change": {
-    "set": "{{Speed}}"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Contrast takes a number. Variables work only in text settings"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "fraction",
-   "key": "contrast",
-   "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "huge",
-   "key": "contrast",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Contrast must be at most 1.5×"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "below",
-   "key": "contrast",
-   "change": {
-    "set": -0.5
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Contrast must be at least 0.5×"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at low bound",
-   "key": "contrast",
-   "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "above",
-   "key": "contrast",
-   "change": {
-    "set": 2.5
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Contrast must be at most 1.5×"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at high bound",
-   "key": "contrast",
-   "change": {
-    "set": 1.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 1.5,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "missing",
-   "key": "saturation",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": 1.0,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "null",
-   "key": "saturation",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Colour isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "text",
-   "key": "saturation",
-   "change": {
-    "set": "abc"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Colour isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "variable",
-   "key": "saturation",
-   "change": {
-    "set": "{{Speed}}"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Colour takes a number. Variables work only in text settings"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "fraction",
-   "key": "saturation",
-   "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "huge",
-   "key": "saturation",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Colour must be at most 2×"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "below",
-   "key": "saturation",
-   "change": {
-    "set": -1
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Colour must be at least 0×"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at low bound",
-   "key": "saturation",
-   "change": {
-    "set": 0
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "above",
-   "key": "saturation",
-   "change": {
-    "set": 3
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Colour must be at most 2×"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at high bound",
-   "key": "saturation",
-   "change": {
-    "set": 2
-   },
-   "outcome": {
-    "ok": true,
-    "value": 2,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "missing",
-   "key": "warmth",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.0,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "null",
-   "key": "warmth",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Warmth isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "text",
-   "key": "warmth",
-   "change": {
-    "set": "abc"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Warmth isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "variable",
-   "key": "warmth",
-   "change": {
-    "set": "{{Speed}}"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Warmth takes a number. Variables work only in text settings"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "fraction",
-   "key": "warmth",
-   "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "huge",
-   "key": "warmth",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Warmth must be at most 1"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "below",
-   "key": "warmth",
-   "change": {
-    "set": -2
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Warmth must be at least −1"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at low bound",
-   "key": "warmth",
-   "change": {
-    "set": -1
-   },
-   "outcome": {
-    "ok": true,
-    "value": -1,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "above",
-   "key": "warmth",
-   "change": {
-    "set": 2
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Warmth must be at most 1"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at high bound",
-   "key": "warmth",
-   "change": {
-    "set": 1
-   },
-   "outcome": {
-    "ok": true,
-    "value": 1,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "missing",
-   "key": "vignette",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.0,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "null",
-   "key": "vignette",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Dark edges isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "text",
-   "key": "vignette",
-   "change": {
-    "set": "abc"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Dark edges isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "variable",
-   "key": "vignette",
-   "change": {
-    "set": "{{Speed}}"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Dark edges takes a number. Variables work only in text settings"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "fraction",
-   "key": "vignette",
-   "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "huge",
-   "key": "vignette",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Dark edges must be at most 1"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "below",
-   "key": "vignette",
-   "change": {
-    "set": -1
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Dark edges must be at least 0"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at low bound",
-   "key": "vignette",
-   "change": {
-    "set": 0
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "above",
-   "key": "vignette",
-   "change": {
-    "set": 2
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Dark edges must be at most 1"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at high bound",
-   "key": "vignette",
-   "change": {
-    "set": 1
-   },
-   "outcome": {
-    "ok": true,
-    "value": 1,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "missing",
-   "key": "grain",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.0,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "null",
-   "key": "grain",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Film grain isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "text",
-   "key": "grain",
-   "change": {
-    "set": "abc"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Film grain isn't valid"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "variable",
-   "key": "grain",
-   "change": {
-    "set": "{{Speed}}"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Film grain takes a number. Variables work only in text settings"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "fraction",
-   "key": "grain",
-   "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "huge",
-   "key": "grain",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Film grain must be at most 1"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "below",
-   "key": "grain",
-   "change": {
-    "set": -1
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Film grain must be at least 0"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at low bound",
-   "key": "grain",
-   "change": {
-    "set": 0
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0,
-    "keys": 10
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "above",
-   "key": "grain",
-   "change": {
-    "set": 2
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Film grain must be at most 1"
-   }
-  },
-  {
-   "type": "effect.look",
-   "label": "at high bound",
-   "key": "grain",
-   "change": {
-    "set": 1
-   },
-   "outcome": {
-    "ok": true,
-    "value": 1,
-    "keys": 10
+    "data": {}
    }
   },
   {

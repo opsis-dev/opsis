@@ -5,11 +5,13 @@ import {
   delayRender,
   Easing,
   interpolate,
-  OffthreadVideo,
+  useCurrentFrame,
+  useVideoConfig,
 } from "remotion";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { FootageFrame, type FootageUrls } from "#video/core/footage.tsx";
 import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
 import { mixOklch, withAlpha } from "#video/lib/ui-kit/color.ts";
 import { Item, resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
@@ -20,6 +22,7 @@ const SANS = '"Inter"';
 type HeroLaunchProps = Omit<ElementSettings["hero-launch"], "theme"> & {
   image1Kind?: MediaKind;
   image2Kind?: MediaKind;
+  footageUrls?: FootageUrls;
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
@@ -35,7 +38,17 @@ function HeroImage({ src, style }: { src: string; style: CSSProperties }) {
   return <img src={src} alt="" style={style} onLoad={release} onError={release} />;
 }
 
-function CardMedia({ src, kind }: { src: string; kind: MediaKind | undefined }) {
+function CardMedia({
+  src,
+  kind,
+  footage,
+}: {
+  src: string;
+  kind: MediaKind | undefined;
+  footage?: string;
+}) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const media: CSSProperties = {
     position: "absolute",
     inset: 0,
@@ -44,7 +57,9 @@ function CardMedia({ src, kind }: { src: string; kind: MediaKind | undefined }) 
     objectFit: "cover",
   };
   if (kind === "video") {
-    return <OffthreadVideo src={src} muted style={media} />;
+    return footage ? (
+      <FootageFrame url={footage} timeS={frame / fps} fit="cover" style={media} />
+    ) : null;
   }
   return <HeroImage src={src} style={media} />;
 }
@@ -55,6 +70,7 @@ function HeroLaunchView({
   image1Kind,
   image2,
   image2Kind,
+  footageUrls,
   theme,
   mode,
   fontFamily,
@@ -156,7 +172,14 @@ function HeroLaunchView({
           <div style={cardBox(leftX, leftOpacity)}>
             <div style={zoom(leftScale)}>
               <div style={tilt(leftDeg, "100% 50%")}>
-                <ImageCard s={s} src={image1} kind={image1Kind} t={t} radius={cardRadius} />
+                <ImageCard
+                  s={s}
+                  src={image1}
+                  kind={image1Kind}
+                  footage={footageUrls?.image1}
+                  t={t}
+                  radius={cardRadius}
+                />
               </div>
             </div>
           </div>
@@ -164,7 +187,14 @@ function HeroLaunchView({
         <Item index={1}>
           <div style={cardBox(rightX, rightOpacity)}>
             <div style={tilt(cardTilt, "0% 50%")}>
-              <ImageCard s={s} src={image2} kind={image2Kind} t={t} radius={cardRadius} />
+              <ImageCard
+                s={s}
+                src={image2}
+                kind={image2Kind}
+                footage={footageUrls?.image2}
+                t={t}
+                radius={cardRadius}
+              />
             </div>
           </div>
         </Item>
@@ -205,12 +235,14 @@ function ImageCard({
   s,
   src,
   kind,
+  footage,
   t,
   radius,
 }: {
   s: number;
   src: string;
   kind: MediaKind | undefined;
+  footage?: string;
   t: WarmTheme;
   radius: number;
 }) {
@@ -229,7 +261,7 @@ function ImageCard({
         )}, inset 0 0 0 1px ${withAlpha(t.foreground, 0.22)}`,
       }}
     >
-      {src ? <CardMedia src={src} kind={kind} /> : null}
+      {src ? <CardMedia src={src} kind={kind} footage={footage} /> : null}
       <div
         style={{
           position: "absolute",
@@ -260,7 +292,11 @@ function ImageCard({
 export function HeroLaunch({
   theme,
   ...settings
-}: ElementSettings["hero-launch"] & { image1Kind?: MediaKind; image2Kind?: MediaKind }) {
+}: ElementSettings["hero-launch"] & {
+  image1Kind?: MediaKind;
+  image2Kind?: MediaKind;
+  footageUrls?: FootageUrls;
+}) {
   return (
     <WarmUIProvider mode={theme.mode}>
       <HeroLaunchView {...settings} theme={themeColors(theme)} mode={theme.mode} />

@@ -1,5 +1,7 @@
 use opsis_types::actions::{Action, ActionKind, ActionLog, Point, Rect};
-use opsis_types::recording::{CameraStyle, CameraTuning, FrameTheme, RecordingProps, WindowStyle};
+use opsis_types::recording::{
+    CameraStyle, CameraTuning, FootageChain, FrameTheme, RecordingProps, WindowStyle,
+};
 
 use crate::backdrops::DEFAULT_BACKDROP;
 use crate::node::Platform;
@@ -47,8 +49,8 @@ pub fn default_recording_props(src: String, log: ActionLog, name: String) -> Rec
         extra_beats: Vec::new(),
         keystrokes: None,
         annotations: Vec::new(),
-        blur_areas: None,
-        look: None,
+        footage: FootageChain::default(),
+        footage_url: None,
         screen: None,
         window_fit: None,
         stage_ground: None,

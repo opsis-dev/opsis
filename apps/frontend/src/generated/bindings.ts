@@ -344,19 +344,6 @@ export type BarKind = "recording" | "element";
 
 export type BarThumbnail = { kind: "filmstrip"; src: string; speed: number; trimMs: number } | { kind: "still"; src: string };
 
-export type BlurArea = {
-	x: number,
-	y: number,
-	width: number,
-	height: number,
-	strength: number,
-	softness: number,
-	roundness: number,
-	fadeMs: number,
-	fromMs?: number,
-	untilMs?: number,
-};
-
 export type Bounds = {
 	x: number,
 	y: number,
@@ -976,6 +963,11 @@ export type FontSource = "bundled" | "online" | "file" | "installed";
 
 export type FontStyle = "normal" | "italic";
 
+export type FootageChain = {
+	grade?: StyleEntry[],
+	redact?: StyleEntry[],
+};
+
 export type FrameRange = {
 	from: number,
 	to: number,
@@ -1432,19 +1424,6 @@ export type PickerTarget = {
 	kind: "page",
 } & PickerPage | { kind: "problem"; message: string };
 
-export type PictureLook = {
-	brightness?: number,
-	contrast?: number,
-	saturation?: number,
-	warmth?: number,
-	vignette?: number,
-	grain?: number,
-	vignetteSize?: number,
-	vignetteSoftness?: number,
-	vignetteColor?: string,
-	tint?: number,
-};
-
 export type PlannedFamily<C = {
 	name: string,
 	family: string,
@@ -1556,8 +1535,8 @@ export type RecordingProps = {
 	extraBeats: Action[],
 	keystrokes?: KeystrokeLook,
 	annotations: AnnotationSpec[],
-	blurAreas?: BlurArea[],
-	look?: PictureLook,
+	footage?: FootageChain,
+	footageUrl?: string,
 	screen?: boolean,
 	windowFit?: number,
 	stageGround?: string,

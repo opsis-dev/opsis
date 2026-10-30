@@ -1,17 +1,22 @@
 import type { CSSProperties } from "react";
-import { Img, interpolate, OffthreadVideo } from "remotion";
+import { Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
+import { FootageFrame } from "#video/core/footage.tsx";
 import type { MediaKind } from "#video/generated/spec.ts";
 
 export function ScreenMedia({
   src,
   kind,
   frame,
+  footage,
 }: {
   src: string;
   kind: MediaKind | undefined;
   frame: number;
+  footage?: string;
 }) {
+  const now = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const t = interpolate(frame, [4, 22], [0, 1], CLAMPED);
   const style: CSSProperties = {
     position: "absolute",
@@ -23,11 +28,10 @@ export function ScreenMedia({
     opacity: t,
     filter: `blur(${(1 - t) * 8}px)`,
   };
-  return kind === "video" ? (
-    <OffthreadVideo src={src} muted style={style} />
-  ) : (
-    <Img src={src} style={style} />
-  );
+  if (kind !== "video") return <Img src={src} style={style} />;
+  return footage ? (
+    <FootageFrame url={footage} timeS={now / fps} fit="cover" style={style} />
+  ) : null;
 }
 
 export function floatOffset(

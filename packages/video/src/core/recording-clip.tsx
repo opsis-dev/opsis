@@ -10,7 +10,6 @@ import {
 import { DemoClip, ScreenClip, useClipTime } from "#video/camera/demo-clip.tsx";
 import { frameAddress } from "#video/camera/frame-address.ts";
 import { KeycapHUD } from "#video/camera/keycap-hud.tsx";
-import { blurEffects } from "#video/camera/lib/blur-areas.ts";
 import { DesignWidthContext } from "#video/camera/lib/design-scale.ts";
 import { KEYSTROKE_EDGE } from "#video/camera/lib/keycap.ts";
 import { faded, SHOT_STYLES } from "#video/camera/lib/style.ts";
@@ -28,7 +27,6 @@ import {
   verticalInsets,
   type Reframe,
 } from "#video/core/frame.ts";
-import { lookEffects } from "#video/core/picture-look.ts";
 import type { Size } from "#video/core/still-layout.ts";
 import type { KeystrokeLook, RecordingProps } from "#video/generated/spec.ts";
 
@@ -73,7 +71,7 @@ const CLIP_KEYS = [
 ] as const satisfies ReadonlyArray<keyof RecordingProps>;
 
 export function RecordingClip(props: RecordingProps) {
-  const src = props.src ? assetUrl(props.src) : null;
+  const src = props.footageUrl ?? null;
   const backdrop = props.backdrop ? assetUrl(props.backdrop) : props.backdrop;
   const { width, height, fps } = useVideoConfig();
   const frame = useCurrentFrame();
@@ -88,15 +86,7 @@ export function RecordingClip(props: RecordingProps) {
     () => resolveAnnotations(props.log, props.annotations),
     [props.log, props.annotations],
   );
-  const fileWidth = props.log.viewport.width;
   const timeMs = timeS * 1000;
-  const effects = useMemo(
-    () => [
-      ...blurEffects(props.blurAreas ?? [], timeMs, fileWidth),
-      ...lookEffects(props.look, frame),
-    ],
-    [props.blurAreas, props.look, timeMs, fileWidth, frame],
-  );
 
   if (!src) return null;
 
@@ -109,7 +99,6 @@ export function RecordingClip(props: RecordingProps) {
         log={log}
         motionBlur={false}
         annotations={annotations}
-        effects={effects}
       />
     );
 
@@ -132,7 +121,6 @@ export function RecordingClip(props: RecordingProps) {
       motionBlur={props.motionBlur}
       tuning={narrow ? { ...props.tuning, narrow } : props.tuning}
       annotations={annotations}
-      effects={effects}
     />
   );
 

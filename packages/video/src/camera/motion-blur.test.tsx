@@ -5,20 +5,20 @@ import { shutterOffsets } from "#video/camera/lib/shutter.ts";
 import { MotionBlur } from "#video/camera/motion-blur.tsx";
 import { TestFrame } from "#video/core/test-frame.tsx";
 
-function FrameShown({ muted }: { muted: boolean }) {
+function FrameShown() {
   const frame = useCurrentFrame();
-  return <span data-frame={frame} data-muted={muted} />;
+  return <span data-frame={frame} />;
 }
 
 function Blurred() {
   return (
     <MotionBlur shutterAngle={180} samples={6}>
-      {(muted) => <FrameShown muted={muted} />}
+      <FrameShown />
     </MotionBlur>
   );
 }
 
-it("shows each sample at its own time inside the open shutter, with only the newest heard", () => {
+it("shows each sample at its own time inside the open shutter", () => {
   const view = render(
     <TestFrame
       component={Blurred}
@@ -33,8 +33,4 @@ it("shows each sample at its own time inside the open shutter, with only the new
   expect(shown.map((span) => Number(span.dataset.frame))).toEqual(
     shutterOffsets(180, 6).map((offset) => 20 - offset),
   );
-  expect(shown.map((span) => span.dataset.muted)).toEqual([
-    "false",
-    ...Array.from({ length: 5 }, () => "true"),
-  ]);
 });

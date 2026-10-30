@@ -3,9 +3,10 @@ use opsis_types::timeline::{TimelineItem, TimelineSpec, TimelineTrack};
 use serde_json::{Map, Value};
 
 use crate::asset_ref::{
-    PREPARED_FOLDER, PREPARED_SCHEME, is_project_ref, join_url, project_rel_path,
+    FOOTAGE_FOLDER, PREPARED_FOLDER, PREPARED_SCHEME, is_project_ref, join_url, project_rel_path,
 };
 use crate::fonts::film_fonts;
+use crate::footage::item_footage;
 
 const MAX_PROP_DEPTH: u32 = 3;
 
@@ -52,11 +53,26 @@ impl Host<'_> {
         props.values_mut().for_each(|v| self.value(v, 1));
     }
 
+    fn footage(&self, id: &str) -> String {
+        join_url(self.base, &format!("{FOOTAGE_FOLDER}/{id}/"))
+    }
+
     fn tracks(&self, tracks: &mut [TimelineTrack]) {
         for item in tracks.iter_mut().flat_map(|t| t.items.iter_mut()) {
+            let footage = item_footage(item);
             match item {
-                TimelineItem::Element { props, .. } => self.props(props),
+                TimelineItem::Element { props, .. } => {
+                    self.props(props);
+                    let urls: Map<String, Value> = footage
+                        .iter()
+                        .map(|f| (f.prop.clone(), Value::String(self.footage(&f.used.id))))
+                        .collect();
+                    if !urls.is_empty() {
+                        props.insert("footageUrls".into(), Value::Object(urls));
+                    }
+                }
                 TimelineItem::Recording { props, .. } => {
+                    props.footage_url = footage.first().map(|f| self.footage(&f.used.id));
                     self.string(&mut props.src);
                     self.string(&mut props.backdrop);
                 }

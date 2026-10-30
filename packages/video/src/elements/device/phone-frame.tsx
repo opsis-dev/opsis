@@ -3,6 +3,7 @@ import { Easing, interpolate } from "remotion";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { FootageUrls } from "#video/core/footage.tsx";
 import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
 import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
@@ -14,6 +15,7 @@ export type PhoneFrameEntrance = "rise" | "rotate-in" | "float";
 type PhoneFrameProps = Omit<ElementSettings["phone-frame"], "theme"> & {
   children?: ReactNode;
   screenKind?: MediaKind;
+  footageUrls?: FootageUrls;
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
@@ -129,6 +131,7 @@ function PhoneFrameView({
   children,
   screenSrc,
   screenKind,
+  footageUrls,
   variant,
   entrance,
   bezelColor,
@@ -237,7 +240,12 @@ function PhoneFrameView({
               >
                 {children ??
                   (screenSrc ? (
-                    <ScreenMedia src={screenSrc} kind={screenKind} frame={frame} />
+                    <ScreenMedia
+                      src={screenSrc}
+                      kind={screenKind}
+                      frame={frame}
+                      footage={footageUrls?.screenSrc}
+                    />
                   ) : null)}
 
                 {showDynamicIsland && (
@@ -281,7 +289,11 @@ function PhoneFrameView({
 export function PhoneFrame({
   theme,
   ...settings
-}: ElementSettings["phone-frame"] & { children?: ReactNode; screenKind?: MediaKind }) {
+}: ElementSettings["phone-frame"] & {
+  children?: ReactNode;
+  screenKind?: MediaKind;
+  footageUrls?: FootageUrls;
+}) {
   return (
     <WarmUIProvider mode={theme.mode}>
       <PhoneFrameView {...settings} theme={themeColors(theme)} mode={theme.mode} />

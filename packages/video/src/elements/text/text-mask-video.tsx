@@ -1,6 +1,7 @@
 import { useId } from "react";
-import { AbsoluteFill, Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
+import { FootageFrame, type FootageUrls } from "#video/core/footage.tsx";
 import type { ElementSettings, MaskReveal, MediaKind } from "#video/generated/spec.ts";
 import { scaleFont } from "#video/lib/layout/layout.ts";
 import { useEnterExit } from "#video/lib/motion/motion-primitive.ts";
@@ -33,7 +34,8 @@ export function TextMaskVideo({
   driftSpeed,
   fitMax,
   startFrom,
-}: ElementSettings["text-mask-video"] & { media?: MediaKind }) {
+  footageUrls,
+}: ElementSettings["text-mask-video"] & { media?: MediaKind; footageUrls?: FootageUrls }) {
   const frame = useCurrentFrame();
   const { width: videoWidth, height: videoHeight, fps } = useVideoConfig();
   const clipId = `mask-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
@@ -124,18 +126,8 @@ export function TextMaskVideo({
                 transformOrigin: "center center",
               }}
             >
-              {kind === "video" && src ? (
-                <OffthreadVideo
-                  src={src}
-                  startFrom={Math.round(startFrom * fps)}
-                  muted
-                  pauseWhenBuffering
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
+              {kind === "video" && src && footageUrls?.src ? (
+                <FootageFrame url={footageUrls.src} timeS={startFrom + frame / fps} fit="cover" />
               ) : kind === "image" && src ? (
                 <Img src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (

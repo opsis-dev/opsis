@@ -13,7 +13,7 @@ use opsis_golden::typed;
 use opsis_types::cards::Tone;
 use opsis_types::numbers::whole;
 use opsis_types::timeline::TimelineItem;
-use opsis_types::values::{CompileValue, MediaKind};
+use opsis_types::values::{CompileValue, EntriesValue, MediaKind, StyleEntry};
 use opsis_types::workflow::PortType;
 use serde_json::{Map, Value, json};
 
@@ -904,39 +904,43 @@ fn adds_no_sound_from_a_file_that_has_none_and_says_so() {
     );
 }
 
-fn blurred(params: &[Value]) -> Value {
+fn redacted(params: &[Value]) -> Value {
     let own: Vec<(&str, Value)> = params
         .iter()
-        .map(|p| ("effect.blurAreas", p.clone()))
+        .map(|p| ("effect.redactTake", p.clone()))
         .collect();
     serde_json::to_value(recording_props(&zoomed(None, &own, None, json!({ "speed": 1 })))[0])
         .unwrap()
 }
 
 #[test]
-fn puts_blur_areas_on_the_take_and_adds_them_up_across_nodes() {
-    let props = blurred(&[json!({ "strength": 0.5, "softness": 0, "roundness": 0.2 })]);
-    assert_eq!(
-        props["blurAreas"],
-        json!([{ "x": 0.62, "y": 0.06, "width": 0.3, "height": 0.08, "strength": 0.02, "softness": 0.0, "roundness": 0.2, "fadeMs": 200.0 }])
-    );
-    let props = blurred(&[
-        json!({ "fromMs": 1000, "untilMs": 2000 }),
-        json!({ "areas": [{ "x": 0, "y": 0, "width": 0.1, "height": 0.1 }], "fromMs": 3000 }),
+fn puts_redactions_on_the_takes_footage_in_order_across_nodes() {
+    let props = redacted(&[
+        json!({ "style": "solid", "fromMs": 1000, "untilMs": 2000 }),
+        json!({ "style": "blur", "fromMs": 3000 }),
     ]);
-    let times: Vec<(Value, Value)> = props["blurAreas"]
-        .as_array()
-        .unwrap()
+    let entries = props["footage"]["redact"].as_array().unwrap();
+    let shown: Vec<(Value, Value, Value)> = entries
         .iter()
-        .map(|a| (a["fromMs"].clone(), a["untilMs"].clone()))
+        .map(|e| {
+            (
+                e["params"]["style"].clone(),
+                e["params"]["fromMs"].clone(),
+                e["params"]["untilMs"].clone(),
+            )
+        })
         .collect();
     assert_eq!(
-        times,
-        [(json!(1000.0), json!(2000.0)), (json!(3000.0), Value::Null)]
+        shown,
+        [
+            (json!("solid"), json!(1000), json!(2000)),
+            (json!("blur"), json!(3000), Value::Null)
+        ]
     );
+    assert!(entries.iter().all(|e| e["type"] == "effect.redactTake"));
     assert_eq!(
         parse_params(
-            "effect.blurAreas",
+            "effect.redactTake",
             json!({ "fromMs": 2000, "untilMs": 1000 })
         )
         .unwrap_err(),
@@ -944,19 +948,11 @@ fn puts_blur_areas_on_the_take_and_adds_them_up_across_nodes() {
     );
     assert_eq!(
         card_texts(
-            "effect.blurAreas",
+            "effect.redactTake",
             json!({ "fromMs": 500 }),
             CardInputs::default()
         ),
-        ["1 area · 60% strength", "From 0.5 s"]
-    );
-    assert_eq!(
-        card_texts(
-            "effect.blurAreas",
-            json!({ "areas": [] }),
-            CardInputs::default()
-        )[0],
-        "Draw an area to blur"
+        ["1 area pixelated", "From 0.5 s"]
     );
 }
 
@@ -970,19 +966,28 @@ fn element_props(clip: &opsis_types::values::ClipValue) -> Vec<Map<String, Value
     out
 }
 
+fn grade_value(kind: &str) -> Value {
+    serde_json::to_value(CompileValue::Grade(EntriesValue {
+        entries: vec![StyleEntry {
+            node_id: "g".into(),
+            kind: kind.into(),
+            params: Map::new(),
+        }],
+    }))
+    .unwrap()
+}
+
 #[test]
-fn gives_a_picture_look_only_to_recordings_videos_and_images_and_names_it() {
-    let look = json!({ "warmth": 0.3, "grain": 0.2 });
+fn grades_the_footage_of_recordings_videos_and_images_only() {
+    let grade = grade_value("grade.colour");
     let take = zoomed(None, &[], None, json!({ "speed": 1 }));
-    let rec = compile_clip(
-        "effect.look",
-        look.clone(),
-        json!({ CLIP: clip_value(&take) }),
+    let graded = compile_clip(
+        "effect.gradeFootage",
+        json!({}),
+        json!({ CLIP: clip_value(&take), "grade": grade.clone() }),
     );
-    assert_eq!(
-        serde_json::to_value(recording_props(&rec)[0]).unwrap()["look"],
-        look
-    );
+    let footage = serde_json::to_value(recording_props(&graded)[0]).unwrap()["footage"].clone();
+    assert_eq!(footage["grade"][0]["type"], "grade.colour");
     for (id, component, src) in [
         ("v", "video", "project:a.mp4"),
         ("i", "image", "project:a.png"),
@@ -994,12 +999,27 @@ fn gives_a_picture_look_only_to_recordings_videos_and_images_and_names_it() {
             30,
             ItemExtra::default(),
         );
-        let looked = compile_clip(
-            "effect.look",
-            look.clone(),
-            json!({ CLIP: clip_value(&clip) }),
+        let once = compile_clip(
+            "effect.gradeFootage",
+            json!({}),
+            json!({ CLIP: clip_value(&clip), "grade": grade.clone() }),
         );
-        assert_eq!(element_props(&looked)[0]["look"], look, "{component}");
+        let twice = compile_clip(
+            "effect.gradeFootage",
+            json!({}),
+            json!({ CLIP: clip_value(&once), "grade": grade_value("grade.mono") }),
+        );
+        let steps: Vec<Value> = element_props(&twice)[0]["footage"]["grade"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| e["type"].clone())
+            .collect();
+        assert_eq!(
+            steps,
+            [json!("grade.colour"), json!("grade.mono")],
+            "{component}"
+        );
     }
     let title = item_clip(
         "t",
@@ -1010,32 +1030,28 @@ fn gives_a_picture_look_only_to_recordings_videos_and_images_and_names_it() {
     );
     assert!(
         !element_props(&compile_clip(
-            "effect.look",
-            json!({ "warmth": 0.3 }),
-            json!({ CLIP: clip_value(&title) })
+            "effect.gradeFootage",
+            json!({}),
+            json!({ CLIP: clip_value(&title), "grade": grade })
         ))[0]
-            .contains_key("look")
-    );
-    let natural = node_card("effect.look", json!({}), CardInputs::default())[0].clone();
-    assert_eq!(
-        (natural.text.as_str(), natural.tone),
-        ("Natural", Some(Tone::Muted))
+            .contains_key("footage")
     );
     assert_eq!(
-        card_texts(
-            "effect.look",
-            json!({ "saturation": 0, "contrast": 1.15 }),
-            CardInputs::default()
-        )[0],
-        "Black and white"
+        card_texts("effect.gradeFootage", json!({}), CardInputs::default())[0],
+        "Connect a grade"
+    );
+    let mut connected = CardInputs::default();
+    connected.grade.insert(
+        "grade".into(),
+        vec![StyleEntry {
+            node_id: "g".into(),
+            kind: "grade.mono".into(),
+            params: Map::new(),
+        }],
     );
     assert_eq!(
-        card_texts(
-            "effect.look",
-            json!({ "grain": 0.1 }),
-            CardInputs::default()
-        )[0],
-        "1 change"
+        card_texts("effect.gradeFootage", json!({}), connected)[0],
+        "1 step: Black and white and tint"
     );
 }
 

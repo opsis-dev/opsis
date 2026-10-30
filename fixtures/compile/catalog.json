@@ -1023,10 +1023,10 @@
    }
   },
   {
-   "type": "effect.blurAreas",
-   "title": "Blur areas",
+   "type": "effect.redactTake",
+   "title": "Redact take",
    "category": "Effects",
-   "description": "Blurs parts of the browser window to hide private details. The blur stays on the page as the camera moves.",
+   "description": "Hides parts of the browser window, such as names, email addresses and keys, behind large pixels, a blur or a solid colour. The areas stay on the page while the camera moves.",
    "runs": false,
    "inputs": {
     "recording": {
@@ -1046,15 +1046,21 @@
    }
   },
   {
-   "type": "effect.look",
-   "title": "Picture look",
+   "type": "effect.gradeFootage",
+   "title": "Grade footage",
    "category": "Effects",
-   "description": "Gives recordings, videos and images a look: colour, brightness, a dark vignette and film grain. To grade a recording's whole picture, window and backdrop included, use Apply grade on an exported file.",
+   "description": "Applies a colour grade to the footage in a clip: the page in each recording, and each video and image. The window and backdrop keep their colours; to grade the whole picture, use Apply grade on an exported file.",
    "runs": false,
    "inputs": {
     "clip": {
      "type": "clip",
      "label": "Clip",
+     "optional": false,
+     "many": false
+    },
+    "grade": {
+     "type": "grade",
+     "label": "Grade",
      "optional": false,
      "many": false
     }
@@ -11634,10 +11640,10 @@
    }
   },
   {
-   "type": "effect.blurAreas",
-   "title": "Blur areas",
+   "type": "effect.redactTake",
+   "title": "Redact take",
    "category": "Effects",
-   "description": "Blurs parts of the browser window to hide private details. The blur stays on the page as the camera moves.",
+   "description": "Hides parts of the browser window, such as names, email addresses and keys, behind large pixels, a blur or a solid colour. The areas stay on the page while the camera moves.",
    "runs": false,
    "inputs": {
     "recording": {
@@ -11659,7 +11665,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
      "areas": {
-      "description": "Areas to blur",
+      "description": "Areas to hide",
       "type": "array",
       "items": {
        "type": "object",
@@ -11700,18 +11706,19 @@
         "height": 0.0
        }
       },
+      "minItems": 1,
       "maxItems": 8,
       "default": [
        {
-        "x": 0.62,
-        "y": 0.06,
+        "x": 0.35,
+        "y": 0.4,
         "width": 0.3,
-        "height": 0.08
+        "height": 0.2
        }
       ],
       "x-widget": "boxes",
       "x-time-key": "frameMs",
-      "x-help": "Drag on the picture to add an area. Move the slider to draw on a later moment of the take. The blur stays on that part of the window while the camera zooms and pans."
+      "x-help": "Drag on the picture to mark each part to hide. Move the slider to draw on a later moment of the take. The areas stay on the page while the camera zooms and pans."
      },
      "frameMs": {
       "description": "Frame to draw on",
@@ -11723,33 +11730,79 @@
       "x-unit": "ms",
       "x-hidden": true
      },
-     "strength": {
-      "description": "Strength",
+     "style": {
+      "description": "Hide with",
+      "type": "string",
+      "enum": [
+       "pixelate",
+       "blur",
+       "solid"
+      ],
+      "x-labels": {
+       "pixelate": "Large pixels",
+       "blur": "Blur",
+       "solid": "Solid colour"
+      },
+      "default": "pixelate"
+     },
+     "blockSize": {
+      "description": "Pixel size",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 2,
+      "maximum": 256,
+      "default": 16,
+      "x-unit": "px",
+      "x-show-if": {
+       "style": [
+        "pixelate"
+       ]
+      }
+     },
+     "blur": {
+      "description": "Blur",
       "type": "number",
       "format": "double",
-      "minimum": 0.05,
-      "maximum": 1,
-      "default": 0.6,
-      "x-step": 0.05
+      "minimum": 1,
+      "maximum": 100,
+      "default": 16.0,
+      "x-step": 0.5,
+      "x-unit": "px",
+      "x-show-if": {
+       "style": [
+        "blur"
+       ]
+      }
      },
-     "softness": {
-      "description": "Soft edge",
+     "color": {
+      "description": "Colour",
+      "type": "string",
+      "default": "#000000",
+      "x-widget": "color",
+      "x-check": {
+       "rule": "colour",
+       "message": "Pick a colour"
+      },
+      "x-show-if": {
+       "style": [
+        "solid"
+       ]
+      }
+     },
+     "radius": {
+      "description": "Corner radius",
       "type": "number",
       "format": "double",
       "minimum": 0,
-      "maximum": 1,
-      "default": 0.3,
-      "x-step": 0.05,
-      "x-advanced": true
-     },
-     "roundness": {
-      "description": "Rounded corners",
-      "type": "number",
-      "format": "double",
-      "minimum": 0,
-      "maximum": 1,
-      "default": 0.3,
-      "x-step": 0.05,
+      "maximum": 200,
+      "default": 0.0,
+      "x-step": 1,
+      "x-unit": "px",
+      "x-show-if": {
+       "style": [
+        "solid"
+       ]
+      },
       "x-advanced": true
      },
      "fromMs": {
@@ -11777,47 +11830,43 @@
       "x-unit": "ms",
       "x-zero-label": "End of the take",
       "x-advanced": true
-     },
-     "fadeMs": {
-      "description": "Fade in and out",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0,
-      "maximum": 2000,
-      "default": 200,
-      "x-step": 1,
-      "x-unit": "ms",
-      "x-advanced": true
      }
     },
     "type": "object",
     "default": {
      "areas": [
       {
-       "x": 0.62,
-       "y": 0.06,
+       "x": 0.35,
+       "y": 0.4,
        "width": 0.3,
-       "height": 0.08
+       "height": 0.2
       }
      ],
      "frameMs": 0.0,
-     "strength": 0.6,
-     "softness": 0.3,
-     "roundness": 0.3,
-     "fadeMs": 200
+     "style": "pixelate",
+     "blockSize": 16,
+     "blur": 16.0,
+     "color": "#000000",
+     "radius": 0.0
     }
    }
   },
   {
-   "type": "effect.look",
-   "title": "Picture look",
+   "type": "effect.gradeFootage",
+   "title": "Grade footage",
    "category": "Effects",
-   "description": "Gives recordings, videos and images a look: colour, brightness, a dark vignette and film grain. To grade a recording's whole picture, window and backdrop included, use Apply grade on an exported file.",
+   "description": "Applies a colour grade to the footage in a clip: the page in each recording, and each video and image. The window and backdrop keep their colours; to grade the whole picture, use Apply grade on an exported file.",
    "runs": false,
    "inputs": {
     "clip": {
      "type": "clip",
      "label": "Clip",
+     "optional": false,
+     "many": false
+    },
+    "grade": {
+     "type": "grade",
+     "label": "Grade",
      "optional": false,
      "many": false
     }
@@ -11832,195 +11881,7 @@
    },
    "params": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "properties": {
-     "brightness": {
-      "description": "Brightness",
-      "type": "number",
-      "format": "double",
-      "minimum": -1,
-      "maximum": 1,
-      "default": 0.0,
-      "x-step": 0.05,
-      "x-presets-label": "Look",
-      "x-presets": [
-       {
-        "label": "Natural",
-        "values": {
-         "brightness": 0,
-         "contrast": 1,
-         "saturation": 1,
-         "warmth": 0,
-         "vignette": 0,
-         "grain": 0
-        }
-       },
-       {
-        "label": "Warm",
-        "values": {
-         "brightness": 0,
-         "contrast": 1,
-         "saturation": 1.1,
-         "warmth": 0.35,
-         "vignette": 0.2,
-         "grain": 0
-        }
-       },
-       {
-        "label": "Cool",
-        "values": {
-         "brightness": 0,
-         "contrast": 1.05,
-         "saturation": 1,
-         "warmth": -0.3,
-         "vignette": 0,
-         "grain": 0
-        }
-       },
-       {
-        "label": "Punchy",
-        "values": {
-         "brightness": 0,
-         "contrast": 1.2,
-         "saturation": 1.25,
-         "warmth": 0,
-         "vignette": 0,
-         "grain": 0
-        }
-       },
-       {
-        "label": "Soft",
-        "values": {
-         "brightness": 0.1,
-         "contrast": 0.88,
-         "saturation": 0.9,
-         "warmth": 0,
-         "vignette": 0,
-         "grain": 0
-        }
-       },
-       {
-        "label": "Black and white",
-        "values": {
-         "brightness": 0,
-         "contrast": 1.15,
-         "saturation": 0,
-         "warmth": 0,
-         "vignette": 0,
-         "grain": 0
-        }
-       },
-       {
-        "label": "Old film",
-        "values": {
-         "brightness": 0,
-         "contrast": 1,
-         "saturation": 0.75,
-         "warmth": 0.25,
-         "vignette": 0.45,
-         "grain": 0.35
-        }
-       }
-      ]
-     },
-     "contrast": {
-      "description": "Contrast",
-      "type": "number",
-      "format": "double",
-      "minimum": 0.5,
-      "maximum": 1.5,
-      "default": 1.0,
-      "x-step": 0.05,
-      "x-unit": "×"
-     },
-     "saturation": {
-      "description": "Colour",
-      "type": "number",
-      "format": "double",
-      "minimum": 0,
-      "maximum": 2,
-      "default": 1.0,
-      "x-step": 0.05,
-      "x-unit": "×"
-     },
-     "warmth": {
-      "description": "Warmth",
-      "type": "number",
-      "format": "double",
-      "minimum": -1,
-      "maximum": 1,
-      "default": 0.0,
-      "x-step": 0.05
-     },
-     "vignette": {
-      "description": "Dark edges",
-      "type": "number",
-      "format": "double",
-      "minimum": 0,
-      "maximum": 1,
-      "default": 0.0,
-      "x-step": 0.05
-     },
-     "grain": {
-      "description": "Film grain",
-      "type": "number",
-      "format": "double",
-      "minimum": 0,
-      "maximum": 1,
-      "default": 0.0,
-      "x-step": 0.05
-     },
-     "vignetteSize": {
-      "description": "Dark edges size",
-      "type": "number",
-      "format": "double",
-      "minimum": 0,
-      "maximum": 1,
-      "default": 0.65,
-      "x-advanced": true
-     },
-     "vignetteSoftness": {
-      "description": "Dark edges softness",
-      "type": "number",
-      "format": "double",
-      "minimum": 0,
-      "maximum": 1,
-      "default": 0.35,
-      "x-advanced": true
-     },
-     "vignetteColor": {
-      "description": "Dark edges colour",
-      "type": "string",
-      "default": "#000000",
-      "x-widget": "color",
-      "x-check": {
-       "rule": "colour",
-       "message": "Pick a colour"
-      },
-      "x-advanced": true
-     },
-     "tint": {
-      "description": "Tint",
-      "type": "number",
-      "format": "double",
-      "minimum": -1,
-      "maximum": 1,
-      "default": 0.0,
-      "x-advanced": true
-     }
-    },
-    "type": "object",
-    "default": {
-     "brightness": 0.0,
-     "contrast": 1.0,
-     "saturation": 1.0,
-     "warmth": 0.0,
-     "vignette": 0.0,
-     "grain": 0.0,
-     "vignetteSize": 0.65,
-     "vignetteSoftness": 0.35,
-     "vignetteColor": "#000000",
-     "tint": 0.0
-    }
+    "type": "object"
    }
   },
   {
@@ -14714,7 +14575,7 @@
       ],
       "x-widget": "boxes",
       "x-time-key": "frameMs",
-      "x-help": "Drag on the picture to add an area. The areas stay in place on screen; they don't follow the camera. To hide something on a recording while the camera moves, use Blur areas on the recording instead."
+      "x-help": "Drag on the picture to add an area. The areas stay in place on screen; they don't follow the camera. To hide something on a recording while the camera moves, use Redact take on the recording instead."
      },
      "frameMs": {
       "description": "Frame to draw on",

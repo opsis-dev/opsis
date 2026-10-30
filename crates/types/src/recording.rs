@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 
 use crate::actions::{Action, ActionLog};
+use crate::values::StyleEntry;
 
 #[choice(export)]
 pub enum CameraStyle {
@@ -195,46 +196,19 @@ pub struct KeystrokeLook {
     pub caret: Option<bool>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct BlurArea {
-    pub x: f64,
-    pub y: f64,
-    pub width: f64,
-    pub height: f64,
-    pub strength: f64,
-    pub softness: f64,
-    pub roundness: f64,
-    pub fade_ms: f64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub from_ms: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub until_ms: Option<f64>,
-}
-
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct PictureLook {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub brightness: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub contrast: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub saturation: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub warmth: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub vignette: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub grain: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub vignette_size: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub vignette_softness: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub vignette_color: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub tint: Option<f64>,
+pub struct FootageChain {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub grade: Vec<StyleEntry>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub redact: Vec<StyleEntry>,
+}
+
+impl FootageChain {
+    pub fn is_empty(&self) -> bool {
+        self.grade.is_empty() && self.redact.is_empty()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type, schemars::JsonSchema)]
@@ -320,10 +294,10 @@ pub struct RecordingProps {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub keystrokes: Option<KeystrokeLook>,
     pub annotations: Vec<AnnotationSpec>,
+    #[serde(default, skip_serializing_if = "FootageChain::is_empty")]
+    pub footage: FootageChain,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub blur_areas: Option<Vec<BlurArea>>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub look: Option<PictureLook>,
+    pub footage_url: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub screen: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

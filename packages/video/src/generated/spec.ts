@@ -270,19 +270,6 @@ export type BarChartRace = {
 
 export type BlendMode = "multiply" | "screen" | "normal";
 
-export type BlurArea = {
-	x: number,
-	y: number,
-	width: number,
-	height: number,
-	strength: number,
-	softness: number,
-	roundness: number,
-	fadeMs: number,
-	fromMs?: number,
-	untilMs?: number,
-};
-
 export type Bounds = {
 	x: number,
 	y: number,
@@ -1127,6 +1114,11 @@ export type FontSource = "bundled" | "online" | "file" | "installed";
 export type FontStyle = "normal" | "italic";
 
 export type FontWeight = "400" | "500" | "600" | "700";
+
+export type FootageChain = {
+	grade?: StyleEntry[],
+	redact?: StyleEntry[],
+};
 
 export type FrameTheme = "light" | "dark";
 
@@ -2213,19 +2205,6 @@ export type PhoneVariant = "flat" | "tilt" | "showcase";
 
 export type PhotoShape = "16:9" | "4:3" | "1:1" | "3:4";
 
-export type PictureLook = {
-	brightness?: number,
-	contrast?: number,
-	saturation?: number,
-	warmth?: number,
-	vignette?: number,
-	grain?: number,
-	vignetteSize?: number,
-	vignetteSoftness?: number,
-	vignetteColor?: string,
-	tint?: number,
-};
-
 export type PixelShape = "square" | "dot";
 
 export type PixelateOrder = "from-left" | "from-top" | "diagonal" | "center";
@@ -2374,8 +2353,8 @@ export type RecordingProps = {
 	extraBeats: Action[],
 	keystrokes?: KeystrokeLook,
 	annotations: AnnotationSpec[],
-	blurAreas?: BlurArea[],
-	look?: PictureLook,
+	footage?: FootageChain,
+	footageUrl?: string,
 	screen?: boolean,
 	windowFit?: number,
 	stageGround?: string,
@@ -2926,6 +2905,12 @@ export type StrikethroughReplace = {
 
 export type StudioBackdrop = {
 	name: Backdrop,
+};
+
+export type StyleEntry = {
+	nodeId: string,
+	type: string,
+	params: { [key in string]: unknown },
 };
 
 export type SwirlDissolve = {

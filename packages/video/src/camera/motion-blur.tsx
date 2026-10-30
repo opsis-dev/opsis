@@ -9,14 +9,14 @@ export function MotionBlur({
 }: {
   shutterAngle: number;
   samples: number;
-  children: (muted: boolean) => ReactNode;
+  children: ReactNode;
 }) {
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill>
       {shutterOffsets(shutterAngle, samples).map((offset, i) => (
         <AbsoluteFill key={offset} style={{ opacity: sampleOpacity(i) }}>
-          <Freeze frame={Math.max(0, frame - offset)}>{children(i > 0)}</Freeze>
+          <Freeze frame={Math.max(0, frame - offset)}>{children}</Freeze>
         </AbsoluteFill>
       ))}
     </AbsoluteFill>

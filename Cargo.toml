@@ -15,6 +15,21 @@ cast_possible_wrap = "warn"
 cast_precision_loss = "warn"
 cast_sign_loss = "warn"
 
+[profile.dev.package.jpeg-encoder]
+opt-level = 3
+
+[profile.dev.package.image]
+opt-level = 3
+
+[profile.dev.package.imageproc]
+opt-level = 3
+
+[profile.dev.package.opsis-footage]
+opt-level = 3
+
+[profile.dev.package.opsis-image]
+opt-level = 3
+
 [profile.release]
 opt-level = 3
 lto = true

@@ -91,6 +91,8 @@ fn plain(file: &Path) -> FootageSource {
             extra_inputs: Vec::new(),
         },
         redactions: Vec::new(),
+        trim_us: 0,
+        loop_us: None,
     }
 }
 
@@ -186,13 +188,17 @@ fn frames_asked_in_order_start_the_decoder_once() {
 
 #[test]
 #[ignore = "needs the dev engine's ffmpeg"]
-fn a_step_back_or_a_long_jump_starts_the_decoder_again() {
+fn a_step_back_past_the_kept_frames_or_a_long_jump_starts_the_decoder_again() {
     let file = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&file))]);
     film.shown("take", at(60)).unwrap();
     assert_eq!(film.decoder_starts(), 1);
     film.shown("take", at(61)).unwrap();
     film.shown("take", at(61)).unwrap();
+    assert_eq!(film.decoder_starts(), 1);
+    for frame in [61, 60, 59, 58, 61, 62] {
+        assert_eq!(film.shown("take", at(frame)).unwrap().pts_us, at(frame));
+    }
     assert_eq!(film.decoder_starts(), 1);
     film.shown("take", at(15)).unwrap();
     assert_eq!(film.decoder_starts(), 2);
@@ -290,6 +296,22 @@ fn redaction_is_the_image_redact_on_the_frames_in_its_time_range() {
             "frame {frame}"
         );
     }
+}
+
+#[test]
+#[ignore = "needs the dev engine's ffmpeg"]
+fn a_trimmed_looping_source_plays_its_part_of_the_file_again_and_again() {
+    let file = sample("count.mp4", "320x240");
+    let looped = FootageSource {
+        trim_us: at(30),
+        loop_us: Some(at(60)),
+        ..plain(&file)
+    };
+    let film = footage(vec![("looped", looped)]);
+    assert_eq!(film.shown("looped", 0).unwrap().pts_us, at(30));
+    assert_eq!(film.shown("looped", at(59)).unwrap().pts_us, at(89));
+    assert_eq!(film.shown("looped", at(60)).unwrap().pts_us, at(30));
+    assert_eq!(film.shown("looped", at(70)).unwrap().pts_us, at(40));
 }
 
 #[test]

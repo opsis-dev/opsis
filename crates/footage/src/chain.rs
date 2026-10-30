@@ -25,6 +25,17 @@ pub struct FootageSource {
     pub file: PathBuf,
     pub grade: GradeChain,
     pub redactions: Vec<TimedRedaction>,
+    pub trim_us: i64,
+    pub loop_us: Option<i64>,
+}
+
+pub fn file_time(source: &FootageSource, time_us: i64) -> i64 {
+    let played = time_us.max(0);
+    let within = match source.loop_us {
+        Some(period) if period > 0 => played % period,
+        _ => played,
+    };
+    source.trim_us.max(0) + within
 }
 
 pub fn seconds_text(us: i64) -> String {
@@ -194,6 +205,32 @@ mod tests {
         }
     }
 
+    fn source_with(trim_us: i64, loop_us: Option<i64>) -> FootageSource {
+        FootageSource {
+            file: PathBuf::from("/films/clip.mp4"),
+            grade: GradeChain {
+                chain: "[0:v]null[out]".to_owned(),
+                extra_inputs: Vec::new(),
+            },
+            redactions: Vec::new(),
+            trim_us,
+            loop_us,
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn plays_from_the_trim_and_wraps_within_the_loop(trim in 0_i64..10_000_000, period in 1_i64..10_000_000, at in 0_i64..100_000_000) {
+            let once = source_with(trim, None);
+            prop_assert_eq!(file_time(&once, at), trim + at);
+            let looped = source_with(trim, Some(period));
+            let time = file_time(&looped, at);
+            prop_assert!(time >= trim && time < trim + period);
+            prop_assert_eq!(file_time(&looped, at + period), time);
+            prop_assert_eq!(file_time(&looped, -at), trim);
+        }
+    }
+
     #[test]
     fn the_decoder_reads_from_the_start_or_seeks_before_its_frame() {
         let source = FootageSource {
@@ -203,6 +240,8 @@ mod tests {
                 extra_inputs: vec!["/films/look.png".to_owned()],
             },
             redactions: Vec::new(),
+            trim_us: 0,
+            loop_us: None,
         };
         let tail = "-filter_complex [0:v]eq=contrast=1.1[g];[1:v][g]haldclut[out];[out]format=rgb24,showinfo=checksum=0[frames] -map [frames] -an -f rawvideo -pix_fmt rgb24 pipe:1";
         assert_eq!(

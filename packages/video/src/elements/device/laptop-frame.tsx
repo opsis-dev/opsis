@@ -3,6 +3,7 @@ import { Easing, getRemotionEnvironment, interpolate } from "remotion";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { FootageUrls } from "#video/core/footage.tsx";
 import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
 import { mixOklch, withAlpha } from "#video/lib/ui-kit/color.ts";
 import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
@@ -16,6 +17,7 @@ export type NotchPhase = "idle" | "loading" | "done";
 type LaptopFrameProps = Omit<ElementSettings["laptop-frame"], "theme"> & {
   children?: ReactNode;
   screenKind?: MediaKind;
+  footageUrls?: FootageUrls;
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
@@ -295,6 +297,7 @@ function LaptopFrameView({
   children,
   screenSrc,
   screenKind,
+  footageUrls,
   entrance,
   finale,
   bezelColor,
@@ -344,7 +347,14 @@ function LaptopFrameView({
 
   const screenContent =
     children ??
-    (screenSrc ? <ScreenMedia src={screenSrc} kind={screenKind} frame={frame} /> : null);
+    (screenSrc ? (
+      <ScreenMedia
+        src={screenSrc}
+        kind={screenKind}
+        frame={frame}
+        footage={footageUrls?.screenSrc}
+      />
+    ) : null);
 
   return (
     <div
@@ -460,7 +470,11 @@ function LaptopFrameView({
 export function LaptopFrame({
   theme,
   ...settings
-}: ElementSettings["laptop-frame"] & { children?: ReactNode; screenKind?: MediaKind }) {
+}: ElementSettings["laptop-frame"] & {
+  children?: ReactNode;
+  screenKind?: MediaKind;
+  footageUrls?: FootageUrls;
+}) {
   return (
     <WarmUIProvider mode={theme.mode}>
       <LaptopFrameView {...settings} theme={themeColors(theme)} mode={theme.mode} />

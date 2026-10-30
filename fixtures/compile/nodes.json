@@ -2145,10 +2145,10 @@
   }
  },
  {
-  "type": "effect.blurAreas",
-  "title": "Blur areas",
+  "type": "effect.redactTake",
+  "title": "Redact take",
   "category": "Effects",
-  "description": "Blurs parts of the browser window to hide private details. The blur stays on the page as the camera moves.",
+  "description": "Hides parts of the browser window, such as names, email addresses and keys, behind large pixels, a blur or a solid colour. The areas stay on the page while the camera moves.",
   "phase": "compile",
   "inputs": [
    {
@@ -2184,30 +2184,38 @@
   "defaults": {
    "areas": [
     {
-     "x": 0.62,
-     "y": 0.06,
+     "x": 0.35,
+     "y": 0.4,
      "width": 0.3,
-     "height": 0.08
+     "height": 0.2
     }
    ],
    "frameMs": 0.0,
-   "strength": 0.6,
-   "softness": 0.3,
-   "roundness": 0.3,
-   "fadeMs": 200
+   "style": "pixelate",
+   "blockSize": 16,
+   "blur": 16.0,
+   "color": "#000000",
+   "radius": 0.0
   }
  },
  {
-  "type": "effect.look",
-  "title": "Picture look",
+  "type": "effect.gradeFootage",
+  "title": "Grade footage",
   "category": "Effects",
-  "description": "Gives recordings, videos and images a look: colour, brightness, a dark vignette and film grain. To grade a recording's whole picture, window and backdrop included, use Apply grade on an exported file.",
+  "description": "Applies a colour grade to the footage in a clip: the page in each recording, and each video and image. The window and backdrop keep their colours; to grade the whole picture, use Apply grade on an exported file.",
   "phase": "compile",
   "inputs": [
    {
     "id": "clip",
     "type": "clip",
     "label": "Clip",
+    "optional": false,
+    "many": false
+   },
+   {
+    "id": "grade",
+    "type": "grade",
+    "label": "Grade",
     "optional": false,
     "many": false
    }
@@ -2229,23 +2237,12 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 168.0,
+  "estimatedHeight": 190.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
-  "defaults": {
-   "brightness": 0.0,
-   "contrast": 1.0,
-   "saturation": 1.0,
-   "warmth": 0.0,
-   "vignette": 0.0,
-   "grain": 0.0,
-   "vignetteSize": 0.65,
-   "vignetteSoftness": 0.35,
-   "vignetteColor": "#000000",
-   "tint": 0.0
-  }
+  "defaults": {}
  },
  {
   "type": "grade.colour",

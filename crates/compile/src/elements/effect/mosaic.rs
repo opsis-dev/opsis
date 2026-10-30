@@ -24,7 +24,7 @@ pub struct Mosaic {
         length(max = 8),
         widget = "boxes",
         time_key = "frameMs",
-        help = "Drag on the picture to add an area. The areas stay in place on screen; they don't follow the camera. To hide something on a recording while the camera moves, use Blur areas on the recording instead."
+        help = "Drag on the picture to add an area. The areas stay in place on screen; they don't follow the camera. To hide something on a recording while the camera moves, use Redact take on the recording instead."
     )]
     pub boxes: Vec<MosaicBox>,
     #[setting(

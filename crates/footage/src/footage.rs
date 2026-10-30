@@ -8,11 +8,12 @@ use jpeg_encoder::{ColorType, Encoder, SamplingFactor};
 use opsis_image::ops::redact;
 
 use crate::FootageError;
-use crate::chain::{FootageSource, JUMP_US, MATCH_TOLERANCE_US, SEEK_MARGIN_US};
+use crate::chain::{FootageSource, JUMP_US, MATCH_TOLERANCE_US, SEEK_MARGIN_US, file_time};
 use crate::decoder::{Decoder, FootageTools, RawFrame};
 
 const QUALITY: u8 = 92;
 const KEPT_PICTURES: usize = 6;
+const KEPT_FRAMES: usize = 6;
 pub const IDLE: Duration = Duration::from_secs(30);
 
 pub struct Shown {
@@ -23,7 +24,7 @@ pub struct Shown {
 struct SourceState {
     source: FootageSource,
     decoder: Option<Decoder>,
-    previous: Option<RawFrame>,
+    seen: VecDeque<RawFrame>,
     ahead: Option<RawFrame>,
     first_pts: Option<i64>,
     ended: bool,
@@ -67,7 +68,7 @@ impl SourceState {
         Self {
             source,
             decoder: None,
-            previous: None,
+            seen: VecDeque::new(),
             ahead: None,
             first_pts: None,
             ended: false,
@@ -78,7 +79,7 @@ impl SourceState {
 
     fn stop(&mut self) {
         self.decoder = None;
-        self.previous = None;
+        self.seen.clear();
         self.ahead = None;
         self.first_pts = None;
         self.ended = false;
@@ -96,19 +97,26 @@ impl SourceState {
         Ok(())
     }
 
-    fn previous_is_first(&self) -> bool {
-        matches!((&self.previous, self.first_pts), (Some(p), Some(first)) if p.pts_us == first)
+    fn oldest_is_first(&self) -> bool {
+        matches!((self.seen.front(), self.first_pts), (Some(f), Some(first)) if f.pts_us == first)
     }
 
     fn needs_restart(&self, target: i64) -> bool {
         let Some(decoder) = &self.decoder else {
             return true;
         };
-        let stepped_back = self.previous.as_ref().is_some_and(|p| p.pts_us > target)
-            && !(decoder.start_us == 0 && self.previous_is_first());
-        let newest = self.ahead.as_ref().or(self.previous.as_ref());
+        let before_kept = self.seen.front().is_some_and(|f| f.pts_us > target)
+            && !(decoder.start_us == 0 && self.oldest_is_first());
+        let newest = self.ahead.as_ref().or(self.seen.back());
         let jumped = newest.is_some_and(|f| target > f.pts_us + JUMP_US);
-        stepped_back || jumped
+        before_kept || jumped
+    }
+
+    fn keep(&mut self, frame: RawFrame) {
+        if self.seen.len() == KEPT_FRAMES {
+            self.seen.pop_front();
+        }
+        self.seen.push_back(frame);
     }
 
     fn advance(&mut self, target: i64) -> Result<(), FootageError> {
@@ -117,7 +125,9 @@ impl SourceState {
                 if ahead.pts_us > target {
                     return Ok(());
                 }
-                self.previous = self.ahead.take();
+                if let Some(frame) = self.ahead.take() {
+                    self.keep(frame);
+                }
                 continue;
             }
             if self.ended {
@@ -136,30 +146,41 @@ impl SourceState {
         }
     }
 
+    fn pick(&self, target: i64) -> Option<i64> {
+        self.seen
+            .iter()
+            .rev()
+            .find(|f| f.pts_us <= target)
+            .or(self.seen.front())
+            .or(self.ahead.as_ref())
+            .map(|f| f.pts_us)
+    }
+
     fn locate(
         &mut self,
         tools: &FootageTools,
         starts: &AtomicU32,
         time_us: i64,
-    ) -> Result<(), FootageError> {
-        let target = time_us.max(0) + MATCH_TOLERANCE_US;
+    ) -> Result<i64, FootageError> {
+        let target = file_time(&self.source, time_us) + MATCH_TOLERANCE_US;
         if self.needs_restart(target) {
             self.start_at(tools, starts, (target - SEEK_MARGIN_US).max(0))?;
         }
         self.advance(target)?;
         let overshot =
-            self.previous.is_none() && self.decoder.as_ref().is_some_and(|d| d.start_us > 0);
+            self.seen.is_empty() && self.decoder.as_ref().is_some_and(|d| d.start_us > 0);
         if overshot {
             self.start_at(tools, starts, 0)?;
             self.advance(target)?;
         }
-        self.located().map(|_| ())
+        self.pick(target).ok_or(FootageError::NoFrames)
     }
 
-    fn located(&self) -> Result<&RawFrame, FootageError> {
-        self.previous
-            .as_ref()
-            .or(self.ahead.as_ref())
+    fn frame_at(&self, pts_us: i64) -> Result<&RawFrame, FootageError> {
+        self.seen
+            .iter()
+            .chain(self.ahead.iter())
+            .find(|f| f.pts_us == pts_us)
             .ok_or(FootageError::NoFrames)
     }
 
@@ -169,13 +190,9 @@ impl SourceState {
         starts: &AtomicU32,
         time_us: i64,
     ) -> Result<Shown, FootageError> {
-        self.locate(tools, starts, time_us)?;
-        let frame = self.located()?;
-        let image = redacted(&self.source, frame);
-        Ok(Shown {
-            pts_us: frame.pts_us,
-            image,
-        })
+        let pts_us = self.locate(tools, starts, time_us)?;
+        let image = redacted(&self.source, self.frame_at(pts_us)?);
+        Ok(Shown { pts_us, image })
     }
 
     fn picture(
@@ -184,13 +201,11 @@ impl SourceState {
         starts: &AtomicU32,
         time_us: i64,
     ) -> Result<Arc<Vec<u8>>, FootageError> {
-        self.locate(tools, starts, time_us)?;
-        let pts_us = self.located()?.pts_us;
+        let pts_us = self.locate(tools, starts, time_us)?;
         if let Some((_, bytes)) = self.pictures.iter().find(|(at, _)| *at == pts_us) {
             return Ok(Arc::clone(bytes));
         }
-        let shown = self.shown(tools, starts, time_us)?;
-        let bytes = Arc::new(jpeg(&shown.image)?);
+        let bytes = Arc::new(jpeg(&redacted(&self.source, self.frame_at(pts_us)?))?);
         if self.pictures.len() == KEPT_PICTURES {
             self.pictures.pop_front();
         }

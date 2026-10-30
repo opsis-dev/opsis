@@ -13,6 +13,7 @@ pub mod elements;
 pub mod envelope;
 pub mod errors;
 pub mod fonts;
+pub mod footage;
 pub mod gradient;
 pub mod graph;
 pub mod hosted;

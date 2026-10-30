@@ -9,8 +9,10 @@ publish.workspace = true
 log = "0.4.34"
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }
+opsis-footage = { version = "0.1.0", path = "../footage" }
 opsis-media = { version = "0.1.0", path = "../media" }
 opsis-prepare = { version = "0.1.0", path = "../prepare" }
+opsis-probe = { version = "0.1.0", path = "../probe" }
 opsis-project = { version = "0.1.0", path = "../project" }
 opsis-runner = { version = "0.1.0", path = "../runner" }
 opsis-types = { version = "0.1.0", path = "../types" }

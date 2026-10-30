@@ -157,7 +157,7 @@ A flowing background of alternating bands in two colours, like the Remotion Elem
 In place:
 
 - The Remotion Elements page is example source, not a registry: it gives no install command and no package (checked 2026-10-16). The example is a few lines around `liquidContours()` from `@remotion/effects/liquid-contours`, applied to Remotion's `<Solid>` through its `effects` prop, with `phase` interpolated from the frame.
-- `@remotion/effects@4.0.537` is a dependency of `packages/video` (Blur areas and Picture look use it) and exports `./liquid-contours`; its options are `firstColor`, `secondColor`, `spacing` (2–300), `scale` (20–1000), `complexity` (0–1), `smoothness` (0–1), `seed`, `offsetX`, `offsetY`, `phase` (`dist/liquid-contours.d.ts`). It draws with a WebGL2 shader and fetches nothing.
+- `@remotion/effects@4.0.537` (no longer a dependency: footage effects moved to Rust in v3 phase 2, so this would be the only use and has to be our own shader or skipped) exports `./liquid-contours`; its options are `firstColor`, `secondColor`, `spacing` (2–300), `scale` (20–1000), `complexity` (0–1), `smoothness` (0–1), `seed`, `offsetX`, `offsetY`, `phase` (`dist/liquid-contours.d.ts`). It draws with a WebGL2 shader and fetches nothing.
 - Background elements live in `packages/video/src/elements/background/`, one file each, with settings in `crates/compile/src/elements/background/`.
 - Export's **Draw with** setting (`Gl` in `crates/compile/src/nodes/output.rs`) chooses software drawing (`swangle`).
 

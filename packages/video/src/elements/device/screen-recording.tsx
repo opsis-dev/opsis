@@ -5,13 +5,15 @@ import {
   getRemotionEnvironment,
   Img,
   interpolate,
-  OffthreadVideo,
+  useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 import { lerp } from "#video/common/math.ts";
+import { AUTHORED_FPS } from "#video/common/spec.ts";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { FootageFrame, type FootageUrls } from "#video/core/footage.tsx";
 import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
 import { type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
@@ -36,6 +38,7 @@ export interface CameraMove {
 
 type ScreenRecordingProps = Omit<ElementSettings["screen-recording"], "theme"> & {
   srcKind?: MediaKind;
+  footageUrls?: FootageUrls;
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
@@ -189,15 +192,16 @@ function ScreenRecordingView({
   camera,
   radius,
   trimBefore,
-  audio,
   entrance,
   theme,
   mode,
   speed,
+  footageUrls,
 }: ScreenRecordingProps) {
   const frame = useAuthoredFrame() * speed;
+  const realFrame = useCurrentFrame();
   const t = useWarmTheme(theme, mode);
-  const { width, height } = useVideoConfig();
+  const { width, height, fps } = useVideoConfig();
   const isRendering = getRemotionEnvironment().isRendering;
 
   const shot = shotLayout(
@@ -259,13 +263,14 @@ function ScreenRecordingView({
           }}
         >
           {srcKind === "video" ? (
-            <OffthreadVideo
-              src={resolved}
-              muted={!audio}
-              trimBefore={trimBefore}
-              playbackRate={speed}
-              style={mediaStyle}
-            />
+            footageUrls?.src ? (
+              <FootageFrame
+                url={footageUrls.src}
+                timeS={trimBefore / AUTHORED_FPS + (realFrame / fps) * speed}
+                fit="cover"
+                style={mediaStyle}
+              />
+            ) : null
           ) : (
             <Img src={resolved} style={mediaStyle} />
           )}
@@ -278,7 +283,7 @@ function ScreenRecordingView({
 export function ScreenRecording({
   theme,
   ...settings
-}: ElementSettings["screen-recording"] & { srcKind?: MediaKind }) {
+}: ElementSettings["screen-recording"] & { srcKind?: MediaKind; footageUrls?: FootageUrls }) {
   return (
     <WarmUIProvider mode={theme.mode}>
       <ScreenRecordingView {...settings} theme={themeColors(theme)} mode={theme.mode} />

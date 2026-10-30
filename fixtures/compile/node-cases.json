@@ -5548,7 +5548,7 @@
   }
  },
  {
-  "type": "effect.blurAreas",
+  "type": "effect.redactTake",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -5563,13 +5563,13 @@
    "rows": [
     {
      "icon": "eye-off",
-     "text": "1 area · 60% strength"
+     "text": "1 area pixelated"
     }
    ]
   }
  },
  {
-  "type": "effect.blurAreas",
+  "type": "effect.redactTake",
   "filled": true,
   "inputs": {
    "recording": {
@@ -5639,21 +5639,22 @@
     "style": [
      {
       "nodeId": "n",
-      "type": "effect.blurAreas",
+      "type": "effect.redactTake",
       "params": {
        "areas": [
         {
-         "x": 0.62,
-         "y": 0.06,
+         "x": 0.35,
+         "y": 0.4,
          "width": 0.3,
-         "height": 0.08
+         "height": 0.2
         }
        ],
        "frameMs": 0.0,
-       "strength": 0.6,
-       "softness": 0.3,
-       "roundness": 0.3,
-       "fadeMs": 200
+       "style": "pixelate",
+       "blockSize": 16,
+       "blur": 16.0,
+       "color": "#000000",
+       "radius": 0.0
       }
      }
     ]
@@ -5664,13 +5665,13 @@
    "rows": [
     {
      "icon": "eye-off",
-     "text": "1 area · 60% strength"
+     "text": "1 area pixelated"
     }
    ]
   }
  },
  {
-  "type": "effect.look",
+  "type": "effect.gradeFootage",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -5684,15 +5685,15 @@
   "card": {
    "rows": [
     {
-     "icon": "sparkles",
-     "text": "Natural",
-     "tone": "muted"
+     "icon": "palette",
+     "text": "Connect a grade",
+     "tone": "warn"
     }
    ]
   }
  },
  {
-  "type": "effect.look",
+  "type": "effect.gradeFootage",
   "filled": true,
   "inputs": {
    "clip": {
@@ -5736,6 +5737,16 @@
      }
     ],
     "audio": []
+   },
+   "grade": {
+    "type": "grade",
+    "entries": [
+     {
+      "nodeId": "g",
+      "type": "grade.colour",
+      "params": {}
+     }
+    ]
    }
   },
   "result": null,
@@ -5796,9 +5807,9 @@
   "card": {
    "rows": [
     {
-     "icon": "sparkles",
-     "text": "Natural",
-     "tone": "muted"
+     "icon": "palette",
+     "text": "Connect a grade",
+     "tone": "warn"
     }
    ]
   }

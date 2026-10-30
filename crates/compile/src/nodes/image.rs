@@ -449,7 +449,7 @@ pub enum RedactStyle {
 }
 
 impl RedactStyle {
-    fn word(self) -> &'static str {
+    pub fn word(self) -> &'static str {
         match self {
             Self::Pixelate => "pixelated",
             Self::Blur => "blurred",
@@ -458,7 +458,7 @@ impl RedactStyle {
     }
 }
 
-fn hidden_area() -> Vec<Area> {
+pub fn hidden_area() -> Vec<Area> {
     vec![Area {
         x: 0.35,
         y: 0.4,
