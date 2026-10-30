@@ -1,4 +1,3 @@
-import { getLength, getPointAtLength } from "@remotion/paths";
 import { useId } from "react";
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { clamp01 } from "#video/common/math.ts";
@@ -14,7 +13,7 @@ import {
   type ChartPoint,
 } from "#video/lib/charts/chart-utils.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
-import { getPathDrawStyles } from "#video/lib/paths/path-utils.ts";
+import { getPathDrawStyles, samplePath } from "#video/lib/paths/path-utils.ts";
 
 export type LineChartDrawProps = {
   points: ChartPoint[];
@@ -98,10 +97,7 @@ export function LineChartDraw({
     easing: EASING.enter,
   });
 
-  const pathLength = linePath === "" ? 0 : getLength(linePath);
-  const fallbackTip = { x: plot.left, y: plot.bottom };
-  const tip =
-    (pathLength > 0 ? getPointAtLength(linePath, pathLength * progress) : null) ?? fallbackTip;
+  const tip = linePath === "" ? { x: plot.left, y: plot.bottom } : samplePath(linePath, progress);
 
   const uid = useId().replace(/:/g, "");
   const gradientId = `${uid}-fill`;

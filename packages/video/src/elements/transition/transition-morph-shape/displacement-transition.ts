@@ -115,10 +115,7 @@ function resolveShape(shape: MorphShapeName | string): string {
 export function prepareMaskMorph(config: DisplacementMaskConfig = {}): MorphPair {
   const from = resolveShape(config.from ?? MASK_DEFAULTS.from);
   const to = resolveShape(config.to ?? MASK_DEFAULTS.to);
-  return prepareMorph(from, to, {
-    align: true,
-    fit: { x: 0, y: 0, width: 1, height: 1 },
-  });
+  return prepareMorph(from, to, { x: 0, y: 0, width: 1, height: 1 });
 }
 
 export type MaskFrameState = {

@@ -1,57 +1,10 @@
-import {
-  getBoundingBox,
-  interpolatePath,
-  normalizePath,
-  reversePath,
-  scalePath,
-  translatePath,
-} from "@remotion/paths";
+import { equalizePaths, getPathBBox, pathToString, transformPath } from "svg-path-commander/util";
+import { isNumber } from "#video/common/guards.ts";
 import { clamp01 } from "#video/common/math.ts";
 
-export type MorphPair = { from: string; to: string };
+type EqualizedPath = ReturnType<typeof equalizePaths>[number];
 
-const MAX_CACHE_ENTRIES = 256;
-const alignmentCache = new Map<string, string>();
-
-function cacheGet<T>(cache: Map<string, T>, key: string, build: () => T): T {
-  const hit = cache.get(key);
-  if (hit !== undefined) {
-    return hit;
-  }
-  const value = build();
-  if (cache.size >= MAX_CACHE_ENTRIES) {
-    cache.clear();
-  }
-  cache.set(key, value);
-  return value;
-}
-
-function signedArea(d: string): number {
-  const points = [...d.matchAll(/(-?\d*\.?\d+)[,\s]+(-?\d*\.?\d+)/g)].map(
-    (match) => [Number(match[1]), Number(match[2])] as const,
-  );
-  if (points.length < 3) {
-    return 0;
-  }
-  let area = 0;
-  for (let index = 0; index < points.length; index += 1) {
-    const [x1, y1] = points[index];
-    const [x2, y2] = points[(index + 1) % points.length];
-    area += x1 * y2 - x2 * y1;
-  }
-  return area / 2;
-}
-
-export function alignForMorph(from: string, to: string): string {
-  return cacheGet(alignmentCache, `${from}||${to}`, () => {
-    const fromArea = signedArea(from);
-    const toArea = signedArea(to);
-    if (fromArea === 0 || toArea === 0) {
-      return to;
-    }
-    return Math.sign(fromArea) === Math.sign(toArea) ? to : reversePath(to);
-  });
-}
+export type MorphPair = { from: EqualizedPath; to: EqualizedPath; closed: boolean };
 
 export type FitToBoxOptions = {
   x?: number;
@@ -65,83 +18,58 @@ export function fitToBox(
   d: string,
   { x = 0, y = 0, width = 100, height = 100, preserveAspectRatio = true }: FitToBoxOptions = {},
 ): string {
-  const box = getBoundingBox(d);
-  const sourceWidth = Math.max(1e-6, box.x2 - box.x1);
-  const sourceHeight = Math.max(1e-6, box.y2 - box.y1);
-
+  const box = getPathBBox(d);
+  const sourceWidth = Math.max(1e-6, box.width);
+  const sourceHeight = Math.max(1e-6, box.height);
   const scaleX = width / sourceWidth;
   const scaleY = height / sourceHeight;
   const [sx, sy] = preserveAspectRatio
     ? [Math.min(scaleX, scaleY), Math.min(scaleX, scaleY)]
     : [scaleX, scaleY];
-
-  const atOrigin = translatePath(d, -box.x1, -box.y1);
-  const scaled = scalePath(atOrigin, sx, sy);
-
-  const drawnWidth = sourceWidth * sx;
-  const drawnHeight = sourceHeight * sy;
-
-  return translatePath(scaled, x + (width - drawnWidth) / 2, y + (height - drawnHeight) / 2);
+  const left = x + (width - sourceWidth * sx) / 2;
+  const top = y + (height - sourceHeight * sy) / 2;
+  return pathToString(
+    transformPath(d, {
+      translate: [left - box.x * sx, top - box.y * sy],
+      scale: [sx, sy],
+      origin: [0, 0],
+    }),
+    "off",
+  );
 }
 
-export type MorphOptions = {
-  align?: boolean;
-  fit?: FitToBoxOptions | false;
-};
+function isClosed(d: string): boolean {
+  return /z\s*$/i.test(d);
+}
 
-export function prepareMorph(
-  from: string,
-  to: string,
-  { align = true, fit = false }: MorphOptions = {},
-): MorphPair {
-  const fittedFrom = fit ? fitToBox(normalizePath(from), fit) : normalizePath(from);
-  const fittedTo = fit ? fitToBox(normalizePath(to), fit) : normalizePath(to);
+export function prepareMorph(from: string, to: string, fit?: FitToBoxOptions): MorphPair {
+  const [fromPath, toPath] = equalizePaths(
+    fit ? fitToBox(from, fit) : from,
+    fit ? fitToBox(to, fit) : to,
+  );
+  return { from: fromPath, to: toPath, closed: isClosed(from) && isClosed(to) };
+}
 
-  return {
-    from: fittedFrom,
-    to: align ? alignForMorph(fittedFrom, fittedTo) : fittedTo,
-  };
+function numbersOf(segment: EqualizedPath[number]): number[] {
+  return segment.filter(isNumber);
+}
+
+function blended(t: number, from: EqualizedPath, to: EqualizedPath): string {
+  return from
+    .map((segment, i) => {
+      const other = numbersOf(to[i] ?? segment);
+      const values = numbersOf(segment).map(
+        (value, j) => value + ((other[j] ?? value) - value) * t,
+      );
+      return `${segment[0]}${values.join(" ")}`;
+    })
+    .join(" ");
 }
 
 export function morphPath(progress: number, pair: MorphPair): string {
   const t = clamp01(progress);
-  if (t <= 0) {
-    return pair.from;
-  }
-  if (t >= 1) {
-    return pair.to;
-  }
-  return interpolatePath(t, pair.from, pair.to);
-}
-
-export function morphBetween(
-  progress: number,
-  from: string,
-  to: string,
-  options: MorphOptions = {},
-): string {
-  return morphPath(progress, prepareMorph(from, to, options));
-}
-
-export function prepareMorphSequence(
-  paths: readonly string[],
-  { loop = false, ...options }: MorphOptions & { loop?: boolean } = {},
-): MorphPair[] {
-  const list = paths.filter(Boolean);
-  if (list.length < 2) {
-    return [];
-  }
-  const chain = loop ? [...list, list[0]] : list;
-  return chain.slice(0, -1).map((from, index) => prepareMorph(from, chain[index + 1], options));
-}
-
-export function morphSequence(progress: number, pairs: MorphPair[]): string {
-  if (pairs.length === 0) {
-    return "";
-  }
-  const t = clamp01(progress) * pairs.length;
-  const segment = Math.min(pairs.length - 1, Math.floor(t));
-  return morphPath(t - segment, pairs[segment]);
+  const drawn = blended(t, pair.from, pair.to);
+  return pair.closed ? `${drawn} Z` : drawn;
 }
 
 export const MORPH_SHAPES = {

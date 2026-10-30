@@ -1,10 +1,4 @@
-import {
-  evolvePath,
-  getBoundingBox,
-  getLength,
-  getPointAtLength,
-  getTangentAtLength,
-} from "@remotion/paths";
+import { getPathBBox, getPointAtLength, getTotalLength } from "svg-path-commander/util";
 
 export type PathPoint = {
   x: number;
@@ -15,25 +9,29 @@ export type PathSample = PathPoint & {
   angle: number;
 };
 
+export type PathBox = { x1: number; y1: number; x2: number; y2: number };
+
 const lengthCache = new Map<string, number>();
-const boxCache = new Map<string, ReturnType<typeof getBoundingBox>>();
+const boxCache = new Map<string, PathBox>();
+const TANGENT_STEP = 1e-4;
 
 export function pathLength(d: string): number {
   const cached = lengthCache.get(d);
   if (cached !== undefined) {
     return cached;
   }
-  const length = getLength(d);
+  const length = getTotalLength(d);
   lengthCache.set(d, length);
   return length;
 }
 
-export function pathBoundingBox(d: string) {
+export function pathBoundingBox(d: string): PathBox {
   const cached = boxCache.get(d);
   if (cached !== undefined) {
     return cached;
   }
-  const box = getBoundingBox(d);
+  const { x, y, x2, y2 } = getPathBBox(d);
+  const box = { x1: x, y1: y, x2, y2 };
   boxCache.set(d, box);
   return box;
 }
@@ -43,10 +41,12 @@ export function clampProgress(progress: number) {
 }
 
 export function getPathDrawStyles(progress: number, path: string) {
-  const evolution = evolvePath(clampProgress(progress), path);
+  const shown = clampProgress(progress);
+  const length = pathLength(path);
+  const dash = shown === 0 ? length * 1.5 : length;
   return {
-    strokeDasharray: evolution.strokeDasharray,
-    strokeDashoffset: evolution.strokeDashoffset,
+    strokeDasharray: `${dash} ${dash}`,
+    strokeDashoffset: shown === 0 ? dash : length - shown * length,
   };
 }
 
@@ -71,16 +71,24 @@ export function fitViewBox(paths: string | string[], padding = 0): string {
   ].join(" ");
 }
 
+function directionAt(d: string, at: number, length: number): PathPoint {
+  const step = Math.max(length * TANGENT_STEP, 1e-6);
+  const from = Math.min(at, length - step);
+  const here = getPointAtLength(d, from);
+  const ahead = getPointAtLength(d, from + step);
+  return { x: ahead.x - here.x, y: ahead.y - here.y };
+}
+
 export function samplePath(d: string, progress: number): PathSample {
   const length = pathLength(d);
   const at = clampProgress(progress) * length;
-  const point = getPointAtLength(d, at) ?? { x: 0, y: 0 };
-  const tangent = getTangentAtLength(d, at) ?? { x: 1, y: 0 };
+  const point = getPointAtLength(d, at);
+  const direction = length > 0 ? directionAt(d, at, length) : { x: 1, y: 0 };
 
   return {
     x: point.x,
     y: point.y,
-    angle: (Math.atan2(tangent.y, tangent.x) * 180) / Math.PI,
+    angle: (Math.atan2(direction.y, direction.x) * 180) / Math.PI,
   };
 }
 
@@ -133,9 +141,6 @@ export function waypointProgress(d: string, points: readonly PathPoint[], sample
     for (let step = 0; step <= samples; step += 1) {
       const progress = step / samples;
       const sample = getPointAtLength(d, progress * length);
-      if (!sample) {
-        continue;
-      }
       const distance = (sample.x - point.x) ** 2 + (sample.y - point.y) ** 2;
       if (distance < bestDistance) {
         bestDistance = distance;
