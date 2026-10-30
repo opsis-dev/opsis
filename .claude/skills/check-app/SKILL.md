@@ -15,7 +15,7 @@ The data folder must stay short. The Local API listens on `<data folder>/api.soc
 bun .claude/skills/check-app/seed.ts
 ```
 
-It deletes and remakes `~/.cache/opsis-check`: a database made from `crates/store/schema.sql` with the Local API on and the dev engine's three programs (`~/.config/Opsis/engine`, linked as `user-data/engine`) as `settings.engine`, and `examples/` copied to `~/.cache/opsis-check/projects`. It prints the data folder.
+It deletes and remakes `~/.cache/opsis-check`: a database made from `crates/store/schema.sql` with the Local API on and the dev engine's two programs (`~/.config/Opsis/engine`, linked as `user-data/engine`) as `settings.engine`, and `examples/` copied to `~/.cache/opsis-check/projects`. It prints the data folder.
 
 ## 2. Start the app
 

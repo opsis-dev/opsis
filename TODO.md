@@ -38,7 +38,7 @@ Ideas you approved but left for later.
 - [ ] KTX2 textures in 3D models through three.js's bundled basis transcoder.
 - [ ] A Run panel that lists every node, nesting compile-only nodes under their export and actions under their capture.
 - [ ] "Not in this run" and "Turned off" states in the Run panel.
-- [ ] A smaller FFmpeg build (shared, combined or trimmed), which conflicts with keeping both ffmpeg-static binaries.
+- [ ] A smaller FFmpeg build (shared, combined or trimmed) in place of the ffmpeg-static binary.
 - [ ] Reopening the panels that were popped out when the app starts.
 - [ ] A Keystroke chips option to leave out plain keys such as Esc, Enter and Tab.
 

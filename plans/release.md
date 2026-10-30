@@ -28,7 +28,7 @@ Everything still missing between today's app and a public release, and what come
 **In place.**
 
 - **Package size.** Measured 2026-10-27 with `bun run make -- --bundles deb`: the deb is 103,769,842 bytes and installs 218,670 KiB on Linux x64. Against the 2026-10-26 build (99,605,920 bytes, 225,424 KiB) the install is 6,754 KiB smaller, because Export as code and its 4.5 MB of sources are gone, and the deb is 4.16 MB larger, because of the built-in music (`public/music`, three 128 kbps AAC tracks, 7,923,531 bytes) and a larger binary.
-- **What ships.** One build, with no recording browser and no FFmpeg of ours inside: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), the compiled sidecar (`--minify`; about 89 MB of it is the Bun runtime), the compositor (about 25 MB of it FFmpeg), the video bundle with no source maps and with `public/`, the app's only copy of the `app:` files (a packaged app reads them through `AppPaths::public_dir`, and the editor's build carries only `page-errors.js`), the preview page and the recording browser's licences. `--bytecode` would start the sidecar in 20 ms instead of 56 ms for 4 MB more; it's left out.
+- **What ships.** One build, with no recording browser and no FFmpeg of ours inside: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), the compiled sidecar (`--minify`; about 89 MB of it is the Bun runtime), the compositor (about 25 MB of it FFmpeg), the video bundle with no source maps and with `public/`, the app's only copy of the `app:` files (a packaged app reads them through `AppPaths::public_dir`, and the editor's build carries only `page-errors.js`) and the recording browser's licences. `--bytecode` would start the sidecar in 20 ms instead of 56 ms for 4 MB more; it's left out.
 - **Tools.** `cargo-bloat` is installed and `source-map-explorer` is a dev dependency (`a7f7e13`); both ran on 2026-10-26.
 - **The binary by crate** (`cargo bloat --release -p opsis-desktop --crates`, stripping off for the measurement): 72.4 MiB unstripped, 45.8 MiB of it code. The largest are std 4.3 MiB, unattributed 3.9 MiB, opsis_compile 2.9 MiB, serde_core 2.8 MiB, jsonschema 1.9 MiB, tokio, rav1e (the AV1 encoder, used only by Image format's AVIF) and tauri at 1.5 MiB each, aws_lc_sys 1.3 MiB, and zbus 1.1 MiB. `exr` (251 KiB) and `image_webp` (218 KiB) come with the `image` crate's default formats.
 - **The video bundle** (a development build with maps, 150 chunks, 25.6 MB of mapped JavaScript): `@remotion/studio` 7.17 MB (28%), which renders never show but Remotion's bundler puts in every bundle; the registry elements 3.39 MB, one file of which (`elements/scene/launch-anything/assets.ts`) is 1.7 MB; mediabunny 3.38 MB; three 2.48 MB; zod 1.32 MB; `@mediabunny/aac-encoder` 1.00 MB.
@@ -71,7 +71,7 @@ The editor has only run on WebKitGTK.
 
 1. **WKWebView and WebView2.** In the CI build jobs, start the packaged app with a test data folder (`OPSIS_USER_DATA`, the API on) and drive it through the Local API: open each example, run the changelog, read the export back with `opsis-probe`. The e2e suite (WebdriverIO, embedded driver) also covers macOS through `@wdio/tauri-service`; run it on the macOS runners. List what a runner can't judge (how the window controls look, first-open prompts) as not covered in the release notes.
 2. **macOS shell.** The native menu (`crates/desktop/src/native_menu.rs`) is built and its ids are tested, but it has never run: check the app menu, Edit roles, Cmd+, opens Settings, Cmd+Q goes through the exit dialog, and the traffic lights sit inside the app bar.
-3. **Preview sound drift.** The preview's sound plays in the webview, kept within two frames of the page's clock; measure drift over a long film on each system.
+3. **Timeline sound drift.** The Timeline's sound plays in the webview, kept within two frames of its playhead; measure drift over a long film on each system.
 4. **Engine checks.** On each runner, download the engine through Settings' installer and run the checks on it (`check_browser`, `check_ffmpeg`): ffmpeg-static's Windows and macOS builds must have every required encoder, decoder, format and filter, and Chrome for Testing must open a page.
 5. **Sign-in end to end.** Not in the e2e suite, because saving a sign-in writes to the real keyring. `keyring-core`'s mock store is used only by the store's unit tests (`crates/store/src/keys.rs`); add a test-only store behind the `e2e` feature and a spec that signs in and records a take with it.
 
@@ -133,17 +133,17 @@ The named pipe is created with the default security descriptor, which grants rea
 
 ## 8. Release test pass
 
-**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display) has six spec files: the start screen (`start`), every example opening (`examples`), the element picker (`views`), the Timeline (`timeline`), a run and export of the changelog with the export played back (`export`), and drawing a mark in Annotate's marks editor (`annotate`), then the close check. The whole suite passed on 2026-10-27 with the first five; `annotate` was added and passed on its own on 2026-10-28. The packaged deb was checked off-screen through the Local API: it opened the changelog and exported it with the packed sidecar.
+**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display) has eight spec files: the start screen (`start`), every example opening (`examples`), the element picker (`views`), the Timeline (`timeline`), Tidy up layout (`layout`), a run and export of the changelog with the export played back (`export`), drawing a mark in Annotate's marks editor (`annotate`) and the Inspector's tabs (`inspector`), then the close check. The whole suite passed on 2026-10-30. The packaged deb was checked off-screen through the Local API: it opened the changelog and exported it with the packed sidecar.
 
 **Work, before each release** (Linux by hand, Windows and macOS through the runner checks in section 3):
 
-1. **The whole e2e suite**, all six spec files together.
-2. **Long takes:** 10 and 20 minute recordings; memory of the app, the sidecar and the headless shell, the take's size, Timeline and Preview responsiveness, export time, trace size.
+1. **The whole e2e suite**, all eight spec files together.
+2. **Long takes:** 10 and 20 minute recordings; memory of the app, the sidecar and the headless shell, the take's size, Timeline responsiveness, export time, trace size.
 3. **Paths:** project folders with spaces and non-English letters, another drive on Windows, assets imported from such folders, fonts copied into projects.
 4. **Moving and renaming** a project folder while closed and while open.
 5. **Canvas sizes** beyond the presets: 21:9, 3:2, 60 fps, a very small and a 4K canvas.
 6. **Broken font files** and ZIPs without fonts: a plain message, never a crash.
-7. **Every template end to end,** comparing the Preview with the export.
+7. **Every template end to end,** run and exported, each export watched through.
 8. **Stopping a run** at every stage, and killing the sidecar or the headless shell mid-run: the run reports it and the next one starts fresh.
 9. **Pop-out windows** editing at once: edits and undo from each, closing one mid-drag.
 10. **Keyboard only:** create, connect, edit, run and export without a mouse.
@@ -157,7 +157,7 @@ No code goes into the app; everything runs from outside it or as build settings.
 
 **Work.**
 
-1. **Per-component CPU and memory.** A dev script starts the app off-screen the way the e2e suite does (`xvfb-run`, Wayland unset, a seeded data folder with the API on), opens an example and runs it over the Local API, and samples every process in the app's tree once a second from `/proc`, tagged by command line: the app, WebKit's web and network processes, each headless shell (preview, recording, render tabs), the sidecar, FFmpeg. It writes a CSV and a chart. Node timings come from the run events the API streams.
+1. **Per-component CPU and memory.** A dev script starts the app off-screen the way the e2e suite does (`xvfb-run`, Wayland unset, a seeded data folder with the API on), opens an example and runs it over the Local API, and samples every process in the app's tree once a second from `/proc`, tagged by command line: the app, WebKit's web and network processes, each headless shell (recording, streamed views, render tabs), the sidecar, FFmpeg. It writes a CSV and a chart. Node timings come from the run events the API streams.
 2. **Where Rust spends time.** `samply record -p <pid>` or `perf record -g` on the app, on a release build with symbols kept through build settings (`CARGO_PROFILE_RELEASE_DEBUG=true`, `CARGO_PROFILE_RELEASE_STRIP=false`).
 3. **Memory.** `heaptrack` on the app binary.
 4. **The editor UI.** WebKitGTK's remote inspector through `WEBKIT_INSPECTOR_HTTP_SERVER=127.0.0.1:9222` (timelines, memory, layout); dev builds also open the inspector from the View menu.
@@ -170,4 +170,4 @@ Nodes that install and update apart from the app; build after sections 1–8.
 - **Phase 2, packs as data.** A `pack.json` manifest (id, name, semver version, the pack API version, permissions, nodes and elements), first-party packs grouping today's nodes without changing their ids, projects listing the packs they use, and the "isn't available" messages naming the missing pack. Pack id and version join the node cache key.
 - **Phase 3, pack code.** Node definitions and compile are Rust, so a pack can't ship TS compile code: settings come as JSON Schema, and compile and executors run as WebAssembly modules or as separate programs speaking the sidecar's JSON-lines protocol (decide when this phase starts). Video components ship prebuilt as ES modules importing `react` and `remotion` from globals the bundle exposes, loaded next to the registry's loaders under `delayRender`.
 - **Phase 4, third-party packs.** Installed from a file (decided: no online catalogue at first); unsigned packs may run code after a clear warning naming what they can do, signed ones skip it (decided).
-- **Risks.** Pack video code runs where the preview and renders run; version skew between a pack and the bundle's `remotion`/`react`; preview must still equal render.
+- **Risks.** Pack video code runs where renders run; version skew between a pack and the bundle's `remotion`/`react`.

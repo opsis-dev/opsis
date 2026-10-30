@@ -14,7 +14,10 @@ Nothing has been released yet. This is what `main` holds today.
 - 138 graphic elements, 3D elements and models, 25 transitions, 16 bundled font families and a font library.
 - Audio with a Mixer (strips, buses with ducking, a master with loudness targets), media and image nodes, and colour grade nodes.
 - Exports in 16:9, 9:16, 1:1 and 4:5 at once, with chapters and stills in social sizes.
-- A Timeline, a Mixer and a Run panel that each open in their own window, and a Preview window that streams the exact export picture from the headless browser.
+- A Timeline, a Mixer and a Run panel that each open in their own window.
+- Settings on Basic and Advanced tabs in the Inspector, with every value a user would want to change as a setting: element, node, export, browser action, camera and recording-style settings.
+- Tidy up layout lines edges up with the handles they join and gives edges entering one column their own lanes.
+- The top bar says Saving while changes wait for their autosave.
 - A Local API (off by default) on a local socket for scripts and agents.
 - End-to-end tests that drive the real app in a virtual display.
 
@@ -22,3 +25,13 @@ Nothing has been released yet. This is what `main` holds today.
 
 - Rewritten from the Electron app to Tauri and Rust: the project document, undo, autosave, compile, runs, shared window state, asset addresses and fonts all live in Rust, and the editor calls the generated commands directly.
 - Scripts run with Bun.
+- Media files are read by Opsis itself, so the engine is the recording browser and FFmpeg only, and ffprobe is no longer downloaded.
+- The editor uses Inter and JetBrains Mono.
+
+### Removed
+
+- The Preview window, with its Fast and Exact quality and its shape switcher; a take no longer makes a small preview copy of its recording.
+
+### Fixed
+
+- Tidy up layout no longer does nothing on a flow where a Sequence, Layers or another node with numbered inputs uses a third input or more.

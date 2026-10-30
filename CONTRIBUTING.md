@@ -32,6 +32,8 @@ They cover both the TypeScript and the Rust code (`cargo fmt`, `cargo clippy -- 
 bun run test:e2e
 ```
 
+Some tests are ignored by default because they need the dev engine (the recording browser and FFmpeg in `~/.config/Opsis/engine`, set up once through **Settings → Engine**); run them with `cargo test -p <crate> -- --ignored`. One of them, `crates/probe/tests/ffprobe.rs`, compares Opsis's media reader with ffprobe, which the app doesn't use or download: put the `ffprobe` from the same ffmpeg-static release as the engine's FFmpeg beside it, in `~/.config/Opsis/engine/ffmpeg/`.
+
 ## Rules the code follows
 
 [AGENTS.md](./AGENTS.md) is the full guide; it applies to people as much as to coding agents. The ones that catch most first changes:
