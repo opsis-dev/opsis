@@ -3223,7 +3223,11 @@
   "hostDefaults": null,
   "defaults": {
    "seed": 3,
-   "hueShift": 0,
+   "colors": [
+    "#ff8a3d",
+    "#ffd166",
+    "#ff4f7b"
+   ],
    "strength": 100.0,
    "blend": "normal",
    "clipDuration": 45,
@@ -10634,7 +10638,11 @@
   "defaults": {
    "durationInFrames": 30,
    "seed": 3,
-   "hueShift": 0.0,
+   "colors": [
+    "#ff8a3d",
+    "#ffd166",
+    "#ff4f7b"
+   ],
    "offset": 0,
    "strength": 100.0
   }

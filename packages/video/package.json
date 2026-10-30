@@ -24,7 +24,6 @@
     "@paper-design/shaders-react": "^0.0.82",
     "@react-three/fiber": "^9.8.2",
     "@remotion/effects": "4.0.537",
-    "@remotion/light-leaks": "4.0.537",
     "@remotion/lottie": "4.0.537",
     "@remotion/mac-cursors": "4.0.537",
     "@remotion/media": "4.0.537",

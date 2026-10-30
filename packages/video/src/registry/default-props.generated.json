@@ -184,7 +184,11 @@
   },
   "light-leak": {
     "seed": 3,
-    "hueShift": 0,
+    "colors": [
+      "#ff8a3d",
+      "#ffd166",
+      "#ff4f7b"
+    ],
     "strength": 100.0,
     "blend": "normal"
   },

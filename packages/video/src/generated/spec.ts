@@ -1667,7 +1667,7 @@ export type LensZoom = {
 
 export type LightLeak = {
 	seed: number,
-	hueShift: number,
+	colors: Colour[],
 	strength: number,
 	blend: BlendMode,
 };

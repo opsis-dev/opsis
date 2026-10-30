@@ -38615,7 +38615,11 @@
     "ok": true,
     "data": {
      "seed": 3,
-     "hueShift": 0,
+     "colors": [
+      "#ff8a3d",
+      "#ffd166",
+      "#ff4f7b"
+     ],
      "strength": 100.0,
      "blend": "normal",
      "clipDuration": 45,
@@ -38632,7 +38636,11 @@
     "ok": true,
     "data": {
      "seed": 3,
-     "hueShift": 0,
+     "colors": [
+      "#ff8a3d",
+      "#ffd166",
+      "#ff4f7b"
+     ],
      "strength": 100.0,
      "blend": "normal",
      "clipDuration": 45,
@@ -38766,124 +38774,107 @@
   {
    "type": "fx.light-leak",
    "label": "missing",
-   "key": "hueShift",
+   "key": "colors",
    "change": {
     "unset": true
    },
    "outcome": {
     "ok": true,
-    "value": 0,
+    "value": [
+     "#ff8a3d",
+     "#ffd166",
+     "#ff4f7b"
+    ],
     "keys": 6
    }
   },
   {
    "type": "fx.light-leak",
    "label": "null",
-   "key": "hueShift",
+   "key": "colors",
    "change": {
     "set": null
    },
    "outcome": {
     "ok": false,
-    "problem": "Hue shift isn't valid"
+    "problem": "Colors isn't valid"
    }
   },
   {
    "type": "fx.light-leak",
-   "label": "text",
-   "key": "hueShift",
+   "label": "not a list",
+   "key": "colors",
    "change": {
-    "set": "abc"
+    "set": "x"
    },
    "outcome": {
     "ok": false,
-    "problem": "Hue shift isn't valid"
+    "problem": "Colors isn't valid"
    }
   },
   {
    "type": "fx.light-leak",
-   "label": "variable",
-   "key": "hueShift",
+   "label": "empty",
+   "key": "colors",
    "change": {
-    "set": "{{Speed}}"
+    "set": []
    },
    "outcome": {
     "ok": false,
-    "problem": "Hue shift takes a number. Variables work only in text settings"
+    "problem": "Colors needs at least 1"
    }
   },
   {
    "type": "fx.light-leak",
-   "label": "fraction",
-   "key": "hueShift",
+   "label": "many",
+   "key": "colors",
    "change": {
-    "set": 0.5
+    "set": [
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {}
+    ]
    },
    "outcome": {
     "ok": false,
-    "problem": "Hue shift isn't valid"
-   }
-  },
-  {
-   "type": "fx.light-leak",
-   "label": "huge",
-   "key": "hueShift",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Hue shift must be at most 360"
-   }
-  },
-  {
-   "type": "fx.light-leak",
-   "label": "below",
-   "key": "hueShift",
-   "change": {
-    "set": -1
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Hue shift must be at least 0"
-   }
-  },
-  {
-   "type": "fx.light-leak",
-   "label": "at low bound",
-   "key": "hueShift",
-   "change": {
-    "set": 0
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0,
-    "keys": 6
-   }
-  },
-  {
-   "type": "fx.light-leak",
-   "label": "above",
-   "key": "hueShift",
-   "change": {
-    "set": 361
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Hue shift must be at most 360"
-   }
-  },
-  {
-   "type": "fx.light-leak",
-   "label": "at high bound",
-   "key": "hueShift",
-   "change": {
-    "set": 360
-   },
-   "outcome": {
-    "ok": true,
-    "value": 360,
-    "keys": 6
+    "problem": "Colors takes at most 4"
    }
   },
   {
@@ -182630,7 +182621,11 @@
     "data": {
      "durationInFrames": 30,
      "seed": 3,
-     "hueShift": 0.0,
+     "colors": [
+      "#ff8a3d",
+      "#ffd166",
+      "#ff4f7b"
+     ],
      "offset": 0,
      "strength": 100.0
     }
@@ -182646,7 +182641,11 @@
     "data": {
      "durationInFrames": 30,
      "seed": 3,
-     "hueShift": 0.0,
+     "colors": [
+      "#ff8a3d",
+      "#ffd166",
+      "#ff4f7b"
+     ],
      "offset": 0,
      "strength": 100.0
     }
@@ -182901,125 +182900,107 @@
   {
    "type": "transition.lightLeak",
    "label": "missing",
-   "key": "hueShift",
+   "key": "colors",
    "change": {
     "unset": true
    },
    "outcome": {
     "ok": true,
-    "value": 0.0,
+    "value": [
+     "#ff8a3d",
+     "#ffd166",
+     "#ff4f7b"
+    ],
     "keys": 5
    }
   },
   {
    "type": "transition.lightLeak",
    "label": "null",
-   "key": "hueShift",
+   "key": "colors",
    "change": {
     "set": null
    },
    "outcome": {
     "ok": false,
-    "problem": "Colour shift isn't valid"
+    "problem": "Colors isn't valid"
    }
   },
   {
    "type": "transition.lightLeak",
-   "label": "text",
-   "key": "hueShift",
+   "label": "not a list",
+   "key": "colors",
    "change": {
-    "set": "abc"
+    "set": "x"
    },
    "outcome": {
     "ok": false,
-    "problem": "Colour shift isn't valid"
+    "problem": "Colors isn't valid"
    }
   },
   {
    "type": "transition.lightLeak",
-   "label": "variable",
-   "key": "hueShift",
+   "label": "empty",
+   "key": "colors",
    "change": {
-    "set": "{{Speed}}"
+    "set": []
    },
    "outcome": {
     "ok": false,
-    "problem": "Colour shift takes a number. Variables work only in text settings"
+    "problem": "Colors needs at least 1"
    }
   },
   {
    "type": "transition.lightLeak",
-   "label": "fraction",
-   "key": "hueShift",
+   "label": "many",
+   "key": "colors",
    "change": {
-    "set": 0.5
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0.5,
-    "keys": 5
-   }
-  },
-  {
-   "type": "transition.lightLeak",
-   "label": "huge",
-   "key": "hueShift",
-   "change": {
-    "set": 1000000000000
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Colour shift must be at most 360°"
-   }
-  },
-  {
-   "type": "transition.lightLeak",
-   "label": "below",
-   "key": "hueShift",
-   "change": {
-    "set": -1
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Colour shift must be at least 0°"
-   }
-  },
-  {
-   "type": "transition.lightLeak",
-   "label": "at low bound",
-   "key": "hueShift",
-   "change": {
-    "set": 0
-   },
-   "outcome": {
-    "ok": true,
-    "value": 0,
-    "keys": 5
-   }
-  },
-  {
-   "type": "transition.lightLeak",
-   "label": "above",
-   "key": "hueShift",
-   "change": {
-    "set": 361
+    "set": [
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {},
+     {}
+    ]
    },
    "outcome": {
     "ok": false,
-    "problem": "Colour shift must be at most 360°"
-   }
-  },
-  {
-   "type": "transition.lightLeak",
-   "label": "at high bound",
-   "key": "hueShift",
-   "change": {
-    "set": 360
-   },
-   "outcome": {
-    "ok": true,
-    "value": 360,
-    "keys": 5
+    "problem": "Colors takes at most 4"
    }
   },
   {

@@ -2,15 +2,20 @@ use opsis_macros::settings;
 use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::BlendMode;
+use crate::elements::shared::{BlendMode, Colour};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
 pub struct LightLeak {
     #[setting("Seed", default = 3, range(min = 0, max = 100), step = 1)]
     pub seed: u32,
-    #[setting("Hue shift", range(min = 0, max = 360), step = 1)]
-    pub hue_shift: u32,
+    #[setting(
+        "Colors",
+        default = leak_colours(),
+        length(min = 1, max = 4),
+        help = "The light's colours, one glow each."
+    )]
+    pub colors: Vec<Colour>,
     #[setting(
         "Strength",
         default = 100.0,
@@ -25,6 +30,10 @@ pub struct LightLeak {
         advanced
     )]
     pub blend: BlendMode,
+}
+
+pub fn leak_colours() -> Vec<Colour> {
+    vec!["#ff8a3d".into(), "#ffd166".into(), "#ff4f7b".into()]
 }
 
 pub fn definition() -> ElementMeta {

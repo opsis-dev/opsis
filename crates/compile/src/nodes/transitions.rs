@@ -10,6 +10,8 @@ use crate::card_rows::{
     cover, cover_row, frame_secs, sentence, squeezed_too_much, transition_length_text,
 };
 use crate::clip::{ItemExtra, SequenceSlots, item_clip, sequence_clips, stack_clips};
+use crate::elements::overlay::light_leak::leak_colours;
+use crate::elements::shared::Colour;
 use crate::elements::{ElementKind, ElementMeta, element_meta, elements};
 use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, Inputs, NodeDef, Outputs, Phase, Ports, RowExt, outputs,
@@ -188,8 +190,13 @@ pub struct LightLeakCut {
     pub duration_in_frames: u32,
     #[setting("Variation", default = 3, range(min = 0, max = 100))]
     pub seed: u32,
-    #[setting("Colour shift", range(min = 0, max = 360), unit = "°")]
-    pub hue_shift: f64,
+    #[setting(
+        "Colors",
+        default = leak_colours(),
+        length(min = 1, max = 4),
+        help = "The light's colours, one glow each."
+    )]
+    pub colors: Vec<Colour>,
     #[setting("Offset", default = 0, range(min = -108000, max = 108000), step = 1, unit = "frames", advanced)]
     pub offset: i32,
     #[setting(
@@ -252,7 +259,10 @@ fn light_leak() -> NodeDef {
             let props = crate::elements::element_meta("light-leak").map_or_else(Map::new, |meta| {
                 let mut values = meta.default_props.clone();
                 values.insert("seed".into(), Value::from(p.seed));
-                values.insert("hueShift".into(), Value::from(p.hue_shift));
+                values.insert(
+                    "colors".into(),
+                    serde_json::to_value(&p.colors).unwrap_or(Value::Null),
+                );
                 values.insert("strength".into(), Value::from(p.strength));
                 crate::nodes::elements::element_props(meta, &values)
             });

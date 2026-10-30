@@ -17258,14 +17258,24 @@
       "default": 3,
       "x-step": 1
      },
-     "hueShift": {
-      "description": "Hue shift",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0,
-      "maximum": 360,
-      "default": 0,
-      "x-step": 1
+     "colors": {
+      "description": "Colors",
+      "type": "array",
+      "items": {
+       "type": "string",
+       "x-check": {
+        "rule": "colour",
+        "message": "Pick a colour"
+       }
+      },
+      "minItems": 1,
+      "maxItems": 4,
+      "default": [
+       "#ff8a3d",
+       "#ffd166",
+       "#ff4f7b"
+      ],
+      "x-help": "The light's colours, one glow each."
      },
      "strength": {
       "description": "Strength",
@@ -17467,7 +17477,11 @@
     "type": "object",
     "default": {
      "seed": 3,
-     "hueShift": 0,
+     "colors": [
+      "#ff8a3d",
+      "#ffd166",
+      "#ff4f7b"
+     ],
      "strength": 100.0,
      "blend": "normal",
      "clipDuration": 45,
@@ -61273,14 +61287,24 @@
       "maximum": 100,
       "default": 3
      },
-     "hueShift": {
-      "description": "Colour shift",
-      "type": "number",
-      "format": "double",
-      "minimum": 0,
-      "maximum": 360,
-      "default": 0.0,
-      "x-unit": "°"
+     "colors": {
+      "description": "Colors",
+      "type": "array",
+      "items": {
+       "type": "string",
+       "x-check": {
+        "rule": "colour",
+        "message": "Pick a colour"
+       }
+      },
+      "minItems": 1,
+      "maxItems": 4,
+      "default": [
+       "#ff8a3d",
+       "#ffd166",
+       "#ff4f7b"
+      ],
+      "x-help": "The light's colours, one glow each."
      },
      "offset": {
       "description": "Offset",
@@ -61308,7 +61332,11 @@
     "default": {
      "durationInFrames": 30,
      "seed": 3,
-     "hueShift": 0.0,
+     "colors": [
+      "#ff8a3d",
+      "#ffd166",
+      "#ff4f7b"
+     ],
      "offset": 0,
      "strength": 100.0
     }
