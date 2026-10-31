@@ -1,10 +1,10 @@
 [
-  { "id": "whoosh", "label": "Whoosh", "durationMs": 150 },
-  { "id": "whip", "label": "Whip", "durationMs": 170 },
-  { "id": "mouse-click", "label": "Mouse click", "durationMs": 400 },
-  { "id": "key-press", "label": "Key press", "durationMs": 221 },
-  { "id": "switch", "label": "Switch", "durationMs": 330 },
-  { "id": "page-turn", "label": "Page turn", "durationMs": 400 },
-  { "id": "shutter-modern", "label": "Camera shutter", "durationMs": 490 },
-  { "id": "shutter-old", "label": "Old camera shutter", "durationMs": 310 }
+  { "id": "whoosh", "label": "Whoosh", "durationMs": 464 },
+  { "id": "whip", "label": "Whip", "durationMs": 682 },
+  { "id": "mouse-click", "label": "Mouse click", "durationMs": 59 },
+  { "id": "key-press", "label": "Key press", "durationMs": 180 },
+  { "id": "switch", "label": "Switch", "durationMs": 336 },
+  { "id": "page-turn", "label": "Page turn", "durationMs": 396 },
+  { "id": "shutter-modern", "label": "Camera shutter", "durationMs": 370 },
+  { "id": "shutter-old", "label": "Old camera shutter", "durationMs": 638 }
 ]

@@ -1153,7 +1153,7 @@
        "nodeId": "whoosh",
        "channel": "whoosh",
        "role": "effect",
-       "lengthFrames": 5,
+       "lengthFrames": 14,
        "handles": {
         "move": {
          "nodeId": "whoosh",
@@ -1185,7 +1185,7 @@
        "nodeId": "whip",
        "channel": "whip",
        "role": "effect",
-       "lengthFrames": 5,
+       "lengthFrames": 20,
        "keepMusic": true,
        "handles": {
         "move": {
@@ -3179,7 +3179,7 @@
        "nodeId": "whip",
        "channel": "whip",
        "role": "effect",
-       "lengthFrames": 5,
+       "lengthFrames": 20,
        "keepMusic": true,
        "handles": {
         "move": {
@@ -4062,7 +4062,7 @@
      "nodeId": "whip",
      "channel": "whip",
      "role": "effect",
-     "lengthFrames": 5,
+     "lengthFrames": 20,
      "keepMusic": true,
      "handles": {
       "move": {
@@ -4973,7 +4973,7 @@
      "nodeId": "whip",
      "channel": "whip",
      "role": "effect",
-     "lengthFrames": 5,
+     "lengthFrames": 20,
      "keepMusic": true,
      "handles": {
       "move": {
@@ -6089,7 +6089,7 @@
       "src": "app:sfx/whip.wav",
       "role": "effect",
       "from": 30.0,
-      "to": 35.0,
+      "to": 50.0,
       "lane": 2,
       "trimBefore": 0.0,
       "loop": false,
@@ -6115,7 +6115,7 @@
        "nodeId": "whip",
        "channel": "whip",
        "role": "effect",
-       "lengthFrames": 5,
+       "lengthFrames": 20,
        "keepMusic": true,
        "handles": {
         "move": {
@@ -6380,7 +6380,7 @@
         "src": "app:sfx/whip.wav",
         "at": 30,
         "offset": 0,
-        "length": 5,
+        "length": 20,
         "loop": false,
         "rate": 1.0,
         "volume": 1.0,
@@ -7148,7 +7148,7 @@
         "nodeId": "whoosh",
         "channel": "whoosh",
         "role": "effect",
-        "lengthFrames": 5,
+        "lengthFrames": 14,
         "handles": {
          "move": {
           "nodeId": "whoosh",
@@ -7180,7 +7180,7 @@
         "nodeId": "whip",
         "channel": "whip",
         "role": "effect",
-        "lengthFrames": 5,
+        "lengthFrames": 20,
         "keepMusic": true,
         "handles": {
          "move": {
@@ -10438,7 +10438,7 @@
         "nodeId": "whoosh",
         "channel": "whoosh",
         "role": "effect",
-        "lengthFrames": 5,
+        "lengthFrames": 14,
         "handles": {
          "move": {
           "nodeId": "whoosh",
@@ -10464,7 +10464,7 @@
         "nodeId": "whip",
         "channel": "whip",
         "role": "effect",
-        "lengthFrames": 5,
+        "lengthFrames": 20,
         "keepMusic": true,
         "handles": {
          "move": {
@@ -11687,7 +11687,7 @@
       "nodeId": "whoosh",
       "channel": "whoosh",
       "role": "effect",
-      "lengthFrames": 5,
+      "lengthFrames": 14,
       "handles": {
        "move": {
         "nodeId": "whoosh",
@@ -11713,7 +11713,7 @@
       "nodeId": "whip",
       "channel": "whip",
       "role": "effect",
-      "lengthFrames": 5,
+      "lengthFrames": 20,
       "keepMusic": true,
       "handles": {
        "move": {
@@ -12806,7 +12806,7 @@
       "nodeId": "whoosh",
       "channel": "whoosh",
       "role": "effect",
-      "lengthFrames": 5,
+      "lengthFrames": 14,
       "handles": {
        "move": {
         "nodeId": "whoosh",
@@ -12832,7 +12832,7 @@
       "nodeId": "whip",
       "channel": "whip",
       "role": "effect",
-      "lengthFrames": 5,
+      "lengthFrames": 20,
       "keepMusic": true,
       "handles": {
        "move": {
@@ -14135,7 +14135,7 @@
        "src": "app:sfx/whip.wav",
        "role": "effect",
        "from": 30.0,
-       "to": 35.0,
+       "to": 50.0,
        "lane": 2,
        "trimBefore": 0.0,
        "loop": false,
@@ -14161,7 +14161,7 @@
         "nodeId": "whip",
         "channel": "whip",
         "role": "effect",
-        "lengthFrames": 5,
+        "lengthFrames": 20,
         "keepMusic": true,
         "handles": {
          "move": {
@@ -14186,7 +14186,7 @@
        "src": "app:sfx/whoosh.wav",
        "role": "effect",
        "from": 173.0,
-       "to": 178.0,
+       "to": 187.0,
        "lane": 2,
        "trimBefore": 0.0,
        "loop": false,
@@ -14212,7 +14212,7 @@
         "nodeId": "whoosh",
         "channel": "whoosh",
         "role": "effect",
-        "lengthFrames": 5,
+        "lengthFrames": 14,
         "handles": {
          "move": {
           "nodeId": "whoosh",
@@ -14527,7 +14527,7 @@
          "src": "app:sfx/whoosh.wav",
          "at": 173,
          "offset": 0,
-         "length": 5,
+         "length": 14,
          "loop": false,
          "rate": 1.0,
          "volume": 1.0,
@@ -14595,7 +14595,7 @@
          "src": "app:sfx/whip.wav",
          "at": 30,
          "offset": 0,
-         "length": 5,
+         "length": 20,
          "loop": false,
          "rate": 1.0,
          "volume": 1.0,

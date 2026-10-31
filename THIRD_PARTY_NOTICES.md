@@ -785,18 +785,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## Built-in sound effects — public/sfx
 
-Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero/1.0/). No attribution is required; credits are kept here. Files were taken from the set Remotion lists in `@remotion/sfx` (https://www.remotion.dev/docs/sfx), with each licence checked on its source page; that set has no key sound, so key-press.wav comes straight from Freesound (its licence checked on its page on 2026-10-27, its preview file encoded as WAV).
+Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero/1.0/). No attribution is required; credits are kept here. Each licence was read on the sound's own page or in its pack's licence file on 2026-10-31; each file was converted to 16-bit WAV at 44.1 kHz with the silence at its ends cut, and the camera shutter keeps the first of the recording's two shots.
 
-| File               | Sound                                                      | Source                          |
-| ------------------ | ---------------------------------------------------------- | ------------------------------- |
-| whoosh.wav         | Woosh by 1bob                                              | https://freesound.org/s/831936/ |
-| whip.wav           | SWSH_Badminton Racquet_Recording_01_JW Audio by JW_Audio   | https://freesound.org/s/838766/ |
-| mouse-click.wav    | Mouse Click Sound.mp3 by Pixeliota                         | https://freesound.org/s/678248/ |
-| key-press.wav      | Computer Keyboard - single key - type 2.wav by yottasounds | https://freesound.org/s/380141/ |
-| switch.wav         | UI Audio - Switch 35 by Kenney                             | https://kenney.nl/              |
-| page-turn.wav      | Draw Knife 1 by Kenney                                     | https://kenney.nl/              |
-| shutter-modern.wav | DSLR Shutter fast 006.wav by ristooooo1                    | https://freesound.org/s/539136/ |
-| shutter-old.wav    | Werra.wav by hmilleo                                       | https://freesound.org/s/409093/ |
+| File               | Sound                                                                           | Source                                                                            |
+| ------------------ | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| whoosh.wav         | Whoosh #3 by Joseph Sardin (BigSoundBank)                                       | https://bigsoundbank.com/whoosh-3-s1795.html                                      |
+| whip.wav           | Complete whip #1 by Joseph Sardin (BigSoundBank)                                | https://bigsoundbank.com/complete-whip-1-s2961.html                               |
+| mouse-click.wav    | mouseclick1, UI Audio by Kenney                                                 | https://kenney.nl/assets/ui-audio                                                 |
+| key-press.wav      | keypress-001, Keyboard Soundpack #1 by unicaegames                              | https://opengameart.org/content/keyboard-soundpack-1-typing-and-single-keystrokes |
+| switch.wav         | switch35, UI Audio by Kenney                                                    | https://kenney.nl/assets/ui-audio                                                 |
+| page-turn.wav      | Turned Page by Joseph Sardin (BigSoundBank)                                     | https://bigsoundbank.com/turned-page-s0164.html                                   |
+| shutter-modern.wav | iPhone - Camera by Joseph Sardin (BigSoundBank)                                 | https://bigsoundbank.com/iphone-camera-s0448.html                                 |
+| shutter-old.wav    | Trigger of camera #3 (a Kodak Six-20 Brownie C) by Joseph Sardin (BigSoundBank) | https://bigsoundbank.com/trigger-of-camera-3-s2544.html                           |
 
 ## Built-in music — public/music
 
