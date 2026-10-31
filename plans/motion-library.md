@@ -15,28 +15,28 @@ Status: plan only. Nothing here is built yet.
 
 These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins:
 
-- Every `remotion` / `@remotion/*` package stays at one exact version (today `4.0.537`, `bun add --exact`). Other packages through `bun add` / `cargo add`, latest release.
+- Packages through `bun add` / `cargo add`, latest release.
 - Never hand-edit `packages/video/src/elements/**`, `lib/**`, `hooks/**` or any `*.generated.*`. Code written from an upstream component is Opsis's own and never goes there.
 - Element settings are Rust structs in `opsis-compile` with `schemars` attributes (`x-` keywords); components are TS in `packages/video`, keyed separately.
-- Every animation in `packages/video` is a pure function of `useCurrentFrame()`; randomness through `random(seed)`; async through `delayRender`. Nothing loads from the internet at preview or render time.
+- Every animation in `packages/video` is a pure function of the runtime's `useFrame()`; randomness through `random(seed)`; async through `holdRender`. Nothing loads from the internet at render time.
 - No library, tool or format names in titles, descriptions, labels or errors (the Lottie element's description is the one precedent for naming the tool that made a file).
 - No comments anywhere, kebab-case TS file names.
 
 **Checks when a feature is done.**
 
 - `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, and the no-comments check.
-- `bun run film:bundle`, then export a short clip with the new feature and compare it with the editor Preview: preview must equal export. Scrub backwards in the Preview and check the picture matches a forward play.
+- `bun run film:bundle`, then export a short clip with the new feature and compare its frames with stills of the same frames (`bun run elements:render <key> <position>`): a frame drawn on its own must equal the same frame drawn in order.
 
 ## Summary
 
-| Feature               | What users get                                                                                                    | Licence                                | Status          |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------------- |
-| Web motion components | 18 new elements: text effects, highlight frames, integration diagrams, a status pill, backgrounds, animated icons | MIT (+ ISC for icon shapes)            | not built       |
-| Liquid contours       | A flowing two-colour contour background                                                                           | Remotion licence (`@remotion/effects`) | not built       |
-| Crossed-off highlight | Hand-drawn crossing out of a part of the page in a take                                                           | MIT (`roughjs`)                        | partly in place |
-| Rive animations       | Play `.riv` files from the project, offline                                                                       | MIT (Rive runtime), Remotion licence   | not built       |
-| Element thumbnails    | A picture of every element in the node list's hover card                                                          | Opsis's own                            | partly in place |
-| Visual check in CI    | Every element rendered and compared on each change, so a registry update can't silently break one                 | Opsis's own                            | not built       |
+| Feature               | What users get                                                                                                    | Licence                     | Status          |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------- | --------------- |
+| Web motion components | 18 new elements: text effects, highlight frames, integration diagrams, a status pill, backgrounds, animated icons | MIT (+ ISC for icon shapes) | not built       |
+| Liquid contours       | A flowing two-colour contour background                                                                           | Opsis's own                 | not built       |
+| Crossed-off highlight | Hand-drawn crossing out of a part of the page in a take                                                           | MIT (`roughjs`)             | partly in place |
+| Rive animations       | Play `.riv` files from the project, offline                                                                       | MIT (Rive runtime)          | not built       |
+| Element thumbnails    | A picture of every element in the node list's hover card                                                          | Opsis's own                 | partly in place |
+| Visual check in CI    | Every element rendered and compared on each change, so a registry update can't silently break one                 | Opsis's own                 | not built       |
 
 ## Web motion components
 
@@ -101,7 +101,7 @@ Missing:
    - CSS `@keyframes` / Tailwind `animate-*` → the same property computed from the frame. Only when a keyframe can't be rewritten (a long multi-stop gradient), a paused CSS animation (`animationPlayState: "paused"`, `animationDelay` set to minus the element's time in seconds) is allowed, with keyframe names prefixed `df-` and never `spin` (see **Animation names are global** in `AGENTS.md`); record each such case in `AGENTS.md`.
    - `useEffect` timers, `setInterval`, `requestAnimationFrame` → frame math. Canvas drawing happens in a `useLayoutEffect` keyed on the frame, drawing the whole picture each time (never incrementally).
    - `Math.random()` → `random(seed + "-" + index)` with a `seed` setting (min 1).
-   - Measuring (`getBoundingClientRect`, `ResizeObserver`, `IntersectionObserver`) → compute layout from settings; when text must be measured, measure once after fonts load under `delayRender`, never per frame.
+   - Measuring (`getBoundingClientRect`, `ResizeObserver`, `IntersectionObserver`) → compute layout from settings; when text must be measured, measure once after fonts load under `holdRender`, never per frame.
    - Fonts: a `font` setting defaulting to the project font; no `@remotion/google-fonts` or web font imports. Images: `asset` settings, defaults from `public/placeholders` as `app:` refs. Colours: `x-widget = "color"` settings.
    - Sizes in pixels at 1920×1080 with `design` set, so `DesignBox` scales them to any shape.
    - Length: an `element_timing` entry (`crates/compile/src/elements/lengths.rs`) when the animation has an end, so Length defaults to "Fit the animation".
@@ -109,7 +109,7 @@ Missing:
 4. **Copy.** Titles and descriptions in sentence case without source names (the table titles are drafts). `crates/compile/tests/unit/nodes_c.rs` checks the new elements' descriptions and banned words automatically.
 5. **Licences.** One `THIRD_PARTY_NOTICES.md` section per source, listing the Opsis files that started from it like the existing entries, with the upstream copyright line, licence text and the upstream commit, plus Lucide (ISC) for the icon shapes. Settings → Licences shows the file.
 6. **Tests.** Vitest for the pure timing helpers (keyframe table → value, orbit angle, flicker slot); the existing test that every element's defaults pass its own schema covers the settings. Add each element to the visual check (last section).
-7. **Check.** Each element at its default length and at half length in 16:9 and 9:16; scrub backwards; export equals Preview; a second render of the same frame is pixel-identical.
+7. **Check.** Each element at its default length and at half length in 16:9 and 9:16; a still of a frame equals the same frame of an export; a second render of the same frame is pixel-identical.
 
 ### Licence
 
@@ -131,10 +131,10 @@ The Commons Clause sources and Aceternity are left out because Opsis's repositor
 ### Risks
 
 - **Derived, not copied.** The code is rewritten but still derives from the upstream file; keep the licence file and notice even when little original code is left.
-- **Measuring text.** Morphing letters needs letter positions in two words. Measure with a hidden copy in a `useLayoutEffect` after `FontProvider` has loaded the font (under `delayRender`); measuring before fonts load gives wrong positions only in the render.
+- **Measuring text.** Morphing letters needs letter positions in two words. Measure with a hidden copy in a `useLayoutEffect` after `FontProvider` has loaded the font (under `holdRender`); measuring before fonts load gives wrong positions only in the render.
 - **Paused CSS animations.** They are frame-exact in Chrome only while the element stays mounted; a remount restarts them at the delay. Prefer frame-computed styles; the escape hatch is for rare cases and must pass the scrub-backwards check.
 - **Upstream drift.** These files don't follow upstream changes (unlike registry elements). The upstream commit in the notice lets a later update diff.
-- **Canvas size.** Canvas backgrounds must size their backing store from `useVideoConfig()` times the render scale, or scaled-down stills and 4K exports blur.
+- **Canvas size.** Canvas backgrounds must size their backing store from `useFilm()` times the render scale, or scaled-down stills and 4K exports blur.
 
 ### Sources
 
@@ -156,25 +156,24 @@ A flowing background of alternating bands in two colours, like the Remotion Elem
 
 In place:
 
-- The Remotion Elements page is example source, not a registry: it gives no install command and no package (checked 2026-10-16). The example is a few lines around `liquidContours()` from `@remotion/effects/liquid-contours`, applied to Remotion's `<Solid>` through its `effects` prop, with `phase` interpolated from the frame.
-- `@remotion/effects@4.0.537` (no longer a dependency: footage effects moved to Rust in v3 phase 2, so this would be the only use and has to be our own shader or skipped) exports `./liquid-contours`; its options are `firstColor`, `secondColor`, `spacing` (2–300), `scale` (20–1000), `complexity` (0–1), `smoothness` (0–1), `seed`, `offsetX`, `offsetY`, `phase` (`dist/liquid-contours.d.ts`). It draws with a WebGL2 shader and fetches nothing.
 - Background elements live in `packages/video/src/elements/background/`, one file each, with settings in `crates/compile/src/elements/background/`.
+- WebGL2 full-frame shaders: `createQuadSurface` (`packages/video/src/lib/shaders/quad.ts`) draws a fragment shader over a quad on any canvas, as the canvas transitions do.
 - Export's **Draw with** setting (`Gl` in `crates/compile/src/nodes/output.rs`) chooses software drawing (`swangle`).
 
 Missing:
 
-- No core element uses Remotion's `<Solid>`; `backgrounds.tsx` exports its own `Solid`, so import Remotion's under another name.
+- The contour shader: bands of a seeded noise field, thresholded into two colours with a soft edge, the field moved by a phase.
 
 ### Work
 
-1. **Settings.** `crates/compile/src/elements/background/liquid_contours.rs` (`ElementCategory::Background`, 150 frames): `first_color`, `second_color`, `spacing`, `scale`, `complexity`, `smoothness` (advanced), `seed` (min 1), `flow` (how much `phase` moves over the element, default 1), with `design` at 1920×1080.
-2. **Component.** `LiquidContours` in `packages/video/src/core/liquid-contours.tsx` draws `<Solid color={secondColor} effects={[liquidContours({ …, phase: 3.23 + flow * frame / durationInFrames })]} />`. It goes in `ELEMENTS` like every other element.
+1. **Settings.** `crates/compile/src/elements/background/liquid_contours.rs` (`ElementCategory::Background`, 150 frames): `first_color`, `second_color`, `spacing`, `scale`, `complexity`, `smoothness` (advanced), `seed` (min 1), `flow` (how much the phase moves over the element, default 1), with `design` at 1920×1080.
+2. **Component.** `packages/video/src/elements/background/liquid-contours.tsx` draws the shader on a canvas on the page (frames from a canvas given to `transferControlToOffscreen` never reach a capture), with the phase `flow * frame / durationInFrames` from `useFrame()` and `useFilm()`, and holds the frame until the canvas has drawn. It goes in `ELEMENTS` like every other element.
 3. **Copy.** "Liquid contours", "A flowing background of two-colour bands."
 4. **Check.** Export a still and a video with the default drawing and with Software, 9:16.
 
 ### Licence
 
-`@remotion/effects` is under the Remotion licence (npm `UNLICENSED`), covered by the existing Remotion notice. The example on the Remotion Elements page states no licence; Opsis writes its own few lines rather than copying it.
+Opsis's own shader. The example on the Remotion Elements page states no licence and is only the look to aim for; nothing is copied from it.
 
 ### Risks
 
@@ -183,8 +182,7 @@ Missing:
 
 ### Sources
 
-- [Remotion Elements](https://www.remotion.dev/elements) and [Liquid Contours](https://www.remotion.dev/elements/backgrounds/liquid-contours/) (checked 2026-10-16)
-- Package source of `@remotion/effects@4.0.537` (`dist/liquid-contours.d.ts`; checked 2026-10-26)
+- [Remotion Elements: Liquid Contours](https://www.remotion.dev/elements/backgrounds/liquid-contours/) (the look; checked 2026-10-16)
 
 ## Crossed-off highlight
 
@@ -224,53 +222,42 @@ A **Rive animation** element that plays a `.riv` file from the project: pick the
 
 In place:
 
-- `LottieElement` (`packages/video/src/elements/overlay/lottie.tsx`) is the pattern: an `asset` setting given the host's project address by `hosted`, `fetch()` under `delayRender`, `cancelRender` on failure; its settings accept `.json,.lottie` through `x-accept`.
+- `LottieElement` (`packages/video/src/elements/overlay/lottie.tsx`) is the pattern: an `asset` setting given the host's project address by `hosted`, `fetch()` under `holdRender`, `failRender` on failure; its settings accept `.json,.lottie` through `x-accept`.
 - `import_assets` (`crates/project/src/import.rs`) copies any file into `assets/`; the file servers are `tower-http`'s `ServeDir` (`crates/engine/src/http_files.rs`), whose MIME table already maps `.wasm` to `application/wasm` and serves unknown types such as `.riv` as `application/octet-stream`.
 - Video code runs only in the headless shell (the film page), never in the editor's webview, so the editor's CSP doesn't apply.
-- No bundler swaps an import today; the film page's Vite config (`apps/film/vite.config.ts`) can take aliases if Rive's runtime needs one.
 
-What the packages do (from the tarballs of `@remotion/rive` and `@rive-app/canvas-advanced@2.31.5`, checked 2026-10-19; `@remotion/rive@4.0.537` still pins 2.31.5, checked 2026-10-26):
+What the runtime does (from the tarball of `@rive-app/canvas-advanced@2.31.5`, checked 2026-10-19):
 
-- `<RemotionRiveCanvas>` takes `src`, `fit`, `alignment`, `artboard`, `animation`, `onLoad`, `assetLoader` and `enableRiveAssetCdn`. It loads the runtime with `riveCanvas({ locateFile: () => "https://unpkg.com/@rive-app/canvas-advanced@2.31.5/rive.wasm" })`, fixed in the component with no prop to change it.
-- The runtime package ships `rive.wasm` itself (1,449,487 bytes, MIT). Its `package.json` has `main: "canvas_advanced.mjs"` and no `exports` field, so `@rive-app/canvas-advanced/canvas_advanced.mjs` can be imported directly.
-- `enableRiveAssetCdn` lets the runtime fetch a file's referenced images and fonts from Rive's servers unless it's turned off.
-- It advances the animation by `frame - lastFrame` on each frame instead of setting the time.
+- The package ships `rive.wasm` itself (1,449,487 bytes, MIT). Its `package.json` has `main: "canvas_advanced.mjs"` and no `exports` field.
+- `riveCanvas({ locateFile })` loads the runtime, fetching the WASM from wherever `locateFile` points.
+- Without care, the runtime fetches a file's referenced images and fonts from Rive's servers; loading with no asset loader and the CDN off keeps it local.
 
 ### Approach (decided)
 
-Use Remotion's `<RemotionRiveCanvas>` and download nothing at run time: both bundlers send `@rive-app/canvas-advanced` to a small Opsis module that calls the real runtime with a local `locateFile`, so the hard-coded unpkg address is never used.
+Opsis's own component on the low-level runtime, with the WASM bundled and every frame a pure function of the frame number: load the runtime with a local `locateFile`, `rive.load(bytes, undefined, false)`, and on each frame set `LinearAnimationInstance.time` from the frame (wrapping for loop), then `apply(1)`, `artboard.advance(0)` and draw. State machines stay out of scope: they need inputs over time.
 
 ### Work
 
-1. **Dependencies.** In `packages/video`: `bun add --exact @remotion/rive@<the Remotion version>`, and `bun add --exact @rive-app/canvas-advanced@<the version it pins>` because Opsis imports it directly.
+1. **Dependency.** In `packages/video`: `bun add @rive-app/canvas-advanced`.
 2. **Bundled runtime.** `scripts/rive-runtime.ts` (`bun run rive:runtime`) copies `rive.wasm` from the installed package to `public/rive/rive.wasm`, like `fonts:bundle` copies fonts; add the row to the generated-files table in `AGENTS.md`. A test checks the copy matches the installed package byte for byte, so a version bump can't leave an old runtime behind. `rive_fallback.wasm` isn't needed: the advanced runtime never names it.
-3. **Runtime redirect.** `packages/video/src/rive/runtime.ts` imports the real `canvas_advanced.mjs` and exports a default function that calls it with `locateFile: () => staticFile("rive/rive.wasm")`, whatever `locateFile` the caller passed. The Vite plugin and the Rspack hook resolve the bare `@rive-app/canvas-advanced` to that module, next to the font redirect; the `.mjs` subpath is left alone, so the wrapper doesn't redirect to itself. A test bundles a module that imports the bare name and checks it resolves to the wrapper in both bundlers.
-4. **Settings.** `rive` in its own file under `crates/compile/src/elements/`: `src` (`asset`, `x-accept = ".riv"`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`; 90 frames.
-5. **Component.** `packages/video/src/elements/<category>/rive.tsx`, in `ELEMENTS`, renders `<RemotionRiveCanvas src={…} artboard={…} animation={…} fit={…} enableRiveAssetCdn={false} />`, with `src` resolved like Lottie's.
-6. **Copy.** Title "Rive animation", description in the Lottie element's style: "Plays an animation made in Rive (.riv)."
-7. **Licences.** `THIRD_PARTY_NOTICES.md`: `@rive-app/canvas-advanced` (MIT), including the bundled `rive.wasm`. `@remotion/rive` is under the Remotion licence, covered by the existing notice.
-8. **Check.**
-   - With networking off: the element loads in the Preview and in an export, and no request goes to unpkg or Rive's servers (the preview page's network log through CDP).
-   - Frame stepping: an exported still of the middle frame (a fresh page jumping straight to one frame) matches the same frame in the export; scrubbing backwards and jumping around in the Preview match the export too. If they don't, use the fallback below.
-
-### Fallback: Opsis's own component
-
-If stepping from the previous frame gives wrong pictures, write `rive.tsx` on the runtime directly instead of `<RemotionRiveCanvas>`: load the runtime through the same wrapper, `rive.load(bytes, undefined, false)`, and on each frame set `LinearAnimationInstance.time` from the frame (wrapping for loop), then `apply(1)`, `artboard.advance(0)` and draw. That makes every frame a pure function of the frame number. State machines stay out of scope either way: they need inputs over time.
+3. **Settings.** `rive` in its own file under `crates/compile/src/elements/`: `src` (`asset`, `x-accept = ".riv"`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`; 90 frames.
+4. **Component.** `packages/video/src/elements/<category>/rive.tsx`, in `ELEMENTS`: loads the runtime with `locateFile: () => publicFile("rive/rive.wasm")`, the file like Lottie's, draws the frame's pose on a canvas on the page, and holds the frame until it's drawn.
+5. **Copy.** Title "Rive animation", description in the Lottie element's style: "Plays an animation made in Rive (.riv)."
+6. **Licences.** `THIRD_PARTY_NOTICES.md`: `@rive-app/canvas-advanced` (MIT), including the bundled `rive.wasm`.
+7. **Check.** With networking off, an export loads the element and no request goes to unpkg or Rive's servers (the page's network log through CDP); a still of a frame equals the same frame of an export.
 
 ### Licence
 
-`@rive-app/canvas-advanced` and its `rive.wasm`: MIT (from its `package.json`; the package ships no licence file, so the notice quotes the Rive runtime repository's). `@remotion/rive`: Remotion licence.
+`@rive-app/canvas-advanced` and its `rive.wasm`: MIT (from its `package.json`; the package ships no licence file, so the notice quotes the Rive runtime repository's).
 
 ### Risks
 
-- **Stepping from the previous frame.** `<RemotionRiveCanvas>` advances by `frame - lastFrame`. Renders use one tab in order, but exported stills render one frame of a fresh page and the Preview scrubs, so check both (Work step 8) before shipping.
-- **Version drift.** The wrapper, the copied `rive.wasm` and `@remotion/rive`'s pinned runtime must stay the same version; the copy test and the exact pins catch drift on the next Remotion bump.
+- **Version drift.** The copied `rive.wasm` must match the installed runtime; the copy test catches drift on the next bump.
 
 ### Sources
 
-- [Remotion: @remotion/rive](https://www.remotion.dev/docs/rive/) (checked 2026-10-16)
 - [Rive: Preloading WASM](https://rive.app/docs/runtimes/web/preloading-wasm) and [Low-level API usage](https://rive.app/docs/runtimes/web/low-level-api-usage) (`locateFile`, self-hosting the WASM with a matching version; checked 2026-10-17)
-- Package source and npm metadata of `@remotion/rive` (`dist/esm/index.mjs`: unpkg `locateFile`, `enableRiveAssetCdn`, `advance(diff / fps)`) and `@rive-app/canvas-advanced@2.31.5` (`package.json`, `rive.wasm`, `rive_advanced.mjs.d.ts`, MIT) (checked 2026-10-19); `npm view @remotion/rive@4.0.537 dependencies` (checked 2026-10-26)
+- Package source and npm metadata of `@rive-app/canvas-advanced@2.31.5` (`package.json`, `rive.wasm`, `rive_advanced.mjs.d.ts`, MIT) (checked 2026-10-19)
 
 ## Element thumbnails
 
@@ -284,7 +271,7 @@ In place:
 
 - The hover card: `NodePreview` in `apps/frontend/src/editor/palette.tsx`, inside `HoverCard`, shows the title, category, description and ports.
 - `ElementMeta.thumbnail` exists in `crates/compile/src/elements/mod.rs` and is never filled.
-- `render-elements` (`crates/render/src/bin/render-elements.rs`, `bun run elements:render`) already compiles each registry element with its defaults in Rust, wires transitions, wrappers and sequencers to solid clips, and renders one frame through the sidecar into `~/.cache/opsis-element-stills` as 480 px JPEG.
+- `render-elements` (`crates/render/src/bin/render-elements.rs`, `bun run elements:render`) already compiles each registry element with its defaults in Rust, wires transitions, wrappers and sequencers to solid clips, and renders one frame through the frame driver into `~/.cache/opsis-element-stills` as 480 px JPEG.
 
 Missing:
 
@@ -292,7 +279,7 @@ Missing:
 
 ### Work
 
-1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element including core ones, overlays and text over a neutral dark `solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Swangle`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat` and the sidecar's still job).
+1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element including core ones, overlays and text over a neutral dark `solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Swangle`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat`; the browser's screenshot takes `webp` as a format).
 2. **Storage.** `apps/frontend/src/editor/element-stills/<key with "/" as "--">.webp`, editor-only, loaded with `import.meta.glob("./element-stills/*.webp", { query: "?url", import: "default", eager: true })` in a small `element-stills.ts` next to `palette.tsx`. Add the folder and its command to the generated-files table in `AGENTS.md`; run it after changing or adding an element. Remove `ElementMeta.thumbnail`.
 3. **Budget.** At most 24 KB per still and 3.5 MB in all (about 140 elements today, 160 with the web motion components, × 15–20 KB); the binary fails above either.
 4. **Hover card.** `NodePreview` shows the still of the hovered element at the top.
@@ -312,19 +299,17 @@ Opsis's own renders of its elements; the elements' own notices already cover the
 
 ### Sources
 
-- Remotion `renderStill` image formats in `@remotion/renderer` (`validStillImageFormats`: png, jpeg, pdf, webp; checked 2026-10-19)
-
 ## Visual check in CI
 
 ### What it adds
 
-On every pull request that touches elements, CI renders one frame of every element and compares it with the stored still, so a registry update, a Remotion bump or a font change that breaks an element fails the build instead of reaching users.
+On every pull request that touches elements, CI renders one frame of every element and compares it with the stored still, so a registry update, a browser bump or a font change that breaks an element fails the build instead of reaching users.
 
 ### Fit with Opsis
 
 In place:
 
-- `.github/workflows/build.yml` has a `checks` job and an `e2e` job that already caches the dev engine, installs it with `install-engine` and runs `bun run video:bundle`.
+- `.github/workflows/build.yml` has a `checks` job and an `e2e` job that already caches the dev engine, installs it with `install-engine` and runs `bun run film:bundle`.
 - The thumbnail stills above are rendered deterministically (software drawing, fixed frame) and are the reference images.
 - `opsis-media` runs FFmpeg from the engine.
 

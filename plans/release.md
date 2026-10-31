@@ -1,10 +1,10 @@
 # Release
 
-Everything still missing between today's app and a public release, and what comes after it: size work, builds and checks on Windows and macOS, signing, updates, the FFmpeg source offer, the release test pass, profiling, and node packs. Each section says first what is already in place, then what is left.
+Everything still missing between today's app and a public release, and what comes after it: size work, builds and checks on Windows and macOS, signing, updates, the release test pass, profiling, and node packs. Each section says first what is already in place, then what is left.
 
 ## How to read this plan
 
-- Sections 1–7 come before a first public release. Section 8 runs before every release. Sections 9 and 10 are later work.
+- Sections 1–6 come before a first public release. Section 7 runs before every release. Sections 8 and 9 are later work.
 - Each section has the same parts where they apply: **In place**, **Work** (numbered, only what is left), **Decided**, **Decision for the user**, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Local builds: deb only, `CARGO_BUILD_JOBS=8`, output in `~/.cache/opsis-build`. The rpm and AppImage, and the Windows and macOS packages, are built in CI only.
 
@@ -12,32 +12,32 @@ Everything still missing between today's app and a public release, and what come
 
 | Topic                           | What users get                                                       | Left to do                                             | Status                                  |
 | ------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------- |
-| 1. Size work                    | A smaller download and install                                       | measure again, act on the findings, record CI sizes    | measured; nothing cut since             |
+| 1. Size work                    | A smaller download and install                                       | measure again, act on the findings, record CI sizes    | measured 2026-10-31                     |
 | 2. Windows and macOS builds     | Installers that have actually run on each system                     | push, make the repo public, first CI run, fixes        | configured and linted, never run        |
 | 3. Platform checks              | The editor working the same on WKWebView and WebView2                | runner checks, the macOS shell, sign-in end to end     | not started                             |
 | 4. Local API on Windows         | A named pipe only the user's account can open                        | the access list and its test                           | not started                             |
 | 5. Code signing                 | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing                   | only the hardened runtime set           |
 | 6. Updates                      | Check for updates, ask first, install signed updates                 | the updater plugin, the About button, the release feed | signing key and secrets in place        |
-| 7. FFmpeg source offer          | The GPL's source obligation met for the shipped FFmpeg               | attach the sources to each release                     | in place                                |
-| 8. Release test pass            | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                    | e2e in place (6 spec files)             |
-| 9. Profiling (development only) | Measured costs before optimizing                                     | the process sampler script                             | size tools in place; no runtime tooling |
-| 10. Node packs (long term)      | Nodes that install and update apart from the app                     | all of it, after sections 1–8                          | not started                             |
+| 7. Release test pass            | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                    | e2e in place (6 spec files)             |
+| 8. Profiling (development only) | Measured costs before optimizing                                     | the process sampler script                             | size tools in place; no runtime tooling |
+| 9. Node packs (long term)       | Nodes that install and update apart from the app                     | all of it, after sections 1–7                          | not started                             |
 
 ## 1. Size work
 
 **In place.**
 
-- **Package size.** Measured 2026-10-27 with `bun run make -- --bundles deb`: the deb is 103,769,842 bytes and installs 218,670 KiB on Linux x64. Against the 2026-10-26 build (99,605,920 bytes, 225,424 KiB) the install is 6,754 KiB smaller, because Export as code and its 4.5 MB of sources are gone, and the deb is 4.16 MB larger, because of the built-in music (`public/music`, three 128 kbps AAC tracks, 7,923,531 bytes) and a larger binary.
-- **What ships.** One build, with no recording browser and no FFmpeg of ours inside: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), the compiled sidecar (`--minify`; about 89 MB of it is the Bun runtime), the compositor (about 25 MB of it FFmpeg), the video bundle with no source maps and with `public/`, the app's only copy of the `app:` files (a packaged app reads them through `AppPaths::public_dir`, and the editor's build carries only `page-errors.js`) and the recording browser's licences. `--bytecode` would start the sidecar in 20 ms instead of 56 ms for 4 MB more; it's left out.
+- **Package size.** Measured 2026-10-31 with `bun run make -- --bundles deb` on Linux x64: the deb is 48,625,200 bytes and installs 99,251,683 bytes: the app binary 75,211,696, the film page 18,590,721 and the browser's licences 5,345,493.
+- **What ships.** One build, with no recording browser and no FFmpeg inside: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), the film page (`film-bundle/`, one JavaScript file with no source maps and the repository's `public/`, the app's only copy of the `app:` files, which a packaged app reads through `AppPaths::public_dir`; the editor's build carries only `page-errors.js`) and the recording browser's licences.
+- **The film page.** 4,388,329 bytes of JavaScript in one file (2,042,714 gzipped) and 14,200,626 bytes of `public/` files: fonts 1,078,938, backdrops 4,810,439, music 7,923,531, sounds 381,916. One element file, `elements/scene/launch-anything/assets.ts`, is 1,716,146 bytes of source.
+- **Against the Remotion build.** `main` at `af466ca`, the last build drawn by Remotion, made a deb of 102,808,396 bytes that installed 223,808,565: its Bun sidecar (91,326,432 bytes) and Remotion's compositor (27,308,344) aren't shipped any more, and its video bundle was 24,920,537 bytes with 10,601,025 of JavaScript in two files. Exporting the Changelog template with its cut set to fade (both shapes, 1920×1080 and 1920×1920, 10.5 s, from an empty cache, in a virtual display) took 46.64 s and 46.27 s there and 28.36 s and 26.68 s now; the peak memory of the app and everything it started, sampled every 0.2 s, was 3,281 and 3,279 MiB there and 3,002 and 3,153 MiB now, FFmpeg's encoder about 1.8 GiB of it in both.
 - **Tools.** `cargo-bloat` is installed and `source-map-explorer` is a dev dependency (`a7f7e13`); both ran on 2026-10-26.
-- **The binary by crate** (`cargo bloat --release -p opsis-desktop --crates`, stripping off for the measurement): 72.4 MiB unstripped, 45.8 MiB of it code. The largest are std 4.3 MiB, unattributed 3.9 MiB, opsis_compile 2.9 MiB, serde_core 2.8 MiB, jsonschema 1.9 MiB, tokio, rav1e (the AV1 encoder, used only by Image format's AVIF) and tauri at 1.5 MiB each, aws_lc_sys 1.3 MiB, and zbus 1.1 MiB. `exr` (251 KiB) and `image_webp` (218 KiB) come with the `image` crate's default formats.
-- **The video bundle** (a development build with maps, 150 chunks, 25.6 MB of mapped JavaScript): `@remotion/studio` 7.17 MB (28%), which renders never show but Remotion's bundler puts in every bundle; the registry elements 3.39 MB, one file of which (`elements/scene/launch-anything/assets.ts`) is 1.7 MB; mediabunny 3.38 MB; three 2.48 MB; zod 1.32 MB; `@mediabunny/aac-encoder` 1.00 MB.
-- **The editor** (53 chunks, 3.58 MB of mapped JavaScript): elkjs 1.43 MB (40%, the engine behind Tidy up layout), the editor's own code 0.39 MB, remotion 0.25 MB (pulled in through an `@opsis/video` import, though the editor renders no video), `@base-ui/react` 0.22 MB.
+- **The binary by crate** (`cargo bloat --release -p opsis-desktop --crates`, stripping off for the measurement, 2026-10-26): 72.4 MiB unstripped, 45.8 MiB of it code. The largest are std 4.3 MiB, unattributed 3.9 MiB, opsis_compile 2.9 MiB, serde_core 2.8 MiB, jsonschema 1.9 MiB, tokio, rav1e (the AV1 encoder, used only by Image format's AVIF) and tauri at 1.5 MiB each, aws_lc_sys 1.3 MiB, and zbus 1.1 MiB. `exr` (251 KiB) and `image_webp` (218 KiB) come with the `image` crate's default formats.
+- **The editor** (2026-10-26, 53 chunks, 3.58 MB of mapped JavaScript): elkjs 1.43 MB (40%, the engine behind Tidy up layout), the editor's own code 0.39 MB, `@base-ui/react` 0.22 MB.
 
 **Work.**
 
-1. **Measure again.** The numbers above predate Konva and react-konva in the editor, and nnnoiseless (with its trained weights), fundsp, ab_glyph and wuff in the binary.
-2. **Act on the findings.** Each is its own decision: keep Remotion Studio out of the shipped bundle, find what pulls `remotion` into the editor, load elkjs only when Tidy up layout runs, shrink the 1.7 MB `assets.ts`, and turn off the `image` formats Opsis never reads.
+1. **Measure again.** The binary by crate and the editor by package predate Konva and react-konva in the editor, nnnoiseless (with its trained weights), fundsp, ab_glyph and wuff in the binary, and the renderer; the film page has never been measured by package.
+2. **Act on the findings.** Each is its own decision: load elkjs only when Tidy up layout runs, shrink the 1.7 MB `assets.ts`, and turn off the `image` formats Opsis never reads.
 3. **Record** each installer's size per platform from the CI artifacts.
 
 **Decided.** The notices of the crates and npm packages compiled into the app are not shipped: not worth the size. Code copied into the repo and a few bundled components keep theirs (`THIRD_PARTY_NOTICES.md`).
@@ -90,8 +90,8 @@ The named pipe is created with the default security descriptor, which grants rea
 
 **Work.**
 
-1. **macOS.** `bundle.macOS.signingIdentity` and an entitlements file; CI signs with `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` and notarizes with `APPLE_API_ISSUER`, `APPLE_API_KEY`, `APPLE_API_KEY_PATH`. The sidecar and the compositor's programs must all be signed, or notarization fails; the recording browser and our FFmpeg are downloaded or chosen on the user's Mac, not shipped.
-2. **Windows.** `bundle.windows.certificateThumbprint`, `digestAlgorithm` and `timestampUrl` for a certificate in the store, or `signCommand` for another tool (Azure Artifact Signing has a `signCommand` route). Sign the sidecar and the compositor's programs too.
+1. **macOS.** `bundle.macOS.signingIdentity` and an entitlements file; CI signs with `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` and notarizes with `APPLE_API_ISSUER`, `APPLE_API_KEY`, `APPLE_API_KEY_PATH`. Every program inside the app must be signed, or notarization fails; the recording browser and our FFmpeg are downloaded or chosen on the user's Mac, not shipped.
+2. **Windows.** `bundle.windows.certificateThumbprint`, `digestAlgorithm` and `timestampUrl` for a certificate in the store, or `signCommand` for another tool (Azure Artifact Signing has a `signCommand` route). Sign every program inside the app.
 3. **Check** on clean machines: the publisher name shows; macOS opens the downloaded zip with one confirmation.
 
 **Decided.** The signer is the user's own name.
@@ -105,7 +105,7 @@ The named pipe is created with the default security descriptor, which grants rea
 1. The app fetches a small JSON feed from GitHub Releases, only when the user clicks "Check for updates" or has switched on checking at start. Nothing goes online by default.
 2. It shows "Version X is available" with the notes; nothing downloads until the user clicks.
 3. `download()` fetches the update and checks its signature against the public key built into the app; `install()` installs it: the new installer on Windows, the app replaced on macOS, the AppImage replaced on Linux. deb and rpm can't update themselves, so they show a button that opens the release page.
-4. CI signs each build with the private key and writes the feed (`version`, `notes`, `pub_date`, `platforms.<os-arch>.url` and `signature`) to a draft release on a `v*` tag; a person publishes it after section 8.
+4. CI signs each build with the private key and writes the feed (`version`, `notes`, `pub_date`, `platforms.<os-arch>.url` and `signature`) to a draft release on a `v*` tag; a person publishes it after section 7.
 
 **In place** (2026-10-26).
 
@@ -122,13 +122,9 @@ The named pipe is created with the default security descriptor, which grants rea
 
 **Decided.** The feed address is the GitHub repo URL (GitHub forwards a renamed repo; never reuse the old name). deb: no apt repository, the release-page button.
 
-## 7. FFmpeg source offer
+## 7. Release test pass
 
-**Done, by removal.** Since v3 Opsis ships no FFmpeg at all: the renderer encodes with our ffmpeg-static programs (GPLv3), which are downloaded on the user's request or chosen, never shipped, so there is no source to offer. Remotion's compositor, its GPLv2 FFmpeg, `licences/compositor-sources.json` and `bun run compositor:sources` are gone.
-
-## 8. Release test pass
-
-**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display) has eight spec files: the start screen (`start`), every example opening (`examples`), the element picker (`views`), the Timeline (`timeline`), Tidy up layout (`layout`), a run and export of the changelog with the export played back (`export`), drawing a mark in Annotate's marks editor (`annotate`) and the Inspector's tabs (`inspector`), then the close check. The whole suite passed on 2026-10-30. The packaged deb was checked off-screen through the Local API: it opened the changelog and exported it with the packed sidecar.
+**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display) has eight spec files: the start screen (`start`), every example opening (`examples`), the element picker (`views`), the Timeline (`timeline`), Tidy up layout (`layout`), a run and export of the changelog with the export played back (`export`), drawing a mark in Annotate's marks editor (`annotate`) and the Inspector's tabs (`inspector`), then the close check. The whole suite passed on 2026-10-30. The packaged deb was checked off-screen through the Local API on 2026-10-31: from empty caches it recorded and exported a film with footage, a grade and Redact, and exported the Changelog template in both shapes.
 
 **Work, before each release** (Linux by hand, Windows and macOS through the runner checks in section 3):
 
@@ -144,7 +140,7 @@ The named pipe is created with the default security descriptor, which grants rea
 10. **Keyboard only:** create, connect, edit, run and export without a mouse.
 11. **Renders as recorded:** `crates/render/tests/frames.rs` (the same bytes) and `three_stills.rs` against their golden files, rerun on every browser or FFmpeg bump.
 
-## 9. Profiling (development only)
+## 8. Profiling (development only)
 
 No code goes into the app; everything runs from outside it or as build settings.
 
@@ -152,17 +148,17 @@ No code goes into the app; everything runs from outside it or as build settings.
 
 **Work.**
 
-1. **Per-component CPU and memory.** A dev script starts the app off-screen the way the e2e suite does (`xvfb-run`, Wayland unset, a seeded data folder with the API on), opens an example and runs it over the Local API, and samples every process in the app's tree once a second from `/proc`, tagged by command line: the app, WebKit's web and network processes, each headless shell (recording, streamed views, render tabs), the sidecar, FFmpeg. It writes a CSV and a chart. Node timings come from the run events the API streams.
+1. **Per-component CPU and memory.** A dev script starts the app off-screen the way the e2e suite does (`xvfb-run`, Wayland unset, a seeded data folder with the API on), opens an example and runs it over the Local API, and samples every process in the app's tree once a second from `/proc`, tagged by command line: the app, WebKit's web and network processes, each headless shell (recording, streamed views, render tabs), FFmpeg. It writes a CSV and a chart. Node timings come from the run events the API streams.
 2. **Where Rust spends time.** `samply record -p <pid>` or `perf record -g` on the app, on a release build with symbols kept through build settings (`CARGO_PROFILE_RELEASE_DEBUG=true`, `CARGO_PROFILE_RELEASE_STRIP=false`).
 3. **Memory.** `heaptrack` on the app binary.
 4. **The editor UI.** WebKitGTK's remote inspector through `WEBKIT_INSPECTOR_HTTP_SERVER=127.0.0.1:9222` (timelines, memory, layout); dev builds also open the inspector from the View menu.
 
-## 10. Node packs (long term)
+## 9. Node packs (long term)
 
-Nodes that install and update apart from the app; build after sections 1–8.
+Nodes that install and update apart from the app; build after sections 1–7.
 
 - **Phase 1, no-code nodes.** "Save as reusable node" on a selection (nodes, inner edges, exposed ports and settings) into the data folder or the project; a `core.subgraph` node compiles by expanding its contents in `opsis-compile`. "Save project as template" and per-node presets.
 - **Phase 2, packs as data.** A `pack.json` manifest (id, name, semver version, the pack API version, permissions, nodes and elements), first-party packs grouping today's nodes without changing their ids, projects listing the packs they use, and the "isn't available" messages naming the missing pack. Pack id and version join the node cache key.
-- **Phase 3, pack code.** Node definitions and compile are Rust, so a pack can't ship TS compile code: settings come as JSON Schema, and compile and executors run as WebAssembly modules or as separate programs speaking the sidecar's JSON-lines protocol (decide when this phase starts). Video components ship prebuilt as ES modules importing `react` and `remotion` from globals the bundle exposes, loaded next to the registry's loaders under `delayRender`.
+- **Phase 3, pack code.** Node definitions and compile are Rust, so a pack can't ship TS compile code: settings come as JSON Schema, and compile and executors run as WebAssembly modules or as separate programs speaking a JSON-lines protocol over stdin and stdout (decide when this phase starts). Video components ship prebuilt as ES modules importing `react` and `@opsis/runtime` from globals the film page exposes, loaded next to the registry's loaders under `holdRender`.
 - **Phase 4, third-party packs.** Installed from a file (decided: no online catalogue at first); unsigned packs may run code after a clear warning naming what they can do, signed ones skip it (decided).
 - **Risks.** Pack video code runs where renders run; version skew between a pack and the film page's `react`.

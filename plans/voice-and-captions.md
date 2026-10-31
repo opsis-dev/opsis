@@ -25,7 +25,7 @@ These apply to every feature in this plan. They restate rules from `AGENTS.md`; 
 **Behaviour.**
 
 - Nothing uses the internet unless the user asks. Every download sits behind a button, says what it gets and how big it is, asks first, and saves under `<data folder>/speech`. Online voices and transcription are off until the user turns a service on in Settings and enters a key.
-- Synthesis and transcription happen when a node runs, never at preview or render time. The preview and the export play the same saved files, so preview equals export.
+- Synthesis and transcription happen when a node runs, never at render time. The Timeline's playback and the export play the same saved files, so what the Timeline plays is what the export has.
 - Keys live in the OS keyring (`Keyring::set_key`, `crates/store/src/keys.rs`), never in settings, never in a window.
 
 **User-facing copy.**
@@ -39,8 +39,8 @@ These apply to every feature in this plan. They restate rules from `AGENTS.md`; 
 **Checks when a feature is done.**
 
 - `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, and the no-comments check.
-- Try it in the app: download from Settings, run the node, play it in the Preview, change the Mixer.
-- Export a short film that uses it and compare with the Preview: preview must equal export.
+- Try it in the app: download from Settings, run the node, play it on the Timeline, change the Mixer.
+- Export a short film that uses it and compare it with the Timeline's playback: the export must sound the same.
 
 ## Summary
 
@@ -140,7 +140,7 @@ Missing:
 8. **Captions on actions.** `Caption` gains an optional `anchor`; Show captions resolves them against its **Over clip** input with the same marks as `anchor_sounds` (a shared `mark_frame` helper). Without a clip, anchored lines use their unanchored times and the card says so.
 9. **Icons.** `MicVocal` and `Speech` in `Icon` and `NODE_ICONS`; a look on the node's definition (`.look(…)`), then `bun run glyphs:bundle`.
 10. **Tests.** The executor exists; descriptions and banned words; compile placement with pauses, nudges and anchors; a round-trip for the line move handle with the other timeline edit tests; ducking keys include the voice; the Voice bus is added once.
-11. **Check.** A film with music, a voiceover of five lines (two on actions) and Show captions: the music dips under each line, captions follow the words, dragging a line on the Timeline moves its captions, re-running after editing one line re-speaks only that line, and the export sounds and looks like the Preview.
+11. **Check.** A film with music, a voiceover of five lines (two on actions) and Show captions: the music dips under each line, captions follow the words, dragging a line on the Timeline moves its captions, re-running after editing one line re-speaks only that line, and the export sounds like the Timeline's playback.
 
 ### Licence
 
@@ -236,7 +236,7 @@ Missing: the transcription model in Rust, the node, its executor, and turning to
    5. Write `captions.json` and `captions.srt` as results.
 5. **Shared with the Voiceover.** The transcribe step is a function the Voiceover's "From the voice" word timing calls.
 6. **Tests.** Golden token and frame lists recorded from onnx-asr on a few short files (checked in as test data with the script that wrote them), compared exactly with the Rust loop; `tokens_to_captions` on spaces, punctuation, fixes, offset and the 0.8 s cap; the silence split keeps times continuous; the executor exists.
-7. **Check.** Import a screen recording with narration, run Captions from speech with each model, show the captions over the clip: words land within a frame or two of the speech in the Preview and the export, on Linux, Windows and macOS.
+7. **Check.** Import a screen recording with narration, run Captions from speech with each model, show the captions over the clip: words land within a frame or two of the speech in the export, on Linux, Windows and macOS.
 
 ### Licence
 

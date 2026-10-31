@@ -51,14 +51,14 @@ Ideas that were discussed but never finalized or planned.
 - [ ] Measuring how fast a low-resolution draft export renders (for example 480p), and whether one can hold more than 20 frames a second.
 - [ ] Shipping the ffmpeg-static binary inside the deb and rpm instead of downloading it in Settings → Engine. This would reverse "no FFmpeg of ours inside" in `plans/release.md` and bring its GPLv3 source offer into the release.
 - [ ] Settings the audit left out because the code under them can't take them yet:
-  - the transitions Remotion draws: the clock wipe's direction and start angle, the iris's centre and direction, a fade through a colour and the lens zoom's centre;
+  - the transitions our presentations draw with fixed values: the clock wipe's direction and start angle, the iris's centre and direction, a fade through a colour and the lens zoom's centre;
   - which side a tooltip or callout sits on (needs placement that keeps the box on screen, `packages/video/src/camera/annotations.tsx`);
   - each transition's own settings in a Sequence's cuts (a nested form per cut from the chosen transition's schema);
   - the agent-run panel's width and text size (they feed its whole layout and length model).
 
 ## Unverified
 
-Behaviour that was never checked and isn't in the release test pass in `plans/release.md` (section 8).
+Behaviour that was never checked and isn't in the release test pass in `plans/release.md` (section 7).
 
 - [ ] Restoring saved window positions (`visible_bounds`, `crates/desktop/src/windows.rs`) on Windows and macOS. X11 was checked in a virtual display without a window manager; under Wayland the compositor places windows, so positions are never restored there.
 - [ ] Audio scrubbing on the Timeline.

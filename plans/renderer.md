@@ -1,280 +1,16 @@
-# Renderer (v3)
+# Renderer
 
-Opsis v1 was Electron, v2 is Rust and Tauri with Remotion drawing the film. v3 is a greenfield renderer written for Opsis: one Rust engine that drives the recording browser for takes, stills and exports, with a film page Opsis owns end to end. Nothing about v2's film code is a constraint: elements, nodes, the page runtime, the authoring model and the build can all change if the result is faster or simpler. Opsis is pre-alpha (never published, never pushed, one local deb install for checks), so no file format, setting or element needs a migration.
+The film is drawn by Opsis's own renderer: Rust drives the recording browser over the film page (`apps/film`, on `@opsis/runtime`), captures each frame and encodes it with FFmpeg (`AGENTS.md`, The film page and the frame driver). This plan is what's left to make it faster and to decide its open questions.
 
-Status: phase 1 on `main` (2026-10-31); phase 2 done on the branch; phase 3 in progress (3.1 to 3.5 done). Work happens on `exp/rs-renderer` in the worktree `~/projects/opsis-v3`, which builds into its own `target` only (no `CARGO_TARGET_DIR`; the main checkout isn't built while the worktree exists, and the worktree's `target` is deleted once it's merged). Performance is compared on release builds only.
+Status: the renderer is on `exp/rs-renderer` in the worktree `~/projects/opsis-v3`, not merged into `main`. The worktree builds into its own `target` only (no `CARGO_TARGET_DIR`), and its `target` is deleted once it's merged. Performance is measured on release builds only, and only after the merge.
 
 ## How to read this plan
 
-- Section 1 is v2 as it stands, with numbers. Section 2 is the research on Remotion, HyperFrames, Motion Canvas, the Rust toolchain crates and other people's experiments, plus measurements made on Opsis's own pinned browser. Section 3 is the v3 design. Section 4 is the work, in the order agreed: leaf packages first (smallest first), then footage from Rust, then the page runtime and the Rust renderer as one phase, then cleanup. Section 5 lists measurements still to take, 6 decisions for the user, 7 risks, 8 sources.
-- Each phase in section 4 ends with the same checks: `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, the element stills compared against the previous run (`bun run elements:render`, 138 stills, byte comparison), and the dev-engine tests of any crate touched. Visual changes are allowed (greenfield) but each one is looked at and named.
+- Section 1 lists the measurements to take after the merge, section 2 the work they decide, section 3 decisions for the user, section 4 risks, section 5 sources.
+- Each piece of work ends with the usual checks: `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, the element stills against the previous run (`bun run elements:render`, 138 stills, byte comparison) and the dev-engine tests of any crate touched (`crates/render/tests/frames.rs`, `three_stills.rs`, `run.rs`).
 - Rules from `AGENTS.md` hold unless this plan changes them on purpose; every such change updates `AGENTS.md` in the same commit.
-- Remotion is leaving, so it informs nothing below except as a record of what v2 does today. Its licence also forbids copying or modifying its code to sell a derivative, so no Remotion code is copied into v3; everything replacing it is written for Opsis. HyperFrames (Apache-2.0) and Motion Canvas (MIT) may be borrowed from with their notices in `THIRD_PARTY_NOTICES.md`.
 
-## 1. v2 today
-
-### 1.1 How an export is made
-
-1. Compile produces a `TimelineSpec`; `hosted` turns `project:` and `prepared:` refs into addresses on the render file server.
-2. The render executor (`crates/render/src/executors.rs`) works out the picture key (`picture_key`, `crates/render/src/picture.rs`: the spec without its audio, mix and asset address, `PICTURE_VERSION`, `PREPARED_VERSION`, the app version) and, when `.opsis/cache/pictures/<key>` has nothing, asks the sidecar for a render.
-3. The sidecar (`apps/sidecar`, Bun, one JSON message per line) calls `selectComposition`, then `renderMedia` or `renderStill` from `@remotion/renderer` (`apps/sidecar/src/render.ts`): `serveUrl` is the prebuilt bundle, `browserExecutable` the engine's headless shell, `chromiumOptions.gl` the export's `Gl` (`angle` by default; `swangle`, `egl`, `vulkan`, `swiftshader`), `concurrency: 1`, codecs `h264 | h265 | vp8 | vp9 | prores | gif`, `crf`, `x264Preset`, `pixelFormat` (`yuv444p`), ProRes `proxy | light | standard`, `everyNthFrame`, `numberOfGifLoops`, `muted`; stills `png | jpeg` with `scale` and `jpegQuality`; the licence key from Settings (`"free-license"` when empty).
-4. Remotion's renderer opens a tab per worker, sets each frame, waits, takes a picture and pipes it to the FFmpeg inside Remotion's compositor.
-5. Opsis adds the master stem with its own FFmpeg (`mux_args`, `crates/media/src/codecs.rs`), writes chapters in the finishing copy (`finish_args`), and saves the result.
-
-Sound never comes from Remotion: the mix is rendered in Rust (`crates/media/src/mix/render.rs`) and muxed afterwards. `DemoTimeline` mounts one `<Audio>` for `spec.mix` only so Remotion knows the film has sound.
-
-### 1.2 What ships because of Remotion
-
-| Item                                                                            | Size                                   | Notes                                                                                                                               |
-| ------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `resources/binaries/opsis-render-<triple>` (the sidecar, `bun build --compile`) | 87 MB                                  | about 89 MB of the release-plan measurement is the Bun runtime                                                                      |
-| `resources/compositor` (Remotion's Rust compositor with its FFmpeg)             | 27 MB                                  | GPLv2 FFmpeg: `COPYING.GPLv2`, `SOURCES.md`, `licences/compositor-sources.json`, the CI `compositor-sources` job, release section 7 |
-| `remotion-bundle/`                                                              | 38 MB with `public/`                   | `@remotion/studio` is 7.17 MB (28%) of a development bundle though renders never show it; mediabunny 3.38 MB, three 2.48 MB         |
-| The deb as a whole (2026-10-27)                                                 | 103.8 MB download, 218.7 MiB installed |                                                                                                                                     |
-
-Rules and workarounds that exist only for Remotion: every `remotion`/`@remotion/*` package pinned to one exact version; TypeScript pinned to 6.0.3 (Remotion's esbuild loader reads `tsconfig.json` through `typescript.sys`); "Remotion ignores tsconfig paths" (no `@` alias in the video); `#video/` instead of `#/` (Rspack rejects `#/`); the Remotion licence key and notice in Settings and the first-run screen; the section 7 permission at the top of `LICENSE`; the engine pin read from `@remotion/renderer`'s `TESTED_VERSION` (`scripts/engine-downloads.ts`); renders at `concurrency: 1`; users at companies with more than three employees needing a Remotion company licence.
-
-### 1.3 What the film code uses from Remotion
-
-`packages/video/src` has 304 source files (166 of them element components); 184 import the `remotion` core package and 48 import `@remotion/*` packages.
-
-Core (`remotion`), by import count: `interpolate` 89, `AbsoluteFill` 88, `useVideoConfig` 68, `useCurrentFrame` 61, `Easing` 47, `spring` 37, `Img` 22, `random` 18, `getRemotionEnvironment` 8, `Sequence` 7, `continueRender` 6, `delayRender` 6, `interpolateColors` 5, `staticFile` 4, `OffthreadVideo` 4, `Interactive` 3, `EffectDescriptor` 3, `useDelayRender` 2, `SpringConfig` 2, and one each of `Composition`, `Freeze`, `Loop`, `registerRoot`, `useRemotionEnvironment`, `isHtmlInCanvasSupported`, `cancelRender`, `Internals` (the test harness only).
-
-Leaf packages, ordered by the size of their own source in Remotion's repository (`packages/<name>/src`, tests excluded), which is the order phase 1 removes them in:
-
-| #   | Package                    | Own source | Opsis files / uses | What Opsis uses                                                                                                                                                            | Depends on                                                    |
-| --- | -------------------------- | ---------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| 1   | `@remotion/tailwind-v4`    | 64 lines   | 1 / 1 (sidecar)    | `enableTailwind`                                                                                                                                                           | css-loader, style-loader, tailwindcss, `@tailwindcss/webpack` |
-| 2   | `@remotion/noise`          | 95         | 2 / 4              | `noise3D`                                                                                                                                                                  | simplex-noise                                                 |
-| 3   | `@remotion/light-leaks`    | 336        | 1 / 1              | `LightLeak`                                                                                                                                                                | `@remotion/effects`                                           |
-| 4   | `@remotion/lottie`         | 402        | 2 / 4              | `Lottie`, `LottieAnimationData`                                                                                                                                            | lottie-web (peer)                                             |
-| 5   | `@remotion/mac-cursors`    | 459        | 1 / 1              | `resolveCursor`                                                                                                                                                            |                                                               |
-| 6   | `@remotion/motion-blur`    | 495        | 1 / 2              | `CameraMotionBlur`                                                                                                                                                         |                                                               |
-| 7   | `@remotion/three`          | 751        | 1 / 2              | `ThreeCanvas`                                                                                                                                                              | `@react-three/fiber` (peer)                                   |
-| 8   | `@remotion/rough-notation` | 1,526      | 1 / 10             | `Box`, `Circle`, `CrossedOff`, `Highlight`, `Underline`                                                                                                                    | roughjs, `@remotion/paths`                                    |
-| 9   | `@remotion/paths`          | 5,737      | 3 / 19             | `evolvePath`, `getBoundingBox`, `getLength`, `getPointAtLength`, `getTangentAtLength`, `interpolatePath`, `normalizePath`, `reversePath`, `scalePath`, `translatePath`     |                                                               |
-| 10  | `@remotion/transitions`    | 5,954      | 26 / 69            | `TransitionSeries`, `TransitionPresentation`, `TransitionPresentationComponentProps`, `linearTiming`, `springTiming`, `fade`, `slide`, `wipe`, `flip`, `iris`, `clockWipe` | `@remotion/shapes`, `@remotion/paths`                         |
-| 11  | `@remotion/media`          | 12,241     | 3 / 3              | `Video` (recordings, with `effects`), `Audio` (the mix)                                                                                                                    | mediabunny (MPL-2.0)                                          |
-| 12  | `@remotion/effects`        | 47,965     | 2 / 4              | `colorCorrection`, `noise`, `vignette` (Picture look), `regionBlur` (Blur areas)                                                                                           | core `EffectDescriptor`                                       |
-
-The sidecar also uses `@remotion/renderer` (`renderMedia`, `renderStill`, `selectComposition`, `makeCancelSignal`) and `@remotion/bundler` (`RspackOverrideFn`); those go in phase 3.
-
-### 1.4 What Opsis already owns (the base v3 builds on)
-
-`crates/capture` (8,188 lines) already is most of a frame-accurate browser renderer:
-
-- **Browser.** One engine: Chrome Headless Shell 157.0.8080.0 (`crates/engine/src/downloads.generated.json`; Remotion's build on Linux x64/arm64 and Apple Silicon, Google's Chrome for Testing elsewhere), launched with Playwright's switches merged by `effective_switches` (`crates/capture/src/browser.rs`), children remembered and ended with the app (`crates/engine/src/children.rs`), child temp folders.
-- **CDP.** Our own client over chromiumoxide (`crates/capture/src/cdp.rs`): evaluate in the main world, an isolated utility world with Playwright's injected script, `call_on`, screenshots.
-- **One clock per take.** `TakeClock` (`take_clock.rs`) with real and stepped modes; smooth takes (`smooth.rs`) hold the page clock (`Clock::hold_for_frames`), set every CSS and web animation's rate to 0 and step them one frame at a time (`STEP_FRAME`, and `STEP_OVERLAYS` for the injected overlays' closed shadow root), keep page time across documents (`page_time_for_new_pages`), and take each frame's picture with `Page.captureScreenshot` at an explicit clip and scale. Measured: a 30 s take of a busy 1920×1080 page at 2× took 36 s with Standard (JPEG), 62 s with Lossless (PNG), 149 s with Full detail.
-- **Encoding.** `FrameEncoder` (`encoder.rs`) pipes JPEG or PNG frames into ffmpeg-static at a constant rate without ever making the browser wait.
-- **Serving.** The render file server answers project files and prepared files (`crates/prepare`: typefaces, Draco/meshopt models to plain GLB, flattened SVG, downsized textures), keyed by source size, time and `PREPARED_VERSION`.
-- **Media.** `opsis-media`: FFmpeg argument builders, grade filter graphs (`crates/media/src/grade.rs`), mixing, muxing; `opsis-probe` reads media in Rust.
-- **Caching.** Node keys, picture keys, prepared keys, all sha256.
-
-What it lacks is a film page of its own, a seek handshake with that page, video frames for that page, and the export plumbing the sidecar does today.
-
-## 2. Research
-
-Clones (shallow, `~/.cache/opsis-research`): Remotion `3b7e700` (2026-10-29, 870 MB), HyperFrames `9fd90d2` (2026-10-30, 406 MB), Motion Canvas `7b91435` (2026-07-02, 9.4 MB).
-
-### 2.1 Remotion (source-available, Remotion License)
-
-- **Render loop.** `renderMedia` → `renderFrames` opens a pool of pages (`Pool`, `nextFrameToRenderState`: each free page takes the next unrendered frame, failed frames go back with `MAX_RETRIES_PER_FRAME`), `cycleBrowserTabs` brings tabs to the front so Chrome doesn't throttle them. Per frame (`seek-to-frame.ts`): wait for `window.remotion_renderReady === true` (no open `delayRender` handles, polled with `waitForFunction`), call `window.remotion_setFrame(frame, composition, attempt)` (React state change plus a `delayRender` released on the next `requestAnimationFrame`), wait for ready again, then `document.fonts.ready`. Timeouts report the open `delayRender` labels.
-- **Picture.** `Page.captureScreenshot` (`screenshot-task.ts`) with `optimizeForSpeed`, `captureBeyondViewport`, `fromSurface` (needed above 8192 px), the body background set black, or transparent for PNG/WebP. A fast path needs Remotion's patched Chromium and patched FFmpeg: frames go through POSIX shared memory (or file-backed pools with `-pool_dir` where `/dev/shm` is missing) straight into FFmpeg (`remotionFrameSlot`, `remotionFrameId`).
-- **Encoding.** Frames piped to FFmpeg; "parallel encoding" pre-stitches while frames render; long renders split into chunks concatenated afterwards, with extra frames rendered at chunk edges so AAC can be joined seamlessly (`get-extra-frames-to-capture.ts`).
-- **Compositor.** A long-running Rust process on rust-ffmpeg: opens videos (`opened_video_manager`), a frame cache with a memory budget, rotation, HDR tone mapping, audio extraction, silence detection, metadata. `OffthreadVideo` asks it for frames over the renderer's HTTP server.
-- **`@remotion/media`.** 12k lines over mediabunny: decodes video and audio in the page with WebCodecs and draws onto a canvas; Opsis's recordings play through it and its `effects` prop runs `@remotion/effects` WebGL passes (48k lines) on each frame.
-- **Web renderer.** `@remotion/web-renderer` renders entirely in the page: it draws the DOM into a canvas with `drawElementImage` (Chromium's HTML-in-canvas, `CanvasDrawElement`) or its own DOM composer, and encodes with WebCodecs through mediabunny, no screenshots and no FFmpeg.
-- **Core sizes** (for scale, not to copy): `interpolate.ts` 1,484 lines, `interpolate-colors.ts` 729, `Sequence.tsx` 1,290, `Img.tsx` 777, `delay-render.ts` 216, `spring/` 380, `easing.ts` 168, `random.ts` 46; `TransitionSeries.tsx` 1,053, `ThreeCanvas.tsx` 258, `Lottie.tsx` 236, motion blur 489. Most of that is the Studio, the Player and premounting; Opsis needs a fraction.
-- **Licence.** Free for individuals, companies up to 3 employees and non-profits; "It is not allowed to copy or modify Remotion code for the purpose of selling, renting, licensing, relicensing, or sublicensing your own derivate of Remotion."
-
-### 2.2 HyperFrames (Apache-2.0, HeyGen)
-
-- **Authoring.** HTML compositions with data attributes; animation through seekable timelines registered on `window.__timelines` (GSAP by default). The page exposes `window.__hf = { duration, seek }`; "the renderer never calls play()". Adapters implement `{ id, init?, getDurationFrames, seekFrame, destroy? }`. Time is quantized `Math.round(time * fps) / fps`. Rules: no `Date.now()`, no unseeded `Math.random()`, no network at render time; Google Fonts imports rewritten to local copies; the runtime bundle checked by sha256.
-- **Engine** (`packages/engine`, Node and Puppeteer, `frameCapture.ts` alone is 5,634 lines). Three capture modes:
-  - `beginframe`: `HeadlessExperimental.beginFrame` runs layout, paint, composite and the screenshot in one call and returns `hasDamage`. Linux with chrome-headless-shell only; flags `--deterministic-mode --enable-begin-frame-control --run-all-compositor-stages-before-draw --disable-threaded-animation --disable-threaded-scrolling --disable-checker-imaging --disable-image-animation-resync --enable-surface-synchronization`. With begin-frame control the main thread stops ticking by itself, so `document.fonts.ready` and rAF-based polling hang; they warm up with `beginFrame` every 33 ms and `noDisplayUpdates: true`, poll with evaluate plus `setTimeout`, and start capture at a frame time past the warm-up. A liveness probe falls back to screenshots when the domain is missing; on macOS and Windows Chrome "either crashes under --deterministic-mode or has its own issues", so they use screenshots there.
-  - `screenshot`: `Page.captureScreenshot` with "did the frame land" heuristics (fonts, computed styles, pixel hashes); their own write-up calls it "not the most robust".
-  - `drawelement`: `canvas.drawElementImage` reads DOM paint records into a `<canvas layoutsubtree>` around the composition, an in-page `OffscreenCanvas` worker encodes JPEG; "~46% faster than Page.captureScreenshot on local GPU", pixel-perfect alpha on GPU, falls back on SwiftShader with transparency.
-- **Per frame** (`prepareFrameForCapture`): seek, decode dynamic CSS background images, a before-capture hook (video frame injection), wait for pending seek handlers, wait for colour-grading LUTs, then capture. Readiness checks for images, videos, fonts and Tailwind.
-- **Video.** "Letting a browser play <video> at render time does not work." FFmpeg extracts each video's frames before capture (HDR to SDR tone mapping, playback-rate maps, metadata cache); during capture each `<video>` is hidden and an `<img>` with the frame is injected with its computed styles copied; frames reach the page through intercepted requests under a private URL prefix rather than CDP data URIs.
-- **Static frames.** `computeStaticFrameSet` predicts from the GSAP timelines which frames can't differ from the previous one and reuses its buffer; any video, canvas, WebGL or non-GSAP animation disqualifies the whole composition; a verification pass samples some of the predicted static frames.
-- **Parallelism.** N Chrome processes on frame ranges, MP4 chunks concatenated; worker count from CPU and memory (never below 6 by default); a reorder buffer feeds frames to FFmpeg in order (`streamingEncoder`, `-f image2pipe`); video-heavy compositions drop to one worker because Chrome can't seek many `<video>`s at once.
-- **Other.** Sub-frame motion blur: K captures across a shutter window (angle 180°, phase −90°, 16 samples by default) averaged per output frame, which blurs rotation, scale and opacity too, not only translation. HDR capture. Chrome flags that stop background throttling (`--disable-background-timer-throttling`, `--disable-backgrounding-occluded-windows`, `--disable-renderer-backgrounding`), `--force-color-profile=srgb`, `--font-render-hinting=none`.
-- **Field reports.** Issue #4584 (open): with a hardware GPU and 6 or more workers starting together, every `beginFrame` probe times out (0.4 s for one browser plus about 0.33 s per browser starting alongside, against a 2000 ms deadline) and the render silently falls back to screenshots at about twice the time (60 s clip: 10.3 s with beginFrame against 22.2 s); retrying the probe once fixed it (9 of 9 renders). Issue #294: "beginFrame wasn't found" was a non-headless-shell build; the fix was a probe and fallback, the "Chromium 147" claim was never confirmed.
-
-### 2.3 Motion Canvas (MIT)
-
-- Scenes are generator functions; values are signals (reactive, computed values cached by dependency); drawing is a 2D scene graph on `<canvas>`; layout measures nodes in a hidden DOM `div` (flexbox by the browser) and draws on the canvas.
-- Seeking replays the current scene's generator from its first frame up to the target (`PlaybackManager.seek`), with cached scenes; there is no random access to a frame.
-- Time events (`waitUntil('event')`) are stored in a metadata file and dragged in the editor's timeline (`EditableTimeEvents`), like Opsis's Timeline handles.
-- No headless renderer: export runs in the editor's browser tab; the FFmpeg exporter reads `getImageData` per frame and sends it through the Vite dev server's HMR channel to an FFmpeg process. Last commit 2026-07-02.
-
-### 2.4 Other people's experiments
-
-- **scorsese** (Rust, issue #775, closed 2026-10-06): headless Chromium as an external program, CDP hand-written over `--remote-debugging-pipe` ("No CDP crate"), the clock owned by a JS shim (`performance.now`, `Date`, timers, rAF, every Web Animation paused and seeked) because "neither CDP virtual time nor beginFrame's own clock is deterministic"; the shim clock starts above zero (anime.js treats a rAF timestamp of 0 as not started); frames from `beginFrame` under `--deterministic-mode` (prime with one or two begin-frames, early ones have no damage), fallback `Page.captureScreenshot` plus `--disable-threaded-animation`; SwiftShader everywhere; a virtual origin served entirely through the Fetch domain, failed requests reported, never silent; fonts limited with `FONTCONFIG_FILE`; cache keyed by page bytes, every loaded file, raster, fps, duration, Chromium version and shim version. Numbers: about 3.4 min per minute of video on SwiftShader, byte-identical across runs; 2.2 min for 60 s with 4 tabs.
-- **Chromium headless-dev** ("screenshot functionality is extremely slow", 2022): about one 1920×1080 screenshot a second on a shader page; the Chromium developer's answer: GPU readback latency and reading the whole viewport, "one of the larger contributing factors is PNG encoding", "JPEG is considerably faster than PNG"; PNG with no row filter and compression 1 about 2× faster.
-- **vidium** records with `Page.startScreencast` (real time, drifts), not frame-exact.
-
-### 2.5 Measured on Opsis's own browser (2026-10-30)
-
-A Bun script speaking CDP directly to the pinned Chrome Headless Shell 157.0.8080.0 (Remotion's Linux x64 build), one 1920×1080 page with a moving gradient box with a shadow and a text line, 60 frames, SwiftShader allowed:
-
-| Capture                                | Format   | ms per frame | fps  | base64 per frame |
-| -------------------------------------- | -------- | ------------ | ---- | ---------------- |
-| `Page.captureScreenshot` (after a rAF) | JPEG q80 | 77.9         | 12.8 | 36 KiB           |
-| `Page.captureScreenshot` (after a rAF) | PNG      | 74.5         | 13.4 | 200 KiB          |
-| `HeadlessExperimental.beginFrame`      | JPEG q80 | 30.2         | 33.2 | 36 KiB           |
-| `HeadlessExperimental.beginFrame`      | PNG      | 34.0         | 29.4 | 200 KiB          |
-
-- `beginFrame` works on our pinned build and was about 2.5× faster than `captureScreenshot` on this page.
-- `hasDamage` was true for all 60 frames even when frames 1 to 29 changed nothing, when every call asks for a screenshot. Static-frame skipping therefore can't rely on Chrome reporting damage; it has to come from the spec.
-- One page, one machine, no GPU flags: section 5 lists the measurements still needed (real elements, recordings, WebGL, `drawElementImage`, parallel tabs).
-
-### 2.6 The JavaScript and CSS toolchain as Rust crates
-
-- **Rolldown** (oxc-based bundler, the engine under Vite's future): published as the `rolldown` crate; the Node and WASM bindings are a separate `rolldown_binding` crate. The project says issues that only affect Rust-crate use "will not be worked on as a team and will be closed", but pull requests are accepted. No published Rust usage example.
-- **oxc**: `oxc` with the `transformer` feature (TypeScript stripping, JSX, lowering, define/inject), `oxc_codegen` (with source maps), `oxc_resolver`, `oxc_minifier`. Not a bundler by itself; Rolldown is the bundler built on it.
-- **Rspack**: `rspack`, `rspack_core` and friends are on crates.io (0.102.x on docs.rs), all pinned to one exact version, mostly undocumented, APIs change a lot between releases, no embedding guide; the Node layer is `rspack_binding_api`.
-- **swc**: `swc_core` crates usable from Rust; `swc_bundler` exists but is not where the ecosystem is going.
-- **Tailwind v4**: Oxide (`@tailwindcss/oxide`) is the Rust file scanner; CSS generation is still the TypeScript compiler, and the crate isn't built for direct Rust use. The official route without Node is the standalone CLI binary. A community Rust engine (ironframe) claims v4.1 compatibility, unverified. `lightningcss` (Rust) does CSS transforms and minification.
-- **Native 2D**: Vello (GPU compute 2D renderer on wgpu, pre-1.0, needs compute shaders or its CPU path), Parley (text layout), Taffy (flexbox/grid). Nobody found using them for frame-by-frame video export; a Motion Canvas-like engine on Vello and Typst exists.
-
-### 2.7 What v3 takes from each
-
-| Idea                                                                    | From                                 | In v3                                                                                       |
-| ----------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| Seek, never play; the page exposes one seek function and a ready signal | Remotion, HyperFrames                | `window.opsis.seek(frame)` returning when the frame is ready                                |
-| `beginFrame` capture with a probe, retry and fallback                   | HyperFrames, scorsese, measured 2.5× | Linux capture path; screenshot path elsewhere; probe retried once (HyperFrames #4584)       |
-| Our own deterministic clock shim, not CDP virtual time                  | scorsese, Opsis smooth takes         | the smooth-take clock, already ours, drives renders too                                     |
-| Video frames decoded outside the page                                   | HyperFrames, Remotion's compositor   | ffmpeg-static decodes in Rust, the file server serves frames; also fixes HEVC (TODO.md bug) |
-| Effects on footage done before the page                                 | Opsis's grade nodes                  | Picture look and Blur areas as FFmpeg pre-passes (prepared files)                           |
-| Static frames skipped from knowledge of the timeline                    | HyperFrames                          | from the compiled spec, which knows every item's animation span                             |
-| Sub-frame motion blur in the renderer                                   | HyperFrames                          | a renderer option on any span, replacing per-element tricks                                 |
-| Workers on frame ranges with a reorder buffer, chunks concatenated      | Remotion, HyperFrames                | after one-tab is fast; WebGL contexts and GPU probes limit it                               |
-| `drawElementImage` capture and in-page encoding                         | HyperFrames, Remotion web renderer   | measured, then chosen per platform if faster                                                |
-| Editable time events stored beside the scene                            | Motion Canvas                        | already Opsis's Timeline handles                                                            |
-| Every request served by us, failures reported                           | scorsese                             | the render file server; nothing loads from the internet (already a rule)                    |
-| Bundle the film in Rust                                                 | Rolldown, oxc                        | optional, last; see 3.5                                                                     |
-
-## 3. v3 design
-
-### 3.1 Shape
-
-```
-compile (Rust) ──► FilmSpec ──► film page (static, served by the render file server)
-                                   ▲ seek(frame) / ready                 │ <img> frames of videos and takes
-Rust FrameDriver (opsis-capture) ──┘                                     │ prepared files (models, fonts, footage after grading and blur)
-   │ beginFrame (Linux) or captureScreenshot / drawElementImage           ▼
-   ▼                                                              Rust frame server (ffmpeg-static decode, cache)
-FrameEncoder ──► ffmpeg-static ──► picture file ──► mux master stem, chapters ──► export
-```
-
-One Rust process does takes, stills, exports and (later) a preview; no Node or Bun at run time; one FFmpeg (ffmpeg-static), one browser.
-
-### 3.2 The film page and its runtime
-
-Decided (2026-10-31): React stays, with Opsis's own small runtime in place of Remotion's core (candidate A). B (a signal-based DOM runtime) and C (native Rust drawing) are not pursued; whether the view layer costs enough to revisit is measured after v3 is merged, with everything else.
-
-**What the runtime replaces.** The film imports about 25 names from `remotion` in 194 files (149 of them elements): `AbsoluteFill` (95 files), `interpolate` (89), `useVideoConfig` (73), `useCurrentFrame` (70), `Easing` (47), `spring` (37), `Img` (22), `random` (19), `getRemotionEnvironment` (8), `Sequence` (8), `delayRender`/`continueRender` (6), `interpolateColors` (5), `staticFile` (4), `cancelRender` (3), `Interactive` (3), `useDelayRender` (2), `SpringConfig` (2), `Freeze` (2), `useRemotionEnvironment`, `registerRoot`, `isHtmlInCanvasSupported`, `Loop`, `Internals`, `Composition` (1 each). The editor imports nothing from Remotion; the sidecar imports `@remotion/renderer` and `@remotion/bundler`.
-
-**The contract** (`packages/runtime`, `@opsis/runtime`, its own workspace package so a later runtime can replace it whole; the only package that may import `remotion` while it's still there, and an oxlint rule bans it everywhere else):
-
-- **Clock.** `useFrame()` is the frame inside the nearest sequence (Remotion's `useCurrentFrame`); `useFilm()` is `{ width, height, fps, durationInFrames }` where `durationInFrames` is the nearest sequence's length, as Remotion's `useVideoConfig` gives inside a `Sequence` (elements read their own length this way).
-- **Time structure.** `Sequence` (from, length, layout), `Freeze` (a fixed frame, fractional allowed: `MotionBlur` freezes at sub-frame times), `Loop`; the film's spans mount an item only inside its span plus a premount margin.
-- **Holds.** `holdRender(label) → release`, `failRender(error)`; the page is ready when every hold is released. Labels name what's open when a seek times out.
-- **Seek protocol.** `window.opsis = { seek(frame) → Promise<void>, durationInFrames, fail? }`. `seek` sets the frame and commits it synchronously (`flushSync`), then resolves once every hold is released and `document.fonts.ready` has settled. Nothing waits on `requestAnimationFrame`: Remotion's frame setter releases its own hold on the next animation frame (`TimelineContext.tsx`), which never comes under begin-frame control (HyperFrames, 2.2). Images and footage frames hold until `decode()` resolves, as `FootageFrame` does already.
-- **Maths** in the runtime package (plain TypeScript, also usable by the editor), written for Opsis, property-tested: `interpolate` with clamp, extend and easing; the `Easing` curves the film uses; a damped `spring` (mass, stiffness, damping, overshoot clamp, length stretch, from and to; damping above critical moves critically damped, which is what the film's no-bounce springs such as `damping: 200` were tuned for: the exact over-damped motion of `damping: 200` takes 318 frames at 30 fps to settle, against 23); `random(seed)`; `interpolateColors` in OKLCH beside the film's other colour helpers (`lib/ui-kit/color.ts`). Values may differ slightly from Remotion's; each element still that changes is looked at and named.
-- **Parts.** `AbsoluteFill` (a filling `div`), `Img` (an `img` that holds until decoded), asset addresses (`staticFile` becomes the existing `assetUrl`), the render environment (`isRendering`).
-- **Entry.** No `registerRoot` or `Composition`: the driver hands the page its spec with `window.opsis.load(spec)`, which mounts the film and resolves with its size, rate and length once it's ready.
-- **During 3.2 and 3.3** the runtime is an adapter over Remotion (its hooks read Remotion's contexts), so exports keep rendering through Remotion while every file moves to the runtime; 3.4 gives the runtime its own contexts and the seek protocol, and the adapter goes.
-- **One clock.** Because the driver owns the page clock (the smooth-take machinery: page clock held, every CSS and web animation stepped), elements could also use CSS animations and the Web Animations API, which v2 bans (decision 6.2, open; the v2 rule holds until it's decided).
-
-### 3.3 Driving and capture (Rust)
-
-- **FrameDriver** in `opsis-capture`, shared with smooth takes: launch, warm-up, per-frame seek, readiness, capture, retries.
-- **Capture** (decision 6.3): `beginFrame` on Linux (warm-up with `noDisplayUpdates`, probe once and retry before falling back, never fall back silently: the run log says which path ran); `Page.captureScreenshot` with JPEG and `optimizeForSpeed` on macOS and Windows; `drawElementImage` into a canvas with in-page JPEG encoding where 5.1 shows it faster. PNG only for alpha exports.
-- **Transport.** CDP base64 today; measure binary transport (the page POSTs frames to the render file server) against it.
-- **Static frames.** Compile marks, per frame, whether anything can change: an element past its animation end and before its exit, no camera move, no video, no recording, no shader time. Frames proven static reuse the previous picture without a seek or capture.
-- **Workers.** One tab first; then N tabs or browsers on frame ranges with an ordered hand-over to the encoder; video-heavy films and WebGL-heavy films measured before raising N (v2 measured one tab fastest for shader films).
-- **Stills, thumbnails, preview.** The same driver for one frame; a warm tab can answer frame requests for the editor (the deferred "see the film before exporting").
-- **Long renders.** Chunks in fresh browsers if memory grows (TODO.md "Unverified": Chrome's `angle` leak on long renders).
-
-### 3.4 Media in the film
-
-- **Footage frames come from Rust.** Every video the film shows (the Video element and recordings in every style) is a footage source: a file plus a processing chain. During a render Rust runs one decoder per source (ffmpeg-static), streaming frames in order through the chain and handing each as a JPEG 4:4:4 to the render file server; the page shows the frame for its time as an image and holds the frame until it has loaded. A render asks for frames in order (one tab), so each frame is decoded once; the last few frames stay in memory (styles that draw the same footage twice), a jump backwards or far forward restarts the decoder at that time (stills take that path), and a decoder ends with its render or when idle. This also plays HEVC, which the headless shell can't decode (TODO.md bug), and tone-maps HDR in FFmpeg.
-- **No frame cache on disk.** JPEG 4:4:4 at high quality measured 240 to 500 KiB per 1920×1080 frame of UI and dense text (2026-10-31), so a 10 minute take at 30 fps would be 4 to 8 GiB, and exact repeats were only 2% and 41% of frames in two UI recordings. Exports already cache the finished picture by its key, so a re-render is rare; decoding again then costs less than gigabytes kept per take.
-- **The chain.** In order: trim and rate, a grade (the grade steps' filter graph, `grade_filters`), then Rust per-frame operations on drawn areas (Redact's large pixels, blur or solid colour, with time ranges, in the source's own pixels), then JPEG. Footage operations run before the camera, so the camera moves over a graded, redacted page.
-- **One colour system.** Picture look goes: a grade (the list the grade nodes build) is applied either to a file (Apply grade, an encode, for files that leave the film) or to footage (Grade footage, `clip → clip`, into the chain). Picture look's colour, noise and vignette are Colour and light, Texture's grain and Lens's dark edges.
-- **One redaction.** Blur areas goes: Redact works on pictures (as today) and on footage (`recording → recording` and `clip → clip`, areas with time ranges), one implementation (`crates/image`) for both, so footage gains large pixels and solid colour.
-- **Later.** The chain can run more of the image operations on footage (crop, rotate and flip, adjust, blur and sharpen, spotlight, magnify); each needs its own node design (a crop changes the footage's size, which the camera and window frame depend on) and isn't part of phase 2.
-- **Sound.** Unchanged: Rust mix, master stem, mux. The film's `<Audio>` is never heard (pictures are rendered muted and the stem is muxed after; unmuted renders are formats without sound or films without a mix) and is deleted.
-
-### 3.5 Build
-
-- The film page becomes a plain static app: an `index.html`, one module bundle, `public/`. No Remotion Studio (7.17 MB gone), no Remotion bundler.
-- Tailwind leaves the film (11 files use `className`); elements style themselves with style objects. The editor keeps Tailwind through its Vite plugin.
-- Bundler: Vite (already used for the editor) first. Later, optionally, a Rust build step with Rolldown and oxc (2.6), which would remove Rspack and `@remotion/bundler` from the toolchain; it's dev-time only (the bundle ships prebuilt), so it's a tooling simplification, not a run-time gain.
-
-### 3.6 What replaced each leaf package (phase 1, done)
-
-| #   | Package                    | Replaced by                                                                                                                                                                               |
-| --- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `@remotion/tailwind-v4`    | No Tailwind in the film: style objects, our own reset in `video.css`                                                                                                                      |
-| 2   | `@remotion/noise`          | `simplex-noise`, one seeded field per element (`noiseField`)                                                                                                                              |
-| 3   | `@remotion/light-leaks`    | Our own light-leak shader with 1 to 4 colours                                                                                                                                             |
-| 4   | `@remotion/lottie`         | `lottie-web`'s SVG player, `goToAndStop` per frame, held until loaded                                                                                                                     |
-| 5   | `@remotion/mac-cursors`    | apple_cursor's macOS set (GPL-3.0), generated by `cursors:bundle`                                                                                                                         |
-| 6   | `@remotion/motion-blur`    | Our own shutter samples (`MotionBlur`, `shutterOffsets`)                                                                                                                                  |
-| 7   | `@remotion/three`          | `@react-three/fiber`'s own `Canvas`, frame loop off, one draw per scene change held until drawn                                                                                           |
-| 8   | `@remotion/rough-notation` | `roughjs`'s public generator, a seed per stroke                                                                                                                                           |
-| 9   | `@remotion/paths`          | `svg-path-commander`'s public util (length, point, box, transform, `equalizePaths` for the morph); the old package's arcs and relative-path boxes were up to 20 and 30 px off the browser |
-| 10  | `@remotion/transitions`    | Our own presentation types, timings, per-cut `SceneSeries`, and fade, slide, wipe, flip, iris and clock wipe                                                                              |
-
-`@remotion/media` and `@remotion/effects` turned out not to be leaves: they are the frame source and the processing of frames, and both depend on Remotion's core. They are phase 2 (3.4).
-
-## 4. Work, in order
-
-Rules (2026-10-31):
-
-- Phases 2 and 3 stay on `exp/rs-renderer` and go to `main` only when the user says so; a phase is ready when it works end to end. The app isn't kept working between steps; tests and the end-to-end proof are what count. No compatibility with Remotion's looks or settings is kept.
-- `main` is not touched until 3.6, and in 3.6 only built (in its own `target`), never edited. The worktree builds into its own `target` only.
-- Speed is not worked on before v3 is merged into `main`: no premature optimisation. Sizes are watched throughout. After the merge comes proper profiling, finding hotspots and optimising.
-- One commit per subphase, 3.1 to 3.5; 3.6 has no commit, only the size records changed, and a report.
-- The research checkouts (`~/.cache/opsis-research`: Remotion, HyperFrames, Motion Canvas) are the reference whenever behaviour is unclear; no trial and error.
-
-### Phase 1: leaf packages (done, on `main` at `af466ca`)
-
-The ten packages of 3.6, one at a time, smallest first.
-
-### Phase 2: footage from Rust (3.4, done)
-
-1. Footage pipeline in Rust (`9c165f7`).
-2. The film and the nodes on it (`aa5c944`), proven by an end-to-end export of a real take with Grade footage and Redact take and a trimmed, rate-changed, looping Video element; Screen recording renamed Captured video, with its sound mixed and clip sound at the clip's speed (`288445b`).
-
-### Phase 3: own page runtime and Rust renderer
-
-The page runtime and the renderer are one phase because neither can be proven end to end without the other: today's page is drawn by Remotion's renderer, which needs Remotion's page.
-
-1. **Design.** This section: the authoring model (3.2), the runtime contract, the order and the rules.
-2. **Runtime beside Remotion.** `packages/runtime`, as an adapter over Remotion for the clock, sequences, holds and environment, with its own parts and maths; property tests; the test harness moved into it.
-3. **Move the film.** `DemoTimeline`, the registry, transitions and cut boards, the recording camera, `FootageFrame`, the 3D stage, then the elements in groups (text, overlays, backgrounds and shaders, charts, the two UI kits, scenes, devices); element stills after each group. Done: every film file draws through `@opsis/runtime`, and oxlint rejects `remotion` in `packages/video` except the two entry files. The runtime's spring matches Remotion's to 4e-16 and its easing to 1.6e-6; a spring given a length ends on its target after it, and overshoot clamping holds the target from the first arrival instead of dipping back under it. 118 of 138 element stills are byte-identical; 14 changed only by the new `random` (shapes-3d, noise, aurora-bg, confetti, particle-field, handwriting-text, neon-flicker-text, matrix-decode, agent-run, and the stop-motion jitter of scribble-circle, check-list, polaroid, ink-arrow, ink-underline), 2 by colours mixed in OKLCH (inline-highlight, radial-burst) and 1 by the overshoot clamp (multi-device-lineup).
-4. **Rust renderer.** FrameDriver in `opsis-capture` (launch, the seek protocol, readiness, capture: `beginFrame` on Linux, screenshots elsewhere), FrameEncoder into FFmpeg, codecs and GIF, stills; the runtime gets its own contexts and the adapter goes. Done: the runtime has its own clock, holds and page protocol and no longer imports Remotion, so the Remotion bundle no longer draws the film; the film page (`apps/film`, Vite) moved here from 3.5, because the driver can't be proven without it. `FrameDriver` (`crates/capture/src/film.rs`) and `crates/render/src/frames.rs` draw stills and films (`crates/render/tests/frames.rs`: five element stills, two films probed for size and length, a cancel, and both capture paths giving byte-identical pictures). Two holds waited for a frame and would never release under begin-frame control: the shader fields now wait for their mount (`data-paper-shader`), and the canvas filter's wait for a `paint` event went, since the paint runs inside the captured frame. VP8 joined the encoders our FFmpeg must have.
-5. **Switch over.** Exports and stills through FrameDriver; the sidecar, `remotion`, `@remotion/renderer`, `@remotion/bundler`, the compositor staging and the Remotion licence key deleted; the film page built with Vite. Proven by the end-to-end export of the phase 2 test film and a template project on a release build. Done: exports, stills and `render-elements` go through `FrameDriver`; the sidecar, `remotion`, `@remotion/bundler`, the compositor and its source manifest, the licence key and its Settings page are gone, and the app ships the film page. On the release deb, the phase 2 test film and the Changelog template (16:9 and 1:1) exported from empty caches, drawn one frame at a time; all 138 element stills render (46 byte-identical to Remotion's, the rest within small differences in text anti-aliasing and in shader dots at the 480 px preview scale). Found on the way: begin-frame screenshots ignore an emulated scale, so a scaled render takes a screenshot per frame (as HyperFrames does); an SVG element at `scale` 0 is never repainted as it grows (the animated bar chart now keeps its scale above 0); canvas effects drawn through a canvas given to `transferControlToOffscreen` never reach a begin-frame capture, so they draw on the page and the driver ticks uncaptured frames while a seek waits for their paint; a Sequence's own cuts got no settings, so a Slide cut crashed (on `main` too since phase 1); and a failed frame cancelled the whole run, hiding its error.
-6. **Sizes, and a speed sanity check.** v2 (`main`, built in its own `target`) against v3, release builds: install size, bundle and page sizes, memory. Speed only as a sanity check: if v3 is 5 to 10 times slower, stop and report why and what caused it, without fixing it.
-
-### Phase 4: cleanup
-
-- `LICENSE`: drop the section 7 Remotion permission.
-- Settings and first-run: drop the Remotion licence key and notice.
-- `plans/release.md`: section 7 (the compositor's FFmpeg source offer) goes; size numbers measured again.
-- `scripts/engine-downloads.ts`: pin Chrome for Testing's headless shell ourselves (decision 6.4).
-- `package.json`: lift the TypeScript 6.0.3 pin and the exact-version pins.
-- `AGENTS.md`: the runtime boundary, animation and "one engine" sections rewritten for v3.
-- `THIRD_PARTY_NOTICES.md`: remove Remotion entries, add HyperFrames if any of its code is adapted.
-
-## 5. Measurements, after v3 is merged
-
-Sizes (item 7) are taken in 3.6; the rest wait for the merge.
+## 1. Measurements, after the merge
 
 1. Where a 1920×1080 frame's time goes with real films: seek and commit, readiness, paint, capture, transport, encode; for a text element, a chart, a shader background, a recording with the camera, a 3D model.
 2. `beginFrame` against `captureScreenshot` against `drawElementImage` with in-page JPEG, with `gl` set to `angle`, `swangle` and `egl`, at 1080p and 4K.
@@ -282,35 +18,33 @@ Sizes (item 7) are taken in 3.6; the rest wait for the merge.
 4. Footage frames from the Rust decoder: time per frame for 1080p and 4K sources, decoder memory, and the restart cost of a seek.
 5. Static-frame savings on the example projects.
 6. Tabs and browsers in parallel, with and without WebGL, with recordings.
-7. Install size and memory against v2.
 
-## 6. Decisions for the user
+## 2. Work the measurements decide
 
-1. Authoring model: decided, A (React with Opsis's own runtime, 3.2).
-2. CSS and web animations allowed in the film because the driver owns the clock (3.2).
-3. Capture path per platform: `beginFrame` on Linux, screenshots on macOS and Windows, `drawElementImage` if faster (3.3).
-4. Browser build: keep Remotion's Chromium builds (they have Remotion's shared-memory patch, which we won't use) or switch every platform to Google's Chrome for Testing headless shell.
-5. Whether the preview comes back in v3 (3.3).
-6. Whether to replace Vite with a Rust build step (3.5).
+- **Capture.** `drawElementImage` into a canvas with in-page JPEG encoding where measurement 2 shows it faster than `beginFrame`. Begin-frame screenshots ignore an emulated scale, so a scaled render takes a screenshot per frame; a scale set at launch (`--force-device-scale-factor`) would let scaled renders use `beginFrame` too.
+- **Transport.** Binary frames posted by the page to the render file server, if measurement 3 shows CDP's base64 costs enough.
+- **Static frames.** Compile marks, per frame, whether anything can change: an element past its animation end and before its exit, no camera move, no video, no recording, no shader time. Frames proven static reuse the previous picture without a seek or capture.
+- **Workers.** N tabs or browsers on frame ranges with an ordered hand-over to the encoder; video-heavy and WebGL-heavy films measured before raising N (Remotion's renderer measured one tab fastest for shader films).
+- **Long renders.** Chunks in fresh browsers if memory grows (TODO.md "Unverified": Chrome's `angle` leak on long renders).
+- **More footage operations.** The footage chain can run more of the image operations (crop, rotate and flip, adjust, blur and sharpen, spotlight, magnify); each needs its own node design, since a crop changes the footage's size, which the camera and window frame depend on.
 
-## 7. Risks
+## 3. Decisions for the user
 
-- **`HeadlessExperimental` is experimental.** It could change or go; the screenshot path must stay working and tested.
-- **`drawElementImage` is experimental** (the `CanvasDrawElement` feature); Opsis already depends on it for canvas transitions.
-- **No shared-memory frames.** Remotion's fastest path needs its patched Chromium and FFmpeg; v3 gives that up and wins time back elsewhere (beginFrame, static frames, footage pre-passes).
-- **Determinism across machines.** Fonts (limit fallback), GPU differences (prefer SwiftShader for reference renders), the clock shim starting above zero.
-- **Scope.** Phases 2 and 3 touch every element; the element stills and the dev-engine capture tests are the safety net.
+1. CSS and web animations in the film. The driver owns the page clock (the smooth-take machinery: page clock held, every CSS and web animation stepped), so elements could use CSS animations and the Web Animations API, which `AGENTS.md` bans today; the rule holds until this is decided.
+2. Browser build: keep Remotion's Chromium builds (`crates/engine/src/downloads.generated.json`, pinned by `pin-downloads` for the version it's given) or pin Google's Chrome for Testing headless shell on every platform.
+3. Whether a preview comes back: a warm tab of the frame driver answering frame requests for the editor (TODO.md, "A way to see the film before exporting").
+4. Whether to replace Vite with a Rust build step (Rolldown and oxc). It's dev-time only, since the film page ships prebuilt, so it's a tooling simplification, not a run-time gain.
+
+## 4. Risks
+
+- **`HeadlessExperimental` is experimental.** It could change or go; the screenshot path must stay working and tested (`crates/render/tests/frames.rs` draws a still both ways and compares the bytes).
+- **`drawElementImage` is experimental** (the `CanvasDrawElement` feature); the canvas transitions and filters depend on it.
+- **Determinism across machines.** Fonts (limit fallback), GPU differences (prefer SwiftShader for reference renders).
 - **Rolldown's Rust API is unsupported** by its maintainers; keep Vite as the default.
 
-## 8. Sources
+## 5. Sources
 
-- Remotion `3b7e700`: `packages/renderer/src/{render-media,render-frames,seek-to-frame,take-frame,screenshot-task,next-frame-to-render,get-extra-frames-to-capture}.ts`, `packages/core/src/TimelineContext.tsx`, `packages/compositor/rust/`, `packages/media/`, `packages/web-renderer/src/{html-in-canvas,take-screenshot,render-media-on-web}.ts`, `LICENSE.md`.
-- HyperFrames `9fd90d2`: `packages/engine/README.md`, `packages/engine/src/services/{frameCapture,screenshotService,browserManager,drawElementService,videoFrameExtractor,videoFrameInjector,videoFrameTransport,parallelCoordinator,streamingEncoder,motionBlur}.ts`, `packages/core/src/adapters/types.ts`, `packages/core/src/runtime/window.d.ts`, `docs/guides/performance.mdx`, the "vs Remotion" page.
-- Motion Canvas `7b91435`: `packages/core/src/app/{Renderer,PlaybackManager}.ts`, `packages/core/src/scenes/timeEvents/EditableTimeEvents.ts`, `packages/core/src/signals/`, `packages/ffmpeg/`, `packages/2d/src/lib/components/Layout.ts`.
-- HeyGen, "HTML to Video Was Not Easy: Here's How We Solved It" (2026-06-22), https://www.heygen.com/research/html-to-video
-- HyperFrames issues #294 and #4584, https://github.com/heygen-com/hyperframes/issues/294, https://github.com/heygen-com/hyperframes/issues/4584
-- scorsese issue #775, https://github.com/MatthewLacerda2/scorsese/issues/775
+- HyperFrames `9fd90d2`: `packages/engine/src/services/{frameCapture,screenshotService,browserManager,drawElementService,parallelCoordinator,streamingEncoder}.ts`, `docs/guides/performance.mdx`.
+- Remotion `3b7e700`: `packages/renderer/src/{render-media,render-frames,take-frame,screenshot-task}.ts`, for the parallel-tab and capture measurements it made.
 - Chromium headless-dev, "Chrome's screenshot functionality is extremely slow", https://groups.google.com/a/chromium.org/g/headless-dev/c/aVZw00nzxTU
-- Rolldown Rust crates, https://rolldown.rs/apis/rust-crates; oxc transformer, https://oxc.rs/docs/guide/usage/transformer; Rspack project architecture, https://rspack.rs/contribute/development/project; Tailwind Oxide discussion #15254, https://github.com/tailwindlabs/tailwindcss/discussions/15254; Vello, https://docs.rs/vello
-- Cargo build cache, https://doc.rust-lang.org/cargo/reference/build-cache.html
-- The capture benchmark script of 2.5 (scratchpad, not committed).
+- Rolldown Rust crates, https://rolldown.rs/apis/rust-crates; oxc transformer, https://oxc.rs/docs/guide/usage/transformer

@@ -33,7 +33,7 @@ Requirements: [Bun](https://bun.sh), Node.js 22 or later, a Rust toolchain, and 
 
 ```sh
 bun install
-bun run video:bundle
+bun run film:bundle
 bun start
 ```
 
@@ -62,7 +62,7 @@ The app never includes the recording browser or our FFmpeg; users download them 
 | `bun run test`         | vitest and `cargo test`                                                    |
 | `bun run test:e2e`     | The app driven by WebdriverIO in a virtual display (needs `xvfb`)          |
 | `bun run types:export` | Write the TypeScript types and bindings from the Rust code                 |
-| `bun run video:bundle` | Build the video code for exports                                           |
+| `bun run film:bundle`  | Build the film page that exports draw                                      |
 | `bun run fonts:bundle` | Copy the bundled fonts from their Fontsource packages                      |
 | `bun run brand:icons`  | Render `brand/logo.svg` to PNGs; `bun run app:icons` makes the app's icons |
 | `bun run routes`       | Regenerate the TanStack Router route tree                                  |
