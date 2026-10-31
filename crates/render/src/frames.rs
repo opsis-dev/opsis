@@ -58,6 +58,14 @@ fn note_capture(driver: &FrameDriver, run: &FilmRun<'_>) {
     }
 }
 
+fn encoder_stopped(run: &FilmRun<'_>, error: &std::io::Error) -> FilmError {
+    if run.cancel.is_cancelled() {
+        FilmError::Cancelled
+    } else {
+        FilmError::Encode(format!("The video encoder stopped: {error}"))
+    }
+}
+
 async fn write_frames(
     driver: &mut FrameDriver,
     stdin: &mut FramePipe,
@@ -76,7 +84,7 @@ async fn write_frames(
             .stdin
             .write_all(&picture)
             .await
-            .map_err(|e| FilmError::Encode(format!("The video encoder stopped: {e}")))?;
+            .map_err(|e| encoder_stopped(run, &e))?;
         (run.progress)(f64::from(numbers::count(done + 1)) / total);
     }
     Ok(())
@@ -109,10 +117,7 @@ async fn encode(
         }
         return Err(error);
     }
-    stdin
-        .flush()
-        .await
-        .map_err(|e| FilmError::Encode(format!("The video encoder stopped: {e}")))?;
+    stdin.flush().await.map_err(|e| encoder_stopped(run, &e))?;
     drop(stdin);
     done.await?;
     Ok(())
