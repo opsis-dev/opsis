@@ -7,7 +7,6 @@ publish.workspace = true
 
 [dependencies]
 axum = "0.8.9"
-flate2 = "1.1.10"
 futures-util = "0.3.34"
 hex = "0.4.3"
 log = "0.4.35"

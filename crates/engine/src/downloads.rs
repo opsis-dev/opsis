@@ -59,4 +59,13 @@ mod tests {
             assert!(shell.pinned.url.contains(&d.tested_version));
         }
     }
+
+    #[test]
+    fn reads_the_downloads_file_in_the_form_it_is_committed() {
+        let json = serde_json::to_string_pretty(downloads()).unwrap();
+        assert_eq!(
+            format!("{json}\n"),
+            include_str!("downloads.generated.json")
+        );
+    }
 }

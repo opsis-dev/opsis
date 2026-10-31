@@ -8,7 +8,7 @@ import { ROOT } from "./lib/tool-config";
 const RESOURCES = path.join(ROOT, "resources");
 
 function stageBrowserCredits() {
-  writeChromiumCredits(
+  return writeChromiumCredits(
     installEngine().browser,
     path.join(RESOURCES, "engine-licences", "LICENSES.chromium.html"),
   );
@@ -17,8 +17,8 @@ function stageBrowserCredits() {
 rmSync(RESOURCES, { recursive: true, force: true });
 mkdirSync(RESOURCES, { recursive: true });
 execFileSync("bun", ["run", "film:bundle", "--mode", "release"], { cwd: ROOT, stdio: "inherit" });
-stageBrowserCredits();
-const ffmpeg = stageFfmpeg();
+await stageBrowserCredits();
+const ffmpeg = await stageFfmpeg();
 if (!existsSync(path.join(ROOT, "film-bundle", "index.html")))
   throw new Error("The film page is missing.");
 if (!existsSync(ffmpeg) || !existsSync(FFMPEG_LICENCE))

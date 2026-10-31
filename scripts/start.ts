@@ -6,5 +6,5 @@ import { ROOT } from "./lib/tool-config";
 execFileSync("tauri", ["dev", ...process.argv.slice(2)], {
   cwd: path.join(ROOT, "crates", "desktop"),
   stdio: "inherit",
-  env: withFfmpeg(),
+  env: await withFfmpeg(),
 });

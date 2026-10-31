@@ -7,5 +7,5 @@ const args = process.argv.slice(2);
 execFileSync("cargo", ["test", ...(args.length > 0 ? args : ["--workspace"])], {
   cwd: ROOT,
   stdio: "inherit",
-  env: withFfmpeg(),
+  env: await withFfmpeg(),
 });

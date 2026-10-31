@@ -21,8 +21,6 @@ pub enum InstallError {
     Mismatch { url: String },
     #[error("There's no recording browser for this computer.")]
     NoShell,
-    #[error("There's no FFmpeg pinned for {0}.")]
-    NoFfmpeg(String),
     #[error("Setup was stopped")]
     Cancelled,
     #[error(transparent)]
