@@ -530,7 +530,12 @@
          "durationInFrames": 60,
          "exit": {
           "kind": "push-through",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
          },
          "slot": {
           "nodeId": "sequence",
@@ -585,7 +590,12 @@
          "durationInFrames": 120,
          "enter": {
           "kind": "push-through",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
          },
          "slot": {
           "nodeId": "sequence",
@@ -640,7 +650,12 @@
          "durationInFrames": 60,
          "exit": {
           "kind": "push-through",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
          },
          "slot": {
           "nodeId": "sequence",
@@ -695,7 +710,12 @@
          "durationInFrames": 120,
          "enter": {
           "kind": "push-through",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
          },
          "slot": {
           "nodeId": "sequence",
@@ -907,7 +927,12 @@
        "durationInFrames": 60,
        "exit": {
         "kind": "push-through",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -962,7 +987,12 @@
        "durationInFrames": 120,
        "enter": {
         "kind": "push-through",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -1440,7 +1470,12 @@
        "durationInFrames": 60,
        "exit": {
         "kind": "push-through",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -1495,7 +1530,12 @@
        "durationInFrames": 120,
        "enter": {
         "kind": "push-through",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -2851,7 +2891,12 @@
           "durationInFrames": 60,
           "exit": {
            "kind": "push-through",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
           },
           "slot": {
            "nodeId": "sequence",
@@ -2906,7 +2951,12 @@
           "durationInFrames": 82,
           "enter": {
            "kind": "push-through",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
           },
           "slot": {
            "nodeId": "sequence",
@@ -3121,7 +3171,12 @@
           "durationInFrames": 60,
           "exit": {
            "kind": "push-through",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
           },
           "slot": {
            "nodeId": "sequence",
@@ -3176,7 +3231,12 @@
           "durationInFrames": 82,
           "enter": {
            "kind": "push-through",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
           },
           "slot": {
            "nodeId": "sequence",
@@ -3566,7 +3626,12 @@
         "durationInFrames": 60,
         "exit": {
          "kind": "push-through",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -3621,7 +3686,12 @@
         "durationInFrames": 82,
         "enter": {
          "kind": "push-through",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -4194,7 +4264,12 @@
         "durationInFrames": 60,
         "exit": {
          "kind": "push-through",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -4249,7 +4324,12 @@
         "durationInFrames": 82,
         "enter": {
          "kind": "push-through",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
         },
         "slot": {
          "nodeId": "sequence",

@@ -1,22 +1,13 @@
 use std::path::PathBuf;
 
-use opsis_engine::downloads::ShellSource;
-use opsis_engine::paths::ShellPlatform;
-use opsis_engine::pin::{pin_downloads, shell_url};
+use opsis_engine::downloads::downloads;
+use opsis_engine::pin::pin_downloads;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let mut args = std::env::args().skip(1);
-    let (Some(version), Some(remotion_url)) = (args.next(), args.next()) else {
-        eprintln!(
-            "Usage: pin-downloads <Remotion's tested browser version> <Remotion's mac-arm64 address>"
-        );
-        std::process::exit(2);
-    };
-    if shell_url(&version, ShellPlatform::MacArm64, ShellSource::Remotion) != remotion_url {
-        eprintln!("Remotion's download addresses changed: {remotion_url}");
-        std::process::exit(1);
-    }
+    let version = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| downloads().tested_version.clone());
     let home = std::env::var_os("HOME").map(PathBuf::from).expect("HOME");
     let cache = home.join(".cache").join("opsis-engine-downloads");
     std::fs::create_dir_all(&cache).expect("the download cache");

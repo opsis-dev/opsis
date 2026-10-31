@@ -846,7 +846,10 @@
          "durationInFrames": 75,
          "exit": {
           "kind": "slide",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "direction": "from-right"
+          }
          },
          "slot": {
           "nodeId": "sequence",
@@ -911,11 +914,17 @@
          "durationInFrames": 150,
          "enter": {
           "kind": "slide",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "direction": "from-right"
+          }
          },
          "exit": {
           "kind": "slide",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "direction": "from-right"
+          }
          },
          "slot": {
           "nodeId": "sequence",
@@ -1008,7 +1017,10 @@
          "durationInFrames": 120,
          "enter": {
           "kind": "slide",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "direction": "from-right"
+          }
          },
          "slot": {
           "nodeId": "sequence",
@@ -1375,7 +1387,10 @@
        "durationInFrames": 75,
        "exit": {
         "kind": "slide",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "direction": "from-right"
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -1440,11 +1455,17 @@
        "durationInFrames": 150,
        "enter": {
         "kind": "slide",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "direction": "from-right"
+        }
        },
        "exit": {
         "kind": "slide",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "direction": "from-right"
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -1537,7 +1558,10 @@
        "durationInFrames": 120,
        "enter": {
         "kind": "slide",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "direction": "from-right"
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -2231,7 +2255,10 @@
        "durationInFrames": 75,
        "exit": {
         "kind": "slide",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "direction": "from-right"
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -2296,11 +2323,17 @@
        "durationInFrames": 150,
        "enter": {
         "kind": "slide",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "direction": "from-right"
+        }
        },
        "exit": {
         "kind": "slide",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "direction": "from-right"
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -2393,7 +2426,10 @@
        "durationInFrames": 120,
        "enter": {
         "kind": "slide",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "direction": "from-right"
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -4331,7 +4367,10 @@
           "durationInFrames": 75,
           "exit": {
            "kind": "slide",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "direction": "from-right"
+           }
           },
           "slot": {
            "nodeId": "sequence",
@@ -4396,11 +4435,17 @@
           "durationInFrames": 150,
           "enter": {
            "kind": "slide",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "direction": "from-right"
+           }
           },
           "exit": {
            "kind": "slide",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "direction": "from-right"
+           }
           },
           "slot": {
            "nodeId": "sequence",
@@ -4493,7 +4538,10 @@
           "durationInFrames": 120,
           "enter": {
            "kind": "slide",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "direction": "from-right"
+           }
           },
           "slot": {
            "nodeId": "sequence",
@@ -4874,7 +4922,10 @@
         "durationInFrames": 75,
         "exit": {
          "kind": "slide",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "direction": "from-right"
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -4939,11 +4990,17 @@
         "durationInFrames": 150,
         "enter": {
          "kind": "slide",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "direction": "from-right"
+         }
         },
         "exit": {
          "kind": "slide",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "direction": "from-right"
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -5036,7 +5093,10 @@
         "durationInFrames": 120,
         "enter": {
          "kind": "slide",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "direction": "from-right"
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -5730,7 +5790,10 @@
         "durationInFrames": 75,
         "exit": {
          "kind": "slide",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "direction": "from-right"
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -5795,11 +5858,17 @@
         "durationInFrames": 150,
         "enter": {
          "kind": "slide",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "direction": "from-right"
+         }
         },
         "exit": {
          "kind": "slide",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "direction": "from-right"
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -5892,7 +5961,10 @@
         "durationInFrames": 120,
         "enter": {
          "kind": "slide",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "direction": "from-right"
+         }
         },
         "slot": {
          "nodeId": "sequence",

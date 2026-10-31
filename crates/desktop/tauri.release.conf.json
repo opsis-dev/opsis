@@ -18,10 +18,8 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["../../resources/binaries/opsis-render"],
     "resources": {
-      "../../remotion-bundle/": "remotion-bundle/",
-      "../../resources/compositor/": "compositor/",
+      "../../film-bundle/": "film-bundle/",
       "../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md",
       "../../resources/engine-licences/": "engine-licences/",
       "../../LICENSE": "LICENSE"

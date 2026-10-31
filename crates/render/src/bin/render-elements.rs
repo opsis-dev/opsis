@@ -1,7 +1,7 @@
-use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 
+use opsis_capture::film::{Capture, DriverOptions, FilmPage};
+use opsis_compile::asset_ref::FILM_FOLDER;
 use opsis_compile::clip::clip_to_spec;
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::elements::overlay::captions::CAPTIONS_ELEMENT;
@@ -10,17 +10,15 @@ use opsis_compile::hosted::hosted;
 use opsis_compile::node::CLIP_PORT;
 use opsis_compile::nodes::output::{Gl, StillFormat};
 use opsis_compile::nodes::text::{CAPTIONS_FROM_SCRIPT_TYPE, CAPTIONS_PORT, SHOW_CAPTIONS_TYPE};
-use opsis_engine::http_files::FileServer;
+use opsis_engine::http_files::{FileServer, folder_routes};
 use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
-use opsis_render::protocol::{COMPOSITION_ID, RenderTarget, SidecarCall, StillJob};
-use opsis_render::sidecar::{Sidecar, SidecarCommand, SidecarError};
+use opsis_render::frames::{FilmError, StillRender, render_still};
 use opsis_types::numbers::whole;
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::CompileValue;
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use serde_json::{Value, json};
-use tokio_util::sync::CancellationToken;
 
 const STILL_WIDTH: f64 = 480.0;
 const JPEG_QUALITY: f64 = 82.0;
@@ -69,8 +67,8 @@ fn solid(id: &str, color: &str) -> Value {
 }
 
 struct Host {
-    bundle: PathBuf,
     shell: PathBuf,
+    temp: PathBuf,
     project_base: String,
 }
 
@@ -121,15 +119,10 @@ enum StillError {
     #[error("no clip")]
     NoClip,
     #[error(transparent)]
-    Render(#[from] SidecarError),
+    Render(#[from] FilmError),
 }
 
-fn still_for(
-    meta: &ElementMeta,
-    at: f64,
-    host: &Host,
-    out: &Path,
-) -> Result<SidecarCall, StillError> {
+async fn still_for(meta: &ElementMeta, at: f64, host: &Host, out: &Path) -> Result<(), StillError> {
     let settings = WorkflowSettings::default();
     let compiled = compile_workflow(&workflow_for(meta), None);
     if let Some(error) = compiled.errors.get(ELEMENT_NODE) {
@@ -148,26 +141,29 @@ fn still_for(
         }),
         ..clip_to_spec(clip, &settings)
     });
-    let width = spec.width;
-    Ok(SidecarCall::RenderStill(StillJob {
-        target: RenderTarget {
-            serve_url: host.bundle.to_string_lossy().into_owned(),
-            browser_executable: host.shell.to_string_lossy().into_owned(),
-            binaries_directory: None,
-            license_key: "free-license".into(),
-            composition: COMPOSITION_ID.into(),
-            spec,
+    let json = serde_json::to_value(&spec).expect("a spec as JSON");
+    let url = format!("{}{FILM_FOLDER}/index.html", host.project_base);
+    render_still(&StillRender {
+        driver: DriverOptions {
+            executable: &host.shell,
+            temp_dir: &host.temp,
             gl: Gl::Angle,
+            capture: Capture::for_this_computer(),
+        },
+        page: FilmPage {
+            url: &url,
+            spec: &json,
+            width: spec.width,
+            height: spec.height,
+            scale: (STILL_WIDTH / f64::from(spec.width)).min(1.0),
         },
         frame: whole((f64::from(clip.duration_in_frames - 1) * at).floor()),
-        output: out
-            .join(format!("{}.jpg", meta.key))
-            .to_string_lossy()
-            .into_owned(),
         format: StillFormat::Jpeg,
-        scale: Some((STILL_WIDTH / f64::from(width)).min(1.0)),
         jpeg_quality: Some(JPEG_QUALITY),
-    }))
+        output: &out.join(format!("{}.jpg", meta.key)),
+    })
+    .await?;
+    Ok(())
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -176,10 +172,10 @@ async fn main() {
     let only = args.next().unwrap_or_default();
     let at: f64 = args.next().and_then(|a| a.parse().ok()).unwrap_or(0.5);
     let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let bundle = repo.join("remotion-bundle");
+    let bundle = repo.join("film-bundle");
     assert!(
-        bundle.exists(),
-        "There's no video bundle. Run `bun run video:bundle` first."
+        bundle.join("index.html").exists(),
+        "There's no film page. Run `bun run film:bundle` first."
     );
     let engine = engine_paths(
         &user_data().join("engine"),
@@ -196,41 +192,22 @@ async fn main() {
         project: project.clone(),
         public: repo.join("public"),
     };
-    let server = FileServer::start_with(&project, prepared_routes(dirs))
+    let routes = prepared_routes(dirs).merge(folder_routes(FILM_FOLDER, &bundle));
+    let server = FileServer::start_with(&project, routes)
         .await
-        .expect("a file server for prepared files");
+        .expect("a file server for the film page and prepared files");
     let host = Host {
-        bundle,
         shell,
+        temp: temp.clone(),
         project_base: server.url.clone(),
     };
-    let env = ["TMPDIR", "TEMP", "TMP"]
-        .map(|k| (OsString::from(k), temp.clone().into_os_string()))
-        .to_vec();
-    let command = SidecarCommand {
-        program: "bun".into(),
-        args: ["run", "apps/sidecar/src/main.ts"]
-            .map(OsString::from)
-            .to_vec(),
-        env,
-        cwd: Some(repo),
-    };
-    let sidecar = Sidecar::new(command, Arc::new(|line| eprintln!("sidecar: {line}")));
-    let never = CancellationToken::new();
     let chosen: Vec<&ElementMeta> = elements()
         .iter()
         .filter(|m| m.key.contains(&only))
         .collect();
     let mut failures = Vec::new();
     for meta in &chosen {
-        let done = match still_for(meta, at, &host, &out) {
-            Ok(call) => sidecar
-                .call(call, &never, None)
-                .await
-                .map_err(StillError::from),
-            Err(error) => Err(error),
-        };
-        match done {
+        match still_for(meta, at, &host, &out).await {
             Ok(()) => println!("ok   {}", meta.key),
             Err(error) => {
                 println!("FAIL {}", meta.key);

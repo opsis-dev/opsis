@@ -7,8 +7,6 @@ pub enum StartupError {
     Folders(#[from] tauri::Error),
     #[error(transparent)]
     Platform(#[from] UnsupportedPlatform),
-    #[error("The app's own folder can't be found.")]
-    ProgramFolder,
     #[error("The app's data folder can't be made: {0}")]
     DataFolder(#[from] std::io::Error),
     #[error("The app's database can't be opened: {0}")]

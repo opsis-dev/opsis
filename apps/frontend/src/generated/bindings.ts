@@ -250,7 +250,6 @@ export type AppSettings = {
 	app: AppSection,
 	traces: TracesSection,
 	live: LiveSection,
-	render: RenderSection,
 	projects: ProjectsSection,
 	editor: EditorSection,
 	api: ApiSection,
@@ -1572,10 +1571,6 @@ export type Removal = {
 	edgeIds: string[],
 };
 
-export type RenderSection = {
-	licenseKey: string,
-};
-
 export type ReplayRequested = {
 	nodeId: string | null,
 	tab: ReplayTab,
@@ -1673,7 +1668,7 @@ export type SettingsBook = {
 
 export type SettingsChanged = AppSettings;
 
-export type SettingsPage = "general" | "projects" | "engine" | "recording" | "fonts" | "export" | "api" | "licences" | "about";
+export type SettingsPage = "general" | "projects" | "engine" | "recording" | "fonts" | "api" | "licences" | "about";
 
 export type SettingsPageShown = SettingsPage;
 

@@ -29,8 +29,6 @@ mod state;
 mod views;
 mod windows;
 
-use std::sync::Arc;
-
 use opsis_store::keys::{KeyError, Keyring};
 use tauri::{AppHandle, Manager, RunEvent};
 
@@ -85,8 +83,7 @@ async fn open(
     paths: AppPaths,
     keys: Result<Keyring, KeyError>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let sidecar_log = Arc::new(|line: &str| log::info!("sidecar: {line}"));
-    let state = AppState::new(paths, keys, sidecar_log).await?;
+    let state = AppState::new(paths, keys).await?;
     let files = file_server::start(app)?;
     app.manage(state);
     app.manage(files);
@@ -138,7 +135,6 @@ pub fn run() {
                 }
                 api::stop(app);
                 opsis_engine::temp::remove_child_temp(&state.paths.views_temp);
-                opsis_engine::temp::remove_child_temp(&state.paths.sidecar_temp);
             }
         });
 }

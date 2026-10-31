@@ -54,7 +54,7 @@ Everything still missing between today's app and a public release, and what come
 
 1. **Push and make it public.** Push `main`, then switch the repository to public (decided below).
 2. **First run.** Start the workflow with `workflow_dispatch`; expect every build job to need fixes at least once (`fail-fast: false` is set).
-3. **Fix failures one system at a time.** Likely places: `install-engine` on Windows (Chrome for Testing download and unzip), the compositor package for `win32-x64-msvc` and `darwin-x64` in `scripts/stage.ts`, `bun build --compile` of the sidecar per platform, the MSI (WiX runs only on Windows and needs the VBSCRIPT feature), long paths on Windows (the downloaded engine sits several folders deep).
+3. **Fix failures one system at a time.** Likely places: `install-engine` on Windows (Chrome for Testing download and unzip), begin-frame control on each platform's browser (the driver falls back to screenshots and says so), the MSI (WiX runs only on Windows and needs the VBSCRIPT feature), long paths on Windows (the downloaded engine sits several folders deep).
 4. **AppImage.** Tauri packs WebKitGTK and its GStreamer plugins into it; check on a clean Ubuntu that it starts, plays an exported video in the Run panel and keeps the webview's sandbox working.
 5. **Fedora.** The rpm can't fix H.264 playback: Fedora's `ffmpeg-free` has no H.264 decoder, and OpenH264 decodes Constrained Baseline only, while exports are High profile. The install notes say: enable RPM Fusion and swap `ffmpeg-free` for `ffmpeg`.
 6. **Keep the builds** in `~/.cache/opsis-ci/<run id>/` when checking them; sizes go to section 1.
@@ -124,12 +124,7 @@ The named pipe is created with the default security descriptor, which grants rea
 
 ## 7. FFmpeg source offer
 
-**In place.** The only FFmpeg Opsis distributes is the one in Remotion's compositor: FFmpeg 7.1 built by Remotion with `--enable-gpl` (GPLv2 or later; Remotion's own page says so and points at `remotion-dev/rust-ffmpeg-splitter`). Our ffmpeg-static programs (GPLv3) are downloaded from that project's release on the user's request, or chosen, and never shipped. The stage writes `COPYING.GPLv2` and `SOURCES.md` next to the compositor, Settings → Licences lists both, and `THIRD_PARTY_NOTICES.md` names them. `licences/compositor-sources.json` pins the exact source, traced from Remotion 4.0.537's `packages/compositor/Cargo.toml` (`rust-ffmpeg` 0579107 → `rust-ffmpeg-sys` e7f864a, whose binaries came from `rust-ffmpeg-splitter` 50b6a0c): the splitter (scripts, the five FFmpeg patches and the bundled Opus 1.3.1, libvpx and LAME), FFmpeg 7.1, x264 at b35605a (the `stable` head when the binaries were built), both pinned x265 commits, dav1d 1.2.1, libaom 3.9.1, fdk-aac-free 2.0.0 and zimg 2.9.3. `bun run compositor:sources` downloads them with SHA256SUMS, CI's `compositor-sources` job does it on `v*` tags, and the stage and a test fail when the manifest names another Remotion version than the one installed (both are 4.0.537 today). Decided: keep the GPL builds.
-
-**Work.**
-
-1. Attach the collected sources to each GitHub release, in the release job of section 6, so `SOURCES.md`'s link (`releases/tag/v<version>`) holds them.
-2. When Remotion moves, trace the chain again (the compositor's `Cargo.toml` → `rust-ffmpeg` → `rust-ffmpeg-sys`'s last binaries commit, which names the splitter commit) and update the manifest; check that x264's `stable` head hasn't moved past the build date.
+**Done, by removal.** Since v3 Opsis ships no FFmpeg at all: the renderer encodes with our ffmpeg-static programs (GPLv3), which are downloaded on the user's request or chosen, never shipped, so there is no source to offer. Remotion's compositor, its GPLv2 FFmpeg, `licences/compositor-sources.json` and `bun run compositor:sources` are gone.
 
 ## 8. Release test pass
 
@@ -138,16 +133,16 @@ The named pipe is created with the default security descriptor, which grants rea
 **Work, before each release** (Linux by hand, Windows and macOS through the runner checks in section 3):
 
 1. **The whole e2e suite**, all eight spec files together.
-2. **Long takes:** 10 and 20 minute recordings; memory of the app, the sidecar and the headless shell, the take's size, Timeline responsiveness, export time, trace size.
+2. **Long takes:** 10 and 20 minute recordings; memory of the app and the headless shell, the take's size, Timeline responsiveness, export time, trace size.
 3. **Paths:** project folders with spaces and non-English letters, another drive on Windows, assets imported from such folders, fonts copied into projects.
 4. **Moving and renaming** a project folder while closed and while open.
 5. **Canvas sizes** beyond the presets: 21:9, 3:2, 60 fps, a very small and a 4K canvas.
 6. **Broken font files** and ZIPs without fonts: a plain message, never a crash.
 7. **Every template end to end,** run and exported, each export watched through.
-8. **Stopping a run** at every stage, and killing the sidecar or the headless shell mid-run: the run reports it and the next one starts fresh.
+8. **Stopping a run** at every stage, and killing the headless shell or FFmpeg mid-run: the run reports it and the next one starts fresh.
 9. **Pop-out windows** editing at once: edits and undo from each, closing one mid-drag.
 10. **Keyboard only:** create, connect, edit, run and export without a mouse.
-11. **Renders as recorded:** `crates/render/tests/renders.rs` (the same bytes) and `three_stills.rs` against their golden files, rerun on every Bun or Remotion bump.
+11. **Renders as recorded:** `crates/render/tests/frames.rs` (the same bytes) and `three_stills.rs` against their golden files, rerun on every browser or FFmpeg bump.
 
 ## 9. Profiling (development only)
 
@@ -170,4 +165,4 @@ Nodes that install and update apart from the app; build after sections 1–8.
 - **Phase 2, packs as data.** A `pack.json` manifest (id, name, semver version, the pack API version, permissions, nodes and elements), first-party packs grouping today's nodes without changing their ids, projects listing the packs they use, and the "isn't available" messages naming the missing pack. Pack id and version join the node cache key.
 - **Phase 3, pack code.** Node definitions and compile are Rust, so a pack can't ship TS compile code: settings come as JSON Schema, and compile and executors run as WebAssembly modules or as separate programs speaking the sidecar's JSON-lines protocol (decide when this phase starts). Video components ship prebuilt as ES modules importing `react` and `remotion` from globals the bundle exposes, loaded next to the registry's loaders under `delayRender`.
 - **Phase 4, third-party packs.** Installed from a file (decided: no online catalogue at first); unsigned packs may run code after a clear warning naming what they can do, signed ones skip it (decided).
-- **Risks.** Pack video code runs where renders run; version skew between a pack and the bundle's `remotion`/`react`.
+- **Risks.** Pack video code runs where renders run; version skew between a pack and the film page's `react`.

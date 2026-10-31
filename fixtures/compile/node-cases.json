@@ -33473,7 +33473,8 @@
         "durationInFrames": 75,
         "exit": {
          "kind": "fade",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {}
         },
         "slot": {
          "nodeId": "n",
@@ -33526,11 +33527,13 @@
         "durationInFrames": 75,
         "enter": {
          "kind": "fade",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {}
         },
         "exit": {
          "kind": "fade",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {}
         },
         "slot": {
          "nodeId": "n",
@@ -33583,11 +33586,13 @@
         "durationInFrames": 75,
         "enter": {
          "kind": "fade",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {}
         },
         "exit": {
          "kind": "fade",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {}
         },
         "slot": {
          "nodeId": "n",
@@ -33640,11 +33645,13 @@
         "durationInFrames": 75,
         "enter": {
          "kind": "fade",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {}
         },
         "exit": {
          "kind": "fade",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {}
         },
         "slot": {
          "nodeId": "n",
@@ -33697,11 +33704,13 @@
         "durationInFrames": 75,
         "enter": {
          "kind": "fade",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {}
         },
         "exit": {
          "kind": "fade",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {}
         },
         "slot": {
          "nodeId": "n",
@@ -33754,7 +33763,8 @@
         "durationInFrames": 75,
         "enter": {
          "kind": "fade",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {}
         },
         "slot": {
          "nodeId": "n",

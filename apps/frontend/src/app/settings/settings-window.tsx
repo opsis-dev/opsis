@@ -1,6 +1,5 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import {
-  Clapperboard,
   Cpu,
   FolderKanban,
   Info,
@@ -34,7 +33,6 @@ import { onMenuCommand } from "../menu-commands";
 import { EnginePanel } from "../setup";
 import { AboutPage } from "./about-page";
 import { ApiPage } from "./api-page";
-import { ExportPage } from "./export-page";
 import { GeneralPage } from "./general-page";
 import { LicencesPage } from "./licences-page";
 import { ProjectsPage } from "./projects-page";
@@ -77,12 +75,6 @@ const PAGES: Record<SettingsPage, PageInfo> = {
     icon: Type,
     description: "Your font library. Projects copy the fonts they use.",
     render: () => <FontsPanel />,
-  },
-  export: {
-    label: "Export licence",
-    icon: Clapperboard,
-    description: "The licence for exporting videos.",
-    render: (settings) => <ExportPage render={settings.render} />,
   },
   api: {
     label: "API",

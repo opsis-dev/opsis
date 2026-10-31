@@ -83,6 +83,9 @@ const CAPTURE_HEADROOM: f64 = 10.0;
 const PAGE_TIMEOUT: Duration = Duration::from_secs(60);
 const PAGE_POLL: Duration = Duration::from_millis(50);
 const FRAME_TIMEOUT: Duration = Duration::from_secs(30);
+const SEEK_TICK: Duration = Duration::from_millis(4);
+const PAINTED: &str =
+    "new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => done(true))))";
 
 pub fn gl_switches(gl: Gl) -> &'static [&'static str] {
     match gl {
@@ -124,18 +127,23 @@ impl Capture {
     }
 }
 
-pub fn film_switches(gl: Gl, capture: Capture) -> Vec<String> {
-    let begin: &[&str] = if capture == Capture::BeginFrame {
-        &BEGIN_FRAME_SWITCHES
+pub fn film_switches(gl: Gl, capture: Capture, width: u32, height: u32) -> Vec<String> {
+    let window = [
+        format!("--window-size={width},{height}"),
+        "--force-device-scale-factor=1".to_owned(),
+    ];
+    let (begin, sized): (&[&str], &[String]) = if capture == Capture::BeginFrame {
+        (&BEGIN_FRAME_SWITCHES, &window)
     } else {
-        &[]
+        (&[], &[])
     };
     effective_switches(
         FILM_SWITCHES
             .iter()
             .chain(gl_switches(gl))
             .chain(begin)
-            .copied(),
+            .copied()
+            .chain(sized.iter().map(String::as_str)),
     )
 }
 
@@ -255,15 +263,18 @@ async fn probe(launched: &Launched) -> Result<()> {
     checked
 }
 
-async fn launch_film(options: &DriverOptions<'_>) -> Result<(Launched, Capture, Option<String>)> {
+async fn launch_film(
+    options: &DriverOptions<'_>,
+    film: &FilmPage<'_>,
+) -> Result<(Launched, Capture, Option<String>)> {
     let start = |capture| {
         launch_with(
             options.executable,
             options.temp_dir,
-            film_switches(options.gl, capture),
+            film_switches(options.gl, capture, film.width, film.height),
         )
     };
-    if options.capture == Capture::Screenshot {
+    if options.capture == Capture::Screenshot || film.scale != 1.0 {
         return Ok((start(Capture::Screenshot).await?, Capture::Screenshot, None));
     }
     let mut reason = String::new();
@@ -361,7 +372,7 @@ async fn ready_within<T>(tab: &Tab, what: &str, run: impl Future<Output = Result
 
 impl FrameDriver {
     pub async fn open(options: &DriverOptions<'_>, film: &FilmPage<'_>) -> Result<Self> {
-        let (launched, capture, fell_back) = launch_film(options).await?;
+        let (launched, capture, fell_back) = launch_film(options, film).await?;
         match Self::load(&launched, capture, film).await {
             Ok((tab, shape, ticks)) => Ok(Self {
                 launched,
@@ -441,14 +452,34 @@ impl FrameDriver {
         self.fell_back.as_deref()
     }
 
+    async fn seek(&mut self, frame: u32) -> Result<()> {
+        let tab = &self.tab;
+        let what = format!("Frame {frame}");
+        let expression = format!("window.opsis.seek({frame})");
+        let seeking = ready_within(tab, &what, tab.evaluate_main::<Value>(&expression));
+        if self.capture != Capture::BeginFrame {
+            return seeking.await.map(drop);
+        }
+        tokio::pin!(seeking);
+        let mut ticks = self.ticks;
+        let done = loop {
+            tokio::select! {
+                done = &mut seeking => break done.map(drop),
+                () = tokio::time::sleep(SEEK_TICK) => {
+                    ticks += self.interval;
+                    let params = json!({ "frameTimeTicks": ticks, "interval": self.interval, "noDisplayUpdates": false });
+                    if let Err(error) = begin_frame(tab, params).await {
+                        break Err(error);
+                    }
+                }
+            }
+        };
+        self.ticks = ticks;
+        done
+    }
+
     pub async fn frame(&mut self, frame: u32, format: FrameFormat) -> Result<Vec<u8>> {
-        ready_within(
-            &self.tab,
-            &format!("Frame {frame}"),
-            self.tab
-                .evaluate_main::<Value>(&format!("window.opsis.seek({frame})")),
-        )
-        .await?;
+        self.seek(frame).await?;
         let picture = match self.capture {
             Capture::BeginFrame => {
                 self.ticks += self.interval;
@@ -459,6 +490,7 @@ impl FrameDriver {
                 .await?
             }
             Capture::Screenshot => {
+                self.tab.evaluate_main::<Value>(PAINTED).await?;
                 let shot = self
                     .tab
                     .send("Page.captureScreenshot", format.screenshot())

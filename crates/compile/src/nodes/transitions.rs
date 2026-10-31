@@ -42,6 +42,20 @@ pub fn transition_kinds() -> Vec<String> {
         .collect()
 }
 
+const NODE_ONLY_SETTINGS: [&str; 3] = ["durationInFrames", "keepWhole", "easing"];
+
+pub fn default_transition_params(kind: &str) -> Option<Map<String, Value>> {
+    let meta = crate::elements::element_meta(kind)?;
+    let mut params = meta.fixed_props.clone();
+    params.extend(
+        meta.default_props
+            .iter()
+            .filter(|(key, _)| !NODE_ONLY_SETTINGS.contains(&key.as_str()))
+            .map(|(key, value)| (key.clone(), value.clone())),
+    );
+    Some(params)
+}
+
 pub fn transition_ref(
     kind: &str,
     duration_in_frames: u32,

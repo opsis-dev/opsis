@@ -53,12 +53,12 @@ function fixWith(
 const ANIMATE_CLASS =
   /(^|\s)(motion-safe:|motion-reduce:|hover:|group-hover:)?animate-[a-z0-9[\]-]+/;
 const MESSAGE =
-  "Tailwind `animate-*` classes animate on the wall clock and do not render in Remotion. Derive the style from useCurrentFrame() instead.";
+  "Tailwind `animate-*` classes animate on the wall clock and do not render in the film. Derive the style from the runtime's useFrame() instead.";
 
 const noAnimateClass: Rule = {
   meta: {
     type: "problem",
-    docs: { description: "Disallow Tailwind animate-* classes inside Remotion compositions" },
+    docs: { description: "Disallow Tailwind animate-* classes inside the film" },
   },
   create(context) {
     return {
@@ -80,7 +80,7 @@ function isIdentifier(node: MaybeNode, name?: string): boolean {
 
 const THREE_CLOCKS = new Set(["Clock", "Timer"]);
 const THREE_CLOCK_MESSAGE =
-  "Three.js clocks and animation loops run on the wall clock and do not render in Remotion. Derive the scene from useCurrentFrame() instead.";
+  "Three.js clocks and animation loops run on the wall clock and do not render in the film. Derive the scene from the runtime's useFrame() instead.";
 
 function clockName(node: MaybeNode): string | null {
   if (node?.type === "Identifier") return node.name;
@@ -93,7 +93,7 @@ const noThreeClock: Rule = {
   meta: {
     type: "problem",
     docs: {
-      description: "Disallow Three.js clocks and animation loops inside Remotion compositions",
+      description: "Disallow Three.js clocks and animation loops inside the film",
     },
   },
   create(context) {

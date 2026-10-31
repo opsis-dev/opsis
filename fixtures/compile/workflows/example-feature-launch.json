@@ -624,7 +624,12 @@
          "durationInFrames": 90,
          "exit": {
           "kind": "zoom-blur",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "blur": 16,
+           "rise": 0,
+           "zoom": 1.12
+          }
          },
          "slot": {
           "nodeId": "sequence",
@@ -679,11 +684,21 @@
          "durationInFrames": 144,
          "enter": {
           "kind": "zoom-blur",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "blur": 16,
+           "rise": 0,
+           "zoom": 1.12
+          }
          },
          "exit": {
           "kind": "zoom-blur",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "blur": 16,
+           "rise": 0,
+           "zoom": 1.12
+          }
          },
          "slot": {
           "nodeId": "sequence",
@@ -718,7 +733,12 @@
          "durationInFrames": 75,
          "enter": {
           "kind": "zoom-blur",
-          "durationInFrames": 15
+          "durationInFrames": 15,
+          "params": {
+           "blur": 16,
+           "rise": 0,
+           "zoom": 1.12
+          }
          },
          "slot": {
           "nodeId": "sequence",
@@ -950,7 +970,12 @@
        "durationInFrames": 90,
        "exit": {
         "kind": "zoom-blur",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "blur": 16,
+         "rise": 0,
+         "zoom": 1.12
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -1005,11 +1030,21 @@
        "durationInFrames": 144,
        "enter": {
         "kind": "zoom-blur",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "blur": 16,
+         "rise": 0,
+         "zoom": 1.12
+        }
        },
        "exit": {
         "kind": "zoom-blur",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "blur": 16,
+         "rise": 0,
+         "zoom": 1.12
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -1044,7 +1079,12 @@
        "durationInFrames": 75,
        "enter": {
         "kind": "zoom-blur",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "blur": 16,
+         "rise": 0,
+         "zoom": 1.12
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -1556,7 +1596,12 @@
        "durationInFrames": 90,
        "exit": {
         "kind": "zoom-blur",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "blur": 16,
+         "rise": 0,
+         "zoom": 1.12
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -1611,11 +1656,21 @@
        "durationInFrames": 144,
        "enter": {
         "kind": "zoom-blur",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "blur": 16,
+         "rise": 0,
+         "zoom": 1.12
+        }
        },
        "exit": {
         "kind": "zoom-blur",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "blur": 16,
+         "rise": 0,
+         "zoom": 1.12
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -1650,7 +1705,12 @@
        "durationInFrames": 75,
        "enter": {
         "kind": "zoom-blur",
-        "durationInFrames": 15
+        "durationInFrames": 15,
+        "params": {
+         "blur": 16,
+         "rise": 0,
+         "zoom": 1.12
+        }
        },
        "slot": {
         "nodeId": "sequence",
@@ -3226,7 +3286,12 @@
           "durationInFrames": 90,
           "exit": {
            "kind": "zoom-blur",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "blur": 16,
+            "rise": 0,
+            "zoom": 1.12
+           }
           },
           "slot": {
            "nodeId": "sequence",
@@ -3281,11 +3346,21 @@
           "durationInFrames": 98,
           "enter": {
            "kind": "zoom-blur",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "blur": 16,
+            "rise": 0,
+            "zoom": 1.12
+           }
           },
           "exit": {
            "kind": "zoom-blur",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "blur": 16,
+            "rise": 0,
+            "zoom": 1.12
+           }
           },
           "slot": {
            "nodeId": "sequence",
@@ -3432,7 +3507,12 @@
           "durationInFrames": 75,
           "enter": {
            "kind": "zoom-blur",
-           "durationInFrames": 15
+           "durationInFrames": 15,
+           "params": {
+            "blur": 16,
+            "rise": 0,
+            "zoom": 1.12
+           }
           },
           "slot": {
            "nodeId": "sequence",
@@ -3747,7 +3827,12 @@
         "durationInFrames": 90,
         "exit": {
          "kind": "zoom-blur",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "blur": 16,
+          "rise": 0,
+          "zoom": 1.12
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -3802,11 +3887,21 @@
         "durationInFrames": 98,
         "enter": {
          "kind": "zoom-blur",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "blur": 16,
+          "rise": 0,
+          "zoom": 1.12
+         }
         },
         "exit": {
          "kind": "zoom-blur",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "blur": 16,
+          "rise": 0,
+          "zoom": 1.12
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -3953,7 +4048,12 @@
         "durationInFrames": 75,
         "enter": {
          "kind": "zoom-blur",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "blur": 16,
+          "rise": 0,
+          "zoom": 1.12
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -4465,7 +4565,12 @@
         "durationInFrames": 90,
         "exit": {
          "kind": "zoom-blur",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "blur": 16,
+          "rise": 0,
+          "zoom": 1.12
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -4520,11 +4625,21 @@
         "durationInFrames": 98,
         "enter": {
          "kind": "zoom-blur",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "blur": 16,
+          "rise": 0,
+          "zoom": 1.12
+         }
         },
         "exit": {
          "kind": "zoom-blur",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "blur": 16,
+          "rise": 0,
+          "zoom": 1.12
+         }
         },
         "slot": {
          "nodeId": "sequence",
@@ -4671,7 +4786,12 @@
         "durationInFrames": 75,
         "enter": {
          "kind": "zoom-blur",
-         "durationInFrames": 15
+         "durationInFrames": 15,
+         "params": {
+          "blur": 16,
+          "rise": 0,
+          "zoom": 1.12
+         }
         },
         "slot": {
          "nodeId": "sequence",

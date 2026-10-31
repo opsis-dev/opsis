@@ -6,7 +6,6 @@
   "type": "module",
   "exports": {
     "./spec": "./src/spec.ts",
-    "./root": "./src/index.ts",
     "./common/*": "./src/common/*.ts",
     "./generated/spec": "./src/generated/spec.ts",
     "./film": "./src/film.tsx"
@@ -29,7 +28,6 @@
     "fflate": "^0.8.3",
     "lottie-web": "^5.13.0",
     "react": "^19.3.1",
-    "remotion": "4.0.537",
     "roughjs": "^4.6.6",
     "simplex-noise": "^4.0.3",
     "svg-path-commander": "^2.3.3",

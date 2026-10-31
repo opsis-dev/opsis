@@ -6,7 +6,7 @@ type Override = NonNullable<OxlintConfig["overrides"]>[number];
 
 const WALL_CLOCK_LIBS = ["framer-motion", "motion", "motion/react", "motion/react-client", "gsap"];
 
-const NODE_ONLY = ["node:*", "playwright-core", "@remotion/renderer", "@remotion/bundler"];
+const NODE_ONLY = ["node:*", "playwright-core"];
 
 export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfig {
   const prefix = path.relative(dir, ROOT).split(path.sep).join("/");

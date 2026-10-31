@@ -1,28 +1,24 @@
-mod support;
-
 use opsis_golden::{home, repo};
-use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 
+use opsis_capture::film::{Capture, DriverOptions, FilmPage};
+use opsis_compile::asset_ref::FILM_FOLDER;
 use opsis_compile::clip::clip_to_spec;
 use opsis_compile::elements::element_node_type;
 use opsis_compile::hosted::hosted;
 use opsis_compile::node::{CLIP_PORT, Ctx};
+use opsis_compile::nodes::output::{Gl, StillFormat};
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
-use opsis_engine::http_files::FileServer;
+use opsis_engine::http_files::{FileServer, folder_routes};
 use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
-use opsis_render::protocol::{COMPOSITION_ID, RenderTarget, SidecarCall, StillJob};
-use opsis_render::sidecar::{Sidecar, SidecarCommand};
+use opsis_render::frames::{StillRender, render_still};
 use opsis_types::numbers;
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::{CompileValue, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use serde_json::{Value, json};
-use support::{sidecar_args, sidecar_program};
-use tokio_util::sync::CancellationToken;
 
 const STILLS: &str = "prepare/stills";
 const FRAME: u32 = 45;
@@ -167,7 +163,7 @@ fn share_alike(made: &Path, baseline: &Path) -> Result<(), String> {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[ignore = "needs the dev engine and the video bundle; OPSIS_STILLS_OUT names where stills go"]
+#[ignore = "needs the dev engine and the film page (bun run film:bundle); OPSIS_STILLS_OUT names where stills go"]
 async fn draws_3d_elements_as_recorded() {
     let out = std::env::var_os("OPSIS_STILLS_OUT")
         .map_or_else(|| home().join(".cache/opsis-three-stills"), PathBuf::from);
@@ -181,25 +177,15 @@ async fn draws_3d_elements_as_recorded() {
         project: project.clone(),
         public: repo().join("public"),
     };
-    let server = FileServer::start_with(&project, prepared_routes(dirs))
-        .await
-        .unwrap();
+    let routes =
+        prepared_routes(dirs).merge(folder_routes(FILM_FOLDER, &repo().join("film-bundle")));
+    let server = FileServer::start_with(&project, routes).await.unwrap();
+    let page_url = format!("{}{FILM_FOLDER}/index.html", server.url);
     let engine = engine_paths(
         &home().join(".config/Opsis/engine"),
         ShellPlatform::current().unwrap(),
     );
     let shell = find_headless_shell(&engine).unwrap().to_path_buf();
-    let env = ["TMPDIR", "TEMP", "TMP"]
-        .map(|k| (OsString::from(k), temp.clone().into_os_string()))
-        .to_vec();
-    let command = SidecarCommand {
-        program: sidecar_program(),
-        args: sidecar_args(),
-        env,
-        cwd: Some(repo()),
-    };
-    let sidecar = Sidecar::new(command, Arc::new(|line| eprintln!("sidecar: {line}")));
-    let never = CancellationToken::new();
     let mut failures = Vec::new();
     for (name, key, params) in cases() {
         let spec = hosted(&TimelineSpec {
@@ -209,29 +195,28 @@ async fn draws_3d_elements_as_recorded() {
             ..spec_for(key, &params)
         });
         let file = out.join(format!("{name}.png"));
-        let job = StillJob {
-            target: RenderTarget {
-                serve_url: repo()
-                    .join("remotion-bundle")
-                    .to_string_lossy()
-                    .into_owned(),
-                browser_executable: shell.to_string_lossy().into_owned(),
-                binaries_directory: std::env::var("OPSIS_COMPOSITOR").ok(),
-                license_key: "free-license".into(),
-                composition: COMPOSITION_ID.into(),
-                spec,
-                gl: serde_json::from_value(json!("angle")).unwrap(),
+        let json = serde_json::to_value(&spec).unwrap();
+        let drawn = render_still(&StillRender {
+            driver: DriverOptions {
+                executable: &shell,
+                temp_dir: &temp,
+                gl: Gl::Angle,
+                capture: Capture::for_this_computer(),
+            },
+            page: FilmPage {
+                url: &page_url,
+                spec: &json,
+                width: spec.width,
+                height: spec.height,
+                scale: 0.5,
             },
             frame: FRAME,
-            output: file.to_string_lossy().into_owned(),
-            format: serde_json::from_value(json!("png")).unwrap(),
-            scale: Some(0.5),
+            format: StillFormat::Png,
             jpeg_quality: None,
-        };
-        if let Err(error) = sidecar
-            .call(SidecarCall::RenderStill(job), &never, None)
-            .await
-        {
+            output: &file,
+        })
+        .await;
+        if let Err(error) = drawn {
             failures.push(format!("{name}: {error}"));
             continue;
         }

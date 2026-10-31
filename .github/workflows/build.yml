@@ -97,7 +97,6 @@ jobs:
         shell: bash
         run: |
           test -f resources/engine-licences/LICENSES.chromium.html
-          test -f resources/compositor/COPYING.GPLv2
       - name: Check every program in the app is signed
         if: runner.os == 'macOS' && env.APPLE_SIGNING_IDENTITY != ''
         shell: bash
@@ -120,27 +119,6 @@ jobs:
             target/release/bundle/msi/*.msi
             target/release/bundle/macos/*.zip
             target/release/bundle/dmg/*.dmg
-          if-no-files-found: error
-
-  compositor-sources:
-    name: Compositor sources
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: checks
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.4.3
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-      - run: bun install --frozen-lockfile
-      - run: bun run compositor:sources -- "$RUNNER_TEMP/compositor-sources"
-      - uses: actions/upload-artifact@v7
-        with:
-          name: compositor-sources
-          path: ${{ runner.temp }}/compositor-sources
           if-no-files-found: error
 
   e2e:
@@ -170,5 +148,5 @@ jobs:
           key: dev-engine-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('crates/engine/src/downloads.generated.json') }}
       - name: Install the engine
         run: cargo run -q --release -p opsis-engine --bin install-engine -- ~/.config/Opsis/engine
-      - run: bun run video:bundle
+      - run: bun run film:bundle
       - run: bun run test:e2e

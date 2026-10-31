@@ -14,7 +14,6 @@ export const SETTINGS_PAGES: SettingsPage[] = [
   "engine",
   "recording",
   "fonts",
-  "export",
   "api",
   "licences",
   "about",

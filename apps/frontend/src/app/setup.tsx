@@ -212,11 +212,6 @@ export function Setup() {
               or choose your own.
             </p>
           </div>
-          <p className="text-muted-foreground text-xs">
-            Video export uses Remotion, which is free for individuals, non-profits and companies
-            with up to 3 employees. Larger companies need a Remotion company licence; enter its key
-            in Settings.
-          </p>
           <EnginePanel
             onDone={() => {
               skipSetup();

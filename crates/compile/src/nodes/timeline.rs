@@ -25,7 +25,7 @@ use crate::node::{
     outputs, port, row, with_clip,
 };
 use crate::nodes::transitions::{
-    NO_TRANSITION, transition_kinds, transition_ref, transition_title,
+    NO_TRANSITION, default_transition_params, transition_kinds, transition_ref, transition_title,
 };
 use crate::ports::{clip_family, clip_label, connected_clips, in_index, layer_label};
 use crate::remap::{Remap, speed_remap};
@@ -268,7 +268,7 @@ fn sequence() -> NodeDef {
                             cut.transition_duration,
                             cut.keep_whole,
                             cut.easing,
-                            None,
+                            default_transition_params(&cut.transition),
                         )
                     })
                 })

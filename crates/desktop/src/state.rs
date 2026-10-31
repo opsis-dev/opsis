@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64};
-use std::sync::{Arc, Mutex, MutexGuard, RwLock};
+use std::sync::{Mutex, MutexGuard, RwLock};
 
 use indexmap::IndexMap;
 use opsis_compile::edits::timeline::Film;
@@ -10,7 +10,6 @@ use opsis_fonts::library::FontLibrary;
 use opsis_fonts::online::FontsOnline;
 use opsis_project::files::ProjectFiles;
 use opsis_project::watch::{LoadedFilesWatch, ProjectWatch};
-use opsis_render::sidecar::Sidecar;
 use opsis_store::db::{Database, StoreError};
 use opsis_store::keys::{KeyError, Keyring};
 use opsis_store::settings::{SettingsPatch, merged_settings};
@@ -96,7 +95,6 @@ pub struct AppState {
     pub fonts: FontLibrary,
     pub fonts_online: FontsOnline,
     pub engine: Mutex<EngineChecks>,
-    pub sidecar: Arc<Sidecar>,
     pub editor: Mutex<Editor>,
     pub watching: Mutex<Watching>,
     pub tasks: Tasks,
@@ -110,9 +108,8 @@ impl AppState {
     pub async fn new(
         paths: AppPaths,
         keys: Result<Keyring, KeyError>,
-        sidecar_log: Arc<dyn Fn(&str) + Send + Sync>,
     ) -> Result<Self, StartupError> {
-        for dir in [&paths.user_data, &paths.views_temp, &paths.sidecar_temp] {
+        for dir in [&paths.user_data, &paths.views_temp] {
             std::fs::create_dir_all(dir)?;
         }
         let db = Database::open(&paths.database()).await?;
@@ -126,7 +123,6 @@ impl AppState {
             fonts: FontLibrary::new(&paths.user_data),
             fonts_online: FontsOnline::default(),
             engine: Mutex::default(),
-            sidecar: Arc::new(Sidecar::new(paths.sidecar(), sidecar_log)),
             editor: Mutex::default(),
             watching: Mutex::default(),
             tasks: Tasks::default(),

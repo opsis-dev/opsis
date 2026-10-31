@@ -25,7 +25,7 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins:
 **Checks when a feature is done.**
 
 - `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, and the no-comments check.
-- `bun run video:bundle`, then export a short clip with the new feature and compare it with the editor Preview: preview must equal export. Scrub backwards in the Preview and check the picture matches a forward play.
+- `bun run film:bundle`, then export a short clip with the new feature and compare it with the editor Preview: preview must equal export. Scrub backwards in the Preview and check the picture matches a forward play.
 
 ## Summary
 
@@ -226,8 +226,8 @@ In place:
 
 - `LottieElement` (`packages/video/src/elements/overlay/lottie.tsx`) is the pattern: an `asset` setting given the host's project address by `hosted`, `fetch()` under `delayRender`, `cancelRender` on failure; its settings accept `.json,.lottie` through `x-accept`.
 - `import_assets` (`crates/project/src/import.rs`) copies any file into `assets/`; the file servers are `tower-http`'s `ServeDir` (`crates/engine/src/http_files.rs`), whose MIME table already maps `.wasm` to `application/wasm` and serves unknown types such as `.riv` as `application/octet-stream`.
-- Video code runs only in the headless shell (the render bundle), never in the editor's webview, so the editor's CSP doesn't apply.
-- No bundler swaps an import today; the sidecar's Rspack override takes aliases (`makeBundlerOverride` in `apps/sidecar/src/bundler-override.ts`). Rive's runtime goes through it.
+- Video code runs only in the headless shell (the film page), never in the editor's webview, so the editor's CSP doesn't apply.
+- No bundler swaps an import today; the film page's Vite config (`apps/film/vite.config.ts`) can take aliases if Rive's runtime needs one.
 
 What the packages do (from the tarballs of `@remotion/rive` and `@rive-app/canvas-advanced@2.31.5`, checked 2026-10-19; `@remotion/rive@4.0.537` still pins 2.31.5, checked 2026-10-26):
 

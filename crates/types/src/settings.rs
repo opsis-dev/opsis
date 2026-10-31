@@ -146,15 +146,6 @@ pub struct LiveSection {
     Debug, Clone, PartialEq, Default, Serialize, Deserialize, Validate, Type, schemars::JsonSchema,
 )]
 #[serde(rename_all = "camelCase", default)]
-pub struct RenderSection {
-    #[garde(length(max = 200))]
-    pub license_key: String,
-}
-
-#[derive(
-    Debug, Clone, PartialEq, Default, Serialize, Deserialize, Validate, Type, schemars::JsonSchema,
-)]
-#[serde(rename_all = "camelCase", default)]
 pub struct ProjectsSection {
     #[garde(skip)]
     pub default_dir: String,
@@ -219,8 +210,6 @@ pub struct AppSettings {
     #[garde(dive)]
     pub live: LiveSection,
     #[garde(dive)]
-    pub render: RenderSection,
-    #[garde(dive)]
     pub projects: ProjectsSection,
     #[garde(dive)]
     pub editor: EditorSection,
@@ -230,8 +219,8 @@ pub struct AppSettings {
     pub engine: EngineSection,
 }
 
-pub const SETTINGS_SECTIONS: [&str; 8] = [
-    "app", "traces", "live", "render", "projects", "editor", "api", "engine",
+pub const SETTINGS_SECTIONS: [&str; 7] = [
+    "app", "traces", "live", "projects", "editor", "api", "engine",
 ];
 
 pub const RUST_ONLY_SECTIONS: [&str; 1] = ["engine"];

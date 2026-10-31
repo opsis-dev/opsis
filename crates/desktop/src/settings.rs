@@ -141,20 +141,6 @@ fn licence_sources(state: &AppState) -> Vec<LicenceSource> {
             kind: LicenceKind::Text,
             path: ffmpeg_licence(state).unwrap_or_default(),
         },
-        LicenceSource {
-            id: "compositor-ffmpeg",
-            title: "FFmpeg in the video renderer",
-            summary: "GNU General Public License v2 or later, and where to get its source",
-            kind: LicenceKind::Text,
-            path: resources.join("compositor").join("SOURCES.md"),
-        },
-        LicenceSource {
-            id: "compositor-gpl",
-            title: "GNU General Public License v2",
-            summary: "The licence of the video renderer's FFmpeg",
-            kind: LicenceKind::File,
-            path: resources.join("compositor").join("COPYING.GPLv2"),
-        },
     ]
 }
 

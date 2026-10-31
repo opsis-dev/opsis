@@ -12,6 +12,7 @@ use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::output::{Gl, StillFormat};
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
+use opsis_engine::hash::sha256_hex;
 use opsis_engine::http_files::{FileServer, folder_routes};
 use opsis_engine::tools::EngineFiles;
 use opsis_golden::home;
@@ -36,6 +37,8 @@ const STILLS: [&str; 5] = [
 ];
 const VIDEOS: [&str; 2] = ["kinetic-headline", "shader-grain-gradient"];
 const PNG_SIZE_AT: usize = 16;
+const RENDERS: &str = "render/renders.json";
+const WHOLE_HASH: usize = 64;
 
 fn solid(id: &str, color: &str) -> CompileValue {
     let props = Map::from_iter([("color".to_owned(), json!(color))]);
@@ -76,16 +79,19 @@ fn compile_clip(kind: &str, inputs: PortValues) -> ClipValue {
 
 fn spec_for(key: &str) -> TimelineSpec {
     let meta = element_meta(key).unwrap();
-    let (kind, inputs) = if meta.kind == ElementKind::Presentation {
-        (
+    let (kind, inputs) = match meta.kind {
+        ElementKind::Presentation => (
             format!("transition.{key}"),
             PortValues::from_iter([
                 ("a".to_owned(), solid("a", "#334155")),
                 ("b".to_owned(), solid("b", "#7c3aed")),
             ]),
-        )
-    } else {
-        (element_node_type(key), PortValues::new())
+        ),
+        ElementKind::Wrapper => (
+            element_node_type(key),
+            PortValues::from_iter([("clip".to_owned(), solid("in", "#334155"))]),
+        ),
+        _ => (element_node_type(key), PortValues::new()),
     };
     clip_to_spec(&compile_clip(&kind, inputs), &WorkflowSettings::default())
 }
@@ -318,4 +324,65 @@ async fn stops_a_render_soon_after_it_is_cancelled() {
         "{rendered:?}"
     );
     assert!(started.elapsed() < Duration::from_secs(10));
+}
+
+#[tokio::test]
+#[ignore = "needs the dev engine and the film page (bun run film:bundle)"]
+async fn renders_the_same_bytes_as_recorded() {
+    let setup = Setup::new().await;
+    let tools = Ffmpeg::new(&setup.engine);
+    let never = CancellationToken::new();
+    let mut hashes = Map::new();
+    for key in STILLS {
+        let (json, spec) = setup.spec(key);
+        let file = format!("{key}.png");
+        render_still(&StillRender {
+            driver: setup.driver(),
+            page: FilmPage {
+                url: &setup.page_url(),
+                spec: &json,
+                width: spec.width,
+                height: spec.height,
+                scale: 1.0,
+            },
+            frame: spec.duration_in_frames / 2,
+            format: StillFormat::Png,
+            jpeg_quality: None,
+            output: &setup.out.join(&file),
+        })
+        .await
+        .unwrap_or_else(|e| panic!("{key}: {e}"));
+        let made = std::fs::read(setup.out.join(&file)).unwrap();
+        hashes.insert(file, Value::from(sha256_hex(&made, WHOLE_HASH)));
+    }
+    for key in VIDEOS {
+        let (json, spec) = setup.spec(key);
+        let file = format!("{key}.mp4");
+        render_film(
+            &FilmRender {
+                driver: setup.driver(),
+                page: FilmPage {
+                    url: &setup.page_url(),
+                    spec: &json,
+                    width: spec.width,
+                    height: spec.height,
+                    scale: 1.0,
+                },
+                encoding: h264(),
+                every_nth_frame: 1,
+                output: &setup.out.join(&file),
+            },
+            &FilmRun {
+                tools: &tools,
+                cancel: &never,
+                progress: &|_| {},
+                note: &|_| {},
+            },
+        )
+        .await
+        .unwrap_or_else(|e| panic!("{key}: {e}"));
+        let made = std::fs::read(setup.out.join(&file)).unwrap();
+        hashes.insert(file, Value::from(sha256_hex(&made, WHOLE_HASH)));
+    }
+    opsis_golden::check(RENDERS, &Value::Object(hashes));
 }

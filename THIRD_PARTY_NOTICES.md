@@ -309,25 +309,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## remotion-dev/template-electron — apps/sidecar/src/{compositor-package,bundle,render}.ts (adapted)
-
-Used under the Remotion licence (https://www.remotion.dev/docs/license).
-
 ## FFmpeg (ffmpeg)
 
 The FFmpeg program Opsis runs itself is a GPLv3 build from the pinned ffmpeg-static GitHub release. Opsis doesn't include it: Settings → Engine downloads it, with its licence file, into the app's data folder, or uses a program the user chooses. Source: https://ffmpeg.org/download.html · builds: https://github.com/eugeneware/ffmpeg-static
 
-## FFmpeg in Remotion's compositor
-
-Opsis ships Remotion's compositor (`compositor/`), which includes FFmpeg 7.1 built by Remotion with x264, x265, libaom, dav1d, fdk-aac-free, Opus, libvpx, LAME and zimg. That build is licensed under the GNU General Public License, version 2 or (at your option) any later version; the licence is `compositor/COPYING.GPLv2` and `compositor/SOURCES.md` says where its complete source is. Opsis attaches that source to every release; `licences/compositor-sources.json` lists each part. Build scripts: https://github.com/remotion-dev/rust-ffmpeg-splitter
-
 ## Chrome Headless Shell (recording and export browser)
 
 Opsis doesn't include the recording browser: Settings → Engine downloads Chrome Headless Shell (Chromium, BSD-3-Clause, plus the licences of every library it includes) from Remotion or Google onto the user's computer, or uses a browser the user chooses. The complete licence notices of the pinned build ship with the app in `engine-licences/LICENSES.chromium.html`, saved at build time from the `chrome://credits` page of the full Chrome for Testing build of the exact same version. Source: https://chromium.googlesource.com/chromium/src · builds: https://googlechromelabs.github.io/chrome-for-testing/
-
-## Remotion
-
-Videos are rendered with Remotion (https://www.remotion.dev), which is not under an open-source licence: it is free for individuals, non-profits and for-profit organisations with up to 3 employees, and larger companies need a Remotion company licence (https://www.remotion.dev/license). Opsis passes the key entered in Settings → Video export licence, or the free licence when it is empty. Remotion packages are installed from npm and keep their own `LICENSE.md`.
 
 ## apple_cursor — packages/video/src/camera/lib/mac-cursors.generated.ts
 

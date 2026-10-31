@@ -201,13 +201,8 @@ pub fn executors(app: &AppHandle) -> Executors {
     let state = app.state::<AppState>();
     let tools = engine_tools(&state);
     let engine = Arc::new(RenderEngine {
-        sidecar: Arc::clone(&state.sidecar),
         tools: Arc::clone(&tools),
-        serve_url: state.paths.video_bundle.to_string_lossy().into_owned(),
-        binaries_directory: state
-            .paths
-            .compositor()
-            .map(|dir| dir.to_string_lossy().into_owned()),
+        film_bundle: state.paths.film_bundle.clone(),
     });
     let capture = Arc::new(CaptureDeps {
         tools: Arc::clone(&tools),

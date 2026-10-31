@@ -25,7 +25,7 @@ export function parseColor(c: string): Rgb {
   if (s.startsWith("var(")) {
     if (isDev()) {
       console.warn(
-        `[ui-kit] parseColor cannot resolve CSS variable "${s}" under Remotion's per-frame render. ` +
+        `[ui-kit] parseColor cannot resolve CSS variable "${s}" in the film's per-frame render. ` +
           "Animated colors must be concrete oklch/hex/rgb values supplied via the theme. " +
           "Falling back to the JS default.",
       );
@@ -59,7 +59,7 @@ function resolveColorString(s: string): string {
   if (trimmed.startsWith("var(")) {
     if (isDev()) {
       console.warn(
-        `[ui-kit] mixOklch cannot resolve CSS variable "${trimmed}" under Remotion's per-frame render. ` +
+        `[ui-kit] mixOklch cannot resolve CSS variable "${trimmed}" in the film's per-frame render. ` +
           "Animated colors must be concrete oklch/hex/rgb values supplied via the theme. " +
           "Falling back to the JS default.",
       );

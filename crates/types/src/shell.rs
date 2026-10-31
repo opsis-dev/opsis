@@ -29,7 +29,6 @@ pub enum SettingsPage {
     Engine,
     Recording,
     Fonts,
-    Export,
     Api,
     Licences,
     About,

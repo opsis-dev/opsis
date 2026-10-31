@@ -19,6 +19,16 @@ const LAYER: React.CSSProperties = {
 
 const OUTPUT_LAYER: React.CSSProperties = { ...LAYER, pointerEvents: "none" };
 
+function untilPainted(layout: HTMLCanvasElement, label: string): () => void {
+  const release = holdRender(label);
+  layout.addEventListener("paint", release, { once: true });
+  layout.requestPaint?.();
+  return () => {
+    layout.removeEventListener("paint", release);
+    release();
+  };
+}
+
 export function isCanvasTransitionSupported(): boolean {
   return canDrawElementsInCanvas();
 }
@@ -51,7 +61,7 @@ export type SceneShaderInstance<Props> = {
   cleanup: () => void;
 };
 
-export type SceneShader<Props> = (canvas: OffscreenCanvas) => SceneShaderInstance<Props>;
+export type SceneShader<Props> = (canvas: HTMLCanvasElement) => SceneShaderInstance<Props>;
 
 export type SceneFilterFrame<Props> = {
   gl: WebGL2RenderingContext;
@@ -78,7 +88,7 @@ export type SceneFilterInstance<Props> = {
   cleanup: () => void;
 };
 
-export type SceneFilter<Props> = (canvas: OffscreenCanvas) => SceneFilterInstance<Props>;
+export type SceneFilter<Props> = (canvas: HTMLCanvasElement) => SceneFilterInstance<Props>;
 
 export function makeSceneShader<Props extends Record<string, unknown>>(
   fragment: string,
@@ -176,7 +186,7 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
     const outputRef = React.useRef<HTMLCanvasElement | null>(null);
     const captureRef = React.useRef<OffscreenCanvas | null>(null);
     const captureContextRef = React.useRef<OffscreenCanvasRenderingContext2D | null>(null);
-    const outputSurfaceRef = React.useRef<OffscreenCanvas | null>(null);
+    const outputSurfaceRef = React.useRef<HTMLCanvasElement | null>(null);
     const instanceRef = React.useRef<SceneShaderInstance<Props> | null>(null);
     const passedPropsRef = React.useRef(passedProps);
     passedPropsRef.current = passedProps;
@@ -205,17 +215,16 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
       const height = from?.height ?? to?.height ?? 0;
       if (width === 0 || height === 0) {
         instance.clear();
-        handle();
-        return;
+      } else {
+        instance.draw({
+          from,
+          to,
+          width,
+          height,
+          progress: !to ? 0 : !from ? 1 : progress,
+          passedProps: passedPropsRef.current,
+        });
       }
-      instance.draw({
-        from,
-        to,
-        width,
-        height,
-        progress: !to ? 0 : !from ? 1 : progress,
-        passedProps: passedPropsRef.current,
-      });
       handle();
     };
 
@@ -239,11 +248,10 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
       if (!context) {
         throw new Error("canvas-presentation: failed to acquire a 2D context");
       }
-      const surface = takeOffscreen(output);
       captureRef.current = capture;
       captureContextRef.current = context;
-      outputSurfaceRef.current = surface;
-      instanceRef.current = shader(surface);
+      outputSurfaceRef.current = output;
+      instanceRef.current = shader(output);
 
       return () => {
         instanceRef.current?.cleanup();
@@ -311,10 +319,11 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
     }, [passThrough]);
 
     React.useLayoutEffect(() => {
-      if (passThrough) {
+      const layout = layoutRef.current;
+      if (passThrough || !layout) {
         return;
       }
-      layoutRef.current?.requestPaint?.();
+      return untilPainted(layout, "canvas-presentation: paint");
     }, [passThrough, presentationProgress]);
 
     React.useLayoutEffect(() => {
@@ -354,7 +363,7 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
     const outputRef = React.useRef<HTMLCanvasElement | null>(null);
     const captureRef = React.useRef<OffscreenCanvas | null>(null);
     const captureContextRef = React.useRef<OffscreenCanvasRenderingContext2D | null>(null);
-    const outputSurfaceRef = React.useRef<OffscreenCanvas | null>(null);
+    const outputSurfaceRef = React.useRef<HTMLCanvasElement | null>(null);
     const instanceRef = React.useRef<SceneFilterInstance<Props> | null>(null);
 
     const passedPropsRef = React.useRef(props);
@@ -375,11 +384,10 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
       if (!context) {
         throw new Error("canvas-presentation: failed to acquire a 2D context");
       }
-      const surface = takeOffscreen(output);
       captureRef.current = capture;
       captureContextRef.current = context;
-      outputSurfaceRef.current = surface;
-      instanceRef.current = shader(surface);
+      outputSurfaceRef.current = output;
+      instanceRef.current = shader(output);
 
       return () => {
         instanceRef.current?.cleanup();
@@ -414,16 +422,16 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
         }
         if (capture.width === 0 || capture.height === 0) {
           instance.clear();
-          return;
+        } else {
+          instance.draw({
+            scene: capture,
+            width: capture.width,
+            height: capture.height,
+            frame: frameRef.current,
+            time: timeRef.current,
+            passedProps: passedPropsRef.current,
+          });
         }
-        instance.draw({
-          scene: capture,
-          width: capture.width,
-          height: capture.height,
-          frame: frameRef.current,
-          time: timeRef.current,
-          passedProps: passedPropsRef.current,
-        });
       }
       layout.addEventListener("paint", handlePaint);
       return () => layout.removeEventListener("paint", handlePaint);
@@ -453,7 +461,11 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
     }, []);
 
     React.useLayoutEffect(() => {
-      layoutRef.current?.requestPaint?.();
+      const layout = layoutRef.current;
+      if (!layout) {
+        return;
+      }
+      return untilPainted(layout, "canvas-presentation: filter paint");
     });
 
     return (

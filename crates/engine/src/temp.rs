@@ -8,7 +8,6 @@ pub enum ChildKind {
     Analysis,
     Setup,
     Shell,
-    Sidecar,
 }
 
 impl ChildKind {
@@ -18,7 +17,6 @@ impl ChildKind {
             Self::Analysis => "analysis",
             Self::Setup => "setup",
             Self::Shell => "shell",
-            Self::Sidecar => "sidecar",
         }
     }
 }

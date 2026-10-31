@@ -2,7 +2,8 @@ use opsis_compile::nodes::output::{RENDER_TYPE, STILL_TYPE};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use opsis_compile::asset_ref::project_ref;
+use opsis_capture::film::{Capture, DriverOptions, FilmPage};
+use opsis_compile::asset_ref::{FILM_FOLDER, project_ref};
 use opsis_compile::hosted::hosted;
 use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::output::{
@@ -14,9 +15,11 @@ use opsis_compile::timeline::chapters::{
     FilmChapter, MIN_LISTED_CHAPTERS, chapter_list, chapter_metadata, film_chapters,
 };
 use opsis_engine::files::write_via_temp;
-use opsis_engine::http_files::FileServer;
+use opsis_engine::http_files::{FileServer, folder_routes};
 use opsis_footage::serve::footage_routes;
-use opsis_media::codecs::{codec_info, finish_args, has_sound_track, is_image_codec, mux_args};
+use opsis_media::codecs::{
+    FilmEncoding, codec_info, finish_args, has_sound_track, is_image_codec, mux_args,
+};
 use opsis_media::executors::{Tools, tool_error};
 use opsis_media::ffmpeg::RunOptions;
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
@@ -29,60 +32,70 @@ use opsis_types::timeline::{ReframeMode, SpecAssets, TimelineSpec};
 use opsis_types::values::{
     Artifact, ArtifactKind, CompileValue, ImageValue, MediaKind, MediaValue, PortValues,
 };
+use serde_json::Value;
 
 use crate::film::{Stage, mixed, spec_for};
 use crate::footage::film_footage;
+use crate::frames::{FilmError, FilmRender, FilmRun, StillRender, render_film, render_still};
 use crate::picture::{PictureOptions, cached_picture, picture_key};
-use crate::protocol::{COMPOSITION_ID, MediaJob, RenderTarget, SidecarCall, StillJob};
-use crate::sidecar::{Sidecar, SidecarError};
 
 const MIX_STAGE: Stage = (0.0, 0.05);
 const RENDER_STAGE: Stage = (0.2, 1.0);
-const FREE_LICENSE: &str = "free-license";
 
 pub struct RenderEngine {
-    pub sidecar: Arc<Sidecar>,
     pub tools: Tools,
-    pub serve_url: String,
-    pub binaries_directory: Option<String>,
+    pub film_bundle: PathBuf,
 }
 
-fn sidecar_error(error: SidecarError) -> ExecError {
+fn film_error(error: FilmError) -> ExecError {
     match error {
-        SidecarError::Cancelled => ExecError::Cancelled,
+        FilmError::Cancelled => ExecError::Cancelled,
         other => ExecError::new(other.to_string()),
     }
 }
 
-fn license_key(ctx: &ExecutorContext) -> String {
-    let key = ctx.env.settings.render.license_key.trim();
-    if key.is_empty() {
-        FREE_LICENSE.to_owned()
-    } else {
-        key.to_owned()
-    }
-}
-
-fn render_target(
-    ctx: &ExecutorContext,
-    engine: &RenderEngine,
-    spec: TimelineSpec,
-    gl: Gl,
-) -> Result<RenderTarget, ExecError> {
-    let shell = ctx
-        .env
+fn browser(ctx: &ExecutorContext) -> Result<&Path, ExecError> {
+    ctx.env
         .engine
         .browser()
-        .map_err(|e| ExecError::new(e.to_string()))?;
-    Ok(RenderTarget {
-        serve_url: engine.serve_url.clone(),
-        browser_executable: shell.to_string_lossy().into_owned(),
-        binaries_directory: engine.binaries_directory.clone(),
-        license_key: license_key(ctx),
-        composition: COMPOSITION_ID.to_owned(),
-        spec: hosted(&spec),
+        .map_err(|e| ExecError::new(e.to_string()))
+}
+
+fn driver<'a>(ctx: &'a ExecutorContext, gl: Gl) -> Result<DriverOptions<'a>, ExecError> {
+    Ok(DriverOptions {
+        executable: browser(ctx)?,
+        temp_dir: &ctx.env.temp_dir,
         gl,
+        capture: Capture::for_this_computer(),
     })
+}
+
+struct HostedFilm {
+    url: String,
+    spec: Value,
+    width: u32,
+    height: u32,
+}
+
+fn hosted_film(spec: &TimelineSpec, server: &str) -> Result<HostedFilm, ExecError> {
+    Ok(HostedFilm {
+        url: format!("{server}{FILM_FOLDER}/index.html"),
+        spec: serde_json::to_value(hosted(spec)).map_err(|e| ExecError::new(e.to_string()))?,
+        width: spec.width,
+        height: spec.height,
+    })
+}
+
+impl HostedFilm {
+    fn page(&self, scale: f64) -> FilmPage<'_> {
+        FilmPage {
+            url: &self.url,
+            spec: &self.spec,
+            width: self.width,
+            height: self.height,
+            scale,
+        }
+    }
 }
 
 fn project_path(ctx: &ExecutorContext, file: &Path) -> Result<String, ExecError> {
@@ -133,35 +146,39 @@ fn sized(
 struct VariantJob<'a> {
     ctx: &'a ExecutorContext,
     engine: &'a RenderEngine,
+    server: &'a str,
     spec: TimelineSpec,
     p: &'a ExportVideo,
     progress: &'a (dyn Fn(f64) + Send + Sync),
 }
 
-async fn render_to(job: &VariantJob<'_>, output: &Path, muted: bool) -> Result<(), ExecError> {
+async fn render_to(job: &VariantJob<'_>, output: &Path) -> Result<(), ExecError> {
     let p = job.p;
-    let media = MediaJob {
-        target: render_target(job.ctx, job.engine, job.spec.clone(), p.gl)?,
-        output: output.to_string_lossy().into_owned(),
-        codec: p.codec,
-        crf: codec_info(p.codec).crf.then_some(f64::from(p.crf)),
-        scale: p.scale,
-        muted,
-        x264_preset: p.x264_preset(),
-        pixel_format: p.pixel_format(),
-        pro_res_profile: p.prores(),
-        number_of_gif_loops: p.gif_loops(),
-        every_nth_frame: p.every_nth_frame(),
+    let film = hosted_film(&job.spec, job.server)?;
+    let render = FilmRender {
+        driver: driver(job.ctx, p.gl)?,
+        page: film.page(p.scale),
+        encoding: FilmEncoding {
+            codec: p.codec,
+            fps: f64::from(job.spec.fps),
+            png_frames: false,
+            crf: codec_info(p.codec).crf.then_some(f64::from(p.crf)),
+            x264_preset: p.x264_preset(),
+            pixel_format: p.pixel_format(),
+            prores: p.prores(),
+            gif_loops: p.gif_loops(),
+        },
+        every_nth_frame: p.every_nth_frame().unwrap_or(1),
+        output,
     };
-    job.engine
-        .sidecar
-        .call(
-            SidecarCall::RenderMedia(media),
-            &job.ctx.cancel,
-            Some(job.progress),
-        )
-        .await
-        .map_err(sidecar_error)
+    let note = |message: String| job.ctx.log(LogLevel::Info, message);
+    let run = FilmRun {
+        tools: &*job.engine.tools,
+        cancel: &job.ctx.cancel,
+        progress: job.progress,
+        note: &note,
+    };
+    render_film(&render, &run).await.map_err(film_error)
 }
 
 async fn picture_for(job: &VariantJob<'_>) -> Result<PathBuf, ExecError> {
@@ -180,7 +197,7 @@ async fn picture_for(job: &VariantJob<'_>) -> Result<PathBuf, ExecError> {
     let key = picture_key(&job.spec, &opts, &job.ctx.env.app_version);
     let name = format!("{key}.{}", codec_info(p.codec).ext);
     let picture = cached_picture(&job.ctx.project_dir, &name, |temp| async move {
-        render_to(job, &temp, true).await
+        render_to(job, &temp).await
     })
     .await?;
     if picture.reused {
@@ -273,13 +290,7 @@ async fn render_variant(
             })
             .await?;
         }
-        _ => {
-            write_via_temp(
-                out,
-                |temp| async move { render_to(job, &temp, false).await },
-            )
-            .await?
-        }
+        _ => write_via_temp(out, |temp| async move { render_to(job, &temp).await }).await?,
     }
     let faststart = codec_info(codec).faststart;
     if faststart || chapters.metadata.is_some() {
@@ -314,13 +325,19 @@ async fn render_variant(
     Ok(artifacts)
 }
 
-async fn asset_server(ctx: &ExecutorContext, spec: &TimelineSpec) -> Result<FileServer, ExecError> {
+async fn asset_server(
+    ctx: &ExecutorContext,
+    engine: &RenderEngine,
+    spec: &TimelineSpec,
+) -> Result<FileServer, ExecError> {
     let dirs = PreparedDirs {
         project: ctx.project_dir.clone(),
         public: ctx.env.public_dir.clone(),
     };
     let footage = Arc::new(film_footage(ctx, spec)?);
-    let routes = prepared_routes(dirs).merge(footage_routes(footage));
+    let routes = prepared_routes(dirs)
+        .merge(footage_routes(footage))
+        .merge(folder_routes(FILM_FOLDER, &engine.film_bundle));
     Ok(FileServer::start_with(&ctx.project_dir, routes).await?)
 }
 
@@ -333,7 +350,7 @@ async fn export_video(
     let spec = mixed(&ctx, &*engine.tools, spec_for(&ctx)?, MIX_STAGE).await?;
     let names = video_file_names(&export_base_name(&p.file_name), p.codec, &p.variants);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let server = asset_server(&ctx, &spec).await?;
+    let server = asset_server(&ctx, &engine, &spec).await?;
     let chapters = chapters_for(&ctx, &spec, &p).await?;
     let count = numbers::float(p.variants.len());
     let mut artifacts = Vec::new();
@@ -363,6 +380,7 @@ async fn export_video(
         let job = VariantJob {
             ctx: &ctx,
             engine: &engine,
+            server: &server.url,
             spec: sized(&spec, size.width, size.height, p.reframe, &server.url),
             p: &p,
             progress: &progress,
@@ -403,7 +421,7 @@ async fn export_images(
     let spec = spec_for(&ctx)?;
     let names = still_file_names(&export_base_name(&p.file_name), &p.presets, p.format);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let server = asset_server(&ctx, &spec).await?;
+    let server = asset_server(&ctx, &engine, &spec).await?;
     let count = numbers::float(p.presets.len());
     let mut artifacts = Vec::new();
     for (i, (preset, name)) in p.presets.iter().zip(&names).enumerate() {
@@ -413,24 +431,20 @@ async fn export_images(
             lerp(RENDER_STAGE.0, RENDER_STAGE.1, numbers::float(i) / count),
             Some(&format!("Still {}", preset.id())),
         );
-        let still = StillJob {
-            target: render_target(
-                &ctx,
-                &engine,
-                sized(&spec, size.width, size.height, p.reframe, &server.url),
-                p.gl,
-            )?,
+        let film = hosted_film(
+            &sized(&spec, size.width, size.height, p.reframe, &server.url),
+            &server.url,
+        )?;
+        render_still(&StillRender {
+            driver: driver(&ctx, p.gl)?,
+            page: film.page(p.scale),
             frame: ms_to_frames_from(f64::from(p.at_ms), spec.fps, 0),
-            output: out.to_string_lossy().into_owned(),
             format: p.format,
-            scale: (p.scale != 1.0).then_some(p.scale),
             jpeg_quality: (p.format == StillFormat::Jpeg).then_some(f64::from(p.jpeg_quality)),
-        };
-        engine
-            .sidecar
-            .call(SidecarCall::RenderStill(still), &ctx.cancel, None)
-            .await
-            .map_err(sidecar_error)?;
+            output: &out,
+        })
+        .await
+        .map_err(film_error)?;
         artifacts.push(Artifact::labelled(
             ArtifactKind::Image,
             project_path(&ctx, &out)?,

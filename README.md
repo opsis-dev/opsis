@@ -6,7 +6,7 @@ Opsis is a desktop app with a node editor. Browser nodes drive a real website (c
 
 > **Early preview.** Built and tested on Linux (dev and `.deb`). CI is set up to build the rpm, AppImage, Windows and macOS packages, but they haven't been built or run yet, and there are no signed installers or auto-updates. Expect rough edges.
 
-Built with [Tauri](https://tauri.app) and Rust, [xyflow](https://reactflow.dev), [Remotion](https://www.remotion.dev) and FFmpeg. See [`plans/`](./plans) for work that's planned but not built.
+Built with [Tauri](https://tauri.app) and Rust, [xyflow](https://reactflow.dev), React and FFmpeg. See [`plans/`](./plans) for work that's planned but not built.
 
 ## What it does
 
@@ -37,7 +37,7 @@ bun run video:bundle
 bun start
 ```
 
-`bun run video:bundle` builds the video code that exports use; run it again after changing `packages/video`. The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) and FFmpeg in the app's data folder, or **Choose file…** for programs you already have. Opsis checks each one before using it, and again at start if the file changed. Editing works without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**.
+`bun run film:bundle` builds the film page that exports draw; run it again after changing `packages/video` or `packages/runtime`. The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) and FFmpeg in the app's data folder, or **Choose file…** for programs you already have. Opsis checks each one before using it, and again at start if the file changed. Editing works without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**.
 
 Ready-made copies of every template are in [`examples/`](./examples) (**Open project…**).
 
@@ -46,11 +46,10 @@ Ready-made copies of every template are in [`examples/`](./examples) (**Open pro
 | Command                                 | What it does                                              |
 | --------------------------------------- | --------------------------------------------------------- |
 | `bun run make -- --bundles deb`         | Stage everything the app ships and build the Linux `.deb` |
-| `bun run compositor:sources`            | Download the source of the FFmpeg build the app ships     |
 | `CARGO_TARGET_DIR=~/.cache/opsis-build` | Put build output outside the repo                         |
 | `CARGO_BUILD_JOBS=8`                    | Limit how many cores the Rust build uses                  |
 
-The app never includes the recording browser or our FFmpeg; users download them or choose their own from Settings. It does ship Remotion's compositor, whose FFmpeg build is GPLv2 or later, with that licence and a note on where its source is. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests, then builds deb, rpm and AppImage on Linux (x64), NSIS and MSI on Windows (x64) and the app and a DMG on macOS (Apple Silicon and Intel), and uploads them as artifacts; on a `v*` tag it also collects the compositor's FFmpeg source.
+The app never includes the recording browser or our FFmpeg; users download them or choose their own from Settings. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests, then builds deb, rpm and AppImage on Linux (x64), NSIS and MSI on Windows (x64) and the app and a DMG on macOS (Apple Silicon and Intel), and uploads them as artifacts.
 
 ## Scripts
 
@@ -78,11 +77,11 @@ Editor (React 19 + shadcn/Base UI + xyflow, in the system webview)
 Tauri app (Rust): windows · menus · projects · app database · fonts · Local API
    compile (graph → TimelineSpec) · runner (topo-sort → sha256 cache → phases → events)
    capture over CDP · media (FFmpeg) · prepared 3D files · image nodes · streamed views
-        │ stdin/stdout JSON                    │ CDP
-   Render sidecar (Bun + @remotion/renderer)   Chrome Headless Shell: recording, renders, sign-in, element picker
+        │ CDP
+   Chrome Headless Shell: recording, the film page frame by frame, sign-in, element picker
 ```
 
-- **Nodes never generate Remotion code.** They produce files and compile to a `TimelineSpec`; one composition, `DemoTimeline`, renders any spec.
+- **Nodes never generate film code.** They produce files and compile to a `TimelineSpec`; the film page's one `DemoTimeline` draws any spec, and Rust captures it frame by frame into FFmpeg.
 - **Nodes pass resources forward:** a browser session (Open browser and its steps), a recording, a recording style, clips, files, images, sounds and captions. Browser nodes add their steps to the session, and the Record node replays them in one continuous take. Timing comes from the recorded frames' own timestamps, so cursor moves, clicks and camera zooms line up with the picture.
 - **Caching:** every node is hashed from its type, settings and upstream hashes; results are cached in `.opsis/cache/<hash>`, so only changed branches run again.
 
@@ -90,9 +89,10 @@ Tauri app (Rust): windows · menus · projects · app database · fonts · Local
 crates/      Rust: types, compile, store, project, fonts, engine, traces, runner, media, render,
              capture, stream, prepare, image, api, desktop (the Tauri app)
 apps/frontend the editor
-apps/sidecar Remotion renders on Bun
+apps/film    the film page the renderer draws
 e2e/         end-to-end tests (outside the workspace, own install)
-packages/video  Remotion root: DemoTimeline, elements, parts, lib, fonts, camera, 3D
+packages/video  the film: DemoTimeline, elements, parts, lib, fonts, camera, 3D
+packages/runtime the film's page runtime: clock, sequences, holds, maths
 scripts/     fonts, icons, engine downloads, packaging stage
 ```
 
@@ -100,20 +100,20 @@ Contributor rules (no code comments, kebab-case files, pinned versions, what mus
 
 ## Why it's built this way
 
-| Decision          | Choice                                                                                                      | Why                                                                                                                                       |
-| ----------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| App shape         | One Tauri 2 app: Rust for everything that touches the system, the editor in the system webview              | A small install, a typed boundary, and one place (Rust) that owns the project, runs, settings and state that windows share.               |
-| Types and logic   | Rust is the source; TypeScript types are generated (specta, tauri-specta)                                   | Commands, events, the timeline spec and the sidecar's messages can't drift apart, and the editor keeps no copy of logic Rust already has. |
-| Canvas            | [xyflow](https://reactflow.dev) with React Flow UI's shadcn components                                      | A mature node editor whose components install like the rest of the UI.                                                                    |
-| Workflow format   | A versioned JSON graph, compiled in Rust to one `TimelineSpec`                                              | The graph is for people; the spec is the single input the video renders from.                                                             |
-| Video engine      | [Remotion](https://www.remotion.dev): its renderer in a Bun sidecar                                         | One composition, `DemoTimeline`, renders every spec.                                                                                      |
-| Browser           | One Chrome Headless Shell for recording, renders, sign-in and the element picker, driven over CDP from Rust | The same engine everywhere; Playwright's page scripts and keyboard are reused without its Node runtime.                                   |
-| Animations        | Frame-driven only: every element and transition                                                             | Remotion needs every frame to be a pure function of the frame number; CSS transitions and tween libraries don't survive a render.         |
-| GSAP              | Not used                                                                                                    | Remotion's `interpolate`, `spring` and easing cover it, without GSAP's licence clause on visual builders.                                 |
-| FFmpeg            | The ffmpeg-static build, downloaded at setup and checked by sha256, never shipped                           | Users get a known build without the app carrying it; Remotion's compositor ships its own FFmpeg for renders.                              |
-| Camera and cursor | Built on [programatic-demo](https://github.com/ashrafchowdury/programatic-demo) (MIT)                       | It already solved the click log, auto-zoom camera, vector cursor and motion blur; its notice is kept.                                     |
-| Offline           | Nothing uses the internet unless you ask                                                                    | Engine and font downloads sit behind a button, and a film never loads anything remote.                                                    |
-| Licensing         | GPLv3 or later for Opsis, with a permission to combine it with Remotion; Remotion's free licence by default | Remotion is free for individuals and small companies; larger ones enter a key in Settings.                                                |
+| Decision          | Choice                                                                                                      | Why                                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| App shape         | One Tauri 2 app: Rust for everything that touches the system, the editor in the system webview              | A small install, a typed boundary, and one place (Rust) that owns the project, runs, settings and state that windows share.         |
+| Types and logic   | Rust is the source; TypeScript types are generated (specta, tauri-specta)                                   | Commands, events and the timeline spec can't drift apart, and the editor keeps no copy of logic Rust already has.                   |
+| Canvas            | [xyflow](https://reactflow.dev) with React Flow UI's shadcn components                                      | A mature node editor whose components install like the rest of the UI.                                                              |
+| Workflow format   | A versioned JSON graph, compiled in Rust to one `TimelineSpec`                                              | The graph is for people; the spec is the single input the video renders from.                                                       |
+| Video engine      | React with Opsis's own small runtime, drawn frame by frame by Rust                                          | One page, `DemoTimeline`, renders every spec; Rust seeks it, captures each frame and encodes with FFmpeg, with no Node at run time. |
+| Browser           | One Chrome Headless Shell for recording, renders, sign-in and the element picker, driven over CDP from Rust | The same engine everywhere; Playwright's page scripts and keyboard are reused without its Node runtime.                             |
+| Animations        | Frame-driven only: every element and transition                                                             | Every frame has to be a pure function of the frame number; CSS transitions and tween libraries don't survive a render.              |
+| GSAP              | Not used                                                                                                    | The runtime's `interpolate`, `spring` and easing cover it, without GSAP's licence clause on visual builders.                        |
+| FFmpeg            | The ffmpeg-static build, downloaded at setup and checked by sha256, never shipped                           | Users get a known build without the app carrying it.                                                                                |
+| Camera and cursor | Built on [programatic-demo](https://github.com/ashrafchowdury/programatic-demo) (MIT)                       | It already solved the click log, auto-zoom camera, vector cursor and motion blur; its notice is kept.                               |
+| Offline           | Nothing uses the internet unless you ask                                                                    | Engine and font downloads sit behind a button, and a film never loads anything remote.                                              |
+| Licensing         | GPLv3 or later                                                                                              | Free software, with no other licence needed to export.                                                                              |
 
 ## Not built yet
 
@@ -122,12 +122,10 @@ Each has a plan in [`plans/`](./plans):
 - Voiceover and captions from speech ([voice-and-captions](./plans/voice-and-captions.md)).
 - AI assist: a flow from a sentence, chapter names, headline variants, picker suggestions ([ai-assist](./plans/ai-assist.md)).
 - Ported web motion components, Rive animations and element thumbnails ([motion-library](./plans/motion-library.md)).
-- Size work, Windows and macOS builds (set up in CI, never run yet), code signing, updates, the FFmpeg source offer, the release test pass, profiling and node packs ([release](./plans/release.md)).
+- Size work, Windows and macOS builds (set up in CI, never run yet), code signing, updates, the release test pass, profiling and node packs ([release](./plans/release.md)).
 
 ## Licences
 
 Opsis is free software under the [GNU General Public License version 3 or later](./LICENSE), with an additional permission (GPLv3 section 7) to combine it with Remotion and distribute the result. Videos you make with Opsis are yours: the licence covers the program, not what it makes.
-
-**Remotion is not open source.** Opsis renders videos with [Remotion](https://www.remotion.dev), which is free for individuals, non-profits and companies with up to 3 employees. Larger companies need a [Remotion company licence](https://www.remotion.dev/license) and must enter its key in **Settings → Video export licence**.
 
 Bundled and vendored third-party code, fonts, sounds, FFmpeg and the recording browser keep their own licences; see [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).

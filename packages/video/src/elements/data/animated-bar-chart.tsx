@@ -3,6 +3,8 @@ import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
+const PAINTABLE_SCALE = 0.001;
+
 export function AnimatedBarChart({
   bars,
   width,
@@ -80,7 +82,7 @@ export function AnimatedBarChart({
                 rx={cornerRadius}
                 fill={barColor}
                 style={{
-                  scale: `1 ${scaleY}`,
+                  scale: `1 ${Math.max(scaleY, PAINTABLE_SCALE)}`,
                   transformOrigin: `${x + barWidth / 2}px ${baseY}px`,
                   transformBox: "fill-box",
                   filter: `drop-shadow(0 4px 16px color-mix(in srgb, ${barColor} ${glow}%, transparent))`,

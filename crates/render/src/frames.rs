@@ -97,11 +97,12 @@ async fn encode(
         ..job.encoding.clone()
     };
     let args = film_encode_args(&encoding, &job.output.to_string_lossy());
-    let mut pipe = run.tools.pipe(&args, Some(run.cancel.clone()))?;
+    let stop = run.cancel.child_token();
+    let mut pipe = run.tools.pipe(&args, Some(stop.clone()))?;
     let written = write_frames(driver, &mut pipe, &frames, run).await;
     let FramePipe { mut stdin, done } = pipe;
     if let Err(error) = written {
-        run.cancel.cancel();
+        stop.cancel();
         drop(stdin);
         if let Err(stopped) = done.await {
             log::debug!("stopping the video encoder: {stopped}");

@@ -1,5 +1,4 @@
 use opsis_golden::{edge, home, node, repo};
-use std::ffi::OsString;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
@@ -7,7 +6,6 @@ use opsis_engine::tools::EngineFiles;
 use opsis_media::executors::{Tools, media_executors};
 use opsis_media::ffmpeg::Ffmpeg;
 use opsis_render::executors::{RenderEngine, output_executors};
-use opsis_render::sidecar::{Sidecar, SidecarCommand};
 use opsis_runner::context::{Executors, RunEnv};
 use opsis_runner::runner::{RunDeps, run_workflow};
 use opsis_types::events::{RunEvent, RunRequest};
@@ -98,8 +96,8 @@ async fn make_clip(ffmpeg: &Path, file: &Path) {
 }
 
 #[tokio::test]
-#[ignore = "needs the dev engine and a video bundle named by OPSIS_VIDEO_BUNDLE"]
-async fn runs_media_nodes_and_exports_through_the_sidecar() {
+#[ignore = "needs the dev engine and the film page (bun run film:bundle)"]
+async fn runs_media_nodes_and_exports_a_film() {
     let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
     let base = home().join(".cache/opsis-render-test");
     let project = base.join("project");
@@ -114,26 +112,9 @@ async fn runs_media_nodes_and_exports_through_the_sidecar() {
     )
     .await;
     let tools: Tools = Arc::new(Ffmpeg::new(&engine).with_temp(&temp));
-    let env_vars = ["TMPDIR", "TEMP", "TMP"]
-        .map(|k| (OsString::from(k), temp.clone().into_os_string()))
-        .to_vec();
-    let command = SidecarCommand {
-        program: "bun".into(),
-        args: ["run", "apps/sidecar/src/main.ts"]
-            .map(OsString::from)
-            .to_vec(),
-        env: env_vars,
-        cwd: Some(repo()),
-    };
     let render = Arc::new(RenderEngine {
-        sidecar: Arc::new(Sidecar::new(
-            command,
-            Arc::new(|line| eprintln!("sidecar: {line}")),
-        )),
         tools: Arc::clone(&tools),
-        serve_url: std::env::var("OPSIS_VIDEO_BUNDLE")
-            .expect("OPSIS_VIDEO_BUNDLE names a video bundle"),
-        binaries_directory: None,
+        film_bundle: repo().join("film-bundle"),
     });
     let mut executors = Executors::default();
     executors.extend(media_executors(&tools)).unwrap();
