@@ -3,7 +3,7 @@ use std::path::Path;
 use sha2::{Digest, Sha256};
 use tokio_util::sync::CancellationToken;
 
-use crate::downloads::{Downloads, FfmpegDownload, FfmpegFile, Pinned, ShellDownload, ShellSource};
+use crate::downloads::{Downloads, FfmpegDownload, FfmpegFile, Pinned, ShellDownload};
 use crate::install::{InstallError, fetch};
 use crate::paths::ShellPlatform;
 use crate::tools::file_sha256;
@@ -18,35 +18,21 @@ const FFMPEG_TARGETS: [&str; 5] = [
     "win32-x64",
 ];
 
-const SHELLS: [(ShellPlatform, ShellSource); 6] = [
-    (ShellPlatform::Linux64, ShellSource::Remotion),
-    (ShellPlatform::Linux64, ShellSource::Google),
-    (ShellPlatform::LinuxArm64, ShellSource::Remotion),
-    (ShellPlatform::MacArm64, ShellSource::Remotion),
-    (ShellPlatform::MacX64, ShellSource::Google),
-    (ShellPlatform::Win64, ShellSource::Google),
+const SHELLS: [ShellPlatform; 5] = [
+    ShellPlatform::Linux64,
+    ShellPlatform::LinuxArm64,
+    ShellPlatform::MacX64,
+    ShellPlatform::MacArm64,
+    ShellPlatform::Win64,
 ];
 
 const FFMPEG_FILES: [FfmpegFile; 2] = [FfmpegFile::Ffmpeg, FfmpegFile::License];
 
-fn remotion_name(platform: ShellPlatform) -> &'static str {
-    match platform {
-        ShellPlatform::Linux64 => "linux-x64",
-        other => other.id(),
-    }
-}
-
-pub fn shell_url(version: &str, platform: ShellPlatform, source: ShellSource) -> String {
-    match source {
-        ShellSource::Remotion => format!(
-            "https://remotion.media/chromium-headless-shell-{}-{version}.zip?clear",
-            remotion_name(platform)
-        ),
-        ShellSource::Google => format!(
-            "https://storage.googleapis.com/chrome-for-testing-public/{version}/{id}/chrome-headless-shell-{id}.zip",
-            id = platform.id()
-        ),
-    }
+pub fn shell_url(version: &str, platform: ShellPlatform) -> String {
+    format!(
+        "https://storage.googleapis.com/chrome-for-testing-public/{version}/{id}/chrome-headless-shell-{id}.zip",
+        id = platform.id()
+    )
 }
 
 pub fn ffmpeg_url(target: &str, file: FfmpegFile) -> String {
@@ -96,11 +82,10 @@ async fn pinned(
 pub async fn pin_downloads(tested_version: &str, cache: &Path) -> Result<Downloads, InstallError> {
     let client = reqwest::Client::new();
     let mut shells = Vec::new();
-    for (platform, source) in SHELLS {
-        let url = shell_url(tested_version, platform, source);
+    for platform in SHELLS {
+        let url = shell_url(tested_version, platform);
         shells.push(ShellDownload {
             platform,
-            source,
             pinned: pinned(&client, url, cache).await?,
         });
     }
@@ -132,7 +117,7 @@ mod tests {
         let d = downloads();
         for shell in &d.shells {
             assert_eq!(
-                shell_url(&d.tested_version, shell.platform, shell.source),
+                shell_url(&d.tested_version, shell.platform),
                 shell.pinned.url
             );
         }

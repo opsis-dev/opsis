@@ -6,13 +6,6 @@ use crate::paths::ShellPlatform;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
-pub enum ShellSource {
-    Remotion,
-    Google,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
 pub enum FfmpegFile {
     Ffmpeg,
     License,
@@ -28,7 +21,6 @@ pub struct Pinned {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ShellDownload {
     pub platform: ShellPlatform,
-    pub source: ShellSource,
     #[serde(flatten)]
     pub pinned: Pinned,
 }
@@ -58,42 +50,8 @@ pub fn downloads() -> &'static Downloads {
     &DOWNLOADS
 }
 
-pub const REMOTION_MIN_GLIBC: (u32, u32) = (2, 35);
-
-#[cfg(all(target_os = "linux", target_env = "gnu"))]
-pub fn glibc_version() -> Option<(u32, u32)> {
-    let text = unsafe { std::ffi::CStr::from_ptr(libc::gnu_get_libc_version()) }
-        .to_str()
-        .ok()?;
-    let (major, minor) = text.split_once('.')?;
-    Some((major.parse().ok()?, minor.split('.').next()?.parse().ok()?))
-}
-
-#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
-pub fn glibc_version() -> Option<(u32, u32)> {
-    None
-}
-
-pub fn shell_source(platform: ShellPlatform, glibc: Option<(u32, u32)>) -> ShellSource {
-    match platform {
-        ShellPlatform::MacArm64 => ShellSource::Remotion,
-        ShellPlatform::Linux64 | ShellPlatform::LinuxArm64
-            if glibc.is_some_and(|v| v >= REMOTION_MIN_GLIBC) =>
-        {
-            ShellSource::Remotion
-        }
-        _ => ShellSource::Google,
-    }
-}
-
-pub fn shell_download(
-    platform: ShellPlatform,
-    source: ShellSource,
-) -> Option<&'static ShellDownload> {
-    downloads()
-        .shells
-        .iter()
-        .find(|s| s.platform == platform && s.source == source)
+pub fn shell_download(platform: ShellPlatform) -> Option<&'static ShellDownload> {
+    downloads().shells.iter().find(|s| s.platform == platform)
 }
 
 pub fn ffmpeg_download(
@@ -111,30 +69,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn picks_remotions_build_where_remotion_uses_it() {
-        assert_eq!(
-            shell_source(ShellPlatform::MacArm64, None),
-            ShellSource::Remotion
-        );
-        assert_eq!(
-            shell_source(ShellPlatform::Linux64, Some((2, 39))),
-            ShellSource::Remotion
-        );
-        assert_eq!(
-            shell_source(ShellPlatform::Linux64, Some((2, 31))),
-            ShellSource::Google
-        );
-        assert_eq!(
-            shell_source(ShellPlatform::Linux64, None),
-            ShellSource::Google
-        );
-        assert_eq!(
-            shell_source(ShellPlatform::Win64, None),
-            ShellSource::Google
-        );
-    }
-
-    #[test]
     fn pins_every_download_the_installer_can_ask_for() {
         let d = downloads();
         assert!(!d.tested_version.is_empty());
@@ -145,12 +79,7 @@ mod tests {
             ShellPlatform::MacArm64,
             ShellPlatform::Win64,
         ] {
-            for glibc in [None, Some((2, 39))] {
-                assert!(
-                    shell_download(platform, shell_source(platform, glibc)).is_some()
-                        || platform == ShellPlatform::LinuxArm64 && glibc.is_none()
-                );
-            }
+            assert!(shell_download(platform).is_some(), "{platform:?}");
             for file in [FfmpegFile::Ffmpeg, FfmpegFile::License] {
                 assert!(
                     ffmpeg_download(platform, file).is_some(),

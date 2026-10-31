@@ -76,7 +76,7 @@ pub struct EnginePaths {
     pub download_dir: PathBuf,
     pub shell_root: PathBuf,
     pub shell_folder: PathBuf,
-    pub headless_shells: [PathBuf; 2],
+    pub headless_shell: PathBuf,
     pub ffmpeg: PathBuf,
     pub ffmpeg_license: PathBuf,
 }
@@ -90,10 +90,7 @@ pub fn engine_paths(dir: &Path, platform: ShellPlatform) -> EnginePaths {
     EnginePaths {
         dir: dir.to_path_buf(),
         download_dir: dir.join(".download"),
-        headless_shells: [
-            shell_folder.join("headless_shell"),
-            shell_folder.join(format!("chrome-headless-shell{exe}")),
-        ],
+        headless_shell: shell_folder.join(format!("chrome-headless-shell{exe}")),
         shell_root,
         shell_folder,
         ffmpeg: dir.join("ffmpeg").join(format!("ffmpeg{exe}")),
@@ -103,10 +100,9 @@ pub fn engine_paths(dir: &Path, platform: ShellPlatform) -> EnginePaths {
 
 pub fn find_headless_shell(paths: &EnginePaths) -> Option<&Path> {
     paths
-        .headless_shells
-        .iter()
-        .find(|f| f.exists())
-        .map(PathBuf::as_path)
+        .headless_shell
+        .exists()
+        .then_some(paths.headless_shell.as_path())
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -157,19 +153,11 @@ mod tests {
     }
 
     #[test]
-    fn keeps_the_shell_in_its_own_folder_under_either_builds_name() {
+    fn keeps_the_shell_in_its_own_folder() {
         let p = engine_paths(Path::new("/engine"), ShellPlatform::Win64);
-        let shown: Vec<String> = p
-            .headless_shells
-            .iter()
-            .map(|f| f.to_string_lossy().replace('\\', "/"))
-            .collect();
         assert_eq!(
-            shown,
-            [
-                "/engine/chrome-headless-shell/win64/chrome-headless-shell-win64/headless_shell",
-                "/engine/chrome-headless-shell/win64/chrome-headless-shell-win64/chrome-headless-shell.exe",
-            ]
+            p.headless_shell.to_string_lossy().replace('\\', "/"),
+            "/engine/chrome-headless-shell/win64/chrome-headless-shell-win64/chrome-headless-shell.exe"
         );
         assert_eq!(
             p.ffmpeg.to_string_lossy().replace('\\', "/"),

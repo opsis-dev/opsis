@@ -4946,7 +4946,6 @@ dependencies = [
  "futures-util",
  "hex",
  "http-body-util",
- "libc",
  "log",
  "opsis-types",
  "proptest",

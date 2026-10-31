@@ -17,7 +17,6 @@ const CHECK_DIR = path.join(os.homedir(), ".cache", "opsis-check");
 const USER_DATA = path.join(CHECK_DIR, "user-data");
 const PROJECTS = path.join(CHECK_DIR, "projects");
 const DEV_ENGINE = path.join(os.homedir(), ".config", "Opsis", "engine");
-const SHELL_NAMES = ["headless_shell", "chrome-headless-shell"];
 
 function foldersIn(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true })
@@ -30,7 +29,7 @@ function browserIn(engine: string): string | null {
   if (!existsSync(root)) return null;
   const shells = foldersIn(root)
     .flatMap(foldersIn)
-    .flatMap((build) => SHELL_NAMES.map((name) => path.join(build, name)));
+    .map((build) => path.join(build, "chrome-headless-shell"));
   return shells.find((file) => existsSync(file)) ?? null;
 }
 

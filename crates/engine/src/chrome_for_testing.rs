@@ -32,17 +32,17 @@ struct PlatformDownload {
     url: String,
 }
 
-fn chrome_binary(platform: ShellPlatform) -> Option<&'static str> {
+fn chrome_binary(platform: ShellPlatform) -> &'static str {
     match platform {
-        ShellPlatform::Linux64 => Some("chrome-linux64/chrome"),
-        ShellPlatform::MacX64 => Some(
-            "chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
-        ),
-        ShellPlatform::MacArm64 => Some(
-            "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
-        ),
-        ShellPlatform::Win64 => Some("chrome-win64/chrome.exe"),
-        ShellPlatform::LinuxArm64 => None,
+        ShellPlatform::Linux64 => "chrome-linux64/chrome",
+        ShellPlatform::MacX64 => {
+            "chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+        }
+        ShellPlatform::MacArm64 => {
+            "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+        }
+        ShellPlatform::Win64 => "chrome-win64/chrome.exe",
+        ShellPlatform::LinuxArm64 => "chrome-linux-arm64/chrome",
     }
 }
 
@@ -84,7 +84,7 @@ pub async fn full_chrome(
     platform: ShellPlatform,
     cache: &Path,
 ) -> Result<PathBuf, InstallError> {
-    let binary = chrome_binary(platform).ok_or(InstallError::NoShell)?;
+    let binary = chrome_binary(platform);
     let dir = cache.join(version).join(platform.id());
     let chrome = dir.join(binary);
     if chrome.exists() {

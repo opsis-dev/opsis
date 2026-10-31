@@ -8,9 +8,7 @@ use opsis_types::numbers;
 use sha2::{Digest, Sha256};
 use tokio_util::sync::CancellationToken;
 
-use crate::downloads::{
-    FfmpegFile, Pinned, ffmpeg_download, glibc_version, shell_download, shell_source,
-};
+use crate::downloads::{FfmpegFile, Pinned, ffmpeg_download, shell_download};
 use crate::paths::{ShellPlatform, engine_paths};
 
 #[derive(Debug, thiserror::Error)]
@@ -21,8 +19,6 @@ pub enum InstallError {
     Status { url: String, status: u16 },
     #[error("The download from {url} isn't the file Opsis expects. Try again later.")]
     Mismatch { url: String },
-    #[error("The recording browser needs a newer system (glibc {}.{} or later).", .0.0, .0.1)]
-    TooOld((u32, u32)),
     #[error("There's no recording browser for this computer.")]
     NoShell,
     #[error("Setup was stopped")]
@@ -249,30 +245,12 @@ fn unpack_shell(
     zip::ZipArchive::new(std::fs::File::open(archive)?)?.extract(staging)?;
     std::fs::remove_file(archive)?;
     let target = staging.join(format!("chrome-headless-shell-{}", platform.id()));
-    if !target.exists() {
-        let Some(only) = std::fs::read_dir(staging)?
-            .filter_map(Result::ok)
-            .find(|e| e.path().is_dir())
-        else {
-            return Err(InstallError::NoShell);
-        };
-        std::fs::rename(only.path(), &target)?;
+    let exe = if platform.windows() { ".exe" } else { "" };
+    let shell = target.join(format!("chrome-headless-shell{exe}"));
+    if !shell.exists() {
+        return Err(InstallError::NoShell);
     }
-    let chrome = target.join("chrome");
-    if chrome.exists() {
-        std::fs::rename(&chrome, target.join("chrome-headless-shell"))?;
-    }
-    for name in [
-        "headless_shell",
-        "chrome-headless-shell",
-        "chrome-headless-shell.exe",
-    ] {
-        let file = target.join(name);
-        if file.exists() {
-            make_executable(&file)?;
-        }
-    }
-    Ok(())
+    Ok(make_executable(&shell)?)
 }
 
 pub async fn install_headless_shell(
@@ -283,12 +261,7 @@ pub async fn install_headless_shell(
     cancel: &CancellationToken,
 ) -> Result<(), InstallError> {
     let p = engine_paths(dir, platform);
-    let glibc = glibc_version();
-    let source = shell_source(platform, glibc);
-    let download = shell_download(platform, source).ok_or(match platform {
-        ShellPlatform::LinuxArm64 => InstallError::TooOld(crate::downloads::REMOTION_MIN_GLIBC),
-        _ => InstallError::NoShell,
-    })?;
+    let download = shell_download(platform).ok_or(InstallError::NoShell)?;
     progress.send(
         EnginePart::HeadlessShell,
         "download",

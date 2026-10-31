@@ -4,42 +4,30 @@
   "shells": [
     {
       "platform": "linux64",
-      "source": "remotion",
-      "url": "https://remotion.media/chromium-headless-shell-linux-x64-157.0.8080.0.zip?clear",
-      "sha256": "7c4a2751b361aeb3cff3ed788fa18b7a0849371b983d478bb9205b6cc25a8c52",
-      "size": 103668996
-    },
-    {
-      "platform": "linux64",
-      "source": "google",
       "url": "https://storage.googleapis.com/chrome-for-testing-public/157.0.8080.0/linux64/chrome-headless-shell-linux64.zip",
       "sha256": "4d033a390c5b0532dfacd1fca23b0a0b29342c8b82d89cf29a04be52844756ee",
       "size": 125825978
     },
     {
       "platform": "linux-arm64",
-      "source": "remotion",
-      "url": "https://remotion.media/chromium-headless-shell-linux-arm64-157.0.8080.0.zip?clear",
-      "sha256": "a28653057f53d2115c42445ff907f803b2ab9fc1aad77e98f95cf5fa619b2080",
-      "size": 98184293
-    },
-    {
-      "platform": "mac-arm64",
-      "source": "remotion",
-      "url": "https://remotion.media/chromium-headless-shell-mac-arm64-157.0.8080.0.zip?clear",
-      "sha256": "3d9fd9a997915fa295ba6fbd66b2eaad2b9578101aa9dcde5e2eb737afa4f459",
-      "size": 179230663
+      "url": "https://storage.googleapis.com/chrome-for-testing-public/157.0.8080.0/linux-arm64/chrome-headless-shell-linux-arm64.zip",
+      "sha256": "5da51d3fb9991bd54c66b6b1c2c7550cb4125661a6f33ef9fa6cf41c90fa098c",
+      "size": 125801578
     },
     {
       "platform": "mac-x64",
-      "source": "google",
       "url": "https://storage.googleapis.com/chrome-for-testing-public/157.0.8080.0/mac-x64/chrome-headless-shell-mac-x64.zip",
       "sha256": "b4a3f7e8aed11e7814fdaf49ddadab0ec3e0c7527f0ffeed5b208d7a856ebf6a",
       "size": 109113968
     },
     {
+      "platform": "mac-arm64",
+      "url": "https://storage.googleapis.com/chrome-for-testing-public/157.0.8080.0/mac-arm64/chrome-headless-shell-mac-arm64.zip",
+      "sha256": "8cd31d4bc5f7ea0930940292f1972c68f4296b01fbcb4fa709841a8f60eba95d",
+      "size": 103864219
+    },
+    {
       "platform": "win64",
-      "source": "google",
       "url": "https://storage.googleapis.com/chrome-for-testing-public/157.0.8080.0/win64/chrome-headless-shell-win64.zip",
       "sha256": "ad0fe78fbe0783035fd71f81cd876a2e81962a40ac7de6b4f7afcbeb00901c11",
       "size": 125915690

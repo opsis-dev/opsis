@@ -33,9 +33,6 @@ tower = { version = "0.5.3", features = ["util"] }
 tower-http = { version = "0.7.1", features = ["fs", "cors"] }
 zip = "9.1.0"
 
-[target.'cfg(all(target_os = "linux", target_env = "gnu"))'.dependencies]
-libc = "0.2.191"
-
 [dev-dependencies]
 filetime = "0.2.29"
 http-body-util = "0.1.5"

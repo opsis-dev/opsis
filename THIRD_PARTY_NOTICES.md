@@ -315,7 +315,7 @@ The FFmpeg program Opsis runs itself is a GPLv3 build from the pinned ffmpeg-sta
 
 ## Chrome Headless Shell (recording and export browser)
 
-Opsis doesn't include the recording browser: Settings → Engine downloads Chrome Headless Shell (Chromium, BSD-3-Clause, plus the licences of every library it includes) from Remotion or Google onto the user's computer, or uses a browser the user chooses. The complete licence notices of the pinned build ship with the app in `engine-licences/LICENSES.chromium.html`, saved at build time from the `chrome://credits` page of the full Chrome for Testing build of the exact same version. Source: https://chromium.googlesource.com/chromium/src · builds: https://googlechromelabs.github.io/chrome-for-testing/
+Opsis doesn't include the recording browser: Settings → Engine downloads Chrome Headless Shell (Chromium, BSD-3-Clause, plus the licences of every library it includes) from Google's Chrome for Testing onto the user's computer, or uses a browser the user chooses. The complete licence notices of the pinned build ship with the app in `engine-licences/LICENSES.chromium.html`, saved at build time from the `chrome://credits` page of the full Chrome for Testing build of the exact same version. Source: https://chromium.googlesource.com/chromium/src · builds: https://googlechromelabs.github.io/chrome-for-testing/
 
 ## apple_cursor — packages/video/src/camera/lib/mac-cursors.generated.ts
 
