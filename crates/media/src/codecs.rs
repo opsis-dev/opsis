@@ -1,6 +1,7 @@
 use opsis_compile::nodes::media::{
     Codec, ConvertCodec, EncodePreset, Encoding, ProresProfile, SoundFormat, SoundQuality,
 };
+use opsis_compile::nodes::output::{PixelFormat, RenderProres};
 use serde::Serialize;
 
 pub const FASTSTART: [&str; 2] = ["-movflags", "+faststart"];
@@ -125,6 +126,109 @@ pub fn codec_video(codec: Codec, crf: f64, preset: EncodePreset) -> Option<Vec<S
         Codec::Prores => prores_args(ProresProfile::Hq),
         Codec::Vp8 | Codec::Gif => return None,
     })
+}
+
+#[derive(Debug, Clone)]
+pub struct FilmEncoding {
+    pub codec: Codec,
+    pub fps: f64,
+    pub png_frames: bool,
+    pub crf: Option<f64>,
+    pub x264_preset: Option<EncodePreset>,
+    pub pixel_format: Option<PixelFormat>,
+    pub prores: Option<RenderProres>,
+    pub gif_loops: Option<u32>,
+}
+
+fn film_encoder(codec: Codec) -> &'static str {
+    match codec {
+        Codec::H264 => "libx264",
+        Codec::H265 => "libx265",
+        Codec::Vp8 => "libvpx",
+        Codec::Vp9 => "libvpx-vp9",
+        Codec::Prores => "prores_ks",
+        Codec::Gif => "gif",
+    }
+}
+
+fn default_film_crf(codec: Codec) -> Option<f64> {
+    match codec {
+        Codec::H264 => Some(18.0),
+        Codec::H265 => Some(23.0),
+        Codec::Vp8 => Some(9.0),
+        Codec::Vp9 => Some(28.0),
+        Codec::Prores | Codec::Gif => None,
+    }
+}
+
+fn prores_profile_number(profile: Option<RenderProres>) -> &'static str {
+    match profile {
+        Some(RenderProres::Proxy) => "0",
+        Some(RenderProres::Light) => "1",
+        Some(RenderProres::Standard) => "2",
+        None => "3",
+    }
+}
+
+fn gif_loops(loops: u32) -> String {
+    if loops == 0 {
+        "-1".to_owned()
+    } else {
+        loops.to_string()
+    }
+}
+
+pub fn film_encode_args(e: &FilmEncoding, output: &str) -> Vec<String> {
+    let mut args = strings(&["-f", "image2pipe", "-framerate"]);
+    args.push(e.fps.to_string());
+    args.extend(strings(&[
+        "-c:v",
+        if e.png_frames { "png" } else { "mjpeg" },
+        "-i",
+        "-",
+    ]));
+    let gif = e.codec == Codec::Gif;
+    if gif {
+        args.extend(strings(&[
+            "-filter_complex",
+            "split[v],palettegen,[v]paletteuse",
+        ]));
+    }
+    args.push("-an".to_owned());
+    if let Some(loops) = e.gif_loops.filter(|_| gif) {
+        args.extend(["-loop".to_owned(), gif_loops(loops)]);
+    }
+    args.extend(["-c:v".to_owned(), film_encoder(e.codec).to_owned()]);
+    if e.codec == Codec::Prores {
+        args.extend([
+            "-profile:v".to_owned(),
+            prores_profile_number(e.prores).to_owned(),
+        ]);
+    }
+    if !gif {
+        let pixel_format = if e.codec == Codec::Prores {
+            "yuv422p10le".to_owned()
+        } else {
+            e.pixel_format
+                .map_or_else(|| "yuv420p".to_owned(), |f| serde_name(&f))
+        };
+        args.extend(strings(&["-vf", EVEN_FRAME, "-pix_fmt"]));
+        args.push(pixel_format);
+    }
+    if let Some(preset) = e.x264_preset.filter(|_| e.codec == Codec::H264) {
+        args.extend(["-preset".to_owned(), serde_name(&preset)]);
+    }
+    if e.codec == Codec::H265 {
+        args.extend(strings(&["-tag:v", "hvc1"]));
+    }
+    if !gif {
+        args.extend(strings(&["-video_track_timescale", "90000"]));
+    }
+    if let Some(crf) = default_film_crf(e.codec).map(|fallback| e.crf.unwrap_or(fallback)) {
+        args.extend(["-crf".to_owned(), crf.to_string()]);
+    }
+    args.extend(strings(&["-map_metadata", "-1", output]));
+    args
 }
 
 pub fn convert_codec(codec: ConvertCodec) -> Codec {

@@ -4,11 +4,12 @@ use std::path::Path;
 use opsis_engine::tools::{ToolProblem, ffmpeg_version, tool_output, unrecognized};
 use opsis_types::engine::EngineTool;
 
-pub const REQUIRED_ENCODERS: [&str; 12] = [
+pub const REQUIRED_ENCODERS: [&str; 13] = [
     "aac",
     "gif",
     "libmp3lame",
     "libopus",
+    "libvpx",
     "libvpx-vp9",
     "libx264",
     "libx265",

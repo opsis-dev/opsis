@@ -8,7 +8,8 @@
     "./spec": "./src/spec.ts",
     "./root": "./src/index.ts",
     "./common/*": "./src/common/*.ts",
-    "./generated/spec": "./src/generated/spec.ts"
+    "./generated/spec": "./src/generated/spec.ts",
+    "./film": "./src/film.tsx"
   },
   "imports": {
     "#video/*": "./src/*"

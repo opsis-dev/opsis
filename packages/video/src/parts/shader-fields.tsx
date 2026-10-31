@@ -28,6 +28,8 @@ import { useCallback, useState } from "react";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 const FILL = { position: "absolute", inset: 0 } as const;
+const MOUNTED_ATTRIBUTE = "data-paper-shader";
+const MOUNTED = `[${MOUNTED_ATTRIBUTE}]`;
 
 const ORDERED_CLAMP_SHADER = grainGradientFragmentShader.replaceAll(
   "clamp(0., 1., length(",
@@ -45,7 +47,17 @@ function useShaderClock(label: string, speed: number) {
   const gate = useCallback(
     (element: HTMLDivElement | null) => {
       if (!element) return;
-      requestAnimationFrame(() => requestAnimationFrame(() => release()));
+      if (element.querySelector(MOUNTED)) {
+        release();
+        return;
+      }
+      const watch = new MutationObserver(() => {
+        if (!element.querySelector(MOUNTED)) return;
+        watch.disconnect();
+        release();
+      });
+      watch.observe(element, { subtree: true, attributeFilter: [MOUNTED_ATTRIBUTE] });
+      return () => watch.disconnect();
     },
     [release],
   );

@@ -110,9 +110,6 @@ impl Launched {
 }
 
 pub async fn launch(executable: &Path, temp_dir: &Path, extra: &[&str]) -> Result<Launched> {
-    let profile = tempfile::Builder::new()
-        .prefix("opsis-profile-")
-        .tempdir_in(temp_dir)?;
     let defaults = playwright_switches();
     let switches = effective_switches(
         defaults
@@ -123,6 +120,17 @@ pub async fn launch(executable: &Path, temp_dir: &Path, extra: &[&str]) -> Resul
             .chain(STARTUP_SWITCHES)
             .chain(extra.iter().copied()),
     );
+    launch_with(executable, temp_dir, switches).await
+}
+
+pub async fn launch_with(
+    executable: &Path,
+    temp_dir: &Path,
+    switches: Vec<String>,
+) -> Result<Launched> {
+    let profile = tempfile::Builder::new()
+        .prefix("opsis-profile-")
+        .tempdir_in(temp_dir)?;
     let mut config = BrowserConfig::builder()
         .chrome_executable(executable)
         .disable_default_args()

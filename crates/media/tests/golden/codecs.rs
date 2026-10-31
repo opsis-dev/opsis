@@ -1,14 +1,15 @@
 use crate::common::{cases, json, number, text, typed, with};
 use opsis_compile::nodes::media::{Codec, EncodePreset, Encoding, SoundFormat};
 use opsis_media::codecs::{
-    FrameGrab, H264, audio_format_args, audio_format_for, codec_info, codec_video, convert_args,
-    edited_file, ffmpeg_seconds, finish_args, frame_grab_args, grade_sound_args, grade_video_args,
-    h264_args, mux_args, sound_file, strings,
+    FilmEncoding, FrameGrab, H264, audio_format_args, audio_format_for, codec_info, codec_video,
+    convert_args, edited_file, ffmpeg_seconds, film_encode_args, finish_args, frame_grab_args,
+    grade_sound_args, grade_video_args, h264_args, mux_args, sound_file, strings,
 };
 use opsis_types::numbers;
 use serde_json::{Map, Value};
 
 const CODECS: &str = "media/codecs.json";
+const FILM_ENCODING: &str = "media/film-encoding.json";
 
 const PRESETS: [EncodePreset; 5] = [
     EncodePreset::Ultrafast,
@@ -146,4 +147,27 @@ fn codec_and_file_arguments_are_as_recorded() {
         "finish": finish,
     });
     opsis_golden::check(CODECS, &made);
+}
+
+fn film_encoding(e: &Value) -> FilmEncoding {
+    FilmEncoding {
+        codec: typed(&e["codec"]),
+        fps: number(&e["fps"]),
+        png_frames: e["pngFrames"] == true,
+        crf: e["crf"].as_f64(),
+        x264_preset: typed(&e["x264Preset"]),
+        pixel_format: typed(&e["pixelFormat"]),
+        prores: typed(&e["prores"]),
+        gif_loops: e["gifLoops"].as_u64().and_then(|n| u32::try_from(n).ok()),
+    }
+}
+
+#[test]
+fn film_encoding_arguments_are_as_recorded() {
+    let f = opsis_golden::read(FILM_ENCODING);
+    let made = cases(&f["cases"], |case| {
+        let args = film_encode_args(&film_encoding(&case["encoding"]), "film.out");
+        with(case, &[("args", json(args))])
+    });
+    opsis_golden::check(FILM_ENCODING, &serde_json::json!({ "cases": made }));
 }

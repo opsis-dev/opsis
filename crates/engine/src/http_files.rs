@@ -13,6 +13,10 @@ pub fn file_routes(root: &Path) -> Router {
         .layer(CorsLayer::new().allow_origin(Any))
 }
 
+pub fn folder_routes(prefix: &str, root: &Path) -> Router {
+    Router::new().nest_service(&format!("/{prefix}"), ServeDir::new(root))
+}
+
 pub struct FileServer {
     pub url: String,
     stop: CancellationToken,

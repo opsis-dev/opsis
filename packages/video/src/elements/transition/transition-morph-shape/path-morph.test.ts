@@ -1,6 +1,7 @@
 import * as fc from "fast-check";
 import { getPathBBox, parsePathString } from "svg-path-commander/util";
 import { expect, it } from "vitest";
+import { isNumber } from "#video/common/guards.ts";
 import {
   fitToBox,
   MORPH_SHAPES,
@@ -8,7 +9,6 @@ import {
   prepareMorph,
   type MorphShapeName,
 } from "#video/elements/transition/transition-morph-shape/path-morph.ts";
-import { isNumber } from "#video/common/guards.ts";
 
 const shape = fc.constantFrom(...(Object.keys(MORPH_SHAPES) as MorphShapeName[]));
 const area = fc.record({

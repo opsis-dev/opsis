@@ -1,23 +1,7 @@
 import { act, render } from "@testing-library/react";
 import { useLayoutEffect } from "react";
-import { describe, expect, it, vi } from "vitest";
-import { holdRender, useHeldLoad } from "#runtime/holds.ts";
-
-const events = vi.hoisted(() => ({ log: [] as string[], labels: new Map<number, string>() }));
-
-vi.mock("remotion", () => {
-  let next = 0;
-  return {
-    delayRender: (label: string) => {
-      next += 1;
-      events.labels.set(next, label);
-      events.log.push(`hold ${label}`);
-      return next;
-    },
-    continueRender: (handle: number) => events.log.push(`release ${events.labels.get(handle)}`),
-    cancelRender: (error: unknown) => events.log.push(`cancel ${String(error)}`),
-  };
-});
+import { describe, expect, it } from "vitest";
+import { holdRender, openHolds, renderFailure, settled, useHeldLoad } from "#runtime/holds.ts";
 
 function Canvas() {
   useLayoutEffect(() => holdRender("canvas"), []);
@@ -39,16 +23,16 @@ function Loader({ id, load }: { id: string; load: (key: string) => Promise<strin
 
 describe("holding a render while something loads", () => {
   it("keeps the hold until what the value mounts has taken its own hold", async () => {
-    events.log.length = 0;
     const file = deferred();
-    render(<Loader id="a" load={() => file.promise} />);
-    expect(events.log).toEqual(["hold file a"]);
+    const view = render(<Loader id="a" load={() => file.promise} />);
+    expect(openHolds()).toEqual(["file a"]);
     await act(async () => file.resolve("data"));
-    expect(events.log).toEqual(["hold file a", "hold canvas", "release file a"]);
+    expect(openHolds()).toEqual(["canvas"]);
+    view.unmount();
+    expect(openHolds()).toEqual([]);
   });
 
   it("releases the old hold when the key changes and when the component goes away", async () => {
-    events.log.length = 0;
     const first = deferred();
     const second = deferred();
     function load(key: string) {
@@ -56,17 +40,35 @@ describe("holding a render while something loads", () => {
     }
     const view = render(<Loader id="a" load={load} />);
     view.rerender(<Loader id="b" load={load} />);
-    expect(events.log).toEqual(["hold file a", "release file a", "hold file b"]);
+    expect(openHolds()).toEqual(["file b"]);
     await act(async () => first.resolve("late"));
-    expect(events.log).toEqual(["hold file a", "release file a", "hold file b"]);
+    expect(openHolds()).toEqual(["file b"]);
     view.unmount();
-    expect(events.log.at(-1)).toBe("release file b");
+    expect(openHolds()).toEqual([]);
   });
 
-  it("cancels the render when loading fails", async () => {
-    events.log.length = 0;
+  it("settles once every hold is released, and a release only counts once", async () => {
+    const release = holdRender("frame");
+    let done = false;
+    const waited = settled().then(() => {
+      done = true;
+    });
+    await Promise.resolve();
+    expect(done).toBe(false);
+    const other = holdRender("other");
+    release();
+    release();
+    await Promise.resolve();
+    expect(done).toBe(false);
+    other();
+    await waited;
+    expect(done).toBe(true);
+  });
+
+  it("fails the render when loading fails, and every later wait with it", async () => {
     render(<Loader id="x" load={() => Promise.reject(new Error("broken file"))} />);
     await act(async () => undefined);
-    expect(events.log).toContain("cancel Error: broken file");
+    expect(renderFailure()?.message).toBe("broken file");
+    await expect(settled()).rejects.toThrow("broken file");
   });
 });

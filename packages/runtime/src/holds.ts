@@ -1,18 +1,47 @@
 import { useEffectEvent, useLayoutEffect, useRef, useState } from "react";
-import { cancelRender, continueRender, delayRender } from "remotion";
+
+const open = new Map<number, string>();
+const waiting = new Set<() => void>();
+let nextHold = 0;
+let failure: Error | null = null;
+
+function wake() {
+  if (open.size > 0 && failure === null) return;
+  for (const done of waiting) done();
+  waiting.clear();
+}
 
 export function failRender(error: unknown): void {
-  cancelRender(error);
+  failure ??= error instanceof Error ? error : new Error(String(error));
+  wake();
 }
 
 export function holdRender(label: string): () => void {
-  const handle = delayRender(label);
-  let held = true;
+  const id = nextHold;
+  nextHold += 1;
+  open.set(id, label);
   return () => {
-    if (!held) return;
-    held = false;
-    continueRender(handle);
+    if (open.delete(id)) wake();
   };
+}
+
+export function openHolds(): string[] {
+  return [...open.values()];
+}
+
+export function renderFailure(): Error | null {
+  return failure;
+}
+
+export function settled(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    function done() {
+      if (failure) reject(failure);
+      else resolve();
+    }
+    if (open.size === 0 || failure) done();
+    else waiting.add(done);
+  });
 }
 
 type Loaded<T> = { key: string; value: T };

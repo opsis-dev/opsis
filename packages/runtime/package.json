@@ -18,9 +18,10 @@
   },
   "dependencies": {
     "react": "^19.3.1",
-    "remotion": "4.0.537"
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@types/react-dom": "^19.3.0",
     "fast-check": "^4.10.2"
   }
 }

@@ -54,6 +54,7 @@
     "glyphs:bundle": "bun scripts/node-glyphs.ts",
     "cursors:bundle": "bun scripts/mac-cursors.ts",
     "db:prepare": "bun scripts/sqlx-prepare.ts",
+    "film:bundle": "bun run --cwd apps/film build",
     "video:bundle": "bun scripts/video-bundle.ts",
     "e2e:app": "cd crates/desktop && CARGO_TARGET_DIR=../../target/e2e tauri build --debug --no-bundle --features e2e",
     "test:e2e": "bun run e2e:app && bun run --cwd e2e e2e",

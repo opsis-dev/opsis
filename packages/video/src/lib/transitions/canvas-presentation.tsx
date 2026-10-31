@@ -453,20 +453,7 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
     }, []);
 
     React.useLayoutEffect(() => {
-      const layout = layoutRef.current;
-      if (!layout) {
-        return;
-      }
-      const handle = holdRender("canvas-presentation: filter paint");
-      function settle() {
-        return handle();
-      }
-      layout.addEventListener("paint", settle, { once: true });
-      layout.requestPaint?.();
-      return () => {
-        layout.removeEventListener("paint", settle);
-        handle();
-      };
+      layoutRef.current?.requestPaint?.();
     });
 
     return (

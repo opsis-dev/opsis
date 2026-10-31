@@ -6,6 +6,7 @@ pub mod drag_path;
 pub mod ease;
 pub mod encoder;
 pub mod executors;
+pub mod film;
 pub mod input;
 pub mod keyboard;
 pub mod live;
