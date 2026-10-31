@@ -115,15 +115,6 @@ Contributor rules (no code comments, kebab-case files, pinned versions, what mus
 | Offline           | Nothing uses the internet unless you ask                                                                    | Engine and font downloads sit behind a button, and a film never loads anything remote.                                              |
 | Licensing         | GPLv3 or later                                                                                              | Free software, with no other licence needed to export.                                                                              |
 
-## Not built yet
-
-Each has a plan in [`plans/`](./plans):
-
-- Voiceover and captions from speech ([voice-and-captions](./plans/voice-and-captions.md)).
-- AI assist: a flow from a sentence, chapter names, headline variants, picker suggestions ([ai-assist](./plans/ai-assist.md)).
-- Ported web motion components, Rive animations and element thumbnails ([motion-library](./plans/motion-library.md)).
-- Size work, Windows and macOS builds (set up in CI, never run yet), code signing, updates, the release test pass, profiling and node packs ([release](./plans/release.md)).
-
 ## Licences
 
 Opsis is free software under the [GNU General Public License version 3 or later](./LICENSE). Videos you make with Opsis are yours: the licence covers the program, not what it makes.

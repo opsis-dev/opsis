@@ -2,15 +2,15 @@
 
 The film is drawn by Opsis's own renderer: Rust drives the recording browser over the film page (`apps/film`, on `@opsis/runtime`), captures each frame and encodes it with FFmpeg (`AGENTS.md`, The film page and the frame driver). This plan is what's left to make it faster and to decide its open questions.
 
-Status: the renderer is on `exp/rs-renderer` in the worktree `~/projects/opsis-v3`, not merged into `main`. The worktree builds into its own `target` only (no `CARGO_TARGET_DIR`), and its `target` is deleted once it's merged. Performance is measured on release builds only, and only after the merge.
+Status: the renderer is on `main` (`crates/capture/src/film.rs`, `crates/render/src/frames.rs`). Performance is measured on release builds only.
 
 ## How to read this plan
 
-- Section 1 lists the measurements to take after the merge, section 2 the work they decide, section 3 decisions for the user, section 4 risks, section 5 sources.
+- Section 1 lists the measurements to take, section 2 the work they decide, section 3 decisions for the user, section 4 risks, section 5 sources.
 - Each piece of work ends with the usual checks: `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, the element stills against the previous run (`bun run elements:render`, 138 stills, byte comparison) and the dev-engine tests of any crate touched (`crates/render/tests/frames.rs`, `three_stills.rs`, `run.rs`).
 - Rules from `AGENTS.md` hold unless this plan changes them on purpose; every such change updates `AGENTS.md` in the same commit.
 
-## 1. Measurements, after the merge
+## 1. Measurements
 
 1. Where a 1920×1080 frame's time goes with real films: seek and commit, readiness, paint, capture, transport, encode; for a text element, a chart, a shader background, a recording with the camera, a 3D model.
 2. `beginFrame` against `captureScreenshot` against `drawElementImage` with in-page JPEG, with `gl` set to `angle`, `swangle` and `egl`, at 1080p and 4K.

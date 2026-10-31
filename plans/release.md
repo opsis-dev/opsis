@@ -1,26 +1,25 @@
 # Release
 
-Everything still missing between today's app and a public release, and what comes after it: size work, builds and checks on Windows and macOS, signing, updates, the release test pass, profiling, and node packs. Each section says first what is already in place, then what is left.
+Everything still missing between today's app and a public release, and what comes after it: size work, builds and checks on Windows and macOS, signing, updates, the release test pass, and node packs. Each section says first what is already in place, then what is left.
 
 ## How to read this plan
 
-- Sections 1–6 come before a first public release. Section 7 runs before every release. Sections 8 and 9 are later work.
+- Sections 1–6 come before a first public release. Section 7 runs before every release. Section 8 is later work.
 - Each section has the same parts where they apply: **In place**, **Work** (numbered, only what is left), **Decided**, **Decision for the user**, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
 - Local builds: deb only, `CARGO_BUILD_JOBS=8`, output in `~/.cache/opsis-build`. The rpm and AppImage, and the Windows and macOS packages, are built in CI only.
 
 ## Summary
 
-| Topic                           | What users get                                                       | Left to do                                             | Status                                  |
-| ------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------- |
-| 1. Size work                    | A smaller download and install                                       | measure again, act on the findings, record CI sizes    | measured 2026-10-31                     |
-| 2. Windows and macOS builds     | Installers that have actually run on each system                     | push, make the repo public, first CI run, fixes        | configured and linted, never run        |
-| 3. Platform checks              | The editor working the same on WKWebView and WebView2                | runner checks, the macOS shell, sign-in end to end     | not started                             |
-| 4. Local API on Windows         | A named pipe only the user's account can open                        | the access list and its test                           | not started                             |
-| 5. Code signing                 | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing                   | only the hardened runtime set           |
-| 6. Updates                      | Check for updates, ask first, install signed updates                 | the updater plugin, the About button, the release feed | signing key and secrets in place        |
-| 7. Release test pass            | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                    | e2e in place (6 spec files)             |
-| 8. Profiling (development only) | Measured costs before optimizing                                     | the process sampler script                             | size tools in place; no runtime tooling |
-| 9. Node packs (long term)       | Nodes that install and update apart from the app                     | all of it, after sections 1–7                          | not started                             |
+| Topic                       | What users get                                                       | Left to do                                             | Status                           |
+| --------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------- |
+| 1. Size work                | A smaller download and install                                       | act on the findings, record CI sizes                   | measured 2026-10-31              |
+| 2. Windows and macOS builds | Installers that have actually run on each system                     | push, make the repo public, first CI run, fixes        | configured and linted, never run |
+| 3. Platform checks          | The editor working the same on WKWebView and WebView2                | runner checks, the macOS shell, sign-in end to end     | not started                      |
+| 4. Local API on Windows     | A named pipe only the user's account can open                        | the access list and its test                           | not started                      |
+| 5. Code signing             | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing                   | only the hardened runtime set    |
+| 6. Updates                  | Check for updates, ask first, install signed updates                 | the updater plugin, the About button, the release feed | signing key and secrets in place |
+| 7. Release test pass        | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                    | e2e in place (6 spec files)      |
+| 8. Node packs (long term)   | Nodes that install and update apart from the app                     | all of it, after sections 1–7                          | not started                      |
 
 ## 1. Size work
 
@@ -29,15 +28,11 @@ Everything still missing between today's app and a public release, and what come
 - **Package size.** Measured 2026-10-31 with `bun run make -- --bundles deb` on Linux x64: the deb is 48,625,200 bytes and installs 99,251,683 bytes: the app binary 75,211,696, the film page 18,590,721 and the browser's licences 5,345,493.
 - **What ships.** One build, with no recording browser and no FFmpeg inside: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), the film page (`film-bundle/`, one JavaScript file with no source maps and the repository's `public/`, the app's only copy of the `app:` files, which a packaged app reads through `AppPaths::public_dir`; the editor's build carries only `page-errors.js`) and the recording browser's licences.
 - **The film page.** 4,388,329 bytes of JavaScript in one file (2,042,714 gzipped) and 14,200,626 bytes of `public/` files: fonts 1,078,938, backdrops 4,810,439, music 7,923,531, sounds 381,916. One element file, `elements/scene/launch-anything/assets.ts`, is 1,716,146 bytes of source.
-- **Tools.** `cargo-bloat` is installed and `source-map-explorer` is a dev dependency (`a7f7e13`); both ran on 2026-10-26.
-- **The binary by crate** (`cargo bloat --release -p opsis-desktop --crates`, stripping off for the measurement, 2026-10-26): 72.4 MiB unstripped, 45.8 MiB of it code. The largest are std 4.3 MiB, unattributed 3.9 MiB, opsis_compile 2.9 MiB, serde_core 2.8 MiB, jsonschema 1.9 MiB, tokio, rav1e (the AV1 encoder, used only by Image format's AVIF) and tauri at 1.5 MiB each, aws_lc_sys 1.3 MiB, and zbus 1.1 MiB. `exr` (251 KiB) and `image_webp` (218 KiB) come with the `image` crate's default formats.
-- **The editor** (2026-10-26, 53 chunks, 3.58 MB of mapped JavaScript): elkjs 1.43 MB (40%, the engine behind Tidy up layout), the editor's own code 0.39 MB, `@base-ui/react` 0.22 MB.
 
 **Work.**
 
-1. **Measure again.** The binary by crate and the editor by package predate Konva and react-konva in the editor, nnnoiseless (with its trained weights), fundsp, ab_glyph and wuff in the binary, and the renderer; the film page has never been measured by package.
-2. **Act on the findings.** Each is its own decision: load elkjs only when Tidy up layout runs, shrink the 1.7 MB `assets.ts`, and turn off the `image` formats Opsis never reads.
-3. **Record** each installer's size per platform from the CI artifacts.
+1. **Act on the findings.** Each is its own decision: load elkjs only when Tidy up layout runs, shrink the 1.7 MB `assets.ts`, and turn off the `image` formats Opsis never reads.
+2. **Record** each installer's size per platform from the CI artifacts.
 
 **Decided.** The notices of the crates and npm packages compiled into the app are not shipped: not worth the size. Code copied into the repo and a few bundled components keep theirs (`THIRD_PARTY_NOTICES.md`).
 
@@ -139,20 +134,7 @@ The named pipe is created with the default security descriptor, which grants rea
 10. **Keyboard only:** create, connect, edit, run and export without a mouse.
 11. **Renders as recorded:** `crates/render/tests/frames.rs` (the same bytes) and `three_stills.rs` against their golden files, rerun on every browser or FFmpeg bump.
 
-## 8. Profiling (development only)
-
-No code goes into the app; everything runs from outside it or as build settings.
-
-**In place.** The size tools of section 1 (`cargo-bloat`, `source-map-explorer`) and `cargo build --timings`.
-
-**Work.**
-
-1. **Per-component CPU and memory.** A dev script starts the app off-screen the way the e2e suite does (`xvfb-run`, Wayland unset, a seeded data folder with the API on), opens an example and runs it over the Local API, and samples every process in the app's tree once a second from `/proc`, tagged by command line: the app, WebKit's web and network processes, each headless shell (recording, streamed views, render tabs), FFmpeg. It writes a CSV and a chart. Node timings come from the run events the API streams.
-2. **Where Rust spends time.** `samply record -p <pid>` or `perf record -g` on the app, on a release build with symbols kept through build settings (`CARGO_PROFILE_RELEASE_DEBUG=true`, `CARGO_PROFILE_RELEASE_STRIP=false`).
-3. **Memory.** `heaptrack` on the app binary.
-4. **The editor UI.** WebKitGTK's remote inspector through `WEBKIT_INSPECTOR_HTTP_SERVER=127.0.0.1:9222` (timelines, memory, layout); dev builds also open the inspector from the View menu.
-
-## 9. Node packs (long term)
+## 8. Node packs (long term)
 
 Nodes that install and update apart from the app; build after sections 1–7.
 
