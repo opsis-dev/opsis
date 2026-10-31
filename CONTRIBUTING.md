@@ -55,4 +55,4 @@ Some tests are ignored by default because they need the dev engine (the recordin
 
 ## Licence
 
-Opsis is licensed under the [GNU General Public License version 3 or later](./LICENSE), with an additional permission to combine it with Remotion, and contributions are accepted under the same terms, that permission included. Opsis renders with Remotion, which has its own licence; see the README.
+Opsis is licensed under the [GNU General Public License version 3 or later](./LICENSE), and contributions are accepted under the same terms.

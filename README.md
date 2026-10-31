@@ -126,6 +126,6 @@ Each has a plan in [`plans/`](./plans):
 
 ## Licences
 
-Opsis is free software under the [GNU General Public License version 3 or later](./LICENSE), with an additional permission (GPLv3 section 7) to combine it with Remotion and distribute the result. Videos you make with Opsis are yours: the licence covers the program, not what it makes.
+Opsis is free software under the [GNU General Public License version 3 or later](./LICENSE). Videos you make with Opsis are yours: the licence covers the program, not what it makes.
 
 Bundled and vendored third-party code, fonts, sounds, FFmpeg and the recording browser keep their own licences; see [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).

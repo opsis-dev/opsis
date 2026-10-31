@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import ts from "typescript";
+import { parseSync } from "oxc-parser";
 import { ROOT } from "./lib/tool-config";
 
 const CHECKED = /^(apps|packages|crates|scripts|e2e)\/.*\.(ts|tsx|mts|css|rs)$|^[^/]+\.config\.ts$/;
@@ -14,29 +14,17 @@ const DIRECTIVE = /^\/\/\/ <reference|^\/[/*]\s*(oxlint-|@ts-)/;
 const LINE_COMMENT = /^\s*\/\/|\/\*|\*\//;
 const QUOTED_MARK = /"[^"]*(\/\*|\*\/)[^"]*"/;
 
+function lineOf(text: string, pos: number): number {
+  return text.slice(0, pos).split("\n").length - 1;
+}
+
 function scriptComments(file: string, text: string): number[] {
-  const kind = file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
-  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, kind);
-  const starts = new Set<number>();
-  function collect(pos: number) {
-    for (const range of [
-      ...(ts.getLeadingCommentRanges(text, pos) ?? []),
-      ...(ts.getTrailingCommentRanges(text, pos) ?? []),
-    ]) {
-      if (!DIRECTIVE.test(text.slice(range.pos, range.end))) starts.add(range.pos);
-    }
-  }
-  function visit(node: ts.Node) {
-    if (node.kind === ts.SyntaxKind.JsxText) return;
-    const children = node.getChildren(source);
-    if (children.length === 0) {
-      collect(node.getFullStart());
-      collect(node.end);
-    }
-    children.forEach(visit);
-  }
-  visit(source);
-  return [...starts].map((pos) => source.getLineAndCharacterOfPosition(pos).line);
+  const { comments, errors } = parseSync(file, text);
+  const [error] = errors;
+  if (error) throw new Error(`${file} doesn't parse: ${error.message}`);
+  return comments
+    .filter((comment) => !DIRECTIVE.test(text.slice(comment.start, comment.end)))
+    .map((comment) => lineOf(text, comment.start));
 }
 
 function otherComments(text: string): number[] {
