@@ -180,6 +180,6 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Text,
             75,
         )
-        .look(NodeLook::of("lucide:heading")),
+        .look(NodeLook::of("lucide:letter-h")),
     )
 }

@@ -6,12 +6,12 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-ebur128 = "0.1.10"
+ebur128 = "0.1.11"
 fundsp = { version = "0.23.0", default-features = false, features = ["std"] }
 futures = "0.3.34"
 hound = "3.5.1"
 indexmap = "2.14.2"
-log = "0.4.34"
+log = "0.4.35"
 nnnoiseless = { version = "0.5.2", default-features = false }
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }

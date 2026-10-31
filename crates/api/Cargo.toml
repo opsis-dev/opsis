@@ -9,7 +9,7 @@ publish.workspace = true
 axum = "0.8.9"
 futures = "0.3.34"
 indexmap = "2.14.2"
-log = "0.4.34"
+log = "0.4.35"
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-types = { version = "0.1.0", path = "../types" }
 schemars = { version = "1.2.3", features = ["indexmap2"] }

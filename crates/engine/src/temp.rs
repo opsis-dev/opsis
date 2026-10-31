@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
+use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate};
+
+use crate::children::processes;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ChildKind {
@@ -46,7 +48,9 @@ pub fn remove_child_temp(dir: &Path) {
 }
 
 pub fn process_alive(pid: u32) -> bool {
-    let mut system = System::new();
+    let Some(mut system) = processes() else {
+        return true;
+    };
     let pid = Pid::from_u32(pid);
     system.refresh_processes_specifics(
         ProcessesToUpdate::Some(&[pid]),

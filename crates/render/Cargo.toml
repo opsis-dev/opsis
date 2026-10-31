@@ -6,7 +6,7 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-log = "0.4.34"
+log = "0.4.35"
 opsis-capture = { version = "0.1.0", path = "../capture" }
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }

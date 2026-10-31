@@ -12,7 +12,7 @@ futures = "0.3.34"
 html-escape = "0.3.0"
 imagesize = "0.15.0"
 indexmap = "2.14.2"
-log = "0.4.34"
+log = "0.4.35"
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }
 opsis-media = { version = "0.1.0", path = "../media" }

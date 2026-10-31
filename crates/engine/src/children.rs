@@ -23,6 +23,12 @@ pub fn forget_child(pid: u32) {
     started().remove(&pid);
 }
 
+pub fn processes() -> Option<System> {
+    System::new()
+        .inspect_err(|error| log::warn!("couldn't read the computer's processes: {error}"))
+        .ok()
+}
+
 fn end(system: &System, pid: u32) -> bool {
     system.process(Pid::from_u32(pid)).is_some_and(|process| {
         process
@@ -36,7 +42,9 @@ pub fn end_remembered_children() -> Vec<u32> {
     if pids.is_empty() {
         return pids;
     }
-    let mut system = System::new();
+    let Some(mut system) = processes() else {
+        return Vec::new();
+    };
     let wanted: Vec<Pid> = pids.iter().copied().map(Pid::from_u32).collect();
     system.refresh_processes_specifics(
         ProcessesToUpdate::Some(&wanted),
@@ -58,7 +66,9 @@ pub fn temp_owner_of(command_line: &str, root: &Path) -> Option<u32> {
 }
 
 pub fn end_children_of_gone_apps(root: &Path, alive: &dyn Fn(u32) -> bool) -> Vec<u32> {
-    let mut system = System::new();
+    let Some(mut system) = processes() else {
+        return Vec::new();
+    };
     system.refresh_processes_specifics(
         ProcessesToUpdate::All,
         true,

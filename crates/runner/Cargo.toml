@@ -9,7 +9,7 @@ publish.workspace = true
 futures = "0.3.34"
 indexmap = "2.14.2"
 jiff = "0.2.38"
-log = "0.4.34"
+log = "0.4.35"
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }
 opsis-project = { version = "0.1.0", path = "../project" }

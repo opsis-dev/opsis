@@ -9,7 +9,7 @@ publish.workspace = true
 chromiumoxide = "0.9.1"
 futures = "0.3.34"
 indexmap = "2.14.2"
-log = "0.4.34"
+log = "0.4.35"
 opsis-capture = { version = "0.1.0", path = "../capture" }
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }

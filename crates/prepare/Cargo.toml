@@ -9,7 +9,7 @@ publish.workspace = true
 axum = "0.8.9"
 draco-gltf = "0.7.0"
 image = "0.25.10"
-log = "0.4.34"
+log = "0.4.35"
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }
 opsis-types = { version = "0.1.0", path = "../types" }
