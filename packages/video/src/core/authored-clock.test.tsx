@@ -1,7 +1,7 @@
+import { TestFrame } from "@opsis/runtime/test-frame.tsx";
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-import { TestFrame } from "#video/core/test-frame.tsx";
 
 function Clock() {
   const frame = useAuthoredFrame();

@@ -20,6 +20,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@opsis/runtime": "workspace:*",
     "@paper-design/shaders": "^0.0.82",
     "@paper-design/shaders-react": "^0.0.82",
     "@react-three/fiber": "^9.8.2",

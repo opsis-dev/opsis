@@ -1,7 +1,7 @@
 import { act, render } from "@testing-library/react";
 import { useLayoutEffect } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { holdRender, useHeldLoad } from "#video/core/loading.ts";
+import { holdRender, useHeldLoad } from "#runtime/holds.ts";
 
 const events = vi.hoisted(() => ({ log: [] as string[], labels: new Map<number, string>() }));
 

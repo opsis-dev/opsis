@@ -1,6 +1,6 @@
+import { useHeldLoad } from "@opsis/runtime/holds.ts";
 import { SRGBColorSpace, TextureLoader, type Texture } from "three";
 import { SVGLoader, type SVGResult } from "three/addons/loaders/SVGLoader.js";
-import { useHeldLoad } from "#video/core/loading.ts";
 
 export function isSvg(src: string): boolean {
   return /\.svg(\?|#|$)/i.test(src) || src.startsWith("data:image/svg");

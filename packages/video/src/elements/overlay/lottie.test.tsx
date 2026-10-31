@@ -1,6 +1,6 @@
+import { TestFrame } from "@opsis/runtime/test-frame.tsx";
 import { render, waitFor } from "@testing-library/react";
 import { beforeAll, expect, it } from "vitest";
-import { TestFrame } from "#video/core/test-frame.tsx";
 import type { LottieElement as Drawn } from "#video/elements/overlay/lottie.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 

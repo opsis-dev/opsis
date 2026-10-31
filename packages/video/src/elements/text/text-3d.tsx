@@ -1,9 +1,9 @@
+import { useHeldLoad } from "@opsis/runtime/holds.ts";
 import { useEffect, useMemo } from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { Box3, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { Font, type FontData } from "three/addons/loaders/FontLoader.js";
-import { useHeldLoad } from "#video/core/loading.ts";
 import type { ElementSettings, PreparedTypeface } from "#video/generated/spec.ts";
 import { elementPose } from "#video/three/motion.ts";
 import { FONT_UNREADABLE, loadOutlines, wrapLines } from "#video/three/outlines.ts";

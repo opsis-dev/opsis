@@ -1,7 +1,7 @@
+import { TestFrame } from "@opsis/runtime/test-frame.tsx";
 import { render } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import type { ElementProps } from "#video/common/spec.ts";
-import { TestFrame } from "#video/core/test-frame.tsx";
 import { BarChartRace } from "#video/elements/data/bar-chart-race.tsx";
 import { ComparisonBars } from "#video/elements/data/comparison-bars.tsx";
 import { DonutChart } from "#video/elements/data/donut-chart.tsx";

@@ -1,5 +1,5 @@
+import { useHeldLoad } from "@opsis/runtime/holds.ts";
 import React from "react";
-import { useHeldLoad } from "#video/core/loading.ts";
 import { applyFilmFonts, NO_FONTS } from "#video/fonts/registry.ts";
 import type { FilmFonts } from "#video/generated/spec.ts";
 

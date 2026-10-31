@@ -1,9 +1,9 @@
+import { TestFrame } from "@opsis/runtime/test-frame.tsx";
 import { render } from "@testing-library/react";
 import { useCurrentFrame } from "remotion";
 import { expect, it } from "vitest";
 import { shutterOffsets } from "#video/camera/lib/shutter.ts";
 import { MotionBlur } from "#video/camera/motion-blur.tsx";
-import { TestFrame } from "#video/core/test-frame.tsx";
 
 function FrameShown() {
   const frame = useCurrentFrame();

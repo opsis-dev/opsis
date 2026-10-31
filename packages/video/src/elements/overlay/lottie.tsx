@@ -1,3 +1,4 @@
+import { holdRender, useHeldLoad } from "@opsis/runtime/holds.ts";
 import lottie, { type AnimationItem } from "lottie-web/build/player/lottie_svg";
 import { useLayoutEffect, useRef } from "react";
 import { cancelRender, useCurrentFrame, useVideoConfig } from "remotion";
@@ -7,7 +8,6 @@ import {
   type LottieTiming,
   readLottie,
 } from "#video/core/dot-lottie.ts";
-import { holdRender, useHeldLoad } from "#video/core/loading.ts";
 import type { ElementSettings, TextAlign } from "#video/generated/spec.ts";
 import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
 

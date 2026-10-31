@@ -1,6 +1,6 @@
+import { holdRender } from "@opsis/runtime/holds.ts";
 import { type CSSProperties, useLayoutEffect, useRef } from "react";
 import { cancelRender } from "remotion";
-import { holdRender } from "#video/core/loading.ts";
 import type { Fit } from "#video/generated/spec.ts";
 
 const US_PER_S = 1_000_000;

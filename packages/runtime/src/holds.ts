@@ -1,6 +1,10 @@
 import { useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import { cancelRender, continueRender, delayRender } from "remotion";
 
+export function failRender(error: unknown): void {
+  cancelRender(error);
+}
+
 export function holdRender(label: string): () => void {
   const handle = delayRender(label);
   let held = true;
@@ -30,7 +34,7 @@ export function useHeldLoad<T>(
       .then((value) => {
         if (alive) setLoaded({ key, value });
       })
-      .catch((error: unknown) => cancelRender(error));
+      .catch((error: unknown) => failRender(error));
     return () => {
       alive = false;
       held.current = null;

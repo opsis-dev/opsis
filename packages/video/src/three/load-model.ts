@@ -1,7 +1,7 @@
+import { useHeldLoad } from "@opsis/runtime/holds.ts";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { z } from "zod";
 import { parseJsonWith } from "#video/common/guards.ts";
-import { useHeldLoad } from "#video/core/loading.ts";
 
 const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_START = 20;

@@ -1,6 +1,6 @@
+import { TestFrame } from "@opsis/runtime/test-frame.tsx";
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
-import { TestFrame } from "#video/core/test-frame.tsx";
 import { LogoAssemble } from "#video/elements/scene/logo-assemble.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import DEFAULT_PROPS from "#video/registry/default-props.generated.json";

@@ -1,9 +1,9 @@
+import { holdRender } from "@opsis/runtime/holds.ts";
 import { Canvas, useThree } from "@react-three/fiber";
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useVideoConfig } from "remotion";
 import { PMREMGenerator } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { holdRender } from "#video/core/loading.ts";
 import type { Lighting } from "#video/generated/spec.ts";
 import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
 import { boxDistance, fitDistance, type Pose, type Vec3 } from "#video/three/motion.ts";

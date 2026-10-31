@@ -1,3 +1,4 @@
+import { holdRender } from "@opsis/runtime/holds.ts";
 import { assetUrl } from "#video/assets.tsx";
 import {
   canRegister,
@@ -7,7 +8,6 @@ import {
   signatureOf,
   urlsOf,
 } from "#video/common/font-faces.ts";
-import { holdRender } from "#video/core/loading.ts";
 import type { FilmFonts, FontFamilyDef } from "#video/generated/spec.ts";
 
 export const NO_FONTS: FilmFonts = { families: {}, preload: [] };
