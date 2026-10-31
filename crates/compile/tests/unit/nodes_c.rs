@@ -282,7 +282,7 @@ fn field_copy(def: &NodeDef) -> Vec<String> {
 
 #[test]
 fn gives_every_visible_node_a_description_and_no_internal_names() {
-    let banned = Regex::new(r"(?i)playwright|remotion|chromium|ffmpeg|ffprobe|lottie|after effects|page\.evaluate|safeStorage|\.mp4|\.json|crf|dpr\b").unwrap();
+    let banned = Regex::new(r"(?i)playwright|chromium|ffmpeg|ffprobe|lottie|after effects|page\.evaluate|safeStorage|\.mp4|\.json|crf|dpr\b").unwrap();
     let undescribed: Vec<String> = registry()
         .visible()
         .filter(|d| d.description.is_none())

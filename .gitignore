@@ -16,7 +16,6 @@ vite.config.ts.timestamp-*
 
 # Builds
 apps/*/dist/
-remotion-bundle/
 film-bundle/
 /resources/
 

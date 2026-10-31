@@ -24,16 +24,15 @@ Status: the renderer is on `exp/rs-renderer` in the worktree `~/projects/opsis-v
 - **Capture.** `drawElementImage` into a canvas with in-page JPEG encoding where measurement 2 shows it faster than `beginFrame`. Begin-frame screenshots ignore an emulated scale, so a scaled render takes a screenshot per frame; a scale set at launch (`--force-device-scale-factor`) would let scaled renders use `beginFrame` too.
 - **Transport.** Binary frames posted by the page to the render file server, if measurement 3 shows CDP's base64 costs enough.
 - **Static frames.** Compile marks, per frame, whether anything can change: an element past its animation end and before its exit, no camera move, no video, no recording, no shader time. Frames proven static reuse the previous picture without a seek or capture.
-- **Workers.** N tabs or browsers on frame ranges with an ordered hand-over to the encoder; video-heavy and WebGL-heavy films measured before raising N (Remotion's renderer measured one tab fastest for shader films).
+- **Workers.** N tabs or browsers on frame ranges with an ordered hand-over to the encoder; video-heavy and WebGL-heavy films measured before raising N (an earlier measurement found one tab fastest for shader films).
 - **Long renders.** Chunks in fresh browsers if memory grows (TODO.md "Unverified": Chrome's `angle` leak on long renders).
 - **More footage operations.** The footage chain can run more of the image operations (crop, rotate and flip, adjust, blur and sharpen, spotlight, magnify); each needs its own node design, since a crop changes the footage's size, which the camera and window frame depend on.
 
 ## 3. Decisions for the user
 
 1. CSS and web animations in the film. The driver owns the page clock (the smooth-take machinery: page clock held, every CSS and web animation stepped), so elements could use CSS animations and the Web Animations API, which `AGENTS.md` bans today; the rule holds until this is decided.
-2. Browser build: keep Remotion's Chromium builds (`crates/engine/src/downloads.generated.json`, pinned by `pin-downloads` for the version it's given) or pin Google's Chrome for Testing headless shell on every platform.
-3. Whether a preview comes back: a warm tab of the frame driver answering frame requests for the editor (TODO.md, "A way to see the film before exporting").
-4. Whether to replace Vite with a Rust build step (Rolldown and oxc). It's dev-time only, since the film page ships prebuilt, so it's a tooling simplification, not a run-time gain.
+2. Whether a preview comes back: a warm tab of the frame driver answering frame requests for the editor (TODO.md, "A way to see the film before exporting").
+3. Whether to replace Vite with a Rust build step (Rolldown and oxc). It's dev-time only, since the film page ships prebuilt, so it's a tooling simplification, not a run-time gain.
 
 ## 4. Risks
 
@@ -45,6 +44,5 @@ Status: the renderer is on `exp/rs-renderer` in the worktree `~/projects/opsis-v
 ## 5. Sources
 
 - HyperFrames `9fd90d2`: `packages/engine/src/services/{frameCapture,screenshotService,browserManager,drawElementService,parallelCoordinator,streamingEncoder}.ts`, `docs/guides/performance.mdx`.
-- Remotion `3b7e700`: `packages/renderer/src/{render-media,render-frames,take-frame,screenshot-task}.ts`, for the parallel-tab and capture measurements it made.
 - Chromium headless-dev, "Chrome's screenshot functionality is extremely slow", https://groups.google.com/a/chromium.org/g/headless-dev/c/aVZw00nzxTU
 - Rolldown Rust crates, https://rolldown.rs/apis/rust-crates; oxc transformer, https://oxc.rs/docs/guide/usage/transformer

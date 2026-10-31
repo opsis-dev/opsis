@@ -64,10 +64,7 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
 
 export function runtimeNeutral(
   who: string,
-  {
-    relativeOnly = false,
-    filmRuntime = false,
-  }: { relativeOnly?: boolean; filmRuntime?: boolean } = {},
+  { relativeOnly = false }: { relativeOnly?: boolean } = {},
 ): Override {
   return {
     files: ["src/**/*.ts", "src/**/*.tsx"],
@@ -87,15 +84,6 @@ export function runtimeNeutral(
                     group: ["@/**"],
                     message:
                       "packages/video imports its own files by relative path: the UI compiles them too, with its own @/ alias.",
-                  },
-                ]
-              : []),
-            ...(filmRuntime
-              ? [
-                  {
-                    group: ["remotion", "@remotion/*"],
-                    message:
-                      "The film draws through @opsis/runtime: its clock, sequences, holds, parts and maths (AGENTS.md).",
                   },
                 ]
               : []),

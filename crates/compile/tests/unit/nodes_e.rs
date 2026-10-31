@@ -576,7 +576,7 @@ fn text_leaves(value: &Value, out: &mut Vec<String>) {
 #[test]
 fn no_element_default_loads_from_the_internet_or_names_a_library() {
     let banned = regex::Regex::new(
-        r"(?i)https?://|\b(playwright|remotion|chromium|ffmpeg|lottie|three\.js|react|tailwind|shadcn|framer|gsap|remocn|snapcn|fontsource)\b",
+        r"(?i)https?://|\b(playwright|chromium|ffmpeg|lottie|three\.js|react|tailwind|shadcn|framer|gsap|remocn|snapcn|fontsource)\b",
     )
     .unwrap();
     let found: Vec<String> = elements()

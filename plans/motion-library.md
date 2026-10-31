@@ -102,7 +102,7 @@ Missing:
    - `useEffect` timers, `setInterval`, `requestAnimationFrame` → frame math. Canvas drawing happens in a `useLayoutEffect` keyed on the frame, drawing the whole picture each time (never incrementally).
    - `Math.random()` → `random(seed + "-" + index)` with a `seed` setting (min 1).
    - Measuring (`getBoundingClientRect`, `ResizeObserver`, `IntersectionObserver`) → compute layout from settings; when text must be measured, measure once after fonts load under `holdRender`, never per frame.
-   - Fonts: a `font` setting defaulting to the project font; no `@remotion/google-fonts` or web font imports. Images: `asset` settings, defaults from `public/placeholders` as `app:` refs. Colours: `x-widget = "color"` settings.
+   - Fonts: a `font` setting defaulting to the project font; no font loader packages or web font imports. Images: `asset` settings, defaults from `public/placeholders` as `app:` refs. Colours: `x-widget = "color"` settings.
    - Sizes in pixels at 1920×1080 with `design` set, so `DesignBox` scales them to any shape.
    - Length: an `element_timing` entry (`crates/compile/src/elements/lengths.rs`) when the animation has an end, so Length defaults to "Fit the animation".
 3. **First batch** (one of each kind, to prove the recipe): Running border (6), Morphing words (1), Flickering grid (14), Animated icon (18) with five icons. Check, then do the rest in two batches.
