@@ -40,7 +40,7 @@ Everything still missing between today's app and a public release, and what come
 
 **In place.**
 
-- `.github/workflows/build.yml`: checks on Ubuntu 22.04; `bun run make` on Ubuntu 22.04 (deb, rpm, AppImage), `windows-latest` (NSIS, per-user install, and MSI) and `macos-latest` and `macos-26-intel` (the app, zipped, and a DMG); the browser that the Chromium credits are read from, cached; the compositor's FFmpeg source collected on `v*` tags; artifacts uploaded; an end-to-end job; `workflow_dispatch`. The release config (`tauri.release.conf.json`) has the same targets.
+- `.github/workflows/build.yml`: checks on Ubuntu 22.04; `bun run make` on Ubuntu 22.04 (deb, rpm, AppImage), `windows-latest` (NSIS, per-user install, and MSI) and `macos-latest` and `macos-26-intel` (the app, zipped, and a DMG); the browser that the Chromium credits are read from, cached; the source notice's links checked on `v*` tags (`bun run notice:links`); artifacts uploaded; an end-to-end job; `workflow_dispatch`. The release config (`tauri.release.conf.json`) has the same targets.
 - `actionlint` passes on the workflow (2026-10-26).
 - The repository is `github.com/bismitpanda/opsis`. It is private and empty: nothing has been pushed, so it has no branches, workflows, runs or releases. The updater's signing secrets are already set on it (section 6).
 
