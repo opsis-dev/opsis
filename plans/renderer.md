@@ -2,11 +2,11 @@
 
 Opsis v1 was Electron, v2 is Rust and Tauri with Remotion drawing the film. v3 is a greenfield renderer written for Opsis: one Rust engine that drives the recording browser for takes, stills and exports, with a film page Opsis owns end to end. Nothing about v2's film code is a constraint: elements, nodes, the page runtime, the authoring model and the build can all change if the result is faster or simpler. Opsis is pre-alpha (never published, never pushed, one local deb install for checks), so no file format, setting or element needs a migration.
 
-Status: phase 1 done and on `main` (2026-10-31); phase 2 in progress. Work happens on `exp/rs-renderer` in the worktree `~/projects/opsis-v3`, which builds into its own `target` only (no `CARGO_TARGET_DIR`; the main checkout isn't built while the worktree exists, and the worktree's `target` is deleted once it's merged). Performance is compared on release builds only.
+Status: phase 1 on `main` (2026-10-31); phase 2 done on the branch; phase 3 in progress. Work happens on `exp/rs-renderer` in the worktree `~/projects/opsis-v3`, which builds into its own `target` only (no `CARGO_TARGET_DIR`; the main checkout isn't built while the worktree exists, and the worktree's `target` is deleted once it's merged). Performance is compared on release builds only.
 
 ## How to read this plan
 
-- Section 1 is v2 as it stands, with numbers. Section 2 is the research on Remotion, HyperFrames, Motion Canvas, the Rust toolchain crates and other people's experiments, plus measurements made on Opsis's own pinned browser. Section 3 is the v3 design. Section 4 is the work, in the order agreed: leaf packages first (smallest first), then footage from Rust, then the page runtime, then the Rust renderer, then cleanup. Section 5 lists measurements still to take, 6 decisions for the user, 7 risks, 8 sources.
+- Section 1 is v2 as it stands, with numbers. Section 2 is the research on Remotion, HyperFrames, Motion Canvas, the Rust toolchain crates and other people's experiments, plus measurements made on Opsis's own pinned browser. Section 3 is the v3 design. Section 4 is the work, in the order agreed: leaf packages first (smallest first), then footage from Rust, then the page runtime and the Rust renderer as one phase, then cleanup. Section 5 lists measurements still to take, 6 decisions for the user, 7 risks, 8 sources.
 - Each phase in section 4 ends with the same checks: `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, the element stills compared against the previous run (`bun run elements:render`, 138 stills, byte comparison), and the dev-engine tests of any crate touched. Visual changes are allowed (greenfield) but each one is looked at and named.
 - Rules from `AGENTS.md` hold unless this plan changes them on purpose; every such change updates `AGENTS.md` in the same commit.
 - Remotion is leaving, so it informs nothing below except as a record of what v2 does today. Its licence also forbids copying or modifying its code to sell a derivative, so no Remotion code is copied into v3; everything replacing it is written for Opsis. HyperFrames (Apache-2.0) and Motion Canvas (MIT) may be borrowed from with their notices in `THIRD_PARTY_NOTICES.md`.
@@ -173,16 +173,21 @@ One Rust process does takes, stills, exports and (later) a preview; no Node or B
 
 ### 3.2 The film page and its runtime
 
-- **One seek protocol.** `window.opsis = { seek(frame, subFrame?) → Promise<void>, duration, errors }`. `seek` resolves when: the view has committed the frame, every held load is released (images decoded with `img.decode()`, fonts loaded, models and textures loaded, video frames present), and `document.fonts.ready`. Holds carry labels; a timeout reports the open ones, like v2's `delayRender` labels. Under begin-frame control nothing polls with rAF (2.2); the driver polls with evaluate.
-- **One clock.** Elements read the frame from the runtime. Because the driver owns the page clock (the smooth-take machinery: page clock held, every CSS and web animation stepped), elements may also use CSS keyframes, CSS transitions and the Web Animations API, which v2 bans; they render deterministically because the driver steps them. This changes the rule "every animation is a pure function of `useCurrentFrame()`" to "every animation follows the film clock"; the oxlint rules banning `motion`/`animate-*` in the film are reconsidered with it.
-- **Authoring model** (decision 6.1). React compatibility is not a constraint. The candidates, to be decided by the measurements in 5.1:
-  - A. React with Opsis's own small runtime (frame and config contexts, spans, holds, maths). Keeps the 166 components close to what they are.
-  - B. A signal-based DOM runtime (no virtual DOM diff per frame): each element is a function that builds its DOM once and binds properties to the frame; per-frame cost is only the bound properties.
-  - C. Native Rust drawing (Vello, Parley, Taffy) for elements, the browser only for takes and HTML-heavy elements. No browser cost for most films, but text, CSS, SVG, WebGL and three.js fidelity have to be rebuilt.
-  - Recommended starting point: keep the browser (takes need it anyway, and CSS, text, SVG, WebGL and three.js come for free), measure where a frame's time goes with A, and move to B only if the view layer is a real share of the frame time. C stays an experiment for a fast draft preview.
-- **Spans, not sequences.** The compiled spec already places every item in time; the runtime mounts an item only inside its span (plus a premount margin for loads), so a film's DOM holds only what's on screen.
-- **Maths.** Interpolation with clamping and easing curves, damped springs, colour interpolation in OKLCH, seeded random: written for Opsis in `common/` (plain TypeScript, also used by the editor), with property tests.
-- **Assets.** `app:`, `project:` and `prepared:` refs resolved by Rust as today (`hosted`); the page gets plain addresses.
+Decided (2026-10-31): React stays, with Opsis's own small runtime in place of Remotion's core (candidate A). B (a signal-based DOM runtime) and C (native Rust drawing) are not pursued; whether the view layer costs enough to revisit is measured after v3 is merged, with everything else.
+
+**What the runtime replaces.** The film imports about 25 names from `remotion` in 194 files (149 of them elements): `AbsoluteFill` (95 files), `interpolate` (89), `useVideoConfig` (73), `useCurrentFrame` (70), `Easing` (47), `spring` (37), `Img` (22), `random` (19), `getRemotionEnvironment` (8), `Sequence` (8), `delayRender`/`continueRender` (6), `interpolateColors` (5), `staticFile` (4), `cancelRender` (3), `Interactive` (3), `useDelayRender` (2), `SpringConfig` (2), `Freeze` (2), `useRemotionEnvironment`, `registerRoot`, `isHtmlInCanvasSupported`, `Loop`, `Internals`, `Composition` (1 each). The editor imports nothing from Remotion; the sidecar imports `@remotion/renderer` and `@remotion/bundler`.
+
+**The contract** (`packages/video/src/runtime/`, the only folder that may import `remotion` while it's still there; an oxlint rule bans it everywhere else):
+
+- **Clock.** `useFrame()` is the frame inside the nearest sequence (Remotion's `useCurrentFrame`); `useFilm()` is `{ width, height, fps, durationInFrames }` where `durationInFrames` is the nearest sequence's length, as Remotion's `useVideoConfig` gives inside a `Sequence` (elements read their own length this way).
+- **Time structure.** `Sequence` (from, length, layout), `Freeze` (a fixed frame, fractional allowed: `MotionBlur` freezes at sub-frame times), `Loop`; the film's spans mount an item only inside its span plus a premount margin.
+- **Holds.** `holdRender(label) → release`, `failRender(error)`; the page is ready when every hold is released. Labels name what's open when a seek times out.
+- **Seek protocol.** `window.opsis = { seek(frame) → Promise<void>, durationInFrames, fail? }`. `seek` sets the frame and commits it synchronously (`flushSync`), then resolves once every hold is released and `document.fonts.ready` has settled. Nothing waits on `requestAnimationFrame`: Remotion's frame setter releases its own hold on the next animation frame (`TimelineContext.tsx`), which never comes under begin-frame control (HyperFrames, 2.2). Images and footage frames hold until `decode()` resolves, as `FootageFrame` does already.
+- **Maths** in `common/` (plain TypeScript, also usable by the editor), written for Opsis, property-tested: `interpolate` with clamp, extend and easing; the `Easing` curves the film uses; a damped `spring` (mass, stiffness, damping, overshoot clamp, length stretch); `interpolateColors` in OKLCH; `random(seed)`. Values may differ slightly from Remotion's; each element still that changes is looked at and named.
+- **Parts.** `AbsoluteFill` (a filling `div`), `Img` (an `img` that holds until decoded), asset addresses (`staticFile` becomes the existing `assetUrl`), the render environment (`isRendering`).
+- **Entry.** No `registerRoot` or `Composition`: the page renders the film from the spec the driver puts on `window.opsis.spec`.
+- **During 3.2 and 3.3** the runtime is an adapter over Remotion (its hooks read Remotion's contexts), so exports keep rendering through Remotion while every file moves to the runtime; 3.4 gives the runtime its own contexts and the seek protocol, and the adapter goes.
+- **One clock.** Because the driver owns the page clock (the smooth-take machinery: page clock held, every CSS and web animation stepped), elements could also use CSS animations and the Web Animations API, which v2 bans (decision 6.2, open; the v2 rule holds until it's decided).
 
 ### 3.3 Driving and capture (Rust)
 
@@ -229,35 +234,35 @@ One Rust process does takes, stills, exports and (later) a preview; no Node or B
 
 ## 4. Work, in order
 
-Phases 2 to 4 stay on `exp/rs-renderer` and go to `main` only when the phase is proven end to end. The app isn't kept working between steps; tests and the end-to-end proof are what count. No compatibility with Remotion's looks or settings is kept: elements and nodes change where that's simpler or better.
+Rules (2026-10-31):
+
+- Phases 2 and 3 stay on `exp/rs-renderer` and go to `main` only when the user says so; a phase is ready when it works end to end. The app isn't kept working between steps; tests and the end-to-end proof are what count. No compatibility with Remotion's looks or settings is kept.
+- `main` is not touched until 3.6, and in 3.6 only built (in its own `target`), never edited. The worktree builds into its own `target` only.
+- Speed is not worked on before v3 is merged into `main`: no premature optimisation. Sizes are watched throughout. After the merge comes proper profiling, finding hotspots and optimising.
+- One commit per subphase, 3.1 to 3.5; 3.6 has no commit, only the size records changed, and a report.
+- The research checkouts (`~/.cache/opsis-research`: Remotion, HyperFrames, Motion Canvas) are the reference whenever behaviour is unclear; no trial and error.
 
 ### Phase 1: leaf packages (done, on `main` at `af466ca`)
 
 The ten packages of 3.6, one at a time, smallest first.
 
-### Phase 2: footage from Rust (3.4)
+### Phase 2: footage from Rust (3.4, done)
 
-1. **Footage pipeline in Rust.** The streaming decoder per source with its chain (trim and rate, grade, area operations with time ranges, JPEG 4:4:4), served by the render file server. Tested by string for the filter graphs, against FFmpeg's own extraction for frame accuracy, for decoding each frame once in order, for seeks, for area operations matching Redact on the same picture, and for decoders ending when idle.
-2. **The film and the nodes on it.** One `<Video>` for every footage source, holding each frame until it has loaded; Grade footage replaces Picture look; Redact on recordings and clips replaces Blur areas; compile emits each source's chain; `<Audio>`, `@remotion/media`, `@remotion/effects` and mediabunny deleted; `examples/`, fixtures and docs updated. Proven by an end-to-end export in the off-screen app: a real take with a grade and redacted areas, and a Video element trimmed, rate-changed and looping.
+1. Footage pipeline in Rust (`9c165f7`).
+2. The film and the nodes on it (`aa5c944`), proven by an end-to-end export of a real take with Grade footage and Redact take and a trimmed, rate-changed, looping Video element; Screen recording renamed Captured video, with its sound mixed and clip sound at the clip's speed (`288445b`).
 
-### Phase 3: the page runtime
+### Phase 3: own page runtime and Rust renderer
 
-1. Measure first (5.1) with the current elements under a stub runtime.
-2. Decide the authoring model (6.1).
-3. Write the runtime: seek protocol, holds with labels, spans, maths in `common/`, config.
-4. Move every element and part to it (184 files import Remotion's core today); delete `registerRoot`, `Composition`, `Freeze`, `Loop`, `Interactive`, `getRemotionEnvironment` uses.
-5. A test harness that renders an element at a frame without any browser test runner hacks (replaces `core/test-frame.tsx`).
+The page runtime and the renderer are one phase because neither can be proven end to end without the other: today's page is drawn by Remotion's renderer, which needs Remotion's page.
 
-### Phase 4: the Rust renderer
+1. **Design.** This section: the authoring model (3.2), the runtime contract, the order and the rules.
+2. **Runtime beside Remotion.** `packages/video/src/runtime/` and the maths in `common/`, as an adapter over Remotion; property tests; a test harness in place of `core/test-frame.tsx`.
+3. **Move the film.** `DemoTimeline`, the registry, transitions and cut boards, the recording camera, `FootageFrame`, the 3D stage, then the elements in groups (text, overlays, backgrounds and shaders, charts, the two UI kits, scenes, devices); element stills after each group.
+4. **Rust renderer.** FrameDriver in `opsis-capture` (launch, the seek protocol, readiness, capture: `beginFrame` on Linux, screenshots elsewhere), FrameEncoder into FFmpeg, codecs and GIF, stills; the runtime gets its own contexts and the adapter goes.
+5. **Switch over.** Exports and stills through FrameDriver; the sidecar, `remotion`, `@remotion/renderer`, `@remotion/bundler`, the compositor staging and the Remotion licence key deleted; the film page built with Vite. Proven by the end-to-end export of the phase 2 test film and a template project on a release build.
+6. **Sizes, and a speed sanity check.** v2 (`main`, built in its own `target`) against v3, release builds: install size, bundle and page sizes, memory. Speed only as a sanity check: if v3 is 5 to 10 times slower, stop and report why and what caused it, without fixing it.
 
-1. FrameDriver in `opsis-capture` with the capture paths of 3.3, the probe and the fallback.
-2. Exports: picture through FrameEncoder, codecs (h264, h265, vp8, vp9, ProRes, GIF through `palettegen`/`paletteuse`), quality, every Nth frame, scale; then mux as today.
-3. Stills.
-4. Static-frame skipping from the spec.
-5. Workers.
-6. Remove the sidecar, `@remotion/renderer`, `@remotion/bundler`, the compositor staging, `scripts/video-bundle.ts`'s Remotion path.
-
-### Phase 5: cleanup
+### Phase 4: cleanup
 
 - `LICENSE`: drop the section 7 Remotion permission.
 - Settings and first-run: drop the Remotion licence key and notice.
@@ -267,7 +272,9 @@ The ten packages of 3.6, one at a time, smallest first.
 - `AGENTS.md`: the runtime boundary, animation and "one engine" sections rewritten for v3.
 - `THIRD_PARTY_NOTICES.md`: remove Remotion entries, add HyperFrames if any of its code is adapted.
 
-## 5. Measurements still to take
+## 5. Measurements, after v3 is merged
+
+Sizes (item 7) are taken in 3.6; the rest wait for the merge.
 
 1. Where a 1920×1080 frame's time goes with real films: seek and commit, readiness, paint, capture, transport, encode; for a text element, a chart, a shader background, a recording with the camera, a 3D model.
 2. `beginFrame` against `captureScreenshot` against `drawElementImage` with in-page JPEG, with `gl` set to `angle`, `swangle` and `egl`, at 1080p and 4K.
@@ -279,7 +286,7 @@ The ten packages of 3.6, one at a time, smallest first.
 
 ## 6. Decisions for the user
 
-1. Authoring model: A, B or C (3.2). Recommended: A to start, B if measurements say the view layer matters.
+1. Authoring model: decided, A (React with Opsis's own runtime, 3.2).
 2. CSS and web animations allowed in the film because the driver owns the clock (3.2).
 3. Capture path per platform: `beginFrame` on Linux, screenshots on macOS and Windows, `drawElementImage` if faster (3.3).
 4. Browser build: keep Remotion's Chromium builds (they have Remotion's shared-memory patch, which we won't use) or switch every platform to Google's Chrome for Testing headless shell.
