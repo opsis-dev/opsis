@@ -553,7 +553,7 @@ fn element_timing(key: &str) -> Option<Timing> {
                 + num(s, "rushDuration", 24.0)
         }),
         "logo-drift" => seconds(|s| num(s, "exitAt", 3.13) + num(s, "exitDuration", 0.0)),
-        "screen-recording" => authored(|s| {
+        "captured-video" => authored(|s| {
             max_of(
                 list(s, "camera")
                     .iter()

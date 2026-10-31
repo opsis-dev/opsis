@@ -18684,7 +18684,7 @@
   }
  },
  {
-  "type": "fx.screen-recording",
+  "type": "fx.captured-video",
   "filled": false,
   "inputs": {},
   "result": null,
@@ -18714,7 +18714,7 @@
           "unit": "frames"
          }
         },
-        "component": "screen-recording",
+        "component": "captured-video",
         "props": {
          "src": "app:placeholders/screen-wide.svg",
          "cropTop": 0.0,
@@ -18776,7 +18776,7 @@
   }
  },
  {
-  "type": "fx.screen-recording",
+  "type": "fx.captured-video",
   "filled": true,
   "inputs": {},
   "result": null,
@@ -18806,7 +18806,7 @@
           "unit": "frames"
          }
         },
-        "component": "screen-recording",
+        "component": "captured-video",
         "props": {
          "src": "app:placeholders/screen-wide.svg",
          "cropTop": 0.0,

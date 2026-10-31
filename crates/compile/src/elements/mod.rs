@@ -177,7 +177,7 @@ static ELEMENTS: LazyLock<Elements> = LazyLock::new(|| {
         scene::launch_anything::definition(),
         device::laptop_frame::definition(),
         device::phone_frame::definition(),
-        device::screen_recording::definition(),
+        device::captured_video::definition(),
         text::announce_title::definition(),
         text::punch_lines::definition(),
         text::text_highlight::definition(),

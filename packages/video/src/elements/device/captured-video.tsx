@@ -18,8 +18,8 @@ import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
 import { type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
-export type ScreenRecordingFit = "cover" | "contain";
-export type ScreenRecordingEntrance = "fade" | "none";
+export type CapturedVideoFit = "cover" | "contain";
+export type CapturedVideoEntrance = "fade" | "none";
 
 export interface ScreenCrop {
   top?: number;
@@ -36,7 +36,7 @@ export interface CameraMove {
   y?: number;
 }
 
-type ScreenRecordingProps = Omit<ElementSettings["screen-recording"], "theme"> & {
+type CapturedVideoProps = Omit<ElementSettings["captured-video"], "theme"> & {
   srcKind?: MediaKind;
   footageUrls?: FootageUrls;
   theme: Partial<WarmTheme>;
@@ -145,7 +145,7 @@ export function shotLayout(
   width: number,
   height: number,
   crop: ScreenCrop | undefined,
-  fit: ScreenRecordingFit,
+  fit: CapturedVideoFit,
   sourceAspect: number | undefined,
 ): ShotLayout {
   const left = crop?.left ?? 0;
@@ -179,7 +179,7 @@ function pct(value: number, of: number) {
   return `${(value / of) * 100}%`;
 }
 
-function ScreenRecordingView({
+function CapturedVideoView({
   src,
   srcKind,
   cropTop,
@@ -197,7 +197,7 @@ function ScreenRecordingView({
   mode,
   speed,
   footageUrls,
-}: ScreenRecordingProps) {
+}: CapturedVideoProps) {
   const frame = useAuthoredFrame() * speed;
   const realFrame = useCurrentFrame();
   const t = useWarmTheme(theme, mode);
@@ -280,13 +280,13 @@ function ScreenRecordingView({
   );
 }
 
-export function ScreenRecording({
+export function CapturedVideo({
   theme,
   ...settings
-}: ElementSettings["screen-recording"] & { srcKind?: MediaKind; footageUrls?: FootageUrls }) {
+}: ElementSettings["captured-video"] & { srcKind?: MediaKind; footageUrls?: FootageUrls }) {
   return (
     <WarmUIProvider mode={theme.mode}>
-      <ScreenRecordingView {...settings} theme={themeColors(theme)} mode={theme.mode} />
+      <CapturedVideoView {...settings} theme={themeColors(theme)} mode={theme.mode} />
     </WarmUIProvider>
   );
 }

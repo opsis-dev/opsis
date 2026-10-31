@@ -155,7 +155,7 @@ These files in `packages/video/src` started as snapcn components and are maintai
 
 - `elements/device/laptop-frame.tsx`
 - `elements/device/phone-frame.tsx`
-- `elements/device/screen-recording.tsx`
+- `elements/device/captured-video.tsx`
 - `elements/scene/hero-launch.tsx`
 - `elements/scene/logo-assemble.tsx`
 - `elements/scene/logo-drift.tsx`

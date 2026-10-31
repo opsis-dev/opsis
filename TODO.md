@@ -46,7 +46,6 @@ Ideas you approved but left for later.
 
 Ideas that were discussed but never finalized or planned.
 
-- [ ] Screen recording's "Audio" setting (`audio`) never reaches the film: footage carries no sound and the mix plan takes only the Video element's own sound (`video_props`, `crates/compile/src/clip.rs`). Give it a mix channel like the Video element's, with its trim and speed. (Before v3 it was heard only in films with no other sound, since a film with a mix renders its picture muted.)
 - [ ] An `#[element(…)]` macro that writes the 138 element `definition()` functions from attributes on their settings structs, the third part of the macros research after `#[settings]` and `#[choice]`.
 - [ ] A way to see the film before exporting, in place of the removed Preview (its window, streamed page and Fast/Exact copies). Undecided.
 - [ ] Measuring how fast a low-resolution draft export renders (for example 480p), and whether one can hold more than 20 frames a second.

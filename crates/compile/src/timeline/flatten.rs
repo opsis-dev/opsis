@@ -219,6 +219,8 @@ pub struct AudioBar {
     pub hits: Option<Vec<f64>>,
     #[serde(skip)]
     pub parts: Vec<AudioBar>,
+    #[serde(skip)]
+    pub rate: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
@@ -880,6 +882,7 @@ fn sound_bar(a: &AudioItem, duration: u32) -> Option<AudioBar> {
         bar: None,
         hits: None,
         parts: Vec::new(),
+        rate: 1.0,
     })
 }
 
@@ -927,7 +930,9 @@ fn clip_sound_bar(bar: &VideoBar, fps: u32) -> Option<AudioBar> {
         from: sound.from,
         to: sound.to,
         lane: 0,
-        trim_before: (sound.content_start + ms_to_exact_frames(media.trim_before_ms, fps)).round(),
+        trim_before: (sound.content_start * media.playback_rate
+            + ms_to_exact_frames(media.trim_before_ms, fps))
+        .round(),
         looped: media.looped,
         volume: media.volume,
         handles: None,
@@ -935,6 +940,7 @@ fn clip_sound_bar(bar: &VideoBar, fps: u32) -> Option<AudioBar> {
         bar: Some(Box::new(bar.clone())),
         hits: None,
         parts: Vec::new(),
+        rate: media.playback_rate,
     })
 }
 

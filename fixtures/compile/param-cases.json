@@ -110825,7 +110825,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "defaults",
    "key": null,
    "change": null,
@@ -110870,7 +110870,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "empty",
    "key": null,
    "change": null,
@@ -110915,7 +110915,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "src",
    "change": {
@@ -110928,7 +110928,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "src",
    "change": {
@@ -110940,7 +110940,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "number",
    "key": "src",
    "change": {
@@ -110952,7 +110952,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "empty",
    "key": "src",
    "change": {
@@ -110965,7 +110965,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "spaces",
    "key": "src",
    "change": {
@@ -110978,7 +110978,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "bad colour",
    "key": "src",
    "change": {
@@ -110991,7 +110991,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "variable",
    "key": "src",
    "change": {
@@ -111004,7 +111004,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "cropTop",
    "change": {
@@ -111017,7 +111017,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "cropTop",
    "change": {
@@ -111029,7 +111029,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "text",
    "key": "cropTop",
    "change": {
@@ -111041,7 +111041,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "variable",
    "key": "cropTop",
    "change": {
@@ -111053,7 +111053,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "fraction",
    "key": "cropTop",
    "change": {
@@ -111065,7 +111065,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "huge",
    "key": "cropTop",
    "change": {
@@ -111077,7 +111077,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "below",
    "key": "cropTop",
    "change": {
@@ -111089,7 +111089,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at low bound",
    "key": "cropTop",
    "change": {
@@ -111102,7 +111102,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "above",
    "key": "cropTop",
    "change": {
@@ -111114,7 +111114,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at high bound",
    "key": "cropTop",
    "change": {
@@ -111127,7 +111127,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "cropRight",
    "change": {
@@ -111140,7 +111140,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "cropRight",
    "change": {
@@ -111152,7 +111152,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "text",
    "key": "cropRight",
    "change": {
@@ -111164,7 +111164,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "variable",
    "key": "cropRight",
    "change": {
@@ -111176,7 +111176,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "fraction",
    "key": "cropRight",
    "change": {
@@ -111188,7 +111188,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "huge",
    "key": "cropRight",
    "change": {
@@ -111200,7 +111200,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "below",
    "key": "cropRight",
    "change": {
@@ -111212,7 +111212,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at low bound",
    "key": "cropRight",
    "change": {
@@ -111225,7 +111225,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "above",
    "key": "cropRight",
    "change": {
@@ -111237,7 +111237,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at high bound",
    "key": "cropRight",
    "change": {
@@ -111250,7 +111250,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "cropBottom",
    "change": {
@@ -111263,7 +111263,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "cropBottom",
    "change": {
@@ -111275,7 +111275,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "text",
    "key": "cropBottom",
    "change": {
@@ -111287,7 +111287,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "variable",
    "key": "cropBottom",
    "change": {
@@ -111299,7 +111299,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "fraction",
    "key": "cropBottom",
    "change": {
@@ -111311,7 +111311,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "huge",
    "key": "cropBottom",
    "change": {
@@ -111323,7 +111323,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "below",
    "key": "cropBottom",
    "change": {
@@ -111335,7 +111335,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at low bound",
    "key": "cropBottom",
    "change": {
@@ -111348,7 +111348,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "above",
    "key": "cropBottom",
    "change": {
@@ -111360,7 +111360,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at high bound",
    "key": "cropBottom",
    "change": {
@@ -111373,7 +111373,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "cropLeft",
    "change": {
@@ -111386,7 +111386,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "cropLeft",
    "change": {
@@ -111398,7 +111398,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "text",
    "key": "cropLeft",
    "change": {
@@ -111410,7 +111410,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "variable",
    "key": "cropLeft",
    "change": {
@@ -111422,7 +111422,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "fraction",
    "key": "cropLeft",
    "change": {
@@ -111434,7 +111434,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "huge",
    "key": "cropLeft",
    "change": {
@@ -111446,7 +111446,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "below",
    "key": "cropLeft",
    "change": {
@@ -111458,7 +111458,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at low bound",
    "key": "cropLeft",
    "change": {
@@ -111471,7 +111471,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "above",
    "key": "cropLeft",
    "change": {
@@ -111483,7 +111483,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at high bound",
    "key": "cropLeft",
    "change": {
@@ -111496,7 +111496,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "fit",
    "change": {
@@ -111509,7 +111509,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "fit",
    "change": {
@@ -111521,7 +111521,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "other",
    "key": "fit",
    "change": {
@@ -111533,7 +111533,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "number",
    "key": "fit",
    "change": {
@@ -111545,7 +111545,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "backdropColor",
    "change": {
@@ -111558,7 +111558,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "backdropColor",
    "change": {
@@ -111570,7 +111570,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "number",
    "key": "backdropColor",
    "change": {
@@ -111582,7 +111582,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "empty",
    "key": "backdropColor",
    "change": {
@@ -111595,7 +111595,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "spaces",
    "key": "backdropColor",
    "change": {
@@ -111608,7 +111608,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "bad colour",
    "key": "backdropColor",
    "change": {
@@ -111621,7 +111621,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "variable",
    "key": "backdropColor",
    "change": {
@@ -111634,7 +111634,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "entrance",
    "change": {
@@ -111647,7 +111647,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "entrance",
    "change": {
@@ -111659,7 +111659,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "other",
    "key": "entrance",
    "change": {
@@ -111671,7 +111671,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "number",
    "key": "entrance",
    "change": {
@@ -111683,7 +111683,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "radius",
    "change": {
@@ -111696,7 +111696,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "radius",
    "change": {
@@ -111708,7 +111708,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "text",
    "key": "radius",
    "change": {
@@ -111720,7 +111720,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "variable",
    "key": "radius",
    "change": {
@@ -111732,7 +111732,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "fraction",
    "key": "radius",
    "change": {
@@ -111744,7 +111744,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "huge",
    "key": "radius",
    "change": {
@@ -111756,7 +111756,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "below",
    "key": "radius",
    "change": {
@@ -111768,7 +111768,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at low bound",
    "key": "radius",
    "change": {
@@ -111781,7 +111781,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "above",
    "key": "radius",
    "change": {
@@ -111793,7 +111793,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at high bound",
    "key": "radius",
    "change": {
@@ -111806,7 +111806,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "trimBefore",
    "change": {
@@ -111819,7 +111819,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "trimBefore",
    "change": {
@@ -111831,7 +111831,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "text",
    "key": "trimBefore",
    "change": {
@@ -111843,7 +111843,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "variable",
    "key": "trimBefore",
    "change": {
@@ -111855,7 +111855,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "fraction",
    "key": "trimBefore",
    "change": {
@@ -111867,7 +111867,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "huge",
    "key": "trimBefore",
    "change": {
@@ -111879,7 +111879,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "below",
    "key": "trimBefore",
    "change": {
@@ -111891,7 +111891,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at low bound",
    "key": "trimBefore",
    "change": {
@@ -111904,7 +111904,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "above",
    "key": "trimBefore",
    "change": {
@@ -111916,7 +111916,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at high bound",
    "key": "trimBefore",
    "change": {
@@ -111929,7 +111929,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "audio",
    "change": {
@@ -111942,7 +111942,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "audio",
    "change": {
@@ -111954,7 +111954,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "text",
    "key": "audio",
    "change": {
@@ -111966,7 +111966,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "theme",
    "change": {
@@ -111982,7 +111982,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "theme",
    "change": {
@@ -111994,7 +111994,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "not an object",
    "key": "theme",
    "change": {
@@ -112006,7 +112006,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "empty",
    "key": "theme",
    "change": {
@@ -112022,7 +112022,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "camera",
    "change": {
@@ -112050,7 +112050,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "camera",
    "change": {
@@ -112062,7 +112062,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "not a list",
    "key": "camera",
    "change": {
@@ -112074,7 +112074,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "empty",
    "key": "camera",
    "change": {
@@ -112087,7 +112087,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "many",
    "key": "camera",
    "change": {
@@ -112422,7 +112422,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "speed",
    "change": {
@@ -112435,7 +112435,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "speed",
    "change": {
@@ -112447,7 +112447,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "text",
    "key": "speed",
    "change": {
@@ -112459,7 +112459,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "variable",
    "key": "speed",
    "change": {
@@ -112471,7 +112471,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "fraction",
    "key": "speed",
    "change": {
@@ -112484,7 +112484,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "huge",
    "key": "speed",
    "change": {
@@ -112496,7 +112496,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "below",
    "key": "speed",
    "change": {
@@ -112508,7 +112508,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at low bound",
    "key": "speed",
    "change": {
@@ -112521,7 +112521,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "above",
    "key": "speed",
    "change": {
@@ -112533,7 +112533,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at high bound",
    "key": "speed",
    "change": {
@@ -112546,7 +112546,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "clipDuration",
    "change": {
@@ -112559,7 +112559,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "clipDuration",
    "change": {
@@ -112571,7 +112571,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "text",
    "key": "clipDuration",
    "change": {
@@ -112583,7 +112583,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "variable",
    "key": "clipDuration",
    "change": {
@@ -112595,7 +112595,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "fraction",
    "key": "clipDuration",
    "change": {
@@ -112607,7 +112607,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "huge",
    "key": "clipDuration",
    "change": {
@@ -112619,7 +112619,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "below",
    "key": "clipDuration",
    "change": {
@@ -112631,7 +112631,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at low bound",
    "key": "clipDuration",
    "change": {
@@ -112644,7 +112644,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "above",
    "key": "clipDuration",
    "change": {
@@ -112656,7 +112656,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "at high bound",
    "key": "clipDuration",
    "change": {
@@ -112669,7 +112669,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "missing",
    "key": "envelope",
    "change": {
@@ -112682,7 +112682,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "null",
    "key": "envelope",
    "change": {
@@ -112694,7 +112694,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "not an object",
    "key": "envelope",
    "change": {
@@ -112706,7 +112706,7 @@
    }
   },
   {
-   "type": "fx.screen-recording",
+   "type": "fx.captured-video",
    "label": "empty",
    "key": "envelope",
    "change": {

@@ -6,19 +6,19 @@ use crate::elements::theme::{Theme, ThemeMode, warm_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[choice(export)]
-pub enum RecordingFit {
+pub enum CapturedVideoFit {
     Cover,
     Contain,
 }
 
 #[choice(export)]
-pub enum RecordingEntrance {
+pub enum CapturedVideoEntrance {
     Fade,
     None,
 }
 
 #[settings(export)]
-pub struct ScreenRecordingCamera {
+pub struct CapturedVideoCamera {
     #[setting(
         "At",
         range(min = 0, max = 120),
@@ -45,7 +45,7 @@ pub struct ScreenRecordingCamera {
 }
 
 #[settings(export)]
-pub struct ScreenRecording {
+pub struct CapturedVideo {
     #[setting(
         "Recording",
         default = "app:placeholders/screen-wide.svg",
@@ -60,12 +60,12 @@ pub struct ScreenRecording {
     pub crop_bottom: f64,
     #[setting("Crop left", range(min = 0, max = 0.4), step = 0.005)]
     pub crop_left: f64,
-    #[setting("Fit", default = RecordingFit::Cover)]
-    pub fit: RecordingFit,
+    #[setting("Fit", default = CapturedVideoFit::Cover)]
+    pub fit: CapturedVideoFit,
     #[setting("Letterbox", widget = "color", zero_label = "Theme", advanced)]
     pub backdrop_color: String,
-    #[setting("Entrance", default = RecordingEntrance::Fade)]
-    pub entrance: RecordingEntrance,
+    #[setting("Entrance", default = CapturedVideoEntrance::Fade)]
+    pub entrance: CapturedVideoEntrance,
     #[setting("Corner radius", range(min = 0, max = 48), step = 1, advanced)]
     pub radius: u32,
     #[setting("Trim in", range(min = 0, max = 300), step = 1, advanced)]
@@ -83,12 +83,12 @@ pub struct ScreenRecording {
     #[setting(
         "Camera moves",
         default = vec![
-            ScreenRecordingCamera { at: 1.1333, x: 0.36, y: 0.42, ..Default::default() },
-            ScreenRecordingCamera { at: 3.2, zoom: 1.0, ..Default::default() },
+            CapturedVideoCamera { at: 1.1333, x: 0.36, y: 0.42, ..Default::default() },
+            CapturedVideoCamera { at: 3.2, zoom: 1.0, ..Default::default() },
         ],
         help = "Each move zooms to a spot. Leave the list empty for a still shot."
     )]
-    pub camera: Vec<ScreenRecordingCamera>,
+    pub camera: Vec<CapturedVideoCamera>,
     #[setting(
         "Speed",
         default = 1.0,
@@ -110,12 +110,12 @@ pub struct ScreenRecording {
 }
 
 pub fn definition() -> ElementMeta {
-    meta::<ScreenRecording>(
+    meta::<CapturedVideo>(
             element(
                 ElementKind::Component,
-                "screen-recording",
-                "Screen recording",
-                "Screen recording zoom: crop and auto-zoom a product demo capture. Takes a video or a still through the same track.",
+                "captured-video",
+                "Captured video",
+                "Shows a video or still you captured elsewhere, cropped and framed on a screen, with camera keys that zoom and pan across it.",
                 ElementCategory::Device,
                 240,
             )

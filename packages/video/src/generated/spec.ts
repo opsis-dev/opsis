@@ -377,6 +377,36 @@ export type Captions = {
 	unspokenOpacity: number,
 };
 
+export type CapturedVideoCamera = {
+	at: number,
+	duration: number,
+	zoom: number,
+	x: number,
+	y: number,
+};
+
+export type CapturedVideoEntrance = "fade" | "none";
+
+export type CapturedVideoFit = "cover" | "contain";
+
+export type CapturedVideo = {
+	src: string,
+	cropTop: number,
+	cropRight: number,
+	cropBottom: number,
+	cropLeft: number,
+	fit: CapturedVideoFit,
+	backdropColor: string,
+	entrance: CapturedVideoEntrance,
+	radius: number,
+	trimBefore: number,
+	audio: boolean,
+	theme: Theme,
+	camera: CapturedVideoCamera[],
+	speed: number,
+	sourceAspect?: number,
+};
+
 export type Card3d = {
 	src: string,
 	cornerRadius: number,
@@ -983,7 +1013,7 @@ export type ElementSettings = {
 	"launch-anything": LaunchAnything,
 	"laptop-frame": LaptopFrame,
 	"phone-frame": PhoneFrame,
-	"screen-recording": ScreenRecording,
+	"captured-video": CapturedVideo,
 	"announce-title": AnnounceTitle,
 	"punch-lines": PunchLines,
 	"text-highlight": TextHighlight,
@@ -2324,10 +2354,6 @@ export type RadialBurst = {
 	y: number,
 };
 
-export type RecordingEntrance = "fade" | "none";
-
-export type RecordingFit = "cover" | "contain";
-
 export type RecordingProps = {
 	src: string,
 	log: ActionLog,
@@ -2467,32 +2493,6 @@ export type Screen3d = {
 export type ScreenDevice = "laptop" | "monitor" | "phone" | "floating";
 
 export type ScreenMove = "push-in" | "orbit" | "tilt-reveal" | "rise" | "keyframes";
-
-export type ScreenRecordingCamera = {
-	at: number,
-	duration: number,
-	zoom: number,
-	x: number,
-	y: number,
-};
-
-export type ScreenRecording = {
-	src: string,
-	cropTop: number,
-	cropRight: number,
-	cropBottom: number,
-	cropLeft: number,
-	fit: RecordingFit,
-	backdropColor: string,
-	entrance: RecordingEntrance,
-	radius: number,
-	trimBefore: number,
-	audio: boolean,
-	theme: Theme,
-	camera: ScreenRecordingCamera[],
-	speed: number,
-	sourceAspect?: number,
-};
 
 export type ScribbleCircle = {
 	laps: number,

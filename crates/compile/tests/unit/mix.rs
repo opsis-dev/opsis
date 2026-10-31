@@ -381,3 +381,35 @@ fn ducks_under_the_clips_with_sound_on_a_key_channel() {
         [(0.0, 10.0), (60.0, 150.0)]
     );
 }
+
+fn sounding_element(id: &str, component: &str, props: Value) -> Value {
+    json!({ "id": id, "nodeId": id, "from": 0, "durationInFrames": 90, "kind": "element", "component": component, "props": props })
+}
+
+#[test]
+fn plays_video_and_captured_video_sound_at_their_speed_from_their_trim() {
+    let spec: TimelineSpec = serde_json::from_value(json!({
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "durationInFrames": 90,
+        "tracks": [
+            { "id": "a", "items": [sounding_element("v", "video", json!({ "src": "project:a.mp4", "muted": false, "playbackRate": 1.5, "trimBeforeMs": 1000 }))] },
+            { "id": "b", "items": [sounding_element("c", "captured-video", json!({ "src": "project:b.mp4", "srcKind": "video", "audio": true, "speed": 2.0, "trimBefore": 30 }))] },
+            { "id": "c", "items": [sounding_element("q", "captured-video", json!({ "src": "project:c.mp4", "srcKind": "video", "audio": false, "speed": 1.0, "trimBefore": 0 }))] },
+            { "id": "d", "items": [sounding_element("i", "captured-video", json!({ "src": "project:d.png", "srcKind": "image", "audio": true, "speed": 1.0, "trimBefore": 0 }))] },
+        ],
+        "audio": [],
+    }))
+    .unwrap();
+    let plan = plan_of(&spec, None);
+    let placed: Vec<(String, f64, u32)> = plan
+        .channels
+        .iter()
+        .flat_map(|c| c.sounds.iter().map(|s| (c.id.clone(), s.rate, s.offset)))
+        .collect();
+    assert_eq!(
+        placed,
+        [("v".to_owned(), 1.5, 30), ("c".to_owned(), 2.0, 30)]
+    );
+}

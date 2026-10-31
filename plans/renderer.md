@@ -2,7 +2,7 @@
 
 Opsis v1 was Electron, v2 is Rust and Tauri with Remotion drawing the film. v3 is a greenfield renderer written for Opsis: one Rust engine that drives the recording browser for takes, stills and exports, with a film page Opsis owns end to end. Nothing about v2's film code is a constraint: elements, nodes, the page runtime, the authoring model and the build can all change if the result is faster or simpler. Opsis is pre-alpha (never published, never pushed, one local deb install for checks), so no file format, setting or element needs a migration.
 
-Status: phase 1 done and on `main` (2026-10-31); phase 2 in progress. Work happens on `exp/rs-renderer` in the worktree `~/projects/opsis-v3`, building into the main checkout's target with `CARGO_TARGET_DIR=/home/panda/projects/demoflow/target` (never a symlink, never a change to the tracked `.cargo/config.toml`).
+Status: phase 1 done and on `main` (2026-10-31); phase 2 in progress. Work happens on `exp/rs-renderer` in the worktree `~/projects/opsis-v3`, which builds into its own `target` only (no `CARGO_TARGET_DIR`; the main checkout isn't built while the worktree exists, and the worktree's `target` is deleted once it's merged). Performance is compared on release builds only.
 
 ## How to read this plan
 

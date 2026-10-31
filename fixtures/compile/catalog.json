@@ -2503,10 +2503,10 @@
    }
   },
   {
-   "type": "fx.screen-recording",
-   "title": "Screen recording",
+   "type": "fx.captured-video",
+   "title": "Captured video",
    "category": "Graphics",
-   "description": "Screen recording zoom: crop and auto-zoom a product demo capture. Takes a video or a still through the same track.",
+   "description": "Shows a video or still you captured elsewhere, cropped and framed on a screen, with camera keys that zoom and pan across it.",
    "runs": false,
    "inputs": {},
    "outputs": {
@@ -40264,10 +40264,10 @@
    }
   },
   {
-   "type": "fx.screen-recording",
-   "title": "Screen recording",
+   "type": "fx.captured-video",
+   "title": "Captured video",
    "category": "Graphics",
-   "description": "Screen recording zoom: crop and auto-zoom a product demo capture. Takes a video or a still through the same track.",
+   "description": "Shows a video or still you captured elsewhere, cropped and framed on a screen, with camera keys that zoom and pan across it.",
    "runs": false,
    "inputs": {},
    "outputs": {

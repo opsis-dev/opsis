@@ -1617,7 +1617,7 @@
     "speed": 1.0,
     "floatPeriod": 4.5
   },
-  "screen-recording": {
+  "captured-video": {
     "src": "app:placeholders/screen-wide.svg",
     "cropTop": 0.0,
     "cropRight": 0.0,

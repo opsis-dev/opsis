@@ -100,7 +100,7 @@ fn sound_placements(flat: &FlatTimeline) -> IndexMap<String, Vec<SoundPlacement>
                 offset: whole(a.trim_before),
                 length: at_least_one_frame(a.to - a.from),
                 looped: a.looped,
-                rate: item.and_then(|i| i.rate).unwrap_or(1.0),
+                rate: item.and_then(|i| i.rate).unwrap_or(a.rate),
                 pitch: item.and_then(|i| i.pitch),
                 volume: a.volume,
                 fade_in: item.and_then(|i| i.fade_in_frames).unwrap_or(0),

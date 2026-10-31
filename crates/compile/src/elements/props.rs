@@ -205,8 +205,8 @@ pub struct ElementSettings {
     pub laptop_frame: crate::elements::device::laptop_frame::LaptopFrame,
     #[serde(rename = "phone-frame")]
     pub phone_frame: crate::elements::device::phone_frame::PhoneFrame,
-    #[serde(rename = "screen-recording")]
-    pub screen_recording: crate::elements::device::screen_recording::ScreenRecording,
+    #[serde(rename = "captured-video")]
+    pub captured_video: crate::elements::device::captured_video::CapturedVideo,
     #[serde(rename = "announce-title")]
     pub announce_title: crate::elements::text::announce_title::AnnounceTitle,
     #[serde(rename = "punch-lines")]

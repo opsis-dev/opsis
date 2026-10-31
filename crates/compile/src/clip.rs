@@ -41,12 +41,37 @@ pub struct VideoProps {
     pub volume: f64,
     #[serde(default)]
     pub trim_before_ms: f64,
+    #[serde(default = "one")]
+    pub playback_rate: f64,
+}
+
+pub const CAPTURED_VIDEO: &str = "captured-video";
+const CAPTURED_VIDEO_FPS: f64 = 30.0;
+
+fn captured_video_props(props: &Map<String, Value>) -> Option<VideoProps> {
+    let src = props.get("src")?.as_str()?.to_owned();
+    let is_video = props.get("srcKind").and_then(Value::as_str) == Some("video");
+    let audio = props.get("audio").and_then(Value::as_bool).unwrap_or(false);
+    let trim_frames = props
+        .get("trimBefore")
+        .and_then(Value::as_f64)
+        .unwrap_or(0.0);
+    Some(VideoProps {
+        src,
+        looped: false,
+        muted: !(audio && is_video) || props.get("muted").and_then(Value::as_bool) == Some(true),
+        volume: props.get("volume").and_then(Value::as_f64).unwrap_or(1.0),
+        trim_before_ms: trim_frames * 1000.0 / CAPTURED_VIDEO_FPS,
+        playback_rate: props.get("speed").and_then(Value::as_f64).unwrap_or(1.0),
+    })
 }
 
 pub fn video_props(component: &str, props: &Map<String, Value>) -> Option<VideoProps> {
-    (component == VIDEO)
-        .then(|| serde_json::from_value(Value::Object(props.clone())).ok())
-        .flatten()
+    match component {
+        VIDEO => serde_json::from_value(Value::Object(props.clone())).ok(),
+        CAPTURED_VIDEO => captured_video_props(props),
+        _ => None,
+    }
 }
 
 pub fn video_of(item: &TimelineItem) -> Option<VideoProps> {

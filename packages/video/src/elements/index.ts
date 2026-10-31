@@ -27,12 +27,12 @@ import { GaugeDial } from "#video/elements/data/gauge-dial.tsx";
 import { MetricTicker } from "#video/elements/data/metric-ticker/index.tsx";
 import { RollingNumber } from "#video/elements/data/rolling-number.tsx";
 import { StatCard } from "#video/elements/data/stat-card/index.tsx";
+import { CapturedVideo } from "#video/elements/device/captured-video.tsx";
 import { DeviceMockupZoom } from "#video/elements/device/device-mockup-zoom/index.tsx";
 import { LaptopFrame } from "#video/elements/device/laptop-frame.tsx";
 import { MultiDeviceLineup } from "#video/elements/device/multi-device-lineup.tsx";
 import { PhoneFrame } from "#video/elements/device/phone-frame.tsx";
 import { Screen3D } from "#video/elements/device/screen-3d.tsx";
-import { ScreenRecording } from "#video/elements/device/screen-recording.tsx";
 import { CameraLens } from "#video/elements/effect/camera-lens.tsx";
 import { CrtScreen } from "#video/elements/effect/crt-screen.tsx";
 import { HalftonePrint } from "#video/elements/effect/halftone-print.tsx";
@@ -213,7 +213,7 @@ export const ELEMENTS: Readonly<Record<string, ElementImpl>> = {
   "launch-anything": component(LaunchAnything),
   "laptop-frame": component(LaptopFrame),
   "phone-frame": component(PhoneFrame),
-  "screen-recording": component(ScreenRecording),
+  "captured-video": component(CapturedVideo),
   "announce-title": component(AnnounceTitle),
   "punch-lines": component(PunchLines),
   "text-highlight": component(TextHighlight),
