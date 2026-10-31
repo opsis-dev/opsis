@@ -1,4 +1,7 @@
-import { Easing, getRemotionEnvironment, Img, interpolate } from "remotion";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { isRendering } from "@opsis/runtime/environment.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { Img } from "@opsis/runtime/parts.tsx";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -146,7 +149,7 @@ function LogoAssembleView({
   const cx = width / 2;
   const cy = height / 2;
   const short = Math.min(width, height);
-  const isRendering = getRemotionEnvironment().isRendering;
+  const rendering = isRendering();
 
   const R = (short * ringSize) / 100;
   const cardW = Math.round((short * cardSize) / 100);
@@ -201,7 +204,7 @@ function LogoAssembleView({
                   overflow: "hidden",
                   borderRadius: cardRadius,
                   boxShadow: `0 14px 34px ${cardShadow}`,
-                  ...(isRendering ? {} : { willChange: "transform" as const }),
+                  ...(rendering ? {} : { willChange: "transform" as const }),
                 }}
               >
                 <Img

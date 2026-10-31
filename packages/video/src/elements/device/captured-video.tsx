@@ -1,13 +1,9 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { isRendering } from "@opsis/runtime/environment.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill, Img } from "@opsis/runtime/parts.tsx";
 import type { CSSProperties } from "react";
-import {
-  AbsoluteFill,
-  Easing,
-  getRemotionEnvironment,
-  Img,
-  interpolate,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
 import { lerp } from "#video/common/math.ts";
 import { AUTHORED_FPS } from "#video/common/spec.ts";
 import { themeColors } from "#video/common/theme.ts";
@@ -199,10 +195,10 @@ function CapturedVideoView({
   footageUrls,
 }: CapturedVideoProps) {
   const frame = useAuthoredFrame() * speed;
-  const realFrame = useCurrentFrame();
+  const realFrame = useFrame();
   const t = useWarmTheme(theme, mode);
-  const { width, height, fps } = useVideoConfig();
-  const isRendering = getRemotionEnvironment().isRendering;
+  const { width, height, fps } = useFilm();
+  const rendering = isRendering();
 
   const shot = shotLayout(
     width,
@@ -249,7 +245,7 @@ function CapturedVideoView({
           inset: 0,
           transformOrigin: "0 0",
           transform: `translate(${tx}%, ${ty}%) scale(${pose.zoom})`,
-          ...(isRendering ? {} : { willChange: "transform" as const }),
+          ...(rendering ? {} : { willChange: "transform" as const }),
         }}
       >
         <div

@@ -1,4 +1,6 @@
-import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { useId } from "react";
 import { CLAMPED } from "#video/core/anim.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 import {
@@ -39,8 +41,8 @@ export function PathDraw({
   head,
   glow,
 }: PathDrawProps) {
-  const frame = useCurrentFrame();
-  const { id } = useVideoConfig();
+  const frame = useFrame();
+  const id = useId();
   const paths = (Array.isArray(d) ? d : [d]).filter(Boolean);
   const filterId = `path-draw-glow-${id}`;
   const resolvedViewBox = viewBox ?? fitViewBox(paths, AUTO_FIT_PADDING);

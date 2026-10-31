@@ -1,4 +1,6 @@
-import { AbsoluteFill, interpolate, random } from "remotion";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { random } from "@opsis/runtime/random.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";

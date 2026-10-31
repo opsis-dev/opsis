@@ -1,4 +1,7 @@
-import { AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED, exitOpacity } from "#video/core/anim.ts";
 import { useOverlayFrame } from "#video/core/frame.ts";
@@ -43,8 +46,8 @@ export function Callout({
   fadeOut,
   labelBackground,
 }: ElementSettings["callout"]) {
-  const frame = useCurrentFrame();
-  const { width, height, durationInFrames, fps } = useVideoConfig();
+  const frame = useFrame();
+  const { width, height, durationInFrames, fps } = useFilm();
   const { k } = useOverlayFrame();
   const draw = interpolate(frame, [0, drawTime * fps], [0, 1], {
     ...CLAMPED,

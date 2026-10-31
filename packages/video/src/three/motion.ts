@@ -1,4 +1,5 @@
-import { random, spring } from "remotion";
+import { random } from "@opsis/runtime/random.ts";
+import { spring } from "@opsis/runtime/spring.ts";
 import { cameraAt, type CameraView } from "#video/common/camera-path.ts";
 import type { Motion, CameraPath } from "#video/generated/spec.ts";
 

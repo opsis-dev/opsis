@@ -1,8 +1,9 @@
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import {
   clampChroma,
   converter,
   formatRgb,
-  interpolate,
+  interpolate as colorRamp,
   type Oklch,
   parse,
   type Rgb,
@@ -76,11 +77,27 @@ function resolveColorString(s: string): string {
 
 export function mixOklch(a: string, b: string, t: number): string {
   const mixed = clampChroma(
-    interpolate([resolveColorString(a), resolveColorString(b)], "oklch")(t),
+    colorRamp([resolveColorString(a), resolveColorString(b)], "oklch")(t),
     "oklch",
     "rgb",
   );
   return toCss(toRgb(mixed));
+}
+
+export function interpolateColors(
+  input: number,
+  inputRange: readonly number[],
+  colors: readonly string[],
+): string {
+  const position = interpolate(
+    input,
+    inputRange,
+    inputRange.map((_, i) => i),
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+  );
+  const index = Math.max(0, Math.min(colors.length - 2, Math.floor(position)));
+  const from = colors[index] ?? "#000";
+  return mixOklch(from, colors[index + 1] ?? from, position - index);
 }
 
 export function toCss(color: Rgb): string {

@@ -1,5 +1,5 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
 import { useEffect, useMemo } from "react";
-import { staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import {
   Box3,
   CurvePath,
@@ -15,6 +15,7 @@ import {
   type Object3D,
 } from "three";
 import type { SVGResult } from "three/addons/loaders/SVGLoader.js";
+import { assetUrl } from "#video/assets.tsx";
 import { isRecord } from "#video/common/guards.ts";
 import { Card, FACE_ROUGHNESS } from "#video/elements/scene/card-3d.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
@@ -23,7 +24,7 @@ import { elementPose } from "#video/three/motion.ts";
 import { fitToSize } from "#video/three/shapes.ts";
 import { Posed, Stage3D } from "#video/three/stage.tsx";
 
-const SAMPLE_LOGO = "placeholders/logo-mark.svg";
+const SAMPLE_LOGO = "app:placeholders/logo-mark.svg";
 const LOGO_SIZE = 2;
 const CURVE_SEGMENTS = 24;
 const TUBE_SIDES = 12;
@@ -143,9 +144,9 @@ export function Logo3D({
   reverse,
   lens,
 }: ElementSettings["logo-3d"]) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const file = src || staticFile(SAMPLE_LOGO);
+  const frame = useFrame();
+  const { fps } = useFilm();
+  const file = src || assetUrl(SAMPLE_LOGO);
   const vector = isSvg(file);
   const svg = useSvg(vector ? file : null);
   const texture = useTexture(vector ? null : file);

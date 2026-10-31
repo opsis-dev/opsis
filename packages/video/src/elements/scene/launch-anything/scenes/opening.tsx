@@ -1,11 +1,12 @@
-import { Img, Sequence, useVideoConfig } from "remotion";
+import { Sequence, useFilm } from "@opsis/runtime/clock.tsx";
+import { Img } from "@opsis/runtime/parts.tsx";
 import type { SceneProps } from "#video/elements/scene/launch-anything/content.ts";
 import { tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { ShaderTextReveal } from "#video/elements/scene/launch-anything/shader-text-reveal.tsx";
 import { Center, Title } from "#video/elements/scene/launch-anything/ui.tsx";
 
 export function Opening({ scene, t }: SceneProps) {
-  const { fps } = useVideoConfig();
+  const { fps } = useFilm();
   return (
     <>
       <Sequence name="Opening — chrome reveal" durationInFrames={Math.round(fps)}>

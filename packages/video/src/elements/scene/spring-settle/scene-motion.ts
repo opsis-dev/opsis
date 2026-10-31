@@ -1,4 +1,6 @@
-import { Easing, interpolate, random } from "remotion";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { random } from "@opsis/runtime/random.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 
 export const EXPO = Easing.bezier(0.16, 1, 0.3, 1);

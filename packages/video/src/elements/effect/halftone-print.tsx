@@ -1,4 +1,4 @@
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useAuthoredConfig } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import {

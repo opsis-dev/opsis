@@ -1,4 +1,4 @@
-import { random } from "remotion";
+import { random } from "@opsis/runtime/random.ts";
 import { createNoise3D, type NoiseFunction3D } from "simplex-noise";
 
 const fields = new Map<string, NoiseFunction3D>();

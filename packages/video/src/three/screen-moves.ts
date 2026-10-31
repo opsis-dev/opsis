@@ -1,4 +1,5 @@
-import { Easing, interpolate } from "remotion";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import { cameraAt } from "#video/common/camera-path.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ScreenMove, CameraPath } from "#video/generated/spec.ts";

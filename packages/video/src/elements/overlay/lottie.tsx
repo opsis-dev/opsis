@@ -1,7 +1,7 @@
-import { holdRender, useHeldLoad } from "@opsis/runtime/holds.ts";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { failRender, holdRender, useHeldLoad } from "@opsis/runtime/holds.ts";
 import lottie, { type AnimationItem } from "lottie-web/build/player/lottie_svg";
 import { useLayoutEffect, useRef } from "react";
-import { cancelRender, useCurrentFrame, useVideoConfig } from "remotion";
 import {
   animationFrame,
   type LottieAnimation,
@@ -55,7 +55,7 @@ function mount({ container, data, aspect, wanted }: Mount): AnimationItem {
   });
   animation.addEventListener("loaded_images", () => arrived("loaded_images"));
   animation.addEventListener("data_failed", () =>
-    cancelRender(new Error("Couldn't read the animation.")),
+    failRender(new Error("Couldn't read the animation.")),
   );
   animation.addEventListener("destroy", release);
   return animation;
@@ -70,8 +70,8 @@ function LottiePlayer({
   aspect: string;
   timing: Omit<LottieTiming, "frame" | "fps">;
 }) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const container = useRef<HTMLDivElement>(null);
   const animation = useRef<AnimationItem | null>(null);
   const at = animationFrame(data, { ...timing, frame, fps });

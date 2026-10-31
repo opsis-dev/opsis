@@ -1,15 +1,12 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { spring } from "@opsis/runtime/spring.ts";
 import type { CSSProperties, ReactNode } from "react";
 import { createContext, useContext } from "react";
-import {
-  AbsoluteFill,
-  interpolate,
-  interpolateColors,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import { FADE, stagger } from "#video/elements/scene/spring-settle/scene-motion.ts";
+import { interpolateColors } from "#video/lib/ui-kit/color.ts";
 
 export type SpringSettleConfig = {
   sceneFrames: number;
@@ -143,7 +140,7 @@ export interface SpringSettleEnterProps {
 }
 
 export function SpringSettleEnter({ local, config, children }: SpringSettleEnterProps) {
-  const { fps } = useVideoConfig();
+  const { fps } = useFilm();
   return (
     <SceneCtx.Provider value={{ local, cfg: resolveConfig(config), fps }}>
       {children}
@@ -210,7 +207,7 @@ export function SpringSettleScenes({
   loop = false,
   style,
 }: SpringSettleScenesProps) {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const cfg = resolveConfig(config);
   if (scenes.length === 0) return null;
 

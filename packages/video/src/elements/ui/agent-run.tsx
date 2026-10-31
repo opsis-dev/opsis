@@ -1,6 +1,7 @@
+import { Easing } from "@opsis/runtime/easing.ts";
+import { random } from "@opsis/runtime/random.ts";
 import { type CSSProperties, useMemo } from "react";
 import type React from "react";
-import { Easing, random } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { clamp, clamp01, easeOutCubic, numberOr, round3, smoothstep } from "#video/common/math.ts";
 import { type ElementProps } from "#video/common/spec.ts";

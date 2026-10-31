@@ -1,5 +1,5 @@
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useMemo } from "react";
-import { AbsoluteFill } from "remotion";
 import { clamp01 } from "#video/common/math.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";

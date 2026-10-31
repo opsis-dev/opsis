@@ -1,5 +1,6 @@
+import { Sequence, useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useMemo } from "react";
-import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
 import { launchScene } from "#video/elements/scene/launch-anything/content.ts";
 import { LAUNCH_FPS, launchTimeline } from "#video/elements/scene/launch-anything/motion.ts";
 import { Action } from "#video/elements/scene/launch-anything/scenes/action.tsx";
@@ -31,13 +32,12 @@ const scenes = {
 };
 
 export function LaunchAnything(settings: ElementSettings["launch-anything"]) {
-  const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const frame = useFrame();
+  const { width, height, fps } = useFilm();
   const scene = useMemo(() => launchScene(settings), [settings]);
   const scale = Math.min(width / 480, height / 270);
   return (
     <AbsoluteFill
-      name="Product Showcase"
       style={{
         background: scene.palette.night,
         color: scene.palette.lightText,

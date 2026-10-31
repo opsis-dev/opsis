@@ -1,5 +1,7 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import React, { useMemo } from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { assetUrl, useReframe } from "#video/assets.tsx";
 import {
   resolveAnnotations,
@@ -73,8 +75,8 @@ const CLIP_KEYS = [
 export function RecordingClip(props: RecordingProps) {
   const src = props.footageUrl ?? null;
   const backdrop = props.backdrop ? assetUrl(props.backdrop) : props.backdrop;
-  const { width, height, fps } = useVideoConfig();
-  const frame = useCurrentFrame();
+  const { width, height, fps } = useFilm();
+  const frame = useFrame();
   const reframe = useReframe();
   const timeS = useClipTime(props.speed);
 
@@ -179,7 +181,7 @@ function LayoutFrame({
 }
 
 function Letterboxed({ height, children }: { height: number; children: React.ReactNode }) {
-  const { width } = useVideoConfig();
+  const { width } = useFilm();
   return (
     <AbsoluteFill
       style={{ alignItems: "center", justifyContent: "center", background: STAGE_COLOR }}
@@ -192,7 +194,7 @@ function Letterboxed({ height, children }: { height: number; children: React.Rea
 }
 
 function Cropped({ box, cx, children }: { box: Size; cx: number; children: React.ReactNode }) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   return (
     <AbsoluteFill style={{ overflow: "hidden" }}>
       <DesignWidthContext.Provider value={box.width}>

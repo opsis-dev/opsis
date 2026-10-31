@@ -1,4 +1,5 @@
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { useFilm } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { randomBetween, steppedRamp } from "#video/lib/motion/stop-motion.ts";
@@ -146,7 +147,7 @@ function ScribbleCircleView({
 }
 
 export function ScribbleCircle({ x, y, ...settings }: ElementSettings["scribble-circle"]) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   return (
     <AbsoluteFill>
       <div

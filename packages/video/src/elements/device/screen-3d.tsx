@@ -1,5 +1,6 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import React, { useMemo } from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { DeviceBody } from "#video/three/devices.tsx";
 import {
@@ -40,7 +41,7 @@ function OnScreen({
   glare: number;
   children?: React.ReactNode;
 }) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   return (
     <div
       style={{
@@ -75,8 +76,8 @@ export function Screen3D({
   moveEndsAt,
   children,
 }: ElementSettings["screen-3d"] & { children?: React.ReactNode }) {
-  const frame = useCurrentFrame();
-  const { width, height, durationInFrames } = useVideoConfig();
+  const frame = useFrame();
+  const { width, height, durationInFrames } = useFilm();
   const screen = useMemo(
     () => ({ width: SCREEN_WIDTH, height: SCREEN_WIDTH / (width / height) }),
     [width, height],

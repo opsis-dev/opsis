@@ -1,5 +1,5 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
 import { useEffect, useMemo } from "react";
-import { staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import {
   CanvasTexture,
   ExtrudeGeometry,
@@ -8,13 +8,14 @@ import {
   PlaneGeometry,
   type Texture,
 } from "three";
+import { assetUrl } from "#video/assets.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { useTexture } from "#video/three/load.ts";
 import { elementPose } from "#video/three/motion.ts";
 import { faceGeometry, fittedSize, roundedRect } from "#video/three/shapes.ts";
 import { Posed, Stage3D } from "#video/three/stage.tsx";
 
-const SAMPLE_SCREEN = "placeholders/screen-wide.svg";
+const SAMPLE_SCREEN = "app:placeholders/screen-wide.svg";
 const CARD_SIZE = 2.2;
 const FACE_GAP = 0.002;
 const BODY_ROUGHNESS = 0.45;
@@ -179,9 +180,9 @@ export function Card3D({
   reverse,
   lens,
 }: ElementSettings["card-3d"]) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const texture = useTexture(src || staticFile(SAMPLE_SCREEN));
+  const frame = useFrame();
+  const { fps } = useFilm();
+  const texture = useTexture(src || assetUrl(SAMPLE_SCREEN));
   const look = useMemo(
     () => ({ metalness: 0, color: edgeColor, faceRoughness: roughness }),
     [edgeColor, roughness],

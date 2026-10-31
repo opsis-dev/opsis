@@ -1,5 +1,5 @@
+import { Img } from "@opsis/runtime/parts.tsx";
 import { useId } from "react";
-import { Img } from "remotion";
 import { clamp01 } from "#video/common/math.ts";
 import { type SceneProps, tint } from "#video/elements/scene/launch-anything/content.ts";
 import { getShowcase, key, tween } from "#video/elements/scene/launch-anything/motion.ts";

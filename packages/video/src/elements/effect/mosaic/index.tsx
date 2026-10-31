@@ -1,5 +1,5 @@
+import { useFilm } from "@opsis/runtime/clock.tsx";
 import React from "react";
-import { useVideoConfig } from "remotion";
 import type { Box } from "#video/core/still-layout.ts";
 import { PixelateRegion } from "#video/elements/effect/mosaic/pixelate-region.tsx";
 
@@ -14,7 +14,7 @@ export function Mosaic({
   blockSize?: number;
   children?: React.ReactNode;
 }) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   const regions = boxes
     .filter((b) => b.width > 0 && b.height > 0)
     .slice(0, MAX_REGIONS)

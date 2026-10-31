@@ -1,3 +1,4 @@
+// oxlint-disable-next-line no-restricted-imports
 import { Composition } from "remotion";
 import { EMPTY_SPEC } from "#video/common/spec.ts";
 import { COMPOSITION_ID } from "#video/composition-id.ts";

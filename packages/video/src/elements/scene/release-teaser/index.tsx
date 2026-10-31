@@ -1,5 +1,6 @@
+import { Sequence, useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useMemo } from "react";
-import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { TeaserBackground } from "#video/elements/scene/release-teaser/background.tsx";
 import { releaseTeaserScene } from "#video/elements/scene/release-teaser/content.ts";
@@ -14,8 +15,8 @@ export {
 } from "#video/elements/scene/release-teaser/motion.ts";
 
 export function ReleaseTeaser(settings: ElementSettings["release-teaser"]) {
-  const currentFrame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const currentFrame = useFrame();
+  const { fps, width, height } = useFilm();
   const frame = (currentFrame / fps) * RELEASE_TEASER_FPS;
   const scene = useMemo(() => releaseTeaserScene(settings), [settings]);
   const scale = Math.min(width / 960, height / 540);

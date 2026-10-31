@@ -1,4 +1,4 @@
-import { useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
 import { FootageFrame, type FootageUrls } from "#video/core/footage.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
@@ -10,8 +10,8 @@ export function VideoElement({
   background,
   footageUrls,
 }: ElementSettings["video"] & { footageUrls?: FootageUrls }) {
-  const { fps } = useVideoConfig();
-  const frame = useCurrentFrame();
+  const { fps } = useFilm();
+  const frame = useFrame();
   const footageUrl = footageUrls?.src;
   if (!src || !footageUrl) return null;
   return (

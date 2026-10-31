@@ -1,4 +1,4 @@
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { DEFAULT_STEP, randomBetween, steppedRamp } from "#video/lib/motion/stop-motion.ts";

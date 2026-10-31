@@ -1,4 +1,4 @@
-import type { SpringConfig } from "remotion";
+import { type SpringConfig } from "@opsis/runtime/spring.ts";
 
 export const springSmooth: SpringConfig = {
   damping: 200,

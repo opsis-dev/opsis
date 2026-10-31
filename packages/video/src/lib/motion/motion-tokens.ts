@@ -1,4 +1,4 @@
-import { Easing } from "remotion";
+import { Easing } from "@opsis/runtime/easing.ts";
 import { EASING_ENTER, EASING_EXIT, secondsToFrames } from "#video/lib/motion/timing.ts";
 
 export const DURATION = {

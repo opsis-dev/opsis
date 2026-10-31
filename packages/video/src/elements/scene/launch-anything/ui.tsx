@@ -1,5 +1,5 @@
+import { Img } from "@opsis/runtime/parts.tsx";
 import type { CSSProperties, ReactNode } from "react";
-import { Img, Interactive } from "remotion";
 import { clamp01 } from "#video/common/math.ts";
 import { type LaunchScene, shade, tint } from "#video/elements/scene/launch-anything/content.ts";
 import { tween } from "#video/elements/scene/launch-anything/motion.ts";
@@ -34,8 +34,7 @@ export function Title({
 }) {
   const longest = Math.max(...text.split("\n").map((line) => line.length), 1);
   return (
-    <Interactive.Div
-      name="Headline"
+    <div
       style={{
         fontSize: Math.min(size * scene.look.textSize, 720 / longest),
         fontWeight: scene.look.headlineWeight,
@@ -48,7 +47,7 @@ export function Title({
       }}
     >
       {text}
-    </Interactive.Div>
+    </div>
   );
 }
 

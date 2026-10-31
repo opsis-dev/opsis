@@ -1,4 +1,6 @@
-import { AbsoluteFill, Img, interpolate, spring } from "remotion";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill, Img } from "@opsis/runtime/parts.tsx";
+import { spring } from "@opsis/runtime/spring.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 

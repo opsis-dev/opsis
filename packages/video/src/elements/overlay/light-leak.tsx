@@ -1,5 +1,6 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useLayoutEffect, useRef } from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { createQuadSurface } from "#video/lib/shaders/quad.ts";
 import { parseColor } from "#video/lib/ui-kit/color.ts";
@@ -101,8 +102,8 @@ function drawLeak(surface: Surface, { width, height, progress, seed, colors }: L
 }
 
 export function LightLeakElement({ seed, colors, strength, blend }: ElementSettings["light-leak"]) {
-  const frame = useCurrentFrame();
-  const { width, height, durationInFrames } = useVideoConfig();
+  const frame = useFrame();
+  const { width, height, durationInFrames } = useFilm();
   const canvas = useRef<HTMLCanvasElement>(null);
   const surface = useRef<Surface | null>(null);
   const progress = durationInFrames > 1 ? frame / (durationInFrames - 1) : 1;

@@ -1,4 +1,6 @@
-import { AbsoluteFill, random, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { random } from "@opsis/runtime/random.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import type { SplitUnitState } from "#video/lib/text/text-split.ts";
 import { SplitTextChars } from "#video/parts/split-text-chars.tsx";
@@ -22,8 +24,8 @@ export function NeonFlickerText({
   humRate,
   wordSpacing,
 }: ElementSettings["neon-flicker-text"]) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const offColor = offSetting || `color-mix(in srgb, ${glowColor} 16%, transparent)`;
   const humStep = (humRate * Math.PI * 2) / fps;
 

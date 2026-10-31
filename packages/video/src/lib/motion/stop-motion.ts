@@ -1,4 +1,5 @@
-import { random, spring } from "remotion";
+import { random } from "@opsis/runtime/random.ts";
+import { spring } from "@opsis/runtime/spring.ts";
 
 export const DEFAULT_STEP = 3;
 

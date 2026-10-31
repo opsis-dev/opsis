@@ -1,13 +1,7 @@
+import { Freeze, Loop, Sequence, useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import React, { createElement } from "react";
-import {
-  AbsoluteFill,
-  Freeze,
-  interpolate,
-  Loop,
-  Sequence,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
 import { DEFAULT_REFRAME, ReframeProvider, withAppFiles } from "#video/assets.tsx";
 import { groupOf } from "#video/common/clip.ts";
 import { ERROR_COLOR, STAGE_COLOR } from "#video/common/element-colors.ts";
@@ -103,8 +97,8 @@ function EnvelopeWrap({
   envelope: VisualEnvelope;
   children: React.ReactNode;
 }) {
-  const frame = useCurrentFrame();
-  const { width, height } = useVideoConfig();
+  const frame = useFrame();
+  const { width, height } = useFilm();
   const opacity = envelopeAt(envelope.opacity, frame, 1);
   const x = envelopeAt(envelope.x, frame, 0) * width;
   const y = envelopeAt(envelope.y, frame, 0) * height;
@@ -184,7 +178,7 @@ function Group({
   design,
   sequencer,
 }: GroupProps) {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   let layers: React.ReactNode = sequencer ? (
     <SceneSequence sequencer={sequencer} tracks={tracks} />
   ) : (
@@ -271,7 +265,7 @@ function Wrapped({ wrapper, children }: Wrapping<{ wrapper?: GroupProps["wrapper
 }
 
 function DesignBox({ design, fill, children }: Wrapping<{ design?: Size; fill?: boolean }>) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   if (!design || (width === design.width && height === design.height)) return <>{children}</>;
   const scale = Math.min(width / design.width, height / design.height);
   const box = fill
@@ -297,8 +291,8 @@ function DesignBox({ design, fill, children }: Wrapping<{ design?: Size; fill?: 
 }
 
 function TransitionWrap({ item, children }: { item: TimelineItem; children: React.ReactNode }) {
-  const frame = useCurrentFrame();
-  const { width, height } = useVideoConfig();
+  const frame = useFrame();
+  const { width, height } = useFilm();
   const board = useCutBoard();
   const active = activeTransition(item, frame);
   if (!active) return <>{children}</>;

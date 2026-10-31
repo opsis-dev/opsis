@@ -1,12 +1,9 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { spring } from "@opsis/runtime/spring.ts";
 import { useMemo } from "react";
-import {
-  AbsoluteFill,
-  Easing,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED, exitOpacity } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
@@ -53,8 +50,8 @@ export function KineticHeadline({
   underlineEmphasis,
   fadeOutInFrames,
 }: ElementSettings["kinetic-headline"]) {
-  const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const frame = useFrame();
+  const { fps, durationInFrames } = useFilm();
   const words = useMemo(() => emphasisedWords(text), [text]);
   return (
     <AbsoluteFill>

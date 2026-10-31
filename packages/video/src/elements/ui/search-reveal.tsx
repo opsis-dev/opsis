@@ -1,4 +1,6 @@
-import { AbsoluteFill, Easing, interpolate } from "remotion";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { fontOr } from "#video/common/fonts.ts";
 import { clamp, numberOr } from "#video/common/math.ts";
 import { CLAMPED } from "#video/core/anim.ts";

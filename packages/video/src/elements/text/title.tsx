@@ -1,5 +1,6 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { faded } from "#video/camera/lib/style.ts";
 import { fontOr } from "#video/common/fonts.ts";
 import {
@@ -66,8 +67,8 @@ type MarkedTextProps = {
 };
 
 function MarkedText({ text, mark, look, color, fontSize, delay, style }: MarkedTextProps) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const parts = splitMark(text, mark);
   if (!parts) return text;
   const [before, marked, after] = parts;
@@ -89,8 +90,8 @@ function MarkedText({ text, mark, look, color, fontSize, delay, style }: MarkedT
 }
 
 function TitleLine({ look, text, color, fontSize, entrance, stagger }: TitleLineProps) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   return (
     <div
       style={{
@@ -134,8 +135,8 @@ export function Title({
   fadeOut,
   subtitleColor,
 }: ElementSettings["title"]) {
-  const frame = useCurrentFrame();
-  const { durationInFrames, fps } = useVideoConfig();
+  const frame = useFrame();
+  const { durationInFrames, fps } = useFilm();
   const out = exitOpacity(frame, durationInFrames, Math.round(fadeOut * fps));
   const line = { fontSize, entrance, stagger: lineStagger };
   const markStyle = {

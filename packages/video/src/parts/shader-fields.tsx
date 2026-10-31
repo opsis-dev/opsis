@@ -1,3 +1,4 @@
+import { holdRender } from "@opsis/runtime/holds.ts";
 import {
   defaultObjectSizing,
   getShaderNoiseTexture,
@@ -24,7 +25,6 @@ import {
   type WarpProps,
 } from "@paper-design/shaders-react";
 import { useCallback, useState } from "react";
-import { continueRender, delayRender } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 const FILL = { position: "absolute", inset: 0 } as const;
@@ -41,13 +41,13 @@ type Field<P> = Omit<P, "frame" | "ref" | "speed" | "fit" | "width" | "height"> 
 function useShaderClock(label: string, speed: number) {
   const frame = useAuthoredFrame();
   const { fps, width, height } = useAuthoredConfig();
-  const [handle] = useState(() => delayRender(label));
+  const [release] = useState(() => holdRender(label));
   const gate = useCallback(
     (element: HTMLDivElement | null) => {
       if (!element) return;
-      requestAnimationFrame(() => requestAnimationFrame(() => continueRender(handle)));
+      requestAnimationFrame(() => requestAnimationFrame(() => release()));
     },
-    [handle],
+    [release],
   );
   return { gate, ms: (frame / fps) * speed * 1000, width, height };
 }

@@ -11,6 +11,8 @@ export type SpringOptions = {
   config?: Partial<SpringConfig>;
   durationInFrames?: number;
   delay?: number;
+  from?: number;
+  to?: number;
 };
 
 export const DEFAULT_SPRING: SpringConfig = {
@@ -47,11 +49,7 @@ function distanceLeft({ omega, zeta }: Motion, seconds: number): number {
       (Math.cos(damped * seconds) + ((zeta * omega) / damped) * Math.sin(damped * seconds))
     );
   }
-  if (zeta === 1) return Math.exp(-omega * seconds) * (1 + omega * seconds);
-  const root = Math.sqrt(zeta * zeta - 1);
-  const fast = -omega * (zeta + root);
-  const slow = -omega * (zeta - root);
-  return (fast * Math.exp(slow * seconds) - slow * Math.exp(fast * seconds)) / (fast - slow);
+  return Math.exp(-omega * seconds) * (1 + omega * seconds);
 }
 
 function firstArrival({ omega, zeta }: Motion): number {
@@ -96,11 +94,20 @@ export function measureSpring({
   return longest;
 }
 
-export function spring({ frame, fps, config, durationInFrames, delay = 0 }: SpringOptions): number {
+export function spring({
+  frame,
+  fps,
+  config,
+  durationInFrames,
+  delay = 0,
+  from = 0,
+  to = 1,
+}: SpringOptions): number {
   const resolved = springConfig(config);
   const elapsed = frame - delay;
-  if (elapsed <= 0) return 0;
+  if (elapsed <= 0) return from;
+  if (durationInFrames !== undefined && elapsed > durationInFrames) return to;
   const stretch =
     durationInFrames === undefined ? 1 : measureSpring({ fps, config }) / durationInFrames;
-  return springProgress(resolved, (elapsed * stretch) / fps);
+  return from + (to - from) * springProgress(resolved, (elapsed * stretch) / fps);
 }

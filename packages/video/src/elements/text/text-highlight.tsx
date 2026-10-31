@@ -1,10 +1,13 @@
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { Img } from "@opsis/runtime/parts.tsx";
+import { spring } from "@opsis/runtime/spring.ts";
 import type React from "react";
-import { Easing, Img, interpolate, interpolateColors, spring } from "remotion";
 import { isTheme, themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
-import { parseColor, rgbToOklch, withAlpha } from "#video/lib/ui-kit/color.ts";
+import { interpolateColors, parseColor, rgbToOklch, withAlpha } from "#video/lib/ui-kit/color.ts";
 import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 

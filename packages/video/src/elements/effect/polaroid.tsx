@@ -1,5 +1,5 @@
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type React from "react";
-import { AbsoluteFill } from "remotion";
 import type { ElementSettings, PhotoShape } from "#video/generated/spec.ts";
 import { HAND_FAMILY, Handwrite } from "#video/parts/handwrite.tsx";
 

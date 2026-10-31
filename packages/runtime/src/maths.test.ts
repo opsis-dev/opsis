@@ -69,6 +69,21 @@ describe("interpolate", () => {
     );
   });
 
+  it("keeps the ends and stays between them on a perceptual scale", () => {
+    const size = fc.double({ min: 0.01, max: 50, noNaN: true });
+    fc.assert(
+      fc.property(size, size, unit, (from, to, t) => {
+        const scale = { output: "perceptual-scale" } as const;
+        expect(interpolate(0, [0, 1], [from, to], scale)).toBeCloseTo(from, 9);
+        expect(interpolate(1, [0, 1], [from, to], scale)).toBeCloseTo(to, 9);
+        const out = interpolate(t, [0, 1], [from, to], scale);
+        expect(out).toBeGreaterThanOrEqual(Math.min(from, to) - 1e-9);
+        expect(out).toBeLessThanOrEqual(Math.max(from, to) + 1e-9);
+        expect(out ** 2).toBeCloseTo(from ** 2 + (to ** 2 - from ** 2) * t, 6);
+      }),
+    );
+  });
+
   it("refuses ranges that don't rise or don't match", () => {
     expect(() => interpolate(0, [0, 0], [0, 1])).toThrow("rise strictly");
     expect(() => interpolate(0, [0, 1], [0])).toThrow("same length");
@@ -151,12 +166,34 @@ describe("spring", () => {
     );
   });
 
-  it("reaches its rest at the length asked for", () => {
+  it("moves from and to the values asked for", () => {
     fc.assert(
-      fc.property(config, fc.integer({ min: 5, max: 200 }), (c, length) => {
-        const end = spring({ frame: length, fps: 30, config: c, durationInFrames: length });
-        expect(Math.abs(1 - end)).toBeLessThan(0.006);
+      fc.property(config, value, value, fc.integer({ min: 0, max: 120 }), (c, from, to, frame) => {
+        const fps = 30;
+        const unitSpring = spring({ frame, fps, config: c });
+        expect(spring({ frame, fps, config: c, from, to })).toBeCloseTo(
+          from + (to - from) * unitSpring,
+          6,
+        );
+        expect(spring({ frame: 0, fps, config: c, from, to })).toBe(from);
       }),
+    );
+  });
+
+  it("reaches its rest at the length asked for and stays on its target after it", () => {
+    fc.assert(
+      fc.property(
+        config,
+        fc.integer({ min: 5, max: 200 }),
+        fc.integer({ min: 1, max: 100 }),
+        value,
+        (c, length, after, to) => {
+          const end = spring({ frame: length, fps: 30, config: c, durationInFrames: length });
+          expect(Math.abs(1 - end)).toBeLessThan(0.006);
+          const options = { fps: 30, config: c, durationInFrames: length, to };
+          expect(spring({ ...options, frame: length + after })).toBe(to);
+        },
+      ),
     );
   });
 
@@ -170,7 +207,7 @@ describe("spring", () => {
     );
   });
 
-  it("moves like a damped spring: acceleration is minus stiffness times distance minus damping times speed", () => {
+  it("moves like a damped spring, damping above critical moving critically damped: acceleration is minus stiffness times distance minus damping times speed", () => {
     fc.assert(
       fc.property(config, fc.double({ min: 0.01, max: 3, noNaN: true }), (c, seconds) => {
         const resolved = springConfig({ ...c, overshootClamping: false });
@@ -180,8 +217,11 @@ describe("spring", () => {
         }
         const speed = (at(seconds + h) - at(seconds - h)) / (2 * h);
         const acceleration = (at(seconds + h) - 2 * at(seconds) + at(seconds - h)) / (h * h);
-        const expected =
-          (-resolved.stiffness * at(seconds) - resolved.damping * speed) / resolved.mass;
+        const damping = Math.min(
+          resolved.damping,
+          2 * Math.sqrt(resolved.stiffness * resolved.mass),
+        );
+        const expected = (-resolved.stiffness * at(seconds) - damping * speed) / resolved.mass;
         expect(acceleration).toBeCloseTo(expected, 0);
       }),
     );

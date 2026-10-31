@@ -1,5 +1,6 @@
+import { Freeze, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type { ReactNode } from "react";
-import { AbsoluteFill, Freeze, useCurrentFrame } from "remotion";
 import { sampleOpacity, shutterOffsets } from "#video/camera/lib/shutter.ts";
 
 export function MotionBlur({
@@ -11,7 +12,7 @@ export function MotionBlur({
   samples: number;
   children: ReactNode;
 }) {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   return (
     <AbsoluteFill>
       {shutterOffsets(shutterAngle, samples).map((offset, i) => (

@@ -1,4 +1,4 @@
-import { Interactive, interpolate } from "remotion";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ReleaseTeaserScene } from "#video/elements/scene/release-teaser/content.ts";
 import { ease, fitText } from "#video/elements/scene/release-teaser/motion.ts";
@@ -8,8 +8,7 @@ export function ReleaseLockup({ scene, frame }: { scene: ReleaseTeaserScene; fra
   const title = `${scene.brandName}${scene.release ? ` ${scene.release}` : ""}`;
   const reveal = scene.reducedMotion ? 1 : ease(frame, 0, 32);
   return (
-    <Interactive.Div
-      name="Release lockup"
+    <div
       style={{
         position: "absolute",
         inset: 0,
@@ -40,8 +39,7 @@ export function ReleaseLockup({ scene, frame }: { scene: ReleaseTeaserScene; fra
             <OrbitMark size={scene.logoSize} color={scene.theme.accent} />
           )}
         </div>
-        <Interactive.Div
-          name="Brand and release"
+        <div
           style={{
             fontSize: fitText(title, 70, 750) * scene.textSize,
             fontWeight: Math.min(900, scene.statementWeight + 100),
@@ -52,10 +50,9 @@ export function ReleaseLockup({ scene, frame }: { scene: ReleaseTeaserScene; fra
           }}
         >
           {title}
-        </Interactive.Div>
+        </div>
       </div>
-      <Interactive.Div
-        name="Closing line"
+      <div
         style={{
           fontSize: fitText(scene.tagline, 20, 740) * scene.textSize,
           lineHeight: 1.3,
@@ -66,7 +63,7 @@ export function ReleaseLockup({ scene, frame }: { scene: ReleaseTeaserScene; fra
         }}
       >
         {scene.tagline}
-      </Interactive.Div>
-    </Interactive.Div>
+      </div>
+    </div>
   );
 }

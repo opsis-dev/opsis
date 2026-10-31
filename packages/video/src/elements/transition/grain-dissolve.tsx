@@ -1,5 +1,7 @@
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type React from "react";
-import { AbsoluteFill, Easing, interpolate } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import type {

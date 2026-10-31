@@ -1,5 +1,6 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill, Img } from "@opsis/runtime/parts.tsx";
 import { useId } from "react";
-import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { FootageFrame, type FootageUrls } from "#video/core/footage.tsx";
 import type { ElementSettings, MaskReveal, MediaKind } from "#video/generated/spec.ts";
@@ -36,8 +37,8 @@ export function TextMaskVideo({
   startFrom,
   footageUrls,
 }: ElementSettings["text-mask-video"] & { media?: MediaKind; footageUrls?: FootageUrls }) {
-  const frame = useCurrentFrame();
-  const { width: videoWidth, height: videoHeight, fps } = useVideoConfig();
+  const frame = useFrame();
+  const { width: videoWidth, height: videoHeight, fps } = useFilm();
   const clipId = `mask-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
 
   const kind: MaskFill = !src ? "gradient" : media === "image" ? "image" : "video";

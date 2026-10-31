@@ -1,5 +1,5 @@
+import { Sequence, useFrame } from "@opsis/runtime/clock.tsx";
 import React from "react";
-import { Sequence, useCurrentFrame } from "remotion";
 import { CutBoardProvider, useCutBoard } from "#video/core/transition-cuts.tsx";
 import type {
   PresentationDirection,
@@ -80,7 +80,7 @@ function SceneInSeries({
   enter: SeriesCut | null;
   exit: SeriesCut | null;
 }) {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const board = useCutBoard();
   const side = sideAt(frame, scene.durationInFrames, { enter, exit });
   if (!side) return <>{scene.content}</>;

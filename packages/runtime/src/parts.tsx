@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useLayoutEffect, useRef } from "react";
+import { type ComponentProps, type CSSProperties, useLayoutEffect, useRef } from "react";
 import { failRender, holdRender } from "#runtime/holds.ts";
 
 const FILL: CSSProperties = {
@@ -13,20 +13,8 @@ const FILL: CSSProperties = {
   flexDirection: "column",
 };
 
-export function AbsoluteFill({
-  style,
-  className,
-  children,
-}: {
-  style?: CSSProperties;
-  className?: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div className={className} style={{ ...FILL, ...style }}>
-      {children}
-    </div>
-  );
+export function AbsoluteFill({ style, ...rest }: ComponentProps<"div">) {
+  return <div {...rest} style={{ ...FILL, ...style }} />;
 }
 
 export function Img({

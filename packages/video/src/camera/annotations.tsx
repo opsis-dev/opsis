@@ -1,5 +1,6 @@
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import React from "react";
-import { Easing, interpolate } from "remotion";
 import type { Annotation } from "#video/camera/action-log.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { faded } from "#video/camera/lib/style.ts";

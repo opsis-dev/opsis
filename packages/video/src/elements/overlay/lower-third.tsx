@@ -1,4 +1,6 @@
-import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { spring } from "@opsis/runtime/spring.ts";
 import { fontOr } from "#video/common/fonts.ts";
 import { isLandscape, overlayPadding, useOverlayFrame } from "#video/core/frame.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
@@ -35,8 +37,8 @@ export function LowerThird({
   subtitleSize,
   subtitleOpacity,
 }: ElementSettings["lower-third"]) {
-  const frame = useCurrentFrame();
-  const { fps, durationInFrames, width, height } = useVideoConfig();
+  const frame = useFrame();
+  const { fps, durationInFrames, width, height } = useFilm();
   const { k, insets } = useOverlayFrame();
   const enter = spring({ frame, fps, config: LOWER_THIRD_SPRING });
   const exit = spring({

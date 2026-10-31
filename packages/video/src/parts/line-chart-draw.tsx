@@ -1,5 +1,6 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import { useId } from "react";
-import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { clamp01 } from "#video/common/math.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import {
@@ -60,9 +61,9 @@ export function LineChartDraw({
   delayInFrames = 0,
   frame: frameOverride,
 }: LineChartDrawProps) {
-  const localFrame = useCurrentFrame();
+  const localFrame = useFrame();
   const frame = frameOverride ?? localFrame;
-  const config = useVideoConfig();
+  const config = useFilm();
   const width = widthProp ?? config.width;
   const height = heightProp ?? Math.round(config.height * 0.4);
 

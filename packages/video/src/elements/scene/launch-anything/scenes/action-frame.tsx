@@ -1,4 +1,4 @@
-import { Img } from "remotion";
+import { Img } from "@opsis/runtime/parts.tsx";
 import {
   type LaunchScene,
   type SceneProps,

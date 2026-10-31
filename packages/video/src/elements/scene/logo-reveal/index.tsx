@@ -1,4 +1,6 @@
-import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { spring } from "@opsis/runtime/spring.ts";
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { PathDraw } from "#video/elements/scene/logo-reveal/path-draw.tsx";
@@ -33,8 +35,8 @@ export function LogoReveal({
   taglineSize,
   taglineColor,
 }: ElementSettings["logo-reveal"] & { holdSeconds?: number }) {
-  const frame = useCurrentFrame() * speed;
-  const { width, height, fps } = useVideoConfig();
+  const frame = useFrame() * speed;
+  const { width, height, fps } = useFilm();
   const safeArea = getSafeAreaPadding({ width, height });
 
   const hasCopy = Boolean(wordmark || tagline);

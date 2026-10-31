@@ -1,4 +1,5 @@
-import { Img, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { Img } from "@opsis/runtime/parts.tsx";
 import { zoomOver } from "#video/core/anim.ts";
 import { FootageFrame, type FootageUrls } from "#video/core/footage.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
@@ -12,8 +13,8 @@ export function ImageElement({
   kenBurnsZoom,
   footageUrls,
 }: ElementSettings["image"] & { footageUrls?: FootageUrls }) {
-  const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
+  const frame = useFrame();
+  const { durationInFrames } = useFilm();
   const footageUrl = footageUrls?.src;
   if (!src) return null;
   const scale = kenBurns ? zoomOver(frame, durationInFrames, kenBurnsZoom) : 1;

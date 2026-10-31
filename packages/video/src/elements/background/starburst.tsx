@@ -1,4 +1,5 @@
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
 const STARBURST_OVERSCAN = "-50%";
@@ -12,7 +13,7 @@ export function Starburst({
   rayWidth,
   centerX,
 }: ElementSettings["starburst"]) {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const step = 360 / Math.max(2, rays);
   const split = (step * rayWidth) / 100;
   const across = (centerX + 50) / 2;

@@ -1,12 +1,9 @@
+import { Easing } from "@opsis/runtime/easing.ts";
+import { isRendering } from "@opsis/runtime/environment.ts";
+import { holdRender } from "@opsis/runtime/holds.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
-import {
-  AbsoluteFill,
-  continueRender,
-  delayRender,
-  Easing,
-  getRemotionEnvironment,
-} from "remotion";
 import { type ElementProps } from "#video/common/spec.ts";
 import { isTheme, themeColors } from "#video/common/theme.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -207,14 +204,14 @@ function PunchLinesView({
   const probeRef = useRef<HTMLSpanElement>(null);
   const baselineRef = useRef<HTMLSpanElement>(null);
   const lineRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const [handle] = useState(() => delayRender("punch-lines: measure the face"));
+  const [release] = useState(() => holdRender("punch-lines: measure the face"));
   const [metrics, setMetrics] = useState<FaceMetrics | null>(null);
   const [lineWidths, setLineWidths] = useState<number[] | null>(null);
 
   useEffect(() => {
     const probe = probeRef.current;
     if (!probe) {
-      continueRender(handle);
+      release();
       return;
     }
     const baseline = baselineRef.current?.offsetTop ?? 88;
@@ -239,11 +236,11 @@ function PunchLinesView({
     setLineWidths(lineRefs.current.slice(0, lineCount).map((el) => (el ? el.offsetWidth : 0)));
     setMetrics({ baseline, inkAscent, inkDescent });
     // oxlint-disable-next-line react/exhaustive-effect-dependencies
-  }, [handle, face, fontWeight, beats, fontSize, letterSpacing, wordSpacing]);
+  }, [release, face, fontWeight, beats, fontSize, letterSpacing, wordSpacing]);
 
   useEffect(() => {
-    if (metrics) continueRender(handle);
-  }, [metrics, handle]);
+    if (metrics) release();
+  }, [metrics, release]);
 
   const M: FaceMetrics = metrics ?? {
     baseline: 88,
@@ -458,7 +455,7 @@ function Card({
         color,
         transform: `scale(${push * rush})`,
         transformOrigin: "50% 50%",
-        ...(getRemotionEnvironment().isRendering ? null : { willChange: "transform" as const }),
+        ...(isRendering() ? null : { willChange: "transform" as const }),
       }}
     >
       <Item index={beatIndex}>

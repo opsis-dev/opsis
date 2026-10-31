@@ -1,4 +1,4 @@
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type { KeyEvent } from "#video/camera/lib/click-log.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { chordGlyphs, KEYSTROKE_EDGE, keycapAt, keycapEase } from "#video/camera/lib/keycap.ts";

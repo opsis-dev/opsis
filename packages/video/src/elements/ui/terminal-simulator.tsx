@@ -1,4 +1,5 @@
-import { interpolate, Sequence } from "remotion";
+import { Sequence } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "#video/core/authored-clock.ts";

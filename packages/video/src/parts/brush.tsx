@@ -1,4 +1,4 @@
-import { random } from "remotion";
+import { random } from "@opsis/runtime/random.ts";
 
 const GRAIN_RATIO = 0.5;
 const GRAIN_FREQUENCY = 0.7;

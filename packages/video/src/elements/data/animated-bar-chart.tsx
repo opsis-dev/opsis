@@ -1,4 +1,4 @@
-import { spring } from "remotion";
+import { spring } from "@opsis/runtime/spring.ts";
 import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";

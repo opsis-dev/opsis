@@ -1,4 +1,6 @@
-import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { spring } from "@opsis/runtime/spring.ts";
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
@@ -108,8 +110,8 @@ export function CodeDiffWipe({
 }: ElementSettings["code-diff-wipe"]) {
   const ROW_HEIGHT = FONT_SIZE * lineHeight;
   const fontFamily = fontOr(font, "code");
-  const rawFrame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const rawFrame = useFrame();
+  const { width, height, fps } = useFilm();
   const palette = codePalette(theme);
   const dark = theme.mode === "dark";
   const page = backgroundColor || palette.page;

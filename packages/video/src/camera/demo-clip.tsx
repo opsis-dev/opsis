@@ -1,5 +1,6 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import type { Annotation } from "#video/camera/action-log.ts";
 import { Annotations } from "#video/camera/annotations.tsx";
 import { Cursor, type CursorOptions } from "#video/camera/cursor.tsx";
@@ -71,8 +72,8 @@ const BLUR_SHUTTER_ANGLE = 180;
 const BLUR_SAMPLES = 8;
 
 export function useClipTime(speed: number): number {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   return logTimeS(frame, fps, speed);
 }
 
@@ -89,8 +90,8 @@ type Framing = { chrome: boolean; fit: number; zoom: boolean };
 type CameraClip = Pick<DemoClipProps, "log" | "speed" | "tuning" | "box" | "chrome" | "windowFit">;
 
 function useCamera(clip: CameraClip, framing: Framing) {
-  const frame = useCurrentFrame();
-  const { fps, height } = useVideoConfig();
+  const frame = useFrame();
+  const { fps, height } = useFilm();
   const k = useDesignScale();
   const { log, speed, tuning, box } = clip;
   const { chrome, fit, zoom } = framing;

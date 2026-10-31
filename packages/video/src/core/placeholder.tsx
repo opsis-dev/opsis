@@ -1,4 +1,6 @@
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import {
   PLACEHOLDER_COLOR,
   PLACEHOLDER_SUBTITLE_COLOR,
@@ -25,7 +27,7 @@ export function Placeholder({
   title?: string;
   subtitle?: string;
 }) {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const sweep = interpolate(
     frame % SWEEP_FRAMES,
     [0, SWEEP_FRAMES],

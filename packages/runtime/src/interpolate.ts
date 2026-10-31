@@ -4,7 +4,16 @@ export type InterpolateOptions = {
   easing?: (t: number) => number;
   extrapolateLeft?: Extrapolate;
   extrapolateRight?: Extrapolate;
+  output?: "linear" | "perceptual-scale";
 };
+
+function signedArea(size: number): number {
+  return Math.sign(size) * size * size;
+}
+
+function sizeOfArea(area: number): number {
+  return Math.sign(area) * Math.sqrt(Math.abs(area));
+}
 
 function checkRanges(inputRange: readonly number[], outputRange: readonly number[]) {
   if (inputRange.length < 2 || inputRange.length !== outputRange.length)
@@ -24,7 +33,12 @@ export function interpolate(
   input: number,
   inputRange: readonly number[],
   outputRange: readonly number[],
-  { easing, extrapolateLeft = "extend", extrapolateRight = "extend" }: InterpolateOptions = {},
+  {
+    easing,
+    extrapolateLeft = "extend",
+    extrapolateRight = "extend",
+    output = "linear",
+  }: InterpolateOptions = {},
 ): number {
   checkRanges(inputRange, outputRange);
   const last = inputRange.length - 1;
@@ -49,5 +63,9 @@ export function interpolate(
   const to = outputRange[segment] ?? 0;
   const t = (x - a) / (b - a);
   const eased = easing ? easing(t) : t;
+  if (output === "perceptual-scale") {
+    const [a2, b2] = [signedArea(from), signedArea(to)];
+    return sizeOfArea(a2 + (b2 - a2) * eased);
+  }
   return from + (to - from) * eased;
 }

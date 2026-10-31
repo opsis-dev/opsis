@@ -1,5 +1,6 @@
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useMemo } from "react";
-import { AbsoluteFill, interpolate } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings, WipeFrom } from "#video/generated/spec.ts";
 import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";

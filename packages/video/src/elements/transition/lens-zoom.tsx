@@ -1,6 +1,8 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import type { ReactNode } from "react";
 import { useId } from "react";
-import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import type {
@@ -212,8 +214,8 @@ function LensZoomStage({
   background,
   ...half
 }: LensZoomStageProps) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const filterId = useId();
   const { width, height, centerX, centerY } = half;
 
@@ -339,7 +341,7 @@ function LensZoomPresentation({
   presentationProgress,
   passedProps,
 }: TransitionPresentationComponentProps<LensZoomProps>) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   const {
     lensSteps,
     blurSamples,

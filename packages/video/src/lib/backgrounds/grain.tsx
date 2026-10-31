@@ -1,4 +1,4 @@
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 
 const GRAIN_FREQUENCY = 0.9;
 

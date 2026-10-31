@@ -1,6 +1,6 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
 import { useHeldLoad } from "@opsis/runtime/holds.ts";
 import { useEffect, useMemo } from "react";
-import { useCurrentFrame, useVideoConfig } from "remotion";
 import { Box3, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { Font, type FontData } from "three/addons/loaders/FontLoader.js";
@@ -124,8 +124,8 @@ export function Text3D({
   growIn,
   reverse,
 }: ElementSettings["text-3d"] & Partial<PreparedTypeface>) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const loaded = useHeldLoad(
     `Preparing 3D text in ${fontFamily || "the heading font"}`,
     typeface,

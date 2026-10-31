@@ -1,5 +1,6 @@
+import { useFilm } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type React from "react";
-import { AbsoluteFill, useVideoConfig } from "remotion";
 import { clamp } from "#video/common/math.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
@@ -189,7 +190,7 @@ export function TvPowerOff({
   children,
   ...settings
 }: ElementSettings["tv-power-off"] & { children?: React.ReactNode }) {
-  const { durationInFrames } = useVideoConfig();
+  const { durationInFrames } = useFilm();
   return (
     <TvPowerOffView {...settings} delay={Math.max(0, durationInFrames - settings.durationInFrames)}>
       {children}

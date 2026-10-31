@@ -1,4 +1,5 @@
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { useFilm } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { randomBetween, steppedRamp } from "#video/lib/motion/stop-motion.ts";
@@ -92,7 +93,7 @@ function InkUnderlineView({
 }
 
 export function InkUnderline({ x, y, angle, ...settings }: ElementSettings["ink-underline"]) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   return (
     <AbsoluteFill>
       <div

@@ -1,5 +1,5 @@
+import { useFilm } from "@opsis/runtime/clock.tsx";
 import type { CSSProperties, ReactNode } from "react";
-import { useVideoConfig } from "remotion";
 import { scaleFont } from "#video/lib/layout/layout.ts";
 import {
   useSplitText,
@@ -89,7 +89,7 @@ export function SplitTextChars({
   className,
   ...timing
 }: SplitTextCharsProps) {
-  const { width } = useVideoConfig();
+  const { width } = useFilm();
   const fontSize = fontSizeProp ?? scaleFont(84, width);
   const { lines } = useSplitText({ text, mode, order, ...timing });
 

@@ -1,4 +1,5 @@
-import { AbsoluteFill, random } from "remotion";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { random } from "@opsis/runtime/random.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import type { SplitUnitState } from "#video/lib/text/text-split.ts";
 import { HAND_FAMILY } from "#video/parts/handwrite.tsx";

@@ -1,11 +1,8 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { canDrawElementsInCanvas } from "@opsis/runtime/environment.ts";
+import { holdRender } from "@opsis/runtime/holds.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import React from "react";
-import {
-  AbsoluteFill,
-  isHtmlInCanvasSupported,
-  useCurrentFrame,
-  useDelayRender,
-  useVideoConfig,
-} from "remotion";
 import { createQuadSurface } from "#video/lib/shaders/quad.ts";
 import type {
   TransitionPresentation,
@@ -23,11 +20,11 @@ const LAYER: React.CSSProperties = {
 const OUTPUT_LAYER: React.CSSProperties = { ...LAYER, pointerEvents: "none" };
 
 export function isCanvasTransitionSupported(): boolean {
-  return isHtmlInCanvasSupported();
+  return canDrawElementsInCanvas();
 }
 
 export function isCanvasFilterSupported(): boolean {
-  return isHtmlInCanvasSupported();
+  return canDrawElementsInCanvas();
 }
 
 export type SceneShaderFrame<Props> = {
@@ -187,8 +184,6 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
     onElementImageRef.current = onElementImage;
     const onUnmountRef = React.useRef(onUnmount);
     onUnmountRef.current = onUnmount;
-
-    const { delayRender, continueRender } = useDelayRender();
     const passThrough = bothEnteringAndExiting && presentationDirection === "exiting";
 
     const drawRef = React.useRef<
@@ -203,14 +198,14 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
       if (!instance) {
         return;
       }
-      const handle = delayRender("canvas-presentation: paint");
+      const handle = holdRender("canvas-presentation: paint");
       const to = prevImage;
       const from = nextImage;
       const width = from?.width ?? to?.width ?? 0;
       const height = from?.height ?? to?.height ?? 0;
       if (width === 0 || height === 0) {
         instance.clear();
-        continueRender(handle);
+        handle();
         return;
       }
       instance.draw({
@@ -221,7 +216,7 @@ function makeCanvasComponent<Props extends Record<string, unknown>>(
         progress: !to ? 0 : !from ? 1 : progress,
         passedProps: passedPropsRef.current,
       });
-      continueRender(handle);
+      handle();
     };
 
     const draw = React.useCallback(
@@ -352,9 +347,8 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
   shader: SceneFilter<Props>,
 ): React.FC<Props & CanvasFilterProps> {
   return function CanvasSceneFilter(props) {
-    const frame = useCurrentFrame();
-    const { fps } = useVideoConfig();
-    const { delayRender, continueRender } = useDelayRender();
+    const frame = useFrame();
+    const { fps } = useFilm();
 
     const layoutRef = React.useRef<HTMLCanvasElement | null>(null);
     const outputRef = React.useRef<HTMLCanvasElement | null>(null);
@@ -463,15 +457,15 @@ function makeFilterComponent<Props extends Record<string, unknown>>(
       if (!layout) {
         return;
       }
-      const handle = delayRender("canvas-presentation: filter paint");
+      const handle = holdRender("canvas-presentation: filter paint");
       function settle() {
-        return continueRender(handle);
+        return handle();
       }
       layout.addEventListener("paint", settle, { once: true });
       layout.requestPaint?.();
       return () => {
         layout.removeEventListener("paint", settle);
-        continueRender(handle);
+        handle();
       };
     });
 

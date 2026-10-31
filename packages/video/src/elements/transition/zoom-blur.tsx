@@ -1,5 +1,5 @@
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type React from "react";
-import { AbsoluteFill } from "remotion";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import type {
   TransitionPresentation,

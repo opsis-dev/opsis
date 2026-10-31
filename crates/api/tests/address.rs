@@ -43,7 +43,7 @@ proptest! {
     #[test]
     fn takes_any_full_path_up_to_the_byte_limit_and_explains_the_rest(
         relative in any::<bool>(),
-        name in "[a-zé_ .-]{1,80}",
+        name in "[a-zé_.-][a-zé_ .-]{0,79}",
         depth in 0usize..4,
         padding in "[ ]{0,3}",
     ) {

@@ -59,7 +59,7 @@ function blended(t: number, from: EqualizedPath, to: EqualizedPath): string {
     .map((segment, i) => {
       const other = numbersOf(to[i] ?? segment);
       const values = numbersOf(segment).map(
-        (value, j) => value + ((other[j] ?? value) - value) * t,
+        (value, j) => value * (1 - t) + (other[j] ?? value) * t,
       );
       return `${segment[0]}${values.join(" ")}`;
     })

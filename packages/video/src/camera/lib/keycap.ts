@@ -1,4 +1,4 @@
-import { Easing } from "remotion";
+import { Easing } from "@opsis/runtime/easing.ts";
 import type { KeyEvent } from "#video/camera/lib/click-log.ts";
 import { chordKeys } from "#video/common/chord.ts";
 import { clamp01 } from "#video/common/math.ts";

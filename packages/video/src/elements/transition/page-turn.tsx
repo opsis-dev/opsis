@@ -1,4 +1,5 @@
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { useFilm } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import type {
   TransitionPresentation,
@@ -41,7 +42,7 @@ function PageTurnPresentation({
   presentationDirection,
   passedProps,
 }: TransitionPresentationComponentProps<PageTurnProps>) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   const { angle, poses, hingeX } = passedProps;
 
   if (presentationDirection === "entering") {

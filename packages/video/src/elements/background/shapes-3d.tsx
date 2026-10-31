@@ -1,5 +1,6 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { random } from "@opsis/runtime/random.ts";
 import { useEffect, useMemo } from "react";
-import { random, useCurrentFrame, useVideoConfig } from "remotion";
 import { MeshStandardMaterial, SphereGeometry, TorusGeometry, type BufferGeometry } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { cameraAt } from "#video/common/camera-path.ts";
@@ -72,8 +73,8 @@ export function Shapes3D({
   metalness,
   kinds,
 }: ElementSettings["shapes-3d"]) {
-  const frame = useCurrentFrame();
-  const { width, height } = useVideoConfig();
+  const frame = useFrame();
+  const { width, height } = useFilm();
   const placed = useMemo(
     () =>
       place({

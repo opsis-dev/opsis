@@ -1,4 +1,7 @@
-import { interpolate, random, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { random } from "@opsis/runtime/random.ts";
+import { spring } from "@opsis/runtime/spring.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import {
   defaultExitFrames,
@@ -219,9 +222,9 @@ export function useSplitText({
   exitStaggerInFrames,
   frame: frameOverride,
 }: SplitTimingOptions & { text: string }): SplitTextState {
-  const currentFrame = useCurrentFrame();
+  const currentFrame = useFrame();
   const frame = frameOverride ?? currentFrame;
-  const { fps, durationInFrames: windowFrames } = useVideoConfig();
+  const { fps, durationInFrames: windowFrames } = useFilm();
 
   const stagger = staggerInFrames ?? SPLIT_STAGGER_DEFAULTS[mode];
   const duration = Math.max(1, Math.round(durationInFrames ?? SPLIT_DURATION_DEFAULTS[mode]));

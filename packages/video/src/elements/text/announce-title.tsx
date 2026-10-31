@@ -1,6 +1,8 @@
+import { isRendering } from "@opsis/runtime/environment.ts";
+import { holdRender } from "@opsis/runtime/holds.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import { AbsoluteFill, continueRender, delayRender, getRemotionEnvironment } from "remotion";
 import { fontOr, MAIN_FONT } from "#video/common/fonts.ts";
 import { clamp01 } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -75,7 +77,7 @@ function lineStyle(fontSize: number, tracking: number, face: string): CSSPropert
     marginRight: `${-tracking}em`,
     whiteSpace: "pre",
     textRendering: "geometricPrecision",
-    ...(getRemotionEnvironment().isRendering ? null : { willChange: "transform" as const }),
+    ...(isRendering() ? null : { willChange: "transform" as const }),
   };
 }
 
@@ -144,7 +146,7 @@ function useFitScales(lines: LineFit[]): {
 } {
   const face = useWarmTheme().fontFamily ?? MAIN_FONT;
   const refs = useRef<(HTMLSpanElement | null)[]>([]);
-  const [handle] = useState(() => delayRender("announce-title: measure lines"));
+  const [release] = useState(() => holdRender("announce-title: measure lines"));
   const [measured, setMeasured] = useState<{
     key: string;
     widths: number[];
@@ -160,8 +162,8 @@ function useFitScales(lines: LineFit[]): {
   }, [key, count]);
 
   useEffect(() => {
-    if (measured) continueRender(handle);
-  }, [measured, handle]);
+    if (measured) release();
+  }, [measured, release]);
 
   const probes = (
     <div

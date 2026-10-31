@@ -1,4 +1,6 @@
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { fontOr } from "#video/common/fonts.ts";
 import { clamp01 } from "#video/common/math.ts";
 import { CLAMPED } from "#video/core/anim.ts";
@@ -28,7 +30,7 @@ export function FunnelChart({
   fontFamily,
   exitAtInFrames,
 }: ElementSettings["funnel-chart"] & { exitAtInFrames?: number }) {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const delayInFrames = 0;
   const exitInFrames = EXIT_FRAMES;
 

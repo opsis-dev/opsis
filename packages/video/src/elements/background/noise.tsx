@@ -1,4 +1,6 @@
-import { AbsoluteFill, random, useCurrentFrame } from "remotion";
+import { useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { random } from "@opsis/runtime/random.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { Grain } from "#video/lib/backgrounds/grain.tsx";
 import { noiseField } from "#video/lib/motion/noise.ts";
@@ -25,7 +27,7 @@ export function NoiseField({
   grain,
   grainSize,
 }: ElementSettings["noise"]) {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const field = noiseField(`noise:${seed}`);
   const layers = Array.from({ length: blobs }, (_, i) => {
     const offset = i * BLOB_NOISE_SPACING * scale;

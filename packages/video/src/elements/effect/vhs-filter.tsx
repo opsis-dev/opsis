@@ -1,4 +1,5 @@
-import { AbsoluteFill, random } from "remotion";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { random } from "@opsis/runtime/random.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import {

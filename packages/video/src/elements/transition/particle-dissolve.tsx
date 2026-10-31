@@ -1,4 +1,4 @@
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type { ElementSettings, ParticleDissolveDirection } from "#video/generated/spec.ts";
 import {
   makeCanvasPresentation,

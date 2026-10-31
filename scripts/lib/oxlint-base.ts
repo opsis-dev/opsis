@@ -64,7 +64,10 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
 
 export function runtimeNeutral(
   who: string,
-  { relativeOnly = false }: { relativeOnly?: boolean } = {},
+  {
+    relativeOnly = false,
+    filmRuntime = false,
+  }: { relativeOnly?: boolean; filmRuntime?: boolean } = {},
 ): Override {
   return {
     files: ["src/**/*.ts", "src/**/*.tsx"],
@@ -87,18 +90,27 @@ export function runtimeNeutral(
                   },
                 ]
               : []),
+            ...(filmRuntime
+              ? [
+                  {
+                    group: ["remotion", "@remotion/*"],
+                    message:
+                      "The film draws through @opsis/runtime: its clock, sequences, holds, parts and maths (AGENTS.md).",
+                  },
+                ]
+              : []),
           ],
           paths: [
             ...WALL_CLOCK_LIBS.map((name) => ({
               name,
               message:
-                "Animations in packages/video must be a pure function of useCurrentFrame() (AGENTS.md).",
+                "Animations in packages/video must be a pure function of the runtime's useFrame() (AGENTS.md).",
             })),
             {
               name: "@react-three/fiber",
               importNames: ["useFrame"],
               message:
-                "useFrame runs on the wall clock. Derive the scene from useCurrentFrame() instead (AGENTS.md).",
+                "Fiber's useFrame runs on the wall clock. Derive the scene from the runtime's useFrame() instead (AGENTS.md).",
             },
           ],
         },

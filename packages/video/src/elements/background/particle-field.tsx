@@ -1,5 +1,7 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { random } from "@opsis/runtime/random.ts";
 import { useMemo } from "react";
-import { AbsoluteFill, random, useCurrentFrame, useVideoConfig } from "remotion";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
 const TRACK = 140;
@@ -44,8 +46,8 @@ export function ParticleField({
   seed,
   twinkle: twinkleDepth,
 }: ElementSettings["particle-field"]) {
-  const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
+  const frame = useFrame();
+  const { fps, width } = useFilm();
   const pixel = width / 1920;
   const time = (frame / fps) * speed;
 

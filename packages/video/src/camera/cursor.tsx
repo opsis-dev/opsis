@@ -1,4 +1,4 @@
-import { Img } from "remotion";
+import { Img } from "@opsis/runtime/parts.tsx";
 import type { ClickLog } from "#video/camera/lib/click-log.ts";
 import { cursorAt, type Ring } from "#video/camera/lib/cursor.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";

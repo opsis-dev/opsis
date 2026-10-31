@@ -1,8 +1,10 @@
-import { interpolate, interpolateColors, spring } from "remotion";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { spring } from "@opsis/runtime/spring.ts";
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
+import { interpolateColors } from "#video/lib/ui-kit/color.ts";
 
 export function MarkerHighlight({
   fontFamily,

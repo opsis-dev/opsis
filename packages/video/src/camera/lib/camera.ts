@@ -1,4 +1,4 @@
-import { Easing } from "remotion";
+import { Easing } from "@opsis/runtime/easing.ts";
 import { designScaleFor } from "#video/camera/lib/design-width.ts";
 import { clamp, clamp01, lerp } from "#video/common/math.ts";
 import type { CameraEasing, Viewport } from "#video/generated/spec.ts";

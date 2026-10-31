@@ -1,5 +1,8 @@
+import { useFilm } from "@opsis/runtime/clock.tsx";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useMemo } from "react";
-import { AbsoluteFill, Easing, interpolate, useVideoConfig } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings, PixelateOrder, PixelShape } from "#video/generated/spec.ts";
 import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";
@@ -94,7 +97,7 @@ function GridPixelateWipePresentation({
     lead: 1,
   });
   const filled = 1 - phase.displace;
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   const shapedRows = Math.max(1, Math.round((rows * (height / width) * 16) / 9));
 
   const style = useMemo(() => {

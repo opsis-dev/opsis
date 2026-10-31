@@ -1,4 +1,5 @@
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { useFilm } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { randomBetween, steppedRamp } from "#video/lib/motion/stop-motion.ts";
@@ -191,7 +192,7 @@ function InkArrowView({
 }
 
 export function InkArrow({ fromX, fromY, toX, toY, ...settings }: ElementSettings["ink-arrow"]) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   function point(x: number, y: number) {
     return { x: x * width, y: y * height };
   }

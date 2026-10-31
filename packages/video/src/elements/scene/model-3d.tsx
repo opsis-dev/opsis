@@ -1,5 +1,5 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
 import { useLayoutEffect, useMemo } from "react";
-import { useCurrentFrame, useVideoConfig } from "remotion";
 import {
   AnimationMixer,
   Box3,
@@ -99,8 +99,8 @@ export function Model3D({
   reverse,
   lens,
 }: ElementSettings["model-3d"]) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const gltf = useModel(src || null);
   const placed = useMemo(
     () => (gltf ? place(gltf, animation, loop, zoom) : null),

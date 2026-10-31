@@ -1,4 +1,6 @@
-import { AbsoluteFill, Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill, Img } from "@opsis/runtime/parts.tsx";
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
@@ -39,8 +41,8 @@ export function LogoWall({
   showMark,
   startBrightness,
 }: ElementSettings["logo-wall"] & { holdSeconds?: number }) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useFrame();
+  const { fps, width, height } = useFilm();
   const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 

@@ -1,4 +1,4 @@
-import { Img } from "remotion";
+import { Img } from "@opsis/runtime/parts.tsx";
 import { type SceneProps, shade, tint } from "#video/elements/scene/launch-anything/content.ts";
 import { deskCamera, getShowcase, tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { ShowcaseScreen } from "#video/elements/scene/launch-anything/screens.tsx";

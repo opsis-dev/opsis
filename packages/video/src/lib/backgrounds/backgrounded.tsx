@@ -1,5 +1,5 @@
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import React from "react";
-import { AbsoluteFill } from "remotion";
 
 function visibleBackground(background?: string): string | undefined {
   return background && background !== "transparent" ? background : undefined;

@@ -1,6 +1,6 @@
+import { Sequence } from "@opsis/runtime/clock.tsx";
 import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
-import { Sequence } from "remotion";
 
 export function ScreenFit({ children }: { children: React.ReactNode }) {
   const box = useRef<HTMLDivElement>(null);

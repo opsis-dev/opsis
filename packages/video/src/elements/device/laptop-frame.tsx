@@ -1,5 +1,7 @@
+import { Easing } from "@opsis/runtime/easing.ts";
+import { isRendering } from "@opsis/runtime/environment.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import type { CSSProperties, ReactNode } from "react";
-import { Easing, getRemotionEnvironment, interpolate } from "remotion";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -331,7 +333,7 @@ function LaptopFrameView({
   const drop = shadow;
   const zoom = { start: zoomAt, end: zoomAt + zoomLength };
   const { fps, width, height } = useAuthoredConfig();
-  const isRendering = getRemotionEnvironment().isRendering;
+  const rendering = isRendering();
 
   const pose = entrancePose(frame, entrance);
   const tilt = lidTilt(frame, entrance, finale, restTilt, zoom);
@@ -372,7 +374,7 @@ function LaptopFrameView({
           transform: `translateY(${camera.translateY}px) scale(${camera.scale})`,
           transformOrigin: "center center",
           textRendering: "geometricPrecision",
-          ...(isRendering ? {} : { willChange: "transform" as const }),
+          ...(rendering ? {} : { willChange: "transform" as const }),
         }}
       >
         <div

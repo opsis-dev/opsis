@@ -1,5 +1,7 @@
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { spring } from "@opsis/runtime/spring.ts";
 import type React from "react";
-import { Easing, interpolate, spring } from "remotion";
 
 export const CLAMPED = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 

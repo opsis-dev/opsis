@@ -1,5 +1,5 @@
+import { failRender, holdRender } from "@opsis/runtime/holds.ts";
 import { useLayoutEffect, useRef } from "react";
-import { useDelayRender } from "remotion";
 import { clamp01 } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
@@ -453,7 +453,6 @@ export function ShaderTextReveal({
 }: ShaderTextRevealProps) {
   const frame = useAuthoredFrame();
   const { width, height, fps } = useAuthoredConfig();
-  const { delayRender, continueRender, cancelRender } = useDelayRender();
   const canvas = useRef<HTMLCanvasElement>(null);
   const resources = useRef<{
     renderer: ReturnType<typeof createRenderer>;
@@ -468,7 +467,7 @@ export function ShaderTextReveal({
     const element = canvas.current;
     if (!element) return;
     let cancelled = false;
-    const handle = delayRender("Load Shader Text Reveal font");
+    const handle = holdRender("Load Shader Text Reveal font");
     const phrases = text.includes("\n") ? text.split("\n") : text.split(/\s+/);
     const words = phrases.map((word) => word.trim()).filter(Boolean);
     function draw() {
@@ -493,28 +492,18 @@ export function ShaderTextReveal({
         const renderer = createRenderer(element);
         resources.current = { renderer, words: textures };
         draw();
-        continueRender(handle);
+        handle();
       })
       .catch((error: unknown) => {
-        if (!cancelled) cancelRender(error instanceof Error ? error : new Error(String(error)));
+        if (!cancelled) failRender(error instanceof Error ? error : new Error(String(error)));
       });
     return () => {
       cancelled = true;
-      continueRender(handle);
+      handle();
       resources.current?.renderer.dispose();
       resources.current = null;
     };
-  }, [
-    text,
-    width,
-    height,
-    fontSize,
-    fontWeight,
-    fontFamily,
-    delayRender,
-    continueRender,
-    cancelRender,
-  ]);
+  }, [text, width, height, fontSize, fontWeight, fontFamily]);
 
   useLayoutEffect(() => {
     const resource = resources.current;
@@ -523,9 +512,9 @@ export function ShaderTextReveal({
       const state = getShaderTextState(frame, resource.words.length, wordDuration);
       resource.renderer.draw(resource.words[state.index], state, frame / fps, intensity);
     } catch (error) {
-      cancelRender(error instanceof Error ? error : new Error(String(error)));
+      failRender(error instanceof Error ? error : new Error(String(error)));
     }
-  }, [frame, fps, wordDuration, intensity, cancelRender]);
+  }, [frame, fps, wordDuration, intensity]);
 
   return (
     <canvas

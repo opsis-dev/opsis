@@ -1,5 +1,5 @@
+import { useFilm } from "@opsis/runtime/clock.tsx";
 import type React from "react";
-import { useVideoConfig } from "remotion";
 import { designScaleFor } from "#video/camera/lib/design-width.ts";
 import { clamp } from "#video/common/math.ts";
 import { containBox, type Size } from "#video/core/still-layout.ts";
@@ -90,6 +90,6 @@ export function reframeLayout(
 }
 
 export function useOverlayFrame(): { k: number; insets: Insets } {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   return { k: overlayScale(width, height), insets: shapeInsets(width, height) };
 }

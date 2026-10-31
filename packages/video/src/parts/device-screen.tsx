@@ -1,5 +1,7 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { Img } from "@opsis/runtime/parts.tsx";
 import type { CSSProperties } from "react";
-import { Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import { FootageFrame } from "#video/core/footage.tsx";
 import type { MediaKind } from "#video/generated/spec.ts";
@@ -15,8 +17,8 @@ export function ScreenMedia({
   frame: number;
   footage?: string;
 }) {
-  const now = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const now = useFrame();
+  const { fps } = useFilm();
   const t = interpolate(frame, [4, 22], [0, 1], CLAMPED);
   const style: CSSProperties = {
     position: "absolute",

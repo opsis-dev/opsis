@@ -1,5 +1,5 @@
+import { publicFile } from "@opsis/runtime/assets.ts";
 import { createContext, useContext } from "react";
-import { staticFile } from "remotion";
 import { isString } from "#video/common/guards.ts";
 import type { ElementProps } from "#video/common/spec.ts";
 import type { ReframeMode } from "#video/generated/spec.ts";
@@ -7,7 +7,7 @@ import type { ReframeMode } from "#video/generated/spec.ts";
 const APP_SCHEME = "app:";
 
 export function assetUrl(address: string): string {
-  return address.startsWith(APP_SCHEME) ? staticFile(address.slice(APP_SCHEME.length)) : address;
+  return address.startsWith(APP_SCHEME) ? publicFile(address.slice(APP_SCHEME.length)) : address;
 }
 
 const MAX_PROP_DEPTH = 3;

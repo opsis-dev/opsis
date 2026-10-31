@@ -1,7 +1,9 @@
-import { Easing, interpolateColors, spring } from "remotion";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { spring } from "@opsis/runtime/spring.ts";
 import { clamp01, lerp, normalize, numberOr } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
+import { interpolateColors } from "#video/lib/ui-kit/color.ts";
 
 export const radialBurstLength = 114;
 const CYCLE = 120;

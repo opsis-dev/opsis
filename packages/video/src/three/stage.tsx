@@ -1,7 +1,7 @@
+import { useFilm } from "@opsis/runtime/clock.tsx";
 import { holdRender } from "@opsis/runtime/holds.ts";
 import { Canvas, useThree } from "@react-three/fiber";
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { useVideoConfig } from "remotion";
 import { PMREMGenerator } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import type { Lighting } from "#video/generated/spec.ts";
@@ -142,7 +142,7 @@ export function Stage3D({
   overlay?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   const aspect = width / height;
   const distance =
     fixed ?? Math.max(fitDistance(radius, fov, aspect), box ? boxDistance(box, fov, aspect) : 0);

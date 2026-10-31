@@ -1,4 +1,7 @@
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { spring } from "@opsis/runtime/spring.ts";
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
@@ -37,8 +40,8 @@ export function CommitGraph({
 }: ElementSettings["commit-graph"] & { holdSeconds?: number }) {
   const fontFamily = fontOr(font, "main");
   const mono = fontOr(codeFont, "code");
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useFrame();
+  const { fps, width, height } = useFilm();
   const palette = codePalette(theme);
   const safe = getSafeAreaPadding({ width, height });
 

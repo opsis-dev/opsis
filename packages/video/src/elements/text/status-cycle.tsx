@@ -1,13 +1,10 @@
+import { Easing } from "@opsis/runtime/easing.ts";
+import { isRendering } from "@opsis/runtime/environment.ts";
+import { holdRender } from "@opsis/runtime/holds.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { spring } from "@opsis/runtime/spring.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  AbsoluteFill,
-  continueRender,
-  delayRender,
-  Easing,
-  getRemotionEnvironment,
-  interpolate,
-  spring,
-} from "remotion";
 import { isTheme, themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -205,7 +202,7 @@ function StatusCycleView({
   ]);
   const [measured, setMeasured] = useState<{ key: string; value: Metrics } | null>(null);
   const metrics = measured?.key === measureKey ? measured.value : null;
-  const [handle] = useState(() => delayRender("status-cycle: measuring"));
+  const [release] = useState(() => holdRender("status-cycle: measuring"));
   const released = useRef(false);
   const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const prefixRef = useRef<HTMLSpanElement | null>(null);
@@ -215,7 +212,7 @@ function StatusCycleView({
 
   useEffect(() => {
     if (metrics) {
-      if (!released.current) continueRender(handle);
+      if (!released.current) release();
       released.current = true;
       return;
     }
@@ -234,7 +231,7 @@ function StatusCycleView({
         chipWidths: chipLabels.map((_, i) => chipRefs.current[i]?.offsetWidth ?? 0),
       },
     });
-  }, [metrics, handle, glyphs, labels, chipLabels, measureKey]);
+  }, [metrics, release, glyphs, labels, chipLabels, measureKey]);
 
   function swapAt(i: number) {
     return introFrames + (i - 1) * statusHold;
@@ -304,9 +301,7 @@ function StatusCycleView({
   const originX = (width - total) / 2;
   const cy = pillCenterY * height;
 
-  const promote = getRemotionEnvironment().isRendering
-    ? null
-    : ({ willChange: "transform" } as const);
+  const promote = isRendering() ? null : ({ willChange: "transform" } as const);
 
   const typeStyle = {
     fontFamily: face,

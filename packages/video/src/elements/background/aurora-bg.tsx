@@ -1,5 +1,7 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { random } from "@opsis/runtime/random.ts";
 import { useId } from "react";
-import { AbsoluteFill, random, useCurrentFrame, useVideoConfig } from "remotion";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
 const SAMPLES = 30;
@@ -116,8 +118,8 @@ export function AuroraBg({
   vignette,
   horizonGlowColor,
 }: ElementSettings["aurora-bg"]) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const uid = useId().replace(/:/g, "");
   const time = (frame / fps) * speed;
 

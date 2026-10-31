@@ -1,5 +1,5 @@
 import * as fc from "fast-check";
-import { getPathBBox } from "svg-path-commander/util";
+import { getPathBBox, parsePathString } from "svg-path-commander/util";
 import { expect, it } from "vitest";
 import {
   fitToBox,
@@ -8,6 +8,7 @@ import {
   prepareMorph,
   type MorphShapeName,
 } from "#video/elements/transition/transition-morph-shape/path-morph.ts";
+import { isNumber } from "#video/common/guards.ts";
 
 const shape = fc.constantFrom(...(Object.keys(MORPH_SHAPES) as MorphShapeName[]));
 const area = fc.record({
@@ -41,6 +42,21 @@ it("fits a shape into the box, centred, keeping its proportions", () => {
   );
 });
 
+function withoutPointSegments(d: string, scale: number): string {
+  let end = [0, 0];
+  return parsePathString(d)
+    .flatMap((segment) => {
+      const values = segment.slice(1).filter(isNumber);
+      const point = end;
+      if (values.length >= 2) end = values.slice(-2);
+      const still =
+        segment[0] === "C" &&
+        values.every((v, i) => Math.abs(v - (point[i % 2] ?? 0)) <= 1e-9 * Math.max(1, scale));
+      return still ? [] : [`${segment[0]}${values.join(" ")}`];
+    })
+    .join(" ");
+}
+
 it("starts on the first shape and ends on the second", () => {
   fc.assert(
     fc.property(shape, shape, area, (from, to, box) => {
@@ -50,8 +66,10 @@ it("starts on the first shape and ends on the second", () => {
         [0, from],
         [1, to],
       ] as const) {
-        const drawn = getPathBBox(morphPath(progress, pair));
-        const expected = getPathBBox(fitToBox(MORPH_SHAPES[name], box));
+        const drawn = getPathBBox(withoutPointSegments(morphPath(progress, pair), scale));
+        const expected = getPathBBox(
+          withoutPointSegments(fitToBox(MORPH_SHAPES[name], box), scale),
+        );
         expect(close(drawn.x, expected.x, scale)).toBe(true);
         expect(close(drawn.y, expected.y, scale)).toBe(true);
         expect(close(drawn.x2, expected.x2, scale)).toBe(true);

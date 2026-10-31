@@ -1,14 +1,14 @@
-import { useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
 import { AUTHORED_FPS } from "#video/common/spec.ts";
 
 export function useAuthoredFrame(): number {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   return (frame * AUTHORED_FPS) / fps;
 }
 
-export function useAuthoredConfig(): ReturnType<typeof useVideoConfig> {
-  const config = useVideoConfig();
+export function useAuthoredConfig(): ReturnType<typeof useFilm> {
+  const config = useFilm();
   return {
     ...config,
     fps: AUTHORED_FPS,
@@ -17,6 +17,6 @@ export function useAuthoredConfig(): ReturnType<typeof useVideoConfig> {
 }
 
 export function useRealFrames(): (authored: number) => number {
-  const { fps } = useVideoConfig();
+  const { fps } = useFilm();
   return (authored) => (authored * fps) / AUTHORED_FPS;
 }

@@ -1,4 +1,6 @@
-import { Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { Img } from "@opsis/runtime/parts.tsx";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
 import { fitHeadline } from "#video/elements/scene/data-story/text-fit-utils.ts";
@@ -39,8 +41,8 @@ export function AutoFitTitle({
   speed = 1,
   holdSeconds,
 }: AutoFitTitleProps) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useFrame();
+  const { fps, width, height } = useFilm();
   const palette = look.palette;
   const safe = getSafeAreaPadding({ width, height });
 

@@ -1,5 +1,8 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill, Img } from "@opsis/runtime/parts.tsx";
+import { spring } from "@opsis/runtime/spring.ts";
 import type { ReactNode } from "react";
-import { AbsoluteFill, Img, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
@@ -697,8 +700,8 @@ function DeviceMockupZoomView({ children, look }: { children?: ReactNode; look: 
     scale,
   } = look;
   const fontFamily = fontOr(look.fontFamily, "main");
-  const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const frame = useFrame();
+  const { width, height, fps } = useFilm();
   const safe = getSafeAreaPadding({ width, height });
   const resolvedDevice = device;
   const portrait = height > width;

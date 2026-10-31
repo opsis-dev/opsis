@@ -1,5 +1,5 @@
+import { random } from "@opsis/runtime/random.ts";
 import type { ReactNode } from "react";
-import { random } from "remotion";
 import { clamp, easeOutQuad, numberOr, round2, smoothstep } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";

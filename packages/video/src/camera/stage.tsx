@@ -1,5 +1,5 @@
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import React from "react";
-import { AbsoluteFill } from "remotion";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { ink, WINDOW_RADIUS } from "#video/camera/lib/style.ts";
 

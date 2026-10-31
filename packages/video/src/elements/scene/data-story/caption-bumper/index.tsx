@@ -1,4 +1,5 @@
-import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
 import { fitHeadline } from "#video/elements/scene/data-story/text-fit-utils.ts";
@@ -37,8 +38,8 @@ export function CaptionBumper({
   look,
   speed = 1,
 }: CaptionBumperProps) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useFrame();
+  const { fps, width, height } = useFilm();
   const palette = look.palette;
   const safe = getSafeAreaPadding({ width, height });
 

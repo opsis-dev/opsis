@@ -1,12 +1,8 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { spring, type SpringConfig } from "@opsis/runtime/spring.ts";
 import type { CSSProperties, ReactNode } from "react";
-import {
-  Easing,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-  type SpringConfig,
-} from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import { springBouncy, springSmooth, springSnappy } from "#video/lib/motion/springs.ts";
 import { EASING_ENTER, EASING_EXIT } from "#video/lib/motion/timing.ts";
@@ -79,8 +75,8 @@ export function useEnterExit({
   exitTravel = DEFAULT_EXIT_TRAVEL,
   exitDirection = "reverse",
 }: EnterExitOptions): MotionState {
-  const frame = useCurrentFrame();
-  const { fps, durationInFrames: windowFrames } = useVideoConfig();
+  const frame = useFrame();
+  const { fps, durationInFrames: windowFrames } = useFilm();
 
   const duration = Math.max(1, Math.round(durationInFrames));
   const delay = Math.max(0, Math.round(delayInFrames));

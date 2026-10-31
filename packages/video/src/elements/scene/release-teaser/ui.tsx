@@ -1,11 +1,7 @@
+import { Img } from "@opsis/runtime/parts.tsx";
 import type { CSSProperties } from "react";
-import { Img, useRemotionEnvironment } from "remotion";
 
 export function BrandImage({ src, style }: { src: string; style: CSSProperties }) {
-  const { isStudio, isRendering } = useRemotionEnvironment();
-  if (isStudio && !isRendering) {
-    return <img src={src} alt="" style={style} />;
-  }
   return <Img src={src} style={style} />;
 }
 

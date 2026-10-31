@@ -1,4 +1,6 @@
-import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { spring } from "@opsis/runtime/spring.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
 import type { NumberFormat } from "#video/generated/spec.ts";
@@ -46,8 +48,8 @@ export function AnimatedBarChart({
   holdSeconds,
 }: AnimatedBarChartProps) {
   const COLORS = look.palette;
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useFrame();
+  const { fps, width, height } = useFilm();
   const safe = getSafeAreaPadding({ width, height });
   const isPortrait = height > width;
 

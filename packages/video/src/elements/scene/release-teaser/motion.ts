@@ -1,4 +1,5 @@
-import { Easing, interpolate } from "remotion";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import { normalize } from "#video/common/math.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 

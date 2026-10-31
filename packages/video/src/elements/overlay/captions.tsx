@@ -1,5 +1,7 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { spring } from "@opsis/runtime/spring.ts";
 import { useMemo } from "react";
-import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { framesToMs, msToFrames } from "#video/common/time.ts";
 import { JUSTIFY_AT, overlayPadding, useOverlayFrame, verticalInsets } from "#video/core/frame.ts";
@@ -59,8 +61,8 @@ function CaptionWord({
   highlightColor: string;
   unspoken: number;
 }) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const active = tMs >= word.startMs && tMs < word.endMs;
   const spoken = tMs >= word.startMs;
   if (style === "word-by-word" && !spoken) return null;
@@ -105,8 +107,8 @@ export function Captions({
   textShadow,
   unspokenOpacity,
 }: ElementSettings["captions"] & { captions: Caption[] }) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const { k, insets } = useOverlayFrame();
   const tMs = framesToMs(frame, fps);
   const lines = useMemo(() => groupCaptions(captions, wordsPerLine), [captions, wordsPerLine]);

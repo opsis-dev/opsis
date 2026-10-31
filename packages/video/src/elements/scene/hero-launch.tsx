@@ -1,13 +1,9 @@
-import { type CSSProperties, useCallback, useState } from "react";
-import {
-  AbsoluteFill,
-  continueRender,
-  delayRender,
-  Easing,
-  interpolate,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { holdRender } from "@opsis/runtime/holds.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
+import { type CSSProperties, useState } from "react";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -33,8 +29,7 @@ const OUT = Easing.bezier(0.22, 1, 0.36, 1);
 const FALL = Easing.bezier(0.5, 0, 0.9, 0.4);
 
 function HeroImage({ src, style }: { src: string; style: CSSProperties }) {
-  const [handle] = useState(() => delayRender(`hero image: ${src}`));
-  const release = useCallback(() => continueRender(handle), [handle]);
+  const [release] = useState(() => holdRender(`hero image: ${src}`));
   return <img src={src} alt="" style={style} onLoad={release} onError={release} />;
 }
 
@@ -47,8 +42,8 @@ function CardMedia({
   kind: MediaKind | undefined;
   footage?: string;
 }) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const media: CSSProperties = {
     position: "absolute",
     inset: 0,

@@ -1,5 +1,5 @@
+import { Easing } from "@opsis/runtime/easing.ts";
 import { useMemo } from "react";
-import { Easing } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import {
   clamp,

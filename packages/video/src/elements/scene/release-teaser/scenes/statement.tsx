@@ -1,4 +1,4 @@
-import { Interactive, interpolate } from "remotion";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import type { ReleaseTeaserScene } from "#video/elements/scene/release-teaser/content.ts";
 import { characterState, fitText, graphemes } from "#video/elements/scene/release-teaser/motion.ts";
@@ -15,8 +15,7 @@ export function Statement({
   duration: number;
 }) {
   return (
-    <Interactive.Div
-      name="Statement"
+    <div
       role="img"
       aria-label={text}
       style={{
@@ -65,6 +64,6 @@ export function Statement({
           </div>
         );
       })}
-    </Interactive.Div>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type { ElementProps } from "#video/common/spec.ts";
 import type { Size } from "#video/core/still-layout.ts";
 import type { TransitionPresentationComponentProps } from "#video/lib/transitions/presentation.ts";

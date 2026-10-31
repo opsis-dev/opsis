@@ -1,4 +1,7 @@
-import { AbsoluteFill, Easing, getRemotionEnvironment, interpolate } from "remotion";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { isRendering } from "@opsis/runtime/environment.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -126,8 +129,8 @@ function LogoDriftView({
   const stageScale = Math.min(width / REF_W, height / REF_H);
 
   const words = headline.split(/\s+/).filter(Boolean);
-  const isRendering = getRemotionEnvironment().isRendering;
-  const willChange = isRendering ? undefined : ("transform, filter" as const);
+  const rendering = isRendering();
+  const willChange = rendering ? undefined : ("transform, filter" as const);
 
   return (
     <AbsoluteFill style={{ background: t.background }}>

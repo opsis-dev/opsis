@@ -1,4 +1,5 @@
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { useFilm } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { MetricTicker } from "#video/elements/data/metric-ticker/index.tsx";
 import { AnimatedBarChart } from "#video/elements/scene/data-story/animated-bar-chart/index.tsx";
 import { AutoFitTitle } from "#video/elements/scene/data-story/auto-fit-title/index.tsx";
@@ -66,7 +67,7 @@ export function DataStory(settings: ElementSettings["data-story"]) {
     dataColor,
     timelineColor,
   } = settings;
-  const { durationInFrames, fps } = useVideoConfig();
+  const { durationInFrames, fps } = useFilm();
   const scenes = sceneLengths(durationInFrames);
   const look = storyLook(settings);
   function sceneBg(themed: string) {

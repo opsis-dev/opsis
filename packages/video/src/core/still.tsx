@@ -1,5 +1,6 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill, Img } from "@opsis/runtime/parts.tsx";
 import React from "react";
-import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
 import { isLightBackdrop } from "#video/camera/lib/backdrop.ts";
 import { RimLight } from "#video/camera/stage.tsx";
 import { WindowFrame } from "#video/camera/window-frame.tsx";
@@ -21,7 +22,7 @@ function PushIn({
   frames: number;
   children: React.ReactNode;
 }) {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const push = zoomOver(frame, frames, scale);
   return (
     <AbsoluteFill style={{ transform: `scale(${push})`, transformOrigin: origin }}>
@@ -102,7 +103,7 @@ const STILL_LOOKS: Record<StillLook, (props: StillLookProps) => React.ReactNode>
 };
 
 export function StillElement(props: StillProps) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   if (!props.src) return null;
   const shot = props.shot ?? { width, height, scale: 1 };
   const box = stillLayout(props.look, shot, { width, height }, props.fit, props.align);

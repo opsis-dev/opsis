@@ -1,6 +1,5 @@
-import { holdRender } from "@opsis/runtime/holds.ts";
+import { failRender, holdRender } from "@opsis/runtime/holds.ts";
 import { type CSSProperties, useLayoutEffect, useRef } from "react";
-import { cancelRender } from "remotion";
 import type { Fit } from "#video/generated/spec.ts";
 
 const US_PER_S = 1_000_000;
@@ -41,7 +40,7 @@ export function FootageFrame({
     let alive = true;
     target.decode().then(release, async () => {
       if (!alive) return;
-      cancelRender(await failedFrame(src));
+      failRender(await failedFrame(src));
     });
     return () => {
       alive = false;

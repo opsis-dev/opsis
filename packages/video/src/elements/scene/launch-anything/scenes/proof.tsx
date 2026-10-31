@@ -1,4 +1,4 @@
-import { Img } from "remotion";
+import { Img } from "@opsis/runtime/parts.tsx";
 import { type SceneProps, shade, tint } from "#video/elements/scene/launch-anything/content.ts";
 import { tween } from "#video/elements/scene/launch-anything/motion.ts";
 import { Center, LogoGlyph, Title } from "#video/elements/scene/launch-anything/ui.tsx";

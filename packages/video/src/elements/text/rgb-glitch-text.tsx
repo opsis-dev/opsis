@@ -1,5 +1,5 @@
+import { random } from "@opsis/runtime/random.ts";
 import type { CSSProperties } from "react";
-import { random } from "remotion";
 import { fontOr } from "#video/common/fonts.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";

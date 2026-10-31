@@ -1,4 +1,6 @@
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { useFrame } from "@opsis/runtime/clock.tsx";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { fontOr } from "#video/common/fonts.ts";
 import { arcPath, polar } from "#video/common/geometry.ts";
 import { clamp01 } from "#video/common/math.ts";
@@ -34,7 +36,7 @@ export function GaugeDial({
   decimals,
   exitAtInFrames,
 }: ElementSettings["gauge-dial"] & { exitAtInFrames?: number }) {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const delayInFrames = 0;
   const exitInFrames = EXIT_FRAMES;
   const cap = roundEnds ? "round" : "butt";

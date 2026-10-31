@@ -1,5 +1,8 @@
+import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
+import { Easing } from "@opsis/runtime/easing.ts";
+import { interpolate } from "@opsis/runtime/interpolate.ts";
+import { spring } from "@opsis/runtime/spring.ts";
 import type { CSSProperties } from "react";
-import { Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { CLAMPED } from "#video/core/anim.ts";
 import { caretBlinkOpacity } from "#video/parts/caret.tsx";
 
@@ -26,8 +29,8 @@ export interface TypewriterState {
 
 export function useTypewriter(full: string, options: TypewriterOptions = {}): TypewriterState {
   const { cps = AI_TYPING_CPS, speed = 1, startFrame = AI_TYPING_START } = options;
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
   const local = frame * speed - startFrame;
   const over = (full.length / cps) * fps;
   const count =
@@ -155,8 +158,8 @@ export function Caret({
   marginLeft = 0,
   style,
 }: CaretProps) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useFrame();
+  const { fps } = useFilm();
 
   const resolvedOpacity =
     opacity !== undefined

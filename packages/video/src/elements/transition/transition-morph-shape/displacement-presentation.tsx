@@ -1,5 +1,6 @@
+import { useFilm } from "@opsis/runtime/clock.tsx";
+import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import { useId, useMemo } from "react";
-import { AbsoluteFill, useVideoConfig } from "remotion";
 import {
   DISPLACEMENT_DEFAULTS,
   DISPLACEMENT_EPSILON,
@@ -29,7 +30,7 @@ function DisplacementPresentationComponent({
 }: React.ComponentProps<
   NonNullable<TransitionPresentation<DisplacementPresentationProps>["component"]>
 >) {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useFilm();
   const rawId = useId();
   const domId = rawId.replace(/:/g, "");
 
