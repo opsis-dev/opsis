@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
 use opsis_types::numbers;
@@ -19,9 +19,7 @@ use opsis_media::filters::{
 
 const RATE: u32 = 48_000;
 
-fn ffmpeg() -> PathBuf {
-    PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/Opsis/engine/ffmpeg/ffmpeg")
-}
+use opsis_golden::ffmpeg;
 
 fn write(path: &Path, samples: &[f32]) {
     let spec = hound::WavSpec {
@@ -72,7 +70,7 @@ fn tone(seconds: f32) -> Vec<f32> {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg"]
 fn takes_a_click_out_of_a_tone() {
     let dir = tempfile::tempdir().unwrap();
     let mut samples = tone(1.0);
@@ -106,7 +104,7 @@ fn energy_at(samples: &[f32], hertz: f32) -> f32 {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg"]
 fn takes_mains_hum_out_and_leaves_the_voice() {
     let dir = tempfile::tempdir().unwrap();
     let samples: Vec<f32> = tone(2.0)
@@ -155,7 +153,7 @@ fn listened(input: &Path, hertz: f64) -> Option<f64> {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg"]
 fn hears_which_mains_hum_a_recording_has() {
     let dir = tempfile::tempdir().unwrap();
     let samples: Vec<f32> = tone(2.0)
@@ -185,7 +183,7 @@ fn png_size(path: &Path) -> (u32, u32) {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg"]
 fn draws_sound_pictures_at_the_asked_size() {
     let dir = tempfile::tempdir().unwrap();
     write(&dir.path().join("in.wav"), &tone(1.0));
@@ -253,7 +251,7 @@ fn keeps_the_middle_of_each_long_pause_and_leaves_short_ones() {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg"]
 fn shortens_known_gaps_to_the_expected_length() {
     let dir = tempfile::tempdir().unwrap();
     let speech = tone(1.0);
@@ -339,7 +337,7 @@ fn noise_of(input: &Path) -> f64 {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg"]
 fn cleans_hiss_out_of_speech_both_ways() {
     let dir = tempfile::tempdir().unwrap();
     let (voice, noisy) = voice_in_hiss();
@@ -455,7 +453,7 @@ fn crossings_per_second(samples: &[f32]) -> f32 {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg"]
 fn raises_a_tone_an_octave_and_keeps_its_length() {
     let dir = tempfile::tempdir().unwrap();
     let source = tone(2.0);
@@ -526,7 +524,7 @@ fn voiced(dir: &Path, samples: &[f32], p: &VoiceEffects) -> Vec<f32> {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg"]
 fn makes_each_voice_effect_at_the_same_length() {
     let dir = tempfile::tempdir().unwrap();
     let low_and_high: Vec<f32> = (0..RATE as usize * 2)
@@ -599,7 +597,7 @@ fn makes_each_voice_effect_at_the_same_length() {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg"]
 fn fits_a_song_to_within_a_frame_of_the_film_each_way() {
     let dir = tempfile::tempdir().unwrap();
     let song = tone(20.0);

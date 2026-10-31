@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 use specta::Type;
 
-use crate::engine::{CheckedTool, EngineTool};
+use crate::engine::CheckedTool;
 
 pub const PROJECTS_FOLDER_NAME: &str = "OpsisProjects";
 
@@ -169,24 +169,6 @@ pub struct EditorSection {
 pub struct EngineSection {
     #[garde(skip)]
     pub browser: Option<CheckedTool>,
-    #[garde(skip)]
-    pub ffmpeg: Option<CheckedTool>,
-}
-
-impl EngineSection {
-    pub fn tool(&self, tool: EngineTool) -> Option<&CheckedTool> {
-        match tool {
-            EngineTool::Browser => self.browser.as_ref(),
-            EngineTool::Ffmpeg => self.ffmpeg.as_ref(),
-        }
-    }
-
-    pub fn set(&mut self, tool: EngineTool, checked: Option<CheckedTool>) {
-        match tool {
-            EngineTool::Browser => self.browser = checked,
-            EngineTool::Ffmpeg => self.ffmpeg = checked,
-        }
-    }
 }
 
 #[derive(

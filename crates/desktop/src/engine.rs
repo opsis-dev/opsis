@@ -3,16 +3,14 @@ use std::sync::Arc;
 
 use opsis_capture::browser::check_browser;
 use opsis_engine::install::install_engine as download_engine;
-use opsis_engine::paths::{ShellPlatform, download_dir, engine_paths, find_headless_shell};
+use opsis_engine::paths::{download_dir, engine_paths, find_headless_shell};
 use opsis_engine::tools::{
     EngineFiles, ToolProblem, browser_warning, file_sha256, file_stamp, same_stamp, shown,
 };
-use opsis_media::capabilities::check_ffmpeg;
 use opsis_media::executors::Tools;
 use opsis_media::ffmpeg::Ffmpeg;
 use opsis_types::engine::{
-    CheckedTool, EngineInstallEvent, EngineInstallUpdate, EnginePart, EngineStatus, EngineTool,
-    ToolStatus,
+    CheckedTool, EngineInstallEvent, EngineInstallUpdate, EngineStatus, ToolStatus,
 };
 use opsis_types::settings::EngineSection;
 use serde_json::{Map, Value};
@@ -27,25 +25,19 @@ use crate::settings::announce;
 use crate::state::AppState;
 
 const ENGINE_TASK: &str = "The engine is being set up.";
+const BROWSER: &str = "recording browser";
 
 #[derive(Default)]
 pub struct EngineChecks {
-    problems: [Option<String>; 2],
-    checking: [bool; 2],
+    problem: Option<String>,
+    checking: bool,
 }
 
-fn slot(tool: EngineTool) -> usize {
-    match tool {
-        EngineTool::Browser => 0,
-        EngineTool::Ffmpeg => 1,
-    }
-}
-
-fn tool_status(checks: &EngineChecks, saved: Option<&CheckedTool>, tool: EngineTool) -> ToolStatus {
+fn browser_status(checks: &EngineChecks, saved: Option<&CheckedTool>) -> ToolStatus {
     let version = saved.map(|c| c.version.clone()).filter(|v| !v.is_empty());
-    let problem = checks.problems[slot(tool)].clone();
-    let warning = match (tool, &version, &problem) {
-        (EngineTool::Browser, Some(v), None) => browser_warning(v),
+    let problem = checks.problem.clone();
+    let warning = match (&version, &problem) {
+        (Some(v), None) => browser_warning(v),
         _ => None,
     };
     ToolStatus {
@@ -53,7 +45,7 @@ fn tool_status(checks: &EngineChecks, saved: Option<&CheckedTool>, tool: EngineT
         version,
         problem,
         warning,
-        checking: checks.checking[slot(tool)],
+        checking: checks.checking,
     }
 }
 
@@ -63,23 +55,18 @@ fn saved_engine(state: &AppState) -> EngineSection {
 
 pub fn engine_status(state: &AppState) -> EngineStatus {
     let engine = saved_engine(state);
-    let checks = state.engine_checks();
-    let status = |tool| tool_status(&checks, engine.tool(tool), tool);
-    let (browser, ffmpeg) = (status(EngineTool::Browser), status(EngineTool::Ffmpeg));
+    let browser = browser_status(&state.engine_checks(), engine.browser.as_ref());
     EngineStatus {
         download_dir: shown(&download_dir(&state.paths.user_data)),
-        complete: browser.ready() && ffmpeg.ready(),
+        complete: browser.ready(),
         browser,
-        ffmpeg,
     }
 }
 
 pub fn engine_files(state: &AppState) -> EngineFiles {
     let engine = saved_engine(state);
-    let checks = state.engine_checks();
-    EngineFiles::from_checked(&engine, |tool| {
-        tool_status(&checks, engine.tool(tool), tool).ready()
-    })
+    let usable = browser_status(&state.engine_checks(), engine.browser.as_ref()).ready();
+    EngineFiles::from_checked(&engine, usable)
 }
 
 pub fn engine_tools(state: &AppState) -> Tools {
@@ -94,40 +81,20 @@ fn send_status(app: &AppHandle) {
     crate::compile::request(app);
 }
 
-async fn save(
-    app: &AppHandle,
-    tool: EngineTool,
-    checked: Option<CheckedTool>,
-) -> CommandResult<()> {
+async fn save(app: &AppHandle, checked: Option<CheckedTool>) -> CommandResult<()> {
     let state = app.state::<AppState>();
-    let value = serde_json::to_value(&checked)?;
-    let mut fields = Map::new();
-    fields.insert(
-        serde_json::to_value(tool)?
-            .as_str()
-            .unwrap_or_default()
-            .to_owned(),
-        value,
-    );
+    let fields = Map::from_iter([("browser".to_owned(), serde_json::to_value(&checked)?)]);
     let patch = Map::from_iter([("engine".to_owned(), Value::Object(fields))]);
     let settings = state.patch_settings(&patch).await?;
     announce(app, settings);
     Ok(())
 }
 
-fn set_check(app: &AppHandle, tool: EngineTool, checking: bool, problem: Option<String>) {
+fn set_check(app: &AppHandle, checking: bool, problem: Option<String>) {
     let state = app.state::<AppState>();
     let mut checks = state.engine_checks();
-    checks.checking[slot(tool)] = checking;
-    checks.problems[slot(tool)] = problem;
-}
-
-async fn full_check(app: &AppHandle, tool: EngineTool, path: &Path) -> Result<String, ToolProblem> {
-    let temp = app.state::<AppState>().paths.views_temp.clone();
-    match tool {
-        EngineTool::Browser => check_browser(path, &temp).await,
-        EngineTool::Ffmpeg => check_ffmpeg(path).await,
-    }
+    checks.checking = checking;
+    checks.problem = problem;
 }
 
 async fn hash_of(path: &Path) -> std::io::Result<String> {
@@ -150,23 +117,24 @@ async fn hashed(path: &Path, version: String) -> Result<CheckedTool, ToolProblem
     })
 }
 
-async fn check_and_save(app: &AppHandle, tool: EngineTool, path: &Path) -> Result<(), ToolProblem> {
-    let previous = app.state::<AppState>().engine_checks().problems[slot(tool)].clone();
-    set_check(app, tool, true, previous.clone());
+async fn check_and_save(app: &AppHandle, path: &Path) -> Result<(), ToolProblem> {
+    let previous = app.state::<AppState>().engine_checks().problem.clone();
+    set_check(app, true, previous.clone());
     send_status(app);
-    let checked = match full_check(app, tool, path).await {
+    let temp = app.state::<AppState>().paths.views_temp.clone();
+    let checked = match check_browser(path, &temp).await {
         Ok(version) => hashed(path, version).await,
         Err(problem) => Err(problem),
     };
     let result = match checked {
         Ok(checked) => {
-            set_check(app, tool, false, None);
-            save(app, tool, Some(checked))
+            set_check(app, false, None);
+            save(app, Some(checked))
                 .await
                 .map_err(|e| ToolProblem::Failed(e.0))
         }
         Err(problem) => {
-            set_check(app, tool, false, previous);
+            set_check(app, false, previous);
             Err(problem)
         }
     };
@@ -174,7 +142,7 @@ async fn check_and_save(app: &AppHandle, tool: EngineTool, path: &Path) -> Resul
     result
 }
 
-async fn verify_changed(app: &AppHandle, tool: EngineTool, saved: CheckedTool) {
+async fn verify_changed(app: &AppHandle, saved: CheckedTool) {
     let path = PathBuf::from(&saved.path);
     if let (Ok(hash), Ok(stamp)) = (hash_of(&path).await, file_stamp(&path))
         && hash == saved.sha256
@@ -184,51 +152,40 @@ async fn verify_changed(app: &AppHandle, tool: EngineTool, saved: CheckedTool) {
             modified_ms: stamp.modified_ms,
             ..saved
         };
-        set_check(app, tool, false, None);
-        if let Err(error) = save(app, tool, Some(refreshed)).await {
-            log::warn!("saving the {}'s file stamp: {}", tool.label(), error.0);
+        set_check(app, false, None);
+        if let Err(error) = save(app, Some(refreshed)).await {
+            log::warn!("saving the {BROWSER}'s file stamp: {}", error.0);
         }
         return;
     }
-    if let Err(problem) = check_and_save(app, tool, &path).await {
+    if let Err(problem) = check_and_save(app, &path).await {
         log::warn!(
-            "the {} at {} failed its check: {problem}",
-            tool.label(),
+            "the {BROWSER} at {} failed its check: {problem}",
             path.display()
         );
-        set_check(app, tool, false, Some(problem.to_string()));
+        set_check(app, false, Some(problem.to_string()));
     }
 }
 
 pub fn verify_on_start(app: &AppHandle) {
-    let saved = saved_engine(&app.state::<AppState>());
-    let mut changed = Vec::new();
-    for tool in EngineTool::ALL {
-        let Some(checked) = saved.tool(tool) else {
-            continue;
-        };
-        match file_stamp(Path::new(&checked.path)) {
-            Err(_) => {
-                let missing = ToolProblem::NotFound(checked.path.clone());
-                set_check(app, tool, false, Some(missing.to_string()));
-            }
-            Ok(stamp) if same_stamp(checked, stamp) => {}
-            Ok(_) => {
-                set_check(app, tool, true, None);
-                changed.push((tool, checked.clone()));
-            }
-        }
-    }
-    if changed.is_empty() {
+    let Some(checked) = saved_engine(&app.state::<AppState>()).browser else {
         return;
-    }
-    let app = app.clone();
-    tauri::async_runtime::spawn(async move {
-        for (tool, checked) in changed {
-            verify_changed(&app, tool, checked).await;
+    };
+    match file_stamp(Path::new(&checked.path)) {
+        Err(_) => {
+            let missing = ToolProblem::NotFound(checked.path.clone());
+            set_check(app, false, Some(missing.to_string()));
         }
-        send_status(&app);
-    });
+        Ok(stamp) if same_stamp(&checked, stamp) => {}
+        Ok(_) => {
+            set_check(app, true, None);
+            let app = app.clone();
+            tauri::async_runtime::spawn(async move {
+                verify_changed(&app, checked).await;
+                send_status(&app);
+            });
+        }
+    }
 }
 
 fn progress_event(
@@ -243,23 +200,12 @@ fn progress_event(
     }
 }
 
-fn downloaded_tools(dir: &Path, platform: ShellPlatform) -> [(EngineTool, Option<PathBuf>); 2] {
-    let paths = engine_paths(dir, platform);
-    [
-        (
-            EngineTool::Browser,
-            find_headless_shell(&paths).map(Path::to_path_buf),
-        ),
-        (EngineTool::Ffmpeg, Some(paths.ffmpeg.clone())),
-    ]
-}
-
 #[derive(Debug, thiserror::Error)]
 enum SetupError {
     #[error(transparent)]
     Install(#[from] opsis_engine::install::InstallError),
-    #[error("The {} wasn't in the download.", .0.label())]
-    Missing(EngineTool),
+    #[error("The recording browser wasn't in the download.")]
+    Missing,
     #[error(transparent)]
     Check(#[from] ToolProblem),
 }
@@ -281,10 +227,9 @@ async fn download_and_check(app: &AppHandle) -> Result<(), SetupError> {
         &CancellationToken::new(),
     )
     .await?;
-    for (tool, path) in downloaded_tools(&dir, state.paths.platform) {
-        let path = path.ok_or(SetupError::Missing(tool))?;
-        check_and_save(app, tool, &path).await?;
-    }
+    let paths = engine_paths(&dir, state.paths.platform);
+    let browser = find_headless_shell(&paths).ok_or(SetupError::Missing)?;
+    check_and_save(app, browser).await?;
     Ok(())
 }
 
@@ -296,7 +241,6 @@ pub async fn install_engine(app: AppHandle, state: State<'_, AppState>) -> Comma
     state.tasks.end(ENGINE_TASK);
     let error = result.as_ref().err().map(ToString::to_string);
     let finished = EngineInstallUpdate {
-        part: EnginePart::HeadlessShell,
         step: "done".to_owned(),
         progress: if error.is_some() { None } else { Some(1.0) },
         message: error.clone().unwrap_or_else(|| "Engine ready".to_owned()),
@@ -309,11 +253,11 @@ pub async fn install_engine(app: AppHandle, state: State<'_, AppState>) -> Comma
     Ok(result?)
 }
 
-async fn pick_file(app: &AppHandle, tool: EngineTool) -> Option<PathBuf> {
+async fn pick_file(app: &AppHandle) -> Option<PathBuf> {
     let (sender, receiver) = tokio::sync::oneshot::channel();
     app.dialog()
         .file()
-        .set_title(format!("Choose the {}", tool.label()))
+        .set_title(format!("Choose the {BROWSER}"))
         .pick_file(move |file| {
             if sender.send(file).is_err() {
                 log::debug!("the file dialog closed after its caller left");
@@ -328,11 +272,11 @@ async fn pick_file(app: &AppHandle, tool: EngineTool) -> Option<PathBuf> {
 
 #[tauri::command]
 #[specta::specta]
-pub async fn choose_engine_tool(app: AppHandle, tool: EngineTool) -> CommandResult<bool> {
-    let Some(path) = pick_file(&app, tool).await else {
+pub async fn choose_browser(app: AppHandle) -> CommandResult<bool> {
+    let Some(path) = pick_file(&app).await else {
         return Ok(false);
     };
-    check_and_save(&app, tool, &path)
+    check_and_save(&app, &path)
         .await
         .map_err(|e| CommandError(e.to_string()))?;
     Ok(true)
@@ -342,9 +286,4 @@ pub async fn choose_engine_tool(app: AppHandle, tool: EngineTool) -> CommandResu
 #[specta::specta]
 pub fn get_engine_status(state: State<'_, AppState>) -> EngineStatus {
     engine_status(&state)
-}
-
-pub fn ffmpeg_licence(state: &AppState) -> Option<PathBuf> {
-    let ffmpeg = saved_engine(state).ffmpeg?;
-    Some(Path::new(&ffmpeg.path).parent()?.join("LICENSE.txt"))
 }

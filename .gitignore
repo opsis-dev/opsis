@@ -28,3 +28,6 @@ examples/**/secrets/
 
 # Logs
 *.log
+
+# Bundled programs
+crates/desktop/binaries/

@@ -40,7 +40,7 @@ pub fn builder() -> Builder<tauri::Wry> {
             settings::app_menu_sections,
             settings::get_environment,
             engine::install_engine,
-            engine::choose_engine_tool,
+            engine::choose_browser,
             engine::get_engine_status,
             settings::list_licences,
             settings::open_licence_file,

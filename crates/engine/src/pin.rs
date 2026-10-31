@@ -3,20 +3,11 @@ use std::path::Path;
 use sha2::{Digest, Sha256};
 use tokio_util::sync::CancellationToken;
 
-use crate::downloads::{Downloads, FfmpegDownload, FfmpegFile, Pinned, ShellDownload};
+use crate::downloads::{Downloads, Pinned, ShellDownload};
+use crate::ffmpeg::{FFMPEG_RELEASE, FFMPEG_TARGETS, FfmpegPins, FfmpegTarget};
 use crate::install::{InstallError, fetch};
 use crate::paths::ShellPlatform;
 use crate::tools::file_sha256;
-
-pub const FFMPEG_RELEASE: &str = "b6.1.1";
-
-const FFMPEG_TARGETS: [&str; 5] = [
-    "linux-x64",
-    "linux-arm64",
-    "darwin-x64",
-    "darwin-arm64",
-    "win32-x64",
-];
 
 const SHELLS: [ShellPlatform; 5] = [
     ShellPlatform::Linux64,
@@ -26,8 +17,6 @@ const SHELLS: [ShellPlatform; 5] = [
     ShellPlatform::Win64,
 ];
 
-const FFMPEG_FILES: [FfmpegFile; 2] = [FfmpegFile::Ffmpeg, FfmpegFile::License];
-
 pub fn shell_url(version: &str, platform: ShellPlatform) -> String {
     format!(
         "https://storage.googleapis.com/chrome-for-testing-public/{version}/{id}/chrome-headless-shell-{id}.zip",
@@ -35,13 +24,16 @@ pub fn shell_url(version: &str, platform: ShellPlatform) -> String {
     )
 }
 
-pub fn ffmpeg_url(target: &str, file: FfmpegFile) -> String {
-    let base =
-        format!("https://github.com/eugeneware/ffmpeg-static/releases/download/{FFMPEG_RELEASE}");
-    match file {
-        FfmpegFile::Ffmpeg => format!("{base}/ffmpeg-{target}.gz"),
-        FfmpegFile::License => format!("{base}/{target}.LICENSE"),
-    }
+fn ffmpeg_release_url(file: &str) -> String {
+    format!("https://github.com/eugeneware/ffmpeg-static/releases/download/{FFMPEG_RELEASE}/{file}")
+}
+
+pub fn ffmpeg_program_url(asset: &str) -> String {
+    ffmpeg_release_url(&format!("ffmpeg-{asset}.gz"))
+}
+
+pub fn ffmpeg_licence_url(asset: &str) -> String {
+    ffmpeg_release_url(&format!("{asset}.LICENSE"))
 }
 
 fn cached_name(url: &str) -> String {
@@ -61,6 +53,7 @@ async fn pinned(
 ) -> Result<Pinned, InstallError> {
     let file = cache.join(cached_name(&url));
     if !file.exists() {
+        std::fs::create_dir_all(cache)?;
         eprintln!("downloading {url}");
         let fetched = fetch(
             client,
@@ -79,6 +72,22 @@ async fn pinned(
     })
 }
 
+pub async fn verified_download(
+    client: &reqwest::Client,
+    expected: &Pinned,
+    cache: &Path,
+) -> Result<std::path::PathBuf, InstallError> {
+    let got = pinned(client, expected.url.clone(), cache).await?;
+    let file = cache.join(cached_name(&expected.url));
+    if got != *expected {
+        std::fs::remove_file(&file)?;
+        return Err(InstallError::Mismatch {
+            url: expected.url.clone(),
+        });
+    }
+    Ok(file)
+}
+
 pub async fn pin_downloads(tested_version: &str, cache: &Path) -> Result<Downloads, InstallError> {
     let client = reqwest::Client::new();
     let mut shells = Vec::new();
@@ -89,21 +98,26 @@ pub async fn pin_downloads(tested_version: &str, cache: &Path) -> Result<Downloa
             pinned: pinned(&client, url, cache).await?,
         });
     }
-    let mut ffmpeg = Vec::new();
-    for target in FFMPEG_TARGETS {
-        for file in FFMPEG_FILES {
-            ffmpeg.push(FfmpegDownload {
-                target: target.to_owned(),
-                file,
-                pinned: pinned(&client, ffmpeg_url(target, file), cache).await?,
-            });
-        }
-    }
     Ok(Downloads {
         tested_version: tested_version.to_owned(),
-        ffmpeg_release: FFMPEG_RELEASE.to_owned(),
         shells,
-        ffmpeg,
+    })
+}
+
+pub async fn pin_ffmpeg(cache: &Path) -> Result<FfmpegPins, InstallError> {
+    let client = reqwest::Client::new();
+    let mut targets = Vec::new();
+    for (target, asset) in FFMPEG_TARGETS {
+        targets.push(FfmpegTarget {
+            target: target.to_owned(),
+            asset: asset.to_owned(),
+            program: pinned(&client, ffmpeg_program_url(asset), cache).await?,
+            licence: pinned(&client, ffmpeg_licence_url(asset), cache).await?,
+        });
+    }
+    Ok(FfmpegPins {
+        release: FFMPEG_RELEASE.to_owned(),
+        targets,
     })
 }
 
@@ -111,6 +125,7 @@ pub async fn pin_downloads(tested_version: &str, cache: &Path) -> Result<Downloa
 mod tests {
     use super::*;
     use crate::downloads::downloads;
+    use crate::ffmpeg::ffmpeg_pins;
 
     #[test]
     fn builds_the_addresses_that_are_pinned_today() {
@@ -121,10 +136,18 @@ mod tests {
                 shell.pinned.url
             );
         }
-        for file in &d.ffmpeg {
-            assert_eq!(ffmpeg_url(&file.target, file.file), file.pinned.url);
+    }
+
+    #[test]
+    fn builds_the_ffmpeg_addresses_that_are_pinned_today() {
+        let pins = ffmpeg_pins();
+        assert_eq!(pins.release, FFMPEG_RELEASE);
+        for (target, asset) in FFMPEG_TARGETS {
+            let pinned = pins.target(target).expect("every target is pinned");
+            assert_eq!(pinned.asset, asset);
+            assert_eq!(pinned.program.url, ffmpeg_program_url(asset));
+            assert_eq!(pinned.licence.url, ffmpeg_licence_url(asset));
         }
-        assert_eq!(d.ffmpeg_release, FFMPEG_RELEASE);
     }
 
     #[test]
@@ -134,6 +157,12 @@ mod tests {
             format!("{json}\n"),
             include_str!("downloads.generated.json")
         );
+    }
+
+    #[test]
+    fn writes_the_ffmpeg_pins_in_the_form_they_are_committed() {
+        let json = serde_json::to_string_pretty(ffmpeg_pins()).unwrap();
+        assert_eq!(format!("{json}\n"), include_str!("ffmpeg.generated.json"));
     }
 
     #[test]

@@ -106,11 +106,7 @@ async fn runs_media_nodes_and_exports_a_film() {
         std::fs::remove_dir_all(&project).unwrap();
     }
     std::fs::create_dir_all(&temp).unwrap();
-    make_clip(
-        engine.ffmpeg.as_deref().unwrap(),
-        &project.join("assets/clip.mp4"),
-    )
-    .await;
+    make_clip(&opsis_golden::ffmpeg(), &project.join("assets/clip.mp4")).await;
     let tools: Tools = Arc::new(Ffmpeg::new(&engine).with_temp(&temp));
     let render = Arc::new(RenderEngine {
         tools: Arc::clone(&tools),

@@ -37,7 +37,7 @@ bun run film:bundle
 bun start
 ```
 
-`bun run film:bundle` builds the film page that exports draw; run it again after changing `packages/video` or `packages/runtime`. The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) and FFmpeg in the app's data folder, or **Choose file…** for programs you already have. Opsis checks each one before using it, and again at start if the file changed. Editing works without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**.
+`bun run film:bundle` builds the film page that exports draw; run it again after changing `packages/video` or `packages/runtime`. `bun start` downloads the pinned FFmpeg into `crates/desktop/binaries/` the first time and points the app at it (`OPSIS_FFMPEG`); the packaged app carries the same program beside its own. The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for a browser you already have. Opsis checks it before using it, and again at start if the file changed. Editing and mixing work without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**.
 
 Ready-made copies of every template are in [`examples/`](./examples) (**Open project…**).
 
@@ -49,24 +49,25 @@ Ready-made copies of every template are in [`examples/`](./examples) (**Open pro
 | `CARGO_TARGET_DIR=~/.cache/opsis-build` | Put build output outside the repo                         |
 | `CARGO_BUILD_JOBS=8`                    | Limit how many cores the Rust build uses                  |
 
-The app never includes the recording browser or our FFmpeg; users download them or choose their own from Settings. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests, then builds deb, rpm and AppImage on Linux (x64), NSIS and MSI on Windows (x64) and the app and a DMG on macOS (Apple Silicon and Intel), and uploads them as artifacts.
+The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside the app's own) but never the recording browser; users download it or choose their own from Settings. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests, then builds deb, rpm and AppImage on Linux (x64), NSIS and MSI on Windows (x64) and the app and a DMG on macOS (Apple Silicon and Intel), and uploads them as artifacts.
 
 ## Scripts
 
-| Script                 | What it does                                                               |
-| ---------------------- | -------------------------------------------------------------------------- |
-| `bun start`            | Run the app in development                                                 |
-| `bun run typecheck`    | `tsc --noEmit` everywhere                                                  |
-| `bun run lint:fix`     | oxlint and `cargo clippy`                                                  |
-| `bun run format:fix`   | oxfmt and `cargo fmt`                                                      |
-| `bun run test`         | vitest and `cargo test`                                                    |
-| `bun run test:e2e`     | The app driven by WebdriverIO in a virtual display (needs `xvfb`)          |
-| `bun run types:export` | Write the TypeScript types and bindings from the Rust code                 |
-| `bun run film:bundle`  | Build the film page that exports draw                                      |
-| `bun run fonts:bundle` | Copy the bundled fonts from their Fontsource packages                      |
-| `bun run brand:icons`  | Render `brand/logo.svg` to PNGs; `bun run app:icons` makes the app's icons |
-| `bun run routes`       | Regenerate the TanStack Router route tree                                  |
-| `bun run examples`     | Rewrite `examples/*/project.opsis.json` from the templates                 |
+| Script                 | What it does                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| `bun start`            | Run the app in development                                                   |
+| `bun run typecheck`    | `tsc --noEmit` everywhere                                                    |
+| `bun run lint:fix`     | oxlint and `cargo clippy`                                                    |
+| `bun run format:fix`   | oxfmt and `cargo fmt`                                                        |
+| `bun run test`         | vitest and `cargo test` (with the staged FFmpeg)                             |
+| `bun run test:e2e`     | The app driven by WebdriverIO in a virtual display (needs `xvfb`)            |
+| `bun run types:export` | Write the TypeScript types and bindings from the Rust code                   |
+| `bun run film:bundle`  | Build the film page that exports draw                                        |
+| `bun run fonts:bundle` | Copy the bundled fonts from their Fontsource packages                        |
+| `bun run brand:icons`  | Render `brand/logo.svg` to PNGs; `bun run app:icons` makes the app's icons   |
+| `bun run routes`       | Regenerate the TanStack Router route tree                                    |
+| `bun run examples`     | Rewrite `examples/*/project.opsis.json` from the templates                   |
+| `bun run ffmpeg:stage` | Download the pinned FFmpeg for this computer, if missing, and print its path |
 
 ## Architecture
 
@@ -110,7 +111,7 @@ Contributor rules (no code comments, kebab-case files, pinned versions, what mus
 | Browser           | One Chrome Headless Shell for recording, renders, sign-in and the element picker, driven over CDP from Rust | The same engine everywhere; Playwright's page scripts and keyboard are reused without its Node runtime.                             |
 | Animations        | Frame-driven only: every element and transition                                                             | Every frame has to be a pure function of the frame number; CSS transitions and tween libraries don't survive a render.              |
 | GSAP              | Not used                                                                                                    | The runtime's `interpolate`, `spring` and easing cover it, without GSAP's licence clause on visual builders.                        |
-| FFmpeg            | The ffmpeg-static build, downloaded at setup and checked by sha256, never shipped                           | Users get a known build without the app carrying it.                                                                                |
+| FFmpeg            | The ffmpeg-static build, pinned by sha256 and shipped beside the app as a separate program                  | Exports work without setting anything up, and every run starts the same known build.                                                |
 | Camera and cursor | Built on [programatic-demo](https://github.com/ashrafchowdury/programatic-demo) (MIT)                       | It already solved the click log, auto-zoom camera, vector cursor and motion blur; its notice is kept.                               |
 | Offline           | Nothing uses the internet unless you ask                                                                    | Engine and font downloads sit behind a button, and a film never loads anything remote.                                              |
 | Licensing         | GPLv3 or later                                                                                              | Free software, with no other licence needed to export.                                                                              |

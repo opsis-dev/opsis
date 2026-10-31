@@ -7,13 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  commands,
-  events,
-  type EngineInstallEvent,
-  type EngineTool,
-  type ToolStatus,
-} from "@/generated/bindings";
+import { commands, events, type EngineInstallEvent, type ToolStatus } from "@/generated/bindings";
 import { errorMessage } from "@/lib/errors";
 import { useEnvironment, useFreshEnvironment } from "../store/environment";
 import { PageBar } from "./app-bar";
@@ -54,7 +48,7 @@ function EngineProgress({
   return (
     <>
       {!error && event?.progress != null ? (
-        <div key={`${event.part}|${event.step}`} className="flex items-center gap-2">
+        <div key={event.step} className="flex items-center gap-2">
           <Progress className="flex-1" value={wholePercent(event.progress)} />
           <AnimatedPercent
             className="text-muted-foreground w-10 text-right text-xs"
@@ -68,11 +62,6 @@ function EngineProgress({
     </>
   );
 }
-
-const TOOLS: Array<{ tool: EngineTool; title: string }> = [
-  { tool: "browser", title: "Recording browser" },
-  { tool: "ffmpeg", title: "Video tools" },
-];
 
 function ToolState({ status }: { status: ToolStatus }) {
   if (status.checking)
@@ -94,24 +83,14 @@ function ToolState({ status }: { status: ToolStatus }) {
   );
 }
 
-function ToolRow({
-  tool,
-  title,
-  status,
-  disabled,
-}: {
-  tool: EngineTool;
-  title: string;
-  status: ToolStatus;
-  disabled: boolean;
-}) {
+function BrowserRow({ status, disabled }: { status: ToolStatus; disabled: boolean }) {
   const [failure, setFailure] = useState<string | null>(null);
   const [choosing, setChoosing] = useState(false);
   async function choose() {
     setChoosing(true);
     setFailure(null);
     try {
-      await commands.chooseEngineTool(tool);
+      await commands.chooseBrowser();
     } catch (e) {
       setFailure(errorMessage(e));
     } finally {
@@ -122,7 +101,7 @@ function ToolRow({
     <div className="flex items-start gap-3 border-t pt-2 first:border-t-0 first:pt-0">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-center gap-1.5 text-sm font-medium">
-          {title}
+          Recording browser
           {status.path && !status.problem && !status.checking ? (
             <CheckCircle2 className="text-success size-3.5" />
           ) : null}
@@ -161,7 +140,7 @@ export function EnginePanel({ onDone, title = "Engine" }: { onDone?: () => void;
           <Badge variant="outline">Not set up</Badge>
         )
       }
-      description="The recording browser and video tools Opsis uses to record takes and export videos. Download them, or choose programs already on this computer; Opsis checks each one before using it. Editing and preview work without them."
+      description="The recording browser Opsis uses to record takes and draw exports. Download it, or choose one already on this computer; Opsis checks it before using it. Editing and preview work without it."
       contentClassName="flex flex-col gap-2"
       footer={
         <>
@@ -182,17 +161,7 @@ export function EnginePanel({ onDone, title = "Engine" }: { onDone?: () => void;
         </>
       }
     >
-      {env
-        ? TOOLS.map(({ tool, title: name }) => (
-            <ToolRow
-              key={tool}
-              tool={tool}
-              title={name}
-              status={env.engine[tool]}
-              disabled={busy}
-            />
-          ))
-        : null}
+      {env ? <BrowserRow status={env.engine.browser} disabled={busy} /> : null}
       {busy || error ? <EngineProgress event={event} error={error} /> : null}
     </SettingsCard>
   );
@@ -208,8 +177,8 @@ export function Setup() {
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold tracking-tight">Welcome to Opsis</h1>
             <p className="text-muted-foreground text-sm">
-              Recording and exporting need a recording browser and video tools. Download them once,
-              or choose your own.
+              Recording and exporting need a recording browser. Download it once, or choose your
+              own.
             </p>
           </div>
           <EnginePanel

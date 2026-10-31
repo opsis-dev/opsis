@@ -26,14 +26,7 @@ function useCollapsedBuses() {
 }
 
 function MixStatus({ film }: { film: Film }) {
-  const unavailable = useMedia((s) => s.unavailable);
   const mixError = useMedia((s) => mixFailure(s)?.error ?? null);
-  if (unavailable)
-    return (
-      <span className="text-muted-foreground">
-        Set up the engine in Settings to hear the full mix and see levels.
-      </span>
-    );
   if (film.failed && mixError) return <span className="text-destructive truncate">{mixError}</span>;
   if (film.stale)
     return (

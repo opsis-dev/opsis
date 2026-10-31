@@ -6,40 +6,34 @@ Ship FFmpeg inside the app as a Tauri sidecar instead of downloading it at setup
 
 - Sections 1 and 2 ship together: the sidecar and its licence and source notice. Section 3, Opsis's own build, comes after and swaps the program without touching the app. Section 4 records the option not chosen.
 - Each section has the same parts where they apply: **In place**, **Work** (numbered, only what is left), **Decided**.
-- Each piece of work ends with the usual checks: `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, and the tests of the crates that start FFmpeg (`cargo test -p opsis-media -p opsis-footage -p opsis-render -p opsis-capture -- --ignored`).
+- Each piece of work ends with the usual checks: `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, and the tests of the crates that start FFmpeg (`bun run test:rust -p opsis-media -p opsis-footage -p opsis-render -p opsis-capture -- --ignored`, which sets `OPSIS_FFMPEG`).
 - This plan changes `AGENTS.md` on purpose (One engine, Packaging, Licences, Cache keys, End-to-end tests, Tooling); every such change updates `AGENTS.md`, `README.md`, `THIRD_PARTY_NOTICES.md` and `plans/release.md` in the same commit.
 
 ## Summary
 
-| Topic                         | What users get                                                     | Left to do                                                      | Status      |
-| ----------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------- | ----------- |
-| 1. Sidecar with ffmpeg-static | Exports work without setting up FFmpeg; only the browser downloads | staging, config, lookup, removing the FFmpeg half of the engine | not started |
-| 2. Licence and source notice  | FFmpeg's licence and where its source is                           | the licence in resources, the source notice                     | not started |
-| 3. Own build                  | One FFmpeg version on every platform, only what Opsis uses         | pinned sources, the build binary, CI builds, the swap           | not started |
-| 4. FFmpeg inside the app      | Nothing                                                            | not planned                                                     | not chosen  |
+| Topic                         | What users get                                                     | Left to do                                            | Status      |
+| ----------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- | ----------- |
+| 1. Sidecar with ffmpeg-static | Exports work without setting up FFmpeg; only the browser downloads | macOS untested                                        | built       |
+| 2. Licence and source notice  | FFmpeg's licence and where its source is                           | release notes, once releases are made                 | built       |
+| 3. Own build                  | One FFmpeg version on every platform, only what Opsis uses         | pinned sources, the build binary, CI builds, the swap | not started |
+| 4. FFmpeg inside the app      | Nothing                                                            | not planned                                           | not chosen  |
 
 ## 1. Sidecar with ffmpeg-static
 
-**In place.**
+**In place.** Built on 2026-11-01.
 
-- **One path for every FFmpeg run.** `Ffmpeg::new(&EngineFiles)` (`crates/media/src/ffmpeg.rs`) runs and pipes for the media executors, mix stems, analysis, the render encoder (`crates/render/src/frames.rs`) and the take encoder (`crates/capture/src/encoder.rs`). The footage decoder starts its own process from `FootageTools { ffmpeg, temp }` (`crates/footage/src/decoder.rs`, built in `crates/render/src/footage.rs`). Both take the path from `EngineFiles.ffmpeg` (`crates/engine/src/tools.rs`), which comes from `settings.engine.ffmpeg`.
-- **Downloaded today.** `install_ffmpeg` (`crates/engine/src/install.rs`) fetches the ffmpeg-static b6.1.1 program and licence for five targets, pinned in `crates/engine/src/downloads.generated.json` (`ffmpegRelease`, the `ffmpeg` entries; `pin.rs`). `check_ffmpeg` (`crates/media/src/capabilities.rs`) checks every `REQUIRED_*` encoder, decoder, format and filter before the path is saved, `verify_on_start` hashes it again when it changed, and its hash goes into every node key (`Release.engine`, `crates/runner/src/keys.rs`). Its licence is listed from the engine folder (`ffmpeg_licence` in `crates/desktop/src/engine.rs`, `crates/engine/src/licences.rs`, the FFmpeg entry in `crates/desktop/src/settings.rs`). Setup and About show it as "Video tools" (`apps/frontend/src/app/setup.tsx`, `settings/about-page.tsx`), and `apps/frontend/src/store/environment.ts` counts it as missing engine.
-- **How Tauri places a sidecar.** `bundle.externalBin` names files `<name>-<target triple>[.exe]`. tauri-build copies each next to the program on every build of a config that declares it, and fails the build when one is missing (`copy_binaries` in tauri-build's `lib.rs`). The bundles put it beside the main program with the triple removed: the deb in `/usr/bin/<name>` (tauri-bundler `bundle/linux/debian.rs`, `copy_binaries` in `bundle/settings.rs`), the macOS app in `Contents/MacOS`, Windows in the install folder.
-- **Size.** The Linux x64 program is 79,826,272 bytes. Compressed, the five b6.1.1 programs are 19,246,198 (macOS Arm) to 29,581,307 bytes (Windows x64).
+- **Pins and staging.** `crates/engine/src/ffmpeg.generated.json` pins the ffmpeg-static b6.1.1 program and licence per target triple (`bun run ffmpeg:pin`, the `pin-ffmpeg` binary); `downloads.generated.json` pins only the browser. The `stage-ffmpeg` binary downloads a target's pins into `~/.cache/opsis-ffmpeg`, checks sha256 and size, and writes `crates/desktop/binaries/opsis-ffmpeg-<target triple>[.exe]` (gitignored) and `resources/LICENSE.ffmpeg.txt`. `scripts/lib/ffmpeg.ts` takes the target from `rustc -vV`; `bun run stage` always stages, while `bun start` (`scripts/start.ts`), `bun run test:rust` (`scripts/test-rust.ts`), the e2e runner (`wdio.conf.ts`) and `bun run ffmpeg:stage` stage only when the program or licence is missing, then set `OPSIS_FFMPEG`.
+- **Config.** `"externalBin": ["binaries/opsis-ffmpeg"]` and the licence resource are in `tauri.release.conf.json` only. The deb installs `/usr/bin/opsis-ffmpeg` beside `/usr/bin/opsis-desktop`, and `LICENSE.ffmpeg.txt` in `/usr/lib/Opsis`.
+- **Lookup.** `bundled_ffmpeg` (`crates/engine/src/ffmpeg.rs`): `OPSIS_FFMPEG` in builds with debug assertions (an absolute path to a file), otherwise `opsis-ffmpeg` beside `current_exe()`. When neither is there it returns `FfmpegMissing`, "Opsis's video tools are missing. Install Opsis again." (`EngineMissing` would send people to Settings → Engine, which can no longer fix it.) `EngineFiles.ffmpeg` and, through it, `FootageTools.ffmpeg` take it.
+- **The engine is the browser.** `EngineTool`, `EnginePart` and `EngineInstallUpdate.part` are gone (one value each was left), as are `settings.engine.ffmpeg`, `EngineStatus.ffmpeg`, `install_ffmpeg` and the FFmpeg start-up check. `choose_engine_tool` became `choose_browser`. Engine status is complete when the browser is ready. Setup, Settings → Engine, About and the Licences page copy name only the recording browser, and `ENGINE_MISSING_MESSAGE` says "The recording browser isn't set up yet." Analysis no longer reports the engine as missing: `AnalysisResult::Error.engine_missing`, the editor's `unavailable` media state and the Mixer's "Set up the engine" line are gone, because mixing and analysis need no setup.
+- **The swap contract.** `check_ffmpeg` also refuses a configuration line without `--enable-gpl --enable-version3` or with `--enable-nonfree`. It runs as a test on the staged program in `bun run test`, and after the build on every CI build runner (`bun run test:rust -p opsis-media --lib capabilities`).
+- **Cache keys.** `Release.engine` holds only the browser's hash. `ENGINE_VERSION` is unchanged.
+- **Tests.** Tests that start FFmpeg read `OPSIS_FFMPEG` through `opsis_golden::ffmpeg()` or `EngineFiles`. The probe parity test reads ffprobe from `~/.cache/opsis-ffmpeg`. The e2e and check-app data folders seed only the browser.
+- **Size.** Measured 2026-11-01 on Linux x64: the deb grew from 48,625,200 to 78,800,484 bytes, and the install by the 79,826,272-byte program (`plans/release.md` section 1).
 
 **Work.**
 
-1. **Staging.** A Rust binary in `opsis-engine`, beside `install-engine` (scripts reach the engine only through Rust binaries, `scripts/lib/engine.ts`), downloads the pinned program and licence for a target, checks sha256 and size, and writes `crates/desktop/binaries/opsis-ffmpeg-<target triple>[.exe]` with `LICENSE.ffmpeg.txt` into `resources/`. Downloads are cached in `~/.cache/opsis-ffmpeg`. `bun run stage` runs it for packaging; `bun start`, the e2e runner and the test setup run it when the program is missing. `crates/desktop/binaries/` is gitignored and added to the generated-code table in `AGENTS.md`.
-2. **The name is `opsis-ffmpeg`, never `ffmpeg`.** The deb would install `/usr/bin/ffmpeg`, which belongs to the distribution's `ffmpeg` package, and the install would fail on the file conflict.
-3. **Config.** `"externalBin": ["binaries/opsis-ffmpeg"]` in `tauri.release.conf.json` only, so the base config stays bundle-free and dev and e2e builds compile without the file.
-4. **Lookup.** One function in `opsis-engine`: `OPSIS_FFMPEG` (an absolute path) when it is set, read by code under `#[cfg(debug_assertions)]`; otherwise `current_exe()`'s folder joined with `opsis-ffmpeg` and the platform's executable suffix; `EngineMissing` when neither exists. Release builds don't contain the variable's code. `tauri dev` and `cargo test` build with debug assertions, and the `e2e` feature refuses to build without them (`compile_error!` in `crates/desktop/src/lib.rs`), so all three read it. `bun start`, the e2e runner and the test setup set `OPSIS_FFMPEG` to the staged program. `EngineFiles.ffmpeg` and `FootageTools.ffmpeg` take the result. Windows keeps `CREATE_NO_WINDOW`, and every run keeps its child temp folder.
-5. **Remove the FFmpeg half of the engine.** `EngineTool::Ffmpeg`, `settings.engine.ffmpeg`, `install_ffmpeg` and `EnginePart::Ffmpeg`, the FFmpeg entries and `ffmpegRelease` in `downloads.generated.json` (the pin moves to the staging binary's own pinned JSON), the FFmpeg targets in `pin.rs`, the start-up check of the FFmpeg path, `ffmpeg_licence` reading the engine folder, the Video tools rows in Setup and About, and the FFmpeg check in `environment.ts` and `crates/desktop/src/analysis.rs`. Engine status is complete when the browser is ready. Settings → Engine sets up the browser only, and its copy says so. FFmpeg appears only under Settings → Licences.
-6. **Keep the capability check as the swap contract.** `check_ffmpeg` and the `REQUIRED_*` lists stay, run as a test on the staged program on every CI runner. The same test fails when the configuration line lacks `--enable-gpl --enable-version3` or has `--enable-nonfree`.
-7. **Cache keys.** `Release` drops the FFmpeg hash: the bundled program only changes with a release, and the app version is already in every key. `ENGINE_VERSION` stays as it is; clear local test caches instead.
-8. **Tests.** Tests that start FFmpeg read `OPSIS_FFMPEG`. The ffprobe the probe parity test reads (`crates/probe/tests/ffprobe.rs`) moves beside the staged program in `~/.cache/opsis-ffmpeg`. The e2e data folder seeds only the browser in `settings.engine`, and `engineReady` waits for the browser only.
-9. **macOS.** The sidecar is signed with the hardened runtime and notarized with the app; the CI step that checks every Mach-O with `codesign` covers it. Run an export on the macOS runners to confirm the ffmpeg-static program works under the hardened runtime without extra entitlements.
-10. **Size.** Measure the deb again and update `plans/release.md` section 1 (What ships, Package size).
-11. **Docs.** `AGENTS.md` (One engine, Packaging, Licences, Cache keys, End-to-end tests, and `OPSIS_FFMPEG` beside `OPSIS_USER_DATA` in Tooling), `README.md` (setup, packaging, the FFmpeg row of the stack table), `THIRD_PARTY_NOTICES.md` (the FFmpeg section) and `plans/release.md` ("one build with no engine inside").
+1. **macOS.** The sidecar is signed and notarized with the app. That it runs under the hardened runtime without extra entitlements is unchecked; nothing tests it in CI. Look at it if exports fail on macOS.
 
 **Decided.**
 
@@ -47,18 +41,17 @@ Ship FFmpeg inside the app as a Tauri sidecar instead of downloading it at setup
 - No shell plugin: the app keeps starting FFmpeg with its own process code, only the path changes.
 - Users can no longer choose their own FFmpeg; `OPSIS_FFMPEG` is for development and tests only.
 - About shows nothing about FFmpeg.
+- No CI export run on macOS: the sidecar ships there untested.
 
 ## 2. Licence and source notice
 
-**In place.** Opsis is GPL-3.0-or-later. The ffmpeg-static programs are GPLv3 builds (`--enable-gpl --enable-version3`, no `--enable-nonfree`).
+**In place.** Opsis is GPL-3.0-or-later. The ffmpeg-static programs are GPLv3 builds (`--enable-gpl --enable-version3`, no `--enable-nonfree`). The release's licence ships as `LICENSE.ffmpeg.txt` and Settings → Licences lists it from the resource folder (`shipped` in `crates/engine/src/licences.rs`). `THIRD_PARTY_NOTICES.md` links FFmpeg's source and the ffmpeg-static release; a test in `opsis-engine` checks that the release link is the pinned one. `bun run notice:links` (`scripts/notice-links.ts`) fetches every link in the section, and CI runs it on `v*` tags.
 
 **Work.**
 
-1. **The licence.** Ship the release's `LICENSE` file in `resources/` and list it in Settings → Licences from the resource folder (`AppPaths`), not from the engine folder.
-2. **The source notice.** Links to the upstream source, in `THIRD_PARTY_NOTICES.md` and each GitHub release's notes: FFmpeg's source and the ffmpeg-static release the programs come from.
-3. **Links stay working.** CI checks every link in the notice before each release.
+1. **Release notes.** Put the source notice in each GitHub release's notes once a workflow creates releases (none does yet).
 
-**Decided.** Upstream links only; no source tarballs attached to releases.
+**Decided.** Upstream links only; no source tarballs attached to releases. Until releases are made by CI, the notice lives in `THIRD_PARTY_NOTICES.md` only.
 
 ## 3. Own build
 

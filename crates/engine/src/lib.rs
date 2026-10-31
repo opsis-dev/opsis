@@ -1,6 +1,7 @@
 pub mod children;
 pub mod chrome_for_testing;
 pub mod downloads;
+pub mod ffmpeg;
 pub mod files;
 pub mod hash;
 pub mod http_files;

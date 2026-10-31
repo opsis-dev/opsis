@@ -2,27 +2,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 
 pub const ENGINE_MISSING_MESSAGE: &str =
-    "The video engine isn't set up yet. Set it up in Settings → Engine.";
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
-)]
-#[serde(rename_all = "camelCase")]
-pub enum EngineTool {
-    Browser,
-    Ffmpeg,
-}
-
-impl EngineTool {
-    pub const ALL: [Self; 2] = [Self::Browser, Self::Ffmpeg];
-
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::Browser => "recording browser",
-            Self::Ffmpeg => "video tool",
-        }
-    }
-}
+    "The recording browser isn't set up yet. Set it up in Settings → Engine.";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -65,31 +45,11 @@ impl ToolStatus {
 pub struct EngineStatus {
     pub download_dir: String,
     pub browser: ToolStatus,
-    pub ffmpeg: ToolStatus,
     pub complete: bool,
-}
-
-impl EngineStatus {
-    pub fn tool(&self, tool: EngineTool) -> &ToolStatus {
-        match tool {
-            EngineTool::Browser => &self.browser,
-            EngineTool::Ffmpeg => &self.ffmpeg,
-        }
-    }
-}
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
-)]
-#[serde(rename_all = "kebab-case")]
-pub enum EnginePart {
-    Ffmpeg,
-    HeadlessShell,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct EngineInstallUpdate {
-    pub part: EnginePart,
     pub step: String,
     pub progress: Option<f64>,
     pub message: String,

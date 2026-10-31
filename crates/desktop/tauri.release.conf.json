@@ -11,6 +11,7 @@
     "homepage": "https://github.com/bismitpanda/opsis",
     "license": "GPL-3.0-or-later",
     "licenseFile": "../../LICENSE",
+    "externalBin": ["binaries/opsis-ffmpeg"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -22,6 +23,7 @@
       "../../film-bundle/": "film-bundle/",
       "../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md",
       "../../resources/engine-licences/": "engine-licences/",
+      "../../resources/LICENSE.ffmpeg.txt": "LICENSE.ffmpeg.txt",
       "../../LICENSE": "LICENSE"
     },
     "linux": {

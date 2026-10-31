@@ -5,14 +5,18 @@ use opsis_types::engine::LicenceEntry;
 use crate::files::read_text_if_present;
 use crate::paths::{CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER};
 
-pub fn shipped_credits(roots: &[PathBuf]) -> Option<PathBuf> {
+pub fn shipped(roots: &[PathBuf], file: &Path) -> Option<PathBuf> {
     roots
         .iter()
-        .map(|root| {
-            root.join(ENGINE_LICENCES_FOLDER)
-                .join(CHROMIUM_CREDITS_FILE)
-        })
-        .find(|file| file.is_file())
+        .map(|root| root.join(file))
+        .find(|found| found.is_file())
+}
+
+pub fn shipped_credits(roots: &[PathBuf]) -> Option<PathBuf> {
+    shipped(
+        roots,
+        &Path::new(ENGINE_LICENCES_FOLDER).join(CHROMIUM_CREDITS_FILE),
+    )
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

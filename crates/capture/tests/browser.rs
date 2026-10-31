@@ -15,8 +15,11 @@ async fn accepts_the_downloaded_browser_and_refuses_another_program() {
     let browser = downloaded_browser(&engine_dir()).unwrap();
     let version = check_browser(&browser, temp.path()).await.unwrap();
     assert!(version.split('.').count() == 4, "{version}");
-    let ffmpeg = engine_dir().join("ffmpeg").join("ffmpeg");
-    assert!(check_browser(&ffmpeg, temp.path()).await.is_err());
+    assert!(
+        check_browser(&opsis_golden::ffmpeg(), temp.path())
+            .await
+            .is_err()
+    );
 }
 
 #[tokio::test]

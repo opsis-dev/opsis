@@ -41,7 +41,6 @@ type MediaState = {
   projectDir: string | null;
   analyses: Analyses;
   mix: MixState;
-  unavailable: boolean;
   reset: (projectDir: string | null) => void;
   waveform: (src: string) => void;
   filmstrip: (src: string) => void;
@@ -56,16 +55,11 @@ const MIX_DEBOUNCE_MS = 250;
 
 const IDLE: MixStatus = { kind: "idle" };
 
-function engineMissing(r: AnalysisResult) {
-  return r.kind === "error" && !!r.engineMissing;
-}
-
 function emptyMedia(projectDir: string | null) {
   return {
     projectDir,
     analyses: { waveform: {}, filmstrip: {} },
     mix: { results: {}, latest: {}, status: IDLE },
-    unavailable: false,
   };
 }
 
@@ -105,11 +99,8 @@ function mixFailed(mix: MixState, key: string, error: string): MixState {
   };
 }
 
-function updateMixClearingPreview(
-  update: (mix: MixState) => MixState,
-  unavailable?: boolean,
-): void {
-  useMedia.setState((s) => ({ mix: update(s.mix), unavailable: unavailable ?? s.unavailable }));
+function updateMixClearingPreview(update: (mix: MixState) => MixState): void {
+  useMedia.setState((s) => ({ mix: update(s.mix) }));
   useAudioPreview.getState().clear();
 }
 
@@ -120,8 +111,7 @@ function finishMix(
   r: AnalysisResultFor<"mix">,
 ): void {
   if (useMedia.getState().projectDir !== projectDir || r.kind === "skipped") return;
-  if (r.kind === "error")
-    updateMixClearingPreview((mix) => mixFailed(mix, plan.key, r.error), engineMissing(r));
+  if (r.kind === "error") updateMixClearingPreview((mix) => mixFailed(mix, plan.key, r.error));
   else updateMixClearingPreview((mix) => mixDone(mix, source, plan.key, r.mix));
 }
 
@@ -149,8 +139,8 @@ export const useMedia = create<MediaState>()((set, get) => ({
   filmstrip: (src) => loadAnalysis("filmstrip", src),
 
   requestMix: (source, plan) => {
-    const { projectDir, mix, unavailable } = get();
-    if (!projectDir || unavailable) return;
+    const { projectDir, mix } = get();
+    if (!projectDir) return;
     if (mix.results[plan.key]) {
       if (mix.latest[source] !== plan.key)
         updateMixClearingPreview((m) => ({ ...m, latest: { ...m.latest, [source]: plan.key } }));
@@ -178,8 +168,8 @@ const MEDIA_VALUE: { [K in MediaKind]: (r: AnalysisResult) => MediaOf[K] | undef
 };
 
 function loadAnalysis<K extends MediaKind>(kind: K, src: string, again = false): void {
-  const { projectDir, unavailable, analyses } = useMedia.getState();
-  if (!projectDir || unavailable || (analyses[kind][src] && !again)) return;
+  const { projectDir, analyses } = useMedia.getState();
+  if (!projectDir || (analyses[kind][src] && !again)) return;
   function put(entry: Entry<MediaOf[K]>) {
     return useMedia.setState((s) => ({
       analyses: { ...s.analyses, [kind]: { ...s.analyses[kind], [src]: entry } },
@@ -189,7 +179,6 @@ function loadAnalysis<K extends MediaKind>(kind: K, src: string, again = false):
   const request: Extract<AnalysisRequest, { kind: MediaKind }> = { kind, projectDir, src };
   void analyze(request).then((r) => {
     if (useMedia.getState().projectDir !== projectDir) return;
-    if (engineMissing(r)) useMedia.setState({ unavailable: true });
     put(MEDIA_VALUE[kind](r) ?? "error");
   });
 }

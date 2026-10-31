@@ -61,7 +61,7 @@ const PAGES: Record<SettingsPage, PageInfo> = {
   engine: {
     label: "Engine",
     icon: Cpu,
-    description: "The recording browser and video tools.",
+    description: "The recording browser.",
     render: () => <EnginePanel title="Status" />,
   },
   recording: {

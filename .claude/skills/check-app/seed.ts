@@ -34,14 +34,8 @@ function browserIn(engine: string): string | null {
 }
 
 function engineSettings(engine: string): Record<string, { path: string } | null> {
-  function tool(file: string) {
-    return existsSync(file) ? { path: file } : null;
-  }
   const browser = browserIn(engine);
-  return {
-    browser: browser ? { path: browser } : null,
-    ffmpeg: tool(path.join(engine, "ffmpeg", "ffmpeg")),
-  };
+  return { browser: browser ? { path: browser } : null };
 }
 
 function seedDatabase(settings: Record<string, unknown>): void {

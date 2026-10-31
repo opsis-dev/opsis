@@ -243,10 +243,16 @@ const SAMPLES: &[(&str, &[&str], &[&str])] = &[
 
 const DURATION_SLACK_MS: f64 = 25.0;
 
-fn engine(tool: &str) -> PathBuf {
+fn ffmpeg() -> PathBuf {
+    PathBuf::from(std::env::var_os("OPSIS_FFMPEG").expect(
+        "OPSIS_FFMPEG names the staged FFmpeg: run cargo through bun run test:rust, or set it to what bun run ffmpeg:stage prints",
+    ))
+}
+
+fn ffprobe_program() -> PathBuf {
     PathBuf::from(std::env::var_os("HOME").expect("a home folder"))
-        .join(".config/Opsis/engine/ffmpeg")
-        .join(tool)
+        .join(".cache/opsis-ffmpeg")
+        .join(format!("ffprobe{}", std::env::consts::EXE_SUFFIX))
 }
 
 static MADE: OnceLock<PathBuf> = OnceLock::new();
@@ -264,7 +270,7 @@ fn make_samples() -> PathBuf {
         if file.exists() {
             continue;
         }
-        let mut command = Command::new(engine("ffmpeg"));
+        let mut command = Command::new(ffmpeg());
         command.args(["-y", "-loglevel", "error"]);
         for source in *sources {
             command.args(["-f", "lavfi", "-i", source]);
@@ -286,7 +292,7 @@ fn rate(text: Option<&Value>) -> Option<f64> {
 }
 
 fn ffprobe(file: &Path) -> Option<Probe> {
-    let out = Command::new(engine("ffprobe"))
+    let out = Command::new(ffprobe_program())
         .args([
             "-v",
             "error",
@@ -393,7 +399,7 @@ fn differences(name: &str, ours: &Probe, theirs: &Probe) -> Vec<String> {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg and an ffprobe in ~/.cache/opsis-ffmpeg"]
 fn reads_every_file_as_ffprobe_does() {
     let dir = samples();
     let mut found = Vec::new();
@@ -409,7 +415,7 @@ fn reads_every_file_as_ffprobe_does() {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg and an ffprobe in ~/.cache/opsis-ffmpeg"]
 fn knows_the_length_of_a_stream_written_without_one() {
     let dir = samples();
     let live = probe(&dir.join("live.webm")).expect("a probe");
@@ -420,7 +426,7 @@ fn knows_the_length_of_a_stream_written_without_one() {
 }
 
 #[test]
-#[ignore = "needs the dev engine"]
+#[ignore = "needs the staged FFmpeg and an ffprobe in ~/.cache/opsis-ffmpeg"]
 fn answers_files_cut_short_without_panicking() {
     let dir = samples();
     let cut = tempfile::NamedTempFile::new().expect("a temp file");

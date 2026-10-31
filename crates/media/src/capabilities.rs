@@ -2,7 +2,12 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use opsis_engine::tools::{ToolProblem, ffmpeg_version, tool_output, unrecognized};
-use opsis_types::engine::EngineTool;
+
+const VIDEO_TOOL: &str = "video tool";
+
+const REQUIRED_CONFIGURATION: [&str; 2] = ["--enable-gpl", "--enable-version3"];
+
+const REFUSED_CONFIGURATION: [&str; 1] = ["--enable-nonfree"];
 
 pub const REQUIRED_ENCODERS: [&str; 13] = [
     "aac",
@@ -152,9 +157,34 @@ async fn listing(path: &Path, flag: &str) -> Result<BTreeSet<String>, ToolProble
     Ok(listed(&tool_output(path, &["-hide_banner", flag]).await?))
 }
 
+fn configuration_problem(version_text: &str) -> Option<String> {
+    let flags: BTreeSet<&str> = version_text
+        .lines()
+        .find_map(|line| line.trim().strip_prefix("configuration:"))
+        .unwrap_or_default()
+        .split_whitespace()
+        .collect();
+    let lacking: Vec<&str> = REQUIRED_CONFIGURATION
+        .into_iter()
+        .filter(|flag| !flags.contains(flag))
+        .collect();
+    let refused: Vec<&str> = REFUSED_CONFIGURATION
+        .into_iter()
+        .filter(|flag| flags.contains(flag))
+        .collect();
+    match (lacking.is_empty(), refused.is_empty()) {
+        (true, true) => None,
+        (false, _) => Some(format!("It isn't built with {}.", lacking.join(" "))),
+        (true, false) => Some(format!("It is built with {}.", refused.join(" "))),
+    }
+}
+
 pub async fn check_ffmpeg(path: &Path) -> Result<String, ToolProblem> {
-    let version = ffmpeg_version(&tool_output(path, &["-version"]).await?)
-        .ok_or_else(|| unrecognized(path, EngineTool::Ffmpeg))?;
+    let version_text = tool_output(path, &["-version"]).await?;
+    let version = ffmpeg_version(&version_text).ok_or_else(|| unrecognized(path, VIDEO_TOOL))?;
+    if let Some(problem) = configuration_problem(&version_text) {
+        return Err(ToolProblem::Failed(problem));
+    }
     let mut lacking = Vec::new();
     for (flag, required) in [
         ("-encoders", &REQUIRED_ENCODERS[..]),
@@ -169,7 +199,7 @@ pub async fn check_ffmpeg(path: &Path) -> Result<String, ToolProblem> {
         Ok(version)
     } else {
         Err(ToolProblem::Missing {
-            tool: EngineTool::Ffmpeg.label().to_owned(),
+            tool: VIDEO_TOOL.to_owned(),
             missing: lacking.join(", "),
         })
     }
@@ -291,22 +321,25 @@ mod tests {
         assert_eq!(missing(&["aac", "gif"], &names), ["aac", "gif"]);
     }
 
-    #[tokio::test]
-    #[ignore = "needs the dev engine in ~/.config/Opsis/engine"]
-    async fn accepts_the_pinned_video_tool() {
-        let dir = dirs_engine();
-        assert!(
-            check_ffmpeg(&dir.join("ffmpeg").join(exe("ffmpeg")))
-                .await
-                .is_ok()
+    #[test]
+    fn accepts_only_a_gpl_version_3_build_without_nonfree_parts() {
+        let line = |flags: &str| format!("ffmpeg version 7.0.2-static\n  configuration: {flags}\n");
+        assert_eq!(
+            configuration_problem(&line("--enable-gpl --enable-version3 --enable-libx264")),
+            None
         );
+        assert!(configuration_problem(&line("--enable-gpl --enable-libx264")).is_some());
+        assert!(configuration_problem(&line("--enable-version3")).is_some());
+        assert!(
+            configuration_problem(&line("--enable-gpl --enable-version3 --enable-nonfree"))
+                .is_some()
+        );
+        assert!(configuration_problem("ffmpeg version 7.0.2-static\n").is_some());
     }
 
-    fn exe(name: &str) -> String {
-        format!("{name}{}", std::env::consts::EXE_SUFFIX)
-    }
-
-    fn dirs_engine() -> std::path::PathBuf {
-        std::path::PathBuf::from(std::env::var("HOME").unwrap()).join(".config/Opsis/engine")
+    #[tokio::test]
+    async fn the_bundled_video_tool_has_everything_opsis_uses() {
+        let checked = check_ffmpeg(&opsis_golden::ffmpeg()).await;
+        assert!(checked.is_ok(), "{checked:?}");
     }
 }

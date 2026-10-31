@@ -4,13 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::paths::ShellPlatform;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum FfmpegFile {
-    Ffmpeg,
-    License,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Pinned {
     pub url: String,
@@ -26,20 +19,10 @@ pub struct ShellDownload {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct FfmpegDownload {
-    pub target: String,
-    pub file: FfmpegFile,
-    #[serde(flatten)]
-    pub pinned: Pinned,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Downloads {
     pub tested_version: String,
-    pub ffmpeg_release: String,
     pub shells: Vec<ShellDownload>,
-    pub ffmpeg: Vec<FfmpegDownload>,
 }
 
 static DOWNLOADS: LazyLock<Downloads> = LazyLock::new(|| {
@@ -52,16 +35,6 @@ pub fn downloads() -> &'static Downloads {
 
 pub fn shell_download(platform: ShellPlatform) -> Option<&'static ShellDownload> {
     downloads().shells.iter().find(|s| s.platform == platform)
-}
-
-pub fn ffmpeg_download(
-    platform: ShellPlatform,
-    file: FfmpegFile,
-) -> Option<&'static FfmpegDownload> {
-    downloads()
-        .ffmpeg
-        .iter()
-        .find(|d| d.target == platform.ffmpeg_target() && d.file == file)
 }
 
 #[cfg(test)]
@@ -80,12 +53,6 @@ mod tests {
             ShellPlatform::Win64,
         ] {
             assert!(shell_download(platform).is_some(), "{platform:?}");
-            for file in [FfmpegFile::Ffmpeg, FfmpegFile::License] {
-                assert!(
-                    ffmpeg_download(platform, file).is_some(),
-                    "{platform:?} {file:?}"
-                );
-            }
         }
         for shell in &d.shells {
             assert_eq!(shell.pinned.sha256.len(), 64);

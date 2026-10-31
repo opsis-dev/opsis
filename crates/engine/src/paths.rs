@@ -58,16 +58,6 @@ impl ShellPlatform {
     pub fn windows(self) -> bool {
         self == Self::Win64
     }
-
-    pub fn ffmpeg_target(self) -> &'static str {
-        match self {
-            Self::Linux64 => "linux-x64",
-            Self::LinuxArm64 => "linux-arm64",
-            Self::MacX64 => "darwin-x64",
-            Self::MacArm64 => "darwin-arm64",
-            Self::Win64 => "win32-x64",
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -77,8 +67,6 @@ pub struct EnginePaths {
     pub shell_root: PathBuf,
     pub shell_folder: PathBuf,
     pub headless_shell: PathBuf,
-    pub ffmpeg: PathBuf,
-    pub ffmpeg_license: PathBuf,
 }
 
 pub fn engine_paths(dir: &Path, platform: ShellPlatform) -> EnginePaths {
@@ -93,8 +81,6 @@ pub fn engine_paths(dir: &Path, platform: ShellPlatform) -> EnginePaths {
         headless_shell: shell_folder.join(format!("chrome-headless-shell{exe}")),
         shell_root,
         shell_folder,
-        ffmpeg: dir.join("ffmpeg").join(format!("ffmpeg{exe}")),
-        ffmpeg_license: dir.join("ffmpeg").join("LICENSE.txt"),
     }
 }
 
@@ -110,7 +96,7 @@ pub fn find_headless_shell(paths: &EnginePaths) -> Option<&Path> {
 pub struct EngineMissing;
 
 pub fn is_downloaded(paths: &EnginePaths) -> bool {
-    find_headless_shell(paths).is_some() && paths.ffmpeg.is_file()
+    find_headless_shell(paths).is_some()
 }
 
 pub fn downloaded_browser(dir: &Path) -> Option<PathBuf> {
@@ -125,7 +111,7 @@ pub fn download_dir(user_data: &Path) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::downloads::{FfmpegFile, ffmpeg_download};
+    use crate::downloads::shell_download;
 
     #[test]
     fn every_platform_it_accepts_can_download_its_engine() {
@@ -138,10 +124,7 @@ mod tests {
                 let arm = arch != "x86_64";
                 assert_eq!(platform.id().ends_with("arm64"), arm, "{os} {arch}");
                 assert_eq!(platform.windows(), os.starts_with("win"), "{os} {arch}");
-                assert!(
-                    ffmpeg_download(platform, FfmpegFile::Ffmpeg).is_some(),
-                    "{os} {arch}"
-                );
+                assert!(shell_download(platform).is_some(), "{os} {arch}");
                 accepted.push(platform);
             }
         }
@@ -158,10 +141,6 @@ mod tests {
         assert_eq!(
             p.headless_shell.to_string_lossy().replace('\\', "/"),
             "/engine/chrome-headless-shell/win64/chrome-headless-shell-win64/chrome-headless-shell.exe"
-        );
-        assert_eq!(
-            p.ffmpeg.to_string_lossy().replace('\\', "/"),
-            "/engine/ffmpeg/ffmpeg.exe"
         );
     }
 }

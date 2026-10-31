@@ -47,14 +47,8 @@ function downloadedBrowser(engine: string): string | null {
 }
 
 function engineSettings(engine: string): Record<string, { path: string } | null> {
-  function tool(file: string) {
-    return existsSync(file) ? { path: file } : null;
-  }
   const browser = downloadedBrowser(engine);
-  return {
-    browser: browser ? { path: browser } : null,
-    ffmpeg: tool(path.join(engine, "ffmpeg", `ffmpeg${EXE}`)),
-  };
+  return { browser: browser ? { path: browser } : null };
 }
 
 export function freshRun(): void {

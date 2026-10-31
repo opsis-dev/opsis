@@ -3,12 +3,12 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 use futures_util::StreamExt;
-use opsis_types::engine::{EngineInstallUpdate, EnginePart};
+use opsis_types::engine::EngineInstallUpdate;
 use opsis_types::numbers;
 use sha2::{Digest, Sha256};
 use tokio_util::sync::CancellationToken;
 
-use crate::downloads::{FfmpegFile, Pinned, ffmpeg_download, shell_download};
+use crate::downloads::{Pinned, shell_download};
 use crate::paths::{ShellPlatform, engine_paths};
 
 #[derive(Debug, thiserror::Error)]
@@ -21,6 +21,8 @@ pub enum InstallError {
     Mismatch { url: String },
     #[error("There's no recording browser for this computer.")]
     NoShell,
+    #[error("There's no FFmpeg pinned for {0}.")]
+    NoFfmpeg(String),
     #[error("Setup was stopped")]
     Cancelled,
     #[error(transparent)]
@@ -40,7 +42,7 @@ pub struct CalmProgress {
 
 impl CalmProgress {
     pub fn should_report(&mut self, update: &EngineInstallUpdate, now: Instant) -> bool {
-        let current = format!("{:?}|{}", update.part, update.step);
+        let current = update.step.clone();
         let percent = update
             .progress
             .map(|p| numbers::truncate::<i64>((p * 100.0).floor()));
@@ -68,9 +70,8 @@ impl<'a> Progress<'a> {
         }
     }
 
-    fn send(&mut self, part: EnginePart, step: &str, progress: Option<f64>, message: String) {
+    fn send(&mut self, step: &str, progress: Option<f64>, message: String) {
         let update = EngineInstallUpdate {
-            part,
             step: step.to_owned(),
             progress,
             message,
@@ -172,68 +173,6 @@ pub fn make_executable(_file: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-fn gunzip_into(archive: &Path, dest: &Path) -> std::io::Result<()> {
-    let mut decoder = flate2::read::GzDecoder::new(std::fs::File::open(archive)?);
-    let dir = dest.parent().unwrap_or(Path::new("."));
-    let mut out = tempfile::Builder::new()
-        .prefix(".partial-")
-        .tempfile_in(dir)?;
-    std::io::copy(&mut decoder, &mut out)?;
-    out.persist(dest).map_err(|e| e.error)?;
-    std::fs::remove_file(archive)
-}
-
-pub async fn install_ffmpeg(
-    client: &reqwest::Client,
-    dir: &Path,
-    platform: ShellPlatform,
-    progress: &mut Progress<'_>,
-    cancel: &CancellationToken,
-) -> Result<(), InstallError> {
-    let p = engine_paths(dir, platform);
-    let files = [
-        (FfmpegFile::Ffmpeg, &p.ffmpeg),
-        (FfmpegFile::License, &p.ffmpeg_license),
-    ];
-    let folder = p.ffmpeg.parent().unwrap_or(dir).to_path_buf();
-    for (i, (file, dest)) in files.iter().enumerate() {
-        let pinned = &ffmpeg_download(platform, *file)
-            .ok_or(InstallError::NoShell)?
-            .pinned;
-        let step = format!("download-{}", i + 1);
-        let mut on_bytes = |got: u64, total: Option<u64>| {
-            progress.send(
-                EnginePart::Ffmpeg,
-                &step,
-                total.map(|t| numbers::float_wide(got) / numbers::float_wide(t)),
-                format!(
-                    "Downloading the video tools ({} of {}) · {}",
-                    i + 1,
-                    files.len(),
-                    downloaded_text(got, total)
-                ),
-            );
-        };
-        let fetched = fetch_verified(client, pinned, &folder, cancel, &mut on_bytes).await?;
-        if *file == FfmpegFile::License {
-            std::fs::rename(&fetched, dest)?;
-        } else {
-            let target = (*dest).clone();
-            tokio::task::spawn_blocking(move || gunzip_into(&fetched, &target))
-                .await
-                .map_err(std::io::Error::other)??;
-            make_executable(dest)?;
-        }
-    }
-    progress.send(
-        EnginePart::Ffmpeg,
-        "ready",
-        Some(1.0),
-        "Video tools ready".to_owned(),
-    );
-    Ok(())
-}
-
 fn unpack_shell(
     archive: &Path,
     staging: &Path,
@@ -263,14 +202,12 @@ pub async fn install_headless_shell(
     let p = engine_paths(dir, platform);
     let download = shell_download(platform).ok_or(InstallError::NoShell)?;
     progress.send(
-        EnginePart::HeadlessShell,
         "download",
         Some(0.0),
         "Downloading the recording browser · starting".to_owned(),
     );
     let mut on_bytes = |got: u64, total: Option<u64>| {
         progress.send(
-            EnginePart::HeadlessShell,
             "download",
             total.map(|t| numbers::float_wide(got) / numbers::float_wide(t)),
             format!(
@@ -302,12 +239,7 @@ pub async fn install_headless_shell(
         &crate::downloads::downloads().tested_version,
     )?;
     std::fs::remove_dir_all(&p.download_dir)?;
-    progress.send(
-        EnginePart::HeadlessShell,
-        "ready",
-        Some(1.0),
-        "Recording browser ready".to_owned(),
-    );
+    progress.send("ready", Some(1.0), "Recording browser ready".to_owned());
     Ok(())
 }
 
@@ -319,7 +251,6 @@ pub async fn install_engine(
 ) -> Result<(), InstallError> {
     let client = reqwest::Client::new();
     let mut progress = Progress::new(report);
-    install_ffmpeg(&client, dir, platform, &mut progress, cancel).await?;
     install_headless_shell(&client, dir, platform, &mut progress, cancel).await
 }
 
@@ -327,9 +258,8 @@ pub async fn install_engine(
 mod tests {
     use super::*;
 
-    fn update(part: EnginePart, step: &str, progress: f64) -> EngineInstallUpdate {
+    fn update(step: &str, progress: f64) -> EngineInstallUpdate {
         EngineInstallUpdate {
-            part,
             step: step.to_owned(),
             progress: Some(progress),
             message: String::new(),
@@ -337,18 +267,18 @@ mod tests {
     }
 
     #[test]
-    fn reports_only_when_the_shown_percentage_or_part_changes_or_every_half_second() {
+    fn reports_only_when_the_shown_percentage_or_step_changes_or_every_half_second() {
         let mut calm = CalmProgress::default();
         let start = Instant::now();
         let at = |ms: u64| start + Duration::from_millis(ms);
         let seen: Vec<Option<f64>> = [
-            (update(EnginePart::Ffmpeg, "download-1", 0.101), 0),
-            (update(EnginePart::Ffmpeg, "download-1", 0.104), 0),
-            (update(EnginePart::Ffmpeg, "download-1", 0.109), 0),
-            (update(EnginePart::Ffmpeg, "download-1", 0.109), 600),
-            (update(EnginePart::Ffmpeg, "download-1", 0.12), 600),
-            (update(EnginePart::Ffmpeg, "download-2", 0.12), 600),
-            (update(EnginePart::HeadlessShell, "download", 0.12), 600),
+            (update("download", 0.101), 0),
+            (update("download", 0.104), 0),
+            (update("download", 0.109), 0),
+            (update("download", 0.109), 600),
+            (update("download", 0.12), 600),
+            (update("unpack", 0.12), 600),
+            (update("ready", 0.12), 600),
         ]
         .into_iter()
         .filter(|(u, ms)| calm.should_report(u, at(*ms)))

@@ -20,6 +20,12 @@ pub fn home() -> PathBuf {
     std::env::var_os("HOME").map(PathBuf::from).expect("HOME")
 }
 
+pub fn ffmpeg() -> PathBuf {
+    std::env::var_os("OPSIS_FFMPEG").map(PathBuf::from).expect(
+        "OPSIS_FFMPEG names the staged FFmpeg: run cargo through bun run test:rust, or set it to what bun run ffmpeg:stage prints",
+    )
+}
+
 pub fn typed<T: DeserializeOwned>(value: &Value) -> T {
     serde_json::from_value(value.clone()).unwrap_or_else(|e| panic!("{e}: {value}"))
 }

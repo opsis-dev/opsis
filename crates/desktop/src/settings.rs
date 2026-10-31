@@ -3,8 +3,10 @@ use std::path::{Path, PathBuf};
 use opsis_capture::executors::SignInStore;
 use opsis_capture::take::SignInError;
 use opsis_compile::asset_ref::{RefTarget, ref_target};
+use opsis_engine::ffmpeg::FFMPEG_LICENCE_FILE;
 use opsis_engine::licences::{
-    LicenceKind, LicenceSource, is_licence_file, list_licences as licence_entries, shipped_credits,
+    LicenceKind, LicenceSource, is_licence_file, list_licences as licence_entries, shipped,
+    shipped_credits,
 };
 use opsis_store::secrets::{read_secret, write_secret};
 use opsis_store::settings::SettingsPatch;
@@ -18,7 +20,7 @@ use tauri::{AppHandle, Manager, State};
 use tauri_plugin_opener::OpenerExt;
 use tauri_specta::Event;
 
-use crate::engine::{engine_status, ffmpeg_licence};
+use crate::engine::engine_status;
 use crate::error::{CommandError, CommandResult};
 use crate::events::{SettingsChanged, ViewPrefChanged};
 use crate::menu::app_menu;
@@ -137,9 +139,9 @@ fn licence_sources(state: &AppState) -> Vec<LicenceSource> {
         LicenceSource {
             id: "ffmpeg",
             title: "FFmpeg",
-            summary: "GNU General Public License v3. Separate programs that encode and mix the video.",
+            summary: "GNU General Public License version 3. The separate program that encodes and mixes the video.",
             kind: LicenceKind::Text,
-            path: ffmpeg_licence(state).unwrap_or_default(),
+            path: shipped(&credit_roots(state), Path::new(FFMPEG_LICENCE_FILE)).unwrap_or_default(),
         },
     ]
 }

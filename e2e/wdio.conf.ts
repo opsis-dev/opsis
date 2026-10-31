@@ -1,7 +1,8 @@
+import { execFileSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { browser } from "@wdio/globals";
-import { APP_BINARY, SHOTS, USER_DATA } from "./src/support/paths";
+import { APP_BINARY, ROOT, SHOTS, USER_DATA } from "./src/support/paths";
 import { freshRun } from "./src/support/user-data";
 
 const OFF_SCREEN =
@@ -17,6 +18,15 @@ if (!OFF_SCREEN)
 const STARTUP_MS = 120_000;
 
 process.env.OPSIS_USER_DATA = USER_DATA;
+
+process.env.OPSIS_FFMPEG = execFileSync("bun", ["scripts/ffmpeg-stage.ts"], {
+  cwd: ROOT,
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "inherit"],
+})
+  .trim()
+  .split("\n")
+  .at(-1);
 
 export const config: WebdriverIO.Config = {
   runner: "local",

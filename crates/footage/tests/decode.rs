@@ -13,7 +13,7 @@ use opsis_footage::chain::{FootageSource, TimedRedaction};
 use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
 use opsis_footage::serve::footage_routes;
-use opsis_golden::home;
+use opsis_golden::{ffmpeg, home};
 use opsis_image::ops::redact;
 use opsis_media::grade::GradeChain;
 use tower::ServiceExt;
@@ -21,10 +21,6 @@ use tower::ServiceExt;
 const RATE: i64 = 30;
 const SECONDS: i64 = 4;
 const EVEN: &str = "scale=trunc(iw/2)*2:trunc(ih/2)*2";
-
-fn ffmpeg() -> PathBuf {
-    home().join(".config/Opsis/engine/ffmpeg/ffmpeg")
-}
 
 fn samples() -> PathBuf {
     let dir = home().join(".cache/opsis-footage-samples");
@@ -140,7 +136,7 @@ fn difference(a: &RgbImage, b: &RgbImage) -> f64 {
 }
 
 #[test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 fn shows_the_frame_ffmpeg_decodes_at_each_time() {
     let file = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&file))]);
@@ -158,7 +154,7 @@ fn shows_the_frame_ffmpeg_decodes_at_each_time() {
 }
 
 #[test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 fn shows_the_last_frame_at_or_before_the_time() {
     let file = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&file))]);
@@ -175,7 +171,7 @@ fn shows_the_last_frame_at_or_before_the_time() {
 }
 
 #[test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 fn frames_asked_in_order_start_the_decoder_once() {
     let file = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&file))]);
@@ -187,7 +183,7 @@ fn frames_asked_in_order_start_the_decoder_once() {
 }
 
 #[test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 fn a_step_back_past_the_kept_frames_or_a_long_jump_starts_the_decoder_again() {
     let file = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&file))]);
@@ -207,7 +203,7 @@ fn a_step_back_past_the_kept_frames_or_a_long_jump_starts_the_decoder_again() {
 }
 
 #[test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 fn the_grade_chain_and_its_extra_inputs_run_on_each_frame() {
     let file = sample("count.mp4", "320x240");
     let identity = samples().join("identity-look.png");
@@ -260,7 +256,7 @@ fn hidden(style: RedactStyle) -> RedactImage {
 }
 
 #[test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 fn redaction_is_the_image_redact_on_the_frames_in_its_time_range() {
     let file = sample("count.mp4", "320x240");
     let mut redacted = plain(&file);
@@ -299,7 +295,7 @@ fn redaction_is_the_image_redact_on_the_frames_in_its_time_range() {
 }
 
 #[test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 fn a_trimmed_looping_source_plays_its_part_of_the_file_again_and_again() {
     let file = sample("count.mp4", "320x240");
     let looped = FootageSource {
@@ -315,7 +311,7 @@ fn a_trimmed_looping_source_plays_its_part_of_the_file_again_and_again() {
 }
 
 #[test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 fn odd_sized_sources_come_out_even() {
     let file = sample("odd.mp4", "321x241");
     let film = footage(vec![("odd", plain(&file))]);
@@ -326,7 +322,7 @@ fn odd_sized_sources_come_out_even() {
 }
 
 #[test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 fn idle_decoders_end_and_start_again_when_asked() {
     let file = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&file))]);
@@ -339,7 +335,7 @@ fn idle_decoders_end_and_start_again_when_asked() {
 }
 
 #[test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 fn a_file_that_isnt_a_video_fails_instead_of_showing_nothing() {
     let file = samples().join("not-a-video.mp4");
     std::fs::write(&file, b"just text").unwrap();
@@ -349,7 +345,7 @@ fn a_file_that_isnt_a_video_fails_instead_of_showing_nothing() {
 }
 
 #[tokio::test]
-#[ignore = "needs the dev engine's ffmpeg"]
+#[ignore = "needs the staged FFmpeg"]
 async fn serves_each_frame_as_a_jpeg_of_its_size() {
     let file = sample("count.mp4", "320x240");
     let routes = footage_routes(Arc::new(footage(vec![("take", plain(&file))])));

@@ -10,7 +10,7 @@ type EnvironmentState = {
 };
 
 export function needsEngine(engine: EngineStatus): boolean {
-  return [engine.browser, engine.ffmpeg].some((tool) => !tool.path || !!tool.problem);
+  return !engine.browser.path || !!engine.browser.problem;
 }
 
 export const useEnvironment = create<EnvironmentState>()((set) => ({

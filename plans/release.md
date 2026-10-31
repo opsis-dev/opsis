@@ -25,8 +25,8 @@ Everything still missing between today's app and a public release, and what come
 
 **In place.**
 
-- **Package size.** Measured 2026-10-31 with `bun run make -- --bundles deb` on Linux x64: the deb is 48,625,200 bytes and installs 99,251,683 bytes: the app binary 75,211,696, the film page 18,590,721 and the browser's licences 5,345,493.
-- **What ships.** One build, with no recording browser and no FFmpeg inside: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), the film page (`film-bundle/`, one JavaScript file with no source maps and the repository's `public/`, the app's only copy of the `app:` files, which a packaged app reads through `AppPaths::public_dir`; the editor's build carries only `page-errors.js`) and the recording browser's licences.
+- **Package size.** Measured 2026-11-01 with `bun run make -- --bundles deb` on Linux x64: the deb is 78,800,484 bytes and installs 179,051,765 bytes: the app binary 75,173,360, the FFmpeg sidecar 79,826,272 and its licence 35,147, the film page 18,567,917 and the browser's licences 5,345,493. Shipping FFmpeg added 30,175,284 bytes to the deb (48,625,200 on 2026-10-31).
+- **What ships.** One build, with FFmpeg inside and no recording browser: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), FFmpeg as the `opsis-ffmpeg` sidecar beside it with `LICENSE.ffmpeg.txt` (`plans/ffmpeg.md`), the film page (`film-bundle/`, one JavaScript file with no source maps and the repository's `public/`, the app's only copy of the `app:` files, which a packaged app reads through `AppPaths::public_dir`; the editor's build carries only `page-errors.js`) and the recording browser's licences.
 - **The film page.** 4,388,329 bytes of JavaScript in one file (2,042,714 gzipped) and 14,200,626 bytes of `public/` files: fonts 1,078,938, backdrops 4,810,439, music 7,923,531, sounds 381,916. One element file, `elements/scene/launch-anything/assets.ts`, is 1,716,146 bytes of source.
 
 **Work.**
@@ -53,7 +53,7 @@ Everything still missing between today's app and a public release, and what come
 5. **Fedora.** The rpm can't fix H.264 playback: Fedora's `ffmpeg-free` has no H.264 decoder, and OpenH264 decodes Constrained Baseline only, while exports are High profile. The install notes say: enable RPM Fusion and swap `ffmpeg-free` for `ffmpeg`.
 6. **Keep the builds** in `~/.cache/opsis-ci/<run id>/` when checking them; sizes go to section 1.
 
-**Decided.** Public repo; CI runners only for Windows and macOS (no manual pass), plus a person on Linux; x64 Windows and separate Apple Silicon and Intel Mac builds, no Windows on Arm or universal build; one build with no engine inside; NSIS and MSI on Windows, the zipped app (for updates and notarization) and a DMG (for first installs) on macOS.
+**Decided.** Public repo; CI runners only for Windows and macOS (no manual pass), plus a person on Linux; x64 Windows and separate Apple Silicon and Intel Mac builds, no Windows on Arm or universal build; one build with FFmpeg inside and no recording browser; NSIS and MSI on Windows, the zipped app (for updates and notarization) and a DMG (for first installs) on macOS.
 
 ## 3. Platform checks
 
@@ -66,7 +66,7 @@ The editor has only run on WebKitGTK.
 1. **WKWebView and WebView2.** In the CI build jobs, start the packaged app with a test data folder (`OPSIS_USER_DATA`, the API on) and drive it through the Local API: open each example, run the changelog, read the export back with `opsis-probe`. The e2e suite (WebdriverIO, embedded driver) also covers macOS through `@wdio/tauri-service`; run it on the macOS runners. List what a runner can't judge (how the window controls look, first-open prompts) as not covered in the release notes.
 2. **macOS shell.** The native menu (`crates/desktop/src/native_menu.rs`) is built and its ids are tested, but it has never run: check the app menu, Edit roles, Cmd+, opens Settings, Cmd+Q goes through the exit dialog, and the traffic lights sit inside the app bar.
 3. **Timeline sound drift.** The Timeline's sound plays in the webview, kept within two frames of its playhead; measure drift over a long film on each system.
-4. **Engine checks.** On each runner, download the engine through Settings' installer and run the checks on it (`check_browser`, `check_ffmpeg`): ffmpeg-static's Windows and macOS builds must have every required encoder, decoder, format and filter, and Chrome for Testing must open a page.
+4. **Engine checks.** On each runner, download the recording browser through Settings' installer and run `check_browser` on it: Chrome for Testing must open a page. The bundled FFmpeg is already checked on every build runner (`check_ffmpeg` on the staged program, the CI step after the build).
 5. **Sign-in end to end.** Not in the e2e suite, because saving a sign-in writes to the real keyring. `keyring-core`'s mock store is used only by the store's unit tests (`crates/store/src/keys.rs`); add a test-only store behind the `e2e` feature and a spec that signs in and records a take with it.
 
 ## 4. Local API on Windows
@@ -84,7 +84,7 @@ The named pipe is created with the default security descriptor, which grants rea
 
 **Work.**
 
-1. **macOS.** `bundle.macOS.signingIdentity` and an entitlements file; CI signs with `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` and notarizes with `APPLE_API_ISSUER`, `APPLE_API_KEY`, `APPLE_API_KEY_PATH`. Every program inside the app must be signed, or notarization fails; the recording browser and our FFmpeg are downloaded or chosen on the user's Mac, not shipped.
+1. **macOS.** `bundle.macOS.signingIdentity` and an entitlements file; CI signs with `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` and notarizes with `APPLE_API_ISSUER`, `APPLE_API_KEY`, `APPLE_API_KEY_PATH`. Every program inside the app must be signed, or notarization fails: that includes the `opsis-ffmpeg` sidecar in `Contents/MacOS`, which is signed with the hardened runtime and notarized with the app. Whether ffmpeg-static runs under the hardened runtime without extra entitlements is untested. The recording browser is downloaded or chosen on the user's Mac, not shipped.
 2. **Windows.** `bundle.windows.certificateThumbprint`, `digestAlgorithm` and `timestampUrl` for a certificate in the store, or `signCommand` for another tool (Azure Artifact Signing has a `signCommand` route). Sign every program inside the app.
 3. **Check** on clean machines: the publisher name shows; macOS opens the downloaded zip with one confirmation.
 

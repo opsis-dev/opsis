@@ -25,7 +25,7 @@
     "packages/*"
   ],
   "scripts": {
-    "start": "cd crates/desktop && tauri dev",
+    "start": "bun scripts/start.ts",
     "typecheck": "turbo run typecheck typecheck:app",
     "typecheck:app": "tsc --noEmit",
     "lint": "turbo run lint lint:app lint:rust lint:comments",
@@ -38,7 +38,7 @@
     "format:fix": "oxfmt -c oxfmt.config.ts --write && cargo fmt --all",
     "test": "turbo run test test:app test:rust",
     "test:app": "vitest run",
-    "test:rust": "cargo test --workspace",
+    "test:rust": "bun scripts/test-rust.ts",
     "test:watch": "turbo watch test test:app",
     "routes": "bun run --cwd apps/frontend routes",
     "fonts:bundle": "bun scripts/fonts-bundle.ts",
@@ -46,6 +46,9 @@
     "app:icons": "bun scripts/app-icons.ts",
     "engine:licences": "bun scripts/engine-licences.ts",
     "engine:downloads": "bun scripts/engine-downloads.ts",
+    "ffmpeg:pin": "cargo run -q --release -p opsis-engine --bin pin-ffmpeg",
+    "ffmpeg:stage": "bun scripts/ffmpeg-stage.ts",
+    "notice:links": "bun scripts/notice-links.ts",
     "examples": "cargo run -q -p opsis-project --bin write-examples",
     "playwright:scripts": "bun scripts/playwright-scripts.ts",
     "types:export": "cargo run -q -p opsis-desktop --features export-bindings --bin export-bindings && cargo run -q -p opsis-compile --bin export-spec",

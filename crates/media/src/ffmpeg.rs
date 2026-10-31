@@ -4,7 +4,7 @@ use std::sync::LazyLock;
 
 use futures::future::BoxFuture;
 use opsis_engine::children::read_lines;
-use opsis_engine::paths::EngineMissing;
+use opsis_engine::ffmpeg::FfmpegMissing;
 use opsis_engine::tools::EngineFiles;
 use opsis_probe::Probe;
 use regex::Regex;
@@ -23,7 +23,7 @@ static PROGRESS: LazyLock<Regex> =
 #[derive(Debug, thiserror::Error)]
 pub enum ToolError {
     #[error(transparent)]
-    Missing(#[from] EngineMissing),
+    Missing(#[from] FfmpegMissing),
     #[error("Cancelled")]
     Cancelled,
     #[error("The video engine couldn't process a file.")]
@@ -109,7 +109,7 @@ impl Ffmpeg {
         args: &[String],
         cancel: Option<&CancellationToken>,
     ) -> Result<Command, ToolError> {
-        let exe = exe.filter(|e| e.exists()).ok_or(EngineMissing)?;
+        let exe = exe.filter(|e| e.exists()).ok_or(FfmpegMissing)?;
         if cancel.is_some_and(CancellationToken::is_cancelled) {
             return Err(ToolError::Cancelled);
         }

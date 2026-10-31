@@ -5,12 +5,13 @@ use std::time::Duration;
 
 use std::time::UNIX_EPOCH;
 
-use opsis_types::engine::{CheckedTool, EngineTool};
+use opsis_types::engine::CheckedTool;
 use opsis_types::settings::EngineSection;
 use sha2::{Digest, Sha256};
 use tokio::process::Command;
 
 use crate::downloads::downloads;
+use crate::ffmpeg::bundled_ffmpeg;
 use crate::paths::{EngineMissing, ShellPlatform, engine_paths, find_headless_shell};
 
 const VERSION_TIMEOUT: Duration = Duration::from_secs(15);
@@ -44,22 +45,12 @@ pub struct EngineFiles {
 }
 
 impl EngineFiles {
-    pub fn from_checked(engine: &EngineSection, usable: impl Fn(EngineTool) -> bool) -> Self {
-        let path = |tool: EngineTool| {
-            engine
-                .tool(tool)
-                .filter(|_| usable(tool))
-                .map(|c| PathBuf::from(&c.path))
-        };
-        let stamp = EngineTool::ALL
-            .iter()
-            .map(|tool| engine.tool(*tool).map_or("", |c| c.sha256.as_str()))
-            .collect::<Vec<_>>()
-            .join(":");
+    pub fn from_checked(engine: &EngineSection, usable: bool) -> Self {
+        let browser = engine.browser.as_ref();
         Self {
-            browser: path(EngineTool::Browser),
-            ffmpeg: path(EngineTool::Ffmpeg),
-            stamp,
+            browser: browser.filter(|_| usable).map(|c| PathBuf::from(&c.path)),
+            ffmpeg: bundled_ffmpeg().ok(),
+            stamp: browser.map_or_else(String::new, |c| c.sha256.clone()),
         }
     }
 
@@ -70,7 +61,7 @@ impl EngineFiles {
         let paths = engine_paths(dir, platform);
         Self {
             browser: find_headless_shell(&paths).map(Path::to_path_buf),
-            ffmpeg: Some(paths.ffmpeg),
+            ffmpeg: bundled_ffmpeg().ok(),
             stamp: String::new(),
         }
     }
@@ -187,10 +178,10 @@ pub fn browser_warning(version: &str) -> Option<String> {
     })
 }
 
-pub fn unrecognized(path: &Path, tool: EngineTool) -> ToolProblem {
+pub fn unrecognized(path: &Path, expected: &str) -> ToolProblem {
     ToolProblem::Unrecognized {
         path: shown(path),
-        expected: tool.label().to_owned(),
+        expected: expected.to_owned(),
     }
 }
 

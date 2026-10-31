@@ -10,7 +10,6 @@ use indexmap::IndexMap;
 use opsis_compile::nodes::browser::{ColorScheme, Open};
 use opsis_engine::tools::{ToolProblem, browser_version, tool_output, unrecognized};
 use opsis_types::actions::Viewport;
-use opsis_types::engine::EngineTool;
 use opsis_types::numbers::whole;
 use serde_json::{Value, json};
 use tokio::task::JoinHandle;
@@ -430,7 +429,7 @@ pub async fn check_browser(
     temp_dir: &Path,
 ) -> std::result::Result<String, ToolProblem> {
     let version = browser_version(&tool_output(executable, &["--version"]).await?)
-        .ok_or_else(|| unrecognized(executable, EngineTool::Browser))?;
+        .ok_or_else(|| unrecognized(executable, "recording browser"))?;
     let launched = launch(executable, temp_dir, &[])
         .await
         .map_err(|e| ToolProblem::Failed(format!("The recording browser didn't start: {e}")))?;

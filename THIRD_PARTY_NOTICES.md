@@ -309,9 +309,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## FFmpeg (ffmpeg)
+## FFmpeg (opsis-ffmpeg)
 
-The FFmpeg program Opsis runs itself is a GPLv3 build from the pinned ffmpeg-static GitHub release. Opsis doesn't include it: Settings → Engine downloads it, with its licence file, into the app's data folder, or uses a program the user chooses. Source: https://ffmpeg.org/download.html · builds: https://github.com/eugeneware/ffmpeg-static
+Opsis ships FFmpeg as a separate program, `opsis-ffmpeg`, installed beside the app's own program, and starts it for every encode, mix and decode. It is the unchanged GPLv3 build (`--enable-gpl --enable-version3`, no `--enable-nonfree`) from the ffmpeg-static b6.1.1 release for each platform. The release's licence file ships with the app as `LICENSE.ffmpeg.txt` and is shown in Settings → Licences.
+
+Source:
+
+- FFmpeg: https://ffmpeg.org/download.html
+- The ffmpeg-static release the programs come from: https://github.com/eugeneware/ffmpeg-static/releases/tag/b6.1.1
 
 ## Chrome Headless Shell (recording and export browser)
 

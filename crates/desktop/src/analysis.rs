@@ -8,13 +8,12 @@ use opsis_media::analysis::{AnalysisDeps, analyze_filmstrip, analyze_waveform};
 use opsis_media::mix::render::{MixDeps, MixError, render_mix};
 use opsis_project::paths::ref_to_path;
 use opsis_types::analysis::{Filmstrip, Waveform};
-use opsis_types::engine::ENGINE_MISSING_MESSAGE;
 use opsis_types::mix::MixResult;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::State;
 
-use crate::engine::{engine_files, engine_tools};
+use crate::engine::engine_tools;
 use crate::error::CommandResult;
 use crate::state::AppState;
 
@@ -46,21 +45,11 @@ pub enum AnalysisRequest {
     rename_all_fields = "camelCase"
 )]
 pub enum AnalysisResult {
-    Waveform {
-        waveform: Waveform,
-    },
-    Filmstrip {
-        filmstrip: Filmstrip,
-    },
-    Mix {
-        mix: Box<MixResult>,
-    },
+    Waveform { waveform: Waveform },
+    Filmstrip { filmstrip: Filmstrip },
+    Mix { mix: Box<MixResult> },
     Skipped,
-    Error {
-        error: String,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        engine_missing: Option<bool>,
-    },
+    Error { error: String },
 }
 
 #[derive(Default)]
@@ -73,7 +62,6 @@ pub struct Mixes {
 fn failed(error: impl std::fmt::Display) -> AnalysisResult {
     AnalysisResult::Error {
         error: error.to_string(),
-        engine_missing: None,
     }
 }
 
@@ -115,12 +103,6 @@ pub async fn analyze(
     mixes: State<'_, Mixes>,
     request: AnalysisRequest,
 ) -> CommandResult<AnalysisResult> {
-    if engine_files(&state).ffmpeg.is_none() {
-        return Ok(AnalysisResult::Error {
-            error: ENGINE_MISSING_MESSAGE.to_owned(),
-            engine_missing: Some(true),
-        });
-    }
     let tools = engine_tools(&state);
     Ok(match request {
         AnalysisRequest::Waveform { project_dir, src } => analyze_waveform(

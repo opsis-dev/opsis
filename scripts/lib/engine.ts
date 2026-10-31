@@ -6,11 +6,11 @@ import { ROOT } from "./tool-config";
 
 export const STAGED_ENGINE = path.join(os.homedir(), ".cache", "opsis-stage-engine");
 
-const installedSchema = z.object({ browser: z.string(), ffmpeg: z.string() });
+const installedSchema = z.object({ browser: z.string() });
 
 export type InstalledEngine = z.infer<typeof installedSchema>;
 
-function cargoRun(crate: string, bin: string, args: string[]): string {
+export function cargoRun(crate: string, bin: string, args: string[]): string {
   return execFileSync(
     "cargo",
     ["run", "-q", "--release", "-p", crate, "--bin", bin, "--", ...args],

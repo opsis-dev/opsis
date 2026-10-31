@@ -1,7 +1,7 @@
 use opsis_compile::asset_ref::project_ref;
 use opsis_compile::footage::{FootageUse, footage_uses};
 use opsis_compile::nodes::effects::RedactTake;
-use opsis_engine::paths::EngineMissing;
+use opsis_engine::ffmpeg::FfmpegMissing;
 use opsis_footage::chain::{FootageSource, TimedRedaction};
 use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
@@ -73,7 +73,7 @@ pub fn film_footage(ctx: &ExecutorContext, spec: &TimelineSpec) -> Result<Footag
         .engine
         .ffmpeg
         .clone()
-        .ok_or_else(|| ExecError::new(EngineMissing.to_string()))?;
+        .ok_or_else(|| ExecError::new(FfmpegMissing.to_string()))?;
     let sources = footage_uses(&spec.tracks)
         .iter()
         .map(|used| Ok((used.id.clone(), source_of(ctx, used)?)))

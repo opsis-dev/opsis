@@ -122,7 +122,7 @@ export function LicencesPage() {
     <>
       <SettingsCard
         title="Software"
-        description="Opsis and the programs it ships with or sets up. The recording browser and the video tools appear once the engine is set up."
+        description="Opsis and the programs it ships with or sets up. The recording browser appears once the engine is set up."
         contentClassName="divide-y"
       >
         {entries === null ? <Spinner /> : entries.map((e) => <SoftwareRow key={e.id} entry={e} />)}

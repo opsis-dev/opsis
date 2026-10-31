@@ -40,6 +40,9 @@ jobs:
       - run: bun run lint
       - run: bun run format
       - run: bun run test
+      - name: Check the links in the source notice
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: bun run notice:links
       - name: Install the end-to-end suite
         working-directory: e2e
         run: bun install --frozen-lockfile
@@ -97,6 +100,9 @@ jobs:
         shell: bash
         run: |
           test -f resources/engine-licences/LICENSES.chromium.html
+          test -f resources/LICENSE.ffmpeg.txt
+      - name: Check the bundled FFmpeg has everything Opsis uses
+        run: bun run test:rust -p opsis-media --lib capabilities
       - name: Check every program in the app is signed
         if: runner.os == 'macOS' && env.APPLE_SIGNING_IDENTITY != ''
         shell: bash

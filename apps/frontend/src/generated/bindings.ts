@@ -31,7 +31,7 @@ export const commands = {
 	appMenuSections: () => __TAURI_INVOKE<MenuSection[]>("app_menu_sections"),
 	getEnvironment: () => __TAURI_INVOKE<EnvStatus>("get_environment"),
 	installEngine: () => __TAURI_INVOKE<null>("install_engine"),
-	chooseEngineTool: (tool: EngineTool) => __TAURI_INVOKE<boolean>("choose_engine_tool", { tool }),
+	chooseBrowser: () => __TAURI_INVOKE<boolean>("choose_browser"),
 	getEngineStatus: () => __TAURI_INVOKE<EngineStatus>("get_engine_status"),
 	listLicences: () => __TAURI_INVOKE<LicenceEntry[]>("list_licences"),
 	openLicenceFile: (file: string) => __TAURI_INVOKE<null>("open_licence_file", { file }),
@@ -185,7 +185,7 @@ export type AddressMode = "fixed" | "host";
 
 export type AnalysisRequest = { kind: "waveform"; projectDir: string; src: string } | { kind: "filmstrip"; projectDir: string; src: string } | { kind: "mix"; projectDir: string; plan: MixPlan };
 
-export type AnalysisResult = { kind: "waveform"; waveform: Waveform } | { kind: "filmstrip"; filmstrip: Filmstrip } | { kind: "mix"; mix: MixResult } | { kind: "skipped" } | { kind: "error"; error: string; engineMissing?: boolean };
+export type AnalysisResult = { kind: "waveform"; waveform: Waveform } | { kind: "filmstrip"; filmstrip: Filmstrip } | { kind: "mix"; mix: MixResult } | { kind: "skipped" } | { kind: "error"; error: string };
 
 export type Anchor = {
 	nodeId?: string,
@@ -790,27 +790,20 @@ export type EngineInstallEvent = {
 export type EngineInstallProgress = EngineInstallEvent;
 
 export type EngineInstallUpdate = {
-	part: EnginePart,
 	step: string,
 	progress: number,
 	message: string,
 };
 
-export type EnginePart = "ffmpeg" | "headless-shell";
-
 export type EngineSection = {
 	browser: CheckedTool | null,
-	ffmpeg: CheckedTool | null,
 };
 
 export type EngineStatus = {
 	downloadDir: string,
 	browser: ToolStatus,
-	ffmpeg: ToolStatus,
 	complete: boolean,
 };
-
-export type EngineTool = "browser" | "ffmpeg";
 
 export type EntriesValue = {
 	entries: StyleEntry[],
