@@ -103,7 +103,7 @@ mod tests {
         let (voice, noisy) = voice_in_hiss(3.0);
         let out = denoised(&noisy, 1.0);
         let gaps: Vec<usize> = (24_000..voice.len())
-            .filter(|&i| voice[i.saturating_sub(480)..i + 1].iter().all(|s| *s == 0))
+            .filter(|&i| voice[i.saturating_sub(480)..=i].iter().all(|s| *s == 0))
             .collect();
         let before: Vec<i16> = gaps.iter().map(|&i| noisy[i]).collect();
         let after: Vec<i16> = gaps.iter().map(|&i| out[i]).collect();

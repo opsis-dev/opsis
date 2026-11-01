@@ -258,7 +258,7 @@ mod tests {
     fn looks_like_graph(text: &str) -> bool {
         text.contains("[0:")
             || text.contains("[out")
-            || text.contains("]")
+            || text.contains(']')
             || text
                 .split(',')
                 .next()

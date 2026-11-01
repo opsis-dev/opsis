@@ -186,11 +186,6 @@ useless_let_if_seq = "allow" # FIXME: REMOVE
 unnecessary_struct_initialization = "allow" # FIXME: REMOVE
 trivially_copy_pass_by_ref = "allow" # FIXME: REMOVE
 struct_field_names = "allow" # FIXME: REMOVE
-single_option_map = "allow" # FIXME: REMOVE
-single_char_pattern = "allow" # FIXME: REMOVE
-redundant_pub_crate = "allow" # FIXME: REMOVE
-range_plus_one = "allow" # FIXME: REMOVE
-overly_complex_bool_expr = "allow" # FIXME: REMOVE
 
 [profile.release]
 opt-level = 3

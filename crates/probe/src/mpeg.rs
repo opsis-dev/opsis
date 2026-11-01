@@ -4,7 +4,7 @@ use crate::{AudioStream, Found, Length, ProbeError};
 
 const SEARCH: usize = 64 * 1024;
 
-pub(crate) fn stream_info_with_length(data: &[u8]) -> Option<(AudioStream, Option<Length>)> {
+pub fn stream_info_with_length(data: &[u8]) -> Option<(AudioStream, Option<Length>)> {
     let mut bits = Bits::new(data.get(10..)?);
     let rate = bits.bits(20).ok()?;
     let channels = bits.bits(3).ok()? + 1;

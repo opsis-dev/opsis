@@ -460,7 +460,7 @@ mod tests {
             let name = Layout { chroma, depth, full_range: full, alpha }.pix_fmt(FullRange::Any);
             prop_assert_eq!(name.ends_with("le"), depth > 8);
             prop_assert_eq!(name.starts_with("yuvj"), full && depth == 8 && !alpha);
-            prop_assert_eq!(name.starts_with("yuva"), alpha && !(full && depth == 8 && !alpha));
+            prop_assert_eq!(name.starts_with("yuva"), alpha);
         }
     }
 

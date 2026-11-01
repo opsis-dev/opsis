@@ -274,15 +274,13 @@ fn fit_within(a: AudioItem, end: u32) -> Option<AudioItem> {
     })
 }
 
-fn scale_keys(keys: Option<Vec<Keyframe>>, by: f64) -> Option<Vec<Keyframe>> {
-    keys.map(|keys| {
-        keys.into_iter()
-            .map(|k| Keyframe {
-                frame: (k.frame * by).round(),
-                ..k
-            })
-            .collect()
-    })
+fn scale_keys(keys: Vec<Keyframe>, by: f64) -> Vec<Keyframe> {
+    keys.into_iter()
+        .map(|k| Keyframe {
+            frame: (k.frame * by).round(),
+            ..k
+        })
+        .collect()
 }
 
 fn speed_sound(a: AudioItem, inner_per_outer: f64, shift_pitch: bool) -> AudioItem {
@@ -308,8 +306,8 @@ fn speed_sound(a: AudioItem, inner_per_outer: f64, shift_pitch: bool) -> AudioIt
             .map(outer)
             .or(a.fade_out_frames),
         envelope: a.envelope.map(|e| AudioEnvelope {
-            volume: scale_keys(e.volume, 1.0 / inner_per_outer),
-            pan: scale_keys(e.pan, 1.0 / inner_per_outer),
+            volume: e.volume.map(|keys| scale_keys(keys, 1.0 / inner_per_outer)),
+            pan: e.pan.map(|keys| scale_keys(keys, 1.0 / inner_per_outer)),
         }),
         ..a
     }
