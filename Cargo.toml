@@ -191,11 +191,6 @@ single_char_pattern = "allow" # FIXME: REMOVE
 redundant_pub_crate = "allow" # FIXME: REMOVE
 range_plus_one = "allow" # FIXME: REMOVE
 overly_complex_bool_expr = "allow" # FIXME: REMOVE
-needless_for_each = "allow" # FIXME: REMOVE
-needless_continue = "allow" # FIXME: REMOVE
-missing_fields_in_debug = "allow" # FIXME: REMOVE
-manual_let_else = "allow" # FIXME: REMOVE
-manual_assert_eq = "allow" # FIXME: REMOVE
 
 [profile.release]
 opt-level = 3

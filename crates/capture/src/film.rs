@@ -501,13 +501,10 @@ impl FrameDriver {
                 decoded(shot["data"].as_str())?
             }
         };
-        let picture = match (picture, self.last.take()) {
-            (Some(picture), _) | (None, Some(picture)) => picture,
-            (None, None) => {
-                return Err(CaptureError::failed(format!(
-                    "Frame {frame} came back empty."
-                )));
-            }
+        let ((Some(picture), _) | (None, Some(picture))) = (picture, self.last.take()) else {
+            return Err(CaptureError::failed(format!(
+                "Frame {frame} came back empty."
+            )));
         };
         self.last = Some(picture.clone());
         Ok(picture)

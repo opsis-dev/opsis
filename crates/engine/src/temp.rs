@@ -41,7 +41,7 @@ pub fn make_child_temp(root: &Path, name: &str) -> std::io::Result<PathBuf> {
 pub fn remove_child_temp(dir: &Path) {
     for _ in 0..3 {
         match std::fs::remove_dir_all(dir) {
-            Err(e) if e.kind() != std::io::ErrorKind::NotFound => continue,
+            Err(e) if e.kind() != std::io::ErrorKind::NotFound => {}
             _ => return,
         }
     }

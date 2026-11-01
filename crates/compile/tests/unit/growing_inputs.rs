@@ -155,13 +155,13 @@ fn splits_a_clip_inside_a_sequence_of_seven_without_a_new_sequence() {
         .expect("the split");
     let split = edits.workflow;
     assert_eq!(split.nodes.len(), wf.nodes.len() + 2);
-    assert!(
+    assert_eq!(
         split
             .nodes
             .iter()
             .filter(|n| n.kind == "timeline.sequence")
-            .count()
-            == 1
+            .count(),
+        1
     );
     let ports: Vec<String> = ports_of(&split, "box")
         .into_iter()

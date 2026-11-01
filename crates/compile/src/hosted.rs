@@ -40,7 +40,9 @@ impl Host<'_> {
         match value {
             Value::String(text) => self.string(text),
             Value::Array(items) if depth <= MAX_PROP_DEPTH => {
-                items.iter_mut().for_each(|v| self.value(v, depth + 1));
+                for v in items.iter_mut() {
+                    self.value(v, depth + 1);
+                }
             }
             Value::Object(map) if depth <= MAX_PROP_DEPTH && !map.contains_key("tracks") => {
                 map.values_mut().for_each(|v| self.value(v, depth + 1));
