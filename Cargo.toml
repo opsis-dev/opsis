@@ -172,10 +172,6 @@ match_wildcard_for_single_variants = "allow" # FIXME: REMOVE
 imprecise_flops = "allow" # FIXME: REMOVE
 format_push_string = "allow" # FIXME: REMOVE
 default_trait_access = "allow" # FIXME: REMOVE
-significant_drop_in_scrutinee = "allow" # FIXME: REMOVE
-redundant_closure_for_method_calls = "allow" # FIXME: REMOVE
-maybe_infinite_iter = "allow" # FIXME: REMOVE
-if_not_else = "allow" # FIXME: REMOVE
 
 [profile.release]
 opt-level = 3

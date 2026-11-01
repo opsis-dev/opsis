@@ -165,7 +165,8 @@ impl FontsOnline {
     }
 
     pub async fn catalog(&self) -> Result<Arc<Vec<FontCatalogEntry>>, OnlineError> {
-        if let Some(catalog) = self.catalog.lock().expect("font catalog").clone() {
+        let cached = self.catalog.lock().expect("font catalog").clone();
+        if let Some(catalog) = cached {
             return Ok(catalog);
         }
         let rows: Vec<Value> = self

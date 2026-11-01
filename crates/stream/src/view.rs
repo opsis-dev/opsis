@@ -757,7 +757,8 @@ impl StreamView {
     }
 
     pub async fn close(self: Arc<Self>) {
-        if let Some(watcher) = self.watcher.lock().expect("popup watcher").take() {
+        let watcher = self.watcher.lock().expect("popup watcher").take();
+        if let Some(watcher) = watcher {
             watcher.abort();
         }
         let mut tabs = self.tabs.lock().await;

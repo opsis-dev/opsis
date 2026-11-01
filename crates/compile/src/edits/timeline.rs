@@ -13,6 +13,7 @@ use crate::edits::workflow::{absolute_position, remove_nodes};
 use crate::graph::upstream_of;
 use crate::ids::{Ids, node_id_prefix};
 use crate::limits::{MAX_SPEED, MAX_VOLUME, MIN_SPEED};
+use crate::node::NodeDef;
 use crate::nodes::timeline::Cut;
 use crate::nodes::transitions::NO_TRANSITION;
 use crate::ports::{in_index, in_port};
@@ -418,7 +419,7 @@ impl TimelineEdits<'_> {
             self.workflow.node(near.1),
             index,
         );
-        let mut all = node_def(kind).map(|d| d.defaults()).unwrap_or_default();
+        let mut all = node_def(kind).map(NodeDef::defaults).unwrap_or_default();
         all.extend(params);
         WorkflowNode {
             id: self.ids.id(node_id_prefix(kind)),

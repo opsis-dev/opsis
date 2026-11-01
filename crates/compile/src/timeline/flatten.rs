@@ -824,7 +824,10 @@ fn pack_lanes(bars: Vec<VideoBar>) -> (Vec<VideoBar>, u32) {
             .filter(|p| overlaps(range(p.from, p.to), range(bar.from, bar.to)))
             .map(|p| p.lane)
             .collect();
-        let lane = (0u32..).find(|l| !taken.contains(l)).unwrap_or(0);
+        let lane = (0u32..)
+            .take(taken.len() + 1)
+            .find(|l| !taken.contains(l))
+            .unwrap_or(0);
         bar.lane = lane;
         lanes = lanes.max(lane + 1);
         placed.push(bar);

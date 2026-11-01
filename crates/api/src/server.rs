@@ -184,7 +184,8 @@ impl ApiServer {
     }
 
     pub fn stop(&self) {
-        if let Some(running) = self.running.lock().expect("API server").take() {
+        let running = self.running.lock().expect("API server").take();
+        if let Some(running) = running {
             running.stop.cancel();
         }
     }

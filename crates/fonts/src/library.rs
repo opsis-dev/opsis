@@ -117,6 +117,7 @@ async fn read_library(db: &Database) -> Result<Library, FontError> {
 fn unique_id(base: &str, taken: &[String]) -> String {
     std::iter::once(base.to_owned())
         .chain((2..).map(|n| format!("{base}-{n}")))
+        .take(taken.len() + 1)
         .find(|id| !taken.contains(id))
         .expect("a free id")
 }

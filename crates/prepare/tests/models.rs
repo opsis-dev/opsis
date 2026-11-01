@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use draco_gltf::{ComponentType, MeshIndex, PackedGeometry, PrimitiveIndex};
+use draco_gltf::{ComponentType, MeshIndex, PackedGeometry, PackedIndices, PrimitiveIndex};
 use opsis_prepare::model::model;
 use serde_json::Value;
 
@@ -100,7 +100,7 @@ fn decodes_every_model_to_the_same_geometry_without_extensions_the_loader_needs(
                 "{name} mesh {i}"
             );
             assert_eq!(
-                geometry.indices().map_or(0, |ix| ix.count()) as u64,
+                geometry.indices().map_or(0, PackedIndices::count) as u64,
                 prim["indices"].as_u64().unwrap(),
                 "{name} mesh {i}"
             );

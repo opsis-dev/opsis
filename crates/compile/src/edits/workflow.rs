@@ -12,7 +12,7 @@ use crate::edits::EditError;
 use crate::fonts::same_family;
 use crate::graph::{GROUP_TYPE, is_group_node};
 use crate::ids::{Ids, node_id_prefix};
-use crate::node::Platform;
+use crate::node::{NodeDef, Platform};
 use crate::registry::node_def;
 use crate::vars::rename_variable;
 
@@ -311,7 +311,7 @@ pub fn group_nodes(
         .fold(f64::NEG_INFINITY, f64::max);
     let member_ids: HashSet<String> = members.iter().map(|n| n.id.clone()).collect();
     let mut params = node_def(GROUP_TYPE)
-        .map(|def| def.defaults())
+        .map(NodeDef::defaults)
         .unwrap_or_default();
     params.insert(GROUP_TITLE.to_owned(), Value::String(title.to_owned()));
     let group = WorkflowNode {

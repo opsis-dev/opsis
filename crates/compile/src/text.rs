@@ -53,23 +53,23 @@ fn minutes_and_seconds(seconds: f64) -> String {
     let m = ((seconds - h * SECONDS_PER_HOUR) / SECONDS_PER_MINUTE).floor();
     let rest = round_to(seconds - h * SECONDS_PER_HOUR - m * SECONDS_PER_MINUTE, 3);
     if h == 0.0 {
-        return if rest != 0.0 {
-            format!("{} min {} s", m, rest)
-        } else {
+        return if rest == 0.0 {
             format!("{} min", m)
+        } else {
+            format!("{} min {} s", m, rest)
         };
     }
     let parts = [
         format!("{} h", h),
-        if m != 0.0 {
+        if m == 0.0 {
+            String::new()
+        } else {
             format!("{} min", m)
-        } else {
-            String::new()
         },
-        if rest != 0.0 {
-            format!("{} s", rest)
-        } else {
+        if rest == 0.0 {
             String::new()
+        } else {
+            format!("{} s", rest)
         },
     ];
     parts

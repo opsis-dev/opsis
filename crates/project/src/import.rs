@@ -37,8 +37,10 @@ fn unique_name(folder: &Path, name: &str) -> String {
         .extension()
         .map(|e| format!(".{}", e.to_string_lossy()))
         .unwrap_or_default();
+    let entries = std::fs::read_dir(folder).map_or(0, Iterator::count);
     std::iter::once(name.to_owned())
         .chain((1..).map(|n| format!("{stem}-{n}{ext}")))
+        .take(entries + 1)
         .find(|candidate| !folder.join(candidate).exists())
         .expect("a free name")
 }
