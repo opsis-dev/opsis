@@ -109,6 +109,7 @@ impl fmt::Debug for Executor {
 }
 
 impl Executor {
+    #[must_use]
     pub fn stamped(
         mut self,
         stamp: impl Fn(&Path, &Values) -> Stamps + Send + Sync + 'static,

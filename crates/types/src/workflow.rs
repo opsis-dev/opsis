@@ -207,6 +207,7 @@ impl Workflow {
         self.nodes.iter().find(|n| n.id == id)
     }
 
+    #[must_use]
     pub fn normalized(mut self) -> Self {
         if let Some(mix) = self.mix.as_mut() {
             let ids: std::collections::HashSet<&str> =

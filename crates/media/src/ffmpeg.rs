@@ -108,6 +108,7 @@ impl Ffmpeg {
         }
     }
 
+    #[must_use]
     pub fn with_temp(mut self, dir: &Path) -> Self {
         self.env = opsis_engine::temp::temp_env(dir).into_iter().collect();
         self

@@ -163,6 +163,7 @@ impl PortSpec {
             .unwrap_or_else(|| crate::text::humanize(self.kind.word()))
     }
 
+    #[must_use]
     pub fn optional(self) -> Self {
         Self {
             optional: true,
@@ -170,6 +171,7 @@ impl PortSpec {
         }
     }
 
+    #[must_use]
     pub fn many(self) -> Self {
         Self {
             optional: true,
@@ -545,21 +547,25 @@ impl NodeDef {
         def
     }
 
+    #[must_use]
     pub fn describe(mut self, description: impl Into<String>) -> Self {
         self.description = Some(description.into());
         self
     }
 
+    #[must_use]
     pub fn inputs(mut self, ports: Ports) -> Self {
         self.inputs = ports;
         self
     }
 
+    #[must_use]
     pub fn family(mut self, family: PortFamily) -> Self {
         self.family = Some(family);
         self
     }
 
+    #[must_use]
     pub fn needs(mut self, need: FileNeed) -> Self {
         for (_, spec) in &mut self.inputs {
             spec.needing(need);
@@ -571,62 +577,74 @@ impl NodeDef {
         self
     }
 
+    #[must_use]
     pub fn outputs(mut self, ports: Ports) -> Self {
         self.outputs = ports;
         self
     }
 
+    #[must_use]
     pub fn virtual_node(mut self) -> Self {
         self.is_virtual = true;
         self
     }
 
+    #[must_use]
     pub fn action(mut self) -> Self {
         self.action = true;
         self
     }
 
+    #[must_use]
     pub fn look(mut self, look: NodeLook) -> Self {
         self.look = Some(look);
         self
     }
 
+    #[must_use]
     pub fn executes(mut self) -> Self {
         self.executes = true;
         self
     }
 
+    #[must_use]
     pub fn uses_project_size(mut self) -> Self {
         self.uses_project_size = true;
         self
     }
 
+    #[must_use]
     pub fn uses_project_fonts(mut self) -> Self {
         self.uses_project_fonts = true;
         self
     }
 
+    #[must_use]
     pub fn element(mut self, meta: &ElementMeta) -> Self {
         self.element = Some(meta.key.clone());
         self.look.clone_from(&meta.look);
         self
     }
 
+    #[must_use]
     pub fn hidden(mut self) -> Self {
         self.hidden = true;
         self
     }
 
+    #[must_use]
     pub fn card_height(mut self, height: f64) -> Self {
         self.card_height = Some(height);
         self
     }
 
+    #[must_use]
     pub fn host_defaults(mut self, f: HostDefaultsFn) -> Self {
         self.host_defaults = Some(f);
         self
     }
 
+    #[must_use]
     pub fn compile<P, F>(mut self, f: F) -> Self
     where
         P: DeserializeOwned + 'static,
@@ -638,6 +656,7 @@ impl NodeDef {
         self
     }
 
+    #[must_use]
     pub fn compiles<P, F>(self, f: F) -> Self
     where
         P: DeserializeOwned + 'static,
@@ -646,6 +665,7 @@ impl NodeDef {
         self.compile(move |ctx: &Ctx<'_, P>| Ok(Some(f(ctx))))
     }
 
+    #[must_use]
     pub fn card<P, F>(mut self, f: F) -> Self
     where
         P: DeserializeOwned + 'static,
@@ -664,6 +684,7 @@ impl NodeDef {
         self
     }
 
+    #[must_use]
     pub fn mutates<P, F>(mut self, f: F) -> Self
     where
         P: DeserializeOwned + 'static,
@@ -675,6 +696,7 @@ impl NodeDef {
         self
     }
 
+    #[must_use]
     pub fn claims<P, F>(mut self, f: F) -> Self
     where
         P: DeserializeOwned + 'static,
@@ -686,6 +708,7 @@ impl NodeDef {
         self
     }
 
+    #[must_use]
     pub fn restyle<P, F>(mut self, f: F) -> Self
     where
         P: DeserializeOwned + 'static,
@@ -699,6 +722,7 @@ impl NodeDef {
         self
     }
 
+    #[must_use]
     pub fn retime<P, F>(mut self, f: F) -> Self
     where
         P: DeserializeOwned + 'static,
@@ -719,6 +743,7 @@ impl NodeDef {
         self
     }
 
+    #[must_use]
     pub fn neutral<P, F>(mut self, f: F) -> Self
     where
         P: DeserializeOwned + 'static,
@@ -891,10 +916,15 @@ pub fn missing(icon: Icon, text: impl Into<String>) -> CardRow {
 }
 
 pub trait RowExt: Sized {
+    #[must_use]
     fn tone(self, tone: Tone) -> Self;
+    #[must_use]
     fn titled(self, title: impl Into<String>) -> Self;
+    #[must_use]
     fn muted_if(self, when: bool) -> Self;
+    #[must_use]
     fn warn_if(self, when: bool) -> Self;
+    #[must_use]
     fn swatches(self, colors: Vec<String>) -> Self;
 }
 

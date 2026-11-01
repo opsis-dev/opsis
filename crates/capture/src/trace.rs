@@ -43,11 +43,13 @@ impl CallInfo {
         }
     }
 
+    #[must_use]
     pub fn target(mut self, target: &str) -> Self {
         self.target = Some(target.to_owned());
         self
     }
 
+    #[must_use]
     pub fn at(mut self, point: Point) -> Self {
         self.point = Some(point);
         self

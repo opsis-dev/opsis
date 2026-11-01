@@ -43,6 +43,7 @@ impl Point {
         (other.x - self.x).hypot(other.y - self.y)
     }
 
+    #[must_use]
     pub fn lerp(self, to: Point, t: f64) -> Point {
         Point {
             x: self.x + (to.x - self.x) * t,
