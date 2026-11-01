@@ -608,7 +608,7 @@ impl<'e> TakeRun<'e> {
                 self.sleep(Duration::from_secs_f64(
                     FIRST_PAGE_MIN_WAIT_MS.max(f64::from(after)) / 1000.0,
                 ))
-                .await
+                .await;
             }
         }
     }
@@ -1148,12 +1148,12 @@ impl<'e> TakeRun<'e> {
             WaitMode::NetworkIdle => {
                 self.lifecycle
                     .wait_for_load_state(self.tab(), WaitUntil::Networkidle, ms(p.timeout_ms))
-                    .await?
+                    .await?;
             }
             WaitMode::Url => {
                 self.lifecycle
                     .wait_for_url(self.tab(), &p.url, ms(p.timeout_ms))
-                    .await?
+                    .await?;
             }
             WaitMode::Ms => self.sleep(ms(p.ms)).await,
         }

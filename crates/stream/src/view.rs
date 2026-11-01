@@ -273,13 +273,11 @@ impl FrameSink for SinkSlot {
     fn frame(&self, jpeg: &[u8], width: f64, height: f64, t: f64) {
         let sink = {
             let mut slot = self.0.lock().expect("view sink");
-            match &slot.sink {
-                Some(sink) => Arc::clone(sink),
-                None => {
-                    slot.last = Some((jpeg.to_vec(), width, height, t));
-                    return;
-                }
-            }
+            let Some(sink) = &slot.sink else {
+                slot.last = Some((jpeg.to_vec(), width, height, t));
+                return;
+            };
+            Arc::clone(sink)
         };
         sink.frame(jpeg, width, height, t);
     }

@@ -602,7 +602,7 @@ async fn reverse_pieces_into(
         ctx.progress(
             PARTS_SHARE + p * (1.0 - PARTS_SHARE),
             Some("Joining the parts"),
-        )
+        );
     };
     let args = join_reversed_args(&list.to_string_lossy(), out, job.sound);
     tools
@@ -981,12 +981,11 @@ async fn filter_sound(
         if let Some(rate) = audio.sample_rate {
             args.extend(["-ar".to_owned(), rate.to_string()]);
         }
-        match format {
-            Some(f) => args.extend(audio_format_args(f)),
-            None => {
-                args.extend(picture);
-                args.extend(edit_audio());
-            }
+        if let Some(f) = format {
+            args.extend(audio_format_args(f));
+        } else {
+            args.extend(picture);
+            args.extend(edit_audio());
         }
         args.push(o.to_owned());
         args
@@ -1039,21 +1038,20 @@ async fn hum(
     tools: Tools,
 ) -> Result<ExecutorOutput, ExecError> {
     let p: RemoveHum = ctx.params()?;
-    let hertz = match p.mains.hertz() {
-        Some(hertz) => hertz,
-        None => {
-            let input = require_media(inputs.get(MEDIA_PORT))?;
-            let source = ctx.ref_to_path(&input.src)?;
-            let fifty = hum_level(&ctx, &*tools, &source, 50.0).await?;
-            let sixty = hum_level(&ctx, &*tools, &source, 60.0).await?;
-            let hertz = if sixty.unwrap_or(f64::NEG_INFINITY) > fifty.unwrap_or(f64::NEG_INFINITY) {
-                60.0
-            } else {
-                50.0
-            };
-            ctx.log(LogLevel::Info, format!("Found the hum at {hertz} Hz."));
-            hertz
-        }
+    let hertz = if let Some(hertz) = p.mains.hertz() {
+        hertz
+    } else {
+        let input = require_media(inputs.get(MEDIA_PORT))?;
+        let source = ctx.ref_to_path(&input.src)?;
+        let fifty = hum_level(&ctx, &*tools, &source, 50.0).await?;
+        let sixty = hum_level(&ctx, &*tools, &source, 60.0).await?;
+        let hertz = if sixty.unwrap_or(f64::NEG_INFINITY) > fifty.unwrap_or(f64::NEG_INFINITY) {
+            60.0
+        } else {
+            50.0
+        };
+        ctx.log(LogLevel::Info, format!("Found the hum at {hertz} Hz."));
+        hertz
     };
     let job = SoundFilter {
         stem: "hum",

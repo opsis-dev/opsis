@@ -356,20 +356,19 @@ async fn open_holds(tab: &Tab) -> String {
 }
 
 async fn ready_within<T>(tab: &Tab, what: &str, run: impl Future<Output = Result<T>>) -> Result<T> {
-    match tokio::time::timeout(FRAME_TIMEOUT, run).await {
-        Ok(done) => done,
-        Err(_) => {
-            let holds = open_holds(tab).await;
-            let waiting = if holds.is_empty() {
-                String::new()
-            } else {
-                format!(" Still waiting for: {holds}.")
-            };
-            Err(CaptureError::failed(format!(
-                "{what} wasn't ready after {} s.{waiting}",
-                FRAME_TIMEOUT.as_secs()
-            )))
-        }
+    if let Ok(done) = tokio::time::timeout(FRAME_TIMEOUT, run).await {
+        done
+    } else {
+        let holds = open_holds(tab).await;
+        let waiting = if holds.is_empty() {
+            String::new()
+        } else {
+            format!(" Still waiting for: {holds}.")
+        };
+        Err(CaptureError::failed(format!(
+            "{what} wasn't ready after {} s.{waiting}",
+            FRAME_TIMEOUT.as_secs()
+        )))
     }
 }
 

@@ -122,16 +122,13 @@ pub async fn create_project(
     template: String,
     dir: Option<String>,
 ) -> CommandResult<Option<OpenProject>> {
-    let chosen = match dir {
-        Some(dir) => PathBuf::from(dir),
-        None => {
-            let suggested = locations(&app, &state)?.suggested_dir;
-            match choose_folder_in(&app, "Choose where to create the project", Some(&suggested))
-                .await
-            {
-                Some(folder) => folder,
-                None => return Ok(None),
-            }
+    let chosen = if let Some(dir) = dir {
+        PathBuf::from(dir)
+    } else {
+        let suggested = locations(&app, &state)?.suggested_dir;
+        match choose_folder_in(&app, "Choose where to create the project", Some(&suggested)).await {
+            Some(folder) => folder,
+            None => return Ok(None),
         }
     };
     let home = app.path().home_dir()?;
@@ -168,27 +165,26 @@ pub async fn import_assets(
     dir: String,
     paths: Option<Vec<String>>,
 ) -> CommandResult<Vec<String>> {
-    let files: Vec<PathBuf> = match paths {
-        Some(paths) => paths.into_iter().map(PathBuf::from).collect(),
-        None => {
-            let (sender, receiver) = tokio::sync::oneshot::channel();
-            app.dialog()
-                .file()
-                .set_title("Import files into the project")
-                .pick_files(move |files| {
-                    if sender.send(files).is_err() {
-                        log::debug!("the import dialog closed after its caller left");
-                    }
-                });
-            receiver
-                .await
-                .ok()
-                .flatten()
-                .unwrap_or_default()
-                .into_iter()
-                .filter_map(|f| f.into_path().ok())
-                .collect()
-        }
+    let files: Vec<PathBuf> = if let Some(paths) = paths {
+        paths.into_iter().map(PathBuf::from).collect()
+    } else {
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        app.dialog()
+            .file()
+            .set_title("Import files into the project")
+            .pick_files(move |files| {
+                if sender.send(files).is_err() {
+                    log::debug!("the import dialog closed after its caller left");
+                }
+            });
+        receiver
+            .await
+            .ok()
+            .flatten()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|f| f.into_path().ok())
+            .collect()
     };
     if files.is_empty() {
         return Ok(Vec::new());

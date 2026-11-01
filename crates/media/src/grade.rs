@@ -529,7 +529,7 @@ pub fn grade_filters<E: From<GradeError>>(
     for entry in entries {
         match piece_of(entry, size, resolve)? {
             Some(piece) if !piece.filters.is_empty() || piece.look_image.is_some() => {
-                chain.add(piece)
+                chain.add(piece);
             }
             _ => {}
         }

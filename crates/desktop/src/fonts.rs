@@ -39,28 +39,27 @@ pub async fn inspect_font_files(
     state: State<'_, AppState>,
     paths: Option<Vec<String>>,
 ) -> CommandResult<Option<InspectedFonts>> {
-    let files: Vec<PathBuf> = match paths {
-        Some(paths) => paths.into_iter().map(PathBuf::from).collect(),
-        None => {
-            let (sender, receiver) = tokio::sync::oneshot::channel();
-            app.dialog()
-                .file()
-                .set_title("Add fonts")
-                .add_filter("Fonts", &FONT_FILES)
-                .pick_files(move |files| {
-                    if sender.send(files).is_err() {
-                        log::debug!("the font dialog closed after its caller left");
-                    }
-                });
-            receiver
-                .await
-                .ok()
-                .flatten()
-                .unwrap_or_default()
-                .into_iter()
-                .filter_map(|f| f.into_path().ok())
-                .collect()
-        }
+    let files: Vec<PathBuf> = if let Some(paths) = paths {
+        paths.into_iter().map(PathBuf::from).collect()
+    } else {
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        app.dialog()
+            .file()
+            .set_title("Add fonts")
+            .add_filter("Fonts", &FONT_FILES)
+            .pick_files(move |files| {
+                if sender.send(files).is_err() {
+                    log::debug!("the font dialog closed after its caller left");
+                }
+            });
+        receiver
+            .await
+            .ok()
+            .flatten()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|f| f.into_path().ok())
+            .collect()
     };
     if files.is_empty() {
         return Ok(None);

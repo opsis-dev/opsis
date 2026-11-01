@@ -197,7 +197,7 @@ fn plays_only_the_master_stem_when_one_is_ready() {
     assert_eq!(stem.mix.as_ref().unwrap().hash, "m");
     let mut sounding = 0;
     walk_items(&stem.tracks, &mut |i| {
-        sounding += usize::from(item_has_sound(i))
+        sounding += usize::from(item_has_sound(i));
     });
     assert_eq!(sounding, 0);
 }

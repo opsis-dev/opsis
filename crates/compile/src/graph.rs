@@ -592,12 +592,11 @@ fn file_need_issues(wf: &Workflow, compiled: &CompileResult) -> Vec<GraphIssue> 
 
 pub fn validate_workflow(wf: &Workflow, compiled: Option<&CompileResult>) -> Vec<GraphIssue> {
     let owned;
-    let compiled = match compiled {
-        Some(c) => c,
-        None => {
-            owned = compile_workflow(wf, None);
-            &owned
-        }
+    let compiled = if let Some(c) = compiled {
+        c
+    } else {
+        owned = compile_workflow(wf, None);
+        &owned
     };
     [
         node_issues(wf),

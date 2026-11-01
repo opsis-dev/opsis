@@ -167,7 +167,7 @@ async fn takes_with_actions_shown_play_every_action() {
                 .unwrap()
                 .iter_mut()
                 .filter(|n| n["id"] == "record")
-                .for_each(|n| n["params"]["showActions"] = true.into())
+                .for_each(|n| n["params"]["showActions"] = true.into());
         },
         "record",
     )

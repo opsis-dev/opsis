@@ -305,7 +305,7 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
         }
         WindowEvent::Focused(_) => send_state(window),
         WindowEvent::CloseRequested { api, .. } if window.label() == MAIN_WINDOW => {
-            crate::exit::close_requested(window, api)
+            crate::exit::close_requested(window, api);
         }
         WindowEvent::Destroyed => {
             let destroyed = window.clone();

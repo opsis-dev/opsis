@@ -383,7 +383,7 @@ async fn export_video(
                     (numbers::float(i) + x) / count,
                 ),
                 Some(&message),
-            )
+            );
         };
         let job = VariantJob {
             ctx: &ctx,

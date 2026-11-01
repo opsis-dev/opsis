@@ -340,9 +340,10 @@ fn settings_problem(body: &Map<String, Value>) -> Option<String> {
 
 async fn settings(State(host): State<Host>, bytes: Bytes) -> Response {
     match read_json(&bytes, true) {
-        Ok(Value::Object(mut body)) => match settings_problem(&body) {
-            Some(problem) => failure(StatusCode::BAD_REQUEST, &problem),
-            None => {
+        Ok(Value::Object(mut body)) => {
+            if let Some(problem) = settings_problem(&body) {
+                failure(StatusCode::BAD_REQUEST, &problem)
+            } else {
                 if body.get("background") == Some(&Value::Null) {
                     body.insert("background".into(), Value::String(String::new()));
                 }
@@ -351,7 +352,7 @@ async fn settings(State(host): State<Host>, bytes: Bytes) -> Response {
                     Err(error) => failure(StatusCode::BAD_REQUEST, &error.to_string()),
                 }
             }
-        },
+        }
         Ok(_) => failure(
             StatusCode::BAD_REQUEST,
             "The request body must be a JSON object.",

@@ -143,29 +143,26 @@ pub fn display_address(url: &str, keep_query: bool) -> String {
     } else {
         None
     };
-    let (address, query) = match &parsed {
-        Some(u) => {
-            let host = match u.port() {
-                Some(port) => format!("{}:{port}", u.host_str().unwrap_or("")),
-                None => u.host_str().unwrap_or("").to_owned(),
-            };
-            (
-                format!("{host}{}", u.path()),
-                if keep_query {
-                    u.query().map(|q| format!("?{q}")).unwrap_or_default()
-                } else {
-                    String::new()
-                },
-            )
-        }
-        None => {
-            let without = if has_scheme {
-                &text[text.find("//").map_or(0, |i| i + 2)..]
+    let (address, query) = if let Some(u) = &parsed {
+        let host = match u.port() {
+            Some(port) => format!("{}:{port}", u.host_str().unwrap_or("")),
+            None => u.host_str().unwrap_or("").to_owned(),
+        };
+        (
+            format!("{host}{}", u.path()),
+            if keep_query {
+                u.query().map(|q| format!("?{q}")).unwrap_or_default()
             } else {
-                text
-            };
-            (without.to_owned(), String::new())
-        }
+                String::new()
+            },
+        )
+    } else {
+        let without = if has_scheme {
+            &text[text.find("//").map_or(0, |i| i + 2)..]
+        } else {
+            text
+        };
+        (without.to_owned(), String::new())
     };
     let address = address.strip_prefix("www.").unwrap_or(&address);
     let address = address.strip_suffix('/').unwrap_or(address);

@@ -279,7 +279,7 @@ impl Trace {
             while let Some(event) = finished.next().await {
                 let size = event.encoded_data_length;
                 lock(&s).finish(event.request_id.inner(), *event.timestamp.inner(), |r| {
-                    r.size = Some(size)
+                    r.size = Some(size);
                 });
             }
         }));
@@ -288,7 +288,7 @@ impl Trace {
             while let Some(event) = failed.next().await {
                 let failure = event.error_text.clone();
                 lock(&s).finish(event.request_id.inner(), *event.timestamp.inner(), |r| {
-                    r.failure = Some(failure)
+                    r.failure = Some(failure);
                 });
             }
         }));

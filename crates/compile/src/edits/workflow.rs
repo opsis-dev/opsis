@@ -239,16 +239,15 @@ pub fn paste_nodes(
     for node in &nodes {
         let mut copy = node.clone();
         copy.id = fresh[&node.id].clone();
-        match node.parent_id.as_ref().and_then(|p| fresh.get(p)) {
-            Some(parent) => copy.parent_id = Some(parent.clone()),
-            None => {
-                copy.parent_id = None;
-                let at = absolute_position(wf, node);
-                copy.position = Position {
-                    x: at.x + offset.x,
-                    y: at.y + offset.y,
-                };
-            }
+        if let Some(parent) = node.parent_id.as_ref().and_then(|p| fresh.get(p)) {
+            copy.parent_id = Some(parent.clone());
+        } else {
+            copy.parent_id = None;
+            let at = absolute_position(wf, node);
+            copy.position = Position {
+                x: at.x + offset.x,
+                y: at.y + offset.y,
+            };
         }
         pasted.push(copy);
     }
