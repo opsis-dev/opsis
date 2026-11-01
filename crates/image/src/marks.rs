@@ -93,11 +93,11 @@ pub fn arrow_shape(tail: (f64, f64), tip: (f64, f64), width: f64, head: f64) -> 
 fn ellipse_distance(point: (f64, f64), centre: (f64, f64), radii: (f64, f64)) -> f64 {
     let (a, b) = (radii.0.max(1.0), radii.1.max(1.0));
     let (dx, dy) = (point.0 - centre.0, point.1 - centre.1);
-    let r = ((dx / a).powi(2) + (dy / b).powi(2)).sqrt();
+    let r = (dx / a).hypot(dy / b);
     if r < 1e-9 {
         return -a.min(b);
     }
-    let gradient = ((dx / (a * a)).powi(2) + (dy / (b * b)).powi(2)).sqrt() / r;
+    let gradient = (dx / (a * a)).hypot(dy / (b * b)) / r;
     (r - 1.0) / gradient.max(1e-9)
 }
 

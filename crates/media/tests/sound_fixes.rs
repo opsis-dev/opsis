@@ -96,7 +96,7 @@ fn energy_at(samples: &[f32], hertz: f32) -> f32 {
         re += s * phase.cos();
         im += s * phase.sin();
     }
-    (re * re + im * im).sqrt() / numbers::narrow(numbers::float(samples.len()))
+    re.hypot(im) / numbers::narrow(numbers::float(samples.len()))
 }
 
 #[test]

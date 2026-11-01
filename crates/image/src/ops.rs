@@ -977,7 +977,7 @@ pub fn paint_gradient(size: (u32, u32), gradient: &Gradient) -> Rgba32FImage {
                     w / 2.0 * std::f64::consts::SQRT_2,
                     h / 2.0 * std::f64::consts::SQRT_2,
                 );
-                ((dx / rx).powi(2) + (dy / ry).powi(2)).sqrt()
+                (dx / rx).hypot(dy / ry)
             }
         };
         Rgba(along(gradient, t))
