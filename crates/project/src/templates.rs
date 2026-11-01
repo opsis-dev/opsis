@@ -51,7 +51,7 @@ pub fn examples() -> Vec<(String, Workflow)> {
         .map(|t| {
             let mut workflow = t.workflow.clone();
             workflow.id = format!("example_{}", t.info.id.replace('-', "_"));
-            workflow.name = t.info.title.clone();
+            workflow.name.clone_from(&t.info.title);
             (t.info.id.clone(), workflow)
         })
         .collect()

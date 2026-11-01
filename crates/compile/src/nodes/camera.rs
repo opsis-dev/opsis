@@ -1111,7 +1111,7 @@ fn auto_zoom() -> NodeDef {
                 None => RecordingProps { chrome: false, ..own },
                 Some(style) => with_window_frame(own, style, p.frame_theme, &p.bar()),
             };
-            own.backdrop = p.backdrop.id().to_owned();
+            p.backdrop.id().clone_into(&mut own.backdrop);
             let props = restyle_with(own, &entries)?;
             let clip = recording_clip(ctx.node_id, props, frames, ItemExtra { recording: Some(rec.clone()), ..ItemExtra::default() });
             Ok(Some(outputs([(CLIP_PORT, CompileValue::Clip(retime_with(clip, &entries, ctx.settings.fps)?))])))

@@ -270,7 +270,10 @@ impl Trace {
             while let Some(event) = received.next().await {
                 if let Some(pending) = lock(&s).pending.get_mut(event.request_id.inner()) {
                     pending.request.status = status_of(&event.response);
-                    pending.request.mime_type = event.response.mime_type.clone();
+                    pending
+                        .request
+                        .mime_type
+                        .clone_from(&event.response.mime_type);
                 }
             }
         }));

@@ -382,7 +382,7 @@ impl CursorDriver {
             let mut state = self.state.lock().await;
             if shape != state.shown {
                 sample.c = Some(shape.to_owned());
-                state.shown = shape.to_owned();
+                shape.clone_into(&mut state.shown);
             }
         }
         self.sink.cursor(sample);

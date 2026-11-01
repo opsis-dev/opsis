@@ -124,7 +124,7 @@ impl Lifecycle {
                 }
                 let mut page = s.lock().expect("page state");
                 if event.name == "init" || page.loader_id != *event.loader_id.inner() {
-                    page.loader_id = event.loader_id.inner().clone();
+                    page.loader_id.clone_from(event.loader_id.inner());
                     page.fired.clear();
                 }
                 page.fired.insert(event.name.clone());
@@ -149,7 +149,7 @@ impl Lifecycle {
                     clock.now(),
                 );
                 if page.loader_id != *event.frame.loader_id.inner() {
-                    page.loader_id = event.frame.loader_id.inner().clone();
+                    page.loader_id.clone_from(event.frame.loader_id.inner());
                     page.fired.clear();
                 }
                 page.fired.insert("commit".to_owned());
@@ -170,7 +170,7 @@ impl Lifecycle {
                 c.notify_waiters();
             }
         });
-        state.lock().expect("page state").url = "about:blank".to_owned();
+        "about:blank".clone_into(&mut state.lock().expect("page state").url);
         Ok(Self {
             clock: tab.clock().clone(),
             state,

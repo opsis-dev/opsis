@@ -158,7 +158,6 @@ significant_drop_tightening = "allow" # FIXME: REMOVE
 zero_sized_map_values = "allow" # FIXME: REMOVE
 similar_names = "allow" # FIXME: REMOVE
 uninlined_format_args = "allow" # FIXME: REMOVE
-assigning_clones = "allow" # FIXME: REMOVE
 while_float = "allow" # FIXME: REMOVE
 
 [profile.release]

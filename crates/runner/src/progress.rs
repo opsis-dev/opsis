@@ -195,7 +195,7 @@ pub fn seeded_view(last_run: Option<&LastRun>) -> RunView {
         return view;
     };
     let progress = &mut view.progress;
-    progress.results = last_run.nodes.clone();
+    progress.results.clone_from(&last_run.nodes);
     for (id, result) in &last_run.nodes {
         if let Some(trace) = &result.trace_id {
             progress.traces.insert(id.clone(), trace.clone());

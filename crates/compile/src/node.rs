@@ -608,7 +608,7 @@ impl NodeDef {
 
     pub fn element(mut self, meta: &ElementMeta) -> Self {
         self.element = Some(meta.key.clone());
-        self.look = meta.look.clone();
+        self.look.clone_from(&meta.look);
         self
     }
 

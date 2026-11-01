@@ -58,8 +58,8 @@ fn build_layout(layout: &IndexMap<String, KeyDefinition>) -> IndexMap<String, Ke
         }
         let shifted = definition.shift_key.as_ref().map(|shift_key| {
             let mut shifted = description.clone();
-            shifted.key = shift_key.clone();
-            shifted.text = shift_key.clone();
+            shifted.key.clone_from(shift_key);
+            shifted.text.clone_from(shift_key);
             if let Some(code) = definition.shift_key_code.filter(|c| *c != 0) {
                 shifted.key_code = code;
                 shifted.key_code_without_location = code;

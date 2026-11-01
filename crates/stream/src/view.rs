@@ -531,7 +531,7 @@ impl StreamView {
         let (view, address) = (Arc::downgrade(self), Arc::clone(url));
         listeners.push(tokio::spawn(async move {
             while let Some(event) = within.next().await {
-                *address.lock().expect("tab address") = event.url.clone();
+                (*address.lock().expect("tab address")).clone_from(&event.url);
                 let Some(view) = view.upgrade() else { return };
                 view.tab_info().await;
             }

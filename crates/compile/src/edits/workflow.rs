@@ -238,7 +238,7 @@ pub fn paste_nodes(
     let mut pasted = Vec::with_capacity(nodes.len());
     for node in &nodes {
         let mut copy = node.clone();
-        copy.id = fresh[&node.id].clone();
+        copy.id.clone_from(&fresh[&node.id]);
         if let Some(parent) = node.parent_id.as_ref().and_then(|p| fresh.get(p)) {
             copy.parent_id = Some(parent.clone());
         } else {

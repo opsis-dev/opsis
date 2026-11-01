@@ -360,13 +360,14 @@ pub fn redo(app: AppHandle) -> CommandResult<()> {
 #[tauri::command]
 #[specta::specta]
 pub fn begin_gesture(state: State<'_, AppState>) {
-    let mut editor = state.editor();
+    let mut guard = state.editor();
+    let editor = &mut *guard;
     let starting = editor
         .document
         .as_ref()
         .is_some_and(|d| d.gesture_start().is_none());
     if starting {
-        editor.gesture_film = editor.film.clone();
+        editor.gesture_film.clone_from(&editor.film);
     }
     if let Some(doc) = editor.document.as_mut() {
         doc.begin_gesture();
