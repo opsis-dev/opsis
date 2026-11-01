@@ -21,4 +21,18 @@ pub mod ts_export;
 pub mod values;
 pub mod workflow;
 
-pub type JsonObject = std::collections::HashMap<String, specta_typescript::Unknown>;
+use std::collections::HashMap;
+
+use specta::datatype::DataType;
+use specta::{Type, Types};
+use specta_typescript::Unknown;
+
+#[derive(Debug)]
+pub struct JsonObject;
+
+impl Type for JsonObject {
+    #[allow(clippy::zero_sized_map_values)]
+    fn definition(types: &mut Types) -> DataType {
+        <HashMap<String, Unknown> as Type>::definition(types)
+    }
+}

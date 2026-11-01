@@ -155,7 +155,6 @@ iter_on_single_items = "allow" # FIXME: REMOVE
 redundant_clone = "allow" # FIXME: REMOVE
 or_fun_call = "allow" # FIXME: REMOVE
 significant_drop_tightening = "allow" # FIXME: REMOVE
-zero_sized_map_values = "allow" # FIXME: REMOVE
 similar_names = "allow" # FIXME: REMOVE
 while_float = "allow" # FIXME: REMOVE
 
