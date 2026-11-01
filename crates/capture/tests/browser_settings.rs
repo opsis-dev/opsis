@@ -287,6 +287,7 @@ async fn holds_a_mocked_reply_back_for_its_delay() {
     .await;
 }
 
+#[allow(clippy::many_single_char_names)]
 fn is_red(frame: &RgbImage, x: u32, y: u32) -> bool {
     let [r, g, b] = frame.get_pixel(x, y).0;
     r > 200 && g < 60 && b < 60
@@ -309,13 +310,13 @@ fn red_box(frame: &RgbImage) -> Option<(u32, u32, u32, u32)> {
 
 fn redness(frame: &RgbImage, y: u32) -> f64 {
     let xs = WIDTH / 2 - 20..WIDTH / 2 + 20;
-    let n = f64::from(xs.end - xs.start);
+    let count = f64::from(xs.end - xs.start);
     xs.map(|x| {
         let [r, g, b] = frame.get_pixel(x, y).0;
         f64::from(r) - f64::midpoint(f64::from(g), f64::from(b))
     })
     .sum::<f64>()
-        / n
+        / count
         / 255.0
 }
 

@@ -23,8 +23,8 @@ pub fn is_color(value: &str) -> bool {
 }
 
 pub fn parse_color(value: &str) -> Option<Hsva> {
-    let c = parsed(value)?;
-    let [h, s, v, a] = c.to_hsva();
+    let color = parsed(value)?;
+    let [h, s, v, a] = color.to_hsva();
     Some(Hsva {
         h: if h.is_finite() { f64::from(h) } else { 0.0 },
         s: f64::from(s),

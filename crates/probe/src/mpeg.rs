@@ -161,7 +161,7 @@ fn vbr_frames(bytes: &[u8], f: &Frame) -> Option<u32> {
     None
 }
 
-fn mp3(source: &mut Source, at: u64, bytes: &[u8], f: &Frame) -> Found {
+fn mp3(source: &Source, at: u64, bytes: &[u8], f: &Frame) -> Found {
     let length = vbr_frames(bytes, f).map_or_else(
         || {
             let bits = source.len().saturating_sub(at).checked_mul(8)?;

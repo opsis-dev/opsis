@@ -40,7 +40,7 @@ use crate::state::AppState;
 use crate::views::Views;
 use crate::windows::WindowRuntime;
 
-fn start(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+fn start(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let paths = AppPaths::new(app.handle())?;
     let ended = opsis_engine::children::end_children_of_gone_apps(
         &paths.temp_root,

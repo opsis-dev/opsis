@@ -894,7 +894,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn click(&mut self, step: &SessionStep, p: Click) -> StepResult {
+    async fn click(&self, step: &SessionStep, p: Click) -> StepResult {
         let resolved = self
             .resolve(
                 &p.target.target,
@@ -923,7 +923,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn type_text(&mut self, step: &SessionStep, p: Type) -> StepResult {
+    async fn type_text(&self, step: &SessionStep, p: Type) -> StepResult {
         let resolved = self.resolve(&p.target.target, None).await?;
         let label = step_name(step, Some(&p.target.target));
         let mut opts = self
@@ -949,7 +949,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn hover(&mut self, step: &SessionStep, p: Hover) -> StepResult {
+    async fn hover(&self, step: &SessionStep, p: Hover) -> StepResult {
         let resolved = self.resolve(&p.target.target, None).await?;
         let label = step_name(step, Some(&p.target.target));
         let opts = self
@@ -966,7 +966,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn drag(&mut self, step: &SessionStep, p: Drag) -> StepResult {
+    async fn drag(&self, step: &SessionStep, p: Drag) -> StepResult {
         let from = self.resolve(&p.target, None).await?;
         let label = step_name(step, Some(&p.target));
         self.rolling()?;
@@ -1063,7 +1063,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn select(&mut self, step: &SessionStep, p: Select) -> StepResult {
+    async fn select(&self, step: &SessionStep, p: Select) -> StepResult {
         let resolved = self.resolve(&p.target.target, None).await?;
         let label = step_name(step, Some(&p.target.target));
         let opts = self
@@ -1110,7 +1110,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn upload(&mut self, p: opsis_compile::nodes::browser::Upload) -> StepResult {
+    async fn upload(&self, p: opsis_compile::nodes::browser::Upload) -> StepResult {
         let resolved = self.resolve(&p.target, None).await?;
         let project = &self.env.project_dir;
         let file = project.join(project_rel_path(&p.file).unwrap_or_else(|| p.file.clone()));
@@ -1131,7 +1131,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn press(&mut self, step: &SessionStep, p: PressKeys) -> StepResult {
+    async fn press(&self, step: &SessionStep, p: PressKeys) -> StepResult {
         let chord = pressed_chord(&p.keys);
         self.press_key(&chord, &step_name(step, Some(&p.keys)))
             .await?;
@@ -1163,7 +1163,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn assert(&mut self, p: Assert) -> StepResult {
+    async fn assert(&self, p: Assert) -> StepResult {
         let text = text_string_selector(&p.text, p.exact);
         let selector = if p.target.trim().is_empty() {
             first(&text)
@@ -1197,7 +1197,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn set_state(&mut self, step: &SessionStep, p: SetState) -> StepResult {
+    async fn set_state(&self, step: &SessionStep, p: SetState) -> StepResult {
         if p.every_page {
             self.session
                 .add_init_script(&run_user_script(&p.script))
@@ -1246,7 +1246,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn hide_elements(&mut self, p: HideElements) -> StepResult {
+    async fn hide_elements(&self, p: HideElements) -> StepResult {
         let own = non_blank_lines(&p.selectors);
         let selectors: Vec<String> = (if p.cookie_banners {
             COOKIE_BANNER_SELECTORS.as_slice()
@@ -1322,7 +1322,7 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn overlay_html(&mut self, p: OverlayHtml) -> StepResult {
+    async fn overlay_html(&self, p: OverlayHtml) -> StepResult {
         let Some(overlays) = &self.overlays else {
             return Ok(());
         };

@@ -67,7 +67,7 @@ fn base_builder<'a>(
     builder
 }
 
-fn visible_bounds(app: &AppHandle, b: Bounds) -> Option<Bounds> {
+fn visible_bounds(app: &AppHandle, bounds: Bounds) -> Option<Bounds> {
     let monitors = app.available_monitors().ok()?;
     let fits = monitors.iter().any(|m| {
         let area = m.work_area();
@@ -76,11 +76,12 @@ fn visible_bounds(app: &AppHandle, b: Bounds) -> Option<Bounds> {
             numbers::signed(area.size.width),
             numbers::signed(area.size.height),
         );
-        let across = b.x < x + w - MIN_VISIBLE_PX && b.x + b.width > x + MIN_VISIBLE_PX;
-        let reachable = b.y >= y - ABOVE_WORK_AREA_PX && b.y < y + h - MIN_VISIBLE_PX;
+        let across =
+            bounds.x < x + w - MIN_VISIBLE_PX && bounds.x + bounds.width > x + MIN_VISIBLE_PX;
+        let reachable = bounds.y >= y - ABOVE_WORK_AREA_PX && bounds.y < y + h - MIN_VISIBLE_PX;
         across && reachable
     });
-    fits.then_some(b)
+    fits.then_some(bounds)
 }
 
 fn place(window: &WebviewWindow, bounds: Bounds) {

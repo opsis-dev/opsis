@@ -848,6 +848,7 @@ fn lays_images_out_in_rows_columns_and_cells() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn frames_a_picture_with_round_corners_and_a_shadow_on_a_background() {
     let shot = block(100, 50, [250, 250, 250]);
     let p = FrameScreenshot {

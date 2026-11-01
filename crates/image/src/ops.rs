@@ -122,6 +122,7 @@ pub fn background_rgba(color: &str) -> [u8; 4] {
         .unwrap_or([0, 0, 0, 0])
 }
 
+#[allow(clippy::many_single_char_names)]
 pub fn rotate(image: &DynamicImage, p: &RotateImage) -> DynamicImage {
     let mut out = match p.turn {
         Turn::None => image.clone(),
@@ -209,6 +210,7 @@ fn adjust_pixel(rgb: [f32; 3], p: &AdjustImage, hue: &[[f32; 3]; 3]) -> [f32; 3]
     c.map(|v| v.clamp(0.0, 1.0))
 }
 
+#[allow(clippy::many_single_char_names)]
 pub fn adjust(image: &DynamicImage, p: &AdjustImage) -> DynamicImage {
     let hue = hue_matrix(numbers::narrow(p.hue));
     let deep = is_deep(image);
@@ -508,6 +510,7 @@ pub fn lit_mask(
     }
 }
 
+#[allow(clippy::many_single_char_names)]
 pub fn spotlight(image: &DynamicImage, p: &SpotlightImage) -> DynamicImage {
     let rects: Vec<Rect> = p
         .areas
@@ -571,6 +574,7 @@ pub fn content_rect(image: &RgbaImage, tolerance: u32, edge: Option<[u8; 4]>) ->
     })
 }
 
+#[allow(clippy::many_single_char_names)]
 pub fn trim(image: &DynamicImage, p: &TrimEdges) -> DynamicImage {
     let edge = (!p.edge_color.trim().is_empty()).then(|| background_rgba(&p.edge_color));
     let Some(content) = content_rect(&image.to_rgba8(), p.tolerance, edge) else {
@@ -701,6 +705,7 @@ fn soften(mask: ImageBuffer<Luma<f32>, Vec<f32>>, sigma: f64) -> ImageBuffer<Lum
     }
 }
 
+#[allow(clippy::many_single_char_names)]
 pub fn outline(image: &DynamicImage, p: &OutlineImage) -> DynamicImage {
     let source = image.to_rgba32f();
     let pad = numbers::truncate::<u32>(outline_padding(p));
@@ -877,6 +882,7 @@ pub fn auto_levels(image: &DynamicImage, p: &AutoLevels) -> DynamicImage {
     from_float(image, pixels)
 }
 
+#[allow(clippy::many_single_char_names)]
 pub fn grid(images: &[DynamicImage], p: &ImageGrid) -> Result<DynamicImage, ImageError> {
     let sizes: Vec<(f64, f64)> = images.iter().map(size_of).collect();
     let plan = grid_plan(&sizes, p);

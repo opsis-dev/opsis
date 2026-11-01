@@ -1030,9 +1030,9 @@ pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
     );
     let place = |i: usize| (i % columns, i / columns);
     let column_widths: Vec<f64> = (0..columns)
-        .map(|c| {
+        .map(|column| {
             (0..n)
-                .filter(|&i| place(i).0 == c)
+                .filter(|&i| place(i).0 == column)
                 .map(|i| {
                     if p.fit == GridFit::Cells {
                         cell.0
@@ -1044,9 +1044,9 @@ pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
         })
         .collect();
     let row_heights: Vec<f64> = (0..rows)
-        .map(|r| {
+        .map(|row| {
             (0..n)
-                .filter(|&i| place(i).1 == r)
+                .filter(|&i| place(i).1 == row)
                 .map(|i| {
                     if p.fit == GridFit::Cells {
                         cell.1
@@ -1057,15 +1057,17 @@ pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
                 .fold(0.0, f64::max)
         })
         .collect();
-    let left = |c: usize| pad + column_widths[..c].iter().sum::<f64>() + gap * numbers::float(c);
-    let top = |r: usize| pad + row_heights[..r].iter().sum::<f64>() + gap * numbers::float(r);
+    let left = |column: usize| {
+        pad + column_widths[..column].iter().sum::<f64>() + gap * numbers::float(column)
+    };
+    let top = |row: usize| pad + row_heights[..row].iter().sum::<f64>() + gap * numbers::float(row);
     let cells = (0..n)
         .map(|i| {
-            let (c, r) = place(i);
+            let (column, row) = place(i);
             let (w, h) = scaled[i];
             Rect {
-                x: (left(c) + (column_widths[c] - w) * p.align.share()).round(),
-                y: (top(r) + (row_heights[r] - h) * p.align.share()).round(),
+                x: (left(column) + (column_widths[column] - w) * p.align.share()).round(),
+                y: (top(row) + (row_heights[row] - h) * p.align.share()).round(),
                 width: w,
                 height: h,
             }
@@ -1085,6 +1087,7 @@ pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
 
 const SHADOW_SPACE: f64 = 0.06;
 
+#[allow(clippy::many_single_char_names)]
 pub fn tilt_corners(size: (f64, f64), p: &TiltImage) -> [(f64, f64); 4] {
     let (w, h) = size;
     let distance = p.perspective * w.max(h);
