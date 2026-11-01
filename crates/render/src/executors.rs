@@ -69,7 +69,7 @@ fn browser(ctx: &ExecutorContext) -> Result<&Path, ExecError> {
         .map_err(|e| ExecError::new(e.to_string()))
 }
 
-fn driver<'a>(ctx: &'a ExecutorContext, gl: Gl) -> Result<DriverOptions<'a>, ExecError> {
+fn driver(ctx: &ExecutorContext, gl: Gl) -> Result<DriverOptions<'_>, ExecError> {
     Ok(DriverOptions {
         executable: browser(ctx)?,
         temp_dir: &ctx.env.temp_dir,

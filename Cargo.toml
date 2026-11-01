@@ -198,7 +198,6 @@ manual_let_else = "allow" # FIXME: REMOVE
 manual_assert_eq = "allow" # FIXME: REMOVE
 ignored_unit_patterns = "allow" # FIXME: REMOVE
 equatable_if_let = "allow" # FIXME: REMOVE
-elidable_lifetime_names = "allow" # FIXME: REMOVE
 
 [profile.release]
 opt-level = 3
