@@ -287,7 +287,10 @@ async fn holds_a_mocked_reply_back_for_its_delay() {
     .await;
 }
 
-#[allow(clippy::many_single_char_names)]
+#[expect(
+    clippy::many_single_char_names,
+    reason = "x, y are the pixel's position and r, g, b its colour channels"
+)]
 fn is_red(frame: &RgbImage, x: u32, y: u32) -> bool {
     let [r, g, b] = frame.get_pixel(x, y).0;
     r > 200 && g < 60 && b < 60

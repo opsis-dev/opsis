@@ -15,7 +15,10 @@ mod fonts;
 mod frames;
 mod gradients;
 mod menu;
-#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+#[cfg_attr(
+    not(target_os = "macos"),
+    expect(dead_code, reason = "only macOS shows the native menu")
+)]
 mod native_menu;
 mod node_results;
 mod page_log;

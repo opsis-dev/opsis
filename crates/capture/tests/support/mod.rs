@@ -1,4 +1,7 @@
-#![allow(dead_code)]
+#![allow(
+    dead_code,
+    reason = "each test file uses only some of the shared helpers"
+)]
 
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};

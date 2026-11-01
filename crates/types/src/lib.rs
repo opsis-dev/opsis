@@ -31,7 +31,6 @@ use specta_typescript::Unknown;
 pub struct JsonObject;
 
 impl Type for JsonObject {
-    #[allow(clippy::zero_sized_map_values)]
     fn definition(types: &mut Types) -> DataType {
         <HashMap<String, Unknown> as Type>::definition(types)
     }

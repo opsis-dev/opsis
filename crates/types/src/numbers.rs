@@ -22,12 +22,18 @@ pub fn count(value: usize) -> u32 {
     u32::try_from(value).unwrap_or(u32::MAX)
 }
 
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "converting to f64 is what this function is for"
+)]
 pub const fn float(value: usize) -> f64 {
     value as f64
 }
 
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "converting to f64 is what this function is for"
+)]
 pub const fn float_wide(value: u64) -> f64 {
     value as f64
 }
@@ -36,7 +42,10 @@ pub fn millis(duration: Duration) -> f64 {
     float_wide(u64::try_from(duration.as_millis()).unwrap_or(u64::MAX))
 }
 
-#[allow(clippy::cast_possible_truncation)]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "narrowing to f32 is what this function is for"
+)]
 pub const fn narrow(value: f64) -> f32 {
     value as f32
 }
@@ -46,12 +55,23 @@ pub trait Truncated {
 }
 
 macro_rules! truncated {
-    ($($kind:ty),*) => {$(
+    (unsigned $($kind:ty),*) => {$(
         impl Truncated for $kind {
-            #[allow(
+            #[expect(
                 clippy::cast_possible_truncation,
                 clippy::cast_sign_loss,
-                clippy::cast_possible_wrap
+                reason = "truncating toward zero like a cast is what truncate is for"
+            )]
+            fn truncated(value: f64) -> Self {
+                value as $kind
+            }
+        }
+    )*};
+    (signed $($kind:ty),*) => {$(
+        impl Truncated for $kind {
+            #[expect(
+                clippy::cast_possible_truncation,
+                reason = "truncating toward zero like a cast is what truncate is for"
             )]
             fn truncated(value: f64) -> Self {
                 value as $kind
@@ -60,7 +80,8 @@ macro_rules! truncated {
     )*};
 }
 
-truncated!(u8, u16, u32, u64, usize, i8, i16, i32, i64);
+truncated!(unsigned u8, u16, u32, u64, usize);
+truncated!(signed i8, i16, i32, i64);
 
 pub fn truncate<T: Truncated>(value: f64) -> T {
     T::truncated(value)

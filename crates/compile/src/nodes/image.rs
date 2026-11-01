@@ -1087,7 +1087,10 @@ pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
 
 const SHADOW_SPACE: f64 = 0.06;
 
-#[allow(clippy::many_single_char_names)]
+#[expect(
+    clippy::many_single_char_names,
+    reason = "w, h are the picture's size and x, y, z a corner's position in 3D"
+)]
 pub fn tilt_corners(size: (f64, f64), p: &TiltImage) -> [(f64, f64); 4] {
     let (w, h) = size;
     let distance = p.perspective * w.max(h);
