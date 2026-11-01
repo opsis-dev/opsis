@@ -125,7 +125,7 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("the app starts")
         .run(|app, event| {
-            if let RunEvent::Exit = event
+            if matches!(event, RunEvent::Exit)
                 && let Some(state) = app.try_state::<AppState>()
             {
                 app.state::<RunHost>().cancel();
