@@ -86,8 +86,8 @@ pub fn bulged_curve(from: Point, to: Point, aim: Point) -> Curve {
         -1.0
     };
     let bulge = side * dist * BULGE;
-    let cpx = (from.x + aim.x) / 2.0 + nx * bulge;
-    let cpy = (from.y + aim.y) / 2.0 + ny * bulge;
+    let cpx = f64::midpoint(from.x, aim.x) + nx * bulge;
+    let cpy = f64::midpoint(from.y, aim.y) + ny * bulge;
     Box::new(move |p| {
         let u = 1.0 - p;
         Point {

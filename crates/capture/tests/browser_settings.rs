@@ -312,7 +312,7 @@ fn redness(frame: &RgbImage, y: u32) -> f64 {
     let n = f64::from(xs.end - xs.start);
     xs.map(|x| {
         let [r, g, b] = frame.get_pixel(x, y).0;
-        f64::from(r) - (f64::from(g) + f64::from(b)) / 2.0
+        f64::from(r) - f64::midpoint(f64::from(g), f64::from(b))
     })
     .sum::<f64>()
         / n

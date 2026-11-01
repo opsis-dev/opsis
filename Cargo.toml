@@ -161,7 +161,6 @@ uninlined_format_args = "allow" # FIXME: REMOVE
 assigning_clones = "allow" # FIXME: REMOVE
 needless_pass_by_ref_mut = "allow" # FIXME: REMOVE
 many_single_char_names = "allow" # FIXME: REMOVE
-manual_midpoint = "allow" # FIXME: REMOVE
 while_float = "allow" # FIXME: REMOVE
 
 [profile.release]

@@ -1553,7 +1553,7 @@ pub fn transition_cues(
         .transitions
         .iter()
         .map(|t| TransitionCue {
-            middle: (t.from + t.to) / 2.0,
+            middle: f64::midpoint(t.from, t.to),
             frames: t.to - t.from,
         })
         .collect();

@@ -103,8 +103,8 @@ fn ellipse_distance(point: (f64, f64), centre: (f64, f64), radii: (f64, f64)) ->
 
 fn box_distance(point: (f64, f64), bounds: Bounds, radius: f64) -> f64 {
     let (cx, cy) = (
-        (bounds.left + bounds.right) / 2.0,
-        (bounds.top + bounds.bottom) / 2.0,
+        f64::midpoint(bounds.left, bounds.right),
+        f64::midpoint(bounds.top, bounds.bottom),
     );
     let (hw, hh) = (
         (bounds.right - bounds.left) / 2.0,
@@ -166,8 +166,8 @@ fn draw_mark(canvas: &mut Rgba32FImage, mark: &Mark, step: u32, fonts: &MarkFont
             let bounds = Bounds::around(&[start, end], width + 2.0);
             let oval = mark.kind == MarkKind::Oval;
             let centre = (
-                (area.left + area.right) / 2.0,
-                (area.top + area.bottom) / 2.0,
+                f64::midpoint(area.left, area.right),
+                f64::midpoint(area.top, area.bottom),
             );
             let radii = (
                 (area.right - area.left) / 2.0,

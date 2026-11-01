@@ -407,14 +407,14 @@ const BISECT_STEPS: usize = 24;
 fn bisect(inst: &Instance, a: f64, b: f64, abs: f64) -> f64 {
     let (mut lo, mut hi) = (a, b);
     for _ in 0..BISECT_STEPS {
-        let mid = (lo + hi) / 2.0;
+        let mid = f64::midpoint(lo, hi);
         if inst.to_abs(mid, RemapSide::Start) < abs {
             lo = mid;
         } else {
             hi = mid;
         }
     }
-    (lo + hi) / 2.0
+    f64::midpoint(lo, hi)
 }
 
 fn rate_at(inst: &Instance, content: f64) -> f64 {
