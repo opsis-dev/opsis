@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 use std::time::Duration;
 
 use opsis_compile::nodes::browser::parse_point;
@@ -55,6 +56,17 @@ pub struct ResolveOptions<'a> {
     pub timeout: Option<Duration>,
 }
 
+impl fmt::Debug for ResolveOptions<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ResolveOptions")
+            .field("cancel", &self.cancel)
+            .field("hoisted", &self.hoisted)
+            .field("timeout", &self.timeout)
+            .finish_non_exhaustive()
+    }
+}
+
+#[derive(Debug)]
 pub enum ResolveError {
     NotFound(SelectorError),
     Other(CaptureError),

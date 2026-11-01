@@ -72,6 +72,7 @@ impl From<CdpError> for CaptureError {
 
 pub type Result<T> = std::result::Result<T, CaptureError>;
 
+#[derive(Debug)]
 pub struct Raw {
     method: Cow<'static, str>,
     params: Value,
@@ -143,6 +144,7 @@ impl Evaluated {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Handle(pub String);
 
+#[derive(Debug)]
 pub enum Arg<'a> {
     Value(Value),
     Handle(&'a Handle),
@@ -157,6 +159,7 @@ impl Arg<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct Tab {
     pub page: Page,
     utility: Mutex<Option<(i64, Handle)>>,

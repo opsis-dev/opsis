@@ -180,6 +180,7 @@ pub fn reverse_sound_args(input: &str, output: &str, codecs: &[String]) -> Vec<S
     args
 }
 
+#[derive(Debug)]
 pub struct ReversedPart {
     pub file: String,
     pub length_ms: f64,

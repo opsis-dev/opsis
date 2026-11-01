@@ -80,6 +80,7 @@ fn playwright_switches() -> Vec<String> {
         .collect()
 }
 
+#[derive(Debug)]
 pub struct Launched {
     pub browser: Browser,
     handler: JoinHandle<()>,
@@ -174,6 +175,7 @@ pub async fn launch_with(
     })
 }
 
+#[derive(Debug)]
 pub struct Session {
     pub launched: Launched,
     pub tab: Arc<Tab>,

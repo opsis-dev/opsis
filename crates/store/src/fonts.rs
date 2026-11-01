@@ -1,5 +1,6 @@
 use crate::db::{Database, Result};
 
+#[derive(Debug)]
 pub struct FontRow {
     pub font_id: String,
     pub def: String,

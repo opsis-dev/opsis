@@ -115,6 +115,7 @@ fn run_options<'a>(
     }
 }
 
+#[derive(Debug)]
 pub struct LinkedMedia {
     pub value: MediaValue,
     pub src: String,
@@ -286,6 +287,7 @@ async fn import_media(
     })
 }
 
+#[derive(Debug)]
 pub struct CheckedFile {
     pub media: MediaValue,
     pub measured: Measured,

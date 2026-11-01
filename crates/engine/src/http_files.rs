@@ -17,6 +17,7 @@ pub fn folder_routes(prefix: &str, root: &Path) -> Router {
     Router::new().nest_service(&format!("/{prefix}"), ServeDir::new(root))
 }
 
+#[derive(Debug)]
 pub struct FileServer {
     pub url: String,
     stop: CancellationToken,

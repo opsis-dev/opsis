@@ -23,6 +23,7 @@ const WAIT: &str = "waitForTimeout";
 const PAUSE_MS: f64 = 100.0;
 pub const FRAME_GAP_MS: f64 = 250.0;
 
+#[derive(Debug)]
 pub struct CallInfo {
     pub method: &'static str,
     pub title: String,
@@ -53,18 +54,20 @@ impl CallInfo {
     }
 }
 
+#[derive(Debug)]
 struct Call {
     method: &'static str,
     action: TraceAction,
     count: usize,
 }
 
+#[derive(Debug)]
 struct Pending {
     request: TraceRequest,
     started: f64,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct State {
     calls: Vec<Call>,
     group: Option<usize>,
@@ -99,6 +102,7 @@ impl State {
     }
 }
 
+#[derive(Debug)]
 pub struct Trace {
     state: Arc<Mutex<State>>,
     listeners: Vec<JoinHandle<()>>,

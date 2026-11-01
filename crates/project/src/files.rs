@@ -34,17 +34,20 @@ pub enum ProjectError {
     Io(#[from] std::io::Error),
 }
 
+#[derive(Debug)]
 pub struct ProjectFile {
     pub text: String,
     pub version: String,
 }
 
+#[derive(Debug)]
 pub struct OpenedProject {
     pub workflow: Workflow,
     pub last_run: Option<LastRun>,
     pub version: String,
 }
 
+#[derive(Debug)]
 pub struct CreatedProject {
     pub dir: PathBuf,
     pub workflow: Workflow,
@@ -96,7 +99,7 @@ pub fn clear_cache(dir: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct ProjectFiles {
     written: Arc<Mutex<HashMap<PathBuf, String>>>,
 }

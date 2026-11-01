@@ -55,6 +55,7 @@ pub struct InstalledFamily {
     pub stack: String,
 }
 
+#[derive(Debug)]
 pub struct NewFace {
     pub name: String,
     pub bytes: Arc<[u8]>,
@@ -63,6 +64,7 @@ pub struct NewFace {
     pub format: FontFormat,
 }
 
+#[derive(Debug)]
 pub struct NewFamily {
     pub family: String,
     pub category: FontCategory,
@@ -72,7 +74,7 @@ pub struct NewFamily {
     pub license_type: Option<String>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct FontFile {
     candidate: FontCandidate,
     bytes: Arc<[u8]>,
@@ -84,6 +86,7 @@ impl AsRef<FontCandidate> for FontFile {
     }
 }
 
+#[derive(Debug)]
 struct Pending {
     token: String,
     families: Vec<PlannedFamily<FontFile>>,
@@ -145,6 +148,7 @@ fn zip_entries(bytes: &[u8]) -> Result<Vec<FontBytes>, FontError> {
     Ok(entries)
 }
 
+#[derive(Debug)]
 pub struct FontLibrary {
     dir: PathBuf,
     pending: Mutex<Option<Pending>>,

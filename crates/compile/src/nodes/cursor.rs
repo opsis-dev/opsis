@@ -269,6 +269,7 @@ pub struct KeystrokeChips {
     pub caret: bool,
 }
 
+#[derive(Debug)]
 pub struct AnnotationFields<'a> {
     pub match_text: &'a str,
     pub text: &'a str,

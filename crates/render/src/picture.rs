@@ -48,6 +48,7 @@ pub fn picture_key(spec: &TimelineSpec, opts: &PictureOptions, app_version: &str
     )
 }
 
+#[derive(Debug)]
 pub struct Picture {
     pub file: PathBuf,
     pub reused: bool,

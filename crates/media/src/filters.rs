@@ -54,6 +54,7 @@ pub fn fit_filter(
     }
 }
 
+#[derive(Debug)]
 pub struct GifLook {
     pub dither: Dither,
     pub colours: u32,

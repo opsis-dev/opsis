@@ -23,6 +23,7 @@ pub struct PreparedDirs {
     pub public: PathBuf,
 }
 
+#[derive(Debug)]
 pub struct Prepared {
     pub bytes: Vec<u8>,
     pub content_type: &'static str,

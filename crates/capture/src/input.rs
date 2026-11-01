@@ -50,13 +50,13 @@ fn resolve_smart_modifier(key: &str) -> &str {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct KeyboardState {
     modifiers: BTreeSet<String>,
     pressed: BTreeSet<String>,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct MouseState {
     x: f64,
     y: f64,
@@ -64,7 +64,7 @@ struct MouseState {
     drag: Option<Value>,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Input {
     keyboard: Mutex<KeyboardState>,
     mouse: Mutex<MouseState>,

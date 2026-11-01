@@ -65,6 +65,7 @@ fn triangle_distance(point: (f64, f64), corners: [(f64, f64); 3]) -> f64 {
     if inside { -to_edge } else { to_edge }
 }
 
+#[derive(Debug)]
 pub struct Arrow {
     pub tail: (f64, f64),
     pub base: (f64, f64),

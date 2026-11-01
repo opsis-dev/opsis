@@ -115,6 +115,7 @@ fn beep(pitch: f64, seconds: f64, wave: ToneWave) -> Vec<f32> {
         .collect()
 }
 
+#[derive(Debug)]
 pub struct Beeps {
     pub kind: ToneKind,
     pub pitch_hz: f64,

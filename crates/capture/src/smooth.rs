@@ -1,3 +1,4 @@
+use std::fmt;
 use std::sync::{Arc, Weak};
 
 use base64::Engine;
@@ -27,6 +28,19 @@ pub struct FramePictures {
     pub dpr: f64,
 }
 
+impl fmt::Debug for FramePictures {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FramePictures")
+            .field("encoder", &self.encoder)
+            .field("picture", &self.picture)
+            .field("quality", &self.quality)
+            .field("viewport", &self.viewport)
+            .field("dpr", &self.dpr)
+            .finish_non_exhaustive()
+    }
+}
+
+#[derive(Debug)]
 pub struct Smooth {
     tab: Weak<Tab>,
     frame_ms: f64,

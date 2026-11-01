@@ -296,6 +296,7 @@ pub const STYLE_PORT: &str = "style";
 pub const GRADE_PORT: &str = "grade";
 pub const SESSION_PORT: &str = "session";
 
+#[derive(Debug)]
 pub struct Ctx<'a, P> {
     pub node_id: &'a str,
     pub kind: &'a str,
@@ -360,6 +361,7 @@ impl CardInputs {
     }
 }
 
+#[derive(Debug)]
 pub struct CardCtx<'a, P> {
     pub params: P,
     pub values: &'a Values,

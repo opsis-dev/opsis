@@ -35,7 +35,7 @@ const QUERY: &str = "(injected, selector) => injected.querySelector(injected.par
 const IS_VISIBLE: &str = "(injected, selector) => { const el = injected.querySelector(injected.parseSelector(selector), document, false); return !!el && injected.elementState(el, 'visible', true).matches; }";
 const STABLE: &str = "(injected, node) => injected.checkElementStates(node, ['stable'], true)";
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct PageState {
     loader_id: String,
     fired: HashSet<String>,
@@ -55,6 +55,7 @@ impl PageState {
     }
 }
 
+#[derive(Debug)]
 pub struct Lifecycle {
     clock: TakeClock,
     state: Arc<Mutex<PageState>>,

@@ -982,6 +982,7 @@ pub fn framed_placement(source: (f64, f64), p: &FrameScreenshot) -> ((f64, f64),
     ((w, h), at)
 }
 
+#[derive(Debug)]
 pub struct GridPlan {
     pub canvas: (f64, f64),
     pub columns: usize,

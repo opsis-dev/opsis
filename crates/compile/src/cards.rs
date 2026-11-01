@@ -1,3 +1,4 @@
+use std::fmt;
 use std::sync::LazyLock;
 
 use indexmap::IndexMap;
@@ -172,6 +173,16 @@ pub struct CardSources<'a> {
     pub results: Option<&'a IndexMap<String, NodeResult>>,
     pub secrets: Option<&'a [String]>,
     pub gone: &'a dyn Fn(&str) -> bool,
+}
+
+impl fmt::Debug for CardSources<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CardSources")
+            .field("compiled", &self.compiled)
+            .field("results", &self.results)
+            .field("secrets", &self.secrets)
+            .finish_non_exhaustive()
+    }
 }
 
 pub fn node_card(

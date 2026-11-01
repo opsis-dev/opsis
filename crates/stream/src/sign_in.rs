@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
@@ -199,6 +200,15 @@ pub struct StreamLogin {
     pub engine: EngineFiles,
     pub temp_dir: PathBuf,
     pub host: Arc<dyn ViewHost>,
+}
+
+impl fmt::Debug for StreamLogin {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("StreamLogin")
+            .field("engine", &self.engine)
+            .field("temp_dir", &self.temp_dir)
+            .finish_non_exhaustive()
+    }
 }
 
 impl Login for StreamLogin {

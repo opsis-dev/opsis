@@ -1,3 +1,4 @@
+use std::fmt;
 use std::sync::Arc;
 
 use base64::Engine;
@@ -23,6 +24,16 @@ pub struct FrameSinks {
     pub trace: Option<Arc<Trace>>,
 }
 
+impl fmt::Debug for FrameSinks {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FrameSinks")
+            .field("encoder", &self.encoder)
+            .field("trace", &self.trace)
+            .finish_non_exhaustive()
+    }
+}
+
+#[derive(Debug)]
 pub struct Screencast {
     task: JoinHandle<()>,
 }

@@ -1,3 +1,5 @@
+use std::fmt;
+
 use opsis_compile::time::{EPSILON, clamp};
 use opsis_types::actions::{Point, Rect, Viewport};
 use opsis_types::numbers;
@@ -19,6 +21,16 @@ pub struct Glide {
     pub aim: Point,
     pub overshooting: bool,
     pub at: Curve,
+}
+
+impl fmt::Debug for Glide {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Glide")
+            .field("duration_ms", &self.duration_ms)
+            .field("aim", &self.aim)
+            .field("overshooting", &self.overshooting)
+            .finish_non_exhaustive()
+    }
 }
 
 pub fn glide_plan(

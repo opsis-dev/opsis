@@ -79,13 +79,14 @@ enum Message {
     Finish(f64),
 }
 
+#[derive(Debug)]
 pub struct Encoded {
     pub frames: u64,
     pub duration_ms: f64,
     pub origin_ms: Option<f64>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct FrameFeed(mpsc::UnboundedSender<Message>);
 
 impl FrameFeed {
@@ -104,6 +105,7 @@ impl FrameFeed {
     }
 }
 
+#[derive(Debug)]
 pub struct FrameEncoder {
     pub output: PathBuf,
     feed: FrameFeed,

@@ -41,6 +41,7 @@ pub fn node_hash(
     )
 }
 
+#[derive(Debug)]
 pub struct KeyInputs<'a> {
     pub workflow: &'a Workflow,
     pub vars: &'a Vars,

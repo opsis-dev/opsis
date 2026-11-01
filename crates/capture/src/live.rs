@@ -1,3 +1,4 @@
+use std::fmt;
 use std::sync::{Arc, Mutex};
 
 use opsis_types::live::LiveEvent;
@@ -12,6 +13,7 @@ pub trait LiveSink: FrameSink {
     fn event(&self, event: LiveEvent);
 }
 
+#[derive(Debug)]
 pub struct LiveFrame {
     pub capture_id: String,
     pub node_id: String,
@@ -21,6 +23,7 @@ pub struct LiveFrame {
     pub t: f64,
 }
 
+#[derive(Debug)]
 pub struct LiveNote {
     pub capture_id: String,
     pub node_id: String,
@@ -28,6 +31,7 @@ pub struct LiveNote {
     pub event: LiveEvent,
 }
 
+#[derive(Debug)]
 pub enum LiveMessage {
     Frame(LiveFrame),
     Event(LiveNote),
@@ -44,6 +48,18 @@ pub struct NodeLive {
     title: String,
     min_gap_ms: f64,
     last_frame: Mutex<f64>,
+}
+
+impl fmt::Debug for NodeLive {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("NodeLive")
+            .field("capture_id", &self.capture_id)
+            .field("node_id", &self.node_id)
+            .field("title", &self.title)
+            .field("min_gap_ms", &self.min_gap_ms)
+            .field("last_frame", &self.last_frame)
+            .finish_non_exhaustive()
+    }
 }
 
 impl NodeLive {

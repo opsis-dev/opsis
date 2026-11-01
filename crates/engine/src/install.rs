@@ -1,3 +1,4 @@
+use std::fmt;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
@@ -31,7 +32,7 @@ pub enum InstallError {
 
 const CALM: Duration = Duration::from_millis(500);
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct CalmProgress {
     step: String,
     shown: Option<i64>,
@@ -58,6 +59,14 @@ impl CalmProgress {
 pub struct Progress<'a> {
     report: &'a mut (dyn FnMut(EngineInstallUpdate) + Send),
     calm: CalmProgress,
+}
+
+impl fmt::Debug for Progress<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Progress")
+            .field("calm", &self.calm)
+            .finish_non_exhaustive()
+    }
 }
 
 impl<'a> Progress<'a> {
@@ -91,6 +100,7 @@ fn downloaded_text(got: u64, total: Option<u64>) -> String {
     }
 }
 
+#[derive(Debug)]
 pub struct Fetched {
     pub path: PathBuf,
     pub sha256: String,

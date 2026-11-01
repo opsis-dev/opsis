@@ -48,6 +48,7 @@ pub struct PlannedFamily<C = FontCandidate> {
     pub faces: Vec<C>,
 }
 
+#[derive(Debug)]
 pub struct FontBytes {
     pub name: String,
     pub bytes: Vec<u8>,

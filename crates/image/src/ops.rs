@@ -928,6 +928,7 @@ pub fn grid(images: &[DynamicImage], p: &ImageGrid) -> Result<DynamicImage, Imag
     })
 }
 
+#[derive(Debug)]
 pub enum Paint {
     Colour([u8; 4]),
     Gradient(Gradient),
@@ -1323,6 +1324,7 @@ pub fn magnify(image: &DynamicImage, p: &Magnify) -> Result<DynamicImage, ImageE
     })
 }
 
+#[derive(Debug)]
 pub struct Comparison {
     pub boxes: Vec<Rect>,
     pub marked: DynamicImage,

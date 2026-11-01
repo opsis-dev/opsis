@@ -3,6 +3,8 @@ pub mod mix;
 pub mod timeline;
 pub mod workflow;
 
+use std::fmt;
+
 use indexmap::IndexSet;
 use opsis_types::edits::{MarkerEdit, Removal, WorkflowEdit};
 use opsis_types::workflow::{Marker, Workflow, WorkflowNode};
@@ -34,6 +36,14 @@ pub enum EditError {
 pub struct EditContext<'a> {
     pub platform: Platform,
     pub ids: &'a mut dyn Ids,
+}
+
+impl fmt::Debug for EditContext<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("EditContext")
+            .field("platform", &self.platform)
+            .finish_non_exhaustive()
+    }
 }
 
 fn check_nodes(wf: &Workflow, ids: &[String]) -> Result<(), EditError> {

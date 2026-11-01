@@ -113,6 +113,7 @@ fn number_text(value: &Value) -> String {
     }
 }
 
+#[derive(Debug)]
 pub struct FontsOnline {
     client: reqwest::Client,
     api: String,

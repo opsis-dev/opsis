@@ -51,6 +51,7 @@ struct Captured {
     data: String,
 }
 
+#[derive(Debug)]
 pub struct StillRequest<'a> {
     pub params: &'a Still,
     pub project: Size,

@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, HashMap};
+use std::fmt;
 use std::future::Future;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
@@ -101,6 +102,12 @@ pub struct Executor {
     stamp: Option<StampFn>,
 }
 
+impl fmt::Debug for Executor {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Executor").finish_non_exhaustive()
+    }
+}
+
 impl Executor {
     pub fn stamped(
         mut self,
@@ -145,7 +152,7 @@ where
 #[error("Two executors for {0}")]
 pub struct TwoExecutors(pub String);
 
-#[derive(Default, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Executors {
     by_type: HashMap<String, Executor>,
 }
@@ -172,12 +179,14 @@ impl Executors {
     }
 }
 
+#[derive(Debug)]
 struct Stored {
     results: IndexMap<String, NodeResult>,
     version: u64,
     compiled: Option<(u64, Arc<CompileResult>)>,
 }
 
+#[derive(Debug)]
 pub struct ResultStore {
     workflow: Arc<Workflow>,
     stored: Mutex<Stored>,
@@ -249,6 +258,26 @@ pub struct ExecutorContext {
     pub cancel: CancellationToken,
     pub emit: Emit,
     pub store: Arc<ResultStore>,
+}
+
+impl fmt::Debug for ExecutorContext {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ExecutorContext")
+            .field("run_id", &self.run_id)
+            .field("node", &self.node)
+            .field("workflow", &self.workflow)
+            .field("env", &self.env)
+            .field("project_dir", &self.project_dir)
+            .field("dir", &self.dir)
+            .field("rel_dir", &self.rel_dir)
+            .field("out_dir", &self.out_dir)
+            .field("hash", &self.hash)
+            .field("forced", &self.forced)
+            .field("vars", &self.vars)
+            .field("cancel", &self.cancel)
+            .field("store", &self.store)
+            .finish_non_exhaustive()
+    }
 }
 
 pub fn now_ms() -> i64 {

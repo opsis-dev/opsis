@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
@@ -284,6 +285,7 @@ impl FrameSink for SinkSlot {
     }
 }
 
+#[derive(Debug)]
 struct ViewTab {
     tab: Arc<Tab>,
     url: Arc<Mutex<String>>,
@@ -298,6 +300,7 @@ impl Drop for ViewTab {
     }
 }
 
+#[derive(Debug)]
 struct Tabs {
     list: Vec<ViewTab>,
     active: usize,
@@ -313,6 +316,18 @@ pub struct StreamView {
     quality: u32,
     user_agent: Value,
     watcher: Mutex<Option<JoinHandle<()>>>,
+}
+
+impl fmt::Debug for StreamView {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("StreamView")
+            .field("session", &self.session)
+            .field("tabs", &self.tabs)
+            .field("quality", &self.quality)
+            .field("user_agent", &self.user_agent)
+            .field("watcher", &self.watcher)
+            .finish_non_exhaustive()
+    }
 }
 
 fn platform_name() -> &'static str {

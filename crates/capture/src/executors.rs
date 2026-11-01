@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -52,6 +53,7 @@ pub trait SignInStore: Send + Sync {
     fn write(&self, project_dir: &Path, name: &str, value: &str) -> Result<(), SignInError>;
 }
 
+#[derive(Debug)]
 pub struct LoginRequest {
     pub url: String,
     pub done_when: DoneWhen,
@@ -73,6 +75,12 @@ pub struct CaptureDeps {
     pub sign_ins: Arc<dyn SignInStore>,
     pub login: Arc<dyn Login>,
     pub live: Option<Arc<dyn LiveFeed>>,
+}
+
+impl fmt::Debug for CaptureDeps {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CaptureDeps").finish_non_exhaustive()
+    }
 }
 
 struct ProjectSignIns {

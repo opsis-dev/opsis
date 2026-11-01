@@ -31,7 +31,7 @@ pub fn with_even_frame(filter: &str) -> String {
     format!("{filter},{EVEN_FRAME}")
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct H264<'a> {
     pub crf: f64,
     pub preset: Option<&'a str>,
@@ -66,6 +66,7 @@ pub fn edit_audio() -> Vec<String> {
     strings(&AAC)
 }
 
+#[derive(Debug)]
 pub struct CodecInfo {
     pub ext: &'static str,
     pub audio: Option<&'static [&'static str]>,
@@ -354,7 +355,7 @@ pub fn ffmpeg_seconds(ms: f64) -> String {
     format!("{:.3}", ms / 1000.0)
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct FrameGrab {
     pub at_ms: f64,
     pub width: f64,

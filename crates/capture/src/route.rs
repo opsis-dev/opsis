@@ -19,7 +19,7 @@ pub struct MockResponse {
     pub delay_ms: u32,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Routes {
     list: Arc<Mutex<Vec<MockResponse>>>,
     listener: Option<JoinHandle<()>>,

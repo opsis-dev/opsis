@@ -14,6 +14,7 @@ fn to_db(value: f64) -> f64 {
     }
 }
 
+#[derive(Debug)]
 pub struct Pcm {
     pub sample_rate: f64,
     pub channels: usize,

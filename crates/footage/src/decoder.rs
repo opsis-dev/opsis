@@ -24,6 +24,7 @@ pub struct FootageTools {
     pub temp: PathBuf,
 }
 
+#[derive(Debug)]
 pub struct RawFrame {
     pub pts_us: i64,
     pub image: RgbImage,
@@ -31,6 +32,7 @@ pub struct RawFrame {
 
 type Log = Arc<Mutex<VecDeque<String>>>;
 
+#[derive(Debug)]
 pub struct Decoder {
     child: Child,
     frames: Receiver<RawFrame>,

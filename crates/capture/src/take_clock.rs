@@ -1,3 +1,4 @@
+use std::fmt;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::{Arc, Mutex, MutexGuard};
@@ -50,6 +51,14 @@ pub fn frame_time(origin: f64, frame: u64, frame_ms: f64) -> f64 {
 pub struct TakeClock {
     mode: Arc<Mutex<Mode>>,
     turn: Arc<tokio::sync::Mutex<()>>,
+}
+
+impl fmt::Debug for TakeClock {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TakeClock")
+            .field("turn", &self.turn)
+            .finish_non_exhaustive()
+    }
 }
 
 impl Default for TakeClock {

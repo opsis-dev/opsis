@@ -7,7 +7,7 @@ use crate::cdp::Result;
 use crate::page_scripts::{HOLD_PAGE_CLOCK, call};
 use crate::playwright::CLOCK_SOURCE;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Clock {
     installed: bool,
 }

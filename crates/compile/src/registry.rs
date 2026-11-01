@@ -7,6 +7,7 @@ use crate::node::{Category, NodeDef};
 use crate::nodes;
 use crate::params::Values;
 
+#[derive(Debug)]
 pub struct Registry {
     defs: Vec<NodeDef>,
     by_kind: HashMap<String, usize>,

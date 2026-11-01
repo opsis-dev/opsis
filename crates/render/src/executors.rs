@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -44,6 +45,14 @@ const RENDER_STAGE: Stage = (0.2, 1.0);
 pub struct RenderEngine {
     pub tools: Tools,
     pub film_bundle: PathBuf,
+}
+
+impl fmt::Debug for RenderEngine {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("RenderEngine")
+            .field("film_bundle", &self.film_bundle)
+            .finish_non_exhaustive()
+    }
 }
 
 fn film_error(error: FilmError) -> ExecError {

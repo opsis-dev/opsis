@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::LazyLock;
@@ -50,6 +51,15 @@ pub struct RunOptions<'a> {
     pub on_log: Option<OnLog<'a>>,
 }
 
+impl fmt::Debug for RunOptions<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("RunOptions")
+            .field("cancel", &self.cancel)
+            .field("duration_ms", &self.duration_ms)
+            .finish_non_exhaustive()
+    }
+}
+
 pub fn can_stream_copy(a: &Probe, b: &Probe) -> bool {
     let (Some(av), Some(bv)) = (&a.video, &b.video) else {
         return false;
@@ -84,7 +94,7 @@ fn tail_of(stderr: &str) -> String {
     lines[lines.len().saturating_sub(STDERR_TAIL_LINES)..].join("\n")
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Ffmpeg {
     ffmpeg: Option<PathBuf>,
     env: Vec<(&'static str, PathBuf)>,
@@ -272,6 +282,12 @@ pub type ToolFuture<'a, T> = BoxFuture<'a, Result<T, ToolError>>;
 pub struct FramePipe {
     pub stdin: std::pin::Pin<Box<dyn tokio::io::AsyncWrite + Send>>,
     pub done: ToolFuture<'static, ()>,
+}
+
+impl fmt::Debug for FramePipe {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FramePipe").finish_non_exhaustive()
+    }
 }
 
 pub trait MediaTools: Send + Sync {

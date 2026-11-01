@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 use std::future::Future;
 use std::path::PathBuf;
 use std::pin::Pin;
@@ -147,6 +148,19 @@ pub struct TakeEnv {
     pub step: StepFn,
 }
 
+impl fmt::Debug for TakeEnv {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TakeEnv")
+            .field("project_dir", &self.project_dir)
+            .field("executable", &self.executable)
+            .field("temp_dir", &self.temp_dir)
+            .field("trace", &self.trace)
+            .field("cancel", &self.cancel)
+            .finish_non_exhaustive()
+    }
+}
+
+#[derive(Debug)]
 pub struct Recording {
     pub encoder: FrameEncoder,
     pub record: Record,
@@ -297,7 +311,7 @@ fn ms(ms: u32) -> Duration {
     Duration::from_millis(u64::from(ms))
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct Recorded {
     clicks: Vec<TakeClick>,
     keys: Vec<KeyEvent>,
@@ -311,6 +325,17 @@ struct Recorder {
     recorded: Mutex<Recorded>,
     live: Option<Arc<dyn LiveSink>>,
     overlays: Option<Arc<Overlays>>,
+}
+
+impl fmt::Debug for Recorder {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Recorder")
+            .field("clock", &self.clock)
+            .field("t0", &self.t0)
+            .field("recorded", &self.recorded)
+            .field("overlays", &self.overlays)
+            .finish_non_exhaustive()
+    }
 }
 
 impl Recorder {
@@ -381,11 +406,13 @@ impl TakeSink for Recorder {
     }
 }
 
+#[derive(Debug)]
 struct SignedIn {
     url: String,
     name: String,
 }
 
+#[derive(Debug)]
 pub struct TakeRun<'e> {
     env: &'e TakeEnv,
     session: Session,
@@ -404,11 +431,13 @@ pub struct TakeRun<'e> {
     screencast: Option<Screencast>,
 }
 
+#[derive(Debug)]
 pub struct Took<T> {
     pub log: ActionLog,
     pub from_page: T,
 }
 
+#[derive(Debug)]
 pub struct Played<T> {
     pub outcome: Result<Took<T>, StepError>,
     pub encoded: Option<Encoded>,

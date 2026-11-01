@@ -34,6 +34,7 @@ fn by_position(a: &WorkflowNode, b: &WorkflowNode) -> std::cmp::Ordering {
         .then_with(|| a.id.cmp(&b.id))
 }
 
+#[derive(Debug)]
 pub struct Sorted<'a> {
     pub sorted: Vec<&'a WorkflowNode>,
     pub cyclic: Vec<String>,

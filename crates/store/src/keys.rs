@@ -33,7 +33,7 @@ fn storage(error: KeyringError) -> KeyError {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Keyring {
     store: Arc<CredentialStore>,
 }

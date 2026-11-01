@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::Path;
 
 use opsis_capture::cdp::CaptureError;
@@ -32,6 +33,7 @@ impl From<ToolError> for FilmError {
     }
 }
 
+#[derive(Debug)]
 pub struct FilmRender<'a> {
     pub driver: DriverOptions<'a>,
     pub page: FilmPage<'a>,
@@ -45,6 +47,14 @@ pub struct FilmRun<'a> {
     pub cancel: &'a CancellationToken,
     pub progress: &'a (dyn Fn(f64) + Send + Sync),
     pub note: &'a (dyn Fn(String) + Send + Sync),
+}
+
+impl fmt::Debug for FilmRun<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FilmRun")
+            .field("cancel", &self.cancel)
+            .finish_non_exhaustive()
+    }
 }
 
 fn note_capture(driver: &FrameDriver, run: &FilmRun<'_>) {
@@ -131,6 +141,7 @@ pub async fn render_film(job: &FilmRender<'_>, run: &FilmRun<'_>) -> Result<(), 
     encoded
 }
 
+#[derive(Debug)]
 pub struct StillRender<'a> {
     pub driver: DriverOptions<'a>,
     pub page: FilmPage<'a>,

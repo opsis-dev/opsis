@@ -26,6 +26,7 @@ pub enum TraceStoreError {
     Io(#[from] std::io::Error),
 }
 
+#[derive(Debug)]
 pub struct TakeFrame {
     pub jpeg: Vec<u8>,
     pub time: f64,
@@ -33,7 +34,7 @@ pub struct TakeFrame {
     pub height: u32,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct TraceTake {
     pub viewport: Option<Viewport>,
     pub actions: Vec<TraceAction>,
@@ -43,6 +44,7 @@ pub struct TraceTake {
     pub network: Vec<TraceRequest>,
 }
 
+#[derive(Debug)]
 pub struct TraceMeta<'a> {
     pub node_id: &'a str,
     pub label: &'a str,

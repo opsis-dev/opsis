@@ -12,12 +12,14 @@ use opsis_types::workflow::Workflow;
 
 pub const MAX_UNDO_STEPS: usize = 200;
 
+#[derive(Debug)]
 struct Gesture {
     depth: u32,
     start: Workflow,
     salt: String,
 }
 
+#[derive(Debug)]
 pub struct Document {
     session: String,
     dir: PathBuf,

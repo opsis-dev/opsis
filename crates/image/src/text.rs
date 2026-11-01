@@ -26,6 +26,7 @@ pub fn load_font(bytes: Vec<u8>, weight: f64) -> Result<FontVec, ImageError> {
     Ok(font)
 }
 
+#[derive(Debug)]
 pub struct TextBox {
     pub width: f64,
     pub ascent: f64,

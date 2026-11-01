@@ -23,6 +23,7 @@ fn reading(value: Result<f64, ebur128::Error>) -> f64 {
     }
 }
 
+#[derive(Debug)]
 pub struct Meter {
     ebu: EbuR128,
     channels: usize,

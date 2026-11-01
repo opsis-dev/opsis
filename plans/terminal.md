@@ -13,7 +13,7 @@ Everything below is decided. The sections after this one say how each is built.
 | Terminal engine            | Ghostty's libghostty-vt, Ghostty v1.4.0, consumed as a Zig dependency from Ghostty's lib-vt source tarball pinned by URL and hash                                                                                                                                     |
 | Language bridge            | A small Zig wrapper of our own that imports Ghostty's `ghostty-vt` Zig module and exports a C ABI shaped for Opsis; Rust calls it through hand-written `extern "C"` declarations. No `libghostty-vt-sys`, no `libghostty-vt` crate, no bindgen, no `cc`, no submodule |
 | Toolchain                  | Zig 0.17.x (Ghostty requires the same major and minor version), pinned to 0.17.0 locally and in CI                                                                                                                                                                    |
-| Crates                     | Two: `opsis-vt` (`crates/vt`) holds the Zig wrapper and every line of `unsafe`; `opsis-terminal` (`crates/terminal`) uses it with `#![forbid(unsafe_code)]`                                                                                                           |
+| Crates                     | Two: `opsis-vt` (`crates/vt`) holds the Zig wrapper and every line of `unsafe`, the one crate with `#![allow(unsafe_code)]`; `opsis-terminal` (`crates/terminal`) uses it under the workspace's `unsafe_code = "deny"`                                                |
 | Pseudo-terminal            | `portable-pty` 0.9 (WezTerm's, MIT); the system ConPTY on Windows                                                                                                                                                                                                     |
 | Clean shell                | Linux `bash --noprofile --norc`; macOS `zsh -f`; Windows `pwsh -NoProfile` when PowerShell 7 is installed, else `powershell.exe -NoProfile`; each with Opsis's fixed prompt and OSC 133 prompt marks. The user's own shell setup is a setting                         |
 | Timing                     | Real only. A take is recorded once and saved as `.cast` v3; it is recorded again only when its key changes or the node is run on its own (Run this). No "record every run" switch                                                                                     |
@@ -68,7 +68,7 @@ Coverage of the fonts, from `fc-query`:
 
 ```
 opsis-terminal  ──►  opsis-vt  ──►  Ghostty libghostty-vt (Zig, static)
-   │  #![forbid(unsafe_code)]        all unsafe, the Zig wrapper, build.rs
+   │  no unsafe (workspace deny)     all unsafe (#![allow(unsafe_code)]), the Zig wrapper, build.rs
    ├──► portable-pty
    ├──► opsis-types, opsis-engine (files, hashing, temp folders), opsis-runner (executors)
    └──► serde, serde_json, thiserror, tokio
@@ -77,8 +77,8 @@ opsis-desktop  ──►  opsis-terminal   (registers the executors, the live wi
 ```
 
 - `opsis-vt` depends on nothing in the workspace except `thiserror`. Nothing else in the workspace depends on it but `opsis-terminal`.
-- `opsis-terminal`'s `src/lib.rs` starts with `#![forbid(unsafe_code)]`. A test in `opsis-terminal` reads its own sources and fails on the word `unsafe` outside that attribute, so removing the attribute is caught too.
-- `opsis-vt`'s `src/lib.rs` starts with `#![deny(unsafe_op_in_unsafe_fn)]`. Its `unsafe` lives in `src/ffi.rs` (the declarations) and `src/terminal.rs` (the safe type); every other module of it is safe code. `clippy::undocumented_unsafe_blocks` stays off: it asks for `// SAFETY:` comments, which the no-comments rule forbids. The invariants are carried by the types (an owned handle, `&mut self` for every call, `Send` and not `Sync`) and checked by the tests.
+- `opsis-terminal` has no `unsafe` attribute of its own: the workspace's `unsafe_code = "deny"` (`[workspace.lints.rust]` in the root `Cargo.toml`) covers it, as it covers every crate but `opsis-vt`.
+- `opsis-vt`'s `src/lib.rs` starts with `#![allow(unsafe_code)]` beside its `#![deny(unsafe_op_in_unsafe_fn)]`, the only crate that allows `unsafe`. Its `unsafe` lives in `src/ffi.rs` (the declarations) and `src/terminal.rs` (the safe type); every other module of it is safe code. `clippy::undocumented_unsafe_blocks` stays off: it asks for `// SAFETY:` comments, which the no-comments rule forbids. The invariants are carried by the types (an owned handle, `&mut self` for every call, `Send` and not `Sync`) and checked by the tests.
 
 ## `opsis-vt` (`crates/vt`)
 
@@ -210,13 +210,13 @@ Property tests with `proptest`, the prototype's six made general:
 
 ## `opsis-terminal` (`crates/terminal`)
 
-`#![forbid(unsafe_code)]`. Its own error enum per module (`thiserror`), numbers through `opsis_types::numbers`, times in milliseconds (`u32` for settings, `f64` for event times), the take clock from `std::time::Instant` (terminal takes don't use the browser's `TakeClock`).
+No `unsafe`, which the workspace's `unsafe_code = "deny"` enforces. Its own error enum per module (`thiserror`), numbers through `opsis_types::numbers`, times in milliseconds (`u32` for settings, `f64` for event times), the take clock from `std::time::Instant` (terminal takes don't use the browser's `TakeClock`).
 
 ### Modules
 
 ```
 crates/terminal/src/
-  lib.rs          #![forbid(unsafe_code)], re-exports, executors()
+  lib.rs          re-exports, executors()
   shell.rs        Shell, clean shell commands and prompts per OS
   integration/    the prompt scripts (bash, zsh, PowerShell) as include_str! files
   session.rs      the pseudo-terminal session: spawn, read, write, resize, end
@@ -530,7 +530,7 @@ Shared rules:
   - the two crates in the crates paragraph;
   - the pins (Ghostty tarball, Zig 0.17) next to the specta pins;
   - the terminal fonts and `themes.generated.json` in the generated-files table;
-  - a "Terminal takes" invariant paragraph (the engine is Ghostty's through `opsis-vt` only, `opsis-terminal` forbids `unsafe`, takes are `.cast` v3, the font stack is fixed, sprites override cell-filling ranges).
+  - a "Terminal takes" invariant paragraph (the engine is Ghostty's through `opsis-vt` only, only `opsis-vt` allows `unsafe`, takes are `.cast` v3, the font stack is fixed, sprites override cell-filling ranges).
 - `THIRD_PARTY_NOTICES.md`: Ghostty (MIT, the wrapper's dependency and the sprite port), asciinema (GPL-3.0-or-later, the copied `asciicast` module), VHS (MIT, the tape grammar and `themes.json`), JetBrains Mono (OFL-1.1), Nerd Fonts Symbols Only (MIT), Noto Sans Symbols 2, Noto Sans SC and Noto Color Emoji (OFL-1.1), `portable-pty` (MIT).
 - `examples/`: one example project with a terminal take (`bun run examples`).
 
@@ -538,7 +538,6 @@ Shared rules:
 
 - `opsis-vt`: the interop properties above.
 - `opsis-terminal`:
-  - the `forbid(unsafe_code)` source check;
   - `.cast`: asciinema's own tests; write → read round trip of generated events (times within a microsecond); reading v1 and v2 files;
   - `.tape`: VHS's examples parse; parse → write → parse is the identity; diagnostics name the right line;
   - steps: tape → steps → tape is the identity for the commands that map both ways;

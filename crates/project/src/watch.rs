@@ -32,6 +32,7 @@ fn changed_paths(dir: &Path, result: DebounceEventResult) -> Vec<PathBuf> {
     }
 }
 
+#[derive(Debug)]
 pub struct ProjectWatch {
     _debouncer: Debouncer<RecommendedWatcher>,
 }
@@ -92,6 +93,7 @@ fn watched_refs(refs: &[String]) -> HashMap<String, Vec<String>> {
     by_key
 }
 
+#[derive(Debug)]
 pub struct LoadedFilesWatch {
     debouncer: Debouncer<RecommendedWatcher>,
     dir: PathBuf,

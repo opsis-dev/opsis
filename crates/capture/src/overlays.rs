@@ -19,12 +19,13 @@ const FADE_OUT: &str = "(injected, id) => { injected.getUserOverlay(id)?.querySe
 const ANNOTATE: &str = "(injected, annotation) => injected.setScreencastAnnotation(annotation)";
 const RESTORE_CURSOR: &str = "(injected, point) => injected.restoreScreencastCursor(point)";
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct Shown {
     overlays: IndexMap<String, String>,
     cursor: Option<Point>,
 }
 
+#[derive(Debug)]
 pub struct Overlays {
     tab: Arc<Tab>,
     shown: Arc<Mutex<Shown>>,

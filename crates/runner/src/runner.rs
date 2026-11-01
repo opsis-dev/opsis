@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -46,6 +47,16 @@ pub struct RunDeps {
     pub executors: Arc<Executors>,
     pub emit: Emit,
     pub cancel: CancellationToken,
+}
+
+impl fmt::Debug for RunDeps {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("RunDeps")
+            .field("env", &self.env)
+            .field("executors", &self.executors)
+            .field("cancel", &self.cancel)
+            .finish_non_exhaustive()
+    }
 }
 
 struct Job {

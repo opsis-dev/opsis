@@ -173,6 +173,7 @@ pub struct FilmShape {
     pub duration_in_frames: u32,
 }
 
+#[derive(Debug)]
 pub struct FilmPage<'a> {
     pub url: &'a str,
     pub spec: &'a Value,
@@ -181,6 +182,7 @@ pub struct FilmPage<'a> {
     pub scale: f64,
 }
 
+#[derive(Debug)]
 pub struct DriverOptions<'a> {
     pub executable: &'a Path,
     pub temp_dir: &'a Path,
@@ -188,6 +190,7 @@ pub struct DriverOptions<'a> {
     pub capture: Capture,
 }
 
+#[derive(Debug)]
 pub struct FrameDriver {
     launched: Launched,
     tab: Tab,

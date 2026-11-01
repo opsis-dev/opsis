@@ -8,6 +8,7 @@ use serde_json::Value;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 use crate::params::{ParamSchema, Values, to_values};
 
+#[derive(Debug)]
 pub struct Entry {
     key: &'static str,
     title: &'static str,

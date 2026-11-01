@@ -33,10 +33,12 @@ enum ListenError {
     Io(#[from] std::io::Error),
 }
 
+#[derive(Debug)]
 struct Running {
     stop: CancellationToken,
 }
 
+#[derive(Debug)]
 pub struct ApiServer {
     address: ApiAddress,
     running: Mutex<Option<Running>>,

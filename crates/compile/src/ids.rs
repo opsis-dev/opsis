@@ -15,6 +15,7 @@ pub trait Ids {
     fn id(&mut self, prefix: &str) -> String;
 }
 
+#[derive(Debug)]
 pub struct RandomIds;
 
 impl Ids for RandomIds {
@@ -23,6 +24,7 @@ impl Ids for RandomIds {
     }
 }
 
+#[derive(Debug)]
 pub struct SaltedIds {
     salt: String,
     count: u32,

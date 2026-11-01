@@ -10,6 +10,7 @@ pub struct ApiAddress {
     pub error: Option<String>,
 }
 
+#[derive(Debug)]
 pub struct Host<'a> {
     pub windows: bool,
     pub user_data: &'a Path,

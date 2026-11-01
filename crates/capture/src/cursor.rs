@@ -1,3 +1,4 @@
+use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -112,6 +113,7 @@ pub struct DragOpts {
     pub method: DragMethod,
 }
 
+#[derive(Debug)]
 pub enum DragTo {
     Target(Target),
     By(Point),
@@ -170,6 +172,7 @@ fn onto_plan(origin: Point, drop: &TargetBox) -> DragPlan {
     }
 }
 
+#[derive(Debug)]
 struct CursorState {
     last: Point,
     last_depart_ms: f64,
@@ -185,6 +188,19 @@ pub struct CursorDriver {
     viewport: Viewport,
     design_scale: f64,
     state: Mutex<CursorState>,
+}
+
+impl fmt::Debug for CursorDriver {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CursorDriver")
+            .field("tab", &self.tab)
+            .field("input", &self.input)
+            .field("reads_shapes", &self.reads_shapes)
+            .field("viewport", &self.viewport)
+            .field("design_scale", &self.design_scale)
+            .field("state", &self.state)
+            .finish_non_exhaustive()
+    }
 }
 
 impl CursorDriver {

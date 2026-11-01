@@ -1,3 +1,4 @@
+use std::fmt;
 use std::future::Future;
 use std::path::{Path, PathBuf};
 
@@ -206,6 +207,16 @@ pub struct AnalysisDeps<'a> {
     pub public_dir: &'a Path,
     pub tools: &'a dyn MediaTools,
     pub cancel: Option<&'a CancellationToken>,
+}
+
+impl fmt::Debug for AnalysisDeps<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("AnalysisDeps")
+            .field("project_dir", &self.project_dir)
+            .field("public_dir", &self.public_dir)
+            .field("cancel", &self.cancel)
+            .finish_non_exhaustive()
+    }
 }
 
 impl AnalysisDeps<'_> {

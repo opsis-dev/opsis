@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::Duration;
@@ -84,6 +85,15 @@ pub struct MixDeps<'a> {
     pub ffmpeg: &'a dyn MediaTools,
     pub cancel: Option<&'a CancellationToken>,
     pub on_progress: Option<OnStep<'a>>,
+}
+
+impl fmt::Debug for MixDeps<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("MixDeps")
+            .field("project_dir", &self.project_dir)
+            .field("cancel", &self.cancel)
+            .finish_non_exhaustive()
+    }
 }
 
 impl MixDeps<'_> {

@@ -22,6 +22,7 @@ fn slope(t: f64, a1: f64, a2: f64) -> f64 {
     3.0 * a * t * t + 2.0 * b * t + c
 }
 
+#[derive(Debug)]
 pub struct Bezier {
     x1: f64,
     y1: f64,

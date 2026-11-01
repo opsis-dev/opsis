@@ -16,11 +16,13 @@ const KEPT_PICTURES: usize = 6;
 const KEPT_FRAMES: usize = 6;
 pub const IDLE: Duration = Duration::from_secs(30);
 
+#[derive(Debug)]
 pub struct Shown {
     pub pts_us: i64,
     pub image: RgbImage,
 }
 
+#[derive(Debug)]
 struct SourceState {
     source: FootageSource,
     decoder: Option<Decoder>,
@@ -214,6 +216,7 @@ impl SourceState {
     }
 }
 
+#[derive(Debug)]
 pub struct Footage {
     tools: FootageTools,
     sources: HashMap<String, Mutex<SourceState>>,

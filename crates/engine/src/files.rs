@@ -1,3 +1,4 @@
+use std::fmt;
 use std::io::{ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -119,6 +120,15 @@ pub struct Prune<'a> {
     pub keep: Option<&'a dyn Fn(&str) -> bool>,
     pub newest: usize,
     pub unused_for: Option<Duration>,
+}
+
+impl fmt::Debug for Prune<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Prune")
+            .field("newest", &self.newest)
+            .field("unused_for", &self.unused_for)
+            .finish_non_exhaustive()
+    }
 }
 
 pub fn prune_dir(dir: &Path, prune: Prune<'_>) -> std::io::Result<()> {

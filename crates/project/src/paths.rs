@@ -24,6 +24,7 @@ pub fn project_locations(settings: &ProjectsSection, home: &Path) -> ProjectLoca
     }
 }
 
+#[derive(Debug)]
 pub struct ProjectPaths {
     pub meta: PathBuf,
     pub cache: PathBuf,

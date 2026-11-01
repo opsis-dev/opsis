@@ -1,4 +1,5 @@
 use std::collections::{HashSet, VecDeque};
+use std::fmt;
 
 use indexmap::IndexMap;
 use opsis_types::edits::{EdgeEnds, Removal, TimelineEdit, TimelineReply};
@@ -104,6 +105,16 @@ pub struct TimelineEdits<'a> {
     pub fps: u32,
     pub source: Option<String>,
     pub ids: &'a mut dyn Ids,
+}
+
+impl fmt::Debug for TimelineEdits<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TimelineEdits")
+            .field("workflow", &self.workflow)
+            .field("fps", &self.fps)
+            .field("source", &self.source)
+            .finish_non_exhaustive()
+    }
 }
 
 fn no_move(delta: f64) -> bool {

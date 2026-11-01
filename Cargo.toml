@@ -127,6 +127,10 @@ zbus-secret-service-keyring-store = { version = "1", features = ["rt-tokio-crypt
 zip = "9"
 zstd = "0.14"
 
+[workspace.lints.rust]
+missing_debug_implementations = "warn"
+unsafe_code = "deny"
+
 [workspace.lints.clippy]
 cast_lossless = "warn"
 cast_possible_truncation = "warn"

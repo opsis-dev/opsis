@@ -13,6 +13,7 @@ pub const TEST_ID_ATTRIBUTE: &str = "data-testid";
 static UNESCAPED_QUOTE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"(^|[^\\])(\\\\)*(["'`])"#).expect("pattern"));
 
+#[derive(Debug)]
 pub struct TextPattern {
     source: String,
 }
@@ -148,6 +149,7 @@ pub fn first(selector: &str) -> String {
     format!("{selector} >> nth=0")
 }
 
+#[derive(Debug)]
 pub struct Rung {
     pub by: String,
     pub selector: String,
