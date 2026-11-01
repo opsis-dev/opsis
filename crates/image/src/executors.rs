@@ -63,9 +63,7 @@ fn saved(
         body: None,
     };
     Ok(ExecutorOutput {
-        outputs: [(IMAGE_PORT.to_owned(), CompileValue::Image(value))]
-            .into_iter()
-            .collect(),
+        outputs: PortValues::from([(IMAGE_PORT.to_owned(), CompileValue::Image(value))]),
         artifacts: vec![ctx.artifact(ArtifactKind::Image, &file, "Image")],
         trace_id: None,
         measured: Vec::new(),

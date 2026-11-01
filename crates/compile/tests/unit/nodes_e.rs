@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use opsis_compile::clip::{
     SequenceSlots, clip_frame_of_recording, empty_clip, recording_props, sequence_clips,
 };
@@ -257,13 +258,11 @@ fn take(duration_ms: f64, cursor_track: bool) -> InputTake {
 
 fn takes(port: &str, take: Option<InputTake>, style: &[&str]) -> CardInputs {
     CardInputs {
-        takes: [(port.to_owned(), take)].into_iter().collect(),
-        style: [(
+        takes: IndexMap::from([(port.to_owned(), take)]),
+        style: IndexMap::from([(
             "style".to_owned(),
             style.iter().map(|s| (*s).to_owned()).collect(),
-        )]
-        .into_iter()
-        .collect(),
+        )]),
         ..CardInputs::default()
     }
 }
@@ -376,7 +375,7 @@ fn styles_every_take_in_a_sequence_and_warns_when_a_clip_has_no_recording() {
             "camera.applyStyle",
             json!({}),
             CardInputs {
-                takes: [("clip".to_owned(), t)].into_iter().collect(),
+                takes: IndexMap::from([("clip".to_owned(), t)]),
                 ..CardInputs::default()
             },
         )
@@ -766,7 +765,7 @@ fn the_inspector_knows_the_kind_of_each_file_setting() {
         g.node("file", IMPORT_TYPE, json!({ "path": path }));
         let wf = g.build();
         let compiled = compile_workflow(&wf, None);
-        inspector_context(&wf, &compiled, &indexmap::IndexMap::new(), "file")
+        inspector_context(&wf, &compiled, &IndexMap::new(), "file")
             .unwrap()
             .file_kinds
     };

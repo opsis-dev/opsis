@@ -185,12 +185,10 @@ fn warns_about_a_take_with_no_sound_and_about_each_wrong_grid_picture_once() {
     g.link_ports("voice", "grid", "media", "in1");
     g.link_ports("voice", "grid", "media", "in2");
     g.link_ports("record", "grid", "recording", "in3");
-    let results: IndexMap<String, NodeResult> = [(
+    let results: IndexMap<String, NodeResult> = IndexMap::from([(
         "record".to_owned(),
         record_result(&make_log(Vec::new(), 2000.0)),
-    )]
-    .into_iter()
-    .collect();
+    )]);
     let mut found = warnings(&g.build(), Some(&results));
     found.sort();
     assert_eq!(
@@ -217,12 +215,12 @@ fn counts_a_converted_picture_as_a_file_on_the_cards() {
     g.link_ports("frame", "music", "image", "media");
     g.link_ports("shot", "frame", "media", "media");
     let wf = g.build();
-    let results: IndexMap<String, NodeResult> = [(
+    let results: IndexMap<String, NodeResult> = IndexMap::from([(
         "frame".to_owned(),
-        node_result(json!({ "outputs": { "image": { "type": "image", "src": "project:.opsis/cache/h/frame.png", "width": 640, "height": 360 } } })),
-    )]
-    .into_iter()
-    .collect();
+        node_result(
+            json!({ "outputs": { "image": { "type": "image", "src": "project:.opsis/cache/h/frame.png", "width": 640, "height": 360 } } }),
+        ),
+    )]);
     let compiled = compile_workflow(&wf, Some(&results));
     let cards = workflow_cards(
         &wf,

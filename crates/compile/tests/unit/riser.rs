@@ -29,7 +29,7 @@ fn mixed(frames: u32, params: Value, markers: Vec<Marker>) -> Vec<AudioItem> {
     let mut wf: Workflow = g.build();
     wf.markers = markers;
     let results: IndexMap<String, NodeResult> =
-        [("rise".to_owned(), riser_result())].into_iter().collect();
+        IndexMap::from([("rise".to_owned(), riser_result())]);
     match compile_workflow(&wf, Some(&results)).values["mix"]["clip"].clone() {
         CompileValue::Clip(clip) => clip.audio,
         other => panic!("{other:?}"),

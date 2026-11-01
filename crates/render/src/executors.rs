@@ -411,9 +411,7 @@ async fn export_video(
         has_audio: Some(probe.audio.is_some()),
     };
     Ok(ExecutorOutput {
-        outputs: [("media".to_owned(), CompileValue::Media(media))]
-            .into_iter()
-            .collect(),
+        outputs: PortValues::from([("media".to_owned(), CompileValue::Media(media))]),
         artifacts,
         trace_id: None,
         measured: Vec::new(),
@@ -468,9 +466,7 @@ async fn export_images(
         body: None,
     };
     Ok(ExecutorOutput {
-        outputs: [("image".to_owned(), CompileValue::Image(image))]
-            .into_iter()
-            .collect(),
+        outputs: PortValues::from([("image".to_owned(), CompileValue::Image(image))]),
         artifacts,
         trace_id: None,
         measured: Vec::new(),

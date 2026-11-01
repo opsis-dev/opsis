@@ -67,7 +67,7 @@ fn opened(port: u16, browser: Value, steps: Vec<SessionStep>) -> BrowserSessionV
         "go",
         json!({ "url": format!("http://127.0.0.1:{port}/"), "after": 0 }),
     );
-    session(params, [navigate].into_iter().chain(steps).collect())
+    session(params, std::iter::once(navigate).chain(steps).collect())
 }
 
 async fn play(page: &'static str, browser: Value, steps: Vec<SessionStep>) -> ActionLog {
@@ -120,8 +120,7 @@ async fn record(
         end_tail_ms: 0,
         ..Record::default()
     };
-    let steps = [step(BrowserAction::StartRecording, "roll", json!({}))]
-        .into_iter()
+    let steps = std::iter::once(step(BrowserAction::StartRecording, "roll", json!({})))
         .chain(steps)
         .collect();
     let played = play_take(

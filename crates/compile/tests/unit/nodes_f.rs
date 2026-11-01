@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::node::{CardInputs, Category, InputMedia};
 use opsis_compile::nodes::grade::{
@@ -272,12 +273,10 @@ fn shows_what_each_grade_step_changes_on_its_card() {
 
 fn graded(steps: &[(&str, Value)], kind: Option<MediaKind>) -> CardInputs {
     CardInputs {
-        grade: [(
+        grade: IndexMap::from([(
             "grade".to_owned(),
             steps.iter().map(|(k, p)| entry(k, p.clone())).collect(),
-        )]
-        .into_iter()
-        .collect(),
+        )]),
         media: kind
             .map(|k| {
                 (

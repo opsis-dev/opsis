@@ -190,7 +190,7 @@ fn artifact_kind(kind: MediaKind) -> ArtifactKind {
 }
 
 fn output(port: &str, value: CompileValue) -> PortValues {
-    [(port.to_owned(), value)].into_iter().collect()
+    PortValues::from([(port.to_owned(), value)])
 }
 
 async fn media_result(

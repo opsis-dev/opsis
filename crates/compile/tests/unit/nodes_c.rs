@@ -172,9 +172,7 @@ fn sums_up_media_nodes_on_their_cards() {
 #[test]
 fn fills_a_variable_into_a_file_path_before_reading_the_file() {
     let def = node_def("media.import").unwrap();
-    let vars: Vars = [("Folder".to_owned(), "assets/clips".to_owned())]
-        .into_iter()
-        .collect();
+    let vars = Vars::from([("Folder".to_owned(), "assets/clips".to_owned())]);
     let params = json!({ "path": "{{Folder}}/intro.mp4" })
         .as_object()
         .unwrap()

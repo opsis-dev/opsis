@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use opsis_compile::clip::{empty_clip, scene_item_count};
 use opsis_compile::limits::MAX_FRAMES;
 use opsis_compile::node::CardInputs;
@@ -34,15 +35,13 @@ fn adds_the_takes_length_and_actions_and_says_where_the_video_starts() {
     assert_eq!(texts, ["30 fps", "Smooth cursor", "14.5 s · 2 actions"]);
     let starts = |steps: &[&str]| {
         let inputs = CardInputs {
-            steps: [(
+            steps: IndexMap::from([(
                 "session".to_owned(),
                 steps
                     .iter()
                     .map(|s| BrowserAction::of_kind(s).expect("a browser action"))
                     .collect(),
-            )]
-            .into_iter()
-            .collect(),
+            )]),
             ..CardInputs::default()
         };
         card_texts("capture.record", json!({}), inputs)
@@ -162,12 +161,10 @@ fn checks_screenshot_and_sign_in_settings() {
         None
     );
     let def = opsis_compile::registry::node_def("browser.signIn").unwrap();
-    let vars: Vars = [(
+    let vars = Vars::from([(
         "Site address".to_owned(),
         "https://app.example.com".to_owned(),
-    )]
-    .into_iter()
-    .collect();
+    )]);
     let interpolated = opsis_compile::compile::interpolated_params(Some(def), &Map::new(), &vars);
     assert_eq!(interpolated["url"], "https://app.example.com/login");
 }
@@ -343,9 +340,7 @@ fn chooses_by_variable() {
     for (value, equals, port) in cases {
         assert_eq!(branch_port(value, equals), port, "{value:?} {equals}");
     }
-    let vars: Vars = [("Version".to_owned(), "A".to_owned())]
-        .into_iter()
-        .collect();
+    let vars = Vars::from([("Version".to_owned(), "A".to_owned())]);
     let picked = compile_node_in(
         "timeline.branch",
         json!({ "variable": " Version ", "equals": "A" }),
@@ -402,7 +397,7 @@ fn refuses_a_trim_past_the_end_and_warns_when_it_keeps_more_than_the_clip_has() 
             "timeline.trim",
             p,
             CardInputs {
-                frames: [("clip".to_owned(), 60)].into_iter().collect(),
+                frames: IndexMap::from([("clip".to_owned(), 60)]),
                 ..CardInputs::default()
             },
         )
@@ -434,7 +429,7 @@ fn fits_lengths_by_holding_cutting_or_speeding() {
         "timeline.durationFit",
         json!({ "targetMs": 3000, "mode": "cut" }),
         CardInputs {
-            frames: [("clip".to_owned(), 30)].into_iter().collect(),
+            frames: IndexMap::from([("clip".to_owned(), 30)]),
             clip_frames: Some(90),
             ..CardInputs::default()
         },

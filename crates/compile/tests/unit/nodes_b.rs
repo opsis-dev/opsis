@@ -88,7 +88,7 @@ fn names_export_files_stably_and_refuses_repeated_shapes() {
     assert!(parse_params("output.render", json!({ "variants": ["16:9", "16:9"] })).is_err());
     assert!(parse_params("output.still", json!({ "presets": ["og", "og"] })).is_err());
     let frames = CardInputs {
-        frames: [("clip".to_owned(), 60)].into_iter().collect(),
+        frames: IndexMap::from([("clip".to_owned(), 60)]),
         ..CardInputs::default()
     };
     assert!(

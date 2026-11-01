@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use opsis_compile::audio::sound_length;
 use opsis_compile::clip::{ItemExtra, empty_clip, item_clip, recording_props, walk_items};
 use opsis_compile::elements::elements;
@@ -858,9 +859,7 @@ fn adds_no_sound_from_a_file_that_has_none_and_says_so() {
     let card = |kind: MediaKind, has_audio: Option<bool>, src: Value| {
         let inputs = CardInputs {
             connected: vec!["media".into()],
-            media: [("media".to_owned(), InputMedia { kind, has_audio })]
-                .into_iter()
-                .collect(),
+            media: IndexMap::from([("media".to_owned(), InputMedia { kind, has_audio })]),
             ..CardInputs::default()
         };
         node_card("audio.music", src, inputs)[0].clone()
@@ -875,15 +874,13 @@ fn adds_no_sound_from_a_file_that_has_none_and_says_so() {
     );
     let inputs = CardInputs {
         connected: vec!["media".into()],
-        media: [(
+        media: IndexMap::from([(
             "media".to_owned(),
             InputMedia {
                 kind: MediaKind::Audio,
                 has_audio: Some(true),
             },
-        )]
-        .into_iter()
-        .collect(),
+        )]),
         ..CardInputs::default()
     };
     let first = node_card(
@@ -1120,7 +1117,7 @@ fn shows_captions_until_read_or_for_the_clip_and_warns_when_they_run_past_it() {
         30
     );
     let inputs = CardInputs {
-        captions_ms: [("captions".to_owned(), 2500.0)].into_iter().collect(),
+        captions_ms: IndexMap::from([("captions".to_owned(), 2500.0)]),
         ..frames(&[("clip", 30)])
     };
     assert!(

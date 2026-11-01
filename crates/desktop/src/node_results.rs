@@ -298,9 +298,10 @@ impl FileCheck {
             Ok(checked) => {
                 let result = NodeResult {
                     hash: self.key.clone(),
-                    outputs: [(MEDIA_PORT.to_owned(), CompileValue::Media(checked.media))]
-                        .into_iter()
-                        .collect(),
+                    outputs: IndexMap::from([(
+                        MEDIA_PORT.to_owned(),
+                        CompileValue::Media(checked.media),
+                    )]),
                     artifacts: Vec::new(),
                     finished_at: now_ms(),
                     duration_ms: u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
