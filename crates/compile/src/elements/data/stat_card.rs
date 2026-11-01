@@ -33,7 +33,7 @@ pub struct StatCard {
     #[setting(
         "Change",
         default = 4,
-        range(min = -1000000, max = 1000000),
+        range(min = -1_000_000, max = 1_000_000),
         step = 1,
         help = "Change against the previous period; lands after the number settles.",
         show_if = { "showDelta": ["true"] }
@@ -82,7 +82,7 @@ pub struct StatCard {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
         "Ring full at",
-        range(min = 0, max = 1000000000),
+        range(min = 0, max = 1_000_000_000),
         zero_label = "Full ring",
         step = 1,
         help = "The ring fills to the value out of this. Leave empty for a full ring.",

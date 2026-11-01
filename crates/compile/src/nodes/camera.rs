@@ -363,7 +363,7 @@ pub struct ManualZoom {
     #[setting(
         "At",
         default = 1000,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms"
     )]
@@ -371,7 +371,7 @@ pub struct ManualZoom {
     #[setting(
         "Hold",
         default = 1500,
-        range(min = 100, max = 600000),
+        range(min = 100, max = 600_000),
         step = 50,
         unit = "ms"
     )]
@@ -419,7 +419,7 @@ pub struct Pan {
     #[setting(
         "Start at",
         default = 1000,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms"
     )]
@@ -427,7 +427,7 @@ pub struct Pan {
     #[setting(
         "Pan for",
         default = 1500,
-        range(min = 100, max = 600000),
+        range(min = 100, max = 600_000),
         step = 50,
         unit = "ms"
     )]

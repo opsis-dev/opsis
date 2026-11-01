@@ -46,7 +46,7 @@ pub struct RedactTake {
         help = "Drag on the picture to mark each part to hide. Move the slider to draw on a later moment of the take. The areas stay on the page while the camera zooms and pans."
     )]
     pub areas: Vec<Area>,
-    #[setting("Frame to draw on", range(min = 0, max = 3600000), unit = "ms", hidden)]
+    #[setting("Frame to draw on", range(min = 0, max = 3_600_000), unit = "ms", hidden)]
     pub frame_ms: f64,
     #[setting("Hide with")]
     pub style: RedactStyle,
@@ -87,7 +87,7 @@ pub struct RedactTake {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
         "From",
-        range(min = 0, max = 3600000),
+        range(min = 0, max = 3_600_000),
         unit = "ms",
         zero_label = "Start of the take",
         advanced
@@ -96,7 +96,7 @@ pub struct RedactTake {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
         "Until",
-        range(min = 0, max = 3600000),
+        range(min = 0, max = 3_600_000),
         unit = "ms",
         zero_label = "End of the take",
         advanced

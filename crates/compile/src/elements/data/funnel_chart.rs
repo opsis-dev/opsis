@@ -9,7 +9,7 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 pub struct FunnelChartStage {
     #[setting("Label", default = "Upgraded")]
     pub label: String,
-    #[setting("Value", default = 1750, range(min = 0, max = 1000000000), step = 1)]
+    #[setting("Value", default = 1750, range(min = 0, max = 1_000_000_000), step = 1)]
     pub value: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting("Color", widget = "color", zero_label = "None", "type" = "string")]

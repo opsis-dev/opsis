@@ -375,7 +375,7 @@ pub struct CaptionsFromScript {
         unit = "words/min"
     )]
     pub words_per_minute: u32,
-    #[setting("Start at", range(min = 0, max = 600000), step = 50, unit = "ms")]
+    #[setting("Start at", range(min = 0, max = 600_000), step = 50, unit = "ms")]
     pub start_ms: u32,
     #[setting(
         "Pause between sentences",

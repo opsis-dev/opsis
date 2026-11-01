@@ -73,7 +73,7 @@ pub struct Cut {
     #[setting(
         "Length",
         default = 15,
-        range(min = 1, max = 108000),
+        range(min = 1, max = 108_000),
         step = 1,
         unit = "frames"
     )]
@@ -100,7 +100,7 @@ pub struct Sequence {
     #[setting(
         "Transition length",
         default = 15,
-        range(min = 1, max = 108000),
+        range(min = 1, max = 108_000),
         step = 1,
         unit = "frames"
     )]
@@ -419,11 +419,11 @@ fn layers() -> NodeDef {
 
 #[settings]
 pub struct Trim {
-    #[setting("Start", range(min = 0, max = 600000), step = 50, unit = "ms")]
+    #[setting("Start", range(min = 0, max = 600_000), step = 50, unit = "ms")]
     pub start_ms: u32,
     #[setting(
         "Keep",
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         zero_label = "To the end"
@@ -547,7 +547,7 @@ pub struct Delay {
     #[setting(
         "Delay",
         default = 500,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms"
     )]
@@ -688,7 +688,7 @@ pub struct FitLength {
     #[setting(
         "Length",
         default = 10000,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         help = "Ignored when a sound is connected."

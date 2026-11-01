@@ -93,7 +93,7 @@ pub struct Record {
     #[setting(
         "Pause before the first action",
         default = 700,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms"
     )]
@@ -101,7 +101,7 @@ pub struct Record {
     #[setting(
         "Keep recording after the last action",
         default = 2500,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         help = "Gives the camera time to settle at the end."
@@ -209,7 +209,7 @@ pub struct Still {
     #[setting(
         "Length",
         default = 3000,
-        range(min = 100, max = 600000),
+        range(min = 100, max = 600_000),
         step = 50,
         unit = "ms"
     )]
@@ -262,7 +262,7 @@ pub struct Still {
     #[setting(
         "Push-in time",
         default = 4000,
-        range(min = 100, max = 600000),
+        range(min = 100, max = 600_000),
         step = 50,
         unit = "ms",
         advanced

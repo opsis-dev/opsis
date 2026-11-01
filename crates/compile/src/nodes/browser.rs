@@ -47,7 +47,7 @@ pub struct PauseAfter {
     #[setting(
         "Pause after",
         default = 600,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         help = "How long the video lingers after this action."
@@ -301,7 +301,7 @@ pub struct Navigate {
     #[setting(
         "Pause after",
         default = 700,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         help = "How long the video lingers on the new page."
@@ -310,7 +310,7 @@ pub struct Navigate {
     #[setting(
         "Give up after",
         default = 30000,
-        range(min = 1000, max = 600000),
+        range(min = 1000, max = 600_000),
         step = 1000,
         unit = "ms",
         help = "How long to wait for the page before the take fails.",
@@ -345,7 +345,7 @@ pub struct Click {
     #[setting(
         "Find it within",
         default = 15000,
-        range(min = 1000, max = 120000),
+        range(min = 1000, max = 120_000),
         step = 1000,
         unit = "ms",
         help = "How long to wait for the element to appear before the take fails.",
@@ -754,7 +754,7 @@ pub struct Wait {
     #[setting(
         "Time",
         default = 1000,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         show_if = { "mode": ["ms"] }
@@ -763,7 +763,7 @@ pub struct Wait {
     #[setting(
         "Give up after",
         default = 20000,
-        range(min = 500, max = 600000),
+        range(min = 500, max = 600_000),
         step = 50,
         unit = "ms",
         show_if = { "mode": ["element", "network-idle", "url"] },
@@ -798,7 +798,7 @@ pub struct Assert {
     #[setting(
         "Give up after",
         default = 10000,
-        range(min = 500, max = 600000),
+        range(min = 500, max = 600_000),
         step = 50,
         unit = "ms",
         advanced
@@ -819,7 +819,7 @@ pub struct Hoist {
     #[setting(
         "Find it within",
         default = 15000,
-        range(min = 1000, max = 120000),
+        range(min = 1000, max = 120_000),
         step = 1000,
         unit = "ms",
         advanced
@@ -921,7 +921,7 @@ pub struct Chapter {
     #[setting(
         "Card shown for",
         default = 2000,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         show_if = { "showInVideo": ["true"] }
@@ -930,7 +930,7 @@ pub struct Chapter {
     #[setting(
         "Pause after the card",
         default = 2000,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         show_if = { "showInVideo": ["true"] },
@@ -993,7 +993,7 @@ pub struct OverlayHtml {
     #[setting(
         "Shown for",
         default = 2000,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         help = "The next actions carry on while it's shown.",

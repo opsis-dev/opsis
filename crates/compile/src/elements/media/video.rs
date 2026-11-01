@@ -25,7 +25,7 @@ pub struct Video {
         advanced
     )]
     pub playback_rate: f64,
-    #[setting("Start at", range(min = 0, max = 3600000), step = 100, unit = "ms")]
+    #[setting("Start at", range(min = 0, max = 3_600_000), step = 100, unit = "ms")]
     pub trim_before_ms: u32,
     #[setting(
         "Background",

@@ -147,11 +147,11 @@ pub struct Music {
     pub volume: f64,
     #[setting("Loop", default = true)]
     pub r#loop: bool,
-    #[setting("Starts at", range(min = 0, max = 600000), step = 50, unit = "ms")]
+    #[setting("Starts at", range(min = 0, max = 600_000), step = 50, unit = "ms")]
     pub start_ms: u32,
     #[setting(
         "Start the song from",
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         help = "Skips the start of the song."
@@ -159,7 +159,7 @@ pub struct Music {
     pub trim_ms: u32,
     #[setting(
         "Play for",
-        range(min = 0, max = 3600000),
+        range(min = 0, max = 3_600_000),
         step = 50,
         unit = "ms",
         zero_label = "To the end",
@@ -291,7 +291,7 @@ pub struct SoundEffect {
     pub at_action: String,
     #[setting(
         "At",
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         show_if = { "atAction": [""] }
@@ -323,7 +323,7 @@ pub struct SoundEffect {
     pub envelope: AudioEnvelope,
     #[setting(
         "Play for",
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         zero_label = "The whole sound",
@@ -604,7 +604,7 @@ pub struct Tones {
     pub at_action: String,
     #[setting(
         "At",
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         show_if = { "atAction": [""] }
@@ -940,7 +940,7 @@ pub struct GenerateSound {
     pub at_action: String,
     #[setting(
         "At",
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms",
         show_if = { "atAction": [""] }

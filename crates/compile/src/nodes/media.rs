@@ -427,7 +427,7 @@ pub struct MediaFile {
     #[setting(
         "Length",
         default = 3000,
-        range(min = 100, max = 3600000),
+        range(min = 100, max = 3_600_000),
         step = 50,
         unit = "ms",
         help = "How long the image stays on screen.",
@@ -544,7 +544,7 @@ pub struct UseAsClip {
     #[setting(
         "Picture length",
         default = 3000,
-        range(min = 100, max = 3600000),
+        range(min = 100, max = 3_600_000),
         step = 50,
         unit = "ms",
         help = "How long an image stays on screen."
@@ -609,11 +609,11 @@ fn use_as_clip() -> NodeDef {
 
 #[settings(check)]
 pub struct TrimFile {
-    #[setting("Start", range(min = 0, max = 36000000), step = 50, unit = "ms")]
+    #[setting("Start", range(min = 0, max = 36_000_000), step = 50, unit = "ms")]
     pub start_ms: u32,
     #[setting(
         "End",
-        range(min = 0, max = 36000000),
+        range(min = 0, max = 36_000_000),
         step = 50,
         unit = "ms",
         zero_label = "To the end"
@@ -646,7 +646,7 @@ pub struct JoinFiles {
     #[setting(
         "Picture length",
         default = 3000,
-        range(min = 100, max = 3600000),
+        range(min = 100, max = 3_600_000),
         step = 50,
         unit = "ms",
         help = "How long an image joined in stays on screen.",
@@ -1115,7 +1115,7 @@ pub struct FitMusic {
     pub max_stretch: f64,
     #[setting(
         "Loop from",
-        range(min = 0, max = 3600000),
+        range(min = 0, max = 3_600_000),
         step = 100,
         unit = "ms",
         show_if = { "way": ["both", "loop"] },
@@ -1124,7 +1124,7 @@ pub struct FitMusic {
     pub loop_from_ms: u32,
     #[setting(
         "Loop to",
-        range(min = 0, max = 3600000),
+        range(min = 0, max = 3_600_000),
         step = 100,
         unit = "ms",
         zero_label = "The end of the song",
@@ -1533,7 +1533,7 @@ pub struct GrabFrame {
     #[setting(
         "At",
         default = 1000,
-        range(min = 0, max = 36000000),
+        range(min = 0, max = 36_000_000),
         step = 50,
         unit = "ms"
     )]

@@ -197,7 +197,7 @@ pub struct LightLeakCut {
     #[setting(
         "Length",
         default = 30,
-        range(min = 1, max = 108000),
+        range(min = 1, max = 108_000),
         step = 1,
         unit = "frames"
     )]
@@ -211,7 +211,7 @@ pub struct LightLeakCut {
         help = "The light's colours, one glow each."
     )]
     pub colors: Vec<Colour>,
-    #[setting("Offset", default = 0, range(min = -108000, max = 108000), step = 1, unit = "frames", advanced)]
+    #[setting("Offset", default = 0, range(min = -108_000, max = 108_000), step = 1, unit = "frames", advanced)]
     pub offset: i32,
     #[setting(
         "Strength",

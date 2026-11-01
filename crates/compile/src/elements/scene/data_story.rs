@@ -65,7 +65,7 @@ pub struct DataStory {
         default = vec![
             DataStoryBarData {
                 label: "Mobile".into(),
-                value: 124000.0,
+                value: 124_000.0,
                 delta: Some("+32%".into()),
                 ..Default::default()
             },

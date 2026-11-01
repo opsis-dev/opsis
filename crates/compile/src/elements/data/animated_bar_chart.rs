@@ -8,7 +8,7 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 pub struct AnimatedBarChartBar {
     #[setting("Label")]
     pub label: String,
-    #[setting("Value", default = 50, range(min = 0, max = 1000000), step = 1)]
+    #[setting("Value", default = 50, range(min = 0, max = 1_000_000), step = 1)]
     pub value: u32,
 }
 

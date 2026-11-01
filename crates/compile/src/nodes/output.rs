@@ -382,7 +382,7 @@ pub struct ExportImages {
     #[setting(
         "Frame at",
         default = 1000,
-        range(min = 0, max = 600000),
+        range(min = 0, max = 600_000),
         step = 50,
         unit = "ms"
     )]

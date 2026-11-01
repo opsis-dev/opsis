@@ -45,14 +45,14 @@ fn coloured(colour: NoiseColour, count: usize, seed: u64) -> Vec<f64> {
             match colour {
                 NoiseColour::White => white,
                 NoiseColour::Pink => {
-                    pink[0] = 0.99886 * pink[0] + white * 0.0555179;
-                    pink[1] = 0.99332 * pink[1] + white * 0.0750759;
-                    pink[2] = 0.96900 * pink[2] + white * 0.1538520;
-                    pink[3] = 0.86650 * pink[3] + white * 0.3104856;
-                    pink[4] = 0.55000 * pink[4] + white * 0.5329522;
-                    pink[5] = -0.7616 * pink[5] - white * 0.0168980;
+                    pink[0] = 0.99886 * pink[0] + white * 0.055_517_9;
+                    pink[1] = 0.99332 * pink[1] + white * 0.075_075_9;
+                    pink[2] = 0.96900 * pink[2] + white * 0.153_852_0;
+                    pink[3] = 0.86650 * pink[3] + white * 0.310_485_6;
+                    pink[4] = 0.55000 * pink[4] + white * 0.532_952_2;
+                    pink[5] = -0.7616 * pink[5] - white * 0.016_898_0;
                     let out = pink.iter().sum::<f64>() + white * 0.5362;
-                    pink[6] = white * 0.115926;
+                    pink[6] = white * 0.115_926;
                     out
                 }
                 NoiseColour::Brown => {

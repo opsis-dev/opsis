@@ -126,7 +126,7 @@ pub struct PricingCard {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
         "Old price",
-        range(min = 0, max = 1000000),
+        range(min = 0, max = 1_000_000),
         zero_label = "None",
         step = 1,
         help = "Shown struck out next to the price.",
@@ -136,7 +136,7 @@ pub struct PricingCard {
     #[setting(
         "Roll from",
         default = 0,
-        range(min = 0, max = 1000000),
+        range(min = 0, max = 1_000_000),
         step = 1,
         advanced
     )]

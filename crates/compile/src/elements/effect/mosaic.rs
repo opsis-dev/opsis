@@ -29,7 +29,7 @@ pub struct Mosaic {
     pub boxes: Vec<MosaicBox>,
     #[setting(
         "Frame to draw on",
-        range(min = 0, max = 3600000),
+        range(min = 0, max = 3_600_000),
         step = 1,
         unit = "ms",
         hidden
