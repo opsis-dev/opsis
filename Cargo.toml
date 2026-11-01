@@ -176,11 +176,6 @@ significant_drop_in_scrutinee = "allow" # FIXME: REMOVE
 redundant_closure_for_method_calls = "allow" # FIXME: REMOVE
 maybe_infinite_iter = "allow" # FIXME: REMOVE
 if_not_else = "allow" # FIXME: REMOVE
-match_same_arms = "allow" # FIXME: REMOVE
-format_collect = "allow" # FIXME: REMOVE
-branches_sharing_code = "allow" # FIXME: REMOVE
-bool_to_int_with_if = "allow" # FIXME: REMOVE
-wildcard_imports = "allow" # FIXME: REMOVE
 
 [profile.release]
 opt-level = 3

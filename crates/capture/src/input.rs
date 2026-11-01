@@ -280,7 +280,7 @@ impl Input {
             .await?;
             return Ok(());
         }
-        let moved = json!({ "type": "mouseMoved", "button": if left_down { "left" } else { "none" }, "buttons": if left_down { 1 } else { 0 }, "x": x, "y": y, "modifiers": modifiers, "force": if left_down { 0.5 } else { 0.0 } });
+        let moved = json!({ "type": "mouseMoved", "button": if left_down { "left" } else { "none" }, "buttons": i32::from(left_down), "x": x, "y": y, "modifiers": modifiers, "force": if left_down { 0.5 } else { 0.0 } });
         if !left_down {
             tab.send("Input.dispatchMouseEvent", moved).await?;
             return Ok(());

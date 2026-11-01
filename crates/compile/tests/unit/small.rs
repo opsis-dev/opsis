@@ -462,7 +462,7 @@ proptest! {
 
     #[test]
     fn reads_the_last_segments_extension_in_lowercase(dirs in prop::collection::vec("[a-z]{1,4}(\\.[a-z]{1,3})?", 0..3), stem in "[A-Za-z0-9]{1,6}", ext in "[A-Za-z0-9]{1,4}") {
-        let folder: String = dirs.iter().map(|d| format!("{d}/")).collect();
+        let folder: String = dirs.iter().flat_map(|d| [d.as_str(), "/"]).collect();
         prop_assert_eq!(extension_of(&format!("{folder}{stem}.{ext}")), ext.to_lowercase());
         prop_assert_eq!(extension_of(&format!("{folder}{stem}")), "");
         prop_assert_eq!(extension_of(&format!("{folder}.{stem}")), "");

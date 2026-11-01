@@ -121,7 +121,7 @@ fn clip_duration_field(meta: &ElementMeta) -> Value {
     let mut field = json!({
         "description": "Length",
         "type": "integer",
-        "minimum": if open { 0 } else { 1 },
+        "minimum": i32::from(!open),
         "maximum": MAX_FRAMES,
         "default": if open { 0 } else { meta.default_duration_in_frames },
         "x-unit": "frames"

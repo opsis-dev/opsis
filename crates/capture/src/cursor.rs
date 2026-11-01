@@ -704,7 +704,6 @@ impl CursorDriver {
             self.input
                 .mouse_move(&self.tab, target.cx, target.cy, QUICK_DRAG_STEPS)
                 .await?;
-            self.input.mouse_up(&self.tab, MouseButton::Left, 1).await?;
         } else {
             self.input
                 .mouse_down(&self.tab, MouseButton::Left, 1)
@@ -712,8 +711,8 @@ impl CursorDriver {
             self.input
                 .mouse_move(&self.tab, end.x, end.y, QUICK_DRAG_STEPS)
                 .await?;
-            self.input.mouse_up(&self.tab, MouseButton::Left, 1).await?;
         }
+        self.input.mouse_up(&self.tab, MouseButton::Left, 1).await?;
         self.mark(end, None).await;
         Ok(plan)
     }

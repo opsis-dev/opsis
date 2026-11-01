@@ -105,7 +105,11 @@ pub fn apply_edit(
     edit: WorkflowEdit,
     ctx: &mut EditContext<'_>,
 ) -> Result<Vec<String>, EditError> {
-    use workflow::*;
+    use workflow::{
+        add_node, add_project_font, connect, group_nodes, move_nodes, new_node_params,
+        next_position, node_mut, paste_nodes, patch_node, remove_edges, remove_nodes,
+        rename_workflow_variable, set_font_role, set_settings, ungroup,
+    };
     let one = |id: Option<String>| id.into_iter().collect();
     Ok(match edit {
         WorkflowEdit::AddNode {

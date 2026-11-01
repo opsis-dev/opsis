@@ -662,7 +662,6 @@ impl FitMode {
                         .warn_if(!(0.67..=1.5).contains(&speed))
                 })
             }
-            Self::Hold => None,
             Self::Cut if input < output => Some(
                 row(
                     Icon::TriangleAlert,
@@ -680,7 +679,7 @@ impl FitMode {
                 )
                 .warn_if(input - output > fps / 2),
             ),
-            Self::Cut => None,
+            Self::Hold | Self::Cut => None,
         }
     }
 }

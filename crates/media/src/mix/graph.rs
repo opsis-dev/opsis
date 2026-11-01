@@ -448,7 +448,7 @@ fn mix_of(labels: &[String], out: &str, then: &[String]) -> String {
         "amix=inputs={}:normalize=0:duration=longest:dropout_transition=0",
         labels.len()
     );
-    let pads: String = labels.iter().map(|l| format!("[{l}]")).collect();
+    let pads: String = labels.iter().flat_map(|l| ["[", l.as_str(), "]"]).collect();
     format!("{pads}{amix}{tail}[{out}]")
 }
 

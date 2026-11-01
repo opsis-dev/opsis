@@ -148,7 +148,6 @@ pub fn apply_keyframe_edit(wf: &mut Workflow, edit: KeyframeEdit) -> Result<(), 
                     ease: Ease::Linear,
                 });
             })?;
-            Ok(())
         }
         KeyframeEdit::AppendKey { node_id, track } => {
             edit_track(wf, &node_id, track, |keys, fps| {
@@ -166,7 +165,6 @@ pub fn apply_keyframe_edit(wf: &mut Workflow, edit: KeyframeEdit) -> Result<(), 
                 );
                 keys.push(next);
             })?;
-            Ok(())
         }
         KeyframeEdit::SetKey {
             node_id,
@@ -189,7 +187,6 @@ pub fn apply_keyframe_edit(wf: &mut Workflow, edit: KeyframeEdit) -> Result<(), 
                     }
                 }
             })?;
-            Ok(())
         }
         KeyframeEdit::RemoveKey {
             node_id,
@@ -201,11 +198,9 @@ pub fn apply_keyframe_edit(wf: &mut Workflow, edit: KeyframeEdit) -> Result<(), 
                     keys.remove(at_index(index));
                 }
             })?;
-            Ok(())
         }
         KeyframeEdit::AddCameraKey { node_id, frame } => {
             edit_camera(wf, &node_id, |path| camera_key_at(&path, frame))?;
-            Ok(())
         }
         KeyframeEdit::SetCameraKey {
             node_id,
@@ -233,7 +228,6 @@ pub fn apply_keyframe_edit(wf: &mut Workflow, edit: KeyframeEdit) -> Result<(), 
                 }
                 path
             })?;
-            Ok(())
         }
         KeyframeEdit::RemoveCameraKey { node_id, index } => {
             edit_camera(wf, &node_id, |mut path| {
@@ -242,7 +236,7 @@ pub fn apply_keyframe_edit(wf: &mut Workflow, edit: KeyframeEdit) -> Result<(), 
                 }
                 path
             })?;
-            Ok(())
         }
     }
+    Ok(())
 }
