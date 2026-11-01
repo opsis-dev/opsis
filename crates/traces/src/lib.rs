@@ -44,7 +44,7 @@ pub struct TraceTake {
     pub network: Vec<TraceRequest>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct TraceMeta<'a> {
     pub node_id: &'a str,
     pub label: &'a str,

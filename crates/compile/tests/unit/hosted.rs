@@ -5,11 +5,13 @@ use opsis_types::timeline::TimelineSpec;
 use serde_json::{Value, json};
 
 fn element(id: &str, props: Value) -> Value {
-    json!({ "id": id, "from": 0, "durationInFrames": 30, "kind": "element", "component": "title", "props": props })
+    let mut element = json!({ "id": id, "from": 0, "durationInFrames": 30, "kind": "element", "component": "title" });
+    element["props"] = props;
+    element
 }
 
 fn spec(base: &str, fonts: Value) -> TimelineSpec {
-    serde_json::from_value(json!({
+    let mut spec = json!({
         "width": 1920,
         "height": 1080,
         "fps": 30,
@@ -39,10 +41,11 @@ fn spec(base: &str, fonts: Value) -> TimelineSpec {
         }],
         "audio": [{ "id": "m", "src": "project:assets/music.mp3", "from": 0 }],
         "assets": { "projectBase": base },
-        "fonts": fonts,
+        "fonts": null,
         "mix": { "src": "project:.opsis/cache/mix/master.wav", "hash": "h" },
-    }))
-    .unwrap()
+    });
+    spec["fonts"] = fonts;
+    serde_json::from_value(spec).unwrap()
 }
 
 fn serif() -> FontFamilyDef {

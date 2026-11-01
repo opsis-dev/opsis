@@ -86,7 +86,9 @@ fn reference(name: &str) -> Value {
 }
 
 fn content(schema: Value) -> Value {
-    json!({ "application/json": { "schema": schema } })
+    let mut content = json!({ "application/json": {} });
+    content["application/json"]["schema"] = schema;
+    content
 }
 
 fn answer(schema: Value) -> Value {

@@ -1010,7 +1010,12 @@ fn focus_beats(
     props
 }
 
-fn remap_clip(clip: ClipValue, node_id: &str, fps: u32, segments: &[(f64, f64, f64)]) -> ClipValue {
+fn remap_clip(
+    clip: &ClipValue,
+    node_id: &str,
+    fps: u32,
+    segments: &[(f64, f64, f64)],
+) -> ClipValue {
     let to_frames = |recording_ms: f64| {
         clip_frame_of_recording(&clip.tracks, &|rec| {
             recording_ms_to_frames(recording_ms, recording_speed(rec), fps)
@@ -1028,7 +1033,7 @@ fn remap_clip(clip: ClipValue, node_id: &str, fps: u32, segments: &[(f64, f64, f
     let remap = remap_from_segments(f64::from(clip.duration_in_frames), &parts);
     let duration = whole_frames(remap_duration(&remap), 1);
     wrap_clip(
-        &clip,
+        clip,
         node_id,
         GroupProps {
             remap: Some(remap),
@@ -1332,7 +1337,7 @@ fn idle_speedup() -> NodeDef {
             .map(|(from, to)| (from, to, p.rate))
             .collect();
         remap_clip(
-            clip,
+            &clip,
             at.node_id,
             at.fps,
             &eased_segments(&segments, f64::from(p.ease_ms)),
@@ -1357,7 +1362,7 @@ fn speed_ramp() -> NodeDef {
                 .collect();
             segments.sort_by(|a, b| a.0.total_cmp(&b.0));
             remap_clip(
-                clip,
+                &clip,
                 at.node_id,
                 at.fps,
                 &eased_segments(&segments, f64::from(p.ease_ms)),

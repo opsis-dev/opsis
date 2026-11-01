@@ -175,7 +175,7 @@ fn pastes_copies_with_new_ids_offset_outside_groups_and_keeps_their_edges() {
     let mut wf = source.clone();
     let pasted = paste_nodes(
         &mut wf,
-        copied.clone(),
+        &copied,
         source.edges.clone(),
         Position { x: 10.0, y: 20.0 },
         &mut SaltedIds::new("p"),
@@ -204,7 +204,7 @@ fn pastes_a_grouped_node_without_its_group_at_its_place_on_the_canvas() {
     let mut wf = source;
     paste_nodes(
         &mut wf,
-        vec![in_group.clone()],
+        std::slice::from_ref(&in_group),
         Vec::new(),
         Position { x: 10.0, y: 20.0 },
         &mut SaltedIds::new("p"),

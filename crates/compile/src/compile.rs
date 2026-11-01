@@ -86,6 +86,7 @@ pub fn parse_node_params(
     )
 }
 
+#[derive(Clone, Copy)]
 struct RunContext<'a> {
     vars: &'a Vars,
     result: Option<&'a NodeResult>,

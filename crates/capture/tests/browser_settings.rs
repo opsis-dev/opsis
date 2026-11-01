@@ -58,10 +58,9 @@ fn shows(text: &str) -> SessionStep {
 
 fn opened(port: u16, browser: Value, steps: Vec<SessionStep>) -> BrowserSessionValue {
     let mut params = json!({ "viewportWidth": WIDTH, "viewportHeight": HEIGHT, "dpr": 1.0 });
-    params
-        .as_object_mut()
-        .unwrap()
-        .extend(browser.as_object().cloned().unwrap_or_default());
+    if let Value::Object(browser) = browser {
+        params.as_object_mut().unwrap().extend(browser);
+    }
     let navigate = step(
         BrowserAction::Navigate,
         "go",

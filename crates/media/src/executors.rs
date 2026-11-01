@@ -1201,27 +1201,27 @@ pub fn speech_decode_args(source: &Path, out: &Path) -> Vec<String> {
     args
 }
 
-fn wav_error(error: hound::Error) -> ExecError {
+fn wav_error(error: &hound::Error) -> ExecError {
     ExecError::new(format!("The sound couldn't be read or written: {error}"))
 }
 
 fn denoise_file(from: &Path, to: &Path, strength: f64) -> Result<(), ExecError> {
-    let mut reader = hound::WavReader::open(from).map_err(wav_error)?;
+    let mut reader = hound::WavReader::open(from).map_err(|e| wav_error(&e))?;
     let samples = reader
         .samples::<i16>()
         .collect::<Result<Vec<_>, _>>()
-        .map_err(wav_error)?;
+        .map_err(|e| wav_error(&e))?;
     let spec = hound::WavSpec {
         channels: 1,
         sample_rate: DENOISE_RATE,
         bits_per_sample: 16,
         sample_format: hound::SampleFormat::Int,
     };
-    let mut writer = hound::WavWriter::create(to, spec).map_err(wav_error)?;
+    let mut writer = hound::WavWriter::create(to, spec).map_err(|e| wav_error(&e))?;
     for sample in denoised(&samples, strength) {
-        writer.write_sample(sample).map_err(wav_error)?;
+        writer.write_sample(sample).map_err(|e| wav_error(&e))?;
     }
-    writer.finalize().map_err(wav_error)
+    writer.finalize().map_err(|e| wav_error(&e))
 }
 
 async fn clean_speech(

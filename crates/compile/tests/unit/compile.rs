@@ -335,11 +335,9 @@ fn sequence(cuts: Value, ports: &[&str]) -> Vec<TimelineItem> {
         g.node(&format!("c{i}"), TITLE, json!({ "clipDuration": 60 }));
         g.link_ports(&format!("c{i}"), "seq", "clip", port);
     }
-    g.node(
-        "seq",
-        "timeline.sequence",
-        json!({ "transition": "fade", "transitionDuration": 10, "cuts": cuts }),
-    );
+    let mut params = json!({ "transition": "fade", "transitionDuration": 10 });
+    params["cuts"] = cuts;
+    g.node("seq", "timeline.sequence", params);
     g.node("out", "output.render", json!({}));
     g.link("seq", "out");
     export_film(&g.build(), None, "out").tracks[0].items.clone()

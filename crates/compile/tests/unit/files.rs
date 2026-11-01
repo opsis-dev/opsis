@@ -15,7 +15,10 @@ fn checked(src: &str, media: Value, measured: Value) -> NodeResult {
     let mut media = media;
     media["type"] = json!("media");
     media["src"] = json!(src);
-    node_result(json!({ "outputs": { "media": media }, "measured": measured }))
+    let mut fields = json!({ "outputs": {} });
+    fields["outputs"]["media"] = media;
+    fields["measured"] = measured;
+    node_result(fields)
 }
 
 fn video_result() -> NodeResult {

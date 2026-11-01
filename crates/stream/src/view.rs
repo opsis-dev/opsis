@@ -426,10 +426,10 @@ impl StreamView {
     }
 
     pub fn attach(&self, sink: Arc<dyn ViewSink>) {
-        let last = {
+        let (sink, last) = {
             let mut slot = self.slot.0.lock().expect("view sink");
-            slot.sink = Some(Arc::clone(&sink));
-            slot.last.take()
+            let sink = Arc::clone(slot.sink.insert(sink));
+            (sink, slot.last.take())
         };
         if let Some((jpeg, width, height, t)) = last {
             sink.frame(&jpeg, width, height, t);

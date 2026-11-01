@@ -226,7 +226,7 @@ pub fn rename_workflow_variable(wf: &mut Workflow, from: &str, to: &str) {
 
 pub fn paste_nodes(
     wf: &mut Workflow,
-    nodes: Vec<WorkflowNode>,
+    nodes: &[WorkflowNode],
     edges: Vec<WorkflowEdge>,
     offset: Position,
     ids: &mut dyn Ids,
@@ -236,7 +236,7 @@ pub fn paste_nodes(
         .map(|n| (n.id.clone(), ids.id(node_id_prefix(&n.kind))))
         .collect();
     let mut pasted = Vec::with_capacity(nodes.len());
-    for node in &nodes {
+    for node in nodes {
         let mut copy = node.clone();
         copy.id.clone_from(&fresh[&node.id]);
         if let Some(parent) = node.parent_id.as_ref().and_then(|p| fresh.get(p)) {

@@ -138,19 +138,21 @@ pub fn flat_film(wf: &Workflow) -> FlatTimeline {
 }
 
 pub fn make_log(actions: Vec<Action>, duration_ms: f64) -> ActionLog {
-    serde_json::from_value(json!({
+    let mut log = json!({
         "viewport": { "width": 1920, "height": 1080 }, "dpr": 1, "t0": 0, "durationMs": duration_ms,
-        "actions": actions, "cursorTrack": [{ "t": 0, "x": 960, "y": 540 }]
-    }))
-    .unwrap()
+        "actions": null, "cursorTrack": [{ "t": 0, "x": 960, "y": 540 }]
+    });
+    log["actions"] = serde_json::to_value(actions).unwrap();
+    serde_json::from_value(log).unwrap()
 }
 
 pub fn node_result(fields: Value) -> NodeResult {
     let mut base =
         json!({ "hash": "h", "outputs": {}, "artifacts": [], "finishedAt": 0, "durationMs": 0 });
-    base.as_object_mut()
-        .unwrap()
-        .extend(fields.as_object().unwrap().clone());
+    let Value::Object(fields) = fields else {
+        panic!("expected an object");
+    };
+    base.as_object_mut().unwrap().extend(fields);
     serde_json::from_value(base).unwrap()
 }
 
@@ -191,7 +193,7 @@ pub fn compile_node_in(
     let values = def
         .parse(defaults_with(kind, params).as_object().unwrap(), None)
         .map_err(|e| e.to_string())?;
-    let inputs: PortValues = typed(&inputs);
+    let inputs: PortValues = serde_json::from_value(inputs).unwrap();
     let wf: Workflow =
         typed(&json!({ "version": 1, "id": "wf", "name": "Test", "nodes": [], "edges": [] }));
     let settings = WorkflowSettings::default();
@@ -228,6 +230,10 @@ pub fn node_card(kind: &str, params: Value, inputs: CardInputs) -> Vec<CardRow> 
     node_card_with(kind, params, inputs, None)
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "card tests build a CardInputs for each call and hand it over, so taking it by value keeps a & off about 100 calls"
+)]
 pub fn node_card_with(
     kind: &str,
     params: Value,

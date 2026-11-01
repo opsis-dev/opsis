@@ -24,7 +24,7 @@ fn settings() -> WorkflowSettings {
 }
 
 fn props(value: Value) -> Map<String, Value> {
-    value.as_object().unwrap().clone()
+    serde_json::from_value(value).unwrap()
 }
 
 fn solid(id: &str, frames: u32) -> ClipValue {

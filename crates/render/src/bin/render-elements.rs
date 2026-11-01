@@ -47,7 +47,9 @@ fn user_data() -> PathBuf {
 }
 
 fn node(id: &str, kind: &str, params: Value) -> Value {
-    json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 }, "params": params })
+    let mut node = json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 } });
+    node["params"] = params;
+    node
 }
 
 fn edge(source: &str, target: &str, target_handle: &str) -> Value {

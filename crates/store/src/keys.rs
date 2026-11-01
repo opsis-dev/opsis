@@ -24,7 +24,7 @@ pub enum KeyError {
     SignInUnreadable,
 }
 
-fn storage(error: KeyringError) -> KeyError {
+fn storage(error: &KeyringError) -> KeyError {
     match error {
         KeyringError::NoStorageAccess(_) | KeyringError::PlatformFailure(_) => {
             KeyError::NoSecureStorage
@@ -65,13 +65,15 @@ impl Keyring {
     }
 
     fn entry(&self, user: &str) -> Result<keyring_core::Entry, KeyError> {
-        self.store.build(SERVICE, user, None).map_err(storage)
+        self.store
+            .build(SERVICE, user, None)
+            .map_err(|e| storage(&e))
     }
 
     pub fn set_key(&self, name: &str, value: &str) -> Result<(), KeyError> {
         self.entry(&format!("key:{name}"))?
             .set_password(value)
-            .map_err(storage)
+            .map_err(|e| storage(&e))
     }
 
     pub fn key(&self, name: &str) -> Result<Option<String>, KeyError> {
@@ -79,7 +81,7 @@ impl Keyring {
             Ok(value) => Ok(Some(value)),
             Err(KeyringError::NoEntry) => Ok(None),
             Err(KeyringError::BadEncoding(_)) => Err(KeyError::Unreadable),
-            Err(e) => Err(storage(e)),
+            Err(e) => Err(storage(&e)),
         }
     }
 
@@ -92,10 +94,12 @@ impl Keyring {
             }
             Err(KeyringError::NoEntry) => {
                 let key = Key::<Aes256Gcm>::generate();
-                entry.set_password(&STANDARD.encode(key)).map_err(storage)?;
+                entry
+                    .set_password(&STANDARD.encode(key))
+                    .map_err(|e| storage(&e))?;
                 Ok(key)
             }
-            Err(e) => Err(storage(e)),
+            Err(e) => Err(storage(&e)),
         }
     }
 

@@ -64,19 +64,21 @@ fn gain(mix: &Mix, id: &str) -> f64 {
 }
 
 fn with_duck(mut mix: Mix, patch: Value) -> Mix {
-    for bus in &mut mix.buses {
-        if bus.id == "music" {
-            let mut duck = serde_json::to_value(&bus.duck).unwrap();
-            let base = json!({ "on": true, "keys": ["effects"], "amount": 12, "attack": 100 });
-            duck.as_object_mut()
-                .unwrap()
-                .extend(base.as_object().unwrap().clone());
-            duck.as_object_mut()
-                .unwrap()
-                .extend(patch.as_object().unwrap().clone());
-            bus.duck = serde_json::from_value(duck).unwrap();
-        }
-    }
+    let Value::Object(patch) = patch else {
+        panic!("expected an object");
+    };
+    let bus = mix
+        .buses
+        .iter_mut()
+        .find(|bus| bus.id == "music")
+        .expect("the music bus");
+    let mut duck = serde_json::to_value(&bus.duck).unwrap();
+    let base = json!({ "on": true, "keys": ["effects"], "amount": 12, "attack": 100 });
+    duck.as_object_mut()
+        .unwrap()
+        .extend(base.as_object().unwrap().clone());
+    duck.as_object_mut().unwrap().extend(patch);
+    bus.duck = serde_json::from_value(duck).unwrap();
     mix
 }
 
@@ -379,7 +381,9 @@ fn ducks_under_the_clips_with_sound_on_a_key_channel() {
 }
 
 fn sounding_element(id: &str, component: &str, props: Value) -> Value {
-    json!({ "id": id, "nodeId": id, "from": 0, "durationInFrames": 90, "kind": "element", "component": component, "props": props })
+    let mut element = json!({ "id": id, "nodeId": id, "from": 0, "durationInFrames": 90, "kind": "element", "component": component });
+    element["props"] = props;
+    element
 }
 
 #[test]

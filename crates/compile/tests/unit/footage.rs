@@ -5,24 +5,27 @@ use proptest::prelude::*;
 use serde_json::{Map, Value, json};
 
 fn props(value: Value) -> Map<String, Value> {
-    value.as_object().unwrap().clone()
+    serde_json::from_value(value).unwrap()
 }
 
 fn element(id: &str, component: &str, props: Value) -> Value {
-    json!({ "id": id, "from": 0, "durationInFrames": 30, "kind": "element", "component": component, "props": props })
+    let mut element = json!({ "id": id, "from": 0, "durationInFrames": 30, "kind": "element", "component": component });
+    element["props"] = props;
+    element
 }
 
 fn film(items: Vec<Value>) -> TimelineSpec {
-    serde_json::from_value(json!({
+    let mut film = json!({
         "width": 1920,
         "height": 1080,
         "fps": 30,
         "durationInFrames": 30,
-        "tracks": [{ "id": "t", "items": items }],
+        "tracks": [{ "id": "t", "items": null }],
         "audio": [],
         "assets": { "projectBase": "http://127.0.0.1:9/" },
-    }))
-    .unwrap()
+    });
+    film["tracks"][0]["items"] = Value::Array(items);
+    serde_json::from_value(film).unwrap()
 }
 
 #[test]

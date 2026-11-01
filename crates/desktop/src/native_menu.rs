@@ -127,7 +127,7 @@ fn focused_window(app: &AppHandle) -> Option<WebviewWindow> {
         .or_else(|| app.get_webview_window(MAIN_WINDOW))
 }
 
-pub fn on_event(app: &AppHandle, event: MenuEvent) {
+pub fn on_event(app: &AppHandle, event: &MenuEvent) {
     match picked(event.id().as_ref()) {
         Some(Picked::Command(command)) => {
             if let Err(error) = MenuCommandFired(command).emit_to(app, MAIN_WINDOW) {

@@ -19,9 +19,12 @@ use opsis_types::actions::{Point, Viewport};
 use serde_json::{Value, json};
 
 fn with(case: &Value, outputs: Value) -> Value {
+    let Value::Object(outputs) = outputs else {
+        panic!("outputs");
+    };
     let mut case = case.clone();
-    for (key, value) in outputs.as_object().expect("outputs") {
-        case[key] = value.clone();
+    for (key, value) in outputs {
+        case[key] = value;
     }
     case
 }

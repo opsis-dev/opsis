@@ -111,7 +111,9 @@ fn quotes_text_for_a_shell_and_writes_numbers_people_read() {
 }
 
 fn spec_with(item: Value) -> Value {
-    json!({ "width": 1920, "height": 1080, "fps": 30, "durationInFrames": 30, "tracks": [{ "id": "t", "items": [item] }] })
+    let mut spec = json!({ "width": 1920, "height": 1080, "fps": 30, "durationInFrames": 30, "tracks": [{ "id": "t" }] });
+    spec["tracks"][0]["items"] = Value::Array(vec![item]);
+    spec
 }
 
 fn accepts(item: Value) -> bool {

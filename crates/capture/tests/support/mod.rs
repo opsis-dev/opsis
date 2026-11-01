@@ -49,7 +49,9 @@ pub fn take_env(dir: &Path, sign_ins: Arc<dyn SignIns>) -> TakeEnv {
 
 pub fn step(kind: BrowserAction, id: &str, params: Value) -> SessionStep {
     let mut all = default_params(kind.kind());
-    all.extend(params.as_object().cloned().unwrap_or_default());
+    if let Value::Object(params) = params {
+        all.extend(params);
+    }
     SessionStep {
         id: id.to_owned(),
         kind,
@@ -60,7 +62,9 @@ pub fn step(kind: BrowserAction, id: &str, params: Value) -> SessionStep {
 
 pub fn session(browser: Value, steps: Vec<SessionStep>) -> BrowserSessionValue {
     let mut params = default_params(OPEN_BROWSER_TYPE);
-    params.extend(browser.as_object().cloned().unwrap_or_default());
+    if let Value::Object(browser) = browser {
+        params.extend(browser);
+    }
     BrowserSessionValue {
         browser: SessionBrowser {
             node_id: "browser".into(),

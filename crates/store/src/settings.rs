@@ -83,7 +83,7 @@ mod tests {
     use super::*;
 
     fn patch(value: Value) -> SettingsPatch {
-        value.as_object().cloned().unwrap()
+        serde_json::from_value(value).unwrap()
     }
 
     #[tokio::test]

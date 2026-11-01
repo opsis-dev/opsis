@@ -156,8 +156,8 @@ fn shape(plan: &MixPlan) -> Plan {
     }
 }
 
-fn tool_error(error: ToolError) -> MixError {
-    friendly_mix_error(&error)
+fn tool_error(error: &ToolError) -> MixError {
+    friendly_mix_error(error)
 }
 
 struct StemJob {
@@ -223,7 +223,7 @@ async fn render_stem(deps: &MixDeps<'_>, plan: &MixPlan, stem: StemJob) -> Resul
         deps.ffmpeg
             .run(&args, deps.options())
             .await
-            .map_err(tool_error)?;
+            .map_err(|e| tool_error(&e))?;
         let levels = levels_of(&temp, f64::from(plan.fps), frames).await?;
         let reduction = match &taps {
             Some((pre, post)) => {
@@ -401,7 +401,7 @@ async fn master_stem(
                     },
                 )
                 .await
-                .map_err(tool_error)?;
+                .map_err(|e| tool_error(&e))?;
             parse_loudnorm(&lines.into_inner().expect("log lines").join("\n"))
         }
         _ => None,
@@ -469,8 +469,8 @@ async fn loudness_of(
 fn remember(dir: &Path, hashes: Vec<String>) -> std::io::Result<()> {
     let index = dir.join(RECENT_FILE);
     let recent: Vec<Vec<String>> = read_json(&index)?.unwrap_or_default();
-    let mut next = vec![hashes.clone()];
-    next.extend(recent.into_iter().filter(|h| *h != hashes));
+    let mut next: Vec<Vec<String>> = recent.into_iter().filter(|h| *h != hashes).collect();
+    next.insert(0, hashes);
     next.truncate(KEEP_PLANS);
     atomic_write(&index, serde_json::to_string(&next)?.as_bytes())?;
     let keep: HashSet<String> = next.into_iter().flatten().collect();

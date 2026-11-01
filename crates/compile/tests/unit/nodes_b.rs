@@ -244,7 +244,7 @@ fn keeps_zooms_and_marks_made_before_a_laptop_frame_on_its_screen() {
     );
 }
 
-fn problem(schema: &ParamSchema, values: Value) -> Option<String> {
+fn problem(schema: &ParamSchema, values: &Value) -> Option<String> {
     schema
         .parse(values.as_object().unwrap(), None)
         .err()
@@ -273,29 +273,29 @@ fn words_the_first_wrong_setting_in_the_unit_the_field_shows() {
         }
         v
     };
-    assert_eq!(problem(&schema, valid.clone()), None);
+    assert_eq!(problem(&schema, &valid), None);
     assert_eq!(
-        problem(&schema, with(json!({ "name": null }))).as_deref(),
+        problem(&schema, &with(json!({ "name": null }))).as_deref(),
         Some("Name is missing")
     );
     assert_eq!(
-        problem(&schema, with(json!({ "name": 3 }))).as_deref(),
+        problem(&schema, &with(json!({ "name": 3 }))).as_deref(),
         Some("Name isn't valid")
     );
     assert_eq!(
-        problem(&schema, with(json!({ "count": 0 }))).as_deref(),
+        problem(&schema, &with(json!({ "count": 0 }))).as_deref(),
         Some("Count must be at least 1")
     );
     assert_eq!(
-        problem(&schema, with(json!({ "count": 9 }))).as_deref(),
+        problem(&schema, &with(json!({ "count": 9 }))).as_deref(),
         Some("Count must be at most 3")
     );
     assert_eq!(
-        problem(&schema, with(json!({ "count": "{{Count}}" }))).as_deref(),
+        problem(&schema, &with(json!({ "count": "{{Count}}" }))).as_deref(),
         Some("Count takes a number. Variables work only in text settings")
     );
     assert_eq!(
-        problem(&schema, with(json!({ "count": "2" }))).as_deref(),
+        problem(&schema, &with(json!({ "count": "2" }))).as_deref(),
         Some("Count isn't valid")
     );
     let limits = ParamSchema::new(json!({
@@ -315,7 +315,7 @@ fn words_the_first_wrong_setting_in_the_unit_the_field_shows() {
         v.as_object_mut()
             .unwrap()
             .extend(patch.as_object().unwrap().clone());
-        problem(&limits, v)
+        problem(&limits, &v)
     };
     assert_eq!(
         wrong(json!({ "waitMs": 100 })).as_deref(),

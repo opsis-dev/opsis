@@ -114,7 +114,7 @@ pub fn write_json(file: &Path, value: &impl Serialize) -> std::io::Result<()> {
     atomic_write(file, format!("{text}\n").as_bytes())
 }
 
-#[derive(Default)]
+#[derive(Clone, Copy, Default)]
 pub struct Prune<'a> {
     pub keep: Option<&'a dyn Fn(&str) -> bool>,
     pub newest: usize,

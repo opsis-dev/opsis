@@ -26,7 +26,7 @@ use crate::load::load_image;
 use crate::ops;
 use crate::text::load_font;
 
-fn exec_error(error: crate::ImageError) -> ExecError {
+fn exec_error(error: &crate::ImageError) -> ExecError {
     ExecError::new(error.to_string())
 }
 
@@ -43,7 +43,7 @@ async fn input(
     tokio::task::spawn_blocking(move || load_image(&bytes))
         .await
         .map_err(|e| ExecError::new(e.to_string()))?
-        .map_err(exec_error)
+        .map_err(|e| exec_error(&e))
 }
 
 fn saved(
@@ -53,7 +53,7 @@ fn saved(
 ) -> Result<ExecutorOutput, ExecError> {
     let extension = format.map_or("png", |f| f.format.extension());
     let file = format!("image.{extension}");
-    let bytes = ops::encode(image, format).map_err(exec_error)?;
+    let bytes = ops::encode(image, format).map_err(|e| exec_error(&e))?;
     write(&ctx.dir.join(&file), &bytes)?;
     let value = ImageValue {
         src: Some(ctx.project_file_ref(&file)),
@@ -84,7 +84,7 @@ async fn blocking<T: Send + 'static>(
     tokio::task::spawn_blocking(work)
         .await
         .map_err(|e| ExecError::new(e.to_string()))?
-        .map_err(exec_error)
+        .map_err(|e| exec_error(&e))
 }
 
 async fn resize(
@@ -364,7 +364,7 @@ fn saved_png(
     file: &str,
     label: &str,
 ) -> Result<(CompileValue, Artifact), ExecError> {
-    let bytes = ops::encode(image, None).map_err(exec_error)?;
+    let bytes = ops::encode(image, None).map_err(|e| exec_error(&e))?;
     write(&ctx.dir.join(file), &bytes)?;
     let value = CompileValue::Image(ImageValue {
         src: Some(ctx.project_file_ref(file)),

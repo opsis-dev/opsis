@@ -1,3 +1,8 @@
+#![expect(
+    clippy::needless_pass_by_value,
+    reason = "Tauri commands take State, AppHandle and WebviewWindow by value, the only way the command macro passes them"
+)]
+
 #[cfg(all(feature = "e2e", not(debug_assertions)))]
 compile_error!("The e2e feature embeds a WebDriver server; it is for debug builds only.");
 
@@ -68,7 +73,7 @@ fn start(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "macos")]
     {
         app.set_menu(native_menu::build(app.handle())?)?;
-        app.on_menu_event(native_menu::on_event);
+        app.on_menu_event(|app, event| native_menu::on_event(app, &event));
     }
     let keys = Keyring::platform();
     let handle = app.handle().clone();

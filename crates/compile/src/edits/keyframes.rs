@@ -119,6 +119,7 @@ fn set_camera_key(key: &mut CameraKey, patch: CameraKeyPatch) {
     }
 }
 
+#[derive(Clone, Copy)]
 struct CameraKeyPatch {
     frame: Option<f64>,
     yaw: Option<f64>,

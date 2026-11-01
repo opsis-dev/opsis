@@ -304,9 +304,9 @@ mod tests {
         serde_json::from_value(value).unwrap()
     }
 
-    fn run(events: Vec<RunEvent>) -> RunProgress {
+    fn run(events: &[RunEvent]) -> RunProgress {
         let mut state = RunProgress::default();
-        for e in &events {
+        for e in events {
             apply_run_event(&mut state, e);
         }
         state
@@ -324,7 +324,7 @@ mod tests {
             cached: true,
             result: Some(Box::new(result(1, &["a.mp4"]))),
         };
-        let p = run(vec![
+        let p = run(&[
             event(
                 json!({ "type": "run:start", "runId": "r", "nodeIds": ["a", "b", "c", "d"], "at": 0 }),
             ),
@@ -362,7 +362,7 @@ mod tests {
 
     #[test]
     fn clears_only_the_nodes_a_new_run_includes_and_forgets_their_old_traces() {
-        let mut state = run(vec![
+        let mut state = run(&[
             event(json!({ "type": "run:start", "runId": "r1", "nodeIds": ["a", "b"], "at": 0 })),
             RunEvent::NodeDone {
                 run_id: "r1".into(),
@@ -382,7 +382,7 @@ mod tests {
             json!({ "b": "boom" })
         );
         assert!(state.progress.is_empty());
-        let mut failed = run(vec![
+        let mut failed = run(&[
             event(json!({ "type": "run:start", "runId": "r1", "nodeIds": ["a", "b"], "at": 0 })),
             event(
                 json!({ "type": "node:error", "runId": "r1", "nodeId": "a", "message": "boom", "traceId": "t1" }),

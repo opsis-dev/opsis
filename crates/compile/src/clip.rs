@@ -568,7 +568,7 @@ fn sequence_placements(
     (at, end)
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct SequenceSlots<'a> {
     pub ports: Option<&'a [String]>,
     pub slot_node: Option<&'a str>,

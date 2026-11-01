@@ -8,14 +8,16 @@ use proptest::prelude::*;
 use serde_json::{Map, Value};
 
 fn workflow(nodes: Value, edges: Value) -> Workflow {
-    serde_json::from_value(
-        serde_json::json!({ "version": 1, "id": "x", "name": "x", "nodes": nodes, "edges": edges }),
-    )
-    .unwrap()
+    let mut workflow = serde_json::json!({ "version": 1, "id": "x", "name": "x" });
+    workflow["nodes"] = nodes;
+    workflow["edges"] = edges;
+    serde_json::from_value(workflow).unwrap()
 }
 
 fn node(id: &str, kind: &str, params: Value) -> Value {
-    serde_json::json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 }, "params": params })
+    let mut node = serde_json::json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 } });
+    node["params"] = params;
+    node
 }
 
 fn edge(source: &str, source_handle: &str, target: &str, target_handle: &str) -> Value {

@@ -52,7 +52,9 @@ mod tests {
     use super::*;
 
     fn result(hash: &str, artifacts: serde_json::Value) -> NodeResult {
-        serde_json::from_value(json!({ "hash": hash, "outputs": {}, "artifacts": artifacts, "finishedAt": 0, "durationMs": 0 })).unwrap()
+        let mut result = json!({ "hash": hash, "outputs": {}, "artifacts": null, "finishedAt": 0, "durationMs": 0 });
+        result["artifacts"] = artifacts;
+        serde_json::from_value(result).unwrap()
     }
 
     #[test]

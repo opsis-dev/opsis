@@ -273,7 +273,10 @@ fn prunes_mixer_channels_of_deleted_nodes() {
 }
 
 fn result(outputs: serde_json::Value) -> serde_json::Value {
-    json!({ "hash": "h", "outputs": outputs, "artifacts": [], "finishedAt": 0, "durationMs": 0 })
+    let mut result =
+        json!({ "hash": "h", "outputs": null, "artifacts": [], "finishedAt": 0, "durationMs": 0 });
+    result["outputs"] = outputs;
+    result
 }
 
 #[test]

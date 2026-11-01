@@ -54,7 +54,9 @@ pub fn cases(value: &Value, record: impl Fn(&Value) -> Value) -> Value {
 }
 
 pub fn node(id: &str, kind: &str, params: Value) -> Value {
-    json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 }, "params": params })
+    let mut node = json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 } });
+    node["params"] = params;
+    node
 }
 
 pub fn edge(source: &str, out: &str, target: &str, port: &str) -> Value {
@@ -109,7 +111,7 @@ pub fn check(name: &str, made: &Value) {
 
 pub fn differences(expected: &Value, actual: &Value) -> Vec<String> {
     let mut found = Vec::new();
-    collect(expected, actual, String::new(), &mut found);
+    collect(expected, actual, "", &mut found);
     found
 }
 
@@ -121,7 +123,7 @@ fn same_number(a: f64, b: f64) -> bool {
     a == b || (a - b).abs() <= NUMBER_SLACK * a.abs().max(b.abs())
 }
 
-fn collect(expected: &Value, actual: &Value, at: String, found: &mut Vec<String>) {
+fn collect(expected: &Value, actual: &Value, at: &str, found: &mut Vec<String>) {
     match (expected, actual) {
         (Value::Number(a), Value::Number(b)) => {
             if let (Some(x), Some(y)) = (a.as_f64(), b.as_f64())
@@ -135,13 +137,13 @@ fn collect(expected: &Value, actual: &Value, at: String, found: &mut Vec<String>
                 found.push(format!("{at}: expected {} items got {}", a.len(), b.len()));
             }
             for (i, (x, y)) in a.iter().zip(b).enumerate() {
-                collect(x, y, format!("{at}[{i}]"), found);
+                collect(x, y, &format!("{at}[{i}]"), found);
             }
         }
         (Value::Object(a), Value::Object(b)) => {
             for (key, x) in a {
                 match b.get(key) {
-                    Some(y) => collect(x, y, format!("{at}.{key}"), found),
+                    Some(y) => collect(x, y, &format!("{at}.{key}"), found),
                     None => found.push(format!("{at}.{key}: missing, expected {x}")),
                 }
             }

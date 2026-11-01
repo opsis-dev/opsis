@@ -185,7 +185,7 @@ pub fn apply_edit(
             nodes,
             edges,
             offset,
-        } => paste_nodes(wf, nodes, edges, offset, ctx.ids),
+        } => paste_nodes(wf, &nodes, edges, offset, ctx.ids),
         WorkflowEdit::Group { ids, title, sizes } => {
             let group_id = ctx.ids.id("group");
             one(group_nodes(wf, &ids, &title, &sizes, group_id))

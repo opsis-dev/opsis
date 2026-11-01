@@ -45,7 +45,7 @@ fn solid(id: &str, color: &str) -> CompileValue {
     CompileValue::Clip(item_clip(id, "solid", props, 90, ItemExtra::default()))
 }
 
-fn compile_clip(kind: &str, inputs: PortValues) -> ClipValue {
+fn compile_clip(kind: &str, inputs: &PortValues) -> ClipValue {
     let def = node_def(kind).unwrap();
     let values = def.parse(&def.defaults(), None).unwrap();
     let workflow: Workflow = serde_json::from_value(
@@ -60,7 +60,7 @@ fn compile_clip(kind: &str, inputs: PortValues) -> ClipValue {
         label: None,
         params: (),
         values: &values,
-        inputs: &inputs,
+        inputs,
         settings: &settings,
         result: None,
         vars: &vars,
@@ -93,7 +93,7 @@ fn spec_for(key: &str) -> TimelineSpec {
         ),
         _ => (element_node_type(key), PortValues::new()),
     };
-    clip_to_spec(&compile_clip(&kind, inputs), &WorkflowSettings::default())
+    clip_to_spec(&compile_clip(&kind, &inputs), &WorkflowSettings::default())
 }
 
 struct Setup {

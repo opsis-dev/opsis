@@ -8,17 +8,19 @@ fn spec(extra: Value) -> TimelineSpec {
         "tracks": [{ "id": "t", "items": [{ "id": "i", "from": 0, "durationInFrames": 300, "kind": "element", "component": "title", "props": { "title": "Hi" } }] }],
         "audio": [{ "id": "a", "src": "app:sfx/pop.wav", "from": 10 }]
     });
-    spec.as_object_mut()
-        .unwrap()
-        .extend(extra.as_object().unwrap().clone());
+    let Value::Object(extra) = extra else {
+        panic!("expected an object");
+    };
+    spec.as_object_mut().unwrap().extend(extra);
     serde_json::from_value(spec).unwrap()
 }
 
 fn opts(extra: Value) -> PictureOptions {
     let mut opts = json!({ "codec": "h264", "crf": 18, "scale": 1, "gl": "angle" });
-    opts.as_object_mut()
-        .unwrap()
-        .extend(extra.as_object().unwrap().clone());
+    let Value::Object(extra) = extra else {
+        panic!("expected an object");
+    };
+    opts.as_object_mut().unwrap().extend(extra);
     serde_json::from_value(opts).unwrap()
 }
 

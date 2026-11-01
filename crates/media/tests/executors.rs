@@ -78,7 +78,9 @@ fn sound_probe() -> Probe {
 
 fn with_defaults(kind: &str, params: Value) -> Map<String, Value> {
     let mut values = default_params(kind);
-    values.extend(params.as_object().cloned().unwrap_or_default());
+    if let Value::Object(params) = params {
+        values.extend(params);
+    }
     values
 }
 
