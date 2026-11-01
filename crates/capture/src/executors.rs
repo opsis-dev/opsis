@@ -463,8 +463,7 @@ pub fn sign_in_stamp(project_dir: &Path, params: &Values) -> Stamps {
     serde_json::from_value::<SignIn>(serde_json::Value::Object(params.clone()))
         .ok()
         .and_then(|p| file_stamp(&secret_file(project_dir, &secret_name(&p.secret_name))))
-        .map(|stamp| Stamps::from([(SIGN_IN_STAMP.to_owned(), stamp)]))
-        .unwrap_or_default()
+        .map_or_default(|stamp| Stamps::from([(SIGN_IN_STAMP.to_owned(), stamp)]))
 }
 
 fn with_deps<F, Fut>(deps: &Arc<CaptureDeps>, run: F) -> Executor

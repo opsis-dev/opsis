@@ -202,8 +202,7 @@ fn first_font(data: &[u8]) -> Result<FontRef<'_>, PrepareError> {
 fn family_name(font: &FontRef<'_>) -> String {
     font.localized_strings(StringId::FAMILY_NAME)
         .english_or_first()
-        .map(|s| s.to_string())
-        .unwrap_or_default()
+        .map_or_default(|s| s.to_string())
 }
 
 fn location_at(font: &FontRef<'_>, weight: f64) -> Location {

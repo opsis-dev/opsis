@@ -96,7 +96,7 @@ fn mix_views(a: &CameraKey, b: &CameraKey, t: f64) -> CameraView {
 }
 
 pub fn sorted_camera_keys(path: Option<&CameraPath>) -> Vec<CameraKey> {
-    let mut keys = path.map(|p| p.keys.clone()).unwrap_or_default();
+    let mut keys = path.map_or_default(|p| p.keys.clone());
     keys.sort_by(|a, b| a.frame.total_cmp(&b.frame));
     keys
 }

@@ -144,7 +144,7 @@ async fn run(
 }
 
 fn message(result: Result<ExecutorOutput, ExecError>) -> String {
-    result.err().map(|e| e.to_string()).unwrap_or_default()
+    result.err().map_or_default(|e| e.to_string())
 }
 
 fn film(kind: &str) -> Value {

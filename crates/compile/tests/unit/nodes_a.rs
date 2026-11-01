@@ -32,8 +32,7 @@ fn starts_every_node_with_parseable_defaults_and_a_hidden_role_beside_each_picke
         let defaults = def.defaults();
         let required: Vec<&str> = def.params.json()["required"]
             .as_array()
-            .map(|r| r.iter().filter_map(Value::as_str).collect())
-            .unwrap_or_default();
+            .map_or_default(|r| r.iter().filter_map(Value::as_str).collect());
         for key in def.params.keys() {
             let field = def.params.field(key).unwrap();
             let widget = field["x-widget"].as_str();

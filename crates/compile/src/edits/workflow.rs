@@ -309,9 +309,7 @@ pub fn group_nodes(
         .map(|n| n.position.y + f64::from(size(n).height))
         .fold(f64::NEG_INFINITY, f64::max);
     let member_ids: HashSet<String> = members.iter().map(|n| n.id.clone()).collect();
-    let mut params = node_def(GROUP_TYPE)
-        .map(NodeDef::defaults)
-        .unwrap_or_default();
+    let mut params = node_def(GROUP_TYPE).map_or_default(NodeDef::defaults);
     params.insert(GROUP_TITLE.to_owned(), Value::String(title.to_owned()));
     let group = WorkflowNode {
         id: group_id.clone(),

@@ -223,8 +223,7 @@ fn sequence() -> NodeDef {
             .inputs
             .clip_frames
             .filter(|f| *f != 0)
-            .map(|f| format!(" · {}", frame_secs(f, fps)))
-            .unwrap_or_default();
+            .map_or_default(|f| format!(" · {}", frame_secs(f, fps)));
         vec![
             Some(
                 row(

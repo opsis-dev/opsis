@@ -413,7 +413,7 @@ impl TimelineEdits<'_> {
             self.workflow.node(near.1),
             index,
         );
-        let mut all = node_def(kind).map(NodeDef::defaults).unwrap_or_default();
+        let mut all = node_def(kind).map_or_default(NodeDef::defaults);
         all.extend(params);
         WorkflowNode {
             id: self.ids.id(node_id_prefix(kind)),
@@ -1061,7 +1061,7 @@ pub fn handle_key(r: &ParamRef) -> String {
         "{}:{}:{}",
         r.node_id,
         r.param,
-        r.index.map(|i| i.to_string()).unwrap_or_default()
+        r.index.map_or_default(|i| i.to_string())
     )
 }
 

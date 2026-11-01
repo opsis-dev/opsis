@@ -64,14 +64,11 @@ fn decodes_every_model_to_the_same_geometry_without_extensions_the_loader_needs(
         let made = model(&std::fs::read(&source).unwrap(), source.parent().unwrap()).unwrap();
         assert_eq!(&made[..4], b"glTF", "{name}");
         let root = glb_json(&made);
-        let used: Vec<String> = root["extensionsUsed"]
-            .as_array()
-            .map(|a| {
-                a.iter()
-                    .filter_map(|e| e.as_str().map(str::to_owned))
-                    .collect()
-            })
-            .unwrap_or_default();
+        let used: Vec<String> = root["extensionsUsed"].as_array().map_or_default(|a| {
+            a.iter()
+                .filter_map(|e| e.as_str().map(str::to_owned))
+                .collect()
+        });
         assert!(
             used.iter().all(|e| e == "KHR_mesh_quantization"),
             "{name}: {used:?}"

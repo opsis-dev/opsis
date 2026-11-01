@@ -1174,7 +1174,7 @@ fn add_sound() -> NodeDef {
         })
         .compiles(|ctx: &Ctx<'_, AddSound>| {
             with_clip(ctx, |clip| {
-                let items = ctx.input(SOUNDS_PORT).and_then(CompileValue::as_audio).map(|a| a.items.clone()).unwrap_or_default();
+                let items = ctx.input(SOUNDS_PORT).and_then(CompileValue::as_audio).map_or_default(|a| a.items.clone());
                 let placed = anchor_sounds(items, clip, ctx.settings).into_iter().filter_map(|a| {
                     let remaining = i64::from(clip.duration_in_frames) - i64::from(a.from);
                     let remaining = u32::try_from(remaining).ok().filter(|r| *r >= 1)?;

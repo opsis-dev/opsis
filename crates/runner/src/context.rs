@@ -133,8 +133,7 @@ impl Executor {
     pub fn stamps(&self, project_dir: &Path, params: &Values) -> Stamps {
         self.stamp
             .as_ref()
-            .map(|stamp| stamp(project_dir, params))
-            .unwrap_or_default()
+            .map_or_default(|stamp| stamp(project_dir, params))
     }
 }
 

@@ -53,8 +53,7 @@ async fn run(dir: &std::path::Path, workflow: &Workflow) -> Run {
         let run = if kind == "browser.signIn" {
             run.stamped(|dir, _| {
                 file_stamp(&secret_file(dir, "default"))
-                    .map(|stamp| Stamps::from([("signIn".to_owned(), stamp)]))
-                    .unwrap_or_default()
+                    .map_or_default(|stamp| Stamps::from([("signIn".to_owned(), stamp)]))
             })
         } else {
             run

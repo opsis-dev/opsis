@@ -50,8 +50,7 @@ fn listen_error(error: std::io::Error, address: &str) -> ListenError {
     let folder = || {
         std::path::Path::new(address)
             .parent()
-            .map(|p| p.to_string_lossy().into_owned())
-            .unwrap_or_default()
+            .map_or_default(|p| p.to_string_lossy().into_owned())
     };
     match error.kind() {
         ErrorKind::NotFound => ListenError::NoFolder { folder: folder() },

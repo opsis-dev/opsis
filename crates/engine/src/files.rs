@@ -99,8 +99,7 @@ where
     let dir = file.parent().unwrap_or_else(|| Path::new("."));
     let ext = file
         .extension()
-        .map(|e| format!(".{}", e.to_string_lossy()))
-        .unwrap_or_default();
+        .map_or_default(|e| format!(".{}", e.to_string_lossy()));
     let temp = partial_file()
         .suffix(&ext)
         .tempfile_in(dir)?

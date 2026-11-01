@@ -1041,8 +1041,7 @@ fn remap_clip(clip: ClipValue, node_id: &str, fps: u32, segments: &[(f64, f64, f
 fn entries_of(value: Option<&CompileValue>) -> Vec<StyleEntry> {
     value
         .and_then(CompileValue::as_style)
-        .map(|s| s.entries.clone())
-        .unwrap_or_default()
+        .map_or_default(|s| s.entries.clone())
 }
 
 fn auto_zoom() -> NodeDef {
@@ -1080,7 +1079,7 @@ fn auto_zoom() -> NodeDef {
             let p = &ctx.params;
             let rec = ctx.input(RECORDING_PORT).and_then(CompileValue::as_recording);
             let mut entries = entries_of(ctx.input(STYLE_PORT));
-            entries.extend(rec.map(|r| r.style.clone()).unwrap_or_default());
+            entries.extend(rec.map_or_default(|r| r.style.clone()));
             let duration_ms = rec.map_or(DEFAULT_TAKE_MS, |r| r.duration_ms);
             let frames = ms_to_frames(duration_ms / p.speed, ctx.settings.fps);
             let (Some(rec), Some(src), Some(log)) = (rec, rec.and_then(|r| r.src.clone()), rec.and_then(|r| r.log.clone())) else {

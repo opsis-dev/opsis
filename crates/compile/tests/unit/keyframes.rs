@@ -21,8 +21,7 @@ fn titled(params: Value) -> Workflow {
 fn keys(wf: &Workflow, track: &str) -> Vec<Keyframe> {
     let raw = wf.node("t").unwrap().params.get("envelope").cloned();
     raw.and_then(|e| e.get(track).cloned())
-        .map(|k| serde_json::from_value(k).unwrap())
-        .unwrap_or_default()
+        .map_or_default(|k| serde_json::from_value(k).unwrap())
 }
 
 fn edited(wf: &Workflow, edit: KeyframeEdit) -> Workflow {

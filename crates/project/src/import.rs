@@ -17,26 +17,22 @@ pub enum ImportError {
 
 fn extension(file: &Path) -> String {
     file.extension()
-        .map(|e| e.to_string_lossy().to_lowercase())
-        .unwrap_or_default()
+        .map_or_default(|e| e.to_string_lossy().to_lowercase())
 }
 
 fn file_name(file: &Path) -> String {
     file.file_name()
-        .map(|n| n.to_string_lossy().into_owned())
-        .unwrap_or_default()
+        .map_or_default(|n| n.to_string_lossy().into_owned())
 }
 
 fn unique_name(folder: &Path, name: &str) -> String {
     let path = Path::new(name);
     let stem = path
         .file_stem()
-        .map(|s| s.to_string_lossy().into_owned())
-        .unwrap_or_default();
+        .map_or_default(|s| s.to_string_lossy().into_owned());
     let ext = path
         .extension()
-        .map(|e| format!(".{}", e.to_string_lossy()))
-        .unwrap_or_default();
+        .map_or_default(|e| format!(".{}", e.to_string_lossy()));
     let entries = std::fs::read_dir(folder).map_or(0, Iterator::count);
     std::iter::once(name.to_owned())
         .chain((1..).map(|n| format!("{stem}-{n}{ext}")))
@@ -64,8 +60,7 @@ fn import_model(project_dir: &Path, file: &Path) -> Result<String, ImportError> 
     std::fs::create_dir_all(&models)?;
     let stem = file
         .file_stem()
-        .map(|s| s.to_string_lossy().into_owned())
-        .unwrap_or_default();
+        .map_or_default(|s| s.to_string_lossy().into_owned());
     let folder = unique_name(&models, &stem);
     let name = file_name(file);
     for part in std::iter::once(&name).chain(&found.files) {

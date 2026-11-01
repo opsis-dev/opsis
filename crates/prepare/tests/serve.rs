@@ -13,8 +13,7 @@ async fn get(dirs: &PreparedDirs, path: &str) -> (StatusCode, String, Vec<u8>) {
     let kind = response
         .headers()
         .get(header::CONTENT_TYPE)
-        .map(|v| v.to_str().unwrap().to_owned())
-        .unwrap_or_default();
+        .map_or_default(|v| v.to_str().unwrap().to_owned());
     let status = response.status();
     let bytes = response
         .into_body()

@@ -320,8 +320,7 @@ async fn render_variant(
     if chapters.listed {
         let stem = out
             .file_stem()
-            .map(|s| s.to_string_lossy().into_owned())
-            .unwrap_or_default();
+            .map_or_default(|s| s.to_string_lossy().into_owned());
         let list = out.with_file_name(format!("{stem}.youtube-chapters.txt"));
         tokio::fs::write(&list, chapter_list(&chapters.list)).await?;
         artifacts.push(Artifact::labelled(

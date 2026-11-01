@@ -269,8 +269,7 @@ fn grade_footage() -> NodeDef {
             let grade = ctx
                 .input(GRADE_PORT)
                 .and_then(CompileValue::as_grade)
-                .map(|g| g.entries.clone())
-                .unwrap_or_default();
+                .map_or_default(|g| g.entries.clone());
             Ok(Some(outputs([(CLIP_PORT, CompileValue::Clip(with_grade(clip, &grade)))])))
         })
 }

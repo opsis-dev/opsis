@@ -147,8 +147,7 @@ impl Decoder {
         let tail = self
             .log
             .lock()
-            .map(|lines| lines.iter().cloned().collect::<Vec<_>>().join("\n"))
-            .unwrap_or_default();
+            .map_or_default(|lines| lines.iter().cloned().collect::<Vec<_>>().join("\n"));
         Err(FootageError::Decode(tail))
     }
 }

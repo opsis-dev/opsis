@@ -159,8 +159,7 @@ impl PortSpec {
     pub fn label(&self) -> String {
         self.label
             .as_deref()
-            .map(str::to_owned)
-            .unwrap_or_else(|| crate::text::humanize(self.kind.word()))
+            .map_or_else(|| crate::text::humanize(self.kind.word()), str::to_owned)
     }
 
     #[must_use]
@@ -703,7 +702,7 @@ impl NodeDef {
         F: Fn(&P) -> Vec<Claim> + Send + Sync + 'static,
     {
         self.claims = Some(Arc::new(move |values| {
-            typed::<P>(values).map(|p| f(&p)).unwrap_or_default()
+            typed::<P>(values).map_or_default(|p| f(&p))
         }));
         self
     }
@@ -896,8 +895,7 @@ impl NodeDef {
     pub fn claimed(&self, values: &Values) -> Vec<Claim> {
         self.claims
             .as_ref()
-            .map(|f| f(&self.params.with_defaults(values)))
-            .unwrap_or_default()
+            .map_or_default(|f| f(&self.params.with_defaults(values)))
     }
 }
 
@@ -966,7 +964,7 @@ fn append_entry<P>(
     existing: Option<&EntriesValue>,
     wrap: fn(EntriesValue) -> CompileValue,
 ) -> Outputs {
-    let mut entries = existing.map(|e| e.entries.clone()).unwrap_or_default();
+    let mut entries = existing.map_or_default(|e| e.entries.clone());
     entries.push(ctx.entry());
     outputs([(port, wrap(EntriesValue { entries }))])
 }

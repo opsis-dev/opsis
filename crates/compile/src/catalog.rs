@@ -194,7 +194,7 @@ fn editor_node(def: &NodeDef, platform: Platform) -> EditorNode {
         outputs: ports(&def.outputs),
         params: def.params.json().clone(),
         defaults: def.defaults(),
-        host_defaults: def.host_defaults.map(|f| f(platform)).unwrap_or_default(),
+        host_defaults: def.host_defaults.map_or_default(|f| f(platform)),
         is_virtual: def.is_virtual,
         action: def.action,
         executes: def.executes,

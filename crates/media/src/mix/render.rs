@@ -351,8 +351,7 @@ async fn bus_stems(
         let file_of = |c: &str| {
             channels
                 .get(c)
-                .map(|s| s.file.to_string_lossy().into_owned())
-                .unwrap_or_default()
+                .map_or_default(|s| s.file.to_string_lossy().into_owned())
         };
         let job = bus_job(shape(plan), bus, &file_of);
         buses.insert(

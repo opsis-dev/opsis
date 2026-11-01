@@ -99,8 +99,7 @@ fn changes_every_key_after_a_stamped_executor_when_its_stamp_changes() {
             executor(|_, _| async { Ok(ExecutorOutput::default()) }).stamped(move |_, params| {
                 let name = params["secretName"].as_str().unwrap_or_default();
                 std::fs::read_to_string(&read)
-                    .map(|text| Stamps::from([(name.to_owned(), text)]))
-                    .unwrap_or_default()
+                    .map_or_default(|text| Stamps::from([(name.to_owned(), text)]))
             }),
         )
         .unwrap();

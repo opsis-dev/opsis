@@ -219,8 +219,7 @@ impl FontLibrary {
             let bytes = std::fs::read(file)?;
             let name = file
                 .file_name()
-                .map(|n| n.to_string_lossy().into_owned())
-                .unwrap_or_default();
+                .map_or_default(|n| n.to_string_lossy().into_owned());
             if extension_of(&name) == "zip" {
                 entries.extend(zip_entries(&bytes)?);
             } else {

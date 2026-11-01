@@ -257,8 +257,7 @@ impl Trace {
                     resource_type: event
                         .r#type
                         .as_ref()
-                        .map(|t| t.as_ref().to_owned())
-                        .unwrap_or_default(),
+                        .map_or_default(|t| t.as_ref().to_owned()),
                     size: None,
                     start: *event.wall_time.inner() * 1000.0,
                     duration: 0.0,

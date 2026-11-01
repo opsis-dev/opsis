@@ -253,9 +253,8 @@ pub fn connection_problem(
     let message = match fault? {
         EdgeFault::Types(from, to) => format!("{}.", port_mismatch(from, to)),
         EdgeFault::Output(node, handle) => {
-            let ports = node_def(&node.kind)
-                .map(|d| port_list(&d.outputs))
-                .unwrap_or_else(|| "none".to_owned());
+            let ports =
+                node_def(&node.kind).map_or_else(|| "none".to_owned(), |d| port_list(&d.outputs));
             format!(
                 "“{}” has no output “{handle}”. Its outputs: {ports}.",
                 node.id

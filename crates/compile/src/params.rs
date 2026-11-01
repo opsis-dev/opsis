@@ -207,8 +207,7 @@ impl ParamSchema {
         let order = schema
             .get("properties")
             .and_then(Value::as_object)
-            .map(|p| p.keys().cloned().collect())
-            .unwrap_or_default();
+            .map_or_default(|p| p.keys().cloned().collect());
         Self {
             validator: Arc::new(validator(&schema)),
             schema: Arc::new(schema),
@@ -472,7 +471,7 @@ fn top_key(location: &Location) -> Option<String> {
 fn choice_list(values: &[Value], unit: Option<&str>) -> String {
     let words: Vec<String> = values
         .iter()
-        .map(|v| v.as_f64().map(|n| n.to_string()).unwrap_or_default())
+        .map(|v| v.as_f64().map_or_default(|n| n.to_string()))
         .collect();
     let list = match words.split_last() {
         Some((last, [])) => last.clone(),

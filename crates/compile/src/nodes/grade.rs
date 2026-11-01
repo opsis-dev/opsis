@@ -521,8 +521,7 @@ pub fn nodes() -> Vec<NodeDef> {
 pub fn grade_step_title(kind: &str) -> String {
     node_def(kind)
         .filter(|d| d.category == Category::Grade)
-        .map(|d| d.title.clone())
-        .unwrap_or_else(|| kind.to_owned())
+        .map_or_else(|| kind.to_owned(), |d| d.title.clone())
 }
 
 pub fn is_neutral_entry(entry: &StyleEntry) -> bool {

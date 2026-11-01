@@ -716,8 +716,7 @@ pub fn job_args(
 ) -> Vec<String> {
     let limit: Vec<String> = max_seconds
         .filter(|s| *s != 0.0)
-        .map(|s| vec!["-t".to_owned(), num(s, SECONDS_DIGITS)])
-        .unwrap_or_default();
+        .map_or_default(|s| vec!["-t".to_owned(), num(s, SECONDS_DIGITS)]);
     let mut args = input_args(job);
     args.extend(stem_args(&job.output, &limit, codec, output));
     if let (Some(files), Some(labels)) = (taps, &job.taps) {

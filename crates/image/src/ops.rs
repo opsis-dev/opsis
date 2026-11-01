@@ -117,9 +117,7 @@ where
 }
 
 pub fn background_rgba(color: &str) -> [u8; 4] {
-    csscolorparser::parse(color.trim())
-        .map(|c| c.to_rgba8())
-        .unwrap_or([0, 0, 0, 0])
+    csscolorparser::parse(color.trim()).map_or([0, 0, 0, 0], |c| c.to_rgba8())
 }
 
 #[expect(

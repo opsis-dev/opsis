@@ -1496,9 +1496,7 @@ pub async fn play_take<'e, T>(
         }
     };
     if let Some(live) = &env.live {
-        let title = node_def(OPEN_BROWSER_TYPE)
-            .map(|d| d.title.clone())
-            .unwrap_or_default();
+        let title = node_def(OPEN_BROWSER_TYPE).map_or_default(|d| d.title.clone());
         let steps = session
             .steps
             .iter()

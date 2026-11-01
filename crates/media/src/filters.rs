@@ -23,7 +23,7 @@ fn placed(free: &str, align: PlaceAlign) -> String {
 }
 
 fn pad_to(w: f64, h: f64, color: Option<&str>, align: PlaceAlign) -> String {
-    let color = color.map(|c| format!(":color={c}")).unwrap_or_default();
+    let color = color.map_or_default(|c| format!(":color={c}"));
     let (x, y) = (placed("(ow-iw)", align), placed("(oh-ih)", align));
     let (w, h) = (w.to_string(), h.to_string());
     format!(

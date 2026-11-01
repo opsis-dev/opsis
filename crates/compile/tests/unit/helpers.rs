@@ -30,9 +30,7 @@ pub struct Graph {
 }
 
 pub fn defaults_with(kind: &str, params: Value) -> Value {
-    let mut all = node_def(kind)
-        .map(|d| Value::Object(d.defaults()))
-        .unwrap_or_else(|| json!({}));
+    let mut all = node_def(kind).map_or_else(|| json!({}), |d| Value::Object(d.defaults()));
     if let (Some(all), Value::Object(given)) = (all.as_object_mut(), params) {
         all.extend(given);
     }

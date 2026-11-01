@@ -314,7 +314,7 @@ fn shown(field: &Value, params: &Values) -> bool {
         let current = match params.get(key) {
             None | Some(Value::Null) => String::new(),
             Some(Value::String(s)) => s.clone(),
-            Some(Value::Number(n)) => n.as_f64().map(|n| n.to_string()).unwrap_or_default(),
+            Some(Value::Number(n)) => n.as_f64().map_or_default(|n| n.to_string()),
             Some(other) => other.to_string(),
         };
         allowed

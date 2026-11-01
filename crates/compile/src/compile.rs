@@ -116,7 +116,7 @@ fn run_compile(
     };
     Ok(match def.run_compile(&ctx)? {
         Some(out) => out,
-        None => run.result.map(|r| r.outputs.clone()).unwrap_or_default(),
+        None => run.result.map_or_default(|r| r.outputs.clone()),
     })
 }
 

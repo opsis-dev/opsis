@@ -31,9 +31,9 @@ fn recorded_workflows() -> Vec<String> {
 
 fn shown_settings(wf: &Workflow, node: &WorkflowNode) -> Value {
     let vars = workflow_vars(&wf.name, &wf.variables);
-    node_def(&node.kind)
-        .map(|d| Value::Object(d.params.card_values(&node.params, &vars)))
-        .unwrap_or(Value::Null)
+    node_def(&node.kind).map_or(Value::Null, |d| {
+        Value::Object(d.params.card_values(&node.params, &vars))
+    })
 }
 
 fn cards(

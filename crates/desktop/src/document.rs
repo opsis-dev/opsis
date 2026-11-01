@@ -241,8 +241,7 @@ pub async fn open(app: &AppHandle, dir: &Path) -> CommandResult<OpenProject> {
             editor.results = project
                 .last_run
                 .as_ref()
-                .map(|r| r.nodes.clone())
-                .unwrap_or_default();
+                .map_or_default(|r| r.nodes.clone());
             editor.disk_change = None;
             editor.document = Some(Document::open(
                 dir,

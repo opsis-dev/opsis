@@ -298,8 +298,7 @@ mod tests {
         let problem = files
             .open(dir.path())
             .err()
-            .map(|e| e.to_string())
-            .unwrap_or_default();
+            .map_or_default(|e| e.to_string());
         assert!(
             problem.contains("can't be read (") && !problem.contains("damaged"),
             "{problem}"

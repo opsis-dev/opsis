@@ -236,13 +236,11 @@ pub fn svg(source: &mut Source) -> Result<Found, ProbeError> {
     let text = String::from_utf8_lossy(&head);
     let tag_at = text.find("<svg").ok_or(ProbeError::Unknown)?;
     let tag = &text[tag_at..text[tag_at..].find('>').map_or(text.len(), |e| tag_at + e)];
-    let view: Vec<f64> = attribute(tag, "viewBox")
-        .map(|v| {
-            v.split([' ', ','])
-                .filter_map(|n| n.trim().parse().ok())
-                .collect()
-        })
-        .unwrap_or_default();
+    let view: Vec<f64> = attribute(tag, "viewBox").map_or_default(|v| {
+        v.split([' ', ','])
+            .filter_map(|n| n.trim().parse().ok())
+            .collect()
+    });
     let width = attribute(tag, "width")
         .and_then(length)
         .or_else(|| view.get(2).copied());

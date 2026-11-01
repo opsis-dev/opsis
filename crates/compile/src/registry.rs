@@ -54,7 +54,7 @@ pub fn is_output_type(kind: &str) -> bool {
 }
 
 pub fn default_params(kind: &str) -> Values {
-    node_def(kind).map(NodeDef::defaults).unwrap_or_default()
+    node_def(kind).map_or_default(NodeDef::defaults)
 }
 
 pub fn custom_label(node: &WorkflowNode) -> Option<&str> {

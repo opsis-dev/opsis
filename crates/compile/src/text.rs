@@ -39,7 +39,7 @@ pub fn signed_text(value: f64, digits: Option<i32>, plus: bool) -> String {
         None => magnitude.to_string(),
         Some(d) => format!("{:.*}", usize::try_from(d).unwrap_or(0), magnitude),
     };
-    if text.parse::<f64>().map(|n| n == 0.0).unwrap_or(false) {
+    if text.parse::<f64>().is_ok_and(|n| n == 0.0) {
         text
     } else {
         format!("{}{text}", sign_of(value, plus))
@@ -126,8 +126,7 @@ pub fn humanize(key: &str) -> String {
     let mut chars = text.chars();
     chars
         .next()
-        .map(|c| c.to_uppercase().chain(chars).collect())
-        .unwrap_or_default()
+        .map_or_default(|c| c.to_uppercase().chain(chars).collect())
 }
 
 pub fn pascal_case(key: &str) -> String {
@@ -152,7 +151,7 @@ pub fn display_address(url: &str, keep_query: bool) -> String {
         (
             format!("{host}{}", u.path()),
             if keep_query {
-                u.query().map(|q| format!("?{q}")).unwrap_or_default()
+                u.query().map_or_default(|q| format!("?{q}"))
             } else {
                 String::new()
             },

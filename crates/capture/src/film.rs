@@ -352,8 +352,7 @@ async fn wait_for_page(tab: &Tab) -> Result<()> {
 async fn open_holds(tab: &Tab) -> String {
     tab.evaluate_main::<Vec<String>>("window.opsis.holds()")
         .await
-        .map(|holds| holds.join(", "))
-        .unwrap_or_default()
+        .map_or_default(|holds| holds.join(", "))
 }
 
 async fn ready_within<T>(tab: &Tab, what: &str, run: impl Future<Output = Result<T>>) -> Result<T> {

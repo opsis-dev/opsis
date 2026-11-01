@@ -97,12 +97,8 @@ fn compiled(def: &NodeDef, case: &Value) -> (Value, Value) {
     match def.run_compile(&ctx) {
         Err(error) => (Value::Null, Value::from(error.to_string())),
         Ok(outputs) => {
-            let outputs = outputs.unwrap_or_else(|| {
-                result
-                    .as_ref()
-                    .map(|r| r.outputs.clone())
-                    .unwrap_or_default()
-            });
+            let outputs =
+                outputs.unwrap_or_else(|| result.as_ref().map_or_default(|r| r.outputs.clone()));
             (
                 serde_json::to_value(outputs).expect("outputs serialize"),
                 Value::Null,
