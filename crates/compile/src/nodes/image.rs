@@ -1322,7 +1322,7 @@ fn resize() -> NodeDef {
             if factor > SOFT_UPSCALE {
                 rows.push(Some(missing(
                     Icon::TriangleAlert,
-                    format!("Enlarges {:.1}×, so it may look soft", factor),
+                    format!("Enlarges {factor:.1}×, so it may look soft"),
                 )));
             }
         }

@@ -54,22 +54,22 @@ fn minutes_and_seconds(seconds: f64) -> String {
     let rest = round_to(seconds - h * SECONDS_PER_HOUR - m * SECONDS_PER_MINUTE, 3);
     if h == 0.0 {
         return if rest == 0.0 {
-            format!("{} min", m)
+            format!("{m} min")
         } else {
-            format!("{} min {} s", m, rest)
+            format!("{m} min {rest} s")
         };
     }
     let parts = [
-        format!("{} h", h),
+        format!("{h} h"),
         if m == 0.0 {
             String::new()
         } else {
-            format!("{} min", m)
+            format!("{m} min")
         },
         if rest == 0.0 {
             String::new()
         } else {
-            format!("{} s", rest)
+            format!("{rest} s")
         },
     ];
     parts
@@ -92,7 +92,7 @@ pub fn format_duration(ms: f64) -> String {
     } else {
         round_to(s, 2)
     };
-    format!("{} s", shown)
+    format!("{shown} s")
 }
 
 pub fn format_precise_duration(ms: f64) -> String {
@@ -103,7 +103,7 @@ pub fn format_precise_duration(ms: f64) -> String {
     if s >= SECONDS_PER_MINUTE {
         minutes_and_seconds(s)
     } else {
-        format!("{} s", s)
+        format!("{s} s")
     }
 }
 

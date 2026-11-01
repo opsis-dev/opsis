@@ -52,7 +52,7 @@ pub fn fit_filter(
             };
             format!("scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}{at},setsar=1")
         }
-        ScaleMode::Stretch => format!("scale={}:{},setsar=1", width, height),
+        ScaleMode::Stretch => format!("scale={width}:{height},setsar=1"),
     }
 }
 
@@ -124,8 +124,7 @@ pub fn join_filter(parts: &[JoinPart], to: JoinSize, background: &str) -> Join {
                 )
             } else {
                 format!(
-                    "color=c={background}:s={}x{}:r={rate}:d={seconds},format=yuv420p[v{i}]",
-                    width, height
+                    "color=c={background}:s={width}x{height}:r={rate}:d={seconds},format=yuv420p[v{i}]"
                 )
             });
             let _ = write!(pads, "[v{i}]");
@@ -195,7 +194,7 @@ pub fn speed_args(
         "-i".to_owned(),
         input.to_owned(),
         "-vf".to_owned(),
-        with_even_frame(&format!("setpts=PTS/{}", rate)),
+        with_even_frame(&format!("setpts=PTS/{rate}")),
         "-r".to_owned(),
         (round_to(fps, 3)).to_string(),
     ];
@@ -228,7 +227,7 @@ pub fn speed_sound_args(
 }
 
 pub fn loudnorm_filter(lufs: f64, true_peak: f64, range: f64) -> String {
-    format!("loudnorm=I={}:TP={}:LRA={}", lufs, true_peak, range)
+    format!("loudnorm=I={lufs}:TP={true_peak}:LRA={range}")
 }
 
 pub fn repair_filter(clicks: bool, clipping: bool, strength: f64) -> Option<String> {

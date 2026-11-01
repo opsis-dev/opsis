@@ -599,7 +599,7 @@ fn speed() -> NodeDef {
         .describe("Plays a clip faster or slower.")
         .card(|ctx: &CardCtx<'_, Speed>| {
             let rate = ctx.params.rate;
-            vec![Some(row(Icon::Gauge, format!("{}×", rate)))]
+            vec![Some(row(Icon::Gauge, format!("{rate}×")))]
         })
         .compiles(|ctx: &Ctx<'_, Speed>| {
             with_clip(ctx, |clip| {

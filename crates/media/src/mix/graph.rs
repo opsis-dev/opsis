@@ -90,7 +90,7 @@ impl PcmCodec {
 }
 
 pub fn num(n: f64, digits: usize) -> String {
-    let fixed = format!("{:.*}", digits, n);
+    let fixed = format!("{n:.digits$}");
     let trimmed = if fixed.contains('.') {
         fixed.trim_end_matches('0').trim_end_matches('.')
     } else {

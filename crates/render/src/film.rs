@@ -54,9 +54,9 @@ pub async fn mixed(
             .loudness
             .as_ref()
             .and_then(|l| l.true_peak)
-            .map(|p| format!(", peak {} dBTP", p))
+            .map(|p| format!(", peak {p} dBTP"))
             .unwrap_or_default();
-        ctx.log(LogLevel::Info, format!("Sound: {} LUFS{peak}", lufs));
+        ctx.log(LogLevel::Info, format!("Sound: {lufs} LUFS{peak}"));
     }
     Ok(with_master_stem(&spec, &master.src, &master.hash))
 }
