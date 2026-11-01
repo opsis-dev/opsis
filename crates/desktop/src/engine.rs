@@ -246,7 +246,7 @@ pub async fn install_engine(app: AppHandle, state: State<'_, AppState>) -> Comma
         message: error.clone().unwrap_or_else(|| "Engine ready".to_owned()),
     };
     if let Err(problem) =
-        EngineInstallProgress(progress_event(finished, Some(true), error.clone())).emit(&app)
+        EngineInstallProgress(progress_event(finished, Some(true), error)).emit(&app)
     {
         log::warn!("sending engine progress: {problem}");
     }

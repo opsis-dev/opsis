@@ -156,7 +156,7 @@ fn reads_timeline_items_by_kind_and_refuses_props_that_dont_fit() {
         json!({ "kind": "group", "props": { "tracks": [{ "id": "n", "items": [recording] }] } }),
     );
     assert!(accepts(group.clone()) && accepts(element));
-    let parsed: TimelineSpec = serde_json::from_value(spec_with(group.clone())).unwrap();
+    let parsed: TimelineSpec = serde_json::from_value(spec_with(group)).unwrap();
     assert_eq!(
         serde_json::to_value(&parsed).unwrap()["tracks"][0]["items"][0]["props"]["tracks"][0]["id"],
         "n"

@@ -201,7 +201,7 @@ fn pastes_a_grouped_node_without_its_group_at_its_place_on_the_canvas() {
     let source = grouped();
     let group = source.node("g").unwrap().clone();
     let in_group = source.node("a").unwrap().clone();
-    let mut wf = source.clone();
+    let mut wf = source;
     paste_nodes(
         &mut wf,
         vec![in_group.clone()],

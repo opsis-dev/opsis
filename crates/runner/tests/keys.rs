@@ -182,14 +182,14 @@ proptest! {
         let next = Value::from(value);
         if changed.get(&key) != Some(&next) {
             changed.insert(key, next);
-            prop_assert_ne!(key_of(&changed, &ports, &Release::default()), base.clone());
+            prop_assert_ne!(&key_of(&changed, &ports, &Release::default()), &base);
         }
         let mut rewired = ports.clone();
         rewired.push(("clip".to_owned(), "zz:clip".to_owned()));
-        prop_assert_ne!(key_of(&params, &rewired, &Release::default()), base.clone());
+        prop_assert_ne!(&key_of(&params, &rewired, &Release::default()), &base);
         let app = Release { app: "0.2.0", engine: "" };
         let engine = Release { app: "", engine: "a:d:c" };
-        prop_assert_ne!(key_of(&params, &ports, &app), base.clone());
+        prop_assert_ne!(&key_of(&params, &ports, &app), &base);
         prop_assert_ne!(key_of(&params, &ports, &engine), base);
     }
 }

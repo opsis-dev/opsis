@@ -147,7 +147,7 @@ async fn todomvc_take_plays_the_recorded_actions_at_the_recorded_length() {
     }
     let stored = opsis_golden::read(TAKE);
     let recorded = stored["frames"].as_f64().expect("recorded frames");
-    let mut same_length = made.clone();
+    let mut same_length = made;
     same_length["frames"] = stored["frames"].clone();
     let found = opsis_golden::differences(&stored, &same_length);
     assert!(found.is_empty(), "{}", found.join("\n"));

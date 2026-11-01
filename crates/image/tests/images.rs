@@ -465,7 +465,7 @@ fn keeps_lit_areas_and_darkens_the_rest_in_every_depth() {
     for image in [
         DynamicImage::ImageRgba8(grey.clone()),
         DynamicImage::ImageRgba16(DynamicImage::ImageRgba8(grey.clone()).to_rgba16()),
-        DynamicImage::ImageRgb8(DynamicImage::ImageRgba8(grey.clone()).to_rgb8()),
+        DynamicImage::ImageRgb8(DynamicImage::ImageRgba8(grey).to_rgb8()),
     ] {
         let out = ops::spotlight(&image, &p);
         assert_eq!(out.color(), image.color());
@@ -674,14 +674,7 @@ fn draws_an_outline_only_where_the_picture_was_see_through() {
         "the outline is beside it"
     );
     assert_eq!(out.get_pixel(1, 1).0[3], 0, "far away stays see-through");
-    let shadowed = ops::outline(
-        &image,
-        &OutlineImage {
-            shadow: true,
-            ..p.clone()
-        },
-    )
-    .to_rgba8();
+    let shadowed = ops::outline(&image, &OutlineImage { shadow: true, ..p }).to_rgba8();
     assert_eq!(shadowed.dimensions(), (38, 38));
     let below = shadowed.get_pixel(19, 19 + 10).0;
     assert!(

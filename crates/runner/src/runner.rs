@@ -606,7 +606,7 @@ pub async fn run_workflow(run_id: &str, req: RunRequest, deps: RunDeps) {
             };
             st.run_node(job).await;
         });
-        futures.insert(node.id.clone(), future.shared());
+        futures.insert(node.id, future.shared());
     }
     join_all(futures.into_values()).await;
     finish(&state, previous);

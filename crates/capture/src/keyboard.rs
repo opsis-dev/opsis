@@ -54,7 +54,7 @@ fn build_layout(layout: &IndexMap<String, KeyDefinition>) -> IndexMap<String, Ke
             shifted: None,
         };
         if definition.key.encode_utf16().count() == 1 {
-            description.text = description.key.clone();
+            description.text.clone_from(&description.key);
         }
         let shifted = definition.shift_key.as_ref().map(|shift_key| {
             let mut shifted = description.clone();
@@ -82,7 +82,7 @@ fn build_layout(layout: &IndexMap<String, KeyDefinition>) -> IndexMap<String, Ke
             continue;
         }
         if description.key.encode_utf16().count() == 1 {
-            result.insert(description.key.clone(), description.clone());
+            result.insert(description.key.clone(), description);
         }
         if let Some(shifted) = shifted {
             result.insert(shifted.key.clone(), shifted);

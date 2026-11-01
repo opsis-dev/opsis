@@ -472,14 +472,14 @@ proptest! {
     fn names_project_files_once_and_finds_them_again(parts in segments()) {
         let rel = parts.join("/");
         let named = project_ref(&rel);
-        prop_assert_eq!(project_ref(&named), named.clone());
+        prop_assert_eq!(&project_ref(&named), &named);
         prop_assert_eq!(project_rel_path(&named), Some(rel));
     }
 
     #[test]
     fn splits_any_text_into_tokens_that_write_it_again(text in "[a-z {}¦]{0,40}", pauses in any::<bool>()) {
         let tokens = tokenize(&text, pauses);
-        prop_assert_eq!(tokenize(&rebuilt(&tokens), pauses), tokens.clone());
+        prop_assert_eq!(&tokenize(&rebuilt(&tokens), pauses), &tokens);
         prop_assert!(pauses || !tokens.contains(&Token::Pause));
         if !text.contains("{{") {
             prop_assert_eq!(rebuilt(&tokens), text);

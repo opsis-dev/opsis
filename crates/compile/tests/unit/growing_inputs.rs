@@ -183,7 +183,7 @@ fn closes_the_gap_when_a_clip_is_removed_and_renumbers_its_cuts() {
             { "before": "in4", "transition": "wipe" }
         ] }),
     );
-    let mut removed = wf.clone();
+    let mut removed = wf;
     apply_removal(
         &Removal {
             node_ids: vec!["c1".to_owned()],

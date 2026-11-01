@@ -225,7 +225,7 @@ proptest! {
             _ => other.audio = None,
         }
         prop_assert!(!can_stream_copy(&base, &other));
-        let still = opsis_probe::Probe { video: None, ..base.clone() };
+        let still = opsis_probe::Probe { video: None, ..base };
         prop_assert!(!can_stream_copy(&still, &still));
     }
 }

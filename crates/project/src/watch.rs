@@ -253,7 +253,7 @@ mod tests {
             .save(&created.dir, &ours, Some(&created.version))
             .unwrap();
         assert!(changes.recv_timeout(SETTLE).is_err());
-        let mut theirs = ours.clone();
+        let mut theirs = ours;
         theirs.name = "Theirs".into();
         let text = crate::files::workflow_text(&theirs);
         std::fs::write(created.dir.join(WORKFLOW_FILE), &text).unwrap();

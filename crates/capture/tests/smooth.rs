@@ -212,7 +212,7 @@ async fn gives_every_frame_its_own_picture_of_the_page_one_frame_on() {
             );
         }
     }
-    let on_animation_frames: Vec<i64> = moving.clone().map(|frame| moved(3, frame)).collect();
+    let on_animation_frames: Vec<i64> = moving.map(|frame| moved(3, frame)).collect();
     assert!(
         on_animation_frames.iter().all(|&px| px > 0),
         "{on_animation_frames:?}"

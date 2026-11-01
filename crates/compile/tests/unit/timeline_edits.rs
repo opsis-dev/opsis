@@ -398,7 +398,7 @@ fn splits_a_clip_at_the_playhead_into_two_parts_in_a_sequence() {
     let next = applied(&wf, |e, flat| e.split_bar(&flat.bars[0], 30.0));
     let after = flat_film(&next);
     assert_eq!(by_start(&after), [(0.0, 30.0), (30.0, 90.0)]);
-    let mut bars = after.bars.clone();
+    let mut bars = after.bars;
     bars.sort_by(|a, b| a.from.total_cmp(&b.from));
     assert!(near(bars[1].content_start, 30.0, 0.5));
     assert_eq!(
@@ -534,7 +534,7 @@ fn removes_the_nodes_that_only_feed_one_clip() {
     };
     let removal = edits.selection_removal(&flat, &["a".to_owned()]).unwrap();
     assert_eq!(removal.node_ids, ["a", "trim"]);
-    let mut removed = wf.clone();
+    let mut removed = wf;
     apply_removal(&removal, &mut removed);
     assert!(removed.node("a").is_none() && removed.node("trim").is_none());
 }

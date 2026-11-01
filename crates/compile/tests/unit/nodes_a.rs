@@ -445,7 +445,7 @@ fn sizes_the_magnified_view_from_whichever_two_settings_the_mode_names() {
         }
     );
     assert_eq!(area_zoom.zoom, 2.0);
-    let mut by_shown = boxes.clone();
+    let mut by_shown = boxes;
     by_shown["sizeFrom"] = json!("shown-and-zoom");
     let shown_zoom = magnify_plan(source, &magnify_with(by_shown));
     assert_eq!(
@@ -984,7 +984,7 @@ fn grades_the_footage_of_recordings_videos_and_images_only() {
     let graded = compile_clip(
         "effect.gradeFootage",
         json!({}),
-        json!({ CLIP: clip_value(&take), "grade": grade.clone() }),
+        json!({ CLIP: clip_value(&take), "grade": grade }),
     );
     let footage = serde_json::to_value(recording_props(&graded)[0]).unwrap()["footage"].clone();
     assert_eq!(footage["grade"][0]["type"], "grade.colour");
