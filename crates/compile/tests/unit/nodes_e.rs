@@ -629,10 +629,9 @@ fn plays_element_music_through_the_mix_as_the_nodes_own_channel() {
     if let TimelineItem::Element { props, .. } = &clip.tracks[0].items[0] {
         assert!(!props.contains_key("music") && !props.contains_key("musicVolume"));
     }
-    assert!(
-        compile_clip("fx.release-teaser", json!({}), json!({}))
-            .audio
-            .is_empty()
+    assert_eq!(
+        compile_clip("fx.release-teaser", json!({}), json!({})).audio,
+        []
     );
 }
 

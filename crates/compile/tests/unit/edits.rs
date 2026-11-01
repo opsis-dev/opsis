@@ -150,7 +150,7 @@ fn removes_nodes_with_their_edges_and_mixer_strips_and_frees_the_children_of_a_r
     remove_nodes(&mut wf, &["g".into(), "m".into()]);
     assert_eq!(ids(&wf), ["a", "b", "mix"]);
     assert_eq!(wf.node("a"), sounds().node("a"));
-    assert!(wf.edges.is_empty());
+    assert_eq!(wf.edges, []);
     let channels: Vec<&str> = wf
         .mix
         .as_ref()
@@ -398,5 +398,5 @@ fn ignores_a_node_that_only_moved() {
     let before = edited_film();
     let mut after = before.clone();
     after.nodes[0].position = Position { x: 500.0, y: 500.0 };
-    assert!(edited_nodes(&before, &after).is_empty());
+    assert_eq!(edited_nodes(&before, &after), [] as [String; 0]);
 }

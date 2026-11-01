@@ -221,7 +221,7 @@ mod tests {
         apply_mix_edit(&mut mix, MixEdit::RemoveBus { id }, &mut ids).unwrap();
         let buses: Vec<&str> = mix.buses.iter().map(|b| b.id.as_str()).collect();
         assert_eq!(buses, ["music", "effects", "clips"]);
-        assert!(mix.buses[0].duck.keys.is_empty());
+        assert_eq!(mix.buses[0].duck.keys, [] as [String; 0]);
         assert_eq!(mix.channels["a"].bus, None);
     }
 }

@@ -177,7 +177,10 @@ mod tests {
         let root = tempfile::tempdir().unwrap();
         let profile = root.path().join("999998-run-alive000").join("p");
         let mut child = holding(&format!("{PROFILE_SWITCH}{}", profile.display()));
-        assert!(end_children_of_gone_apps(root.path(), &|_| true).is_empty());
+        assert_eq!(
+            end_children_of_gone_apps(root.path(), &|_| true),
+            [] as [u32; 0]
+        );
         child.kill().unwrap();
         child.wait().unwrap();
     }
@@ -188,6 +191,6 @@ mod tests {
         remember_child(child.id());
         assert_eq!(end_remembered_children(), [child.id()]);
         assert!(!child.wait().unwrap().success());
-        assert!(end_remembered_children().is_empty());
+        assert_eq!(end_remembered_children(), [] as [u32; 0]);
     }
 }

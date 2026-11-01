@@ -221,7 +221,7 @@ fn chapters_follow_delays_speed_changes_and_trims() {
 #[test]
 fn a_film_without_chapters_has_none() {
     let wf = film(|g| g.node("t", TITLE, json!({ "clipDuration": 90 })));
-    assert!(film_chapters(&export_film(&wf, None, "out"), "Intro").is_empty());
+    assert_eq!(film_chapters(&export_film(&wf, None, "out"), "Intro"), []);
 }
 
 #[test]

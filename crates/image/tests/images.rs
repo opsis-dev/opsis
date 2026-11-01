@@ -1194,7 +1194,7 @@ fn boxes_the_rectangles_that_changed_and_leaves_specks_and_faint_changes() {
         [(12.0, 22.0, 36.0, 36.0), (192.0, 92.0, 76.0, 36.0)]
     );
     let none = ops::compare(&before, &before, &CompareScreenshots::default()).unwrap();
-    assert!(none.boxes.is_empty());
+    assert_eq!(none.boxes, []);
 }
 
 #[test]

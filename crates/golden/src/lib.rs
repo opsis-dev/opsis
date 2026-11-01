@@ -175,8 +175,11 @@ mod tests {
 
     #[test]
     fn whole_and_fractional_numbers_compare_by_value() {
-        assert!(differences(&json!(1920), &json!(1920.0)).is_empty());
-        assert!(differences(&json!(0.1 + 0.2), &json!(0.3)).is_empty());
+        assert_eq!(differences(&json!(1920), &json!(1920.0)), [] as [String; 0]);
+        assert_eq!(
+            differences(&json!(0.1 + 0.2), &json!(0.3)),
+            [] as [String; 0]
+        );
         assert_eq!(differences(&json!(1.0), &json!(1.001)).len(), 1);
     }
 }

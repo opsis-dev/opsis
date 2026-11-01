@@ -193,7 +193,7 @@ fn ducks_only_for_clips_whose_sound_plays() {
 fn plays_only_the_master_stem_when_one_is_ready() {
     let (_, spec) = project(None);
     let stem = with_master_stem(&spec, "project:.opsis/cache/mix/m.wav", "m");
-    assert!(stem.audio.is_empty());
+    assert_eq!(stem.audio, []);
     assert_eq!(stem.mix.as_ref().unwrap().hash, "m");
     let mut sounding = 0;
     walk_items(&stem.tracks, &mut |i| {
@@ -286,13 +286,9 @@ fn changes_the_plan_key_but_not_the_channel_stem_key_when_only_routing_changes()
         serde_json::to_value(channel_identity(&a, &fa)).unwrap(),
         serde_json::to_value(channel_identity(&b, &fb)).unwrap()
     );
-    assert!(
-        b.buses
-            .iter()
-            .find(|x| x.id == "effects")
-            .unwrap()
-            .channels
-            .is_empty()
+    assert_eq!(
+        b.buses.iter().find(|x| x.id == "effects").unwrap().channels,
+        [] as [String; 0]
     );
 }
 

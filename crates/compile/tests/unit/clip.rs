@@ -468,7 +468,7 @@ fn wraps_sounds_through_trims_repeats_speed_and_the_clips_end() {
         placed(wrap_sounds(&[beep(60, Some(10))], &start(30), 90)),
         [(30, Some(10), 0, 1.0)]
     );
-    assert!(wrap_sounds(&[beep(10, Some(10))], &start(30), 90).is_empty());
+    assert_eq!(wrap_sounds(&[beep(10, Some(10))], &start(30), 90), []);
     let looped = wrap_sounds(
         &[beep(15, Some(10))],
         &GroupProps {

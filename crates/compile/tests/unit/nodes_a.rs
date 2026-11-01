@@ -279,7 +279,7 @@ fn loops_room_tone_under_the_whole_film_with_its_fades() {
         (Some("n"), Some(true))
     );
     match compile_node("audio.roomTone", json!({}), json!({})).shift_remove("audio") {
-        Some(CompileValue::Audio(audio)) => assert!(audio.items.is_empty()),
+        Some(CompileValue::Audio(audio)) => assert_eq!(audio.items, []),
         other => panic!("{other:?}"),
     }
     assert_eq!(
@@ -1076,7 +1076,7 @@ fn times_each_word_at_the_speaking_pace_and_pauses_after_sentences_and_paragraph
     ]
     .map(|(t, a, b)| (t.to_owned(), a, b));
     assert_eq!(timed, expected);
-    assert!(script_to_captions("  ", pace(160.0, 0.0, 0.0)).is_empty());
+    assert_eq!(script_to_captions("  ", pace(160.0, 0.0, 0.0)), []);
     assert!(
         ["it.\"", "(see it.)", "wait…", "Done!”", "end。"]
             .iter()

@@ -40,12 +40,15 @@ fn a_video_plays_as_footage_and_an_image_only_when_graded() {
         ),
         ("src", 500, true)
     );
-    assert!(element_footage("image", &props(json!({ "src": "project:a.png" }))).is_empty());
+    assert_eq!(
+        element_footage("image", &props(json!({ "src": "project:a.png" }))),
+        []
+    );
     let graded = props(
         json!({ "src": "project:a.png", "footage": { "grade": [{ "nodeId": "g", "type": "grade.mono", "params": {} }] } }),
     );
     assert_eq!(element_footage("image", &graded).len(), 1);
-    assert!(element_footage("video", &props(json!({ "src": "" }))).is_empty());
+    assert_eq!(element_footage("video", &props(json!({ "src": "" }))), []);
     let looping = element_footage("video-loop", &props(json!({ "src": "project:b.mp4" })));
     assert!(looping[0].used.looping);
 }
@@ -60,7 +63,10 @@ fn a_file_setting_plays_as_footage_only_when_its_kind_is_video() {
         found.iter().map(|f| f.prop.as_str()).collect::<Vec<_>>(),
         ["image1"]
     );
-    assert!(element_footage("title", &props(json!({ "src": "project:a.mp4" }))).is_empty());
+    assert_eq!(
+        element_footage("title", &props(json!({ "src": "project:a.mp4" }))),
+        []
+    );
 }
 
 proptest! {

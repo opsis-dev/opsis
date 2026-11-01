@@ -357,7 +357,7 @@ mod tests {
         })
         .unwrap();
         assert!(doc.take_edited().contains(&id));
-        assert!(doc.take_edited().is_empty());
+        assert_eq!(doc.take_edited(), [] as [String; 0]);
         doc.undo();
         assert!(doc.take_edited().contains(&id));
     }

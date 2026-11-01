@@ -469,7 +469,7 @@ mod tests {
             keep_last: 2,
         };
         assert!(apply_retention(dir.path(), &off).unwrap().is_empty());
-        assert!(blobs(dir.path()).is_empty());
+        assert_eq!(blobs(dir.path()), [] as [String; 0]);
     }
 
     #[cfg(unix)]
@@ -511,7 +511,7 @@ mod tests {
             read_trace(dir.path(), &ok.id),
             Err(TraceStoreError::Unreadable)
         ));
-        assert!(blobs(dir.path()).is_empty());
+        assert_eq!(blobs(dir.path()), [] as [String; 0]);
     }
 
     #[test]

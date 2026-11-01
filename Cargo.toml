@@ -152,7 +152,6 @@ map_unwrap_or = "allow" # FIXME: REMOVE
 float_cmp = "allow" # FIXME: REMOVE
 use_self = "allow" # FIXME: REMOVE
 return_self_not_must_use = "allow" # FIXME: REMOVE
-assert_is_empty = "allow" # FIXME: REMOVE
 significant_drop_tightening = "allow" # FIXME: REMOVE
 while_float = "allow" # FIXME: REMOVE
 

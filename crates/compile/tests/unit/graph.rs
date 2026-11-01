@@ -24,7 +24,7 @@ fn sorts_and_validates_the_sample() {
     let sorted = topo_sort(&wf);
     let order: Vec<&str> = sorted.sorted.iter().map(|n| n.id.as_str()).collect();
     let at = |id: &str| order.iter().position(|o| *o == id).unwrap();
-    assert!(sorted.cyclic.is_empty());
+    assert_eq!(sorted.cyclic, [] as [String; 0]);
     assert!(
         at("session") < at("record")
             && at("record") < at("camera")
@@ -159,7 +159,7 @@ fn warns_a_node_fed_by_a_skipped_node_that_has_nothing_to_pass_on() {
     assert_eq!(warned(&wf), ["trim"]);
     disable(&mut wf, "bg", false);
     disable(&mut wf, "trim", true);
-    assert!(warned(&wf).is_empty());
+    assert_eq!(warned(&wf), [] as [String; 0]);
 }
 
 #[test]
@@ -232,7 +232,7 @@ fn names_a_variable_the_project_doesnt_have() {
     );
     wf.variables
         .insert("Site address".into(), "https://example.com".into());
-    assert!(messages_for(&wf, "go").is_empty());
+    assert_eq!(messages_for(&wf, "go"), [] as [String; 0]);
 }
 
 #[test]
@@ -264,7 +264,7 @@ fn warns_that_a_reload_before_the_first_page_does_nothing() {
         before.len() == 1 && before[0].contains("there's nothing to reload"),
         "{before:?}"
     );
-    assert!(reloads(false).is_empty());
+    assert_eq!(reloads(false), [] as [String; 0]);
 }
 
 #[test]

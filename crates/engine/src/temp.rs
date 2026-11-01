@@ -139,7 +139,10 @@ mod tests {
     #[test]
     fn does_nothing_when_the_folder_doesnt_exist_yet() {
         let root = tempfile::tempdir().unwrap();
-        assert!(clear_stale_child_temps(&root.path().join("missing"), &|_| true).is_empty());
+        assert_eq!(
+            clear_stale_child_temps(&root.path().join("missing"), &|_| true),
+            [] as [String; 0]
+        );
     }
 
     #[test]

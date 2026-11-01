@@ -627,7 +627,7 @@ mod tests {
             [first.id.as_str()]
         );
         library.remove(&db, &first.id).await.unwrap();
-        assert!(library.list(&db).await.unwrap().is_empty());
+        assert_eq!(library.list(&db).await.unwrap(), []);
         assert!(!library.dir().join(&first.id).exists());
     }
 }

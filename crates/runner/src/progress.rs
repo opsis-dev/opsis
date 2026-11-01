@@ -576,7 +576,7 @@ mod tests {
         assert_eq!(view.progress.statuses["b"], NodeRunStatus::Error);
         assert_eq!(view.progress.statuses["c"], NodeRunStatus::Done);
         assert!(!view.running);
-        assert!(view.failed_node_ids.is_empty());
+        assert_eq!(view.failed_node_ids, [] as [String; 0]);
     }
 
     #[test]

@@ -604,7 +604,7 @@ async fn made_sound(kind: &str, params: Value) -> (ExecutorOutput, Vec<i16>, u32
         names: &[],
     };
     let (result, ran) = run(setup, sound_probe(), json!({})).await;
-    assert!(ran.is_empty());
+    assert_eq!(ran, [] as [Vec<String>; 0]);
     let out = result.unwrap();
     let mut reader = hound::WavReader::open(dir.path().join(&out.artifacts[0].path)).unwrap();
     let rate = reader.spec().sample_rate;
@@ -668,7 +668,7 @@ async fn cleans_speech_with_the_spectral_way_in_one_pass_between_two_listens() {
         voice(),
     )
     .await;
-    assert!(result.unwrap().measured.is_empty());
+    assert_eq!(result.unwrap().measured, []);
     assert_eq!(ran.len(), 3);
     assert_eq!(
         ran[0][2..6],
@@ -1069,7 +1069,7 @@ async fn makes_one_sound_for_each_transition_length() {
         names: &[],
     };
     let (result, ran) = run(setup(json!({})), sound_probe(), sequence_with_two_fades()).await;
-    assert!(ran.is_empty());
+    assert_eq!(ran, [] as [Vec<String>; 0]);
     let mut files: Vec<String> = result
         .unwrap()
         .artifacts
@@ -1087,7 +1087,7 @@ async fn makes_one_sound_for_each_transition_length() {
         sequence_with_two_fades(),
     )
     .await;
-    assert!(result.unwrap().artifacts.is_empty());
+    assert_eq!(result.unwrap().artifacts, []);
 }
 
 #[tokio::test]

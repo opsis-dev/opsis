@@ -44,7 +44,7 @@ mod tests {
     #[test]
     fn pins_every_download_the_installer_can_ask_for() {
         let d = downloads();
-        assert!(!d.tested_version.is_empty());
+        assert_ne!(d.tested_version, "");
         for platform in [
             ShellPlatform::Linux64,
             ShellPlatform::LinuxArm64,

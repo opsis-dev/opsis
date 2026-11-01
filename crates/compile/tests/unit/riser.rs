@@ -76,13 +76,13 @@ fn ends_on_a_marker_with_a_hit_landing_on_it() {
         (items[1].src.as_str(), items[1].from),
         ("project:.opsis/cache/r/end-hit.wav", 120)
     );
-    assert!(
+    assert_eq!(
         mixed(
             200,
             json!({ "endsOn": "marker", "marker": "gone" }),
             Vec::new()
-        )
-        .is_empty()
+        ),
+        []
     );
 }
 

@@ -677,7 +677,7 @@ fn shows_the_keys_of_a_keyframed_3d_element_where_they_play() {
 #[test]
 fn shows_no_keys_while_a_preset_move_drives_the_camera() {
     let flat = flat_film(&three_film("fx.logo-3d", json!({ "motion": "spin" })));
-    assert!(flat.camera_keys.is_empty());
+    assert_eq!(flat.camera_keys, []);
 }
 
 #[test]
