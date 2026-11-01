@@ -7,27 +7,27 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-axum = "0.8.9"
-draco-gltf = "0.7.0"
-image = "0.25.10"
-log = "0.4.35"
-opsis-compile = { version = "0.1.0", path = "../compile" }
-opsis-engine = { version = "0.1.0", path = "../engine" }
-opsis-types = { version = "0.1.0", path = "../types" }
-percent-encoding = "2.3.2"
-serde_json = "1.0.154"
-skrifa = "0.49.0"
-thiserror = "2.0.21"
-tokio = { version = "1.54.1", features = ["rt"] }
-usvg = "0.49.0"
-wuff = "0.2.9"
+axum.workspace = true
+draco-gltf.workspace = true
+image = { workspace = true, default-features = true }
+log.workspace = true
+opsis-compile.workspace = true
+opsis-engine.workspace = true
+opsis-types.workspace = true
+percent-encoding.workspace = true
+serde_json.workspace = true
+skrifa.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt"] }
+usvg.workspace = true
+wuff.workspace = true
 
 [dev-dependencies]
-http-body-util = "0.1.5"
-opsis-golden = { path = "../golden" }
-tempfile = "3.27.0"
-tokio = { version = "1.54.1", features = ["rt", "macros"] }
-tower = { version = "0.5.3", features = ["util"] }
+http-body-util.workspace = true
+opsis-golden.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["rt", "macros"] }
+tower.workspace = true
 
 [lints]
 workspace = true

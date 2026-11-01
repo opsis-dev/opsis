@@ -7,37 +7,37 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-base64 = "0.23.1"
-chromiumoxide = "0.9.1"
-futures = "0.3.34"
-html-escape = "0.3.0"
-imagesize = "0.15.0"
-indexmap = "2.14.2"
-log = "0.4.35"
-opsis-compile = { version = "0.1.0", path = "../compile" }
-opsis-engine = { version = "0.1.0", path = "../engine" }
-opsis-media = { version = "0.1.0", path = "../media" }
-opsis-project = { version = "0.1.0", path = "../project" }
-opsis-runner = { version = "0.1.0", path = "../runner" }
-opsis-traces = { version = "0.1.0", path = "../traces" }
-opsis-types = { version = "0.1.0", path = "../types" }
-regex = "1.13.1"
-serde = { version = "1.0.229", features = ["derive"] }
-serde_json = { version = "1.0.154", features = ["preserve_order"] }
-sys-locale = "0.3.2"
-tempfile = "3.27.0"
-thiserror = "2.0.21"
-tokio = { version = "1.54.1", features = ["process", "macros", "rt", "time", "sync", "fs"] }
-tokio-util = "0.7.20"
-url = "2.5.8"
+base64.workspace = true
+chromiumoxide.workspace = true
+futures.workspace = true
+html-escape.workspace = true
+imagesize.workspace = true
+indexmap.workspace = true
+log.workspace = true
+opsis-compile.workspace = true
+opsis-engine.workspace = true
+opsis-media.workspace = true
+opsis-project.workspace = true
+opsis-runner.workspace = true
+opsis-traces.workspace = true
+opsis-types.workspace = true
+regex.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["preserve_order"] }
+sys-locale.workspace = true
+tempfile.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["process", "macros", "rt", "time", "sync", "fs"] }
+tokio-util.workspace = true
+url.workspace = true
 
 [dev-dependencies]
-image = { version = "0.25.10", default-features = false, features = ["jpeg"] }
-imagesize = "0.15.0"
-opsis-golden = { path = "../golden" }
-opsis-probe = { path = "../probe" }
-proptest = "1.12.0"
-tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros"] }
+image = { workspace = true, features = ["jpeg"] }
+imagesize.workspace = true
+opsis-golden.workspace = true
+opsis-probe.workspace = true
+proptest.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [lints]
 workspace = true

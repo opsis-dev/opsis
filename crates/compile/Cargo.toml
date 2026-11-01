@@ -7,34 +7,34 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-csscolorparser = "0.9.0"
-heck = "0.5.0"
-icu_segmenter = "2.4.0"
-indexmap = { version = "2.14.2", features = ["serde"] }
-jiff = "0.2.38"
-jsonschema = "0.60.2"
-language-tags = "0.3.2"
-nanoid = "0.5.0"
-num-format = "0.4.4"
-opsis-macros = { version = "0.1.0", path = "../macros" }
-opsis-types = { version = "0.1.0", path = "../types" }
-percent-encoding = "2.3.2"
-regex = "1.13.1"
-schemars = { version = "1.2.3", features = ["indexmap2"] }
-serde = { version = "1.0.229", features = ["derive"] }
-serde_json = { version = "1.0.154", features = ["preserve_order"] }
-serde_path_to_error = "0.1.20"
-slug = "0.1.6"
-smart-default = "0.7.1"
-specta = { version = "=2.0.0-rc.26", features = ["derive", "indexmap", "serde_json"] }
-thiserror = "2.0.21"
-url = "2.5.8"
-xxhash-rust = { version = "0.8.19", features = ["xxh3"] }
+csscolorparser.workspace = true
+heck.workspace = true
+icu_segmenter.workspace = true
+indexmap = { workspace = true, features = ["serde"] }
+jiff.workspace = true
+jsonschema.workspace = true
+language-tags.workspace = true
+nanoid.workspace = true
+num-format.workspace = true
+opsis-macros.workspace = true
+opsis-types.workspace = true
+percent-encoding.workspace = true
+regex.workspace = true
+schemars.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["preserve_order"] }
+serde_path_to_error.workspace = true
+slug.workspace = true
+smart-default.workspace = true
+specta = { workspace = true, features = ["indexmap", "serde_json"] }
+thiserror.workspace = true
+url.workspace = true
+xxhash-rust.workspace = true
 
 [dev-dependencies]
-opsis-golden = { path = "../golden" }
-proptest = "1.12.0"
-regex = "1.13.1"
+opsis-golden.workspace = true
+proptest.workspace = true
+regex.workspace = true
 
 [lints]
 workspace = true

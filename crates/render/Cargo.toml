@@ -7,22 +7,22 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-log = "0.4.35"
-opsis-capture = { version = "0.1.0", path = "../capture" }
-opsis-compile = { version = "0.1.0", path = "../compile" }
-opsis-engine = { version = "0.1.0", path = "../engine" }
-opsis-footage = { version = "0.1.0", path = "../footage" }
-opsis-media = { version = "0.1.0", path = "../media" }
-opsis-prepare = { version = "0.1.0", path = "../prepare" }
-opsis-probe = { version = "0.1.0", path = "../probe" }
-opsis-project = { version = "0.1.0", path = "../project" }
-opsis-runner = { version = "0.1.0", path = "../runner" }
-opsis-types = { version = "0.1.0", path = "../types" }
-serde = { version = "1.0.229", features = ["derive"] }
-serde_json = { version = "1.0.154", features = ["preserve_order"] }
-specta = { version = "=2.0.0-rc.26", features = ["derive", "serde_json"] }
-thiserror = "2.0.21"
-tokio = { version = "1.54.1", features = [
+log.workspace = true
+opsis-capture.workspace = true
+opsis-compile.workspace = true
+opsis-engine.workspace = true
+opsis-footage.workspace = true
+opsis-media.workspace = true
+opsis-prepare.workspace = true
+opsis-probe.workspace = true
+opsis-project.workspace = true
+opsis-runner.workspace = true
+opsis-types.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["preserve_order"] }
+specta = { workspace = true, features = ["serde_json"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = [
   "process",
   "io-util",
   "macros",
@@ -31,15 +31,15 @@ tokio = { version = "1.54.1", features = [
   "sync",
   "time",
 ] }
-tokio-util = "0.7.20"
+tokio-util.workspace = true
 
 [dev-dependencies]
-image = "0.25.10"
-opsis-capture = { path = "../capture" }
-opsis-golden = { path = "../golden" }
-opsis-image = { path = "../image" }
-tempfile = "3.27.0"
-tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros"] }
+image = { workspace = true, default-features = true }
+opsis-capture.workspace = true
+opsis-golden.workspace = true
+opsis-image.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [lints]
 workspace = true

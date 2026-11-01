@@ -7,30 +7,30 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-fontdb = "0.24.0"
-log = "0.4.35"
-opsis-compile = { version = "0.1.0", path = "../compile" }
-opsis-engine = { version = "0.1.0", path = "../engine" }
-opsis-store = { version = "0.1.0", path = "../store" }
-opsis-types = { version = "0.1.0", path = "../types" }
-percent-encoding = "2.3.2"
-regex = "1.13.1"
-reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "json"] }
-sanitize-filename = "0.6.0"
-serde = { version = "1.0.229", features = ["derive"] }
-serde_json = { version = "1.0.154", features = ["preserve_order"] }
-skrifa = "0.49.0"
-specta = { version = "=2.0.0-rc.26", features = ["derive"] }
-thiserror = "2.0.21"
-tokio = { version = "1.54.1", features = ["rt"] }
-uuid = { version = "1.29.0", features = ["v4"] }
-wuff = "0.2.9"
-zip = "9.2.0"
+fontdb.workspace = true
+log.workspace = true
+opsis-compile.workspace = true
+opsis-engine.workspace = true
+opsis-store.workspace = true
+opsis-types.workspace = true
+percent-encoding.workspace = true
+regex.workspace = true
+reqwest = { workspace = true, features = ["json"] }
+sanitize-filename.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["preserve_order"] }
+skrifa.workspace = true
+specta.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt"] }
+uuid.workspace = true
+wuff.workspace = true
+zip.workspace = true
 
 [dev-dependencies]
-tempfile = "3.27.0"
-tokio = { version = "1.54.1", features = ["rt", "macros"] }
-wiremock = "0.6.5"
+tempfile.workspace = true
+tokio = { workspace = true, features = ["rt", "macros"] }
+wiremock.workspace = true
 
 [lints]
 workspace = true

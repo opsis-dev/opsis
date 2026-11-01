@@ -7,16 +7,16 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-opsis-engine = { version = "0.1.0", path = "../engine" }
-opsis-types = { version = "0.1.0", path = "../types" }
-serde = { version = "1.0.229", features = ["derive"] }
-serde_json = "1.0.154"
-slug = "0.1.6"
-thiserror = "2.0.21"
-zstd = "0.14.3"
+opsis-engine.workspace = true
+opsis-types.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+slug.workspace = true
+thiserror.workspace = true
+zstd.workspace = true
 
 [dev-dependencies]
-tempfile = "3.27.0"
+tempfile.workspace = true
 
 [lints]
 workspace = true

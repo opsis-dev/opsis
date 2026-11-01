@@ -9,6 +9,124 @@ rust-version = "1.101"
 license = "GPL-3.0-or-later"
 publish = false
 
+[workspace.dependencies]
+ab_glyph = "0.2"
+aes-gcm = "0.11"
+apple-native-keyring-store = { version = "1", features = ["keychain"] }
+axum = "0.8"
+base64 = "0.23"
+chromiumoxide = "0.9"
+csscolorparser = "0.9"
+draco-gltf = "0.7"
+ebur128 = "0.1"
+env_logger = "0.11"
+fast_image_resize = { version = "6", features = ["image"] }
+filetime = "0.2"
+fontdb = "0.24"
+fundsp = { version = "0.23", default-features = false, features = ["std"] }
+futures = "0.3"
+futures-util = "0.3"
+garde = "0.23"
+gltf = { version = "1", default-features = false }
+heck = "0.5"
+hex = "0.4"
+hound = "3"
+html-escape = "0.3"
+http-body-util = "0.1"
+humansize = "2"
+hyper = { version = "1", features = ["client", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+icu_segmenter = "2"
+image = { version = "0.25", default-features = false }
+imageproc = "0.27"
+imagesize = "0.15"
+indexmap = "2"
+jiff = "0.2"
+jpeg-encoder = { version = "0.7", features = ["simd"] }
+jsonschema = "0.60"
+keyring-core = "1"
+language-tags = "0.3"
+log = "0.4"
+moxcms = "0.9"
+nanoid = "0.5"
+nnnoiseless = { version = "0.5", default-features = false }
+notify-debouncer-mini = "0.7"
+num-format = "0.4"
+num-traits = "0.2"
+opsis-api = { path = "crates/api" }
+opsis-capture = { path = "crates/capture" }
+opsis-compile = { path = "crates/compile" }
+opsis-document = { path = "crates/document" }
+opsis-engine = { path = "crates/engine" }
+opsis-fonts = { path = "crates/fonts" }
+opsis-footage = { path = "crates/footage" }
+opsis-golden = { path = "crates/golden" }
+opsis-image = { path = "crates/image" }
+opsis-macros = { path = "crates/macros" }
+opsis-media = { path = "crates/media" }
+opsis-prepare = { path = "crates/prepare" }
+opsis-probe = { path = "crates/probe" }
+opsis-project = { path = "crates/project" }
+opsis-render = { path = "crates/render" }
+opsis-runner = { path = "crates/runner" }
+opsis-store = { path = "crates/store" }
+opsis-stream = { path = "crates/stream" }
+opsis-traces = { path = "crates/traces" }
+opsis-types = { path = "crates/types" }
+path-clean = "1"
+percent-encoding = "2"
+pretty_assertions = "1"
+proc-macro2 = "1"
+proptest = "1"
+quote = "1"
+regex = "1"
+reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
+sanitize-filename = "0.6"
+schemars = { version = "1", features = ["indexmap2"] }
+serde = "1"
+serde_json = "1"
+serde_path_to_error = "0.1"
+sha2 = "0.11"
+shellexpand = "3"
+skrifa = "0.49"
+slug = "0.1"
+smart-default = "0.7"
+specta = { version = "=2.0.0-rc.26", features = ["derive"] }
+specta-serde = "=0.0.13"
+specta-typescript = "=0.0.13"
+sqlx = { version = "0.9", default-features = false, features = [
+  "macros",
+  "runtime-tokio",
+  "sqlite-bundled",
+] }
+syn = { version = "3", features = ["full"] }
+sys-locale = "0.3"
+sysinfo = "0.40"
+tauri = "2"
+tauri-build = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-wdio-webdriver = "1"
+tauri-specta = { version = "=2.0.0-rc.26", features = ["derive", "typescript"] }
+tempfile = "3"
+thiserror = "2"
+tokio = "1"
+tokio-stream = { version = "0.1", features = ["sync"] }
+tokio-util = "0.7"
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.7", features = ["cors", "fs"] }
+url = "2"
+usvg = "0.49"
+uuid = { version = "1", features = ["v4"] }
+windows-native-keyring-store = "1"
+wiremock = "0.6"
+wuff = "0.2"
+xxhash-rust = { version = "0.8", features = ["xxh3"] }
+zbus-secret-service-keyring-store = { version = "1", features = ["rt-tokio-crypto-rust"] }
+zip = "9"
+zstd = "0.14"
+
 [workspace.lints.clippy]
 cast_lossless = "warn"
 cast_possible_truncation = "warn"

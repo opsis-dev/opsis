@@ -7,25 +7,25 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-ebur128 = "0.1.11"
-fundsp = { version = "0.23.0", default-features = false, features = ["std"] }
-futures = "0.3.34"
-hound = "3.5.1"
-indexmap = "2.14.2"
-log = "0.4.35"
-nnnoiseless = { version = "0.5.2", default-features = false }
-opsis-compile = { version = "0.1.0", path = "../compile" }
-opsis-engine = { version = "0.1.0", path = "../engine" }
-opsis-probe = { version = "0.1.0", path = "../probe" }
-opsis-project = { version = "0.1.0", path = "../project" }
-opsis-runner = { version = "0.1.0", path = "../runner" }
-opsis-types = { version = "0.1.0", path = "../types" }
-regex = "1.13.1"
-serde = { version = "1.0.229", features = ["derive"] }
-serde_json = { version = "1.0.154", features = ["preserve_order"] }
-tempfile = "3.27.0"
-thiserror = "2.0.21"
-tokio = { version = "1.54.1", features = [
+ebur128.workspace = true
+fundsp.workspace = true
+futures.workspace = true
+hound.workspace = true
+indexmap.workspace = true
+log.workspace = true
+nnnoiseless.workspace = true
+opsis-compile.workspace = true
+opsis-engine.workspace = true
+opsis-probe.workspace = true
+opsis-project.workspace = true
+opsis-runner.workspace = true
+opsis-types.workspace = true
+regex.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["preserve_order"] }
+tempfile.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = [
   "process",
   "io-util",
   "macros",
@@ -34,13 +34,13 @@ tokio = { version = "1.54.1", features = [
   "time",
   "sync",
 ] }
-tokio-util = "0.7.20"
+tokio-util.workspace = true
 
 [dev-dependencies]
-opsis-golden = { path = "../golden" }
-pretty_assertions = "1.4.1"
-proptest = "1.12.0"
-tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros"] }
+opsis-golden.workspace = true
+pretty_assertions.workspace = true
+proptest.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [lints]
 workspace = true
