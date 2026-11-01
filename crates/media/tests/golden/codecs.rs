@@ -1,4 +1,3 @@
-use crate::common::{cases, json, number, text, typed, with};
 use opsis_compile::nodes::media::{Codec, EncodePreset, Encoding, SoundFormat};
 use opsis_media::codecs::{
     FilmEncoding, FrameGrab, H264, audio_format_args, audio_format_for, codec_info, codec_video,
@@ -7,6 +6,8 @@ use opsis_media::codecs::{
 };
 use opsis_types::numbers;
 use serde_json::{Map, Value};
+
+use crate::common::{cases, json, number, text, typed, with};
 
 const CODECS: &str = "media/codecs.json";
 const FILM_ENCODING: &str = "media/film-encoding.json";

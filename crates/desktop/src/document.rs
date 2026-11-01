@@ -1,4 +1,3 @@
-use opsis_engine::tools::shown;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::Ordering;
 use std::time::Duration;
@@ -6,6 +5,7 @@ use std::time::Duration;
 use opsis_compile::edits::EditError;
 use opsis_compile::node::Platform;
 use opsis_document::Document;
+use opsis_engine::tools::shown;
 use opsis_project::last_run::read_last_run;
 use opsis_project::watch::{LoadedFilesWatch, watch_project};
 use opsis_runner::context::now_ms;

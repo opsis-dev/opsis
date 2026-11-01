@@ -4,8 +4,7 @@ use opsis_types::timeline::CameraPath;
 use serde::{Deserialize, Serialize};
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::TextAlign;
-use crate::elements::shared::{Lighting, Motion};
+use crate::elements::shared::{Lighting, Motion, TextAlign};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, specta::Type)]

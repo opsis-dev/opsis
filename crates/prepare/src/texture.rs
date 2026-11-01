@@ -1,6 +1,7 @@
 use std::io::Cursor;
 
-use image::{ImageFormat, ImageReader, imageops::FilterType};
+use image::imageops::FilterType;
+use image::{ImageFormat, ImageReader};
 
 use crate::PrepareError;
 

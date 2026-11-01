@@ -17,8 +17,7 @@ use crate::node::{
     outputs, port, row,
 };
 use crate::nodes::camera::FrameChoice;
-use crate::params::Params;
-use crate::params::to_values;
+use crate::params::{Params, to_values};
 use crate::text::{format_duration, plural};
 use crate::time::ms_to_frames;
 

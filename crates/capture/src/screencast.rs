@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use crate::clock::wall_ms;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 use chromiumoxide::cdp::browser_protocol::page::EventScreencastFrame;
@@ -10,6 +9,7 @@ use serde_json::json;
 use tokio::task::JoinHandle;
 
 use crate::cdp::{Result, Tab};
+use crate::clock::wall_ms;
 use crate::encoder::FrameFeed;
 use crate::live::FrameSink;
 use crate::trace::Trace;

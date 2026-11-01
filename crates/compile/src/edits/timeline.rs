@@ -4,7 +4,6 @@ use indexmap::IndexMap;
 use opsis_types::edits::{EdgeEnds, Removal, TimelineEdit, TimelineReply};
 use opsis_types::numbers::whole_signed;
 use opsis_types::timeline::{CameraPath, ParamRef, ParamUnit, Sign};
-
 use opsis_types::workflow::{PortType, Position, Workflow, WorkflowEdge, WorkflowNode};
 use serde_json::{Map, Value, json};
 

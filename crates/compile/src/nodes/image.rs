@@ -2,6 +2,7 @@ use opsis_macros::{choice, settings};
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
+use opsis_types::numbers::whole;
 use opsis_types::values::{CompileValue, Measured};
 use opsis_types::workflow::PortType;
 
@@ -14,7 +15,6 @@ use crate::nodes::effects::Area;
 use crate::params::Params;
 use crate::ports::{IN_PREFIX, in_index};
 use crate::text::{percent_text, plural};
-use opsis_types::numbers::whole;
 
 pub const FRAME_TYPE: &str = "image.frame";
 

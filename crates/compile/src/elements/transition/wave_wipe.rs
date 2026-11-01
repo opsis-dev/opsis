@@ -2,8 +2,7 @@ use opsis_macros::settings;
 use opsis_types::looks::{NodeLook, NodeMotion};
 
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::Colour;
-use crate::elements::shared::VerticalDirection;
+use crate::elements::shared::{Colour, VerticalDirection};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]

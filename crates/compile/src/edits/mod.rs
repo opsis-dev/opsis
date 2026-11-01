@@ -6,12 +6,12 @@ pub mod workflow;
 use indexmap::IndexSet;
 use opsis_types::edits::{MarkerEdit, Removal, WorkflowEdit};
 use opsis_types::workflow::{Marker, Workflow, WorkflowNode};
+use timeline::apply_removal;
 
 use crate::graph::downstream_of;
 use crate::ids::{Ids, node_id_prefix};
 use crate::node::Platform;
 use crate::registry::node_def;
-use timeline::apply_removal;
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum EditError {

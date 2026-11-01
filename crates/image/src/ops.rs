@@ -9,8 +9,7 @@ use image::{
     DynamicImage, GrayImage, ImageBuffer, Luma, Pixel, Primitive, Rgba, Rgba32FImage, RgbaImage,
     imageops,
 };
-use imageproc::distance_transform::Norm;
-use imageproc::distance_transform::euclidean_squared_distance_transform;
+use imageproc::distance_transform::{Norm, euclidean_squared_distance_transform};
 use imageproc::filter::gaussian_blur_f32;
 use imageproc::geometric_transformations::{
     Border, Interpolation, Projection, rotate_about_center, warp_into,
@@ -19,21 +18,20 @@ use imageproc::morphology::dilate;
 use imageproc::region_labelling::{Connectivity, connected_components};
 use num_traits::ToPrimitive;
 use opsis_compile::gradient::{Gradient, GradientKind};
-use opsis_compile::nodes::image::compare_threshold;
 use opsis_compile::nodes::image::{
     AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BeforeAfterPlan, BlurImage,
     ClearColour, CompareScreenshots, CropImage, FrameScreenshot, ImageFormat, ImageGrid, LabelEdge,
     LevelsMethod, Magnify, MagnifyShape, OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle,
     Resample, ResizeBy, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat,
-    TiltImage, TrimEdges, Turn, area_rect, before_after_plan, crop_rect, framed_placement,
-    grid_plan, label_size, magnify_plan, outline_padding, resized_size, rotated_size, tilt_corners,
-    tilted_canvas, tilted_size,
+    TiltImage, TrimEdges, Turn, area_rect, before_after_plan, compare_threshold, crop_rect,
+    framed_placement, grid_plan, label_size, magnify_plan, outline_padding, resized_size,
+    rotated_size, tilt_corners, tilted_canvas, tilted_size,
 };
 use opsis_types::numbers;
+use opsis_types::numbers::whole;
 
 use crate::ImageError;
 use crate::text::{draw_text, measure};
-use opsis_types::numbers::whole;
 
 fn failed<E: std::fmt::Display>(error: E) -> ImageError {
     ImageError::Failed(error.to_string())

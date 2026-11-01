@@ -1,6 +1,7 @@
-use crate::common::{cases, json, text, typed, with};
 use opsis_media::grade::{GradeError, GradeSize, filter_path, grade_filters, look_kind_of};
 use opsis_types::values::StyleEntry;
+
+use crate::common::{cases, json, text, typed, with};
 
 const GRADE: &str = "media/grade.json";
 

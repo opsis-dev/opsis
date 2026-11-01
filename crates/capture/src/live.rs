@@ -1,7 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use crate::clock::wall_ms;
 use opsis_types::live::LiveEvent;
+
+use crate::clock::wall_ms;
 
 pub trait FrameSink: Send + Sync {
     fn frame(&self, jpeg: &[u8], width: f64, height: f64, t: f64);

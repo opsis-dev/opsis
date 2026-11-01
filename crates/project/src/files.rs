@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
+use opsis_compile::text::project_folder_name;
 use opsis_engine::files::{atomic_write, none_if_missing, read_text_if_present};
 use opsis_engine::hash::sha256_hex;
 use opsis_types::project::{META_DIR, SaveResult};
@@ -9,8 +10,6 @@ use opsis_types::values::LastRun;
 use opsis_types::workflow::{WORKFLOW_FILE, Workflow};
 
 use crate::last_run::read_last_run;
-use opsis_compile::text::project_folder_name;
-
 use crate::paths::project_paths;
 use crate::templates::build_template;
 

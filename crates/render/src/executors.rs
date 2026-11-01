@@ -1,4 +1,3 @@
-use opsis_compile::nodes::output::{RENDER_TYPE, STILL_TYPE};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -7,8 +6,8 @@ use opsis_compile::asset_ref::{FILM_FOLDER, project_ref};
 use opsis_compile::hosted::hosted;
 use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::output::{
-    ExportImages, ExportVideo, Gl, StillFormat, Variant, export_base_name, still_file_names,
-    variant_size, video_file_names,
+    ExportImages, ExportVideo, Gl, RENDER_TYPE, STILL_TYPE, StillFormat, Variant, export_base_name,
+    still_file_names, variant_size, video_file_names,
 };
 use opsis_compile::time::{frames_to_ms, lerp, ms_to_frames_from};
 use opsis_compile::timeline::chapters::{

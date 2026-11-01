@@ -1,9 +1,10 @@
-use crate::common::{cases, json, number, text, typed, with};
 use opsis_compile::nodes::media::{JoinFiles, MakeGif, Resize};
 use opsis_media::filters::{
     GifLook, JoinPart, JoinSize, atempo_chain, ffmpeg_color, fit_filter, gif_filter, join_filter,
     loudnorm_filter, speed_args, speed_sound_args,
 };
+
+use crate::common::{cases, json, number, text, typed, with};
 
 const FILTERS: &str = "media/filters.json";
 

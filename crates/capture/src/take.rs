@@ -5,7 +5,6 @@ use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use crate::clock::wall_ms;
 use opsis_compile::asset_ref::project_rel_path;
 use opsis_compile::nodes::browser::{
     Assert, Chapter, Click, Drag, DragMethod as DragParam, DragMode, FreezeClock, HideElements,
@@ -31,7 +30,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::browser::Session;
 use crate::cdp::{Arg, CaptureError, Handle};
-use crate::clock::Clock;
+use crate::clock::{Clock, wall_ms};
 use crate::cursor::{
     ActionOpts, CursorDriver, DragMethod, DragOpts, DragTo, KeyEvent, Press, TakeClick, TakeSink,
 };

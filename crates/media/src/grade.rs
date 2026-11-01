@@ -9,12 +9,12 @@ use opsis_compile::nodes::grade::{
     tone_offsets,
 };
 use opsis_compile::registry::node_def;
+use opsis_compile::text::round_to;
 use opsis_types::values::StyleEntry;
 use serde::de::DeserializeOwned;
 
 use crate::codecs::serde_name;
 use crate::filters::ffmpeg_color;
-use opsis_compile::text::round_to;
 
 const DESIGN_WIDTH: f64 = 1920.0;
 const NEUTRAL_KELVIN: f64 = 6500.0;

@@ -4,11 +4,10 @@ use fundsp::prelude32::{
     AudioUnit, bandpass, bandpass_hz, dc, envelope, highpass_hz, lowpass, lowpass_hz, noise, saw,
     saw_hz, sine, sine_hz,
 };
-
-use crate::generate::RATE;
-
 use opsis_compile::nodes::audio::{SoundPan, SoundPreset, SoundShape};
 use opsis_types::numbers;
+
+use crate::generate::RATE;
 
 const PEAK: f32 = 0.7;
 const EDGE_SECONDS: f64 = 0.005;
@@ -223,8 +222,9 @@ pub fn make(shape: &SoundShape) -> [Vec<f32>; 2] {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use opsis_compile::nodes::audio::SWELL_PEAK_AT;
+
+    use super::*;
 
     fn shape(preset: SoundPreset) -> SoundShape {
         SoundShape {
@@ -262,8 +262,9 @@ mod tests {
 
 #[cfg(test)]
 mod clicks {
-    use super::*;
     use opsis_compile::nodes::audio::SWELL_PEAK_AT;
+
+    use super::*;
 
     #[test]
     fn clicks_with_a_press_then_a_quieter_release_a_few_hundredths_of_a_second_later() {

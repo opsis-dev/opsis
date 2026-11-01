@@ -22,7 +22,6 @@ use std::collections::HashMap;
 use std::sync::LazyLock;
 
 use indexmap::IndexMap;
-
 use opsis_types::looks::NodeLook;
 use opsis_types::timeline::Design;
 use serde::{Deserialize, Serialize};

@@ -1,10 +1,9 @@
-use opsis_compile::nodes::capture::{RECORD_TYPE, STILL_TYPE};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use opsis_compile::node::{RECORDING_PORT, SESSION_PORT};
 use opsis_compile::nodes::browser::{DoneWhen, Open, SignIn};
-use opsis_compile::nodes::capture::{FramePicture, Record, Still, Timing};
+use opsis_compile::nodes::capture::{FramePicture, RECORD_TYPE, Record, STILL_TYPE, Still, Timing};
 use opsis_compile::params::Values;
 use opsis_compile::registry::node_name;
 use opsis_compile::text::{format_duration, plural};
@@ -23,9 +22,9 @@ use opsis_types::numbers;
 use opsis_types::numbers::whole;
 use opsis_types::secrets::{secret_file, secret_name};
 use opsis_types::settings::TraceRetention;
-use opsis_types::values::BrowserAction;
 use opsis_types::values::{
-    ArtifactKind, BrowserSessionValue, CompileValue, ImageValue, PortValues, RecordingValue,
+    ArtifactKind, BrowserAction, BrowserSessionValue, CompileValue, ImageValue, PortValues,
+    RecordingValue,
 };
 use tokio_util::sync::CancellationToken;
 

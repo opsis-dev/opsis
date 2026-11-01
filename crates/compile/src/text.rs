@@ -1,5 +1,6 @@
-use crate::errors::WallTimeError;
 use opsis_types::numbers;
+
+use crate::errors::WallTimeError;
 pub const MINUS: &str = "\u{2212}";
 
 pub fn round_to(value: f64, digits: i32) -> f64 {

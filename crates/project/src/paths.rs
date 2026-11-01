@@ -1,10 +1,9 @@
 use std::path::{Path, PathBuf};
 
 use opsis_compile::asset_ref::{RefTarget, project_ref, ref_target};
-use opsis_types::project::ProjectLocations;
 use opsis_types::project::{
     ANALYSIS_DIR, ASSETS_DIR, CACHE_DIR, LAST_RUN_FILE, META_DIR, MIX_DIR, MODELS_DIR, OUT_DIR,
-    PICTURES_DIR, TRACES_DIR,
+    PICTURES_DIR, ProjectLocations, TRACES_DIR,
 };
 use opsis_types::settings::{PROJECTS_FOLDER_NAME, ProjectsSection};
 

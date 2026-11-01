@@ -1,33 +1,30 @@
-use opsis_compile::nodes::image::{
-    ADJUST_TYPE, BEFORE_AFTER_TYPE, BLUR_TYPE, CLEAR_COLOUR_TYPE, COMPARE_TYPE, CROP_TYPE,
-    FORMAT_TYPE, FRAME_TYPE, GRID_TYPE, LEVELS_TYPE, MAGNIFY_TYPE, OUTLINE_TYPE, PLACE_TYPE,
-    REDACT_TYPE, RESIZE_TYPE, ROTATE_TYPE, SPOTLIGHT_TYPE, TILT_TYPE, TRIM_TYPE,
-};
 use std::path::Path;
 use std::sync::Arc;
 
 use image::DynamicImage;
+use opsis_compile::elements::prepared::face_for;
+use opsis_compile::fonts::family_for;
+use opsis_compile::gradient::parse_gradient;
+use opsis_compile::nodes::camera::BackdropKind;
 use opsis_compile::nodes::image::{
-    AFTER_PORT, AdjustImage, AutoLevels, BeforeAfter, BlurImage, ClearColour, CompareScreenshots,
-    CropImage, DIFFERENCES_PORT, FrameScreenshot, IMAGE_PORT, ImageFormat, ImageGrid, Magnify,
-    OVERLAY_PORT, OutlineImage, PlaceImage, RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE,
-    SpotlightImage, TiltImage, TrimEdges, resized_size, upscale,
+    ADJUST_TYPE, AFTER_PORT, ANNOTATE_TYPE, AdjustImage, Annotate, AutoLevels, BEFORE_AFTER_TYPE,
+    BLUR_TYPE, BeforeAfter, BlurImage, CLEAR_COLOUR_TYPE, COMPARE_TYPE, CROP_TYPE, ClearColour,
+    CompareScreenshots, CropImage, DIFFERENCES_PORT, FORMAT_TYPE, FRAME_TYPE, FrameScreenshot,
+    GRID_TYPE, IMAGE_PORT, ImageFormat, ImageGrid, LEVELS_TYPE, MAGNIFY_TYPE, Magnify,
+    OUTLINE_TYPE, OVERLAY_PORT, OutlineImage, PLACE_TYPE, PlaceImage, REDACT_TYPE, RESIZE_TYPE,
+    ROTATE_TYPE, RedactImage, ResizeImage, RotateImage, SOFT_UPSCALE, SPOTLIGHT_TYPE,
+    SpotlightImage, TILT_TYPE, TRIM_TYPE, TiltImage, TrimEdges, resized_size, upscale,
 };
 use opsis_engine::files::atomic_write;
 use opsis_media::executors::require_media;
 use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
+use opsis_types::fonts::FontRole;
 use opsis_types::values::{Artifact, ArtifactKind, CompileValue, ImageValue, Measured, PortValues};
 
 use crate::load::load_image;
 use crate::ops;
 use crate::text::load_font;
-use opsis_compile::elements::prepared::face_for;
-use opsis_compile::fonts::family_for;
-use opsis_compile::gradient::parse_gradient;
-use opsis_compile::nodes::camera::BackdropKind;
-use opsis_compile::nodes::image::{ANNOTATE_TYPE, Annotate};
-use opsis_types::fonts::FontRole;
 
 fn exec_error(error: crate::ImageError) -> ExecError {
     ExecError::new(error.to_string())

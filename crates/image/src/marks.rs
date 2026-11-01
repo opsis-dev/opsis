@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use ab_glyph::FontVec;
 use image::{DynamicImage, Rgba, Rgba32FImage};
 use opsis_compile::nodes::image::{Mark, MarkKind};
-
 use opsis_types::numbers;
 use opsis_types::numbers::whole;
 

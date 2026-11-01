@@ -1,6 +1,5 @@
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use crate::take_clock::TakeClock;
 use chromiumoxide::cdp::browser_protocol::network::{
     EventLoadingFailed, EventLoadingFinished, EventRequestWillBeSent, EventResponseReceived,
     Response,
@@ -17,6 +16,7 @@ use opsis_types::trace::{ConsoleLevel, TraceAction, TraceConsole, TraceError, Tr
 use tokio::task::JoinHandle;
 
 use crate::cdp::{Result, Tab};
+use crate::take_clock::TakeClock;
 
 const COLLAPSIBLE: [&str; 2] = ["mouseMove", "mouseWheel"];
 const WAIT: &str = "waitForTimeout";

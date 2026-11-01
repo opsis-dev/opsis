@@ -1,7 +1,8 @@
 use opsis_compile::clip::recording_props;
 use opsis_compile::node::CardInputs;
-use opsis_compile::nodes::media::Codec;
-use opsis_compile::nodes::media::{QUALITY_PRESETS, loudness_name, loudness_presets, quality_name};
+use opsis_compile::nodes::media::{
+    Codec, QUALITY_PRESETS, loudness_name, loudness_presets, quality_name,
+};
 use opsis_compile::nodes::output::{Variant, variant_canvas, variant_size, video_file_names};
 use opsis_compile::params::ParamSchema;
 use opsis_compile::registry::node_def;

@@ -1,6 +1,6 @@
-use opsis_compile::nodes::capture::Record;
 use std::sync::LazyLock;
 
+use opsis_compile::nodes::capture::Record;
 use opsis_types::secrets::SavedItem;
 use regex::Regex;
 use serde::{Deserialize, Serialize};

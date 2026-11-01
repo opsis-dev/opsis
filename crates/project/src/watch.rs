@@ -1,4 +1,3 @@
-use opsis_engine::tools::shown;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -7,6 +6,7 @@ use std::time::Duration;
 use notify_debouncer_mini::notify::{self, RecommendedWatcher, RecursiveMode};
 use notify_debouncer_mini::{DebounceEventResult, Debouncer, new_debouncer};
 use opsis_compile::asset_ref::{file_version_key, stays_in_project};
+use opsis_engine::tools::shown;
 use opsis_types::project::{
     FileVersions, META_DIR, MISSING_FILE, ProjectFileChange, ProjectFilesChange,
 };

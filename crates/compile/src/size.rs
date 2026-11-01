@@ -1,5 +1,6 @@
-use crate::node::{MAX_CARD_ROWS, NodeDef};
 use opsis_types::numbers;
+
+use crate::node::{MAX_CARD_ROWS, NodeDef};
 
 pub const CARD_WIDTH: f64 = 256.0;
 pub const CARD_GAP: f64 = 32.0;

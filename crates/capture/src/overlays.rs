@@ -5,13 +5,13 @@ use std::time::Duration;
 use chromiumoxide::cdp::browser_protocol::page::EventFrameNavigated;
 use futures::StreamExt;
 use indexmap::IndexMap;
+use opsis_compile::nodes::browser::Chapter;
 use opsis_types::actions::Point;
 use serde_json::{Value, json};
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 
 use crate::cdp::{Arg, Result, Tab};
-use opsis_compile::nodes::browser::Chapter;
 
 const ADD: &str = "(injected, id, html) => injected.addUserOverlay(id, html)";
 const REMOVE: &str = "(injected, id) => injected.removeUserOverlay(id)";

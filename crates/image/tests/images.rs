@@ -7,13 +7,13 @@ use image::{
     RgbaImage,
 };
 use opsis_compile::nodes::effects::Area;
-use opsis_compile::nodes::image::CompareScreenshots;
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BlurImage, ClearColour, CropImage,
-    CropMode, FrameScreenshot, FrameShape, GridFit, GridLayout, ImageFormat, ImageGrid,
-    LevelsMethod, Magnify, MagnifyShape, MagnifySize, OutlineImage, PlaceImage, RedactImage,
-    RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat, TiltImage,
-    TrimEdges, Turn, framed_placement, grid_plan, tilt_corners, tilted_size,
+    AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BlurImage, ClearColour,
+    CompareScreenshots, CropImage, CropMode, FrameScreenshot, FrameShape, GridFit, GridLayout,
+    ImageFormat, ImageGrid, LevelsMethod, Magnify, MagnifyShape, MagnifySize, OutlineImage,
+    PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage,
+    StillFileFormat, TiltImage, TrimEdges, Turn, framed_placement, grid_plan, tilt_corners,
+    tilted_size,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;

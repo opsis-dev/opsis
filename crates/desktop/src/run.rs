@@ -8,8 +8,7 @@ use opsis_engine::temp::{ChildKind, child_temp_name, make_child_temp, remove_chi
 use opsis_image::executors::image_executors;
 use opsis_media::executors::media_executors;
 use opsis_render::executors::{RenderEngine, output_executors};
-use opsis_runner::context::now_ms;
-use opsis_runner::context::{Executors, RunEnv};
+use opsis_runner::context::{Executors, RunEnv, now_ms};
 use opsis_runner::progress::{
     RunLog, apply_to_view, begin_run, exported_artifacts, forget_errors as forget_run_errors,
     seeded_view,

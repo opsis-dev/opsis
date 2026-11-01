@@ -1,10 +1,10 @@
 use opsis_compile::color::css_hex;
 use opsis_compile::nodes::image::PlaceAlign;
 use opsis_compile::nodes::media::{Dither, PaletteFrom, ScaleMode};
-
-use crate::codecs::{edit_video, even_down, ffmpeg_seconds, serde_name, with_even_frame};
 use opsis_compile::text::round_to;
 use opsis_types::numbers;
+
+use crate::codecs::{edit_video, even_down, ffmpeg_seconds, serde_name, with_even_frame};
 
 const JOIN_AUDIO: &str = "aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo";
 
