@@ -219,7 +219,7 @@ async fn picture_for(job: &VariantJob<'_>) -> Result<PathBuf, ExecError> {
 }
 
 struct Chapters {
-    chapters: Vec<FilmChapter>,
+    list: Vec<FilmChapter>,
     metadata: Option<PathBuf>,
     listed: bool,
 }
@@ -247,7 +247,7 @@ async fn chapters_for(
         ctx.log(LogLevel::Warn, format!("The chapter list needs at least {MIN_LISTED_CHAPTERS} chapters of ten seconds or more, so it wasn't saved."));
     }
     Ok(Chapters {
-        chapters,
+        list: chapters,
         metadata,
         listed,
     })
@@ -323,7 +323,7 @@ async fn render_variant(
             .map(|s| s.to_string_lossy().into_owned())
             .unwrap_or_default();
         let list = out.with_file_name(format!("{stem}.youtube-chapters.txt"));
-        tokio::fs::write(&list, chapter_list(&chapters.chapters)).await?;
+        tokio::fs::write(&list, chapter_list(&chapters.list)).await?;
         artifacts.push(Artifact::labelled(
             ArtifactKind::File,
             project_path(ctx, &list)?,

@@ -181,11 +181,6 @@ format_collect = "allow" # FIXME: REMOVE
 branches_sharing_code = "allow" # FIXME: REMOVE
 bool_to_int_with_if = "allow" # FIXME: REMOVE
 wildcard_imports = "allow" # FIXME: REMOVE
-verbose_bit_mask = "allow" # FIXME: REMOVE
-useless_let_if_seq = "allow" # FIXME: REMOVE
-unnecessary_struct_initialization = "allow" # FIXME: REMOVE
-trivially_copy_pass_by_ref = "allow" # FIXME: REMOVE
-struct_field_names = "allow" # FIXME: REMOVE
 
 [profile.release]
 opt-level = 3

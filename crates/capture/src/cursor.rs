@@ -120,6 +120,7 @@ pub enum DragTo {
     Path(Vec<Point>),
 }
 
+#[derive(Clone, Copy)]
 struct TargetBox {
     cx: f64,
     cy: f64,
@@ -538,11 +539,7 @@ impl CursorDriver {
         let point = self.box_of(target, opts.smooth_scroll).await?;
         let frame = match &opts.frame {
             Some(frame) => self.box_of(frame, false).await?,
-            None => TargetBox {
-                cx: point.cx,
-                cy: point.cy,
-                rect: point.rect,
-            },
+            None => point,
         };
         let at = Point {
             x: point.cx,

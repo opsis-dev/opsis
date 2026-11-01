@@ -40,7 +40,7 @@ fn flac(source: &mut Source, at: u64) -> Result<Found, ProbeError> {
         let mut r = Bytes::new(&head);
         let kind = r.u8()?;
         let size = r.be24()?;
-        if kind & 0x7F == 0 {
+        if kind.trailing_zeros() >= 7 {
             let body = source.bytes(block + 4, usize::try_from(size).unwrap_or(0))?;
             let (audio, length) = stream_info_with_length(&body).ok_or(ProbeError::Damaged)?;
             return Ok(Found {

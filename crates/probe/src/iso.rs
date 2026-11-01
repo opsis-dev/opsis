@@ -46,15 +46,15 @@ fn children(data: &[u8]) -> Vec<([u8; 4], &[u8])> {
     out
 }
 
-fn child<'a>(data: &'a [u8], kind: &[u8; 4]) -> Option<&'a [u8]> {
+fn child(data: &[u8], kind: [u8; 4]) -> Option<&[u8]> {
     children(data)
         .into_iter()
-        .find(|(k, _)| k == kind)
+        .find(|(k, _)| *k == kind)
         .map(|(_, p)| p)
 }
 
 fn path<'a>(data: &'a [u8], kinds: &[&[u8; 4]]) -> Option<&'a [u8]> {
-    kinds.iter().try_fold(data, |at, kind| child(at, kind))
+    kinds.iter().try_fold(data, |at, kind| child(at, **kind))
 }
 
 fn timing(full_box: &[u8]) -> Result<(u32, u64), Short> {
@@ -86,21 +86,21 @@ struct Track {
 }
 
 fn track(trak: &[u8]) -> Option<Track> {
-    let tkhd = child(trak, b"tkhd")?;
+    let tkhd = child(trak, *b"tkhd")?;
     let mut r = Bytes::new(tkhd);
     let version = r.u8().ok()?;
     r.skip(3).ok()?;
     r.skip(if version == 1 { 16 } else { 8 }).ok()?;
     let id = r.be32().ok()?;
-    let mdia = child(trak, b"mdia")?;
-    let (timescale, duration) = timing(child(mdia, b"mdhd")?).ok()?;
-    let handler: [u8; 4] = child(mdia, b"hdlr")?.get(8..12)?.try_into().ok()?;
+    let mdia = child(trak, *b"mdia")?;
+    let (timescale, duration) = timing(child(mdia, *b"mdhd")?).ok()?;
+    let handler: [u8; 4] = child(mdia, *b"hdlr")?.get(8..12)?.try_into().ok()?;
     let stbl = path(mdia, &[b"minf", b"stbl"])?;
-    let entry = child(stbl, b"stsd")
+    let entry = child(stbl, *b"stsd")
         .and_then(|stsd| children(stsd.get(8..)?).into_iter().next())
         .map(|(kind, payload)| (kind, payload.to_vec()));
     let mut samples = Samples::default();
-    if let Some(stts) = child(stbl, b"stts") {
+    if let Some(stts) = child(stbl, *b"stts") {
         let mut r = Bytes::new(stts);
         if r.skip(4).is_ok() {
             let count = r.be32().unwrap_or(0);
@@ -128,7 +128,7 @@ fn fragments(moof: &[u8], defaults: &HashMap<u32, u32>, into: &mut HashMap<u32, 
         if &kind != b"traf" {
             continue;
         }
-        let Some(tfhd) = child(traf, b"tfhd") else {
+        let Some(tfhd) = child(traf, *b"tfhd") else {
             continue;
         };
         let mut r = Bytes::new(tfhd);
@@ -221,7 +221,7 @@ fn video(kind: [u8; 4], entry: &[u8]) -> Option<VideoStream> {
     r.skip(46).ok()?;
     let depth = r.be16().ok()?;
     let boxes = entry.get(78..).unwrap_or_default();
-    let config = |kind: &[u8; 4]| child(boxes, kind);
+    let config = |kind: &[u8; 4]| child(boxes, *kind);
     let plain = || Layout::PLAIN.pix_fmt(FullRange::Never);
     let (codec, pix_fmt) = match &kind {
         b"avc1" | b"avc3" => (
@@ -301,8 +301,8 @@ fn audio(kind: [u8; 4], entry: &[u8]) -> Option<AudioStream> {
         _ => 28,
     };
     let boxes = entry.get(boxes_at..).unwrap_or_default();
-    let inner = child(boxes, b"wave").unwrap_or(boxes);
-    let config = |kind: &[u8; 4]| child(boxes, kind).or_else(|| child(inner, kind));
+    let inner = child(boxes, *b"wave").unwrap_or(boxes);
+    let config = |kind: &[u8; 4]| child(boxes, *kind).or_else(|| child(inner, *kind));
     let codec = match &kind {
         b"mp4a" => match config(b"esds").and_then(esds_config) {
             Some((0x69 | 0x6B, _)) => "mp3",
@@ -406,10 +406,10 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
         at += size;
     }
     let moov = moov.ok_or(ProbeError::Unknown)?;
-    let (scale, length) = child(&moov, b"mvhd").map_or(Ok((0, 0)), timing)?;
+    let (scale, length) = child(&moov, *b"mvhd").map_or(Ok((0, 0)), timing)?;
     let mut defaults = HashMap::new();
     let mut whole = Length::ratio(length, u64::from(scale));
-    if let Some(mvex) = child(&moov, b"mvex") {
+    if let Some(mvex) = child(&moov, *b"mvex") {
         for (kind, payload) in children(mvex) {
             let mut r = Bytes::new(payload);
             if &kind == b"trex"

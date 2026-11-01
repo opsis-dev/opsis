@@ -726,19 +726,20 @@ pub fn outline(image: &DynamicImage, p: &OutlineImage) -> DynamicImage {
     let shadow_alpha = numbers::narrow(p.shadow_opacity);
     let [r, g, b, a] = background_rgba(&p.color).map(|v| f32::from(v) / 255.0);
     let out = ImageBuffer::from_fn(w, h, |x, y| {
-        let mut pixel = [0.0; 4];
-        if let Some(shadow) = &shadow
+        let shadowed = if let Some(shadow) = &shadow
             && y >= drop
         {
-            pixel = [
+            [
                 shade[0],
                 shade[1],
                 shade[2],
                 shadow.get_pixel(x, y - drop).0[0] * shadow_alpha * shade[3],
-            ];
-        }
-        pixel = over([r, g, b, a * ring.get_pixel(x, y).0[0]], pixel);
-        Rgba(over(at(x, y), pixel))
+            ]
+        } else {
+            [0.0; 4]
+        };
+        let ringed = over([r, g, b, a * ring.get_pixel(x, y).0[0]], shadowed);
+        Rgba(over(at(x, y), ringed))
     });
     let out = DynamicImage::ImageRgba32F(out);
     if is_deep(image) {
