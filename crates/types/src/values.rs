@@ -6,7 +6,7 @@ use specta::Type;
 use crate::actions::{ActionLog, Bounds, Viewport};
 use crate::timeline::{AudioItem, TimelineTrack};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct StyleEntry {
     pub node_id: String,
@@ -62,7 +62,7 @@ pub enum MediaKind {
     Image,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaValue {
     #[serde(deserialize_with = "Option::deserialize")]
@@ -170,7 +170,7 @@ impl BrowserAction {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct SessionStep {
     pub id: String,
     #[serde(rename = "type")]
@@ -181,7 +181,7 @@ pub struct SessionStep {
     pub params: Map<String, Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionBrowser {
     pub node_id: String,
@@ -189,7 +189,7 @@ pub struct SessionBrowser {
     pub params: Map<String, Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct BrowserSessionValue {
     pub browser: SessionBrowser,
     pub steps: Vec<SessionStep>,
@@ -197,7 +197,7 @@ pub struct BrowserSessionValue {
     pub address: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct EntriesValue {
     pub entries: Vec<StyleEntry>,
 }
@@ -323,7 +323,7 @@ pub enum ArtifactKind {
     File,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct Artifact {
     pub kind: ArtifactKind,
     pub path: String,
@@ -395,7 +395,7 @@ pub struct NodeResult {
     pub measured: Vec<Measured>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeFailure {
     pub message: String,

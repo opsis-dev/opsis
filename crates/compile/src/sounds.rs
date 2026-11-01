@@ -2,7 +2,7 @@ use std::sync::LazyLock;
 
 use serde::Deserialize;
 
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BuiltinSound {
     pub id: String,
@@ -46,7 +46,7 @@ impl Mood {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BuiltinSong {
     pub id: String,

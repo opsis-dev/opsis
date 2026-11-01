@@ -404,7 +404,7 @@ impl StillFileFormat {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct ImageFormat {
     #[setting(
         "Format",
@@ -562,7 +562,7 @@ pub struct SpotlightImage {
     pub dim_color: String,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct TrimEdges {
     #[setting(
         "Tolerance",

@@ -1150,7 +1150,7 @@ fn anchor_sounds(
         .collect()
 }
 
-#[settings]
+#[settings(eq)]
 pub struct AddSound {
     #[setting(
         "Fade where the clip ends",

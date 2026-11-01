@@ -6,7 +6,7 @@ use crate::card_rows::truncate_card;
 use crate::graph::{GROUP_TYPE, NOTE_TYPE};
 use crate::node::{CardCtx, Category, NodeDef, Phase, missing, row};
 
-#[settings]
+#[settings(eq)]
 pub struct Group {
     #[setting("Title", default = "Group")]
     pub title: String,
@@ -14,7 +14,7 @@ pub struct Group {
     pub color: String,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Note {
     #[setting("Text", default = "Notes…", widget = "textarea")]
     pub text: String,

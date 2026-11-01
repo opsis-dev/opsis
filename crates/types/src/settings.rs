@@ -83,6 +83,7 @@ impl CanvasMode {
     Debug,
     Clone,
     PartialEq,
+    Eq,
     SmartDefault,
     Serialize,
     Deserialize,
@@ -105,6 +106,7 @@ pub struct AppSection {
     Debug,
     Clone,
     PartialEq,
+    Eq,
     SmartDefault,
     Serialize,
     Deserialize,
@@ -125,6 +127,7 @@ pub struct TracesSection {
     Debug,
     Clone,
     PartialEq,
+    Eq,
     SmartDefault,
     Serialize,
     Deserialize,
@@ -143,7 +146,16 @@ pub struct LiveSection {
 }
 
 #[derive(
-    Debug, Clone, PartialEq, Default, Serialize, Deserialize, Validate, Type, schemars::JsonSchema,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Serialize,
+    Deserialize,
+    Validate,
+    Type,
+    schemars::JsonSchema,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ProjectsSection {
@@ -154,7 +166,16 @@ pub struct ProjectsSection {
 }
 
 #[derive(
-    Debug, Clone, PartialEq, Default, Serialize, Deserialize, Validate, Type, schemars::JsonSchema,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Serialize,
+    Deserialize,
+    Validate,
+    Type,
+    schemars::JsonSchema,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct EditorSection {
@@ -163,7 +184,16 @@ pub struct EditorSection {
 }
 
 #[derive(
-    Debug, Clone, PartialEq, Default, Serialize, Deserialize, Validate, Type, schemars::JsonSchema,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Serialize,
+    Deserialize,
+    Validate,
+    Type,
+    schemars::JsonSchema,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct EngineSection {
@@ -172,7 +202,16 @@ pub struct EngineSection {
 }
 
 #[derive(
-    Debug, Clone, PartialEq, Default, Serialize, Deserialize, Validate, Type, schemars::JsonSchema,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Serialize,
+    Deserialize,
+    Validate,
+    Type,
+    schemars::JsonSchema,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct ApiSection {
@@ -181,7 +220,16 @@ pub struct ApiSection {
 }
 
 #[derive(
-    Debug, Clone, PartialEq, Default, Serialize, Deserialize, Validate, Type, schemars::JsonSchema,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Serialize,
+    Deserialize,
+    Validate,
+    Type,
+    schemars::JsonSchema,
 )]
 #[serde(rename_all = "camelCase", default)]
 pub struct AppSettings {
@@ -207,7 +255,7 @@ pub const SETTINGS_SECTIONS: [&str; 7] = [
 
 pub const RUST_ONLY_SECTIONS: [&str; 1] = ["engine"];
 
-#[derive(Debug, Clone, PartialEq, Serialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsBook {
     pub defaults: AppSettings,

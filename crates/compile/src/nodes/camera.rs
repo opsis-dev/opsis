@@ -792,7 +792,7 @@ pub enum BackdropKind {
     Asset,
 }
 
-#[settings(check)]
+#[settings(check, eq)]
 pub struct BackdropStyle {
     #[setting(
         "Kind",
@@ -852,7 +852,7 @@ impl BackdropStyle {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct MotionBlur {
     #[setting("Motion blur", default = true)]
     pub enabled: bool,
@@ -868,7 +868,7 @@ pub struct MotionBlur {
     pub shutter_angle: u32,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct WindowFrame {
     #[setting(
         "Window style",
@@ -909,7 +909,7 @@ impl WindowFrame {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct ApplyStyle {}
 
 struct Bar<'a> {

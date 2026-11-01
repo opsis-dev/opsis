@@ -7,7 +7,7 @@ use crate::actions::{Rect, Viewport};
 use crate::fonts::FilmFonts;
 use crate::recording::RecordingProps;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TransitionRef {
     pub kind: String,
@@ -228,7 +228,7 @@ impl TryFrom<i8> for Sign {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LinkedParam {
     pub param: String,
@@ -288,14 +288,14 @@ pub struct Slot {
     pub port: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct ElementRef {
     pub component: String,
     #[specta(type = crate::JsonObject)]
     pub props: Map<String, Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct SequencerProps {
     pub component: String,
     #[specta(type = crate::JsonObject)]
@@ -329,7 +329,7 @@ pub struct GroupProps {
     pub sequencer: Option<SequencerProps>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct Design {
     pub width: u32,
     pub height: u32,

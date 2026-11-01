@@ -4,7 +4,7 @@ use opsis_types::looks::{NodeLook, NodeMotion};
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct AnimatedBarChartBar {
     #[setting("Label")]
     pub label: String,

@@ -50,7 +50,7 @@ struct EnvelopeField {
     envelope: VisualEnvelope,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct SceneBackground {
     #[setting("Scene", default = "in1", widget = "port")]
     pub scene: String,

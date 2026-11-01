@@ -46,7 +46,12 @@ pub struct RedactTake {
         help = "Drag on the picture to mark each part to hide. Move the slider to draw on a later moment of the take. The areas stay on the page while the camera zooms and pans."
     )]
     pub areas: Vec<Area>,
-    #[setting("Frame to draw on", range(min = 0, max = 3_600_000), unit = "ms", hidden)]
+    #[setting(
+        "Frame to draw on",
+        range(min = 0, max = 3_600_000),
+        unit = "ms",
+        hidden
+    )]
     pub frame_ms: f64,
     #[setting("Hide with")]
     pub style: RedactStyle,
@@ -191,7 +196,7 @@ fn redact_take() -> NodeDef {
         })
 }
 
-#[settings]
+#[settings(eq)]
 pub struct GradeFootage {}
 
 const GRADED_COMPONENTS: [&str; 2] = [VIDEO, IMAGE];

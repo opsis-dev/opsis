@@ -47,7 +47,7 @@ pub enum CatalogCategory {
     Other,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct FontCatalogEntry {
     pub id: String,
     pub family: String,

@@ -5,7 +5,7 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::NumberFormat;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct FunnelChartStage {
     #[setting("Label", default = "Upgraded")]
     pub label: String,

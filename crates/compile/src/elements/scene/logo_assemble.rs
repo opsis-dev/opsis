@@ -5,7 +5,7 @@ use crate::elements::entry::{element, meta};
 use crate::elements::theme::{Theme, ThemeMode, warm_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct LogoAssembleImage {
     #[setting(
         "Image",

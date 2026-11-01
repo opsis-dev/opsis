@@ -121,7 +121,9 @@ pub struct RunProgress {
     pub results: indexmap::IndexMap<String, NodeResult>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema,
+)]
 #[serde(rename_all = "camelCase")]
 pub struct RunTargets {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -169,7 +171,7 @@ pub struct RunView {
     pub exports: Vec<crate::values::Artifact>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct LogLine {
     pub id: u64,

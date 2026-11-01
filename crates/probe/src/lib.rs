@@ -27,7 +27,7 @@ pub struct VideoStream {
     pub pix_fmt: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AudioStream {
     pub codec: String,

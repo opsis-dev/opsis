@@ -114,7 +114,7 @@ pub enum Tone {
     Warn,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct CardRow {
     pub icon: Icon,
     pub text: String,

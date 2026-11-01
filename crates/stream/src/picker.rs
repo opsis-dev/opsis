@@ -26,7 +26,7 @@ pub enum PickedBy {
     Spot,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PickResult {
     pub target: String,
@@ -36,7 +36,7 @@ pub struct PickResult {
     pub selector_used: PickedBy,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, specta::Type)]
 pub struct PickRequest {
     pub url: String,
     #[serde(default)]

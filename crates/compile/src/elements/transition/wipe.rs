@@ -16,7 +16,7 @@ pub enum WipeDirection {
     FromBottomRight,
 }
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct Wipe {
     #[setting("Direction", default = WipeDirection::FromLeft)]
     pub direction: WipeDirection,

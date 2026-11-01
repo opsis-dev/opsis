@@ -30,7 +30,7 @@ static MONOSPACED: LazyLock<Regex> =
 static SERIF: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)serif").expect("pattern"));
 static SANS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)sans").expect("pattern"));
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct FontCandidate {
     pub name: String,
@@ -42,7 +42,7 @@ pub struct FontCandidate {
     pub size: u32,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct PlannedFamily<C = FontCandidate> {
     pub family: String,
     pub faces: Vec<C>,

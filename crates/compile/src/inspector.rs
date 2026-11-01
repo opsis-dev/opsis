@@ -20,13 +20,13 @@ use crate::vars::{PROJECT_NAME_VAR, SITE_ADDRESS_VAR, interpolate_text, workflow
 const NO_PAGE: &str = "Add a Go to page action before this one, so there's a page to pick from.";
 const MAX_SWATCHES: usize = 16;
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 pub struct VarInfo {
     pub name: String,
     pub value: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 pub struct ActionRef {
     pub id: String,
     pub label: String,
@@ -41,13 +41,13 @@ pub struct SpotBackground {
     pub still: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 pub struct PickerPage {
     pub url: String,
     pub viewport: Option<Viewport>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum PickerTarget {
     Page(PickerPage),
@@ -69,7 +69,7 @@ pub struct InspectorContext {
     pub file_kinds: IndexMap<String, MediaKind>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 pub struct PortChoice {
     pub port: String,
     pub label: String,

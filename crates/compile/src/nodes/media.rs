@@ -192,7 +192,7 @@ pub enum SoundQuality {
     High,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Encoding {
     #[setting(
         "Format",
@@ -607,7 +607,7 @@ fn use_as_clip() -> NodeDef {
     })
 }
 
-#[settings(check)]
+#[settings(check, eq)]
 pub struct TrimFile {
     #[setting("Start", range(min = 0, max = 36_000_000), step = 50, unit = "ms")]
     pub start_ms: u32,
@@ -639,7 +639,7 @@ pub enum JoinSizeFrom {
     Project,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct JoinFiles {
     #[setting("Always convert", advanced)]
     pub force_reencode: bool,
@@ -733,7 +733,7 @@ pub struct ChangeSpeed {
     pub keep_pitch: bool,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct ReverseFile {
     #[setting(
         "Keep the sound",
@@ -743,7 +743,7 @@ pub struct ReverseFile {
     pub keep_audio: bool,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct NoSettings {}
 
 #[choice]
@@ -766,7 +766,7 @@ impl ScaleMode {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Resize {
     #[setting(
         "Width",
@@ -823,7 +823,7 @@ pub enum Dither {
     None,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct MakeGif {
     #[setting("Frame rate", default = 15, range(min = 5, max = 50), unit = "fps")]
     pub fps: u32,
@@ -866,7 +866,7 @@ pub enum SoundFormat {
     Wav,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct ExtractSound {
     #[setting(
         "Format",
@@ -1422,7 +1422,7 @@ impl SpectrumColours {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct SoundPicture {
     #[setting(
         "Picture",
@@ -1528,7 +1528,7 @@ fn sound_picture() -> NodeDef {
     })
 }
 
-#[settings]
+#[settings(eq)]
 pub struct GrabFrame {
     #[setting(
         "At",

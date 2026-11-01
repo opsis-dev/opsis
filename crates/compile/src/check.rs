@@ -9,7 +9,7 @@ use serde_json::Value;
 use crate::compile::compile_workflow;
 use crate::graph::{GraphIssue, IssueLevel, validate_workflow};
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[schemars(rename = "Problem")]
 pub struct ApiProblem {

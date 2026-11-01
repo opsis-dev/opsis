@@ -4,7 +4,7 @@ use opsis_types::looks::NodeLook;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct Solid {
     #[setting("Colour", default = "#09090b", check = colour)]
     pub color: String,

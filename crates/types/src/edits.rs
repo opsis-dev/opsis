@@ -53,7 +53,7 @@ pub struct NodePatch {
     pub params: Option<Map<String, Value>>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsPatch {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -299,7 +299,7 @@ pub enum KeyframeEdit {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Edited {
     pub revision: u64,

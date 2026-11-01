@@ -21,7 +21,7 @@ pub enum MenuIcon {
     File,
 }
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct CommandMenuItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting("Icon", "type" = "string", "enum" = ["search", "settings", "user", "file"])]

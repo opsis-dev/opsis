@@ -13,7 +13,7 @@ pub enum ChangeKind {
     Removed,
 }
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct ChangelogEntryChange {
     #[setting("Kind", default = ChangeKind::Removed)]
     pub kind: ChangeKind,

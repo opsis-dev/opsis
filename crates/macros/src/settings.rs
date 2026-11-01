@@ -9,6 +9,7 @@ use crate::setting::Setting;
 struct Options {
     export: bool,
     check: bool,
+    eq: bool,
 }
 
 impl Parse for Options {
@@ -16,16 +17,18 @@ impl Parse for Options {
         let mut options = Self {
             export: false,
             check: false,
+            eq: false,
         };
         while !input.is_empty() {
             let name: Ident = input.parse()?;
             match name.to_string().as_str() {
                 "export" => options.export = true,
                 "check" => options.check = true,
+                "eq" => options.eq = true,
                 other => {
                     return Err(syn::Error::new(
                         name.span(),
-                        format!("`settings` takes `export` and `check`, not `{other}`"),
+                        format!("`settings` takes `export`, `check` and `eq`, not `{other}`"),
                     ));
                 }
             }
@@ -50,6 +53,7 @@ pub fn expand(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStream> 
         field.attrs = field_attributes(std::mem::take(&mut field.attrs))?;
     }
     let export = options.export.then(|| quote!(, ::specta::Type));
+    let eq = options.eq.then(|| quote!(, Eq));
     let name = &item.ident;
     let (impl_generics, type_generics, where_clause) = item.generics.split_for_impl();
     let params = (!options.check).then(|| {
@@ -60,7 +64,8 @@ pub fn expand(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStream> 
         #[derive(
             Debug,
             Clone,
-            PartialEq,
+            PartialEq
+            #eq,
             ::smart_default::SmartDefault,
             ::serde::Serialize,
             ::serde::Deserialize,
@@ -280,6 +285,9 @@ mod tests {
         let both = whole("export, check", "struct S { a: u32 }");
         assert!(both.contains(":: specta :: Type"), "{both}");
         assert!(!both.contains("Params"), "{both}");
+        assert!(!plain.contains("PartialEq , Eq"), "{plain}");
+        let eq = whole("eq", "struct S { a: u32 }");
+        assert!(eq.contains("PartialEq , Eq"), "{eq}");
     }
 
     #[test]
@@ -292,7 +300,7 @@ mod tests {
             .err()
             .unwrap()
             .to_string(),
-            "`settings` takes `export` and `check`, not `hidden`"
+            "`settings` takes `export`, `check` and `eq`, not `hidden`"
         );
         assert_eq!(
             expand(

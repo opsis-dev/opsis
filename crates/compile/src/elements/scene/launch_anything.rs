@@ -4,7 +4,7 @@ use opsis_types::looks::NodeLook;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct LaunchAnythingLogoImage {
     #[setting(
         "Image",
@@ -15,7 +15,7 @@ pub struct LaunchAnythingLogoImage {
     pub image: String,
 }
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct LaunchAnythingStat {
     #[setting("Label", default = "Label")]
     pub label: String,

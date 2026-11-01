@@ -24,7 +24,7 @@ const TINT_LIGHTNESS: &str = "0.5";
 const EVEN_SIZE: &str = "scale=trunc(iw/2)*2:trunc(ih/2)*2";
 const SEPIA: &str = "colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131";
 
-#[derive(Debug, Clone, Copy, PartialEq, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
 pub struct GradeSize {
     pub width: u32,
     pub height: u32,

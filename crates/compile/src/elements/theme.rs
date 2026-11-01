@@ -24,7 +24,7 @@ pub enum ThemeMode {
     Dark,
 }
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct Theme {
     pub mode: ThemeMode,
     #[setting("propertyNames" = { "type": "string" })]

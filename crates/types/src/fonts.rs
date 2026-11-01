@@ -56,7 +56,7 @@ pub enum FontFormat {
     Opentype,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct FontFaceDef {
     pub file: String,
     pub weight: String,
@@ -64,7 +64,7 @@ pub struct FontFaceDef {
     pub format: FontFormat,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct FontFamilyDef {
     pub id: String,
@@ -79,7 +79,7 @@ pub struct FontFamilyDef {
     pub faces: Vec<FontFaceDef>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct ProjectFonts {
     #[serde(default = "default_main_font")]
     pub main: String,
@@ -132,13 +132,15 @@ impl FontRole {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, Type, schemars::JsonSchema,
+)]
 pub struct FilmFonts {
     pub families: IndexMap<String, FontFamilyDef>,
     pub preload: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct FontChoice {
     pub def: FontFamilyDef,
     pub preview: String,
@@ -146,7 +148,7 @@ pub struct FontChoice {
     pub selected: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct FontChoices {
     pub project: Vec<FontChoice>,

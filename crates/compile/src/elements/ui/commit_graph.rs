@@ -6,7 +6,7 @@ use crate::elements::shared::Colour;
 use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct CommitGraphCommit {
     #[setting("Message", default = "Merge retry backoff")]
     pub message: String,

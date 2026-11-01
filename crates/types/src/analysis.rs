@@ -19,7 +19,7 @@ pub struct Waveform {
     pub bpm: Option<f64>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Filmstrip {
     pub src: String,

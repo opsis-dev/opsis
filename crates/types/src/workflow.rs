@@ -95,7 +95,7 @@ fn default_fps() -> u32 {
     30
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct WorkflowSettings {
     #[serde(default = "default_width")]
     pub width: u32,

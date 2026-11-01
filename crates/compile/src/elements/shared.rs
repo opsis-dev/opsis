@@ -129,7 +129,7 @@ pub enum Direction {
     FromBottom,
 }
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct NoSettings {}
 
 #[choice(export)]

@@ -189,7 +189,7 @@ macro_rules! labelled_annotation {
     };
 }
 
-#[settings]
+#[settings(eq)]
 pub struct TooltipLook {
     #[setting(
         "Font weight",
@@ -359,7 +359,7 @@ impl Annotation for CalloutArrow {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct CaptionsFromScript {
     #[setting(
         "Script",

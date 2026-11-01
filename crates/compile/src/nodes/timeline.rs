@@ -63,7 +63,7 @@ fn transition_choices(schema: &mut Schema) {
     }
 }
 
-#[settings]
+#[settings(eq)]
 #[schemars(transform = transition_choices)]
 pub struct Cut {
     #[setting("Before", default = "in2", widget = "cut")]
@@ -92,7 +92,7 @@ pub struct Cut {
     pub easing: TransitionEase,
 }
 
-#[settings]
+#[settings(eq)]
 #[schemars(transform = transition_choices)]
 pub struct Sequence {
     #[setting("Transition", default = "fade", widget = "transition")]
@@ -313,7 +313,7 @@ impl LengthSource {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Layers {
     #[setting(
         "Length follows",
@@ -417,7 +417,7 @@ fn layers() -> NodeDef {
     })
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Trim {
     #[setting("Start", range(min = 0, max = 600_000), step = 50, unit = "ms")]
     pub start_ms: u32,
@@ -501,7 +501,7 @@ fn trim() -> NodeDef {
         })
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Repeat {
     #[setting("Times", default = 2, range(min = 1, max = MAX_REPEATS), unit = "×")]
     pub times: u32,
@@ -542,7 +542,7 @@ fn repeat() -> NodeDef {
         })
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Delay {
     #[setting(
         "Delay",
@@ -683,7 +683,7 @@ impl FitMode {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct FitLength {
     #[setting(
         "Length",
@@ -772,7 +772,7 @@ fn fit_length() -> NodeDef {
     })
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Branch {
     #[setting("Variable", default = "Version", widget = "variable")]
     pub variable: String,

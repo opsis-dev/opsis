@@ -146,7 +146,6 @@ too_many_lines = "allow"
 suboptimal_flops = "allow" # FIXME: REMOVE
 missing_const_for_fn = "allow" # FIXME: REMOVE
 needless_pass_by_value = "allow" # FIXME: REMOVE
-derive_partial_eq_without_eq = "allow" # FIXME: REMOVE
 significant_drop_tightening = "allow" # FIXME: REMOVE
 while_float = "allow" # FIXME: REMOVE
 

@@ -7,7 +7,7 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::{Lighting, Motion, TextAlign};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PreparedTypeface {
     pub typeface: String,

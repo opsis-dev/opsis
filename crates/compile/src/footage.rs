@@ -10,7 +10,7 @@ use crate::mix::plan::lookup_key;
 const VIDEO_LOOP: &str = "video-loop";
 const VIDEO_KIND: &str = "video";
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FootageUse {
     pub id: String,
@@ -20,7 +20,7 @@ pub struct FootageUse {
     pub looping: bool,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ItemFootage {
     pub prop: String,
     pub used: FootageUse,

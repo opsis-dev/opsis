@@ -4,7 +4,7 @@ use specta::Type;
 
 use crate::engine::EngineStatus;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewPrefChange {
     pub dir: String,
@@ -193,7 +193,7 @@ pub struct EnvStatus {
     pub engine: EngineStatus,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Selection {
     pub selected_ids: Vec<String>,

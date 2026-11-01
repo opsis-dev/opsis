@@ -331,7 +331,7 @@ pub struct InputTake {
     pub cursor_track: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct InputMedia {
     pub kind: MediaKind,
     pub has_audio: Option<bool>,

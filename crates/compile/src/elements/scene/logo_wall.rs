@@ -5,7 +5,7 @@ use crate::elements::entry::{element, meta};
 use crate::elements::theme::{Theme, ThemeMode, code_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct LogoWallLogo {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(

@@ -82,7 +82,7 @@ pub struct TraceFrame {
     pub height: u32,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct TraceHeader {
     pub id: String,

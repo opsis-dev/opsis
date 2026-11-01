@@ -28,7 +28,7 @@ use crate::text::{
 };
 use crate::vars::PAUSE_MARK;
 
-#[settings]
+#[settings(eq)]
 pub struct Target {
     #[setting(
         "Element",
@@ -42,7 +42,7 @@ pub struct Target {
     pub target_role: Option<String>,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct PauseAfter {
     #[setting(
         "Pause after",
@@ -55,7 +55,7 @@ pub struct PauseAfter {
     pub after: u32,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Silence {
     #[setting("No sound", advanced, help = "Action sounds leave this action out.")]
     pub silent: bool,
@@ -68,7 +68,7 @@ impl Silence {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Beat {
     #[serde(flatten)]
     pub pause: PauseAfter,
@@ -82,7 +82,7 @@ pub struct Beat {
     pub zoom: bool,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Frame {
     #[setting(
         "Zoom to fit",
@@ -226,7 +226,7 @@ pub enum DoneWhen {
     WindowClosed,
 }
 
-#[settings(check)]
+#[settings(check, eq)]
 pub struct SignIn {
     #[setting(
         "Sign-in page",
@@ -273,7 +273,7 @@ impl Params for SignIn {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct StartRecording {}
 
 #[choice]
@@ -288,7 +288,7 @@ pub enum WaitUntil {
     Commit,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Navigate {
     #[setting("Page address", default = "{{Site address}}")]
     pub url: String,
@@ -598,7 +598,7 @@ impl ScrollAlign {
     }
 }
 
-#[settings(check)]
+#[settings(check, eq)]
 pub struct Scroll {
     #[setting(
         "Scroll to",
@@ -680,7 +680,7 @@ pub struct Select {
     pub hover_ms: u32,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Upload {
     #[setting(
         "File field",
@@ -706,7 +706,7 @@ pub struct Upload {
     pub pause: PauseAfter,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct PressKeys {
     #[setting(
         "Keys",
@@ -733,7 +733,7 @@ pub enum WaitMode {
     Ms,
 }
 
-#[settings(check)]
+#[settings(check, eq)]
 pub struct Wait {
     #[setting(
         "Wait for",
@@ -786,7 +786,7 @@ impl Params for Wait {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Assert {
     #[setting("Text", check = { "rule": "not-blank", "message": "Add the text to look for" })]
     pub text: String,
@@ -812,7 +812,7 @@ pub struct Assert {
     pub exact: bool,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Hoist {
     #[serde(flatten)]
     pub target: Target,
@@ -827,7 +827,7 @@ pub struct Hoist {
     pub timeout_ms: u32,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct SetState {
     #[setting(
         "Script",
@@ -845,7 +845,7 @@ pub struct SetState {
     pub every_page: bool,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct MockRoute {
     #[setting(
         "Address pattern",
@@ -879,7 +879,7 @@ pub enum ClockMode {
     Paused,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct FreezeClock {
     #[setting(
         "Date and time",
@@ -896,7 +896,7 @@ pub struct FreezeClock {
     pub mode: ClockMode,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct HideElements {
     #[setting("Cookie banners", default = true)]
     pub cookie_banners: bool,
@@ -910,7 +910,7 @@ pub struct HideElements {
     pub selectors: String,
 }
 
-#[settings]
+#[settings(eq)]
 pub struct Chapter {
     #[setting("Title", default = "Chapter")]
     pub title: String,
@@ -982,7 +982,7 @@ impl CardPosition {
     }
 }
 
-#[settings]
+#[settings(eq)]
 pub struct OverlayHtml {
     #[setting(
         "HTML",

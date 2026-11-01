@@ -5,7 +5,7 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::Direction;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct Flip {
     #[setting("Direction", default = Direction::FromRight)]
     pub direction: Direction,

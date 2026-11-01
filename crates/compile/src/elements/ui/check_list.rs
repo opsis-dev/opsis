@@ -5,7 +5,7 @@ use crate::elements::entry::{element, meta};
 use crate::elements::shared::FontWeight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct CheckListItem {
     #[setting("Text", default = "New item")]
     pub text: String,

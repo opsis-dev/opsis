@@ -23,7 +23,7 @@ use crate::sounds::{builtin_songs, builtin_sounds};
 use crate::timeline::camera_path::{CAMERA_DIALS, CameraDial};
 use crate::vars::{PAUSE_MARK, VAR_PATTERN};
 
-#[derive(Debug, Clone, PartialEq, Serialize, schemars::JsonSchema, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema, specta::Type)]
 #[schemars(rename = "Port")]
 pub struct CatalogPort {
     #[serde(rename = "type")]
@@ -34,7 +34,7 @@ pub struct CatalogPort {
     pub many: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, schemars::JsonSchema, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema, specta::Type)]
 #[schemars(rename = "NodeType")]
 pub struct CatalogNode {
     #[serde(rename = "type")]
@@ -50,7 +50,7 @@ pub struct CatalogNode {
     pub outputs: IndexMap<String, CatalogPort>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, schemars::JsonSchema, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema, specta::Type)]
 #[serde(rename_all = "camelCase")]
 #[schemars(
     description = "Inputs that grow: <prefix>1, <prefix>2, … with one empty input after the last connected one"
@@ -63,7 +63,7 @@ pub struct CatalogFamily {
     pub required: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, schemars::JsonSchema, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema, specta::Type)]
 pub struct CatalogEntry {
     #[serde(flatten)]
     pub node: CatalogNode,

@@ -148,7 +148,7 @@ pub enum KeystrokePosition {
     Top,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(tag = "shape", rename_all = "lowercase")]
 pub enum CursorLook {
     Arrow { fill: String, edge: String },
@@ -196,7 +196,9 @@ pub struct KeystrokeLook {
     pub caret: Option<bool>,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, Type, schemars::JsonSchema,
+)]
 #[serde(rename_all = "camelCase")]
 pub struct FootageChain {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

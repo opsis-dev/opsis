@@ -9,7 +9,7 @@ use specta::Type;
 pub const DEFAULT_PROJECT_NAME: &str = "Demo";
 const BLANK_TEMPLATE: &str = "blank";
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct TemplateInfo {
     pub id: String,

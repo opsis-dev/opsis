@@ -296,8 +296,8 @@ pub trait Annotation: Params {
 }
 
 macro_rules! annotation_params {
-    ($name:ident, color = $color:literal, radius = $radius:literal, { $($extra:tt)* }) => {
-        #[settings]
+    ($name:ident [$($options:ident),*], color = $color:literal, radius = $radius:literal, { $($extra:tt)* }) => {
+        #[settings($($options),*)]
         pub struct $name {
             #[serde(rename = "match")]
             #[setting(
@@ -341,11 +341,11 @@ macro_rules! annotation_params {
     };
 }
 
-annotation_params!(Spotlight, color = "rgba(0,0,0,0.55)", radius = 12, {
+annotation_params!(Spotlight [eq], color = "rgba(0,0,0,0.55)", radius = 12, {
     #[setting("Soft edge", range(min = 0, max = 200), unit = "px", advanced)]
     pub softness: u32,
 });
-annotation_params!(HighlightBox, color = "#a78bfa", radius = 10, {
+annotation_params!(HighlightBox [], color = "#a78bfa", radius = 10, {
     #[setting(
         "Look",
         default = HighlightLook::Clean,

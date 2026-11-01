@@ -38,7 +38,7 @@ pub struct DataStoryMetric {
     pub prefix: Option<String>,
 }
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct DataStoryStep {
     #[setting("Title", default = "Next step")]
     pub title: String,

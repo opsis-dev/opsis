@@ -33,14 +33,14 @@ pub struct ViewSize {
     pub dpr: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct TabInfo {
     pub id: String,
     pub url: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(
     tag = "kind",
     rename_all = "camelCase",

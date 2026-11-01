@@ -5,7 +5,7 @@ use crate::backdrops::Backdrop;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
-#[settings(export)]
+#[settings(export, eq)]
 pub struct StudioBackdrop {
     #[setting("Backdrop", default = Backdrop::Glaze)]
     pub name: Backdrop,
