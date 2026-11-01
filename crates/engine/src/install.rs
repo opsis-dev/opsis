@@ -135,7 +135,7 @@ pub async fn fetch(
     let mut body = response.bytes_stream();
     loop {
         let chunk = tokio::select! {
-            _ = cancel.cancelled() => return Err(InstallError::Cancelled),
+            () = cancel.cancelled() => return Err(InstallError::Cancelled),
             chunk = body.next() => chunk,
         };
         let Some(chunk) = chunk else { break };

@@ -196,7 +196,6 @@ needless_continue = "allow" # FIXME: REMOVE
 missing_fields_in_debug = "allow" # FIXME: REMOVE
 manual_let_else = "allow" # FIXME: REMOVE
 manual_assert_eq = "allow" # FIXME: REMOVE
-ignored_unit_patterns = "allow" # FIXME: REMOVE
 
 [profile.release]
 opt-level = 3
