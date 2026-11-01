@@ -134,15 +134,15 @@ fn write_glb(glb: Glb) -> Result<Vec<u8>, PrepareError> {
 }
 
 fn image_mime(uri: &str) -> &'static str {
-    let lower = uri.to_ascii_lowercase();
-    if lower.ends_with(".jpg") || lower.ends_with(".jpeg") {
-        "image/jpeg"
-    } else if lower.ends_with(".webp") {
-        "image/webp"
-    } else if lower.ends_with(".ktx2") {
-        "image/ktx2"
-    } else {
-        "image/png"
+    let extension = Path::new(uri)
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(str::to_ascii_lowercase);
+    match extension.as_deref() {
+        Some("jpg" | "jpeg") => "image/jpeg",
+        Some("webp") => "image/webp",
+        Some("ktx2") => "image/ktx2",
+        _ => "image/png",
     }
 }
 

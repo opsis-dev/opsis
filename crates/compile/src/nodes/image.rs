@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use opsis_macros::{choice, settings};
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
@@ -1557,7 +1559,7 @@ fn spotlight() -> NodeDef {
             percent_text(p.dim, f64::INFINITY)
         );
         if p.blur > 0.0 {
-            text.push_str(&format!(" · blurs {} px", p.blur));
+            let _ = write!(text, " · blurs {} px", p.blur);
         }
         vec![Some(row(Icon::Flashlight, text)), size_row(ctx, |s| s)]
     })
@@ -1679,7 +1681,7 @@ fn levels() -> NodeDef {
             text.push_str(" · each colour");
         }
         if p.strength < 1.0 {
-            text.push_str(&format!(" · {}", percent_text(p.strength, f64::INFINITY)));
+            let _ = write!(text, " · {}", percent_text(p.strength, f64::INFINITY));
         }
         vec![
             Some(row(Icon::Sun, text).muted_if(p.strength <= 0.0)),

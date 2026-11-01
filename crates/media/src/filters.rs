@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use opsis_compile::color::css_hex;
 use opsis_compile::nodes::image::PlaceAlign;
 use opsis_compile::nodes::media::{Dither, PaletteFrom, ScaleMode};
@@ -126,7 +128,7 @@ pub fn join_filter(parts: &[JoinPart], to: JoinSize, background: &str) -> Join {
                     width, height
                 )
             });
-            pads.push_str(&format!("[v{i}]"));
+            let _ = write!(pads, "[v{i}]");
         }
         if audio {
             chains.push(if p.audio {
@@ -134,7 +136,7 @@ pub fn join_filter(parts: &[JoinPart], to: JoinSize, background: &str) -> Join {
             } else {
                 format!("anullsrc=r=48000:cl=stereo,atrim=duration={seconds}[a{i}]")
             });
-            pads.push_str(&format!("[a{i}]"));
+            let _ = write!(pads, "[a{i}]");
         }
     }
     let out = format!(
@@ -499,7 +501,9 @@ pub fn sound_picture_graph(p: &opsis_compile::nodes::media::SoundPicture) -> Str
             p.colours.id(),
             match p.pitch_scale {
                 opsis_compile::nodes::media::PitchScale::Lin => String::new(),
-                scale => format!(":fscale={}", serde_name(&scale)),
+                scale @ opsis_compile::nodes::media::PitchScale::Log => {
+                    format!(":fscale={}", serde_name(&scale))
+                }
             }
         ),
     };

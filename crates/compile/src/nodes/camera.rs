@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use opsis_macros::{choice, settings};
 use opsis_types::actions::{Action, ActionKind, Point, Rect};
 use opsis_types::cards::{CardRow, Icon, Tone};
@@ -1151,7 +1152,7 @@ fn apply_style() -> NodeDef {
     })
     .compile(|ctx: &Ctx<'_, ApplyStyle>| {
         let Some(clip) = ctx.input(CLIP_PORT).and_then(CompileValue::as_clip) else {
-            return Ok(Some(Default::default()));
+            return Ok(Some(IndexMap::default()));
         };
         let entries = entries_of(ctx.input(STYLE_PORT));
         let failed = std::cell::RefCell::new(None);

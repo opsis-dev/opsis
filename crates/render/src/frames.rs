@@ -28,7 +28,7 @@ impl From<ToolError> for FilmError {
         match error {
             ToolError::Cancelled => Self::Cancelled,
             ToolError::Failed { output } => Self::Encode(output),
-            other => Self::Encode(other.to_string()),
+            other @ ToolError::Missing(_) => Self::Encode(other.to_string()),
         }
     }
 }

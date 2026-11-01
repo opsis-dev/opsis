@@ -167,11 +167,7 @@ manual_midpoint = "allow" # FIXME: REMOVE
 unnecessary_wraps = "allow" # FIXME: REMOVE
 while_float = "allow" # FIXME: REMOVE
 needless_raw_string_hashes = "allow" # FIXME: REMOVE
-case_sensitive_file_extension_comparisons = "allow" # FIXME: REMOVE
-match_wildcard_for_single_variants = "allow" # FIXME: REMOVE
 imprecise_flops = "allow" # FIXME: REMOVE
-format_push_string = "allow" # FIXME: REMOVE
-default_trait_access = "allow" # FIXME: REMOVE
 
 [profile.release]
 opt-level = 3

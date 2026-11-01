@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use opsis_compile::clip::recording_props;
 use opsis_compile::node::CardInputs;
 use opsis_compile::nodes::media::{
@@ -54,7 +55,7 @@ fn shows_export_lengths_sizes_shapes_and_folders_on_cards() {
             crate::helpers::defaults_with("output.render", json!({ "variants": variants }));
         def.card_for(
             params.as_object().unwrap(),
-            &Default::default(),
+            &IndexMap::default(),
             &WorkflowSettings::default(),
             Some(&result),
             &CardInputs::default(),

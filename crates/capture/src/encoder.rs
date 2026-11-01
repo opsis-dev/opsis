@@ -24,7 +24,7 @@ impl From<ToolError> for EncodeError {
         match error {
             ToolError::Cancelled => Self::Cancelled,
             ToolError::Failed { output } => Self::Failed(output),
-            other => Self::Failed(other.to_string()),
+            other @ ToolError::Missing(_) => Self::Failed(other.to_string()),
         }
     }
 }

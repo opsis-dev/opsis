@@ -402,7 +402,8 @@ mod tests {
         for f in &trace.frames {
             let rel = f.src.strip_prefix("project:.opsis/traces/blobs/").unwrap();
             assert!(
-                rel.len() == 2 + 1 + 64 + 5 && rel.ends_with(".jpeg"),
+                rel.len() == 2 + 1 + 64 + 5
+                    && Path::new(rel).extension().is_some_and(|e| e == "jpeg"),
                 "{}",
                 f.src
             );

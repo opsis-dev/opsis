@@ -3,7 +3,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use chromiumoxide::browser::{Browser, BrowserConfig};
-use chromiumoxide::cdp::browser_protocol::target::CreateTargetParams;
+use chromiumoxide::cdp::browser_protocol::target::{
+    CreateBrowserContextParams, CreateTargetParams,
+};
 use futures::StreamExt;
 use indexmap::IndexMap;
 use opsis_compile::nodes::browser::{ColorScheme, Open};
@@ -416,7 +418,7 @@ impl Session {
 async fn new_page(launched: &Launched) -> Result<chromiumoxide::Page> {
     let context = launched
         .browser
-        .create_browser_context(Default::default())
+        .create_browser_context(CreateBrowserContextParams::default())
         .await?;
     let target = CreateTargetParams::builder()
         .url("about:blank")

@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
@@ -263,7 +264,7 @@ fn grade_footage() -> NodeDef {
         })
         .compile(|ctx: &Ctx<'_, GradeFootage>| {
             let Some(clip) = ctx.input(CLIP_PORT).and_then(CompileValue::as_clip) else {
-                return Ok(Some(Default::default()));
+                return Ok(Some(IndexMap::default()));
             };
             let grade = ctx
                 .input(GRADE_PORT)

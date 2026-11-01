@@ -162,7 +162,7 @@ pub fn card_inputs(
                     inputs.takes.insert(port, take);
                 }
             }
-            _ => {}
+            CompileValue::Audio(_) => {}
         }
     }
     inputs
