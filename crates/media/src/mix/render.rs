@@ -31,7 +31,7 @@ use crate::mix::loudness::wav_loudness;
 const MIX_VERSION: &str = "opsis-mix/1";
 const HASH_LENGTH: usize = 24;
 const KEEP_PLANS: usize = 12;
-const UNUSED_STEM: Duration = Duration::from_secs(10 * 60);
+const UNUSED_STEM: Duration = Duration::from_mins(10);
 const QUIET_PRE_DB: f64 = -100.0;
 const RECENT_FILE: &str = "recent.json";
 const MASTER_STEPS: [&str; 2] = ["Balancing loudness", "Measuring loudness"];
