@@ -556,7 +556,7 @@ fn differs(a: [u8; 4], b: [u8; 4], tolerance: u32) -> bool {
 }
 
 pub fn content_rect(image: &RgbaImage, tolerance: u32, edge: Option<[u8; 4]>) -> Option<Rect> {
-    let edge = edge.unwrap_or(image.get_pixel(0, 0).0);
+    let edge = edge.unwrap_or_else(|| image.get_pixel(0, 0).0);
     let (w, h) = image.dimensions();
     let row_full = |y: u32| (0..w).any(|x| differs(image.get_pixel(x, y).0, edge, tolerance));
     let column_full = |x: u32, top: u32, bottom: u32| {
@@ -1288,7 +1288,7 @@ pub fn magnify(image: &DynamicImage, p: &Magnify) -> Result<DynamicImage, ImageE
     let half = f64::from(p.border_width) / 2.0;
     let thin = p
         .line_width
-        .map_or((half / 2.0).max(0.5), |width| f64::from(width) / 2.0);
+        .map_or_else(|| (half / 2.0).max(0.5), |width| f64::from(width) / 2.0);
     let drop = (shown.width.min(shown.height) * MAGNIFY_SHADOW_DROP).max(1.0);
     let ends = (
         (area.x + area.width / 2.0, area.y + area.height / 2.0),

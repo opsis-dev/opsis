@@ -116,6 +116,10 @@ fn bounds_key(label: &str) -> String {
 }
 
 fn show(window: &WebviewWindow) {
+    #[expect(
+        clippy::or_fun_call,
+        reason = "focus the window even when showing it fails"
+    )]
     if let Err(error) = window.show().and(window.set_focus()) {
         log::warn!("showing a window: {error}");
     }

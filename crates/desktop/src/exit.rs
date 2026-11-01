@@ -125,6 +125,10 @@ async fn confirm(app: &AppHandle, window: &Window) -> bool {
     if !ask_first && busy.is_empty() {
         return true;
     }
+    #[expect(
+        clippy::or_fun_call,
+        reason = "focus the window even when un-minimising it fails, so the exit question is seen"
+    )]
     if let Err(error) = window.unminimize().and(window.set_focus()) {
         log::warn!("raising the window: {error}");
     }

@@ -235,7 +235,7 @@ pub fn edit_gradient(css: &str, edit: &GradientEdit) -> Option<GradientView> {
                 let color = sorted
                     .iter()
                     .find(|s| s.at >= at)
-                    .or(sorted.last())
+                    .or_else(|| sorted.last())
                     .map_or_else(|| FALLBACK_STOP_COLOR.to_owned(), |s| s.color.clone());
                 gradient.stops.push(GradientStop { color, at });
                 selected = Some(gradient.stops.len() - 1);

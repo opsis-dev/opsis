@@ -109,7 +109,7 @@ impl SourceState {
         };
         let before_kept = self.seen.front().is_some_and(|f| f.pts_us > target)
             && !(decoder.start_us == 0 && self.oldest_is_first());
-        let newest = self.ahead.as_ref().or(self.seen.back());
+        let newest = self.ahead.as_ref().or_else(|| self.seen.back());
         let jumped = newest.is_some_and(|f| target > f.pts_us + JUMP_US);
         before_kept || jumped
     }
@@ -153,7 +153,7 @@ impl SourceState {
             .iter()
             .rev()
             .find(|f| f.pts_us <= target)
-            .or(self.seen.front())
+            .or_else(|| self.seen.front())
             .or(self.ahead.as_ref())
             .map(|f| f.pts_us)
     }

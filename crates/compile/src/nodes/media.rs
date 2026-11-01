@@ -346,9 +346,9 @@ struct ClipLook<'a> {
 
 fn clip_ms(media: Option<&MediaValue>, still: Option<f64>, image_ms: f64) -> f64 {
     match media {
-        Some(m) if m.kind == MediaKind::Image => {
-            still.or(m.duration_ms.map(f64::from)).unwrap_or(image_ms)
-        }
+        Some(m) if m.kind == MediaKind::Image => still
+            .or_else(|| m.duration_ms.map(f64::from))
+            .unwrap_or(image_ms),
         _ => media
             .and_then(|m| m.duration_ms)
             .map_or(MEDIA_MS, f64::from),

@@ -1178,7 +1178,7 @@ fn add_sound() -> NodeDef {
                 let placed = anchor_sounds(items, clip, ctx.settings).into_iter().filter_map(|a| {
                     let remaining = i64::from(clip.duration_in_frames) - i64::from(a.from);
                     let remaining = u32::try_from(remaining).ok().filter(|r| *r >= 1)?;
-                    let natural = a.duration_in_frames.or(if a.looped == Some(true) { None } else { a.length_frames });
+                    let natural = a.duration_in_frames.or_else(|| if a.looped == Some(true) { None } else { a.length_frames });
                     let length = a.duration_in_frames.map_or(remaining, |d| d.min(remaining)).max(1);
                     let cut = natural.is_none_or(|n| n > remaining);
                     let fade = frames_if_set(f64::from(ctx.params.end_fade_ms), ctx.settings.fps)

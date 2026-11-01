@@ -153,7 +153,6 @@ return_self_not_must_use = "allow" # FIXME: REMOVE
 assert_is_empty = "allow" # FIXME: REMOVE
 iter_on_single_items = "allow" # FIXME: REMOVE
 redundant_clone = "allow" # FIXME: REMOVE
-or_fun_call = "allow" # FIXME: REMOVE
 significant_drop_tightening = "allow" # FIXME: REMOVE
 while_float = "allow" # FIXME: REMOVE
 

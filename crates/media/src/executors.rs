@@ -235,7 +235,8 @@ async fn transcode(
             &args,
             run_options(
                 ctx,
-                job.duration_ms.or(input.value.duration_ms.map(f64::from)),
+                job.duration_ms
+                    .or_else(|| input.value.duration_ms.map(f64::from)),
                 Some(&progress),
             ),
         )
@@ -410,7 +411,9 @@ fn reencode_args(
     let to = JoinSize {
         width: first.map_or(settings.width, |v| v.width),
         height: first.map_or(settings.height, |v| v.height),
-        fps: first.and_then(|v| v.fps).unwrap_or(f64::from(settings.fps)),
+        fps: first
+            .and_then(|v| v.fps)
+            .unwrap_or_else(|| f64::from(settings.fps)),
     };
     let join = join_filter(
         &parts.iter().map(|(_, part)| *part).collect::<Vec<_>>(),
@@ -539,7 +542,9 @@ async fn speed(
         })
         .await;
     };
-    let fps = video.fps.unwrap_or(f64::from(ctx.workflow.settings.fps));
+    let fps = video
+        .fps
+        .unwrap_or_else(|| f64::from(ctx.workflow.settings.fps));
     let sound = p.keep_audio && media_has_sound(&ctx, &*tools, &input).await?;
     let job = Transcode {
         file: "speed.mp4".into(),
@@ -666,7 +671,9 @@ async fn reverse(
     let sound = keep_audio && media_has_sound(&ctx, &*tools, &input).await?;
     let pieces = reverse_pieces(PieceBudget {
         duration_ms: duration_ms(&probe),
-        fps: video.fps.unwrap_or(f64::from(ctx.workflow.settings.fps)),
+        fps: video
+            .fps
+            .unwrap_or_else(|| f64::from(ctx.workflow.settings.fps)),
         frame_bytes: frame_bytes(
             f64::from(video.width),
             f64::from(video.height),

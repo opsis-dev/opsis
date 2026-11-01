@@ -82,7 +82,7 @@ fn partial_file<'a>() -> tempfile::Builder<'a, 'a> {
 }
 
 pub fn atomic_write(file: &Path, data: &[u8]) -> std::io::Result<()> {
-    let dir = file.parent().unwrap_or(Path::new("."));
+    let dir = file.parent().unwrap_or_else(|| Path::new("."));
     let mut temp = partial_file().tempfile_in(dir)?;
     temp.write_all(data)?;
     temp.as_file().sync_all()?;
@@ -96,7 +96,7 @@ where
     F: FnOnce(PathBuf) -> Fut,
     Fut: std::future::Future<Output = Result<T, E>>,
 {
-    let dir = file.parent().unwrap_or(Path::new("."));
+    let dir = file.parent().unwrap_or_else(|| Path::new("."));
     let ext = file
         .extension()
         .map(|e| format!(".{}", e.to_string_lossy()))

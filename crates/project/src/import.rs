@@ -50,7 +50,7 @@ fn import_model(project_dir: &Path, file: &Path) -> Result<String, ImportError> 
     if !found.refused.is_empty() {
         return Err(ImportError::OutsideFiles(found.refused));
     }
-    let source = file.parent().unwrap_or(Path::new("."));
+    let source = file.parent().unwrap_or_else(|| Path::new("."));
     let missing: Vec<String> = found
         .files
         .iter()

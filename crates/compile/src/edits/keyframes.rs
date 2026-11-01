@@ -151,8 +151,8 @@ pub fn apply_keyframe_edit(wf: &mut Workflow, edit: KeyframeEdit) -> Result<(), 
         }
         KeyframeEdit::AppendKey { node_id, track } => {
             edit_track(wf, &node_id, track, |keys, fps| {
-                let next = keys.last().map_or(
-                    Keyframe {
+                let next = keys.last().map_or_else(
+                    || Keyframe {
                         frame: 0.0,
                         value: envelope_track(track).rest,
                         ease: Ease::Linear,

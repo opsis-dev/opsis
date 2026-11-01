@@ -65,7 +65,9 @@ fn make(prepared: &PreparedRef, source: &Path) -> Result<Vec<u8>, PrepareError> 
             Ok(serde_json::to_vec(&typeface::typeface(&bytes, weight)?)
                 .map_err(|e| PrepareError::Detail(e.to_string()))?)
         }
-        PreparedKind::Model => model::model(&bytes, source.parent().unwrap_or(Path::new("."))),
+        PreparedKind::Model => {
+            model::model(&bytes, source.parent().unwrap_or_else(|| Path::new(".")))
+        }
         PreparedKind::Svg => svg::svg(&bytes),
         PreparedKind::Texture if extension_of(&source.to_string_lossy()) == "svg" => Ok(bytes),
         PreparedKind::Texture => texture::texture(&bytes),

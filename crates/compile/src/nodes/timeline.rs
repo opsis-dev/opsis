@@ -447,7 +447,7 @@ fn trim() -> NodeDef {
             vec![
                 Some(range_row(f64::from(p.start_ms), end)),
                 clip_ms
-                    .filter(|ms| *ms != 0.0 && end.unwrap_or(f64::from(p.start_ms)) > *ms)
+                    .filter(|ms| *ms != 0.0 && end.unwrap_or_else(|| f64::from(p.start_ms)) > *ms)
                     .map(|ms| {
                         row(
                             Icon::TriangleAlert,
