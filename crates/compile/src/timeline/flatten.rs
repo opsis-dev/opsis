@@ -217,7 +217,7 @@ pub struct AudioBar {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hits: Option<Vec<f64>>,
     #[serde(skip)]
-    pub parts: Vec<AudioBar>,
+    pub parts: Vec<Self>,
     #[serde(skip)]
     pub rate: f64,
 }

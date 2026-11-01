@@ -11,7 +11,7 @@ pub struct Short;
 
 impl From<Short> for ProbeError {
     fn from(_: Short) -> Self {
-        ProbeError::Damaged
+        Self::Damaged
     }
 }
 

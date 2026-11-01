@@ -150,7 +150,6 @@ derive_partial_eq_without_eq = "allow" # FIXME: REMOVE
 unreadable_literal = "allow" # FIXME: REMOVE
 map_unwrap_or = "allow" # FIXME: REMOVE
 float_cmp = "allow" # FIXME: REMOVE
-use_self = "allow" # FIXME: REMOVE
 significant_drop_tightening = "allow" # FIXME: REMOVE
 while_float = "allow" # FIXME: REMOVE
 

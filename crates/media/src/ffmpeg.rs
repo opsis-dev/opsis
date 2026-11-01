@@ -303,11 +303,11 @@ pub trait MediaTools: Send + Sync {
 
 impl MediaTools for Ffmpeg {
     fn run<'a>(&'a self, args: &'a [String], opts: RunOptions<'a>) -> ToolFuture<'a, ()> {
-        Box::pin(Ffmpeg::run(self, args, opts))
+        Box::pin(Self::run(self, args, opts))
     }
 
     fn probe<'a>(&'a self, file: &'a Path) -> ToolFuture<'a, Probe> {
-        Box::pin(Ffmpeg::probe(file))
+        Box::pin(Self::probe(file))
     }
 
     fn pipe(
@@ -315,6 +315,6 @@ impl MediaTools for Ffmpeg {
         args: &[String],
         cancel: Option<CancellationToken>,
     ) -> Result<FramePipe, ToolError> {
-        Ffmpeg::pipe(self, args, cancel)
+        Self::pipe(self, args, cancel)
     }
 }

@@ -27,7 +27,7 @@ pub enum Backdrop {
 }
 
 impl Backdrop {
-    pub const ALL: [Backdrop; 16] = [
+    pub const ALL: [Self; 16] = [
         Self::Glaze,
         Self::Ink,
         Self::Cobalt,

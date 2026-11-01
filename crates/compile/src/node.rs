@@ -51,7 +51,7 @@ pub enum Category {
 }
 
 impl Category {
-    pub const ALL: [Category; 16] = [
+    pub const ALL: [Self; 16] = [
         Self::Browser,
         Self::Capture,
         Self::Camera,

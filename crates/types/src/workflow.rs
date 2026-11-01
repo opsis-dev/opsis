@@ -24,7 +24,7 @@ pub enum PortType {
 }
 
 impl PortType {
-    pub const ALL: [PortType; 9] = [
+    pub const ALL: [Self; 9] = [
         Self::BrowserSession,
         Self::Recording,
         Self::RecordingStyle,

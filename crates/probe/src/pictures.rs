@@ -17,7 +17,7 @@ pub struct Layout {
 }
 
 impl Layout {
-    pub const PLAIN: Layout = Layout {
+    pub const PLAIN: Self = Self {
         chroma: Chroma::C420,
         depth: 8,
         full_range: false,

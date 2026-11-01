@@ -229,8 +229,8 @@ pub fn plan_font_files<C: AsRef<FontCandidate> + Clone>(candidates: &[C]) -> Vec
     plan
 }
 
-impl AsRef<FontCandidate> for FontCandidate {
-    fn as_ref(&self) -> &FontCandidate {
+impl AsRef<Self> for FontCandidate {
+    fn as_ref(&self) -> &Self {
         self
     }
 }

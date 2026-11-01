@@ -39,13 +39,13 @@ pub struct Bounds {
 }
 
 impl Point {
-    pub fn distance(self, other: Point) -> f64 {
+    pub fn distance(self, other: Self) -> f64 {
         (other.x - self.x).hypot(other.y - self.y)
     }
 
     #[must_use]
-    pub fn lerp(self, to: Point, t: f64) -> Point {
-        Point {
+    pub fn lerp(self, to: Self, t: f64) -> Self {
+        Self {
             x: self.x + (to.x - self.x) * t,
             y: self.y + (to.y - self.y) * t,
         }
@@ -63,7 +63,7 @@ impl Rect {
 
 impl From<Bounds> for Rect {
     fn from(b: Bounds) -> Self {
-        Rect {
+        Self {
             x: b.x,
             y: b.y,
             w: b.width,

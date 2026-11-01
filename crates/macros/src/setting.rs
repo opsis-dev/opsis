@@ -51,7 +51,7 @@ impl Setting {
 
 impl Parse for Setting {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut setting = Setting {
+        let mut setting = Self {
             description: None,
             default: None,
             schema: Vec::new(),

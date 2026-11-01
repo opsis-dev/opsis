@@ -414,7 +414,7 @@ pub struct LastRun {
 }
 
 impl LastRun {
-    pub fn parse(value: &Value) -> Option<LastRun> {
+    pub fn parse(value: &Value) -> Option<Self> {
         let object = value.as_object()?;
         let updated_at = object.get("updatedAt")?.as_i64()?;
         let entries = |key: &str| -> Option<IndexMap<String, Value>> {
@@ -440,7 +440,7 @@ impl LastRun {
                     .collect(),
             ),
         };
-        Some(LastRun {
+        Some(Self {
             updated_at,
             nodes,
             failures,

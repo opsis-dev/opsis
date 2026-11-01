@@ -25,7 +25,7 @@ pub struct KeyDescription {
     pub text: String,
     pub location: i64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub shifted: Option<Box<KeyDescription>>,
+    pub shifted: Option<Box<Self>>,
 }
 
 #[derive(Debug, Deserialize)]

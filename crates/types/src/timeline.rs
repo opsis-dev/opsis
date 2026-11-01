@@ -58,7 +58,7 @@ pub enum Ease {
 }
 
 impl Ease {
-    pub const ALL: [Ease; 5] = [Self::Linear, Self::In, Self::Out, Self::InOut, Self::Hold];
+    pub const ALL: [Self; 5] = [Self::Linear, Self::In, Self::Out, Self::InOut, Self::Hold];
 
     pub fn label(self) -> &'static str {
         match self {

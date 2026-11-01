@@ -27,8 +27,8 @@ pub enum Target {
 impl Target {
     pub fn element(&self) -> Result<&str> {
         match self {
-            Target::Element(selector) => Ok(selector),
-            Target::Point(_) => Err(CaptureError::failed(
+            Self::Element(selector) => Ok(selector),
+            Self::Point(_) => Err(CaptureError::failed(
                 "A point on the page isn't an element. Pick an element instead.",
             )),
         }

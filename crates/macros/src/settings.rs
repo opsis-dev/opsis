@@ -13,7 +13,7 @@ struct Options {
 
 impl Parse for Options {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut options = Options {
+        let mut options = Self {
             export: false,
             check: false,
         };
@@ -121,19 +121,19 @@ mod tests {
     impl Value {
         fn written(&self) -> String {
             match self {
-                Value::Flag => String::new(),
-                Value::Number(n) => format!(" = {n}"),
-                Value::Text(text) => format!(" = {text:?}"),
-                Value::Object(n) => format!(" = {{ \"at\": {n} }}"),
+                Self::Flag => String::new(),
+                Self::Number(n) => format!(" = {n}"),
+                Self::Text(text) => format!(" = {text:?}"),
+                Self::Object(n) => format!(" = {{ \"at\": {n} }}"),
             }
         }
 
         fn expected(&self) -> String {
             match self {
-                Value::Flag => "true".into(),
-                Value::Number(n) => n.to_string(),
-                Value::Text(text) => format!("{text:?}"),
-                Value::Object(n) => format!("{{ \"at\" : {n} }}"),
+                Self::Flag => "true".into(),
+                Self::Number(n) => n.to_string(),
+                Self::Text(text) => format!("{text:?}"),
+                Self::Object(n) => format!("{{ \"at\" : {n} }}"),
             }
         }
     }

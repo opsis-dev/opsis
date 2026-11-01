@@ -66,7 +66,7 @@ pub type Tools = Arc<dyn MediaTools>;
 
 impl From<GradeError> for ExecError {
     fn from(error: GradeError) -> Self {
-        ExecError::new(error.to_string())
+        Self::new(error.to_string())
     }
 }
 
@@ -86,7 +86,7 @@ impl From<FileCheckError> for ExecError {
     fn from(error: FileCheckError) -> Self {
         match error {
             FileCheckError::Tool(tool) => tool_error(tool),
-            other => ExecError::new(other.to_string()),
+            other => Self::new(other.to_string()),
         }
     }
 }

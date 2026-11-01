@@ -22,7 +22,7 @@ pub struct Options {
 
 impl Parse for Options {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut options = Options {
+        let mut options = Self {
             export: false,
             rename_all: LitStr::new("kebab-case", input.span()),
         };
