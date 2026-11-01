@@ -1,0 +1,44 @@
+[graph]
+all-features = true
+targets = [
+  "x86_64-unknown-linux-gnu",
+  "aarch64-unknown-linux-gnu",
+  "x86_64-pc-windows-msvc",
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+]
+
+[advisories]
+version = 2
+db-path = "~/.cache/opsis-advisory-db"
+yanked = "deny"
+ignore = [
+  { id = "RUSTSEC-2024-0370", reason = "Unmaintained, not vulnerable, and no safe upgrade: only glib-macros 0.18 needs it, and the Linux webview's GTK 3 stack can't leave 0.18" },
+  { id = "RUSTSEC-2024-0436", reason = "Unmaintained, not vulnerable, and no safe upgrade: specta needs it at the 2.0.0-rc.26 that tauri-specta pins, and so do pulp and rav1e under image" },
+  { id = "RUSTSEC-2026-0192", reason = "Unmaintained, not vulnerable, and no safe upgrade: ab_glyph, which opsis-image and imageproc draw text with, has no release without it" },
+  { id = "RUSTSEC-2026-0370", reason = "Unmaintained, not vulnerable, and no safe upgrade: zbus 5 needs it, and the notification and opener plugins and the Secret Service keyring store have no release past zbus 5" },
+  { id = "RUSTSEC-2026-0371", reason = "Unmaintained, not vulnerable, and no safe upgrade: zbus 5 needs it, and the notification and opener plugins and the Secret Service keyring store have no release past zbus 5" },
+  { id = "RUSTSEC-2026-0372", reason = "Unmaintained, not vulnerable, and no safe upgrade: zbus 5 needs it, and the notification and opener plugins and the Secret Service keyring store have no release past zbus 5" },
+]
+
+[licenses]
+version = 2
+allow = [
+  "0BSD",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "BSL-1.0",
+  "bzip2-1.0.6",
+  "CC0-1.0",
+  "GPL-3.0-or-later",
+  "IJG",
+  "ISC",
+  "MIT",
+  "MIT-0",
+  "MPL-2.0",
+  "Unicode-3.0",
+  "Unlicense",
+  "Zlib",
+]
