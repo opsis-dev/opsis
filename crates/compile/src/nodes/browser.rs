@@ -1123,26 +1123,26 @@ fn with_beat(mut rows: Rows, beat: &Beat) -> Rows {
     rows
 }
 
-fn target_row(icon: Icon, t: &Target) -> Option<CardRow> {
-    Some(element_row(icon, &t.target, t.target_role.as_deref()))
+fn target_row(icon: Icon, t: &Target) -> CardRow {
+    element_row(icon, &t.target, t.target_role.as_deref())
 }
 
-fn click_row(p: &Click) -> Option<CardRow> {
-    let r = target_row(Icon::MousePointerClick, &p.target)?;
+fn click_row(p: &Click) -> CardRow {
+    let r = target_row(Icon::MousePointerClick, &p.target);
     let how = if p.button == ClickButton::Right {
         "Right-click"
     } else if p.double_clicks() {
         "Double-click"
     } else {
-        return Some(r);
+        return r;
     };
     if r.tone == Some(Tone::Warn) {
-        return Some(r);
+        return r;
     }
-    Some(CardRow {
+    CardRow {
         text: format!("{how} {}", r.text),
         ..r
-    })
+    }
 }
 
 fn address_row(url: &str) -> CardRow {
@@ -1292,7 +1292,7 @@ fn type_rows(p: &Type) -> Rows {
     };
     with_beat(
         vec![
-            target_row(Icon::Crosshair, &p.target),
+            Some(target_row(Icon::Crosshair, &p.target)),
             Some(typed_row),
             p.sound.row(),
         ],
@@ -1310,7 +1310,10 @@ fn hover_rows(p: &Hover) -> Rows {
         row(Icon::Hourglass, "Passes over it").tone(Tone::Muted)
     };
     with_beat(
-        vec![target_row(Icon::MousePointer2, &p.target), Some(hover)],
+        vec![
+            Some(target_row(Icon::MousePointer2, &p.target)),
+            Some(hover),
+        ],
         &p.beat,
     )
 }
@@ -1442,7 +1445,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Click",
                 "Moves the cursor to an element and clicks it.",
             ),
-            |p: &Click| with_beat(vec![click_row(p), p.sound.row()], &p.beat),
+            |p: &Click| with_beat(vec![Some(click_row(p)), p.sound.row()], &p.beat),
         ).look(NodeLook::of("lucide:mouse-pointer-click").moves(NodeMotion::Press)),
         card(
             action::<Type>(
@@ -1492,7 +1495,7 @@ pub fn nodes() -> Vec<NodeDef> {
             ),
             |p: &Select| {
                 vec![
-                    target_row(Icon::List, &p.target),
+                    Some(target_row(Icon::List, &p.target)),
                     Some(quoted_row(Icon::Check, &p.value, "Choose an option")),
                     pause(p.beat.pause.after),
                 ]
@@ -1565,7 +1568,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 "Find element early",
                 "Looks an element up ahead of time so a later action doesn't pause on screen while searching.",
             ),
-            |p: &Hoist| vec![target_row(Icon::Crosshair, &p.target)],
+            |p: &Hoist| vec![Some(target_row(Icon::Crosshair, &p.target))],
         ).look(NodeLook::of("lucide:search-check")),
         card(
             chain::<SetState>(

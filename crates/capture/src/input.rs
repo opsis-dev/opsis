@@ -13,7 +13,7 @@ use crate::keyboard::{
 };
 use crate::trace::CallInfo;
 
-const SETUP_DRAG_LISTENERS: &str = r#"function setupDragListeners() {
+const SETUP_DRAG_LISTENERS: &str = r"function setupDragListeners() {
   let didStartDrag = Promise.resolve(false);
   let dragEvent = null;
   const dragListener = (event) => dragEvent = event;
@@ -31,7 +31,7 @@ const SETUP_DRAG_LISTENERS: &str = r#"function setupDragListeners() {
     delete window.__cleanupDrag;
     return val;
   };
-}"#;
+}";
 const DRAG_INTERCEPT_WAIT: Duration = Duration::from_secs(5);
 
 fn modifiers_mask(modifiers: &BTreeSet<String>) -> i64 {

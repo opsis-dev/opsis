@@ -128,7 +128,7 @@ pub const ADD_STYLES: &str = r#"function addStyles(css) {
   watch.observe(document, { childList: true });
 }"#;
 
-pub const INVALID_SELECTORS: &str = r#"function invalidSelectors(selectors) {
+pub const INVALID_SELECTORS: &str = r"function invalidSelectors(selectors) {
   return selectors.filter((selector) => {
     try {
       document.createDocumentFragment().querySelector(selector);
@@ -137,9 +137,9 @@ pub const INVALID_SELECTORS: &str = r#"function invalidSelectors(selectors) {
       return true;
     }
   });
-}"#;
+}";
 
-pub const OPTION_VALUE: &str = r#"function optionValue(wanted) {
+pub const OPTION_VALUE: &str = r"function optionValue(wanted) {
   const el = this;
   if (!(el instanceof HTMLSelectElement)) return null;
   const options = [...el.options];
@@ -147,7 +147,7 @@ pub const OPTION_VALUE: &str = r#"function optionValue(wanted) {
     options.find((o) => o.value === wanted) ??
     options.find((o) => o.label.trim() === wanted.trim());
   return option?.value;
-}"#;
+}";
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SavedStorage<'a> {
@@ -179,9 +179,9 @@ fn arrow_svg(p: &Record) -> String {
     let fill = html_escape::encode_double_quoted_attribute(&p.cursor_fill);
     let stroke = html_escape::encode_double_quoted_attribute(&p.cursor_outline);
     format!(
-        r##"<svg width="{w}" height="{h}" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
+        r#"<svg width="{w}" height="{h}" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
 <path d="M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z" fill="{fill}" stroke="{stroke}" stroke-width="1.85" stroke-linejoin="round" paint-order="stroke"/>
-</svg>"##
+</svg>"#
     )
 }
 
@@ -189,7 +189,7 @@ fn cursor_css(p: &Record) -> String {
     let ring = &p.ring_color;
     let shown = if p.click_ring { "block" } else { "none" };
     format!(
-        r#"
+        r"
 * {{ cursor: none !important; }}
 #pw-cursor {{
   position: fixed; top: 0; left: 0; pointer-events: none; z-index: {CURSOR_Z};
@@ -205,7 +205,7 @@ fn cursor_css(p: &Record) -> String {
   animation: pw-ripple {RIPPLE_MS}ms ease-out forwards;
 }}
 @keyframes pw-ripple {{ from {{ transform: scale(.3); opacity: .85; }} to {{ transform: scale(1.35); opacity: 0; }} }}
-"#,
+",
         off = OFF_SCREEN_PX,
         hx = HOTSPOT.0 * p.cursor_scale,
         hy = HOTSPOT.1 * p.cursor_scale,
@@ -435,14 +435,14 @@ pub const STEP_OVERLAYS: &str = r#"(injected, ms) => {
   }
 }"#;
 
-pub const HOLD_PAGE_CLOCK: &str = r#"async function holdPageClock({ time, keepFixed }) {
+pub const HOLD_PAGE_CLOCK: &str = r"async function holdPageClock({ time, keepFixed }) {
   const clock = globalThis.__pwClock.controller;
   const fixed = keepFixed && clock._now.isFixedTime;
   const at = time ?? clock.now();
   if (time !== null) clock.install(time);
   await clock.pauseAt(at);
   if (fixed) clock.setFixedTime(at);
-}"#;
+}";
 
 #[derive(Debug, Clone, Copy, Deserialize)]
 pub struct PageNow {

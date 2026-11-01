@@ -8,7 +8,6 @@ use tauri::{AppHandle, CloseRequestApi, Manager, State, Window};
 use tauri_specta::Event;
 use tokio::sync::{Notify, oneshot};
 
-use crate::error::CommandResult;
 use crate::events::{ConfirmClose, FlushSave};
 use crate::run::RunHost;
 use crate::state::AppState;
@@ -220,13 +219,12 @@ pub fn close_shown(exit: State<'_, Exit>) {
 
 #[tauri::command]
 #[specta::specta]
-pub fn decide_close(exit: State<'_, Exit>, decision: CloseDecision) -> CommandResult<()> {
+pub fn decide_close(exit: State<'_, Exit>, decision: CloseDecision) {
     if let Some(answer) = exit.question.lock().expect("close question").take()
         && answer.send(decision).is_err()
     {
         log::debug!("the close question was already answered");
     }
-    Ok(())
 }
 
 #[tauri::command]

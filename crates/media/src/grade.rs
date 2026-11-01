@@ -424,11 +424,11 @@ fn params<P: DeserializeOwned>(entry: &StyleEntry) -> Result<P, GradeError> {
     Ok(def.typed_params(&entry.params)?)
 }
 
-fn filters_only(filters: Vec<String>) -> Option<Piece> {
-    Some(Piece {
+fn filters_only(filters: Vec<String>) -> Piece {
+    Piece {
         filters,
         ..Piece::default()
-    })
+    }
 }
 
 fn piece_of<E: From<GradeError>>(
@@ -437,12 +437,12 @@ fn piece_of<E: From<GradeError>>(
     resolve: Resolve<'_, E>,
 ) -> Result<Option<Piece>, E> {
     Ok(match entry.kind.as_str() {
-        COLOUR_TYPE => filters_only(colour_filters(&params(entry)?)),
+        COLOUR_TYPE => Some(filters_only(colour_filters(&params(entry)?))),
         LOOK_TYPE => look_piece(&params(entry)?, resolve)?,
         MONO_TYPE => mono_piece(&params(entry)?),
-        TEXTURE_TYPE => filters_only(texture_filters(&params(entry)?, size)),
-        LENS_TYPE => filters_only(lens_filters(&params(entry)?, size)),
-        AUTO_FIX_TYPE => filters_only(auto_fix_filters(&params(entry)?, size)),
+        TEXTURE_TYPE => Some(filters_only(texture_filters(&params(entry)?, size))),
+        LENS_TYPE => Some(filters_only(lens_filters(&params(entry)?, size))),
+        AUTO_FIX_TYPE => Some(filters_only(auto_fix_filters(&params(entry)?, size))),
         other => return Err(GradeError::NotAStep(other.to_owned()).into()),
     })
 }

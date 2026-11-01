@@ -357,8 +357,8 @@ fn enters(items: &[TimelineItem]) -> Vec<Option<(String, u32, bool)>> {
         .collect()
 }
 
-fn cut(kind: &str, frames: u32, hold: bool) -> Option<(String, u32, bool)> {
-    Some((kind.to_owned(), frames, hold))
+fn cut(kind: &str, frames: u32, hold: bool) -> (String, u32, bool) {
+    (kind.to_owned(), frames, hold)
 }
 
 #[test]
@@ -370,14 +370,18 @@ fn uses_each_cuts_own_transition_a_plain_cut_for_none_and_the_last_entry_for_a_p
     );
     assert_eq!(
         enters(&items),
-        [None, cut("fade", 10, false), cut("wipe", 20, true)]
+        [
+            None,
+            Some(cut("fade", 10, false)),
+            Some(cut("wipe", 20, true))
+        ]
     );
     assert_eq!(items[1].base().exit.as_ref().unwrap().kind, "wipe");
     let items = sequence(
         json!([{ "before": "in2", "transition": "none", "transitionDuration": 15 }]),
         &three,
     );
-    assert_eq!(enters(&items), [None, None, cut("fade", 10, false)]);
+    assert_eq!(enters(&items), [None, None, Some(cut("fade", 10, false))]);
     let items = sequence(
         json!([
             { "before": "in5", "transition": "wipe", "transitionDuration": 20 },
@@ -386,7 +390,7 @@ fn uses_each_cuts_own_transition_a_plain_cut_for_none_and_the_last_entry_for_a_p
         ]),
         &["in1", "in2"],
     );
-    assert_eq!(enters(&items), [None, cut("iris", 8, false)]);
+    assert_eq!(enters(&items), [None, Some(cut("iris", 8, false))]);
 }
 
 #[test]

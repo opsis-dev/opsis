@@ -31,14 +31,14 @@ fn solid(id: &str, frames: u32) -> ClipValue {
     item_clip(id, "solid", Map::new(), frames, ItemExtra::default())
 }
 
-fn fade(kind: &str, frames: u32, hold: bool) -> Option<TransitionRef> {
-    Some(TransitionRef {
+fn fade(kind: &str, frames: u32, hold: bool) -> TransitionRef {
+    TransitionRef {
         kind: kind.into(),
         duration_in_frames: frames,
         params: None,
         hold: hold.then_some(true),
         easing: None,
-    })
+    }
 }
 
 fn plain() -> SequenceSlots<'static> {
@@ -75,7 +75,7 @@ fn clamps_a_transition_to_the_shorter_clip_and_records_spans_per_node() {
     let seq = sequence_clips(
         "s",
         &[solid("a", 10), solid("b", 100)],
-        &[None, fade("fade", 30, false)],
+        &[None, Some(fade("fade", 30, false))],
         plain(),
     );
     assert_eq!(
@@ -113,7 +113,11 @@ fn held_transitions_keep_every_clip_whole() {
     let seq = sequence_clips(
         "seq",
         &[title("a", 45), title("b", 60), title("c", 30)],
-        &[None, fade("fade", 30, true), fade("fade", 10, true)],
+        &[
+            None,
+            Some(fade("fade", 30, true)),
+            Some(fade("fade", 10, true)),
+        ],
         plain(),
     );
     assert_eq!(seq.duration_in_frames, 45 + 30 + 60 + 10 + 30);
@@ -162,7 +166,7 @@ fn held_transitions_delay_a_clips_own_sound_and_are_not_flagged() {
         let seq = sequence_clips(
             "seq",
             &[video("a", 45), video("b", 60)],
-            &[None, fade("fade", 30, hold)],
+            &[None, Some(fade("fade", 30, hold))],
             plain(),
         );
         flatten_spec(&clip_to_spec(&seq, &settings()))
@@ -180,7 +184,12 @@ fn held_transitions_delay_a_clips_own_sound_and_are_not_flagged() {
     ];
     let covers = |hold: bool| {
         flatten_spec(&clip_to_spec(
-            &sequence_clips("seq", &parts, &[None, fade("fade", 30, hold)], plain()),
+            &sequence_clips(
+                "seq",
+                &parts,
+                &[None, Some(fade("fade", 30, hold))],
+                plain(),
+            ),
             &settings(),
         ))
         .transitions[0]
@@ -514,7 +523,11 @@ fn spans_of(clips: &[u32], cuts: &[Option<TransitionRef>]) -> (u32, Vec<(u32, u3
 fn never_lets_a_clips_two_transitions_overlap() {
     let (film, items, cuts) = spans_of(
         &[30, 30, 30],
-        &[None, fade("fade", 60, false), fade("fade", 60, false)],
+        &[
+            None,
+            Some(fade("fade", 60, false)),
+            Some(fade("fade", 60, false)),
+        ],
     );
     assert_eq!((cuts, film), (vec![0, 15, 15], 60));
     let most = (0..film)
@@ -523,13 +536,13 @@ fn never_lets_a_clips_two_transitions_overlap() {
         .unwrap();
     assert_eq!(most, 2);
     assert_eq!(
-        spans_of(&[30, 60], &[None, fade("fade", 60, false)]).2,
+        spans_of(&[30, 60], &[None, Some(fade("fade", 60, false))]).2,
         [0, 29]
     );
     assert_eq!(
-        spans_of(&[30, 1], &[None, fade("fade", 10, false)]).2,
+        spans_of(&[30, 1], &[None, Some(fade("fade", 10, false))]).2,
         [0, 0]
     );
-    let (film, _, cuts) = spans_of(&[30, 30], &[None, fade("fade", 45, true)]);
+    let (film, _, cuts) = spans_of(&[30, 30], &[None, Some(fade("fade", 45, true))]);
     assert_eq!((cuts, film), (vec![0, 45], 105));
 }

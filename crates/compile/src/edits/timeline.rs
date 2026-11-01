@@ -89,14 +89,6 @@ pub enum TimelineEditError {
 
 pub type Outcome = Result<Done, TimelineEditError>;
 
-fn done() -> Outcome {
-    Ok(Done::default())
-}
-
-fn said(message: Option<String>) -> Outcome {
-    Ok(Done { message })
-}
-
 fn not_connected(doing: &'static str) -> TimelineEditError {
     TimelineEditError::NotConnected(doing)
 }
@@ -300,9 +292,11 @@ fn shift_param(wf: &mut Workflow, r: &ParamRef, delta_content: f64, fps: u32) ->
     clamped
 }
 
-fn shift_to(wf: &mut Workflow, r: &ParamRef, delta: f64, fps: u32, at_limit: &str) -> Outcome {
+fn shift_to(wf: &mut Workflow, r: &ParamRef, delta: f64, fps: u32, at_limit: &str) -> Done {
     let clamped = shift_param(wf, r, delta, fps);
-    said(clamped.then(|| at_limit.to_owned()))
+    Done {
+        message: clamped.then(|| at_limit.to_owned()),
+    }
 }
 
 fn set_length(wf: &mut Workflow, r: &ParamRef, length_content: f64, fps: u32) {
@@ -509,13 +503,7 @@ impl TimelineEdits<'_> {
         self.workflow.node(&r.node_id).map(|_| (link, r.clone()))
     }
 
-    fn shift_owned(
-        &mut self,
-        link: &ChainLink,
-        r: &ParamRef,
-        delta: f64,
-        at_limit: &str,
-    ) -> Outcome {
+    fn shift_owned(&mut self, link: &ChainLink, r: &ParamRef, delta: f64, at_limit: &str) -> Done {
         let fps = self.fps;
         shift_to(
             &mut self.workflow,
@@ -532,25 +520,19 @@ impl TimelineEdits<'_> {
         edge: &WorkflowEdge,
         added: Added,
         params: Map<String, Value>,
-    ) -> Outcome {
+    ) -> Done {
         let name = self.clip_name(&bar.node_id);
         self.insert_on_edge(edge, added, params);
-        Ok(Done {
+        Done {
             message: Some(format!(
                 "Added “{}” {} {name}.",
                 added.label(),
                 added.place()
             )),
-        })
+        }
     }
 
-    fn add_trim(
-        &mut self,
-        bar: &VideoBar,
-        edge: &WorkflowEdge,
-        start: f64,
-        length: f64,
-    ) -> Outcome {
+    fn add_trim(&mut self, bar: &VideoBar, edge: &WorkflowEdge, start: f64, length: f64) -> Done {
         let fps = self.fps;
         self.add(
             bar,
@@ -565,10 +547,10 @@ impl TimelineEdits<'_> {
 
     pub fn move_bar(&mut self, bar: &VideoBar, delta: f64) -> Outcome {
         if no_move(delta) {
-            return done();
+            return Ok(Done::default());
         }
         if let Some((link, r)) = self.owned(bar, HandleKind::Move) {
-            return self.shift_owned(link, &r, delta, TOO_EARLY);
+            return Ok(self.shift_owned(link, &r, delta, TOO_EARLY));
         }
         if delta < 0.0 {
             let in_sequence = container_of(bar)
@@ -585,12 +567,12 @@ impl TimelineEdits<'_> {
             .ok_or_else(|| not_connected("move it"))?;
         let rate = slot_link(bar).map_or(1.0, |l| l.rate);
         let ms = ms_value((delta * rate).round(), self.fps);
-        self.add(bar, &edge, Added::Delay, values(&[("ms", ms)]))
+        Ok(self.add(bar, &edge, Added::Delay, values(&[("ms", ms)])))
     }
 
     fn trim_start(&mut self, bar: &VideoBar, delta: f64) -> Outcome {
         if let Some((link, r)) = self.owned(bar, HandleKind::TrimStart) {
-            return self.shift_owned(link, &r, delta, AT_START);
+            return Ok(self.shift_owned(link, &r, delta, AT_START));
         }
         if delta < 0.0 {
             return Err(TimelineEditError::AtStart);
@@ -598,12 +580,12 @@ impl TimelineEdits<'_> {
         let edge = self
             .edge_out_of_clip(bar)
             .ok_or_else(|| not_connected("trim it"))?;
-        self.add_trim(
+        Ok(self.add_trim(
             bar,
             &edge,
             ((bar.content_start + delta) * bar.rate).round(),
             0.0,
-        )
+        ))
     }
 
     fn trim_end(&mut self, bar: &VideoBar, delta: f64) -> Outcome {
@@ -613,7 +595,7 @@ impl TimelineEdits<'_> {
                 return Err(TimelineEditError::NeedsAFrame);
             }
             set_length(&mut self.workflow, &r, length, self.fps);
-            return done();
+            return Ok(Done::default());
         }
         if delta > 0.0 {
             return Err(TimelineEditError::AtEnd);
@@ -625,12 +607,12 @@ impl TimelineEdits<'_> {
         if keep < 1.0 {
             return Err(TimelineEditError::NeedsAFrame);
         }
-        self.add_trim(bar, &edge, bar.content_start.round(), keep)
+        Ok(self.add_trim(bar, &edge, bar.content_start.round(), keep))
     }
 
     pub fn trim_bar(&mut self, bar: &VideoBar, at_start: bool, delta: f64) -> Outcome {
         if no_move(delta) {
-            return done();
+            return Ok(Done::default());
         }
         if at_start {
             self.trim_start(bar, delta)
@@ -641,7 +623,7 @@ impl TimelineEdits<'_> {
 
     pub fn slip_bar(&mut self, bar: &VideoBar, delta: f64) -> Outcome {
         if no_move(delta) {
-            return done();
+            return Ok(Done::default());
         }
         let content = (delta * bar.rate).round();
         if let Some((link, r)) = self.owned(bar, HandleKind::TrimStart) {
@@ -654,7 +636,7 @@ impl TimelineEdits<'_> {
                 ..r
             };
             let fps = self.fps;
-            return shift_to(&mut self.workflow, &alone, content, fps, AT_START);
+            return Ok(shift_to(&mut self.workflow, &alone, content, fps, AT_START));
         }
         if content < 0.0 {
             return Err(TimelineEditError::AtStart);
@@ -663,17 +645,19 @@ impl TimelineEdits<'_> {
             .edge_out_of_clip(bar)
             .ok_or_else(|| not_connected("edit it"))?;
         let length = (bar.content_end - bar.content_start).round();
-        self.add_trim(bar, &edge, bar.content_start.round() + content, length)
+        Ok(self.add_trim(bar, &edge, bar.content_start.round() + content, length))
     }
 
     pub fn roll_cut(&mut self, left: &VideoBar, right: &VideoBar, delta: f64) -> Outcome {
         if no_move(delta) {
-            return done();
+            return Ok(Done::default());
         }
         let a = self.trim_end(left, delta)?;
         let b = self.trim_start(right, delta)?;
         let joined: Vec<String> = [a.message, b.message].into_iter().flatten().collect();
-        said((!joined.is_empty()).then(|| joined.join(" ")))
+        Ok(Done {
+            message: (!joined.is_empty()).then(|| joined.join(" ")),
+        })
     }
 
     pub fn speed_bar(&mut self, bar: &VideoBar, new_length: f64) -> Outcome {
@@ -693,17 +677,17 @@ impl TimelineEdits<'_> {
                 rate => rate,
             };
             write_param(&mut self.workflow, &at, clamp_rate(rate * factor));
-            return done();
+            return Ok(Done::default());
         }
         let edge = self
             .slot_edge(bar)
             .ok_or_else(|| not_connected("change its speed"))?;
-        self.add(
+        Ok(self.add(
             bar,
             &edge,
             Added::Speed,
             values(&[("rate", number(clamp_rate(factor)))]),
-        )
+        ))
     }
 
     fn split_parts(&mut self, edge: &WorkflowEdge, offset: f64) -> SplitParts {
@@ -830,7 +814,7 @@ impl TimelineEdits<'_> {
             return self.move_bar(video, delta);
         }
         if no_move(delta) {
-            return done();
+            return Ok(Done::default());
         }
         let r = bar
             .handles
@@ -838,7 +822,13 @@ impl TimelineEdits<'_> {
             .and_then(|h| h.move_to.as_ref())
             .ok_or(TimelineEditError::SoundStaysPut)?;
         let fps = self.fps;
-        shift_to(&mut self.workflow, r, delta.round(), fps, TOO_EARLY)
+        Ok(shift_to(
+            &mut self.workflow,
+            r,
+            delta.round(),
+            fps,
+            TOO_EARLY,
+        ))
     }
 
     pub fn trim_audio(&mut self, bar: &AudioBar, at_start: bool, delta: f64) -> Outcome {
@@ -846,7 +836,7 @@ impl TimelineEdits<'_> {
             return self.trim_bar(video, at_start, delta);
         }
         if no_move(delta) {
-            return done();
+            return Ok(Done::default());
         }
         let handles = bar.handles.as_ref();
         let fps = self.fps;
@@ -854,13 +844,13 @@ impl TimelineEdits<'_> {
             let r = handles
                 .and_then(|h| h.trim_start.as_ref())
                 .ok_or(TimelineEditError::EffectStartPlaysInFull)?;
-            return shift_to(
+            return Ok(shift_to(
                 &mut self.workflow,
                 r,
                 delta.round(),
                 fps,
                 "That's the start of the sound.",
-            );
+            ));
         }
         let r = handles
             .and_then(|h| h.trim_end.as_ref())
@@ -870,7 +860,7 @@ impl TimelineEdits<'_> {
             return Err(TimelineEditError::SoundNeedsAFrame);
         }
         set_length(&mut self.workflow, r, length, fps);
-        done()
+        Ok(Done::default())
     }
 
     pub fn set_audio_volume(&mut self, bar: &AudioBar, volume: f64) -> Outcome {
@@ -882,7 +872,7 @@ impl TimelineEdits<'_> {
                 index: None,
             };
             write_param(&mut self.workflow, &at, v);
-            return done();
+            return Ok(Done::default());
         }
         let r = bar
             .handles
@@ -890,7 +880,7 @@ impl TimelineEdits<'_> {
             .and_then(|h| h.volume.as_ref())
             .ok_or(TimelineEditError::VolumeInMixer)?;
         write_param(&mut self.workflow, &ParamAt::from(r), v);
-        done()
+        Ok(Done::default())
     }
 
     pub fn ripple_targets(
@@ -1002,7 +992,7 @@ impl TimelineEdits<'_> {
 
     pub fn move_camera_key(&mut self, mark: &CameraKeyMark, delta: f64) -> Outcome {
         if no_move(delta) {
-            return done();
+            return Ok(Done::default());
         }
         let node = self
             .workflow
@@ -1030,7 +1020,7 @@ impl TimelineEdits<'_> {
         {
             node.params.insert("camera".to_owned(), camera);
         }
-        done()
+        Ok(Done::default())
     }
 }
 
@@ -1387,7 +1377,7 @@ impl TimelineEdits<'_> {
             }
             TimelineEdit::Keyframes { edit } => {
                 super::keyframes::apply_keyframe_edit(&mut self.workflow, edit)?;
-                done()
+                Ok(Done::default())
             }
         }
     }
