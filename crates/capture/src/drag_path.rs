@@ -3,6 +3,7 @@ use std::fmt;
 use opsis_compile::time::{EPSILON, clamp};
 use opsis_types::actions::{Point, Rect, Viewport};
 use opsis_types::numbers;
+use opsis_types::numbers::exact_eq;
 
 const GLIDE_PX_PER_MS: f64 = 0.55;
 const GLIDE_MIN_MS: f64 = 450.0;
@@ -155,7 +156,7 @@ pub fn offset_path(start: Point, offsets: &[Point]) -> Vec<Point> {
         })
         .collect();
     match points.first() {
-        Some(first) if first.x == start.x && first.y == start.y => points,
+        Some(first) if exact_eq(first.x, start.x) && exact_eq(first.y, start.y) => points,
         _ => std::iter::once(start).chain(points).collect(),
     }
 }

@@ -4,6 +4,7 @@ use opsis_types::actions::{Action, ActionKind, Point, Rect};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
+use opsis_types::numbers::exact_eq;
 use opsis_types::recording::{
     AddressMode, CameraEasing, CameraStyle, CameraTuning, FrameTheme, RecordingProps, WindowStyle,
 };
@@ -1072,7 +1073,7 @@ fn auto_zoom() -> NodeDef {
                 p.zoom.then(|| row(Icon::Hourglass, format!("Hold {}", format_duration(f64::from(p.hold))))),
                 (p.frame.style().is_some() && p.bar().typed().is_some()).then(|| p.bar().row()),
                 (p.style == CameraStyle::Classic).then(|| row(Icon::Image, format!("{} backdrop", humanize(p.backdrop.id())))),
-                (p.speed != 1.0).then(|| row(Icon::Gauge, format!("{}× speed", p.speed))),
+                (!exact_eq(p.speed, 1.0)).then(|| row(Icon::Gauge, format!("{}× speed", p.speed))),
             ]
         })
         .compile(|ctx: &Ctx<'_, AutoZoom>| {

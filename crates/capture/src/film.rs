@@ -5,6 +5,7 @@ use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use chromiumoxide::cdp::browser_protocol::target::CreateTargetParams;
 use opsis_compile::nodes::output::Gl;
+use opsis_types::numbers::exact_eq;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use tokio::task::JoinHandle;
@@ -277,7 +278,7 @@ async fn launch_film(
             film_switches(options.gl, capture, film.width, film.height),
         )
     };
-    if options.capture == Capture::Screenshot || film.scale != 1.0 {
+    if options.capture == Capture::Screenshot || !exact_eq(film.scale, 1.0) {
         return Ok((start(Capture::Screenshot).await?, Capture::Screenshot, None));
     }
     let mut reason = String::new();

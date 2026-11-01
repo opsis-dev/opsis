@@ -22,6 +22,10 @@ pub fn count(value: usize) -> u32 {
     u32::try_from(value).unwrap_or(u32::MAX)
 }
 
+pub fn exact_eq(a: f64, b: f64) -> bool {
+    a == b
+}
+
 #[expect(
     clippy::cast_precision_loss,
     reason = "converting to f64 is what this function is for"
@@ -96,7 +100,8 @@ mod tests {
     use proptest::prelude::*;
 
     use super::{
-        byte_size, count, float, float_wide, narrow, signed, truncate, whole, whole_signed,
+        byte_size, count, exact_eq, float, float_wide, narrow, signed, truncate, whole,
+        whole_signed,
     };
 
     const UNITS: [&str; 7] = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
@@ -124,9 +129,11 @@ mod tests {
         #[test]
         fn rounds_to_the_nearest_whole_number_inside_the_range(value in -1e10..1e10f64) {
             let expected = value.round().clamp(0.0, f64::from(u32::MAX));
-            prop_assert_eq!(f64::from(whole(value)), expected);
+            let got = f64::from(whole(value));
+            prop_assert!(exact_eq(got, expected), "{got} != {expected}");
             let signed_expected = value.round().clamp(f64::from(i32::MIN), f64::from(i32::MAX));
-            prop_assert_eq!(f64::from(whole_signed(value)), signed_expected);
+            let signed_got = f64::from(whole_signed(value));
+            prop_assert!(exact_eq(signed_got, signed_expected), "{signed_got} != {signed_expected}");
         }
 
         #[test]
@@ -138,9 +145,13 @@ mod tests {
 
         #[test]
         fn truncates_toward_zero_inside_the_range(value in -30_000.0..30_000.0f64) {
-            prop_assert_eq!(f64::from(truncate::<i16>(value)), value.trunc());
-            prop_assert_eq!(f64::from(truncate::<i32>(value)), value.trunc());
-            prop_assert_eq!(f64::from(truncate::<u32>(value)), value.trunc().max(0.0));
+            let small = f64::from(truncate::<i16>(value));
+            prop_assert!(exact_eq(small, value.trunc()), "{small} != {}", value.trunc());
+            let wide = f64::from(truncate::<i32>(value));
+            prop_assert!(exact_eq(wide, value.trunc()), "{wide} != {}", value.trunc());
+            let unsigned = f64::from(truncate::<u32>(value));
+            let floor = value.trunc().max(0.0);
+            prop_assert!(exact_eq(unsigned, floor), "{unsigned} != {floor}");
         }
 
         #[test]
@@ -171,7 +182,7 @@ mod tests {
             if power == 0 {
                 prop_assert_eq!(number, bytes.to_string());
             } else {
-                prop_assert!((1.0..1024.0).contains(&shown) || shown == 1024.0);
+                prop_assert!((1.0..1024.0).contains(&shown) || exact_eq(shown, 1024.0));
                 let exact = float_wide(bytes) / scale;
                 prop_assert!((shown - exact).abs() <= 0.05 + 1e-9);
             }

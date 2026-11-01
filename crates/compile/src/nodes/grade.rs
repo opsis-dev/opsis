@@ -2,6 +2,7 @@ use opsis_macros::{choice, settings};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
+use opsis_types::numbers::exact_eq;
 use opsis_types::values::StyleEntry;
 
 use crate::asset_ref::base_name;
@@ -173,9 +174,9 @@ impl Colour {
     fn changes(&self) -> [Change; 12] {
         [
             ("Brightness", self.brightness != 0.0),
-            ("Contrast", self.contrast != 1.0),
-            ("Colour", self.saturation != 1.0),
-            ("Gamma", self.gamma != 1.0),
+            ("Contrast", !exact_eq(self.contrast, 1.0)),
+            ("Colour", !exact_eq(self.saturation, 1.0)),
+            ("Gamma", !exact_eq(self.gamma, 1.0)),
             ("Exposure", self.exposure != 0.0),
             ("Warmth", self.warmth != 0.0),
             ("Vibrance", self.vibrance != 0.0),

@@ -2,7 +2,7 @@ use opsis_compile::envelope::sample_points;
 use opsis_compile::mix::plan::{BusDuck, BusPlan, ChannelPlan, SoundPlacement};
 use opsis_compile::time::clamp;
 use opsis_types::mix::{Comp, Eq, EqType, Highpass, LoudnessGoal, Master, SAMPLE_RATE, db_to_gain};
-use opsis_types::numbers::whole;
+use opsis_types::numbers::{exact_eq, whole};
 use opsis_types::timeline::{FadeCurve, Keyframe};
 use serde::{Deserialize, Serialize};
 
@@ -135,7 +135,7 @@ fn envelope_expr(keys: &[Keyframe], fps: f64) -> String {
         let (at, av) = points[i];
         let (bt, bv) = points[i + 1];
         let span = bt - at;
-        let seg = if span <= 0.0 || av == bv {
+        let seg = if span <= 0.0 || exact_eq(av, bv) {
             n6(av)
         } else {
             format!("{}+({})*(t-{})/{}", n6(av), n6(bv - av), n6(at), n6(span))
@@ -186,7 +186,7 @@ fn placement_steps(sound: &SoundPlacement, fps: f64) -> Vec<String> {
         format!("aresample={SAMPLE_RATE}"),
         "aformat=sample_fmts=fltp:channel_layouts=stereo".to_owned(),
     ];
-    if let Some(pitch) = sound.pitch.filter(|p| *p != 1.0) {
+    if let Some(pitch) = sound.pitch.filter(|p| !exact_eq(*p, 1.0)) {
         steps.extend([
             format!("asetrate={}", whole(f64::from(SAMPLE_RATE) * pitch)),
             format!("aresample={SAMPLE_RATE}"),
@@ -201,14 +201,14 @@ fn placement_steps(sound: &SoundPlacement, fps: f64) -> Vec<String> {
     if sound.looped {
         steps.push(format!("aloop=loop=-1:size={ENDLESS_LOOP}"));
     }
-    if sound.rate != 1.0 {
+    if !exact_eq(sound.rate, 1.0) {
         steps.extend([atempo_chain(sound.rate), "asetpts=PTS-STARTPTS".to_owned()]);
     }
     steps.extend([
         format!("atrim=end={}", secs(f64::from(sound.length), fps)),
         "asetpts=PTS-STARTPTS".to_owned(),
     ]);
-    if sound.volume != 1.0 {
+    if !exact_eq(sound.volume, 1.0) {
         steps.push(format!("volume={}", n6(sound.volume)));
     }
     let curve = match sound.fade_curve {

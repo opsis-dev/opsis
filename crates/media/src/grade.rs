@@ -10,6 +10,7 @@ use opsis_compile::nodes::grade::{
 };
 use opsis_compile::registry::node_def;
 use opsis_compile::text::round_to;
+use opsis_types::numbers::exact_eq;
 use opsis_types::values::StyleEntry;
 use serde::de::DeserializeOwned;
 
@@ -160,9 +161,15 @@ fn colour_filters(p: &Colour) -> Vec<String> {
             "eq",
             vec![
                 ("brightness", when(p.brightness != 0.0, num(p.brightness))),
-                ("contrast", when(p.contrast != 1.0, num(p.contrast))),
-                ("saturation", when(p.saturation != 1.0, num(p.saturation))),
-                ("gamma", when(p.gamma != 1.0, num(p.gamma))),
+                (
+                    "contrast",
+                    when(!exact_eq(p.contrast, 1.0), num(p.contrast)),
+                ),
+                (
+                    "saturation",
+                    when(!exact_eq(p.saturation, 1.0), num(p.saturation)),
+                ),
+                ("gamma", when(!exact_eq(p.gamma, 1.0), num(p.gamma))),
             ],
         ),
         options(
@@ -299,7 +306,7 @@ fn lens_filters(p: &Lens, size: GradeSize) -> Vec<String> {
     let (sin, cos) = p.fringe_angle.to_radians().sin_cos();
     let along = |part: f64| (shift * part).round();
     let (across, down) = (along(cos), along(sin));
-    let centred = p.bulge_x == 0.5 && p.bulge_y == 0.5;
+    let centred = exact_eq(p.bulge_x, 0.5) && exact_eq(p.bulge_y, 0.5);
     let mut filters = [
         options(
             "rgbashift",
@@ -377,7 +384,12 @@ fn auto_fix_filters(p: &AutoFix, size: GradeSize) -> Vec<String> {
             "deband",
             ["1thr", "2thr", "3thr", "4thr"]
                 .into_iter()
-                .map(|key| (key, when(p.deband_strength != default, threshold.clone())))
+                .map(|key| {
+                    (
+                        key,
+                        when(!exact_eq(p.deband_strength, default), threshold.clone()),
+                    )
+                })
                 .collect(),
         );
         if tuned.is_empty() {

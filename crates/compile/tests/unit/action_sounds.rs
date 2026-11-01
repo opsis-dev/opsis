@@ -5,7 +5,7 @@ use opsis_compile::mix::plan::build_mix_plan;
 use opsis_compile::node::CardInputs;
 use opsis_compile::timeline::flatten::flatten_spec;
 use opsis_types::actions::ActionLog;
-use opsis_types::numbers::{whole, whole_signed};
+use opsis_types::numbers::{exact_eq, whole, whole_signed};
 use opsis_types::timeline::{AudioItem, AudioRole};
 use opsis_types::values::{AudioValue, ClipValue, CompileValue, Hits};
 use opsis_types::workflow::WorkflowSettings;
@@ -115,7 +115,10 @@ fn puts_every_hit_on_one_quiet_effects_channel_that_never_ducks_the_music() {
     let pitches: Vec<f64> = varied.items.iter().filter_map(|i| i.pitch).collect();
     assert_eq!(pitches.len(), varied.items.len());
     assert!(pitches.iter().all(|p| (0.95..=1.05).contains(p)));
-    assert!(pitches.windows(2).any(|w| w[0] != w[1]));
+    assert!(
+        pitches.windows(2).any(|w| !exact_eq(w[0], w[1])),
+        "{pitches:?}"
+    );
     assert_eq!(
         varied,
         sounds(&take(&[]), json!({ "volume": 0.5 })),

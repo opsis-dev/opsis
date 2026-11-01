@@ -1,3 +1,5 @@
+use opsis_types::numbers::exact_eq;
+
 use crate::limits::MIN_SPEED;
 use crate::text::round_to;
 
@@ -113,7 +115,7 @@ fn earliest_out(remap: &[(f64, f64)], r: f64) -> f64 {
         let (a, ia) = remap[k - 1];
         let (b, ib) = remap[k];
         if ib >= r {
-            return if ib == ia {
+            return if exact_eq(ib, ia) {
                 a
             } else {
                 lerp_segment((ia, a), (ib, b), r)
@@ -128,7 +130,7 @@ fn latest_out(remap: &[(f64, f64)], r: f64) -> f64 {
         let (a, ia) = remap[k - 1];
         let (b, ib) = remap[k];
         if ia <= r {
-            return if ib <= r || ib == ia {
+            return if ib <= r || exact_eq(ib, ia) {
                 b
             } else {
                 lerp_segment((ia, a), (ib, b), r)
@@ -153,7 +155,7 @@ pub fn inverse_remap(remap: &[(f64, f64)], r: f64, side: RemapSide) -> f64 {
         return before_first(remap, r);
     }
     match side {
-        RemapSide::Start if r == i0 => o0,
+        RemapSide::Start if exact_eq(r, i0) => o0,
         RemapSide::Start => earliest_out(remap, r),
         RemapSide::End if r >= last.1 => after_last(last, r),
         RemapSide::End => latest_out(remap, r),

@@ -1,4 +1,5 @@
 use opsis_types::numbers;
+use opsis_types::numbers::exact_eq;
 
 use crate::errors::WallTimeError;
 pub const MINUS: &str = "\u{2212}";
@@ -112,7 +113,7 @@ pub fn plural(n: f64, word: &str) -> String {
 }
 
 pub fn plural_with(n: f64, word: &str, many: &str) -> String {
-    format!("{} {}", n, if n == 1.0 { word } else { many })
+    format!("{} {}", n, if exact_eq(n, 1.0) { word } else { many })
 }
 
 pub fn percent_text(fraction: f64, max: f64) -> String {

@@ -1,4 +1,5 @@
 use opsis_types::numbers;
+use opsis_types::numbers::exact_eq;
 
 const NEWTON_ITERATIONS: usize = 4;
 const NEWTON_MIN_SLOPE: f64 = 0.001;
@@ -93,10 +94,10 @@ impl Bezier {
 
     pub fn at(&self, x: f64) -> f64 {
         let x = x.clamp(0.0, 1.0);
-        if self.x1 == self.y1 && self.x2 == self.y2 {
+        if exact_eq(self.x1, self.y1) && exact_eq(self.x2, self.y2) {
             return x;
         }
-        if x == 0.0 || x == 1.0 {
+        if x == 0.0 || exact_eq(x, 1.0) {
             return x;
         }
         calc(self.t_for_x(x), self.y1, self.y2)

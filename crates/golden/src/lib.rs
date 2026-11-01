@@ -113,6 +113,10 @@ pub fn differences(expected: &Value, actual: &Value) -> Vec<String> {
     found
 }
 
+#[expect(
+    clippy::float_cmp,
+    reason = "equal numbers, infinities included, match before the relative tolerance"
+)]
 fn same_number(a: f64, b: f64) -> bool {
     a == b || (a - b).abs() <= NUMBER_SLACK * a.abs().max(b.abs())
 }

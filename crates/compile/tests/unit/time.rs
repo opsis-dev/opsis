@@ -6,6 +6,7 @@ use opsis_compile::time::{
     recording_ms_to_frames, whole_frames,
 };
 use opsis_compile::timeline::camera_path::{CameraView, camera_at, camera_key_at, move_camera_key};
+use opsis_types::numbers::exact_eq;
 use opsis_types::timeline::CameraPath;
 use proptest::prelude::*;
 use serde_json::{Value, json};
@@ -24,7 +25,8 @@ proptest! {
     #[test]
     fn frames_survive_a_trip_through_milliseconds(frames in 1u32..200_000, fps in prop::sample::select(RATES.to_vec())) {
         prop_assert_eq!(ms_to_frames(frames_to_ms(frames, fps), fps), frames);
-        prop_assert_eq!(frames_to_ms(frames, fps).fract(), 0.0);
+        let ms = frames_to_ms(frames, fps);
+        prop_assert!(exact_eq(ms.fract(), 0.0), "{ms}");
     }
 
     #[test]
@@ -37,7 +39,7 @@ proptest! {
         let whole = whole_frames(frames, min);
         prop_assert!(whole >= min);
         if frames.round() >= f64::from(min) {
-            prop_assert_eq!(f64::from(whole), frames.round());
+            prop_assert!(exact_eq(f64::from(whole), frames.round()), "{whole} != {}", frames.round());
         }
         prop_assert!(ms_to_frames(ms, fps) >= 1);
         prop_assert_eq!(ms_to_frames_from(ms, fps, 0), whole_frames(ms / 1000.0 * f64::from(fps), 0));

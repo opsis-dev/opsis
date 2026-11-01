@@ -5,6 +5,7 @@ use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::mix::LOUDNESS_TARGETS;
 use opsis_types::numbers;
+use opsis_types::numbers::exact_eq;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
 use opsis_types::values::{
     ClipValue, CompileValue, Measured, MediaKind, MediaValue, NodeResult, PortValues,
@@ -112,7 +113,7 @@ pub fn quality_presets() -> Vec<(String, f64)> {
 pub fn loudness_name(lufs: f64) -> String {
     loudness_presets()
         .into_iter()
-        .find(|(_, v)| *v == lufs)
+        .find(|(_, v)| exact_eq(*v, lufs))
         .map_or_else(
             || format!("{} LUFS", signed_text(lufs, None, false)),
             |(name, _)| name,
@@ -1814,7 +1815,7 @@ pub fn nodes() -> Vec<NodeDef> {
                 format!(
                     "{} {}",
                     signed_text(p.semitones, None, true),
-                    if p.semitones.abs() == 1.0 { "semitone" } else { "semitones" }
+                    if exact_eq(p.semitones.abs(), 1.0) { "semitone" } else { "semitones" }
                 )
             };
             vec![

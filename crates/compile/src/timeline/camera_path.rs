@@ -1,3 +1,4 @@
+use opsis_types::numbers::exact_eq;
 use opsis_types::timeline::{
     CAMERA_DISTANCE, CAMERA_HEIGHT, CAMERA_PITCH, CAMERA_YAW, CameraKey, CameraPath, DialRange,
     Ease,
@@ -137,7 +138,7 @@ pub fn camera_key_at(path: &CameraPath, frame: f64) -> CameraPath {
     let view = camera_at(Some(path), at, false);
     let mut keys: Vec<CameraKey> = sorted_camera_keys(Some(path))
         .into_iter()
-        .filter(|k| k.frame != at)
+        .filter(|k| !exact_eq(k.frame, at))
         .collect();
     keys.push(CameraKey {
         frame: at,

@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use opsis_types::numbers;
-use opsis_types::numbers::whole;
+use opsis_types::numbers::{exact_eq, whole};
 use serde_json::{Map, Value};
 
 use crate::elements::ElementMeta;
@@ -96,7 +96,7 @@ fn word_push_end(text: &str, word_gap: f64, accel: f64, push: f64) -> f64 {
         return 0.0;
     }
     let index = numbers::float(count - 1);
-    let reveal = if accel == 1.0 {
+    let reveal = if exact_eq(accel, 1.0) {
         index * word_gap
     } else {
         word_gap * (1.0 - accel.powf(index)) / (1.0 - accel)

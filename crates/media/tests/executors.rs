@@ -167,18 +167,22 @@ fn grade_setup<'a>(dir: &'a Path, names: &'a [(&'a str, &'a str)]) -> Setup<'a> 
 
 #[test]
 fn thumbnail_takes_the_frame_at_the_chosen_time_when_the_file_is_long_enough() {
-    assert_eq!(thumbnail_time(1000.0, 4000.0), 1000.0);
+    let at = thumbnail_time(1000.0, 4000.0);
+    assert!(numbers::exact_eq(at, 1000.0), "{at}");
 }
 
 #[test]
 fn thumbnail_takes_a_frame_just_before_the_end_of_a_shorter_file() {
-    assert_eq!(thumbnail_time(1000.0, 500.0), 400.0);
-    assert_eq!(thumbnail_time(60_000.0, 4000.0), 3900.0);
+    let short = thumbnail_time(1000.0, 500.0);
+    assert!(numbers::exact_eq(short, 400.0), "{short}");
+    let long = thumbnail_time(60_000.0, 4000.0);
+    assert!(numbers::exact_eq(long, 3900.0), "{long}");
 }
 
 #[test]
 fn thumbnail_takes_the_only_frame_of_a_still_image() {
-    assert_eq!(thumbnail_time(1000.0, 0.0), 0.0);
+    let still = thumbnail_time(1000.0, 0.0);
+    assert!(numbers::exact_eq(still, 0.0), "{still}");
 }
 
 #[tokio::test]

@@ -214,7 +214,8 @@ mod tests {
             let steps: Vec<f64> = (1..=frames).map(|f| page_ms(f, frame_ms)).collect();
             prop_assert!(steps.iter().all(|s| s.fract() == 0.0 && *s >= frame_ms.floor() && *s <= frame_ms.ceil()));
             let total: f64 = steps.iter().sum();
-            prop_assert_eq!(total, (numbers::float_wide(frames) * frame_ms).round());
+            let expected = (numbers::float_wide(frames) * frame_ms).round();
+            prop_assert!(numbers::exact_eq(total, expected), "{total} != {expected}");
         }
     }
 }

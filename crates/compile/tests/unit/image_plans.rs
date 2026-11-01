@@ -3,6 +3,7 @@ use opsis_compile::nodes::image::{
     area_rect, before_after_plan, crop_rect, framed_placement, grid_plan, magnify_plan,
     resized_size, rotated_size,
 };
+use opsis_types::numbers::exact_eq;
 use proptest::prelude::*;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
@@ -70,8 +71,8 @@ proptest! {
         prop_assert!(w >= 1.0 && h >= 1.0 && w.fract() == 0.0 && h.fract() == 0.0);
         match (width > 0, height > 0) {
             (false, false) => prop_assert_eq!((w, h), source),
-            (true, false) => prop_assert!(w == want_w && (h - source.1 * want_w / source.0).abs() <= 0.5),
-            (false, true) => prop_assert!(h == want_h && (w - source.0 * want_h / source.1).abs() <= 0.5),
+            (true, false) => prop_assert!(exact_eq(w, want_w) && (h - source.1 * want_w / source.0).abs() <= 0.5),
+            (false, true) => prop_assert!(exact_eq(h, want_h) && (w - source.0 * want_h / source.1).abs() <= 0.5),
             (true, true) if fit == "inside" => {
                 prop_assert!(w <= want_w + 0.5 && h <= want_h + 0.5);
                 prop_assert!((w - want_w).abs() <= 0.5 || (h - want_h).abs() <= 0.5);

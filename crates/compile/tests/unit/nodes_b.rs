@@ -8,6 +8,7 @@ use opsis_compile::nodes::output::{Variant, variant_canvas, variant_size, video_
 use opsis_compile::params::ParamSchema;
 use opsis_compile::registry::node_def;
 use opsis_golden::typed;
+use opsis_types::numbers::exact_eq;
 use opsis_types::workflow::WorkflowSettings;
 use proptest::prelude::*;
 use serde_json::{Value, json};
@@ -368,7 +369,7 @@ proptest! {
     #[test]
     fn writes_a_loudness_that_isnt_a_preset_in_lufs(lufs in -40i32..=-5) {
         let value = f64::from(lufs);
-        prop_assume!(loudness_presets().iter().all(|(_, v)| *v != value));
+        prop_assume!(loudness_presets().iter().all(|(_, v)| !exact_eq(*v, value)));
         prop_assert_eq!(loudness_name(value), format!("−{} LUFS", -lufs));
     }
 }
