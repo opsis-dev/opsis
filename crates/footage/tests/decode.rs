@@ -138,13 +138,13 @@ fn difference(a: &RgbImage, b: &RgbImage) -> f64 {
 #[test]
 #[ignore = "needs the staged FFmpeg"]
 fn shows_the_frame_ffmpeg_decodes_at_each_time() {
-    let file = sample("count.mp4", "320x240");
-    let film = footage(vec![("take", plain(&file))]);
+    let video = sample("count.mp4", "320x240");
+    let film = footage(vec![("take", plain(&video))]);
     for frame in [0, 1, 29, 30, 31, 64, 7, 100, 119, 45] {
         let shown = film.shown("take", at(frame)).unwrap();
         assert_eq!(shown.pts_us, at(frame), "frame {frame}");
-        let own = difference(&shown.image, &reference(&file, frame, ""));
-        let next = difference(&shown.image, &reference(&file, (frame + 1).min(119), ""));
+        let own = difference(&shown.image, &reference(&video, frame, ""));
+        let next = difference(&shown.image, &reference(&video, (frame + 1).min(119), ""));
         assert!(own < 0.5, "frame {frame} differs by {own}");
         assert!(
             frame == 119 || next > own,
@@ -156,8 +156,8 @@ fn shows_the_frame_ffmpeg_decodes_at_each_time() {
 #[test]
 #[ignore = "needs the staged FFmpeg"]
 fn shows_the_last_frame_at_or_before_the_time() {
-    let file = sample("count.mp4", "320x240");
-    let film = footage(vec![("take", plain(&file))]);
+    let video = sample("count.mp4", "320x240");
+    let film = footage(vec![("take", plain(&video))]);
     for frame in [0, 10, 50, 118] {
         let between = at(frame) + 1_000_000 / RATE / 2;
         assert_eq!(film.shown("take", between).unwrap().pts_us, at(frame));
@@ -173,8 +173,8 @@ fn shows_the_last_frame_at_or_before_the_time() {
 #[test]
 #[ignore = "needs the staged FFmpeg"]
 fn frames_asked_in_order_start_the_decoder_once() {
-    let file = sample("count.mp4", "320x240");
-    let film = footage(vec![("take", plain(&file))]);
+    let video = sample("count.mp4", "320x240");
+    let film = footage(vec![("take", plain(&video))]);
     for frame in 0..RATE * SECONDS {
         assert_eq!(film.shown("take", at(frame)).unwrap().pts_us, at(frame));
         assert!(!film.picture("take", at(frame)).unwrap().is_empty());
@@ -185,8 +185,8 @@ fn frames_asked_in_order_start_the_decoder_once() {
 #[test]
 #[ignore = "needs the staged FFmpeg"]
 fn a_step_back_past_the_kept_frames_or_a_long_jump_starts_the_decoder_again() {
-    let file = sample("count.mp4", "320x240");
-    let film = footage(vec![("take", plain(&file))]);
+    let video = sample("count.mp4", "320x240");
+    let film = footage(vec![("take", plain(&video))]);
     film.shown("take", at(60)).unwrap();
     assert_eq!(film.decoder_starts(), 1);
     film.shown("take", at(61)).unwrap();
@@ -205,7 +205,7 @@ fn a_step_back_past_the_kept_frames_or_a_long_jump_starts_the_decoder_again() {
 #[test]
 #[ignore = "needs the staged FFmpeg"]
 fn the_grade_chain_and_its_extra_inputs_run_on_each_frame() {
-    let file = sample("count.mp4", "320x240");
+    let video = sample("count.mp4", "320x240");
     let identity = samples().join("identity-look.png");
     let making = MAKING.lock().unwrap();
     if !identity.exists() {
@@ -226,20 +226,20 @@ fn the_grade_chain_and_its_extra_inputs_run_on_each_frame() {
             chain: format!("[0:v]negate,{EVEN}[out]"),
             extra_inputs: Vec::new(),
         },
-        ..plain(&file)
+        ..plain(&video)
     };
     let looked = FootageSource {
         grade: GradeChain {
             chain: format!("[0:v][1:v]haldclut,{EVEN}[out]"),
             extra_inputs: vec![identity.to_string_lossy().into_owned()],
         },
-        ..plain(&file)
+        ..plain(&video)
     };
     let film = footage(vec![("negated", negated), ("looked", looked)]);
     let shown = film.shown("negated", at(40)).unwrap();
-    assert!(difference(&shown.image, &reference(&file, 40, "negate,")) < 0.5);
+    assert!(difference(&shown.image, &reference(&video, 40, "negate,")) < 0.5);
     let looked = film.shown("looked", at(40)).unwrap();
-    assert!(difference(&looked.image, &reference(&file, 40, "")) < 2.0);
+    assert!(difference(&looked.image, &reference(&video, 40, "")) < 2.0);
 }
 
 fn hidden(style: RedactStyle) -> RedactImage {
@@ -258,8 +258,8 @@ fn hidden(style: RedactStyle) -> RedactImage {
 #[test]
 #[ignore = "needs the staged FFmpeg"]
 fn redaction_is_the_image_redact_on_the_frames_in_its_time_range() {
-    let file = sample("count.mp4", "320x240");
-    let mut redacted = plain(&file);
+    let video = sample("count.mp4", "320x240");
+    let mut redacted = plain(&video);
     redacted.redactions = vec![
         TimedRedaction {
             from_us: at(30),
@@ -273,7 +273,7 @@ fn redaction_is_the_image_redact_on_the_frames_in_its_time_range() {
         },
     ];
     let film = footage(vec![
-        ("plain", plain(&file)),
+        ("plain", plain(&video)),
         ("redacted", redacted.clone()),
     ]);
     for frame in [10, 30, 45, 55, 59, 60, 90] {
@@ -297,11 +297,11 @@ fn redaction_is_the_image_redact_on_the_frames_in_its_time_range() {
 #[test]
 #[ignore = "needs the staged FFmpeg"]
 fn a_trimmed_looping_source_plays_its_part_of_the_file_again_and_again() {
-    let file = sample("count.mp4", "320x240");
+    let video = sample("count.mp4", "320x240");
     let looped = FootageSource {
         trim_us: at(30),
         loop_us: Some(at(60)),
-        ..plain(&file)
+        ..plain(&video)
     };
     let film = footage(vec![("looped", looped)]);
     assert_eq!(film.shown("looped", 0).unwrap().pts_us, at(30));
@@ -313,8 +313,8 @@ fn a_trimmed_looping_source_plays_its_part_of_the_file_again_and_again() {
 #[test]
 #[ignore = "needs the staged FFmpeg"]
 fn odd_sized_sources_come_out_even() {
-    let file = sample("odd.mp4", "321x241");
-    let film = footage(vec![("odd", plain(&file))]);
+    let video = sample("odd.mp4", "321x241");
+    let film = footage(vec![("odd", plain(&video))]);
     assert_eq!(
         film.shown("odd", at(3)).unwrap().image.dimensions(),
         (320, 240)
@@ -324,8 +324,8 @@ fn odd_sized_sources_come_out_even() {
 #[test]
 #[ignore = "needs the staged FFmpeg"]
 fn idle_decoders_end_and_start_again_when_asked() {
-    let file = sample("count.mp4", "320x240");
-    let film = footage(vec![("take", plain(&file))]);
+    let video = sample("count.mp4", "320x240");
+    let film = footage(vec![("take", plain(&video))]);
     film.shown("take", at(5)).unwrap();
     assert_eq!(film.running_decoders(), 1);
     film.end_idle(Duration::ZERO);
@@ -337,9 +337,9 @@ fn idle_decoders_end_and_start_again_when_asked() {
 #[test]
 #[ignore = "needs the staged FFmpeg"]
 fn a_file_that_isnt_a_video_fails_instead_of_showing_nothing() {
-    let file = samples().join("not-a-video.mp4");
-    std::fs::write(&file, b"just text").unwrap();
-    let film = footage(vec![("broken", plain(&file))]);
+    let video = samples().join("not-a-video.mp4");
+    std::fs::write(&video, b"just text").unwrap();
+    let film = footage(vec![("broken", plain(&video))]);
     assert!(film.shown("broken", 0).is_err());
     assert!(film.shown("missing", 0).is_err());
 }
@@ -347,8 +347,8 @@ fn a_file_that_isnt_a_video_fails_instead_of_showing_nothing() {
 #[tokio::test]
 #[ignore = "needs the staged FFmpeg"]
 async fn serves_each_frame_as_a_jpeg_of_its_size() {
-    let file = sample("count.mp4", "320x240");
-    let routes = footage_routes(Arc::new(footage(vec![("take", plain(&file))])));
+    let video = sample("count.mp4", "320x240");
+    let routes = footage_routes(Arc::new(footage(vec![("take", plain(&video))])));
     let get = |path: String| {
         routes
             .clone()

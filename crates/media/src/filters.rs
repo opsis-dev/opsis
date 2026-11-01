@@ -290,6 +290,7 @@ fn radio(grit: f64) -> String {
     )
 }
 
+#[allow(clippy::similar_names)]
 fn echo(p: &opsis_compile::nodes::media::VoiceEffects) -> String {
     let repeats = 1..=p.repeats.max(1);
     let delays: Vec<String> = repeats

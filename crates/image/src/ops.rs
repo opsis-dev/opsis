@@ -895,7 +895,7 @@ pub fn grid(images: &[DynamicImage], p: &ImageGrid) -> Result<DynamicImage, Imag
     );
     let options = ResizeOptions::new().resize_alg(algorithm(Resample::Sharp));
     for (image, cell) in images.iter().zip(&plan.cells) {
-        let sized = if (cell.width, cell.height) == size_of(image) {
+        let fitted = if (cell.width, cell.height) == size_of(image) {
             image.clone()
         } else {
             resized_to(
@@ -905,15 +905,15 @@ pub fn grid(images: &[DynamicImage], p: &ImageGrid) -> Result<DynamicImage, Imag
                 &options,
             )?
         };
-        let mut sized = sized.to_rgba16();
+        let mut fitted = fitted.to_rgba16();
         if p.radius > 0.0 {
             let shape = Rect {
                 x: 0.0,
                 y: 0.0,
-                width: f64::from(sized.width()),
-                height: f64::from(sized.height()),
+                width: f64::from(fitted.width()),
+                height: f64::from(fitted.height()),
             };
-            for (x, y, pixel) in sized.enumerate_pixels_mut() {
+            for (x, y, pixel) in fitted.enumerate_pixels_mut() {
                 let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
                 if !in_rounded(px, py, shape, p.radius) {
                     pixel.0[3] = 0;
@@ -922,7 +922,7 @@ pub fn grid(images: &[DynamicImage], p: &ImageGrid) -> Result<DynamicImage, Imag
         }
         imageops::overlay(
             &mut canvas,
-            &sized,
+            &fitted,
             numbers::truncate::<i64>(cell.x),
             numbers::truncate::<i64>(cell.y),
         );

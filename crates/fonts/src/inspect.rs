@@ -135,7 +135,11 @@ pub fn read_candidate(name: &str, bytes: &[u8]) -> Option<FontCandidate> {
         || SLANTED.is_match(&subfamily)
         || axes.iter().any(|a| a.tag() == ITALIC_AXIS);
     let weight = match &wght {
-        Some(axis) => format!("{} {}", axis.min_value().round(), axis.max_value().round()),
+        Some(weight_axis) => format!(
+            "{} {}",
+            weight_axis.min_value().round(),
+            weight_axis.max_value().round()
+        ),
         None => attributes.weight.value().round().to_string(),
     };
     Some(FontCandidate {

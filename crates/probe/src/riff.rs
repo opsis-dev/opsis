@@ -149,6 +149,7 @@ fn avi_video(handler: [u8; 4], strf: &[u8]) -> Option<(String, String, u32, u32)
     Some((codec.to_owned(), pix.to_owned(), width, height))
 }
 
+#[allow(clippy::similar_names)]
 pub fn avi(source: &mut Source) -> Result<Found, ProbeError> {
     let mut at = 12;
     let mut hdrl = None;

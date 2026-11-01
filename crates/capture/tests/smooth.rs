@@ -120,7 +120,7 @@ async fn record_smoothly(
         ..Record::default()
     };
     let played = record_take(&env, &session, Recording { encoder, record }).await;
-    let encoded = played.encoded.expect("the take was encoded");
+    let video = played.encoded.expect("the take was encoded");
     let log = played.outcome.expect("the take played").log;
     let frames = jpegs(&written.lock().unwrap());
     let size = match pictures {
@@ -134,7 +134,7 @@ async fn record_smoothly(
     );
     Smoothly {
         frames,
-        encoded,
+        encoded: video,
         log,
     }
 }
