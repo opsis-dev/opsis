@@ -456,10 +456,13 @@ pub fn window_role(app: AppHandle, webview: WebviewWindow, role: WindowRole) -> 
 pub fn run_role(app: &AppHandle, webview: &WebviewWindow, role: WindowRole) -> CommandResult<()> {
     let runtime = app.state::<WindowRuntime>();
     let zoom_by = |step: Option<f64>| -> CommandResult<()> {
-        let mut zooms = runtime.zoom.lock().expect("zoom levels");
-        let level = zooms.entry(webview.label().to_owned()).or_insert(1.0);
-        *level = step.map_or(1.0, |s| (*level + s).clamp(ZOOM_LIMITS.0, ZOOM_LIMITS.1));
-        Ok(webview.set_zoom(*level)?)
+        let level = {
+            let mut zooms = runtime.zoom.lock().expect("zoom levels");
+            let level = zooms.entry(webview.label().to_owned()).or_insert(1.0);
+            *level = step.map_or(1.0, |s| (*level + s).clamp(ZOOM_LIMITS.0, ZOOM_LIMITS.1));
+            *level
+        };
+        Ok(webview.set_zoom(level)?)
     };
     match role {
         WindowRole::Cut => edit_command(webview, "cut"),

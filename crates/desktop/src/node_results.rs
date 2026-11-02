@@ -231,17 +231,20 @@ pub fn check_media_files(
     let public = state.paths.public_dir.clone();
     let now = Instant::now();
     let node_keys = app.state::<NodeKeys>();
-    let mut keyed = node_keys.keyed.lock().expect("node keys");
     for node in workflow.nodes.iter().filter(|n| n.kind == IMPORT_TYPE) {
-        let Some(key) = keyed.current.get(&node.id).cloned() else {
-            continue;
+        let key = {
+            let keyed = node_keys.keyed.lock().expect("node keys");
+            let Some(key) = keyed.current.get(&node.id).cloned() else {
+                continue;
+            };
+            if results.get(&node.id).is_some_and(|r| r.hash == key)
+                || keyed.checking.contains(&key)
+                || keyed.unreadable.get(&key).is_some_and(|u| u.holds(now))
+            {
+                continue;
+            }
+            key
         };
-        if results.get(&node.id).is_some_and(|r| r.hash == key)
-            || keyed.checking.contains(&key)
-            || keyed.unreadable.get(&key).is_some_and(|u| u.holds(now))
-        {
-            continue;
-        }
         let Some(src) = media_file_src(compiled, &node.id) else {
             continue;
         };
@@ -251,7 +254,15 @@ pub fn check_media_files(
         if !file.is_file() {
             continue;
         }
-        keyed.checking.insert(key.clone());
+        let first = node_keys
+            .keyed
+            .lock()
+            .expect("node keys")
+            .checking
+            .insert(key.clone());
+        if !first {
+            continue;
+        }
         let check = FileCheck {
             app: app.clone(),
             dir: dir.to_path_buf(),
