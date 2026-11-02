@@ -114,9 +114,8 @@ pub async fn resolve_target(
     }
     let candidates = auto_candidates(raw);
     let clock = tab.clock();
-    let start = clock.now();
-    let timeout_ms = timeout.as_secs_f64() * 1000.0;
-    while clock.now() - start < timeout_ms {
+    let deadline = clock.now() + timeout;
+    while clock.now() < deadline {
         if opts.cancel.is_cancelled() {
             return Err(CaptureError::Cancelled.into());
         }

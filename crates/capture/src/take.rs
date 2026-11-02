@@ -22,7 +22,6 @@ use opsis_traces::TraceTake;
 use opsis_types::actions::{Action, ActionKind, ActionLog, CursorSample, Point};
 use opsis_types::events::LogLevel;
 use opsis_types::live::{LiveEvent, LiveStep, LiveStepStatus};
-use opsis_types::numbers;
 use opsis_types::secrets::{StorageState, secret_name};
 use opsis_types::values::{BrowserAction, BrowserSessionValue, SessionStep};
 use serde::de::DeserializeOwned;
@@ -31,7 +30,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::browser::Session;
 use crate::cdp::{Arg, CaptureError, Handle};
-use crate::clock::{Clock, wall_ms};
+use crate::clock::{Clock, as_ms, wall_ms, wall_time};
 use crate::cursor::{
     ActionOpts, CursorDriver, DragMethod, DragOpts, DragTo, KeyEvent, Press, TakeClick, TakeSink,
 };
@@ -60,7 +59,7 @@ use crate::trace::{CallInfo, Trace};
 
 const LIVE_CURSOR_GAP_MS: f64 = 30.0;
 const FIRST_PAGE_MIN_WAIT_MS: f64 = 500.0;
-const SCROLL_TICK_MS: f64 = 16.0;
+const SCROLL_TICK_MS: u32 = 16;
 const SCROLL_SMOOTHLY: &str =
     "function(block) { this.scrollIntoView({ behavior: 'smooth', block }); }";
 const SCROLL_INSTANTLY: &str =
@@ -68,12 +67,12 @@ const SCROLL_INSTANTLY: &str =
 const ELEMENT_PLACE: &str =
     "function() { const r = this.getBoundingClientRect(); return [r.left, r.top]; }";
 const SCROLL_POLL: Duration = Duration::from_millis(50);
-const SCROLL_SETTLE_LIMIT_MS: f64 = 3000.0;
+const SCROLL_SETTLE_LIMIT: Duration = Duration::from_secs(3);
 
 async fn scrolling_stopped(tab: &crate::cdp::Tab, handle: &Handle) -> Result<(), CaptureError> {
-    let start = tab.clock().now();
+    let deadline = tab.clock().now() + SCROLL_SETTLE_LIMIT;
     let mut last: Option<(f64, f64)> = None;
-    while tab.clock().now() - start < SCROLL_SETTLE_LIMIT_MS {
+    while tab.clock().now() < deadline {
         let place: (f64, f64) = tab.call_on(handle, ELEMENT_PLACE, &[]).await?;
         if last.is_some_and(|(x, y)| (x - place.0).abs() < 0.5 && (y - place.1).abs() < 0.5) {
             break;
@@ -103,7 +102,7 @@ pub(crate) async fn smooth_scroll_into_view(
     let start = tab.clock().now();
     let span = duration_ms.max(1.0);
     loop {
-        let p01 = ((tab.clock().now() - start) / span).clamp(0.0, 1.0);
+        let p01 = (as_ms(tab.clock().now().saturating_sub(start)) / span).clamp(0.0, 1.0);
         tab.call_on::<Value>(
             handle,
             STEP_ELEMENT_SCROLL,
@@ -321,7 +320,7 @@ struct Recorded {
 
 struct Recorder {
     clock: TakeClock,
-    t0: Mutex<f64>,
+    t0: Mutex<Duration>,
     recorded: Mutex<Recorded>,
     live: Option<Arc<dyn LiveSink>>,
     overlays: Option<Arc<Overlays>>,
@@ -340,7 +339,8 @@ impl fmt::Debug for Recorder {
 
 impl Recorder {
     fn elapsed(&self) -> f64 {
-        self.clock.now() - *self.t0.lock().expect("take start")
+        let t0 = *self.t0.lock().expect("take start");
+        as_ms(self.clock.now().saturating_sub(t0))
     }
 
     fn recorded(&self) -> std::sync::MutexGuard<'_, Recorded> {
@@ -467,7 +467,7 @@ impl<'e> TakeRun<'e> {
         (env.step)(browser_id, StepStatus::Done, None);
         let recorder = Arc::new(Recorder {
             clock: session.tab.clock().clone(),
-            t0: Mutex::new(wall_ms()),
+            t0: Mutex::new(wall_time()),
             recorded: Mutex::default(),
             live: env.live.clone(),
             overlays: overlays.clone(),
@@ -689,7 +689,7 @@ impl<'e> TakeRun<'e> {
         self.actions.push(action);
     }
 
-    async fn step_frames(&mut self, t0: f64) -> StepResult {
+    async fn step_frames(&mut self, t0: Duration) -> StepResult {
         let Some(recording) = &self.recording else {
             return Ok(());
         };
@@ -720,7 +720,7 @@ impl<'e> TakeRun<'e> {
             .into_iter()
             .map(at_take_start)
             .collect();
-        let t0 = wall_ms();
+        let t0 = wall_time();
         *self.recorder.t0.lock().expect("take start") = t0;
         if let Some(recording) = &self.recording {
             recording.encoder.set_origin(t0);
@@ -1038,19 +1038,22 @@ impl<'e> TakeRun<'e> {
                     .await?;
             }
             ScrollMode::By => {
-                let ticks = (f64::from(p.duration_ms) / SCROLL_TICK_MS).round().max(1.0);
+                let ticks =
+                    (p.duration_ms.saturating_add(SCROLL_TICK_MS / 2) / SCROLL_TICK_MS).max(1);
                 let start = self.tab().clock().now();
-                for tick in 1..=numbers::truncate::<u32>(ticks) {
+                for tick in 1..=ticks {
                     self.input
                         .wheel(
                             self.tab(),
-                            f64::from(p.delta_x) / ticks,
-                            f64::from(p.delta_y) / ticks,
+                            f64::from(p.delta_x) / f64::from(ticks),
+                            f64::from(p.delta_y) / f64::from(ticks),
                         )
                         .await?;
                     self.tab()
                         .clock()
-                        .sleep_until(f64::mul_add(f64::from(tick), SCROLL_TICK_MS, start))
+                        .sleep_until(
+                            start + Duration::from_millis(u64::from(SCROLL_TICK_MS)) * tick,
+                        )
                         .await;
                 }
             }
@@ -1406,7 +1409,7 @@ impl<'e> TakeRun<'e> {
         let end = self.tab().clock().now();
         self.tab().clock().stop();
         let t0 = *self.recorder.t0.lock().expect("take start");
-        let mut duration_ms = end - t0;
+        let mut duration_ms = as_ms(end.saturating_sub(t0));
         if let Some(screencast) = self.screencast.take()
             && let Err(error) = screencast.stop(self.tab()).await
         {
@@ -1441,7 +1444,7 @@ impl<'e> TakeRun<'e> {
         let log = ActionLog {
             viewport: self.session.viewport,
             dpr: self.session.dpr,
-            t0,
+            t0: as_ms(t0),
             duration_ms,
             actions: std::mem::take(&mut self.actions),
             cursor_track,

@@ -16,6 +16,7 @@ use opsis_types::trace::{ConsoleLevel, TraceAction, TraceConsole, TraceError, Tr
 use tokio::task::JoinHandle;
 
 use crate::cdp::{Result, Tab};
+use crate::clock::as_ms;
 use crate::take_clock::TakeClock;
 
 const COLLAPSIBLE: [&str; 2] = ["mouseMove", "mouseWheel"];
@@ -308,7 +309,7 @@ impl Trace {
     }
 
     pub fn group(&self, node_id: &str, title: &str) {
-        let now = self.clock.now();
+        let now = as_ms(self.clock.now());
         let mut state = self.state();
         let id = format!("group@{}", state.calls.len());
         let action = TraceAction {
@@ -330,7 +331,7 @@ impl Trace {
     }
 
     pub fn end_group(&self, error: Option<&str>) {
-        let now = self.clock.now();
+        let now = as_ms(self.clock.now());
         let mut state = self.state();
         if let Some(index) = state.group.take() {
             let action = &mut state.calls[index].action;
@@ -340,7 +341,7 @@ impl Trace {
     }
 
     pub fn begin(&self, info: CallInfo) -> usize {
-        let now = self.clock.now();
+        let now = as_ms(self.clock.now());
         let mut state = self.state();
         let action = TraceAction {
             id: format!("call@{}", state.calls.len()),
@@ -360,7 +361,7 @@ impl Trace {
     }
 
     pub fn end(&self, call: usize, error: Option<String>, bounds: Option<Bounds>) {
-        let now = self.clock.now();
+        let now = as_ms(self.clock.now());
         let mut state = self.state();
         if let Some(Call { action, .. }) = state.calls.get_mut(call) {
             action.end = now;

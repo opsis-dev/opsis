@@ -1,5 +1,6 @@
 use std::fmt;
 use std::sync::Arc;
+use std::time::Duration;
 
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
@@ -10,7 +11,7 @@ use serde_json::json;
 use tokio::task::JoinHandle;
 
 use crate::cdp::{Result, Tab};
-use crate::clock::wall_ms;
+use crate::clock::{as_ms, wall_time};
 use crate::encoder::FrameFeed;
 use crate::live::FrameSink;
 use crate::trace::Trace;
@@ -66,11 +67,13 @@ impl Screencast {
                 let Ok(jpeg) = STANDARD.decode(encoded) else {
                     continue;
                 };
-                let t = frame
+                let at = frame
                     .metadata
                     .timestamp
                     .as_ref()
-                    .map_or_else(wall_ms, |s| *s.inner() * 1000.0);
+                    .and_then(|s| Duration::try_from_secs_f64(*s.inner()).ok())
+                    .unwrap_or_else(wall_time);
+                let t = as_ms(at);
                 if let Some(view) = &sinks.view {
                     view.frame(
                         &jpeg,
@@ -83,7 +86,7 @@ impl Screencast {
                     trace.frame(&jpeg, t);
                 }
                 if let Some(encoder) = &sinks.encoder {
-                    encoder.offer(jpeg, t);
+                    encoder.offer(jpeg, at);
                 }
             }
         });

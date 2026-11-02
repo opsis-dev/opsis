@@ -1,17 +1,17 @@
 use std::fmt;
 use std::sync::{Arc, Weak};
+use std::time::Duration;
 
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 use opsis_compile::nodes::capture::FramePicture;
 use opsis_types::actions::Viewport;
-use opsis_types::numbers;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use tokio::sync::Mutex;
 
 use crate::cdp::{Arg, Result, Tab};
-use crate::clock::wall_ms;
+use crate::clock::{as_ms, wall_ms};
 use crate::encoder::FrameFeed;
 use crate::live::FrameSink;
 use crate::page_scripts::{
@@ -43,7 +43,7 @@ impl fmt::Debug for FramePictures {
 #[derive(Debug)]
 pub struct Smooth {
     tab: Weak<Tab>,
-    frame_ms: f64,
+    fps: u32,
     pictures: FramePictures,
     new_page_time: Mutex<Option<String>>,
     scrolled: std::sync::Mutex<(f64, f64)>,
@@ -59,9 +59,10 @@ struct Added {
     identifier: String,
 }
 
-pub fn page_ms(frame: u64, frame_ms: f64) -> f64 {
-    let at = |n: u64| (numbers::float_wide(n) * frame_ms).round();
-    at(frame) - at(frame.saturating_sub(1))
+pub fn page_ms(frame: u64, fps: u32) -> u64 {
+    let fps = u128::from(fps.max(1));
+    let at = |n: u64| (u128::from(n) * 2000 + fps) / (2 * fps);
+    u64::try_from(at(frame) - at(frame.saturating_sub(1))).unwrap_or(u64::MAX)
 }
 
 impl Smooth {
@@ -74,14 +75,14 @@ impl Smooth {
             .await?;
         Ok(Arc::new(Self {
             tab: Arc::downgrade(tab),
-            frame_ms: 1000.0 / f64::from(fps.max(1)),
+            fps: fps.max(1),
             pictures,
             new_page_time: Mutex::new(None),
             scrolled: std::sync::Mutex::new(scrolled),
         }))
     }
 
-    pub async fn picture(&self, at: f64) {
+    pub async fn picture(&self, at: Duration) {
         let Some(tab) = self.tab.upgrade() else {
             return;
         };
@@ -104,7 +105,7 @@ impl Smooth {
                 &jpeg,
                 f64::from(self.pictures.viewport.width),
                 f64::from(self.pictures.viewport.height),
-                at,
+                as_ms(at),
             );
         }
         if let Some(encoder) = &self.pictures.encoder {
@@ -133,7 +134,7 @@ impl Smooth {
         }
     }
 
-    async fn advance_page(&self, tab: &Tab, ms: f64) {
+    async fn advance_page(&self, tab: &Tab, ms: u64) {
         let stepped = match tab
             .evaluate_main::<SteppedPage>(&call(STEP_FRAME, &json!(ms)))
             .await
@@ -183,16 +184,16 @@ impl Smooth {
 }
 
 impl Stepper for Smooth {
-    fn frame_ms(&self) -> f64 {
-        self.frame_ms
+    fn fps(&self) -> u32 {
+        self.fps
     }
 
-    fn tick(&self, frame: u64, at: f64) -> TickFuture<'_> {
+    fn tick(&self, frame: u64, at: Duration) -> TickFuture<'_> {
         Box::pin(async move {
             let Some(tab) = self.tab.upgrade() else {
                 return;
             };
-            self.advance_page(&tab, page_ms(frame, self.frame_ms)).await;
+            self.advance_page(&tab, page_ms(frame, self.fps)).await;
             self.picture(at).await;
         })
     }
@@ -210,12 +211,14 @@ mod tests {
             fps in prop::sample::select(vec![12u32, 24, 25, 30, 48, 50, 60, 120]),
             frames in 1u64..10_000,
         ) {
-            let frame_ms = 1000.0 / f64::from(fps);
-            let steps: Vec<f64> = (1..=frames).map(|f| page_ms(f, frame_ms)).collect();
-            prop_assert!(steps.iter().all(|s| s.fract() == 0.0 && *s >= frame_ms.floor() && *s <= frame_ms.ceil()));
-            let total: f64 = steps.iter().sum();
-            let expected = (numbers::float_wide(frames) * frame_ms).round();
-            prop_assert!(numbers::exact_eq(total, expected), "{total} != {expected}");
+            let shortest = 1000 / u64::from(fps);
+            let longest = 1000_u64.div_ceil(u64::from(fps));
+            let steps: Vec<u64> = (1..=frames).map(|f| page_ms(f, fps)).collect();
+            prop_assert!(steps.iter().all(|s| (shortest..=longest).contains(s)));
+            let total = u128::from(steps.iter().sum::<u64>());
+            let exact = u128::from(frames) * 1000;
+            let off = (total * u128::from(fps)).abs_diff(exact);
+            prop_assert!(2 * off <= u128::from(fps), "{total} ms is not the nearest to {frames} frames");
         }
     }
 }

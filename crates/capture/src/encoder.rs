@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use opsis_media::codecs::{H264, h264_args, strings};
 use opsis_media::ffmpeg::{FramePipe, MediaTools, ToolError};
@@ -7,6 +8,9 @@ use tokio::io::AsyncWriteExt;
 use tokio::sync::mpsc;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
+
+use crate::clock::as_ms;
+use crate::take_clock::frame_time;
 
 const ENCODE_CRF: f64 = 16.0;
 const ALREADY_FINISHED: &str = "The video encoder already finished.";
@@ -74,9 +78,9 @@ pub fn encoder_args(fps: u32, image: FrameImage, output: &Path) -> Vec<String> {
 }
 
 enum Message {
-    Frame(Vec<u8>, f64),
-    Origin(f64),
-    Finish(f64),
+    Frame(Vec<u8>, Duration),
+    Origin(Duration),
+    Finish(Duration),
 }
 
 #[derive(Debug)]
@@ -90,11 +94,11 @@ pub struct Encoded {
 pub struct FrameFeed(mpsc::UnboundedSender<Message>);
 
 impl FrameFeed {
-    pub fn offer(&self, jpeg: Vec<u8>, t: f64) {
+    pub fn offer(&self, jpeg: Vec<u8>, t: Duration) {
         self.send(Message::Frame(jpeg, t));
     }
 
-    pub fn set_origin(&self, t: f64) {
+    pub fn set_origin(&self, t: Duration) {
         self.send(Message::Origin(t));
     }
 
@@ -115,19 +119,19 @@ pub struct FrameEncoder {
 
 struct Writer {
     pipe: FramePipe,
-    frame_ms: f64,
-    origin: Option<f64>,
+    fps: u32,
+    origin: Option<Duration>,
     tick: u64,
     last: Option<Vec<u8>>,
 }
 
 impl Writer {
-    async fn advance(&mut self, t: f64, inclusive: bool) -> Result<(), EncodeError> {
+    async fn advance(&mut self, t: Duration, inclusive: bool) -> Result<(), EncodeError> {
         let (Some(origin), Some(last)) = (self.origin, self.last.as_ref()) else {
             return Ok(());
         };
         loop {
-            let at = numbers::float_wide(self.tick).mul_add(self.frame_ms, origin);
+            let at = frame_time(origin, self.tick, self.fps);
             if !(if inclusive { at <= t } else { at < t }) {
                 return Ok(());
             }
@@ -171,8 +175,9 @@ impl Writer {
                     done.await?;
                     return Ok(Encoded {
                         frames: self.tick,
-                        duration_ms: numbers::float_wide(self.tick) * self.frame_ms,
-                        origin_ms: self.origin,
+                        duration_ms: numbers::float_wide(self.tick)
+                            * (1000.0 / f64::from(self.fps)),
+                        origin_ms: self.origin.map(as_ms),
                     });
                 }
             }
@@ -193,7 +198,7 @@ impl FrameEncoder {
         let (sender, receiver) = mpsc::unbounded_channel();
         let writer = Writer {
             pipe,
-            frame_ms: 1000.0 / f64::from(fps),
+            fps: fps.max(1),
             origin: None,
             tick: 0,
             last: None,
@@ -210,15 +215,15 @@ impl FrameEncoder {
         self.feed.clone()
     }
 
-    pub fn set_origin(&self, t: f64) {
+    pub fn set_origin(&self, t: Duration) {
         self.feed.set_origin(t);
     }
 
-    pub fn offer(&self, jpeg: Vec<u8>, t: f64) {
+    pub fn offer(&self, jpeg: Vec<u8>, t: Duration) {
         self.feed.offer(jpeg, t);
     }
 
-    pub async fn finish(self, t: f64) -> Result<Encoded, EncodeError> {
+    pub async fn finish(self, t: Duration) -> Result<Encoded, EncodeError> {
         if self.feed.0.send(Message::Finish(t)).is_err() {
             return Err(EncodeError::Failed(ALREADY_FINISHED.to_owned()));
         }

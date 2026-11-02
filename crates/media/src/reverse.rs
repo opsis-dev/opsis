@@ -1,6 +1,7 @@
 use std::sync::LazyLock;
 
 use opsis_compile::text::single_quoted;
+use opsis_types::numbers;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -80,12 +81,10 @@ fn cut_before(frame: f64, fps: f64) -> ReverseCut {
 pub fn reverse_pieces(budget: PieceBudget) -> Vec<ReversePiece> {
     let per_piece = f64::max(1.0, (budget.budget_bytes / budget.frame_bytes).floor());
     let frames = (budget.duration_ms * budget.fps / 1000.0).ceil();
-    let mut cuts: Vec<Option<ReverseCut>> = vec![None];
-    let mut first = per_piece;
-    while first < frames {
-        cuts.push(Some(cut_before(first, budget.fps)));
-        first += per_piece;
-    }
+    let later_pieces = numbers::whole((frames / per_piece).ceil()).saturating_sub(1);
+    let cuts: Vec<Option<ReverseCut>> = std::iter::once(None)
+        .chain((1..=later_pieces).map(|k| Some(cut_before(f64::from(k) * per_piece, budget.fps))))
+        .collect();
     let mut pieces: Vec<ReversePiece> = cuts
         .iter()
         .enumerate()

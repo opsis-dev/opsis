@@ -16,6 +16,7 @@ use tokio::task::JoinHandle;
 use tokio::time::Instant;
 
 use crate::cdp::{Arg, CaptureError, Handle, Result, Tab};
+use crate::clock::as_ms;
 use crate::take_clock::TakeClock;
 use crate::trace::CallInfo;
 use crate::url_match::url_matches;
@@ -40,11 +41,11 @@ struct PageState {
     loader_id: String,
     fired: HashSet<String>,
     url: String,
-    visited: Vec<(f64, String)>,
+    visited: Vec<(Duration, String)>,
 }
 
 impl PageState {
-    fn moved_to(&mut self, url: String, at: f64) {
+    fn moved_to(&mut self, url: String, at: Duration) {
         if url == self.url {
             return;
         }
@@ -183,7 +184,7 @@ impl Lifecycle {
         self.state.lock().expect("page state").url.clone()
     }
 
-    pub fn addresses_since(&self, t0: f64) -> Vec<PageAddress> {
+    pub fn addresses_since(&self, t0: Duration) -> Vec<PageAddress> {
         let page = self.state.lock().expect("page state");
         let first = page
             .visited
@@ -193,7 +194,7 @@ impl Lifecycle {
         page.visited[first..]
             .iter()
             .map(|(at, url)| PageAddress {
-                t: (at - t0).max(0.0),
+                t: as_ms(at.saturating_sub(t0)),
                 url: url.clone(),
             })
             .collect()
@@ -310,7 +311,7 @@ impl Lifecycle {
             url_matches(&page.url, glob).unwrap_or(false)
         })
         .await?;
-        let spent = Duration::from_secs_f64(((self.clock.now() - start) / 1000.0).max(0.0));
+        let spent = self.clock.now().saturating_sub(start);
         let left = timeout.saturating_sub(spent);
         self.until(left, |page| page.fired.contains("load"))
             .await
@@ -393,8 +394,7 @@ impl Tab {
     }
 
     async fn scrolled_into_view(&self, handle: &Handle) -> Result<()> {
-        let start = self.clock().now();
-        let limit_ms = RETRY_LIMIT.as_secs_f64() * 1000.0;
+        let deadline = self.clock().now() + RETRY_LIMIT;
         for retry in 0.. {
             if retry > 0 {
                 self.clock()
@@ -415,7 +415,7 @@ impl Tab {
                 .await?;
                 return Ok(());
             }
-            if self.clock().now() - start >= limit_ms {
+            if self.clock().now() >= deadline {
                 break;
             }
         }

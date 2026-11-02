@@ -157,19 +157,19 @@ pub fn join_filter(parts: &[JoinPart], to: JoinSize, background: &str) -> Join {
 }
 
 pub fn atempo_chain(rate: f64) -> String {
-    let mut parts = Vec::new();
-    let mut r = rate;
-    while r > 2.0 {
-        parts.push(2.0);
-        r /= 2.0;
+    if !rate.is_finite() || rate <= 0.0 {
+        return format!("atempo={rate:.4}");
     }
-    while r < 0.5 {
-        parts.push(0.5);
-        r /= 0.5;
-    }
-    parts.push(r);
-    parts
-        .iter()
+    let (step, steps): (f64, u32) = if rate > 2.0 {
+        (2.0, numbers::whole((rate.log2() - 1.0).ceil()))
+    } else if rate < 0.5 {
+        (0.5, numbers::whole((-1.0 - rate.log2()).ceil()))
+    } else {
+        (1.0, 0)
+    };
+    let rest = rate / step.powi(i32::try_from(steps).unwrap_or(i32::MAX));
+    std::iter::repeat_n(step, usize::try_from(steps).unwrap_or(0))
+        .chain([rest])
         .map(|x| format!("atempo={x:.4}"))
         .collect::<Vec<_>>()
         .join(",")

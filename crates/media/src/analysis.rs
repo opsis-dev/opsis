@@ -470,8 +470,9 @@ mod tests {
             })
             .collect();
         let gap = 60.0 / bpm;
-        let mut t = offset;
-        while t < seconds {
+        let beats = numbers::whole(((seconds - offset) / gap).ceil());
+        for beat in 0..beats {
+            let t = f64::from(beat).mul_add(gap, offset);
             let start = numbers::truncate::<usize>((t * RATE).round());
             for i in 0..200 {
                 if let Some(s) = samples.get_mut(start + i) {
@@ -480,7 +481,6 @@ mod tests {
                     );
                 }
             }
-            t += gap;
         }
         samples
     }

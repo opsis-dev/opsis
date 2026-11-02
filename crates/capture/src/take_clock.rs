@@ -4,47 +4,55 @@ use std::pin::Pin;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
 
-use opsis_types::numbers;
+use crate::clock::wall_time;
 
-use crate::clock::wall_ms;
-
-const SAME_TIME_MS: f64 = 1e-6;
+const NANOS_PER_SECOND: u128 = 1_000_000_000;
 
 pub type TickFuture<'a> = Pin<Box<dyn Future<Output = ()> + Send + 'a>>;
 
 pub trait Stepper: Send + Sync {
-    fn frame_ms(&self) -> f64;
-    fn tick(&self, frame: u64, at: f64) -> TickFuture<'_>;
+    fn fps(&self) -> u32;
+    fn tick(&self, frame: u64, at: Duration) -> TickFuture<'_>;
 }
 
 enum Mode {
     Real,
     Stepped {
         stepper: Arc<dyn Stepper>,
-        origin: f64,
+        origin: Duration,
         frame: u64,
     },
     Stopped {
-        at: f64,
+        at: Duration,
     },
 }
 
 impl Mode {
-    fn now(&self) -> f64 {
+    fn now(&self) -> Duration {
         match self {
-            Self::Real => wall_ms(),
+            Self::Real => wall_time(),
             Self::Stepped {
                 stepper,
                 origin,
                 frame,
-            } => frame_time(*origin, *frame, stepper.frame_ms()),
+            } => frame_time(*origin, *frame, stepper.fps()),
             Self::Stopped { at } => *at,
         }
     }
 }
 
-pub const fn frame_time(origin: f64, frame: u64, frame_ms: f64) -> f64 {
-    numbers::float_wide(frame).mul_add(frame_ms, origin)
+pub fn frames_span(frames: u64, fps: u32) -> Duration {
+    let nanos = u128::from(frames) * NANOS_PER_SECOND / u128::from(fps.max(1));
+    Duration::from_nanos(u64::try_from(nanos).unwrap_or(u64::MAX))
+}
+
+pub fn frame_time(origin: Duration, frame: u64, fps: u32) -> Duration {
+    origin + frames_span(frame, fps)
+}
+
+pub fn frames_in(duration: Duration, fps: u32) -> u64 {
+    let scaled = duration.as_nanos() * u128::from(fps) + NANOS_PER_SECOND / 2;
+    u64::try_from(scaled / NANOS_PER_SECOND).unwrap_or(u64::MAX)
 }
 
 #[derive(Clone)]
@@ -75,7 +83,7 @@ impl TakeClock {
         self.mode.lock().expect("take clock")
     }
 
-    pub fn now(&self) -> f64 {
+    pub fn now(&self) -> Duration {
         self.mode().now()
     }
 
@@ -83,7 +91,14 @@ impl TakeClock {
         matches!(*self.mode(), Mode::Stepped { .. })
     }
 
-    pub fn step_from(&self, origin: f64, stepper: Arc<dyn Stepper>) {
+    fn frame(&self) -> Option<u64> {
+        match &*self.mode() {
+            Mode::Stepped { frame, .. } => Some(*frame),
+            _ => None,
+        }
+    }
+
+    pub fn step_from(&self, origin: Duration, stepper: Arc<dyn Stepper>) {
         *self.mode() = Mode::Stepped {
             stepper,
             origin,
@@ -110,7 +125,7 @@ impl TakeClock {
                 (
                     Arc::clone(stepper),
                     next,
-                    frame_time(*origin, next, stepper.frame_ms()),
+                    frame_time(*origin, next, stepper.fps()),
                 )
             }
             _ => return false,
@@ -123,32 +138,38 @@ impl TakeClock {
     }
 
     pub async fn wait(&self, duration: Duration) {
-        let ms = duration.as_secs_f64() * 1000.0;
-        let frame_ms = match &*self.mode() {
+        let fps = match &*self.mode() {
             Mode::Real => None,
-            Mode::Stepped { stepper, .. } => Some(stepper.frame_ms()),
+            Mode::Stepped { stepper, .. } => Some(stepper.fps()),
             Mode::Stopped { .. } => return,
         };
-        let Some(frame_ms) = frame_ms else {
+        let Some(fps) = fps else {
             tokio::time::sleep(duration).await;
             return;
         };
-        if ms <= 0.0 {
+        if duration.is_zero() {
             return;
         }
-        let frames = (ms / frame_ms).round().max(1.0);
-        self.sleep_until(frames.mul_add(frame_ms, self.now())).await;
+        let Some(start) = self.frame() else {
+            return;
+        };
+        let target = start.saturating_add(frames_in(duration, fps).max(1));
+        while self.frame().is_some_and(|frame| frame < target) {
+            if !self.tick().await {
+                return;
+            }
+        }
     }
 
-    pub async fn sleep_until(&self, at: f64) {
+    pub async fn sleep_until(&self, at: Duration) {
         if matches!(*self.mode(), Mode::Real) {
-            let left = at - wall_ms();
-            if left > 0.0 {
-                tokio::time::sleep(Duration::from_secs_f64(left / 1000.0)).await;
+            let left = at.saturating_sub(wall_time());
+            if !left.is_zero() {
+                tokio::time::sleep(left).await;
             }
             return;
         }
-        while self.now() + SAME_TIME_MS < at {
+        while self.now() < at {
             if !self.tick().await {
                 return;
             }
@@ -165,15 +186,12 @@ impl TakeClock {
         F: FnMut() -> Fut,
         Fut: Future<Output = Option<T>>,
     {
-        let start = self.now();
-        let timeout_ms = timeout.as_secs_f64() * 1000.0;
+        let deadline = self.now() + timeout;
         loop {
             if let Some(found) = check().await {
                 return Some(found);
             }
-            if self.now() - start + SAME_TIME_MS >= timeout_ms
-                || matches!(*self.mode(), Mode::Stopped { .. })
-            {
+            if self.now() >= deadline || matches!(*self.mode(), Mode::Stopped { .. }) {
                 return None;
             }
             self.wait(poll).await;
@@ -185,20 +203,22 @@ impl TakeClock {
 mod tests {
     use std::sync::atomic::{AtomicU64, Ordering};
 
+    use proptest::prelude::*;
+
     use super::*;
 
     struct Counted {
-        frame_ms: f64,
+        fps: u32,
         ticks: AtomicU64,
-        last_at: Mutex<f64>,
+        last_at: Mutex<Duration>,
     }
 
     impl Stepper for Counted {
-        fn frame_ms(&self) -> f64 {
-            self.frame_ms
+        fn fps(&self) -> u32 {
+            self.fps
         }
 
-        fn tick(&self, frame: u64, at: f64) -> TickFuture<'_> {
+        fn tick(&self, frame: u64, at: Duration) -> TickFuture<'_> {
             Box::pin(async move {
                 tokio::task::yield_now().await;
                 self.ticks.fetch_add(1, Ordering::SeqCst);
@@ -208,37 +228,60 @@ mod tests {
         }
     }
 
-    fn stepped(fps: f64) -> (TakeClock, Arc<Counted>) {
+    const ORIGIN: Duration = Duration::from_secs(1);
+
+    fn stepped(fps: u32) -> (TakeClock, Arc<Counted>) {
         let clock = TakeClock::default();
         let counted = Arc::new(Counted {
-            frame_ms: 1000.0 / fps,
+            fps,
             ticks: AtomicU64::new(0),
-            last_at: Mutex::new(0.0),
+            last_at: Mutex::new(Duration::ZERO),
         });
-        clock.step_from(1000.0, Arc::clone(&counted) as Arc<dyn Stepper>);
+        clock.step_from(ORIGIN, Arc::clone(&counted) as Arc<dyn Stepper>);
         (clock, counted)
+    }
+
+    proptest! {
+        #[test]
+        fn frame_times_never_drift_from_the_frame_rate(
+            fps in prop::sample::select(vec![12u32, 24, 25, 30, 48, 50, 60, 120]),
+            frame in 0u64..10_000_000,
+        ) {
+            let at = frames_span(frame, fps);
+            let exact = u128::from(frame) * NANOS_PER_SECOND;
+            let scaled = at.as_nanos() * u128::from(fps);
+            prop_assert!(scaled <= exact && exact < scaled + u128::from(fps));
+        }
+
+        #[test]
+        fn a_span_of_whole_frames_holds_that_many_frames(
+            fps in prop::sample::select(vec![12u32, 24, 25, 30, 48, 50, 60, 120]),
+            frames in 0u64..10_000_000,
+        ) {
+            prop_assert_eq!(frames_in(frames_span(frames, fps), fps), frames);
+        }
     }
 
     #[tokio::test]
     async fn a_wait_is_whole_frames_and_never_less_than_one() {
-        let (clock, counted) = stepped(30.0);
+        let (clock, counted) = stepped(30);
         clock.wait(Duration::from_millis(220)).await;
         assert_eq!(counted.ticks.load(Ordering::SeqCst), 7);
         clock.wait(Duration::from_millis(8)).await;
         assert_eq!(counted.ticks.load(Ordering::SeqCst), 8);
         clock.wait(Duration::ZERO).await;
         assert_eq!(counted.ticks.load(Ordering::SeqCst), 8);
-        assert_eq!(clock.now(), frame_time(1000.0, 8, 1000.0 / 30.0));
+        assert_eq!(clock.now(), frame_time(ORIGIN, 8, 30));
         assert_eq!(*counted.last_at.lock().unwrap(), clock.now());
     }
 
     #[tokio::test]
     async fn sleeping_until_a_time_already_passed_takes_no_frame() {
-        let (clock, counted) = stepped(30.0);
+        let (clock, counted) = stepped(30);
         let start = clock.now();
         for i in 0..8 {
             clock
-                .sleep_until(f64::mul_add(f64::from(i), 16.0, start))
+                .sleep_until(start + Duration::from_millis(16) * i)
                 .await;
         }
         assert_eq!(counted.ticks.load(Ordering::SeqCst), 4);
@@ -246,7 +289,7 @@ mod tests {
 
     #[tokio::test]
     async fn two_waits_at_once_share_their_frames() {
-        let (clock, counted) = stepped(25.0);
+        let (clock, counted) = stepped(25);
         tokio::join!(
             clock.wait(Duration::from_millis(400)),
             clock.wait(Duration::from_millis(200))
@@ -256,7 +299,7 @@ mod tests {
 
     #[tokio::test]
     async fn waits_for_a_check_in_clock_time() {
-        let (clock, counted) = stepped(30.0);
+        let (clock, counted) = stepped(30);
         let found = clock
             .until(Duration::from_secs(1), Duration::from_millis(16), || {
                 let frame = counted.ticks.load(Ordering::SeqCst);
@@ -277,7 +320,7 @@ mod tests {
 
     #[tokio::test]
     async fn a_stopped_clock_keeps_its_time_and_never_waits() {
-        let (clock, counted) = stepped(30.0);
+        let (clock, counted) = stepped(30);
         clock.wait(Duration::from_millis(100)).await;
         let at = clock.now();
         clock.stop();

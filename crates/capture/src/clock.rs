@@ -1,3 +1,5 @@
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
 use opsis_compile::nodes::browser::ClockMode;
 use opsis_runner::context::now_ms;
 use serde_json::{Value, json};
@@ -83,8 +85,16 @@ impl Clock {
     }
 }
 
+pub fn wall_time() -> Duration {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+}
+
+pub fn as_ms(time: Duration) -> f64 {
+    time.as_secs_f64() * 1000.0
+}
+
 pub fn wall_ms() -> f64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_or(0.0, |since| since.as_secs_f64() * 1000.0)
+    as_ms(wall_time())
 }
