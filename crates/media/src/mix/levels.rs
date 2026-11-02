@@ -51,7 +51,7 @@ pub fn frame_levels(
             for v in samples.by_ref().take(pcm.channels) {
                 let v = f64::from(v);
                 peak = peak.max(v.abs());
-                squares += v * v;
+                squares = f64::mul_add(v, v, squares);
                 count += 1;
             }
             at += 1;

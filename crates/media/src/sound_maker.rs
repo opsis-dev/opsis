@@ -33,11 +33,12 @@ fn hump(x: f64, peak: f64) -> f64 {
 
 fn whoosh(s: &SoundShape) -> Vec<f32> {
     let d = s.seconds;
-    let factor = 2f64.powf(s.pitch / 12.0);
+    let factor = (s.pitch / 12.0).exp2();
     let low = 300.0 * factor;
-    let high = (1500.0 + 5000.0 * s.brightness) * factor;
-    let centre =
-        envelope(move |t: f32| numbers::narrow(low + (high - low) * hump(f64::from(t) / d, 0.55)));
+    let high = 5000.0f64.mul_add(s.brightness, 1500.0) * factor;
+    let centre = envelope(move |t: f32| {
+        numbers::narrow((high - low).mul_add(hump(f64::from(t) / d, 0.55), low))
+    });
     let loudness = envelope(move |t: f32| numbers::narrow(hump(f64::from(t) / d, 0.6)));
     let graph = ((noise().seed(s.seed) | centre | dc(1.2)) >> bandpass()) * loudness;
     pulled(graph, d)
@@ -45,8 +46,8 @@ fn whoosh(s: &SoundShape) -> Vec<f32> {
 
 fn riser(s: &SoundShape) -> Vec<f32> {
     let d = s.seconds;
-    let factor = 2f64.powf(s.pitch / 12.0);
-    let top = (2000.0 + 6000.0 * s.brightness) * factor;
+    let factor = (s.pitch / 12.0).exp2();
+    let top = 6000.0f64.mul_add(s.brightness, 2000.0) * factor;
     let sweep = envelope(move |t: f32| {
         numbers::narrow(200.0 * factor * (top / (200.0 * factor)).powf(f64::from(t) / d))
     });
@@ -60,8 +61,8 @@ fn riser(s: &SoundShape) -> Vec<f32> {
 
 fn pop(s: &SoundShape) -> Vec<f32> {
     let d = s.seconds;
-    let factor = numbers::narrow(2f64.powf(s.pitch / 12.0));
-    let fall = envelope(move |t: f32| factor * (160.0 + 800.0 * (-t / 0.015).exp()));
+    let factor = numbers::narrow((s.pitch / 12.0).exp2());
+    let fall = envelope(move |t: f32| factor * 800.0f32.mul_add((-t / 0.015).exp(), 160.0));
     let decay = envelope(move |t: f32| (-t / (0.05 * numbers::narrow(d) / 0.15)).exp());
     let snap = numbers::narrow(s.brightness * 0.4);
     let crack = (noise().seed(s.seed) >> highpass_hz(3000.0, 0.7))
@@ -76,12 +77,17 @@ const BELL_DECAYS: [f32; 5] = [1.2, 0.9, 0.6, 0.35, 0.2];
 
 fn ding(s: &SoundShape) -> Vec<f32> {
     let d = s.seconds;
-    let base = numbers::narrow(880.0 * 2f64.powf(s.pitch / 12.0));
+    let base = numbers::narrow(880.0 * (s.pitch / 12.0).exp2());
     let stretch = numbers::narrow(d / 1.5);
     let bright = numbers::narrow(s.brightness);
     let mut out = vec![0.0f32; count(d)];
     for (i, ratio) in BELL_RATIOS.iter().enumerate() {
-        let level = BELL_LEVELS[i] * if i >= 3 { 0.3 + 1.4 * bright } else { 1.0 };
+        let level = BELL_LEVELS[i]
+            * if i >= 3 {
+                1.4f32.mul_add(bright, 0.3)
+            } else {
+                1.0
+            };
         let decay = BELL_DECAYS[i] * stretch;
         let partial = sine_hz(base * ratio)
             * envelope(move |t: f32| level * (t / 0.002).min(1.0) * (-t / decay).exp());
@@ -94,8 +100,8 @@ fn ding(s: &SoundShape) -> Vec<f32> {
 
 fn tap(s: &SoundShape) -> Vec<f32> {
     let d = s.seconds;
-    let factor = numbers::narrow(2f64.powf(s.pitch / 12.0));
-    let centre = (2000.0 + 4000.0 * numbers::narrow(s.brightness)) * factor;
+    let factor = numbers::narrow((s.pitch / 12.0).exp2());
+    let centre = 4000.0f32.mul_add(numbers::narrow(s.brightness), 2000.0) * factor;
     let tap = (noise().seed(s.seed) >> bandpass_hz(centre, 2.0))
         * envelope(move |t: f32| (-t / 0.004).exp());
     let tick = sine_hz(1500.0 * factor) * envelope(move |t: f32| 0.5 * (-t / 0.01).exp());
@@ -116,12 +122,12 @@ fn burst(t: f32, at: f32) -> f32 {
 }
 
 fn click(s: &SoundShape) -> Vec<f32> {
-    let factor = numbers::narrow(2f64.powf(s.pitch / 12.0));
+    let factor = numbers::narrow((s.pitch / 12.0).exp2());
     let bright = numbers::narrow(s.brightness);
     let gap = 0.03 + 0.03 * numbers::narrow(numbers::float_wide(s.seed % 5)) / 4.0;
-    let ring = (3500.0 + 3500.0 * bright) * factor;
+    let ring = 3500.0f32.mul_add(bright, 3500.0) * factor;
     let mut source = noise().seed(s.seed);
-    let mut snap = highpass_hz((1500.0 + 2500.0 * bright) * factor, 0.7);
+    let mut snap = highpass_hz(2500.0f32.mul_add(bright, 1500.0) * factor, 0.7);
     let mut press = bandpass_hz(ring, 5.0);
     let mut release = bandpass_hz(ring * 1.2, 5.0);
     for node in [
@@ -139,20 +145,23 @@ fn click(s: &SoundShape) -> Vec<f32> {
             let n = source.get_mono();
             let first = burst(t, PRESS_AT);
             let second = burst(t, PRESS_AT + gap) * RELEASE_LEVEL;
-            snap.filter_mono(n * (first + second))
-                + press.filter_mono(n * first) * 2.0
-                + release.filter_mono(n * second) * 2.0
+            release.filter_mono(n * second).mul_add(
+                2.0,
+                press
+                    .filter_mono(n * first)
+                    .mul_add(2.0, snap.filter_mono(n * (first + second))),
+            )
         })
         .collect()
 }
 
 fn swell(s: &SoundShape) -> Vec<f32> {
     let d = s.seconds;
-    let factor = numbers::narrow(2f64.powf(s.pitch / 12.0));
-    let drift = 1.0 + numbers::narrow(numbers::float_wide(s.seed % 7)) * 0.001;
-    let open = numbers::narrow(1000.0 + 4000.0 * s.brightness);
+    let factor = numbers::narrow((s.pitch / 12.0).exp2());
+    let drift = numbers::narrow(numbers::float_wide(s.seed % 7)).mul_add(0.001, 1.0);
+    let open = numbers::narrow(4000.0f64.mul_add(s.brightness, 1000.0));
     let cutoff = envelope(move |t: f32| {
-        300.0 + (open - 300.0) * numbers::narrow(hump(f64::from(t) / d, 0.7))
+        (open - 300.0).mul_add(numbers::narrow(hump(f64::from(t) / d, 0.7)), 300.0)
     });
     let peak = s.peak_at.clamp(0.1, 1.0);
     let loudness = envelope(move |t: f32| numbers::narrow(hump(f64::from(t) / d, peak)));
@@ -213,7 +222,7 @@ pub fn make(shape: &SoundShape) -> [Vec<f32>; 2] {
     );
     for (i, v) in mono.iter().enumerate() {
         let along = numbers::float(i) / len;
-        let angle = (0.5 + travel * (0.7 * along - 0.35)) * PI / 2.0;
+        let angle = f64::mul_add(travel, 0.7f64.mul_add(along, -0.35), 0.5) * PI / 2.0;
         left.push(v * numbers::narrow(angle.cos()) * 1.4);
         right.push(v * numbers::narrow(angle.sin()) * 1.4);
     }

@@ -43,8 +43,8 @@ impl Mode {
     }
 }
 
-pub fn frame_time(origin: f64, frame: u64, frame_ms: f64) -> f64 {
-    origin + numbers::float_wide(frame) * frame_ms
+pub const fn frame_time(origin: f64, frame: u64, frame_ms: f64) -> f64 {
+    numbers::float_wide(frame).mul_add(frame_ms, origin)
 }
 
 #[derive(Clone)]
@@ -137,7 +137,7 @@ impl TakeClock {
             return;
         }
         let frames = (ms / frame_ms).round().max(1.0);
-        self.sleep_until(self.now() + frames * frame_ms).await;
+        self.sleep_until(frames.mul_add(frame_ms, self.now())).await;
     }
 
     pub async fn sleep_until(&self, at: f64) {
@@ -237,7 +237,9 @@ mod tests {
         let (clock, counted) = stepped(30.0);
         let start = clock.now();
         for i in 0..8 {
-            clock.sleep_until(start + f64::from(i) * 16.0).await;
+            clock
+                .sleep_until(f64::mul_add(f64::from(i), 16.0, start))
+                .await;
         }
         assert_eq!(counted.ticks.load(Ordering::SeqCst), 4);
     }

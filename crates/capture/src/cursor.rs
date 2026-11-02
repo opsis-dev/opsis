@@ -154,9 +154,9 @@ fn pad_small_target(rect: Rect, design_scale: f64) -> Rect {
     let height = GROWN_TARGET_H * design_scale;
     let grow = (height - rect.h) / 2.0;
     Rect {
-        x: (rect.x - TARGET_PAD_X * design_scale).max(0.0),
-        y: (rect.y - grow - TARGET_LIFT * design_scale).max(0.0),
-        w: rect.w + 2.0 * TARGET_PAD_X * design_scale,
+        x: TARGET_PAD_X.mul_add(-design_scale, rect.x).max(0.0),
+        y: TARGET_LIFT.mul_add(-design_scale, rect.y - grow).max(0.0),
+        w: (2.0 * TARGET_PAD_X).mul_add(design_scale, rect.w),
         h: height,
     }
 }

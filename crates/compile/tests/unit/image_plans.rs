@@ -109,7 +109,7 @@ proptest! {
         prop_assert!(w <= source.0 && h <= source.1, "{w} {h} {source:?}");
         let (sin, cos) = angle.to_radians().sin_cos();
         let (sin, cos) = (sin.abs(), cos.abs());
-        prop_assert!(w * cos + h * sin <= source.0 + 1.0 && w * sin + h * cos <= source.1 + 1.0);
+        prop_assert!(f64::mul_add(h, sin, w * cos) <= source.0 + 1.0 && f64::mul_add(h, cos, w * sin) <= source.1 + 1.0);
     }
 
     #[test]
@@ -122,7 +122,7 @@ proptest! {
         let (w, h) = rotated_size(source, &p);
         let (tw, th) = if turn == "right" || turn == "left" { (source.1, source.0) } else { source };
         let (sin, cos) = angle.to_radians().sin_cos();
-        let exact = (tw * cos.abs() + th * sin.abs(), tw * sin.abs() + th * cos.abs());
+        let exact = (f64::mul_add(th, sin.abs(), tw * cos.abs()), f64::mul_add(th, cos.abs(), tw * sin.abs()));
         prop_assert!(w >= exact.0 - 1e-6 && w < exact.0 + 1.0, "{w} {exact:?}");
         prop_assert!(h >= exact.1 - 1e-6 && h < exact.1 + 1.0, "{h} {exact:?}");
     }

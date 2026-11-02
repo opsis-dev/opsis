@@ -58,7 +58,7 @@ fn triangle_distance(point: (f64, f64), corners: [(f64, f64); 3]) -> f64 {
         .map(|(a, b)| segment_distance(point, *a, *b))
         .fold(f64::INFINITY, f64::min);
     let side = |a: (f64, f64), b: (f64, f64)| {
-        (b.0 - a.0) * (point.1 - a.1) - (b.1 - a.1) * (point.0 - a.0)
+        (b.1 - a.1).mul_add(-(point.0 - a.0), (b.0 - a.0) * (point.1 - a.1))
     };
     let signs = edges.map(|(a, b)| side(a, b));
     let inside = signs.iter().all(|s| *s >= 0.0) || signs.iter().all(|s| *s <= 0.0);
@@ -78,14 +78,23 @@ pub fn arrow_shape(tail: (f64, f64), tip: (f64, f64), width: f64, head: f64) -> 
     let (ux, uy) = (dx / length, dy / length);
     let head_length = ((width * HEAD_LENGTH).max(SMALLEST_HEAD) * head).min(length);
     let half = (width * HEAD_WIDTH).max(SMALLEST_HEAD * 0.7) * head / 2.0;
-    let base = (tip.0 - ux * head_length, tip.1 - uy * head_length);
+    let base = (
+        f64::mul_add(ux, -head_length, tip.0),
+        f64::mul_add(uy, -head_length, tip.1),
+    );
     Arrow {
         tail,
         base,
         head: [
             tip,
-            (base.0 - uy * half, base.1 + ux * half),
-            (base.0 + uy * half, base.1 - ux * half),
+            (
+                f64::mul_add(uy, -half, base.0),
+                f64::mul_add(ux, half, base.1),
+            ),
+            (
+                f64::mul_add(uy, half, base.0),
+                f64::mul_add(ux, -half, base.1),
+            ),
         ],
     }
 }

@@ -179,7 +179,7 @@ fn colour_filters(p: &Colour) -> Vec<String> {
                     "temperature",
                     when(
                         p.warmth != 0.0,
-                        ((NEUTRAL_KELVIN - p.warmth * KELVIN_SWING).round()).to_string(),
+                        (p.warmth.mul_add(-KELVIN_SWING, NEUTRAL_KELVIN).round()).to_string(),
                     ),
                 ),
                 ("mix", when(p.warmth != 0.0, "1")),
@@ -348,7 +348,10 @@ fn lens_filters(p: &Lens, size: GradeSize) -> Vec<String> {
     if !size.still {
         filters.extend(options(
             "lagfun",
-            vec![("decay", when(p.trails > 0.0, num(0.5 + p.trails * 0.48)))],
+            vec![(
+                "decay",
+                when(p.trails > 0.0, num(p.trails.mul_add(0.48, 0.5))),
+            )],
         ));
     }
     filters

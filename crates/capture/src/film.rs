@@ -431,7 +431,7 @@ impl FrameDriver {
         };
         let shape = loaded?;
         let interval = 1000.0 / f64::from(shape.fps.max(1));
-        let ticks = warmed + CAPTURE_HEADROOM * interval;
+        let ticks = CAPTURE_HEADROOM.mul_add(interval, warmed);
         if capture == Capture::BeginFrame {
             begin_frame(
                 &tab,

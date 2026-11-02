@@ -206,7 +206,7 @@ async fn recording_frames(
         };
         frames.push(TakeFrame {
             jpeg,
-            time: origin_ms + numbers::float(k) * FRAME_GAP_MS,
+            time: numbers::float(k).mul_add(FRAME_GAP_MS, origin_ms),
             width: numbers::count(size.width),
             height: numbers::count(size.height),
         });

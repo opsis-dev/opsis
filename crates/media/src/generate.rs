@@ -17,7 +17,7 @@ impl Seeded {
         self.0 ^= self.0 << 13;
         self.0 ^= self.0 >> 7;
         self.0 ^= self.0 << 17;
-        numbers::float_wide(self.0 >> 11) / numbers::float_wide(1u64 << 53) * 2.0 - 1.0
+        (numbers::float_wide(self.0 >> 11) / numbers::float_wide(1u64 << 53)).mul_add(2.0, -1.0)
     }
 }
 
@@ -45,18 +45,18 @@ fn coloured(colour: NoiseColour, count: usize, seed: u64) -> Vec<f64> {
             match colour {
                 NoiseColour::White => white,
                 NoiseColour::Pink => {
-                    pink[0] = 0.99886 * pink[0] + white * 0.055_517_9;
-                    pink[1] = 0.99332 * pink[1] + white * 0.075_075_9;
-                    pink[2] = 0.96900 * pink[2] + white * 0.153_852_0;
-                    pink[3] = 0.86650 * pink[3] + white * 0.310_485_6;
-                    pink[4] = 0.55000 * pink[4] + white * 0.532_952_2;
-                    pink[5] = -0.7616 * pink[5] - white * 0.016_898_0;
-                    let out = pink.iter().sum::<f64>() + white * 0.5362;
+                    pink[0] = white.mul_add(0.055_517_9, 0.99886 * pink[0]);
+                    pink[1] = white.mul_add(0.075_075_9, 0.99332 * pink[1]);
+                    pink[2] = white.mul_add(0.153_852_0, 0.96900 * pink[2]);
+                    pink[3] = white.mul_add(0.310_485_6, 0.86650 * pink[3]);
+                    pink[4] = white.mul_add(0.532_952_2, 0.55000 * pink[4]);
+                    pink[5] = white.mul_add(-0.016_898_0, -0.7616 * pink[5]);
+                    let out = white.mul_add(0.5362, pink.iter().sum::<f64>());
                     pink[6] = white * 0.115_926;
                     out
                 }
                 NoiseColour::Brown => {
-                    brown = (brown + 0.02 * white) / 1.02;
+                    brown = 0.02f64.mul_add(white, brown) / 1.02;
                     brown
                 }
             }
@@ -71,7 +71,7 @@ pub fn room_tone(colour: NoiseColour, level_db: f64, seed: u64) -> Vec<f32> {
     let mut looped: Vec<f64> = raw[..length].to_vec();
     for i in 0..seam {
         let k = numbers::float(i) / numbers::float(seam);
-        looped[i] = looped[i] * k + raw[length + i] * (1.0 - k);
+        looped[i] = raw[length + i].mul_add(1.0 - k, looped[i] * k);
     }
     let current = (looped.iter().map(|s| s * s).sum::<f64>() / numbers::float(length)).sqrt();
     let gain = 10f64.powf(level_db / 20.0) / current.max(1e-12);
@@ -82,7 +82,7 @@ fn wave_at(wave: ToneWave, cycles: f64) -> f64 {
     let turn = cycles.fract();
     match wave {
         ToneWave::Sine => (cycles * std::f64::consts::TAU).sin(),
-        ToneWave::Triangle => 1.0 - 4.0 * (turn - 0.5).abs(),
+        ToneWave::Triangle => 4.0f64.mul_add(-(turn - 0.5).abs(), 1.0),
         ToneWave::Square => {
             if turn < 0.5 {
                 1.0
@@ -90,7 +90,7 @@ fn wave_at(wave: ToneWave, cycles: f64) -> f64 {
                 -1.0
             }
         }
-        ToneWave::Saw => 2.0 * turn - 1.0,
+        ToneWave::Saw => 2.0f64.mul_add(turn, -1.0),
     }
 }
 
@@ -134,7 +134,7 @@ pub fn beeps(p: &Beeps) -> Vec<f32> {
     }
     let step = samples_for(p.spacing_ms / 1000.0);
     let last = beep(
-        p.pitch_hz * 2f64.powf(p.final_pitch / 12.0),
+        p.pitch_hz * (p.final_pitch / 12.0).exp2(),
         p.length_ms / 1000.0 * p.final_length,
         p.wave,
     );
@@ -195,13 +195,13 @@ fn room_channel(room: &Room, seed: u64) -> Vec<f32> {
         let t = numbers::float(i) / f64::from(RATE);
         let decay = (-SIXTY_DB * t / room.reverb_seconds).exp();
         let darker = (0.2 + 0.75 * t / room.reverb_seconds).min(0.95);
-        damped = damped * darker + random.next() * (1.0 - darker);
+        damped = random.next().mul_add(1.0 - darker, damped * darker);
         let level = ((1.0 + darker) / (1.0 - darker)).sqrt();
         *slot = damped * decay * level;
     }
     out[0] = 1.0;
     for &(at, gain) in room.reflections {
-        let jitter = 1.0 + 0.04 * random.next();
+        let jitter = 0.04f64.mul_add(random.next(), 1.0);
         if let Some(slot) = out.get_mut(samples_for(at * jitter)) {
             *slot += f64::from(gain);
         }
@@ -296,10 +296,10 @@ mod tests {
             for (i, s) in samples[..n].iter().enumerate() {
                 let phase = std::f64::consts::TAU * numbers::float(k) * numbers::float(i)
                     / numbers::float(n);
-                re += f64::from(*s) * phase.cos();
-                im += f64::from(*s) * phase.sin();
+                re = f64::mul_add(f64::from(*s), phase.cos(), re);
+                im = f64::mul_add(f64::from(*s), phase.sin(), im);
             }
-            total += re * re + im * im;
+            total += f64::mul_add(im, im, re * re);
         }
         total
     }

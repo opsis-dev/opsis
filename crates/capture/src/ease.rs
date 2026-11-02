@@ -10,17 +10,21 @@ const SAMPLE_STEP: f64 = 1.0 / numbers::float(SPLINE_TABLE_SIZE - 1);
 const CAMERA: Bezier = Bezier::new(0.2, 0.2, 0.15, 1.0);
 
 fn coefficients(a1: f64, a2: f64) -> (f64, f64, f64) {
-    (1.0 - 3.0 * a2 + 3.0 * a1, 3.0 * a2 - 6.0 * a1, 3.0 * a1)
+    (
+        3.0f64.mul_add(a1, 3.0f64.mul_add(-a2, 1.0)),
+        6.0f64.mul_add(-a1, 3.0 * a2),
+        3.0 * a1,
+    )
 }
 
 fn calc(t: f64, a1: f64, a2: f64) -> f64 {
     let (a, b, c) = coefficients(a1, a2);
-    ((a * t + b) * t + c) * t
+    f64::mul_add(f64::mul_add(a, t, b), t, c) * t
 }
 
 fn slope(t: f64, a1: f64, a2: f64) -> f64 {
     let (a, b, c) = coefficients(a1, a2);
-    3.0 * a * t * t + 2.0 * b * t + c
+    f64::mul_add(2.0 * b, t, 3.0 * a * t * t) + c
 }
 
 #[derive(Debug)]
@@ -81,7 +85,7 @@ impl Bezier {
         }
         current -= 1;
         let (here, next) = (f64::from(samples[current]), f64::from(samples[current + 1]));
-        let guess = start + (x - here) / (next - here) * SAMPLE_STEP;
+        let guess = ((x - here) / (next - here)).mul_add(SAMPLE_STEP, start);
         let initial_slope = slope(guess, self.x1, self.x2);
         if initial_slope >= NEWTON_MIN_SLOPE {
             self.newton(x, guess)

@@ -52,7 +52,7 @@ proptest! {
         fps in prop::sample::select(RATES.to_vec()),
     ) {
         let frames = recording_ms_to_frames(ms, speed, fps);
-        prop_assert!((frames_to_recording_ms(frames, speed, fps) - ms).abs() <= ms * 1e-12 + 1e-9);
+        prop_assert!((frames_to_recording_ms(frames, speed, fps) - ms).abs() <= f64::mul_add(ms, 1e-12, 1e-9));
         prop_assert!(recording_ms_to_frames(ms, speed * 2.0, fps) <= frames);
     }
 }

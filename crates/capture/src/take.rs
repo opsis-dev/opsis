@@ -1050,7 +1050,7 @@ impl<'e> TakeRun<'e> {
                         .await?;
                     self.tab()
                         .clock()
-                        .sleep_until(start + f64::from(tick) * SCROLL_TICK_MS)
+                        .sleep_until(f64::mul_add(f64::from(tick), SCROLL_TICK_MS, start))
                         .await;
                 }
             }

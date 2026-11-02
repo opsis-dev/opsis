@@ -260,8 +260,12 @@ impl Input {
         let steps = steps.max(1);
         for i in 1..=steps {
             let t = f64::from(i) / f64::from(steps);
-            self.raw_move(tab, from_x + (x - from_x) * t, from_y + (y - from_y) * t)
-                .await?;
+            self.raw_move(
+                tab,
+                (x - from_x).mul_add(t, from_x),
+                (y - from_y).mul_add(t, from_y),
+            )
+            .await?;
         }
         Ok(())
     }

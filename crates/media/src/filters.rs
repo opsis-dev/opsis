@@ -234,10 +234,10 @@ pub fn repair_filter(clicks: bool, clipping: bool, strength: f64) -> Option<Stri
     let s = strength.clamp(0.0, 1.0);
     let mut chain = Vec::new();
     if clicks {
-        chain.push(format!("adeclick=t={:.2}", 4.0 - 3.0 * s));
+        chain.push(format!("adeclick=t={:.2}", 3.0f64.mul_add(-s, 4.0)));
     }
     if clipping {
-        chain.push(format!("adeclip=t={:.2}", 15.0 - 10.0 * s));
+        chain.push(format!("adeclip=t={:.2}", 10.0f64.mul_add(-s, 15.0)));
     }
     (!chain.is_empty()).then(|| chain.join(","))
 }

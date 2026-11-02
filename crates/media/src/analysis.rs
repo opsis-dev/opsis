@@ -107,7 +107,7 @@ fn onset_envelope(samples: &[f32], rate: f64) -> Vec<f32> {
 fn tempo_prior(lag: usize) -> f64 {
     let bpm = ONSETS_PER_MINUTE / numbers::float(lag);
     let octaves = (bpm / PRIOR_BPM).log2() / PRIOR_WIDTH_OCTAVES;
-    PRIOR_FLOOR + PRIOR_WEIGHT * (-0.5 * octaves.powi(2)).exp()
+    PRIOR_WEIGHT.mul_add((-0.5 * octaves.powi(2)).exp(), PRIOR_FLOOR)
 }
 
 fn beat_period(onset: &[f32]) -> Option<usize> {

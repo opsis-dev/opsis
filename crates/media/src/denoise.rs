@@ -8,7 +8,7 @@ const DRY_RANGE_DB: f64 = 30.0;
 fn dry_share(strength: f64) -> f64 {
     let strength = strength.clamp(0.0, 1.0);
     let at = |s: f64| 10f64.powf(-DRY_RANGE_DB * s / 20.0);
-    at(strength) - strength * at(1.0)
+    strength.mul_add(-at(1.0), at(strength))
 }
 
 pub fn denoised(samples: &[i16], strength: f64) -> Vec<i16> {
@@ -29,7 +29,11 @@ pub fn denoised(samples: &[i16], strength: f64) -> Vec<i16> {
         .iter()
         .zip(&wet[FRAME..])
         .map(|(dry, wet)| {
-            let mixed = f64::from(*dry) * dry_share + f64::from(*wet) * (1.0 - dry_share);
+            let mixed = f64::mul_add(
+                f64::from(*wet),
+                1.0 - dry_share,
+                f64::from(*dry) * dry_share,
+            );
             numbers::truncate::<i16>(
                 mixed
                     .round()
@@ -53,8 +57,10 @@ mod tests {
             x ^= x << 17;
             let t = numbers::float(i) / f64::from(DENOISE_RATE);
             let syllables = (t * 3.0 * std::f64::consts::TAU).sin().max(0.0);
-            let tone = (t * 220.0 * std::f64::consts::TAU).sin()
-                + 0.5 * (t * 440.0 * std::f64::consts::TAU).sin();
+            let tone = 0.5f64.mul_add(
+                (t * 440.0 * std::f64::consts::TAU).sin(),
+                (t * 220.0 * std::f64::consts::TAU).sin(),
+            );
             let clean = tone * syllables * 0.3;
             let hiss =
                 (numbers::float_wide(x >> 11) / numbers::float_wide(1u64 << 53) - 0.5) * 0.03;

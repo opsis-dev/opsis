@@ -147,7 +147,7 @@ fn envelope_expr(keys: &[Keyframe], fps: f64) -> String {
 
 fn side_gain(left: bool, pan: f64) -> String {
     let side = if left { -1.0 } else { 1.0 };
-    num(f64::min(1.0, 1.0 + side * pan), PAN_DIGITS)
+    num(f64::min(1.0, f64::mul_add(side, pan, 1.0)), PAN_DIGITS)
 }
 
 fn side_gain_expr(left: bool, pan: &str) -> String {

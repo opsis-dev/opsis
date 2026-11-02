@@ -170,41 +170,42 @@ fn hue_matrix(degrees: f32) -> [[f32; 3]; 3] {
     let (sin, cos) = degrees.to_radians().sin_cos();
     [
         [
-            0.213 + cos * 0.787 - sin * 0.213,
-            0.715 - cos * 0.715 - sin * 0.715,
-            0.072 - cos * 0.072 + sin * 0.928,
+            f32::mul_add(sin, -0.213, f32::mul_add(cos, 0.787, 0.213)),
+            f32::mul_add(sin, -0.715, f32::mul_add(cos, -0.715, 0.715)),
+            f32::mul_add(sin, 0.928, f32::mul_add(cos, -0.072, 0.072)),
         ],
         [
-            0.213 - cos * 0.213 + sin * 0.143,
-            0.715 + cos * 0.285 + sin * 0.140,
-            0.072 - cos * 0.072 - sin * 0.283,
+            f32::mul_add(sin, 0.143, f32::mul_add(cos, -0.213, 0.213)),
+            f32::mul_add(sin, 0.140, f32::mul_add(cos, 0.285, 0.715)),
+            f32::mul_add(sin, -0.283, f32::mul_add(cos, -0.072, 0.072)),
         ],
         [
-            0.213 - cos * 0.213 - sin * 0.787,
-            0.715 - cos * 0.715 + sin * 0.715,
-            0.072 + cos * 0.928 + sin * 0.072,
+            f32::mul_add(sin, -0.787, f32::mul_add(cos, -0.213, 0.213)),
+            f32::mul_add(sin, 0.715, f32::mul_add(cos, -0.715, 0.715)),
+            f32::mul_add(sin, 0.072, f32::mul_add(cos, 0.928, 0.072)),
         ],
     ]
 }
 
 fn adjust_pixel(rgb: [f32; 3], p: &AdjustImage, hue: &[[f32; 3]; 3]) -> [f32; 3] {
     let contrast = if p.contrast >= 0.0 {
-        1.0 + numbers::narrow(p.contrast) * CONTRAST_GAIN
+        numbers::narrow(p.contrast).mul_add(CONTRAST_GAIN, 1.0)
     } else {
         1.0 + numbers::narrow(p.contrast)
     };
-    let mut c =
-        rgb.map(|v| (v - 0.5) * contrast + 0.5 + numbers::narrow(p.brightness) * BRIGHTNESS_SPAN);
+    let mut c = rgb.map(|v| {
+        numbers::narrow(p.brightness).mul_add(BRIGHTNESS_SPAN, f32::mul_add(v - 0.5, contrast, 0.5))
+    });
     if p.hue != 0.0 {
-        c = [0, 1, 2].map(|i| hue[i][0] * c[0] + hue[i][1] * c[1] + hue[i][2] * c[2]);
+        c = [0, 1, 2].map(|i| hue[i][2].mul_add(c[2], hue[i][1].mul_add(c[1], hue[i][0] * c[0])));
     }
-    let luma = LUMA[0] * c[0] + LUMA[1] * c[1] + LUMA[2] * c[2];
+    let luma = LUMA[2].mul_add(c[2], LUMA[1].mul_add(c[1], LUMA[0] * c[0]));
     let saturation = if p.grayscale {
         0.0
     } else {
         1.0 + numbers::narrow(p.saturation)
     };
-    c = c.map(|v| luma + (v - luma) * saturation);
+    c = c.map(|v| (v - luma).mul_add(saturation, luma));
     if p.invert {
         c = c.map(|v| 1.0 - v);
     }
@@ -258,7 +259,7 @@ fn toward(base: &DynamicImage, target: &DynamicImage, amount: f32) -> DynamicIma
     let goal = target.to_rgba32f();
     for (pixel, aim) in pixels.pixels_mut().zip(goal.pixels()) {
         for (v, t) in pixel.0.iter_mut().zip(aim.0) {
-            *v = (*v + (t - *v) * amount).clamp(0.0, 1.0);
+            *v = f32::mul_add(t - *v, amount, *v).clamp(0.0, 1.0);
         }
     }
     let mixed = DynamicImage::ImageRgba32F(pixels);
@@ -290,8 +291,12 @@ pub fn place(
     for pixel in top.pixels_mut() {
         pixel.0[3] = numbers::truncate::<u8>((f64::from(pixel.0[3]) * opacity).round());
     }
-    let x = numbers::truncate::<i64>((f64::from(image.width()) * p.x - width / 2.0).round());
-    let y = numbers::truncate::<i64>((f64::from(image.height()) * p.y - height / 2.0).round());
+    let x = numbers::truncate::<i64>(
+        f64::mul_add(f64::from(image.width()), p.x, -(width / 2.0)).round(),
+    );
+    let y = numbers::truncate::<i64>(
+        f64::mul_add(f64::from(image.height()), p.y, -(height / 2.0)).round(),
+    );
     let mut base = image.to_rgba8();
     imageops::overlay(&mut base, &top, x, y);
     Ok(DynamicImage::ImageRgba8(base))
@@ -490,7 +495,7 @@ fn in_rounded(px: f64, py: f64, rect: Rect, radius: f64) -> bool {
         && px <= rect.x + rect.width
         && py >= rect.y
         && py <= rect.y + rect.height
-        && dx * dx + dy * dy <= r * r
+        && dy.mul_add(dy, dx * dx) <= r * r
 }
 
 pub fn lit_mask(
@@ -540,12 +545,12 @@ pub fn spotlight(image: &DynamicImage, p: &SpotlightImage) -> DynamicImage {
     };
     let keep = 1.0 - numbers::narrow(p.dim.clamp(0.0, 1.0));
     let [dr, dg, db, _] = background_rgba(&p.dim_color).map(|v| f32::from(v) / 255.0);
-    let toward = |value: f32, dim: f32| value * keep + dim * (1.0 - keep);
+    let toward = |value: f32, dim: f32| dim.mul_add(1.0 - keep, value * keep);
     let out = ImageBuffer::from_fn(source.width(), source.height(), |x, y| {
         let lit = mask.get_pixel(x, y).0[0].clamp(0.0, 1.0);
         let [r, g, b, a] = source.get_pixel(x, y).0;
         let [rr, rg, rb, ra] = rest.get_pixel(x, y).0;
-        let mix = |near: f32, far: f32| near * lit + far * (1.0 - lit);
+        let mix = |near: f32, far: f32| far.mul_add(1.0 - lit, near * lit);
         Rgba([
             mix(r, toward(rr, dr)),
             mix(g, toward(rg, dg)),
@@ -695,11 +700,11 @@ pub fn clear_colour(image: &DynamicImage, p: &ClearColour) -> DynamicImage {
 }
 
 pub(crate) fn over(top: [f32; 4], bottom: [f32; 4]) -> [f32; 4] {
-    let a = top[3] + bottom[3] * (1.0 - top[3]);
+    let a = bottom[3].mul_add(1.0 - top[3], top[3]);
     if a <= 0.0 {
         return [0.0; 4];
     }
-    let mix = |i: usize| (top[i] * top[3] + bottom[i] * bottom[3] * (1.0 - top[3])) / a;
+    let mix = |i: usize| (bottom[i] * bottom[3]).mul_add(1.0 - top[3], top[i] * top[3]) / a;
     [mix(0), mix(1), mix(2), a]
 }
 
@@ -889,7 +894,7 @@ pub fn auto_levels(image: &DynamicImage, p: &AutoLevels) -> DynamicImage {
     for pixel in pixels.pixels_mut() {
         for (channel, map) in maps.iter().enumerate() {
             let v = pixel.0[channel];
-            pixel.0[channel] = v + (map(v) - v) * strength;
+            pixel.0[channel] = f32::mul_add(map(v) - v, strength, v);
         }
     }
     from_float(image, pixels)
@@ -980,7 +985,7 @@ fn along(gradient: &Gradient, t: f64) -> [f32; 4] {
             } else {
                 1.0
             };
-            return [0, 1, 2, 3].map(|i| ca[i] + (cb[i] - ca[i]) * k);
+            return [0, 1, 2, 3].map(|i| f32::mul_add(cb[i] - ca[i], k, ca[i]));
         }
     }
     stops.last().map_or(first, |s| s.1)
@@ -993,7 +998,7 @@ pub fn paint_gradient(size: (u32, u32), gradient: &Gradient) -> Rgba32FImage {
     ImageBuffer::from_fn(size.0, size.1, |x, y| {
         let (dx, dy) = (f64::from(x) + 0.5 - w / 2.0, f64::from(y) + 0.5 - h / 2.0);
         let t = match gradient.kind {
-            GradientKind::Linear => (dx * sin - dy * cos) / length.max(1.0) + 0.5,
+            GradientKind::Linear => f64::mul_add(dy, -cos, dx * sin) / length.max(1.0) + 0.5,
             GradientKind::Radial => {
                 let (rx, ry) = (
                     w / 2.0 * std::f64::consts::SQRT_2,
@@ -1105,7 +1110,7 @@ fn unit_colour(rgba: [u8; 4]) -> [f32; 4] {
 }
 
 fn lerp(a: [f32; 4], b: [f32; 4], t: f32) -> [f32; 4] {
-    [0, 1, 2, 3].map(|i| a[i] + (b[i] - a[i]) * t)
+    [0, 1, 2, 3].map(|i| (b[i] - a[i]).mul_add(t, a[i]))
 }
 
 fn split_pictures(
@@ -1123,7 +1128,7 @@ fn split_pictures(
     let half = f64::from(p.divider_width) / 2.0;
     ImageBuffer::from_fn(w, h, |x, y| {
         let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
-        let d = (px - centre.0) * cos + (py - centre.1) * sin;
+        let d = f64::mul_add(py - centre.1, sin, (px - centre.0) * cos);
         let share = numbers::narrow((d + 0.5).clamp(0.0, 1.0));
         let mut pixel = lerp(before.get_pixel(x, y).0, after.get_pixel(x, y).0, share);
         if half > 0.0 {
@@ -1160,17 +1165,17 @@ fn draw_label(
     let (pad_x, pad_y) = (size * 0.55, size * 0.3);
     let rect = Rect {
         x: if corner.2 {
-            corner.0 - measured.width - 2.0 * pad_x
+            2.0f64.mul_add(-pad_x, corner.0 - measured.width)
         } else {
             corner.0
         },
         y: if corner.3 {
-            corner.1 - measured.height - 2.0 * pad_y
+            2.0f64.mul_add(-pad_y, corner.1 - measured.height)
         } else {
             corner.1
         },
-        width: measured.width + 2.0 * pad_x,
-        height: measured.height + 2.0 * pad_y,
+        width: 2.0f64.mul_add(pad_x, measured.width),
+        height: 2.0f64.mul_add(pad_y, measured.height),
     };
     let background = unit_colour(background_rgba(&p.label_background));
     let radius = rect.height * f64::from(p.label_radius) / 100.0;
@@ -1260,13 +1265,13 @@ fn shape_distance(px: f64, py: f64, rect: Rect, p: &Magnify) -> f64 {
 
 pub(crate) fn segment_distance(point: (f64, f64), from: (f64, f64), to: (f64, f64)) -> f64 {
     let (dx, dy) = (to.0 - from.0, to.1 - from.1);
-    let length = dx * dx + dy * dy;
+    let length = f64::mul_add(dy, dy, dx * dx);
     let t = if length > 0.0 {
-        (((point.0 - from.0) * dx + (point.1 - from.1) * dy) / length).clamp(0.0, 1.0)
+        ((point.1 - from.1).mul_add(dy, (point.0 - from.0) * dx) / length).clamp(0.0, 1.0)
     } else {
         0.0
     };
-    (point.0 - from.0 - t * dx).hypot(point.1 - from.1 - t * dy)
+    f64::mul_add(t, -dx, point.0 - from.0).hypot(f64::mul_add(t, -dy, point.1 - from.1))
 }
 
 fn ring(distance: f64, half: f64) -> f32 {

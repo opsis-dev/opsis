@@ -127,7 +127,7 @@ impl Writer {
             return Ok(());
         };
         loop {
-            let at = origin + numbers::float_wide(self.tick) * self.frame_ms;
+            let at = numbers::float_wide(self.tick).mul_add(self.frame_ms, origin);
             if !(if inclusive { at <= t } else { at < t }) {
                 return Ok(());
             }

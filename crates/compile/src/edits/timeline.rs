@@ -263,7 +263,7 @@ fn shift_param(wf: &mut Workflow, r: &ParamRef, delta_content: f64, fps: u32) ->
         } else {
             current
         };
-        let next = frames + sign * delta_content * scale;
+        let next = (sign * delta_content).mul_add(scale, frames);
         let clamped = next.round().max(0.0);
         let value = if in_ms {
             frames_to_ms(clamped, fps)
@@ -330,8 +330,8 @@ fn place_near(
     };
     let at = absolute_position(wf, anchor);
     let pos = Position {
-        x: at.x + NEW_NODE_OFFSET.x + index * NEW_NODE_STEP.x,
-        y: at.y + NEW_NODE_OFFSET.y + index * NEW_NODE_STEP.y,
+        x: index.mul_add(NEW_NODE_STEP.x, at.x + NEW_NODE_OFFSET.x),
+        y: index.mul_add(NEW_NODE_STEP.y, at.y + NEW_NODE_OFFSET.y),
     };
     let shared = source
         .and_then(|s| s.parent_id.as_deref())
@@ -590,7 +590,7 @@ impl TimelineEdits<'_> {
 
     fn trim_end(&mut self, bar: &VideoBar, delta: f64) -> Outcome {
         if let Some((link, r)) = self.owned(bar, HandleKind::TrimEnd) {
-            let length = link.end + delta * link.rate_end;
+            let length = delta.mul_add(link.rate_end, link.end);
             if length < 1.0 {
                 return Err(TimelineEditError::NeedsAFrame);
             }
@@ -603,7 +603,9 @@ impl TimelineEdits<'_> {
         let edge = self
             .edge_out_of_clip(bar)
             .ok_or_else(|| not_connected("trim it"))?;
-        let keep = (bar.content_end - bar.content_start + delta * bar.rate).round();
+        let keep = delta
+            .mul_add(bar.rate, bar.content_end - bar.content_start)
+            .round();
         if keep < 1.0 {
             return Err(TimelineEditError::NeedsAFrame);
         }

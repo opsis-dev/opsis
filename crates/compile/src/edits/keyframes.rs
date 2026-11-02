@@ -159,7 +159,7 @@ pub fn apply_keyframe_edit(wf: &mut Workflow, edit: KeyframeEdit) -> Result<(), 
                         ease: Ease::Linear,
                     },
                     |last| Keyframe {
-                        frame: last.frame + NEW_KEY_GAP_SECONDS * fps,
+                        frame: NEW_KEY_GAP_SECONDS.mul_add(fps, last.frame),
                         value: last.value,
                         ease: Ease::Linear,
                     },

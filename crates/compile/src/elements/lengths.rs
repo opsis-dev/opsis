@@ -171,7 +171,9 @@ fn code_morph_end(s: &Settings) -> f64 {
 }
 
 fn handwrite_frames(text: &str, per_step: f64, step: f64) -> f64 {
-    (numbers::float(characters(text)) / per_step).ceil() * step + step
+    (numbers::float(characters(text)) / per_step)
+        .ceil()
+        .mul_add(step, step)
 }
 
 fn check_list_end(s: &Settings) -> f64 {
@@ -190,11 +192,14 @@ fn check_list_end(s: &Settings) -> f64 {
         })
         .collect();
     let enter_end = max_of(items.iter().enumerate().map(|(i, (text, _))| {
-        numbers::float(i) * item_gap + step * 2.0 + handwrite_frames(text, per_step, step)
+        step.mul_add(2.0, numbers::float(i) * item_gap) + handwrite_frames(text, per_step, step)
     }));
     let checked = items.iter().filter(|(_, c)| *c).count();
     let strike_end = if checked > 0 {
-        enter_end + numbers::float(checked - 1) * close_gap + step * 4.0
+        step.mul_add(
+            4.0,
+            numbers::float(checked - 1).mul_add(close_gap, enter_end),
+        )
     } else {
         0.0
     };
@@ -213,7 +218,7 @@ fn agent_run_end(s: &Settings) -> f64 {
         .collect();
     let plan = plan.join("\n");
     let answer = text(s, "runAnswer");
-    let think = 16.0 + 14.0 + numbers::float(words(&plan)) * AGENT_PLAN_PER_WORD + 8.0;
+    let think = numbers::float(words(&plan)).mul_add(AGENT_PLAN_PER_WORD, 16.0 + 14.0) + 8.0;
     let tools: f64 = list(s, "runSteps")
         .iter()
         .map(|step| {
@@ -222,8 +227,10 @@ fn agent_run_end(s: &Settings) -> f64 {
                 .clamp(12.0, 120.0)
         })
         .sum();
-    let answering = numbers::float(words(answer)) * AGENT_ANSWER_PER_WORD
-        + numbers::float(lines(answer)) * AGENT_ANSWER_PER_LINE;
+    let answering = numbers::float(lines(answer)).mul_add(
+        AGENT_ANSWER_PER_LINE,
+        numbers::float(words(answer)) * AGENT_ANSWER_PER_WORD,
+    );
     think + tools + 8.0 + answering + 16.0
 }
 
@@ -234,9 +241,9 @@ fn logo_wall_end(s: &Settings) -> f64 {
     let diagonal = (0..count)
         .map(|i| numbers::float(i / columns + i % columns))
         .fold(0.0, f64::max);
-    let arrived = start_at + last_index(count) * num(s, "arriveStaggerSeconds", 0.06) + 0.36;
-    let warmed =
-        start_at + 0.3 + diagonal * num(s, "staggerSeconds", 0.24) + num(s, "warmSeconds", 0.6);
+    let arrived = last_index(count).mul_add(num(s, "arriveStaggerSeconds", 0.06), start_at) + 0.36;
+    let warmed = f64::mul_add(diagonal, num(s, "staggerSeconds", 0.24), start_at + 0.3)
+        + num(s, "warmSeconds", 0.6);
     arrived.max(warmed)
 }
 
@@ -276,7 +283,7 @@ fn code_reveal_end(s: &Settings) -> f64 {
         .iter()
         .map(|r| r.trim_start().encode_utf16().count())
         .sum();
-    0.4 + numbers::float(typed) / 55.0 + last_index(rows.len()) * 0.07 + 0.84
+    last_index(rows.len()).mul_add(0.07, 0.4 + numbers::float(typed) / 55.0) + 0.84
 }
 
 fn file_tree_rows(paths: &[&str]) -> usize {
@@ -298,7 +305,11 @@ fn notification_end(s: &Settings) -> f64 {
         .iter()
         .enumerate()
         .fold(0.0, |end, (i, toast)| {
-            let spawn = field_num(toast, "atSeconds", start_at + stagger * numbers::float(i));
+            let spawn = field_num(
+                toast,
+                "atSeconds",
+                stagger.mul_add(numbers::float(i), start_at),
+            );
             end.max(spawn + field_num(toast, "holdFor", life) + 0.3)
         })
 }
@@ -358,9 +369,9 @@ const KEEPS_ITS_LENGTH: Timing = Timing {
 
 fn element_timing(key: &str) -> Option<Timing> {
     Some(match key {
-        "soft-blur-in" => {
-            authored(|s| last_index(characters(text(s, "text"))) * num(s, "stagger", 1.0) + 27.0)
-        }
+        "soft-blur-in" => authored(|s| {
+            last_index(characters(text(s, "text"))).mul_add(num(s, "stagger", 1.0), 27.0)
+        }),
         "typewriter" => authored(|s| {
             numbers::float(characters(text(s, "text"))) / num(s, "charsPerSecond", 22.0).max(0.1)
                 * f64::from(AUTHORED_FPS)
@@ -375,12 +386,12 @@ fn element_timing(key: &str) -> Option<Timing> {
             ) * num(s, "columnStagger", 4.0)
         }),
         "staggered-fade-up" => authored(|s| {
-            last_index(spaced(text(s, "text"))) * num(s, "staggerDelay", 4.0)
-                + num(s, "wordDuration", 12.0)
+            last_index(spaced(text(s, "text")))
+                .mul_add(num(s, "staggerDelay", 4.0), num(s, "wordDuration", 12.0))
         }),
         "kinetic-center-build" => authored(|s| {
             let word = num(s, "wordTime", 13.0);
-            (word * 10.0 / 13.0).round() + last_index(spaced(text(s, "text"))) * word
+            last_index(spaced(text(s, "text"))).mul_add(word, (word * 10.0 / 13.0).round())
         }),
         "mask-reveal-up" => authored(|s| {
             last_index(lines(text(s, "text"))) * (num(s, "lineStagger", 3.0) + EXIT_STAGGER)
@@ -405,15 +416,15 @@ fn element_timing(key: &str) -> Option<Timing> {
         "confetti" => authored(|s| num(s, "lifetime", 90.0)),
         "keystroke" => authored(keystroke_end),
         "terminal-simulator" => authored(terminal_end),
-        "glass-code-block" => {
-            authored(|s| last_index(lines(text(s, "code"))) * num(s, "staggerFrames", 4.0) + 8.0)
-        }
+        "glass-code-block" => authored(|s| {
+            last_index(lines(text(s, "code"))).mul_add(num(s, "staggerFrames", 4.0), 8.0)
+        }),
         "code-morph" => authored(code_morph_end),
         "logo-enter" => authored(|s| last_index(list(s, "logos").len()) * num(s, "stagger", 7.0)),
         "check-list" => authored(check_list_end),
         "search-reveal" => authored(|s| {
             let step = num(s, "framesPerCharacter", 4.0).clamp(1.0, 12.0);
-            (54.0 + numbers::float(characters(text(s, "text"))) * step + 10.0).max(90.0)
+            (numbers::float(characters(text(s, "text"))).mul_add(step, 54.0) + 10.0).max(90.0)
         }),
         "agent-run" => authored(agent_run_end),
         "signup-flow" => {
@@ -429,7 +440,8 @@ fn element_timing(key: &str) -> Option<Timing> {
             if s.get("autoplay") == Some(&Value::Bool(false)) {
                 0.0
             } else {
-                24.0 + numbers::float(characters(text(s, "query"))) * num(s, "letterSeconds", 2.5)
+                numbers::float(characters(text(s, "query")))
+                    .mul_add(num(s, "letterSeconds", 2.5), 24.0)
                     + 8.0
                     + num(s, "pauseSeconds", 18.0)
                     + 6.0
@@ -444,17 +456,22 @@ fn element_timing(key: &str) -> Option<Timing> {
             numbers::float(list(s, "metrics").len()).min(num(s, "maxCards", 4.0).max(1.0)) * 8.0
         }),
         "funnel-chart" => frames(|s| {
-            last_index(list(s, "stages").len()) * num(s, "staggerInFrames", 12.0)
-                + num(s, "durationInFrames", 22.0)
+            last_index(list(s, "stages").len()).mul_add(
+                num(s, "staggerInFrames", 12.0),
+                num(s, "durationInFrames", 22.0),
+            )
         }),
         "donut-chart" => frames(|s| {
-            last_index(list(s, "segments").len()) * num(s, "staggerInFrames", 9.0)
-                + num(s, "durationInFrames", 26.0)
+            last_index(list(s, "segments").len()).mul_add(
+                num(s, "staggerInFrames", 9.0),
+                num(s, "durationInFrames", 26.0),
+            )
         }),
         "comparison-bars" => frames(|s| {
-            last_index(list(s, "rows").len()) * num(s, "staggerInFrames", 12.0)
-                + num(s, "pairOffsetInFrames", 6.0)
-                + num(s, "durationInFrames", 30.0)
+            last_index(list(s, "rows").len()).mul_add(
+                num(s, "staggerInFrames", 12.0),
+                num(s, "pairOffsetInFrames", 6.0),
+            ) + num(s, "durationInFrames", 30.0)
         }),
         "bar-chart-race" => frames(|s| {
             let steps = list(s, "series")
@@ -469,8 +486,10 @@ fn element_timing(key: &str) -> Option<Timing> {
         }),
         "gauge-dial" => frames(|s| num(s, "durationInFrames", 44.0)),
         "handwriting-text" => frames(|s| {
-            last_index(characters(text(s, "text"))) * num(s, "staggerInFrames", 3.0)
-                + num(s, "durationInFrames", 10.0)
+            last_index(characters(text(s, "text"))).mul_add(
+                num(s, "staggerInFrames", 3.0),
+                num(s, "durationInFrames", 10.0),
+            )
         }),
         "neon-flicker-text" => {
             frames(|s| last_index(characters(text(s, "text"))) * num(s, "staggerInFrames", 0.0))
@@ -478,9 +497,10 @@ fn element_timing(key: &str) -> Option<Timing> {
         "text-mask-video" => frames(|s| num(s, "durationInFrames", 0.0)),
         "pricing-card" => seconds(|s| {
             (num(s, "priceAtSeconds", 0.42) + num(s, "rollSeconds", 0.9)).max(
-                num(s, "featuresAtSeconds", 1.05)
-                    + last_index(list(s, "features").len()) * num(s, "featureStaggerSeconds", 0.22)
-                    + 0.58,
+                last_index(list(s, "features").len()).mul_add(
+                    num(s, "featureStaggerSeconds", 0.22),
+                    num(s, "featuresAtSeconds", 1.05),
+                ) + 0.58,
             )
         }),
         "comparison-table" => seconds(|s| {
@@ -494,14 +514,16 @@ fn element_timing(key: &str) -> Option<Timing> {
                 })
                 .max()
                 .unwrap_or(0);
-            num(s, "startAtSeconds", 0.5)
-                + last_index(rows.len()) * num(s, "rowStaggerSeconds", 0.26)
-                + (0.39 + last_index(cells) * 0.07).max(0.4)
+            last_index(rows.len()).mul_add(
+                num(s, "rowStaggerSeconds", 0.26),
+                num(s, "startAtSeconds", 0.5),
+            ) + last_index(cells).mul_add(0.07, 0.39).max(0.4)
         }),
         "changelog-entry" => seconds(|s| {
-            (num(s, "startAtSeconds", 0.66)
-                + last_index(list(s, "changes").len()) * num(s, "staggerSeconds", 0.28)
-                + 0.46)
+            (last_index(list(s, "changes").len()).mul_add(
+                num(s, "staggerSeconds", 0.28),
+                num(s, "startAtSeconds", 0.66),
+            ) + 0.46)
                 .max(0.84)
         }),
         "logo-wall" => seconds(logo_wall_end),
@@ -517,7 +539,7 @@ fn element_timing(key: &str) -> Option<Timing> {
                     .then(|| at + num(s, "moveSeconds", 0.62))
             });
             moves.fold(
-                0.18 + last_index(cards.len()) * num(s, "dealStaggerSeconds", 0.08) + 0.42,
+                last_index(cards.len()).mul_add(num(s, "dealStaggerSeconds", 0.08), 0.18) + 0.42,
                 f64::max,
             )
         }),
@@ -526,7 +548,7 @@ fn element_timing(key: &str) -> Option<Timing> {
                 .iter()
                 .map(|v| v.as_str().unwrap_or(""))
                 .collect();
-            0.42 + last_index(file_tree_rows(&paths)) * num(s, "rowStagger", 0.18)
+            last_index(file_tree_rows(&paths)).mul_add(num(s, "rowStagger", 0.18), 0.42)
                 + 0.34
                 + if text(s, "selectedPath").is_empty() {
                     0.0
@@ -535,16 +557,17 @@ fn element_timing(key: &str) -> Option<Timing> {
                 }
         }),
         "commit-graph" => seconds(|s| {
-            num(s, "startAtSeconds", 0.34)
-                + (numbers::float(list(s, "commits").len()) - 1.0).max(1.0)
-                    * num(s, "stepSeconds", 0.36)
+            (numbers::float(list(s, "commits").len()) - 1.0)
+                .max(1.0)
+                .mul_add(num(s, "stepSeconds", 0.36), num(s, "startAtSeconds", 0.34))
         }),
         "notification-stack" => seconds(notification_end),
         "punch-lines" => authored(punch_lines_end),
         "status-cycle" => authored(|s| {
-            num(s, "startAt", 0.0)
-                + num(s, "introFrames", 24.0)
-                + last_index(comma_list(text(s, "statuses")).len()) * num(s, "statusHold", 30.0)
+            last_index(comma_list(text(s, "statuses")).len()).mul_add(
+                num(s, "statusHold", 30.0),
+                num(s, "startAt", 0.0) + num(s, "introFrames", 24.0),
+            )
         }),
         "text-highlight" => authored(|s| {
             num(s, "startAt", 6.0)

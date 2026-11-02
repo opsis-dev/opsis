@@ -57,24 +57,27 @@ impl Bounds {
     }
 
     fn quad(&mut self, p0: f64, p1: f64, p2: f64) {
-        let denominator = p0 - 2.0 * p1 + p2;
+        let denominator = 2.0f64.mul_add(-p1, p0) + p2;
         if denominator != 0.0 {
             let t = (p0 - p1) / denominator;
             if t > 0.0 && t < 1.0 {
                 let u = 1.0 - t;
-                self.add(u * u * p0 + 2.0 * u * t * p1 + t * t * p2);
+                self.add((t * t).mul_add(p2, (2.0 * u * t).mul_add(p1, u * u * p0)));
             }
         }
         self.add(p2);
     }
 
     fn cubic(&mut self, p0: f64, p1: f64, p2: f64, p3: f64) {
-        let a = -p0 + 3.0 * p1 - 3.0 * p2 + p3;
-        let b = 2.0 * (p0 - 2.0 * p1 + p2);
+        let a = 3.0f64.mul_add(-p2, 3.0f64.mul_add(p1, -p0)) + p3;
+        let b = 2.0 * (2.0f64.mul_add(-p1, p0) + p2);
         let c = p1 - p0;
         let at = |t: f64| {
             let u = 1.0 - t;
-            u * u * u * p0 + 3.0 * u * u * t * p1 + 3.0 * u * t * t * p2 + t * t * t * p3
+            (t * t * t).mul_add(
+                p3,
+                (3.0 * u * t * t).mul_add(p2, (3.0 * u * u * t).mul_add(p1, u * u * u * p0)),
+            )
         };
         let mut roots = Vec::new();
         if a.abs() < 1e-12 {
@@ -82,7 +85,7 @@ impl Bounds {
                 roots.push(-c / b);
             }
         } else {
-            let disc = b * b - 4.0 * a * c;
+            let disc = (4.0 * a).mul_add(-c, b * b);
             if disc >= 0.0 {
                 let s = disc.sqrt();
                 roots.extend([(-b + s) / (2.0 * a), (-b - s) / (2.0 * a)]);

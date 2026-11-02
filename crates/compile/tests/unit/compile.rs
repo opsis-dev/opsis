@@ -127,7 +127,7 @@ fn marks_every_action_of_the_recording_on_the_timeline_at_its_frame() {
     assert_eq!(marks[1].label, "Click Complete");
     let speed = bar.props["speed"].as_f64().unwrap();
     let local = (marks[1].frame - bar.from) / bar.rate;
-    assert!((local + bar.content_start - 6000.0 / 1000.0 / speed * 30.0).abs() < 0.5);
+    assert!(f64::mul_add(6000.0 / 1000.0 / speed, -30.0, local + bar.content_start).abs() < 0.5);
 }
 
 #[test]

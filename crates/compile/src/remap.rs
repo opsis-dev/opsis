@@ -6,7 +6,7 @@ use crate::text::round_to;
 pub type Remap = Vec<(f64, f64)>;
 
 fn lerp_segment((x0, y0): (f64, f64), (x1, y1): (f64, f64), x: f64) -> f64 {
-    y0 + (x - x0) / (x1 - x0) * (y1 - y0)
+    ((x - x0) / (x1 - x0)).mul_add(y1 - y0, y0)
 }
 
 pub fn speed_remap(inner_duration: u32, out_duration: u32) -> Remap {
@@ -35,7 +35,7 @@ pub fn remap_frame(remap: &[(f64, f64)], frame: f64) -> f64 {
     }
     let i = remap.partition_point(|(out, _)| *out <= frame);
     let (a, b) = (remap[i - 1], remap[i]);
-    a.1 + (b.1 - a.1) * ((frame - a.0) / (b.0 - a.0))
+    f64::mul_add(b.1 - a.1, (frame - a.0) / (b.0 - a.0), a.1)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -63,13 +63,13 @@ pub fn eased_segments(segments: &[(f64, f64, f64)], ease: f64) -> Vec<(f64, f64,
             let between = |k: u32| 1.0 + (rate - 1.0) * f64::from(k) / (steps + 1.0);
             let mut parts: Vec<(f64, f64, f64)> = (0..EASE_STEPS)
                 .map(|k| {
-                    let at = from + step * f64::from(k);
+                    let at = step.mul_add(f64::from(k), from);
                     (at, at + step, between(k + 1))
                 })
                 .collect();
             parts.push((from + e, to - e, rate));
             parts.extend((0..EASE_STEPS).map(|k| {
-                let at = to - e + step * f64::from(k);
+                let at = step.mul_add(f64::from(k), to - e);
                 (at, at + step, between(EASE_STEPS - k))
             }));
             parts
@@ -103,7 +103,7 @@ fn before_first(remap: &[(f64, f64)], r: f64) -> f64 {
         .iter()
         .find(|(_, i)| *i > i0)
         .map_or(1.0, |next| (next.0 - o0) / (next.1 - i0));
-    o0 - (i0 - r) * slope
+    (i0 - r).mul_add(-slope, o0)
 }
 
 fn after_last((o_n, i_n): (f64, f64), r: f64) -> f64 {

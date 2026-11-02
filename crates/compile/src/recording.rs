@@ -77,8 +77,8 @@ const POINT_BOX_H: f64 = 48.0;
 
 pub fn point_rect(point: Point, scale: f64) -> Rect {
     Rect {
-        x: point.x - POINT_BOX_W / 2.0 * scale,
-        y: point.y - POINT_BOX_H / 2.0 * scale,
+        x: (POINT_BOX_W / 2.0).mul_add(-scale, point.x),
+        y: (POINT_BOX_H / 2.0).mul_add(-scale, point.y),
         w: POINT_BOX_W * scale,
         h: POINT_BOX_H * scale,
     }

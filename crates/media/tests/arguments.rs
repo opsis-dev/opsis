@@ -105,7 +105,7 @@ proptest! {
         let filter = opsis_media::filters::speech_filter(&p, None);
         prop_assert_eq!(filter.contains("highpass"), rumble > 0);
         let expansion: f64 = filter.split("speechnorm=e=").nth(1).unwrap().split(':').next().unwrap().parse().unwrap();
-        prop_assert!((20.0 * expansion.log10() - lift.max(0.0)).abs() < 0.2);
+        prop_assert!(20.0f64.mul_add(expansion.log10(), -lift.max(0.0)).abs() < 0.2);
     }
 }
 

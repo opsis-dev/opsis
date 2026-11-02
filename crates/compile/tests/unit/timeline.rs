@@ -279,7 +279,7 @@ fn gives_each_bar_its_local_frame_at_every_timeline_frame() {
     let frames = bar.local_frames();
     assert_eq!(frames.first, 0.0);
     for (i, local) in frames.values.iter().take(40).enumerate() {
-        let expected = 30.0 + 2.0 * f64::from(u32::try_from(i).unwrap());
+        let expected = 2.0f64.mul_add(f64::from(u32::try_from(i).unwrap()), 30.0);
         assert!(
             near(*local, expected, 0.01),
             "frame {i}: {local} isn't {expected}"

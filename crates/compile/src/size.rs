@@ -26,5 +26,5 @@ pub fn estimate_card_height(def: Option<&NodeDef>) -> f64 {
     } else {
         0.0
     };
-    HEADER + ports * PORT_ROW + rows * CARD_ROW + PADDING
+    f64::mul_add(rows, CARD_ROW, ports.mul_add(PORT_ROW, HEADER)) + PADDING
 }

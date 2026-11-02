@@ -108,8 +108,10 @@ fn takes_mains_hum_out_and_leaves_the_voice() {
         .enumerate()
         .map(|(i, s)| {
             let t = numbers::narrow(numbers::float(i)) / numbers::narrow(f64::from(RATE));
-            s + 0.1 * (t * 50.0 * std::f32::consts::TAU).sin()
-                + 0.05 * (t * 100.0 * std::f32::consts::TAU).sin()
+            0.05f32.mul_add(
+                (t * 100.0 * std::f32::consts::TAU).sin(),
+                s + 0.1 * (t * 50.0 * std::f32::consts::TAU).sin(),
+            )
         })
         .collect();
     write(&dir.path().join("in.wav"), &samples);
@@ -283,7 +285,7 @@ fn shortens_known_gaps_to_the_expected_length() {
     assert!(status.success());
     let seconds = numbers::float(read(&dir.path().join("out.wav")).len()) / f64::from(RATE);
     assert!(
-        (seconds - (3.0 + 2.0 * 0.4 - 2.0 * 0.01)).abs() < 0.05,
+        (seconds - 2.0f64.mul_add(-0.01, 2.0f64.mul_add(0.4, 3.0))).abs() < 0.05,
         "{seconds} s"
     );
 }
@@ -299,8 +301,10 @@ fn voice_in_hiss() -> (Vec<f32>, Vec<f32>) {
             let syllables = (t * 3.0 * std::f32::consts::TAU).sin().max(0.0);
             let voice = 0.3
                 * syllables
-                * ((t * 180.0 * std::f32::consts::TAU).sin()
-                    + 0.5 * (t * 360.0 * std::f32::consts::TAU).sin());
+                * 0.5f32.mul_add(
+                    (t * 360.0 * std::f32::consts::TAU).sin(),
+                    (t * 180.0 * std::f32::consts::TAU).sin(),
+                );
             let hiss = (numbers::narrow(numbers::float_wide(x >> 40))
                 / numbers::narrow(numbers::float_wide(1u64 << 24))
                 - 0.5)
@@ -526,8 +530,10 @@ fn makes_each_voice_effect_at_the_same_length() {
     let low_and_high: Vec<f32> = (0..RATE as usize * 2)
         .map(|i| {
             let t = numbers::narrow(numbers::float(i)) / numbers::narrow(f64::from(RATE));
-            0.3 * (t * 100.0 * std::f32::consts::TAU).sin()
-                + 0.3 * (t * 1000.0 * std::f32::consts::TAU).sin()
+            0.3f32.mul_add(
+                (t * 1000.0 * std::f32::consts::TAU).sin(),
+                0.3 * (t * 100.0 * std::f32::consts::TAU).sin(),
+            )
         })
         .collect();
     let effect = |effect: VoiceEffect| VoiceEffects {

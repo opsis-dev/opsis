@@ -590,7 +590,7 @@ async fn reverse_pieces_into(
         let message = format!("Reversing part {} of {}", n + 1, job.pieces.len());
         let start = done;
         ctx.progress(start, Some(&message));
-        let progress = |p: f64| ctx.progress(start + p * share, Some(&message));
+        let progress = |p: f64| ctx.progress(p.mul_add(share, start), Some(&message));
         let args = reverse_args(src, &parts[n].file, piece, job.sound, &pcm);
         tools
             .run(
@@ -605,7 +605,7 @@ async fn reverse_pieces_into(
     tokio::fs::write(&list, reversed_parts_list(&parts)).await?;
     let progress = |p: f64| {
         ctx.progress(
-            PARTS_SHARE + p * (1.0 - PARTS_SHARE),
+            p.mul_add(1.0 - PARTS_SHARE, PARTS_SHARE),
             Some("Joining the parts"),
         );
     };

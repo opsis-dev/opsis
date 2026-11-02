@@ -119,7 +119,7 @@ fn encode_srgb(v: f64) -> f64 {
     if v <= 0.003_130_8 {
         v * 12.92
     } else {
-        1.055 * v.powf(1.0 / 2.4) - 0.055
+        1.055f64.mul_add(v.powf(1.0 / 2.4), -0.055)
     }
 }
 
@@ -131,7 +131,11 @@ fn p3_to_srgb(p3: [u8; 3]) -> [u8; 3] {
     ];
     let linear = p3.map(|v| decode_srgb(f64::from(v) / 255.0));
     [0, 1, 2].map(|i| {
-        let mixed = m[i][0] * linear[0] + m[i][1] * linear[1] + m[i][2] * linear[2];
+        let mixed = f64::mul_add(
+            m[i][2],
+            linear[2],
+            f64::mul_add(m[i][1], linear[1], m[i][0] * linear[0]),
+        );
         numbers::truncate::<u8>((encode_srgb(mixed) * 255.0).round())
     })
 }
@@ -712,7 +716,10 @@ fn tilts_the_corners_to_where_the_plan_puts_them() {
     };
     assert_eq!(at(centre.0, centre.1), [220, 20, 20, 255]);
     for (x, y) in corners {
-        let inside = (x + (centre.0 - x) * 0.08, y + (centre.1 - y) * 0.08);
+        let inside = (
+            f64::mul_add(centre.0 - x, 0.08, x),
+            f64::mul_add(centre.1 - y, 0.08, y),
+        );
         assert_eq!(
             at(inside.0, inside.1)[3],
             255,

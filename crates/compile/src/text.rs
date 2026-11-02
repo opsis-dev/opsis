@@ -51,8 +51,11 @@ const SECONDS_PER_HOUR: f64 = 3600.0;
 
 fn minutes_and_seconds(seconds: f64) -> String {
     let h = (seconds / SECONDS_PER_HOUR).floor();
-    let m = ((seconds - h * SECONDS_PER_HOUR) / SECONDS_PER_MINUTE).floor();
-    let rest = round_to(seconds - h * SECONDS_PER_HOUR - m * SECONDS_PER_MINUTE, 3);
+    let m = (h.mul_add(-SECONDS_PER_HOUR, seconds) / SECONDS_PER_MINUTE).floor();
+    let rest = round_to(
+        m.mul_add(-SECONDS_PER_MINUTE, h.mul_add(-SECONDS_PER_HOUR, seconds)),
+        3,
+    );
     if h == 0.0 {
         return if rest == 0.0 {
             format!("{m} min")

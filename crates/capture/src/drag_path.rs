@@ -53,7 +53,7 @@ pub fn glide_plan(
     let overshooting = dist > OVERSHOOT_THRESHOLD_PX * design_scale;
     let past = |a: f64, b: f64, size: Option<f64>| {
         clamp(
-            b + ((b - a) / dist) * OVERSHOOT_PX * design_scale,
+            (((b - a) / dist) * OVERSHOOT_PX).mul_add(design_scale, b),
             1.0,
             size.unwrap_or(b) - 1.0,
         )
@@ -87,13 +87,13 @@ pub fn bulged_curve(from: Point, to: Point, aim: Point) -> Curve {
         -1.0
     };
     let bulge = side * dist * BULGE;
-    let cpx = f64::midpoint(from.x, aim.x) + nx * bulge;
-    let cpy = f64::midpoint(from.y, aim.y) + ny * bulge;
+    let cpx = nx.mul_add(bulge, f64::midpoint(from.x, aim.x));
+    let cpy = ny.mul_add(bulge, f64::midpoint(from.y, aim.y));
     Box::new(move |p| {
         let u = 1.0 - p;
         Point {
-            x: u * u * from.x + 2.0 * u * p * cpx + p * p * aim.x,
-            y: u * u * from.y + 2.0 * u * p * cpy + p * p * aim.y,
+            x: f64::mul_add(p * p, aim.x, f64::mul_add(2.0 * u * p, cpx, u * u * from.x)),
+            y: f64::mul_add(p * p, aim.y, f64::mul_add(2.0 * u * p, cpy, u * u * from.y)),
         }
     })
 }
@@ -142,8 +142,8 @@ pub fn nudge_toward(from: Point, to: Point, px: f64) -> Point {
     }
     let step = px.min(dist);
     Point {
-        x: from.x + ((to.x - from.x) / dist) * step,
-        y: from.y + ((to.y - from.y) / dist) * step,
+        x: ((to.x - from.x) / dist).mul_add(step, from.x),
+        y: ((to.y - from.y) / dist).mul_add(step, from.y),
     }
 }
 

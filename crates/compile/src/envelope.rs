@@ -43,9 +43,9 @@ pub fn ease(kind: Ease, t: f64) -> f64 {
     let x = clamp(t, 0.0, 1.0);
     match kind {
         Ease::In => x * x,
-        Ease::Out => 1.0 - (1.0 - x) * (1.0 - x),
+        Ease::Out => (1.0 - x).mul_add(-(1.0 - x), 1.0),
         Ease::InOut if x < 0.5 => 2.0 * x * x,
-        Ease::InOut => 1.0 - (-2.0 * x + 2.0).powi(2) / 2.0,
+        Ease::InOut => 1.0 - (-2.0f64).mul_add(x, 2.0).powi(2) / 2.0,
         Ease::Hold => 0.0,
         Ease::Linear => x,
     }
@@ -73,7 +73,11 @@ fn sorted_envelope_at(sorted: &[Keyframe], frame: f64, fallback: f64) -> f64 {
     }
     let i = sorted.partition_point(|k| k.frame <= frame);
     let (a, b) = (&sorted[i - 1], &sorted[i]);
-    a.value + (b.value - a.value) * ease(a.ease, (frame - a.frame) / (b.frame - a.frame))
+    f64::mul_add(
+        b.value - a.value,
+        ease(a.ease, (frame - a.frame) / (b.frame - a.frame)),
+        a.value,
+    )
 }
 
 const STEPS_PER_SEGMENT: usize = 8;

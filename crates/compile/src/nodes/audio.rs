@@ -1293,7 +1293,7 @@ fn spread(seed: u64) -> f64 {
     z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
     z ^= z >> 31;
     let high = u32::try_from(z >> 32).unwrap_or(u32::MAX);
-    f64::from(high) / f64::from(u32::MAX) * 2.0 - 1.0
+    f64::mul_add(f64::from(high) / f64::from(u32::MAX), 2.0, -1.0)
 }
 
 fn seed_of(text: &str) -> u64 {
@@ -1346,8 +1346,8 @@ fn varied(vary: bool, seed: u64, pitch_spread: u32, level_spread: u32) -> (f64, 
         return (1.0, 1.0);
     }
     (
-        1.0 + f64::from(pitch_spread) / 100.0 * spread(seed),
-        1.0 + f64::from(level_spread) / 100.0 * spread(seed + 1),
+        f64::mul_add(f64::from(pitch_spread) / 100.0, spread(seed), 1.0),
+        f64::mul_add(f64::from(level_spread) / 100.0, spread(seed + 1), 1.0),
     )
 }
 

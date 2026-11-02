@@ -46,8 +46,8 @@ impl Point {
     #[must_use]
     pub fn lerp(self, to: Self, t: f64) -> Self {
         Self {
-            x: self.x + (to.x - self.x) * t,
-            y: self.y + (to.y - self.y) * t,
+            x: (to.x - self.x).mul_add(t, self.x),
+            y: (to.y - self.y).mul_add(t, self.y),
         }
     }
 }

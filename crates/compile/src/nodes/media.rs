@@ -1230,7 +1230,7 @@ fn fitted_row(result: Option<&NodeResult>) -> Option<CardRow> {
 }
 
 pub fn pitch_ratio(semitones: f64) -> f64 {
-    2f64.powf(semitones / 12.0)
+    (semitones / 12.0).exp2()
 }
 
 #[choice]

@@ -25,7 +25,7 @@ fn click_track(rate: usize, seconds: usize, bpm: f64, seed: u32) -> Vec<f32> {
             } else {
                 0.0
             };
-            numbers::narrow(click + (next.next() - 0.5) * 0.02)
+            numbers::narrow((next.next() - 0.5).mul_add(0.02, click))
         })
         .collect()
 }
@@ -63,7 +63,7 @@ fn stem_levels(s: &Value) -> Value {
     let data: Vec<Vec<f32>> = (0..channels)
         .map(|_| {
             (0..count)
-                .map(|_| numbers::narrow((next.next() * 2.0 - 1.0) * gain))
+                .map(|_| numbers::narrow(next.next().mul_add(2.0, -1.0) * gain))
                 .collect()
         })
         .collect();

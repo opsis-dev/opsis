@@ -82,7 +82,7 @@ const fn view_of(k: &CameraKey) -> CameraView {
 }
 
 fn lerp(a: f64, b: f64, t: f64) -> f64 {
-    a + (b - a) * t
+    (b - a).mul_add(t, a)
 }
 
 fn mix_views(a: &CameraKey, b: &CameraKey, t: f64) -> CameraView {

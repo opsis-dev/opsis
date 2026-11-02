@@ -4,7 +4,7 @@ use opsis_types::numbers::{whole, whole_signed};
 pub const EPSILON: f64 = 1e-6;
 
 pub fn lerp(from: f64, to: f64, t: f64) -> f64 {
-    from + (to - from) * t
+    (to - from).mul_add(t, from)
 }
 
 pub fn even_px(value: f64) -> f64 {

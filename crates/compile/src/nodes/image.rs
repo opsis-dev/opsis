@@ -767,7 +767,7 @@ pub struct TiltImage {
 impl TiltImage {
     pub fn shadow_space(&self) -> f64 {
         if self.shadow {
-            SHADOW_SPACE.max((2.0 * self.shadow_softness + self.shadow_drop) / 100.0)
+            SHADOW_SPACE.max(2.0f64.mul_add(self.shadow_softness, self.shadow_drop) / 100.0)
         } else {
             0.0
         }
@@ -968,7 +968,7 @@ impl Params for FrameScreenshot {
 
 pub fn framed_placement(source: (f64, f64), p: &FrameScreenshot) -> ((f64, f64), (f64, f64)) {
     let pad = (source.0.min(source.1) * p.padding.clamp(0.0, 50.0) / 100.0).round();
-    let (mut w, mut h) = (source.0 + 2.0 * pad, source.1 + 2.0 * pad);
+    let (mut w, mut h) = (2.0f64.mul_add(pad, source.0), 2.0f64.mul_add(pad, source.1));
     if let Some(ratio) = p.shape.ratio() {
         if w / h > ratio {
             h = (w / ratio).round();
@@ -976,10 +976,13 @@ pub fn framed_placement(source: (f64, f64), p: &FrameScreenshot) -> ((f64, f64),
             w = (h * ratio).round();
         }
     }
-    let free = (w - source.0 - 2.0 * pad, h - source.1 - 2.0 * pad);
+    let free = (
+        2.0f64.mul_add(-pad, w - source.0),
+        2.0f64.mul_add(-pad, h - source.1),
+    );
     let at = (
-        (pad + free.0 * p.align.share()).round(),
-        (pad + free.1 * p.align.share()).round(),
+        free.0.mul_add(p.align.share(), pad).round(),
+        free.1.mul_add(p.align.share(), pad).round(),
     );
     ((w, h), at)
 }
@@ -1058,16 +1061,30 @@ pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
         })
         .collect();
     let left = |column: usize| {
-        pad + column_widths[..column].iter().sum::<f64>() + gap * numbers::float(column)
+        f64::mul_add(
+            gap,
+            numbers::float(column),
+            pad + column_widths[..column].iter().sum::<f64>(),
+        )
     };
-    let top = |row: usize| pad + row_heights[..row].iter().sum::<f64>() + gap * numbers::float(row);
+    let top = |row: usize| {
+        f64::mul_add(
+            gap,
+            numbers::float(row),
+            pad + row_heights[..row].iter().sum::<f64>(),
+        )
+    };
     let cells = (0..n)
         .map(|i| {
             let (column, row) = place(i);
             let (w, h) = scaled[i];
             Rect {
-                x: (left(column) + (column_widths[column] - w) * p.align.share()).round(),
-                y: (top(row) + (row_heights[row] - h) * p.align.share()).round(),
+                x: (column_widths[column] - w)
+                    .mul_add(p.align.share(), left(column))
+                    .round(),
+                y: (row_heights[row] - h)
+                    .mul_add(p.align.share(), top(row))
+                    .round(),
                 width: w,
                 height: h,
             }
@@ -1102,13 +1119,13 @@ pub fn tilt_corners(size: (f64, f64), p: &TiltImage) -> [(f64, f64); 4] {
     let projected = [(0.0, 0.0), (w, 0.0), (w, h), (0.0, h)].map(|(x, y)| {
         let (x, y) = (x - w / 2.0, y - h / 2.0);
         let (x, y) = (
-            x * lean.cos() - y * lean.sin(),
-            x * lean.sin() + y * lean.cos(),
+            f64::mul_add(y, -lean.sin(), x * lean.cos()),
+            f64::mul_add(y, lean.cos(), x * lean.sin()),
         );
         let (y, z) = (y * tilt.cos(), -y * tilt.sin());
         let (x, z) = (
-            x * turn.cos() - z * turn.sin(),
-            x * turn.sin() + z * turn.cos(),
+            f64::mul_add(z, -turn.sin(), x * turn.cos()),
+            f64::mul_add(z, turn.cos(), x * turn.sin()),
         );
         let scale = distance / (distance + z);
         (x * scale, y * scale)
@@ -1132,7 +1149,7 @@ pub fn tilted_size(size: (f64, f64), p: &TiltImage) -> (f64, f64) {
 
 pub fn outline_padding(p: &OutlineImage) -> f64 {
     let shadow = if p.shadow {
-        (2.0 * p.shadow_softness()).max(p.shadow_softness() + 2.0 * p.shadow_drop())
+        (2.0 * p.shadow_softness()).max(2.0f64.mul_add(p.shadow_drop(), p.shadow_softness()))
     } else {
         0.0
     };
@@ -1235,10 +1252,13 @@ pub fn rotated_size(source: (f64, f64), p: &RotateImage) -> (f64, f64) {
     let (sin, cos) = p.angle.to_radians().sin_cos();
     let (sin, cos) = (sin.abs(), cos.abs());
     if p.crop_corners {
-        let k = (w / (w * cos + h * sin)).min(h / (w * sin + h * cos));
+        let k = (w / f64::mul_add(h, sin, w * cos)).min(h / f64::mul_add(h, cos, w * sin));
         return ((w * k).floor().max(1.0), (h * k).floor().max(1.0));
     }
-    ((w * cos + h * sin).ceil(), (w * sin + h * cos).ceil())
+    (
+        f64::mul_add(h, sin, w * cos).ceil(),
+        f64::mul_add(h, cos, w * sin).ceil(),
+    )
 }
 
 pub fn tilted_canvas(source: (f64, f64), p: &RotateImage) -> (f64, f64) {
@@ -2270,7 +2290,11 @@ pub struct CompareScreenshots {
 const DIFFERENT_SIZES: &str = "The two pictures are different sizes";
 
 pub fn compare_threshold(sensitivity: f64) -> u8 {
-    numbers::truncate::<u8>((2.0 + 64.0 * (1.0 - sensitivity.clamp(0.0, 1.0))).round())
+    numbers::truncate::<u8>(
+        64.0f64
+            .mul_add(1.0 - sensitivity.clamp(0.0, 1.0), 2.0)
+            .round(),
+    )
 }
 
 fn compare() -> NodeDef {
