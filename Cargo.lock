@@ -5277,6 +5277,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "opsis-vt"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "option-ext"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

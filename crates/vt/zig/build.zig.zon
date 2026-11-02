@@ -1,0 +1,13 @@
+.{
+    .name = .opsis_vtwrap,
+    .version = "0.0.0",
+    .fingerprint = 0x999ac6bed310e806,
+    .minimum_zig_version = "0.17.0",
+    .dependencies = .{
+        .ghostty = .{
+            .url = "https://tip.files.ghostty.org/83fb95624b0439ee660c2679b43b38c8b63769cd/libghostty-vt-source.tar.gz",
+            .hash = "ghostty-1.4.0-5UdBCyABPwEUlNNylMEI0O0f7XW8Q6chZlOyf_Ff3Wxe",
+        },
+    },
+    .paths = .{ "build.zig", "build.zig.zon", "src" },
+}

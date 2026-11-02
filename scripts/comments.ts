@@ -4,7 +4,8 @@ import path from "node:path";
 import { parseSync } from "oxc-parser";
 import { ROOT } from "./lib/tool-config";
 
-const CHECKED = /^(apps|packages|crates|scripts|e2e)\/.*\.(ts|tsx|mts|css|rs)$|^[^/]+\.config\.ts$/;
+const CHECKED =
+  /^(apps|packages|crates|scripts|e2e)\/.*\.(ts|tsx|mts|css|rs|zig|zon)$|^[^/]+\.config\.ts$/;
 const SKIPPED = [
   /^apps\/frontend\/src\/components\//,
   /^apps\/frontend\/src\/routeTree\.gen\.ts$/,

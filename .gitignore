@@ -31,3 +31,8 @@ examples/**/secrets/
 
 # Bundled programs
 crates/desktop/binaries/
+
+# Zig
+crates/vt/zig/zig-pkg/
+crates/vt/zig/.zig-cache/
+crates/vt/zig/zig-out/
