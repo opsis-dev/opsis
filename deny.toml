@@ -10,7 +10,6 @@ targets = [
 
 [advisories]
 version = 2
-db-path = "~/.cache/opsis-advisory-db"
 yanked = "deny"
 ignore = [
   { id = "RUSTSEC-2024-0370", reason = "Unmaintained, not vulnerable, and no safe upgrade: only glib-macros 0.18 needs it, and the Linux webview's GTK 3 stack can't leave 0.18" },
