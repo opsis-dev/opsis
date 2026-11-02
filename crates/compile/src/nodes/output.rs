@@ -35,7 +35,7 @@ pub enum Gl {
 }
 
 impl Codec {
-    pub fn extension(self) -> &'static str {
+    pub const fn extension(self) -> &'static str {
         match self {
             Self::H264 | Self::H265 => "mp4",
             Self::Vp8 | Self::Vp9 => "webm",
@@ -62,7 +62,7 @@ pub enum Variant {
 impl Variant {
     pub const ALL: [Self; 4] = [Self::Wide, Self::Square, Self::Portrait, Self::Tall];
 
-    pub fn id(self) -> &'static str {
+    pub const fn id(self) -> &'static str {
         match self {
             Self::Wide => "16:9",
             Self::Square => "1:1",
@@ -71,7 +71,7 @@ impl Variant {
         }
     }
 
-    fn ratio(self) -> (f64, f64) {
+    const fn ratio(self) -> (f64, f64) {
         match self {
             Self::Wide => (16.0, 9.0),
             Self::Square => (1.0, 1.0),
@@ -156,7 +156,7 @@ pub enum StillPreset {
 }
 
 impl StillPreset {
-    pub fn id(self) -> &'static str {
+    pub const fn id(self) -> &'static str {
         match self {
             Self::Wide => "wide",
             Self::Og => "og",
@@ -166,7 +166,7 @@ impl StillPreset {
         }
     }
 
-    pub fn size(self) -> Size {
+    pub const fn size(self) -> Size {
         let (width, height) = match self {
             Self::Wide => (3840, 2160),
             Self::Og => (2400, 1260),
@@ -177,7 +177,7 @@ impl StillPreset {
         Size { width, height }
     }
 
-    fn name(self) -> &'static str {
+    const fn name(self) -> &'static str {
         match self {
             Self::Wide => "Wide 4K",
             Self::Og => "Link preview",

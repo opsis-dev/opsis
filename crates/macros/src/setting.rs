@@ -29,7 +29,7 @@ impl Setting {
         quote!(#default #schemars)
     }
 
-    pub fn gives_default(&self) -> bool {
+    pub const fn gives_default(&self) -> bool {
         self.default.is_some()
     }
 

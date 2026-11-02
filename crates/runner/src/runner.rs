@@ -32,7 +32,7 @@ use crate::progress::failure_message;
 const SKIPPED_REASON: &str = "Something before it failed";
 const CANT_RUN: &str = "This kind of node can't run.";
 
-fn lane_limit(phase: Phase) -> usize {
+const fn lane_limit(phase: Phase) -> usize {
     match phase {
         Phase::Capture => 3,
         Phase::Media => 4,

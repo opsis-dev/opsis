@@ -71,7 +71,7 @@ impl Drop for Lifecycle {
     }
 }
 
-fn lifecycle_name(wait_until: WaitUntil) -> &'static str {
+const fn lifecycle_name(wait_until: WaitUntil) -> &'static str {
     match wait_until {
         WaitUntil::Load => "load",
         WaitUntil::Domcontentloaded => "DOMContentLoaded",

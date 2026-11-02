@@ -94,7 +94,7 @@ fn wave_at(wave: ToneWave, cycles: f64) -> f64 {
     }
 }
 
-fn wave_level(wave: ToneWave) -> f64 {
+const fn wave_level(wave: ToneWave) -> f64 {
     match wave {
         ToneWave::Sine | ToneWave::Triangle => 0.5,
         ToneWave::Square => 0.3,
@@ -178,7 +178,7 @@ const HALL: Room = Room {
 
 const SIXTY_DB: f64 = 6.907_755;
 
-fn room_of(effect: VoiceEffect) -> Option<&'static Room> {
+const fn room_of(effect: VoiceEffect) -> Option<&'static Room> {
     match effect {
         VoiceEffect::SmallRoom => Some(&SMALL_ROOM),
         VoiceEffect::Hall => Some(&HALL),

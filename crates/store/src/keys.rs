@@ -24,7 +24,7 @@ pub enum KeyError {
     SignInUnreadable,
 }
 
-fn storage(error: &KeyringError) -> KeyError {
+const fn storage(error: &KeyringError) -> KeyError {
     match error {
         KeyringError::NoStorageAccess(_) | KeyringError::PlatformFailure(_) => {
             KeyError::NoSecureStorage

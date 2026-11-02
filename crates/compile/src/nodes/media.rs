@@ -133,7 +133,7 @@ pub enum ConvertCodec {
 }
 
 impl ConvertCodec {
-    fn codec(self) -> Codec {
+    const fn codec(self) -> Codec {
         match self {
             Self::H264 => Codec::H264,
             Self::H265 => Codec::H265,
@@ -171,7 +171,7 @@ pub enum ProresProfile {
 }
 
 impl ProresProfile {
-    pub fn number(self) -> u32 {
+    pub const fn number(self) -> u32 {
         match self {
             Self::Proxy => 0,
             Self::Lt => 1,
@@ -757,7 +757,7 @@ pub enum ScaleMode {
 }
 
 impl ScaleMode {
-    fn row(self) -> &'static str {
+    const fn row(self) -> &'static str {
         match self {
             Self::Pad => "Fit with bars",
             Self::Crop => "Crop to fill",
@@ -936,7 +936,7 @@ pub enum Mains {
 }
 
 impl Mains {
-    pub fn hertz(self) -> Option<f64> {
+    pub const fn hertz(self) -> Option<f64> {
         match self {
             Self::Find => None,
             Self::Fifty => Some(50.0),
@@ -1411,7 +1411,7 @@ pub enum SpectrumColours {
 }
 
 impl SpectrumColours {
-    pub fn id(self) -> &'static str {
+    pub const fn id(self) -> &'static str {
         match self {
             Self::Magma => "magma",
             Self::Fire => "fire",

@@ -70,7 +70,7 @@ impl Category {
         Self::Utility,
     ];
 
-    pub fn label(self) -> &'static str {
+    pub const fn label(self) -> &'static str {
         match self {
             Self::Browser => "Browser",
             Self::Capture => "Record",
@@ -133,7 +133,7 @@ impl FileNeed {
         }
     }
 
-    pub fn message(self) -> &'static str {
+    pub const fn message(self) -> &'static str {
         match self {
             Self::Image => "The connected file isn't an image.",
             Self::Picture => "The connected file is only sound, with no picture.",
@@ -248,12 +248,12 @@ impl PortFamily {
     }
 
     #[must_use]
-    pub fn with_refs(mut self, refs: &'static [(&'static str, &'static str)]) -> Self {
+    pub const fn with_refs(mut self, refs: &'static [(&'static str, &'static str)]) -> Self {
         self.refs = refs;
         self
     }
 
-    pub fn kind(&self) -> PortType {
+    pub const fn kind(&self) -> PortType {
         self.required_spec.kind
     }
 
@@ -265,7 +265,7 @@ impl PortFamily {
         format!("{}{}", self.prefix, index + 1)
     }
 
-    pub fn spec(&self, index: usize) -> &PortSpec {
+    pub const fn spec(&self, index: usize) -> &PortSpec {
         if index < self.required {
             &self.required_spec
         } else {
@@ -372,7 +372,7 @@ pub struct CardCtx<'a, P> {
 }
 
 impl<P> CardCtx<'_, P> {
-    pub fn fps(&self) -> u32 {
+    pub const fn fps(&self) -> u32 {
         self.settings.fps
     }
 
@@ -427,7 +427,7 @@ pub enum Platform {
 }
 
 impl Platform {
-    pub fn current() -> Self {
+    pub const fn current() -> Self {
         if cfg!(target_os = "macos") {
             Self::Mac
         } else if cfg!(windows) {
@@ -481,7 +481,7 @@ fn typed<P: DeserializeOwned>(values: &Values) -> Result<P, SettingsError> {
     crate::params::typed_values(values)
 }
 
-fn retyped<'a, P>(ctx: &Ctx<'a, ()>, params: P) -> Ctx<'a, P> {
+const fn retyped<'a, P>(ctx: &Ctx<'a, ()>, params: P) -> Ctx<'a, P> {
     Ctx {
         node_id: ctx.node_id,
         kind: ctx.kind,
@@ -583,13 +583,13 @@ impl NodeDef {
     }
 
     #[must_use]
-    pub fn virtual_node(mut self) -> Self {
+    pub const fn virtual_node(mut self) -> Self {
         self.is_virtual = true;
         self
     }
 
     #[must_use]
-    pub fn action(mut self) -> Self {
+    pub const fn action(mut self) -> Self {
         self.action = true;
         self
     }
@@ -601,19 +601,19 @@ impl NodeDef {
     }
 
     #[must_use]
-    pub fn executes(mut self) -> Self {
+    pub const fn executes(mut self) -> Self {
         self.executes = true;
         self
     }
 
     #[must_use]
-    pub fn uses_project_size(mut self) -> Self {
+    pub const fn uses_project_size(mut self) -> Self {
         self.uses_project_size = true;
         self
     }
 
     #[must_use]
-    pub fn uses_project_fonts(mut self) -> Self {
+    pub const fn uses_project_fonts(mut self) -> Self {
         self.uses_project_fonts = true;
         self
     }
@@ -626,13 +626,13 @@ impl NodeDef {
     }
 
     #[must_use]
-    pub fn hidden(mut self) -> Self {
+    pub const fn hidden(mut self) -> Self {
         self.hidden = true;
         self
     }
 
     #[must_use]
-    pub fn card_height(mut self, height: f64) -> Self {
+    pub const fn card_height(mut self, height: f64) -> Self {
         self.card_height = Some(height);
         self
     }

@@ -56,7 +56,7 @@ pub enum FramePicture {
 }
 
 impl Cursor {
-    fn row(self) -> &'static str {
+    const fn row(self) -> &'static str {
         match self {
             Self::Synthetic => "Smooth cursor",
             Self::Baked => "Cursor as on screen",

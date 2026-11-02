@@ -811,7 +811,7 @@ pub fn overlaps(a: FrameRange, b: FrameRange) -> bool {
     a.from < b.to - EPSILON && b.from < a.to - EPSILON
 }
 
-fn range(from: f64, to: f64) -> FrameRange {
+const fn range(from: f64, to: f64) -> FrameRange {
     FrameRange { from, to }
 }
 
@@ -946,7 +946,7 @@ fn clip_sound_bar(bar: &VideoBar, fps: u32) -> Option<AudioBar> {
     })
 }
 
-fn role_order(role: ChannelKind) -> usize {
+const fn role_order(role: ChannelKind) -> usize {
     match role {
         ChannelKind::Music => 0,
         ChannelKind::Effect => 1,

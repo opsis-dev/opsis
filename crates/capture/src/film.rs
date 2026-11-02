@@ -88,7 +88,7 @@ const SEEK_TICK: Duration = Duration::from_millis(4);
 const PAINTED: &str =
     "new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => done(true))))";
 
-pub fn gl_switches(gl: Gl) -> &'static [&'static str] {
+pub const fn gl_switches(gl: Gl) -> &'static [&'static str] {
     match gl {
         Gl::Angle => &["--use-gl=angle"],
         Gl::Swangle => &["--use-gl=angle", "--use-angle=swiftshader"],
@@ -112,7 +112,7 @@ pub enum Capture {
 }
 
 impl Capture {
-    pub fn for_this_computer() -> Self {
+    pub const fn for_this_computer() -> Self {
         if cfg!(target_os = "linux") {
             Self::BeginFrame
         } else {
@@ -120,7 +120,7 @@ impl Capture {
         }
     }
 
-    pub fn label(self) -> &'static str {
+    pub const fn label(self) -> &'static str {
         match self {
             Self::BeginFrame => "one frame at a time",
             Self::Screenshot => "a screenshot per frame",
@@ -442,11 +442,11 @@ impl FrameDriver {
         Ok((tab, shape, ticks))
     }
 
-    pub fn film(&self) -> FilmShape {
+    pub const fn film(&self) -> FilmShape {
         self.film
     }
 
-    pub fn capture(&self) -> Capture {
+    pub const fn capture(&self) -> Capture {
         self.capture
     }
 

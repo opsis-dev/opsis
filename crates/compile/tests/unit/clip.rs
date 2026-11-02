@@ -41,7 +41,7 @@ fn fade(kind: &str, frames: u32, hold: bool) -> TransitionRef {
     }
 }
 
-fn plain() -> SequenceSlots<'static> {
+const fn plain() -> SequenceSlots<'static> {
     SequenceSlots {
         ports: None,
         slot_node: None,
@@ -66,7 +66,7 @@ fn group(item: &TimelineItem) -> Option<&GroupProps> {
     }
 }
 
-fn span(item: &TimelineItem) -> (u32, u32) {
+const fn span(item: &TimelineItem) -> (u32, u32) {
     (item.base().from, item.base().duration_in_frames)
 }
 

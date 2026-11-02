@@ -61,7 +61,7 @@ pub fn find_family<'a>(name: &str, families: &'a [FontFamilyDef]) -> Option<&'a 
         .find(|f| same_family(&f.family, wanted))
 }
 
-fn generic(category: FontCategory) -> &'static str {
+const fn generic(category: FontCategory) -> &'static str {
     match category {
         FontCategory::SansSerif | FontCategory::Display => "sans-serif",
         FontCategory::Serif => "serif",

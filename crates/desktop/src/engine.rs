@@ -188,7 +188,7 @@ pub fn verify_on_start(app: &AppHandle) {
     }
 }
 
-fn progress_event(
+const fn progress_event(
     update: EngineInstallUpdate,
     done: Option<bool>,
     error: Option<String>,

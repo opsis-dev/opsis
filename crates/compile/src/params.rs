@@ -35,7 +35,7 @@ pub enum Rule {
 }
 
 impl Rule {
-    pub fn id(self) -> &'static str {
+    pub const fn id(self) -> &'static str {
         match self {
             Self::NotBlank => "not-blank",
             Self::Colour => "colour",

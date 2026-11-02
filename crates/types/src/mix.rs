@@ -179,19 +179,19 @@ impl Default for Eq {
     }
 }
 
-fn threshold() -> f64 {
+const fn threshold() -> f64 {
     COMP_RANGES.threshold.default
 }
-fn ratio() -> f64 {
+const fn ratio() -> f64 {
     COMP_RANGES.ratio.default
 }
-fn attack() -> f64 {
+const fn attack() -> f64 {
     COMP_RANGES.attack.default
 }
-fn release() -> f64 {
+const fn release() -> f64 {
     COMP_RANGES.release.default
 }
-fn makeup() -> f64 {
+const fn makeup() -> f64 {
     COMP_RANGES.makeup.default
 }
 
@@ -224,7 +224,7 @@ impl Default for Comp {
     }
 }
 
-fn highpass_freq() -> f64 {
+const fn highpass_freq() -> f64 {
     HIGHPASS_RANGE.default
 }
 
@@ -267,13 +267,13 @@ pub struct Strip {
     pub bus: Option<String>,
 }
 
-fn duck_amount() -> f64 {
+const fn duck_amount() -> f64 {
     DUCK_RANGES.amount.default
 }
-fn duck_attack() -> f64 {
+const fn duck_attack() -> f64 {
     DUCK_RANGES.attack.default
 }
-fn duck_release() -> f64 {
+const fn duck_release() -> f64 {
     DUCK_RANGES.release.default
 }
 
@@ -373,7 +373,7 @@ pub struct LoudnessGoal {
 }
 
 impl LoudnessTarget {
-    pub fn label(self) -> &'static str {
+    pub const fn label(self) -> &'static str {
         match self {
             Self::Off => "Off",
             Self::Web => "Online video",
@@ -382,7 +382,7 @@ impl LoudnessTarget {
         }
     }
 
-    pub fn target(self) -> Option<LoudnessGoal> {
+    pub const fn target(self) -> Option<LoudnessGoal> {
         match self {
             Self::Off => None,
             Self::Web => Some(LoudnessGoal {
@@ -401,7 +401,7 @@ impl LoudnessTarget {
     }
 }
 
-fn limiter_ceiling() -> f64 {
+const fn limiter_ceiling() -> f64 {
     LIMITER_CEILING_RANGE.default
 }
 
@@ -501,7 +501,7 @@ pub enum ChannelKind {
 }
 
 impl ChannelKind {
-    pub fn default_bus(self) -> &'static str {
+    pub const fn default_bus(self) -> &'static str {
         match self {
             Self::Music => MUSIC_BUS,
             Self::Effect => EFFECTS_BUS,
@@ -631,11 +631,11 @@ pub struct StripPreset {
     pub strip: StripPatch,
 }
 
-fn eq_on(bands: Vec<EqBand>) -> Eq {
+const fn eq_on(bands: Vec<EqBand>) -> Eq {
     Eq { on: true, bands }
 }
 
-fn comp_on(threshold: f64, ratio: f64, attack: f64, release: f64, makeup: f64) -> Comp {
+const fn comp_on(threshold: f64, ratio: f64, attack: f64, release: f64, makeup: f64) -> Comp {
     Comp {
         on: true,
         threshold,
@@ -646,7 +646,7 @@ fn comp_on(threshold: f64, ratio: f64, attack: f64, release: f64, makeup: f64) -
     }
 }
 
-fn highpass_on(freq: f64) -> Highpass {
+const fn highpass_on(freq: f64) -> Highpass {
     Highpass { on: true, freq }
 }
 

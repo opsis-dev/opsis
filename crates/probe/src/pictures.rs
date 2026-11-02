@@ -62,7 +62,7 @@ pub enum FullRange {
     Never,
 }
 
-fn chroma_of(idc: u32) -> Chroma {
+const fn chroma_of(idc: u32) -> Chroma {
     match idc {
         0 => Chroma::Gray,
         2 => Chroma::C422,

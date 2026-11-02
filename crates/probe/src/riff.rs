@@ -23,7 +23,7 @@ fn chunk(source: &mut Source, at: u64) -> Result<Option<Chunk>, ProbeError> {
     }))
 }
 
-fn next(c: &Chunk) -> u64 {
+const fn next(c: &Chunk) -> u64 {
     c.data + c.size + c.size % 2
 }
 

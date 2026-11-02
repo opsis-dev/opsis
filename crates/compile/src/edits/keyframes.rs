@@ -34,7 +34,7 @@ fn track_keys(
     }
 }
 
-fn whole_frame(frame: f64) -> f64 {
+const fn whole_frame(frame: f64) -> f64 {
     frame.round().max(0.0)
 }
 

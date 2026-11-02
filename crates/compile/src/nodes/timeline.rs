@@ -296,7 +296,7 @@ pub enum LengthSource {
 }
 
 impl LengthSource {
-    fn row(self) -> &'static str {
+    const fn row(self) -> &'static str {
         match self {
             Self::Longest => "Length follows the longest",
             Self::First => "Length follows Layer 1",
@@ -304,7 +304,7 @@ impl LengthSource {
         }
     }
 
-    fn pick(self, clips: &[ClipValue]) -> Option<&ClipValue> {
+    const fn pick(self, clips: &[ClipValue]) -> Option<&ClipValue> {
         match self {
             Self::Longest => None,
             Self::First => clips.first(),
@@ -633,7 +633,7 @@ pub enum FitMode {
 }
 
 impl FitMode {
-    fn row(self) -> &'static str {
+    const fn row(self) -> &'static str {
         match self {
             Self::Speed => "By speed",
             Self::Hold => "By holding the end",

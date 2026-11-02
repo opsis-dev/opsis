@@ -101,7 +101,7 @@ pub fn file_sha256(path: &Path) -> std::io::Result<String> {
     Ok(hex::encode(hasher.finalize()))
 }
 
-pub fn same_stamp(checked: &CheckedTool, stamp: FileStamp) -> bool {
+pub const fn same_stamp(checked: &CheckedTool, stamp: FileStamp) -> bool {
     checked.size == stamp.size && checked.modified_ms == stamp.modified_ms
 }
 

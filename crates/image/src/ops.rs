@@ -41,7 +41,7 @@ pub(crate) fn is_deep(image: &DynamicImage) -> bool {
     image.color().bytes_per_pixel() / image.color().channel_count() > 1
 }
 
-fn algorithm(quality: Resample) -> ResizeAlg {
+const fn algorithm(quality: Resample) -> ResizeAlg {
     match quality {
         Resample::Fast => ResizeAlg::Convolution(FilterType::Bilinear),
         Resample::Smooth => ResizeAlg::Convolution(FilterType::CatmullRom),

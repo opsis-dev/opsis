@@ -187,7 +187,7 @@ pub struct Session {
     pub locale: String,
 }
 
-fn color_scheme(scheme: ColorScheme) -> &'static str {
+const fn color_scheme(scheme: ColorScheme) -> &'static str {
     match scheme {
         ColorScheme::Light => "light",
         ColorScheme::Dark => "dark",

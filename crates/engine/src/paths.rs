@@ -45,7 +45,7 @@ impl ShellPlatform {
         Self::for_os(std::env::consts::OS, std::env::consts::ARCH)
     }
 
-    pub fn id(self) -> &'static str {
+    pub const fn id(self) -> &'static str {
         match self {
             Self::Linux64 => "linux64",
             Self::LinuxArm64 => "linux-arm64",

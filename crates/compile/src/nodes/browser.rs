@@ -588,7 +588,7 @@ pub enum ScrollAlign {
 }
 
 impl ScrollAlign {
-    pub fn block(self) -> &'static str {
+    pub const fn block(self) -> &'static str {
         match self {
             Self::Start => "start",
             Self::Center => "center",
@@ -973,7 +973,7 @@ pub enum CardPosition {
 }
 
 impl CardPosition {
-    pub fn flex(self) -> &'static str {
+    pub const fn flex(self) -> &'static str {
         match self {
             Self::Top => "flex-start",
             Self::Center => "center",

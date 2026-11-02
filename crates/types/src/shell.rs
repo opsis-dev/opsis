@@ -45,7 +45,7 @@ pub enum DockPanelName {
 impl DockPanelName {
     pub const ALL: [Self; 3] = [Self::Timeline, Self::Mixer, Self::Run];
 
-    pub fn id(self) -> &'static str {
+    pub const fn id(self) -> &'static str {
         match self {
             Self::Timeline => "timeline",
             Self::Mixer => "mixer",
@@ -53,7 +53,7 @@ impl DockPanelName {
         }
     }
 
-    pub fn title(self) -> &'static str {
+    pub const fn title(self) -> &'static str {
         match self {
             Self::Timeline => "Timeline",
             Self::Mixer => "Mixer",

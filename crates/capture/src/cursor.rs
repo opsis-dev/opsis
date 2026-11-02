@@ -138,7 +138,7 @@ struct DragPlan {
     drop: Rect,
 }
 
-fn round_rect(r: Rect) -> Rect {
+const fn round_rect(r: Rect) -> Rect {
     Rect {
         x: r.x.round(),
         y: r.y.round(),

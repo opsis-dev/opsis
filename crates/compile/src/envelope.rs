@@ -16,7 +16,7 @@ pub struct EnvelopeTrack {
     pub audio: bool,
 }
 
-pub fn envelope_track(key: EnvelopeKey) -> EnvelopeTrack {
+pub const fn envelope_track(key: EnvelopeKey) -> EnvelopeTrack {
     let (label, min, max, rest, audio) = match key {
         EnvelopeKey::Opacity => ("Opacity", 0.0, 1.0, 1.0, false),
         EnvelopeKey::X => ("Move across", -1.0, 1.0, 0.0, false),

@@ -11,7 +11,7 @@ pub const DEFAULT_WINDOW_STYLE: WindowStyle = WindowStyle::Macos;
 pub const DEFAULT_FRAME_THEME: FrameTheme = FrameTheme::Light;
 pub const DEFAULT_ADDRESS_BAR: bool = true;
 
-pub fn host_window_style(platform: Platform) -> WindowStyle {
+pub const fn host_window_style(platform: Platform) -> WindowStyle {
     match platform {
         Platform::Mac => WindowStyle::Macos,
         Platform::Windows => WindowStyle::Windows,

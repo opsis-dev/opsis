@@ -74,7 +74,7 @@ pub struct CodecInfo {
     pub crf: bool,
 }
 
-pub fn codec_info(codec: Codec) -> CodecInfo {
+pub const fn codec_info(codec: Codec) -> CodecInfo {
     let (audio, faststart, crf): (Option<&'static [&'static str]>, bool, bool) = match codec {
         Codec::H264 | Codec::H265 => (Some(&AAC_EXPORT), true, true),
         Codec::Vp8 | Codec::Vp9 => (Some(&OPUS_EXPORT), false, true),
@@ -141,7 +141,7 @@ pub struct FilmEncoding {
     pub gif_loops: Option<u32>,
 }
 
-fn film_encoder(codec: Codec) -> &'static str {
+const fn film_encoder(codec: Codec) -> &'static str {
     match codec {
         Codec::H264 => "libx264",
         Codec::H265 => "libx265",
@@ -152,7 +152,7 @@ fn film_encoder(codec: Codec) -> &'static str {
     }
 }
 
-fn default_film_crf(codec: Codec) -> Option<f64> {
+const fn default_film_crf(codec: Codec) -> Option<f64> {
     match codec {
         Codec::H264 => Some(18.0),
         Codec::H265 => Some(23.0),
@@ -162,7 +162,7 @@ fn default_film_crf(codec: Codec) -> Option<f64> {
     }
 }
 
-fn prores_profile_number(profile: Option<RenderProres>) -> &'static str {
+const fn prores_profile_number(profile: Option<RenderProres>) -> &'static str {
     match profile {
         Some(RenderProres::Proxy) => "0",
         Some(RenderProres::Light) => "1",
@@ -232,7 +232,7 @@ pub fn film_encode_args(e: &FilmEncoding, output: &str) -> Vec<String> {
     args
 }
 
-pub fn convert_codec(codec: ConvertCodec) -> Codec {
+pub const fn convert_codec(codec: ConvertCodec) -> Codec {
     match codec {
         ConvertCodec::H264 => Codec::H264,
         ConvertCodec::H265 => Codec::H265,
@@ -278,7 +278,7 @@ fn convert_video(p: &Encoding) -> Vec<String> {
     codec_video(convert_codec(p.codec), f64::from(p.crf), p.preset).unwrap_or_default()
 }
 
-pub fn has_sound_track(codec: Codec) -> bool {
+pub const fn has_sound_track(codec: Codec) -> bool {
     codec_info(codec).audio.is_some()
 }
 

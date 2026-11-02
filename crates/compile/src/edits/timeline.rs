@@ -89,7 +89,7 @@ pub enum TimelineEditError {
 
 pub type Outcome = Result<Done, TimelineEditError>;
 
-fn not_connected(doing: &'static str) -> TimelineEditError {
+const fn not_connected(doing: &'static str) -> TimelineEditError {
     TimelineEditError::NotConnected(doing)
 }
 
@@ -246,7 +246,7 @@ fn write_param(wf: &mut Workflow, at: &ParamAt, value: f64) {
     node.params.insert(at.param.clone(), written);
 }
 
-fn sign_of(sign: Sign) -> f64 {
+const fn sign_of(sign: Sign) -> f64 {
     match sign {
         Sign::Same => 1.0,
         Sign::Opposite => -1.0,
@@ -357,7 +357,7 @@ enum Added {
 }
 
 impl Added {
-    fn kind(self) -> &'static str {
+    const fn kind(self) -> &'static str {
         match self {
             Self::Delay => DELAY_TYPE,
             Self::Trim => TRIM_TYPE,
@@ -365,7 +365,7 @@ impl Added {
         }
     }
 
-    fn label(self) -> &'static str {
+    const fn label(self) -> &'static str {
         match self {
             Self::Delay => "Delay from timeline",
             Self::Trim => "Trim from timeline",
@@ -373,7 +373,7 @@ impl Added {
         }
     }
 
-    fn place(self) -> &'static str {
+    const fn place(self) -> &'static str {
         match self {
             Self::Delay => "before",
             Self::Trim | Self::Speed => "after",

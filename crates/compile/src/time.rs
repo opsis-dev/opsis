@@ -11,7 +11,7 @@ pub fn even_px(value: f64) -> f64 {
     (value / 2.0).round() * 2.0
 }
 
-pub fn clamp(value: f64, lo: f64, hi: f64) -> f64 {
+pub const fn clamp(value: f64, lo: f64, hi: f64) -> f64 {
     hi.min(lo.max(value))
 }
 
@@ -55,7 +55,7 @@ pub fn frames_to_recording_ms(frames: f64, speed: f64, fps: u32) -> f64 {
     frames / f64::from(fps) * speed * 1000.0
 }
 
-fn clock(total_seconds: u64) -> (u64, u64, u64) {
+const fn clock(total_seconds: u64) -> (u64, u64, u64) {
     (
         total_seconds / 3600,
         total_seconds % 3600 / 60,

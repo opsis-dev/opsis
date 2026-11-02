@@ -123,7 +123,7 @@ pub enum FontRole {
 }
 
 impl FontRole {
-    pub fn family(self) -> &'static str {
+    pub const fn family(self) -> &'static str {
         match self {
             Self::Main => "df-main",
             Self::Heading => "df-heading",

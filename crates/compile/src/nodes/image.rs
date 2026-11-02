@@ -97,7 +97,7 @@ pub enum PlaceAlign {
 }
 
 impl PlaceAlign {
-    pub fn share(self) -> f64 {
+    pub const fn share(self) -> f64 {
         match self {
             Self::Start => 0.0,
             Self::Center => 0.5,
@@ -385,7 +385,7 @@ pub enum StillFileFormat {
 }
 
 impl StillFileFormat {
-    pub fn extension(self) -> &'static str {
+    pub const fn extension(self) -> &'static str {
         match self {
             Self::Png => "png",
             Self::Jpeg => "jpg",
@@ -394,7 +394,7 @@ impl StillFileFormat {
         }
     }
 
-    pub fn word(self) -> &'static str {
+    pub const fn word(self) -> &'static str {
         match self {
             Self::Png => "PNG",
             Self::Jpeg => "JPEG",
@@ -451,7 +451,7 @@ pub enum RedactStyle {
 }
 
 impl RedactStyle {
-    pub fn word(self) -> &'static str {
+    pub const fn word(self) -> &'static str {
         match self {
             Self::Pixelate => "pixelated",
             Self::Blur => "blurred",
@@ -1139,7 +1139,7 @@ pub fn outline_padding(p: &OutlineImage) -> f64 {
     (p.width + p.softness + shadow).ceil()
 }
 
-fn even(value: f64) -> f64 {
+const fn even(value: f64) -> f64 {
     value.round().max(1.0)
 }
 
@@ -2335,7 +2335,7 @@ pub enum MarkKind {
 }
 
 impl MarkKind {
-    pub fn has_text(self) -> bool {
+    pub const fn has_text(self) -> bool {
         matches!(self, Self::Step | Self::Text)
     }
 }

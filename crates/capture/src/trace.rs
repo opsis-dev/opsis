@@ -50,7 +50,7 @@ impl CallInfo {
     }
 
     #[must_use]
-    pub fn at(mut self, point: Point) -> Self {
+    pub const fn at(mut self, point: Point) -> Self {
         self.point = Some(point);
         self
     }
@@ -119,7 +119,7 @@ impl Drop for Trace {
     }
 }
 
-fn level_of(kind: &ConsoleApiCalledType) -> ConsoleLevel {
+const fn level_of(kind: &ConsoleApiCalledType) -> ConsoleLevel {
     match kind {
         ConsoleApiCalledType::Debug => ConsoleLevel::Debug,
         ConsoleApiCalledType::Info => ConsoleLevel::Info,

@@ -13,7 +13,7 @@ pub enum ChildKind {
 }
 
 impl ChildKind {
-    fn id(self) -> &'static str {
+    const fn id(self) -> &'static str {
         match self {
             Self::Run => "run",
             Self::Analysis => "analysis",

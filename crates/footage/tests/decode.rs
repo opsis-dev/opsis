@@ -101,7 +101,7 @@ fn footage(sources: Vec<(&str, FootageSource)>) -> Footage {
     )
 }
 
-fn at(frame: i64) -> i64 {
+const fn at(frame: i64) -> i64 {
     (frame * 2_000_000 + RATE) / (2 * RATE)
 }
 

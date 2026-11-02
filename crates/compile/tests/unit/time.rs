@@ -65,7 +65,7 @@ fn path() -> CameraPath {
     .unwrap()
 }
 
-fn view(yaw: f64, pitch: f64, distance: f64, height: f64) -> CameraView {
+const fn view(yaw: f64, pitch: f64, distance: f64, height: f64) -> CameraView {
     CameraView {
         yaw,
         pitch,

@@ -38,7 +38,7 @@ pub struct Screencast {
     task: JoinHandle<()>,
 }
 
-fn even(px: u32) -> u32 {
+const fn even(px: u32) -> u32 {
     px & !1
 }
 

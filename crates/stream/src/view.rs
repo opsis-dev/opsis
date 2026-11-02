@@ -328,7 +328,7 @@ impl fmt::Debug for StreamView {
     }
 }
 
-fn platform_name() -> &'static str {
+const fn platform_name() -> &'static str {
     if cfg!(target_os = "windows") {
         "Windows"
     } else if cfg!(target_os = "macos") {
@@ -750,7 +750,7 @@ impl StreamView {
             .map(drop)
     }
 
-    pub fn browser(&self) -> &chromiumoxide::Browser {
+    pub const fn browser(&self) -> &chromiumoxide::Browser {
         &self.session.launched.browser
     }
 

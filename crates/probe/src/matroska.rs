@@ -54,7 +54,7 @@ fn vint(bytes: &[u8], keep_marker: bool) -> Option<(u64, usize)> {
     Some((value, len))
 }
 
-fn unknown(value: u64, len: usize) -> bool {
+const fn unknown(value: u64, len: usize) -> bool {
     value == (1u64 << (7 * len)) - 1
 }
 

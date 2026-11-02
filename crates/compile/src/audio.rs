@@ -19,7 +19,7 @@ pub fn sound_length(a: &AudioItem, total: u32) -> f64 {
     a.duration_in_frames.map_or(rest, f64::from)
 }
 
-pub fn audio_kind(a: &AudioItem) -> ChannelKind {
+pub const fn audio_kind(a: &AudioItem) -> ChannelKind {
     match a.role {
         Some(AudioRole::Music) => ChannelKind::Music,
         _ => ChannelKind::Effect,

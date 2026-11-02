@@ -159,7 +159,7 @@ impl Setup {
     }
 }
 
-fn h264() -> FilmEncoding {
+const fn h264() -> FilmEncoding {
     FilmEncoding {
         codec: Codec::H264,
         fps: 0.0,

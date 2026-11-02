@@ -181,7 +181,7 @@ fn media_value_from(probe: &Probe, src: &str, kind: MediaKind) -> MediaValue {
     }
 }
 
-fn artifact_kind(kind: MediaKind) -> ArtifactKind {
+const fn artifact_kind(kind: MediaKind) -> ArtifactKind {
     match kind {
         MediaKind::Video => ArtifactKind::Video,
         MediaKind::Image => ArtifactKind::Image,

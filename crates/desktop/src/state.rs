@@ -134,7 +134,7 @@ impl AppState {
         })
     }
 
-    pub fn db(&self) -> &Database {
+    pub const fn db(&self) -> &Database {
         &self.db
     }
 
@@ -158,7 +158,7 @@ impl AppState {
         self.editor.lock().expect("editor state")
     }
 
-    pub fn keys(&self) -> Result<&Keyring, &KeyError> {
+    pub const fn keys(&self) -> Result<&Keyring, &KeyError> {
         self.keys.as_ref()
     }
 }

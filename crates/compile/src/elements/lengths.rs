@@ -59,7 +59,7 @@ fn field_str<'a>(row: &'a Value, key: &str) -> &'a str {
     field(row, key).and_then(Value::as_str).unwrap_or("")
 }
 
-fn last_index(count: usize) -> f64 {
+const fn last_index(count: usize) -> f64 {
     numbers::float(count.saturating_sub(1))
 }
 

@@ -394,7 +394,7 @@ annotation_params!(HighlightBox [], color = "#a78bfa", radius = 10, {
     pub strokes: u32,
 });
 
-fn plain_fields<'a>(
+const fn plain_fields<'a>(
     match_text: &'a str,
     text: &'a str,
     color: &'a str,

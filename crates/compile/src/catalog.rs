@@ -72,7 +72,7 @@ pub struct CatalogEntry {
     pub params: Value,
 }
 
-fn catalog_port(label: String, p: &PortSpec) -> CatalogPort {
+const fn catalog_port(label: String, p: &PortSpec) -> CatalogPort {
     CatalogPort {
         kind: p.kind,
         label,

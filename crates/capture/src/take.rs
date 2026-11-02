@@ -287,7 +287,7 @@ fn silenced(step: &SessionStep) -> bool {
     serde_json::from_value::<Silence>(Value::Object(step.params.clone())).is_ok_and(|s| s.silent)
 }
 
-pub fn click_kind_of(action: BrowserAction) -> Option<ActionKind> {
+pub const fn click_kind_of(action: BrowserAction) -> Option<ActionKind> {
     match action {
         BrowserAction::Click => Some(ActionKind::Click),
         BrowserAction::Type => Some(ActionKind::Type),
@@ -522,11 +522,11 @@ impl<'e> TakeRun<'e> {
         Ok((trace, overlays, Lifecycle::start(tab).await?))
     }
 
-    pub(crate) fn dpr(&self) -> f64 {
+    pub(crate) const fn dpr(&self) -> f64 {
         self.session.dpr
     }
 
-    pub(crate) fn tab(&self) -> &Arc<crate::cdp::Tab> {
+    pub(crate) const fn tab(&self) -> &Arc<crate::cdp::Tab> {
         &self.session.tab
     }
 

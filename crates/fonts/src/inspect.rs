@@ -157,7 +157,7 @@ pub fn read_candidate(name: &str, bytes: &[u8]) -> Option<FontCandidate> {
     })
 }
 
-fn format_rank(format: FontFormat) -> u8 {
+const fn format_rank(format: FontFormat) -> u8 {
     match format {
         FontFormat::Woff2 => 0,
         FontFormat::Woff => 1,

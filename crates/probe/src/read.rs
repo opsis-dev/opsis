@@ -34,7 +34,7 @@ impl Source {
         })
     }
 
-    pub fn len(&self) -> u64 {
+    pub const fn len(&self) -> u64 {
         self.len
     }
 
@@ -86,11 +86,11 @@ macro_rules! numbers {
 }
 
 impl<'a> Bytes<'a> {
-    pub fn new(data: &'a [u8]) -> Self {
+    pub const fn new(data: &'a [u8]) -> Self {
         Self { data, at: 0 }
     }
 
-    pub fn left(&self) -> usize {
+    pub const fn left(&self) -> usize {
         self.data.len() - self.at
     }
 
@@ -139,7 +139,7 @@ pub struct Bits<'a> {
 }
 
 impl<'a> Bits<'a> {
-    pub fn new(data: &'a [u8]) -> Self {
+    pub const fn new(data: &'a [u8]) -> Self {
         Self { data, bit: 0 }
     }
 

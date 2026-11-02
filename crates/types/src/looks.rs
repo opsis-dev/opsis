@@ -88,7 +88,7 @@ impl NodeLook {
     }
 
     #[must_use]
-    pub fn moves(mut self, motion: NodeMotion) -> Self {
+    pub const fn moves(mut self, motion: NodeMotion) -> Self {
         self.motion = Some(motion);
         self
     }

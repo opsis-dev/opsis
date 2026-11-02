@@ -31,7 +31,7 @@ pub enum StartOption {
 impl StartOption {
     pub const ALL: [Self; 3] = [Self::StartScreen, Self::LastProject, Self::NewProject];
 
-    pub fn label(self) -> &'static str {
+    pub const fn label(self) -> &'static str {
         match self {
             Self::StartScreen => "Show the start screen",
             Self::LastProject => "Open the last project",
@@ -55,7 +55,7 @@ pub enum TraceRetention {
 impl TraceRetention {
     pub const ALL: [Self; 4] = [Self::Always, Self::Failures, Self::LastN, Self::Off];
 
-    pub fn label(self) -> &'static str {
+    pub const fn label(self) -> &'static str {
         match self {
             Self::Always => "Always",
             Self::Failures => "Failures only",

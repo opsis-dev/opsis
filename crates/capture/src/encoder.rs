@@ -37,7 +37,7 @@ pub enum FrameImage {
 }
 
 impl FrameImage {
-    fn decoder(self) -> &'static str {
+    const fn decoder(self) -> &'static str {
         match self {
             Self::Jpeg => "mjpeg",
             Self::Png => "png",

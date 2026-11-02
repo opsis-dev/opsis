@@ -72,7 +72,7 @@ pub const REST_VIEW: CameraView = CameraView {
     height: 0.0,
 };
 
-fn view_of(k: &CameraKey) -> CameraView {
+const fn view_of(k: &CameraKey) -> CameraView {
     CameraView {
         yaw: k.yaw,
         pitch: k.pitch,

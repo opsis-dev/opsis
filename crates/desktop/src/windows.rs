@@ -170,7 +170,7 @@ pub fn panel_label(panel: DockPanelName) -> String {
     format!("{PANEL_PREFIX}{}", panel.id())
 }
 
-fn panel_size(panel: DockPanelName) -> (f64, f64) {
+const fn panel_size(panel: DockPanelName) -> (f64, f64) {
     match panel {
         DockPanelName::Timeline => (1400.0, 460.0),
         DockPanelName::Mixer => (1100.0, 560.0),

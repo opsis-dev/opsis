@@ -60,7 +60,7 @@ pub enum FrameChoice {
 }
 
 impl FrameChoice {
-    pub(crate) fn style(self) -> Option<WindowStyle> {
+    pub(crate) const fn style(self) -> Option<WindowStyle> {
         match self {
             Self::None => None,
             Self::Macos => Some(WindowStyle::Macos),
@@ -621,14 +621,14 @@ pub enum Device {
 }
 
 impl Device {
-    fn icon(self) -> Icon {
+    const fn icon(self) -> Icon {
         match self {
             Self::Laptop => Icon::Laptop,
             Self::Phone => Icon::Smartphone,
         }
     }
 
-    fn component(self) -> &'static str {
+    const fn component(self) -> &'static str {
         match self {
             Self::Laptop => "laptop-frame",
             Self::Phone => "phone-frame",
@@ -956,7 +956,7 @@ fn with_window_frame(
     }
 }
 
-fn frame_theme_name(theme: FrameTheme) -> &'static str {
+const fn frame_theme_name(theme: FrameTheme) -> &'static str {
     match theme {
         FrameTheme::Light => "light",
         FrameTheme::Dark => "dark",

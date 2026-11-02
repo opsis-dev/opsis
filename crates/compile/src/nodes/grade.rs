@@ -265,7 +265,7 @@ pub enum MonoFilter {
 }
 
 impl MonoFilter {
-    pub fn chroma(self) -> (f64, f64) {
+    pub const fn chroma(self) -> (f64, f64) {
         match self {
             Self::None => (0.0, 0.0),
             Self::Red => (-0.2, 0.6),

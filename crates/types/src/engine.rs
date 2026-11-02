@@ -35,7 +35,7 @@ pub struct ToolStatus {
 }
 
 impl ToolStatus {
-    pub fn ready(&self) -> bool {
+    pub const fn ready(&self) -> bool {
         self.path.is_some() && self.problem.is_none() && !self.checking
     }
 }

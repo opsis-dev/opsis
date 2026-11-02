@@ -55,11 +55,11 @@ impl Document {
         &self.dir
     }
 
-    pub fn workflow(&self) -> &Workflow {
+    pub const fn workflow(&self) -> &Workflow {
         &self.workflow
     }
 
-    pub fn revision(&self) -> u64 {
+    pub const fn revision(&self) -> u64 {
         self.revision
     }
 
@@ -67,7 +67,7 @@ impl Document {
         &self.file_version
     }
 
-    pub fn is_dirty(&self) -> bool {
+    pub const fn is_dirty(&self) -> bool {
         self.revision != self.saved_revision
     }
 

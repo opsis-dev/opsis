@@ -149,7 +149,7 @@ fn frames_of(plan: &MixPlan) -> usize {
     usize::try_from(plan.duration_in_frames).expect("a frame count fits in memory")
 }
 
-fn shape(plan: &MixPlan) -> Plan {
+const fn shape(plan: &MixPlan) -> Plan {
     Plan {
         fps: plan.fps,
         duration_in_frames: plan.duration_in_frames,

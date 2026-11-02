@@ -21,11 +21,11 @@ pub const STILL: &str = "still";
 pub const IMAGE: &str = "image";
 pub const VIDEO: &str = "video";
 
-fn yes() -> bool {
+const fn yes() -> bool {
     true
 }
 
-fn one() -> f64 {
+const fn one() -> f64 {
     1.0
 }
 

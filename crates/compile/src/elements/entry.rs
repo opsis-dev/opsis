@@ -33,7 +33,7 @@ impl Entry {
     }
 
     #[must_use]
-    pub fn design(mut self, width: u32, height: u32) -> Self {
+    pub const fn design(mut self, width: u32, height: u32) -> Self {
         self.design = Some(Design {
             width,
             height,
@@ -43,7 +43,7 @@ impl Entry {
     }
 
     #[must_use]
-    pub fn exact_design(mut self, width: u32, height: u32) -> Self {
+    pub const fn exact_design(mut self, width: u32, height: u32) -> Self {
         self.design = Some(Design {
             width,
             height,
@@ -65,7 +65,7 @@ impl Entry {
     }
 
     #[must_use]
-    pub fn optional_clip(mut self) -> Self {
+    pub const fn optional_clip(mut self) -> Self {
         self.optional_clip = true;
         self
     }
@@ -77,7 +77,7 @@ impl Entry {
     }
 
     #[must_use]
-    pub fn authored_clock(mut self) -> Self {
+    pub const fn authored_clock(mut self) -> Self {
         self.authored_clock = true;
         self
     }

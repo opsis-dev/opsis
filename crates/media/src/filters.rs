@@ -350,7 +350,7 @@ pub fn voice_filter(p: &opsis_compile::nodes::media::VoiceEffects, room: Option<
     }
 }
 
-pub fn fit_inputs(plan: opsis_compile::nodes::media::FitPlan) -> u32 {
+pub const fn fit_inputs(plan: opsis_compile::nodes::media::FitPlan) -> u32 {
     match plan {
         opsis_compile::nodes::media::FitPlan::Loop { repeats, .. } => repeats + 1,
         _ => 1,
@@ -470,7 +470,7 @@ pub fn speech_filter(
     steps.join(",")
 }
 
-pub fn noise_level_listen_filter() -> &'static str {
+pub const fn noise_level_listen_filter() -> &'static str {
     "aresample=48000,asetnsamples=n=960,astats=metadata=1:reset=1:measure_perchannel=none:measure_overall=RMS_level,ametadata=mode=print:key=lavfi.astats.Overall.RMS_level"
 }
 

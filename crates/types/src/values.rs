@@ -217,7 +217,7 @@ pub enum CompileValue {
 }
 
 impl CompileValue {
-    pub fn port_type(&self) -> crate::workflow::PortType {
+    pub const fn port_type(&self) -> crate::workflow::PortType {
         use crate::workflow::PortType;
         match self {
             Self::BrowserSession(_) => PortType::BrowserSession,
@@ -232,63 +232,63 @@ impl CompileValue {
         }
     }
 
-    pub fn as_clip(&self) -> Option<&ClipValue> {
+    pub const fn as_clip(&self) -> Option<&ClipValue> {
         match self {
             Self::Clip(clip) => Some(clip),
             _ => None,
         }
     }
 
-    pub fn as_recording(&self) -> Option<&RecordingValue> {
+    pub const fn as_recording(&self) -> Option<&RecordingValue> {
         match self {
             Self::Recording(recording) => Some(recording),
             _ => None,
         }
     }
 
-    pub fn as_session(&self) -> Option<&BrowserSessionValue> {
+    pub const fn as_session(&self) -> Option<&BrowserSessionValue> {
         match self {
             Self::BrowserSession(session) => Some(session),
             _ => None,
         }
     }
 
-    pub fn as_style(&self) -> Option<&EntriesValue> {
+    pub const fn as_style(&self) -> Option<&EntriesValue> {
         match self {
             Self::RecordingStyle(style) => Some(style),
             _ => None,
         }
     }
 
-    pub fn as_grade(&self) -> Option<&EntriesValue> {
+    pub const fn as_grade(&self) -> Option<&EntriesValue> {
         match self {
             Self::Grade(grade) => Some(grade),
             _ => None,
         }
     }
 
-    pub fn as_image(&self) -> Option<&ImageValue> {
+    pub const fn as_image(&self) -> Option<&ImageValue> {
         match self {
             Self::Image(image) => Some(image),
             _ => None,
         }
     }
 
-    pub fn as_media(&self) -> Option<&MediaValue> {
+    pub const fn as_media(&self) -> Option<&MediaValue> {
         match self {
             Self::Media(media) => Some(media),
             _ => None,
         }
     }
 
-    pub fn as_audio(&self) -> Option<&AudioValue> {
+    pub const fn as_audio(&self) -> Option<&AudioValue> {
         match self {
             Self::Audio(audio) => Some(audio),
             _ => None,
         }
     }
 
-    pub fn as_captions(&self) -> Option<&CaptionsValue> {
+    pub const fn as_captions(&self) -> Option<&CaptionsValue> {
         match self {
             Self::Captions(captions) => Some(captions),
             _ => None,

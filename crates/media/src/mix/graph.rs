@@ -81,7 +81,7 @@ pub enum PcmCodec {
 }
 
 impl PcmCodec {
-    fn name(self) -> &'static str {
+    const fn name(self) -> &'static str {
         match self {
             Self::F32 => "pcm_f32le",
             Self::S16 => "pcm_s16le",

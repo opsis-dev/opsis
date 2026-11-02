@@ -83,7 +83,7 @@ struct SequencerFields {
     envelope: VisualEnvelope,
 }
 
-fn node_category(category: ElementCategory) -> Category {
+const fn node_category(category: ElementCategory) -> Category {
     match category {
         ElementCategory::Media
         | ElementCategory::Ui

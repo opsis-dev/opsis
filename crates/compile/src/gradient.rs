@@ -163,7 +163,7 @@ fn sorted_stops(stops: &[GradientStop]) -> Vec<GradientStop> {
     sorted
 }
 
-fn percent(at: f64) -> f64 {
+const fn percent(at: f64) -> f64 {
     at.round().clamp(0.0, 100.0)
 }
 

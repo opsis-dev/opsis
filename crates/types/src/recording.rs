@@ -208,7 +208,7 @@ pub struct FootageChain {
 }
 
 impl FootageChain {
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.grade.is_empty() && self.redact.is_empty()
     }
 }

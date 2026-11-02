@@ -177,7 +177,7 @@ impl Tab {
         }
     }
 
-    pub fn clock(&self) -> &TakeClock {
+    pub const fn clock(&self) -> &TakeClock {
         &self.clock
     }
 

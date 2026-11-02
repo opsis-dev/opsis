@@ -458,7 +458,7 @@ pub enum NoiseColour {
 }
 
 impl NoiseColour {
-    fn word(self) -> &'static str {
+    const fn word(self) -> &'static str {
         match self {
             Self::Pink => "Pink",
             Self::Brown => "Brown",
@@ -815,7 +815,7 @@ impl SoundPreset {
         Self::Click,
     ];
 
-    pub fn usual_seconds(self) -> f64 {
+    pub const fn usual_seconds(self) -> f64 {
         match self {
             Self::Whoosh => 0.8,
             Self::Riser | Self::Swell => 3.0,
@@ -826,7 +826,7 @@ impl SoundPreset {
         }
     }
 
-    fn picked(self) -> (f64, f64) {
+    const fn picked(self) -> (f64, f64) {
         match self {
             Self::Whoosh => (0.0, 0.15),
             Self::Riser => (-5.0, 0.5),
@@ -836,7 +836,7 @@ impl SoundPreset {
         }
     }
 
-    fn lengths(self) -> (f64, f64) {
+    const fn lengths(self) -> (f64, f64) {
         match self {
             Self::Whoosh => (0.4, 1.5),
             Self::Riser | Self::Swell => (1.5, 6.0),
@@ -874,7 +874,7 @@ pub enum SoundVariation {
 }
 
 impl SoundVariation {
-    fn word(self) -> &'static str {
+    const fn word(self) -> &'static str {
         match self {
             Self::Picked => "default",
             Self::AsMade => "as first made",

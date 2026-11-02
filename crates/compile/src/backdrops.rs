@@ -46,7 +46,7 @@ impl Backdrop {
         Self::Aurora,
     ];
 
-    pub fn id(self) -> &'static str {
+    pub const fn id(self) -> &'static str {
         match self {
             Self::Glaze => "glaze",
             Self::Ink => "ink",
@@ -67,7 +67,7 @@ impl Backdrop {
         }
     }
 
-    pub fn tone(self) -> Tone {
+    pub const fn tone(self) -> Tone {
         match self {
             Self::Canyon | Self::Mist | Self::Chalk | Self::Aurora => Tone::Light,
             _ => Tone::Dark,

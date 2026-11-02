@@ -249,7 +249,7 @@ fn shows_the_typed_address_on_the_frame_cards() {
     );
 }
 
-fn take(duration_ms: f64, cursor_track: bool) -> InputTake {
+const fn take(duration_ms: f64, cursor_track: bool) -> InputTake {
     InputTake {
         duration_ms,
         cursor_track,

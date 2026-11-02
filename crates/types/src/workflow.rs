@@ -36,7 +36,7 @@ impl PortType {
         Self::Media,
     ];
 
-    pub fn id(self) -> &'static str {
+    pub const fn id(self) -> &'static str {
         match self {
             Self::BrowserSession => "browser-session",
             Self::Recording => "recording",
@@ -50,7 +50,7 @@ impl PortType {
         }
     }
 
-    pub fn word(self) -> &'static str {
+    pub const fn word(self) -> &'static str {
         match self {
             Self::BrowserSession => "browser session",
             Self::Recording => "recording",
@@ -75,7 +75,7 @@ pub enum Theme {
 impl Theme {
     pub const ALL: [Self; 2] = [Self::Light, Self::Dark];
 
-    pub fn background(self) -> &'static str {
+    pub const fn background(self) -> &'static str {
         match self {
             Self::Light => "#fafafa",
             Self::Dark => "#09090b",
@@ -83,15 +83,15 @@ impl Theme {
     }
 }
 
-fn default_width() -> u32 {
+const fn default_width() -> u32 {
     1920
 }
 
-fn default_height() -> u32 {
+const fn default_height() -> u32 {
     1080
 }
 
-fn default_fps() -> u32 {
+const fn default_fps() -> u32 {
     30
 }
 

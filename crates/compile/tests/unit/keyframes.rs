@@ -30,7 +30,7 @@ fn edited(wf: &Workflow, edit: KeyframeEdit) -> Workflow {
     next
 }
 
-fn key(frame: f64, value: f64) -> Keyframe {
+const fn key(frame: f64, value: f64) -> Keyframe {
     Keyframe {
         frame,
         value,

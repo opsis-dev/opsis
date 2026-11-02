@@ -60,7 +60,7 @@ pub enum Ease {
 impl Ease {
     pub const ALL: [Self; 5] = [Self::Linear, Self::In, Self::Out, Self::InOut, Self::Hold];
 
-    pub fn label(self) -> &'static str {
+    pub const fn label(self) -> &'static str {
         match self {
             Self::Linear => "Steady",
             Self::In => "Speed up",
@@ -94,7 +94,7 @@ impl EnvelopeKey {
         Self::Pan,
     ];
 
-    pub fn name(self) -> &'static str {
+    pub const fn name(self) -> &'static str {
         match self {
             Self::Opacity => "opacity",
             Self::X => "x",
@@ -155,11 +155,11 @@ pub struct AudioEnvelope {
     pub pan: Option<Vec<Keyframe>>,
 }
 
-fn in_out() -> Ease {
+const fn in_out() -> Ease {
     Ease::InOut
 }
 
-fn one() -> f64 {
+const fn one() -> f64 {
     1.0
 }
 
@@ -402,7 +402,7 @@ pub enum TimelineItem {
 }
 
 impl TimelineItem {
-    pub fn base(&self) -> &ItemBase {
+    pub const fn base(&self) -> &ItemBase {
         match self {
             Self::Group { base, .. }
             | Self::Recording { base, .. }
@@ -410,7 +410,7 @@ impl TimelineItem {
         }
     }
 
-    pub fn base_mut(&mut self) -> &mut ItemBase {
+    pub const fn base_mut(&mut self) -> &mut ItemBase {
         match self {
             Self::Group { base, .. }
             | Self::Recording { base, .. }
