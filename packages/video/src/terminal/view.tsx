@@ -35,6 +35,23 @@ export type CellBox = { width: number; height: number };
 
 export type Measure = (text: string, bold: boolean) => number | null;
 
+const widths = new Map<string, number>();
+let canvas: CanvasRenderingContext2D | null = null;
+
+export function measurer(fontSize: number): Measure {
+  return (text, bold) => {
+    const key = `${bold ? 7 : 4}|${fontSize}|${text}`;
+    const known = widths.get(key);
+    if (known !== undefined) return known;
+    canvas ??= document.createElement("canvas").getContext("2d");
+    if (!canvas) return null;
+    canvas.font = `${bold ? 700 : 400} ${fontSize}px ${TERMINAL_FONT_STACK}`;
+    const width = canvas.measureText(text).width;
+    widths.set(key, width);
+    return width;
+  };
+}
+
 export function cellBox(look: ViewLook): CellBox {
   return {
     width: look.fontSize * CELL_WIDTH_EM + look.letterSpacing,

@@ -261,7 +261,10 @@ fn checked_media(result: Option<&NodeResult>, path: &str) -> Option<MediaValue> 
 fn file_measured(result: Option<&NodeResult>) -> Option<(u64, Option<f64>)> {
     result?.measured.iter().find_map(|m| match m {
         Measured::File { bytes, fps } => Some((*bytes, *fps)),
-        Measured::NoiseLevel { .. } | Measured::Changes { .. } | Measured::Fitted { .. } => None,
+        Measured::NoiseLevel { .. }
+        | Measured::Changes { .. }
+        | Measured::Fitted { .. }
+        | Measured::Tape { .. } => None,
     })
 }
 
@@ -1225,7 +1228,10 @@ fn fitted_row(result: Option<&NodeResult>) -> Option<CardRow> {
             },
         )),
         Measured::Fitted { .. } => Some(row(Icon::Scissors, "Cut and faded")),
-        Measured::NoiseLevel { .. } | Measured::File { .. } | Measured::Changes { .. } => None,
+        Measured::NoiseLevel { .. }
+        | Measured::File { .. }
+        | Measured::Changes { .. }
+        | Measured::Tape { .. } => None,
     })
 }
 
@@ -1325,7 +1331,10 @@ fn noise_level_row(result: Option<&NodeResult>) -> Option<CardRow> {
             Icon::Volume2,
             format!("Noise {before_db:.0} dB → {after_db:.0} dB"),
         )),
-        Measured::File { .. } | Measured::Changes { .. } | Measured::Fitted { .. } => None,
+        Measured::File { .. }
+        | Measured::Changes { .. }
+        | Measured::Fitted { .. }
+        | Measured::Tape { .. } => None,
     })
 }
 

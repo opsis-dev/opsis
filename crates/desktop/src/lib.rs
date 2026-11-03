@@ -34,6 +34,7 @@ mod settings;
 mod shared;
 mod startup;
 mod state;
+mod terminal_live;
 mod views;
 mod windows;
 
@@ -99,6 +100,7 @@ async fn open(
     app.manage(shared::Shared::default());
     app.manage(Exit::default());
     app.manage(Views::default());
+    app.manage(terminal_live::LiveTapes::default());
     app.manage(Mixes::default());
     app.manage(node_results::NodeKeys::default());
     app.manage(WindowRuntime::default());

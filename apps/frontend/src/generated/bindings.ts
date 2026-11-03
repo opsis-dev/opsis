@@ -66,6 +66,7 @@ export const commands = {
 	editGradient: (css: string, edit: GradientEdit) => __TAURI_INVOKE<GradientView | null>("edit_gradient", { css, edit }),
 	listFonts: () => __TAURI_INVOKE<FontChoice[]>("list_fonts"),
 	fontChoices: (value: string, project: FontFamilyDef[]) => __TAURI_INVOKE<FontChoices>("font_choices", { value, project }),
+	terminalFonts: () => __TAURI_INVOKE<FontFamilyDef[]>("terminal_fonts"),
 	inspectFontFiles: (paths: string[] | null) => __TAURI_INVOKE<InspectedFonts | null>("inspect_font_files", { paths }),
 	installedFontFamilies: () => __TAURI_INVOKE<InstalledFamily[]>("installed_font_families"),
 	inspectInstalledFonts: (families: string[]) => __TAURI_INVOKE<InspectedFonts>("inspect_installed_fonts", { families }),
@@ -87,6 +88,9 @@ export const commands = {
 	viewAnswerDialog: (id: string, accept: boolean, prompt: string) => __TAURI_INVOKE<null>("view_answer_dialog", { id, accept, prompt }),
 	viewChooseFiles: (id: string) => __TAURI_INVOKE<null>("view_choose_files", { id }),
 	viewClose: (id: string) => __TAURI_INVOKE<void>("view_close", { id }),
+	attachTerminal: (id: string, frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<null>("attach_terminal", { id, frames }),
+	terminalInput: (id: string, input: TerminalInput) => __TAURI_INVOKE<null>("terminal_input", { id, input }),
+	finishTerminal: (id: string, save: boolean) => __TAURI_INVOKE<null>("finish_terminal", { id, save }),
 	pageLog: (level: PageLogLevel, message: string) => __TAURI_INVOKE<void>("page_log", { level, message }),
 	sendMenuToEditor: (command: MenuCommand) => __TAURI_INVOKE<null>("send_menu_to_editor", { command }),
 	sharedState: () => __TAURI_INVOKE<SharedState>("shared_state"),
@@ -1274,7 +1278,7 @@ export type Master = {
 	loudness: LoudnessTarget,
 };
 
-export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number } | { type: "file"; bytes: number; fps?: number } | { type: "changes"; count: number } | { type: "fitted"; tempo?: number; loops: number };
+export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number } | { type: "file"; bytes: number; fps?: number } | { type: "changes"; count: number } | { type: "fitted"; tempo?: number; loops: number } | { type: "tape"; steps: number; ignored: string[]; warnings: string[] };
 
 export type MediaKind = "video" | "audio" | "image";
 
@@ -1496,6 +1500,8 @@ export type Point = {
 };
 
 export type PointerButton = "left" | "right" | "middle";
+
+export type PointerMove = "press" | "release" | "move";
 
 export type PointerProps = {
 	shown: boolean,
@@ -1846,9 +1852,11 @@ export type TemplateInfo = {
 	icon: Icon,
 };
 
-export type TerminalAction = { type: "run"; command: string; wait: WaitFor; limitMs: number; zoomOutput: boolean } | { type: "type"; text: string; speedMs?: number } | { type: "keys"; keys: string; repeat: number } | { type: "click"; target: CellTarget; button: PointerButton; double: boolean } | { type: "drag"; from: CellTarget; to: CellTarget } | { type: "wheel"; target: CellTarget; notches: number } | { type: "wait-text"; pattern: string; scope: LookIn; limitMs: number } | { type: "sleep"; ms: number } | { type: "start-recording" } | { type: "hide" } | { type: "show" } | { type: "chapter"; title: string } | { type: "clear" } | { type: "scroll"; lines: number } | { type: "copy"; text: string } | { type: "paste" } | { type: "env"; name: string; value: string } | { type: "require"; program: string } | { type: "screenshot" };
+export type TerminalAction = { type: "run"; command: string; wait: WaitFor; limitMs: number; zoomOutput: boolean } | { type: "type"; text: string; speedMs?: number } | { type: "keys"; keys: string; repeat: number } | { type: "click"; target: CellTarget; button: PointerButton; double: boolean } | { type: "drag"; from: CellTarget; to: CellTarget } | { type: "wheel"; target: CellTarget; notches: number } | { type: "wait-text"; pattern: string; scope: LookIn; limitMs: number } | { type: "wait-prompt"; limitMs: number } | { type: "sleep"; ms: number } | { type: "start-recording" } | { type: "hide" } | { type: "show" } | { type: "chapter"; title: string } | { type: "clear" } | { type: "scroll"; lines: number } | { type: "copy"; text: string } | { type: "paste" } | { type: "env"; name: string; value: string } | { type: "require"; program: string } | { type: "screenshot" };
 
 export type TerminalCursor = "program" | "block" | "bar" | "underline";
+
+export type TerminalInput = { type: "key"; key: string; ctrl: boolean; alt: boolean; shift: boolean } | { type: "text"; text: string } | { type: "paste"; text: string } | { type: "pointer"; action: PointerMove; button: PointerButton | null; col: number; row: number } | { type: "wheel"; col: number; row: number; notches: number } | { type: "focus"; gained: boolean };
 
 export type TerminalLook = {
 	theme: TerminalTheme,

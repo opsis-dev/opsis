@@ -1523,13 +1523,89 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "theme": "Default",
+   "theme": "",
    "fontSize": 20,
    "lineHeight": 1.2,
    "letterSpacing": 0.0,
    "padding": 24,
    "cursor": "program",
    "cursorBlink": true
+  }
+ },
+ {
+  "type": "terminal.playTape",
+  "title": "Play tape",
+  "category": "Terminal",
+  "description": "Plays a tape file in a terminal and records it: what to type, the keys to press and the look of the terminal.",
+  "phase": "capture",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "recording",
+    "type": "recording",
+    "label": "Recording",
+    "optional": false,
+    "many": false
+   },
+   {
+    "id": "style",
+    "type": "recording-style",
+    "label": "Style",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 190.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "file": "",
+   "recordLive": true,
+   "pauseBeforeMs": 500,
+   "keepAfterMs": 1500
+  }
+ },
+ {
+  "type": "output.tape",
+  "title": "Export tape",
+  "category": "Output",
+  "description": "Saves the connected terminal actions as a tape file, to play again or share.",
+  "phase": "render",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": false,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "fileName": "{{Project name}} tape"
   }
  },
  {

@@ -23,6 +23,16 @@ pub async fn list_fonts(state: State<'_, AppState>) -> CommandResult<Vec<FontCho
 
 #[tauri::command]
 #[specta::specta]
+pub fn terminal_fonts() -> Vec<FontFamilyDef> {
+    opsis_compile::fonts::bundled_fonts()
+        .iter()
+        .filter(|d| opsis_compile::terminal::TERMINAL_FONTS.contains(&d.family.as_str()))
+        .cloned()
+        .collect()
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn font_choices(
     state: State<'_, AppState>,
     value: String,

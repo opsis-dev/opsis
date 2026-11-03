@@ -224,11 +224,11 @@ fn visible_samples<T: Clone>(
     out
 }
 
-fn visible_caret(samples: &[CaretSample], timeline: &Timeline) -> Vec<CaretSample> {
+pub fn visible_caret(samples: &[CaretSample], timeline: &Timeline) -> Vec<CaretSample> {
     visible_samples(samples, timeline, |s| s.t, |s, t| CaretSample { t, ..s })
 }
 
-fn visible_titles(samples: &[TitleChange], timeline: &Timeline) -> Vec<TitleChange> {
+pub fn visible_titles(samples: &[TitleChange], timeline: &Timeline) -> Vec<TitleChange> {
     visible_samples(samples, timeline, |s| s.t, |s, t| TitleChange { t, ..s })
 }
 

@@ -165,6 +165,21 @@ pub fn prepare(input: &PrepareInput<'_>) -> Result<Frames, PrepareError> {
     })
 }
 
+pub fn snapshot(terminal: &mut Terminal, theme: &TerminalTheme) -> Result<Frames, VtError> {
+    let program = terminal.palette();
+    let colours = ThemeColours::of(theme).with_program(program.as_ref());
+    let frame = terminal.frame()?;
+    let mut table = RowTable::default();
+    let record = record(frame, &colours, &[], &mut table);
+    Ok(Frames {
+        cols: record.cols,
+        rows: record.rows,
+        fps: 1,
+        row_table: table.into_rows(),
+        frames: vec![record],
+    })
+}
+
 const fn shape_code(shape: CursorShape) -> u8 {
     match shape {
         CursorShape::Bar => 0,

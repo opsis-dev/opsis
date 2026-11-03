@@ -2315,7 +2315,10 @@ fn compare() -> NodeDef {
         let changes = ctx.result.and_then(|r| {
             r.measured.iter().find_map(|m| match m {
                 Measured::Changes { count } => Some(*count),
-                Measured::NoiseLevel { .. } | Measured::File { .. } | Measured::Fitted { .. } => None,
+                Measured::NoiseLevel { .. }
+                | Measured::File { .. }
+                | Measured::Fitted { .. }
+                | Measured::Tape { .. } => None,
             })
         });
         let found = match changes {

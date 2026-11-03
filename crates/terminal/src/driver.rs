@@ -50,6 +50,7 @@ pub struct Driver<'a> {
     marks_seen: bool,
     inputs: u64,
     dones: u64,
+    at_prompt: bool,
     clipboard: String,
     pointer: Option<(f64, f64)>,
 }
@@ -106,6 +107,7 @@ impl<'a> Driver<'a> {
             marks_seen: false,
             inputs: 0,
             dones: 0,
+            at_prompt: false,
             clipboard: String::new(),
             pointer: None,
         }
@@ -123,6 +125,7 @@ impl<'a> Driver<'a> {
                 VtEvent::Prompt => self.marks_seen = true,
                 VtEvent::Input => {
                     self.marks_seen = true;
+                    self.at_prompt = true;
                     self.inputs += 1;
                 }
                 VtEvent::Done { .. } => self.dones += 1,
@@ -191,6 +194,9 @@ impl<'a> Driver<'a> {
 
     fn send(&mut self, bytes: &[u8]) -> Result<Duration, DriverError> {
         let at = self.session.write(bytes)?;
+        if bytes.contains(&b'\r') {
+            self.at_prompt = false;
+        }
         self.rec.input(at, bytes);
         Ok(at)
     }
@@ -574,6 +580,22 @@ impl<'a> Driver<'a> {
         Ok(found.filter(|f| scope == LookIn::Screen || f.row == row))
     }
 
+    fn wait_prompt(&mut self, limit_ms: u32) -> Result<(), DriverError> {
+        let limit = ms(limit_ms);
+        let back = if self.marks_seen {
+            self.wait_until(limit, |d| d.at_prompt)?
+        } else {
+            self.wait_quiet(limit)?
+        };
+        if back {
+            return Ok(());
+        }
+        Err(DriverError::Timeout(format!(
+            "The prompt didn't come back within {} s",
+            seconds(limit_ms)
+        )))
+    }
+
     fn wait_text(
         &mut self,
         step: &TerminalStep,
@@ -648,6 +670,7 @@ impl<'a> Driver<'a> {
                 scope,
                 limit_ms,
             } => self.wait_text(step, pattern, *scope, *limit_ms)?,
+            TerminalAction::WaitPrompt { limit_ms } => self.wait_prompt(*limit_ms)?,
             TerminalAction::Sleep { ms: length } => {
                 self.sleep(ms(*length))?;
                 return Ok(());

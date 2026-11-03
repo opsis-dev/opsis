@@ -5288,6 +5288,7 @@ dependencies = [
  "opsis-compile",
  "opsis-engine",
  "opsis-golden",
+ "opsis-project",
  "opsis-runner",
  "opsis-types",
  "opsis-vt",
@@ -5300,6 +5301,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]

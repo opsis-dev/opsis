@@ -850,9 +850,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## VHS — crates/compile/src/terminal/themes.generated.json
+## VHS — crates/compile/src/terminal/themes.generated.json, crates/terminal/src/tape, crates/terminal/tests/tapes
 
-The terminal themes are VHS's `themes.json` (https://github.com/charmbracelet/vhs), copied by `bun run terminal:themes` at a pinned commit, and the default terminal theme is VHS's own. Licensed under the MIT License:
+The terminal themes are VHS's `themes.json` (https://github.com/charmbracelet/vhs), copied by `bun run terminal:themes` at a pinned commit, and the default terminal theme is VHS's own. The tape file lexer and parser (`crates/terminal/src/tape`) follow VHS's grammar (its `lexer`, `parser` and `token` packages) and its defaults for sizes, waits and typing speed, and the example tapes its tests read (`crates/terminal/tests/tapes`) are VHS's `examples` at commit 24fa2254a9806091e6ee6a980e9f3bcfe0a9ba53. Licensed under the MIT License:
 
 ```
 MIT License

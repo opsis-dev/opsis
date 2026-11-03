@@ -5,21 +5,24 @@ use opsis_types::numbers;
 use opsis_types::recording::{RecordingProps, ScreenProps};
 use opsis_types::terminal::{
     CellTarget, EnvVar, LookIn, PointerButton, ShellChoice, TerminalAction, TerminalCursor,
-    TerminalLook, TerminalSessionValue, TerminalStep, WaitFor,
+    TerminalLook, TerminalSessionValue, TerminalStep, TerminalTheme, WaitFor,
 };
-use opsis_types::values::{CompileValue, RecordingValue, TakeKind, TakeSource, TerminalSource};
+use opsis_types::values::{
+    CompileValue, EntriesValue, Measured, RecordingValue, TakeKind, TakeSource, TerminalSource,
+};
 use opsis_types::workflow::{DEFAULT_TAKE_MS, PortType};
 
 use crate::errors::SettingsError;
 use crate::node::{
-    CardCtx, Category, Ctx, NodeDef, Outputs, Phase, RECORDING_PORT, RowExt, missing, outputs,
-    port, row,
+    CardCtx, Category, Claim, Ctx, NodeDef, Outputs, Phase, RECORDING_PORT, RowExt, STYLE_PORT,
+    missing, outputs, port, row,
 };
+use crate::nodes::output::export_base_name;
 use crate::params::Params;
 use crate::registry::node_def;
 use crate::terminal::{
-    DEFAULT_FONT_SIZE, DEFAULT_LINE_HEIGHT, DEFAULT_PADDING, DEFAULT_THEME_NAME, default_look,
-    grid, regrid_actions, regrid_log, theme_named,
+    DEFAULT_FONT_SIZE, DEFAULT_LINE_HEIGHT, DEFAULT_PADDING, grid, regrid_actions, regrid_log,
+    theme_named,
 };
 use crate::text::{format_duration, plural, truncate};
 
@@ -27,6 +30,9 @@ pub const TERMINAL_PORT: &str = "terminal";
 pub const OPEN_TERMINAL_TYPE: &str = "terminal.open";
 pub const RECORD_TERMINAL_TYPE: &str = "capture.terminal";
 pub const TERMINAL_LOOK_TYPE: &str = "terminal.look";
+pub const PLAY_TAPE_TYPE: &str = "terminal.playTape";
+pub const EXPORT_TAPE_TYPE: &str = "output.tape";
+pub const TAPE_EXTENSION: &str = "tape";
 const TEXT_SHOWN: usize = 40;
 
 fn session_port() -> crate::node::PortSpec {
@@ -80,6 +86,28 @@ pub struct OpenTerminal {
     pub pointer_ms: u32,
     #[setting("Environment variables", advanced)]
     pub env: Vec<EnvRow>,
+}
+
+impl OpenTerminal {
+    pub fn session(&self) -> TerminalSessionValue {
+        TerminalSessionValue {
+            shell: self.shell,
+            folder: self.folder.trim().to_owned(),
+            cols: u16::try_from(self.cols).unwrap_or(u16::MAX),
+            rows: u16::try_from(self.rows).unwrap_or(u16::MAX),
+            env: self
+                .env
+                .iter()
+                .map(|e| EnvVar {
+                    name: e.name.clone(),
+                    value: e.value.clone(),
+                })
+                .collect(),
+            typing_ms: self.typing_ms,
+            pointer_ms: self.pointer_ms,
+            steps: Vec::new(),
+        }
+    }
 }
 
 #[settings(eq)]
@@ -350,9 +378,62 @@ pub struct RecordTerminal {
     pub keep_after_ms: u32,
 }
 
+#[settings(eq)]
+pub struct PlayTape {
+    #[setting(
+        "Tape file",
+        widget = "asset",
+        accept = ".tape",
+        help = "A tape file: the commands to type, one per line.",
+        check = [
+            { "rule": "not-blank", "message": "Choose a tape file" },
+            { "rule": "in-project", "message": "Choose a file inside the project folder" }
+        ]
+    )]
+    pub file: String,
+    #[setting(
+        "Record it live when the file is missing",
+        default = true,
+        help = "Opens a terminal to type in, then saves what you typed as this tape file."
+    )]
+    pub record_live: bool,
+    #[setting(
+        "Pause before the first action",
+        default = 500,
+        range(min = 0, max = 600_000),
+        step = 50,
+        unit = "ms",
+        advanced
+    )]
+    pub pause_before_ms: u32,
+    #[setting(
+        "Keep recording after the last action",
+        default = 1500,
+        range(min = 0, max = 600_000),
+        step = 50,
+        unit = "ms",
+        advanced
+    )]
+    pub keep_after_ms: u32,
+}
+
+#[settings(eq)]
+pub struct ExportTape {
+    #[setting("File name", default = "{{Project name}} tape")]
+    pub file_name: String,
+}
+
+pub fn tape_file_name(file_name: &str) -> String {
+    format!("{}.{TAPE_EXTENSION}", export_base_name(file_name))
+}
+
 #[settings(check)]
 pub struct TerminalLookSettings {
-    #[setting("Theme", default = DEFAULT_THEME_NAME.to_owned(), help = "A theme's name, such as Dracula or Catppuccin Mocha.")]
+    #[setting(
+        "Theme",
+        zero_label = "The take's own",
+        help = "A theme's name, such as Dracula or Catppuccin Mocha."
+    )]
     pub theme: String,
     #[setting("Font size", default = DEFAULT_FONT_SIZE, range(min = 8, max = 64), unit = "px")]
     pub font_size: u32,
@@ -382,7 +463,7 @@ pub struct TerminalLookSettings {
 
 impl Params for TerminalLookSettings {
     fn check(&self) -> Result<(), SettingsError> {
-        if theme_named(&self.theme).is_none() {
+        if !self.theme.is_empty() && theme_named(&self.theme).is_none() {
             return Err(SettingsError::rule("There's no theme with this name"));
         }
         Ok(())
@@ -390,9 +471,9 @@ impl Params for TerminalLookSettings {
 }
 
 impl TerminalLookSettings {
-    pub fn look(&self) -> TerminalLook {
+    pub fn look(&self, own: &TerminalTheme) -> TerminalLook {
         TerminalLook {
-            theme: theme_named(&self.theme).unwrap_or_else(|| default_look(None).theme),
+            theme: theme_named(&self.theme).unwrap_or_else(|| own.clone()),
             font_size: self.font_size,
             line_height: self.line_height,
             letter_spacing: self.letter_spacing,
@@ -403,7 +484,10 @@ impl TerminalLookSettings {
     }
 }
 
-pub fn with_look(mut props: RecordingProps, look: TerminalLook) -> RecordingProps {
+pub fn with_look(
+    mut props: RecordingProps,
+    look: impl FnOnce(&TerminalTheme) -> TerminalLook,
+) -> RecordingProps {
     let ScreenProps::Terminal {
         cols,
         rows,
@@ -413,6 +497,7 @@ pub fn with_look(mut props: RecordingProps, look: TerminalLook) -> RecordingProp
     else {
         return props;
     };
+    let look = look(&current.theme);
     let to = grid(&look, *cols, *rows);
     let from = props.log.cells;
     **current = look;
@@ -477,26 +562,9 @@ fn open_terminal() -> NodeDef {
         ]
     })
     .compiles(|ctx: &Ctx<'_, OpenTerminal>| {
-        let p = &ctx.params;
         outputs([(
             TERMINAL_PORT,
-            CompileValue::TerminalSession(TerminalSessionValue {
-                shell: p.shell,
-                folder: p.folder.trim().to_owned(),
-                cols: u16::try_from(p.cols).unwrap_or(u16::MAX),
-                rows: u16::try_from(p.rows).unwrap_or(u16::MAX),
-                env: p
-                    .env
-                    .iter()
-                    .map(|e| EnvVar {
-                        name: e.name.clone(),
-                        value: e.value.clone(),
-                    })
-                    .collect(),
-                typing_ms: p.typing_ms,
-                pointer_ms: p.pointer_ms,
-                steps: Vec::new(),
-            }),
+            CompileValue::TerminalSession(ctx.params.session()),
         )])
     })
 }
@@ -849,6 +917,105 @@ fn record_terminal() -> NodeDef {
     })
 }
 
+fn tape_measured(
+    result: Option<&opsis_types::values::NodeResult>,
+) -> Option<(u32, &[String], &[String])> {
+    result?.measured.iter().find_map(|m| match m {
+        Measured::Tape {
+            steps,
+            ignored,
+            warnings,
+        } => Some((*steps, ignored.as_slice(), warnings.as_slice())),
+        _ => None,
+    })
+}
+
+fn file_label(file: &str) -> String {
+    file.rsplit('/').next().unwrap_or(file).to_owned()
+}
+
+fn play_tape() -> NodeDef {
+    NodeDef::of::<PlayTape>(PLAY_TAPE_TYPE, "Play tape", Category::Terminal, Phase::Capture)
+        .describe("Plays a tape file in a terminal and records it: what to type, the keys to press and the look of the terminal.")
+        .executes()
+        .outputs(vec![
+            (RECORDING_PORT, port(PortType::Recording, "Recording")),
+            (STYLE_PORT, port(PortType::RecordingStyle, "Style")),
+        ])
+        .card(|ctx: &CardCtx<'_, PlayTape>| {
+            let p = &ctx.params;
+            let rec = recording_of(ctx.result);
+            let measured = tape_measured(ctx.result);
+            let warnings = measured.map_or(&[][..], |(.., warnings)| warnings);
+            vec![
+                Some(if p.file.trim().is_empty() {
+                    missing(Icon::File, "Choose a tape file")
+                } else {
+                    row(Icon::File, file_label(p.file.trim()))
+                }),
+                rec.map(|r| row(Icon::Clock, format_duration(r.duration_ms))),
+                measured.map(|(steps, ..)| row(Icon::ListChecks, plural(f64::from(steps), "action"))),
+                warnings.first().map_or_else(
+                    || {
+                        measured.and_then(|(_, ignored, _)| {
+                            (!ignored.is_empty()).then(|| {
+                                row(Icon::EyeOff, format!("Not used: {}", ignored.join(", ")))
+                                    .muted_if(true)
+                            })
+                        })
+                    },
+                    |w| Some(row(Icon::TriangleAlert, w.clone()).warn_if(true)),
+                ),
+            ]
+        })
+        .compiles(|ctx: &Ctx<'_, PlayTape>| {
+            let style = ctx
+                .result
+                .and_then(|r| r.output(STYLE_PORT))
+                .cloned()
+                .unwrap_or_else(|| CompileValue::RecordingStyle(EntriesValue { entries: Vec::new() }));
+            let recording = recording_of(ctx.result).cloned().unwrap_or_else(|| RecordingValue {
+                log: None,
+                duration_ms: DEFAULT_TAKE_MS,
+                node_id: ctx.node_id.to_owned(),
+                edits: Vec::new(),
+                source: TakeSource::Terminal(TerminalSource {
+                    cast: None,
+                    cols: 80,
+                    rows: 24,
+                    theme: None,
+                }),
+            });
+            outputs([
+                (RECORDING_PORT, CompileValue::Recording(recording)),
+                (STYLE_PORT, style),
+            ])
+        })
+}
+
+fn export_tape() -> NodeDef {
+    NodeDef::of::<ExportTape>(
+        EXPORT_TAPE_TYPE,
+        "Export tape",
+        Category::Output,
+        Phase::Render,
+    )
+    .describe("Saves the connected terminal actions as a tape file, to play again or share.")
+    .executes()
+    .inputs(vec![(TERMINAL_PORT, session_port())])
+    .claims(|p: &ExportTape| vec![Claim::File(tape_file_name(&p.file_name))])
+    .card(|ctx: &CardCtx<'_, ExportTape>| {
+        let steps = ctx.inputs.terminal_steps.get(TERMINAL_PORT).copied();
+        vec![
+            Some(row(Icon::File, tape_file_name(&ctx.params.file_name))),
+            Some(steps.map_or_else(
+                || missing(Icon::ListChecks, "Connect the terminal actions"),
+                |n| row(Icon::ListChecks, plural(numbers::float(n), "action")).muted_if(n == 0),
+            )),
+        ]
+    })
+}
+
 fn terminal_look() -> NodeDef {
     NodeDef::style_modifier::<TerminalLookSettings>(
         TERMINAL_LOOK_TYPE,
@@ -859,19 +1026,20 @@ fn terminal_look() -> NodeDef {
     .only_for(TakeKind::Terminal)
     .card(|ctx: &CardCtx<'_, TerminalLookSettings>| {
         let p = &ctx.params;
-        let look = p.look();
         vec![
-            Some(
-                row(Icon::Palette, p.theme.clone())
-                    .swatches(vec![look.theme.bg.clone(), look.theme.fg]),
-            ),
+            Some(theme_named(&p.theme).map_or_else(
+                || row(Icon::Palette, "The take's own colours").muted_if(true),
+                |t| row(Icon::Palette, p.theme.clone()).swatches(vec![t.bg, t.fg]),
+            )),
             Some(row(
                 Icon::Ruler,
                 format!("{} px · {}× lines", p.font_size, p.line_height),
             )),
         ]
     })
-    .restyle(|props: RecordingProps, p: &TerminalLookSettings, _| with_look(props, p.look()))
+    .restyle(|props: RecordingProps, p: &TerminalLookSettings, _| {
+        with_look(props, |own| p.look(own))
+    })
 }
 
 pub fn nodes() -> Vec<NodeDef> {
@@ -889,5 +1057,7 @@ pub fn nodes() -> Vec<NodeDef> {
         clear_screen().look(NodeLook::of("tabler:clear-all")),
         record_terminal().look(NodeLook::of("tabler:terminal-2")),
         terminal_look().look(NodeLook::of("tabler:palette")),
+        play_tape().look(NodeLook::of("hugeicons:cassette-tape")),
+        export_tape().look(NodeLook::of("tabler:file-export")),
     ]
 }

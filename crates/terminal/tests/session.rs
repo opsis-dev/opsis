@@ -183,3 +183,20 @@ fn keeps_hidden_steps_off_the_visible_timeline() {
     assert!(!kinds.contains(&"setup"), "{kinds:?}");
     assert!(kinds.contains(&"seen"));
 }
+
+#[test]
+#[ignore = "needs a shell"]
+fn a_tape_plays_and_its_waits_wait_for_the_prompt() {
+    let tape = opsis_terminal::tape::parse(
+        "Set TypingSpeed 5ms\nType \"sleep 1; echo tape-done\"\nEnter\nWait\nType \"echo after\"\nEnter\nWait\n",
+    )
+    .unwrap();
+    let mapped = opsis_terminal::tape::tape_steps(&tape, "play");
+    let started = std::time::Instant::now();
+    let made = take(mapped.session.steps);
+    assert!(started.elapsed() >= std::time::Duration::from_secs(1));
+    let out = output(&made);
+    let done = out.find("tape-done").expect("the first command finished");
+    let after = out.rfind("after").expect("the second command ran");
+    assert!(after > done, "{out}");
+}

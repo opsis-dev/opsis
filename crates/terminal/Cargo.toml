@@ -13,6 +13,7 @@ workspace = true
 log.workspace = true
 opsis-compile.workspace = true
 opsis-engine.workspace = true
+opsis-project.workspace = true
 opsis-runner.workspace = true
 opsis-types.workspace = true
 opsis-vt.workspace = true
@@ -22,6 +23,7 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["rt"] }
+tokio-util.workspace = true
 
 [dev-dependencies]
 opsis-golden.workspace = true

@@ -13,7 +13,7 @@ use tauri::{
 };
 use tauri_specta::Event;
 
-use crate::error::CommandResult;
+use crate::error::{CommandError, CommandResult};
 use crate::events::{
     LiveWindowWatching, PanelWindowsChanged, SettingsPageShown, WindowStateChanged,
 };
@@ -23,6 +23,7 @@ pub const MAIN_WINDOW: &str = "main";
 pub const SETTINGS_WINDOW: &str = "settings";
 pub const LIVE_WINDOW: &str = "live";
 const PANEL_PREFIX: &str = "panel-";
+const TERMINAL_PREFIX: &str = "terminal-";
 const MAIN_WINDOW_KEY: &str = "mainWindow";
 const BACKGROUND: Color = Color(0x10, 0x10, 0x13, 0xff);
 const SAVE_BOUNDS_AFTER: Duration = Duration::from_millis(400);
@@ -109,10 +110,34 @@ fn bounds_of(window: &Window) -> Option<Bounds> {
 }
 
 fn bounds_key(label: &str) -> String {
+    if label.starts_with(TERMINAL_PREFIX) {
+        return "terminal".to_owned();
+    }
     match label.strip_prefix(PANEL_PREFIX) {
         Some(panel) => format!("panel:{panel}"),
         None => label.to_owned(),
     }
+}
+
+pub fn terminal_label(id: &str) -> String {
+    format!("{TERMINAL_PREFIX}{id}")
+}
+
+pub async fn open_terminal_window(
+    app: &AppHandle,
+    id: &str,
+    title: &str,
+) -> CommandResult<WebviewWindow> {
+    let spec = WindowSpec {
+        label: terminal_label(id),
+        route: format!("/terminal/{id}"),
+        title: format!("{title} — Opsis"),
+        size: (1000.0, 680.0),
+        min: (480.0, 320.0),
+    };
+    open_remembered(app, &spec)
+        .await?
+        .ok_or_else(|| CommandError("The terminal window is already open.".into()))
 }
 
 fn show(window: &WebviewWindow) {

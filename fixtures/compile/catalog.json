@@ -769,6 +769,44 @@
    }
   },
   {
+   "type": "terminal.playTape",
+   "title": "Play tape",
+   "category": "Terminal",
+   "description": "Plays a tape file in a terminal and records it: what to type, the keys to press and the look of the terminal.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "recording": {
+     "type": "recording",
+     "label": "Recording",
+     "optional": false,
+     "many": false
+    },
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "output.tape",
+   "title": "Export tape",
+   "category": "Export",
+   "description": "Saves the connected terminal actions as a tape file, to play again or share.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {}
+  },
+  {
    "type": "capture.record",
    "title": "Record take",
    "category": "Record",
@@ -9050,7 +9088,8 @@
      "theme": {
       "description": "Theme",
       "type": "string",
-      "default": "Default",
+      "default": "",
+      "x-zero-label": "The take's own",
       "x-help": "A theme's name, such as Dracula or Catppuccin Mocha."
      },
      "fontSize": {
@@ -9117,13 +9156,123 @@
     },
     "type": "object",
     "default": {
-     "theme": "Default",
+     "theme": "",
      "fontSize": 20,
      "lineHeight": 1.2,
      "letterSpacing": 0.0,
      "padding": 24,
      "cursor": "program",
      "cursorBlink": true
+    }
+   }
+  },
+  {
+   "type": "terminal.playTape",
+   "title": "Play tape",
+   "category": "Terminal",
+   "description": "Plays a tape file in a terminal and records it: what to type, the keys to press and the look of the terminal.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "recording": {
+     "type": "recording",
+     "label": "Recording",
+     "optional": false,
+     "many": false
+    },
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "file": {
+      "description": "Tape file",
+      "type": "string",
+      "default": "",
+      "x-widget": "asset",
+      "x-accept": ".tape",
+      "x-help": "A tape file: the commands to type, one per line.",
+      "x-check": [
+       {
+        "rule": "not-blank",
+        "message": "Choose a tape file"
+       },
+       {
+        "rule": "in-project",
+        "message": "Choose a file inside the project folder"
+       }
+      ]
+     },
+     "recordLive": {
+      "description": "Record it live when the file is missing",
+      "type": "boolean",
+      "default": true,
+      "x-help": "Opens a terminal to type in, then saves what you typed as this tape file."
+     },
+     "pauseBeforeMs": {
+      "description": "Pause before the first action",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-advanced": true
+     },
+     "keepAfterMs": {
+      "description": "Keep recording after the last action",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 1500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-advanced": true
+     }
+    },
+    "type": "object",
+    "default": {
+     "file": "",
+     "recordLive": true,
+     "pauseBeforeMs": 500,
+     "keepAfterMs": 1500
+    }
+   }
+  },
+  {
+   "type": "output.tape",
+   "title": "Export tape",
+   "category": "Export",
+   "description": "Saves the connected terminal actions as a tape file, to play again or share.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {},
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "fileName": {
+      "description": "File name",
+      "type": "string",
+      "default": "{{Project name}} tape"
+     }
+    },
+    "type": "object",
+    "default": {
+     "fileName": "{{Project name}} tape"
     }
    }
   },

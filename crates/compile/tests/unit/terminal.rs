@@ -257,3 +257,75 @@ fn names_each_step_after_its_node() {
     };
     assert_eq!(session.steps[0].label, "Run command");
 }
+
+#[test]
+fn plays_a_tape_from_its_result_and_says_what_it_left_out() {
+    let none = crate::helpers::compile_node_with(
+        "terminal.playTape",
+        json!({ "file": "project:demo.tape" }),
+        json!({}),
+        None,
+    )
+    .unwrap();
+    assert!(matches!(&none["style"], CompileValue::RecordingStyle(s) if s.entries.is_empty()));
+    assert!(
+        matches!(&none["recording"], CompileValue::Recording(r) if r.kind() == TakeKind::Terminal && r.file().is_none())
+    );
+    let style = json!({ "type": "recording-style", "entries": style_entries(&[("terminal.look", json!({ "fontSize": 30 }))], "play") });
+    let result = crate::helpers::node_result(json!({
+        "outputs": { "recording": terminal_take(false), "style": style },
+        "measured": [{ "type": "tape", "steps": 7, "ignored": ["Set FontFamily", "Output"], "warnings": ["There's no theme called “X”, so the usual colours are used"] }]
+    }));
+    let played = crate::helpers::compile_node_with(
+        "terminal.playTape",
+        json!({ "file": "project:demo.tape" }),
+        json!({}),
+        Some(&result),
+    )
+    .unwrap();
+    assert!(matches!(&played["style"], CompileValue::RecordingStyle(s) if s.entries.len() == 1));
+    assert!(matches!(&played["recording"], CompileValue::Recording(r) if r.file().is_some()));
+    let rows: Vec<String> = crate::helpers::node_card_with(
+        "terminal.playTape",
+        json!({ "file": "project:tapes/demo.tape" }),
+        CardInputs::default(),
+        Some(&result),
+    )
+    .into_iter()
+    .map(|r| r.text)
+    .collect();
+    assert_eq!(
+        rows,
+        vec![
+            "demo.tape",
+            "4 s",
+            "7 actions",
+            "There's no theme called “X”, so the usual colours are used",
+        ]
+    );
+}
+
+#[test]
+fn a_terminal_look_without_a_theme_keeps_the_takes_own_colours() {
+    let mut take = terminal_take(false);
+    take["source"]["theme"] = serde_json::to_value(theme_named("Dracula").unwrap()).unwrap();
+    let clip = clip_of(
+        &take,
+        &[("terminal.look", json!({ "fontSize": 30 }))],
+        json!({}),
+    );
+    let ScreenProps::Terminal { look, .. } = &recording_props(&clip)[0].screen else {
+        panic!("not a terminal screen");
+    };
+    assert_eq!((look.theme.name.as_str(), look.font_size), ("Dracula", 30));
+}
+
+#[test]
+fn export_tape_names_its_file_and_claims_it() {
+    let texts = card_texts(
+        "output.tape",
+        json!({ "fileName": "demo" }),
+        CardInputs::default(),
+    );
+    assert_eq!(texts, vec!["demo.tape", "Connect the terminal actions"]);
+}

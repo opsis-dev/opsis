@@ -5,6 +5,7 @@ import { decodeFrames, frameAt, type TerminalFrames } from "#video/terminal/fram
 import {
   frameText,
   type Measure,
+  measurer,
   screenSize,
   TERMINAL_FONT_STACK,
   TerminalView,
@@ -27,23 +28,6 @@ async function loadFrames(url: string): Promise<TerminalFrames> {
       (await response.text()) || `Couldn't load the terminal take (${response.status}).`,
     );
   return decodeFrames(await response.arrayBuffer());
-}
-
-const widths = new Map<string, number>();
-let canvas: CanvasRenderingContext2D | null = null;
-
-function measurer(fontSize: number): Measure {
-  return (text, bold) => {
-    const key = `${bold ? 7 : 4}|${fontSize}|${text}`;
-    const known = widths.get(key);
-    if (known !== undefined) return known;
-    canvas ??= document.createElement("canvas").getContext("2d");
-    if (!canvas) return null;
-    canvas.font = `${bold ? 700 : 400} ${fontSize}px ${TERMINAL_FONT_STACK}`;
-    const width = canvas.measureText(text).width;
-    widths.set(key, width);
-    return width;
-  };
 }
 
 function useFontsFor(text: string, fontSize: number): Measure | undefined {

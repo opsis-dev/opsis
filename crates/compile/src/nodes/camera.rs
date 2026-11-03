@@ -54,6 +54,8 @@ pub const FOLLOW_CURSOR_TYPE: &str = "camera.followCursor";
 pub const CLIP_FROM_TAKE_TYPE: &str = "camera.take";
 pub const CAMERA_TYPE: &str = "camera.camera";
 pub const SHOT_TYPE: &str = "camera.shot";
+pub const WINDOW_FRAME_TYPE: &str = "camera.windowFrame";
+pub const SPEED_RAMP_TYPE: &str = "camera.speedRamp";
 const CURSOR_STYLE_TYPE: &str = crate::nodes::cursor::CURSOR_STYLE_TYPE;
 
 #[choice]
@@ -1069,7 +1071,7 @@ fn base_props(rec: &RecordingValue, log: ActionLog, speed: f64) -> Option<Record
                 chain: FootageChain::default(),
                 frames_url: None,
             };
-            with_look(props, look)
+            with_look(props, |_| look)
         }
     };
     props.speed = speed;
@@ -1470,7 +1472,7 @@ fn idle_speedup() -> NodeDef {
 }
 
 fn speed_ramp() -> NodeDef {
-    NodeDef::recording_modifier::<SpeedRamp>("camera.speedRamp", "Speed ramp", Category::Camera)
+    NodeDef::recording_modifier::<SpeedRamp>(SPEED_RAMP_TYPE, "Speed ramp", Category::Camera)
         .describe("Speeds up or slows down chosen parts.")
         .card(|ctx: &CardCtx<'_, SpeedRamp>| {
             let parts = ctx.params.segments.len();
@@ -1573,7 +1575,7 @@ fn device_frame() -> NodeDef {
 }
 
 fn window_frame() -> NodeDef {
-    NodeDef::style_modifier::<WindowFrame>("camera.windowFrame", "Window frame", Category::Camera)
+    NodeDef::style_modifier::<WindowFrame>(WINDOW_FRAME_TYPE, "Window frame", Category::Camera)
         .describe("Draws a browser window's title bar around the recording.")
         .card(|ctx: &CardCtx<'_, WindowFrame>| {
             let p = &ctx.params;

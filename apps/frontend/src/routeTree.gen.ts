@@ -16,6 +16,7 @@ import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainEditorRouteImport } from './routes/_main/editor'
 import { Route as MainSetupRouteImport } from './routes/_main/setup'
 import { Route as PanelNameRouteImport } from './routes/panel.$name'
+import { Route as TerminalIdRouteImport } from './routes/terminal.$id'
 import { Route as ViewIdRouteImport } from './routes/view.$id'
 
 const MainRoute = MainRouteImport.update({
@@ -52,6 +53,11 @@ const PanelNameRoute = PanelNameRouteImport.update({
   path: '/panel/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TerminalIdRoute = TerminalIdRouteImport.update({
+  id: '/terminal/$id',
+  path: '/terminal/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViewIdRoute = ViewIdRouteImport.update({
   id: '/view/$id',
   path: '/view/$id',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/editor': typeof MainEditorRoute
   '/setup': typeof MainSetupRoute
   '/panel/$name': typeof PanelNameRoute
+  '/terminal/$id': typeof TerminalIdRoute
   '/view/$id': typeof ViewIdRoute
 }
 export interface FileRoutesByTo {
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/editor': typeof MainEditorRoute
   '/setup': typeof MainSetupRoute
   '/panel/$name': typeof PanelNameRoute
+  '/terminal/$id': typeof TerminalIdRoute
   '/view/$id': typeof ViewIdRoute
   '/': typeof MainIndexRoute
 }
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/_main/editor': typeof MainEditorRoute
   '/_main/setup': typeof MainSetupRoute
   '/panel/$name': typeof PanelNameRoute
+  '/terminal/$id': typeof TerminalIdRoute
   '/view/$id': typeof ViewIdRoute
   '/_main/': typeof MainIndexRoute
 }
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/editor'
     | '/setup'
     | '/panel/$name'
+    | '/terminal/$id'
     | '/view/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
     | '/editor'
     | '/setup'
     | '/panel/$name'
+    | '/terminal/$id'
     | '/view/$id'
     | '/'
   id:
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/_main/editor'
     | '/_main/setup'
     | '/panel/$name'
+    | '/terminal/$id'
     | '/view/$id'
     | '/_main/'
   fileRoutesById: FileRoutesById
@@ -123,6 +135,7 @@ export interface RootRouteChildren {
   LiveRoute: typeof LiveRoute
   SettingsRoute: typeof SettingsRoute
   PanelNameRoute: typeof PanelNameRoute
+  TerminalIdRoute: typeof TerminalIdRoute
   ViewIdRoute: typeof ViewIdRoute
 }
 
@@ -177,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PanelNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terminal/$id': {
+      id: '/terminal/$id'
+      path: '/terminal/$id'
+      fullPath: '/terminal/$id'
+      preLoaderRoute: typeof TerminalIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/view/$id': {
       id: '/view/$id'
       path: '/view/$id'
@@ -206,6 +226,7 @@ const rootRouteChildren: RootRouteChildren = {
   LiveRoute: LiveRoute,
   SettingsRoute: SettingsRoute,
   PanelNameRoute: PanelNameRoute,
+  TerminalIdRoute: TerminalIdRoute,
   ViewIdRoute: ViewIdRoute,
 }
 export const routeTree = rootRouteImport

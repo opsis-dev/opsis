@@ -103,6 +103,10 @@ pub enum TerminalAction {
         limit_ms: u32,
     },
     #[serde(rename_all = "camelCase")]
+    WaitPrompt {
+        limit_ms: u32,
+    },
+    #[serde(rename_all = "camelCase")]
     Sleep {
         ms: u32,
     },
@@ -189,3 +193,46 @@ impl TerminalLook {
 }
 
 pub const CELL_WIDTH_EM: f64 = 0.6;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum PointerMove {
+    Press,
+    Release,
+    Move,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(
+    tag = "type",
+    rename_all = "kebab-case",
+    rename_all_fields = "camelCase"
+)]
+pub enum TerminalInput {
+    Key {
+        key: String,
+        ctrl: bool,
+        alt: bool,
+        shift: bool,
+    },
+    Text {
+        text: String,
+    },
+    Paste {
+        text: String,
+    },
+    Pointer {
+        action: PointerMove,
+        button: Option<PointerButton>,
+        col: u16,
+        row: u16,
+    },
+    Wheel {
+        col: u16,
+        row: u16,
+        notches: i32,
+    },
+    Focus {
+        gained: bool,
+    },
+}

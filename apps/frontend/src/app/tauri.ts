@@ -39,10 +39,24 @@ export type StreamFrame = { header: FrameHeader; jpeg: Uint8Array<ArrayBuffer> }
 
 const decoder = new TextDecoder();
 
-export function readFrame(buffer: ArrayBuffer): StreamFrame {
+export function readPacked<H>(buffer: ArrayBuffer): { header: H; body: Uint8Array<ArrayBuffer> } {
   const length = new DataView(buffer).getUint32(0, true);
-  const header = JSON.parse(decoder.decode(new Uint8Array(buffer, 4, length))) as FrameHeader;
-  return { header, jpeg: new Uint8Array(buffer.slice(4 + length)) };
+  const header = JSON.parse(decoder.decode(new Uint8Array(buffer, 4, length))) as H;
+  return { header, body: new Uint8Array(buffer.slice(4 + length)) };
+}
+
+export function readFrame(buffer: ArrayBuffer): StreamFrame {
+  const { header, body } = readPacked<FrameHeader>(buffer);
+  return { header, jpeg: body };
+}
+
+export function packedChannel<H>(
+  listener: (header: H, body: Uint8Array<ArrayBuffer>) => void,
+): Channel<ArrayBuffer> {
+  return new Channel<ArrayBuffer>((buffer) => {
+    const { header, body } = readPacked<H>(buffer);
+    listener(header, body);
+  });
 }
 
 export function frameChannel(listener: (frame: StreamFrame) => void): Channel<ArrayBuffer> {

@@ -218,7 +218,11 @@ pub fn executors(app: &AppHandle) -> Executors {
         image_executors(),
         output_executors(&engine),
         capture_executors(&capture),
-        opsis_terminal::executors::terminal_executors(),
+        opsis_terminal::executors::terminal_executors(&opsis_terminal::executors::TerminalDeps {
+            live: Some(Arc::new(crate::terminal_live::AppLiveTapes {
+                app: app.clone(),
+            })),
+        }),
     ];
     for list in lists {
         if let Err(error) = all.extend(list) {

@@ -454,6 +454,11 @@ pub enum Measured {
         tempo: Option<f64>,
         loops: u32,
     },
+    Tape {
+        steps: u32,
+        ignored: Vec<String>,
+        warnings: Vec<String>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
