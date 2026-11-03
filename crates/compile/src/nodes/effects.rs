@@ -3,7 +3,7 @@ use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
-use opsis_types::recording::{FootageChain, RecordingProps};
+use opsis_types::recording::{FootageChain, RecordingProps, ScreenProps};
 use opsis_types::timeline::TimelineItem;
 use opsis_types::values::{ClipValue, CompileValue, StyleEntry};
 use opsis_types::workflow::PortType;
@@ -234,6 +234,9 @@ fn with_grade(clip: &ClipValue, grade: &[StyleEntry]) -> ClipValue {
         tracks: map_items(&clip.tracks, &|item| match item {
             TimelineItem::Recording { base, mut props } => {
                 let footage = graded(props.screen.chain(), grade);
+                if let ScreenProps::Terminal { effects, .. } = &mut props.screen {
+                    *effects = crate::nodes::grade::page_effects(&footage.grade);
+                }
                 *props.screen.chain_mut() = footage;
                 TimelineItem::Recording { base, props }
             }

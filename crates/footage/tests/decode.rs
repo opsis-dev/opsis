@@ -369,3 +369,56 @@ async fn serves_each_frame_as_a_jpeg_of_its_size() {
     let bad = get(format!("/{FOOTAGE_FOLDER}/take/soon")).await.unwrap();
     assert_eq!(bad.status(), StatusCode::BAD_REQUEST);
 }
+
+#[test]
+fn grades_a_terminal_swatch_through_one_filter_graph() {
+    let grade = GradeChain {
+        chain: "[0:v]hue=s=0[out]".to_owned(),
+        extra_inputs: vec!["look.png".to_owned()],
+    };
+    let swatch = opsis_terminal::colours::swatch(&[0xff_0000, 0x00_ff00, 0x00_00ff]);
+    assert_eq!(
+        opsis_footage::terminal::swatch_args(&grade, &swatch).join(" "),
+        "-nostdin -hide_banner -nostats -loglevel error -f rawvideo -pix_fmt rgb24 -s 3x1 -i pipe:0 -i look.png -filter_complex [0:v]hue=s=0[out];[out]format=rgb24[graded] -map [graded] -frames:v 1 -f rawvideo -pix_fmt rgb24 pipe:1"
+    );
+}
+
+#[test]
+#[ignore = "needs FFmpeg"]
+fn a_black_and_white_grade_turns_every_terminal_colour_grey() {
+    let dir = samples();
+    let cast = dir.join("grade.cast");
+    std::fs::write(
+        &cast,
+        "{\"version\":3,\"term\":{\"cols\":20,\"rows\":3}}\n[0.1,\"o\",\"\\u001b[31mred \\u001b[44mblue\\u001b[0m\"]\n[0.5,\"o\",\"!\"]\n",
+    )
+    .unwrap();
+    let footage = Footage::new(
+        FootageTools {
+            ffmpeg: ffmpeg(),
+            temp: dir.join("tmp"),
+        },
+        Vec::new(),
+    )
+    .with_terminals([(
+        "t".to_owned(),
+        opsis_footage::terminal::TerminalFootage {
+            cast,
+            theme: opsis_compile::terminal::default_theme(),
+            masks: Vec::new(),
+            fps: 10,
+            grade: Some(GradeChain {
+                chain: "[0:v]hue=s=0[out]".to_owned(),
+                extra_inputs: Vec::new(),
+            }),
+        },
+    )]);
+    let bytes = footage.terminal_frames("t").unwrap();
+    let frames = opsis_terminal::frames::read(&bytes).unwrap();
+    let colours = frames.colours();
+    assert!(colours.len() > 2);
+    for colour in colours {
+        let [_, r, g, b] = colour.to_be_bytes();
+        assert!(r.abs_diff(g) <= 1 && g.abs_diff(b) <= 1, "{colour:06x}");
+    }
+}

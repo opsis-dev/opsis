@@ -289,3 +289,33 @@ pub fn read(bytes: &[u8]) -> Result<Frames, FramesError> {
         frames,
     })
 }
+
+impl Frames {
+    pub fn colours(&self) -> Vec<u32> {
+        let mut all = std::collections::BTreeSet::new();
+        for run in self.row_table.iter().flatten() {
+            all.extend([run.fg, run.bg, run.underline_colour]);
+        }
+        for frame in &self.frames {
+            all.extend([frame.bg, frame.cursor.colour]);
+        }
+        all.into_iter().collect()
+    }
+
+    pub fn recolour(&mut self, map: &HashMap<u32, u32>) {
+        let to = |colour: &mut u32| {
+            if let Some(&graded) = map.get(colour) {
+                *colour = graded;
+            }
+        };
+        for run in self.row_table.iter_mut().flatten() {
+            to(&mut run.fg);
+            to(&mut run.bg);
+            to(&mut run.underline_colour);
+        }
+        for frame in &mut self.frames {
+            to(&mut frame.bg);
+            to(&mut frame.cursor.colour);
+        }
+    }
+}

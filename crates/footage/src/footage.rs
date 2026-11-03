@@ -258,7 +258,7 @@ impl Footage {
         self.terminals
             .get(id)
             .ok_or_else(|| FootageError::Unknown(id.to_owned()))?
-            .frames()
+            .frames(&self.tools)
     }
 
     pub fn decoder_starts(&self) -> u32 {

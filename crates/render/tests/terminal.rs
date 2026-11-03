@@ -99,6 +99,7 @@ async fn draws_a_terminal_take_through_the_frame_driver_as_recorded() {
                     .unwrap_or_else(|| theme_named("Default").unwrap()),
                 masks: Vec::new(),
                 fps: spec.fps,
+                grade: None,
             },
         )
     });

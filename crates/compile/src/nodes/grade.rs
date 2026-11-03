@@ -3,6 +3,7 @@ use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
 use opsis_types::numbers::exact_eq;
+use opsis_types::recording::TerminalEffects;
 use opsis_types::values::StyleEntry;
 
 use crate::asset_ref::base_name;
@@ -383,6 +384,42 @@ impl Lens {
             ("Motion trails", self.trails > 0.0),
         ]
     }
+}
+
+pub fn page_effects(grade: &[StyleEntry]) -> Option<TerminalEffects> {
+    let mut effects: Option<TerminalEffects> = None;
+    for entry in grade {
+        let params = serde_json::Value::Object(entry.params.clone());
+        match entry.kind.as_str() {
+            TEXTURE_TYPE => {
+                let Ok(p) = serde_json::from_value::<Texture>(params) else {
+                    continue;
+                };
+                let e = effects.get_or_insert_with(TerminalEffects::default);
+                e.soften = p.soften;
+                e.vignette = p.vignette;
+                e.vignette_x = p.vignette_x;
+                e.vignette_y = p.vignette_y;
+                e.vignette_follows_frame = p.vignette_shape == VignetteShape::Frame;
+                e.grain = p.grain;
+                e.colour_grain = p.colour_grain;
+            }
+            LENS_TYPE => {
+                let Ok(p) = serde_json::from_value::<Lens>(params) else {
+                    continue;
+                };
+                let e = effects.get_or_insert_with(TerminalEffects::default);
+                e.fringe = p.fringe;
+                e.fringe_angle = p.fringe_angle;
+                e.bulge = p.bulge;
+                e.bulge_x = p.bulge_x;
+                e.bulge_y = p.bulge_y;
+                e.trails = p.trails;
+            }
+            _ => {}
+        }
+    }
+    effects
 }
 
 #[settings]

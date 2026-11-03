@@ -1655,7 +1655,7 @@ export type RunView = {
 	exports: Artifact[],
 };
 
-export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string } | { kind: "terminal"; cast: string; cols: number; rows: number; look: TerminalLook; chain?: FootageChain; framesUrl?: string };
+export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string } | { kind: "terminal"; cast: string; cols: number; rows: number; look: TerminalLook; chain?: FootageChain; framesUrl?: string; effects?: TerminalEffects };
 
 export type SelectionShared = {
 	from: string,
@@ -1858,6 +1858,22 @@ export type TemplateInfo = {
 export type TerminalAction = { type: "run"; command: string; wait: WaitFor; limitMs: number; zoomOutput: boolean } | { type: "type"; text: string; speedMs?: number } | { type: "keys"; keys: string; repeat: number } | { type: "click"; target: CellTarget; button: PointerButton; double: boolean } | { type: "drag"; from: CellTarget; to: CellTarget } | { type: "wheel"; target: CellTarget; notches: number } | { type: "wait-text"; pattern: string; scope: LookIn; limitMs: number } | { type: "wait-prompt"; limitMs: number } | { type: "sleep"; ms: number } | { type: "start-recording" } | { type: "hide" } | { type: "show" } | { type: "chapter"; title: string } | { type: "clear" } | { type: "scroll"; lines: number } | { type: "copy"; text: string } | { type: "paste" } | { type: "env"; name: string; value: string } | { type: "require"; program: string } | { type: "screenshot" };
 
 export type TerminalCursor = "program" | "block" | "bar" | "underline";
+
+export type TerminalEffects = {
+	soften: number,
+	vignette: number,
+	vignetteX: number,
+	vignetteY: number,
+	vignetteFollowsFrame: boolean,
+	grain: number,
+	colourGrain: boolean,
+	fringe: number,
+	fringeAngle: number,
+	bulge: number,
+	bulgeX: number,
+	bulgeY: number,
+	trails: number,
+};
 
 export type TerminalInput = { type: "key"; key: string; ctrl: boolean; alt: boolean; shift: boolean } | { type: "text"; text: string } | { type: "paste"; text: string } | { type: "pointer"; action: PointerMove; button: PointerButton | null; col: number; row: number } | { type: "wheel"; col: number; row: number; notches: number } | { type: "focus"; gained: boolean };
 

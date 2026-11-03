@@ -347,6 +347,24 @@ pub struct PointerProps {
     pub ripple: Option<RippleLook>,
 }
 
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TerminalEffects {
+    pub soften: f64,
+    pub vignette: f64,
+    pub vignette_x: f64,
+    pub vignette_y: f64,
+    pub vignette_follows_frame: bool,
+    pub grain: f64,
+    pub colour_grain: bool,
+    pub fringe: f64,
+    pub fringe_angle: f64,
+    pub bulge: f64,
+    pub bulge_x: f64,
+    pub bulge_y: f64,
+    pub trails: f64,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(tag = "kind", rename_all = "kebab-case")]
 pub enum ScreenProps {
@@ -368,6 +386,8 @@ pub enum ScreenProps {
         chain: FootageChain,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         frames_url: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        effects: Option<TerminalEffects>,
     },
 }
 

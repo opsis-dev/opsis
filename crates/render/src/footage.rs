@@ -9,7 +9,7 @@ use opsis_footage::chain::{FootageSource, TimedRedaction};
 use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
 use opsis_footage::terminal::TerminalFootage;
-use opsis_media::grade::{GradeSize, grade_filters};
+use opsis_media::grade::{GradeSize, colour_steps, grade_filters};
 use opsis_runner::context::{ExecError, ExecutorContext};
 use opsis_terminal::colours::parse_hex;
 use opsis_terminal::prepare::{Mask, MaskArea, MaskLook};
@@ -113,9 +113,28 @@ fn terminal_of(
     theme: TerminalTheme,
     fps: u32,
 ) -> Result<TerminalFootage, ExecError> {
+    let steps = colour_steps(&used.chain.grade);
+    let resolve = |name: &str| {
+        ctx.ref_to_path(&project_ref(name))
+            .map(|p| p.to_string_lossy().into_owned())
+    };
+    let grade = if steps.is_empty() {
+        None
+    } else {
+        Some(grade_filters::<ExecError>(
+            &steps,
+            GradeSize {
+                width: 1,
+                height: 1,
+                still: true,
+            },
+            &resolve,
+        )?)
+    };
     Ok(TerminalFootage {
         cast: ctx.ref_to_path(&used.src)?,
         theme,
+        grade,
         masks: used
             .chain
             .redact

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use opsis_types::terminal::TerminalTheme;
 use opsis_vt::{Colour, Palette, Rgb};
 
@@ -122,4 +124,36 @@ impl ThemeColours {
             Colour::Rgb(rgb) => pack(rgb),
         }
     }
+}
+
+pub const SWATCH_WIDTH: usize = 1024;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Swatch {
+    pub width: u32,
+    pub height: u32,
+    pub rgb: Vec<u8>,
+}
+
+pub fn swatch(colours: &[u32]) -> Swatch {
+    let width = colours.len().clamp(1, SWATCH_WIDTH);
+    let height = colours.len().div_ceil(width).max(1);
+    let mut rgb = vec![0; width * height * 3];
+    for (pixel, colour) in rgb.as_chunks_mut::<3>().0.iter_mut().zip(colours) {
+        let Rgb { r, g, b } = unpack(*colour);
+        *pixel = [r, g, b];
+    }
+    Swatch {
+        width: u32::try_from(width).unwrap_or(u32::MAX),
+        height: u32::try_from(height).unwrap_or(u32::MAX),
+        rgb,
+    }
+}
+
+pub fn read_swatch(colours: &[u32], graded: &[u8]) -> HashMap<u32, u32> {
+    colours
+        .iter()
+        .zip(graded.as_chunks::<3>().0)
+        .map(|(colour, &[r, g, b])| (*colour, pack(Rgb { r, g, b })))
+        .collect()
 }

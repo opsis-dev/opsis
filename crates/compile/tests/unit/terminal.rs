@@ -351,3 +351,29 @@ fn a_cast_file_says_its_length_size_and_events() {
         vec!["Choose a cast file"]
     );
 }
+
+#[test]
+fn texture_and_lens_on_a_terminal_take_become_its_page_effects() {
+    let take = clip_of(&terminal_take(false), &[], json!({}));
+    let grade = |kind: &str, params: Value| json!({ "type": "grade", "entries": [{ "nodeId": "g", "type": kind, "params": params }] });
+    let graded = compile_clip(
+        "effect.gradeFootage",
+        json!({}),
+        json!({ "clip": crate::helpers::clip_value(&take), "grade": grade("grade.texture", json!({ "vignette": 0.6, "grain": 0.3 })) }),
+    );
+    let ScreenProps::Terminal { effects, chain, .. } = &recording_props(&graded)[0].screen else {
+        panic!("not a terminal screen");
+    };
+    let effects = effects.clone().unwrap();
+    assert!((effects.vignette - 0.6).abs() < 1e-9 && (effects.grain - 0.3).abs() < 1e-9);
+    assert_eq!(chain.grade.len(), 1);
+    let coloured = compile_clip(
+        "effect.gradeFootage",
+        json!({}),
+        json!({ "clip": crate::helpers::clip_value(&take), "grade": grade("grade.colour", json!({})) }),
+    );
+    let ScreenProps::Terminal { effects, .. } = &recording_props(&coloured)[0].screen else {
+        panic!("not a terminal screen");
+    };
+    assert_eq!(effects, &None);
+}

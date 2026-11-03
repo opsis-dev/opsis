@@ -18,6 +18,16 @@ use crate::codecs::serde_name;
 use crate::filters::ffmpeg_color;
 
 const DESIGN_WIDTH: f64 = 1920.0;
+pub const COLOUR_STEPS: [&str; 3] = [COLOUR_TYPE, LOOK_TYPE, MONO_TYPE];
+pub const PAGE_STEPS: [&str; 2] = [TEXTURE_TYPE, LENS_TYPE];
+
+pub fn colour_steps(entries: &[StyleEntry]) -> Vec<StyleEntry> {
+    entries
+        .iter()
+        .filter(|e| COLOUR_STEPS.contains(&e.kind.as_str()))
+        .cloned()
+        .collect()
+}
 const NEUTRAL_KELVIN: f64 = 6500.0;
 const KELVIN_SWING: f64 = 3500.0;
 const TINT_LIGHTNESS: &str = "0.5";

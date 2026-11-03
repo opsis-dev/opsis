@@ -1070,6 +1070,7 @@ fn base_props(rec: &RecordingValue, log: ActionLog, speed: f64) -> Option<Record
                 look: Box::new(look.clone()),
                 chain: FootageChain::default(),
                 frames_url: None,
+                effects: None,
             };
             with_look(props, |_| look)
         }

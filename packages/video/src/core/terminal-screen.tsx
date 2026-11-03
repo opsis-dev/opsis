@@ -1,6 +1,13 @@
 import { holdRender, useHeldLoad } from "@opsis/runtime/holds.ts";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import type { Fit, ScreenProps } from "#video/generated/spec.ts";
+import {
+  EffectDefs,
+  EffectLayers,
+  hasLens,
+  softenPx,
+  trailWeights,
+} from "#video/terminal/effects.tsx";
 import { decodeFrames, frameAt, type TerminalFrames } from "#video/terminal/frames.ts";
 import {
   frameText,
@@ -78,8 +85,17 @@ export function TerminalScreen({
   const frame = frames ? frameAt(frames, timeS) : undefined;
   const text = frames && frame ? frameText(frames, frame) : "";
   const measure = useFontsFor(text, screen.look.fontSize);
+  const safeId = useId().replaceAll(":", "");
   if (!frames || !frame) return null;
   const size = screenSize(screen.look, frame.cols, frame.rows);
+  const effects = screen.effects ?? undefined;
+  const id = `terminal-${safeId}`;
+  const cursorOn = cursorShown(timeS, screen.look.cursorBlink);
+  const trails = trailWeights(effects).map((weight, k) => ({
+    weight,
+    frame: frameAt(frames, timeS - (k + 1) / frames.fps),
+  }));
+  const blur = softenPx(effects, size);
   return (
     <svg
       width="100%"
@@ -88,15 +104,44 @@ export function TerminalScreen({
       preserveAspectRatio={ASPECT[fit]}
       style={{ position: "absolute", inset: 0, display: "block" }}
     >
-      <foreignObject x={0} y={0} width={size.width} height={size.height}>
-        <TerminalView
-          frames={frames}
-          frame={frame}
-          look={screen.look}
-          cursorOn={cursorShown(timeS, screen.look.cursorBlink)}
-          measure={measure}
-        />
-      </foreignObject>
+      {effects ? (
+        <EffectDefs id={id} effects={effects} size={size} frame={Math.round(timeS * frames.fps)} />
+      ) : null}
+      <g filter={hasLens(effects) ? `url(#${id}-lens)` : undefined}>
+        <foreignObject x={0} y={0} width={size.width} height={size.height}>
+          <div style={{ position: "relative", filter: blur > 0 ? `blur(${blur}px)` : undefined }}>
+            <TerminalView
+              frames={frames}
+              frame={frame}
+              look={screen.look}
+              cursorOn={cursorOn}
+              measure={measure}
+            />
+            {trails.map(({ weight, frame: earlier }, k) =>
+              earlier && earlier !== frame ? (
+                <div
+                  key={k}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    opacity: weight,
+                    mixBlendMode: "lighten",
+                  }}
+                >
+                  <TerminalView
+                    frames={frames}
+                    frame={earlier}
+                    look={screen.look}
+                    cursorOn={false}
+                    measure={measure}
+                  />
+                </div>
+              ) : null,
+            )}
+          </div>
+        </foreignObject>
+      </g>
+      {effects ? <EffectLayers id={id} effects={effects} size={size} /> : null}
     </svg>
   );
 }

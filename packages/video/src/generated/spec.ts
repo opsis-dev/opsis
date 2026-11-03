@@ -2501,7 +2501,7 @@ export type ScreenDevice = "laptop" | "monitor" | "phone" | "floating";
 
 export type ScreenMove = "push-in" | "orbit" | "tilt-reveal" | "rise" | "keyframes";
 
-export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string } | { kind: "terminal"; cast: string; cols: number; rows: number; look: TerminalLook; chain?: FootageChain; framesUrl?: string };
+export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string } | { kind: "terminal"; cast: string; cols: number; rows: number; look: TerminalLook; chain?: FootageChain; framesUrl?: string; effects?: TerminalEffects };
 
 export type ScribbleCircle = {
 	laps: number,
@@ -2948,6 +2948,22 @@ export type SwirlDissolve = {
 };
 
 export type TerminalCursor = "program" | "block" | "bar" | "underline";
+
+export type TerminalEffects = {
+	soften: number,
+	vignette: number,
+	vignetteX: number,
+	vignetteY: number,
+	vignetteFollowsFrame: boolean,
+	grain: number,
+	colourGrain: boolean,
+	fringe: number,
+	fringeAngle: number,
+	bulge: number,
+	bulgeX: number,
+	bulgeY: number,
+	trails: number,
+};
 
 export type TerminalLineKind = "command" | "log" | "success" | "error";
 

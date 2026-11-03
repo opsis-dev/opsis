@@ -210,3 +210,31 @@ proptest! {
         prop_assert_eq!(read(&bytes).unwrap(), frames);
     }
 }
+
+proptest! {
+    #[test]
+    fn a_swatch_reads_back_as_the_colours_it_holds(colours in prop::collection::btree_set(0u32..0x0100_0000, 1..3000)) {
+        let colours: Vec<u32> = colours.into_iter().collect();
+        let made = opsis_terminal::colours::swatch(&colours);
+        prop_assert_eq!(made.rgb.len(), usize::try_from(made.width * made.height * 3).unwrap());
+        prop_assert!(colours.len() <= usize::try_from(made.width * made.height).unwrap());
+        let map = opsis_terminal::colours::read_swatch(&colours, &made.rgb);
+        prop_assert!(colours.iter().all(|c| map.get(c) == Some(c)));
+    }
+
+    #[test]
+    fn recolouring_reaches_every_colour_a_take_shows(shift in 1u32..255) {
+        let made = cast(vec![
+            out(0, "\u{1b}[31mred\u{1b}[42mgreen\u{1b}[0m plain\u{1b}[4:3;58;2;9;9;9mline"),
+            out(400, "\u{1b}]11;#203040\u{7}more"),
+        ]);
+        let mut frames = frames_of(&made, &[]);
+        let colours = frames.colours();
+        let map: std::collections::HashMap<u32, u32> =
+            colours.iter().map(|c| (*c, (c + shift) & 0x00ff_ffff)).collect();
+        frames.recolour(&map);
+        let after = frames.colours();
+        let expected: std::collections::BTreeSet<u32> = map.values().copied().collect();
+        prop_assert_eq!(after.into_iter().collect::<std::collections::BTreeSet<u32>>(), expected);
+    }
+}
