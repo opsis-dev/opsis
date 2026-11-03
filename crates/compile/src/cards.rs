@@ -142,6 +142,9 @@ pub fn card_inputs(
                     .steps
                     .insert(port, s.steps.iter().map(|s| s.kind).collect());
             }
+            CompileValue::TerminalSession(s) => {
+                inputs.terminal_steps.insert(port, s.steps.len());
+            }
             CompileValue::RecordingStyle(s) => {
                 inputs
                     .style

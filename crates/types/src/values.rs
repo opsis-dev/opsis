@@ -4,7 +4,7 @@ use serde_json::{Map, Value};
 use specta::Type;
 
 use crate::actions::{ActionLog, Bounds, Viewport};
-use crate::terminal::TerminalTheme;
+use crate::terminal::{TerminalSessionValue, TerminalTheme};
 use crate::timeline::{AudioItem, TimelineTrack};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
@@ -279,6 +279,7 @@ pub struct EntriesValue {
 #[serde(tag = "type", rename_all = "kebab-case")]
 pub enum CompileValue {
     BrowserSession(BrowserSessionValue),
+    TerminalSession(TerminalSessionValue),
     Recording(RecordingValue),
     RecordingStyle(EntriesValue),
     Grade(EntriesValue),
@@ -294,6 +295,7 @@ impl CompileValue {
         use crate::workflow::PortType;
         match self {
             Self::BrowserSession(_) => PortType::BrowserSession,
+            Self::TerminalSession(_) => PortType::TerminalSession,
             Self::Recording(_) => PortType::Recording,
             Self::RecordingStyle(_) => PortType::RecordingStyle,
             Self::Grade(_) => PortType::Grade,

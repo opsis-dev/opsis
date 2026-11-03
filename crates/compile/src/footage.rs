@@ -1,4 +1,5 @@
 use opsis_types::recording::{FootageChain, ScreenProps};
+use opsis_types::terminal::TerminalTheme;
 use opsis_types::timeline::{TimelineItem, TimelineTrack};
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -18,7 +19,11 @@ pub struct FootageUse {
     pub chain: FootageChain,
     pub trim_ms: u32,
     pub looping: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub terminal: Option<TerminalTheme>,
 }
+
+pub const TERMINAL_FRAMES: &str = "frames";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ItemFootage {
@@ -33,6 +38,7 @@ fn identified(src: &str, chain: FootageChain, trim_ms: u32, looping: bool) -> Fo
         chain,
         trim_ms,
         looping,
+        terminal: None,
     };
     used.id = lookup_key(&used);
     used
@@ -104,6 +110,17 @@ fn screen_footage(screen: &ScreenProps) -> Option<ItemFootage> {
             used: identified(src, chain.clone(), 0, false),
         }),
         ScreenProps::Footage { .. } => None,
+        ScreenProps::Terminal {
+            cast, look, chain, ..
+        } => {
+            let mut used = identified(cast, chain.clone(), 0, false);
+            used.terminal = Some(look.theme.clone());
+            used.id = lookup_key(&used);
+            Some(ItemFootage {
+                prop: String::new(),
+                used,
+            })
+        }
     }
 }
 

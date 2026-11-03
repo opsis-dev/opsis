@@ -6,12 +6,12 @@ use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
 use opsis_types::numbers::exact_eq;
 use opsis_types::recording::{
-    AddressMode, CameraEasing, CameraProps, CameraStyle, CameraTuning, FrameTheme, RecordingProps,
-    ShotProps, WindowProps, WindowStyle,
+    AddressMode, CameraEasing, CameraProps, CameraStyle, CameraTuning, FootageChain, FrameTheme,
+    RecordingProps, ScreenProps, ShotProps, WindowProps, WindowStyle,
 };
 use opsis_types::timeline::{ElementRef, GroupProps};
 use opsis_types::values::{
-    ClipValue, CompileValue, RecordingValue, StyleEntry, TaggedRecording, TakeKind,
+    ClipValue, CompileValue, RecordingValue, StyleEntry, TaggedRecording, TakeKind, TakeSource,
 };
 use opsis_types::workflow::{DEFAULT_TAKE_MS, PortType};
 use serde_json::{Map, Value};
@@ -34,13 +34,16 @@ use crate::node::{
     STYLE_PORT, missing, opt, outputs, port, row, with_clip,
 };
 use crate::nodes::elements::element_props;
+use crate::nodes::terminal::with_look;
 use crate::params::{Params, Values};
 use crate::recording::{
     DEFAULT_ADDRESS_BAR, DEFAULT_FRAME_THEME, DEFAULT_TAKE_SPEED, DEFAULT_WINDOW_STYLE,
     default_recording_props, follow_cursor_beats, host_window_style, idle_spans, point_rect,
     recording_speed,
 };
+use crate::registry::node_def;
 use crate::remap::{RemapSegment, eased_segments, remap_duration, remap_from_segments};
+use crate::terminal::default_look;
 
 const NO_PAN_LIMIT_PX: f64 = 1.0e9;
 use crate::style::{restyle_with, retime_with};
@@ -79,14 +82,29 @@ impl FrameChoice {
 
 #[settings]
 pub struct ClipFromTake {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
         "Playback speed",
-        default = DEFAULT_TAKE_SPEED,
         range(min = 0.25, max = 4),
         step = 0.05,
-        unit = "×"
+        unit = "×",
+        zero_label = "The take's usual",
+        help = "Browser takes usually play at 1.25×, terminal takes at 1×."
     )]
-    pub speed: f64,
+    pub speed: Option<f64>,
+}
+
+pub const fn usual_speed(kind: TakeKind) -> f64 {
+    match kind {
+        TakeKind::Browser => DEFAULT_TAKE_SPEED,
+        TakeKind::Terminal => 1.0,
+    }
+}
+
+impl ClipFromTake {
+    pub fn speed_for(&self, kind: TakeKind) -> f64 {
+        self.speed.unwrap_or_else(|| usual_speed(kind))
+    }
 }
 
 #[settings]
@@ -1035,8 +1053,25 @@ fn entries_of(value: Option<&CompileValue>) -> Vec<StyleEntry> {
 }
 
 fn base_props(rec: &RecordingValue, log: ActionLog, speed: f64) -> Option<RecordingProps> {
-    let video = rec.video()?;
-    let mut props = default_recording_props(video.to_owned(), log, rec.node_id.clone());
+    let mut props = match &rec.source {
+        TakeSource::Browser(browser) => {
+            default_recording_props(browser.video.clone()?, log, rec.node_id.clone())
+        }
+        TakeSource::Terminal(terminal) => {
+            let look = default_look(terminal.theme.as_deref().cloned());
+            let mut props = default_recording_props(String::new(), log, rec.node_id.clone());
+            props.pointer.shown = props.log.cursor_track.is_some();
+            props.screen = ScreenProps::Terminal {
+                cast: terminal.cast.clone()?,
+                cols: terminal.cols,
+                rows: terminal.rows,
+                look: Box::new(look.clone()),
+                chain: FootageChain::default(),
+                frames_url: None,
+            };
+            with_look(props, look)
+        }
+    };
     props.speed = speed;
     props.camera = CameraProps {
         zoom: Camera::default().zoom,
@@ -1067,7 +1102,7 @@ fn style_warnings(ctx: &CardCtx<'_, ClipFromTake>) -> [Option<CardRow>; 2] {
         .inputs
         .takes
         .get(RECORDING_PORT)
-        .is_some_and(|t| t.is_some_and(|t| !t.cursor_track));
+        .is_some_and(|t| t.is_some_and(|t| t.kind == TakeKind::Browser && !t.cursor_track));
     let styled = |kind: &str| {
         ctx.inputs
             .style
@@ -1095,6 +1130,34 @@ const fn take_kind_label(kind: TakeKind) -> &'static str {
     }
 }
 
+fn unused_styles(ctx: &CardCtx<'_, ClipFromTake>, kind: TakeKind) -> Vec<Option<CardRow>> {
+    let mut seen: Vec<&str> = Vec::new();
+    ctx.inputs
+        .style
+        .get(STYLE_PORT)
+        .into_iter()
+        .flatten()
+        .filter_map(|t| {
+            let def = node_def(t)?;
+            let only = def.only_for?;
+            (only != kind && !seen.contains(&t.as_str())).then(|| {
+                seen.push(t);
+                Some(
+                    row(
+                        Icon::Info,
+                        format!(
+                            "{} does nothing on a {}",
+                            def.title,
+                            take_kind_label(kind).to_lowercase()
+                        ),
+                    )
+                    .tone(Tone::Muted),
+                )
+            })
+        })
+        .collect()
+}
+
 fn clip_from_take() -> NodeDef {
     NodeDef::of::<ClipFromTake>(CLIP_FROM_TAKE_TYPE, "Clip from take", Category::Camera, Phase::Compile)
         .describe("Turns a take into a clip, shot the way its style says: the window, the backdrop and the camera moves.")
@@ -1103,26 +1166,31 @@ fn clip_from_take() -> NodeDef {
         .card(|ctx: &CardCtx<'_, ClipFromTake>| {
             let p = &ctx.params;
             let take = ctx.inputs.takes.get(RECORDING_PORT).copied().flatten();
+            let kind = take.map_or(TakeKind::Browser, |t| t.kind);
+            let speed = p.speed_for(kind);
             let styles = ctx.inputs.style.get(STYLE_PORT).map_or(0, Vec::len);
             let [follow, cursor] = style_warnings(ctx);
-            vec![
+            let mut rows = vec![
                 follow,
                 cursor,
-                take.map(|t| row(Icon::Video, format!("{} · {}", take_kind_label(t.kind), format_duration(t.duration_ms / p.speed)))),
-                Some(row(Icon::Palette, if styles == 0 { "The usual style".to_owned() } else { plural(numbers::float(styles), "style setting") }).muted_if(styles == 0)),
-                (!exact_eq(p.speed, 1.0)).then(|| row(Icon::Gauge, format!("{}× speed", p.speed))),
-            ]
+                take.map(|t| row(Icon::Video, format!("{} · {}", take_kind_label(t.kind), format_duration(t.duration_ms / speed)))),
+            ];
+            rows.extend(unused_styles(ctx, kind));
+            rows.push(Some(row(Icon::Palette, if styles == 0 { "The usual style".to_owned() } else { plural(numbers::float(styles), "style setting") }).muted_if(styles == 0)));
+            rows.push((!exact_eq(speed, 1.0)).then(|| row(Icon::Gauge, format!("{speed}× speed"))));
+            rows
         })
         .compile(|ctx: &Ctx<'_, ClipFromTake>| {
             let p = &ctx.params;
             let rec = ctx.input(RECORDING_PORT).and_then(CompileValue::as_recording);
+            let speed = p.speed_for(rec.map_or(TakeKind::Browser, RecordingValue::kind));
             let mut entries = entries_of(ctx.input(STYLE_PORT));
             entries.extend(rec.map_or_default(|r| r.edits.clone()));
             let duration_ms = rec.map_or(DEFAULT_TAKE_MS, |r| r.duration_ms);
-            let frames = ms_to_frames(duration_ms / p.speed, ctx.settings.fps);
+            let frames = ms_to_frames(duration_ms / speed, ctx.settings.fps);
             let style = entries_of(ctx.input(STYLE_PORT));
             let props = match rec {
-                Some(rec) => clip_from_take_props(rec, p.speed, &style)?,
+                Some(rec) => clip_from_take_props(rec, speed, &style)?,
                 None => None,
             };
             let (Some(rec), Some(props)) = (rec, props) else {

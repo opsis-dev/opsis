@@ -13,6 +13,7 @@ use crate::mix::Mix;
 #[serde(rename_all = "kebab-case")]
 pub enum PortType {
     BrowserSession,
+    TerminalSession,
     Recording,
     RecordingStyle,
     Grade,
@@ -24,8 +25,9 @@ pub enum PortType {
 }
 
 impl PortType {
-    pub const ALL: [Self; 9] = [
+    pub const ALL: [Self; 10] = [
         Self::BrowserSession,
+        Self::TerminalSession,
         Self::Recording,
         Self::RecordingStyle,
         Self::Grade,
@@ -39,6 +41,7 @@ impl PortType {
     pub const fn id(self) -> &'static str {
         match self {
             Self::BrowserSession => "browser-session",
+            Self::TerminalSession => "terminal-session",
             Self::Recording => "recording",
             Self::RecordingStyle => "recording-style",
             Self::Grade => "grade",
@@ -53,6 +56,7 @@ impl PortType {
     pub const fn word(self) -> &'static str {
         match self {
             Self::BrowserSession => "browser session",
+            Self::TerminalSession => "terminal",
             Self::Recording => "recording",
             Self::RecordingStyle => "style",
             Self::Grade => "grade",

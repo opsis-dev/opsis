@@ -24,6 +24,7 @@ mod nodes_g;
 mod riser;
 mod small;
 mod takes;
+mod terminal;
 mod time;
 mod timeline;
 mod timeline_edits;

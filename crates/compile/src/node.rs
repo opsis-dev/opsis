@@ -32,6 +32,7 @@ use crate::vars::Vars;
 )]
 pub enum Category {
     Browser,
+    Terminal,
     Capture,
     Camera,
     Cursor,
@@ -51,8 +52,9 @@ pub enum Category {
 }
 
 impl Category {
-    pub const ALL: [Self; 16] = [
+    pub const ALL: [Self; 17] = [
         Self::Browser,
+        Self::Terminal,
         Self::Capture,
         Self::Camera,
         Self::Cursor,
@@ -73,6 +75,7 @@ impl Category {
     pub const fn label(self) -> &'static str {
         match self {
             Self::Browser => "Browser",
+            Self::Terminal => "Terminal",
             Self::Capture => "Record",
             Self::Camera => "Camera",
             Self::Cursor => "Cursor & clicks",
@@ -350,6 +353,7 @@ pub struct CardInputs {
     pub pixels: IndexMap<String, (u32, u32)>,
     pub captions_ms: IndexMap<String, f64>,
     pub steps: IndexMap<String, Vec<BrowserAction>>,
+    pub terminal_steps: IndexMap<String, usize>,
     pub style: IndexMap<String, Vec<String>>,
     pub grade: IndexMap<String, Vec<StyleEntry>>,
     pub missing_files: Vec<String>,
@@ -460,6 +464,7 @@ pub struct NodeDef {
     pub look: Option<NodeLook>,
     pub card_height: Option<f64>,
     pub host_defaults: Option<HostDefaultsFn>,
+    pub only_for: Option<TakeKind>,
     check: Option<CheckFn>,
     compile: Option<CompileFn>,
     card: Option<CardFn>,
@@ -525,6 +530,7 @@ impl NodeDef {
             look: None,
             card_height: None,
             host_defaults: None,
+            only_for: None,
             check: None,
             compile: None,
             card: None,
@@ -592,6 +598,12 @@ impl NodeDef {
     #[must_use]
     pub const fn action(mut self) -> Self {
         self.action = true;
+        self
+    }
+
+    #[must_use]
+    pub const fn only_for(mut self, kind: TakeKind) -> Self {
+        self.only_for = Some(kind);
         self
     }
 

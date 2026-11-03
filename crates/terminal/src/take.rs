@@ -153,6 +153,7 @@ pub fn record_take(options: &mut TakeOptions<'_>) -> Result<Take, TakeError> {
         addresses: Vec::new(),
         caret_track: visible_caret(&rec.caret, &timeline),
         titles: visible_titles(&rec.titles, &timeline),
+        cells: None,
     };
     Ok(Take {
         header,

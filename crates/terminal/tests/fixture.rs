@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
+use opsis_compile::terminal::default_theme;
 use opsis_terminal::cast::{read_path, write_v3};
-use opsis_terminal::colours::default_theme;
 use opsis_terminal::frames::{Frames, Redaction, write};
 use opsis_terminal::prepare::{PrepareInput, prepare};
 use opsis_terminal::take::{TakeOptions, record_take};

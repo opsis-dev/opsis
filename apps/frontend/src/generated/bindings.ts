@@ -143,6 +143,7 @@ export type ActionLog = {
 	addresses?: PageAddress[],
 	caretTrack?: CaretSample[],
 	titles?: TitleChange[],
+	cells?: CellGrid,
 };
 
 export type ActionMark = {
@@ -524,7 +525,17 @@ export type CatalogPort = {
 	many: boolean,
 };
 
-export type Category = "Browser" | "Capture" | "Camera" | "Cursor" | "Text & overlays" | "Transitions" | "Backgrounds" | "Effects" | "Grade" | "Elements" | "Audio" | "Timeline" | "Media" | "Image" | "Output" | "Utility";
+export type Category = "Browser" | "Terminal" | "Capture" | "Camera" | "Cursor" | "Text & overlays" | "Transitions" | "Backgrounds" | "Effects" | "Grade" | "Elements" | "Audio" | "Timeline" | "Media" | "Image" | "Output" | "Utility";
+
+export type CellGrid = {
+	cols: number,
+	rows: number,
+	width: number,
+	height: number,
+	padding: number,
+};
+
+export type CellTarget = { kind: "cell"; col: number; row: number } | { kind: "text"; text: string };
 
 export type ChainLink = {
 	itemId: string,
@@ -610,6 +621,8 @@ export type CompileResult = {
 export type CompileValue = {
 	type: "browser-session",
 } & BrowserSessionValue | {
+	type: "terminal-session",
+} & TerminalSessionValue | {
 	type: "recording",
 } & RecordingValue | {
 	type: "recording-style",
@@ -837,6 +850,11 @@ export type EnvStatus = {
 	engine: EngineStatus,
 };
 
+export type EnvVar = {
+	name: string,
+	value: string,
+};
+
 export type EnvelopeKey = "opacity" | "x" | "y" | "scale" | "volume" | "pan";
 
 export type EnvelopeTrack = {
@@ -1044,7 +1062,7 @@ export type Hits = {
 	transitions: number,
 };
 
-export type Icon = "app-window" | "arrow-right-left" | "audio-lines" | "blend" | "bookmark" | "captions" | "check" | "circle-check" | "circle-dot" | "clapperboard" | "clock" | "code" | "code-xml" | "columns-2" | "combine" | "command" | "crop" | "crosshair" | "eye" | "eye-off" | "fast-forward" | "file" | "file-play" | "file-video" | "film" | "flashlight" | "gauge" | "git-branch" | "globe" | "grab" | "hard-drive" | "hourglass" | "image" | "image-play" | "info" | "key-round" | "keyboard" | "languages" | "laptop" | "layers" | "link" | "list" | "list-checks" | "list-video" | "locate-fixed" | "map" | "maximize" | "message-square" | "monitor" | "moon" | "mouse-pointer" | "mouse-pointer-2" | "mouse-pointer-click" | "move" | "move-up-right" | "music" | "palette" | "presentation" | "ratio" | "refresh-cw" | "repeat" | "reply" | "rocket" | "ruler" | "scan" | "scan-search" | "scissors" | "scroll" | "scroll-text" | "server" | "settings-2" | "shapes" | "shield-alert" | "shield-check" | "smartphone" | "sparkles" | "spline" | "square-dashed" | "sticky-note" | "sun" | "timer" | "timer-off" | "triangle-alert" | "type" | "upload" | "video" | "volume-2" | "volume-x" | "wallpaper" | "wifi" | "wind" | "zoom-in" | "zoom-out";
+export type Icon = "app-window" | "arrow-right-left" | "audio-lines" | "blend" | "bookmark" | "captions" | "check" | "circle-check" | "circle-dot" | "clapperboard" | "clock" | "code" | "code-xml" | "columns-2" | "combine" | "command" | "crop" | "crosshair" | "eye" | "eye-off" | "fast-forward" | "file" | "file-play" | "file-video" | "film" | "flashlight" | "gauge" | "git-branch" | "globe" | "grab" | "hard-drive" | "hourglass" | "image" | "image-play" | "info" | "key-round" | "keyboard" | "languages" | "laptop" | "layers" | "link" | "list" | "list-checks" | "list-video" | "locate-fixed" | "map" | "maximize" | "message-square" | "monitor" | "moon" | "mouse-pointer" | "mouse-pointer-2" | "mouse-pointer-click" | "move" | "move-up-right" | "music" | "palette" | "presentation" | "ratio" | "refresh-cw" | "repeat" | "reply" | "rocket" | "ruler" | "scan" | "scan-search" | "scissors" | "scroll" | "scroll-text" | "server" | "settings-2" | "shapes" | "shield-alert" | "shield-check" | "smartphone" | "sparkles" | "spline" | "square-dashed" | "square-terminal" | "sticky-note" | "sun" | "timer" | "timer-off" | "triangle-alert" | "type" | "upload" | "video" | "volume-2" | "volume-x" | "wallpaper" | "wifi" | "wind" | "zoom-in" | "zoom-out";
 
 export type ImageValue = {
 	src: string | null,
@@ -1200,6 +1218,8 @@ export type LogLine = {
 	nodeId?: string,
 	message: string,
 };
+
+export type LookIn = "line" | "screen";
 
 export type LoudnessChoice = {
 	target: LoudnessTarget,
@@ -1473,6 +1493,8 @@ export type Point = {
 	y: number,
 };
 
+export type PointerButton = "left" | "right" | "middle";
+
 export type PointerProps = {
 	shown: boolean,
 	scale: number,
@@ -1491,7 +1513,7 @@ export type PortLink = {
 	to: PortType,
 };
 
-export type PortType = "browser-session" | "recording" | "recording-style" | "grade" | "clip" | "audio" | "captions" | "image" | "media";
+export type PortType = "browser-session" | "terminal-session" | "recording" | "recording-style" | "grade" | "clip" | "audio" | "captions" | "image" | "media";
 
 export type Position = {
 	x: number,
@@ -1623,7 +1645,7 @@ export type RunView = {
 	exports: Artifact[],
 };
 
-export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string };
+export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string } | { kind: "terminal"; cast: string; cols: number; rows: number; look: TerminalLook; chain?: FootageChain; framesUrl?: string };
 
 export type SelectionShared = {
 	from: string,
@@ -1687,6 +1709,8 @@ export type SharedState = {
 	selection: Selection,
 	playhead: Playhead | null,
 };
+
+export type ShellChoice = "clean" | "own";
 
 export type ShotProps = {
 	style: CameraStyle,
@@ -1820,11 +1844,44 @@ export type TemplateInfo = {
 	icon: Icon,
 };
 
+export type TerminalAction = { type: "run"; command: string; wait: WaitFor; limitMs: number; zoomOutput: boolean } | { type: "type"; text: string; speedMs?: number } | { type: "keys"; keys: string; repeat: number } | { type: "click"; target: CellTarget; button: PointerButton; double: boolean } | { type: "drag"; from: CellTarget; to: CellTarget } | { type: "wheel"; target: CellTarget; notches: number } | { type: "wait-text"; pattern: string; scope: LookIn; limitMs: number } | { type: "sleep"; ms: number } | { type: "start-recording" } | { type: "hide" } | { type: "show" } | { type: "chapter"; title: string } | { type: "clear" } | { type: "scroll"; lines: number } | { type: "copy"; text: string } | { type: "paste" } | { type: "env"; name: string; value: string } | { type: "require"; program: string } | { type: "screenshot" };
+
+export type TerminalCursor = "program" | "block" | "bar" | "underline";
+
+export type TerminalLook = {
+	theme: TerminalTheme,
+	fontSize: number,
+	lineHeight: number,
+	letterSpacing: number,
+	padding: number,
+	cursor: TerminalCursor,
+	cursorBlink: boolean,
+};
+
+export type TerminalSessionValue = {
+	shell: ShellChoice,
+	folder: string,
+	cols: number,
+	rows: number,
+	env: EnvVar[],
+	typingMs: number,
+	pointerMs: number,
+	steps: TerminalStep[],
+};
+
 export type TerminalSource = {
 	cast: string | null,
 	cols: number,
 	rows: number,
 	theme?: TerminalTheme,
+};
+
+export type TerminalStep = {
+	id: string,
+	nodeId: string,
+	label: string,
+	action: TerminalAction,
+	waitAfterMs: number,
 };
 
 export type TerminalTheme = {
@@ -2067,6 +2124,8 @@ export type VisualEnvelope = {
 	y?: Keyframe[],
 	scale?: Keyframe[],
 };
+
+export type WaitFor = "prompt" | "quiet";
 
 export type WaveformLevel = {
 	rate: number,

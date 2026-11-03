@@ -967,6 +967,572 @@
   }
  },
  {
+  "type": "terminal.open",
+  "title": "Open terminal",
+  "category": "Terminal",
+  "description": "Starts a terminal for the actions that follow: its shell, folder and size.",
+  "phase": "capture",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "shell": "clean",
+   "folder": "",
+   "cols": 80,
+   "rows": 24,
+   "typingMs": 50,
+   "pointerMs": 600,
+   "env": []
+  }
+ },
+ {
+  "type": "terminal.run",
+  "title": "Run command",
+  "category": "Terminal",
+  "description": "Types a command, presses Enter and waits for it to finish.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": true,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "command": "echo hello",
+   "wait": "prompt",
+   "limitMs": 60000,
+   "zoomOutput": true,
+   "waitAfterMs": 500
+  }
+ },
+ {
+  "type": "terminal.type",
+  "title": "Type",
+  "category": "Terminal",
+  "description": "Types text into the terminal, one character at a time.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": true,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "text": "",
+   "waitAfterMs": 500
+  }
+ },
+ {
+  "type": "terminal.keys",
+  "title": "Press keys",
+  "category": "Terminal",
+  "description": "Presses a key or a shortcut in the terminal.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": true,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "keys": "Enter",
+   "repeat": 1,
+   "waitAfterMs": 500
+  }
+ },
+ {
+  "type": "terminal.click",
+  "title": "Click",
+  "category": "Terminal",
+  "description": "Clicks text or a cell, for programs that read the mouse.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": true,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "kind": "text",
+   "text": "",
+   "col": 0,
+   "row": 0,
+   "button": "left",
+   "double": false,
+   "waitAfterMs": 500
+  }
+ },
+ {
+  "type": "terminal.drag",
+  "title": "Drag",
+  "category": "Terminal",
+  "description": "Presses on one place, moves to another and lets go, for programs that read the mouse.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": true,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "fromKind": "text",
+   "fromText": "",
+   "fromCol": 0,
+   "fromRow": 0,
+   "toKind": "cell",
+   "toText": "",
+   "toCol": 0,
+   "toRow": 0,
+   "waitAfterMs": 500
+  }
+ },
+ {
+  "type": "terminal.wheel",
+  "title": "Mouse wheel",
+  "category": "Terminal",
+  "description": "Turns the mouse wheel over text or a cell, for programs that read the mouse.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": true,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "kind": "text",
+   "text": "",
+   "col": 0,
+   "row": 0,
+   "notches": 3,
+   "waitAfterMs": 500
+  }
+ },
+ {
+  "type": "terminal.waitText",
+  "title": "Wait for text",
+  "category": "Terminal",
+  "description": "Waits until some text shows in the terminal.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": true,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "pattern": "done",
+   "scope": "screen",
+   "limitMs": 10000,
+   "waitAfterMs": 500
+  }
+ },
+ {
+  "type": "terminal.startRecording",
+  "title": "Start recording",
+  "category": "Terminal",
+  "description": "The film starts here. Actions before it set things up off camera.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {}
+ },
+ {
+  "type": "terminal.chapter",
+  "title": "Chapter",
+  "category": "Terminal",
+  "description": "Starts a chapter of the film here, listed in exports.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": true,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "title": "Chapter"
+  }
+ },
+ {
+  "type": "terminal.clear",
+  "title": "Clear screen",
+  "category": "Terminal",
+  "description": "Clears the terminal screen.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "waitAfterMs": 500
+  }
+ },
+ {
+  "type": "capture.terminal",
+  "title": "Record terminal take",
+  "category": "Capture",
+  "description": "Plays all connected terminal actions in one go and records the terminal.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "terminal",
+    "type": "terminal-session",
+    "label": "Terminal",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "recording",
+    "type": "recording",
+    "label": "Recording",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "name": "Terminal take",
+   "pauseBeforeMs": 500,
+   "keepAfterMs": 1500
+  }
+ },
+ {
+  "type": "terminal.look",
+  "title": "Terminal look",
+  "category": "Terminal",
+  "description": "The look of a terminal take: its colours, type size, spacing and cursor.",
+  "phase": "compile",
+  "inputs": [
+   {
+    "id": "style",
+    "type": "recording-style",
+    "label": "Style",
+    "optional": true,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "style",
+    "type": "recording-style",
+    "label": "Style",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "theme": "Default",
+   "fontSize": 20,
+   "lineHeight": 1.2,
+   "letterSpacing": 0.0,
+   "padding": 24,
+   "cursor": "program",
+   "cursorBlink": true
+  }
+ },
+ {
   "type": "capture.record",
   "title": "Record take",
   "category": "Capture",
@@ -1126,9 +1692,7 @@
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
-  "defaults": {
-   "speed": 1.25
-  }
+  "defaults": {}
  },
  {
   "type": "camera.camera",
@@ -2263,6 +2827,7 @@
     }
    ],
    "frameMs": 0.0,
+   "textToHide": [],
    "style": "pixelate",
    "blockSize": 16,
    "blur": 16.0,

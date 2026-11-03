@@ -45,6 +45,7 @@ fn all_executors() -> Vec<(&'static str, Executor)> {
     all.extend(output_executors(&engine));
     all.extend(opsis_image::executors::image_executors());
     all.extend(capture_executors(&capture));
+    all.extend(opsis_terminal::executors::terminal_executors());
     all
 }
 

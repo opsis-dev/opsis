@@ -12162,9 +12162,7 @@
    "change": null,
    "outcome": {
     "ok": true,
-    "data": {
-     "speed": 1.25
-    }
+    "data": {}
    }
   },
   {
@@ -12217,9 +12215,7 @@
    "change": null,
    "outcome": {
     "ok": true,
-    "data": {
-     "speed": 1.25
-    }
+    "data": {}
    }
   },
   {
@@ -12557,8 +12553,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": 1.25,
-    "keys": 1
+    "value": null,
+    "keys": 0
    }
   },
   {
@@ -12569,8 +12565,9 @@
     "set": null
    },
    "outcome": {
-    "ok": false,
-    "problem": "Playback speed isn't valid"
+    "ok": true,
+    "value": null,
+    "keys": 1
    }
   },
   {
@@ -23118,6 +23115,7 @@
       }
      ],
      "frameMs": 0.0,
+     "textToHide": [],
      "style": "pixelate",
      "blockSize": 16,
      "blur": 16.0,
@@ -23143,6 +23141,7 @@
       }
      ],
      "frameMs": 0.0,
+     "textToHide": [],
      "style": "pixelate",
      "blockSize": 16,
      "blur": 16.0,
@@ -23168,7 +23167,7 @@
       "height": 0.2
      }
     ],
-    "keys": 7
+    "keys": 8
    }
   },
   {
@@ -23270,7 +23269,7 @@
    "outcome": {
     "ok": true,
     "value": 0.0,
-    "keys": 7
+    "keys": 8
    }
   },
   {
@@ -23319,7 +23318,7 @@
    "outcome": {
     "ok": true,
     "value": 0.5,
-    "keys": 7
+    "keys": 8
    }
   },
   {
@@ -23356,7 +23355,7 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 7
+    "keys": 8
    }
   },
   {
@@ -23381,7 +23380,7 @@
    "outcome": {
     "ok": true,
     "value": 3600000,
-    "keys": 7
+    "keys": 8
    }
   },
   {
@@ -23394,7 +23393,7 @@
    "outcome": {
     "ok": true,
     "value": null,
-    "keys": 7
+    "keys": 8
    }
   },
   {
@@ -23407,7 +23406,7 @@
    "outcome": {
     "ok": true,
     "value": null,
-    "keys": 8
+    "keys": 9
    }
   },
   {
@@ -23480,7 +23479,7 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 8
+    "keys": 9
    }
   },
   {
@@ -23505,7 +23504,7 @@
    "outcome": {
     "ok": true,
     "value": 3600000,
-    "keys": 8
+    "keys": 9
    }
   },
   {
@@ -23518,7 +23517,7 @@
    "outcome": {
     "ok": true,
     "value": null,
-    "keys": 7
+    "keys": 8
    }
   },
   {
@@ -23531,7 +23530,7 @@
    "outcome": {
     "ok": true,
     "value": null,
-    "keys": 8
+    "keys": 9
    }
   },
   {
@@ -23604,7 +23603,7 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 8
+    "keys": 9
    }
   },
   {
@@ -23629,7 +23628,7 @@
    "outcome": {
     "ok": true,
     "value": 3600000,
-    "keys": 8
+    "keys": 9
    }
   },
   {

@@ -10,6 +10,7 @@ use opsis_image::ops::redact;
 use crate::FootageError;
 use crate::chain::{FootageSource, JUMP_US, MATCH_TOLERANCE_US, SEEK_MARGIN_US, file_time};
 use crate::decoder::{Decoder, FootageTools, RawFrame};
+use crate::terminal::{TerminalFootage, TerminalState};
 
 const QUALITY: u8 = 92;
 const KEPT_PICTURES: usize = 6;
@@ -220,6 +221,7 @@ impl SourceState {
 pub struct Footage {
     tools: FootageTools,
     sources: HashMap<String, Mutex<SourceState>>,
+    terminals: HashMap<String, TerminalState>,
     starts: AtomicU32,
 }
 
@@ -234,8 +236,29 @@ impl Footage {
                 .into_iter()
                 .map(|(id, source)| (id, Mutex::new(SourceState::new(source))))
                 .collect(),
+            terminals: HashMap::new(),
             starts: AtomicU32::new(0),
         }
+    }
+
+    #[must_use]
+    pub fn with_terminals(
+        mut self,
+        terminals: impl IntoIterator<Item = (String, TerminalFootage)>,
+    ) -> Self {
+        self.terminals.extend(
+            terminals
+                .into_iter()
+                .map(|(id, source)| (id, TerminalState::new(source))),
+        );
+        self
+    }
+
+    pub fn terminal_frames(&self, id: &str) -> Result<Arc<Vec<u8>>, FootageError> {
+        self.terminals
+            .get(id)
+            .ok_or_else(|| FootageError::Unknown(id.to_owned()))?
+            .frames()
     }
 
     pub fn decoder_starts(&self) -> u32 {

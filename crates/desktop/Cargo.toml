@@ -26,6 +26,7 @@ opsis-render.workspace = true
 opsis-runner.workspace = true
 opsis-store.workspace = true
 opsis-stream.workspace = true
+opsis-terminal.workspace = true
 opsis-traces.workspace = true
 opsis-types.workspace = true
 percent-encoding.workspace = true

@@ -477,6 +477,298 @@
    }
   },
   {
+   "type": "terminal.open",
+   "title": "Open terminal",
+   "category": "Terminal",
+   "description": "Starts a terminal for the actions that follow: its shell, folder and size.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.run",
+   "title": "Run command",
+   "category": "Terminal",
+   "description": "Types a command, presses Enter and waits for it to finish.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.type",
+   "title": "Type",
+   "category": "Terminal",
+   "description": "Types text into the terminal, one character at a time.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.keys",
+   "title": "Press keys",
+   "category": "Terminal",
+   "description": "Presses a key or a shortcut in the terminal.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.click",
+   "title": "Click",
+   "category": "Terminal",
+   "description": "Clicks text or a cell, for programs that read the mouse.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.drag",
+   "title": "Drag",
+   "category": "Terminal",
+   "description": "Presses on one place, moves to another and lets go, for programs that read the mouse.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.wheel",
+   "title": "Mouse wheel",
+   "category": "Terminal",
+   "description": "Turns the mouse wheel over text or a cell, for programs that read the mouse.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.waitText",
+   "title": "Wait for text",
+   "category": "Terminal",
+   "description": "Waits until some text shows in the terminal.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.startRecording",
+   "title": "Start recording",
+   "category": "Terminal",
+   "description": "The film starts here. Actions before it set things up off camera.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.chapter",
+   "title": "Chapter",
+   "category": "Terminal",
+   "description": "Starts a chapter of the film here, listed in exports.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.clear",
+   "title": "Clear screen",
+   "category": "Terminal",
+   "description": "Clears the terminal screen.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "capture.terminal",
+   "title": "Record terminal take",
+   "category": "Record",
+   "description": "Plays all connected terminal actions in one go and records the terminal.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "recording": {
+     "type": "recording",
+     "label": "Recording",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "terminal.look",
+   "title": "Terminal look",
+   "category": "Terminal",
+   "description": "The look of a terminal take: its colours, type size, spacing and cursor.",
+   "runs": false,
+   "inputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": true,
+     "many": false
+    }
+   },
+   "outputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "capture.record",
    "title": "Record take",
    "category": "Record",
@@ -7796,6 +8088,1046 @@
    }
   },
   {
+   "type": "terminal.open",
+   "title": "Open terminal",
+   "category": "Terminal",
+   "description": "Starts a terminal for the actions that follow: its shell, folder and size.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "shell": {
+      "description": "Shell",
+      "type": "string",
+      "enum": [
+       "clean",
+       "own"
+      ],
+      "x-labels": {
+       "clean": "Clean",
+       "own": "My shell setup"
+      },
+      "default": "clean",
+      "x-help": "Clean starts the computer's usual shell with Opsis's own prompt and nothing from your setup."
+     },
+     "folder": {
+      "description": "Folder",
+      "type": "string",
+      "default": "",
+      "x-zero-label": "The project folder",
+      "x-help": "Where the shell starts, inside the project folder."
+     },
+     "cols": {
+      "description": "Columns",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 20,
+      "maximum": 300,
+      "default": 80
+     },
+     "rows": {
+      "description": "Rows",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 5,
+      "maximum": 100,
+      "default": 24
+     },
+     "typingMs": {
+      "description": "Typing speed",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 1000,
+      "default": 50,
+      "x-step": 5,
+      "x-unit": "ms",
+      "x-help": "The time between two typed characters."
+     },
+     "pointerMs": {
+      "description": "Pointer speed",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 5000,
+      "default": 600,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "How long the pointer takes to move to what it clicks.",
+      "x-advanced": true
+     },
+     "env": {
+      "description": "Environment variables",
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "description": "Name",
+         "type": "string",
+         "default": ""
+        },
+        "value": {
+         "description": "Value",
+         "type": "string",
+         "default": ""
+        }
+       },
+       "default": {
+        "name": "",
+        "value": ""
+       }
+      },
+      "default": [],
+      "x-advanced": true
+     }
+    },
+    "type": "object",
+    "default": {
+     "shell": "clean",
+     "folder": "",
+     "cols": 80,
+     "rows": 24,
+     "typingMs": 50,
+     "pointerMs": 600,
+     "env": []
+    }
+   }
+  },
+  {
+   "type": "terminal.run",
+   "title": "Run command",
+   "category": "Terminal",
+   "description": "Types a command, presses Enter and waits for it to finish.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "command": {
+      "description": "Command",
+      "type": "string",
+      "default": "echo hello"
+     },
+     "wait": {
+      "description": "Wait for",
+      "type": "string",
+      "enum": [
+       "prompt",
+       "quiet"
+      ],
+      "x-labels": {
+       "prompt": "The prompt",
+       "quiet": "Quiet output"
+      },
+      "default": "prompt",
+      "x-help": "The prompt works with the clean shell. Quiet output waits until nothing is printed for a moment."
+     },
+     "limitMs": {
+      "description": "Time limit",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 1000,
+      "maximum": 3600000,
+      "default": 60000,
+      "x-step": 1000,
+      "x-unit": "ms",
+      "x-advanced": true
+     },
+     "zoomOutput": {
+      "description": "Zoom to the output",
+      "type": "boolean",
+      "default": true,
+      "x-help": "The camera moves to what the command printed."
+     },
+     "waitAfterMs": {
+      "description": "Wait after",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "How long the take lingers after this action."
+     }
+    },
+    "type": "object",
+    "default": {
+     "command": "echo hello",
+     "wait": "prompt",
+     "limitMs": 60000,
+     "zoomOutput": true,
+     "waitAfterMs": 500
+    }
+   }
+  },
+  {
+   "type": "terminal.type",
+   "title": "Type",
+   "category": "Terminal",
+   "description": "Types text into the terminal, one character at a time.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "text": {
+      "description": "Text",
+      "type": "string",
+      "default": "",
+      "x-widget": "textarea"
+     },
+     "speedMs": {
+      "description": "Typing speed",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 1000,
+      "x-unit": "ms",
+      "x-zero-label": "The terminal's"
+     },
+     "waitAfterMs": {
+      "description": "Wait after",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "How long the take lingers after this action."
+     }
+    },
+    "type": "object",
+    "default": {
+     "text": "",
+     "waitAfterMs": 500
+    }
+   }
+  },
+  {
+   "type": "terminal.keys",
+   "title": "Press keys",
+   "category": "Terminal",
+   "description": "Presses a key or a shortcut in the terminal.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "keys": {
+      "description": "Keys",
+      "type": "string",
+      "default": "Enter",
+      "x-widget": "keys",
+      "x-help": "Click the field and press the shortcut."
+     },
+     "repeat": {
+      "description": "Repeat",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 1
+     },
+     "waitAfterMs": {
+      "description": "Wait after",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "How long the take lingers after this action."
+     }
+    },
+    "type": "object",
+    "default": {
+     "keys": "Enter",
+     "repeat": 1,
+     "waitAfterMs": 500
+    }
+   }
+  },
+  {
+   "type": "terminal.click",
+   "title": "Click",
+   "category": "Terminal",
+   "description": "Clicks text or a cell, for programs that read the mouse.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "kind": {
+      "description": "Target",
+      "type": "string",
+      "enum": [
+       "text",
+       "cell"
+      ],
+      "x-labels": {
+       "text": "Text on the screen",
+       "cell": "A cell"
+      },
+      "default": "text"
+     },
+     "text": {
+      "description": "Text",
+      "type": "string",
+      "default": "",
+      "x-show-if": {
+       "kind": [
+        "text"
+       ]
+      },
+      "x-help": "The first place this text shows on the screen."
+     },
+     "col": {
+      "description": "Column",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 299,
+      "default": 0,
+      "x-show-if": {
+       "kind": [
+        "cell"
+       ]
+      }
+     },
+     "row": {
+      "description": "Row",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 99,
+      "default": 0,
+      "x-show-if": {
+       "kind": [
+        "cell"
+       ]
+      }
+     },
+     "button": {
+      "description": "Button",
+      "type": "string",
+      "enum": [
+       "left",
+       "right",
+       "middle"
+      ],
+      "x-labels": {
+       "left": "Left",
+       "right": "Right",
+       "middle": "Middle"
+      },
+      "default": "left"
+     },
+     "double": {
+      "description": "Double-click",
+      "type": "boolean",
+      "default": false
+     },
+     "waitAfterMs": {
+      "description": "Wait after",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "How long the take lingers after this action."
+     }
+    },
+    "type": "object",
+    "default": {
+     "kind": "text",
+     "text": "",
+     "col": 0,
+     "row": 0,
+     "button": "left",
+     "double": false,
+     "waitAfterMs": 500
+    }
+   }
+  },
+  {
+   "type": "terminal.drag",
+   "title": "Drag",
+   "category": "Terminal",
+   "description": "Presses on one place, moves to another and lets go, for programs that read the mouse.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "fromKind": {
+      "description": "From",
+      "type": "string",
+      "enum": [
+       "text",
+       "cell"
+      ],
+      "x-labels": {
+       "text": "Text on the screen",
+       "cell": "A cell"
+      },
+      "default": "text"
+     },
+     "fromText": {
+      "description": "From text",
+      "type": "string",
+      "default": "",
+      "x-show-if": {
+       "fromKind": [
+        "text"
+       ]
+      }
+     },
+     "fromCol": {
+      "description": "From column",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 299,
+      "default": 0,
+      "x-show-if": {
+       "fromKind": [
+        "cell"
+       ]
+      }
+     },
+     "fromRow": {
+      "description": "From row",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 99,
+      "default": 0,
+      "x-show-if": {
+       "fromKind": [
+        "cell"
+       ]
+      }
+     },
+     "toKind": {
+      "description": "To",
+      "type": "string",
+      "enum": [
+       "text",
+       "cell"
+      ],
+      "x-labels": {
+       "text": "Text on the screen",
+       "cell": "A cell"
+      },
+      "default": "cell"
+     },
+     "toText": {
+      "description": "To text",
+      "type": "string",
+      "default": "",
+      "x-show-if": {
+       "toKind": [
+        "text"
+       ]
+      }
+     },
+     "toCol": {
+      "description": "To column",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 299,
+      "default": 0,
+      "x-show-if": {
+       "toKind": [
+        "cell"
+       ]
+      }
+     },
+     "toRow": {
+      "description": "To row",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 99,
+      "default": 0,
+      "x-show-if": {
+       "toKind": [
+        "cell"
+       ]
+      }
+     },
+     "waitAfterMs": {
+      "description": "Wait after",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "How long the take lingers after this action."
+     }
+    },
+    "type": "object",
+    "default": {
+     "fromKind": "text",
+     "fromText": "",
+     "fromCol": 0,
+     "fromRow": 0,
+     "toKind": "cell",
+     "toText": "",
+     "toCol": 0,
+     "toRow": 0,
+     "waitAfterMs": 500
+    }
+   }
+  },
+  {
+   "type": "terminal.wheel",
+   "title": "Mouse wheel",
+   "category": "Terminal",
+   "description": "Turns the mouse wheel over text or a cell, for programs that read the mouse.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "kind": {
+      "description": "Target",
+      "type": "string",
+      "enum": [
+       "text",
+       "cell"
+      ],
+      "x-labels": {
+       "text": "Text on the screen",
+       "cell": "A cell"
+      },
+      "default": "text"
+     },
+     "text": {
+      "description": "Text",
+      "type": "string",
+      "default": "",
+      "x-show-if": {
+       "kind": [
+        "text"
+       ]
+      },
+      "x-help": "The first place this text shows on the screen."
+     },
+     "col": {
+      "description": "Column",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 299,
+      "default": 0,
+      "x-show-if": {
+       "kind": [
+        "cell"
+       ]
+      }
+     },
+     "row": {
+      "description": "Row",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 99,
+      "default": 0,
+      "x-show-if": {
+       "kind": [
+        "cell"
+       ]
+      }
+     },
+     "notches": {
+      "description": "Notches",
+      "type": "integer",
+      "format": "int32",
+      "minimum": -50,
+      "maximum": 50,
+      "default": 3,
+      "x-help": "Below zero turns the wheel up."
+     },
+     "waitAfterMs": {
+      "description": "Wait after",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "How long the take lingers after this action."
+     }
+    },
+    "type": "object",
+    "default": {
+     "kind": "text",
+     "text": "",
+     "col": 0,
+     "row": 0,
+     "notches": 3,
+     "waitAfterMs": 500
+    }
+   }
+  },
+  {
+   "type": "terminal.waitText",
+   "title": "Wait for text",
+   "category": "Terminal",
+   "description": "Waits until some text shows in the terminal.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "pattern": {
+      "description": "Text",
+      "type": "string",
+      "default": "done",
+      "x-help": "A pattern, such as Ready|Listening on [0-9]+"
+     },
+     "scope": {
+      "description": "Look in",
+      "type": "string",
+      "enum": [
+       "line",
+       "screen"
+      ],
+      "x-labels": {
+       "line": "The cursor's line",
+       "screen": "The whole screen"
+      },
+      "default": "screen"
+     },
+     "limitMs": {
+      "description": "Time limit",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 100,
+      "maximum": 3600000,
+      "default": 10000,
+      "x-step": 100,
+      "x-unit": "ms"
+     },
+     "waitAfterMs": {
+      "description": "Wait after",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "How long the take lingers after this action."
+     }
+    },
+    "type": "object",
+    "default": {
+     "pattern": "done",
+     "scope": "screen",
+     "limitMs": 10000,
+     "waitAfterMs": 500
+    }
+   }
+  },
+  {
+   "type": "terminal.startRecording",
+   "title": "Start recording",
+   "category": "Terminal",
+   "description": "The film starts here. Actions before it set things up off camera.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object"
+   }
+  },
+  {
+   "type": "terminal.chapter",
+   "title": "Chapter",
+   "category": "Terminal",
+   "description": "Starts a chapter of the film here, listed in exports.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "title": {
+      "description": "Title",
+      "type": "string",
+      "default": "Chapter"
+     }
+    },
+    "type": "object",
+    "default": {
+     "title": "Chapter"
+    }
+   }
+  },
+  {
+   "type": "terminal.clear",
+   "title": "Clear screen",
+   "category": "Terminal",
+   "description": "Clears the terminal screen.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "waitAfterMs": {
+      "description": "Wait after",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "How long the take lingers after this action."
+     }
+    },
+    "type": "object",
+    "default": {
+     "waitAfterMs": 500
+    }
+   }
+  },
+  {
+   "type": "capture.terminal",
+   "title": "Record terminal take",
+   "category": "Record",
+   "description": "Plays all connected terminal actions in one go and records the terminal.",
+   "runs": true,
+   "inputs": {
+    "terminal": {
+     "type": "terminal-session",
+     "label": "Terminal",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "recording": {
+     "type": "recording",
+     "label": "Recording",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "name": {
+      "description": "Name",
+      "type": "string",
+      "default": "Terminal take"
+     },
+     "pauseBeforeMs": {
+      "description": "Pause before the first action",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 500,
+      "x-step": 50,
+      "x-unit": "ms"
+     },
+     "keepAfterMs": {
+      "description": "Keep recording after the last action",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 1500,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "Gives the camera time to settle at the end."
+     }
+    },
+    "type": "object",
+    "default": {
+     "name": "Terminal take",
+     "pauseBeforeMs": 500,
+     "keepAfterMs": 1500
+    }
+   }
+  },
+  {
+   "type": "terminal.look",
+   "title": "Terminal look",
+   "category": "Terminal",
+   "description": "The look of a terminal take: its colours, type size, spacing and cursor.",
+   "runs": false,
+   "inputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": true,
+     "many": false
+    }
+   },
+   "outputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "theme": {
+      "description": "Theme",
+      "type": "string",
+      "default": "Default",
+      "x-help": "A theme's name, such as Dracula or Catppuccin Mocha."
+     },
+     "fontSize": {
+      "description": "Font size",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 8,
+      "maximum": 64,
+      "default": 20,
+      "x-unit": "px"
+     },
+     "lineHeight": {
+      "description": "Line height",
+      "type": "number",
+      "format": "double",
+      "minimum": 1,
+      "maximum": 2,
+      "default": 1.2,
+      "x-step": 0.05,
+      "x-unit": "×"
+     },
+     "letterSpacing": {
+      "description": "Letter spacing",
+      "type": "number",
+      "format": "double",
+      "minimum": -2,
+      "maximum": 8,
+      "default": 0.0,
+      "x-step": 0.5,
+      "x-unit": "px",
+      "x-advanced": true
+     },
+     "padding": {
+      "description": "Padding",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 200,
+      "default": 24,
+      "x-unit": "px"
+     },
+     "cursor": {
+      "description": "Cursor shape",
+      "type": "string",
+      "enum": [
+       "program",
+       "block",
+       "bar",
+       "underline"
+      ],
+      "x-labels": {
+       "program": "The program's",
+       "block": "Block",
+       "bar": "Bar",
+       "underline": "Underline"
+      },
+      "default": "program"
+     },
+     "cursorBlink": {
+      "description": "Cursor blinks",
+      "type": "boolean",
+      "default": true
+     }
+    },
+    "type": "object",
+    "default": {
+     "theme": "Default",
+     "fontSize": 20,
+     "lineHeight": 1.2,
+     "letterSpacing": 0.0,
+     "padding": 24,
+     "cursor": "program",
+     "cursorBlink": true
+    }
+   }
+  },
+  {
    "type": "capture.record",
    "title": "Record take",
    "category": "Record",
@@ -8483,19 +9815,21 @@
     "properties": {
      "speed": {
       "description": "Playback speed",
-      "type": "number",
+      "type": [
+       "number",
+       "null"
+      ],
       "format": "double",
       "minimum": 0.25,
       "maximum": 4,
-      "default": 1.25,
       "x-step": 0.05,
-      "x-unit": "×"
+      "x-unit": "×",
+      "x-zero-label": "The take's usual",
+      "x-help": "Browser takes usually play at 1.25×, terminal takes at 1×."
      }
     },
     "type": "object",
-    "default": {
-     "speed": 1.25
-    }
+    "default": {}
    }
   },
   {
@@ -11761,6 +13095,18 @@
       "x-unit": "ms",
       "x-hidden": true
      },
+     "textToHide": {
+      "description": "Text to hide",
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": [],
+      "x-help": "Patterns of text to hide wherever they show, such as sk-[A-Za-z0-9]+",
+      "x-show-if-take": [
+       "terminal"
+      ]
+     },
      "style": {
       "description": "Hide with",
       "type": "string",
@@ -11874,6 +13220,7 @@
       }
      ],
      "frameMs": 0.0,
+     "textToHide": [],
      "style": "pixelate",
      "blockSize": 16,
      "blur": 16.0,

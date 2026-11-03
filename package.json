@@ -58,6 +58,7 @@
     "elements:render": "cargo run -q --release -p opsis-render --bin render-elements --",
     "glyphs:bundle": "bun scripts/node-glyphs.ts",
     "cursors:bundle": "bun scripts/mac-cursors.ts",
+    "terminal:themes": "bun scripts/terminal-themes.ts",
     "db:prepare": "bun scripts/sqlx-prepare.ts",
     "film:bundle": "bun run --cwd apps/film build",
     "e2e:app": "cd crates/desktop && CARGO_TARGET_DIR=../../target/e2e tauri build --debug --no-bundle --features e2e",

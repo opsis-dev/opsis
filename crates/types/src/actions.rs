@@ -228,6 +228,35 @@ pub struct ActionLog {
     pub caret_track: Vec<CaretSample>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub titles: Vec<TitleChange>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cells: Option<CellGrid>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+pub struct CellGrid {
+    pub cols: u16,
+    pub rows: u16,
+    pub width: f64,
+    pub height: f64,
+    pub padding: f64,
+}
+
+impl CellGrid {
+    pub const fn x(&self, col: f64) -> f64 {
+        col.mul_add(self.width, self.padding)
+    }
+
+    pub const fn y(&self, row: f64) -> f64 {
+        row.mul_add(self.height, self.padding)
+    }
+
+    pub fn col(&self, x: f64) -> f64 {
+        (x - self.padding) / self.width
+    }
+
+    pub fn row(&self, y: f64) -> f64 {
+        (y - self.padding) / self.height
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

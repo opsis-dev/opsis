@@ -10,6 +10,7 @@ export type ActionLog = {
 	addresses?: PageAddress[],
 	caretTrack?: CaretSample[],
 	titles?: TitleChange[],
+	cells?: CellGrid,
 };
 
 export type Action = {
@@ -439,6 +440,14 @@ export type CaretSample = {
 	t: number,
 	col: number,
 	row: number,
+};
+
+export type CellGrid = {
+	cols: number,
+	rows: number,
+	width: number,
+	height: number,
+	padding: number,
 };
 
 export type ChangeKind = "added" | "fixed" | "changed" | "removed";
@@ -2490,7 +2499,7 @@ export type ScreenDevice = "laptop" | "monitor" | "phone" | "floating";
 
 export type ScreenMove = "push-in" | "orbit" | "tilt-reveal" | "rise" | "keyframes";
 
-export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string };
+export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string } | { kind: "terminal"; cast: string; cols: number; rows: number; look: TerminalLook; chain?: FootageChain; framesUrl?: string };
 
 export type ScribbleCircle = {
 	laps: number,
@@ -2936,7 +2945,19 @@ export type SwirlDissolve = {
 	noise: number,
 };
 
+export type TerminalCursor = "program" | "block" | "bar" | "underline";
+
 export type TerminalLineKind = "command" | "log" | "success" | "error";
+
+export type TerminalLook = {
+	theme: TerminalTheme,
+	fontSize: number,
+	lineHeight: number,
+	letterSpacing: number,
+	padding: number,
+	cursor: TerminalCursor,
+	cursorBlink: boolean,
+};
 
 export type TerminalSimulatorLine = {
 	text: string,
@@ -2969,6 +2990,14 @@ export type TerminalSimulator = {
 	promptColor: string,
 	cursorColor: string,
 	titleColor: string,
+};
+
+export type TerminalTheme = {
+	name: string,
+	fg: string,
+	bg: string,
+	cursor: string,
+	palette: [string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string],
 };
 
 export type Text3d = {

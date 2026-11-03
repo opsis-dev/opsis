@@ -115,6 +115,30 @@ pub fn idle_spans(log: &ActionLog, threshold_ms: f64, pad_ms: f64) -> Vec<(f64, 
     spans
 }
 
+fn followed_track(log: &ActionLog) -> Vec<(f64, Point)> {
+    if let Some(track) = &log.cursor_track {
+        return track
+            .iter()
+            .map(|s| (s.t, Point { x: s.x, y: s.y }))
+            .collect();
+    }
+    let Some(grid) = log.cells else {
+        return Vec::new();
+    };
+    log.caret_track
+        .iter()
+        .map(|s| {
+            let point = Point {
+                x: grid.x(f64::from(s.col) + CELL_MIDDLE),
+                y: grid.y(f64::from(s.row) + CELL_MIDDLE),
+            };
+            (s.t, point)
+        })
+        .collect()
+}
+
+const CELL_MIDDLE: f64 = 0.5;
+
 pub fn follow_cursor_beats(
     log: &ActionLog,
     scale: f64,
@@ -123,21 +147,17 @@ pub fn follow_cursor_beats(
 ) -> Vec<Action> {
     let mut beats = Vec::new();
     let mut next = 0.0;
-    for s in log.cursor_track.iter().flatten() {
-        if s.t < next {
+    for (t, point) in followed_track(log) {
+        if t < next {
             continue;
         }
-        let mut beat = Action::new(
-            format!("{node_id}:f{}", beats.len()),
-            ActionKind::Focus,
-            s.t,
-        );
-        beat.point = Some(Point { x: s.x, y: s.y });
+        let mut beat = Action::new(format!("{node_id}:f{}", beats.len()), ActionKind::Focus, t);
+        beat.point = Some(point);
         beat.cluster = Some(format!("{node_id}:follow"));
         beat.zoom_scale = Some(scale);
         beat.node_id = Some(node_id.to_owned());
         beats.push(beat);
-        next = s.t + every_ms;
+        next = t + every_ms;
     }
     beats
 }

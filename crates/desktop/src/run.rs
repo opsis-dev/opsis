@@ -218,6 +218,7 @@ pub fn executors(app: &AppHandle) -> Executors {
         image_executors(),
         output_executors(&engine),
         capture_executors(&capture),
+        opsis_terminal::executors::terminal_executors(),
     ];
     for list in lists {
         if let Err(error) = all.extend(list) {

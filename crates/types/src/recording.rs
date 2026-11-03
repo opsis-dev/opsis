@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 
 use crate::actions::{Action, ActionLog};
+use crate::terminal::TerminalLook;
 use crate::values::StyleEntry;
 
 #[choice(export)]
@@ -346,7 +347,7 @@ pub struct PointerProps {
     pub ripple: Option<RippleLook>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(tag = "kind", rename_all = "kebab-case")]
 pub enum ScreenProps {
     #[serde(rename_all = "camelCase")]
@@ -357,18 +358,29 @@ pub enum ScreenProps {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         footage_url: Option<String>,
     },
+    #[serde(rename_all = "camelCase")]
+    Terminal {
+        cast: String,
+        cols: u16,
+        rows: u16,
+        look: Box<TerminalLook>,
+        #[serde(default, skip_serializing_if = "FootageChain::is_empty")]
+        chain: FootageChain,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        frames_url: Option<String>,
+    },
 }
 
 impl ScreenProps {
     pub const fn chain(&self) -> &FootageChain {
         match self {
-            Self::Footage { chain, .. } => chain,
+            Self::Footage { chain, .. } | Self::Terminal { chain, .. } => chain,
         }
     }
 
     pub const fn chain_mut(&mut self) -> &mut FootageChain {
         match self {
-            Self::Footage { chain, .. } => chain,
+            Self::Footage { chain, .. } | Self::Terminal { chain, .. } => chain,
         }
     }
 }

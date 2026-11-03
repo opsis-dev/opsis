@@ -9,6 +9,7 @@ pub mod grade;
 pub mod image;
 pub mod media;
 pub mod output;
+pub mod terminal;
 pub mod text;
 pub mod timeline;
 pub mod transitions;
@@ -19,6 +20,7 @@ use crate::node::NodeDef;
 pub fn all() -> Vec<NodeDef> {
     [
         browser::nodes(),
+        terminal::nodes(),
         capture::nodes(),
         camera::nodes(),
         cursor::nodes(),

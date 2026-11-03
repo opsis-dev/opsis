@@ -152,3 +152,40 @@ pub struct TerminalSessionValue {
     pub pointer_ms: u32,
     pub steps: Vec<TerminalStep>,
 }
+
+#[choice(export)]
+pub enum TerminalCursor {
+    #[default]
+    #[label("The program's")]
+    Program,
+    #[label("Block")]
+    Block,
+    #[label("Bar")]
+    Bar,
+    #[label("Underline")]
+    Underline,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TerminalLook {
+    pub theme: TerminalTheme,
+    pub font_size: u32,
+    pub line_height: f64,
+    pub letter_spacing: f64,
+    pub padding: u32,
+    pub cursor: TerminalCursor,
+    pub cursor_blink: bool,
+}
+
+impl TerminalLook {
+    pub fn cell_width(&self) -> f64 {
+        f64::from(self.font_size).mul_add(CELL_WIDTH_EM, self.letter_spacing)
+    }
+
+    pub fn cell_height(&self) -> f64 {
+        (f64::from(self.font_size) * self.line_height).round()
+    }
+}
+
+pub const CELL_WIDTH_EM: f64 = 0.6;

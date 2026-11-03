@@ -333,6 +333,7 @@ fn thumbnail_of(item: &TimelineItem) -> Option<BarThumbnail> {
                     trim_ms: 0.0,
                 })
             }
+            ScreenProps::Terminal { .. } => None,
         },
         TimelineItem::Element {
             component, props, ..

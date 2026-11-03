@@ -31,6 +31,7 @@ pub mod remap;
 pub mod size;
 pub mod sounds;
 pub mod style;
+pub mod terminal;
 pub mod text;
 pub mod time;
 pub mod timeline;

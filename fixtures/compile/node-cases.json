@@ -5683,6 +5683,7 @@
         }
        ],
        "frameMs": 0.0,
+       "textToHide": [],
        "style": "pixelate",
        "blockSize": 16,
        "blur": 16.0,

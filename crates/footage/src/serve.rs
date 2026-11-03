@@ -6,6 +6,7 @@ use axum::http::{StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use opsis_compile::asset_ref::FOOTAGE_FOLDER;
+use opsis_compile::footage::TERMINAL_FRAMES;
 
 use crate::FootageError;
 use crate::footage::Footage;
@@ -14,6 +15,9 @@ async fn serve(
     State(footage): State<Arc<Footage>>,
     UrlPath((id, time)): UrlPath<(String, String)>,
 ) -> Response {
+    if time == TERMINAL_FRAMES {
+        return terminal(footage, id).await;
+    }
     let Ok(time_us) = time.trim_end_matches(".jpg").parse::<i64>() else {
         return (
             StatusCode::BAD_REQUEST,
@@ -36,6 +40,27 @@ async fn serve(
         }
         Ok(Err(error)) => {
             log::warn!("footage frame at {time_us} µs: {error}");
+            (StatusCode::UNPROCESSABLE_ENTITY, error.to_string()).into_response()
+        }
+        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+    }
+}
+
+async fn terminal(footage: Arc<Footage>, id: String) -> Response {
+    match tokio::task::spawn_blocking(move || footage.terminal_frames(&id)).await {
+        Ok(Ok(bytes)) => (
+            [
+                (header::CONTENT_TYPE, "application/octet-stream"),
+                (header::CACHE_CONTROL, "no-store"),
+            ],
+            bytes.as_ref().clone(),
+        )
+            .into_response(),
+        Ok(Err(error @ FootageError::Unknown(_))) => {
+            (StatusCode::NOT_FOUND, error.to_string()).into_response()
+        }
+        Ok(Err(error)) => {
+            log::warn!("terminal frames: {error}");
             (StatusCode::UNPROCESSABLE_ENTITY, error.to_string()).into_response()
         }
         Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),

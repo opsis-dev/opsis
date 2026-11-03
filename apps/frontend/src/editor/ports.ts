@@ -9,6 +9,7 @@ const NEUTRAL_COLOR = "#71717a";
 
 export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: NodeIconName }> = {
   Browser: { color: "#38bdf8", icon: "globe" },
+  Terminal: { color: "#4ade80", icon: "square-terminal" },
   Capture: { color: "#f97316", icon: "video" },
   Camera: { color: "#fb923c", icon: "scan-search" },
   Cursor: { color: "#fbbf24", icon: "mouse-pointer-2" },
@@ -28,6 +29,7 @@ export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: NodeIc
 
 const PORT_COLORS: Record<PortType, string> = {
   "browser-session": CATEGORY_STYLES.Browser.color,
+  "terminal-session": CATEGORY_STYLES.Terminal.color,
   recording: CATEGORY_STYLES.Capture.color,
   "recording-style": CATEGORY_STYLES.Cursor.color,
   grade: CATEGORY_STYLES.Grade.color,

@@ -123,17 +123,3 @@ impl ThemeColours {
         }
     }
 }
-
-pub fn default_theme() -> TerminalTheme {
-    TerminalTheme {
-        name: "Default".to_owned(),
-        fg: "#dddddd".to_owned(),
-        bg: "#171717".to_owned(),
-        cursor: "#dddddd".to_owned(),
-        palette: [
-            "#282a2e", "#d74e6f", "#31bb71", "#d3e561", "#8056ff", "#ed61d7", "#04d7d7", "#bfbfbf",
-            "#4d4d4d", "#fe5f86", "#00d787", "#ebff71", "#9b79ff", "#ff7aea", "#00fefe", "#e6e6e6",
-        ]
-        .map(str::to_owned),
-    }
-}

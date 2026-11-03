@@ -1451,6 +1451,7 @@ impl<'e> TakeRun<'e> {
             addresses: self.lifecycle.addresses_since(t0),
             caret_track: Vec::new(),
             titles: Vec::new(),
+            cells: None,
         };
         self.session.close().await;
         Stopped {

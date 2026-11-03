@@ -18,6 +18,7 @@ opsis-compile.workspace = true
 opsis-engine.workspace = true
 opsis-image.workspace = true
 opsis-media.workspace = true
+opsis-terminal.workspace = true
 opsis-types.workspace = true
 serde.workspace = true
 serde_json.workspace = true

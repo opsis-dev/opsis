@@ -7,6 +7,8 @@ export function Screen({ screen, timeS, fit }: { screen: ScreenProps; timeS: num
       return screen.footageUrl ? (
         <FootageFrame url={screen.footageUrl} timeS={timeS} fit={fit} />
       ) : null;
+    case "terminal":
+      return null;
   }
 }
 
@@ -14,5 +16,7 @@ export function hasScreen(screen: ScreenProps): boolean {
   switch (screen.kind) {
     case "footage":
       return Boolean(screen.footageUrl);
+    case "terminal":
+      return Boolean(screen.framesUrl);
   }
 }

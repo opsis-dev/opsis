@@ -87,6 +87,7 @@ pub enum Icon {
     Sparkles,
     Spline,
     SquareDashed,
+    SquareTerminal,
     StickyNote,
     Sun,
     Timer,

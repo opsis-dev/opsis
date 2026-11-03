@@ -4941,6 +4941,7 @@ dependencies = [
  "opsis-runner",
  "opsis-store",
  "opsis-stream",
+ "opsis-terminal",
  "opsis-traces",
  "opsis-types",
  "percent-encoding",
@@ -5038,6 +5039,7 @@ dependencies = [
  "opsis-golden",
  "opsis-image",
  "opsis-media",
+ "opsis-terminal",
  "opsis-types",
  "pretty_assertions",
  "proptest",
@@ -5199,7 +5201,9 @@ dependencies = [
  "opsis-probe",
  "opsis-project",
  "opsis-runner",
+ "opsis-terminal",
  "opsis-types",
+ "regex",
  "serde",
  "serde_json",
  "specta",
@@ -5284,6 +5288,7 @@ dependencies = [
  "opsis-compile",
  "opsis-engine",
  "opsis-golden",
+ "opsis-runner",
  "opsis-types",
  "opsis-vt",
  "portable-pty",
@@ -5294,6 +5299,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror 2.0.21",
+ "tokio",
 ]
 
 [[package]]

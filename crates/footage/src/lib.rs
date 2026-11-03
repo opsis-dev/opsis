@@ -2,6 +2,7 @@ pub mod chain;
 pub mod decoder;
 pub mod footage;
 pub mod serve;
+pub mod terminal;
 
 #[derive(Debug, thiserror::Error)]
 pub enum FootageError {
@@ -15,4 +16,6 @@ pub enum FootageError {
     NoFrames,
     #[error("Couldn't save a frame: {0}")]
     Encode(String),
+    #[error("Couldn't draw the terminal take: {0}")]
+    Terminal(String),
 }

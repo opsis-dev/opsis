@@ -53,6 +53,12 @@ pub struct RedactTake {
         hidden
     )]
     pub frame_ms: f64,
+    #[setting(
+        "Text to hide",
+        help = "Patterns of text to hide wherever they show, such as sk-[A-Za-z0-9]+",
+        show_if_take = ["terminal"]
+    )]
+    pub text_to_hide: Vec<String>,
     #[setting("Hide with")]
     pub style: RedactStyle,
     #[setting(
@@ -111,6 +117,15 @@ pub struct RedactTake {
 
 impl Params for RedactTake {
     fn check(&self) -> Result<(), SettingsError> {
+        if self
+            .text_to_hide
+            .iter()
+            .any(|p| !p.trim().is_empty() && regex::Regex::new(p).is_err())
+        {
+            return Err(SettingsError::rule(
+                "A pattern in Text to hide isn't one Opsis can search for",
+            ));
+        }
         match (self.from_ms, self.until_ms) {
             (Some(from), Some(until)) if until <= from => {
                 Err(SettingsError::rule("Until must come after From"))

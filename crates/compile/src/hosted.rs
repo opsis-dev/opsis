@@ -7,7 +7,7 @@ use crate::asset_ref::{
     FOOTAGE_FOLDER, PREPARED_FOLDER, PREPARED_SCHEME, is_project_ref, join_url, project_rel_path,
 };
 use crate::fonts::film_fonts;
-use crate::footage::item_footage;
+use crate::footage::{TERMINAL_FRAMES, item_footage};
 
 const MAX_PROP_DEPTH: u32 = 3;
 
@@ -82,6 +82,12 @@ impl Host<'_> {
                         } => {
                             *footage_url = url;
                             self.string(src);
+                        }
+                        ScreenProps::Terminal {
+                            cast, frames_url, ..
+                        } => {
+                            *frames_url = url.map(|u| format!("{u}{TERMINAL_FRAMES}"));
+                            self.string(cast);
                         }
                     }
                     self.string(&mut props.shot.backdrop);

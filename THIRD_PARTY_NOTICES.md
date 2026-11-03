@@ -850,6 +850,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## VHS — crates/compile/src/terminal/themes.generated.json
+
+The terminal themes are VHS's `themes.json` (https://github.com/charmbracelet/vhs), copied by `bun run terminal:themes` at a pinned commit, and the default terminal theme is VHS's own. Licensed under the MIT License:
+
+```
+MIT License
+
+Copyright (c) 2022-2023 Charmbracelet, Inc
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Built-in sound effects — public/sfx
 
 Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero/1.0/). No attribution is required; credits are kept here. Each licence was read on the sound's own page or in its pack's licence file on 2026-10-31; each file was converted to 16-bit WAV at 44.1 kHz with the silence at its ends cut, and the camera shutter keeps the first of the recording's two shots.
