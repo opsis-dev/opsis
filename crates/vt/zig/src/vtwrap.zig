@@ -6,6 +6,9 @@ const Handler = Stream.Handler;
 const RenderState = vt.RenderState;
 const Style = vt.Style;
 const RGB = vt.color.RGB;
+const input = vt.input;
+const MouseSize = @FieldType(input.MouseEncodeOptions, "size");
+const Coordinate = vt.Coordinate;
 
 pub const std_options: std.Options = .{ .logFn = discardLog };
 
@@ -21,7 +24,7 @@ fn discardLog(
     _ = args;
 }
 
-const abi_version: u32 = 1;
+const abi_version: u32 = 2;
 const palette_entries = 259;
 
 const tag_palette: u32 = 1 << 24;
@@ -128,6 +131,8 @@ const Vt = struct {
     cell_height: u32,
     replies: std.ArrayList(u8),
     events: std.ArrayList(EventOut),
+    last_mouse_cell: ?Coordinate,
+    buttons_down: u32,
 
     fn fromHandler(handler: *Handler) *Vt {
         const stream: *Stream = @fieldParentPtr("handler", handler);
@@ -317,6 +322,8 @@ export fn opsis_vt_new(cols: u16, rows: u16, scrollback_rows: u32) ?*Vt {
     self.cell_height = 0;
     self.replies = .empty;
     self.events = .empty;
+    self.last_mouse_cell = null;
+    self.buttons_down = 0;
     return self;
 }
 
@@ -498,4 +505,163 @@ export fn opsis_vt_frame(
     st.dirty = .false;
     self.reported_palette = self.palette;
     return Status.ok;
+}
+
+const Encoded = struct {
+    const unknown_key: i32 = -1;
+    const too_small: i32 = -2;
+};
+
+const mods_mask: u16 = 0xF;
+
+fn modsOf(bits: u16) input.KeyMods {
+    return @bitCast(bits & mods_mask);
+}
+
+fn written(writer: *std.Io.Writer) i32 {
+    return @intCast(writer.end);
+}
+
+fn singleCodepoint(name: []const u8) ?u21 {
+    const view = std.unicode.Utf8View.init(name) catch return null;
+    var it = view.iterator();
+    const cp = it.nextCodepoint() orelse return null;
+    if (it.nextCodepoint() != null) return null;
+    return cp;
+}
+
+fn lowerAscii(cp: u21) u21 {
+    return if (cp >= 'A' and cp <= 'Z') cp + ('a' - 'A') else cp;
+}
+
+fn upperAscii(cp: u21) u21 {
+    return if (cp >= 'a' and cp <= 'z') cp - ('a' - 'A') else cp;
+}
+
+export fn opsis_vt_encode_key(
+    self: *Vt,
+    name_ptr: [*]const u8,
+    name_len: usize,
+    mods_bits: u16,
+    action: u8,
+    out: [*]u8,
+    cap: usize,
+) i32 {
+    const name = name_ptr[0..name_len];
+    const mods = modsOf(mods_bits);
+    var text: [4]u8 = undefined;
+    var event: input.KeyEvent = .{
+        .action = if (action == 1) .release else .press,
+        .mods = mods,
+    };
+    if (singleCodepoint(name)) |typed| {
+        const unshifted = lowerAscii(typed);
+        const shown = if (mods.shift) upperAscii(unshifted) else typed;
+        const len = std.unicode.utf8Encode(shown, &text) catch return Encoded.unknown_key;
+        event.key = if (unshifted < 128) input.Key.fromASCII(@intCast(unshifted)) orelse .unidentified else .unidentified;
+        event.utf8 = text[0..len];
+        event.unshifted_codepoint = unshifted;
+        if (mods.shift and shown != unshifted) event.consumed_mods = .{ .shift = true };
+    } else {
+        event.key = input.Key.fromW3C(name) orelse return Encoded.unknown_key;
+        if (event.key == .space) {
+            text[0] = ' ';
+            event.utf8 = text[0..1];
+            event.unshifted_codepoint = ' ';
+        }
+    }
+    var writer: std.Io.Writer = .fixed(out[0..cap]);
+    const opts: input.KeyEncodeOptions = .fromTerminal(&self.terminal);
+    input.encodeKey(&writer, event, opts) catch return Encoded.too_small;
+    return written(&writer);
+}
+
+export fn opsis_vt_mouse_reporting(self: *Vt) u8 {
+    return @intFromBool(self.terminal.flags.mouse_event != .none);
+}
+
+fn mouseButton(code: u8) ?input.MouseButton {
+    return switch (code) {
+        1 => .left,
+        2 => .right,
+        3 => .middle,
+        4 => .four,
+        5 => .five,
+        else => null,
+    };
+}
+
+export fn opsis_vt_encode_mouse(
+    self: *Vt,
+    action: u8,
+    button: u8,
+    mods_bits: u16,
+    col: u16,
+    row: u16,
+    out: [*]u8,
+    cap: usize,
+) i32 {
+    const cell_w: u32 = @max(self.cell_width, 1);
+    const cell_h: u32 = @max(self.cell_height, 1);
+    const size: MouseSize = .{
+        .screen = .{
+            .width = cell_w * @as(u32, self.terminal.cols),
+            .height = cell_h * @as(u32, self.terminal.rows),
+        },
+        .cell = .{ .width = cell_w, .height = cell_h },
+        .padding = .{},
+    };
+    const half: f32 = 0.5;
+    const event: input.MouseEncodeEvent = .{
+        .action = switch (action) {
+            1 => .release,
+            2 => .motion,
+            else => .press,
+        },
+        .button = mouseButton(button),
+        .mods = modsOf(mods_bits),
+        .pos = .{
+            .x = (@as(f32, @floatFromInt(col)) + half) * @as(f32, @floatFromInt(cell_w)),
+            .y = (@as(f32, @floatFromInt(row)) + half) * @as(f32, @floatFromInt(cell_h)),
+        },
+    };
+    var opts: input.MouseEncodeOptions = .fromTerminal(&self.terminal, size);
+    opts.any_button_pressed = self.buttons_down > 0;
+    opts.last_cell = &self.last_mouse_cell;
+    var writer: std.Io.Writer = .fixed(out[0..cap]);
+    input.encodeMouse(&writer, event, opts) catch return Encoded.too_small;
+    const pressable = button >= 1 and button <= 3;
+    if (pressable and event.action == .press) self.buttons_down += 1;
+    if (pressable and event.action == .release and self.buttons_down > 0) self.buttons_down -= 1;
+    return written(&writer);
+}
+
+export fn opsis_vt_paste_safe(self: *Vt, ptr: [*]const u8, len: usize) u8 {
+    return @intFromBool(input.isSafePasteWith(ptr[0..len], .fromTerminal(&self.terminal)));
+}
+
+export fn opsis_vt_encode_paste(
+    self: *Vt,
+    ptr: [*]const u8,
+    len: usize,
+    out: [*]u8,
+    cap: usize,
+) i64 {
+    var writer: std.Io.Writer = .fixed(out[0..cap]);
+    input.encodePasteWriter(&writer, ptr[0..len], .fromTerminal(&self.terminal)) catch return Encoded.too_small;
+    return @intCast(writer.end);
+}
+
+export fn opsis_vt_encode_focus(self: *Vt, gained: u8, out: [*]u8, cap: usize) i32 {
+    if (!self.terminal.modes.get(.focus_event)) return 0;
+    var writer: std.Io.Writer = .fixed(out[0..cap]);
+    input.encodeFocus(&writer, if (gained != 0) .gained else .lost) catch return Encoded.too_small;
+    return written(&writer);
+}
+
+export fn opsis_vt_pointer_shape(self: *Vt, out: [*]u8, cap: usize) usize {
+    const name = @tagName(self.terminal.mouse_shape);
+    const n = @min(cap, name.len);
+    for (name[0..n], 0..) |ch, i| out[i] = if (ch == '_') '-' else ch;
+    return name.len;
 }

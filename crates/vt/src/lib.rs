@@ -9,10 +9,12 @@ mod error;
 mod event;
 mod ffi;
 mod frame;
+mod input;
 mod terminal;
 
 pub use cell::{Cell, CellWidth, Colour, Flags, Rgb, Underline};
 pub use error::VtError;
 pub use event::{Event, Modes};
 pub use frame::{Cursor, CursorShape, Frame, Palette, Row, RowId};
+pub use input::{CellPoint, KeyAction, KeyMods, MouseAction, MouseButton};
 pub use terminal::{Terminal, check_abi};

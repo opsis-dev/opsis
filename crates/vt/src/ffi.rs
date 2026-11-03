@@ -1,4 +1,5 @@
-pub const ABI_VERSION: u32 = 1;
+pub const ABI_VERSION: u32 = 2;
+pub const ENCODED_TOO_SMALL: i32 = -2;
 pub const PALETTE_ENTRIES: usize = 259;
 
 pub const STATUS_OK: u32 = 0;
@@ -99,4 +100,34 @@ unsafe extern "C" {
         graphemes: *mut u32,
         graphemes_cap: usize,
     ) -> u32;
+    pub fn opsis_vt_encode_key(
+        vt: *mut RawVt,
+        name: *const u8,
+        name_len: usize,
+        mods: u16,
+        action: u8,
+        out: *mut u8,
+        cap: usize,
+    ) -> i32;
+    pub fn opsis_vt_mouse_reporting(vt: *mut RawVt) -> u8;
+    pub fn opsis_vt_encode_mouse(
+        vt: *mut RawVt,
+        action: u8,
+        button: u8,
+        mods: u16,
+        col: u16,
+        row: u16,
+        out: *mut u8,
+        cap: usize,
+    ) -> i32;
+    pub fn opsis_vt_paste_safe(vt: *mut RawVt, ptr: *const u8, len: usize) -> u8;
+    pub fn opsis_vt_encode_paste(
+        vt: *mut RawVt,
+        ptr: *const u8,
+        len: usize,
+        out: *mut u8,
+        cap: usize,
+    ) -> i64;
+    pub fn opsis_vt_encode_focus(vt: *mut RawVt, gained: u8, out: *mut u8, cap: usize) -> i32;
+    pub fn opsis_vt_pointer_shape(vt: *mut RawVt, out: *mut u8, cap: usize) -> usize;
 }

@@ -4,7 +4,7 @@ Record real terminal sessions in Opsis the way browser takes are recorded: a pro
 
 A terminal take is a `recording`, like a browser take. To make that true rather than bolted on, the recording itself is rebuilt first: a take is source-independent (its log, length and edits) with the source as an enum, the window draws a pluggable screen, and Auto zoom splits into a plain applier plus style nodes. Every camera move, style and modifier then works on both kinds of take.
 
-Status: `opsis-vt` is built (commit `74a02df1`), and so is the take model with Clip from take (phase 2, for browser takes). Everything else is planned.
+Status: `opsis-vt` is built (commit `74a02df1`), the take model with Clip from take (phase 2, for browser takes), and the input encoders (phase 3). Everything else is planned.
 
 ## Decisions
 
@@ -188,7 +188,7 @@ Built. What it is today:
 - **Tests.** 15 interop tests, properties over generated input: the ABI, ASCII rows, feeding in chunks against feeding at once, SGR attributes, wide characters, combining marks and ZWJ sequences, query replies, cursor walks, scrolling, prompt marks, render holds, resizes and palette changes.
 - **Known.** Ghostty drops an escape sequence with more than 24 parameters. CI runs the tests in debug and release on Linux, macOS and Windows; Windows debug linking is the one not yet seen.
 
-To add:
+Built in phase 3:
 
 - **Input encoders.** Exports for Ghostty's `encodeKey` (options from the terminal: cursor and keypad modes, kitty keyboard flags, modifyOtherKeys, Alt as escape), `encodeMouse` (the program's mouse modes and format, cell size from `set_cell_size`), `encodePaste` (bracketed paste and its safety check) and `encodeFocus`, and the pointer shape the program asked for (`terminal.mouse_shape`). Safe methods `key_bytes`, `mouse_bytes`, `paste_bytes`, `focus_bytes`, `pointer_shape`. Tests: generated chords against Ghostty's own encoder through the safe API, in every mode a program can set.
 
@@ -415,7 +415,7 @@ Still to do, with the phases they belong to:
 
 1. **`opsis-vt`.** Done.
 2. **The take model and Clip from take** (browser only, everything green). Done: `RecordingValue` with `TakeSource`, `RecordingProps` with its groups and `ScreenProps`, `Screen` in `DemoClip`, Auto zoom split into Clip from take, Camera and Shot, Window frame's bar, Save take, refused conversions (`EditorCompile.converts`, the canvas check, `edit_workflow`, the validation error), `x-show-if-take`, `InputTake.kind`, `types:export`, `examples/` and templates, golden files recorded again.
-3. **`opsis-vt` input encoders.**
+3. **`opsis-vt` input encoders.** Done
 4. **`opsis-terminal` core**: shells, session, input, driver (mouse steps, targets, caret and title tracks), take, `.cast`, visible timeline, frames, prepare with resolved colours and masking, with their tests.
 5. **Terminal nodes and compile**: the session port, the action nodes, Record terminal take, Terminal look, the terminal footage use and its server route, `terminal_frames`, the fonts in the film's list, themes, executors.
 6. **Film page and fonts**: the font bundle, `@opsis/video/terminal` (frames, sprites, `TerminalView`), `TerminalScreen`, `Screen`; the render test and the end-to-end test.

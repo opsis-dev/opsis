@@ -4,8 +4,14 @@ use crate::error::VtError;
 use crate::event::{Event, Modes};
 use crate::ffi::{self, CellOut, EventOut, PALETTE_ENTRIES, RawVt, RowOut, Sizes};
 use crate::frame::{Buffers, Frame, Palette, index};
+use crate::input::{CellPoint, KeyAction, KeyMods, MouseAction, MouseButton};
 
 const FRAME_ATTEMPTS: usize = 4;
+const KEY_BYTES: usize = 64;
+const MOUSE_BYTES: usize = 64;
+const FOCUS_BYTES: usize = 8;
+const PASTE_FRAME_BYTES: usize = 16;
+const SHAPE_BYTES: usize = 32;
 
 #[derive(Debug)]
 pub struct Terminal {
@@ -169,6 +175,106 @@ impl Terminal {
             }
         }
         Err(VtError::OutOfMemory)
+    }
+}
+
+impl Terminal {
+    fn encoded(
+        &self,
+        start: usize,
+        mut encode: impl FnMut(*mut RawVt, *mut u8, usize) -> i64,
+    ) -> Result<Vec<u8>, i64> {
+        let mut cap = start;
+        loop {
+            let mut out = vec![0; cap];
+            let n = encode(self.raw(), out.as_mut_ptr(), out.len());
+            if n == i64::from(ffi::ENCODED_TOO_SMALL) && cap < start << 8 {
+                cap <<= 1;
+                continue;
+            }
+            let Ok(n) = usize::try_from(n) else {
+                return Err(n);
+            };
+            out.truncate(n);
+            return Ok(out);
+        }
+    }
+
+    pub fn key_bytes(
+        &mut self,
+        key: &str,
+        mods: KeyMods,
+        action: KeyAction,
+    ) -> Result<Vec<u8>, VtError> {
+        let bits = mods.bits();
+        self.encoded(KEY_BYTES, |raw, out, cap| {
+            i64::from(unsafe {
+                ffi::opsis_vt_encode_key(
+                    raw,
+                    key.as_ptr(),
+                    key.len(),
+                    bits,
+                    action.code(),
+                    out,
+                    cap,
+                )
+            })
+        })
+        .map_err(|_| VtError::UnknownKey(key.to_owned()))
+    }
+
+    pub fn mouse_reporting(&mut self) -> bool {
+        unsafe { ffi::opsis_vt_mouse_reporting(self.raw()) != 0 }
+    }
+
+    pub fn mouse_bytes(
+        &mut self,
+        action: MouseAction,
+        button: MouseButton,
+        mods: KeyMods,
+        at: CellPoint,
+    ) -> Vec<u8> {
+        let bits = mods.bits();
+        self.encoded(MOUSE_BYTES, |raw, out, cap| {
+            i64::from(unsafe {
+                ffi::opsis_vt_encode_mouse(
+                    raw,
+                    action.code(),
+                    button.code(),
+                    bits,
+                    at.col,
+                    at.row,
+                    out,
+                    cap,
+                )
+            })
+        })
+        .unwrap_or_default()
+    }
+
+    pub fn paste_is_safe(&mut self, text: &str) -> bool {
+        unsafe { ffi::opsis_vt_paste_safe(self.raw(), text.as_ptr(), text.len()) != 0 }
+    }
+
+    pub fn paste_bytes(&mut self, text: &str) -> Vec<u8> {
+        self.encoded(text.len() + PASTE_FRAME_BYTES, |raw, out, cap| unsafe {
+            ffi::opsis_vt_encode_paste(raw, text.as_ptr(), text.len(), out, cap)
+        })
+        .unwrap_or_default()
+    }
+
+    pub fn focus_bytes(&mut self, gained: bool) -> Vec<u8> {
+        self.encoded(FOCUS_BYTES, |raw, out, cap| {
+            i64::from(unsafe { ffi::opsis_vt_encode_focus(raw, u8::from(gained), out, cap) })
+        })
+        .unwrap_or_default()
+    }
+
+    pub fn pointer_shape(&mut self) -> String {
+        let mut out = vec![0; SHAPE_BYTES];
+        let n = unsafe { ffi::opsis_vt_pointer_shape(self.raw(), out.as_mut_ptr(), out.len()) };
+        out.truncate(n.min(SHAPE_BYTES));
+        String::from_utf8_lossy(&out).into_owned()
     }
 }
 
